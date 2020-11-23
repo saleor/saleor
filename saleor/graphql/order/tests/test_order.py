@@ -584,7 +584,7 @@ def test_order_confirm(
     assert order_data["status"] == OrderStatus.UNFULFILLED.upper()
     order_unconfirmed.refresh_from_db()
     assert order_unconfirmed.status == OrderStatus.UNFULFILLED
-    assert OrderEvent.objects.count() == 2
+    assert OrderEvent.objects.count() == 3
     assert OrderEvent.objects.filter(
         order=order_unconfirmed,
         user=staff_api_client.user,
@@ -595,6 +595,12 @@ def test_order_confirm(
         user=staff_api_client.user,
         type=order_events.OrderEvents.EMAIL_SENT,
         parameters__email=order_unconfirmed.get_customer_email(),
+    ).exists()
+    assert OrderEvent.objects.filter(
+        order=order_unconfirmed,
+        user=staff_api_client.user,
+        type=order_events.OrderEvents.PAYMENT_CAPTURED,
+        parameters__amount=payment_txn_preauth.get_total().amount,
     ).exists()
     capture_mock.assert_called_once_with(payment_txn_preauth)
 

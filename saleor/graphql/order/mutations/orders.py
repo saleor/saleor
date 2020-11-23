@@ -523,5 +523,6 @@ class OrderConfirm(ModelMutation):
         payment = order.get_last_payment()
         if payment and payment.is_authorized:
             gateway.capture(payment)
+            order_captured(order, info.context.user, payment.total, payment)
         order_confirmed(order, info.context.user, send_confirmation_email=True)
         return OrderConfirm(order=order)
