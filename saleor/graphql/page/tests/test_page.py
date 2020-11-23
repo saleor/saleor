@@ -7,7 +7,7 @@ from django.utils.text import slugify
 from freezegun import freeze_time
 
 from ....page.error_codes import PageErrorCode
-from ....page.models import Page
+from ....page.models import Page, PageType
 from ...tests.utils import get_graphql_content
 
 PAGE_QUERY = """
@@ -151,6 +151,10 @@ CREATE_PAGE_MUTATION = """
                     }
                     values {
                         slug
+                        file {
+                            url
+                            contentType
+                        }
                     }
                 }
             }
@@ -345,6 +349,239 @@ def test_page_create_mutation_empty_attribute_value(
     assert errors[0]["attributes"] == [
         graphene.Node.to_global_id("Attribute", tag_attr.pk)
     ]
+
+
+def test_create_page_with_file_attribute(
+    staff_api_client, permission_manage_pages, page_type, file_page_attribute
+):
+    # given
+    page_slug = "test-slug"
+    page_content = "test content"
+    page_content_json = json.dumps({"content": "test content"})
+    page_title = "test title"
+    page_is_published = True
+    page_type = PageType.objects.create(
+        name="Test page type 2", slug="test-page-type-2"
+    )
+    page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
+
+    file_attribute_id = graphene.Node.to_global_id("Attribute", file_page_attribute.pk)
+    page_type.page_attributes.add(file_page_attribute)
+    attr_value = file_page_attribute.values.first()
+
+    values_count = file_page_attribute.values.count()
+
+    # test creating root page
+    variables = {
+        "title": page_title,
+        "content": page_content,
+        "contentJson": page_content_json,
+        "isPublished": page_is_published,
+        "slug": page_slug,
+        "pageType": page_type_id,
+        "attributes": [{"id": file_attribute_id, "file": attr_value.file_url}],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_PAGE_MUTATION, variables, permissions=[permission_manage_pages]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["pageCreate"]
+    errors = data["pageErrors"]
+
+    assert not errors
+    assert data["page"]["title"] == page_title
+    assert data["page"]["content"] == page_content
+    assert data["page"]["contentJson"] == page_content_json
+    assert data["page"]["slug"] == page_slug
+    assert data["page"]["isPublished"] == page_is_published
+    assert data["page"]["pageType"]["id"] == page_type_id
+    assert len(data["page"]["attributes"]) == 1
+    expected_attr_data = {
+        "attribute": {"slug": file_page_attribute.slug},
+        "values": [
+            {
+                "slug": attr_value.slug,
+                "file": {
+                    "url": attr_value.file_url,
+                    "contentType": attr_value.content_type,
+                },
+            }
+        ],
+    }
+    assert data["page"]["attributes"][0] == expected_attr_data
+
+    file_page_attribute.refresh_from_db()
+    assert file_page_attribute.values.count() == values_count
+
+
+def test_create_page_with_file_attribute_new_attribute_value(
+    staff_api_client, permission_manage_pages, page_type, file_page_attribute
+):
+    # given
+    page_slug = "test-slug"
+    page_content = "test content"
+    page_content_json = json.dumps({"content": "test content"})
+    page_title = "test title"
+    page_is_published = True
+    page_type = PageType.objects.create(
+        name="Test page type 2", slug="test-page-type-2"
+    )
+    page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
+
+    file_attribute_id = graphene.Node.to_global_id("Attribute", file_page_attribute.pk)
+    page_type.page_attributes.add(file_page_attribute)
+    new_value = "new_test_value.txt"
+    new_value_content_type = "text/plain"
+
+    values_count = file_page_attribute.values.count()
+
+    # test creating root page
+    variables = {
+        "title": page_title,
+        "content": page_content,
+        "contentJson": page_content_json,
+        "isPublished": page_is_published,
+        "slug": page_slug,
+        "pageType": page_type_id,
+        "attributes": [
+            {
+                "id": file_attribute_id,
+                "file": new_value,
+                "contentType": new_value_content_type,
+            }
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_PAGE_MUTATION, variables, permissions=[permission_manage_pages]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["pageCreate"]
+    errors = data["pageErrors"]
+
+    assert not errors
+    assert data["page"]["title"] == page_title
+    assert data["page"]["content"] == page_content
+    assert data["page"]["contentJson"] == page_content_json
+    assert data["page"]["slug"] == page_slug
+    assert data["page"]["isPublished"] == page_is_published
+    assert data["page"]["pageType"]["id"] == page_type_id
+    assert len(data["page"]["attributes"]) == 1
+    expected_attr_data = {
+        "attribute": {"slug": file_page_attribute.slug},
+        "values": [
+            {
+                "slug": slugify(new_value),
+                "file": {"url": new_value, "contentType": new_value_content_type},
+            }
+        ],
+    }
+    assert data["page"]["attributes"][0] == expected_attr_data
+
+    file_page_attribute.refresh_from_db()
+    assert file_page_attribute.values.count() == values_count + 1
+
+
+def test_create_page_with_file_attribute_not_required_no_file_url_given(
+    staff_api_client, permission_manage_pages, page_type, file_page_attribute
+):
+    # given
+    page_slug = "test-slug"
+    page_content = "test content"
+    page_content_json = json.dumps({"content": "test content"})
+    page_title = "test title"
+    page_is_published = True
+    page_type = PageType.objects.create(
+        name="Test page type 2", slug="test-page-type-2"
+    )
+    page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
+
+    file_attribute_id = graphene.Node.to_global_id("Attribute", file_page_attribute.pk)
+    page_type.page_attributes.add(file_page_attribute)
+
+    file_page_attribute.value_required = False
+    file_page_attribute.save(update_fields=["value_required"])
+
+    # test creating root page
+    variables = {
+        "title": page_title,
+        "content": page_content,
+        "contentJson": page_content_json,
+        "isPublished": page_is_published,
+        "slug": page_slug,
+        "pageType": page_type_id,
+        "attributes": [{"id": file_attribute_id, "file": ""}],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_PAGE_MUTATION, variables, permissions=[permission_manage_pages]
+    )
+
+    content = get_graphql_content(response)
+    data = content["data"]["pageCreate"]
+    assert data["pageErrors"] == []
+    assert data["page"]["title"] == page_title
+    assert data["page"]["content"] == page_content
+    assert data["page"]["contentJson"] == page_content_json
+    assert data["page"]["slug"] == page_slug
+    assert data["page"]["isPublished"] == page_is_published
+    assert data["page"]["pageType"]["id"] == page_type_id
+    assert len(data["page"]["attributes"]) == 1
+    assert len(data["page"]["attributes"][0]["values"]) == 0
+
+
+def test_create_page_with_file_attribute_required_no_file_url_given(
+    staff_api_client, permission_manage_pages, page_type, file_page_attribute
+):
+    # given
+    page_slug = "test-slug"
+    page_content = "test content"
+    page_content_json = json.dumps({"content": "test content"})
+    page_title = "test title"
+    page_is_published = True
+    page_type = PageType.objects.create(
+        name="Test page type 2", slug="test-page-type-2"
+    )
+    page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
+
+    file_attribute_id = graphene.Node.to_global_id("Attribute", file_page_attribute.pk)
+    page_type.page_attributes.add(file_page_attribute)
+
+    file_page_attribute.value_required = True
+    file_page_attribute.save(update_fields=["value_required"])
+
+    # test creating root page
+    variables = {
+        "title": page_title,
+        "content": page_content,
+        "contentJson": page_content_json,
+        "isPublished": page_is_published,
+        "slug": page_slug,
+        "pageType": page_type_id,
+        "attributes": [{"id": file_attribute_id, "file": ""}],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_PAGE_MUTATION, variables, permissions=[permission_manage_pages]
+    )
+
+    content = get_graphql_content(response)
+    data = content["data"]["pageCreate"]
+    errors = data["pageErrors"]
+    assert not data["page"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PageErrorCode.REQUIRED.name
+    assert errors[0]["field"] == "attributes"
+    assert errors[0]["attributes"] == [file_attribute_id]
 
 
 def test_page_delete_mutation(staff_api_client, page, permission_manage_pages):

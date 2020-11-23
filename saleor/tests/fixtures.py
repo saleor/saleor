@@ -714,6 +714,31 @@ def author_page_attribute(db):
 
 
 @pytest.fixture
+def file_page_attribute(db):
+    attribute = Attribute.objects.create(
+        slug="image",
+        name="Image",
+        type=AttributeType.PAGE_TYPE,
+        input_type=AttributeInputType.FILE,
+    )
+    AttributeValue.objects.create(
+        attribute=attribute,
+        name="test_file.txt",
+        slug="test_filetxt",
+        file_url="test_file.txt",
+        content_type="text/plain",
+    )
+    AttributeValue.objects.create(
+        attribute=attribute,
+        name="test_file.jpeg",
+        slug="test_filejpeg",
+        file_url="test_file.jpeg",
+        content_type="image/jpeg",
+    )
+    return attribute
+
+
+@pytest.fixture
 def product_type_attribute_list() -> List[Attribute]:
     return list(
         Attribute.objects.bulk_create(
