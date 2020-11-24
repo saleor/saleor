@@ -785,13 +785,14 @@ DRAFT_ORDER_CREATE_MUTATION = """
     mutation draftCreate(
         $user: ID, $discount: PositiveDecimal, $lines: [OrderLineCreateInput],
         $shippingAddress: AddressInput, $shippingMethod: ID, $voucher: ID,
-        $customerNote: String, $channel: ID
+        $customerNote: String, $channel: ID, $redirectUrl: String
         ) {
             draftOrderCreate(
                 input: {user: $user, discount: $discount,
                 lines: $lines, shippingAddress: $shippingAddress,
                 shippingMethod: $shippingMethod, voucher: $voucher,
                 channel: $channel,
+                redirectUrl: $redirectUrl,
                 customerNote: $customerNote}) {
                     orderErrors {
                         field
@@ -804,6 +805,7 @@ DRAFT_ORDER_CREATE_MUTATION = """
                             amount
                         }
                         discountName
+                        redirectUrl
                         lines {
                             productName
                             productSku
@@ -854,6 +856,8 @@ def test_draft_order_create(
     shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    redirect_url = "https://www.example.com"
+
     variables = {
         "user": user_id,
         "discount": discount,
@@ -863,6 +867,7 @@ def test_draft_order_create(
         "voucher": voucher_id,
         "customerNote": customer_note,
         "channel": channel_id,
+        "redirectUrl": redirect_url,
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
@@ -873,6 +878,7 @@ def test_draft_order_create(
     assert data["status"] == OrderStatus.DRAFT.upper()
     assert data["voucher"]["code"] == voucher.code
     assert data["customerNote"] == customer_note
+    assert data["redirectUrl"] == redirect_url
 
     order = Order.objects.first()
     assert order.user == customer_user
@@ -2871,28 +2877,34 @@ def test_order_capture(
     }
 
 
+MUTATION_MARK_ORDER_AS_PAID = """
+    mutation markPaid($id: ID!, $transaction: String) {
+        orderMarkAsPaid(id: $id, transactionReference: $transaction) {
+            errors {
+                field
+                message
+            }
+            orderErrors {
+                field
+                message
+                code
+            }
+            order {
+                isPaid
+                events{
+                    transactionReference
+                }
+            }
+        }
+    }
+"""
+
+
 def test_paid_order_mark_as_paid(
     staff_api_client, permission_manage_orders, payment_txn_preauth
 ):
     order = payment_txn_preauth.order
-    query = """
-            mutation markPaid($id: ID!) {
-                orderMarkAsPaid(id: $id) {
-                    errors {
-                        field
-                        message
-                    }
-                    orderErrors {
-                        field
-                        message
-                        code
-                    }
-                    order {
-                        isPaid
-                    }
-                }
-            }
-        """
+    query = MUTATION_MARK_ORDER_AS_PAID
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
     response = staff_api_client.post_graphql(
@@ -2908,23 +2920,42 @@ def test_paid_order_mark_as_paid(
     assert order_errors[0]["code"] == OrderErrorCode.PAYMENT_ERROR.name
 
 
+def test_order_mark_as_paid_with_external_reference(
+    staff_api_client, permission_manage_orders, order_with_lines, staff_user
+):
+    transaction_reference = "searchable-id"
+    order = order_with_lines
+    query = MUTATION_MARK_ORDER_AS_PAID
+    assert not order.is_fully_paid()
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id, "transaction": transaction_reference}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+
+    data = content["data"]["orderMarkAsPaid"]["order"]
+    order.refresh_from_db()
+    assert data["isPaid"] is True
+    assert len(data["events"]) == 1
+    assert data["events"][0]["transactionReference"] == transaction_reference
+    assert order.is_fully_paid()
+    event_order_paid = order.events.first()
+    assert event_order_paid.type == order_events.OrderEvents.ORDER_MARKED_AS_PAID
+    assert event_order_paid.user == staff_user
+    event_reference = event_order_paid.parameters.get("transaction_reference")
+    assert event_reference == transaction_reference
+    order_payments = order.payments.filter(
+        transactions__searchable_key=transaction_reference
+    )
+    assert order_payments.count() == 1
+
+
 def test_order_mark_as_paid(
     staff_api_client, permission_manage_orders, order_with_lines, staff_user
 ):
     order = order_with_lines
-    query = """
-            mutation markPaid($id: ID!) {
-                orderMarkAsPaid(id: $id) {
-                    errors {
-                        field
-                        message
-                    }
-                    order {
-                        isPaid
-                    }
-                }
-            }
-        """
+    query = MUTATION_MARK_ORDER_AS_PAID
     assert not order.is_fully_paid()
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
@@ -2948,15 +2979,7 @@ def test_order_mark_as_paid_no_billing_address(
     order_with_lines.billing_address = None
     order_with_lines.save()
 
-    query = """
-            mutation markPaid($id: ID!) {
-                orderMarkAsPaid(id: $id) {
-                    orderErrors {
-                        code
-                    }
-                }
-            }
-        """
+    query = MUTATION_MARK_ORDER_AS_PAID
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
     response = staff_api_client.post_graphql(

@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from ...attribute import models as attribute_models
 from ...core.permissions import SitePermissions
 from ...discount import models as discount_models
 from ...menu import models as menu_models
@@ -162,7 +163,7 @@ class AttributeTranslate(BaseTranslateMutation):
 
     class Meta:
         description = "Creates/Updates translations for attribute."
-        model = product_models.Attribute
+        model = attribute_models.Attribute
         error_type_class = TranslationError
         error_type_field = "translation_errors"
 
@@ -177,7 +178,7 @@ class AttributeValueTranslate(BaseTranslateMutation):
 
     class Meta:
         description = "Creates/Updates translations for attribute value."
-        model = product_models.AttributeValue
+        model = attribute_models.AttributeValue
         error_type_class = TranslationError
         error_type_field = "translation_errors"
 

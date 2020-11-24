@@ -395,6 +395,7 @@ type Attribute implements Node & ObjectWithMetadata {
   inputType: AttributeInputTypeEnum
   name: String
   slug: String
+  type: AttributeTypeEnum
   values: [AttributeValue]
   valueRequired: Boolean!
   visibleInStorefront: Boolean!
@@ -405,21 +406,10 @@ type Attribute implements Node & ObjectWithMetadata {
   storefrontSearchPosition: Int!
 }
 
-type AttributeAssign {
-  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  productType: ProductType
-  productErrors: [ProductError!]!
-}
-
-input AttributeAssignInput {
-  id: ID!
-  type: AttributeTypeEnum!
-}
-
 type AttributeBulkDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   count: Int!
-  productErrors: [ProductError!]!
+  attributeErrors: [AttributeError!]!
 }
 
 type AttributeCountableConnection {
@@ -436,13 +426,14 @@ type AttributeCountableEdge {
 type AttributeCreate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   attribute: Attribute
-  productErrors: [ProductError!]!
+  attributeErrors: [AttributeError!]!
 }
 
 input AttributeCreateInput {
   inputType: AttributeInputTypeEnum
   name: String!
   slug: String
+  type: AttributeTypeEnum!
   values: [AttributeValueCreateInput]
   valueRequired: Boolean
   isVariantOnly: Boolean
@@ -455,8 +446,23 @@ input AttributeCreateInput {
 
 type AttributeDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  productErrors: [ProductError!]!
+  attributeErrors: [AttributeError!]!
   attribute: Attribute
+}
+
+type AttributeError {
+  field: String
+  message: String
+  code: AttributeErrorCode!
+}
+
+enum AttributeErrorCode {
+  ALREADY_EXISTS
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
 }
 
 input AttributeFilterInput {
@@ -468,6 +474,7 @@ input AttributeFilterInput {
   availableInGrid: Boolean
   search: String
   ids: [ID]
+  type: AttributeTypeEnum
   inCollection: ID
   inCategory: ID
   channel: String
@@ -487,7 +494,7 @@ enum AttributeInputTypeEnum {
 type AttributeReorderValues {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   attribute: Attribute
-  productErrors: [ProductError!]!
+  attributeErrors: [AttributeError!]!
 }
 
 enum AttributeSortField {
@@ -527,20 +534,14 @@ type AttributeTranslation implements Node {
 }
 
 enum AttributeTypeEnum {
-  PRODUCT
-  VARIANT
-}
-
-type AttributeUnassign {
-  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  productType: ProductType
-  productErrors: [ProductError!]!
+  PRODUCT_TYPE
+  PAGE_TYPE
 }
 
 type AttributeUpdate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   attribute: Attribute
-  productErrors: [ProductError!]!
+  attributeErrors: [AttributeError!]!
 }
 
 input AttributeUpdateInput {
@@ -569,13 +570,13 @@ type AttributeValue implements Node {
 type AttributeValueBulkDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   count: Int!
-  productErrors: [ProductError!]!
+  attributeErrors: [AttributeError!]!
 }
 
 type AttributeValueCreate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   attribute: Attribute
-  productErrors: [ProductError!]!
+  attributeErrors: [AttributeError!]!
   attributeValue: AttributeValue
 }
 
@@ -586,7 +587,7 @@ input AttributeValueCreateInput {
 type AttributeValueDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   attribute: Attribute
-  productErrors: [ProductError!]!
+  attributeErrors: [AttributeError!]!
   attributeValue: AttributeValue
 }
 
@@ -624,7 +625,7 @@ enum AttributeValueType {
 type AttributeValueUpdate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   attribute: Attribute
-  productErrors: [ProductError!]!
+  attributeErrors: [AttributeError!]!
   attributeValue: AttributeValue
 }
 
@@ -1798,6 +1799,7 @@ input DraftOrderCreateInput {
   voucher: ID
   customerNote: String
   channel: ID
+  redirectUrl: String
   lines: [OrderLineCreateInput]
 }
 
@@ -1817,6 +1819,7 @@ input DraftOrderInput {
   voucher: ID
   customerNote: String
   channel: ID
+  redirectUrl: String
 }
 
 type DraftOrderLineDelete {
@@ -2562,19 +2565,8 @@ type Mutation {
   shippingZoneDelete(id: ID!): ShippingZoneDelete
   shippingZoneBulkDelete(ids: [ID]!): ShippingZoneBulkDelete
   shippingZoneUpdate(id: ID!, input: ShippingZoneUpdateInput!): ShippingZoneUpdate
-  attributeCreate(input: AttributeCreateInput!): AttributeCreate
-  attributeDelete(id: ID!): AttributeDelete
-  attributeBulkDelete(ids: [ID]!): AttributeBulkDelete
-  attributeAssign(operations: [AttributeAssignInput]!, productTypeId: ID!): AttributeAssign
-  attributeUnassign(attributeIds: [ID]!, productTypeId: ID!): AttributeUnassign
-  attributeUpdate(id: ID!, input: AttributeUpdateInput!): AttributeUpdate
-  attributeTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): AttributeTranslate
-  attributeValueCreate(attribute: ID!, input: AttributeValueCreateInput!): AttributeValueCreate
-  attributeValueDelete(id: ID!): AttributeValueDelete
-  attributeValueBulkDelete(ids: [ID]!): AttributeValueBulkDelete
-  attributeValueUpdate(id: ID!, input: AttributeValueCreateInput!): AttributeValueUpdate
-  attributeValueTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): AttributeValueTranslate
-  attributeReorderValues(attributeId: ID!, moves: [ReorderInput]!): AttributeReorderValues
+  productAttributeAssign(operations: [ProductAttributeAssignInput]!, productTypeId: ID!): ProductAttributeAssign
+  productAttributeUnassign(attributeIds: [ID]!, productTypeId: ID!): ProductAttributeUnassign
   categoryCreate(input: CategoryInput!, parent: ID): CategoryCreate
   categoryDelete(id: ID!): CategoryDelete
   categoryBulkDelete(ids: [ID]!): CategoryBulkDelete
@@ -2605,7 +2597,7 @@ type Mutation {
   productTypeDelete(id: ID!): ProductTypeDelete
   productTypeBulkDelete(ids: [ID]!): ProductTypeBulkDelete
   productTypeUpdate(id: ID!, input: ProductTypeInput!): ProductTypeUpdate
-  productTypeReorderAttributes(moves: [ReorderInput]!, productTypeId: ID!, type: AttributeTypeEnum!): ProductTypeReorderAttributes
+  productTypeReorderAttributes(moves: [ReorderInput]!, productTypeId: ID!, type: ProductAttributeType!): ProductTypeReorderAttributes
   digitalContentCreate(input: DigitalContentUploadInput!, variantId: ID!): DigitalContentCreate
   digitalContentDelete(variantId: ID!): DigitalContentDelete
   digitalContentUpdate(input: DigitalContentInput!, variantId: ID!): DigitalContentUpdate
@@ -2627,12 +2619,19 @@ type Mutation {
   paymentRefund(amount: PositiveDecimal, paymentId: ID!): PaymentRefund
   paymentVoid(paymentId: ID!): PaymentVoid
   paymentInitialize(gateway: String!, paymentData: JSONString): PaymentInitialize
-  pageCreate(input: PageInput!): PageCreate
+  pageCreate(input: PageCreateInput!): PageCreate
   pageDelete(id: ID!): PageDelete
   pageBulkDelete(ids: [ID]!): PageBulkDelete
   pageBulkPublish(ids: [ID]!, isPublished: Boolean!): PageBulkPublish
   pageUpdate(id: ID!, input: PageInput!): PageUpdate
   pageTranslate(id: ID!, input: PageTranslationInput!, languageCode: LanguageCodeEnum!): PageTranslate
+  pageTypeCreate(input: PageTypeCreateInput!): PageTypeCreate
+  pageTypeUpdate(id: ID, input: PageTypeUpdateInput!): PageTypeUpdate
+  pageTypeDelete(id: ID!): PageTypeDelete
+  pageTypeBulkDelete(ids: [ID!]!): PageTypeBulkDelete
+  pageAttributeAssign(attributeIds: [ID!]!, pageTypeId: ID!): PageAttributeAssign
+  pageAttributeUnassign(attributeIds: [ID!]!, pageTypeId: ID!): PageAttributeUnassign
+  pageTypeReorderAttributes(moves: [ReorderInput!]!, pageTypeId: ID!): PageTypeReorderAttributes
   draftOrderComplete(id: ID!): DraftOrderComplete
   draftOrderCreate(input: DraftOrderCreateInput!): DraftOrderCreate
   draftOrderDelete(id: ID!): DraftOrderDelete
@@ -2648,7 +2647,7 @@ type Mutation {
   orderFulfill(input: OrderFulfillInput!, order: ID): OrderFulfill
   orderFulfillmentCancel(id: ID!, input: FulfillmentCancelInput!): FulfillmentCancel
   orderFulfillmentUpdateTracking(id: ID!, input: FulfillmentUpdateTrackingInput!): FulfillmentUpdateTracking
-  orderMarkAsPaid(id: ID!): OrderMarkAsPaid
+  orderMarkAsPaid(id: ID!, transactionReference: String): OrderMarkAsPaid
   orderRefund(amount: PositiveDecimal!, id: ID!): OrderRefund
   orderUpdate(id: ID!, input: OrderUpdateInput!): OrderUpdate
   orderUpdateShipping(order: ID!, input: OrderUpdateShippingInput): OrderUpdateShipping
@@ -2717,6 +2716,17 @@ type Mutation {
   channelDelete(id: ID!, input: ChannelDeleteInput!): ChannelDelete
   channelActivate(id: ID!): ChannelActivate
   channelDeactivate(id: ID!): ChannelDeactivate
+  attributeCreate(input: AttributeCreateInput!): AttributeCreate
+  attributeDelete(id: ID!): AttributeDelete
+  attributeUpdate(id: ID!, input: AttributeUpdateInput!): AttributeUpdate
+  attributeTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): AttributeTranslate
+  attributeBulkDelete(ids: [ID]!): AttributeBulkDelete
+  attributeValueBulkDelete(ids: [ID]!): AttributeValueBulkDelete
+  attributeValueCreate(attribute: ID!, input: AttributeValueCreateInput!): AttributeValueCreate
+  attributeValueDelete(id: ID!): AttributeValueDelete
+  attributeValueUpdate(id: ID!, input: AttributeValueCreateInput!): AttributeValueUpdate
+  attributeValueTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): AttributeValueTranslate
+  attributeReorderValues(attributeId: ID!, moves: [ReorderInput]!): AttributeReorderValues
   appCreate(input: AppInput!): AppCreate
   appUpdate(id: ID!, input: AppInput!): AppUpdate
   appDelete(id: ID!): AppDelete
@@ -2812,6 +2822,7 @@ type Order implements Node & ObjectWithMetadata {
   displayGrossPrices: Boolean!
   customerNote: String!
   weight: Weight
+  redirectUrl: String
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   fulfillments: [Fulfillment]!
@@ -2952,6 +2963,7 @@ type OrderEvent implements Node {
   lines: [OrderEventOrderLineObject]
   fulfilledItems: [FulfillmentLine]
   warehouse: Warehouse
+  transactionReference: String
 }
 
 type OrderEventCountableConnection {
@@ -3150,10 +3162,24 @@ type Page implements Node & ObjectWithMetadata {
   publicationDate: Date
   isPublished: Boolean!
   slug: String!
+  pageType: PageType!
   created: DateTime!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   translation(languageCode: LanguageCodeEnum!): PageTranslation
+  attributes: [SelectedAttribute!]!
+}
+
+type PageAttributeAssign {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  pageType: PageType
+  pageErrors: [PageError!]!
+}
+
+type PageAttributeUnassign {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  pageType: PageType
+  pageErrors: [PageError!]!
 }
 
 type PageBulkDelete {
@@ -3185,6 +3211,18 @@ type PageCreate {
   page: Page
 }
 
+input PageCreateInput {
+  slug: String
+  title: String
+  content: String
+  contentJson: JSONString
+  attributes: [AttributeValueInput!]
+  isPublished: Boolean
+  publicationDate: String
+  seo: SeoInput
+  pageType: ID!
+}
+
 type PageDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   pageErrors: [PageError!]!
@@ -3195,6 +3233,7 @@ type PageError {
   field: String
   message: String
   code: PageErrorCode!
+  attributes: [ID!]
 }
 
 enum PageErrorCode {
@@ -3203,6 +3242,8 @@ enum PageErrorCode {
   NOT_FOUND
   REQUIRED
   UNIQUE
+  DUPLICATED_INPUT_ITEM
+  ATTRIBUTE_ALREADY_ASSIGNED
 }
 
 input PageFilterInput {
@@ -3221,6 +3262,7 @@ input PageInput {
   title: String
   content: String
   contentJson: JSONString
+  attributes: [AttributeValueInput!]
   isPublished: Boolean
   publicationDate: String
   seo: SeoInput
@@ -3272,6 +3314,85 @@ input PageTranslationInput {
   title: String
   content: String
   contentJson: JSONString
+}
+
+type PageType implements Node & ObjectWithMetadata {
+  id: ID!
+  name: String!
+  slug: String!
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
+  attributes: [Attribute]
+  availableAttributes(filter: AttributeFilterInput, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
+  hasPages: Boolean
+}
+
+type PageTypeBulkDelete {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  count: Int!
+  pageErrors: [PageError!]!
+}
+
+type PageTypeCountableConnection {
+  pageInfo: PageInfo!
+  edges: [PageTypeCountableEdge!]!
+  totalCount: Int
+}
+
+type PageTypeCountableEdge {
+  node: PageType!
+  cursor: String!
+}
+
+type PageTypeCreate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  pageErrors: [PageError!]!
+  pageType: PageType
+}
+
+input PageTypeCreateInput {
+  name: String
+  slug: String
+  addAttributes: [ID!]
+}
+
+type PageTypeDelete {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  pageErrors: [PageError!]!
+  pageType: PageType
+}
+
+input PageTypeFilterInput {
+  search: String
+}
+
+type PageTypeReorderAttributes {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  pageType: PageType
+  pageErrors: [PageError!]!
+}
+
+enum PageTypeSortField {
+  NAME
+  SLUG
+}
+
+input PageTypeSortingInput {
+  direction: OrderDirection!
+  field: PageTypeSortField!
+}
+
+type PageTypeUpdate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  pageErrors: [PageError!]!
+  pageType: PageType
+}
+
+input PageTypeUpdateInput {
+  name: String
+  slug: String
+  addAttributes: [ID!]
+  removeAttributes: [ID!]
 }
 
 type PageUpdate {
@@ -3415,6 +3536,7 @@ enum PermissionEnum {
   MANAGE_MENUS
   MANAGE_ORDERS
   MANAGE_PAGES
+  MANAGE_PAGE_TYPES_AND_ATTRIBUTES
   MANAGE_PRODUCTS
   MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES
   MANAGE_SHIPPING
@@ -3587,6 +3709,28 @@ type Product implements Node & ObjectWithMetadata {
   isAvailableForPurchase: Boolean
 }
 
+type ProductAttributeAssign {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  productType: ProductType
+  productErrors: [ProductError!]!
+}
+
+input ProductAttributeAssignInput {
+  id: ID!
+  type: ProductAttributeType!
+}
+
+enum ProductAttributeType {
+  PRODUCT
+  VARIANT
+}
+
+type ProductAttributeUnassign {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  productType: ProductType
+  productErrors: [ProductError!]!
+}
+
 type ProductBulkDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   count: Int!
@@ -3604,6 +3748,7 @@ type ProductChannelListing implements Node {
   purchaseCost: MoneyRange
   margin: Margin
   isAvailableForPurchase: Boolean
+  pricing: ProductPricingInfo
 }
 
 input ProductChannelListingAddInput {
@@ -4151,8 +4296,6 @@ type Query {
   shippingZones(channel: String, before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
   digitalContent(id: ID!): DigitalContent
   digitalContents(before: String, after: String, first: Int, last: Int): DigitalContentCountableConnection
-  attributes(filter: AttributeFilterInput, sortBy: AttributeSortingInput, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
-  attribute(id: ID!): Attribute
   categories(filter: CategoryFilterInput, sortBy: CategorySortingInput, level: Int, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   category(id: ID, slug: String): Category
   collection(id: ID, slug: String, channel: String): Collection
@@ -4168,6 +4311,8 @@ type Query {
   payments(before: String, after: String, first: Int, last: Int): PaymentCountableConnection
   page(id: ID, slug: String): Page
   pages(sortBy: PageSortingInput, filter: PageFilterInput, before: String, after: String, first: Int, last: Int): PageCountableConnection
+  pageType(id: ID!): PageType
+  pageTypes(sortBy: PageTypeSortingInput, filter: PageTypeFilterInput, before: String, after: String, first: Int, last: Int): PageTypeCountableConnection
   homepageEvents(before: String, after: String, first: Int, last: Int): OrderEventCountableConnection
   order(id: ID!): Order
   orders(sortBy: OrderSortingInput, filter: OrderFilterInput, created: ReportingPeriod, status: OrderStatusFilter, channel: String, before: String, after: String, first: Int, last: Int): OrderCountableConnection
@@ -4189,12 +4334,14 @@ type Query {
   exportFile(id: ID!): ExportFile
   exportFiles(filter: ExportFileFilterInput, sortBy: ExportFileSortingInput, before: String, after: String, first: Int, last: Int): ExportFileCountableConnection
   taxTypes: [TaxType]
-  checkout(token: UUID, channel: String): Checkout
+  checkout(token: UUID): Checkout
   checkouts(channel: String, before: String, after: String, first: Int, last: Int): CheckoutCountableConnection
   checkoutLine(id: ID): CheckoutLine
   checkoutLines(before: String, after: String, first: Int, last: Int): CheckoutLineCountableConnection
   channel(id: ID): Channel
   channels: [Channel!]
+  attributes(filter: AttributeFilterInput, sortBy: AttributeSortingInput, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
+  attribute(id: ID!): Attribute
   appsInstallations: [AppInstallation!]!
   apps(filter: AppFilterInput, sortBy: AppSortingInput, before: String, after: String, first: Int, last: Int): AppCountableConnection
   app(id: ID!): App
@@ -4589,8 +4736,6 @@ type Shop {
   geolocalization: Geolocalization
   authorizationKeys: [AuthorizationKey]!
   countries(languageCode: LanguageCodeEnum): [CountryDisplay!]!
-  currencies: [String]! @deprecated(reason: "This field will be removed in Saleor 3.0")
-  defaultCurrency: String! @deprecated(reason: "This field will be removed in Saleor 3.0")
   defaultCountry: CountryDisplay
   defaultMailSenderName: String
   defaultMailSenderAddress: String
@@ -4908,6 +5053,7 @@ enum TransactionError {
 }
 
 enum TransactionKind {
+  EXTERNAL
   AUTH
   PENDING
   ACTION_TO_CONFIRM
@@ -5017,7 +5163,8 @@ type User implements Node & ObjectWithMetadata {
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   addresses: [Address]
-  checkout: Checkout
+  checkout: Checkout @deprecated(reason: "Use the `checkout_tokens` field to fetch the user checkouts.")
+  checkoutTokens(channel: String): [UUID!]
   giftCards(before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
   orders(before: String, after: String, first: Int, last: Int): OrderCountableConnection
   permissions: [Permission] @deprecated(reason: "Will be removed in Saleor 2.11.Use the `userPermissions` instead.")
@@ -5518,7 +5665,7 @@ enum WeightUnitsEnum {
 
 scalar _Any
 
-union _Entity = Address | User | Group | App | ProductVariant | Product | ProductType | Collection | Category | ProductImage
+union _Entity = Address | User | Group | App | ProductVariant | Product | ProductType | Collection | Category | ProductImage | PageType
 
 type _Service {
   sdl: String

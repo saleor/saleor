@@ -143,8 +143,8 @@ def test_query_public_meta_for_staff_as_app(
 
 
 QUERY_CHECKOUT_PUBLIC_META = """
-    query checkoutMeta($token: UUID!, $channel: String!){
-        checkout(token: $token, channel: $channel){
+    query checkoutMeta($token: UUID!){
+        checkout(token: $token){
             metadata{
                 key
                 value
@@ -158,7 +158,7 @@ def test_query_public_meta_for_checkout_as_anonymous_user(api_client, checkout):
     # given
     checkout.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     checkout.save(update_fields=["metadata"])
-    variables = {"token": checkout.pk, "channel": checkout.channel.slug}
+    variables = {"token": checkout.pk}
 
     # when
     response = api_client.post_graphql(QUERY_CHECKOUT_PUBLIC_META, variables)
@@ -177,7 +177,7 @@ def test_query_public_meta_for_other_customer_checkout_as_anonymous_user(
     checkout.user = customer_user
     checkout.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     checkout.save(update_fields=["user", "metadata"])
-    variables = {"token": checkout.pk, "channel": checkout.channel.slug}
+    variables = {"token": checkout.pk}
 
     # when
     response = api_client.post_graphql(QUERY_CHECKOUT_PUBLIC_META, variables)
@@ -192,7 +192,7 @@ def test_query_public_meta_for_checkout_as_customer(user_api_client, checkout):
     checkout.user = user_api_client.user
     checkout.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     checkout.save(update_fields=["user", "metadata"])
-    variables = {"token": checkout.pk, "channel": checkout.channel.slug}
+    variables = {"token": checkout.pk}
 
     # when
     response = user_api_client.post_graphql(QUERY_CHECKOUT_PUBLIC_META, variables)
@@ -211,7 +211,7 @@ def test_query_public_meta_for_checkout_as_staff(
     checkout.user = customer_user
     checkout.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     checkout.save(update_fields=["user", "metadata"])
-    variables = {"token": checkout.pk, "channel": checkout.channel.slug}
+    variables = {"token": checkout.pk}
 
     # when
     response = staff_api_client.post_graphql(
@@ -235,7 +235,7 @@ def test_query_public_meta_for_checkout_as_app(
     checkout.user = customer_user
     checkout.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     checkout.save(update_fields=["user", "metadata"])
-    variables = {"token": checkout.pk, "channel": checkout.channel.slug}
+    variables = {"token": checkout.pk}
 
     # when
     response = app_api_client.post_graphql(
@@ -1369,6 +1369,96 @@ def test_query_public_meta_for_app_as_app(app_api_client, app, permission_manage
     assert metadata["value"] == PUBLIC_VALUE
 
 
+QUERY_PAGE_TYPE_PUBLIC_META = """
+    query pageTypeMeta($id: ID!){
+        pageType(id: $id){
+            metadata{
+                key
+                value
+            }
+        }
+    }
+"""
+
+
+def test_query_public_meta_for_page_type_as_anonymous_user(api_client, page_type):
+    # given
+    page_type.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    page_type.save(update_fields=["metadata"])
+    variables = {"id": graphene.Node.to_global_id("PageType", page_type.pk)}
+
+    # when
+    response = api_client.post_graphql(QUERY_PAGE_TYPE_PUBLIC_META, variables)
+    content = get_graphql_content(response)
+
+    # then
+    metadata = content["data"]["pageType"]["metadata"][0]
+    assert metadata["key"] == PUBLIC_KEY
+    assert metadata["value"] == PUBLIC_VALUE
+
+
+def test_query_public_meta_for_page_type_as_customer(user_api_client, page_type):
+    # given
+    page_type.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    page_type.save(update_fields=["metadata"])
+    variables = {"id": graphene.Node.to_global_id("PageType", page_type.pk)}
+
+    # when
+    response = user_api_client.post_graphql(QUERY_PAGE_TYPE_PUBLIC_META, variables)
+    content = get_graphql_content(response)
+
+    # then
+    metadata = content["data"]["pageType"]["metadata"][0]
+    assert metadata["key"] == PUBLIC_KEY
+    assert metadata["value"] == PUBLIC_VALUE
+
+
+def test_query_public_meta_for_page_type_as_staff(
+    staff_api_client, page_type, permission_manage_products
+):
+    # given
+    page_type.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    page_type.save(update_fields=["metadata"])
+    variables = {"id": graphene.Node.to_global_id("PageType", page_type.pk)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PAGE_TYPE_PUBLIC_META,
+        variables,
+        [permission_manage_products],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    metadata = content["data"]["pageType"]["metadata"][0]
+    assert metadata["key"] == PUBLIC_KEY
+    assert metadata["value"] == PUBLIC_VALUE
+
+
+def test_query_public_meta_for_page_type_as_app(
+    app_api_client, page_type, permission_manage_products
+):
+    # given
+    page_type.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    page_type.save(update_fields=["metadata"])
+    variables = {"id": graphene.Node.to_global_id("PageType", page_type.pk)}
+
+    # when
+    response = app_api_client.post_graphql(
+        QUERY_PAGE_TYPE_PUBLIC_META,
+        variables,
+        [permission_manage_products],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    metadata = content["data"]["pageType"]["metadata"][0]
+    assert metadata["key"] == PUBLIC_KEY
+    assert metadata["value"] == PUBLIC_VALUE
+
+
 QUERY_SELF_PRIVATE_META = """
     {
         me{
@@ -1515,8 +1605,8 @@ def test_query_private_meta_for_staff_as_app(
 
 
 QUERY_CHECKOUT_PRIVATE_META = """
-    query checkoutMeta($token: UUID!, $channel: String!){
-        checkout(token: $token, channel: $channel){
+    query checkoutMeta($token: UUID!){
+        checkout(token: $token){
             privateMetadata{
                 key
                 value
@@ -1528,7 +1618,7 @@ QUERY_CHECKOUT_PRIVATE_META = """
 
 def test_query_private_meta_for_checkout_as_anonymous_user(api_client, checkout):
     # given
-    variables = {"token": checkout.pk, "channel": checkout.channel.slug}
+    variables = {"token": checkout.pk}
 
     # when
     response = api_client.post_graphql(QUERY_CHECKOUT_PRIVATE_META, variables)
@@ -1543,7 +1633,7 @@ def test_query_private_meta_for_other_customer_checkout_as_anonymous_user(
     # given
     checkout.user = customer_user
     checkout.save(update_fields=["user"])
-    variables = {"token": checkout.pk, "channel": checkout.channel.slug}
+    variables = {"token": checkout.pk}
 
     # when
     response = api_client.post_graphql(QUERY_CHECKOUT_PRIVATE_META, variables)
@@ -1557,7 +1647,7 @@ def test_query_private_meta_for_checkout_as_customer(user_api_client, checkout):
     # given
     checkout.user = user_api_client.user
     checkout.save(update_fields=["user"])
-    variables = {"token": checkout.pk, "channel": checkout.channel.slug}
+    variables = {"token": checkout.pk}
 
     # when
     response = user_api_client.post_graphql(QUERY_CHECKOUT_PRIVATE_META, variables)
@@ -1573,7 +1663,7 @@ def test_query_private_meta_for_checkout_as_staff(
     checkout.user = customer_user
     checkout.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
     checkout.save(update_fields=["user", "private_metadata"])
-    variables = {"token": checkout.pk, "channel": checkout.channel.slug}
+    variables = {"token": checkout.pk}
 
     # when
     response = staff_api_client.post_graphql(
@@ -1597,7 +1687,7 @@ def test_query_private_meta_for_checkout_as_app(
     checkout.user = customer_user
     checkout.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
     checkout.save(update_fields=["user", "private_metadata"])
-    variables = {"token": checkout.pk, "channel": checkout.channel.slug}
+    variables = {"token": checkout.pk}
 
     # when
     response = app_api_client.post_graphql(
@@ -2657,5 +2747,85 @@ def test_query_private_meta_for_app_as_app(app_api_client, app, permission_manag
 
     # then
     metadata = content["data"]["app"]["privateMetadata"][0]
+    assert metadata["key"] == PRIVATE_KEY
+    assert metadata["value"] == PRIVATE_VALUE
+
+
+QUERY_PAGE_TYPE_PRIVATE_META = """
+    query pageTypeMeta($id: ID!){
+        pageType(id: $id){
+            privateMetadata{
+                key
+                value
+            }
+        }
+    }
+"""
+
+
+def test_query_private_meta_for_page_type_as_anonymous_user(api_client, page_type):
+    # given
+    variables = {"id": graphene.Node.to_global_id("PageType", page_type.pk)}
+
+    # when
+    response = api_client.post_graphql(QUERY_PAGE_TYPE_PRIVATE_META, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+def test_query_private_meta_for_page_type_as_customer(user_api_client, page_type):
+    # given
+    variables = {"id": graphene.Node.to_global_id("PageType", page_type.pk)}
+
+    # when
+    response = user_api_client.post_graphql(QUERY_PAGE_TYPE_PRIVATE_META, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+def test_query_private_meta_for_page_type_as_staff(
+    staff_api_client, page_type, permission_manage_page_types_and_attributes
+):
+    # given
+    page_type.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
+    page_type.save(update_fields=["private_metadata"])
+    variables = {"id": graphene.Node.to_global_id("PageType", page_type.pk)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PAGE_TYPE_PRIVATE_META,
+        variables,
+        [permission_manage_page_types_and_attributes],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    metadata = content["data"]["pageType"]["privateMetadata"][0]
+    assert metadata["key"] == PRIVATE_KEY
+    assert metadata["value"] == PRIVATE_VALUE
+
+
+def test_query_private_meta_for_page_type_as_app(
+    app_api_client, page_type, permission_manage_page_types_and_attributes
+):
+    # given
+    page_type.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
+    page_type.save(update_fields=["private_metadata"])
+    variables = {"id": graphene.Node.to_global_id("PageType", page_type.pk)}
+
+    # when
+    response = app_api_client.post_graphql(
+        QUERY_PAGE_TYPE_PRIVATE_META,
+        variables,
+        [permission_manage_page_types_and_attributes],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    metadata = content["data"]["pageType"]["privateMetadata"][0]
     assert metadata["key"] == PRIVATE_KEY
     assert metadata["value"] == PRIVATE_VALUE

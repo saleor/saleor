@@ -13,15 +13,12 @@ from ..core.fields import (
 from ..core.validators import validate_one_of_args_is_in_query
 from ..decorators import permission_required
 from ..translations.mutations import (
-    AttributeTranslate,
-    AttributeValueTranslate,
     CategoryTranslate,
     CollectionTranslate,
     ProductTranslate,
     ProductVariantTranslate,
 )
 from ..utils import get_user_or_app_from_context
-from .bulk_mutations.attributes import AttributeBulkDelete, AttributeValueBulkDelete
 from .bulk_mutations.products import (
     CategoryBulkDelete,
     CollectionBulkDelete,
@@ -36,7 +33,6 @@ from .bulk_mutations.products import (
 )
 from .enums import StockAvailability
 from .filters import (
-    AttributeFilterInput,
     CategoryFilterInput,
     CollectionFilterInput,
     ProductFilterInput,
@@ -44,15 +40,8 @@ from .filters import (
     ProductVariantFilterInput,
 )
 from .mutations.attributes import (
-    AttributeAssign,
-    AttributeCreate,
-    AttributeDelete,
-    AttributeReorderValues,
-    AttributeUnassign,
-    AttributeUpdate,
-    AttributeValueCreate,
-    AttributeValueDelete,
-    AttributeValueUpdate,
+    ProductAttributeAssign,
+    ProductAttributeUnassign,
     ProductTypeReorderAttributes,
 )
 from .mutations.channels import (
@@ -95,7 +84,6 @@ from .mutations.products import (
     VariantImageUnassign,
 )
 from .resolvers import (
-    resolve_attributes,
     resolve_categories,
     resolve_category_by_slug,
     resolve_collection_by_id,
@@ -112,14 +100,12 @@ from .resolvers import (
     resolve_variant_by_id,
 )
 from .sorters import (
-    AttributeSortingInput,
     CategorySortingInput,
     CollectionSortingInput,
     ProductOrder,
     ProductTypeSortingInput,
 )
 from .types import (
-    Attribute,
     Category,
     Collection,
     DigitalContent,
@@ -139,19 +125,6 @@ class ProductQueries(graphene.ObjectType):
     )
     digital_contents = PrefetchingConnectionField(
         DigitalContent, description="List of digital content."
-    )
-    attributes = FilterInputConnectionField(
-        Attribute,
-        description="List of the shop's attributes.",
-        filter=AttributeFilterInput(description="Filtering options for attributes."),
-        sort_by=AttributeSortingInput(description="Sorting options for attributes."),
-    )
-    attribute = graphene.Field(
-        Attribute,
-        id=graphene.Argument(
-            graphene.ID, description="ID of the attribute.", required=True
-        ),
-        description="Look up an attribute by ID.",
     )
     categories = FilterInputConnectionField(
         Category,
@@ -262,12 +235,6 @@ class ProductQueries(graphene.ObjectType):
         ),
         description="List of top selling products.",
     )
-
-    def resolve_attributes(self, info, **kwargs):
-        return resolve_attributes(info, **kwargs)
-
-    def resolve_attribute(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, Attribute)
 
     def resolve_categories(self, info, level=None, **kwargs):
         return resolve_categories(info, level=level, **kwargs)
@@ -399,20 +366,8 @@ class ProductQueries(graphene.ObjectType):
 
 
 class ProductMutations(graphene.ObjectType):
-    attribute_create = AttributeCreate.Field()
-    attribute_delete = AttributeDelete.Field()
-    attribute_bulk_delete = AttributeBulkDelete.Field()
-    attribute_assign = AttributeAssign.Field()
-    attribute_unassign = AttributeUnassign.Field()
-    attribute_update = AttributeUpdate.Field()
-    attribute_translate = AttributeTranslate.Field()
-
-    attribute_value_create = AttributeValueCreate.Field()
-    attribute_value_delete = AttributeValueDelete.Field()
-    attribute_value_bulk_delete = AttributeValueBulkDelete.Field()
-    attribute_value_update = AttributeValueUpdate.Field()
-    attribute_value_translate = AttributeValueTranslate.Field()
-    attribute_reorder_values = AttributeReorderValues.Field()
+    product_attribute_assign = ProductAttributeAssign.Field()
+    product_attribute_unassign = ProductAttributeUnassign.Field()
 
     category_create = CategoryCreate.Field()
     category_delete = CategoryDelete.Field()

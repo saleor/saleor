@@ -1,11 +1,7 @@
 import graphene
 
 from ...core.permissions import CheckoutPermissions
-from ..core.fields import (
-    BaseDjangoConnectionField,
-    FieldWithChannel,
-    PrefetchingConnectionField,
-)
+from ..core.fields import BaseDjangoConnectionField, PrefetchingConnectionField
 from ..core.scalars import UUID
 from ..decorators import permission_required
 from ..payment.mutations import CheckoutPaymentCreate
@@ -29,7 +25,7 @@ from .types import Checkout, CheckoutLine
 
 
 class CheckoutQueries(graphene.ObjectType):
-    checkout = FieldWithChannel(
+    checkout = graphene.Field(
         Checkout,
         description="Look up a checkout by token and slug of channel.",
         token=graphene.Argument(UUID, description="The checkout's token."),
@@ -51,8 +47,8 @@ class CheckoutQueries(graphene.ObjectType):
         CheckoutLine, description="List of checkout lines."
     )
 
-    def resolve_checkout(self, info, token, channel):
-        return resolve_checkout(info, token, channel)
+    def resolve_checkout(self, info, token):
+        return resolve_checkout(info, token)
 
     @permission_required(CheckoutPermissions.MANAGE_CHECKOUTS)
     def resolve_checkouts(self, *_args, channel=None, **_kwargs):

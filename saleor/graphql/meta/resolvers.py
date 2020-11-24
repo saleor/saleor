@@ -2,6 +2,7 @@ from operator import itemgetter
 
 from ...account import models as account_models
 from ...app import models as app_models
+from ...attribute import models as attribute_models
 from ...checkout import models as checkout_models
 from ...core.exceptions import PermissionDenied
 from ...core.models import ModelWithMetadata
@@ -17,6 +18,7 @@ def resolve_object_with_metadata_type(instance: ModelWithMetadata):
     # Imports inside resolvers to avoid circular imports.
     from ...invoice import models as invoice_models
     from ..account import types as account_types
+    from ..attribute import types as attribute_types
     from ..app import types as app_types
     from ..checkout import types as checkout_types
     from ..invoice import types as invoice_types
@@ -26,7 +28,7 @@ def resolve_object_with_metadata_type(instance: ModelWithMetadata):
     from ..shipping import types as shipping_types
 
     MODEL_TO_TYPE_MAP = {
-        product_models.Attribute: product_types.Attribute,
+        attribute_models.Attribute: attribute_types.Attribute,
         product_models.Category: product_types.Category,
         checkout_models.Checkout: checkout_types.Checkout,
         product_models.Collection: product_types.Collection,
@@ -35,6 +37,7 @@ def resolve_object_with_metadata_type(instance: ModelWithMetadata):
         order_models.Order: order_types.Order,
         invoice_models.Invoice: invoice_types.Invoice,
         page_models.Page: page_types.Page,
+        page_models.PageType: page_types.PageType,
         product_models.Product: product_types.Product,
         product_models.ProductType: product_types.ProductType,
         product_models.ProductVariant: product_types.ProductVariant,
