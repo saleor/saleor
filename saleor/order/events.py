@@ -176,11 +176,19 @@ def order_canceled_event(*, order: Order, user: UserType) -> OrderEvent:
     return OrderEvent.objects.create(order=order, type=OrderEvents.CANCELED, user=user)
 
 
-def order_manually_marked_as_paid_event(*, order: Order, user: UserType) -> OrderEvent:
+def order_manually_marked_as_paid_event(
+    *, order: Order, user: UserType, transaction_reference: Optional[str] = None
+) -> OrderEvent:
     if not _user_is_valid(user):
         user = None
+    parameters = {}  # type: ignore
+    if transaction_reference:
+        parameters = {"transaction_reference": transaction_reference}
     return OrderEvent.objects.create(
-        order=order, type=OrderEvents.ORDER_MARKED_AS_PAID, user=user
+        order=order,
+        type=OrderEvents.ORDER_MARKED_AS_PAID,
+        user=user,
+        parameters=parameters,
     )
 
 

@@ -73,6 +73,9 @@ class OrderEvent(CountableDjangoObjectType):
     warehouse = graphene.Field(
         Warehouse, description="The warehouse were items were restocked."
     )
+    transaction_reference = graphene.String(
+        description="The transaction reference of captured payment."
+    )
 
     class Meta:
         description = "History log of the order."
@@ -175,6 +178,10 @@ class OrderEvent(CountableDjangoObjectType):
     def resolve_warehouse(root: models.OrderEvent, _info):
         warehouse = root.parameters.get("warehouse")
         return warehouse_models.Warehouse.objects.filter(pk=warehouse).first()
+
+    @staticmethod
+    def resolve_transaction_reference(root: models.OrderEvent, _info):
+        return root.parameters.get("transaction_reference")
 
 
 class FulfillmentLine(CountableDjangoObjectType):
