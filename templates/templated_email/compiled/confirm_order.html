@@ -61,8 +61,7 @@
         
         
       <div style>
-        {% load i18n %}
-      {% load i18n_address_tags %}
+        
       
       <!--[if mso | IE]>
       <table
@@ -96,7 +95,9 @@
             <tr>
               <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
-      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:16px;line-height:1;text-align:left;color:#000000;">{% trans "Hi!" context "Standard e-mail greeting" %}</div>
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:16px;line-height:1;text-align:left;color:#000000;">{{#blocktrans "Standard e-mail greeting"}}
+            Hi!
+          {{/blocktrans}}</div>
     
               </td>
             </tr>
@@ -104,15 +105,15 @@
             <tr>
               <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
-      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{% if order_details_url %}
-            {% blocktrans trimmed context "Order confirmation e-mail text with payment details" %}
-              Thank you for your order. Below is the list of ordered products. To see your payment details please visit: <a href="{{ order_details_url }}">{{ order_details_url }}</a>
-            {% endblocktrans %}
-          {% else %}
-            {% blocktrans trimmed context "Order confirmation e-mail text" %}
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{{#if order_details_url}}
+            {{#blocktrans "Order confirmation e-mail text with payment details"}}
+              Thank you for your order. Below is the list of ordered products. To see your payment details please visit: <a href="{{order_details_url}}">{{order_details_url}}</a>
+            {{/blocktrans}}
+          {{else}}
+            {{#blocktrans "Order confirmation e-mail text"}}
               Thank you for your order. Below is the list of ordered products.
-            {% endblocktrans %}
-          {% endif %}</div>
+            {{/blocktrans}}
+          {{/if}}</div>
     
               </td>
             </tr>
@@ -325,25 +326,33 @@
       <table cellpadding="0" cellspacing="0" width="100%" border="0" style="color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:22px;table-layout:auto;width:100%;border:none;">
         <thead class="table-header-row" style="border-bottom: 2px solid #000;">
             <tr>
-              <th style="padding: 5px;">{% trans "Billing address" context "Order confirmation e-mail billing address" %}</th>
-              <th style="padding: 5px;">{% trans "Shipping address" context "Order confirmation e-mail shipping address" %}</th>
+              <th style="padding: 5px;">
+                {{#blocktrans "Order confirmation e-mail billing address"}}
+                  Billing address
+                {{/blocktrans}}
+              </th>
+              <th style="padding: 5px;">
+                {{#blocktrans "Order confirmation e-mail shipping address"}}
+                  Shipping address
+                {{/blocktrans}}
+              </th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td class="address" style="padding: 5px;">
-                {% if order.billing_address %}
-                  {% format_address order.billing_address %}
-                {% else %}
-                  {% trans "No billing address" context "Order confirmation e-mail text" %}
-                {% endif %}
+                {{#if order.billing_address}}
+                  {{format_address order.billing_address}}
+                {{else}}
+                  {{#blocktrans "Order confirmation e-mail text"}}No billing address{{/blocktrans}}
+                {{/if}}
               </td>
               <td css-class="address" style="padding: 5px;">
-                {% if order.shipping_address %}
-                  {% format_address order.shipping_address %}
-                {% else %}
-                  {% trans "No shipping required" context "Order confirmation e-mail text" %}
-                {% endif %}
+                {{#if order.shipping_address}}
+                  {{format_address order.shipping_address}}
+                {{else}}
+                  {{#blocktrans "Order confirmation e-mail text"}}No shipping required{{/blocktrans}}
+                {{/if}}
               </td>
             </tr>
           </tbody>

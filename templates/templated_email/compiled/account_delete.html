@@ -61,7 +61,7 @@
         
         
       <div style>
-        {% load i18n %}
+        
       
       <!--[if mso | IE]>
       <table
@@ -95,7 +95,9 @@
             <tr>
               <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
-      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:16px;line-height:1;text-align:left;color:#000000;">{% trans "Hi!" context "Standard e-mail greeting" %}</div>
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:16px;line-height:1;text-align:left;color:#000000;">{{#blocktrans "Standard e-mail greeting"}}
+            Hi!
+          {{/blocktrans}}</div>
     
               </td>
             </tr>
@@ -103,12 +105,12 @@
             <tr>
               <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
-      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{% blocktrans trimmed context "Account delete e-mail text" %}
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{{#blocktrans "Account delete e-mail text" }}
             You're receiving this e-mail because you or someone else has requested a deletion of your user account at {{ site_name }}.<br>
             Click the link below to delete your account.
 
             Please note that this action is permanent and cannot be reversed.
-          {% endblocktrans %}</div>
+          {{/blocktrans}}</div>
     
               </td>
             </tr>

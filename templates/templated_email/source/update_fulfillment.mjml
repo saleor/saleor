@@ -3,30 +3,29 @@
     <mj-include path="./shared/styles.mjml" />
   </mj-head>
   <mj-body>
-    <mj-raw>
-      {% load i18n %}
-    </mj-raw>
     <mj-include path="./shared/header.mjml" />
     <mj-section>
       <mj-column>
         <mj-text font-size="16px">
-          {% trans "Hi!" context "Standard e-mail greeting" %}
+          {{#blocktrans "Standard e-mail greeting"}}
+            Hi!
+          {{/blocktrans}}
         </mj-text>
         <mj-text>
-          {% blocktrans trimmed context "Fulfillment update email text" %}
+          {{#blocktrans "Fulfillment update email text"}}
             Your shipping status has been updated. Below is the list of ordered products that have been updated with new tracking number.
-          {% endblocktrans %}
-          {% if fulfillment.tracking_number %}
-            {% if fulfillment.is_tracking_number_url %}
-              {% blocktrans trimmed with tracking_number=fulfillment.tracking_number context "Fulfillment confirmation email text" %}
-                You can track your shipment with <a href="{{ tracking_number }}">{{ tracking_number }}</a> link.
-              {% endblocktrans %}
-            {% else %}
-              {% blocktrans trimmed with tracking_number=fulfillment.tracking_number context "Fulfillment confirmation email text" %}
-                You can track your shipment with {{ tracking_number }} code.
-              {% endblocktrans %}
-            {% endif %}
-          {% endif %}
+          {{/blocktrans}}
+          {{#if fulfillment.tracking_number}}
+            {{#if fulfillment.is_tracking_number_url}}
+              {{#blocktrans "Fulfillment confirmation email text"}}
+                You can track your shipment with <a href="{{ fulfillment.tracking_number }}">{{ fulfillment.tracking_number }}</a> link.
+              {{/blocktrans}}
+            {{else}}
+              {{#blocktrans "Fulfillment confirmation email text"}}
+                You can track your shipment with {{ fulfillment.tracking_number }} code.
+              {{/blocktrans}}
+            {{/if}}
+          {{/if}}
         </mj-text>
       </mj-column>
     </mj-section>

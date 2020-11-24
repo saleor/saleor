@@ -61,7 +61,7 @@
         
         
       <div style>
-        {% load i18n %}
+        
       
       <!--[if mso | IE]>
       <table
@@ -95,7 +95,9 @@
             <tr>
               <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
-      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:16px;line-height:1;text-align:left;color:#000000;">{% trans "Hi!" context "Standard e-mail greeting" %}</div>
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:16px;line-height:1;text-align:left;color:#000000;">{{#blocktrans "Standard e-mail greeting"}}
+            Hi!
+          {{/blocktrans}}</div>
     
               </td>
             </tr>
@@ -103,9 +105,9 @@
             <tr>
               <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
-      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{% blocktrans trimmed context "Send invoice e-mail text" %}
-            In order to download invoice {{ number }}, click the link below.
-          {% endblocktrans %}</div>
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{{#blocktrans "Send invoice e-mail text"}}
+            In order to download invoice {{number}}, click the link below.
+          {{/blocktrans}}</div>
     
               </td>
             </tr>
@@ -113,8 +115,8 @@
             <tr>
               <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
-      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;"><a href="{{ download_url | safe }}">
-            {{ download_url | safe }}
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;"><a href="{{download_url}}">
+            {{download_url}}
           </a></div>
     
               </td>

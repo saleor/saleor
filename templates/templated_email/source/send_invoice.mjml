@@ -3,23 +3,22 @@
     <mj-include path="./shared/styles.mjml" />
   </mj-head>
   <mj-body>
-    <mj-raw>
-      {% load i18n %}
-    </mj-raw>
     <mj-include path="./shared/header.mjml" />
     <mj-section>
       <mj-column>
         <mj-text font-size="16px">
-          {% trans "Hi!" context "Standard e-mail greeting" %}
+          {{#blocktrans "Standard e-mail greeting"}}
+            Hi!
+          {{/blocktrans}}
         </mj-text>
         <mj-text>
-          {% blocktrans trimmed context "Send invoice e-mail text" %}
-            In order to download invoice {{ number }}, click the link below.
-          {% endblocktrans %}
+          {{#blocktrans "Send invoice e-mail text"}}
+            In order to download invoice {{number}}, click the link below.
+          {{/blocktrans}}
         </mj-text>
         <mj-text>
-          <a href="{{ download_url | safe }}">
-            {{ download_url | safe }}
+          <a href="{{download_url}}">
+            {{download_url}}
           </a>
         </mj-text>
       </mj-column>
