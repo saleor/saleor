@@ -12,6 +12,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop deprecated service accounts and webhooks API - #6431 by @maarcingebala
 - Add editorjs sanitizer - #6456 by @IKarbowiak
 - Add generic FileUpload mutation - #6470 by @IKarbowiak
+- Fix password reset request - #6351 by @Manfred-Madelaine-pro, Ambroise and Pierre
 
 # 2.11.1
 
@@ -92,7 +93,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Include order line total price to webhook payload - #6354 by @korycins
 - Fix for fulfilling an order when product quantity equals allocated quantity - #6333 by @GrzegorzDerdak
 - Fix for the ability to filter products on collection - #6363 by @GrzegorzDerdak
-- Fix password reset request - #6351 by @Manfred-Madelaine-pro, Ambroise and Pierre
 
 ## 2.10.2
 
