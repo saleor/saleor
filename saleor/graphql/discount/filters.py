@@ -62,7 +62,7 @@ def filter_sale_type(qs, _, value):
 
 
 def filter_sale_search(qs, _, value):
-    search_fields = ("name", "value", "type")
+    search_fields = ("name", "channel_listings__discount_value", "type")
     if value:
         qs = filter_by_query_param(qs, value, search_fields)
     return qs

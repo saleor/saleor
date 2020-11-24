@@ -9,6 +9,7 @@ from django.db import connection
 from ....account.utils import create_superuser
 from ...utils.random_data import (
     add_address_to_admin,
+    create_channels,
     create_gift_card,
     create_menus,
     create_orders,
@@ -21,7 +22,6 @@ from ...utils.random_data import (
     create_users,
     create_vouchers,
     create_warehouses,
-    set_homepage_collection,
 )
 
 
@@ -96,6 +96,8 @@ class Command(BaseCommand):
         ]
         self.make_database_faster()
         create_images = not options["withoutimages"]
+        for msg in create_channels():
+            self.stdout.write(msg)
         for msg in create_shipping_zones():
             self.stdout.write(msg)
         create_warehouses()
@@ -116,7 +118,7 @@ class Command(BaseCommand):
             self.stdout.write(msg)
         for msg in create_orders(20):
             self.stdout.write(msg)
-        for msg in set_homepage_collection():
+        for msg in create_page():
             self.stdout.write(msg)
         for msg in create_menus():
             self.stdout.write(msg)

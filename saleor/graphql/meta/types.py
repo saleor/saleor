@@ -1,6 +1,7 @@
 import graphene
 
 from ...core.models import ModelWithMetadata
+from ..channel import ChannelContext
 from .resolvers import (
     resolve_metadata,
     resolve_object_with_metadata_type,
@@ -40,4 +41,7 @@ class ObjectWithMetadata(graphene.Interface):
 
     @classmethod
     def resolve_type(cls, instance: ModelWithMetadata, _info):
+        if isinstance(instance, ChannelContext):
+            # Return instance for types that use ChannelContext
+            instance = instance.node
         return resolve_object_with_metadata_type(instance)

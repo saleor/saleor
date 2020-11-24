@@ -235,6 +235,7 @@ INSTALLED_APPS = [
     "saleor.giftcard",
     "saleor.product",
     "saleor.attribute",
+    "saleor.channel",
     "saleor.checkout",
     "saleor.core",
     "saleor.csv",
@@ -246,7 +247,6 @@ INSTALLED_APPS = [
     "saleor.shipping",
     "saleor.search",
     "saleor.site",
-    "saleor.data_feeds",
     "saleor.page",
     "saleor.payment",
     "saleor.warehouse",
@@ -364,9 +364,6 @@ DEFAULT_CURRENCY_CODE_LENGTH = 3
 # sender email address.
 # Following the recommendation of https://tools.ietf.org/html/rfc5322#section-2.1.1
 DEFAULT_MAX_EMAIL_DISPLAY_NAME_LENGTH = 78
-
-# note: having multiple currencies is not supported yet
-AVAILABLE_CURRENCIES = [DEFAULT_CURRENCY]
 
 COUNTRIES_OVERRIDE = {"EU": "European Union"}
 
@@ -489,6 +486,10 @@ OPENTRACING_MAX_QUERY_LENGTH_LOG = 2000
 
 # Slugs for menus precreated in Django migrations
 DEFAULT_MENUS = {"top_menu_name": "navbar", "bottom_menu_name": "footer"}
+
+# Slug for channel precreated in Django migrations
+DEFAULT_CHANNEL_SLUG = os.environ.get("DEFAULT_CHANNEL_SLUG", "default-channel")
+
 
 #  Sentry
 SENTRY_DSN = os.environ.get("SENTRY_DSN")

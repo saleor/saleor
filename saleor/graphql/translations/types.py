@@ -9,6 +9,7 @@ from ...page import models as page_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
 from ...site import models as site_models
+from ..channel import ChannelContext
 from ..core.connection import CountableDjangoObjectType
 from ..core.types import LanguageDisplay
 from ..core.utils import str_to_enum
@@ -125,12 +126,7 @@ class ProductVariantTranslatableContent(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_product_variant(root: product_models.ProductVariant, info):
-        visible_products = product_models.Product.objects.visible_to_user(
-            info.context.user
-        ).values_list("pk", flat=True)
-        return product_models.ProductVariant.objects.filter(
-            product__id__in=visible_products, pk=root.id
-        ).first()
+        return ChannelContext(node=root, channel_slug=None)
 
 
 class ProductTranslation(BaseTranslationType):
@@ -154,11 +150,7 @@ class ProductTranslatableContent(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_product(root: product_models.Product, info):
-        return (
-            product_models.Product.objects.visible_to_user(info.context.user)
-            .filter(pk=root.id)
-            .first()
-        )
+        return ChannelContext(node=root, channel_slug=None)
 
 
 class CollectionTranslation(BaseTranslationType):
@@ -182,10 +174,9 @@ class CollectionTranslatableContent(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_collection(root: product_models.Collection, info):
+        collection = product_models.Collection.objects.all().filter(pk=root.id).first()
         return (
-            product_models.Collection.objects.visible_to_user(info.context.user)
-            .filter(pk=root.id)
-            .first()
+            ChannelContext(node=collection, channel_slug=None) if collection else None
         )
 
 
@@ -284,7 +275,7 @@ class VoucherTranslatableContent(CountableDjangoObjectType):
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_voucher(root: discount_models.Voucher, _info):
-        return root
+        return ChannelContext(node=root, channel_slug=None)
 
 
 class SaleTranslation(BaseTranslationType):
@@ -312,7 +303,7 @@ class SaleTranslatableContent(CountableDjangoObjectType):
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_sale(root: discount_models.Sale, _info):
-        return root
+        return ChannelContext(node=root, channel_slug=None)
 
 
 class ShopTranslation(BaseTranslationType):
@@ -346,7 +337,7 @@ class MenuItemTranslatableContent(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_menu_item(root: menu_models.MenuItem, _info):
-        return root
+        return ChannelContext(node=root, channel_slug=None)
 
 
 class ShippingMethodTranslation(BaseTranslationType):
@@ -376,4 +367,4 @@ class ShippingMethodTranslatableContent(CountableDjangoObjectType):
     @staticmethod
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
     def resolve_shipping_method(root: shipping_models.ShippingMethod, _info):
-        return root
+        return ChannelContext(node=root, channel_slug=None)

@@ -11,17 +11,19 @@ from ..attribute.resolvers import resolve_attributes
 from ..core.connection import CountableConnection
 from ..core.fields import BaseConnectionField
 from ..decorators import permission_required
-from ..discount.resolvers import resolve_sales, resolve_vouchers
 from ..menu.resolvers import resolve_menu_items
 from ..page.resolvers import resolve_pages
-from ..product.resolvers import (
-    resolve_categories,
+from ..product.resolvers import resolve_categories
+from ..translations import types as translation_types
+from .resolvers import (
+    resolve_attribute_values,
     resolve_collections,
     resolve_product_variants,
     resolve_products,
+    resolve_sales,
+    resolve_shipping_methods,
+    resolve_vouchers,
 )
-from ..translations import types as translation_types
-from .resolvers import resolve_attribute_values, resolve_shipping_methods
 
 
 class TranslatableItem(graphene.Union):
@@ -80,11 +82,12 @@ class TranslationQueries(graphene.ObjectType):
         ),
     )
 
+    @permission_required(SitePermissions.MANAGE_TRANSLATIONS)
     def resolve_translations(self, info, kind, **_kwargs):
         if kind == TranslatableKinds.PRODUCT:
             return resolve_products(info)
         elif kind == TranslatableKinds.COLLECTION:
-            return resolve_collections(info, query=None)
+            return resolve_collections(info)
         elif kind == TranslatableKinds.CATEGORY:
             return resolve_categories(info, query=None)
         elif kind == TranslatableKinds.PAGE:
@@ -92,7 +95,7 @@ class TranslationQueries(graphene.ObjectType):
         elif kind == TranslatableKinds.SHIPPING_METHOD:
             return resolve_shipping_methods(info)
         elif kind == TranslatableKinds.VOUCHER:
-            return resolve_vouchers(info, query=None)
+            return resolve_vouchers(info)
         elif kind == TranslatableKinds.ATTRIBUTE:
             return resolve_attributes(info)
         elif kind == TranslatableKinds.ATTRIBUTE_VALUE:
@@ -102,7 +105,7 @@ class TranslationQueries(graphene.ObjectType):
         elif kind == TranslatableKinds.MENU_ITEM:
             return resolve_menu_items(info, query=None)
         elif kind == TranslatableKinds.SALE:
-            return resolve_sales(info, query=None)
+            return resolve_sales(info)
 
     @permission_required(SitePermissions.MANAGE_TRANSLATIONS)
     def resolve_translation(self, info, id, kind, **_kwargs):

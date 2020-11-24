@@ -1,11 +1,13 @@
 import graphene
 
 from ...core.permissions import ShippingPermissions
+from ..channel.types import ChannelContext
 from ..core.fields import PrefetchingConnectionField
 from ..decorators import permission_required
 from ..translations.mutations import ShippingPriceTranslate
 from .bulk_mutations import ShippingPriceBulkDelete, ShippingZoneBulkDelete
-from .mutations import (
+from .mutations.channels import ShippingMethodChannelListingUpdate
+from .mutations.shippings import (
     ShippingPriceCreate,
     ShippingPriceDelete,
     ShippingPriceUpdate,
@@ -23,22 +25,31 @@ class ShippingQueries(graphene.ObjectType):
         id=graphene.Argument(
             graphene.ID, description="ID of the shipping zone.", required=True
         ),
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
         description="Look up a shipping zone by ID.",
     )
     shipping_zones = PrefetchingConnectionField(
-        ShippingZone, description="List of the shop's shipping zones."
+        ShippingZone,
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
+        description="List of the shop's shipping zones.",
     )
 
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
-    def resolve_shipping_zone(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, ShippingZone)
+    def resolve_shipping_zone(self, info, id, channel=None):
+        instance = graphene.Node.get_node_from_global_id(info, id, ShippingZone)
+        return ChannelContext(node=instance, channel_slug=channel) if instance else None
 
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
-    def resolve_shipping_zones(self, info, **_kwargs):
-        return resolve_shipping_zones(info)
+    def resolve_shipping_zones(self, info, channel=None, **_kwargs):
+        return resolve_shipping_zones(channel)
 
 
 class ShippingMutations(graphene.ObjectType):
+    shipping_method_channel_listing_update = ShippingMethodChannelListingUpdate.Field()
     shipping_price_create = ShippingPriceCreate.Field()
     shipping_price_delete = ShippingPriceDelete.Field()
     shipping_price_bulk_delete = ShippingPriceBulkDelete.Field()

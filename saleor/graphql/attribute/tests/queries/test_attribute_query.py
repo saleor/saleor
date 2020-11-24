@@ -6,7 +6,7 @@ from graphene.utils.str_converters import to_camel_case
 from .....attribute.models import Attribute
 from .....product.models import Category, Collection, Product, ProductType
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...enums import AttributeTypeEnum, AttributeValueType
+from ...enums import AttributeValueType
 from ...types import resolve_attribute_value_type
 
 
@@ -323,78 +323,6 @@ def test_attributes_query_ids_not_exists(user_api_client, category):
     assert content["data"]["attributes"] is None
 
 
-@pytest.mark.parametrize("tested_field", ["inCategory", "inCollection"])
-def test_attributes_in_collection_query(
-    user_api_client,
-    product_type,
-    category,
-    collection,
-    collection_with_products,
-    tested_field,
-):
-    if "Collection" in tested_field:
-        filtered_by_node_id = graphene.Node.to_global_id("Collection", collection.pk)
-    elif "Category" in tested_field:
-        filtered_by_node_id = graphene.Node.to_global_id("Category", category.pk)
-    else:
-        raise AssertionError(tested_field)
-    expected_qs = Attribute.objects.filter(
-        Q(attributeproduct__product_type_id=product_type.pk)
-        | Q(attributevariant__product_type_id=product_type.pk)
-    )
-
-    # Create another product type and attribute that shouldn't get matched
-    other_category = Category.objects.create(name="Other Category", slug="other-cat")
-    other_attribute = Attribute.objects.create(
-        name="Other", slug="other", type=AttributeTypeEnum.PRODUCT_TYPE
-    )
-    other_product_type = ProductType.objects.create(
-        name="Other type", has_variants=True, is_shipping_required=True
-    )
-    other_product_type.product_attributes.add(other_attribute)
-    other_product = Product.objects.create(
-        name="Another Product",
-        product_type=other_product_type,
-        category=other_category,
-        is_published=True,
-    )
-
-    # Create another collection with products but shouldn't get matched
-    # as we don't look for this other collection
-    other_collection = Collection.objects.create(
-        name="Other Collection",
-        slug="other-collection",
-        is_published=True,
-        description="Description",
-    )
-    other_collection.products.add(other_product)
-
-    query = """
-    query($nodeID: ID!) {
-        attributes(first: 20, %(filter_input)s) {
-            edges {
-                node {
-                    id
-                    name
-                    slug
-                }
-            }
-        }
-    }
-    """
-
-    query = query % {"filter_input": "filter: { %s: $nodeID }" % tested_field}
-
-    variables = {"nodeID": filtered_by_node_id}
-    content = get_graphql_content(user_api_client.post_graphql(query, variables))
-    attributes_data = content["data"]["attributes"]["edges"]
-
-    flat_attributes_data = [attr["node"]["slug"] for attr in attributes_data]
-    expected_flat_attributes_data = list(expected_qs.values_list("slug", flat=True))
-
-    assert flat_attributes_data == expected_flat_attributes_data
-
-
 @pytest.mark.parametrize(
     "attribute, expected_value",
     (
@@ -460,3 +388,72 @@ def test_retrieving_the_restricted_attributes_restricted(
 )
 def test_resolve_attribute_value_type(raw_value, expected_type):
     assert resolve_attribute_value_type(raw_value) == expected_type
+
+
+@pytest.mark.parametrize("tested_field", ["inCategory", "inCollection"])
+def test_attributes_in_collection_query(
+    user_api_client,
+    product_type,
+    category,
+    published_collection,
+    collection_with_products,
+    tested_field,
+    channel_USD,
+):
+    if "Collection" in tested_field:
+        filtered_by_node_id = graphene.Node.to_global_id(
+            "Collection", published_collection.pk
+        )
+    elif "Category" in tested_field:
+        filtered_by_node_id = graphene.Node.to_global_id("Category", category.pk)
+    else:
+        raise AssertionError(tested_field)
+    expected_qs = Attribute.objects.filter(
+        Q(attributeproduct__product_type_id=product_type.pk)
+        | Q(attributevariant__product_type_id=product_type.pk)
+    )
+
+    # Create another product type and attribute that shouldn't get matched
+    other_category = Category.objects.create(name="Other Category", slug="other-cat")
+    other_attribute = Attribute.objects.create(name="Other", slug="other")
+    other_product_type = ProductType.objects.create(
+        name="Other type", has_variants=True, is_shipping_required=True
+    )
+    other_product_type.product_attributes.add(other_attribute)
+    other_product = Product.objects.create(
+        name="Another Product", product_type=other_product_type, category=other_category
+    )
+
+    # Create another collection with products but shouldn't get matched
+    # as we don't look for this other collection
+    other_collection = Collection.objects.create(
+        name="Other Collection", slug="other-collection", description="Description",
+    )
+    other_collection.products.add(other_product)
+
+    query = """
+    query($nodeID: ID!, $channel: String) {
+        attributes(first: 20, %(filter_input)s) {
+            edges {
+                node {
+                    id
+                    name
+                    slug
+                }
+            }
+        }
+    }
+    """
+
+    query = query % {
+        "filter_input": "filter: { %s: $nodeID, channel: $channel }" % tested_field
+    }
+
+    variables = {"nodeID": filtered_by_node_id, "channel": channel_USD.slug}
+    content = get_graphql_content(user_api_client.post_graphql(query, variables))
+    attributes_data = content["data"]["attributes"]["edges"]
+
+    flat_attributes_data = [attr["node"]["slug"] for attr in attributes_data]
+    expected_flat_attributes_data = list(expected_qs.values_list("slug", flat=True))
+
+    assert flat_attributes_data == expected_flat_attributes_data
