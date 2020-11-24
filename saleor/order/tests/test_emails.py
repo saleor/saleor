@@ -1,7 +1,6 @@
 from decimal import Decimal
 from unittest import mock
 
-import pytest
 from templated_email import get_connection
 
 from ...invoice import emails as invoice_emails
@@ -205,22 +204,85 @@ def test_send_confirmation_emails_without_addresses_for_order(
     email_connection.get_email_message(to=recipients, **expected_call_kwargs)
 
 
-@pytest.mark.parametrize(
-    "send_email,template",
-    [
-        (
-            emails.send_fulfillment_confirmation,
-            emails.CONFIRM_FULFILLMENT_TEMPLATE,
-        ),  # noqa
-        (emails.send_fulfillment_update, emails.UPDATE_FULFILLMENT_TEMPLATE),
-    ],
-)
 @mock.patch("saleor.order.emails.send_templated_mail")
-def test_send_fulfillment_emails(
-    mocked_templated_email, template, send_email, fulfilled_order, site_settings
+def test_send_fulfillment_email_confirmation(
+    mocked_templated_email, fulfilled_order, site_settings
 ):
+    template = emails.CONFIRM_FULFILLMENT_TEMPLATE
+    redirect_url = "http://localhost.pl"
+    order = fulfilled_order
+    fulfillment = order.fulfillments.first()
+    order.redirect_url = redirect_url
+    order.save()
+    emails.send_fulfillment_confirmation(
+        order_pk=fulfilled_order.pk,
+        fulfillment_pk=fulfillment.pk,
+        redirect_url=redirect_url,
+    )
+
+    email_data = emails.collect_data_for_fulfillment_email(
+        fulfilled_order.pk, template, fulfillment.pk, redirect_url
+    )
+
+    recipients = [fulfilled_order.get_customer_email()]
+
+    expected_call_kwargs = {
+        "context": email_data["context"],
+        "from_email": site_settings.default_from_email,
+        "template_name": template,
+    }
+    mocked_templated_email.assert_called_once_with(
+        recipient_list=recipients, **expected_call_kwargs
+    )
+
+    # Render the email to ensure there is no error
+    email_connection = get_connection()
+    email_connection.get_email_message(to=recipients, **expected_call_kwargs)
+
+
+@mock.patch("saleor.order.emails.send_templated_mail")
+def test_send_fulfillment_email_update(
+    mocked_templated_email, fulfilled_order, site_settings
+):
+    template = emails.UPDATE_FULFILLMENT_TEMPLATE
+    order = fulfilled_order
+    fulfillment = order.fulfillments.first()
+    emails.send_fulfillment_update(
+        order_pk=fulfilled_order.pk, fulfillment_pk=fulfillment.pk
+    )
+
+    email_data = emails.collect_data_for_fulfillment_email(
+        fulfilled_order.pk, template, fulfillment.pk
+    )
+
+    recipients = [fulfilled_order.get_customer_email()]
+
+    expected_call_kwargs = {
+        "context": email_data["context"],
+        "from_email": site_settings.default_from_email,
+        "template_name": template,
+    }
+    mocked_templated_email.assert_called_once_with(
+        recipient_list=recipients, **expected_call_kwargs
+    )
+
+    # Render the email to ensure there is no error
+    email_connection = get_connection()
+    email_connection.get_email_message(to=recipients, **expected_call_kwargs)
+
+
+@mock.patch("saleor.order.emails.send_templated_mail")
+def test_send_fulfillment_emails_with_tracking_number_as_url(
+    mocked_templated_email, fulfilled_order, site_settings
+):
+    template = emails.UPDATE_FULFILLMENT_TEMPLATE
     fulfillment = fulfilled_order.fulfillments.first()
-    send_email(order_pk=fulfilled_order.pk, fulfillment_pk=fulfillment.pk)
+    fulfillment.tracking_number = "https://www.example.com"
+    fulfillment.save()
+    assert fulfillment.is_tracking_number_url
+    emails.send_fulfillment_update(
+        order_pk=fulfilled_order.pk, fulfillment_pk=fulfillment.pk
+    )
     email_data = emails.collect_data_for_fulfillment_email(
         fulfilled_order.pk, template, fulfillment.pk
     )
@@ -242,25 +304,23 @@ def test_send_fulfillment_emails(
     email_connection.get_email_message(to=recipients, **expected_call_kwargs)
 
 
-@pytest.mark.parametrize(
-    "send_email,template",
-    [
-        (
-            emails.send_fulfillment_confirmation,
-            emails.CONFIRM_FULFILLMENT_TEMPLATE,
-        ),  # noqa
-        (emails.send_fulfillment_update, emails.UPDATE_FULFILLMENT_TEMPLATE),
-    ],
-)
 @mock.patch("saleor.order.emails.send_templated_mail")
-def test_send_fulfillment_emails_with_tracking_number_as_url(
-    mocked_templated_email, template, send_email, fulfilled_order, site_settings
+def test_send_fulfillment_email_confirmation_with_tracking_number_as_url(
+    mocked_templated_email, fulfilled_order, site_settings
 ):
-    fulfillment = fulfilled_order.fulfillments.first()
+    template = emails.CONFIRM_FULFILLMENT_TEMPLATE
+    redirect_url = "http://localhost.pl"
+    order = fulfilled_order
+    fulfillment = order.fulfillments.first()
     fulfillment.tracking_number = "https://www.example.com"
     fulfillment.save()
+    order.redirect_url = redirect_url
+    order.save()
+
     assert fulfillment.is_tracking_number_url
-    send_email(order_pk=fulfilled_order.pk, fulfillment_pk=fulfillment.pk)
+    emails.send_fulfillment_confirmation(
+        order_pk=fulfilled_order.pk, fulfillment_pk=fulfillment.pk, redirect_url=""
+    )
     email_data = emails.collect_data_for_fulfillment_email(
         fulfilled_order.pk, template, fulfillment.pk
     )
