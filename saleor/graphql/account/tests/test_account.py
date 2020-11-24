@@ -3173,6 +3173,27 @@ def test_account_reset_password_invalid_email(
 
 
 @patch("saleor.account.emails._send_password_reset_email")
+def test_account_reset_password_user_is_inactive(
+    send_password_reset_email_mock, user_api_client, customer_user
+):
+    user = customer_user
+    user.is_active = False
+    user.save()
+
+    variables = {
+        "email": customer_user.email,
+        "redirectUrl": "https://www.example.com",
+    }
+    response = user_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["requestPasswordReset"]
+    assert data["errors"] == [
+        {"field": "email", "message": "User with this email is inactive"}
+    ]
+    assert not send_password_reset_email_mock.called
+
+
+@patch("saleor.account.emails._send_password_reset_email")
 def test_account_reset_password_storefront_hosts_not_allowed(
     send_password_reset_email_mock, user_api_client, customer_user
 ):
