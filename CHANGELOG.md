@@ -4,7 +4,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-- Add metadata to shipping zones and shipping methods - by @maarcingebala #6340
+- Add possibility to provide external payment ID during the conversion draft order to order - #6320 by @korycins
 - Add basic rating for `Products` - #6284 by @korycins
 - Add metadata to shipping zones and shipping methods - #6340 by @maarcingebala
 - Drop deprecated meta mutations - #6422 by @maarcingebala
@@ -15,6 +15,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add generic FileUpload mutation - #6470 by @IKarbowiak
 - Order confirmation backend - #6498 by @tomaszszymanski129
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
+- Fix password reset request - #6351 by @Manfred-Madelaine-pro, Ambroise and Pierre
 
 # 2.11.1
 

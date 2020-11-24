@@ -50,7 +50,11 @@ class MenuItem(MPTTModel, SortableModel):
         return self.name
 
     def get_ordering_queryset(self):
-        return self.menu.items.all() if not self.parent else self.parent.children.all()
+        return (
+            self.menu.items.filter(level=0)
+            if not self.parent
+            else self.parent.children.all()
+        )
 
     @property
     def linked_object(self):

@@ -347,6 +347,9 @@ class OrderMarkAsPaid(BaseMutation):
 
     class Arguments:
         id = graphene.ID(required=True, description="ID of the order to mark paid.")
+        transaction_reference = graphene.String(
+            required=False, description="The external transaction reference."
+        )
 
     class Meta:
         description = "Mark order as manually paid."
@@ -365,13 +368,13 @@ class OrderMarkAsPaid(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
-
+        transaction_reference = data.get("transaction_reference")
         cls.clean_billing_address(order)
         try_payment_action(
             order, info.context.user, None, clean_mark_order_as_paid, order
         )
 
-        mark_order_as_paid(order, info.context.user)
+        mark_order_as_paid(order, info.context.user, transaction_reference)
         return OrderMarkAsPaid(order=order)
 
 
