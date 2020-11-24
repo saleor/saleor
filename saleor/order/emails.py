@@ -121,7 +121,7 @@ def send_fulfillment_confirmation(order_pk, fulfillment_pk):
 
 
 def send_fulfillment_confirmation_to_customer(order, fulfillment, user):
-    send_fulfillment_confirmation.delay(order.pk, fulfillment.pk)
+    send_fulfillment_confirmation.delay(order.pk, fulfillment.pk, order.redirect_url)
 
     events.email_sent_event(
         order=order, user=user, email_type=events.OrderEventsEmails.FULFILLMENT
