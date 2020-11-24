@@ -4,7 +4,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-- Add metadata to shipping zones and shipping methods - by @maarcingebala #6340
+- Add possibility to provide external payment ID during the conversion draft order to order - #6320 by @korycins
 - Add basic rating for `Products` - #6284 by @korycins
 - Add metadata to shipping zones and shipping methods - #6340 by @maarcingebala
 - Drop deprecated meta mutations - #6422 by @maarcingebala
