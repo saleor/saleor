@@ -15,8 +15,9 @@ from ...attribute.models import (
 from ...product.models import Category, Collection, Product, ProductType, ProductVariant
 from ...search.backends import picker
 from ...warehouse.models import Stock
+from ..channel.filters import get_channel_slug_from_filter_data
 from ..core.filters import EnumFilter, ListObjectTypeFilter, ObjectTypeFilter
-from ..core.types import FilterInputObjectType
+from ..core.types import ChannelFilterInputObjectType, FilterInputObjectType
 from ..core.types.common import IntRangeInput, PriceRangeInput
 from ..utils import get_nodes, resolve_global_ids_to_primary_keys
 from ..utils.filters import filter_fields_containing_value, filter_range_field
@@ -87,21 +88,33 @@ def filter_products_by_attributes(qs, filter_value):
     return filter_products_by_attributes_values(qs, queries)
 
 
-def filter_products_by_variant_price(qs, price_lte=None, price_gte=None):
+def filter_products_by_variant_price(qs, channel_slug, price_lte=None, price_gte=None):
     if price_lte:
-        qs = qs.filter(variants__price_amount__lte=price_lte)
+        qs = qs.filter(
+            variants__channel_listings__price_amount__lte=price_lte,
+            variants__channel_listings__channel__slug=channel_slug,
+        )
     if price_gte:
-        qs = qs.filter(variants__price_amount__gte=price_gte)
+        qs = qs.filter(
+            variants__channel_listings__price_amount__gte=price_gte,
+            variants__channel_listings__channel__slug=channel_slug,
+        )
     return qs
 
 
 def filter_products_by_minimal_price(
-    qs, minimal_price_lte=None, minimal_price_gte=None
+    qs, channel_slug, minimal_price_lte=None, minimal_price_gte=None
 ):
     if minimal_price_lte:
-        qs = qs.filter(minimal_variant_price_amount__lte=minimal_price_lte)
+        qs = qs.filter(
+            channel_listings__discounted_price_amount__lte=minimal_price_lte,
+            channel_listings__channel__slug=channel_slug,
+        )
     if minimal_price_gte:
-        qs = qs.filter(minimal_variant_price_amount__gte=minimal_price_gte)
+        qs = qs.filter(
+            channel_listings__discounted_price_amount__gte=minimal_price_gte,
+            channel_listings__channel__slug=channel_slug,
+        )
     return qs
 
 
@@ -165,16 +178,26 @@ def filter_collections(qs, _, value):
     return qs
 
 
-def filter_variant_price(qs, _, value):
+def _filter_is_published(qs, _, value, channel_slug):
+    return qs.filter(
+        channel_listings__is_published=value,
+        channel_listings__channel__slug=channel_slug,
+    )
+
+
+def _filter_variant_price(qs, _, value, channel_slug):
     qs = filter_products_by_variant_price(
-        qs, price_lte=value.get("lte"), price_gte=value.get("gte")
+        qs, channel_slug, price_lte=value.get("lte"), price_gte=value.get("gte")
     )
     return qs
 
 
-def filter_minimal_price(qs, _, value):
+def _filter_minimal_price(qs, _, value, channel_slug):
     qs = filter_products_by_minimal_price(
-        qs, minimal_price_lte=value.get("lte"), minimal_price_gte=value.get("gte")
+        qs,
+        channel_slug,
+        minimal_price_lte=value.get("lte"),
+        minimal_price_gte=value.get("gte"),
     )
     return qs
 
@@ -189,14 +212,6 @@ def filter_search(qs, _, value):
     if value:
         search = picker.pick_backend()
         qs = qs.distinct() & search(value).distinct()
-    return qs
-
-
-def filter_collection_publish(qs, _, value):
-    if value == CollectionPublished.PUBLISHED:
-        qs = qs.filter(is_published=True)
-    elif value == CollectionPublished.HIDDEN:
-        qs = qs.filter(is_published=False)
     return qs
 
 
@@ -275,14 +290,14 @@ class ProductStockFilterInput(graphene.InputObjectType):
 
 
 class ProductFilter(django_filters.FilterSet):
-    is_published = django_filters.BooleanFilter()
+    is_published = django_filters.BooleanFilter(method="filter_is_published")
     collections = GlobalIDMultipleChoiceFilter(method=filter_collections)
     categories = GlobalIDMultipleChoiceFilter(method=filter_categories)
     has_category = django_filters.BooleanFilter(method=filter_has_category)
-    price = ObjectTypeFilter(input_class=PriceRangeInput, method=filter_variant_price)
+    price = ObjectTypeFilter(input_class=PriceRangeInput, method="filter_variant_price")
     minimal_price = ObjectTypeFilter(
         input_class=PriceRangeInput,
-        method=filter_minimal_price,
+        method="filter_minimal_price",
         field_name="minimal_price_amount",
     )
     attributes = ListObjectTypeFilter(
@@ -312,6 +327,18 @@ class ProductFilter(django_filters.FilterSet):
             "search",
         ]
 
+    def filter_variant_price(self, queryset, name, value):
+        channel_slug = get_channel_slug_from_filter_data(self.data)
+        return _filter_variant_price(queryset, name, value, channel_slug)
+
+    def filter_minimal_price(self, queryset, name, value):
+        channel_slug = get_channel_slug_from_filter_data(self.data)
+        return _filter_minimal_price(queryset, name, value, channel_slug)
+
+    def filter_is_published(self, queryset, name, value):
+        channel_slug = get_channel_slug_from_filter_data(self.data)
+        return _filter_is_published(queryset, name, value, channel_slug)
+
 
 class ProductVariantFilter(django_filters.FilterSet):
     search = django_filters.CharFilter(
@@ -326,7 +353,7 @@ class ProductVariantFilter(django_filters.FilterSet):
 
 class CollectionFilter(django_filters.FilterSet):
     published = EnumFilter(
-        input_class=CollectionPublished, method=filter_collection_publish
+        input_class=CollectionPublished, method="filter_is_published"
     )
     search = django_filters.CharFilter(
         method=filter_fields_containing_value("slug", "name")
@@ -336,6 +363,14 @@ class CollectionFilter(django_filters.FilterSet):
     class Meta:
         model = Collection
         fields = ["published", "search"]
+
+    def filter_is_published(self, queryset, name, value):
+        channel_slug = get_channel_slug_from_filter_data(self.data)
+        if value == CollectionPublished.PUBLISHED:
+            return _filter_is_published(queryset, name, True, channel_slug)
+        elif value == CollectionPublished.HIDDEN:
+            return _filter_is_published(queryset, name, False, channel_slug)
+        return queryset
 
 
 class CategoryFilter(django_filters.FilterSet):
@@ -366,7 +401,7 @@ class ProductTypeFilter(django_filters.FilterSet):
         fields = ["search", "configurable", "product_type"]
 
 
-class ProductFilterInput(FilterInputObjectType):
+class ProductFilterInput(ChannelFilterInputObjectType):
     class Meta:
         filterset_class = ProductFilter
 
@@ -376,7 +411,7 @@ class ProductVariantFilterInput(FilterInputObjectType):
         filterset_class = ProductVariantFilter
 
 
-class CollectionFilterInput(FilterInputObjectType):
+class CollectionFilterInput(ChannelFilterInputObjectType):
     class Meta:
         filterset_class = CollectionFilter
 

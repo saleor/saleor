@@ -11,6 +11,7 @@ from prices import TaxedMoney
 from ..account.error_codes import AccountErrorCode
 from ..account.models import User
 from ..account.utils import store_user_address
+from ..channel.models import Channel
 from ..checkout import calculations
 from ..checkout.error_codes import CheckoutErrorCode
 from ..core.exceptions import InsufficientStock
@@ -123,7 +124,9 @@ def _validate_gift_cards(checkout: Checkout):
         raise NotApplicable(msg)
 
 
-def _create_line_for_order(checkout_line: "CheckoutLine", discounts) -> OrderLine:
+def _create_line_for_order(
+    checkout_line: "CheckoutLine", discounts, channel: "Channel"
+) -> OrderLine:
     """Create a line for the given order.
 
     :raises InsufficientStock: when there is not enough items in stock for this variant.
@@ -148,7 +151,9 @@ def _create_line_for_order(checkout_line: "CheckoutLine", discounts) -> OrderLin
         translated_variant_name = ""
 
     manager = get_plugins_manager()
-    total_line_price = manager.calculate_checkout_line_total(checkout_line, discounts)
+    total_line_price = manager.calculate_checkout_line_total(
+        checkout_line, discounts, channel
+    )
     unit_price = quantize_price(
         total_line_price / checkout_line.quantity, total_line_price.currency
     )
@@ -203,8 +208,9 @@ def _prepare_order_data(
         }
     )
 
+    channel = checkout.channel
     order_data["lines"] = [
-        _create_line_for_order(checkout_line=line, discounts=discounts)
+        _create_line_for_order(checkout_line=line, discounts=discounts, channel=channel)
         for line in lines
     ]
 
@@ -248,7 +254,9 @@ def _create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
     total_price_left = order_data.pop("total_price_left")
     order_lines = order_data.pop("lines")
 
-    order = Order.objects.create(**order_data, checkout_token=checkout.token)
+    order = Order.objects.create(
+        **order_data, checkout_token=checkout.token, channel=checkout.channel
+    )
     for line in order_lines:
         line.order_id = order.pk
     order_lines = OrderLine.objects.bulk_create(order_lines)
@@ -268,6 +276,7 @@ def _create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
 
     # copy metadata from the checkout into the new order
     order.metadata = checkout.metadata
+    order.redirect_url = checkout.redirect_url
     order.private_metadata = checkout.private_metadata
     order.save()
 
@@ -294,7 +303,15 @@ def _prepare_checkout(
     clean_checkout_payment(
         checkout, lines, discounts, CheckoutErrorCode, last_payment=payment
     )
-
+    if not checkout.channel.is_active:
+        raise ValidationError(
+            {
+                "channel": ValidationError(
+                    "Cannot complete checkout with inactive channel.",
+                    code=CheckoutErrorCode.CHANNEL_INACTIVE.value,
+                )
+            }
+        )
     if redirect_url:
         try:
             validate_storefront_url(redirect_url)

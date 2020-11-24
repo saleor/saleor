@@ -3,6 +3,7 @@ from graphene_federation import build_schema
 from .account.schema import AccountMutations, AccountQueries
 from .app.schema import AppMutations, AppQueries
 from .attribute.schema import AttributeMutations, AttributeQueries
+from .channel.schema import ChannelMutations, ChannelQueries
 from .checkout.schema import CheckoutMutations, CheckoutQueries
 from .core.schema import CoreMutations, CoreQueries
 from .csv.schema import CsvMutations, CsvQueries
@@ -27,6 +28,7 @@ class Query(
     AccountQueries,
     AppQueries,
     AttributeQueries,
+    ChannelQueries,
     CheckoutQueries,
     CoreQueries,
     CsvQueries,
@@ -52,6 +54,7 @@ class Mutation(
     AccountMutations,
     AppMutations,
     AttributeMutations,
+    ChannelMutations,
     CheckoutMutations,
     CoreMutations,
     CsvMutations,

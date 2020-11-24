@@ -495,3 +495,13 @@ def test_validate_plugin_configuration_correct_cert(mocked_request, adyen_plugin
     mocked_request.side_effect = RequestException()
     configuration = PluginConfiguration.objects.get()
     plugin.validate_plugin_configuration(configuration)
+
+
+def test_validate_plugin_configuration_without_apple_cert(adyen_plugin):
+    plugin = adyen_plugin(apple_pay_cert="correct_cert")
+    configuration = [
+        {"name": "api-key", "value": "key"},
+    ]
+    plugin_configuration = PluginConfiguration.objects.get()
+    plugin_configuration.configuration = configuration
+    plugin.validate_plugin_configuration(plugin_configuration)

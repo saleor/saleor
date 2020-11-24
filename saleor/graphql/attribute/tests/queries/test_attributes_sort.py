@@ -64,7 +64,7 @@ def test_sort_attributes_by_default_sorting(api_client):
 
 @pytest.mark.parametrize("is_variant", (True, False))
 def test_attributes_of_products_are_sorted(
-    staff_api_client, product, color_attribute, is_variant
+    user_api_client, product, color_attribute, is_variant, channel_USD
 ):
     """Ensures the attributes of products and variants are sorted."""
 
@@ -72,8 +72,8 @@ def test_attributes_of_products_are_sorted(
 
     if is_variant:
         query = """
-            query($id: ID!) {
-              productVariant(id: $id) {
+            query($id: ID!, $channel: String) {
+              productVariant(id: $id, channel: $channel) {
                 attributes {
                   attribute {
                     id
@@ -84,8 +84,8 @@ def test_attributes_of_products_are_sorted(
         """
     else:
         query = """
-            query($id: ID!) {
-              product(id: $id) {
+            query($id: ID!, $channel: String) {
+              product(id: $id, channel: $channel) {
                 attributes {
                   attribute {
                     id
@@ -98,9 +98,7 @@ def test_attributes_of_products_are_sorted(
     # Create a dummy attribute with a higher ID
     # This will allow us to make sure it is always the last attribute
     # when sorted by ID. Thus, we are sure the query is actually passing the test.
-    other_attribute = Attribute.objects.create(
-        name="Other", slug="other", type=AttributeType.PRODUCT_TYPE
-    )
+    other_attribute = Attribute.objects.create(name="Other", slug="other")
 
     # Add the attribute to the product type
     if is_variant:
@@ -135,9 +133,11 @@ def test_attributes_of_products_are_sorted(
         node_id = graphene.Node.to_global_id("Product", product.pk)
 
     # Retrieve the attributes
-    data = get_graphql_content(staff_api_client.post_graphql(query, {"id": node_id}))[
-        "data"
-    ]
+    data = get_graphql_content(
+        user_api_client.post_graphql(
+            query, {"id": node_id, "channel": channel_USD.slug}
+        )
+    )["data"]
     attributes = data["productVariant" if is_variant else "product"]["attributes"]
     actual_order = [
         int(graphene.Node.from_global_id(attr["attribute"]["id"])[1])

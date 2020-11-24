@@ -1,6 +1,5 @@
 from typing import TYPE_CHECKING, Optional
 
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from django_prices.utils.formatting import get_currency_fraction
 from graphql.error import GraphQLError
@@ -27,7 +26,7 @@ def validate_one_of_args_is_in_query(*args):
         raise GraphQLError(f"At least one of arguments is required: {required_args}.")
 
 
-def validate_price_precision(value: Optional["Decimal"], currency: str = None):
+def validate_price_precision(value: Optional["Decimal"], currency: str):
     """Validate if price amount does not have too many decimal places.
 
     Price amount can't have more decimal places than currency allow to.
@@ -38,7 +37,7 @@ def validate_price_precision(value: Optional["Decimal"], currency: str = None):
     if not value:
         return
 
-    currency_fraction = get_currency_fraction(currency or settings.DEFAULT_CURRENCY)
+    currency_fraction = get_currency_fraction(currency)
     value = value.normalize()
     if abs(value.as_tuple().exponent) > currency_fraction:
         raise ValidationError(

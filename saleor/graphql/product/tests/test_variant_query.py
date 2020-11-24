@@ -6,8 +6,10 @@ from ...tests.utils import assert_graphql_error_with_message, get_graphql_conten
 from ..enums import VariantAttributeScope
 
 VARIANT_QUERY = """
-query variant($id: ID, $sku: String, $variantSelection: VariantAttributeScope){
-    productVariant(id:$id, sku:$sku){
+query variant(
+    $id: ID, $sku: String, $channel: String, $variantSelection: VariantAttributeScope
+){
+    productVariant(id: $id, sku: $sku, channel: $channel){
         sku
         attributes(variantSelection: $variantSelection) {
             attribute {
@@ -98,12 +100,12 @@ def test_get_unpublished_variant_by_id_as_app(
 
 
 def test_get_unpublished_variant_by_id_as_customer(
-    user_api_client, unavailable_product_with_variant
+    user_api_client, unavailable_product_with_variant, channel_USD
 ):
     # given
     variant = unavailable_product_with_variant.variants.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
-    variables = {"id": variant_id}
+    variables = {"id": variant_id, "channel": channel_USD.slug}
 
     # when
     response = user_api_client.post_graphql(
@@ -116,12 +118,12 @@ def test_get_unpublished_variant_by_id_as_customer(
 
 
 def test_get_unpublished_variant_by_id_as_anonymous_user(
-    api_client, unavailable_product_with_variant
+    api_client, unavailable_product_with_variant, channel_USD
 ):
     # given
     variant = unavailable_product_with_variant.variants.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
-    variables = {"id": variant_id}
+    variables = {"id": variant_id, "channel": channel_USD.slug}
 
     # when
     response = api_client.post_graphql(
@@ -173,10 +175,10 @@ def test_get_variant_by_id_as_app(app_api_client, permission_manage_products, va
     assert data["sku"] == variant.sku
 
 
-def test_get_variant_by_id_as_customer(user_api_client, variant):
+def test_get_variant_by_id_as_customer(user_api_client, variant, channel_USD):
     # given
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
-    variables = {"id": variant_id}
+    variables = {"id": variant_id, "channel": channel_USD.slug}
 
     # when
     response = user_api_client.post_graphql(
@@ -189,10 +191,10 @@ def test_get_variant_by_id_as_customer(user_api_client, variant):
     assert data["sku"] == variant.sku
 
 
-def test_get_variant_by_id_as_anonymous_user(api_client, variant):
+def test_get_variant_by_id_as_anonymous_user(api_client, variant, channel_USD):
     # given
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
-    variables = {"id": variant_id}
+    variables = {"id": variant_id, "channel": channel_USD.slug}
 
     # when
     response = api_client.post_graphql(
@@ -248,11 +250,11 @@ def test_get_unpublished_variant_by_sku_as_app(
 
 
 def test_get_unpublished_variant_by_sku_as_customer(
-    user_api_client, unavailable_product_with_variant
+    user_api_client, unavailable_product_with_variant, channel_USD
 ):
     # given
     variant = unavailable_product_with_variant.variants.first()
-    variables = {"sku": variant.sku}
+    variables = {"sku": variant.sku, "channel": channel_USD.slug}
 
     # when
     response = user_api_client.post_graphql(
@@ -265,11 +267,11 @@ def test_get_unpublished_variant_by_sku_as_customer(
 
 
 def test_get_unpublished_variant_by_sku_as_anonymous_user(
-    api_client, unavailable_product_with_variant
+    api_client, unavailable_product_with_variant, channel_USD
 ):
     # given
     variant = unavailable_product_with_variant.variants.first()
-    variables = {"sku": variant.sku}
+    variables = {"sku": variant.sku, "channel": channel_USD.slug}
 
     # when
     response = api_client.post_graphql(
@@ -319,9 +321,9 @@ def test_get_variant_by_sku_as_app(app_api_client, permission_manage_products, v
     assert data["sku"] == variant.sku
 
 
-def test_get_variant_by_sku_as_customer(user_api_client, variant):
+def test_get_variant_by_sku_as_customer(user_api_client, variant, channel_USD):
     # given
-    variables = {"sku": variant.sku}
+    variables = {"sku": variant.sku, "channel": channel_USD.slug}
 
     # when
     response = user_api_client.post_graphql(
@@ -334,9 +336,9 @@ def test_get_variant_by_sku_as_customer(user_api_client, variant):
     assert data["sku"] == variant.sku
 
 
-def test_get_variant_by_sku_as_anonymous_user(api_client, variant):
+def test_get_variant_by_sku_as_anonymous_user(api_client, variant, channel_USD):
     # given
-    variables = {"sku": variant.sku}
+    variables = {"sku": variant.sku, "channel": channel_USD.slug}
 
     # when
     response = api_client.post_graphql(

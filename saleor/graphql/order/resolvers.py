@@ -1,9 +1,11 @@
 import graphene
 
+from ...channel.models import Channel
 from ...order import OrderStatus, models
 from ...order.events import OrderEvents
 from ...order.models import OrderEvent
 from ...order.utils import sum_order_totals
+from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..utils.filters import filter_by_period
 from .enums import OrderStatusFilter
 from .types import Order
@@ -28,8 +30,10 @@ def filter_orders(qs, info, created, status):
     return qs
 
 
-def resolve_orders(info, created, status, **_kwargs):
+def resolve_orders(info, created, status, channel_slug, **_kwargs):
     qs = models.Order.objects.confirmed()
+    if channel_slug:
+        qs = qs.filter(channel__slug=str(channel_slug))
     return filter_orders(qs, info, created, status)
 
 
@@ -38,10 +42,19 @@ def resolve_draft_orders(info, created, **_kwargs):
     return filter_orders(qs, info, created, None)
 
 
-def resolve_orders_total(_info, period):
-    qs = models.Order.objects.confirmed().exclude(status=OrderStatus.CANCELED)
+def resolve_orders_total(_info, period, channel_slug):
+    if channel_slug is None:
+        channel_slug = get_default_channel_slug_or_graphql_error()
+    channel = Channel.objects.filter(slug=str(channel_slug)).first()
+    if not channel:
+        return None
+    qs = (
+        models.Order.objects.confirmed()
+        .exclude(status=OrderStatus.CANCELED)
+        .filter(channel__slug=str(channel_slug))
+    )
     qs = filter_by_period(qs, period, "created")
-    return sum_order_totals(qs)
+    return sum_order_totals(qs, channel.currency_code)
 
 
 def resolve_order(info, order_id):

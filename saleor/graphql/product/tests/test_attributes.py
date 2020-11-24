@@ -18,8 +18,8 @@ from ...tests.utils import get_graphql_content
 from ..enums import ProductAttributeType
 
 QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES = """
-    {
-      products(first: 1) {
+    query ($channel: String){
+      products(first: 1, channel: $channel) {
         edges {
           node {
             attributes {
@@ -58,10 +58,12 @@ def test_resolve_attributes_with_hidden(
     size_attribute,
     is_staff,
     permission_manage_products,
+    channel_USD,
 ):
     """Ensure non-staff users don't see hidden attributes, and staff users having
     the 'manage product' permission can.
     """
+    variables = {"channel": channel_USD.slug}
     query = QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES
     api_client = user_api_client
 
@@ -84,16 +86,17 @@ def test_resolve_attributes_with_hidden(
         attribute.visible_in_storefront = False
         attribute.save(update_fields=["visible_in_storefront"])
 
-    product = get_graphql_content(api_client.post_graphql(query))["data"]["products"][
-        "edges"
-    ][0]["node"]
+    product = get_graphql_content(api_client.post_graphql(query, variables))["data"][
+        "products"
+    ]["edges"][0]["node"]
 
     assert len(product["attributes"]) == expected_product_attribute_count
     assert len(product["variants"][0]["attributes"]) == expected_variant_attribute_count
 
 
-def test_resolve_attribute_values(user_api_client, product, staff_user):
+def test_resolve_attribute_values(user_api_client, product, staff_user, channel_USD):
     """Ensure the attribute values are properly resolved."""
+    variables = {"channel": channel_USD.slug}
     query = QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES
     api_client = user_api_client
 
@@ -112,9 +115,9 @@ def test_resolve_attribute_values(user_api_client, product, staff_user):
     assert len(product_attribute_values) == 1
     assert len(variant_attribute_values) == 1
 
-    product = get_graphql_content(api_client.post_graphql(query))["data"]["products"][
-        "edges"
-    ][0]["node"]
+    product = get_graphql_content(api_client.post_graphql(query, variables))["data"][
+        "products"
+    ]["edges"][0]["node"]
 
     product_attributes = product["attributes"]
     variant_attributes = product["variants"][0]["attributes"]
@@ -137,12 +140,13 @@ def test_resolve_attribute_values(user_api_client, product, staff_user):
 
 
 def test_resolve_attribute_values_non_assigned_to_node(
-    user_api_client, product, staff_user
+    user_api_client, product, staff_user, channel_USD
 ):
     """Ensure the attribute values are properly resolved when an attribute is part
     of the product type but not of the node (product/variant), thus no values should be
     resolved.
     """
+    variables = {"channel": channel_USD.slug}
     query = QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES
     api_client = user_api_client
 
@@ -178,9 +182,9 @@ def test_resolve_attribute_values_non_assigned_to_node(
     assert product.attributes.count() == 1
     assert variant.attributes.count() == 1
 
-    product = get_graphql_content(api_client.post_graphql(query))["data"]["products"][
-        "edges"
-    ][0]["node"]
+    product = get_graphql_content(api_client.post_graphql(query, variables))["data"][
+        "products"
+    ]["edges"][0]["node"]
 
     product_attributes = product["attributes"]
     variant_attributes = product["variants"][0]["attributes"]
@@ -195,7 +199,9 @@ def test_resolve_attribute_values_non_assigned_to_node(
     assert variant_attributes[0]["values"] == []
 
 
-def test_resolve_assigned_attribute_without_values(api_client, product_type, product):
+def test_resolve_assigned_attribute_without_values(
+    api_client, product_type, product, channel_USD
+):
     """Ensure the attributes assigned to a product type are resolved even if
     the product doesn't provide any value for it or is not directly associated to it.
     """
@@ -210,8 +216,8 @@ def test_resolve_assigned_attribute_without_values(api_client, product_type, pro
     products = get_graphql_content(
         api_client.post_graphql(
             """
-        {
-          products(first: 10) {
+        query ($channel: String) {
+          products(first: 10, channel: $channel) {
             edges {
               node {
                 attributes {
@@ -236,7 +242,8 @@ def test_resolve_assigned_attribute_without_values(api_client, product_type, pro
             }
           }
         }
-    """
+    """,
+            {"channel": channel_USD.slug},
         )
     )["data"]["products"]["edges"]
 
@@ -397,7 +404,7 @@ def test_assign_variant_attribute_to_product_type_with_disabled_variants(
     )
 
 
-def test_assign_variant_attribute_having_multiselect_input_type(
+def test_assign_variant_attribute_having_unsupported_input_type(
     staff_api_client,
     permission_manage_product_types_and_attributes,
     product_type,
@@ -691,11 +698,11 @@ def test_unassign_attributes_not_in_product_type(
 
 
 def test_retrieve_product_attributes_input_type(
-    staff_api_client, product, permission_manage_products
+    staff_api_client, product, permission_manage_products, channel_USD
 ):
     query = """
-        {
-          products(first: 10) {
+        query ($channel: String){
+          products(first: 10, channel: $channel) {
             edges {
               node {
                 attributes {
@@ -710,8 +717,11 @@ def test_retrieve_product_attributes_input_type(
         }
     """
 
+    variables = {"channel": channel_USD.slug}
     found_products = get_graphql_content(
-        staff_api_client.post_graphql(query, permissions=[permission_manage_products])
+        staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_products]
+        )
     )["data"]["products"]["edges"]
     assert len(found_products) == 1
 

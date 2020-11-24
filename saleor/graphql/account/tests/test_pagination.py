@@ -222,8 +222,11 @@ def test_query_customers_pagination_with_sort(
     staff_api_client,
     permission_manage_users,
     customers_for_pagination,
+    channel_USD,
 ):
-    Order.objects.create(user=User.objects.get(email="zordon01@example.com"))
+    Order.objects.create(
+        user=User.objects.get(email="zordon01@example.com"), channel=channel_USD
+    )
     page_size = 2
     variables = {"first": page_size, "after": None, "sortBy": customer_sort}
     staff_api_client.user.user_permissions.add(permission_manage_users)
