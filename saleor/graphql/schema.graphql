@@ -2646,7 +2646,7 @@ type Mutation {
   orderFulfill(input: OrderFulfillInput!, order: ID): OrderFulfill
   orderFulfillmentCancel(id: ID!, input: FulfillmentCancelInput!): FulfillmentCancel
   orderFulfillmentUpdateTracking(id: ID!, input: FulfillmentUpdateTrackingInput!): FulfillmentUpdateTracking
-  orderMarkAsPaid(id: ID!): OrderMarkAsPaid
+  orderMarkAsPaid(id: ID!, transactionReference: String): OrderMarkAsPaid
   orderRefund(amount: PositiveDecimal!, id: ID!): OrderRefund
   orderUpdate(id: ID!, input: OrderUpdateInput!): OrderUpdate
   orderUpdateShipping(order: ID!, input: OrderUpdateShippingInput): OrderUpdateShipping
@@ -2962,6 +2962,7 @@ type OrderEvent implements Node {
   lines: [OrderEventOrderLineObject]
   fulfilledItems: [FulfillmentLine]
   warehouse: Warehouse
+  transactionReference: String
 }
 
 type OrderEventCountableConnection {
@@ -5051,6 +5052,7 @@ enum TransactionError {
 }
 
 enum TransactionKind {
+  EXTERNAL
   AUTH
   PENDING
   ACTION_TO_CONFIRM
