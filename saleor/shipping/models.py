@@ -103,12 +103,12 @@ class ShippingMethodQueryset(models.QuerySet):
         return qs.exclude(excluded_products__id__in=product_ids)
 
     def applicable_shipping_methods(
-        self, price: Money, channel_id, weight, country_code, excluded_product_ids=None
+        self, price: Money, channel_id, weight, country_code, product_ids=None
     ):
         """Return the ShippingMethods that can be used on an order with shipment.
 
         It is based on the given country code, and by shipping methods that are
-        applicable to the given price & weight total.
+        applicable to the given price, weight and products.
         """
         qs = self.filter(
             shipping_zone__countries__contains=country_code,
@@ -116,10 +116,13 @@ class ShippingMethodQueryset(models.QuerySet):
         )
         qs = self.applicable_shipping_methods_by_channel(qs, channel_id)
         qs = qs.prefetch_related("shipping_zone")
-        if excluded_product_ids:
-            qs = self.exclude_shipping_methods_for_excluded_products(
-                qs, excluded_product_ids
-            )
+
+        # Products IDs are used to exclude shipping methods that may be not applicable
+        # to some of these products, based on exclusion rules defined in shipping method
+        # instances.
+        if product_ids:
+            qs = self.exclude_shipping_methods_for_excluded_products(qs, product_ids)
+
         price_based_methods = _applicable_price_based_methods(price, qs)
         weight_based_methods = _applicable_weight_based_methods(weight, qs)
         shipping_methods = price_based_methods | weight_based_methods
@@ -144,7 +147,7 @@ class ShippingMethodQueryset(models.QuerySet):
             channel_id=channel_id,
             weight=instance.get_total_weight(),
             country_code=country_code or instance.shipping_address.country.code,
-            excluded_product_ids=instance_product_ids,
+            product_ids=instance_product_ids,
         )
 
 

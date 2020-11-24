@@ -207,7 +207,7 @@ def test_applicable_shipping_methods_with_excluded_products(
         weight=Weight(kg=5),
         country_code="PL",
         channel_id=channel_USD.id,
-        excluded_product_ids=[product.id, product_with_single_variant.id],
+        product_ids=[product.id, product_with_single_variant.id],
     )
     assert excluded_method not in result
     assert weight_method in result
