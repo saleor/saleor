@@ -4,8 +4,10 @@ from django.core.exceptions import ValidationError
 from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from saleor.plugins.error_codes import PluginErrorCode
 
+from ... import PaymentError
+from ...models import Payment
 from ..utils import get_supported_currencies
-from . import GatewayConfig, process_payment, authenticate_test
+from . import GatewayConfig, process_payment, authenticate_test, refund
 
 
 GATEWAY_NAME = "Authorize.Net"
@@ -113,7 +115,13 @@ class AuthorizeNetGatewayPlugin(BasePlugin):
     def refund_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
-        pass  # return refund(payment_information, self._get_gateway_config())
+        try:
+            payment = Payment.objects.get(pk=payment_information.payment_id)
+        except Payment.DoesNotExist:
+            raise PaymentError("Cannot find Payment.")
+        return refund(
+            payment_information, payment.cc_last_digits, self._get_gateway_config()
+        )
 
     @require_active_plugin
     def void_payment(

@@ -1,11 +1,14 @@
 import pytest
 
 from .... import TransactionKind
-from .. import process_payment, authenticate_test
+from ....interface import PaymentData
+from .. import process_payment, authenticate_test, refund
 
 
 INVALID_TOKEN = "Y29kZTo1MF8yXzA2MDAwIHRva2VuOjEgdjoxLjE="
 SUCCESS_TRANSACTION_ID = 60156217587
+REFUND_AMOUNT = 10.0
+REFUND_TOKEN = "test"
 
 
 @pytest.mark.integration
@@ -54,3 +57,53 @@ def test_process_payment_error_response(
     assert response.amount == dummy_payment_data.amount
     assert response.currency == dummy_payment_data.currency
     assert not response.action_required
+
+
+@pytest.mark.integration
+@pytest.mark.vcr()
+def test_refund(authorize_net_payment, authorize_net_gateway_config):
+    payment_data = PaymentData(
+        REFUND_AMOUNT,
+        "USD",
+        None,
+        None,
+        payment_id=authorize_net_payment.pk,
+        graphql_payment_id=None,
+        order_id=authorize_net_payment.order_id,
+        customer_ip_address=authorize_net_payment.customer_ip_address,
+        customer_email=authorize_net_payment.billing_email,
+        token=REFUND_TOKEN,
+    )
+    response = refund(
+        payment_data,
+        authorize_net_payment.cc_last_digits,
+        authorize_net_gateway_config,
+    )
+    assert not response.error
+    assert response.kind == TransactionKind.REFUND
+    assert response.is_success
+
+
+@pytest.mark.integration
+@pytest.mark.vcr()
+def test_refund_error(authorize_net_payment, authorize_net_gateway_config):
+    payment_data = PaymentData(
+        REFUND_AMOUNT,
+        "USD",
+        None,
+        None,
+        payment_id=authorize_net_payment.pk,
+        graphql_payment_id=None,
+        order_id=authorize_net_payment.order_id,
+        customer_ip_address=authorize_net_payment.customer_ip_address,
+        customer_email=authorize_net_payment.billing_email,
+        token=REFUND_TOKEN,
+    )
+    response = refund(
+        payment_data,
+        authorize_net_payment.cc_last_digits,
+        authorize_net_gateway_config,
+    )
+    assert response.error
+    assert response.kind == TransactionKind.REFUND
+    assert not response.is_success

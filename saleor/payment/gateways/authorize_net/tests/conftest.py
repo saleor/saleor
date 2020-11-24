@@ -16,3 +16,8 @@ def authorize_net_gateway_config():
             "use_sandbox": True
         }
     )
+
+
+@pytest.fixture()
+def authorize_net_payment(payment_dummy):
+    return payment_dummy

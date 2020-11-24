@@ -1,7 +1,7 @@
 interactions:
 - request:
-    body: '{"authenticateTestRequest": {"merchantAuthentication": {"name": "7p4qn9R3X77q",
-      "transactionKey": "69h8Gt34nkBuNE2P"}}}'
+    body: '{"authenticateTestRequest": {"merchantAuthentication": {"name": "test",
+      "transactionKey": "test"}}}'
     headers:
       Accept:
       - '*/*'
