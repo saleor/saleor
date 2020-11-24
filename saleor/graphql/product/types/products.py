@@ -6,6 +6,7 @@ from graphene import relay
 from graphene_federation import key
 from graphql.error import GraphQLError
 
+from ....attribute import models as attribute_models
 from ....core.permissions import OrderPermissions, ProductPermissions
 from ....core.weight import convert_weight_to_default_weight_unit
 from ....product import models
@@ -24,6 +25,9 @@ from ....warehouse.availability import (
     is_product_in_stock,
 )
 from ...account.enums import CountryCodeEnum
+from ...attribute.filters import AttributeFilterInput
+from ...attribute.resolvers import resolve_attributes
+from ...attribute.types import Attribute, SelectedAttribute
 from ...channel import ChannelContext, ChannelQsContext
 from ...channel.dataloaders import ChannelBySlugLoader
 from ...channel.types import ChannelContextType, ChannelContextTypeWithMetadata
@@ -76,10 +80,8 @@ from ..dataloaders import (
     VariantChannelListingByVariantIdLoader,
     VariantsChannelListingByProductIdAndChanneSlugLoader,
 )
-from ..filters import AttributeFilterInput, ProductFilterInput
-from ..resolvers import resolve_attributes
+from ..filters import ProductFilterInput
 from ..sorters import ProductOrder
-from .attributes import Attribute, SelectedAttribute
 from .channels import (
     CollectionChannelListing,
     ProductChannelListing,
@@ -297,16 +299,17 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         if not root.channel_slug:
             return None
 
+        channel_slug = str(root.channel_slug)
         context = info.context
         product = ProductByIdLoader(context).load(root.node.product_id)
         product_channel_listing = ProductChannelListingByProductIdAndChannelSlugLoader(
             context
-        ).load((root.node.product_id, root.channel_slug))
+        ).load((root.node.product_id, channel_slug))
         variant_channel_listing = VariantChannelListingByVariantIdAndChannelSlugLoader(
             context
-        ).load((root.node.id, root.channel_slug))
+        ).load((root.node.id, channel_slug))
         collections = CollectionsByProductIdLoader(context).load(root.node.product_id)
-        channel = ChannelBySlugLoader(context).load(root.channel_slug)
+        channel = ChannelBySlugLoader(context).load(channel_slug)
 
         def calculate_pricing_info(discounts):
             def calculate_pricing_with_channel(channel):
@@ -582,7 +585,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             return None
 
         context = info.context
-        channel_slug = root.channel_slug
+        channel_slug = str(root.channel_slug)
         product_channel_listing = ProductChannelListingByProductIdAndChannelSlugLoader(
             context
         ).load((root.node.id, channel_slug))
@@ -824,7 +827,9 @@ class ProductType(CountableDjangoObjectType):
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_available_attributes(root: models.ProductType, info, **kwargs):
-        qs = models.Attribute.objects.get_unassigned_attributes(root.pk)
+        qs = attribute_models.Attribute.objects.get_unassigned_product_type_attributes(
+            root.pk
+        )
         return resolve_attributes(info, qs=qs, **kwargs)
 
     @staticmethod

@@ -24,6 +24,16 @@ from prices import Money, TaxedMoney
 
 from ...account.models import Address, User
 from ...account.utils import store_user_address
+from ...attribute.models import (
+    AssignedPageAttribute,
+    AssignedProductAttribute,
+    AssignedVariantAttribute,
+    Attribute,
+    AttributePage,
+    AttributeProduct,
+    AttributeValue,
+    AttributeVariant,
+)
 from ...channel.models import Channel
 from ...checkout import AddressType
 from ...core.permissions import (
@@ -42,17 +52,11 @@ from ...giftcard.models import GiftCard
 from ...menu.models import Menu
 from ...order.models import Fulfillment, Order, OrderLine
 from ...order.utils import update_order_status
-from ...page.models import Page
+from ...page.models import Page, PageType
 from ...payment import gateway
 from ...payment.utils import create_payment
 from ...plugins.manager import get_plugins_manager
 from ...product.models import (
-    AssignedProductAttribute,
-    AssignedVariantAttribute,
-    Attribute,
-    AttributeProduct,
-    AttributeValue,
-    AttributeVariant,
     Category,
     Collection,
     CollectionChannelListing,
@@ -318,6 +322,17 @@ def assign_attributes_to_product_types(
         association_model.objects.update_or_create(pk=pk, defaults=defaults)
 
 
+def assign_attributes_to_page_types(
+    association_model: AttributePage, attributes: list,
+):
+    for value in attributes:
+        pk = value["pk"]
+        defaults = value["fields"]
+        defaults["attribute_id"] = defaults.pop("attribute")
+        defaults["page_type_id"] = defaults.pop("page_type")
+        association_model.objects.update_or_create(pk=pk, defaults=defaults)
+
+
 def assign_attributes_to_products(product_attributes):
     for value in product_attributes:
         pk = value["pk"]
@@ -340,6 +355,20 @@ def assign_attributes_to_variants(variant_attributes):
         defaults["assignment_id"] = defaults.pop("assignment")
         assigned_values = defaults.pop("values")
         assoc, created = AssignedVariantAttribute.objects.update_or_create(
+            pk=pk, defaults=defaults
+        )
+        if created:
+            assoc.values.set(AttributeValue.objects.filter(pk__in=assigned_values))
+
+
+def assign_attributes_to_pages(page_attributes):
+    for value in page_attributes:
+        pk = value["pk"]
+        defaults = value["fields"]
+        defaults["page_id"] = defaults.pop("page")
+        defaults["assignment_id"] = defaults.pop("assignment")
+        assigned_values = defaults.pop("values")
+        assoc, created = AssignedPageAttribute.objects.update_or_create(
             pk=pk, defaults=defaults
         )
         if created:
@@ -390,12 +419,16 @@ def create_products_by_schema(placeholder_dir, create_images):
     assign_attributes_to_product_types(
         AttributeVariant, attributes=types["product.attributevariant"]
     )
+    assign_attributes_to_page_types(
+        AttributePage, attributes=types["product.attributepage"]
+    )
     assign_attributes_to_products(
         product_attributes=types["product.assignedproductattribute"]
     )
     assign_attributes_to_variants(
         variant_attributes=types["product.assignedvariantattribute"]
     )
+    assign_attributes_to_pages(page_attributes=types["product.assignedpageattribute"])
     create_collections(
         data=types["product.collection"], placeholder_dir=placeholder_dir
     )
@@ -1187,6 +1220,35 @@ def add_address_to_admin(email):
     store_user_address(user, address, AddressType.SHIPPING)
 
 
+def create_page_type():
+    data = [
+        {
+            "pk": 1,
+            "fields": {
+                "private_metadata": {},
+                "metadata": {},
+                "name": "About",
+                "slug": "about",
+            },
+        },
+        {
+            "pk": 2,
+            "fields": {
+                "private_metadata": {},
+                "metadata": {},
+                "name": "Mission",
+                "slug": "mission",
+            },
+        },
+    ]
+    for page_type_data in data:
+        pk = page_type_data.pop("pk")
+        page_type, _ = PageType.objects.update_or_create(
+            pk=pk, **page_type_data["fields"]
+        )
+        yield "Page type %s created" % page_type.slug
+
+
 def create_page():
     content = """
     <h2>E-commerce for the PWA era</h2>
@@ -1245,8 +1307,9 @@ def create_page():
         "content_json": content_json,
         "title": "About",
         "is_published": True,
+        "page_type_id": 1,
     }
-    page, dummy = Page.objects.get_or_create(slug="about", defaults=page_data)
+    page, dummy = Page.objects.get_or_create(pk=1, slug="about", defaults=page_data)
     yield "Page %s created" % page.slug
 
 

@@ -4,8 +4,8 @@ from typing import Dict, List, Tuple
 from django.db.models import Value as V
 from django.db.models.functions import Concat
 
+from ...attribute.models import Attribute
 from ...channel.models import Channel
-from ...product.models import Attribute
 from ...warehouse.models import Warehouse
 from . import ProductExportFields
 

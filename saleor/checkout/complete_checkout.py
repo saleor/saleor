@@ -307,6 +307,7 @@ def _create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
 
     # copy metadata from the checkout into the new order
     order.metadata = checkout.metadata
+    order.redirect_url = checkout.redirect_url
     order.private_metadata = checkout.private_metadata
     order.save()
 

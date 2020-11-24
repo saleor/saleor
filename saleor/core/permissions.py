@@ -51,6 +51,10 @@ class PagePermissions(BasePermissionEnum):
     MANAGE_PAGES = "page.manage_pages"
 
 
+class PageTypePermissions(BasePermissionEnum):
+    MANAGE_PAGE_TYPES_AND_ATTRIBUTES = "page.manage_page_types_and_attributes"
+
+
 class ProductPermissions(BasePermissionEnum):
     MANAGE_PRODUCTS = "product.manage_products"
 
@@ -78,6 +82,7 @@ PERMISSIONS_ENUMS = [
     MenuPermissions,
     OrderPermissions,
     PagePermissions,
+    PageTypePermissions,
     ProductPermissions,
     ProductTypePermissions,
     ShippingPermissions,

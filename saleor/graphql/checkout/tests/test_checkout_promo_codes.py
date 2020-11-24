@@ -98,8 +98,8 @@ def test_checkout_totals_use_discounts(
     sale.products.add(product)
 
     query = """
-    query getCheckout($token: UUID, $channel: String) {
-        checkout(token: $token, channel: $channel) {
+    query getCheckout($token: UUID) {
+        checkout(token: $token) {
             lines {
                 totalPrice {
                     gross {
@@ -121,7 +121,7 @@ def test_checkout_totals_use_discounts(
     }
     """
 
-    variables = {"token": str(checkout.token), "channel": checkout.channel.slug}
+    variables = {"token": str(checkout.token)}
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
@@ -164,8 +164,8 @@ def test_checkout_totals_use_discounts(
 
 
 QUERY_GET_CHECKOUT_GIFT_CARD_CODES = """
-query getCheckout($token: UUID!, $channel: String!) {
-  checkout(token: $token, channel: $channel) {
+query getCheckout($token: UUID!) {
+  checkout(token: $token) {
     token
     giftCards {
       displayCode
@@ -180,10 +180,7 @@ query getCheckout($token: UUID!, $channel: String!) {
 
 def test_checkout_get_gift_card_code(user_api_client, checkout_with_gift_card):
     gift_card = checkout_with_gift_card.gift_cards.first()
-    variables = {
-        "token": str(checkout_with_gift_card.token),
-        "channel": checkout_with_gift_card.channel.slug,
-    }
+    variables = {"token": str(checkout_with_gift_card.token)}
     response = user_api_client.post_graphql(
         QUERY_GET_CHECKOUT_GIFT_CARD_CODES, variables
     )
@@ -200,10 +197,7 @@ def test_checkout_get_gift_card_codes(
     checkout_with_gift_card.save()
     gift_card_first = checkout_with_gift_card.gift_cards.first()
     gift_card_last = checkout_with_gift_card.gift_cards.last()
-    variables = {
-        "token": str(checkout_with_gift_card.token),
-        "channel": checkout_with_gift_card.channel.slug,
-    }
+    variables = {"token": str(checkout_with_gift_card.token)}
     response = user_api_client.post_graphql(
         QUERY_GET_CHECKOUT_GIFT_CARD_CODES, variables
     )
@@ -216,7 +210,7 @@ def test_checkout_get_gift_card_codes(
 
 
 def test_checkout_get_gift_card_code_without_gift_card(user_api_client, checkout):
-    variables = {"token": str(checkout.token), "channel": checkout.channel.slug}
+    variables = {"token": str(checkout.token)}
     response = user_api_client.post_graphql(
         QUERY_GET_CHECKOUT_GIFT_CARD_CODES, variables
     )

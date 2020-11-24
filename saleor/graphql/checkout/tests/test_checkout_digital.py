@@ -68,8 +68,8 @@ def test_checkout_has_no_available_shipping_methods(
     """Test no shipping method are available on digital orders."""
 
     query = """
-        query getCheckout($token: UUID!, $channel: String!) {
-            checkout(token: $token, channel: $channel) {
+        query getCheckout($token: UUID!) {
+            checkout(token: $token) {
                 availableShippingMethods {
                     name
                 }
@@ -83,7 +83,7 @@ def test_checkout_has_no_available_shipping_methods(
     checkout.shipping_address = address
     checkout.save(update_fields=["shipping_address"])
 
-    variables = {"token": checkout.token, "channel": checkout.channel.slug}
+    variables = {"token": checkout.token}
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
