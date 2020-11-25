@@ -327,8 +327,8 @@ class AvataxPlugin(BasePlugin):
         product: "Product",
         collections: Iterable["Collection"],
         address: Optional["Address"],
-        discounts: Iterable[DiscountInfo],
         channel: "Channel",
+        discounts: Iterable[DiscountInfo],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
         if self._skip_plugin(previous_value):

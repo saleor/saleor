@@ -450,13 +450,16 @@ def test_apply_taxes_to_product_uses_taxes_from_product_type(
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
     country = Country("PL")
     manager = get_plugins_manager()
-    variant.product.metadata = {}
-    variant.product.product_type.metadata = {
+    product = variant.product
+    product.metadata = {}
+    product.product_type.metadata = {
         "vatlayer.code": "standard",
         "vatlayer.description": "standard",
     }
     price = manager.apply_taxes_to_product(
-        variant.product, variant.get_price(channel_USD.slug, [discount_info]), country
+        product,
+        variant.get_price(product, [], channel_USD.slug, [discount_info]),
+        country,
     )
     assert price == TaxedMoney(net=Money("4.07", "USD"), gross=Money("5.00", "USD"))
 

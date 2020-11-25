@@ -99,7 +99,8 @@ def test_get_prices_of_discounted_specific_product(
 
     channel_slug = checkout.channel.slug
     excepted_value = [
-        line.variant.get_price(channel_slug) for item in range(line.quantity)
+        line.variant.get_price(product, [collection], channel_slug, [])
+        for item in range(line.quantity)
     ]
 
     assert prices == excepted_value
@@ -125,7 +126,8 @@ def test_get_prices_of_discounted_specific_product_only_product(
 
     channel_slug = checkout.channel.slug
     excepted_value = [
-        line.variant.get_price(channel_slug) for item in range(line.quantity)
+        line.variant.get_price(product, [], channel_slug, [])
+        for item in range(line.quantity)
     ]
 
     assert checkout.lines.count() > 1
@@ -156,7 +158,8 @@ def test_get_prices_of_discounted_specific_product_only_collection(
 
     channel_slug = checkout.channel.slug
     excepted_value = [
-        line.variant.get_price(channel_slug) for item in range(line.quantity)
+        line.variant.get_price(product, [collection], channel_slug, [])
+        for item in range(line.quantity)
     ]
 
     assert checkout.lines.count() > 1
@@ -187,7 +190,8 @@ def test_get_prices_of_discounted_specific_product_only_category(
 
     channel_slug = checkout.channel.slug
     excepted_value = [
-        line.variant.get_price(channel_slug) for item in range(line.quantity)
+        line.variant.get_price(product, [], channel_slug, [])
+        for item in range(line.quantity)
     ]
 
     assert checkout.lines.count() > 1
@@ -200,6 +204,7 @@ def test_get_prices_of_discounted_specific_product_all_products(
     checkout = checkout_with_item
     voucher = voucher_specific_product_type
     line = checkout.lines.first()
+    product = line.variant.product
 
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
@@ -209,7 +214,8 @@ def test_get_prices_of_discounted_specific_product_all_products(
 
     channel_slug = checkout.channel.slug
     excepted_value = [
-        line.variant.get_price(channel_slug) for item in range(line.quantity)
+        line.variant.get_price(product, [], channel_slug, [])
+        for item in range(line.quantity)
     ]
 
     assert prices == excepted_value

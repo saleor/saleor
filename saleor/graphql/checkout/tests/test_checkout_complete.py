@@ -124,7 +124,12 @@ def test_checkout_complete_with_inactive_channel(
     checkout.store_value_in_private_metadata(items={"accepted": "false"})
     checkout.save()
 
-    total = calculations.calculate_checkout_total_with_gift_cards(checkout=checkout)
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager=manager, checkout=checkout, lines=lines, address=address, discounts=[]
+    )
     payment = payment_dummy
     payment.is_active = True
     payment.order = None

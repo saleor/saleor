@@ -167,8 +167,8 @@ class VatlayerPlugin(BasePlugin):
         product: "Product",
         collections: List["Collection"],
         address: Optional["Address"],
-        discounts: List["DiscountInfo"],
         channel: "Channel",
+        discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
         if self._skip_plugin(previous_value):

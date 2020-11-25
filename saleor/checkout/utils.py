@@ -29,6 +29,7 @@ from ..giftcard.utils import (
     remove_gift_card_code_from_checkout,
 )
 from ..plugins.manager import PluginsManager, get_plugins_manager
+from ..product import models as product_models
 from ..shipping.models import ShippingMethod
 from ..warehouse.availability import check_stock_quantity, check_stock_quantity_bulk
 from . import AddressType, CheckoutLineInfo
@@ -114,9 +115,15 @@ def add_variants_to_checkout(checkout, variants, quantities):
     country_code = checkout.get_country()
     check_stock_quantity_bulk(variants, country_code, quantities)
 
+    channel_listings = product_models.ProductChannelListing.objects.filter(
+        channel_id=checkout.channel.id, product_id__in=[v.product_id for v in variants],
+    )
+    channel_listings_by_product_id = {cl.product_id: cl for cl in channel_listings}
+
     # check if variants are published
     for variant in variants:
-        if not variant.product.is_published:
+        product_channel_listing = channel_listings_by_product_id[variant.product_id]
+        if not product_channel_listing or not product_channel_listing.is_published:
             raise ProductNotPublished()
 
     # create checkout lines

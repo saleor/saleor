@@ -150,8 +150,8 @@ class BasePlugin:
         product: "Product",
         collections: List["Collection"],
         address: Optional["Address"],
-        discounts: List["DiscountInfo"],
         channel: "Channel",
+        discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
         """Calculate checkout line total.

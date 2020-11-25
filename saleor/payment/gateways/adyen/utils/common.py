@@ -20,9 +20,10 @@ from .....discount.utils import fetch_active_discounts
 from .....payment.models import Payment
 from .....plugins.manager import get_plugins_manager
 from .... import PaymentError
+from ....interface import PaymentMethodInfo
 
 if TYPE_CHECKING:
-    from ....interface import PaymentData, PaymentMethodInfo
+    from ....interface import PaymentData
 
 logger = logging.getLogger(__name__)
 

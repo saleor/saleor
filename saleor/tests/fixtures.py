@@ -1968,7 +1968,7 @@ def order_with_lines(
         product_variant=variant, warehouse=warehouse, quantity=2
     )
 
-    net = variant.get_price(channel_USD.slug)
+    net = variant.get_price(product, [], channel_USD.slug)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     line = order.lines.create(
         product_name=str(variant.product),
@@ -2043,7 +2043,7 @@ def order_with_lines_channel_PLN(
     stock = Stock.objects.create(
         warehouse=warehouse, product_variant=variant, quantity=5
     )
-    net = variant.get_price(channel_PLN.slug)
+    net = variant.get_price(product, [], channel_PLN.slug)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     line = order.lines.create(
         product_name=str(variant.product),
