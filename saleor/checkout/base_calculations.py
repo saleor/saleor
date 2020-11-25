@@ -14,15 +14,12 @@ from ..discount import DiscountInfo
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ..checkout import CheckoutLineInfo
     from ..product.models import Collection, Product, ProductVariant
     from .models import Checkout, CheckoutLine
     from ..channel.models import Channel
 
 
-def base_checkout_shipping_price(
-    checkout: "Checkout", lines: Iterable["CheckoutLineInfo"],
-) -> TaxedMoney:
+def base_checkout_shipping_price(checkout: "Checkout") -> TaxedMoney:
     """Return checkout shipping price."""
     # FIXME: Optimize checkout.is_shipping_required
     shipping_method = checkout.shipping_method

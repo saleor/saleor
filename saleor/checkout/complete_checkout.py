@@ -141,10 +141,9 @@ def _create_line_for_order(
     variant = checkout_line_info.variant
     product = checkout_line_info.product
     collections = checkout_line_info.collections
-    country = checkout_line.checkout.get_country()
+    country = checkout.get_country()
     address = (
-        checkout_line.checkout.shipping_address
-        or checkout_line.checkout.billing_address
+        checkout.shipping_address or checkout.billing_address
     )  # FIXME: check which address we need here
     check_stock_quantity(variant, country, quantity)
 

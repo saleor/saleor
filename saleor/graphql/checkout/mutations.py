@@ -214,7 +214,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             variant_ids,
             "variant_id",
             ProductVariant,
-            qs=product_models.ProductVariant.objects.select_related(
+            qs=product_models.ProductVariant.objects.prefetch_related(
                 "product__product_type"
             ),
         )
