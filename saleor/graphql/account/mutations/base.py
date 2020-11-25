@@ -138,6 +138,16 @@ class RequestPasswordReset(BaseMutation):
                     )
                 }
             )
+
+        if not user.is_active:
+            raise ValidationError(
+                {
+                    "email": ValidationError(
+                        "User with this email is inactive",
+                        code=AccountErrorCode.INACTIVE,
+                    )
+                }
+            )
         send_user_password_reset_email_with_url(redirect_url, user)
         return RequestPasswordReset()
 

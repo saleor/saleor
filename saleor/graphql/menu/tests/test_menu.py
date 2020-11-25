@@ -328,6 +328,9 @@ def test_menu_items_collection_in_other_channel(
             collection {
                 name
             }
+            menu {
+                slug
+            }
             category {
                 id
             }
@@ -352,6 +355,7 @@ def test_menu_items_collection_in_other_channel(
     content = get_graphql_content(response)
     data = content["data"]["menuItem"]
     assert data["name"] == menu_item.name
+    assert data["menu"]["slug"] == menu_item.menu.slug
     assert len(data["children"]) == 1
     assert data["children"][0]["name"] == child_menu.name
     assert not data["collection"]
@@ -904,17 +908,17 @@ def test_menu_reorder(staff_api_client, permission_manage_menus, menu_item_list)
     ]
 
     moves_input = [
-        {"itemId": items_global_ids[0], "parentId": None, "sortOrder": 0},
-        {"itemId": items_global_ids[1], "parentId": None, "sortOrder": -1},
-        {"itemId": items_global_ids[2], "parentId": None, "sortOrder": None},
+        {"itemId": items_global_ids[0], "parentId": None, "sortOrder": 2},
+        {"itemId": items_global_ids[1], "parentId": None, "sortOrder": None},
+        {"itemId": items_global_ids[2], "parentId": None, "sortOrder": -2},
     ]
 
     expected_data = {
         "id": menu_global_id,
         "items": [
+            {"id": items_global_ids[2], "parent": None, "children": []},
             {"id": items_global_ids[1], "parent": None, "children": []},
             {"id": items_global_ids[0], "parent": None, "children": []},
-            {"id": items_global_ids[2], "parent": None, "children": []},
         ],
     }
 
@@ -956,16 +960,13 @@ def test_menu_reorder_assign_parent(
     ]
 
     moves_input = [
+        {"itemId": items_global_ids[0], "parentId": parent_global_id, "sortOrder": 3},
         {
             "itemId": items_global_ids[2],
             "parentId": parent_global_id,
             "sortOrder": None,
         },
-        {
-            "itemId": items_global_ids[3],
-            "parentId": parent_global_id,
-            "sortOrder": None,
-        },
+        {"itemId": items_global_ids[3], "parentId": parent_global_id, "sortOrder": -3},
     ]
 
     expected_data = {
@@ -976,7 +977,7 @@ def test_menu_reorder_assign_parent(
                 "parent": None,
                 "children": [
                     {
-                        "id": items_global_ids[0],
+                        "id": items_global_ids[3],
                         "parent": {"id": parent_global_id},
                         "children": [],
                     },
@@ -986,7 +987,7 @@ def test_menu_reorder_assign_parent(
                         "children": [],
                     },
                     {
-                        "id": items_global_ids[3],
+                        "id": items_global_ids[0],
                         "parent": {"id": parent_global_id},
                         "children": [],
                     },

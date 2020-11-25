@@ -47,6 +47,7 @@ enum AccountErrorCode {
   DELETE_STAFF_ACCOUNT
   DELETE_SUPERUSER_ACCOUNT
   GRAPHQL_ERROR
+  INACTIVE
   INVALID
   INVALID_PASSWORD
   LEFT_NOT_MANAGEABLE_PERMISSION
@@ -2655,7 +2656,7 @@ type Mutation {
   orderFulfillmentCancel(id: ID!, input: FulfillmentCancelInput!): FulfillmentCancel
   orderFulfillmentUpdateTracking(id: ID!, input: FulfillmentUpdateTrackingInput!): FulfillmentUpdateTracking
   orderFulfillmentRefundProducts(input: OrderRefundProductsInput!, order: ID!): FulfillmentRefundProducts
-  orderMarkAsPaid(id: ID!): OrderMarkAsPaid
+  orderMarkAsPaid(id: ID!, transactionReference: String): OrderMarkAsPaid
   orderRefund(amount: PositiveDecimal!, id: ID!): OrderRefund
   orderUpdate(id: ID!, input: OrderUpdateInput!): OrderUpdate
   orderUpdateShipping(order: ID!, input: OrderUpdateShippingInput): OrderUpdateShipping
@@ -2973,6 +2974,7 @@ type OrderEvent implements Node {
   lines: [OrderEventOrderLineObject]
   fulfilledItems: [FulfillmentLine]
   warehouse: Warehouse
+  transactionReference: String
 }
 
 type OrderEventCountableConnection {
@@ -4763,8 +4765,6 @@ type Shop {
   geolocalization: Geolocalization
   authorizationKeys: [AuthorizationKey]!
   countries(languageCode: LanguageCodeEnum): [CountryDisplay!]!
-  currencies: [String]! @deprecated(reason: "This field will be removed in Saleor 3.0")
-  defaultCurrency: String! @deprecated(reason: "This field will be removed in Saleor 3.0")
   defaultCountry: CountryDisplay
   defaultMailSenderName: String
   defaultMailSenderAddress: String
@@ -5082,6 +5082,7 @@ enum TransactionError {
 }
 
 enum TransactionKind {
+  EXTERNAL
   AUTH
   PENDING
   ACTION_TO_CONFIRM
