@@ -1,6 +1,6 @@
 import datetime
 from collections import defaultdict, namedtuple
-from typing import TYPE_CHECKING, Iterable, List, Tuple, Union
+from typing import Iterable, List, Tuple, Union
 
 import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -10,10 +10,11 @@ from django.utils.text import slugify
 from graphene.types import InputObjectType
 from graphql_relay import from_global_id
 
-from ....attribute import AttributeInputType, AttributeType
+from ....attribute import AttributeInputType, AttributeType, models as attribute_models
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import ProductPermissions, ProductTypePermissions
+from ....core.utils import generate_unique_slug
 from ....order import OrderStatus, models as order_models
 from ....page import models as page_models
 from ....page.error_codes import PageErrorCode
@@ -60,9 +61,6 @@ from ..utils import (
     get_used_variants_attribute_values,
     validate_attributes_input,
 )
-
-if TYPE_CHECKING:
-    from ....attribute import models as attribute_models
 
 
 class CategoryInput(graphene.InputObjectType):
@@ -469,10 +467,7 @@ class AttributeValueInput(InputObjectType):
     )
     file = graphene.String(
         required=False,
-        description=(
-            "URL of the file attribute. If value with passed URL is non-existent, "
-            "it will be created."
-        ),
+        description="URL of the file attribute. Every time, a new value is created.",
     )
     content_type = graphene.String(required=False, description="File content type.")
 
@@ -517,7 +512,7 @@ AttrValuesInput = namedtuple(
     "AttrValuesInput", ["global_id", "values", "file_url", "content_type"]
 )
 T_INSTANCE = Union[models.Product, models.ProductVariant, page_models.Page]
-T_INPUT_MAP = List[Tuple["attribute_models.Attribute", AttrValuesInput]]
+T_INPUT_MAP = List[Tuple[attribute_models.Attribute, AttrValuesInput]]
 
 
 class AttributeAssignmentMixin:
@@ -547,7 +542,7 @@ class AttributeAssignmentMixin:
     ):
         """Retrieve attributes nodes from given global IDs and/or slugs."""
         qs = qs.filter(Q(pk__in=pks) | Q(slug__in=slugs))
-        nodes: List["attribute_models.Attribute"] = list(qs)
+        nodes: List[attribute_models.Attribute] = list(qs)
 
         if not nodes:
             raise ValidationError(
@@ -598,7 +593,7 @@ class AttributeAssignmentMixin:
 
     @classmethod
     def _pre_save_values(
-        cls, attribute: "attribute_models.Attribute", attr_values: AttrValuesInput
+        cls, attribute: attribute_models.Attribute, attr_values: AttrValuesInput
     ):
         """Lazy-retrieve or create the database objects from the supplied raw values."""
         get_or_create = attribute.values.get_or_create
@@ -613,21 +608,25 @@ class AttributeAssignmentMixin:
 
     @classmethod
     def _pre_save_file_value(
-        cls, attribute: "attribute_models.Attribute", attr_values: AttrValuesInput
+        cls, attribute: attribute_models.Attribute, attr_value: AttrValuesInput
     ):
-        """Lazy-retrieve or create the database objects from the supplied raw values."""
-        get_or_create = attribute.values.get_or_create
-        file_url = attr_values.file_url
+        """Create database file attribute value object from the supplied value.
+
+        For every URL new value must be created as file attribute can be removed
+        separately from every instance.
+        """
+        file_url = attr_value.file_url
         if not file_url:
             return tuple()
-        return (
-            get_or_create(
-                attribute=attribute,
-                slug=slugify(file_url, allow_unicode=True),
-                file_url=file_url,
-                defaults={"name": file_url, "content_type": attr_values.content_type},
-            )[0],
+        value = attribute_models.AttributeValue(
+            attribute=attribute,
+            file_url=file_url,
+            name=file_url,
+            content_type=attr_value.content_type,
         )
+        value.slug = generate_unique_slug(value, file_url)  # type: ignore
+        value.save()
+        return (value,)
 
     @classmethod
     def _validate_attributes_input(

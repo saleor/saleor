@@ -404,18 +404,15 @@ def test_create_page_with_file_attribute(
         "attribute": {"slug": page_file_attribute.slug},
         "values": [
             {
-                "slug": attr_value.slug,
-                "file": {
-                    "url": attr_value.file_url,
-                    "contentType": attr_value.content_type,
-                },
+                "slug": f"{attr_value.slug}-2",
+                "file": {"url": attr_value.file_url, "contentType": None},
             }
         ],
     }
     assert data["page"]["attributes"][0] == expected_attr_data
 
     page_file_attribute.refresh_from_db()
-    assert page_file_attribute.values.count() == values_count
+    assert page_file_attribute.values.count() == values_count + 1
 
 
 def test_create_page_with_file_attribute_new_attribute_value(

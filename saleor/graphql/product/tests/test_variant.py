@@ -397,7 +397,7 @@ def test_create_variant_with_file_attribute(
     assert data["name"] == existing_value.name
     assert data["sku"] == sku
     assert data["attributes"][0]["attribute"]["slug"] == file_attribute.slug
-    assert data["attributes"][0]["values"][0]["slug"] == existing_value.slug
+    assert data["attributes"][0]["values"][0]["slug"] == f"{existing_value.slug}-2"
     assert data["weight"]["unit"] == WeightUnitsEnum.KG.name
     assert data["weight"]["value"] == weight
     assert len(data["stocks"]) == 1
@@ -405,7 +405,7 @@ def test_create_variant_with_file_attribute(
     assert data["stocks"][0]["warehouse"]["slug"] == warehouse.slug
 
     file_attribute.refresh_from_db()
-    assert file_attribute.values.count() == values_count
+    assert file_attribute.values.count() == values_count + 1
 
     updated_webhook_mock.assert_called_once_with(product)
 
@@ -1147,7 +1147,10 @@ def test_update_product_variant_with_current_file_attribute(
     assert len(variant_data["attributes"]) == 1
     assert variant_data["attributes"][0]["attribute"]["slug"] == file_attribute.slug
     assert len(variant_data["attributes"][0]["values"]) == 1
-    assert variant_data["attributes"][0]["values"][0]["slug"] == slugify(second_value)
+    assert (
+        variant_data["attributes"][0]["values"][0]["slug"]
+        == f"{slugify(second_value)}-2"
+    )
 
 
 def test_update_product_variant_with_duplicated_file_attribute(

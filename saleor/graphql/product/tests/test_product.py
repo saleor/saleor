@@ -2195,11 +2195,8 @@ def test_create_product_with_file_attribute(
             "attribute": {"slug": file_attribute.slug},
             "values": [
                 {
-                    "slug": existing_value.slug,
-                    "file": {
-                        "url": existing_value.file_url,
-                        "contentType": existing_value.content_type,
-                    },
+                    "slug": f"{existing_value.slug}-2",
+                    "file": {"url": existing_value.file_url, "contentType": None},
                 }
             ],
         },
@@ -2208,7 +2205,7 @@ def test_create_product_with_file_attribute(
         assert attr_data in expected_attributes_data
 
     file_attribute.refresh_from_db()
-    assert file_attribute.values.count() == values_count
+    assert file_attribute.values.count() == values_count + 1
 
 
 def test_create_product_with_file_attribute_new_attribute_value(
