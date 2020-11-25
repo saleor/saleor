@@ -313,6 +313,11 @@ class OrderLine(CountableDjangoObjectType):
         return AllocationsByOrderLineIdLoader(info.context).load(root.id)
 
 
+class OrderLineAvailableToRefund(graphene.ObjectType):
+    quantity = graphene.Int(description="The quantity available to refund.")
+    order_line = graphene.Field(lambda: OrderLine, description="The order line.")
+
+
 class Order(CountableDjangoObjectType):
     fulfillments = graphene.List(
         Fulfillment, required=True, description="List of shipments for the order."
@@ -373,6 +378,11 @@ class Order(CountableDjangoObjectType):
     )
     is_shipping_required = graphene.Boolean(
         description="Returns True, if order requires shipping.", required=True
+    )
+    lines_available_to_refund = graphene.List(
+        OrderLineAvailableToRefund,
+        required=True,
+        description="List of order lines available to refund.",
     )
 
     class Meta:
@@ -604,3 +614,20 @@ class Order(CountableDjangoObjectType):
         channel = ChannelByIdLoader(info.context).load(root.channel_id)
 
         return Promise.all([voucher, channel]).then(wrap_voucher_with_channel_context)
+
+    @staticmethod
+    def resolve_lines_available_to_refund(root: models.Order, info):
+        lines_available_to_refund = []
+        lines = root.lines.prefetch_related("fulfillment_lines__fulfillment")
+        for line in lines:
+            quantity_to_refund = line.quantity_unfulfilled
+            for fulfillment_line in line.fulfillment_lines.all():
+                if fulfillment_line.fulfillment.status != FulfillmentStatus.FULFILLED:
+                    continue
+                quantity_to_refund += fulfillment_line.quantity
+            if quantity_to_refund:
+                lines_available_to_refund.append(
+                    {"quantity": quantity_to_refund, "order_line": line}
+                )
+
+        return lines_available_to_refund

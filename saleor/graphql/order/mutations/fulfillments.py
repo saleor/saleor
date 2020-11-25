@@ -6,17 +6,21 @@ from django.template.defaultfilters import pluralize
 
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
+from ....order import FulfillmentStatus, models as order_models
 from ....order.actions import (
     cancel_fulfillment,
     create_fulfillments,
+    create_refund_fulfillment,
     fulfillment_tracking_updated,
 )
 from ....order.emails import send_fulfillment_update
 from ....order.error_codes import OrderErrorCode
 from ...core.mutations import BaseMutation
+from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
 from ...core.utils import from_global_id_strict_type, get_duplicated_values
 from ...order.types import Fulfillment, Order
+from ...utils import get_user_or_app_from_context
 from ...warehouse.types import Warehouse
 from ..types import OrderLine
 
@@ -308,3 +312,170 @@ class FulfillmentCancel(BaseMutation):
         fulfillment.refresh_from_db(fields=["status"])
         order.refresh_from_db(fields=["status"])
         return FulfillmentCancel(fulfillment=fulfillment, order=order)
+
+
+class OrderFulfillRefundLineInput(graphene.InputObjectType):
+    order_line_id = graphene.ID(
+        description="The ID of the order line to refund.", name="orderLineId"
+    )
+    quantity = graphene.Int(
+        description="The number of line items to be refunded by the customer.",
+        required=True,
+    )
+    # stocks = graphene.List(
+    #     graphene.NonNull(OrderFulfillStockInput),
+    #     required=True,
+    #     description="List of stock items to return.",
+    # )
+
+
+class OrderRefundProductsInput(graphene.InputObjectType):
+    lines = graphene.List(
+        graphene.NonNull(OrderFulfillRefundLineInput),
+        required=True,
+        description="List of items to refund.",
+    )
+    # TODO  call refund email
+    notify_customer = graphene.Boolean(
+        description="If true, send an refund email notification to the customer."
+    )
+    amount_to_refund = PositiveDecimal(
+        required=False,
+        description=("The total amount of refund when the value is provided manually."),
+    )
+    include_shipping_costs = graphene.Boolean(
+        description=(
+            "If true, Saleor will refund shipping costs. if amountToRefund is "
+            "provided, this field will not be considered."
+        ),
+        default_value=False,
+    )
+
+
+class FulfillmentRefundProducts(BaseMutation):
+    fulfillment = graphene.Field(Fulfillment, description="A refunded fulfillment.")
+    order = graphene.Field(Order, description="Order which fulfillment was refunded.")
+
+    class Arguments:
+        order_id = graphene.ID(
+            description="ID of the order to be fulfilled.", name="order", required=True
+        )
+        input = OrderRefundProductsInput(
+            required=True,
+            description="Fields required to create an refund fulfillment.",
+        )
+
+    class Meta:
+        description = "Refund products."
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
+
+    @classmethod
+    def clean_input(cls, info, order_id, input):
+        amount_to_refund = input.get("amount_to_refund")
+        include_shipping_costs = input.get("include_shipping_costs")
+        if amount_to_refund is not None and include_shipping_costs:
+            raise ValidationError(
+                {
+                    "amount_to_refund": ValidationError(
+                        (
+                            "The amountToRefund and includeShippingCosts are mutually "
+                            "exclusive and attempts to call mutation with both options "
+                            "enabled will raise an exception."
+                        ),
+                        code=OrderErrorCode.INVALID.value,
+                    ),
+                    "include_shipping_costs": ValidationError(
+                        (
+                            "The amountToRefund and includeShippingCosts are mutually "
+                            "exclusive and attempts to call mutation with both options "
+                            "enabled will raise an exception."
+                        ),
+                        code=OrderErrorCode.INVALID.value,
+                    ),
+                }
+            )
+        qs = order_models.Order.objects.prefetch_related("payments")
+        order = cls.get_node_or_error(
+            info, order_id, field="order", only_type=Order, qs=qs
+        )
+        cleaned_input = {
+            "amount_to_refund": amount_to_refund,
+            "include_shipping_costs": include_shipping_costs,
+            "order": order,
+        }
+        lines_data = input.get("lines")
+        cls.clean_lines(lines_data, cleaned_input)
+        return cleaned_input
+
+    @classmethod
+    def _raise_error_for_order_line(cls, msg, order_line_id, code=None):
+        order_line_global_id = graphene.Node.to_global_id("OrderLine", order_line_id)
+        if not code:
+            code = OrderErrorCode.INVALID_REFUND_QUANTITY.value
+        raise ValidationError(
+            {
+                "order_line_id": ValidationError(
+                    msg, code=code, params={"order_line": order_line_global_id},
+                )
+            }
+        )
+
+    @classmethod
+    def clean_lines(cls, lines_data, cleaned_input):
+        lines_ids = [line["order_line_id"] for line in lines_data]
+        quantities_to_refund = [line["quantity"] for line in lines_data]
+        lines_to_refund = cls.get_nodes_or_error(
+            lines_ids,
+            field="lines",
+            only_type=OrderLine,
+            qs=order_models.OrderLine.objects.prefetch_related(
+                "fulfillment_lines__fulfillment"
+            ),
+        )
+        lines_to_refund = list(lines_to_refund)
+        for line, quantity in zip(lines_to_refund, quantities_to_refund):
+            if line.quantity < quantity:
+                cls._raise_error_for_order_line(
+                    "Quantity provided to refund is bigger than quantity from order "
+                    "line",
+                    line.pk,
+                )
+            quantity_ready_to_refund = line.quantity_unfulfilled
+            if quantity_ready_to_refund >= quantity:
+                # unfulfilled quantity is bigger/equal. No need to check if fulfillments
+                # have enough quantity to refund.
+                continue
+
+            for fulfillment_line in line.fulfillment_lines.all():
+                if fulfillment_line.fulfillment.status != FulfillmentStatus.FULFILLED:
+                    continue
+                quantity_ready_to_refund += fulfillment_line.quantity
+                if quantity_ready_to_refund >= quantity:
+                    # Fulfillment lines have enough quantity, required for refund.
+                    break
+            if quantity_ready_to_refund < quantity:
+                cls._raise_error_for_order_line(
+                    "Provided quantity to refund is higher than available quantity "
+                    "to refund.",
+                    line.pk,
+                )
+        cleaned_input["quantities_to_refund"] = quantities_to_refund
+        cleaned_input["order_lines_to_refund"] = lines_to_refund
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        cleaned_input = cls.clean_input(info, data.get("order_id"), data.get("input"))
+        order = cleaned_input["order"]
+        payment = order.get_last_payment()
+        refund_fulfillment = create_refund_fulfillment(
+            get_user_or_app_from_context(info.context),
+            order,
+            payment,
+            cleaned_input["order_lines_to_refund"],
+            cleaned_input["quantities_to_refund"],
+            cleaned_input["amount_to_refund"],
+            cleaned_input["include_shipping_costs"],
+        )
+        return cls(order=order, fulfillment=refund_fulfillment)

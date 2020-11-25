@@ -4,6 +4,8 @@ from typing import TYPE_CHECKING, Dict, List, Optional
 
 from django.db import transaction
 
+from saleor.payment import gateway
+
 from ..core import analytics
 from ..core.exceptions import InsufficientStock
 from ..payment import ChargeStatus, CustomPaymentChoices, PaymentError
@@ -16,7 +18,8 @@ from .emails import (
     send_order_refunded_confirmation,
     send_payment_confirmation,
 )
-from .models import Fulfillment, FulfillmentLine
+from .events import fulfillment_refunded_event
+from .models import Fulfillment, FulfillmentLine, OrderLine
 from .utils import (
     order_line_needs_automatic_fulfillment,
     recalculate_order,
@@ -374,3 +377,88 @@ def create_fulfillments(
         fulfillments, requester, fulfillment_lines, notify_customer,
     )
     return fulfillments
+
+
+def create_refund_fulfillment(
+    requester: Optional["User"],
+    order,
+    payment,
+    lines_to_refund: List[OrderLine],
+    quantities_to_refund: List[int],
+    amount=None,
+    refund_shipping_costs=False,
+):
+    with transaction.atomic():
+        refunded_fulfillment = Fulfillment.objects.create(
+            status=FulfillmentStatus.REFUNDED, order=order
+        )
+        order_lines_to_update = []
+        fulfillment_lines_to_update = []
+        fulfillment_lines_to_create = []
+        empty_fulfillment_lines_to_delete = []
+        refund_amount = Decimal(0)
+        for line_to_refund, quantity_to_refund in zip(
+            lines_to_refund, quantities_to_refund
+        ):
+            refunded_line = FulfillmentLine(
+                fulfillment=refunded_fulfillment, order_line=line_to_refund, quantity=0
+            )
+
+            if line_to_refund.quantity_unfulfilled > 0:
+                unfulfilled_to_refund = min(
+                    line_to_refund.quantity_unfulfilled, quantity_to_refund
+                )
+                quantity_to_refund -= unfulfilled_to_refund
+                line_to_refund.quantity_fulfilled += unfulfilled_to_refund
+                refunded_line.quantity = unfulfilled_to_refund
+                order_lines_to_update.append(line_to_refund)
+                refund_amount += (
+                    line_to_refund.unit_price_gross_amount * unfulfilled_to_refund
+                )
+                # TODO release stock here
+            if quantity_to_refund > 0:
+                for fulfillment_line in line_to_refund.fulfillment_lines.all():
+                    # We want to get only fulfilled lines as only them can be refunded
+                    if (
+                        fulfillment_line.fulfillment.status
+                        != FulfillmentStatus.FULFILLED
+                    ):
+                        continue
+                    fulfilled_to_refund = min(
+                        fulfillment_line.quantity, quantity_to_refund
+                    )
+                    quantity_to_refund -= fulfilled_to_refund
+                    refunded_line.quantity += fulfilled_to_refund
+                    fulfillment_line.quantity -= fulfilled_to_refund
+                    refund_amount += (
+                        line_to_refund.unit_price_gross_amount * fulfilled_to_refund
+                    )
+                    if fulfillment_line.quantity == 0:
+                        empty_fulfillment_lines_to_delete.append(fulfillment_line)
+                    else:
+                        fulfillment_lines_to_update.append(fulfillment_line)
+                    if quantity_to_refund == 0:
+                        break
+            if refunded_line.quantity > 0:
+                fulfillment_lines_to_create.append(refunded_line)
+        OrderLine.objects.bulk_update(order_lines_to_update, ["quantity_fulfilled"])
+        FulfillmentLine.objects.bulk_update(fulfillment_lines_to_update, ["quantity"])
+        refunded_lines = FulfillmentLine.objects.bulk_create(
+            fulfillment_lines_to_create
+        )
+        FulfillmentLine.objects.filter(
+            id__in=[f.id for f in empty_fulfillment_lines_to_delete]
+        ).delete()
+        Fulfillment.objects.filter(order=order, lines=None).delete()
+
+    if amount is None:
+        amount = refund_amount
+    if refund_shipping_costs:
+        amount += order.shipping_price_gross_amount
+    if amount:
+        gateway.refund(payment, amount)
+    # TODO add note about included shippinh costs
+    fulfillment_refunded_event(
+        order=order, user=requester, fulfillment_lines=refunded_lines
+    )
+    return refunded_fulfillment

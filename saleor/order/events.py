@@ -322,6 +322,19 @@ def fulfillment_fulfilled_items_event(
     )
 
 
+def fulfillment_refunded_event(
+    *, order: Order, user: UserType, fulfillment_lines: List[FulfillmentLine]
+):
+    if not _user_is_valid(user):
+        user = None
+    return OrderEvent.objects.create(
+        order=order,
+        type=OrderEvents.FULFILLMENT_REFUNDED,
+        user=user,
+        parameters={"fulfilled_items": [line.pk for line in fulfillment_lines]},
+    )
+
+
 def fulfillment_tracking_updated_event(
     *, order: Order, user: UserType, tracking_number: str, fulfillment: Fulfillment
 ) -> OrderEvent:

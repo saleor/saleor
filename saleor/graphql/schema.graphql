@@ -1999,8 +1999,16 @@ type FulfillmentLine implements Node {
   orderLine: OrderLine
 }
 
+type FulfillmentRefundProducts {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  fulfillment: Fulfillment
+  order: Order
+  orderErrors: [OrderError!]!
+}
+
 enum FulfillmentStatus {
   FULFILLED
+  REFUNDED
   CANCELED
 }
 
@@ -2646,6 +2654,7 @@ type Mutation {
   orderFulfill(input: OrderFulfillInput!, order: ID): OrderFulfill
   orderFulfillmentCancel(id: ID!, input: FulfillmentCancelInput!): FulfillmentCancel
   orderFulfillmentUpdateTracking(id: ID!, input: FulfillmentUpdateTrackingInput!): FulfillmentUpdateTracking
+  orderFulfillmentRefundProducts(input: OrderRefundProductsInput!, order: ID!): FulfillmentRefundProducts
   orderMarkAsPaid(id: ID!): OrderMarkAsPaid
   orderRefund(amount: PositiveDecimal!, id: ID!): OrderRefund
   orderUpdate(id: ID!, input: OrderUpdateInput!): OrderUpdate
@@ -2844,6 +2853,7 @@ type Order implements Node & ObjectWithMetadata {
   totalBalance: Money!
   userEmail: String
   isShippingRequired: Boolean!
+  linesAvailableToRefund: [OrderLineAvailableToRefund]!
 }
 
 enum OrderAction {
@@ -2937,6 +2947,7 @@ enum OrderErrorCode {
   UNIQUE
   VOID_INACTIVE_PAYMENT
   ZERO_QUANTITY
+  INVALID_REFUND_QUANTITY
   INSUFFICIENT_STOCK
   DUPLICATED_INPUT_ITEM
   NOT_AVAILABLE_IN_CHANNEL
@@ -3017,6 +3028,7 @@ enum OrderEventsEnum {
   FULFILLMENT_CANCELED
   FULFILLMENT_RESTOCKED_ITEMS
   FULFILLMENT_FULFILLED_ITEMS
+  FULFILLMENT_REFUNDED
   TRACKING_UPDATED
   NOTE_ADDED
   OTHER
@@ -3047,6 +3059,11 @@ input OrderFulfillLineInput {
   stocks: [OrderFulfillStockInput!]!
 }
 
+input OrderFulfillRefundLineInput {
+  orderLineId: ID
+  quantity: Int!
+}
+
 input OrderFulfillStockInput {
   quantity: Int!
   warehouse: ID!
@@ -3071,6 +3088,11 @@ type OrderLine implements Node {
   allocations: [Allocation!]
 }
 
+type OrderLineAvailableToRefund {
+  quantity: Int
+  orderLine: OrderLine
+}
+
 input OrderLineCreateInput {
   quantity: Int!
   variantId: ID!
@@ -3090,6 +3112,13 @@ type OrderRefund {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   order: Order
   orderErrors: [OrderError!]!
+}
+
+input OrderRefundProductsInput {
+  lines: [OrderFulfillRefundLineInput!]!
+  notifyCustomer: Boolean
+  amountToRefund: PositiveDecimal
+  includeShippingCosts: Boolean = false
 }
 
 enum OrderSortField {
