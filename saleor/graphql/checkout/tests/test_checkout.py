@@ -1188,6 +1188,23 @@ def test_checkout_available_shipping_methods(
     assert data["availableShippingMethods"][0]["name"] == shipping_method.name
 
 
+def test_checkout_available_shipping_methods_excluded_zip_codes(
+    api_client, checkout_with_item, address, shipping_zone
+):
+    address.postal_code = "HB5"
+    checkout_with_item.shipping_address = address
+    checkout_with_item.save()
+    shipping_method = shipping_zone.shipping_methods.first()
+    shipping_method.zip_codes.create(start="HB3", end="HB6")
+
+    query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
+    variables = {"token": checkout_with_item.token}
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+    assert data["availableShippingMethods"] == []
+
+
 @pytest.mark.parametrize(
     "expected_price_type, expected_price, display_gross_prices",
     (("gross", 13, True), ("net", 10, False)),

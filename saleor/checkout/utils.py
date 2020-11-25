@@ -429,6 +429,7 @@ def get_valid_shipping_methods_for_checkout(
     lines: Iterable[CheckoutLine],
     discounts: Iterable[DiscountInfo],
     country_code: Optional[str] = None,
+    prefetch_zip_codes: bool = False,
 ):
     manager = get_plugins_manager()
     return ShippingMethod.objects.applicable_shipping_methods_for_instance(
@@ -436,6 +437,7 @@ def get_valid_shipping_methods_for_checkout(
         channel_id=checkout.channel_id,
         price=manager.calculate_checkout_subtotal(checkout, lines, discounts).gross,
         country_code=country_code,
+        prefetch_zip_codes=prefetch_zip_codes,
     )
 
 

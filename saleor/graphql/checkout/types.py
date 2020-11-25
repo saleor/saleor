@@ -6,6 +6,7 @@ from ...checkout.utils import get_valid_shipping_methods_for_checkout
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
 from ...core.taxes import display_gross_prices, zero_taxed_money
+from ...order.utils import check_shipping_method_for_zip_code
 from ...plugins.manager import get_plugins_manager
 from ..account.utils import requestor_has_access
 from ..channel import ChannelContext
@@ -255,11 +256,14 @@ class Checkout(CountableDjangoObjectType):
     def resolve_available_shipping_methods(root: models.Checkout, info):
         def calculate_available_shipping_methods(data):
             lines, discounts = data
-            available = get_valid_shipping_methods_for_checkout(root, lines, discounts)
+            available = get_valid_shipping_methods_for_checkout(
+                root, lines, discounts, prefetch_zip_codes=True
+            )
             if available is None:
                 return []
             manager = get_plugins_manager()
             display_gross = display_gross_prices()
+            excluded_by_zip_codes = []
             for shipping_method in available:
                 # ignore mypy checking because it is checked in
                 # get_valid_shipping_methods_for_checkout
@@ -273,6 +277,12 @@ class Checkout(CountableDjangoObjectType):
                     shipping_method.price = taxed_price.gross
                 else:
                     shipping_method.price = taxed_price.net
+                if not check_shipping_method_for_zip_code(
+                    root.shipping_address.postal_code, shipping_method
+                ):
+                    excluded_by_zip_codes.append(shipping_method.id)
+            if excluded_by_zip_codes:
+                return available.exclude(id__in=excluded_by_zip_codes)
             return available
 
         lines = CheckoutLinesByCheckoutTokenLoader(info.context).load(root.token)
