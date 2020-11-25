@@ -263,7 +263,7 @@ class Checkout(CountableDjangoObjectType):
                 return []
             manager = get_plugins_manager()
             display_gross = display_gross_prices()
-            excluded_by_zip_codes = []
+            exclude_by_zip_codes = []
             for shipping_method in available:
                 # ignore mypy checking because it is checked in
                 # get_valid_shipping_methods_for_checkout
@@ -280,9 +280,9 @@ class Checkout(CountableDjangoObjectType):
                 if not check_shipping_method_for_zip_code(
                     root.shipping_address.postal_code, shipping_method
                 ):
-                    excluded_by_zip_codes.append(shipping_method.id)
-            if excluded_by_zip_codes:
-                return available.exclude(id__in=excluded_by_zip_codes)
+                    exclude_by_zip_codes.append(shipping_method.id)
+            if exclude_by_zip_codes:
+                return available.exclude(id__in=exclude_by_zip_codes)
             return available
 
         lines = CheckoutLinesByCheckoutTokenLoader(info.context).load(root.token)

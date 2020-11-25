@@ -336,16 +336,16 @@ def get_prices_of_discounted_specific_product(
     return line_prices
 
 
-def check_zip_code_in_range(code, start, end):
+def check_zip_code_in_excluded_range(code, start, end):
     # TODO: do actual logic on checking if the zip code is in range
     return True
 
 
 def check_shipping_method_for_zip_code(customer_zip_code, method: ShippingMethod):
     for zip_code in method.zip_codes.all():
-        start = zip_code.start
-        end = zip_code.end
-        if check_zip_code_in_range(customer_zip_code, start, end):
+        if check_zip_code_in_excluded_range(
+            customer_zip_code, zip_code.start, zip_code.end
+        ):
             return False
     return True
 
