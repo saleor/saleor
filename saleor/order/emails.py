@@ -72,9 +72,11 @@ def prepare_order_details_url(order: Order, redirect_url: str) -> str:
     return prepare_url(params, redirect_url)
 
 
-def collect_data_for_fulfillment_email(order_pk, template, fulfillment_pk):
+def collect_data_for_fulfillment_email(
+    order_pk, template, fulfillment_pk, redirect_url=""
+):
     fulfillment = Fulfillment.objects.get(pk=fulfillment_pk)
-    email_data = collect_data_for_email(order_pk, template)
+    email_data = collect_data_for_email(order_pk, template, redirect_url)
     lines = fulfillment.lines.all()
     physical_lines = [line for line in lines if not line.order_line.is_digital]
     digital_lines = [line for line in lines if line.order_line.is_digital]
@@ -113,9 +115,9 @@ def send_staff_order_confirmation(order_pk, redirect_url):
 
 
 @app.task
-def send_fulfillment_confirmation(order_pk, fulfillment_pk):
+def send_fulfillment_confirmation(order_pk, fulfillment_pk, redirect_url):
     email_data = collect_data_for_fulfillment_email(
-        order_pk, CONFIRM_FULFILLMENT_TEMPLATE, fulfillment_pk
+        order_pk, CONFIRM_FULFILLMENT_TEMPLATE, fulfillment_pk, redirect_url
     )
     send_templated_mail(**email_data)
 

@@ -11,6 +11,12 @@
 {% blocktrans context "Fulfillment confirmation email text" %}
 Thank you for your order. Below is the list of fulfilled products.
 {% endblocktrans %}
+{% if order_details_url %}
+{% blocktrans context "Fulfillment confirmation email text with order details" %}
+To see your order details please visit:
+{{ order_details_url }}
+{% endblocktrans %}
+{% endif %}
 {% if fulfillment.tracking_number %}
 {% blocktrans trimmed with tracking_number=fulfillment.tracking_number context "Fulfillment confirmation email text" %}
 You can track your shipment with {{ tracking_number }} code.
