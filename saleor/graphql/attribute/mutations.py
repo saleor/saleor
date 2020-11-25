@@ -226,8 +226,33 @@ class AttributeMixin:
         except ValidationError as error:
             error.code = AttributeErrorCode.REQUIRED.value
             raise ValidationError({"slug": error})
+        cls._clean_attribute_settings(instance, cleaned_input)
 
         return cleaned_input
+
+    @classmethod
+    def _clean_attribute_settings(cls, instance, cleaned_input):
+        """Validate attributes settings.
+
+        Ensure that any invalid operations will be not performed.
+        """
+        attribute_input_type = cleaned_input.get("input_type") or instance.input_type
+        if attribute_input_type != AttributeInputType.FILE:
+            return
+        errors = {}
+        for field in [
+            "filterable_in_storefront",
+            "filterable_in_dashboard",
+            "available_in_grid",
+            "storefront_search_position",
+        ]:
+            if cleaned_input.get(field):
+                errors[field] = ValidationError(
+                    "Cannot set on a file attribute.",
+                    code=AttributeErrorCode.INVALID.value,
+                )
+        if errors:
+            raise ValidationError(errors)
 
     @classmethod
     def _save_m2m(cls, info, attribute, cleaned_data):
