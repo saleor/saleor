@@ -25,6 +25,9 @@ QUERY_FETCH_ALL_PRODUCTS = """
             edges {
                 node {
                     name
+                    isAvailable
+                    availableForPurchase
+                    isAvailableForPurchase
                 }
             }
         }
@@ -63,8 +66,16 @@ def test_fetch_all_products(user_api_client, product):
     with warnings.catch_warnings(record=True) as warns:
         response = user_api_client.post_graphql(QUERY_FETCH_ALL_PRODUCTS)
         content = get_graphql_content(response)
+    product_channel_listing = product.channel_listings.get()
     num_products = Product.objects.count()
-    assert content["data"]["products"]["totalCount"] == num_products
+    data = content["data"]["products"]
+    product_data = data["edges"][0]["node"]
+    assert data["totalCount"] == num_products
+    assert product_data["isAvailable"] is True
+    assert product_data["isAvailableForPurchase"] is True
+    assert product_data["availableForPurchase"] == str(
+        product_channel_listing.available_for_purchase
+    )
     assert len(content["data"]["products"]["edges"]) == num_products
     assert any(
         [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
