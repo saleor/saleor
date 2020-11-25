@@ -343,8 +343,7 @@ class ProductVariantBulkCreate(BaseMutation):
                 "Duplicated attribute values for product variant.",
                 ProductErrorCode.DUPLICATED_INPUT_ITEM,
             )
-        else:
-            used_attribute_values.append(attribute_values)
+        used_attribute_values.append(attribute_values)
 
     @classmethod
     def clean_variants(cls, info, variants, product, errors):
