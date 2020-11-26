@@ -640,7 +640,7 @@ class Order(CountableDjangoObjectType):
     @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_lines_available_for_refund(root: models.Order, info):
         def load_lines_available_for_refund(lines: list):
-            lines_ready_to_refund = defaultdict(int)
+            lines_ready_to_refund = defaultdict(int)  # type: ignore
             for line in lines:
                 if line.quantity_unfulfilled:
                     lines_ready_to_refund[line.id] = line.quantity_unfulfilled

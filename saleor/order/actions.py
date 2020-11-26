@@ -406,24 +406,27 @@ def create_refund_fulfillment(
     requester: Optional["User"],
     order,
     payment,
-    lines_to_refund: List[OrderLine],
-    quantities_to_refund: List[int],
+    order_lines_to_refund: List[OrderLine],
+    order_lines_quantities_to_refund: List[int],
+    fulfillment_lines_to_refund: List[FulfillmentLine],
+    fulfillment_lines_quantities_to_refund: List[int],
     amount=None,
     refund_shipping_costs=False,
 ):
-    refunded_fulfillment, _ = Fulfillment.objects.get_or_create(
-        status=FulfillmentStatus.REFUNDED, order=order
-    )
-    already_refunded_lines = list(refunded_fulfillment.lines.all())
-    order_lines_to_update = []
-    fulfillment_lines_to_update = []
-    fulfillment_lines_to_create = []
-    empty_fulfillment_lines_to_delete = []
-    refund_amount = Decimal(0)
-    for line_to_refund, quantity_to_refund in zip(
-        lines_to_refund, quantities_to_refund
-    ):
-        if line_to_refund.quantity_unfulfilled > 0:
+    with transaction.atomic():
+        refunded_fulfillment, _ = Fulfillment.objects.get_or_create(
+            status=FulfillmentStatus.REFUNDED, order=order
+        )
+        already_refunded_lines = list(refunded_fulfillment.lines.all())
+        order_lines_to_update = []
+        fulfillment_lines_to_update = []
+        fulfillment_lines_to_create = []
+        empty_fulfillment_lines_to_delete = []
+        refund_amount = Decimal(0)
+        all_refunded_lines = dict()
+        for line_to_refund, quantity_to_refund in zip(
+            order_lines_to_refund, order_lines_quantities_to_refund
+        ):
             refunded_line = _get_fulfillment_line_if_exists(
                 already_refunded_lines, line_to_refund.id
             )
@@ -449,43 +452,64 @@ def create_refund_fulfillment(
                 fulfillment_lines_to_create.append(refunded_line)
             elif fulfillemt_line_existed:
                 fulfillment_lines_to_update.append(refunded_line)
-            # TODO release stock here
-        if quantity_to_refund > 0:
-            for fulfillment_line in line_to_refund.fulfillment_lines.all():
-                # We want to get only fulfilled lines as only them can be refunded
-                if fulfillment_line.fulfillment.status != FulfillmentStatus.FULFILLED:
-                    continue
-                refunded_line = _get_fulfillment_line_if_exists(
-                    already_refunded_lines,
-                    fulfillment_line.order_line_id,
-                    fulfillment_line.stock_id,
+            # FIXME for unknown reason stock is not correct here.
+            # transaction.on_commit(lambda: deallocate_stock(line_to_refund,
+            # unfulfilled_to_refund))
+            all_refunded_lines[line_to_refund.id] = (quantity_to_refund, line_to_refund)
+        order_lines_with_fulfillment = OrderLine.objects.in_bulk(
+            [line.order_line_id for line in fulfillment_lines_to_refund]
+        )
+        for fulfillment_line, quantity_to_refund in zip(
+            fulfillment_lines_to_refund, fulfillment_lines_quantities_to_refund
+        ):
+            refunded_line = _get_fulfillment_line_if_exists(
+                already_refunded_lines,
+                fulfillment_line.order_line_id,
+                fulfillment_line.stock_id,
+            )
+            fulfillemt_line_existed = True
+            if not refunded_line:
+                fulfillemt_line_existed = False
+                refunded_line = FulfillmentLine(
+                    fulfillment=refunded_fulfillment,
+                    order_line_id=fulfillment_line.order_line_id,
+                    stock_id=fulfillment_line.stock_id,
+                    quantity=0,
                 )
-                fulfillemt_line_existed = True
-                if not refunded_line:
-                    fulfillemt_line_existed = False
-                    refunded_line = FulfillmentLine(
-                        fulfillment=refunded_fulfillment,
-                        order_line_id=fulfillment_line.order_line_id,
-                        stock_id=fulfillment_line.stock_id,
-                        quantity=0,
-                    )
-                fulfilled_to_refund = min(fulfillment_line.quantity, quantity_to_refund)
-                quantity_to_refund -= fulfilled_to_refund
-                refunded_line.quantity += fulfilled_to_refund
-                fulfillment_line.quantity -= fulfilled_to_refund
-                refund_amount += (
-                    line_to_refund.unit_price_gross_amount * fulfilled_to_refund
-                )
-                if fulfillment_line.quantity == 0:
-                    empty_fulfillment_lines_to_delete.append(fulfillment_line)
-                else:
-                    fulfillment_lines_to_update.append(fulfillment_line)
-                if refunded_line.quantity > 0 and not fulfillemt_line_existed:
-                    fulfillment_lines_to_create.append(refunded_line)
-                elif fulfillemt_line_existed:
-                    fulfillment_lines_to_update.append(refunded_line)
-                if quantity_to_refund == 0:
-                    break
+            fulfilled_to_refund = min(fulfillment_line.quantity, quantity_to_refund)
+            quantity_to_refund -= fulfilled_to_refund
+            refunded_line.quantity += fulfilled_to_refund
+            fulfillment_line.quantity -= fulfilled_to_refund
+            order_line = order_lines_with_fulfillment.get(
+                fulfillment_line.order_line_id
+            )
+            refund_amount += order_line.unit_price_gross_amount * fulfilled_to_refund
+            if fulfillment_line.quantity == 0:
+                empty_fulfillment_lines_to_delete.append(fulfillment_line)
+            else:
+                fulfillment_lines_to_update.append(fulfillment_line)
+            if refunded_line.quantity > 0 and not fulfillemt_line_existed:
+                fulfillment_lines_to_create.append(refunded_line)
+            elif fulfillemt_line_existed:
+                fulfillment_lines_to_update.append(refunded_line)
+
+            data_from_all_refunded_lines = all_refunded_lines.get(order_line.id)
+            if data_from_all_refunded_lines:
+                quantity, line = data_from_all_refunded_lines
+                quantity += fulfilled_to_refund
+                all_refunded_lines[order_line.id] = (quantity, line)
+            else:
+                all_refunded_lines[order_line.id] = (fulfilled_to_refund, order_line)
+            if quantity_to_refund == 0:
+                break
+
+        OrderLine.objects.bulk_update(order_lines_to_update, ["quantity_fulfilled"])
+        FulfillmentLine.objects.bulk_update(fulfillment_lines_to_update, ["quantity"])
+        FulfillmentLine.objects.bulk_create(fulfillment_lines_to_create)
+        FulfillmentLine.objects.filter(
+            id__in=[f.id for f in empty_fulfillment_lines_to_delete]
+        ).delete()
+        Fulfillment.objects.filter(order=order, lines=None).delete()
 
     if amount is None:
         amount = refund_amount
@@ -494,19 +518,12 @@ def create_refund_fulfillment(
     if amount:
         amount = min(payment.captured_amount, amount)
         gateway.refund(payment, amount)
+
     fulfillment_refunded_event(
         order=order,
         user=requester,
-        refunded_lines=(lines_to_refund, quantities_to_refund),
+        refunded_lines=list(all_refunded_lines.values()),
         amount=amount,
         shipping_costs_included=refund_shipping_costs,
     )
-    with transaction.atomic():
-        OrderLine.objects.bulk_update(order_lines_to_update, ["quantity_fulfilled"])
-        FulfillmentLine.objects.bulk_update(fulfillment_lines_to_update, ["quantity"])
-        FulfillmentLine.objects.bulk_create(fulfillment_lines_to_create)
-        FulfillmentLine.objects.filter(
-            id__in=[f.id for f in empty_fulfillment_lines_to_delete]
-        ).delete()
-        Fulfillment.objects.filter(order=order, lines=None).delete()
     return refunded_fulfillment

@@ -334,11 +334,10 @@ def fulfillment_refunded_event(
     *,
     order: Order,
     user: UserType,
-    refunded_lines: Tuple[List[OrderLine], List[int]],
+    refunded_lines: List[Tuple[int, OrderLine]],
     amount: Decimal,
     shipping_costs_included: bool
 ):
-    lines, quantities = refunded_lines
     if not _user_is_valid(user):
         user = None
     return OrderEvent.objects.create(
@@ -346,7 +345,7 @@ def fulfillment_refunded_event(
         type=OrderEvents.FULFILLMENT_REFUNDED,
         user=user,
         parameters={
-            "lines": _lines_per_quantity_to_line_object_list(zip(quantities, lines)),
+            "lines": _lines_per_quantity_to_line_object_list(refunded_lines),
             "amount": amount,
             "shipping_costs_included": shipping_costs_included,
         },

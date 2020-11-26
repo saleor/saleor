@@ -2949,6 +2949,7 @@ enum OrderErrorCode {
   VOID_INACTIVE_PAYMENT
   ZERO_QUANTITY
   INVALID_REFUND_QUANTITY
+  CANNOT_REFUND_FULFILLMENT_LINE
   INSUFFICIENT_STOCK
   DUPLICATED_INPUT_ITEM
   NOT_AVAILABLE_IN_CHANNEL
@@ -3062,11 +3063,6 @@ input OrderFulfillLineInput {
   stocks: [OrderFulfillStockInput!]!
 }
 
-input OrderFulfillRefundLineInput {
-  orderLineId: ID
-  quantity: Int!
-}
-
 input OrderFulfillStockInput {
   quantity: Int!
   warehouse: ID!
@@ -3117,8 +3113,19 @@ type OrderRefund {
   orderErrors: [OrderError!]!
 }
 
+input OrderRefundFulfillmentLineInput {
+  fulfillmentLineId: ID
+  quantity: Int!
+}
+
+input OrderRefundLineInput {
+  orderLineId: ID
+  quantity: Int!
+}
+
 input OrderRefundProductsInput {
-  lines: [OrderFulfillRefundLineInput!]!
+  orderLines: [OrderRefundLineInput!]
+  fulfillmentLines: [OrderRefundFulfillmentLineInput!]
   notifyCustomer: Boolean
   amountToRefund: PositiveDecimal
   includeShippingCosts: Boolean = false
