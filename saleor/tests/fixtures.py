@@ -708,7 +708,12 @@ def shipping_method_channel_PLN(shipping_zone, channel_PLN):
 @pytest.fixture
 def color_attribute(db):  # pylint: disable=W0613
     attribute = Attribute.objects.create(
-        slug="color", name="Color", type=AttributeType.PRODUCT_TYPE
+        slug="color",
+        name="Color",
+        type=AttributeType.PRODUCT_TYPE,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
     )
     AttributeValue.objects.create(attribute=attribute, name="Red", slug="red")
     AttributeValue.objects.create(attribute=attribute, name="Blue", slug="blue")
@@ -718,7 +723,12 @@ def color_attribute(db):  # pylint: disable=W0613
 @pytest.fixture
 def color_attribute_without_values(db):  # pylint: disable=W0613
     return Attribute.objects.create(
-        slug="color", name="Color", type=AttributeType.PRODUCT_TYPE
+        slug="color",
+        name="Color",
+        type=AttributeType.PRODUCT_TYPE,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
     )
 
 
@@ -733,7 +743,12 @@ def pink_attribute_value(color_attribute):  # pylint: disable=W0613
 @pytest.fixture
 def size_attribute(db):  # pylint: disable=W0613
     attribute = Attribute.objects.create(
-        slug="size", name="Size", type=AttributeType.PRODUCT_TYPE
+        slug="size",
+        name="Size",
+        type=AttributeType.PRODUCT_TYPE,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
     )
     AttributeValue.objects.create(attribute=attribute, name="Small", slug="small")
     AttributeValue.objects.create(attribute=attribute, name="Big", slug="big")
@@ -743,7 +758,12 @@ def size_attribute(db):  # pylint: disable=W0613
 @pytest.fixture
 def weight_attribute(db):
     attribute = Attribute.objects.create(
-        slug="material", name="Material", type=AttributeType.PRODUCT_TYPE
+        slug="material",
+        name="Material",
+        type=AttributeType.PRODUCT_TYPE,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
     )
     AttributeValue.objects.create(attribute=attribute, name="Cotton", slug="cotton")
     AttributeValue.objects.create(
@@ -790,7 +810,12 @@ def file_attribute_with_file_input_type_without_values(db):
 @pytest.fixture
 def size_page_attribute(db):
     attribute = Attribute.objects.create(
-        slug="page-size", name="Page size", type=AttributeType.PAGE_TYPE
+        slug="page-size",
+        name="Page size",
+        type=AttributeType.PAGE_TYPE,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
     )
     AttributeValue.objects.create(attribute=attribute, name="10", slug="10")
     AttributeValue.objects.create(attribute=attribute, name="15", slug="15")
@@ -800,7 +825,12 @@ def size_page_attribute(db):
 @pytest.fixture
 def tag_page_attribute(db):
     attribute = Attribute.objects.create(
-        slug="tag", name="tag", type=AttributeType.PAGE_TYPE
+        slug="tag",
+        name="tag",
+        type=AttributeType.PAGE_TYPE,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
     )
     AttributeValue.objects.create(attribute=attribute, name="About", slug="about")
     AttributeValue.objects.create(attribute=attribute, name="Help", slug="help")
