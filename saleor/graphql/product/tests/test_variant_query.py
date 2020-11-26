@@ -365,7 +365,7 @@ def test_get_variant_by_id_with_variant_selection_filter(
     permission_manage_products,
     variant,
     size_attribute,
-    image_attribute_without_values_and_file_input_type,
+    file_attribute_with_file_input_type_without_values,
     product_type,
 ):
     # given
@@ -373,11 +373,11 @@ def test_get_variant_by_id_with_variant_selection_filter(
     variables = {"id": variant_id, "variantSelection": variant_selection}
 
     product_type.variant_attributes.add(
-        image_attribute_without_values_and_file_input_type
+        file_attribute_with_file_input_type_without_values
     )
 
     _associate_attribute_to_instance(
-        variant, image_attribute_without_values_and_file_input_type.pk
+        variant, file_attribute_with_file_input_type_without_values.pk
     )
     _associate_attribute_to_instance(variant, size_attribute.pk)
 
@@ -397,7 +397,7 @@ def test_get_variant_by_id_with_variant_selection_filter(
         assert len(data["attributes"]) == 1
         assert (
             data["attributes"][0]["attribute"]["slug"]
-            == image_attribute_without_values_and_file_input_type.slug
+            == file_attribute_with_file_input_type_without_values.slug
         )
     elif variant_selection == VariantAttributeScope.VARIANT_SELECTION.name:
         assert len(data["attributes"]) == 1
