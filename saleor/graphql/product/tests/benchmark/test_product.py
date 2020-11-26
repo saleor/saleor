@@ -67,6 +67,10 @@ def test_product_details(product, api_client, count_queries, channel_USD):
               value: name
             }
           }
+          images {
+            id
+            url
+          }
         }
 
         query ProductDetails($id: ID!, $channel: String) {
