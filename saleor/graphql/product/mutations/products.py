@@ -1,6 +1,6 @@
 import datetime
-from collections import defaultdict
-from typing import TYPE_CHECKING, Iterable, List, Tuple, Union
+from collections import defaultdict, namedtuple
+from typing import Iterable, List, Tuple, Union
 
 import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -10,10 +10,11 @@ from django.utils.text import slugify
 from graphene.types import InputObjectType
 from graphql_relay import from_global_id
 
-from ....attribute import AttributeType
+from ....attribute import AttributeInputType, AttributeType, models as attribute_models
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import ProductPermissions, ProductTypePermissions
+from ....core.utils import generate_unique_slug
 from ....order import OrderStatus, models as order_models
 from ....page import models as page_models
 from ....page.error_codes import PageErrorCode
@@ -58,12 +59,8 @@ from ..utils import (
     create_stocks,
     get_used_attribute_values_for_variant,
     get_used_variants_attribute_values,
-    validate_attributes_input_for_product_and_page,
-    validate_attributes_input_for_variant,
+    validate_attributes_input,
 )
-
-if TYPE_CHECKING:
-    from ....attribute import models as attribute_models
 
 
 class CategoryInput(graphene.InputObjectType):
@@ -462,12 +459,17 @@ class AttributeValueInput(InputObjectType):
     id = graphene.ID(description="ID of the selected attribute.")
     values = graphene.List(
         graphene.String,
-        required=True,
+        required=False,
         description=(
             "The value or slug of an attribute to resolve. "
             "If the passed value is non-existent, it will be created."
         ),
     )
+    file = graphene.String(
+        required=False,
+        description="URL of the file attribute. Every time, a new value is created.",
+    )
+    content_type = graphene.String(required=False, description="File content type.")
 
 
 class ProductInput(graphene.InputObjectType):
@@ -506,8 +508,11 @@ class ProductCreateInput(ProductInput):
     )
 
 
-T_INPUT_MAP = List[Tuple["attribute_models.Attribute", List[str]]]
+AttrValuesInput = namedtuple(
+    "AttrValuesInput", ["global_id", "values", "file_url", "content_type"]
+)
 T_INSTANCE = Union[models.Product, models.ProductVariant, page_models.Page]
+T_INPUT_MAP = List[Tuple[attribute_models.Attribute, AttrValuesInput]]
 
 
 class AttributeAssignmentMixin:
@@ -537,7 +542,7 @@ class AttributeAssignmentMixin:
     ):
         """Retrieve attributes nodes from given global IDs and/or slugs."""
         qs = qs.filter(Q(pk__in=pks) | Q(slug__in=slugs))
-        nodes: List["attribute_models.Attribute"] = list(qs)
+        nodes: List[attribute_models.Attribute] = list(qs)
 
         if not nodes:
             raise ValidationError(
@@ -588,7 +593,7 @@ class AttributeAssignmentMixin:
 
     @classmethod
     def _pre_save_values(
-        cls, attribute: "attribute_models.Attribute", values: List[str]
+        cls, attribute: attribute_models.Attribute, attr_values: AttrValuesInput
     ):
         """Lazy-retrieve or create the database objects from the supplied raw values."""
         get_or_create = attribute.values.get_or_create
@@ -598,56 +603,65 @@ class AttributeAssignmentMixin:
                 slug=slugify(value, allow_unicode=True),
                 defaults={"name": value},
             )[0]
-            for value in values
+            for value in attr_values.values
         )
 
     @classmethod
-    def _validate_product_attributes_input(
-        cls, cleaned_input: T_INPUT_MAP, attribute_qs: QuerySet, is_variant: bool
+    def _pre_save_file_value(
+        cls, attribute: attribute_models.Attribute, attr_value: AttrValuesInput
     ):
-        """Check if no invalid operations were supplied.
+        """Create database file attribute value object from the supplied value.
 
-        :raises ValidationError: when an invalid operation was found.
+        For every URL new value must be created as file attribute can be removed
+        separately from every instance.
         """
-        if is_variant:
-            return cls._check_input_for_variant(cleaned_input, attribute_qs)
-        else:
-            return cls._check_input_for_page_and_product(
-                cleaned_input, attribute_qs, False
-            )
+        file_url = attr_value.file_url
+        if not file_url:
+            return tuple()
+        value = attribute_models.AttributeValue(
+            attribute=attribute,
+            file_url=file_url,
+            name=file_url,
+            content_type=attr_value.content_type,
+        )
+        value.slug = generate_unique_slug(value, file_url)  # type: ignore
+        value.save()
+        return (value,)
 
     @classmethod
-    def _check_input_for_variant(cls, cleaned_input: T_INPUT_MAP, qs: QuerySet):
-        """Check the cleaned attribute input for a variant.
-
-        An Attribute queryset is supplied.
-
-        - ensure all attributes are passed
-        - ensure the values are correct for a variant
-        """
-        if len(cleaned_input) != qs.count():
-            raise ValidationError(
-                "All attributes must take a value", code=ProductErrorCode.REQUIRED.value
-            )
-
-        errors = validate_attributes_input_for_variant(cleaned_input)
-        if errors:
-            raise ValidationError(errors)
-
-    @classmethod
-    def _check_input_for_page_and_product(
-        cls, cleaned_input: T_INPUT_MAP, qs: QuerySet, is_page_attributes: bool
+    def _validate_attributes_input(
+        cls,
+        cleaned_input: T_INPUT_MAP,
+        attribute_qs: QuerySet,
+        *,
+        is_variant: bool,
+        is_page_attributes: bool
     ):
-        """Check the cleaned attribute input for a product.
+        """Check the cleaned attribute input.
 
         An Attribute queryset is supplied.
 
         - ensure all required attributes are passed
-        - ensure the values are correct for a product
+        - ensure the values are correct
+
+        :raises ValidationError: when an invalid operation was found.
         """
+        variant_validation = False
+        if is_variant:
+            if len(cleaned_input) != attribute_qs.count():
+                raise ValidationError(
+                    "All attributes must take a value",
+                    code=ProductErrorCode.REQUIRED.value,
+                )
+            variant_validation = True
+
         error_codes_enum = PageErrorCode if is_page_attributes else ProductErrorCode
-        errors = validate_attributes_input_for_product_and_page(
-            cleaned_input, qs, error_codes_enum
+
+        errors = validate_attributes_input(
+            cleaned_input,
+            attribute_qs,
+            error_codes_enum,
+            variant_validation=variant_validation,
         )
 
         if errors:
@@ -684,7 +698,12 @@ class AttributeAssignmentMixin:
         for attribute_input in raw_input:
             global_id = attribute_input.get("id")
             slug = attribute_input.get("slug")
-            values = attribute_input["values"]
+            values = AttrValuesInput(
+                global_id=global_id,
+                values=attribute_input.get("values"),
+                file_url=attribute_input.get("file"),
+                content_type=attribute_input.get("content_type"),
+            )
 
             if global_id:
                 internal_id = cls._resolve_attribute_global_id(global_id)
@@ -711,13 +730,13 @@ class AttributeAssignmentMixin:
                 key = slugs[attribute.slug]
 
             cleaned_input.append((attribute, key))
+        cls._validate_attributes_input(
+            cleaned_input,
+            attributes_qs,
+            is_variant=is_variant,
+            is_page_attributes=is_page_attributes,
+        )
 
-        if is_page_attributes:
-            cls._check_input_for_page_and_product(cleaned_input, attributes_qs, True)
-        else:
-            cls._validate_product_attributes_input(
-                cleaned_input, attributes_qs, is_variant
-            )
         return cleaned_input
 
     @classmethod
@@ -729,8 +748,11 @@ class AttributeAssignmentMixin:
         :param instance: the product or variant to associate the attribute against.
         :param cleaned_input: the cleaned user input (refer to clean_attributes)
         """
-        for attribute, values in cleaned_input:
-            attribute_values = cls._pre_save_values(attribute, values)
+        for attribute, attr_values in cleaned_input:
+            if attribute.input_type == AttributeInputType.FILE:
+                attribute_values = cls._pre_save_file_value(attribute, attr_values)
+            else:
+                attribute_values = cls._pre_save_values(attribute, attr_values)
             associate_attribute_values_to_instance(
                 instance, attribute, *attribute_values
             )
@@ -981,11 +1003,16 @@ class ProductVariantCreate(ModelMutation):
 
     @classmethod
     def validate_duplicated_attribute_values(
-        cls, attributes, used_attribute_values, instance=None
+        cls, attributes_data, used_attribute_values, instance=None
     ):
         attribute_values = defaultdict(list)
-        for attribute in attributes:
-            attribute_values[attribute.id].extend(attribute.values)
+        for attr, attr_data in attributes_data:
+            values = (
+                [slugify(attr_data.file_url)]
+                if attr.input_type == AttributeInputType.FILE
+                else attr_data.values
+            )
+            attribute_values[attr_data.global_id].extend(values)
         if attribute_values in used_attribute_values:
             raise ValidationError(
                 "Duplicated attribute values for product variant.",
@@ -1037,12 +1064,11 @@ class ProductVariantCreate(ModelMutation):
             attributes = cleaned_input.get("attributes")
             try:
                 if attributes:
+                    cleaned_attributes = cls.clean_attributes(attributes, product_type)
                     cls.validate_duplicated_attribute_values(
-                        attributes, used_attribute_values, instance
+                        cleaned_attributes, used_attribute_values, instance
                     )
-                    cleaned_input["attributes"] = cls.clean_attributes(
-                        attributes, product_type
-                    )
+                    cleaned_input["attributes"] = cleaned_attributes
                 elif not instance.pk and not attributes:
                     # if attributes were not provided on creation
                     raise ValidationError(
@@ -1143,19 +1169,26 @@ class ProductVariantUpdate(ProductVariantCreate):
 
     @classmethod
     def validate_duplicated_attribute_values(
-        cls, attributes, used_attribute_values, instance=None
+        cls, attributes_data, used_attribute_values, instance=None
     ):
         # Check if the variant is getting updated,
         # and the assigned attributes do not change
         if instance.product_id is not None:
             assigned_attributes = get_used_attribute_values_for_variant(instance)
             input_attribute_values = defaultdict(list)
-            for attribute in attributes:
-                input_attribute_values[attribute.id].extend(attribute.values)
+            for attr, attr_data in attributes_data:
+                values = (
+                    slugify(attr_data.file_url)
+                    if attr.input_type == AttributeInputType.FILE
+                    else attr_data.values
+                )
+                input_attribute_values[attr_data.global_id].extend(values)
             if input_attribute_values == assigned_attributes:
                 return
         # if assigned attributes is getting updated run duplicated attribute validation
-        super().validate_duplicated_attribute_values(attributes, used_attribute_values)
+        super().validate_duplicated_attribute_values(
+            attributes_data, used_attribute_values
+        )
 
 
 class ProductVariantDelete(ModelDeleteMutation):

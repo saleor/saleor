@@ -337,10 +337,10 @@ class Image(graphene.ObjectType):
         return Image(url, alt)
 
 
-class UploadedFile(graphene.ObjectType):
-    url = graphene.String(required=True, description="The URL of the uploaded file.")
+class File(graphene.ObjectType):
+    url = graphene.String(required=True, description="The URL of the file.")
     content_type = graphene.String(
-        required=True, description="Content type of uploaded file."
+        required=False, description="Content type of the file."
     )
 
 

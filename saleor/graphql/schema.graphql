@@ -566,6 +566,7 @@ type AttributeValue implements Node {
   type: AttributeValueType @deprecated(reason: "Use the `inputType` field to determine the type of attribute's value. This field will be removed after 2020-07-31.")
   translation(languageCode: LanguageCodeEnum!): AttributeValueTranslation
   inputType: AttributeInputTypeEnum
+  file: File
 }
 
 type AttributeValueBulkDelete {
@@ -594,7 +595,9 @@ type AttributeValueDelete {
 
 input AttributeValueInput {
   id: ID
-  values: [String]!
+  values: [String]
+  file: String
+  contentType: String
 }
 
 type AttributeValueTranslatableContent implements Node {
@@ -657,6 +660,11 @@ input AuthorizationKeyInput {
 enum AuthorizationKeyType {
   FACEBOOK
   GOOGLE_OAUTH2
+}
+
+input BulkAttributeValueInput {
+  id: ID
+  values: [String]!
 }
 
 type BulkProductError {
@@ -1960,6 +1968,11 @@ enum ExportScope {
   FILTER
 }
 
+type File {
+  url: String!
+  contentType: String
+}
+
 enum FileTypesEnum {
   CSV
   XLSX
@@ -1967,7 +1980,7 @@ enum FileTypesEnum {
 
 type FileUpload {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  uploadedFile: UploadedFile
+  uploadedFile: File
   uploadErrors: [UploadError!]!
 }
 
@@ -4213,7 +4226,7 @@ type ProductVariantBulkCreate {
 }
 
 input ProductVariantBulkCreateInput {
-  attributes: [AttributeValueInput]!
+  attributes: [BulkAttributeValueInput]!
   sku: String!
   trackInventory: Boolean
   weight: WeightScalar
@@ -5265,11 +5278,6 @@ type UploadError {
 
 enum UploadErrorCode {
   GRAPHQL_ERROR
-}
-
-type UploadedFile {
-  url: String!
-  contentType: String!
 }
 
 type User implements Node & ObjectWithMetadata {

@@ -3,7 +3,7 @@ from ..utils.variants import get_variant_selection_attributes
 
 
 def test_get_variant_selection_attributes(
-    product_type_attribute_list, image_attribute_without_values_and_file_input_type
+    product_type_attribute_list, file_attribute_with_file_input_type_without_values
 ):
     # given
     multiselect_attr = product_type_attribute_list[0]
@@ -11,7 +11,7 @@ def test_get_variant_selection_attributes(
     multiselect_attr.save(update_fields=["input_type"])
 
     attrs = product_type_attribute_list + [
-        image_attribute_without_values_and_file_input_type
+        file_attribute_with_file_input_type_without_values
     ]
 
     # when

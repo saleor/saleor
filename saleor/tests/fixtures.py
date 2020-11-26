@@ -768,7 +768,32 @@ def weight_attribute(db):
 
 
 @pytest.fixture
-def image_attribute_without_values_and_file_input_type(db):
+def file_attribute(db):
+    attribute = Attribute.objects.create(
+        slug="image",
+        name="Image",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.FILE,
+    )
+    AttributeValue.objects.create(
+        attribute=attribute,
+        name="test_file.txt",
+        slug="test_filetxt",
+        file_url="test_file.txt",
+        content_type="text/plain",
+    )
+    AttributeValue.objects.create(
+        attribute=attribute,
+        name="test_file.jpeg",
+        slug="test_filejpeg",
+        file_url="test_file.jpeg",
+        content_type="image/jpeg",
+    )
+    return attribute
+
+
+@pytest.fixture
+def file_attribute_with_file_input_type_without_values(db):
     return Attribute.objects.create(
         slug="image",
         name="Image",
@@ -807,6 +832,31 @@ def author_page_attribute(db):
     )
     AttributeValue.objects.create(
         attribute=attribute, name="Test author 2", slug="test-author-2"
+    )
+    return attribute
+
+
+@pytest.fixture
+def page_file_attribute(db):
+    attribute = Attribute.objects.create(
+        slug="image",
+        name="Image",
+        type=AttributeType.PAGE_TYPE,
+        input_type=AttributeInputType.FILE,
+    )
+    AttributeValue.objects.create(
+        attribute=attribute,
+        name="test_file.txt",
+        slug="test_filetxt",
+        file_url="test_file.txt",
+        content_type="text/plain",
+    )
+    AttributeValue.objects.create(
+        attribute=attribute,
+        name="test_file.jpeg",
+        slug="test_filejpeg",
+        file_url="test_file.jpeg",
+        content_type="image/jpeg",
     )
     return attribute
 
@@ -1149,6 +1199,49 @@ def product_with_variant_with_two_attributes(
     )
     associate_attribute_values_to_instance(
         variant, size_attribute, size_attribute.values.first()
+    )
+
+    return product
+
+
+@pytest.fixture
+def product_with_variant_with_file_attribute(
+    color_attribute, file_attribute, category, warehouse, channel_USD
+):
+    product_type = ProductType.objects.create(
+        name="Type with variant and file attribute",
+        slug="type-with-file-attribute",
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.variant_attributes.add(file_attribute)
+
+    product = Product.objects.create(
+        name="Test product with variant and file attribute",
+        slug="test-product-with-variant-and-file-attribute",
+        product_type=product_type,
+        category=category,
+    )
+    ProductChannelListing.objects.create(
+        product=product,
+        channel=channel_USD,
+        is_published=True,
+        currency=channel_USD.currency_code,
+        visible_in_listings=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
+    )
+
+    variant = ProductVariant.objects.create(product=product, sku="prodVarTest",)
+    ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_USD,
+        price_amount=Decimal(10),
+        cost_price_amount=Decimal(1),
+        currency=channel_USD.currency_code,
+    )
+
+    associate_attribute_values_to_instance(
+        variant, file_attribute, file_attribute.values.first()
     )
 
     return product

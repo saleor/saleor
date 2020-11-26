@@ -2,12 +2,12 @@
 from .common import (
     CountryDisplay,
     Error,
+    File,
     Image,
     LanguageDisplay,
     Permission,
     SeoInput,
     TaxType,
-    UploadedFile,
     Weight,
 )
 from .filter_input import ChannelFilterInputObjectType, FilterInputObjectType
