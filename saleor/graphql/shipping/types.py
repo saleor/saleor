@@ -45,6 +45,20 @@ class ShippingMethodChannelListing(CountableDjangoObjectType):
         return ChannelByIdLoader(info.context).load(root.channel_id)
 
 
+class ShippingMethodZipCode(CountableDjangoObjectType):
+    start = graphene.String(description="Start address range.")
+    end = graphene.String(description="End address range.")
+
+    class Meta:
+        description = "Represents shipping method zip code."
+        interfaces = [relay.Node]
+        model = models.ShippingMethodZipCode
+        only_fields = [
+            "start",
+            "end",
+        ]
+
+
 class ShippingMethod(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     type = ShippingMethodTypeEnum(description="Type of the shipping method.")
     translation = TranslationField(
@@ -64,6 +78,10 @@ class ShippingMethod(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     )
     minimum_order_price = graphene.Field(
         Money, description="The price of the cheapest variant (including discounts)."
+    )
+    zip_codes = graphene.List(
+        ShippingMethodZipCode,
+        description="Zip code include / exclude range of the shipping method.",
     )
 
     class Meta:
@@ -134,6 +152,10 @@ class ShippingMethod(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         root: ChannelContext[models.ShippingMethod], *_args
     ):
         return convert_weight_to_default_weight_unit(root.node.maximum_order_weight)
+
+    @staticmethod
+    def resolve_zip_codes(root: ChannelContext[models.ShippingMethod], *_args):
+        return root.node.zip_codes.all()
 
     @staticmethod
     def resolve_minimum_order_weight(

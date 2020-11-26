@@ -15,7 +15,7 @@ from ...core.scalars import WeightScalar
 from ...core.types.common import ShippingError
 from ...core.utils import get_duplicates_ids
 from ..enums import ShippingMethodTypeEnum
-from ..types import ShippingMethod, ShippingZone
+from ..types import ShippingMethod, ShippingMethodZipCode, ShippingZone
 
 
 class ShippingPriceInput(graphene.InputObjectType):
@@ -146,6 +146,64 @@ class ShippingZoneUpdate(ShippingZoneMixin, ModelMutation):
     class Meta:
         description = "Updates a new shipping zone."
         model = models.ShippingZone
+        permissions = (ShippingPermissions.MANAGE_SHIPPING,)
+        error_type_class = ShippingError
+        error_type_field = "shipping_errors"
+
+    @classmethod
+    def success_response(cls, instance):
+        instance = ChannelContext(node=instance, channel_slug=None)
+        response = super().success_response(instance)
+
+        return response
+
+
+class ShippingZipCodeCreateInput(graphene.InputObjectType):
+    shipping_method = graphene.ID(
+        required=True, description="ID of a shipping method to assign."
+    )
+    start = graphene.String(required=True, description="Start range of the zip code.")
+    end = graphene.String(required=True, description="End range of the zip code.")
+
+
+class ShippingZipCodeCreate(BaseMutation):
+    shipping_method_zip_code = graphene.Field(
+        ShippingMethodZipCode, description="A shipping method zip code range.",
+    )
+
+    class Arguments:
+        input = ShippingZipCodeCreateInput(
+            description="Fields required to create a shipping zip codes.", required=True
+        )
+
+    class Meta:
+        description = "Create a new zip code exclusion range for shipping method."
+        permissions = (ShippingPermissions.MANAGE_SHIPPING,)
+        error_type_class = ShippingError
+        error_type_field = "shipping_errors"
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        shipping_method = cls.get_node_or_error(
+            info, data["input"]["shipping_method"], only_type=ShippingMethod
+        )
+        instance = models.ShippingMethodZipCode.objects.create(
+            shipping_method=shipping_method,
+            start=data["input"]["start"],
+            end=data["input"]["end"],
+        )
+        return ShippingZipCodeCreate(shipping_method_zip_code=instance)
+
+
+class ShippingZipCodeDelete(ModelDeleteMutation):
+    class Arguments:
+        id = graphene.ID(
+            required=True, description="ID of a shipping method zip code to delete."
+        )
+
+    class Meta:
+        description = "Deletes a shipping method zip code."
+        model = models.ShippingMethodZipCode
         permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"

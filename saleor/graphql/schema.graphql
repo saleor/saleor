@@ -2556,6 +2556,8 @@ type Mutation {
   shopSettingsTranslate(input: ShopSettingsTranslationInput!, languageCode: LanguageCodeEnum!): ShopSettingsTranslate
   shopAddressUpdate(input: AddressInput): ShopAddressUpdate
   shippingMethodChannelListingUpdate(id: ID!, input: ShippingMethodChannelListingInput!): ShippingMethodChannelListingUpdate
+  shippingMethodZipCodeCreate(input: ShippingZipCodeCreateInput!): ShippingZipCodeCreate
+  shippingMethodZipCodeDelete(id: ID!): ShippingZipCodeDelete
   shippingPriceCreate(input: ShippingPriceInput!): ShippingPriceCreate
   shippingPriceDelete(id: ID!): ShippingPriceDelete
   shippingPriceBulkDelete(ids: [ID]!): ShippingPriceBulkDelete
@@ -4582,6 +4584,7 @@ type ShippingMethod implements Node & ObjectWithMetadata {
   price: Money
   maximumOrderPrice: Money
   minimumOrderPrice: Money
+  zipCodes: [ShippingMethodZipCode]
 }
 
 type ShippingMethodChannelListing implements Node {
@@ -4628,6 +4631,12 @@ enum ShippingMethodTypeEnum {
   WEIGHT
 }
 
+type ShippingMethodZipCode implements Node {
+  start: String
+  end: String
+  id: ID!
+}
+
 type ShippingPriceBulkDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   count: Int!
@@ -4667,6 +4676,24 @@ type ShippingPriceUpdate {
   shippingZone: ShippingZone
   shippingMethod: ShippingMethod
   shippingErrors: [ShippingError!]!
+}
+
+type ShippingZipCodeCreate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  shippingMethodZipCode: ShippingMethodZipCode
+  shippingErrors: [ShippingError!]!
+}
+
+input ShippingZipCodeCreateInput {
+  shippingMethod: ID!
+  start: String!
+  end: String!
+}
+
+type ShippingZipCodeDelete {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  shippingErrors: [ShippingError!]!
+  shippingMethodZipCode: ShippingMethodZipCode
 }
 
 type ShippingZone implements Node & ObjectWithMetadata {

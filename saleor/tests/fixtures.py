@@ -681,6 +681,7 @@ def shipping_method(shipping_zone, channel_USD):
     method = ShippingMethod.objects.create(
         name="DHL", type=ShippingMethodType.PRICE_BASED, shipping_zone=shipping_zone,
     )
+    method.zip_codes.create(start="HB2", end="HB6")
     ShippingMethodChannelListing.objects.create(
         shipping_method=method,
         channel=channel_USD,

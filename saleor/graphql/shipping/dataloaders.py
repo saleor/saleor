@@ -18,7 +18,9 @@ class ShippingMethodsByShippingZoneIdLoader(DataLoader):
     context_key = "shippingmethod_by_shippingzone"
 
     def batch_load(self, keys):
-        shipping_methods = ShippingMethod.objects.filter(shipping_zone_id__in=keys)
+        shipping_methods = ShippingMethod.objects.filter(
+            shipping_zone_id__in=keys
+        ).prefetch_related("zip_codes")
         shipping_methods_by_shipping_zone_map = defaultdict(list)
         for shipping_method in shipping_methods:
             shipping_methods_by_shipping_zone_map[
@@ -34,9 +36,11 @@ class ShippingMethodsByShippingZoneIdAndChannelSlugLoader(DataLoader):
     context_key = "shippingmethod_by_shippingzone_and_channel"
 
     def batch_load(self, keys):
-        shipping_methods = ShippingMethod.objects.filter(
-            shipping_zone_id__in=keys
-        ).annotate(channel_slug=F("channel_listings__channel__slug"))
+        shipping_methods = (
+            ShippingMethod.objects.filter(shipping_zone_id__in=keys)
+            .prefetch_related("zip_codes")
+            .annotate(channel_slug=F("channel_listings__channel__slug"))
+        )
 
         shipping_methods_by_shipping_zone_and_channel_map = defaultdict(list)
         for shipping_method in shipping_methods:
