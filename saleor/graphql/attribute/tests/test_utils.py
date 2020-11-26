@@ -3,7 +3,7 @@ import graphene
 from ....attribute import AttributeInputType
 from ....page.error_codes import PageErrorCode
 from ....product.error_codes import ProductErrorCode
-from ..mutations.products import AttrValuesInput
+from ...product.mutations.products import AttrValuesInput
 from ..utils import validate_attributes_input
 
 
