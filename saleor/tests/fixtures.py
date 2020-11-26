@@ -956,7 +956,7 @@ def product_type_without_variant():
 
 
 @pytest.fixture
-def product(product_type, category, warehouse, channel_USD, image, media_root):
+def product(product_type, category, warehouse, channel_USD):
     product_attr = product_type.product_attributes.first()
     product_attr_value = product_attr.values.first()
 
@@ -966,7 +966,6 @@ def product(product_type, category, warehouse, channel_USD, image, media_root):
         product_type=product_type,
         category=category,
     )
-    product_image = ProductImage.objects.create(product=product, image=image)
     ProductChannelListing.objects.create(
         product=product,
         channel=channel_USD,
@@ -990,7 +989,6 @@ def product(product_type, category, warehouse, channel_USD, image, media_root):
         cost_price_amount=Decimal(1),
         currency=channel_USD.currency_code,
     )
-    VariantImage.objects.create(variant=variant, image=product_image)
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=10)
 
     associate_attribute_values_to_instance(variant, variant_attr, variant_attr_value)

@@ -6,7 +6,7 @@ from ....tests.utils import get_graphql_content
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
-def test_product_details(product, api_client, count_queries, channel_USD):
+def test_product_details(product_with_image, api_client, count_queries, channel_USD):
     query = """
         fragment BasicProductFields on Product {
           id
@@ -155,6 +155,10 @@ def test_product_details(product, api_client, count_queries, channel_USD):
           }
         }
     """
+    product = product_with_image
+    variant = product_with_image.variants.first()
+    image = product_with_image.images.first()
+    image.variant_images.create(variant=variant)
 
     variables = {
         "id": Node.to_global_id("Product", product.pk),
