@@ -11,7 +11,7 @@ from prices import Money, TaxedMoney
 
 from ....account.models import CustomerEvent
 from ....core.taxes import TaxError, zero_taxed_money
-from ....order import OrderStatus, events as order_events
+from ....order import FulfillmentStatus, OrderStatus, events as order_events
 from ....order.error_codes import OrderErrorCode
 from ....order.models import Order, OrderEvent
 from ....payment import ChargeStatus, CustomPaymentChoices, PaymentError
@@ -280,6 +280,12 @@ query OrdersQuery {
                 }
                 shippingMethod{
                     id
+                }
+                linesAvailableForRefund{
+                    quantity
+                    orderLine{
+                        id
+                    }
                 }
             }
         }
@@ -4470,3 +4476,117 @@ def test_draft_orders_query_with_filter_search_by_id(
     response = staff_api_client.post_graphql(draft_orders_query_with_filter, variables)
     content = get_graphql_content(response)
     assert content["data"]["draftOrders"]["totalCount"] == 1
+
+
+def test_order_query_lines_available_for_refund_fulfilled_lines(
+    staff_api_client, permission_manage_orders, fulfilled_order, shipping_zone
+):
+    order = fulfilled_order
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDERS_QUERY)
+    content = get_graphql_content(response)
+
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    assert order_data["linesAvailableForRefund"] == [
+        {
+            "orderLine": {"id": graphene.Node.to_global_id("OrderLine", line.pk)},
+            "quantity": line.quantity,
+        }
+        for line in order.lines.all()
+    ]
+
+
+def test_order_query_lines_available_for_refund_unfulfilled_lines(
+    staff_api_client, permission_manage_orders, order_with_lines, shipping_zone
+):
+    order = order_with_lines
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDERS_QUERY)
+    content = get_graphql_content(response)
+
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    assert order_data["linesAvailableForRefund"] == [
+        {
+            "orderLine": {"id": graphene.Node.to_global_id("OrderLine", line.pk)},
+            "quantity": line.quantity,
+        }
+        for line in order.lines.all()
+    ]
+
+
+def test_order_query_lines_available_for_refund_line_parially_refunded(
+    staff_api_client, permission_manage_orders, fulfilled_order, shipping_zone
+):
+    order = fulfilled_order
+    order_line = order.lines.first()
+    second_line = order.lines.last()
+    stock_1 = order_line.allocations.get().stock
+    fulfillment = order.fulfillments.first()
+    fulfillment_line = fulfillment.lines.get(order_line=order_line)
+    fulfillment_line.quantity -= 1
+    fulfillment_line.save()
+    refund_fulfillment = order.fulfillments.create(status=FulfillmentStatus.REFUNDED)
+    refund_fulfillment.lines.create(order_line=order_line, quantity=1, stock=stock_1)
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDERS_QUERY)
+    content = get_graphql_content(response)
+
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    line_id = graphene.Node.to_global_id("OrderLine", order_line.pk)
+
+    assert len(order_data["linesAvailableForRefund"]) == 2
+    partially_refunded_line = [
+        line
+        for line in order_data["linesAvailableForRefund"]
+        if line["orderLine"]["id"] == line_id
+    ][0]
+    not_refunded_line = [
+        line
+        for line in order_data["linesAvailableForRefund"]
+        if line["orderLine"]["id"] != line_id
+    ][0]
+    assert partially_refunded_line["quantity"] == order_line.quantity - 1
+    assert not_refunded_line["quantity"] == second_line.quantity
+    assert not_refunded_line["orderLine"]["id"] == graphene.Node.to_global_id(
+        "OrderLine", second_line.pk
+    )
+
+
+def test_order_query_lines_available_for_refund_fully_refunded(
+    staff_api_client, permission_manage_orders, fulfilled_order, shipping_zone
+):
+    order = fulfilled_order
+    order.fulfillments.all().update(status=FulfillmentStatus.REFUNDED)
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDERS_QUERY)
+    content = get_graphql_content(response)
+
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+
+    assert len(order_data["linesAvailableForRefund"]) == 0
+
+
+def test_order_query_lines_available_for_refund_line_fully_refunded(
+    staff_api_client, permission_manage_orders, fulfilled_order, shipping_zone
+):
+    order = fulfilled_order
+    order_line = order.lines.first()
+    second_line = order.lines.last()
+    fulfillment = order.fulfillments.first()
+    refund_fulfillment = order.fulfillments.create(status=FulfillmentStatus.REFUNDED)
+    fulfillment_line = fulfillment.lines.get(order_line=order_line)
+    fulfillment_line.quantity = order_line.quantity
+    fulfillment_line.fulfillment = refund_fulfillment
+    fulfillment_line.save()
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDERS_QUERY)
+    content = get_graphql_content(response)
+
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+
+    assert len(order_data["linesAvailableForRefund"]) == 1
+    not_refunded_line = order_data["linesAvailableForRefund"][0]
+    assert not_refunded_line["quantity"] == second_line.quantity
+    assert not_refunded_line["orderLine"]["id"] == graphene.Node.to_global_id(
+        "OrderLine", second_line.pk
+    )

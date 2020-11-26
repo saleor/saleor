@@ -2,7 +2,7 @@ from collections import defaultdict
 
 from django.db.models import F
 
-from ...order.models import Order, OrderLine
+from ...order.models import FulfillmentLine, Order, OrderLine
 from ...warehouse.models import Allocation
 from ..core.dataloaders import DataLoader
 
@@ -62,3 +62,19 @@ class AllocationsByOrderLineIdLoader(DataLoader):
             order_lines_to_allocations[allocation.order_line_id].append(allocation)
 
         return [order_lines_to_allocations[order_line_id] for order_line_id in keys]
+
+
+class FulfillmentLinesByOrderLineIdLoader(DataLoader):
+    context_key = "fulfillment_lines_by_order_line_id"
+
+    def batch_load(self, keys):
+        fulfillment_lines = FulfillmentLine.objects.prefetch_related(
+            "fulfillment"
+        ).filter(order_line__pk__in=keys)
+        order_lines_to_fulfillment_lines = defaultdict(list)
+
+        for fulfillment_line in fulfillment_lines:
+            order_lines_to_fulfillment_lines[fulfillment_line.order_line_id].append(
+                fulfillment_line
+            )
+        return [order_lines_to_fulfillment_lines[line_id] for line_id in keys]

@@ -2854,7 +2854,7 @@ type Order implements Node & ObjectWithMetadata {
   totalBalance: Money!
   userEmail: String
   isShippingRequired: Boolean!
-  linesAvailableToRefund: [OrderLineAvailableToRefund]!
+  linesAvailableForRefund: [OrderLineAvailableForRefund]!
 }
 
 enum OrderAction {
@@ -3090,7 +3090,7 @@ type OrderLine implements Node {
   allocations: [Allocation!]
 }
 
-type OrderLineAvailableToRefund {
+type OrderLineAvailableForRefund {
   quantity: Int
   orderLine: OrderLine
 }

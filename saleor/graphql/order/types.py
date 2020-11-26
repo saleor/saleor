@@ -1,3 +1,6 @@
+from collections import defaultdict
+from itertools import chain
+
 import graphene
 from django.core.exceptions import ValidationError
 from graphene import relay
@@ -32,7 +35,11 @@ from ..product.types import ProductVariant
 from ..shipping.dataloaders import ShippingMethodByIdLoader
 from ..shipping.types import ShippingMethod
 from ..warehouse.types import Allocation, Warehouse
-from .dataloaders import AllocationsByOrderLineIdLoader, OrderLinesByOrderIdLoader
+from .dataloaders import (
+    AllocationsByOrderLineIdLoader,
+    FulfillmentLinesByOrderLineIdLoader,
+    OrderLinesByOrderIdLoader,
+)
 from .enums import OrderEventsEmailsEnum, OrderEventsEnum
 from .utils import validate_draft_order
 
@@ -320,7 +327,7 @@ class OrderLine(CountableDjangoObjectType):
         return AllocationsByOrderLineIdLoader(info.context).load(root.id)
 
 
-class OrderLineAvailableToRefund(graphene.ObjectType):
+class OrderLineAvailableForRefund(graphene.ObjectType):
     quantity = graphene.Int(description="The quantity available to refund.")
     order_line = graphene.Field(lambda: OrderLine, description="The order line.")
 
@@ -386,8 +393,8 @@ class Order(CountableDjangoObjectType):
     is_shipping_required = graphene.Boolean(
         description="Returns True, if order requires shipping.", required=True
     )
-    lines_available_to_refund = graphene.List(
-        OrderLineAvailableToRefund,
+    lines_available_for_refund = graphene.List(
+        OrderLineAvailableForRefund,
         required=True,
         description="List of order lines available to refund.",
     )
@@ -623,18 +630,43 @@ class Order(CountableDjangoObjectType):
         return Promise.all([voucher, channel]).then(wrap_voucher_with_channel_context)
 
     @staticmethod
-    def resolve_lines_available_to_refund(root: models.Order, info):
-        lines_available_to_refund = []
-        lines = root.lines.prefetch_related("fulfillment_lines__fulfillment")
-        for line in lines:
-            quantity_to_refund = line.quantity_unfulfilled
-            for fulfillment_line in line.fulfillment_lines.all():
-                if fulfillment_line.fulfillment.status != FulfillmentStatus.FULFILLED:
-                    continue
-                quantity_to_refund += fulfillment_line.quantity
-            if quantity_to_refund:
-                lines_available_to_refund.append(
-                    {"quantity": quantity_to_refund, "order_line": line}
-                )
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
+    def resolve_lines_available_for_refund(root: models.Order, info):
+        def load_lines_available_for_refund(lines: list):
+            lines_ready_to_refund = defaultdict(int)
+            for line in lines:
+                if line.quantity_unfulfilled:
+                    lines_ready_to_refund[line.id] = line.quantity_unfulfilled
 
-        return lines_available_to_refund
+            def exclude_lines_with_incorrect_fulfillment_lines(fulfillment_lines: list):
+                # load_many returns list of lists
+                fulfillment_lines = chain.from_iterable(fulfillment_lines)
+                for fulfillment_line in fulfillment_lines:
+                    if (
+                        fulfillment_line.fulfillment.status
+                        != FulfillmentStatus.FULFILLED
+                    ):
+                        continue
+                    if fulfillment_line.quantity:
+                        lines_ready_to_refund[
+                            fulfillment_line.order_line_id
+                        ] += fulfillment_line.quantity
+                response = []
+                for line in lines:
+                    quantity = lines_ready_to_refund.get(line.id)
+                    if quantity:
+                        response.append({"quantity": quantity, "order_line": line})
+                return response
+
+            line_ids = [line.id for line in lines]
+            return (
+                FulfillmentLinesByOrderLineIdLoader(info.context)
+                .load_many(line_ids)
+                .then(exclude_lines_with_incorrect_fulfillment_lines)
+            )
+
+        return (
+            OrderLinesByOrderIdLoader(info.context)
+            .load(root.id)
+            .then(load_lines_available_for_refund)
+        )
