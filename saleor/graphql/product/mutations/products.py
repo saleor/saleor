@@ -17,7 +17,6 @@ from ....core.permissions import ProductPermissions, ProductTypePermissions
 from ....core.utils import generate_unique_slug
 from ....order import OrderStatus, models as order_models
 from ....page import models as page_models
-from ....page.error_codes import PageErrorCode
 from ....product import models
 from ....product.error_codes import CollectionErrorCode, ProductErrorCode
 from ....product.tasks import (
@@ -655,12 +654,10 @@ class AttributeAssignmentMixin:
                 )
             variant_validation = True
 
-        error_codes_enum = PageErrorCode if is_page_attributes else ProductErrorCode
-
         errors = validate_attributes_input(
             cleaned_input,
             attribute_qs,
-            error_codes_enum,
+            is_page_attributes=is_page_attributes,
             variant_validation=variant_validation,
         )
 
