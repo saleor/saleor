@@ -2975,6 +2975,7 @@ type OrderEvent implements Node {
   fulfilledItems: [FulfillmentLine]
   warehouse: Warehouse
   transactionReference: String
+  shippingCostsIncluded: Boolean
 }
 
 type OrderEventCountableConnection {

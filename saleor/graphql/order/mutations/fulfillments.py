@@ -382,7 +382,7 @@ class FulfillmentRefundProducts(BaseMutation):
                         (
                             "The amountToRefund and includeShippingCosts are mutually "
                             "exclusive and attempts to call mutation with both options "
-                            "enabled will raise an exception."
+                            "is incorrect."
                         ),
                         code=OrderErrorCode.INVALID.value,
                     ),
@@ -390,7 +390,7 @@ class FulfillmentRefundProducts(BaseMutation):
                         (
                             "The amountToRefund and includeShippingCosts are mutually "
                             "exclusive and attempts to call mutation with both options "
-                            "enabled will raise an exception."
+                            "is incorrect."
                         ),
                         code=OrderErrorCode.INVALID.value,
                     ),
@@ -400,10 +400,24 @@ class FulfillmentRefundProducts(BaseMutation):
         order = cls.get_node_or_error(
             info, order_id, field="order", only_type=Order, qs=qs
         )
+        payment = order.get_last_payment()
+        if amount_to_refund is not None and amount_to_refund > payment.capture_amount:
+            raise ValidationError(
+                {
+                    "amount_to_refund": ValidationError(
+                        (
+                            "The amountToRefund is greater than the maximal possible "
+                            "amount to refund."
+                        ),
+                        code=OrderErrorCode.INVALID.value,
+                    ),
+                }
+            )
         cleaned_input = {
             "amount_to_refund": amount_to_refund,
             "include_shipping_costs": include_shipping_costs,
             "order": order,
+            "payment": payment,
         }
         lines_data = input.get("lines")
         cls.clean_lines(lines_data, cleaned_input)
@@ -468,11 +482,10 @@ class FulfillmentRefundProducts(BaseMutation):
     def perform_mutation(cls, _root, info, **data):
         cleaned_input = cls.clean_input(info, data.get("order_id"), data.get("input"))
         order = cleaned_input["order"]
-        payment = order.get_last_payment()
         refund_fulfillment = create_refund_fulfillment(
             get_user_or_app_from_context(info.context),
             order,
-            payment,
+            cleaned_input["payment"],
             cleaned_input["order_lines_to_refund"],
             cleaned_input["quantities_to_refund"],
             cleaned_input["amount_to_refund"],
