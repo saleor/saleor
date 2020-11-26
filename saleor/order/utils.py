@@ -307,14 +307,12 @@ def sum_order_totals(qs, currency_code):
     return sum([order.total for order in qs], taxed_zero)
 
 
-def get_valid_shipping_methods_for_order(
-    order: Order, prefetch_zip_codes: bool = False
-):
+def get_valid_shipping_methods_for_order(order: Order):
     return ShippingMethod.objects.applicable_shipping_methods_for_instance(
         order,
         channel_id=order.channel_id,
         price=order.get_subtotal().gross,
-        prefetch_zip_codes=prefetch_zip_codes,
+        prefetch_zip_codes=True,
     )
 
 

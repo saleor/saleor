@@ -557,7 +557,7 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     # TODO: We should optimize it in/after PR#5819
     def resolve_available_shipping_methods(root: models.Order, _info):
-        available = get_valid_shipping_methods_for_order(root, prefetch_zip_codes=True)
+        available = get_valid_shipping_methods_for_order(root)
         if available is None:
             return []
         available_shipping_methods = []
