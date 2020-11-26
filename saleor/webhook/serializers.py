@@ -1,8 +1,9 @@
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Union
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
     from ..checkout.models import Checkout
+    from ..product.models import Product, ProductVariant
 
 
 def serialize_checkout_lines(checkout: "Checkout") -> List[dict]:
@@ -22,4 +23,24 @@ def serialize_checkout_lines(checkout: "Checkout") -> List[dict]:
                 "variant_name": variant.name,
             }
         )
+    return data
+
+
+def serialize_attribute_assignments(
+    object_with_attributes: Union["Product", "ProductVariant"]
+):
+    data = []
+    for assignment in object_with_attributes.attributes.all():
+        values = []
+        for v in assignment.values.all():
+            values.append({"name": v.name, "slug": v.slug})
+        data.append(
+            {
+                "name": assignment.attribute.name,
+                "slug": assignment.attribute.slug,
+                "type": assignment.attribute.type,
+                "values": values,
+            }
+        )
+
     return data

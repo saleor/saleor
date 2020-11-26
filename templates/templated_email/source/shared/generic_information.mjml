@@ -1,0 +1,27 @@
+<mj-section background-color="#ffffff" padding-left="10px" padding-right="10px" padding-top="0px">
+    <mj-column background-color="#f5f3f5">
+        <mj-image width="40px" src="https://res.cloudinary.com/lush/image/upload/v1596798696/emails/its-not-plastic.svg" />
+        <mj-text font-size="11px" color="#000000" font-family="Helvetica Neue" align="center" font-weight="bold">
+            It’s not plastic
+        </mj-text>
+        <mj-text font-size="11px" color="#000000" font-family="Helvetica Neue" align="center" padding-left="50px" padding-right="50px">
+            Your products will come packaged in biodegradeable Eco
+            Pops, made from expanded corn starch (not Polystyrene!).
+            Please dispose of in your home compost or food waste
+            bin. <a href="">Find out more</a>
+        </mj-text>
+    </mj-column>
+</mj-section>
+<mj-section background-color="#ffffff" padding-left="10px" padding-right="10px" padding-top="0px">
+    <mj-column background-color="#f5f3f5">
+        <mj-image width="40px" src="https://res.cloudinary.com/lush/image/upload/v1596798565/emails/close-the-loop.svg" />
+        <mj-text font-size="11px" color="#000000" font-family="Helvetica Neue" align="center" font-weight="bold">
+            Close the loop!
+        </mj-text>
+        <mj-text font-size="11px" color="#000000" font-family="Helvetica Neue" align="center" padding-left="50px" padding-right="50px">
+            Reuse or recycle your product packaging when you've
+            finished with it. Dont forget, black pots and bottle tops can
+            be recycled in store. <a href="">Find out more</a>
+        </mj-text>
+    </mj-column>
+</mj-section>

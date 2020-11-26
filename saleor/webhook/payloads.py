@@ -15,11 +15,11 @@ from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..order.utils import get_order_country
 from ..payment import ChargeStatus
-from ..product.models import Product
+from ..product.models import Product, ProductVariant
 from ..warehouse.models import Warehouse
 from .event_types import WebhookEventType
 from .payload_serializers import PayloadSerializer
-from .serializers import serialize_checkout_lines
+from .serializers import serialize_attribute_assignments, serialize_checkout_lines
 
 ADDRESS_FIELDS = (
     "first_name",
@@ -196,6 +196,30 @@ def generate_customer_payload(customer: "User"):
     return data
 
 
+def generate_variant_payload(variant: "ProductVariant"):
+    serializer = PayloadSerializer()
+
+    variant_fields = (
+        "id",
+        "sku",
+        "name",
+        "currency",
+        "price_amount",
+        "track_inventory",
+        "cost_price_amount",
+        "private_metadata",
+        "metadata",
+        "quantity",
+        "quantity_allocated",
+    )
+
+    return serializer.serialize(
+        [variant],
+        fields=variant_fields,
+        extra_dict_data={"attributes": serialize_attribute_assignments(variant)},
+    )
+
+
 def generate_product_payload(product: "Product"):
     serializer = PayloadSerializer(
         extra_model_fields={"ProductVariant": ("quantity", "quantity_allocated")}
@@ -203,6 +227,7 @@ def generate_product_payload(product: "Product"):
 
     product_fields = (
         "name",
+        "rating",
         "description_json",
         "currency",
         "attributes",
@@ -214,26 +239,21 @@ def generate_product_payload(product: "Product"):
         "private_metadata",
         "metadata",
     )
-    product_variant_fields = (
-        "sku",
-        "name",
-        "currency",
-        "price_amount",
-        "track_inventory",
-        "cost_price_amount",
-        "private_metadata",
-        "metadata",
-    )
+
     product_payload = serializer.serialize(
         [product],
         fields=product_fields,
         additional_fields={
+            "image": (lambda p: p.get_first_image(), ("image",)),
             "category": (lambda p: p.category, ("name", "slug")),
             "collections": (lambda p: p.collections.all(), ("name", "slug")),
-            "variants": (
-                lambda p: p.variants.annotate_quantities().all(),
-                product_variant_fields,
-            ),
+        },
+        extra_dict_data={
+            "attributes": serialize_attribute_assignments(product),
+            "variants": [
+                json.loads(generate_variant_payload(v))[0]
+                for v in product.variants.annotate_quantities().all()
+            ],
         },
     )
     return product_payload
