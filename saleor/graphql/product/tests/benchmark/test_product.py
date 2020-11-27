@@ -157,7 +157,7 @@ def test_product_details(product_with_image, api_client, count_queries, channel_
     """
     product = product_with_image
     variant = product_with_image.variants.first()
-    image = product_with_image.images.first()
+    image = product_with_image.get_first_image()
     image.variant_images.create(variant=variant)
 
     variables = {

@@ -298,8 +298,8 @@ class ImagesByProductVariantIdLoader(DataLoader):
         )
 
         variant_image_pairs = defaultdict(list)
-        for variant, image in variant_images:
-            variant_image_pairs[variant].append(image)
+        for variant_id, image_id in variant_images:
+            variant_image_pairs[variant_id].append(image_id)
 
         def map_variant_images(images):
             images_map = {image.id: image for image in images}
