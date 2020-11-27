@@ -18,7 +18,7 @@
         </mj-text>
         <mj-text>
           <a href="{{download_url}}">
-            {{download_url}}
+            {{invoice.download_url}}
           </a>
         </mj-text>
       </mj-column>

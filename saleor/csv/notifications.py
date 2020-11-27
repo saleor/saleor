@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING
 
+from ..core.notifications import get_site_context
 from ..core.notify_events import NotifyEventType
 from ..core.utils import build_absolute_uri
 from ..plugins.manager import get_plugins_manager
@@ -30,6 +31,7 @@ def send_export_download_link_notification(export_file: "ExportFile"):
         "export": get_default_export_payload(export_file),
         "csv_link": build_absolute_uri(export_file.content_file.url),
         "recipient_email": export_file.user.email if export_file.user else None,
+        **get_site_context(),
     }
 
     manager = get_plugins_manager()
@@ -42,6 +44,7 @@ def send_export_failed_info(export_file: "ExportFile"):
     payload = {
         "export": get_default_export_payload(export_file),
         "recipient_email": export_file.user.email if export_file.user else None,
+        **get_site_context(),
     }
     manager = get_plugins_manager()
     manager.notify(NotifyEventType.CSV_EXPORT_FAILED, payload)

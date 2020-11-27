@@ -23,9 +23,7 @@ def test_send_set_staff_password_email(mocked_email_task):
     send_set_staff_password_email(
         payload=payload, config=config,
     )
-    mocked_email_task.assert_called_with(
-        payload["recipient_email"], payload["redirect_url"], payload["token"], config
-    )
+    mocked_email_task.assert_called_with(payload["recipient_email"], payload, config)
 
 
 @mock.patch(
@@ -41,9 +39,7 @@ def test_send_csv_product_export_success(mocked_email_task):
     send_csv_product_export_success(
         payload=payload, config=config,
     )
-    mocked_email_task.assert_called_with(
-        payload["recipient_email"], payload["csv_link"], config
-    )
+    mocked_email_task.assert_called_with(payload["recipient_email"], payload, config)
 
 
 @mock.patch(
@@ -54,13 +50,13 @@ def test_send_staff_order_confirmation(mocked_email_task, order):
     order_payload = get_default_order_payload(order)
     payload = {
         "order": order_payload,
-        "recipient_email": "admin@example.com",
+        "recipient_list": ["admin@example.com"],
     }
     config = {"host": "localhost", "port": "1025"}
     send_staff_order_confirmation(
         payload=payload, config=config,
     )
-    mocked_email_task.assert_called_with(payload, config)
+    mocked_email_task.assert_called_with(payload["recipient_list"], payload, config)
 
 
 @mock.patch(
@@ -74,4 +70,4 @@ def test_send_csv_export_failed(mocked_email_task):
     send_csv_export_failed(
         payload=payload, config=config,
     )
-    mocked_email_task.assert_called_with(payload["recipient_email"], config)
+    mocked_email_task.assert_called_with(payload["recipient_email"], payload, config)
