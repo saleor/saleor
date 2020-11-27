@@ -621,6 +621,43 @@ def test_order_confirm_unfulfilled(staff_api_client, order, permission_manage_or
     assert errors[0]["code"] == OrderErrorCode.INVALID.name
 
 
+@patch("saleor.payment.gateway.capture")
+def test_order_confirm_wont_call_capture_for_non_active_payment(
+    capture_mock,
+    staff_api_client,
+    order_unconfirmed,
+    permission_manage_orders,
+    payment_txn_preauth,
+):
+    payment_txn_preauth.order = order_unconfirmed
+    payment_txn_preauth.is_active = False
+    payment_txn_preauth.save()
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    assert not OrderEvent.objects.exists()
+    response = staff_api_client.post_graphql(
+        ORDER_CONFIRM_MUTATION,
+        {"id": graphene.Node.to_global_id("Order", order_unconfirmed.id)},
+    )
+    order_data = get_graphql_content(response)["data"]["orderConfirm"]["order"]
+
+    assert order_data["status"] == OrderStatus.UNFULFILLED.upper()
+    order_unconfirmed.refresh_from_db()
+    assert order_unconfirmed.status == OrderStatus.UNFULFILLED
+    assert OrderEvent.objects.count() == 2
+    assert OrderEvent.objects.filter(
+        order=order_unconfirmed,
+        user=staff_api_client.user,
+        type=order_events.OrderEvents.CONFIRMED,
+    ).exists()
+    assert OrderEvent.objects.filter(
+        order=order_unconfirmed,
+        user=staff_api_client.user,
+        type=order_events.OrderEvents.EMAIL_SENT,
+        parameters__email=order_unconfirmed.get_customer_email(),
+    ).exists()
+    assert not capture_mock.called
+
+
 def test_orders_with_channel(
     staff_api_client, permission_manage_orders, orders, channel_USD
 ):

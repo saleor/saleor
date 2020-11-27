@@ -524,7 +524,7 @@ class OrderConfirm(ModelMutation):
         order.status = OrderStatus.UNFULFILLED
         order.save(update_fields=["status"])
         payment = order.get_last_payment()
-        if payment and payment.is_authorized:
+        if payment and payment.is_authorized and payment.is_active:
             gateway.capture(payment)
             order_captured(order, info.context.user, payment.total, payment)
         order_confirmed(order, info.context.user, send_confirmation_email=True)
