@@ -328,6 +328,9 @@ def test_menu_items_collection_in_other_channel(
             collection {
                 name
             }
+            menu {
+                slug
+            }
             category {
                 id
             }
@@ -352,6 +355,7 @@ def test_menu_items_collection_in_other_channel(
     content = get_graphql_content(response)
     data = content["data"]["menuItem"]
     assert data["name"] == menu_item.name
+    assert data["menu"]["slug"] == menu_item.menu.slug
     assert len(data["children"]) == 1
     assert data["children"][0]["name"] == child_menu.name
     assert not data["collection"]
