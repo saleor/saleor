@@ -500,8 +500,6 @@ def create_refund_fulfillment(
                 all_refunded_lines[order_line.id] = (quantity, line)
             else:
                 all_refunded_lines[order_line.id] = (fulfilled_to_refund, order_line)
-            if quantity_to_refund == 0:
-                break
 
         OrderLine.objects.bulk_update(order_lines_to_update, ["quantity_fulfilled"])
         FulfillmentLine.objects.bulk_update(fulfillment_lines_to_update, ["quantity"])
