@@ -408,7 +408,7 @@ class FulfillmentRefundProducts(BaseMutation):
             info, order_id, field="order", only_type=Order, qs=qs
         )
         payment = order.get_last_payment()
-        if amount_to_refund is not None and amount_to_refund > payment.capture_amount:
+        if amount_to_refund is not None and amount_to_refund > payment.captured_amount:
             raise ValidationError(
                 {
                     "amount_to_refund": ValidationError(
