@@ -33,7 +33,12 @@ if TYPE_CHECKING:
     from ...checkout import CheckoutLineInfo
     from ...checkout.models import Checkout, CheckoutLine
     from ...discount import DiscountInfo
-    from ...product.models import Collection, Product, ProductVariant
+    from ...product.models import (
+        Collection,
+        Product,
+        ProductVariant,
+        ProductVariantChannelListing,
+    )
     from ...account.models import Address
     from ...order.models import OrderLine, Order
     from ..models import PluginConfiguration
@@ -168,13 +173,16 @@ class VatlayerPlugin(BasePlugin):
         collections: List["Collection"],
         address: Optional["Address"],
         channel: "Channel",
+        channel_listing: "ProductVariantChannelListing",
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
         if self._skip_plugin(previous_value):
             return previous_value
 
-        price = variant.get_price(product, collections, channel.slug, discounts)
+        price = variant.get_price(
+            product, collections, channel, channel_listing, discounts
+        )
         country = address.country if address else None
         return (
             self.__apply_taxes_to_product(product, price, country)

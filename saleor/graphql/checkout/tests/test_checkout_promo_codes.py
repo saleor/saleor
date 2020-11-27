@@ -158,6 +158,7 @@ def test_checkout_totals_use_discounts(
         collections=[],
         address=checkout.shipping_address,
         channel=channel_USD,
+        channel_listing=line.variant.channel_listings.get(channel=channel_USD),
         discounts=discounts,
     )
     assert data["lines"][0]["totalPrice"]["gross"]["amount"] == line_total.gross.amount

@@ -14,7 +14,12 @@ from ..discount import DiscountInfo
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ..product.models import Collection, Product, ProductVariant
+    from ..product.models import (
+        Collection,
+        Product,
+        ProductVariant,
+        ProductVariantChannelListing,
+    )
     from .models import Checkout, CheckoutLine
     from ..channel.models import Channel
 
@@ -56,11 +61,12 @@ def base_checkout_line_total(
     product: "Product",
     collections: Iterable["Collection"],
     channel: "Channel",
+    channel_listing: "ProductVariantChannelListing",
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> TaxedMoney:
     """Return the total price of this line."""
     variant_price = variant.get_price(
-        product, collections, channel.slug, discounts or []
+        product, collections, channel, channel_listing, discounts or []
     )
     amount = line.quantity * variant_price
     price = quantize_price(amount, amount.currency)

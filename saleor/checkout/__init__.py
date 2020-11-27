@@ -3,7 +3,12 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, List
 
 if TYPE_CHECKING:
-    from ..product.models import Collection, Product, ProductVariant
+    from ..product.models import (
+        Collection,
+        Product,
+        ProductVariant,
+        ProductVariantChannelListing,
+    )
     from .models import CheckoutLine
 
 logger = logging.getLogger(__name__)
@@ -23,5 +28,6 @@ class AddressType:
 class CheckoutLineInfo:
     line: "CheckoutLine"
     variant: "ProductVariant"
+    channel_listing: "ProductVariantChannelListing"
     product: "Product"
     collections: List["Collection"]

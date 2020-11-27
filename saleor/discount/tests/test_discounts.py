@@ -125,8 +125,13 @@ def test_variant_discounts(product, channel_USD):
         category_ids=set(),
         collection_ids=set(),
     )
+    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
     final_price = variant.get_price(
-        product, [], channel_USD.slug, discounts=[low_discount, discount, high_discount]
+        product,
+        [],
+        channel_USD,
+        variant_channel_listing,
+        discounts=[low_discount, discount, high_discount],
     )
     assert final_price == Money(0, "USD")
 
@@ -136,7 +141,7 @@ def test_variant_discounts(product, channel_USD):
 def test_percentage_discounts(product, channel_USD):
     variant = product.variants.get()
     sale = Sale.objects.create(type=DiscountValueType.PERCENTAGE)
-    sale_cahnnel_listing = SaleChannelListing.objects.create(
+    sale_channel_listing = SaleChannelListing.objects.create(
         sale=sale,
         discount_value=50,
         currency=channel_USD.currency_code,
@@ -144,12 +149,15 @@ def test_percentage_discounts(product, channel_USD):
     )
     discount = DiscountInfo(
         sale=sale,
-        channel_listings={channel_USD.slug: sale_cahnnel_listing},
+        channel_listings={channel_USD.slug: sale_channel_listing},
         product_ids={product.id},
         category_ids=set(),
         collection_ids=set(),
     )
-    final_price = variant.get_price(product, [], channel_USD.slug, discounts=[discount])
+    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
+    final_price = variant.get_price(
+        product, [], channel_USD, variant_channel_listing, discounts=[discount]
+    )
     assert final_price == Money(5, "USD")
 
 

@@ -191,7 +191,9 @@ def test_vatlayer_plugin_caches_taxes(
 
     manager = get_plugins_manager()
     plugin = manager.get_plugin(VatlayerPlugin.PLUGIN_ID)
-    price = product.variants.first().get_price(product, [], channel_USD.slug, None)
+    variant = product.variants.first()
+    channel_listing = variant.channel_listings.get(channel=channel_USD)
+    price = variant.get_price(product, [], channel_USD, channel_listing, None)
     address.country = Country("de")
     plugin.apply_taxes_to_product(
         product, price, address.country, TaxedMoney(price, price)
@@ -436,9 +438,12 @@ def test_apply_taxes_to_product(
         "vatlayer.code": "standard",
         "vatlayer.description": "standard",
     }
+    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
     price = manager.apply_taxes_to_product(
         variant.product,
-        variant.get_price(variant.product, [], channel_USD.slug, [discount_info]),
+        variant.get_price(
+            variant.product, [], channel_USD, variant_channel_listing, [discount_info]
+        ),
         country,
     )
     assert price == TaxedMoney(net=Money("4.07", "USD"), gross=Money("5.00", "USD"))
@@ -456,9 +461,12 @@ def test_apply_taxes_to_product_uses_taxes_from_product_type(
         "vatlayer.code": "standard",
         "vatlayer.description": "standard",
     }
+    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
     price = manager.apply_taxes_to_product(
         product,
-        variant.get_price(product, [], channel_USD.slug, [discount_info]),
+        variant.get_price(
+            product, [], channel_USD, variant_channel_listing, [discount_info]
+        ),
         country,
     )
     assert price == TaxedMoney(net=Money("4.07", "USD"), gross=Money("5.00", "USD"))

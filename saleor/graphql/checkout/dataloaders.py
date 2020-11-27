@@ -10,6 +10,7 @@ from ..product.dataloaders import (
     CollectionsByVariantIdLoader,
     ProductByVariantIdLoader,
     ProductVariantByIdLoader,
+    VariantChannelListingByVariantIdAndChannelSlugLoader,
 )
 
 
@@ -29,12 +30,15 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
             variants_pks = list(
                 {line.variant_id for lines in checkout_lines for line in lines}
             )
+            if not variants_pks:
+                return [[] for _ in keys]
 
             def with_variants_products_collections(results):
-                variants, products, collections = results
+                variants, products, collections, channel_listings = results
                 variants_map = dict(zip(variants_pks, variants))
                 products_map = dict(zip(variants_pks, products))
                 collections_map = dict(zip(variants_pks, collections))
+                channel_listings_map = dict(zip(variants_pks, channel_listings))
 
                 lines_info = []
                 for lines in checkout_lines:
@@ -43,6 +47,7 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
                             CheckoutLineInfo(
                                 line=line,
                                 variant=variants_map[line.variant_id],
+                                channel_listing=channel_listings_map[line.variant_id],
                                 product=products_map[line.variant_id],
                                 collections=collections_map[line.variant_id],
                             )
@@ -56,9 +61,19 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
             collections = CollectionsByVariantIdLoader(self.context).load_many(
                 variants_pks
             )
-            return Promise.all([variants, products, collections]).then(
-                with_variants_products_collections
-            )
+
+            # FIXME: Use dataloader to load channel
+            channel = checkout_lines[0][0].checkout.channel
+
+            variant_ids_channel_slug = [
+                (variant_pk, channel.slug) for variant_pk in variants_pks
+            ]
+            channel_listings = VariantChannelListingByVariantIdAndChannelSlugLoader(
+                self.context
+            ).load_many(variant_ids_channel_slug)
+            return Promise.all(
+                [variants, products, collections, channel_listings]
+            ).then(with_variants_products_collections)
 
         return (
             CheckoutLinesByCheckoutTokenLoader(self.context)

@@ -307,8 +307,9 @@ def get_prices_of_discounted_specific_product(
             product=line.variant.product,
             collections=line.variant.product.collections.all(),
             address=address,
-            discounts=discounts or [],
             channel=channel,
+            channel_listing=line.variant.channel_listings.get(channel=channel),
+            discounts=discounts or [],
         ).gross
         line_unit_price = quantize_price(
             (line_total / line.quantity), line_total.currency
@@ -681,17 +682,30 @@ def cancel_active_payments(checkout: Checkout):
 def fetch_checkout_lines(checkout: Checkout) -> Iterable[CheckoutLineInfo]:
     """Fetch checkout lines as CheckoutLineInfo objects."""
     lines = CheckoutLine.objects.filter(checkout=checkout).prefetch_related(
-        "variant__product__collections"
+        "variant__product__collections", "variant__channel_listings"
     )
     lines_info = []
+
     for line in lines:
         variant = line.variant
         product = variant.product
         collections = list(product.collections.all())
+
+        variant_channel_listing = None
+        for channel_listing in line.variant.channel_listings.all():
+            if channel_listing.channel_id == checkout.channel_id:
+                variant_channel_listing = channel_listing
+
+        # FIXME: Temporary solution to pass type checks. Figure out how to handle case
+        # when variant channel listing is not defined for a checkout line.
+        if not variant_channel_listing:
+            continue
+
         lines_info.append(
             CheckoutLineInfo(
                 line=line,
-                variant=line.variant,
+                variant=variant,
+                channel_listing=variant_channel_listing,
                 product=product,
                 collections=collections,
             )

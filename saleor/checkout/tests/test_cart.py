@@ -85,6 +85,8 @@ def test_get_prices_of_discounted_specific_product(
     line = checkout.lines.first()
     product = line.variant.product
     category = product.category
+    channel = checkout.channel
+    variant_channel_listing = line.variant.channel_listings.get(channel=channel)
 
     product.collections.add(collection)
     voucher.products.add(product)
@@ -94,12 +96,13 @@ def test_get_prices_of_discounted_specific_product(
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     prices = utils.get_prices_of_discounted_specific_product(
-        manager, checkout, lines, voucher, checkout.channel
+        manager, checkout, lines, voucher, channel
     )
 
-    channel_slug = checkout.channel.slug
     excepted_value = [
-        line.variant.get_price(product, [collection], channel_slug, [])
+        line.variant.get_price(
+            product, [collection], channel, variant_channel_listing, []
+        )
         for item in range(line.quantity)
     ]
 
@@ -114,6 +117,8 @@ def test_get_prices_of_discounted_specific_product_only_product(
     line = checkout.lines.first()
     product = line.variant.product
     product2 = product_with_default_variant
+    channel = checkout.channel
+    variant_channel_listing = line.variant.channel_listings.get(channel=channel)
 
     add_variant_to_checkout(checkout, product2.variants.get(), 1)
     voucher.products.add(product)
@@ -121,12 +126,11 @@ def test_get_prices_of_discounted_specific_product_only_product(
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     prices = utils.get_prices_of_discounted_specific_product(
-        manager, checkout, lines, voucher, checkout.channel
+        manager, checkout, lines, voucher, channel
     )
 
-    channel_slug = checkout.channel.slug
     excepted_value = [
-        line.variant.get_price(product, [], channel_slug, [])
+        line.variant.get_price(product, [], channel, variant_channel_listing, [])
         for item in range(line.quantity)
     ]
 
@@ -145,6 +149,8 @@ def test_get_prices_of_discounted_specific_product_only_collection(
     line = checkout.lines.first()
     product = line.variant.product
     product2 = product_with_default_variant
+    channel = checkout.channel
+    variant_channel_listing = line.variant.channel_listings.get(channel=channel)
 
     add_variant_to_checkout(checkout, product2.variants.get(), 1)
     product.collections.add(collection)
@@ -156,9 +162,10 @@ def test_get_prices_of_discounted_specific_product_only_collection(
         manager, checkout, lines, voucher, checkout.channel
     )
 
-    channel_slug = checkout.channel.slug
     excepted_value = [
-        line.variant.get_price(product, [collection], channel_slug, [])
+        line.variant.get_price(
+            product, [collection], channel, variant_channel_listing, []
+        )
         for item in range(line.quantity)
     ]
 
@@ -176,6 +183,8 @@ def test_get_prices_of_discounted_specific_product_only_category(
     product2 = product_with_default_variant
     category = product.category
     category2 = Category.objects.create(name="Cat", slug="cat")
+    channel = checkout.channel
+    variant_channel_listing = line.variant.channel_listings.get(channel=channel)
 
     product2.category = category2
     product2.save()
@@ -185,12 +194,11 @@ def test_get_prices_of_discounted_specific_product_only_category(
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     prices = utils.get_prices_of_discounted_specific_product(
-        manager, checkout, lines, voucher, checkout.channel
+        manager, checkout, lines, voucher, channel
     )
 
-    channel_slug = checkout.channel.slug
     excepted_value = [
-        line.variant.get_price(product, [], channel_slug, [])
+        line.variant.get_price(product, [], channel, variant_channel_listing, [])
         for item in range(line.quantity)
     ]
 
@@ -205,16 +213,17 @@ def test_get_prices_of_discounted_specific_product_all_products(
     voucher = voucher_specific_product_type
     line = checkout.lines.first()
     product = line.variant.product
+    channel = checkout.channel
+    variant_channel_listing = line.variant.channel_listings.get(channel=channel)
 
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     prices = utils.get_prices_of_discounted_specific_product(
-        manager, checkout, lines, voucher, checkout.channel
+        manager, checkout, lines, voucher, channel
     )
 
-    channel_slug = checkout.channel.slug
     excepted_value = [
-        line.variant.get_price(product, [], channel_slug, [])
+        line.variant.get_price(product, [], channel, variant_channel_listing, [])
         for item in range(line.quantity)
     ]
 

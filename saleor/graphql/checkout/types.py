@@ -22,6 +22,7 @@ from ..product.dataloaders import (
     ProductTypeByProductIdLoader,
     ProductTypeByVariantIdLoader,
     ProductVariantByIdLoader,
+    VariantChannelListingByVariantIdAndChannelSlugLoader,
 )
 from ..product.resolvers import resolve_variant
 from ..shipping.dataloaders import ShippingMethodByIdLoader
@@ -87,25 +88,54 @@ class CheckoutLine(CountableDjangoObjectType):
     @staticmethod
     def resolve_total_price(root, info):
         def with_checkout(checkout):
-            address_id = checkout.shipping_address_id or checkout.billing_address_id
-            address = (
-                AddressByIdLoader(info.context).load(address_id) if address_id else None
+            def with_channel(channel):
+                address_id = checkout.shipping_address_id or checkout.billing_address_id
+                address = (
+                    AddressByIdLoader(info.context).load(address_id)
+                    if address_id
+                    else None
+                )
+                variant = ProductVariantByIdLoader(info.context).load(root.variant_id)
+                channel_listing = VariantChannelListingByVariantIdAndChannelSlugLoader(
+                    info.context
+                ).load((root.variant_id, channel.slug))
+                product = ProductByVariantIdLoader(info.context).load(root.variant_id)
+                collections = CollectionsByVariantIdLoader(info.context).load(
+                    root.variant_id
+                )
+                discounts = DiscountsByDateTimeLoader(info.context).load(
+                    info.context.request_time
+                )
+                return Promise.all(
+                    [
+                        checkout,
+                        address,
+                        variant,
+                        channel_listing,
+                        product,
+                        collections,
+                        channel,
+                        discounts,
+                    ]
+                ).then(calculate_line_total_price)
+
+            return (
+                ChannelByCheckoutLineIDLoader(info.context)
+                .load(root.id)
+                .then(with_channel)
             )
-            variant = ProductVariantByIdLoader(info.context).load(root.variant_id)
-            product = ProductByVariantIdLoader(info.context).load(root.variant_id)
-            collections = CollectionsByVariantIdLoader(info.context).load(
-                root.variant_id
-            )
-            discounts = DiscountsByDateTimeLoader(info.context).load(
-                info.context.request_time
-            )
-            channel = ChannelByCheckoutLineIDLoader(info.context).load(root.id)
-            return Promise.all(
-                [checkout, address, variant, product, collections, channel, discounts]
-            ).then(calculate_line_total_price)
 
         def calculate_line_total_price(data):
-            checkout, address, variant, product, collections, channel, discounts = data
+            (
+                checkout,
+                address,
+                variant,
+                channel_listing,
+                product,
+                collections,
+                channel,
+                discounts,
+            ) = data
             return info.context.plugins.calculate_checkout_line_total(
                 checkout=checkout,
                 checkout_line=root,
@@ -114,6 +144,7 @@ class CheckoutLine(CountableDjangoObjectType):
                 collections=collections,
                 address=address,
                 channel=channel,
+                channel_listing=channel_listing,
                 discounts=discounts,
             )
 

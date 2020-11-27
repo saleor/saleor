@@ -41,7 +41,12 @@ if TYPE_CHECKING:
     from ...checkout.models import Checkout, CheckoutLine
     from ...channel.models import Channel
     from ...order.models import Order, OrderLine
-    from ...product.models import Collection, Product, ProductVariant
+    from ...product.models import (
+        Collection,
+        Product,
+        ProductVariant,
+        ProductVariantChannelListing,
+    )
     from ..models import PluginConfiguration
 
 
@@ -137,6 +142,7 @@ class AvataxPlugin(BasePlugin):
                 line_info.product,
                 line_info.collections,
                 channel,
+                line_info.channel_listing,
                 discounts,
             )
             price.gross.amount += line_price.gross.amount
@@ -328,6 +334,7 @@ class AvataxPlugin(BasePlugin):
         collections: Iterable["Collection"],
         address: Optional["Address"],
         channel: "Channel",
+        channel_listing: "ProductVariantChannelListing",
         discounts: Iterable[DiscountInfo],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:

@@ -117,9 +117,10 @@ def update_order_prices(order, discounts):
     for line in order:  # type: OrderLine
         if line.variant:
             product = line.variant.product
+            channel_listing = line.variant.channel_listings.get(channel=channel)
             collections = product.collections.all()
             unit_price = line.variant.get_price(
-                product, collections, channel.slug, discounts
+                product, collections, channel, channel_listing, discounts
             )
             unit_price = TaxedMoney(unit_price, unit_price)
             line.unit_price = unit_price
@@ -181,8 +182,10 @@ def add_variant_to_draft_order(order, variant, quantity, discounts=None):
     except OrderLine.DoesNotExist:
         product = variant.product
         collections = product.collections.all()
+        channel = order.channel
+        channel_listing = variant.channel_listings.get(channel=channel)
         unit_price = variant.get_price(
-            product, collections, order.channel.slug, discounts
+            product, collections, channel, channel_listing, discounts
         )
         unit_price = TaxedMoney(net=unit_price, gross=unit_price)
         product_name = str(product)

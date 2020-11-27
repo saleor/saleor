@@ -95,6 +95,8 @@ def test_calculate_checkout_line_total(
     product.save()
     product.product_type.save()
     discounts = [discount_info] if with_discount else None
+    channel = checkout_with_item.channel
+    channel_listing = line.variant.channel_listings.get(channel=channel)
     total = manager.calculate_checkout_line_total(
         checkout_with_item,
         line,
@@ -102,7 +104,8 @@ def test_calculate_checkout_line_total(
         line.variant.product,
         [],
         checkout_with_item.shipping_address,
-        checkout_with_item.channel,
+        channel,
+        channel_listing,
         discounts,
     )
     total = quantize_price(total, total.currency)

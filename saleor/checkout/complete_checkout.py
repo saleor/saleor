@@ -139,6 +139,7 @@ def _create_line_for_order(
     checkout_line = checkout_line_info.line
     quantity = checkout_line.quantity
     variant = checkout_line_info.variant
+    channel_listing = checkout_line_info.channel_listing
     product = checkout_line_info.product
     collections = checkout_line_info.collections
     country = checkout.get_country()
@@ -167,6 +168,7 @@ def _create_line_for_order(
         collections,
         address,
         channel,
+        channel_listing,
         discounts,
     )
     unit_price = quantize_price(

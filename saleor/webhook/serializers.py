@@ -10,8 +10,10 @@ def serialize_checkout_lines(checkout: "Checkout") -> List[dict]:
     channel = checkout.channel
     for line in checkout.lines.select_related("variant__product").all():
         variant = line.variant
+        channel_listing = variant.channel_listings.get(channel=channel)
         product = variant.product
-        base_price = variant.get_price(product, [], channel.slug)
+        # TODO: optimize getting arguments for get_price
+        base_price = variant.get_price(product, [], channel, channel_listing)
         data.append(
             {
                 "sku": variant.sku,

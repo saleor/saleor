@@ -32,7 +32,13 @@ if TYPE_CHECKING:
         InitializedPaymentResponse,
         TokenConfig,
     )
-    from ..product.models import Collection, Product, ProductType, ProductVariant
+    from ..product.models import (
+        Collection,
+        Product,
+        ProductType,
+        ProductVariant,
+        ProductVariantChannelListing,
+    )
     from .base_plugin import BasePlugin
 
 
@@ -146,6 +152,7 @@ class PluginsManager(PaymentInterface):
                 line_info.collections,
                 address,
                 checkout.channel,
+                line_info.channel_listing,
                 discounts,
             )
             for line_info in lines
@@ -211,10 +218,17 @@ class PluginsManager(PaymentInterface):
         collections: Iterable["Collection"],
         address: Optional["Address"],
         channel: "Channel",
+        channel_listing: "ProductVariantChannelListing",
         discounts: Iterable[DiscountInfo],
     ):
         default_value = base_calculations.base_checkout_line_total(
-            checkout_line, variant, product, collections, channel, discounts
+            checkout_line,
+            variant,
+            product,
+            collections,
+            channel,
+            channel_listing,
+            discounts,
         )
         return quantize_price(
             self.__run_method_on_plugins(
@@ -227,6 +241,7 @@ class PluginsManager(PaymentInterface):
                 collections,
                 address,
                 channel,
+                channel_listing,
                 discounts,
             ),
             checkout.currency,

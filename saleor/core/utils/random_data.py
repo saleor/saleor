@@ -563,10 +563,15 @@ def create_order_lines(order, discounts, how_many=10):
     lines = []
     for _ in range(how_many):
         variant = next(variants_iter)
+        variant_channel_listing = variant.channel_listings.get(channel=channel)
         product = variant.product
         quantity = random.randrange(1, 5)
         unit_price = variant.get_price(
-            product, product.collections.all(), channel.slug, discounts
+            product,
+            product.collections.all(),
+            channel,
+            variant_channel_listing,
+            discounts,
         )
         unit_price = TaxedMoney(net=unit_price, gross=unit_price)
         lines.append(

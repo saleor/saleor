@@ -27,7 +27,13 @@ if TYPE_CHECKING:
     from ..discount import DiscountInfo
     from ..invoice.models import Invoice
     from ..order.models import Fulfillment, Order, OrderLine
-    from ..product.models import Collection, Product, ProductType, ProductVariant
+    from ..product.models import (
+        Collection,
+        Product,
+        ProductType,
+        ProductVariant,
+        ProductVariantChannelListing,
+    )
 
 
 PluginConfigurationType = List[dict]
@@ -151,6 +157,7 @@ class BasePlugin:
         collections: List["Collection"],
         address: Optional["Address"],
         channel: "Channel",
+        channel_listing: "ProductVariantChannelListing",
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:

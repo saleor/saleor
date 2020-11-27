@@ -105,6 +105,8 @@ def test_manager_calculates_checkout_line_total(
     checkout_with_item, discount_info, plugins, amount
 ):
     line = checkout_with_item.lines.all()[0]
+    channel = checkout_with_item.channel
+    channel_listing = line.variant.channel_listings.get(channel=channel)
     currency = checkout_with_item.currency
     expected_total = Money(amount, currency)
     taxed_total = PluginsManager(plugins=plugins).calculate_checkout_line_total(
@@ -114,7 +116,8 @@ def test_manager_calculates_checkout_line_total(
         line.variant.product,
         [],
         checkout_with_item.shipping_address,
-        checkout_with_item.channel,
+        channel,
+        channel_listing,
         [discount_info],
     )
     assert TaxedMoney(expected_total, expected_total) == taxed_total
@@ -160,10 +163,17 @@ def test_manager_show_taxes_on_storefront(plugins, show_taxes):
 def test_manager_apply_taxes_to_product(product, plugins, price, channel_USD):
     country = Country("PL")
     variant = product.variants.all()[0]
-    currency = variant.get_price(variant.product, [], channel_USD.slug, None).currency
+    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
+    currency = variant.get_price(
+        variant.product, [], channel_USD, variant_channel_listing, None
+    ).currency
     expected_price = Money(price, currency)
     taxed_price = PluginsManager(plugins=plugins).apply_taxes_to_product(
-        product, variant.get_price(variant.product, [], channel_USD.slug, None), country
+        product,
+        variant.get_price(
+            variant.product, [], channel_USD, variant_channel_listing, None
+        ),
+        country,
     )
     assert TaxedMoney(expected_price, expected_price) == taxed_price
 

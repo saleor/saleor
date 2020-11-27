@@ -193,7 +193,8 @@ def test_delete_products(
     not_draft_order_lines_pks = []
     for variant in [product_list[0].variants.first(), product_list[1].variants.first()]:
         product = variant.product
-        net = variant.get_price(product, [], channel_USD.slug, None)
+        variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
+        net = variant.get_price(product, [], channel_USD, variant_channel_listing, None)
         gross = Money(amount=net.amount, currency=net.currency)
 
         order_line = OrderLine.objects.create(
@@ -384,7 +385,12 @@ def test_delete_product_variants_in_draft_orders(
 
     second_variant_in_draft = variants[1]
     second_product = second_variant_in_draft.product
-    net = second_variant_in_draft.get_price(second_product, [], channel_USD.slug, None)
+    second_variant_channel_listing = second_variant_in_draft.channel_listings.get(
+        channel=channel_USD
+    )
+    net = second_variant_in_draft.get_price(
+        second_product, [], channel_USD, second_variant_channel_listing, None
+    )
     gross = Money(amount=net.amount, currency=net.currency)
     second_draft_order = OrderLine.objects.create(
         variant=second_variant_in_draft,
@@ -399,7 +405,8 @@ def test_delete_product_variants_in_draft_orders(
 
     variant = variants[0]
     product = variant.product
-    net = variant.get_price(product, [], channel_USD.slug, None)
+    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
+    net = variant.get_price(product, [], channel_USD, variant_channel_listing, None)
     gross = Money(amount=net.amount, currency=net.currency)
     order_not_draft = order_list[-1]
     order_line_not_in_draft = OrderLine.objects.create(

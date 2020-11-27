@@ -92,6 +92,7 @@ class PluginSample(BasePlugin):
         collections,
         address,
         channel,
+        channel_listing,
         discounts,
         previous_value,
     ):
