@@ -12,7 +12,11 @@ from ..payment import ChargeStatus, CustomPaymentChoices, PaymentError, Transact
 from ..payment.models import Payment, Transaction
 from ..payment.utils import create_payment
 from ..plugins.manager import get_plugins_manager
-from ..warehouse.management import deallocate_stock_for_order, decrease_stock
+from ..warehouse.management import (
+    deallocate_stock,
+    deallocate_stock_for_order,
+    decrease_stock,
+)
 from . import FulfillmentStatus, OrderStatus, emails, events, utils
 from .emails import (
     send_fulfillment_confirmation_to_customer,
@@ -423,6 +427,7 @@ def create_refund_fulfillment(
         fulfillment_lines_to_create = []
         empty_fulfillment_lines_to_delete = []
         refund_amount = Decimal(0)
+        lines_to_deallocate_stock = []
         all_refunded_lines = dict()
         for line_to_refund, quantity_to_refund in zip(
             order_lines_to_refund, order_lines_quantities_to_refund
@@ -452,10 +457,11 @@ def create_refund_fulfillment(
                 fulfillment_lines_to_create.append(refunded_line)
             elif fulfillemt_line_existed:
                 fulfillment_lines_to_update.append(refunded_line)
-            # FIXME for unknown reason stock is not correct here.
-            # transaction.on_commit(lambda: deallocate_stock(line_to_refund,
-            # unfulfilled_to_refund))
-            all_refunded_lines[line_to_refund.id] = (quantity_to_refund, line_to_refund)
+            lines_to_deallocate_stock.append((line_to_refund, unfulfilled_to_refund))
+            all_refunded_lines[line_to_refund.id] = (
+                unfulfilled_to_refund,
+                line_to_refund,
+            )
         order_lines_with_fulfillment = OrderLine.objects.in_bulk(
             [line.order_line_id for line in fulfillment_lines_to_refund]
         )
@@ -508,7 +514,8 @@ def create_refund_fulfillment(
             id__in=[f.id for f in empty_fulfillment_lines_to_delete]
         ).delete()
         Fulfillment.objects.filter(order=order, lines=None).delete()
-
+        for line, quantity in lines_to_deallocate_stock:
+            deallocate_stock(line, quantity)
     if amount is None:
         amount = refund_amount
     if refund_shipping_costs:

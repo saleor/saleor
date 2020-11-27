@@ -429,7 +429,7 @@ def test_create_refund_fulfillment_included_shipping_costs(
     }
     order_line_ids = order_lines_to_refund.values_list("id", flat=True)
     lines_count = order_with_lines.lines.count()
-    order_lines_quantities_to_refund = [2 for _ in range(order_line_ids)]
+    order_lines_quantities_to_refund = [2 for _ in range(lines_count)]
     fulfillment_lines_to_refund = []
     fulfillment_lines_quantities_to_refund = []
     returned_fulfillemnt = create_refund_fulfillment(
@@ -517,7 +517,9 @@ def test_create_refund_fulfillment_multiple_fulfillment_lines_refunds(
             order_lines_to_refund=[],
             order_lines_quantities_to_refund=[],
             fulfillment_lines_to_refund=fulfillment_lines_to_refund,
-            fulfillment_lines_quantities_to_refund=fulfillment_lines_quantities_to_refund,
+            fulfillment_lines_quantities_to_refund=(
+                fulfillment_lines_quantities_to_refund
+            ),
         )
     returned_fulfillemnt = Fulfillment.objects.get(
         order=fulfilled_order, status=FulfillmentStatus.REFUNDED
@@ -620,10 +622,12 @@ def test_create_refund_fulfillment_multiple_refunds(
             requester=None,
             order=fulfilled_order,
             payment=payment,
-            order_lines_to_refund=[order_line,],
-            order_lines_quantities_to_refund=[1,],
+            order_lines_to_refund=[order_line],
+            order_lines_quantities_to_refund=[1],
             fulfillment_lines_to_refund=fulfillment_lines_to_refund,
-            fulfillment_lines_quantities_to_refund=fulfillment_lines_quantities_to_refund,
+            fulfillment_lines_quantities_to_refund=(
+                fulfillment_lines_quantities_to_refund
+            ),
         )
     returned_fulfillemnt = Fulfillment.objects.get(
         order=fulfilled_order, status=FulfillmentStatus.REFUNDED
