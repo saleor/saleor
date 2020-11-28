@@ -125,6 +125,8 @@ def test_get_default_fulfillment_payload(
         "physical_lines": [get_default_fulfillment_line_payload(physical_line)],
         "digital_lines": [get_default_fulfillment_line_payload(digital_line)],
         "recipient_email": order.get_customer_email(),
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
     }
 
 
@@ -143,6 +145,8 @@ def test_send_email_payment_confirmation(mocked_notify, site_settings, payment_d
             "captured_amount": payment_dummy.captured_amount,
             "currency": payment_dummy.currency,
         },
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
     }
     notifications.send_payment_confirmation(order, manager)
     mocked_notify.assert_called_once_with(
@@ -171,6 +175,8 @@ def test_send_staff_emails(
     expected_payload = {
         "order": get_default_order_payload(order, redirect_url),
         "recipient_list": [staff_notification_recipient.get_email()],
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
     }
     mocked_notify.assert_called_once_with(
         NotifyEventType.STAFF_ORDER_CONFIRMATION, payload=expected_payload
@@ -187,6 +193,8 @@ def test_send_email_order_confirmation(mocked_notify, order, site_settings):
     expected_payload = {
         "order": get_default_order_payload(order, redirect_url),
         "recipient_email": order.get_customer_email(),
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
     }
     mocked_notify.assert_called_once_with(
         NotifyEventType.ORDER_CONFIRMATION, expected_payload
@@ -223,6 +231,8 @@ def test_send_confirmation_emails_without_addresses_for_payment(
             "captured_amount": payment_dummy.captured_amount,
             "currency": payment_dummy.currency,
         },
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
     }
     mocked_notify.assert_called_once_with(
         NotifyEventType.ORDER_PAYMENT_CONFIRMATION, expected_payload
@@ -254,6 +264,8 @@ def test_send_confirmation_emails_without_addresses_for_order(
     expected_payload = {
         "order": get_default_order_payload(order, redirect_url),
         "recipient_email": order.get_customer_email(),
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
     }
 
     mocked_notify.assert_called_once_with(
@@ -312,6 +324,8 @@ def test_send_email_order_canceled(mocked_notify, order, site_settings):
     expected_payload = {
         "order": get_default_order_payload(order),
         "recipient_email": order.get_customer_email(),
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
     }
     mocked_notify.assert_called_once_with(
         NotifyEventType.ORDER_CANCELED, expected_payload
@@ -335,6 +349,8 @@ def test_send_email_order_refunded(mocked_notify, order, site_settings):
         "amount": amount,
         "currency": order.currency,
         "recipient_email": order.get_customer_email(),
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
     }
 
     mocked_notify.assert_called_once_with(

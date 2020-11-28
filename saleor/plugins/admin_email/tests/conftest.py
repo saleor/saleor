@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
+from ...email_common import DEFAULT_EMAIL_VALUE
 from ...manager import get_plugins_manager
 from ..constants import (
     CSV_EXPORT_FAILED_DEFAULT_TITLE,
@@ -10,7 +11,6 @@ from ..constants import (
     CSV_PRODUCT_EXPORT_SUCCESS_DEFAULT_TITLE,
     CSV_PRODUCT_EXPORT_SUCCESS_TEMPLATE_FIELD,
     CSV_PRODUCT_EXPORT_SUCCESS_TITLE_FIELD,
-    DEFAULT_EMAIL_VALUE,
     SET_STAFF_PASSWORD_DEFAULT_TITLE,
     SET_STAFF_PASSWORD_TEMPLATE_FIELD,
     SET_STAFF_PASSWORD_TITLE_FIELD,

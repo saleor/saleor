@@ -21,6 +21,4 @@ CSV_PRODUCT_EXPORT_SUCCESS_DEFAULT_TITLE = "Export products data"
 CSV_EXPORT_FAILED_DEFAULT_TITLE = "Export products data"
 
 
-DEFAULT_EMAIL_VALUE = "DEFAULT"
-
 PLUGIN_ID = "mirumee.notifications.admin_email"

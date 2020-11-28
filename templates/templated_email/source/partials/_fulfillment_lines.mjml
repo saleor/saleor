@@ -1,55 +1,68 @@
-<mj-raw>
-  {% load display_translated_order_line_name from order_lines %}
-</mj-raw>
 <mj-section>
   <mj-column>
     <mj-text>
-      {% if physical_lines %}
+      {{#if physical_lines}}
         <table style="width:100%">
           <thead class="table-header-row">
             <tr>
-              <th style="text-align: left;">{% trans "Item" context "Ordered item name" %}</th>
-              <th style="text-align: right;">{% trans "Quantity" context "Quantity ordered of a product" %}</th>
+              <th style="text-align: left;">
+                {{#blocktrans "Ordered item name"}}
+                  Item
+                {{/blocktrans}}
+              </th>
+              <th style="text-align: right;">
+                {{#blocktrans "Quantity ordered of a product"}}
+                  Quantity
+                {{/blocktrans}}
+              </th>
             </tr>
           </thead>
           <tbody>
-            {% for line in physical_lines %}
+            {{#each physical_lines}}
               <tr class="table-item-row">
-                {% if line.order_line.variant_name %}
-                <td>{{ line.order_line.product_name }} ({{line.order_line.variant_name }})</td>
-                {% else %}
-                <td>{{ line.order_line.product_name }}</td>
-                {% endif %}
-                <td style="text-align: right;">{{ line.quantity }}</td>
+                {{#if order_line.variant_name}}
+                  <td>{{order_line.product_name}} ({{order_line.variant_name}})</td>
+                {{else}}
+                  <td>{{order_line.product_name}}</td>
+                {{/if}}
+                <td style="text-align: right;">{{quantity}}</td>
               </tr>
-            {% endfor %}
+            {{/each}}
           </tbody>
         </table>
-      {% endif %}
-      {% if digital_lines %}
+      {{/if}}
+      {{#if digital_lines}}
         <table style="width:100%">
           <thead class="table-header-row">
             <tr>
-              <th style="text-align: left;">{% trans "Item" context "Ordered item name" %}</th>
-              <th style="text-align: right;">{% trans "Download Link" context "Ordered item download links" %}</th>
+              <th style="text-align: left;">
+                {{#blocktrans "Ordered item name"}}
+                  Item
+                {{/blocktrans}}
+              </th>
+              <th style="text-align: right;">
+                {{#blocktrans "Ordered item download links"}}
+                  Download Link
+                {{/blocktrans}}
+              </th>
             </tr>
           </thead>
           <tbody>
-            {% for line in digital_lines %}
+            {{#each digital_lines}}
               <tr class="table-item-row">
-                {% if line.order_line.variant_name %}
-                <td>{{ line.order_line.product_name }} ({{line.order_line.variant_name }})</td>
-                {% else %}
-                <td>{{ line.order_line.product_name }}</td>
-                {% endif %}
+                {{#if order_line.variant_name}}
+                  <td>{{order_line.product_name}} ({{order_line.variant_name}})</td>
+                {{else}}
+                  <td>{{order_line.product_name}}</td>
+                {{/if}}
                 <td style="text-align: right;">
-                  <a href={{ line.order_line.digital_url }}>Link</a>
+                  <a href={{order_line.digital_url}}>Link</a>
                 </td>
               </tr>
-            {% endfor %}
+            {{/each}}
           </tbody>
         </table>
-      {% endif %}
+      {{/if}}
     </mj-text>
   </mj-column>
 </mj-section>

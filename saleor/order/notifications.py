@@ -4,6 +4,7 @@ from urllib.parse import urlencode
 from django.forms import model_to_dict
 
 from ..account.models import StaffNotificationRecipient
+from ..core.notifications import get_site_context
 from ..core.notify_events import NotifyEventType
 from ..core.utils.url import prepare_url
 from ..product.models import DigitalContentUrl
@@ -147,6 +148,7 @@ def get_default_fulfillment_payload(order, fulfillment):
             get_default_fulfillment_line_payload(line) for line in digital_lines
         ],
         "recipient_email": order.get_customer_email(),
+        **get_site_context(),
     }
     return payload
 
@@ -161,6 +163,7 @@ def send_order_confirmation(order, redirect_url, user, manager):
     payload = {
         "order": get_default_order_payload(order, redirect_url),
         "recipient_email": order.get_customer_email(),
+        **get_site_context(),
     }
     manager.notify(NotifyEventType.ORDER_CONFIRMATION, payload)
     events.email_sent_event(
@@ -183,6 +186,7 @@ def send_staff_order_confirmation(order, redirect_url, manager):
         payload = {
             "order": get_default_order_payload(order, redirect_url),
             "recipient_list": recipient_emails,
+            **get_site_context(),
         }
         manager.notify(NotifyEventType.STAFF_ORDER_CONFIRMATION, payload=payload)
 
@@ -222,6 +226,7 @@ def send_payment_confirmation(order, manager):
             "captured_amount": payment.captured_amount,
             "currency": payment.currency,
         },
+        **get_site_context(),
     }
     manager.notify(NotifyEventType.ORDER_PAYMENT_CONFIRMATION, payload)
 
@@ -230,6 +235,7 @@ def send_order_canceled_confirmation(order: "Order", user: Optional["User"], man
     payload = {
         "order": get_default_order_payload(order),
         "recipient_email": order.get_customer_email(),
+        **get_site_context(),
     }
     manager.notify(NotifyEventType.ORDER_CANCELED, payload)
     events.email_sent_event(
@@ -245,6 +251,7 @@ def send_order_refunded_confirmation(
         "recipient_email": order.get_customer_email(),
         "amount": amount,
         "currency": currency,
+        **get_site_context(),
     }
     manager.notify(NotifyEventType.ORDER_REFUND_CONFIRMATION, payload)
     events.email_sent_event(

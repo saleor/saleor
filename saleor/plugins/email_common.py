@@ -25,6 +25,15 @@ from .models import PluginConfiguration
 logger = logging.getLogger(__name__)
 
 
+DEFAULT_TEMPLATE_MESSAGE = (
+    "An HTML template built with handlebars template language. Leave it "
+    "blank if you don't want to send an email for this action. Use the "
+    "default Saleor template by providing DEFAULT value."
+)
+DEFAULT_SUBJECT_MESSAGE = "An email subject built with handlebars template language."
+DEFAULT_EMAIL_VALUE = "DEFAULT"
+
+
 @dataclass
 class EmailConfig:
     host: Optional[str] = None
@@ -282,6 +291,19 @@ def get_email_template(
         if config_field["name"] == template_field_name:
             return config_field["value"] or default
     return default
+
+
+def get_email_template_or_default(
+    plugin_identifier: str, template_field_name: str, default_template_file_name: str
+):
+    email_template_str = get_email_template(
+        plugin_identifier=plugin_identifier,
+        template_field_name=template_field_name,
+        default=DEFAULT_EMAIL_VALUE,
+    )
+    if email_template_str == DEFAULT_EMAIL_VALUE:
+        email_template_str = get_default_email_template(default_template_file_name)
+    return email_template_str
 
 
 def get_email_subject(
