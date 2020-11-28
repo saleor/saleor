@@ -691,8 +691,8 @@ def shipping_method(shipping_zone, channel_USD):
 
 
 @pytest.fixture
-def shipping_method_exclued_by_zip_code(shipping_method):
-    shipping_method.zip_codes.create(start="HB2", end="HB6")
+def shipping_method_excldued_by_zip_code(shipping_method):
+    shipping_method.zip_code_rules.create(start="HB2", end="HB6")
     return shipping_method
 
 

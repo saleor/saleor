@@ -97,7 +97,7 @@ class ShippingMethodQueryset(models.QuerySet):
         )
 
     def applicable_shipping_methods(
-        self, price: Money, channel_id, weight, country_code, prefetch_zip_codes=False
+        self, price: Money, channel_id, weight, country_code
     ):
         """Return the ShippingMethods that can be used on an order with shipment.
 
@@ -109,7 +109,7 @@ class ShippingMethodQueryset(models.QuerySet):
             channel_listings__currency=price.currency,
         )
         qs = self.applicable_shipping_methods_by_channel(qs, channel_id)
-        qs = qs.prefetch_related("shipping_zone", "zip_code_rules")
+        qs = qs.prefetch_related("shipping_zone")
         price_based_methods = _applicable_price_based_methods(price, qs)
         weight_based_methods = _applicable_weight_based_methods(weight, qs)
         shipping_methods = price_based_methods | weight_based_methods

@@ -15,7 +15,7 @@ SHIPPING_ZONE_QUERY = """
         shippingZone(id: $id, channel:$channel) {
             name
             shippingMethods {
-                zipCodes {
+                zipCodeRules {
                     start
                     end
                 }
@@ -59,7 +59,7 @@ def test_shipping_zone_query(
     # given
     shipping = shipping_zone
     method = shipping.shipping_methods.first()
-    code = method.zip_codes.create(start="HB2", end="HB6")
+    code = method.zip_code_rules.create(start="HB2", end="HB6")
     query = SHIPPING_ZONE_QUERY
     ID = graphene.Node.to_global_id("ShippingZone", shipping.id)
     variables = {"id": ID, "channel": channel_USD.slug}
@@ -75,7 +75,7 @@ def test_shipping_zone_query(
     assert shipping_data["name"] == shipping.name
     num_of_shipping_methods = shipping_zone.shipping_methods.count()
     assert len(shipping_data["shippingMethods"]) == num_of_shipping_methods
-    assert shipping_data["shippingMethods"][0]["zipCodes"] == [
+    assert shipping_data["shippingMethods"][0]["zipCodeRules"] == [
         {"start": code.start, "end": code.end}
     ]
     price_range = resolve_price_range(channel_slug=channel_USD.slug)
@@ -390,15 +390,15 @@ def test_create_duplicated_default_shipping_zone(
 
 CREATE_SHIPPING_METHOD_ZIP_CODE_MUTATION = """
     mutation createZipCode(
-        $shippingMethod: ID!, $zipCodes: [ShippingZipCodeCreateInputRange]!
+        $shippingMethod: ID!, $zipCodeRules: [ShippingZipCodeRulesCreateInputRange]!
     ){
-        shippingMethodZipCodeCreate(
+        shippingMethodZipCodeRulesCreate(
             shippingMethod: $shippingMethod
             input: {
-                zipCodes: $zipCodes
+                zipCodeRules: $zipCodeRules
             }
         ){
-            zipCodes {
+            zipCodeRules {
                 start
                 end
             }
@@ -421,32 +421,34 @@ def test_create_shipping_method_zip_code(
     shipping_method_id = graphene.Node.to_global_id(
         "ShippingMethod", shipping_method.pk
     )
-    zip_codes = [
+    zip_code_rules = [
         {"start": "HB3", "end": "HB6"},
         {"start": "HB8", "end": None},
     ]
-    variables = {"shippingMethod": shipping_method_id, "zipCodes": zip_codes}
+    variables = {"shippingMethod": shipping_method_id, "zipCodeRules": zip_code_rules}
     response = staff_api_client.post_graphql(
         CREATE_SHIPPING_METHOD_ZIP_CODE_MUTATION,
         variables,
         permissions=[permission_manage_shipping],
     )
     content = get_graphql_content(response)
-    assert not content["data"]["shippingMethodZipCodeCreate"]["shippingErrors"]
-    zip_codes_data = content["data"]["shippingMethodZipCodeCreate"]["zipCodes"]
-    shipping_method_data = content["data"]["shippingMethodZipCodeCreate"][
+    assert not content["data"]["shippingMethodZipCodeRulesCreate"]["shippingErrors"]
+    zip_code_rules_data = content["data"]["shippingMethodZipCodeRulesCreate"][
+        "zipCodeRules"
+    ]
+    shipping_method_data = content["data"]["shippingMethodZipCodeRulesCreate"][
         "shippingMethod"
     ]
     assert shipping_method_data["id"] == shipping_method_id
     assert shipping_method_data["name"] == shipping_method.name
-    assert zip_codes_data == zip_codes
+    assert zip_code_rules_data == zip_code_rules
 
 
 DELETE_SHIPPING_METHOD_ZIP_CODE_MUTATION = """
     mutation deleteZipCode(
         $id: ID!
     ){
-        shippingMethodZipCodeDelete(
+        shippingMethodZipCodeRulesDelete(
             id: $id
         ){
             shippingErrors {
@@ -459,11 +461,11 @@ DELETE_SHIPPING_METHOD_ZIP_CODE_MUTATION = """
 
 
 def test_delete_shipping_method_zip_code(
-    staff_api_client, shipping_method_exclued_by_zip_code, permission_manage_shipping
+    staff_api_client, shipping_method_excldued_by_zip_code, permission_manage_shipping
 ):
     shipping_zip_code_id = graphene.Node.to_global_id(
-        "ShippingMethodZipCode",
-        shipping_method_exclued_by_zip_code.zip_codes.first().id,
+        "ShippingMethodZipCodeRule",
+        shipping_method_excldued_by_zip_code.zip_code_rules.first().id,
     )
     response = staff_api_client.post_graphql(
         DELETE_SHIPPING_METHOD_ZIP_CODE_MUTATION,
@@ -471,8 +473,8 @@ def test_delete_shipping_method_zip_code(
         permissions=[permission_manage_shipping],
     )
     content = get_graphql_content(response)
-    assert content["data"]["shippingMethodZipCodeDelete"]["shippingErrors"] == []
-    assert not shipping_method_exclued_by_zip_code.zip_codes.exists()
+    assert content["data"]["shippingMethodZipCodeRulesDelete"]["shippingErrors"] == []
+    assert not shipping_method_excldued_by_zip_code.zip_code_rules.exists()
 
 
 UPDATE_SHIPPING_ZONE_QUERY = """
