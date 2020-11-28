@@ -258,7 +258,9 @@ class OrderUpdateShipping(BaseMutation):
             data["shipping_method"],
             field="shipping_method",
             only_type=ShippingMethod,
-            qs=shipping_models.ShippingMethod.objects.prefetch_related("zip_codes"),
+            qs=shipping_models.ShippingMethod.objects.prefetch_related(
+                "zip_code_rules"
+            ),
         )
 
         clean_order_update_shipping(order, method)

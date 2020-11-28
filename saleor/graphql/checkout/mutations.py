@@ -772,7 +772,9 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             shipping_method_id,
             only_type=ShippingMethod,
             field="shipping_method_id",
-            qs=shipping_models.ShippingMethod.objects.prefetch_related("zip_codes"),
+            qs=shipping_models.ShippingMethod.objects.prefetch_related(
+                "zip_code_rules"
+            ),
         )
 
         lines = list(checkout)
