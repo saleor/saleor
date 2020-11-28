@@ -390,20 +390,25 @@ def test_create_duplicated_default_shipping_zone(
 
 CREATE_SHIPPING_METHOD_ZIP_CODE_MUTATION = """
     mutation createZipCode(
-        $shippingMethod: ID!, $start: String!, $end: String!
+        $shippingMethod: ID!, $zipCodes: [ShippingZipCodeCreateInputRange]!
     ){
         shippingMethodZipCodeCreate(
+            shippingMethod: $shippingMethod
             input: {
-                shippingMethod: $shippingMethod, start: $start, end: $end
+                zipCodes: $zipCodes
             }
         ){
+            zipCodes {
+                start
+                end
+            }
+            shippingMethod {
+                id
+                name
+            }
             shippingErrors {
                 field
                 code
-            }
-            shippingMethodZipCode {
-                start
-                end
             }
         }
     }
@@ -416,13 +421,11 @@ def test_create_shipping_method_zip_code(
     shipping_method_id = graphene.Node.to_global_id(
         "ShippingMethod", shipping_method.pk
     )
-    start = "HB3"
-    end = "HB6"
-    variables = {
-        "shippingMethod": shipping_method_id,
-        "start": start,
-        "end": end,
-    }
+    zip_codes = [
+        {"start": "HB3", "end": "HB6"},
+        {"start": "HB8", "end": None},
+    ]
+    variables = {"shippingMethod": shipping_method_id, "zipCodes": zip_codes}
     response = staff_api_client.post_graphql(
         CREATE_SHIPPING_METHOD_ZIP_CODE_MUTATION,
         variables,
@@ -430,11 +433,13 @@ def test_create_shipping_method_zip_code(
     )
     content = get_graphql_content(response)
     assert not content["data"]["shippingMethodZipCodeCreate"]["shippingErrors"]
-    zip_code_data = content["data"]["shippingMethodZipCodeCreate"][
-        "shippingMethodZipCode"
+    zip_codes_data = content["data"]["shippingMethodZipCodeCreate"]["zipCodes"]
+    shipping_method_data = content["data"]["shippingMethodZipCodeCreate"][
+        "shippingMethod"
     ]
-    assert zip_code_data["start"] == start
-    assert zip_code_data["end"] == end
+    assert shipping_method_data["id"] == shipping_method_id
+    assert shipping_method_data["name"] == shipping_method.name
+    assert zip_codes_data == zip_codes
 
 
 DELETE_SHIPPING_METHOD_ZIP_CODE_MUTATION = """

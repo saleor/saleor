@@ -158,20 +158,29 @@ class ShippingZoneUpdate(ShippingZoneMixin, ModelMutation):
         return response
 
 
-class ShippingZipCodeCreateInput(graphene.InputObjectType):
-    shipping_method = graphene.ID(
-        required=True, description="ID of a shipping method to assign."
-    )
+class ShippingZipCodeCreateInputRange(graphene.InputObjectType):
     start = graphene.String(required=True, description="Start range of the zip code.")
-    end = graphene.String(required=True, description="End range of the zip code.")
+    end = graphene.String(required=False, description="End range of the zip code.")
+
+
+class ShippingZipCodeCreateInput(graphene.InputObjectType):
+    zip_codes = graphene.List(
+        ShippingZipCodeCreateInputRange, description="Start range of the zip code."
+    )
 
 
 class ShippingZipCodeCreate(BaseMutation):
-    shipping_method_zip_code = graphene.Field(
+    zip_codes = graphene.List(
         ShippingMethodZipCode, description="A shipping method zip code range.",
+    )
+    shipping_method = graphene.Field(
+        ShippingMethod, description="Related shipping method."
     )
 
     class Arguments:
+        shipping_method = graphene.ID(
+            required=True, description="ID of a shipping method to assign."
+        )
         input = ShippingZipCodeCreateInput(
             description="Fields required to create a shipping zip codes.", required=True
         )
@@ -185,14 +194,20 @@ class ShippingZipCodeCreate(BaseMutation):
     @classmethod
     def perform_mutation(cls, root, info, **data):
         shipping_method = cls.get_node_or_error(
-            info, data["input"]["shipping_method"], only_type=ShippingMethod
+            info, data["shipping_method"], only_type=ShippingMethod
         )
-        instance = models.ShippingMethodZipCode.objects.create(
-            shipping_method=shipping_method,
-            start=data["input"]["start"],
-            end=data["input"]["end"],
+        instances = []
+        for zip_range in data["input"]["zip_codes"]:
+            instance = models.ShippingMethodZipCode.objects.create(
+                shipping_method=shipping_method,
+                start=zip_range["start"],
+                end=zip_range.get("end"),
+            )
+            instances.append(instance)
+        return ShippingZipCodeCreate(
+            zip_codes=instances,
+            shipping_method=ChannelContext(node=shipping_method, channel_slug=None),
         )
-        return ShippingZipCodeCreate(shipping_method_zip_code=instance)
 
 
 class ShippingZipCodeDelete(ModelDeleteMutation):

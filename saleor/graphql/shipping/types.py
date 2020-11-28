@@ -81,7 +81,7 @@ class ShippingMethod(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     )
     zip_codes = graphene.List(
         ShippingMethodZipCode,
-        description="Zip code include / exclude range of the shipping method.",
+        description="Zip code exclude range of the shipping method.",
     )
 
     class Meta:
