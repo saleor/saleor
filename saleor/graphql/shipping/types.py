@@ -156,7 +156,6 @@ class ShippingMethod(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     def resolve_zip_codes(root: ChannelContext[models.ShippingMethod], info, **_kwargs):
-        return root.node.zip_codes.all()
         return ZipCodesByShippingMethodIdLoader(info.context).load(root.node.id)
 
     @staticmethod
