@@ -574,7 +574,7 @@ class Order(CountableDjangoObjectType):
                     shipping_method.price = taxed_price.gross
                 else:
                     shipping_method.price = taxed_price.net
-            available_shipping_methods.append(shipping_method)
+                available_shipping_methods.append(shipping_method)
         channel_slug = root.channel.slug
         instances = [
             ChannelContext(node=shipping, channel_slug=channel_slug)

@@ -109,7 +109,7 @@ class ShippingMethodQueryset(models.QuerySet):
             channel_listings__currency=price.currency,
         )
         qs = self.applicable_shipping_methods_by_channel(qs, channel_id)
-        qs = qs.prefetch_related("shipping_zone", "zip_codes")
+        qs = qs.prefetch_related("shipping_zone", "zip_code_rules")
         price_based_methods = _applicable_price_based_methods(price, qs)
         weight_based_methods = _applicable_weight_based_methods(weight, qs)
         shipping_methods = price_based_methods | weight_based_methods
@@ -184,9 +184,9 @@ class ShippingMethod(ModelWithMetadata):
         )
 
 
-class ShippingMethodZipCode(models.Model):
+class ShippingMethodZipCodeRule(models.Model):
     shipping_method = models.ForeignKey(
-        ShippingMethod, on_delete=models.CASCADE, related_name="zip_codes"
+        ShippingMethod, on_delete=models.CASCADE, related_name="zip_code_rules"
     )
     start = models.CharField(max_length=32)
     end = models.CharField(max_length=32, blank=True, null=True)

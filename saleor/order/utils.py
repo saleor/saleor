@@ -337,7 +337,7 @@ def check_zip_code_in_excluded_range(code, start, end):
 
 
 def check_shipping_method_for_zip_code(customer_zip_code, method: ShippingMethod):
-    for zip_code in method.zip_codes.all():
+    for zip_code in method.zip_code_rules.all():
         if check_zip_code_in_excluded_range(
             customer_zip_code, zip_code.start, zip_code.end
         ):

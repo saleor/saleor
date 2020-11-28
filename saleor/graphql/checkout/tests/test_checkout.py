@@ -1195,7 +1195,7 @@ def test_checkout_available_shipping_methods_excluded_zip_codes(
     checkout_with_item.shipping_address = address
     checkout_with_item.save()
     shipping_method = shipping_zone.shipping_methods.first()
-    shipping_method.zip_codes.create(start="HB3", end="HB6")
+    shipping_method.zip_code_rules.create(start="HB3", end="HB6")
 
     query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
     variables = {"token": checkout_with_item.token}
