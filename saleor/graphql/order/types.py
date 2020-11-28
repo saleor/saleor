@@ -10,11 +10,7 @@ from ...core.taxes import display_gross_prices
 from ...graphql.utils import get_user_or_app_from_context
 from ...order import OrderStatus, models
 from ...order.models import FulfillmentStatus
-from ...order.utils import (
-    check_shipping_method_for_zip_code,
-    get_order_country,
-    get_valid_shipping_methods_for_order,
-)
+from ...order.utils import get_order_country, get_valid_shipping_methods_for_order
 from ...plugins.manager import get_plugins_manager
 from ...product.templatetags.product_images import get_product_image_thumbnail
 from ...warehouse import models as warehouse_models
@@ -557,7 +553,7 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     # TODO: We should optimize it in/after PR#5819
     def resolve_available_shipping_methods(root: models.Order, _info):
-        available = get_valid_shipping_methods_for_order(root, prefetch_zip_codes=True)
+        available = get_valid_shipping_methods_for_order(root)
         if available is None:
             return []
         available_shipping_methods = []
@@ -578,13 +574,7 @@ class Order(CountableDjangoObjectType):
                     shipping_method.price = taxed_price.gross
                 else:
                     shipping_method.price = taxed_price.net
-                if check_shipping_method_for_zip_code(
-                    root.shipping_address.postal_code
-                    if root.shipping_address
-                    else None,
-                    shipping_method,
-                ):
-                    available_shipping_methods.append(shipping_method)
+            available_shipping_methods.append(shipping_method)
         channel_slug = root.channel.slug
         instances = [
             ChannelContext(node=shipping, channel_slug=channel_slug)

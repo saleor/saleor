@@ -644,6 +644,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     def resolve_is_available(root: ChannelContext[models.Product], info):
         if not root.channel_slug:
             return None
+        channel_slug = str(root.channel_slug)
 
         def calculate_is_available(product_channel_listing):
             country = info.context.country
@@ -655,7 +656,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
         return (
             ProductChannelListingByProductIdAndChannelSlugLoader(info.context)
-            .load((root.node.id, root.channel_slug))
+            .load((root.node.id, channel_slug))
             .then(calculate_is_available)
         )
 
@@ -719,6 +720,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     def resolve_is_available_for_purchase(root: ChannelContext[models.Product], info):
         if not root.channel_slug:
             return None
+        channel_slug = str(root.channel_slug)
 
         def calculate_is_available_for_purchase(product_channel_listing):
             if not product_channel_listing:
@@ -727,7 +729,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
         return (
             ProductChannelListingByProductIdAndChannelSlugLoader(info.context)
-            .load((root.node.id, root.channel_slug))
+            .load((root.node.id, channel_slug))
             .then(calculate_is_available_for_purchase)
         )
 
@@ -735,6 +737,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     def resolve_available_for_purchase(root: ChannelContext[models.Product], info):
         if not root.channel_slug:
             return None
+        channel_slug = str(root.channel_slug)
 
         def calculate_available_for_purchase(product_channel_listing):
             if not product_channel_listing:
@@ -743,7 +746,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
         return (
             ProductChannelListingByProductIdAndChannelSlugLoader(info.context)
-            .load((root.node.id, root.channel_slug))
+            .load((root.node.id, channel_slug))
             .then(calculate_available_for_purchase)
         )
 
