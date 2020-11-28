@@ -108,8 +108,9 @@ class ShippingMethodQueryset(models.QuerySet):
             shipping_zone__countries__contains=country_code,
             channel_listings__currency=price.currency,
         )
-        qs = self.applicable_shipping_methods_by_channel(qs, channel_id)
-        qs = qs.prefetch_related("shipping_zone")
+        qs = self.applicable_shipping_methods_by_channel(
+            qs, channel_id
+        ).prefetch_related("shipping_zone")
         price_based_methods = _applicable_price_based_methods(price, qs)
         weight_based_methods = _applicable_weight_based_methods(weight, qs)
         shipping_methods = price_based_methods | weight_based_methods
