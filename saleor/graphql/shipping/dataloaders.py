@@ -2,7 +2,11 @@ from collections import defaultdict
 
 from django.db.models import F
 
-from ...shipping.models import ShippingMethod, ShippingMethodChannelListing
+from ...shipping.models import (
+    ShippingMethod,
+    ShippingMethodChannelListing,
+    ShippingMethodZipCode,
+)
 from ..core.dataloaders import DataLoader
 
 
@@ -18,9 +22,7 @@ class ShippingMethodsByShippingZoneIdLoader(DataLoader):
     context_key = "shippingmethod_by_shippingzone"
 
     def batch_load(self, keys):
-        shipping_methods = ShippingMethod.objects.filter(
-            shipping_zone_id__in=keys
-        ).prefetch_related("zip_codes")
+        shipping_methods = ShippingMethod.objects.filter(shipping_zone_id__in=keys)
         shipping_methods_by_shipping_zone_map = defaultdict(list)
         for shipping_method in shipping_methods:
             shipping_methods_by_shipping_zone_map[
@@ -32,15 +34,25 @@ class ShippingMethodsByShippingZoneIdLoader(DataLoader):
         ]
 
 
+class ZipCodesByShippingMethodIdLoader(DataLoader):
+    context_key = "zip_codes_by_shipping_method"
+
+    def batch_load(self, keys):
+        zip_codes = ShippingMethodZipCode.objects.filter(shipping_method_id__in=keys)
+
+        zip_codes_map = defaultdict(list)
+        for zip_code in zip_codes:
+            zip_codes_map[zip_code.shipping_method_id].append(zip_code)
+        return [zip_codes_map[shipping_method_id] for shipping_method_id in keys]
+
+
 class ShippingMethodsByShippingZoneIdAndChannelSlugLoader(DataLoader):
     context_key = "shippingmethod_by_shippingzone_and_channel"
 
     def batch_load(self, keys):
-        shipping_methods = (
-            ShippingMethod.objects.filter(shipping_zone_id__in=keys)
-            .prefetch_related("zip_codes")
-            .annotate(channel_slug=F("channel_listings__channel__slug"))
-        )
+        shipping_methods = ShippingMethod.objects.filter(
+            shipping_zone_id__in=keys
+        ).annotate(channel_slug=F("channel_listings__channel__slug"))
 
         shipping_methods_by_shipping_zone_and_channel_map = defaultdict(list)
         for shipping_method in shipping_methods:

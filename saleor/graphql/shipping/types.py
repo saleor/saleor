@@ -23,6 +23,7 @@ from .dataloaders import (
     ShippingMethodChannelListingByShippingMethodIdLoader,
     ShippingMethodsByShippingZoneIdAndChannelSlugLoader,
     ShippingMethodsByShippingZoneIdLoader,
+    ZipCodesByShippingMethodIdLoader,
 )
 from .enums import ShippingMethodTypeEnum
 
@@ -154,8 +155,9 @@ class ShippingMethod(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return convert_weight_to_default_weight_unit(root.node.maximum_order_weight)
 
     @staticmethod
-    def resolve_zip_codes(root: ChannelContext[models.ShippingMethod], *_args):
+    def resolve_zip_codes(root: ChannelContext[models.ShippingMethod], info, **_kwargs):
         return root.node.zip_codes.all()
+        return ZipCodesByShippingMethodIdLoader(info.context).load(root.node.id)
 
     @staticmethod
     def resolve_minimum_order_weight(
