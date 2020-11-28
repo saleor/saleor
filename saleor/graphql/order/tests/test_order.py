@@ -427,7 +427,7 @@ def test_order_query_shipping_methods_excluded_zip_codes(
     channel_PLN,
 ):
     order = order_with_lines_channel_PLN
-    order.shipping_method.zip_codes.create(start="HB3", end="HB6")
+    order.shipping_method.zip_code_rules.create(start="HB3", end="HB6")
     order.shipping_address.postal_code = "HB5"
     order.shipping_address.save(update_fields=["postal_code"])
 

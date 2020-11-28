@@ -97,7 +97,7 @@ class ShippingMethodQueryset(models.QuerySet):
         )
 
     def applicable_shipping_methods(
-        self, price: Money, channel_id, weight, country_code, prefetch_zip_codes=False
+        self, price: Money, channel_id, weight, country_code
     ):
         """Return the ShippingMethods that can be used on an order with shipment.
 
@@ -108,13 +108,9 @@ class ShippingMethodQueryset(models.QuerySet):
             shipping_zone__countries__contains=country_code,
             channel_listings__currency=price.currency,
         )
-        qs = self.applicable_shipping_methods_by_channel(qs, channel_id)
-        prefetch_args = (
-            ["shipping_zone"]
-            if not prefetch_zip_codes
-            else ["shipping_zone", "zip_codes"]
-        )
-        qs = qs.prefetch_related(*prefetch_args)
+        qs = self.applicable_shipping_methods_by_channel(
+            qs, channel_id
+        ).prefetch_related("shipping_zone")
         price_based_methods = _applicable_price_based_methods(price, qs)
         weight_based_methods = _applicable_weight_based_methods(weight, qs)
         shipping_methods = price_based_methods | weight_based_methods
@@ -127,20 +123,29 @@ class ShippingMethodQueryset(models.QuerySet):
         channel_id,
         price: Money,
         country_code=None,
-        prefetch_zip_codes=False,
     ):
+        from ..order.utils import check_shipping_method_for_zip_code
+
         if not instance.is_shipping_required():
             return None
         if not instance.shipping_address:
             return None
 
-        return self.applicable_shipping_methods(
+        applicable_methods = self.applicable_shipping_methods(
             price=price,
             channel_id=channel_id,
             weight=instance.get_total_weight(),
             country_code=country_code or instance.shipping_address.country.code,
-            prefetch_zip_codes=prefetch_zip_codes,
         )
+        excluded_methods_by_zip_code = []
+        for method in applicable_methods:
+            if check_shipping_method_for_zip_code(
+                instance.shipping_address.postal_code, method
+            ):
+                excluded_methods_by_zip_code.append(method.pk)
+        if excluded_methods_by_zip_code:
+            return applicable_methods.exclude(pk__in=excluded_methods_by_zip_code)
+        return applicable_methods
 
 
 class ShippingMethod(ModelWithMetadata):
@@ -180,12 +185,12 @@ class ShippingMethod(ModelWithMetadata):
         )
 
 
-class ShippingMethodZipCode(models.Model):
+class ShippingMethodZipCodeRule(models.Model):
     shipping_method = models.ForeignKey(
-        ShippingMethod, on_delete=models.PROTECT, related_name="zip_codes"
+        ShippingMethod, on_delete=models.CASCADE, related_name="zip_code_rules"
     )
     start = models.CharField(max_length=32)
-    end = models.CharField(max_length=32)
+    end = models.CharField(max_length=32, blank=True, null=True)
 
     class Meta:
         unique_together = ("shipping_method", "start", "end")

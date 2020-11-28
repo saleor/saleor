@@ -309,10 +309,7 @@ def sum_order_totals(qs, currency_code):
 
 def get_valid_shipping_methods_for_order(order: Order):
     return ShippingMethod.objects.applicable_shipping_methods_for_instance(
-        order,
-        channel_id=order.channel_id,
-        price=order.get_subtotal().gross,
-        prefetch_zip_codes=True,
+        order, channel_id=order.channel_id, price=order.get_subtotal().gross,
     )
 
 
@@ -340,12 +337,12 @@ def check_zip_code_in_excluded_range(code, start, end):
 
 
 def check_shipping_method_for_zip_code(customer_zip_code, method: ShippingMethod):
-    for zip_code in method.zip_codes.all():
+    for zip_code in method.zip_code_rules.all():
         if check_zip_code_in_excluded_range(
             customer_zip_code, zip_code.start, zip_code.end
         ):
-            return False
-    return True
+            return True
+    return False
 
 
 def get_products_voucher_discount_for_order(order: Order) -> Money:

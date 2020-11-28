@@ -153,14 +153,18 @@ class MenuItem(ChannelContextType, CountableDjangoObjectType):
     def resolve_menu(root: ChannelContext[models.MenuItem], info, **_kwargs):
         if root.node.menu_id:
             menu = MenuByIdLoader(info.context).load(root.node.menu_id)
-            return menu.then(lambda menu: ChannelContext(node=menu, channel_slug=None))
+            return menu.then(
+                lambda menu: ChannelContext(node=menu, channel_slug=root.channel_slug)
+            )
         return None
 
     @staticmethod
     def resolve_parent(root: ChannelContext[models.MenuItem], info, **_kwargs):
         if root.node.parent_id:
             menu = MenuItemByIdLoader(info.context).load(root.node.parent_id)
-            return menu.then(lambda menu: ChannelContext(node=menu, channel_slug=None))
+            return menu.then(
+                lambda menu: ChannelContext(node=menu, channel_slug=root.channel_slug)
+            )
         return None
 
     @staticmethod

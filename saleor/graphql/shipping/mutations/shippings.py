@@ -15,7 +15,7 @@ from ...core.scalars import WeightScalar
 from ...core.types.common import ShippingError
 from ...core.utils import get_duplicates_ids
 from ..enums import ShippingMethodTypeEnum
-from ..types import ShippingMethod, ShippingMethodZipCode, ShippingZone
+from ..types import ShippingMethod, ShippingMethodZipCodeRule, ShippingZone
 
 
 class ShippingPriceInput(graphene.InputObjectType):
@@ -158,21 +158,30 @@ class ShippingZoneUpdate(ShippingZoneMixin, ModelMutation):
         return response
 
 
-class ShippingZipCodeCreateInput(graphene.InputObjectType):
-    shipping_method = graphene.ID(
-        required=True, description="ID of a shipping method to assign."
-    )
+class ShippingZipCodeRulesCreateInputRange(graphene.InputObjectType):
     start = graphene.String(required=True, description="Start range of the zip code.")
-    end = graphene.String(required=True, description="End range of the zip code.")
+    end = graphene.String(required=False, description="End range of the zip code.")
 
 
-class ShippingZipCodeCreate(BaseMutation):
-    shipping_method_zip_code = graphene.Field(
-        ShippingMethodZipCode, description="A shipping method zip code range.",
+class ShippingZipCodeRulesCreateInput(graphene.InputObjectType):
+    zip_code_rules = graphene.List(
+        ShippingZipCodeRulesCreateInputRange, description="Start range of the zip code."
+    )
+
+
+class ShippingZipCodeRulesCreate(BaseMutation):
+    zip_code_rules = graphene.List(
+        ShippingMethodZipCodeRule, description="A shipping method zip code range.",
+    )
+    shipping_method = graphene.Field(
+        ShippingMethod, description="Related shipping method."
     )
 
     class Arguments:
-        input = ShippingZipCodeCreateInput(
+        shipping_method = graphene.ID(
+            required=True, description="ID of a shipping method to assign."
+        )
+        input = ShippingZipCodeRulesCreateInput(
             description="Fields required to create a shipping zip codes.", required=True
         )
 
@@ -185,17 +194,23 @@ class ShippingZipCodeCreate(BaseMutation):
     @classmethod
     def perform_mutation(cls, root, info, **data):
         shipping_method = cls.get_node_or_error(
-            info, data["input"]["shipping_method"], only_type=ShippingMethod
+            info, data["shipping_method"], only_type=ShippingMethod
         )
-        instance = models.ShippingMethodZipCode.objects.create(
-            shipping_method=shipping_method,
-            start=data["input"]["start"],
-            end=data["input"]["end"],
+        instances = []
+        for zip_range in data["input"]["zip_code_rules"]:
+            instance = models.ShippingMethodZipCodeRule.objects.create(
+                shipping_method=shipping_method,
+                start=zip_range["start"],
+                end=zip_range.get("end"),
+            )
+            instances.append(instance)
+        return ShippingZipCodeRulesCreate(
+            zip_code_rules=instances,
+            shipping_method=ChannelContext(node=shipping_method, channel_slug=None),
         )
-        return ShippingZipCodeCreate(shipping_method_zip_code=instance)
 
 
-class ShippingZipCodeDelete(ModelDeleteMutation):
+class ShippingZipCodeRulesDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(
             required=True, description="ID of a shipping method zip code to delete."
@@ -203,7 +218,7 @@ class ShippingZipCodeDelete(ModelDeleteMutation):
 
     class Meta:
         description = "Deletes a shipping method zip code."
-        model = models.ShippingMethodZipCode
+        model = models.ShippingMethodZipCodeRule
         permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"
