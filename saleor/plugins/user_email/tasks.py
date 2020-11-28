@@ -1,219 +1,342 @@
-from urllib.parse import urlencode
-
 from ...account import events as account_events
 from ...celeryconf import app
-from ...core.emails import get_email_context
-from ...core.utils.url import prepare_url
-from ..email_common import EmailConfig, send_email
+from ..email_common import (
+    EmailConfig,
+    get_email_subject,
+    get_email_template_or_default,
+    send_email,
+)
+from . import constants
 
 
 @app.task
-def send_account_confirmation_email_task(email, token, redirect_url, config):
+def send_account_confirmation_email_task(recipient_email, payload, config):
     email_config = EmailConfig(**config)
-    params = urlencode({"email": email, "token": token})
-    confirm_url = prepare_url(params, redirect_url)
-    send_kwargs, ctx = get_email_context()
-    ctx["confirm_url"] = confirm_url
+
+    email_template_str = get_email_template_or_default(
+        constants.PLUGIN_ID,
+        constants.ACCOUNT_CONFIRMATION_TEMPLATE_FIELD,
+        constants.ACCOUNT_CONFIRMATION_DEFAULT_TEMPLATE,
+    )
+    subject = get_email_subject(
+        constants.PLUGIN_ID,
+        constants.ACCOUNT_CONFIRMATION_SUBJECT_FIELD,
+        constants.ACCOUNT_CONFIRMATION_DEFAULT_SUBJECT,
+    )
+
     send_email(
         config=email_config,
-        recipient_list=[email],
-        template_name="account/confirm",
-        context=ctx,
+        recipient_list=[recipient_email],
+        context=payload,
+        subject=subject,
+        template_str=email_template_str,
     )
 
 
 @app.task
-def send_password_reset_email_task(
-    recipient_email, redirect_url, user_id, token, config
-):
+def send_password_reset_email_task(recipient_email, payload, config):
+    user_id = payload.get("user", {}).get("id")
     email_config = EmailConfig(**config)
-    params = urlencode({"email": recipient_email, "token": token})
-    reset_url = prepare_url(params, redirect_url)
-    _send_password_reset_email(recipient_email, reset_url, user_id, email_config)
 
+    email_template_str = get_email_template_or_default(
+        constants.PLUGIN_ID,
+        constants.ACCOUNT_PASSWORD_RESET_TEMPLATE_FIELD,
+        constants.ACCOUNT_PASSWORD_RESET_DEFAULT_TEMPLATE,
+    )
 
-def _send_password_reset_email(recipient_email, reset_url, user_id, email_config):
-    send_kwargs, ctx = get_email_context()
-    ctx["reset_url"] = reset_url
+    subject = get_email_subject(
+        constants.PLUGIN_ID,
+        constants.ACCOUNT_PASSWORD_RESET_SUBJECT_FIELD,
+        constants.ACCOUNT_PASSWORD_RESET_DEFAULT_SUBJECT,
+    )
     send_email(
         config=email_config,
         recipient_list=[recipient_email],
-        template_name="account/password_reset",
-        context=ctx,
+        context=payload,
+        subject=subject,
+        template_str=email_template_str,
     )
     account_events.customer_password_reset_link_sent_event(user_id=user_id)
 
 
 @app.task
-def send_request_email_change_email_task(
-    new_email, old_email, redirect_url, user_id, token, config
-):
+def send_request_email_change_email_task(recipient_email, payload, config):
+    user_id = payload.get("user", {}).get("id")
     email_config = EmailConfig(**config)
-    params = urlencode({"token": token})
-    redirect_url = prepare_url(params, redirect_url)
-    send_kwargs, ctx = get_email_context()
-    ctx["redirect_url"] = redirect_url
+
+    email_template_str = get_email_template_or_default(
+        constants.PLUGIN_ID,
+        constants.ACCOUNT_CHANGE_EMAIL_REQUEST_TEMPLATE_FIELD,
+        constants.ACCOUNT_CHANGE_EMAIL_REQUEST_DEFAULT_TEMPLATE,
+    )
+
+    subject = get_email_subject(
+        constants.PLUGIN_ID,
+        constants.ACCOUNT_CHANGE_EMAIL_REQUEST_SUBJECT_FIELD,
+        constants.ACCOUNT_CHANGE_EMAIL_REQUEST_DEFAULT_SUBJECT,
+    )
+
     send_email(
         config=email_config,
-        recipient_list=[new_email],
-        template_name="account/request_email_change",
-        context=ctx,
+        recipient_list=[recipient_email],
+        context=payload,
+        subject=subject,
+        template_str=email_template_str,
     )
     account_events.customer_email_change_request_event(
-        user_id=user_id, parameters={"old_email": old_email, "new_email": new_email}
+        user_id=user_id,
+        parameters={
+            "old_email": payload.get("old_email"),
+            "new_email": recipient_email,
+        },
     )
 
 
 @app.task
-def send_user_change_email_notification_task(recipient_email, config):
+def send_user_change_email_notification_task(recipient_email, payload, config):
     email_config = EmailConfig(**config)
-    send_kwargs, ctx = get_email_context()
+
+    email_template_str = get_email_template_or_default(
+        constants.PLUGIN_ID,
+        constants.ACCOUNT_CHANGE_EMAIL_CONFIRM_TEMPLATE_FIELD,
+        constants.ACCOUNT_CHANGE_EMAIL_CONFIRM_DEFAULT_TEMPLATE,
+    )
+
+    subject = get_email_subject(
+        constants.PLUGIN_ID,
+        constants.ACCOUNT_CHANGE_EMAIL_CONFIRM_SUBJECT_FIELD,
+        constants.ACCOUNT_CHANGE_EMAIL_CONFIRM_DEFAULT_SUBJECT,
+    )
+
     send_email(
         config=email_config,
         recipient_list=[recipient_email],
-        template_name="account/email_changed_notification",
-        context=ctx,
+        context=payload,
+        subject=subject,
+        template_str=email_template_str,
     )
 
 
 @app.task
-def send_account_delete_confirmation_email_task(
-    recipient_email, redirect_url, token, config
-):
+def send_account_delete_confirmation_email_task(recipient_email, payload, config):
     email_config = EmailConfig(**config)
-    params = urlencode({"token": token})
-    delete_url = prepare_url(params, redirect_url)
-    _send_delete_confirmation_email(recipient_email, delete_url, email_config)
 
+    email_template_str = get_email_template_or_default(
+        constants.PLUGIN_ID,
+        constants.ACCOUNT_DELETE_TEMPLATE_FIELD,
+        constants.ACCOUNT_DELETE_DEFAULT_TEMPLATE,
+    )
 
-def _send_delete_confirmation_email(recipient_email, delete_url, email_config):
-    send_kwargs, ctx = get_email_context()
-    ctx["delete_url"] = delete_url
+    subject = get_email_subject(
+        constants.PLUGIN_ID,
+        constants.ACCOUNT_DELETE_SUBJECT_FIELD,
+        constants.ACCOUNT_DELETE_DEFAULT_SUBJECT,
+    )
+
     send_email(
         config=email_config,
         recipient_list=[recipient_email],
-        template_name="account/account_delete",
-        context=ctx,
+        context=payload,
+        subject=subject,
+        template_str=email_template_str,
     )
 
 
 @app.task
-def send_set_user_password_email_task(recipient_email, redirect_url, token, config):
+def send_set_user_password_email_task(recipient_email, payload, config):
     email_config = EmailConfig(**config)
-    params = urlencode({"email": recipient_email, "token": token})
-    password_set_url = prepare_url(params, redirect_url)
-    _send_set_password_email(recipient_email, password_set_url, email_config)
 
+    email_template_str = get_email_template_or_default(
+        constants.PLUGIN_ID,
+        constants.ACCOUNT_SET_CUSTOMER_PASSWORD_TEMPLATE_FIELD,
+        constants.ACCOUNT_SET_CUSTOMER_PASSWORD_DEFAULT_TEMPLATE,
+    )
 
-def _send_set_password_email(recipient_email, password_set_url, email_config):
-    send_kwargs, ctx = get_email_context()
-    ctx["password_set_url"] = password_set_url
+    subject = get_email_subject(
+        constants.PLUGIN_ID,
+        constants.ACCOUNT_SET_CUSTOMER_PASSWORD_SUBJECT_FIELD,
+        constants.ACCOUNT_SET_CUSTOMER_PASSWORD_DEFAULT_SUBJECT,
+    )
+
     send_email(
         config=email_config,
         recipient_list=[recipient_email],
-        template_name="dashboard/customer/set_password",
-        context=ctx,
+        context=payload,
+        subject=subject,
+        template_str=email_template_str,
     )
 
 
 @app.task
-def send_invoice_email_task(
-    recipient_email, invoice_number, invoice_download_url, config
-):
+def send_invoice_email_task(recipient_email, payload, config):
     """Send an invoice to user of related order with URL to download it."""
     email_config = EmailConfig(**config)
-    send_kwargs, ctx = get_email_context()
-    ctx["number"] = invoice_number
-    ctx["download_url"] = invoice_download_url
+
+    email_template_str = get_email_template_or_default(
+        constants.PLUGIN_ID,
+        constants.INVOICE_READY_TEMPLATE_FIELD,
+        constants.INVOICE_READY_DEFAULT_TEMPLATE,
+    )
+
+    subject = get_email_subject(
+        constants.PLUGIN_ID,
+        constants.INVOICE_READY_SUBJECT_FIELD,
+        constants.INVOICE_READY_DEFAULT_SUBJECT,
+    )
+
     send_email(
         config=email_config,
         recipient_list=[recipient_email],
-        template_name="order/send_invoice",
-        context=ctx,
+        context=payload,
+        subject=subject,
+        template_str=email_template_str,
     )
 
 
 @app.task
-def send_order_confirmation_email_task(payload, config):
+def send_order_confirmation_email_task(recipient_email, payload, config):
     """Send order confirmation email."""
     email_config = EmailConfig(**config)
-    recipient_email = payload["recipient_email"]
-    send_kwargs, ctx = get_email_context()
-    payload.update(ctx)
+
+    email_template_str = get_email_template_or_default(
+        constants.PLUGIN_ID,
+        constants.ORDER_CONFIRMATION_TEMPLATE_FIELD,
+        constants.ORDER_CONFIRMATION_DEFAULT_TEMPLATE,
+    )
+
+    subject = get_email_subject(
+        constants.PLUGIN_ID,
+        constants.ORDER_CONFIRMATION_SUBJECT_FIELD,
+        constants.ORDER_CONFIRMATION_DEFAULT_SUBJECT,
+    )
+
     send_email(
         config=email_config,
         recipient_list=[recipient_email],
-        template_name="order/confirm_fulfillment",
         context=payload,
+        subject=subject,
+        template_str=email_template_str,
     )
 
 
 @app.task
-def send_fulfillment_confirmation_email_task(payload, config):
+def send_fulfillment_confirmation_email_task(recipient_email, payload, config):
     email_config = EmailConfig(**config)
-    recipient_email = payload["recipient_email"]
-    send_kwargs, ctx = get_email_context()
-    payload.update(ctx)
+
+    email_template_str = get_email_template_or_default(
+        constants.PLUGIN_ID,
+        constants.ORDER_FULFILLMENT_CONFIRMATION_TEMPLATE_FIELD,
+        constants.ORDER_FULFILLMENT_CONFIRMATION_DEFAULT_TEMPLATE,
+    )
+
+    subject = get_email_subject(
+        constants.PLUGIN_ID,
+        constants.ORDER_FULFILLMENT_CONFIRMATION_SUBJECT_FIELD,
+        constants.ORDER_FULFILLMENT_CONFIRMATION_DEFAULT_SUBJECT,
+    )
+
     send_email(
         config=email_config,
         recipient_list=[recipient_email],
-        template_name="order/confirm_fulfillment",
         context=payload,
+        subject=subject,
+        template_str=email_template_str,
     )
 
 
 @app.task
-def send_fulfillment_update_email_task(payload, config):
+def send_fulfillment_update_email_task(recipient_email, payload, config):
     email_config = EmailConfig(**config)
-    recipient_email = payload["recipient_email"]
-    send_kwargs, ctx = get_email_context()
-    payload.update(ctx)
+    email_template_str = get_email_template_or_default(
+        constants.PLUGIN_ID,
+        constants.ORDER_FULFILLMENT_UPDATE_TEMPLATE_FIELD,
+        constants.ORDER_FULFILLMENT_UPDATE_DEFAULT_TEMPLATE,
+    )
+
+    subject = get_email_subject(
+        constants.PLUGIN_ID,
+        constants.ORDER_FULFILLMENT_UPDATE_SUBJECT_FIELD,
+        constants.ORDER_FULFILLMENT_UPDATE_DEFAULT_SUBJECT,
+    )
     send_email(
         config=email_config,
         recipient_list=[recipient_email],
-        template_name="order/update_fulfillment",
         context=payload,
+        subject=subject,
+        template_str=email_template_str,
     )
 
 
 @app.task
-def send_payment_confirmation_email_task(payload, config):
+def send_payment_confirmation_email_task(recipient_email, payload, config):
     email_config = EmailConfig(**config)
-    send_kwargs, ctx = get_email_context()
-    payload.update(ctx)
-    recipient_email = payload["recipient_email"]
+
+    email_template_str = get_email_template_or_default(
+        constants.PLUGIN_ID,
+        constants.ORDER_PAYMENT_CONFIRMATION_TEMPLATE_FIELD,
+        constants.ORDER_PAYMENT_CONFIRMATION_DEFAULT_TEMPLATE,
+    )
+
+    subject = get_email_subject(
+        constants.PLUGIN_ID,
+        constants.ORDER_PAYMENT_CONFIRMATION_SUBJECT_FIELD,
+        constants.ORDER_PAYMENT_CONFIRMATION_DEFAULT_SUBJECT,
+    )
+
     send_email(
         config=email_config,
         recipient_list=[recipient_email],
-        template_name="order/payment/confirm_payment",
         context=payload,
+        subject=subject,
+        template_str=email_template_str,
     )
 
 
 @app.task
-def send_order_canceled_email_task(payload, config):
+def send_order_canceled_email_task(recipient_email, payload, config):
     email_config = EmailConfig(**config)
-    recipient_email = payload["recipient_email"]
-    send_kwargs, ctx = get_email_context()
-    payload.update(ctx)
+
+    email_template_str = get_email_template_or_default(
+        constants.PLUGIN_ID,
+        constants.ORDER_CANCELED_TEMPLATE_FIELD,
+        constants.ORDER_CANCELED_DEFAULT_TEMPLATE,
+    )
+
+    subject = get_email_subject(
+        constants.PLUGIN_ID,
+        constants.ORDER_CANCELED_SUBJECT_FIELD,
+        constants.ORDER_CANCELED_DEFAULT_SUBJECT,
+    )
+
     send_email(
         config=email_config,
         recipient_list=[recipient_email],
-        template_name="order/order_cancel",
         context=payload,
+        subject=subject,
+        template_str=email_template_str,
     )
 
 
 @app.task
-def send_order_refund_email_task(payload, config):
+def send_order_refund_email_task(recipient_email, payload, config):
     email_config = EmailConfig(**config)
-    recipient_email = payload["recipient_email"]
-    # TODO when we replace template define if this context is required
-    send_kwargs, ctx = get_email_context()
-    payload.update(ctx)
+
+    email_template_str = get_email_template_or_default(
+        constants.PLUGIN_ID,
+        constants.ORDER_REFUND_CONFIRMATION_TEMPLATE_FIELD,
+        constants.ORDER_REFUND_CONFIRMATION_DEFAULT_TEMPLATE,
+    )
+
+    subject = get_email_subject(
+        constants.PLUGIN_ID,
+        constants.ORDER_REFUND_CONFIRMATION_SUBJECT_FIELD,
+        constants.ORDER_REFUND_CONFIRMATION_DEFAULT_SUBJECT,
+    )
+
     send_email(
         config=email_config,
         recipient_list=[recipient_email],
-        template_name="order/order_refund",
         context=payload,
+        subject=subject,
+        template_str=email_template_str,
     )

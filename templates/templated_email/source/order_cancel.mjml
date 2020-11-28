@@ -3,19 +3,18 @@
     <mj-include path="./shared/styles.mjml" />
   </mj-head>
   <mj-body>
-    <mj-raw>
-      {% load i18n %}
-    </mj-raw>
     <mj-include path="./shared/header.mjml" />
     <mj-section>
       <mj-column>
         <mj-text font-size="16px">
-          {% trans "Hi!" context "Standard e-mail greeting" %}
+          {{#blocktrans "Standard e-mail greeting"}}
+            Hi!
+          {{/blocktrans}}
         </mj-text>
         <mj-text>
-          {% blocktrans trimmed with id=order.id context "Order cancel e-mail text" %}
-            Your order #{{ id }} has been canceled.
-          {% endblocktrans %}
+          {{#blocktrans "Order cancel e-mail text"}}
+            Your order #{{order.id}} has been canceled.
+          {{/blocktrans}}
         </mj-text>
       </mj-column>
     </mj-section>

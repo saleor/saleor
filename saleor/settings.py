@@ -185,10 +185,11 @@ loaders = [
     "django.template.loaders.app_directories.Loader",
 ]
 
+TEMPLATES_DIR = os.path.join(PROJECT_ROOT, "templates")
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [os.path.join(PROJECT_ROOT, "templates")],
+        "DIRS": [TEMPLATES_DIR],
         "OPTIONS": {
             "debug": DEBUG,
             "context_processors": context_processors,

@@ -1,15 +1,20 @@
 import logging
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
+from typing import Optional
 
 from ...core.notify_events import NotifyEventType, UserNotifyEvent
-from ..base_plugin import BasePlugin
+from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..email_common import (
     DEFAULT_EMAIL_CONFIG_STRUCTURE,
     DEFAULT_EMAIL_CONFIGURATION,
+    DEFAULT_EMAIL_VALUE,
+    DEFAULT_SUBJECT_MESSAGE,
+    DEFAULT_TEMPLATE_MESSAGE,
     EmailConfig,
     validate_default_email_configuration,
 )
 from ..models import PluginConfiguration
+from . import constants
 from .notify_events import (
     send_account_change_email_confirm,
     send_account_change_email_request,
@@ -27,6 +32,51 @@ from .notify_events import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class UserTemplate:
+    account_confirmation: Optional[str]
+    account_set_customer_password: Optional[str]
+    account_delete: Optional[str]
+    account_change_email_confirm: Optional[str]
+    account_change_email_request: Optional[str]
+    account_password_reset: Optional[str]
+    invoice_ready: Optional[str]
+    order_confirmation: Optional[str]
+    order_fulfillment_confirmation: Optional[str]
+    order_fulfillment_update: Optional[str]
+    order_payment_confirmation: Optional[str]
+    order_canceled: Optional[str]
+    order_refund_confirmation: Optional[str]
+
+
+def get_user_template_map(templates: UserTemplate):
+    return {
+        UserNotifyEvent.ACCOUNT_CONFIRMATION: templates.account_confirmation,
+        UserNotifyEvent.ACCOUNT_SET_CUSTOMER_PASSWORD: (
+            templates.account_set_customer_password
+        ),
+        UserNotifyEvent.ACCOUNT_DELETE: templates.account_delete,
+        UserNotifyEvent.ACCOUNT_CHANGE_EMAIL_CONFIRM: (
+            templates.account_change_email_confirm
+        ),
+        UserNotifyEvent.ACCOUNT_CHANGE_EMAIL_REQUEST: (
+            templates.account_change_email_request
+        ),
+        UserNotifyEvent.ACCOUNT_PASSWORD_RESET: templates.account_password_reset,
+        UserNotifyEvent.INVOICE_READY: templates.invoice_ready,
+        UserNotifyEvent.ORDER_CONFIRMATION: templates.order_confirmation,
+        UserNotifyEvent.ORDER_FULFILLMENT_CONFIRMATION: (
+            templates.order_fulfillment_confirmation
+        ),
+        UserNotifyEvent.ORDER_FULFILLMENT_UPDATE: templates.order_fulfillment_update,
+        UserNotifyEvent.ORDER_PAYMENT_CONFIRMATION: (
+            templates.order_payment_confirmation
+        ),
+        UserNotifyEvent.ORDER_CANCELED: templates.order_canceled,
+        UserNotifyEvent.ORDER_REFUND_CONFIRMATION: templates.order_refund_confirmation,
+    }
 
 
 def get_user_event_map():
@@ -50,18 +100,290 @@ def get_user_event_map():
 
 
 class UserEmailPlugin(BasePlugin):
-    PLUGIN_ID = "mirumee.notifications.user_email"
+    PLUGIN_ID = constants.PLUGIN_ID
     PLUGIN_NAME = "User emails"
     # TODO the configuration will be implemented in separate pull request
 
-    DEFAULT_CONFIGURATION = [] + DEFAULT_EMAIL_CONFIGURATION  # type: ignore
-    CONFIG_STRUCTURE = {}
+    DEFAULT_CONFIGURATION = [
+        {
+            "name": constants.ACCOUNT_CONFIRMATION_SUBJECT_FIELD,
+            "value": constants.ACCOUNT_CONFIRMATION_DEFAULT_SUBJECT,
+        },
+        {
+            "name": constants.ACCOUNT_CONFIRMATION_TEMPLATE_FIELD,
+            "value": DEFAULT_EMAIL_VALUE,
+        },
+        {
+            "name": constants.ACCOUNT_SET_CUSTOMER_PASSWORD_SUBJECT_FIELD,
+            "value": constants.ACCOUNT_SET_CUSTOMER_PASSWORD_DEFAULT_SUBJECT,
+        },
+        {
+            "name": constants.ACCOUNT_SET_CUSTOMER_PASSWORD_TEMPLATE_FIELD,
+            "value": DEFAULT_EMAIL_VALUE,
+        },
+        {
+            "name": constants.ACCOUNT_DELETE_SUBJECT_FIELD,
+            "value": constants.ACCOUNT_DELETE_DEFAULT_SUBJECT,
+        },
+        {"name": constants.ACCOUNT_DELETE_TEMPLATE_FIELD, "value": DEFAULT_EMAIL_VALUE},
+        {
+            "name": constants.ACCOUNT_CHANGE_EMAIL_CONFIRM_SUBJECT_FIELD,
+            "value": constants.ACCOUNT_CHANGE_EMAIL_CONFIRM_DEFAULT_SUBJECT,
+        },
+        {
+            "name": constants.ACCOUNT_CHANGE_EMAIL_CONFIRM_TEMPLATE_FIELD,
+            "value": DEFAULT_EMAIL_VALUE,
+        },
+        {
+            "name": constants.ACCOUNT_CHANGE_EMAIL_REQUEST_SUBJECT_FIELD,
+            "value": constants.ACCOUNT_CHANGE_EMAIL_REQUEST_DEFAULT_SUBJECT,
+        },
+        {
+            "name": constants.ACCOUNT_CHANGE_EMAIL_REQUEST_TEMPLATE_FIELD,
+            "value": DEFAULT_EMAIL_VALUE,
+        },
+        {
+            "name": constants.ACCOUNT_PASSWORD_RESET_SUBJECT_FIELD,
+            "value": constants.ACCOUNT_PASSWORD_RESET_DEFAULT_SUBJECT,
+        },
+        {
+            "name": constants.ACCOUNT_PASSWORD_RESET_TEMPLATE_FIELD,
+            "value": DEFAULT_EMAIL_VALUE,
+        },
+        {
+            "name": constants.INVOICE_READY_SUBJECT_FIELD,
+            "value": constants.INVOICE_READY_DEFAULT_SUBJECT,
+        },
+        {"name": constants.INVOICE_READY_TEMPLATE_FIELD, "value": DEFAULT_EMAIL_VALUE},
+        {
+            "name": constants.ORDER_CONFIRMATION_SUBJECT_FIELD,
+            "value": constants.ORDER_CONFIRMATION_DEFAULT_SUBJECT,
+        },
+        {
+            "name": constants.ORDER_CONFIRMATION_TEMPLATE_FIELD,
+            "value": DEFAULT_EMAIL_VALUE,
+        },
+        {
+            "name": constants.ORDER_FULFILLMENT_CONFIRMATION_SUBJECT_FIELD,
+            "value": constants.ORDER_FULFILLMENT_CONFIRMATION_DEFAULT_SUBJECT,
+        },
+        {
+            "name": constants.ORDER_FULFILLMENT_CONFIRMATION_TEMPLATE_FIELD,
+            "value": DEFAULT_EMAIL_VALUE,
+        },
+        {
+            "name": constants.ORDER_FULFILLMENT_UPDATE_SUBJECT_FIELD,
+            "value": constants.ORDER_FULFILLMENT_UPDATE_DEFAULT_SUBJECT,
+        },
+        {
+            "name": constants.ORDER_FULFILLMENT_UPDATE_TEMPLATE_FIELD,
+            "value": DEFAULT_EMAIL_VALUE,
+        },
+        {
+            "name": constants.ORDER_PAYMENT_CONFIRMATION_SUBJECT_FIELD,
+            "value": constants.ORDER_PAYMENT_CONFIRMATION_DEFAULT_SUBJECT,
+        },
+        {
+            "name": constants.ORDER_PAYMENT_CONFIRMATION_TEMPLATE_FIELD,
+            "value": DEFAULT_EMAIL_VALUE,
+        },
+        {
+            "name": constants.ORDER_CANCELED_SUBJECT_FIELD,
+            "value": constants.ORDER_CANCELED_DEFAULT_SUBJECT,
+        },
+        {"name": constants.ORDER_CANCELED_TEMPLATE_FIELD, "value": DEFAULT_EMAIL_VALUE},
+        {
+            "name": constants.ORDER_REFUND_CONFIRMATION_SUBJECT_FIELD,
+            "value": constants.ORDER_REFUND_CONFIRMATION_DEFAULT_SUBJECT,
+        },
+        {
+            "name": constants.ORDER_REFUND_CONFIRMATION_TEMPLATE_FIELD,
+            "value": DEFAULT_EMAIL_VALUE,
+        },
+    ] + DEFAULT_EMAIL_CONFIGURATION  # type: ignore
+
+    CONFIG_STRUCTURE = {
+        constants.ACCOUNT_CONFIRMATION_SUBJECT_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_SUBJECT_MESSAGE,
+            "label": "Account confirmation - subject",
+        },
+        constants.ACCOUNT_CONFIRMATION_TEMPLATE_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "label": "Account confirmation - template",
+        },
+        constants.ACCOUNT_SET_CUSTOMER_PASSWORD_SUBJECT_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_SUBJECT_MESSAGE,
+            "label": "Set customer password - subject",
+        },
+        constants.ACCOUNT_SET_CUSTOMER_PASSWORD_TEMPLATE_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "label": "Set customer password - template",
+        },
+        constants.ACCOUNT_DELETE_SUBJECT_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_SUBJECT_MESSAGE,
+            "label": "Account delete - subject",
+        },
+        constants.ACCOUNT_DELETE_TEMPLATE_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "label": "Account delete - template",
+        },
+        constants.ACCOUNT_CHANGE_EMAIL_CONFIRM_SUBJECT_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_SUBJECT_MESSAGE,
+            "label": "Account change email confirm - subject",
+        },
+        constants.ACCOUNT_CHANGE_EMAIL_CONFIRM_TEMPLATE_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "label": "Account change email confirm - template",
+        },
+        constants.ACCOUNT_CHANGE_EMAIL_REQUEST_SUBJECT_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_SUBJECT_MESSAGE,
+            "label": "Account change email request - subject",
+        },
+        constants.ACCOUNT_CHANGE_EMAIL_REQUEST_TEMPLATE_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "label": "Account change email request - template",
+        },
+        constants.ACCOUNT_PASSWORD_RESET_SUBJECT_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_SUBJECT_MESSAGE,
+            "label": "Account password reset - subject",
+        },
+        constants.ACCOUNT_PASSWORD_RESET_TEMPLATE_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "label": "Account password reset - template",
+        },
+        constants.INVOICE_READY_SUBJECT_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_SUBJECT_MESSAGE,
+            "label": "Invoice ready - subject",
+        },
+        constants.INVOICE_READY_TEMPLATE_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "label": "Invoice ready - template",
+        },
+        constants.ORDER_CONFIRMATION_SUBJECT_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_SUBJECT_MESSAGE,
+            "label": "Order confirmation - subject",
+        },
+        constants.ORDER_CONFIRMATION_TEMPLATE_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "label": "Order confirmation - template",
+        },
+        constants.ORDER_FULFILLMENT_CONFIRMATION_SUBJECT_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_SUBJECT_MESSAGE,
+            "label": "Order fulfillment confirmation - subject",
+        },
+        constants.ORDER_FULFILLMENT_CONFIRMATION_TEMPLATE_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "label": "Order fulfillment confirmation - template",
+        },
+        constants.ORDER_FULFILLMENT_UPDATE_SUBJECT_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_SUBJECT_MESSAGE,
+            "label": "Order fulfillment update - subject",
+        },
+        constants.ORDER_FULFILLMENT_UPDATE_TEMPLATE_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "label": "Order fulfillment update - template",
+        },
+        constants.ORDER_PAYMENT_CONFIRMATION_SUBJECT_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_SUBJECT_MESSAGE,
+            "label": "Payment confirmation - subject",
+        },
+        constants.ORDER_PAYMENT_CONFIRMATION_TEMPLATE_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "label": "Payment confirmation - template",
+        },
+        constants.ORDER_CANCELED_SUBJECT_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_SUBJECT_MESSAGE,
+            "label": "Order canceled - subject",
+        },
+        constants.ORDER_CANCELED_TEMPLATE_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "label": "Order canceled - template",
+        },
+        constants.ORDER_REFUND_CONFIRMATION_SUBJECT_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_SUBJECT_MESSAGE,
+            "label": "Order refund - subject",
+        },
+        constants.ORDER_REFUND_CONFIRMATION_TEMPLATE_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "label": "Order refund - template",
+        },
+    }
     CONFIG_STRUCTURE.update(DEFAULT_EMAIL_CONFIG_STRUCTURE)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         configuration = {item["name"]: item["value"] for item in self.configuration}
-        self.config = EmailConfig(**configuration)
+        self.config = EmailConfig(
+            host=configuration["host"],
+            port=configuration["port"],
+            username=configuration["username"],
+            password=configuration["password"],
+            sender_name=configuration["sender_name"],
+            sender_address=configuration["sender_address"],
+            use_tls=configuration["use_tls"],
+            use_ssl=configuration["use_ssl"],
+        )
+        self.templates = UserTemplate(
+            account_confirmation=configuration[
+                constants.ACCOUNT_CONFIRMATION_TEMPLATE_FIELD
+            ],
+            account_set_customer_password=configuration[
+                constants.ACCOUNT_SET_CUSTOMER_PASSWORD_TEMPLATE_FIELD
+            ],
+            account_delete=configuration[constants.ACCOUNT_DELETE_TEMPLATE_FIELD],
+            account_change_email_confirm=configuration[
+                constants.ACCOUNT_CHANGE_EMAIL_CONFIRM_TEMPLATE_FIELD
+            ],
+            account_change_email_request=configuration[
+                constants.ACCOUNT_CHANGE_EMAIL_REQUEST_TEMPLATE_FIELD
+            ],
+            account_password_reset=configuration[
+                constants.ACCOUNT_PASSWORD_RESET_TEMPLATE_FIELD
+            ],
+            invoice_ready=configuration[constants.INVOICE_READY_TEMPLATE_FIELD],
+            order_confirmation=configuration[
+                constants.ORDER_CONFIRMATION_TEMPLATE_FIELD
+            ],
+            order_fulfillment_confirmation=configuration[
+                constants.ORDER_FULFILLMENT_CONFIRMATION_TEMPLATE_FIELD
+            ],
+            order_fulfillment_update=configuration[
+                constants.ORDER_FULFILLMENT_UPDATE_TEMPLATE_FIELD
+            ],
+            order_payment_confirmation=configuration[
+                constants.ORDER_PAYMENT_CONFIRMATION_TEMPLATE_FIELD
+            ],
+            order_canceled=configuration[constants.ORDER_CANCELED_TEMPLATE_FIELD],
+            order_refund_confirmation=configuration[
+                constants.ORDER_REFUND_CONFIRMATION_TEMPLATE_FIELD
+            ],
+        )
 
     def notify(self, event: NotifyEventType, payload: dict, previous_value):
         if not self.active:
@@ -71,6 +393,9 @@ class UserEmailPlugin(BasePlugin):
             return previous_value
         if event not in event_map:
             logger.warning(f"Missing handler for event {event}")
+            return previous_value
+        template_map = get_user_template_map(self.templates)
+        if not template_map.get(event):
             return previous_value
         event_map[event](payload, asdict(self.config))  # type: ignore
 

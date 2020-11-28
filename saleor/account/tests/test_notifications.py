@@ -12,7 +12,7 @@ from ..notifications import get_default_user_payload
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_send_email_request_change(mocked_notify, site_settings, customer_user):
     new_email = "example@example.com"
-    redirect_url = "localhost"
+    redirect_url = "http://localhost:8000/redirect"
     token = "token_example"
 
     manager = get_plugins_manager()
@@ -22,11 +22,13 @@ def test_send_email_request_change(mocked_notify, site_settings, customer_user):
 
     expected_payload = {
         "user": get_default_user_payload(customer_user),
-        "old_email": customer_user.email,
-        "new_email": new_email,
-        "redirect_url": redirect_url,
         "recipient_email": new_email,
         "token": token,
+        "redirect_url": f"{redirect_url}?token={token}",
+        "old_email": customer_user.email,
+        "new_email": new_email,
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
     }
 
     mocked_notify.assert_called_once_with(
@@ -45,6 +47,8 @@ def test_send_email_changed_notification(mocked_notify, site_settings, customer_
     expected_payload = {
         "user": get_default_user_payload(customer_user),
         "recipient_email": old_email,
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
     }
 
     mocked_notify.assert_called_once_with(

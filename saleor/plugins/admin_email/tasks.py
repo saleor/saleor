@@ -1,67 +1,100 @@
-from urllib.parse import urlencode
-
 from ...celeryconf import app
-from ...core.emails import get_email_context
-from ...core.utils.url import prepare_url
-from ..email_common import EmailConfig, send_email
+from ..email_common import (
+    EmailConfig,
+    get_email_subject,
+    get_email_template_or_default,
+    send_email,
+)
+from . import constants
 
 
 @app.task
-def send_set_staff_password_email_task(
-    recipient_email, redirect_url, token, config: dict
-):
+def send_set_staff_password_email_task(recipient_email, payload, config: dict):
     email_config = EmailConfig(**config)
-    params = urlencode({"email": recipient_email, "token": token})
-    password_set_url = prepare_url(params, redirect_url)
-    _send_set_password_email(recipient_email, password_set_url, email_config)
-
-
-def _send_set_password_email(recipient_email, password_set_url, config: EmailConfig):
-    send_kwargs, ctx = get_email_context()
-    ctx["password_set_url"] = password_set_url
+    email_template_str = get_email_template_or_default(
+        constants.PLUGIN_ID,
+        constants.SET_STAFF_PASSWORD_TEMPLATE_FIELD,
+        constants.SET_STAFF_PASSWORD_DEFAULT_TEMPLATE,
+    )
+    subject = get_email_subject(
+        constants.PLUGIN_ID,
+        constants.SET_STAFF_PASSWORD_TITLE_FIELD,
+        constants.SET_STAFF_PASSWORD_DEFAULT_TITLE,
+    )
     send_email(
-        config=config,
+        config=email_config,
         recipient_list=[recipient_email],
-        template_name="dashboard/staff/set_password",
-        context=ctx,
+        context=payload,
+        subject=subject,
+        template_str=email_template_str,
     )
 
 
 @app.task
 def send_email_with_link_to_download_file_task(
-    recipient_email: str, csv_link: str, config: dict
+    recipient_email: str, payload, config: dict
 ):
     email_config = EmailConfig(**config)
-    send_kwargs, ctx = get_email_context()
-    ctx["csv_link"] = csv_link
+    email_template_str = get_email_template_or_default(
+        constants.PLUGIN_ID,
+        constants.CSV_PRODUCT_EXPORT_SUCCESS_TEMPLATE_FIELD,
+        constants.CSV_PRODUCT_EXPORT_SUCCESS_DEFAULT_TEMPLATE,
+    )
+    subject = get_email_subject(
+        constants.PLUGIN_ID,
+        constants.CSV_PRODUCT_EXPORT_SUCCESS_TITLE_FIELD,
+        constants.CSV_PRODUCT_EXPORT_SUCCESS_DEFAULT_TITLE,
+    )
     send_email(
         config=email_config,
         recipient_list=[recipient_email],
-        template_name="csv/export_products_file",
-        context=ctx,
+        subject=subject,
+        template_str=email_template_str,
+        context=payload,
     )
 
 
 @app.task
-def send_export_failed_email_task(recipient_email: str, config: dict):
+def send_export_failed_email_task(recipient_email: str, payload: dict, config: dict):
     email_config = EmailConfig(**config)
-    send_kwargs, ctx = get_email_context()
+    email_template_str = get_email_template_or_default(
+        constants.PLUGIN_ID,
+        constants.CSV_EXPORT_FAILED_TEMPLATE_FIELD,
+        constants.CSV_EXPORT_FAILED_TEMPLATE_DEFAULT_TEMPLATE,
+    )
+    subject = get_email_subject(
+        constants.PLUGIN_ID,
+        constants.CSV_EXPORT_FAILED_TITLE_FIELD,
+        constants.CSV_EXPORT_FAILED_DEFAULT_TITLE,
+    )
     send_email(
         config=email_config,
         recipient_list=[recipient_email],
-        template_name="csv/export_failed",
-        context=ctx,
+        subject=subject,
+        template_str=email_template_str,
+        context=payload,
     )
 
 
 @app.task
-def send_staff_order_confirmation_email_task(payload, config: dict):
+def send_staff_order_confirmation_email_task(
+    recipient_list: str, payload: dict, config: dict
+):
     email_config = EmailConfig(**config)
-    send_kwargs, ctx = get_email_context()
-    payload.update(ctx)
+    email_template_str = get_email_template_or_default(
+        constants.PLUGIN_ID,
+        constants.STAFF_ORDER_CONFIRMATION_TEMPLATE_FIELD,
+        constants.STAFF_ORDER_CONFIRMATION_DEFAULT_TEMPLATE,
+    )
+    subject = get_email_subject(
+        constants.PLUGIN_ID,
+        constants.STAFF_ORDER_CONFIRMATION_TITLE_FIELD,
+        constants.STAFF_ORDER_CONFIRMATION_DEFAULT_TITLE,
+    )
     send_email(
         config=email_config,
-        recipient_list=payload["recipient_list"],
-        template_name="order/staff_confirm_order",
-        context=ctx,
+        recipient_list=recipient_list,
+        subject=subject,
+        template_str=email_template_str,
+        context=payload,
     )
