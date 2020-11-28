@@ -1,4 +1,5 @@
 from ..account.models import User
+from ..core.notifications import get_site_context
 from ..core.notify_events import NotifyEventType
 from ..invoice import events
 from ..plugins.manager import PluginsManager
@@ -18,7 +19,8 @@ def send_invoice(invoice: "Invoice", staff_user: "User", manager: "PluginsManage
     payload = {
         "invoice": get_invoice_payload(invoice),
         "recipient_email": invoice.order.get_customer_email(),  # type: ignore
+        **get_site_context(),
     }
-    manager.notify(NotifyEventType.INVOICE_READY, payload)
+    manager.notify(NotifyEventType.INVOICE_READY, payload)  # type: ignore
     manager.invoice_sent(invoice, invoice.order.get_customer_email())  # type: ignore
     events.invoice_sent_event(user=staff_user, invoice=invoice)

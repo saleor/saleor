@@ -61,7 +61,7 @@
         
         
       <div style>
-        {% load i18n %}{% load static %}
+        
       
       <!--[if mso | IE]>
       <table
@@ -95,7 +95,9 @@
             <tr>
               <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
-      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:16px;line-height:1;text-align:left;color:#000000;">{% trans "Hi!" context "Standard e-mail greeting" %}</div>
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:16px;line-height:1;text-align:left;color:#000000;">{{#blocktrans "Standard e-mail greeting"}}
+            Hi!
+          {{/blocktrans}}</div>
     
               </td>
             </tr>
@@ -103,9 +105,9 @@
             <tr>
               <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
-      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{% blocktrans trimmed context "Order refund e-mail text" %}
-            A payment of {{ amount }} {{ currency }} has been refunded for your order.
-          {% endblocktrans %}</div>
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{{#blocktrans "Order refund e-mail text"}}
+            A payment of {{amount}} {{currency}} has been refunded for your order.
+          {{/blocktrans}}</div>
     
               </td>
             </tr>
@@ -165,9 +167,9 @@
             <tr>
               <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
-      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{% blocktrans trimmed context "Base email text" %}
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{{#blocktrans "Base email text" }}
         This is an automatically generated e-mail, please do not reply.
-      {% endblocktrans %}</div>
+      {{/blocktrans}}</div>
     
               </td>
             </tr>
@@ -227,9 +229,9 @@
             <tr>
               <td align="center" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
-      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:center;color:#000000;">{% blocktrans trimmed context "Base email footer" %}
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:center;color:#000000;">{{#blocktrans "Base email footer" }}
         Sincerely, {{ site_name }}
-      {% endblocktrans %}</div>
+      {{/blocktrans}}</div>
     
               </td>
             </tr>
@@ -289,9 +291,11 @@
             <tr>
               <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
-      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{% if schema_markup %}
-        <script type="application/ld+json">{{ schema_markup|safe }}</script>
-      {% endif %}</div>
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{{#if order}}
+        <script type="application/ld+json">
+        {{{{raw}}}}{{schema_markup}}{{{{/raw}}}}
+        </script>
+      {{/if}}</div>
     
               </td>
             </tr>

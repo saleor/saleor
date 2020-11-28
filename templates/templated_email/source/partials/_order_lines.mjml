@@ -1,83 +1,94 @@
-<mj-raw>
-  {% load display_translated_order_line_name from order_lines %}
-  {% load price from taxed_prices %}
-  {% load price_amount from taxed_prices %}
-  {% load voucher %}
-</mj-raw>
 <mj-section>
   <mj-column>
     <mj-table>
       <tfoot>
         <tr>
           <td colspan="3" style="text-align: right;">
-            {% trans "Subtotal" context "E-mail order lines summary table" %}
+            {{#blocktrans "E-mail order lines summary table"}}
+              Subtotal
+            {{/blocktrans}}
           </td>
           <td style="text-align: right;">
-            {% price_amount order.subtotal_net_amount order.subtotal_gross_amount order.currency display_gross=order.display_gross_prices html=False %}
+            {{price order.subtotal_net_amount order.subtotal_gross_amount order.currency display_gross=order.display_gross_prices}}
           </td>
         </tr>
         <tr>
           <td colspan="3" style="text-align: right;">
-            {% trans "Shipping" context "E-mail order lines summary table" %}
+            {{#blocktrans "E-mail order lines summary table"}}
+              Shipping
+            {{/blocktrans}}
           </td>
           <td style="text-align: right;">
-            {% price_amount order.shipping_price_net_amount order.shipping_price_gross_amount order.currency display_gross=order.display_gross_prices html=False %}
+            {{price order.shipping_price_net_amount order.shipping_price_gross_amount order.currency display_gross=order.display_gross_prices}}
           </td>
         </tr>
         <tr>
           <td colspan="3" style="text-align: right;">
-            {% if order.display_gross_prices %}
-              {% trans "Taxes (included)" context "E-mail order lines summary table" %}
-            {% else %}
-              {% trans "Taxes" context "E-mail order lines summary table" %}
-            {% endif %}
+            {{#if order.display_gross_prices}}
+              {{#blocktrans "E-mail order lines summary table"}}
+                Taxes (included)
+              {{/blocktrans}}
+            {{else}}
+              {{#blocktrans "E-mail order lines summary table"}}
+                Taxes
+              {{/blocktrans}}
+            {{/if}}
           </td>
           <td style="text-align: right;">
-            {% price_amount order.tax_amount order.tax_amount order.currency display_gross=order.display_gross_prices html=False %}
+            {{price order.tax_amount order.tax_amount order.currency display_gross=order.display_gross_prices}}
           </td>
         </tr>
-        {% if order.discount_amount %}
+        {{#if order.discount_amount}}
           <tr>
             <td colspan="3" style="text-align: right;">
-              {% trans "Discount" context "E-mail order lines summary table" %}
+              {{order.discount_amount}}
+              {{#blocktrans "E-mail order lines summary table"}}
+                Discount
+              {{/blocktrans}}
             </td>
             <td style="text-align: right;">
-              {% discount_as_negative order.discount html=True %}
+              {{price order.discount_amount order.discount_amount order.currency display_gross=order.display_gross_prices}}
             </td>
           </tr>
-        {% endif %}
+        {{/if}}
         <tr>
           <td colspan="3" style="text-align: right;">
-            <strong>{% trans "Total" context "E-mail order lines summary table" %}</strong>
+            <strong>
+              {{#blocktrans "E-mail order lines summary table"}}Total{{/blocktrans}}
+            </strong>
           </td>
           <td style="text-align: right;">
-            <strong>{% price_amount order.total_net_amount order.total_gross_amount order.currency display_gross=order.display_gross_prices html=False %}</strong>
+            <strong>
+              {{price order.total_net_amount order.total_gross_amount order.currency display_gross=order.display_gross_prices}}
+            </strong>
           </td>
         </tr>
       </tfoot>
       <thead class="table-header-row">
         <tr>
-          <th>{% trans "Item" context "Ordered item name" %}</th>
-          <th>{% trans "Quantity" context "Quantity ordered of a product" %}</th>
-          <th>{% trans "Per unit" context "Unit price of a product" %}</th>
-          <th>{% trans "Subtotal" context "Ordered item subtotal (unit price * quantity)" %}</th>
+          <th>{{#blocktrans "Ordered item name"}}Item{{/blocktrans}}</th>
+          <th>{{#blocktrans "Quantity ordered of a product"}}Quantity{{/blocktrans}}</th>
+          <th>{{#blocktrans "Unit price of a product"}}Per unit{{/blocktrans}}</th>
+          <th>{{#blocktrans "Ordered item subtotal (unit price * quantity)"}}Subtotal{{/blocktrans}}</th>
         </tr>
       </thead>
       <tbody>
-        {% for line in order.lines %}
+        {{#each order.lines}}
           <tr class="table-item-row">
-            {% if line.variant_name %}
-              <td>{{ line.product_name }} ({{line.variant_name }})</td>
-            {% else %}
-              <td>{{ line.product_name }}</td>
-            {% endif %}
-            <td style="text-align: right;">{{ line.quantity }}</td>
+            {{#if variant_name}}
+              <td>{{product_name}} ({{variant_name}})</td>
+            {{else}}
+              <td>{{product_name}}</td>
+            {{/if}}
+            <td style="text-align: right;">{{quantity}}</td>
             <td style="text-align: right;">
-              {% price_amount line.unit_price_net_amount line.unit_price_gross_amount order.currency display_gross=order.display_gross_prices html=False %}
+              {{price unit_price_net_amount unit_price_gross_amount ../order.currency display_gross=../order.display_gross_prices}}
             </td>
-            <td style="text-align: right;">{% price_amount line.total_net_amount line.total_gross_amount order.currency display_gross=order.display_gross_prices html=False %}</td>
+            <td style="text-align: right;">
+              {{price total_net_amount total_gross_amount ../order.currency display_gross=../order.display_gross_prices}}
+            </td>
           </tr>
-        {% endfor %}
+        {{/each}}
       </tbody>
     </mj-table>
   </mj-column>

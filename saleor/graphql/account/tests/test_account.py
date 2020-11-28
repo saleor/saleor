@@ -3,6 +3,7 @@ import uuid
 from collections import defaultdict
 from datetime import timedelta
 from unittest.mock import MagicMock, Mock, patch
+from urllib.parse import urlencode
 
 import graphene
 import pytest
@@ -22,6 +23,7 @@ from ....checkout import AddressType
 from ....core.jwt import create_token
 from ....core.notify_events import NotifyEventType
 from ....core.permissions import AccountPermissions, OrderPermissions
+from ....core.utils.url import prepare_url
 from ....order.models import FulfillmentStatus, Order
 from ....product.tests.utils import create_image
 from ...core.utils import str_to_enum
@@ -714,10 +716,11 @@ ACCOUNT_REGISTER_MUTATION = """
 def test_customer_register(mocked_notify, mocked_generator, api_client):
     mocked_generator.return_value = "token"
     email = "customer@example.com"
+    redirect_url = "http://localhost:3000"
     variables = {
         "email": email,
         "password": "Password",
-        "redirectUrl": "http://localhost:3000",
+        "redirectUrl": redirect_url,
     }
     query = ACCOUNT_REGISTER_MUTATION
     mutation_name = "accountRegister"
@@ -727,12 +730,15 @@ def test_customer_register(mocked_notify, mocked_generator, api_client):
     new_user = User.objects.get(email=email)
     content = get_graphql_content(response)
     data = content["data"][mutation_name]
-
+    params = urlencode({"email": email, "token": "token"})
+    confirm_url = prepare_url(params, redirect_url)
     expected_payload = {
         "user": get_default_user_payload(new_user),
         "token": "token",
-        "redirect_url": "http://localhost:3000",
+        "confirm_url": confirm_url,
         "recipient_email": new_user.email,
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
     }
 
     assert not data["accountErrors"]
@@ -831,7 +837,7 @@ def test_customer_create(
     last_name = "api_last_name"
     note = "Test user"
     address_data = convert_dict_keys_to_camel_case(address.as_data())
-
+    redirect_url = "https://www.example.com"
     variables = {
         "email": email,
         "firstName": first_name,
@@ -839,7 +845,7 @@ def test_customer_create(
         "note": note,
         "shipping": address_data,
         "billing": address_data,
-        "redirect_url": "https://www.example.com",
+        "redirect_url": redirect_url,
     }
 
     response = staff_api_client.post_graphql(
@@ -867,11 +873,15 @@ def test_customer_create(
     assert data["user"]["isActive"]
 
     new_user = User.objects.get(email=email)
+    params = urlencode({"email": new_user.email, "token": "token"})
+    password_set_url = prepare_url(params, redirect_url)
     expected_payload = {
         "user": get_default_user_payload(new_user),
         "token": "token",
-        "redirect_url": "https://www.example.com",
+        "password_set_url": password_set_url,
         "recipient_email": new_user.email,
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
     }
     mocked_notify.assert_called_once_with(
         NotifyEventType.ACCOUNT_SET_CUSTOMER_PASSWORD, payload=expected_payload
@@ -900,12 +910,16 @@ def test_customer_create_send_password_with_url(
 
     new_customer = User.objects.get(email=email)
     assert new_customer
-
+    redirect_url = "https://www.example.com"
+    params = urlencode({"email": email, "token": "token"})
+    password_set_url = prepare_url(params, redirect_url)
     expected_payload = {
         "user": get_default_user_payload(new_customer),
-        "redirect_url": "https://www.example.com",
+        "password_set_url": password_set_url,
         "token": "token",
         "recipient_email": new_customer.email,
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
     }
     mocked_notify.assert_called_once_with(
         NotifyEventType.ACCOUNT_SET_CUSTOMER_PASSWORD, payload=expected_payload
@@ -1240,18 +1254,23 @@ ACCOUNT_REQUEST_DELETION_MUTATION = """
 def test_account_request_deletion(mocked_notify, mocked_token, user_api_client):
     mocked_token.return_value = "token"
     user = user_api_client.user
-    variables = {"redirectUrl": "https://www.example.com"}
+    redirect_url = "https://www.example.com"
+    variables = {"redirectUrl": redirect_url}
     response = user_api_client.post_graphql(
         ACCOUNT_REQUEST_DELETION_MUTATION, variables
     )
     content = get_graphql_content(response)
     data = content["data"]["accountRequestDeletion"]
     assert not data["errors"]
+    params = urlencode({"token": "token"})
+    delete_url = prepare_url(params, redirect_url)
     expected_payload = {
         "user": get_default_user_payload(user),
-        "redirect_url": "https://www.example.com",
+        "delete_url": delete_url,
         "token": "token",
         "recipient_email": user.email,
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
     }
 
     mocked_notify.assert_called_once_with(
@@ -1264,19 +1283,23 @@ def test_account_request_deletion(mocked_notify, mocked_token, user_api_client):
 def test_account_request_deletion_token_validation(mocked_notify, user_api_client):
     user = user_api_client.user
     token = default_token_generator.make_token(user)
-    variables = {"redirectUrl": "https://www.example.com"}
+    redirect_url = "https://www.example.com"
+    variables = {"redirectUrl": redirect_url}
     response = user_api_client.post_graphql(
         ACCOUNT_REQUEST_DELETION_MUTATION, variables
     )
     content = get_graphql_content(response)
     data = content["data"]["accountRequestDeletion"]
     assert not data["errors"]
-
+    params = urlencode({"token": token})
+    delete_url = prepare_url(params, redirect_url)
     expected_payload = {
         "user": get_default_user_payload(user),
-        "redirect_url": "https://www.example.com",
+        "delete_url": delete_url,
         "token": token,
         "recipient_email": user.email,
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
     }
 
     mocked_notify.assert_called_once_with(
@@ -1318,7 +1341,8 @@ def test_account_request_deletion_all_storefront_hosts_allowed(
     user = user_api_client.user
     token = default_token_generator.make_token(user)
     settings.ALLOWED_CLIENT_HOSTS = ["*"]
-    variables = {"redirectUrl": "https://www.test.com"}
+    redirect_url = "https://www.test.com"
+    variables = {"redirectUrl": redirect_url}
     response = user_api_client.post_graphql(
         ACCOUNT_REQUEST_DELETION_MUTATION, variables
     )
@@ -1326,11 +1350,15 @@ def test_account_request_deletion_all_storefront_hosts_allowed(
     data = content["data"]["accountRequestDeletion"]
     assert not data["errors"]
 
+    params = urlencode({"token": token})
+    delete_url = prepare_url(params, redirect_url)
     expected_payload = {
         "user": get_default_user_payload(user),
-        "redirect_url": "https://www.test.com",
+        "delete_url": delete_url,
         "token": token,
         "recipient_email": user.email,
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
     }
 
     mocked_notify.assert_called_once_with(
@@ -1344,18 +1372,23 @@ def test_account_request_deletion_subdomain(mocked_notify, user_api_client, sett
     user = user_api_client.user
     token = default_token_generator.make_token(user)
     settings.ALLOWED_CLIENT_HOSTS = [".example.com"]
-    variables = {"redirectUrl": "https://sub.example.com"}
+    redirect_url = "https://sub.example.com"
+    variables = {"redirectUrl": redirect_url}
     response = user_api_client.post_graphql(
         ACCOUNT_REQUEST_DELETION_MUTATION, variables
     )
     content = get_graphql_content(response)
     data = content["data"]["accountRequestDeletion"]
     assert not data["errors"]
+    params = urlencode({"token": token})
+    delete_url = prepare_url(params, redirect_url)
     expected_payload = {
         "user": get_default_user_payload(user),
-        "redirect_url": "https://sub.example.com",
+        "delete_url": delete_url,
         "token": token,
         "recipient_email": user.email,
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
     }
 
     mocked_notify.assert_called_once_with(
@@ -1545,9 +1578,10 @@ def test_staff_create(
     group.permissions.add(permission_manage_products)
     staff_user.user_permissions.add(permission_manage_products, permission_manage_users)
     email = "api_user@example.com"
+    redirect_url = "https://www.example.com"
     variables = {
         "email": email,
-        "redirect_url": "https://www.example.com",
+        "redirect_url": redirect_url,
         "add_groups": [graphene.Node.to_global_id("Group", group.pk)],
     }
 
@@ -1581,11 +1615,15 @@ def test_staff_create(
     assert {perm["code"].lower() for perm in groups[0]["permissions"]} == expected_perms
 
     token = default_token_generator.make_token(staff_user)
+    params = urlencode({"email": email, "token": token})
+    password_set_url = prepare_url(params, redirect_url)
     expected_payload = {
         "user": get_default_user_payload(staff_user),
-        "redirect_url": "https://www.example.com",
+        "password_set_url": password_set_url,
         "token": token,
         "recipient_email": staff_user.email,
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
     }
 
     mocked_notify.assert_called_once_with(
@@ -1637,9 +1675,10 @@ def test_staff_create_out_of_scope_group(
     group2 = Group.objects.create(name="second group")
     group2.permissions.add(permission_manage_staff)
     email = "api_user@example.com"
+    redirect_url = "https://www.example.com"
     variables = {
         "email": email,
-        "redirect_url": "https://www.example.com",
+        "redirect_url": redirect_url,
         "add_groups": [
             graphene.Node.to_global_id("Group", gr.pk) for gr in [group, group2]
         ],
@@ -1704,13 +1743,16 @@ def test_staff_create_out_of_scope_group(
     assert len(groups) == 2
     for group in expected_groups:
         assert group in groups
-
     token = default_token_generator.make_token(staff_user)
+    params = urlencode({"email": email, "token": token})
+    password_set_url = prepare_url(params, redirect_url)
     expected_payload = {
         "user": get_default_user_payload(staff_user),
-        "redirect_url": "https://www.example.com",
+        "password_set_url": password_set_url,
         "token": token,
         "recipient_email": staff_user.email,
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
     }
 
     mocked_notify.assert_called_once_with(
@@ -1724,7 +1766,8 @@ def test_staff_create_send_password_with_url(
     mocked_notify, staff_api_client, media_root, permission_manage_staff,
 ):
     email = "api_user@example.com"
-    variables = {"email": email, "redirect_url": "https://www.example.com"}
+    redirect_url = "https://www.example.com"
+    variables = {"email": email, "redirect_url": redirect_url}
 
     response = staff_api_client.post_graphql(
         STAFF_CREATE_MUTATION, variables, permissions=[permission_manage_staff]
@@ -1737,11 +1780,15 @@ def test_staff_create_send_password_with_url(
     assert staff_user.is_staff
 
     token = default_token_generator.make_token(staff_user)
+    params = urlencode({"email": email, "token": token})
+    password_set_url = prepare_url(params, redirect_url)
     expected_payload = {
         "user": get_default_user_payload(staff_user),
-        "redirect_url": "https://www.example.com",
+        "password_set_url": password_set_url,
         "token": token,
         "recipient_email": staff_user.email,
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
     }
 
     mocked_notify.assert_called_once_with(
@@ -3025,17 +3072,22 @@ CONFIRM_ACCOUNT_MUTATION = """
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_account_reset_password(mocked_notify, user_api_client, customer_user):
-    variables = {"email": customer_user.email, "redirectUrl": "https://www.example.com"}
+    redirect_url = "https://www.example.com"
+    variables = {"email": customer_user.email, "redirectUrl": redirect_url}
     response = user_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["requestPasswordReset"]
     assert not data["errors"]
     token = default_token_generator.make_token(customer_user)
+    params = urlencode({"email": customer_user.email, "token": token})
+    reset_url = prepare_url(params, redirect_url)
     expected_payload = {
         "user": get_default_user_payload(customer_user),
-        "redirect_url": "https://www.example.com",
+        "reset_url": reset_url,
         "token": token,
         "recipient_email": customer_user.email,
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
     }
 
     mocked_notify.assert_called_once_with(
@@ -3108,11 +3160,15 @@ def test_request_password_reset_email_for_staff(mocked_notify, staff_api_client)
     data = content["data"]["requestPasswordReset"]
     assert not data["errors"]
     token = default_token_generator.make_token(staff_api_client.user)
+    params = urlencode({"email": staff_api_client.user.email, "token": token})
+    reset_url = prepare_url(params, redirect_url)
     expected_payload = {
         "user": get_default_user_payload(staff_api_client.user),
-        "redirect_url": "https://www.example.com",
+        "reset_url": reset_url,
         "token": token,
         "recipient_email": staff_api_client.user.email,
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
     }
 
     mocked_notify.assert_called_once_with(
@@ -3152,18 +3208,23 @@ def test_account_reset_password_all_storefront_hosts_allowed(
     mocked_notify, user_api_client, customer_user, settings
 ):
     settings.ALLOWED_CLIENT_HOSTS = ["*"]
-    variables = {"email": customer_user.email, "redirectUrl": "https://www.test.com"}
+    redirect_url = "https://www.test.com"
+    variables = {"email": customer_user.email, "redirectUrl": redirect_url}
     response = user_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["requestPasswordReset"]
     assert not data["errors"]
 
     token = default_token_generator.make_token(customer_user)
+    params = urlencode({"email": customer_user.email, "token": token})
+    reset_url = prepare_url(params, redirect_url)
     expected_payload = {
         "user": get_default_user_payload(customer_user),
-        "redirect_url": "https://www.test.com",
+        "reset_url": reset_url,
         "token": token,
         "recipient_email": customer_user.email,
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
     }
 
     mocked_notify.assert_called_once_with(
@@ -3177,18 +3238,23 @@ def test_account_reset_password_subdomain(
     mocked_notify, user_api_client, customer_user, settings
 ):
     settings.ALLOWED_CLIENT_HOSTS = [".example.com"]
-    variables = {"email": customer_user.email, "redirectUrl": "https://sub.example.com"}
+    redirect_url = "https://sub.example.com"
+    variables = {"email": customer_user.email, "redirectUrl": redirect_url}
     response = user_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["requestPasswordReset"]
     assert not data["errors"]
 
     token = default_token_generator.make_token(customer_user)
+    params = urlencode({"email": customer_user.email, "token": token})
+    reset_url = prepare_url(params, redirect_url)
     expected_payload = {
         "user": get_default_user_payload(customer_user),
-        "redirect_url": "https://sub.example.com",
+        "reset_url": reset_url,
         "token": token,
         "recipient_email": customer_user.email,
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
     }
 
     mocked_notify.assert_called_once_with(

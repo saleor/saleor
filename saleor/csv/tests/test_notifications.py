@@ -3,6 +3,7 @@ from unittest import mock
 from django.core.files import File
 from freezegun import freeze_time
 
+from ...core.notifications import get_site_context
 from ...core.notify_events import AdminNotifyEvent
 from ...core.utils import build_absolute_uri
 from .. import ExportEvents, notifications
@@ -30,6 +31,7 @@ def test_send_export_download_link_notification(
         "export": get_default_export_payload(user_export_file),
         "csv_link": build_absolute_uri(user_export_file.content_file.url),
         "recipient_email": user_export_file.user.email,
+        **get_site_context(),
     }
 
     mocked_notify.assert_called_once_with(
@@ -62,6 +64,7 @@ def test_send_export_failed_info(
     expected_payload = {
         "export": get_default_export_payload(user_export_file),
         "recipient_email": user_export_file.user.email,
+        **get_site_context(),
     }
 
     mocked_notify.assert_called_once_with(

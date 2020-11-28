@@ -61,7 +61,7 @@
         
         
       <div style>
-        {% load i18n %}{% load static %}
+        
       
       <!--[if mso | IE]>
       <table
@@ -95,7 +95,9 @@
             <tr>
               <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
-      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:16px;line-height:1;text-align:left;color:#000000;">{% trans "Hi!" context "Standard e-mail greeting" %}</div>
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:16px;line-height:1;text-align:left;color:#000000;">{{#blocktrans "Standard e-mail greeting"}}
+            Hi!
+          {{/blocktrans}}</div>
     
               </td>
             </tr>
@@ -103,20 +105,20 @@
             <tr>
               <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
-      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{% blocktrans trimmed context "Fulfillment confirmation email text" %}
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{{#blocktrans "Fulfillment confirmation email text"}}
             Thank you for your order. Below is the list of fulfilled products.
-          {% endblocktrans %}
-          {% if fulfillment.tracking_number %}
-            {% if fulfillment.is_tracking_number_url %}
-              {% blocktrans trimmed with tracking_number=fulfillment.tracking_number context "Fulfillment confirmation email text" %}
-                You can track your shipment with <a href="{{ tracking_number }}">{{ tracking_number }}</a> link.
-              {% endblocktrans %}
-            {% else %}
-              {% blocktrans trimmed with tracking_number=fulfillment.tracking_number context "Fulfillment confirmation email text" %}
-                You can track your shipment with {{ tracking_number }} code.
-              {% endblocktrans %}
-            {% endif %}
-          {% endif %}</div>
+          {{/blocktrans}}
+          {{#if fulfillment.tracking_number}}
+            {{#if fulfillment.is_tracking_number_url}}
+              {{#blocktrans "Fulfillment confirmation email text"}}
+                You can track your shipment with <a href="{{fulfillment.tracking_number}}">{{fulfillment.tracking_number}}</a> link.
+              {{/blocktrans}}
+            {{else}}
+              {{#blocktrans "Fulfillment confirmation email text"}}
+                You can track your shipment with {{fulfillment.tracking_number}} code.
+              {{/blocktrans}}
+            {{/if}}
+          {{/if}}</div>
     
               </td>
             </tr>
@@ -124,11 +126,11 @@
             <tr>
               <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
-      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{% if digital_lines %}
-            {% blocktrans trimmed context "Fulfillment digital products email text" %}
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{{#if digital_lines}}
+            {{#blocktrans "Fulfillment digital products email text"}}
               You can download your digital products by clicking in download link(s).
-            {% endblocktrans %}
-          {% endif %}</div>
+            {{/blocktrans}}
+          {{/if}}</div>
     
               </td>
             </tr>
@@ -156,11 +158,7 @@
           </td>
         </tr>
       </table>
-      <![endif]-->
-    
-    {% load display_translated_order_line_name from order_lines %}
       
-      <!--[if mso | IE]>
       <table
          align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600"
       >
@@ -192,52 +190,68 @@
             <tr>
               <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
-      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{% if physical_lines %}
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{{#if physical_lines}}
         <table style="width:100%">
           <thead class="table-header-row" style="border-bottom: 2px solid #000;">
             <tr>
-              <th style="padding: 5px; text-align: left;" align="left">{% trans "Item" context "Ordered item name" %}</th>
-              <th style="padding: 5px; text-align: right;" align="right">{% trans "Quantity" context "Quantity ordered of a product" %}</th>
+              <th style="padding: 5px; text-align: left;" align="left">
+                {{#blocktrans "Ordered item name"}}
+                  Item
+                {{/blocktrans}}
+              </th>
+              <th style="padding: 5px; text-align: right;" align="right">
+                {{#blocktrans "Quantity ordered of a product"}}
+                  Quantity
+                {{/blocktrans}}
+              </th>
             </tr>
           </thead>
           <tbody>
-            {% for line in physical_lines %}
+            {{#each physical_lines}}
               <tr class="table-item-row" style="border-bottom: 1px solid #D3D1D0;">
-                {% if line.order_line.variant_name %}
-                <td style="padding: 5px;">{{ line.order_line.product_name }} ({{line.order_line.variant_name }})</td>
-                {% else %}
-                <td style="padding: 5px;">{{ line.order_line.product_name }}</td>
-                {% endif %}
-                <td style="padding: 5px; text-align: right;" align="right">{{ line.quantity }}</td>
+                {{#if order_line.variant_name}}
+                  <td style="padding: 5px;">{{order_line.product_name}} ({{order_line.variant_name}})</td>
+                {{else}}
+                  <td style="padding: 5px;">{{order_line.product_name}}</td>
+                {{/if}}
+                <td style="padding: 5px; text-align: right;" align="right">{{quantity}}</td>
               </tr>
-            {% endfor %}
+            {{/each}}
           </tbody>
         </table>
-      {% endif %}
-      {% if digital_lines %}
+      {{/if}}
+      {{#if digital_lines}}
         <table style="width:100%">
           <thead class="table-header-row" style="border-bottom: 2px solid #000;">
             <tr>
-              <th style="padding: 5px; text-align: left;" align="left">{% trans "Item" context "Ordered item name" %}</th>
-              <th style="padding: 5px; text-align: right;" align="right">{% trans "Download Link" context "Ordered item download links" %}</th>
+              <th style="padding: 5px; text-align: left;" align="left">
+                {{#blocktrans "Ordered item name"}}
+                  Item
+                {{/blocktrans}}
+              </th>
+              <th style="padding: 5px; text-align: right;" align="right">
+                {{#blocktrans "Ordered item download links"}}
+                  Download Link
+                {{/blocktrans}}
+              </th>
             </tr>
           </thead>
           <tbody>
-            {% for line in digital_lines %}
+            {{#each digital_lines}}
               <tr class="table-item-row" style="border-bottom: 1px solid #D3D1D0;">
-                {% if line.order_line.variant_name %}
-                <td style="padding: 5px;">{{ line.order_line.product_name }} ({{line.order_line.variant_name }})</td>
-                {% else %}
-                <td style="padding: 5px;">{{ line.order_line.product_name }}</td>
-                {% endif %}
+                {{#if order_line.variant_name}}
+                  <td style="padding: 5px;">{{order_line.product_name}} ({{order_line.variant_name}})</td>
+                {{else}}
+                  <td style="padding: 5px;">{{order_line.product_name}}</td>
+                {{/if}}
                 <td style="padding: 5px; text-align: right;" align="right">
-                  <a href="{{ line.order_line.digital_url }}">Link</a>
+                  <a href="{{order_line.digital_url}}">Link</a>
                 </td>
               </tr>
-            {% endfor %}
+            {{/each}}
           </tbody>
         </table>
-      {% endif %}</div>
+      {{/if}}</div>
     
               </td>
             </tr>
@@ -297,9 +311,9 @@
             <tr>
               <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
-      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{% blocktrans trimmed context "Base email text" %}
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{{#blocktrans "Base email text" }}
         This is an automatically generated e-mail, please do not reply.
-      {% endblocktrans %}</div>
+      {{/blocktrans}}</div>
     
               </td>
             </tr>
@@ -359,9 +373,9 @@
             <tr>
               <td align="center" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
-      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:center;color:#000000;">{% blocktrans trimmed context "Base email footer" %}
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:center;color:#000000;">{{#blocktrans "Base email footer" }}
         Sincerely, {{ site_name }}
-      {% endblocktrans %}</div>
+      {{/blocktrans}}</div>
     
               </td>
             </tr>
@@ -421,9 +435,11 @@
             <tr>
               <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
-      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{% if schema_markup %}
-        <script type="application/ld+json">{{ schema_markup|safe }}</script>
-      {% endif %}</div>
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{{#if order}}
+        <script type="application/ld+json">
+        {{{{raw}}}}{{schema_markup}}{{{{/raw}}}}
+        </script>
+      {{/if}}</div>
     
               </td>
             </tr>
