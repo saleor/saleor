@@ -26,7 +26,6 @@ from ...core import analytics
 from ...core.exceptions import InsufficientStock, PermissionDenied, ProductNotPublished
 from ...core.transactions import transaction_with_commit_on_errors
 from ...order import models as order_models
-from ...order.utils import check_shipping_method_for_zip_code
 from ...payment import models as payment_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
@@ -784,10 +783,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             method=shipping_method,
             discounts=info.context.discounts,
         )
-        zip_code = checkout.shipping_address.postal_code
-        if not shipping_method_is_valid or not check_shipping_method_for_zip_code(
-            zip_code, shipping_method
-        ):
+        if not shipping_method_is_valid:
             raise ValidationError(
                 {
                     "shipping_method": ValidationError(

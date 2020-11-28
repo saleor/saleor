@@ -27,6 +27,7 @@ from ....payment.interface import GatewayResponse
 from ....plugins.manager import PluginsManager
 from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
 from ....product.models import ProductChannelListing
+from ....shipping import models as shipping_models
 from ....warehouse.models import Stock
 from ...tests.utils import assert_no_permission, get_graphql_content
 from ..mutations import (
@@ -2574,7 +2575,7 @@ def test_checkout_shipping_method_update(
         assert checkout.shipping_method is None
 
 
-@patch("saleor.graphql.checkout.mutations.check_shipping_method_for_zip_code")
+@patch("saleor.shipping.models.check_shipping_method_for_zip_code")
 def test_checkout_shipping_method_update_excluded_zip_code(
     mock_check_zip_code, staff_api_client, shipping_method, checkout_with_item, address
 ):
@@ -2582,7 +2583,7 @@ def test_checkout_shipping_method_update_excluded_zip_code(
     checkout.shipping_address = address
     checkout.save(update_fields=["shipping_address"])
     query = MUTATION_UPDATE_SHIPPING_METHOD
-    mock_check_zip_code.return_value = False
+    mock_check_zip_code.return_value = True
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
@@ -2601,7 +2602,9 @@ def test_checkout_shipping_method_update_excluded_zip_code(
         }
     ]
     assert checkout.shipping_method is None
-    mock_check_zip_code.assert_called_once_with(address.postal_code, shipping_method)
+    assert (
+        mock_check_zip_code.call_count == shipping_models.ShippingMethod.objects.count()
+    )
 
 
 def test_query_checkout_line(checkout_with_item, user_api_client):

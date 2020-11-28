@@ -16,11 +16,7 @@ from ....order.actions import (
     order_voided,
 )
 from ....order.error_codes import OrderErrorCode
-from ....order.utils import (
-    check_shipping_method_for_zip_code,
-    get_valid_shipping_methods_for_order,
-    update_order_prices,
-)
+from ....order.utils import get_valid_shipping_methods_for_order, update_order_prices
 from ....payment import CustomPaymentChoices, PaymentError, TransactionKind, gateway
 from ....shipping import models as shipping_models
 from ...account.types import AddressInput
@@ -46,12 +42,8 @@ def clean_order_update_shipping(order, method):
         )
 
     valid_methods = get_valid_shipping_methods_for_order(order)
-    if (
-        valid_methods is None
-        or method.pk not in valid_methods.values_list("id", flat=True)
-        or not check_shipping_method_for_zip_code(
-            order.shipping_address.postal_code, method,
-        )
+    if valid_methods is None or method.pk not in valid_methods.values_list(
+        "id", flat=True
     ):
         raise ValidationError(
             {
