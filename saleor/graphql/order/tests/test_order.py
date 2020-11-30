@@ -99,6 +99,12 @@ def orders(customer_user, channel_USD, channel_PLN):
                 token=uuid.uuid4(),
                 channel=channel_PLN,
             ),
+            Order(
+                user=customer_user,
+                status=OrderStatus.UNCONFIRMED,
+                token=uuid.uuid4(),
+                channel=channel_PLN,
+            ),
         ]
     )
 
@@ -520,7 +526,9 @@ def test_order_query_gift_cards(
     )
 
 
-def test_order_query_draft_excluded(staff_api_client, permission_manage_orders, orders):
+def test_order_query_shows_non_draft_orders(
+    staff_api_client, permission_manage_orders, orders
+):
     query = """
     query OrdersQuery {
         orders(first: 10) {
@@ -537,7 +545,117 @@ def test_order_query_draft_excluded(staff_api_client, permission_manage_orders, 
     response = staff_api_client.post_graphql(query)
     edges = get_graphql_content(response)["data"]["orders"]["edges"]
 
-    assert len(edges) == Order.objects.confirmed().count()
+    assert len(edges) == Order.objects.non_draft().count()
+
+
+ORDER_CONFIRM_MUTATION = """
+    mutation orderConfirm($id: ID!) {
+        orderConfirm(id: $id) {
+            orderErrors {
+                field
+                code
+            }
+            order {
+                status
+            }
+        }
+    }
+"""
+
+
+@patch("saleor.payment.gateway.capture")
+def test_order_confirm(
+    capture_mock,
+    staff_api_client,
+    order_unconfirmed,
+    permission_manage_orders,
+    payment_txn_preauth,
+):
+    payment_txn_preauth.order = order_unconfirmed
+    payment_txn_preauth.save()
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    assert not OrderEvent.objects.exists()
+    response = staff_api_client.post_graphql(
+        ORDER_CONFIRM_MUTATION,
+        {"id": graphene.Node.to_global_id("Order", order_unconfirmed.id)},
+    )
+    order_data = get_graphql_content(response)["data"]["orderConfirm"]["order"]
+
+    assert order_data["status"] == OrderStatus.UNFULFILLED.upper()
+    order_unconfirmed.refresh_from_db()
+    assert order_unconfirmed.status == OrderStatus.UNFULFILLED
+    assert OrderEvent.objects.count() == 3
+    assert OrderEvent.objects.filter(
+        order=order_unconfirmed,
+        user=staff_api_client.user,
+        type=order_events.OrderEvents.CONFIRMED,
+    ).exists()
+    assert OrderEvent.objects.filter(
+        order=order_unconfirmed,
+        user=staff_api_client.user,
+        type=order_events.OrderEvents.EMAIL_SENT,
+        parameters__email=order_unconfirmed.get_customer_email(),
+    ).exists()
+    assert OrderEvent.objects.filter(
+        order=order_unconfirmed,
+        user=staff_api_client.user,
+        type=order_events.OrderEvents.PAYMENT_CAPTURED,
+        parameters__amount=payment_txn_preauth.get_total().amount,
+    ).exists()
+    capture_mock.assert_called_once_with(payment_txn_preauth)
+
+
+def test_order_confirm_unfulfilled(staff_api_client, order, permission_manage_orders):
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(
+        ORDER_CONFIRM_MUTATION, {"id": graphene.Node.to_global_id("Order", order.id)}
+    )
+    content = get_graphql_content(response)["data"]["orderConfirm"]
+    errors = content["orderErrors"]
+
+    order.refresh_from_db()
+    assert order.status == OrderStatus.UNFULFILLED
+    assert content["order"] is None
+    assert len(errors) == 1
+    assert errors[0]["field"] == "id"
+    assert errors[0]["code"] == OrderErrorCode.INVALID.name
+
+
+@patch("saleor.payment.gateway.capture")
+def test_order_confirm_wont_call_capture_for_non_active_payment(
+    capture_mock,
+    staff_api_client,
+    order_unconfirmed,
+    permission_manage_orders,
+    payment_txn_preauth,
+):
+    payment_txn_preauth.order = order_unconfirmed
+    payment_txn_preauth.is_active = False
+    payment_txn_preauth.save()
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    assert not OrderEvent.objects.exists()
+    response = staff_api_client.post_graphql(
+        ORDER_CONFIRM_MUTATION,
+        {"id": graphene.Node.to_global_id("Order", order_unconfirmed.id)},
+    )
+    order_data = get_graphql_content(response)["data"]["orderConfirm"]["order"]
+
+    assert order_data["status"] == OrderStatus.UNFULFILLED.upper()
+    order_unconfirmed.refresh_from_db()
+    assert order_unconfirmed.status == OrderStatus.UNFULFILLED
+    assert OrderEvent.objects.count() == 2
+    assert OrderEvent.objects.filter(
+        order=order_unconfirmed,
+        user=staff_api_client.user,
+        type=order_events.OrderEvents.CONFIRMED,
+    ).exists()
+    assert OrderEvent.objects.filter(
+        order=order_unconfirmed,
+        user=staff_api_client.user,
+        type=order_events.OrderEvents.EMAIL_SENT,
+        parameters__email=order_unconfirmed.get_customer_email(),
+    ).exists()
+    assert not capture_mock.called
 
 
 def test_orders_with_channel(
@@ -580,7 +698,7 @@ def test_orders_without_channel(staff_api_client, permission_manage_orders, orde
     response = staff_api_client.post_graphql(query)
     edges = get_graphql_content(response)["data"]["orders"]["edges"]
 
-    assert len(edges) == Order.objects.confirmed().count()
+    assert len(edges) == Order.objects.non_draft().count()
 
 
 def test_draft_order_query(staff_api_client, permission_manage_orders, orders):
@@ -1972,15 +2090,24 @@ def test_draft_order_complete(
     data = content["data"]["draftOrderComplete"]["order"]
     order.refresh_from_db()
     assert data["status"] == order.status.upper()
-    draft_placed_event = OrderEvent.objects.get()
 
     for line in order:
         allocation = line.allocations.get()
         assert allocation.quantity_allocated == line.quantity_unfulfilled
 
-    assert draft_placed_event.user == staff_user
-    assert draft_placed_event.type == order_events.OrderEvents.PLACED_FROM_DRAFT
-    assert draft_placed_event.parameters == {}
+    # ensure there are only 2 events with correct types
+    event_params = {
+        "user": staff_user,
+        "type__in": [
+            order_events.OrderEvents.PLACED_FROM_DRAFT,
+            order_events.OrderEvents.CONFIRMED,
+        ],
+        "parameters": {},
+    }
+    matching_events = OrderEvent.objects.filter(**event_params)
+    assert matching_events.count() == 2
+    assert matching_events[0].type != matching_events[1].type
+    assert not OrderEvent.objects.exclude(**event_params).exists()
 
 
 def test_draft_order_complete_with_inactive_channel(
@@ -2031,13 +2158,22 @@ def test_draft_order_complete_product_without_inventory_tracking(
 
     order.refresh_from_db()
     assert data["status"] == order.status.upper()
-    draft_placed_event = OrderEvent.objects.get()
 
     assert not Allocation.objects.filter(order_line__order=order).exists()
 
-    assert draft_placed_event.user == staff_user
-    assert draft_placed_event.type == order_events.OrderEvents.PLACED_FROM_DRAFT
-    assert draft_placed_event.parameters == {}
+    # ensure there are only 2 events with correct types
+    event_params = {
+        "user": staff_user,
+        "type__in": [
+            order_events.OrderEvents.PLACED_FROM_DRAFT,
+            order_events.OrderEvents.CONFIRMED,
+        ],
+        "parameters": {},
+    }
+    matching_events = OrderEvent.objects.filter(**event_params)
+    assert matching_events.count() == 2
+    assert matching_events[0].type != matching_events[1].type
+    assert not OrderEvent.objects.exclude(**event_params).exists()
 
 
 def test_draft_order_complete_out_of_stock_variant(
@@ -2400,6 +2536,9 @@ QUERY_GET_FIRST_EVENT = """
                                 orderLine {
                                     id
                                 }
+                            }
+                            fulfilledItems {
+                                id
                             }
                         }
                     }
@@ -3979,6 +4118,7 @@ def test_order_query_with_filter_payment_status(
     "orders_filter, count, status",
     [
         ({"status": "UNFULFILLED"}, 2, OrderStatus.UNFULFILLED),
+        ({"status": "UNCONFIRMED"}, 1, OrderStatus.UNCONFIRMED),
         ({"status": "PARTIALLY_FULFILLED"}, 1, OrderStatus.PARTIALLY_FULFILLED),
         ({"status": "FULFILLED"}, 1, OrderStatus.FULFILLED),
         ({"status": "CANCELED"}, 1, OrderStatus.CANCELED),

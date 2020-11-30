@@ -9,6 +9,7 @@ from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.models import Checkout
 from ....core.exceptions import InsufficientStock
 from ....core.taxes import zero_money
+from ....order import OrderStatus
 from ....order.models import Order
 from ....payment import ChargeStatus, PaymentError, TransactionKind
 from ....payment.gateways.dummy_credit_card import TOKEN_VALIDATION_MAPPING
@@ -143,7 +144,10 @@ def test_checkout_complete_with_inactive_channel(
 
 
 @pytest.mark.integration
+@patch("saleor.plugins.manager.PluginsManager.order_confirmed")
 def test_checkout_complete(
+    order_confirmed_mock,
+    site_settings,
     user_api_client,
     checkout_with_gift_card,
     gift_card,
@@ -165,6 +169,9 @@ def test_checkout_complete(
     checkout_line = checkout.lines.first()
     checkout_line_quantity = checkout_line.quantity
     checkout_line_variant = checkout_line.variant
+
+    site_settings.automatically_confirm_all_new_orders = True
+    site_settings.save()
 
     total = calculations.calculate_checkout_total_with_gift_cards(checkout=checkout)
     payment = payment_dummy
@@ -189,6 +196,7 @@ def test_checkout_complete(
     order_token = data["order"]["token"]
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.first()
+    assert order.status == OrderStatus.UNFULFILLED
     assert order.token == order_token
     assert order.redirect_url == redirect_url
     assert order.total.gross == total.gross
@@ -212,6 +220,36 @@ def test_checkout_complete(
     assert not Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
+    order_confirmed_mock.assert_called_once_with(order)
+
+
+@patch("saleor.plugins.manager.PluginsManager.order_confirmed")
+def test_checkout_complete_requires_confirmation(
+    order_confirmed_mock,
+    user_api_client,
+    site_settings,
+    payment_dummy,
+    checkout_ready_to_complete,
+):
+    site_settings.automatically_confirm_all_new_orders = False
+    site_settings.save()
+    payment = payment_dummy
+    payment.checkout = checkout_ready_to_complete
+    payment.save()
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_ready_to_complete.pk)
+    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    content = get_graphql_content(response)
+
+    order_id = int(
+        graphene.Node.from_global_id(
+            content["data"]["checkoutComplete"]["order"]["id"]
+        )[1]
+    )
+    order = Order.objects.get(pk=order_id)
+    assert order.status == OrderStatus.UNCONFIRMED
+    order_confirmed_mock.assert_not_called()
 
 
 @pytest.mark.integration
