@@ -2556,7 +2556,7 @@ type Mutation {
   shopSettingsTranslate(input: ShopSettingsTranslationInput!, languageCode: LanguageCodeEnum!): ShopSettingsTranslate
   shopAddressUpdate(input: AddressInput): ShopAddressUpdate
   shippingMethodChannelListingUpdate(id: ID!, input: ShippingMethodChannelListingInput!): ShippingMethodChannelListingUpdate
-  shippingMethodZipCodeRulesCreate(input: ShippingZipCodeRulesCreateInput!, shippingMethod: ID!): ShippingZipCodeRulesCreate
+  shippingMethodZipCodeRulesCreate(input: ShippingZipCodeRulesCreateInput!, shippingMethodId: ID!): ShippingZipCodeRulesCreate
   shippingMethodZipCodeRulesDelete(id: ID!): ShippingZipCodeRulesDelete
   shippingPriceCreate(input: ShippingPriceInput!): ShippingPriceCreate
   shippingPriceDelete(id: ID!): ShippingPriceDelete
@@ -4686,7 +4686,7 @@ type ShippingZipCodeRulesCreate {
 }
 
 input ShippingZipCodeRulesCreateInput {
-  zipCodeRules: [ShippingZipCodeRulesCreateInputRange]
+  zipCodeRules: [ShippingZipCodeRulesCreateInputRange]!
 }
 
 input ShippingZipCodeRulesCreateInputRange {

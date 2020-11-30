@@ -135,7 +135,7 @@ class ShippingMethodQueryset(models.QuerySet):
             channel_id=channel_id,
             weight=instance.get_total_weight(),
             country_code=country_code or instance.shipping_address.country.code,
-        )
+        ).prefetch_related("zip_code_rules")
         excluded_methods_by_zip_code = []
         for method in applicable_methods:
             if check_shipping_method_for_zip_code(instance.shipping_address, method):

@@ -165,7 +165,9 @@ class ShippingZipCodeRulesCreateInputRange(graphene.InputObjectType):
 
 class ShippingZipCodeRulesCreateInput(graphene.InputObjectType):
     zip_code_rules = graphene.List(
-        ShippingZipCodeRulesCreateInputRange, description="Start range of the zip code."
+        ShippingZipCodeRulesCreateInputRange,
+        required=True,
+        description="Zip code rules for shipping method.",
     )
 
 
@@ -178,7 +180,7 @@ class ShippingZipCodeRulesCreate(BaseMutation):
     )
 
     class Arguments:
-        shipping_method = graphene.ID(
+        shipping_method_id = graphene.ID(
             required=True, description="ID of a shipping method to assign."
         )
         input = ShippingZipCodeRulesCreateInput(
@@ -194,7 +196,7 @@ class ShippingZipCodeRulesCreate(BaseMutation):
     @classmethod
     def perform_mutation(cls, root, info, **data):
         shipping_method = cls.get_node_or_error(
-            info, data["shipping_method"], only_type=ShippingMethod
+            info, data["shipping_method_id"], only_type=ShippingMethod
         )
         instances = []
         for zip_range in data["input"]["zip_code_rules"]:
