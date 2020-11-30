@@ -347,17 +347,12 @@ class OrderRefundProductsInput(graphene.InputObjectType):
     )
     amount_to_refund = PositiveDecimal(
         required=False,
-        description=(
-            "The total amount of refund when the value is provided manually. The "
-            "amountToRefund and includeShippingCosts are mutually exclusive and "
-            "attempts to call mutation with both options will raise an exception."
-        ),
+        description=("The total amount of refund when the value is provided manually."),
     )
     include_shipping_costs = graphene.Boolean(
         description=(
-            "If true, Saleor will refund shipping costs. The amountToRefund and "
-            "includeShippingCosts are mutually exclusive and attempts to call mutation "
-            "with both options will raise an exception."
+            "If true, Saleor will refund shipping costs. If amountToRefund is provided"
+            "includeShippingCosts will be ignored."
         ),
         default_value=False,
     )
@@ -381,32 +376,6 @@ class FulfillmentRefundProducts(BaseMutation):
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
-
-    @classmethod
-    def validate_amount_to_refund_and_shipping_costs(
-        cls, amount_to_refund, include_shipping_costs
-    ):
-        if amount_to_refund is not None and include_shipping_costs:
-            raise ValidationError(
-                {
-                    "amount_to_refund": ValidationError(
-                        (
-                            "The amountToRefund and includeShippingCosts are mutually "
-                            "exclusive and attempts to call mutation with both options "
-                            "is incorrect."
-                        ),
-                        code=OrderErrorCode.INVALID.value,
-                    ),
-                    "include_shipping_costs": ValidationError(
-                        (
-                            "The amountToRefund and includeShippingCosts are mutually "
-                            "exclusive and attempts to call mutation with both options "
-                            "is incorrect."
-                        ),
-                        code=OrderErrorCode.INVALID.value,
-                    ),
-                }
-            )
 
     @classmethod
     def clean_order_payment(cls, payment, cleaned_input):
@@ -442,9 +411,6 @@ class FulfillmentRefundProducts(BaseMutation):
         cleaned_input = {}
         amount_to_refund = input.get("amount_to_refund")
         include_shipping_costs = input["include_shipping_costs"]
-        cls.validate_amount_to_refund_and_shipping_costs(
-            amount_to_refund, include_shipping_costs
-        )
 
         qs = order_models.Order.objects.prefetch_related("payments")
         order = cls.get_node_or_error(
@@ -461,19 +427,6 @@ class FulfillmentRefundProducts(BaseMutation):
         order_lines_data = input.get("order_lines")
         fulfillment_lines_data = input.get("fulfillment_lines")
 
-        if not order_lines_data and not fulfillment_lines_data:
-            raise ValidationError(
-                {
-                    "order_lines": ValidationError(
-                        "The orderLines and fulfillmentLines cannot be empty.",
-                        code=OrderErrorCode.REQUIRED.value,
-                    ),
-                    "fulfillment_lines": ValidationError(
-                        "The orderLines and fulfillmentLines cannot be empty.",
-                        code=OrderErrorCode.REQUIRED.value,
-                    ),
-                }
-            )
         if order_lines_data:
             cls.clean_lines(order_lines_data, cleaned_input)
         if fulfillment_lines_data:

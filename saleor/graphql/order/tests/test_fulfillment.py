@@ -881,53 +881,30 @@ def test_fulfillment_refund_products_order_without_payment(
     assert fulfillment is None
 
 
-def test_fulfillment_refund_products_without_required_lines(
-    staff_api_client, permission_manage_orders, fulfilled_order, payment_dummy
-):
-    payment_dummy.captured_amount = payment_dummy.total
-    payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
-    payment_dummy.save()
-    fulfilled_order.payments.add(payment_dummy)
-    order_id = graphene.Node.to_global_id("Order", fulfilled_order.pk)
-    variables = {"order": order_id, "input": {"amountToRefund": "11.00"}}
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
-    response = staff_api_client.post_graphql(ORDER_FULFILL_REFUND_MUTATION, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["orderFulfillmentRefundProducts"]
-    fulfillment = data["fulfillment"]
-    errors = data["orderErrors"]
-    assert len(errors) == 2
-    assert errors[0]["field"] in ["orderLines", "fulfillmentLines"]
-    assert errors[1]["field"] in ["orderLines", "fulfillmentLines"]
-    assert errors[0]["code"] == OrderErrorCode.REQUIRED.name
-    assert errors[1]["code"] == OrderErrorCode.REQUIRED.name
-    assert fulfillment is None
-
-
+@patch("saleor.order.actions.gateway.refund")
 def test_fulfillment_refund_products_amount_and_shipping_costs(
-    staff_api_client, permission_manage_orders, fulfilled_order, payment_dummy
+    mocked_refund,
+    staff_api_client,
+    permission_manage_orders,
+    fulfilled_order,
+    payment_dummy,
 ):
     payment_dummy.captured_amount = payment_dummy.total
     payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
     payment_dummy.save()
     fulfilled_order.payments.add(payment_dummy)
     order_id = graphene.Node.to_global_id("Order", fulfilled_order.pk)
+    amount_to_refund = Decimal("11.00")
     variables = {
         "order": order_id,
-        "input": {"amountToRefund": "11.00", "includeShippingCosts": True},
+        "input": {"amountToRefund": amount_to_refund, "includeShippingCosts": True},
     }
     staff_api_client.user.user_permissions.add(permission_manage_orders)
-    response = staff_api_client.post_graphql(ORDER_FULFILL_REFUND_MUTATION, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["orderFulfillmentRefundProducts"]
-    fulfillment = data["fulfillment"]
-    errors = data["orderErrors"]
-    assert len(errors) == 2
-    assert errors[0]["field"] in ["amountToRefund", "includeShippingCosts"]
-    assert errors[1]["field"] in ["amountToRefund", "includeShippingCosts"]
-    assert errors[0]["code"] == OrderErrorCode.INVALID.name
-    assert errors[1]["code"] == OrderErrorCode.INVALID.name
-    assert fulfillment is None
+    staff_api_client.post_graphql(ORDER_FULFILL_REFUND_MUTATION, variables)
+
+    mocked_refund.assert_called_with(
+        payment_dummy, quantize_price(amount_to_refund, fulfilled_order.currency)
+    )
 
 
 @patch("saleor.order.actions.gateway.refund")
