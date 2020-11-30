@@ -20,6 +20,7 @@ from ..core.weight import (
     zero_weight,
 )
 from . import ShippingMethodType
+from .zip_codes import check_shipping_method_for_zip_code
 
 if TYPE_CHECKING:
     # flake8: noqa
@@ -142,13 +143,22 @@ class ShippingMethodQueryset(models.QuerySet):
             return None
         lines = instance.lines.prefetch_related("variant__product").all()
         instance_product_ids = set(lines.values_list("variant__product", flat=True))
-        return self.applicable_shipping_methods(
+
+        applicable_methods = self.applicable_shipping_methods(
             price=price,
             channel_id=channel_id,
             weight=instance.get_total_weight(),
             country_code=country_code or instance.shipping_address.country.code,
             product_ids=instance_product_ids,
-        )
+        ).prefetch_related("zip_code_rules")
+
+        excluded_methods_by_zip_code = []
+        for method in applicable_methods:
+            if check_shipping_method_for_zip_code(instance.shipping_address, method):
+                excluded_methods_by_zip_code.append(method.pk)
+        if excluded_methods_by_zip_code:
+            return applicable_methods.exclude(pk__in=excluded_methods_by_zip_code)
+        return applicable_methods
 
 
 class ShippingMethod(ModelWithMetadata):
@@ -189,6 +199,17 @@ class ShippingMethod(ModelWithMetadata):
                 self.minimum_order_weight, self.maximum_order_weight
             ),
         )
+
+
+class ShippingMethodZipCodeRule(models.Model):
+    shipping_method = models.ForeignKey(
+        ShippingMethod, on_delete=models.CASCADE, related_name="zip_code_rules"
+    )
+    start = models.CharField(max_length=32)
+    end = models.CharField(max_length=32, blank=True, null=True)
+
+    class Meta:
+        unique_together = ("shipping_method", "start", "end")
 
 
 class ShippingMethodChannelListing(models.Model):

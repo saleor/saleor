@@ -9,6 +9,7 @@ import graphene
 import pytest
 from django.core.exceptions import ValidationError
 from django.test import override_settings
+from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
 from ....account.models import User
@@ -27,6 +28,7 @@ from ....payment.interface import GatewayResponse
 from ....plugins.manager import PluginsManager
 from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
 from ....product.models import ProductChannelListing
+from ....shipping import models as shipping_models
 from ....warehouse.models import Stock
 from ...tests.utils import assert_no_permission, get_graphql_content
 from ..mutations import (
@@ -1186,6 +1188,25 @@ def test_checkout_available_shipping_methods(
 
     shipping_method = shipping_zone.shipping_methods.first()
     assert data["availableShippingMethods"][0]["name"] == shipping_method.name
+
+
+def test_checkout_available_shipping_methods_excluded_zip_codes(
+    api_client, checkout_with_item, address, shipping_zone
+):
+    address.country = Country("GB")
+    address.postal_code = "BH16 7HF"
+    address.save()
+    checkout_with_item.shipping_address = address
+    checkout_with_item.save()
+    shipping_method = shipping_zone.shipping_methods.first()
+    shipping_method.zip_code_rules.create(start="BH16 7HA", end="BH16 7HG")
+
+    query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
+    variables = {"token": checkout_with_item.token}
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+    assert data["availableShippingMethods"] == []
 
 
 @pytest.mark.parametrize(
@@ -2555,6 +2576,38 @@ def test_checkout_shipping_method_update(
             }
         ]
         assert checkout.shipping_method is None
+
+
+@patch("saleor.shipping.models.check_shipping_method_for_zip_code")
+def test_checkout_shipping_method_update_excluded_zip_code(
+    mock_check_zip_code, staff_api_client, shipping_method, checkout_with_item, address
+):
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.save(update_fields=["shipping_address"])
+    query = MUTATION_UPDATE_SHIPPING_METHOD
+    mock_check_zip_code.return_value = True
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+
+    response = staff_api_client.post_graphql(
+        query, {"checkoutId": checkout_id, "shippingMethodId": method_id}
+    )
+    data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
+
+    checkout.refresh_from_db()
+
+    assert data["errors"] == [
+        {
+            "field": "shippingMethod",
+            "message": "This shipping method is not applicable.",
+        }
+    ]
+    assert checkout.shipping_method is None
+    assert (
+        mock_check_zip_code.call_count == shipping_models.ShippingMethod.objects.count()
+    )
 
 
 def test_query_checkout_line(checkout_with_item, user_api_client):
