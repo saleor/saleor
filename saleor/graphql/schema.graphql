@@ -2000,8 +2000,16 @@ type FulfillmentLine implements Node {
   orderLine: OrderLine
 }
 
+type FulfillmentRefundProducts {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  fulfillment: Fulfillment
+  order: Order
+  orderErrors: [OrderError!]!
+}
+
 enum FulfillmentStatus {
   FULFILLED
+  REFUNDED
   CANCELED
 }
 
@@ -2653,6 +2661,7 @@ type Mutation {
   orderFulfill(input: OrderFulfillInput!, order: ID): OrderFulfill
   orderFulfillmentCancel(id: ID!, input: FulfillmentCancelInput!): FulfillmentCancel
   orderFulfillmentUpdateTracking(id: ID!, input: FulfillmentUpdateTrackingInput!): FulfillmentUpdateTracking
+  orderFulfillmentRefundProducts(input: OrderRefundProductsInput!, order: ID!): FulfillmentRefundProducts
   orderMarkAsPaid(id: ID!, transactionReference: String): OrderMarkAsPaid
   orderRefund(amount: PositiveDecimal!, id: ID!): OrderRefund
   orderUpdate(id: ID!, input: OrderUpdateInput!): OrderUpdate
@@ -2950,6 +2959,8 @@ enum OrderErrorCode {
   UNIQUE
   VOID_INACTIVE_PAYMENT
   ZERO_QUANTITY
+  INVALID_REFUND_QUANTITY
+  CANNOT_REFUND_FULFILLMENT_LINE
   INSUFFICIENT_STOCK
   DUPLICATED_INPUT_ITEM
   NOT_AVAILABLE_IN_CHANNEL
@@ -2976,6 +2987,7 @@ type OrderEvent implements Node {
   fulfilledItems: [FulfillmentLine]
   warehouse: Warehouse
   transactionReference: String
+  shippingCostsIncluded: Boolean
 }
 
 type OrderEventCountableConnection {
@@ -3033,6 +3045,7 @@ enum OrderEventsEnum {
   FULFILLMENT_CANCELED
   FULFILLMENT_RESTOCKED_ITEMS
   FULFILLMENT_FULFILLED_ITEMS
+  FULFILLMENT_REFUNDED
   TRACKING_UPDATED
   NOTE_ADDED
   OTHER
@@ -3106,6 +3119,23 @@ type OrderRefund {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   order: Order
   orderErrors: [OrderError!]!
+}
+
+input OrderRefundFulfillmentLineInput {
+  fulfillmentLineId: ID!
+  quantity: Int!
+}
+
+input OrderRefundLineInput {
+  orderLineId: ID!
+  quantity: Int!
+}
+
+input OrderRefundProductsInput {
+  orderLines: [OrderRefundLineInput!]
+  fulfillmentLines: [OrderRefundFulfillmentLineInput!]
+  amountToRefund: PositiveDecimal
+  includeShippingCosts: Boolean = false
 }
 
 type OrderSettings {

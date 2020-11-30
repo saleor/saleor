@@ -16,6 +16,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Order confirmation backend - #6498 by @tomaszszymanski129
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
 - Fix password reset request - #6351 by @Manfred-Madelaine-pro, Ambroise and Pierre
+- Refund products support - #6530 by @korycins
 - Add possibility to exclude products from shipping method - #6506 by @korycins
 
 # 2.11.1
