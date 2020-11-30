@@ -181,8 +181,8 @@ class ShippingMethod(ModelWithMetadata):
     excluded_products = models.ManyToManyField(
         "product.Product", blank=True
     )  # type: ignore
-    minimum_delivery_days = models.PositiveIntegerField(null=True, blank=True)
     maximum_delivery_days = models.PositiveIntegerField(null=True, blank=True)
+    minimum_delivery_days = models.PositiveIntegerField(null=True, blank=True)
 
     objects = ShippingMethodQueryset.as_manager()
     translated = TranslationProxy()

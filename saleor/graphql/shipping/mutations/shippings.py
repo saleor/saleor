@@ -29,6 +29,12 @@ class ShippingPriceInput(graphene.InputObjectType):
     maximum_order_weight = WeightScalar(
         description="Maximum order weight to use this shipping method."
     )
+    maximum_delivery_days = graphene.Int(
+        description="Maximum number of days for delivery."
+    )
+    minimum_delivery_days = graphene.Int(
+        description="Minimal number of days for delivery."
+    )
     type = ShippingMethodTypeEnum(description="Shipping type: price or weight based.")
     shipping_zone = graphene.ID(
         description="Shipping zone this method belongs to.", name="shippingZone"

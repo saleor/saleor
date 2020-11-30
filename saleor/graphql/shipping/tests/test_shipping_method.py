@@ -739,11 +739,15 @@ PRICE_BASED_SHIPPING_QUERY = """
     mutation createShippingPrice(
         $type: ShippingMethodTypeEnum,
         $name: String!,
-        $shippingZone: ID!
+        $shippingZone: ID!,
+        $maximumDeliveryDays: Int,
+        $minimumDeliveryDays: Int,
     ) {
     shippingPriceCreate(
         input: {
-            name: $name, shippingZone: $shippingZone, type: $type
+            name: $name, shippingZone: $shippingZone, type: $type,
+            maximumDeliveryDays: $maximumDeliveryDays,
+            minimumDeliveryDays: $minimumDeliveryDays,
         }) {
         shippingErrors {
             field
@@ -771,6 +775,8 @@ PRICE_BASED_SHIPPING_QUERY = """
             }
             }
             type
+            minimumDeliveryDays
+            maximumDeliveryDays
             }
         }
     }
@@ -795,10 +801,14 @@ def test_create_shipping_method(
 ):
     name = "DHL"
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+    max_del_days = 10
+    min_del_days = 3
     variables = {
         "shippingZone": shipping_zone_id,
         "name": name,
         "type": ShippingMethodTypeEnum.PRICE.name,
+        "maximumDeliveryDays": max_del_days,
+        "minimumDeliveryDays": min_del_days,
     }
     response = staff_api_client.post_graphql(
         PRICE_BASED_SHIPPING_QUERY, variables, permissions=[permission_manage_shipping]
@@ -809,6 +819,8 @@ def test_create_shipping_method(
     assert data["shippingMethod"]["name"] == name
     assert data["shippingMethod"]["type"] == ShippingMethodTypeEnum.PRICE.name
     assert data["shippingZone"]["id"] == shipping_zone_id
+    assert data["shippingMethod"]["minimumDeliveryDays"] == min_del_days
+    assert data["shippingMethod"]["maximumDeliveryDays"] == max_del_days
 
 
 WEIGHT_BASED_SHIPPING_QUERY = """
@@ -947,11 +959,17 @@ def test_update_shipping_method(
     query = """
     mutation updateShippingPrice(
         $id: ID!, $shippingZone: ID!,
-        $type: ShippingMethodTypeEnum!) {
+        $type: ShippingMethodTypeEnum!,
+        $maximumDeliveryDays: Int,
+        $minimumDeliveryDays: Int,
+    ) {
         shippingPriceUpdate(
             id: $id, input: {
                 shippingZone: $shippingZone,
-                type: $type}) {
+                type: $type,
+                maximumDeliveryDays: $maximumDeliveryDays,
+                minimumDeliveryDays: $minimumDeliveryDays,
+            }) {
             shippingErrors {
                 field
                 code
@@ -961,6 +979,8 @@ def test_update_shipping_method(
             }
             shippingMethod {
                 type
+                minimumDeliveryDays
+                maximumDeliveryDays
             }
         }
     }
@@ -970,10 +990,14 @@ def test_update_shipping_method(
     shipping_method_id = graphene.Node.to_global_id(
         "ShippingMethod", shipping_method.pk
     )
+    max_del_days = 8
+    min_del_days = 2
     variables = {
         "shippingZone": shipping_zone_id,
         "id": shipping_method_id,
         "type": ShippingMethodTypeEnum.PRICE.name,
+        "maximumDeliveryDays": max_del_days,
+        "minimumDeliveryDays": min_del_days,
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_shipping]
@@ -981,6 +1005,8 @@ def test_update_shipping_method(
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceUpdate"]
     assert data["shippingZone"]["id"] == shipping_zone_id
+    assert data["shippingMethod"]["minimumDeliveryDays"] == min_del_days
+    assert data["shippingMethod"]["maximumDeliveryDays"] == max_del_days
 
 
 def test_delete_shipping_method(
