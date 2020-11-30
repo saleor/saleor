@@ -452,6 +452,7 @@ DELETE_SHIPPING_METHOD_ZIP_CODE_MUTATION = """
             id: $id
         ){
             shippingMethod {
+                id
                 name
             }
             shippingErrors {
@@ -478,6 +479,9 @@ def test_delete_shipping_method_zip_code(
     content = get_graphql_content(response)
     data = content["data"]["shippingMethodZipCodeRulesDelete"]
     assert data["shippingErrors"] == []
+    assert data["shippingMethod"]["id"] == graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method_excldued_by_zip_code.id
+    )
     assert data["shippingMethod"]["name"] == shipping_method_excldued_by_zip_code.name
     assert not shipping_method_excldued_by_zip_code.zip_code_rules.exists()
 
