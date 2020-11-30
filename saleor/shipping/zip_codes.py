@@ -47,24 +47,6 @@ def check_uk_zip_code(code, start, end):
     return compare_values(code, start, end)
 
 
-def check_isle_of_man_zip_code(code, start, end):
-    pattern = r"IM\d[\dA-Z]?[ ]?\d[ABD-HJLN-UW-Z]{2}"
-    code, start, end = group_values(pattern, code, start, end)
-    return compare_values(code, start, end)
-
-
-def check_guernsey_zip_code(code, start, end):
-    pattern = r"GY\d[\dA-Z]?[ ]?\d[ABD-HJLN-UW-Z]{2}"
-    code, start, end = group_values(pattern, code, start, end)
-    return compare_values(code, start, end)
-
-
-def check_jersey_zip_code(code, start, end):
-    pattern = r"JE\d[\dA-Z]?[ ]?\d[ABD-HJLN-UW-Z]{2}"
-    code, start, end = group_values(pattern, code, start, end)
-    return compare_values(code, start, end)
-
-
 def check_irish_zip_code(code, start, end):
     pattern = r"([\dA-Z]{3}) ?([\dA-Z]{4})"
     code, start, end = group_values(pattern, code, start, end)
@@ -78,19 +60,9 @@ def check_any_zip_code(code, start, end):
 def check_zip_code_in_excluded_range(country, code, start, end):
     country_func_map = {
         "GB": check_uk_zip_code,  # United Kingdom
-        "IM": check_isle_of_man_zip_code,  # Isle of Man
-        "GG": check_guernsey_zip_code,  # Guernsey
-        "JE": check_jersey_zip_code,  # Jersey
         "IR": check_irish_zip_code,  # Ireland
     }
-    fallback_map = {"GB": ["IM", "GG", "JE"]}
-    result = country_func_map.get(country, check_any_zip_code)(code, start, end)
-    if result is False and country in fallback_map:
-        for fallback in fallback_map[country]:
-            fallback_result = country_func_map[fallback](code, start, end)
-            if fallback_result:
-                return True
-    return result
+    return country_func_map.get(country, check_any_zip_code)(code, start, end)
 
 
 def check_shipping_method_for_zip_code(customer_shipping_address, method):
