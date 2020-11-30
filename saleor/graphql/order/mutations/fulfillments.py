@@ -369,7 +369,7 @@ class FulfillmentRefundProducts(BaseMutation):
 
     class Arguments:
         order = graphene.ID(
-            description="ID of the order to be fulfilled.", required=True
+            description="ID of the order to be refunded.", required=True
         )
         input = OrderRefundProductsInput(
             required=True,
