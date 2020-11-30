@@ -3,6 +3,8 @@ from graphene import Node
 
 from .....checkout import calculations
 from .....checkout.models import Checkout
+from .....checkout.utils import fetch_checkout_lines
+from .....plugins.manager import get_plugins_manager
 from ....tests.utils import get_graphql_content
 
 FRAGMENT_PRICE = """
@@ -481,13 +483,19 @@ def test_checkout_payment_charge(
         }
     """
 
+    lines = fetch_checkout_lines(checkout_with_billing_address)
+    manager = get_plugins_manager()
+    total = calculations.checkout_total(
+        manager=manager,
+        checkout=checkout_with_billing_address,
+        lines=lines,
+        address=checkout_with_billing_address.shipping_address,
+    )
+
     variables = {
         "checkoutId": Node.to_global_id("Checkout", checkout_with_billing_address.pk),
         "input": {
-            "amount": calculations.checkout_total(
-                checkout=checkout_with_billing_address,
-                lines=list(checkout_with_billing_address),
-            ).gross.amount,
+            "amount": total.gross.amount,
             "gateway": "mirumee.payments.dummy",
             "token": "charged",
         },

@@ -19,13 +19,21 @@ from .models import PluginConfiguration
 if TYPE_CHECKING:
     # flake8: noqa
     from ..account.models import Address, User
-    from ..channel.models import Channel
+    from ..core.taxes import TaxType
+    from ..checkout import CheckoutLineInfo
     from ..checkout.models import Checkout, CheckoutLine
+    from ..channel.models import Channel
     from ..core.taxes import TaxType
     from ..discount import DiscountInfo
     from ..invoice.models import Invoice
     from ..order.models import Fulfillment, Order, OrderLine
-    from ..product.models import Product, ProductType
+    from ..product.models import (
+        Collection,
+        Product,
+        ProductType,
+        ProductVariant,
+        ProductVariantChannelListing,
+    )
 
 
 PluginConfigurationType = List[dict]
@@ -87,7 +95,8 @@ class BasePlugin:
     def calculate_checkout_total(
         self,
         checkout: "Checkout",
-        lines: List["CheckoutLine"],
+        lines: List["CheckoutLineInfo"],
+        address: Optional["Address"],
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -101,7 +110,8 @@ class BasePlugin:
     def calculate_checkout_subtotal(
         self,
         checkout: "Checkout",
-        lines: List["CheckoutLine"],
+        lines: List["CheckoutLineInfo"],
+        address: Optional["Address"],
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -115,7 +125,8 @@ class BasePlugin:
     def calculate_checkout_shipping(
         self,
         checkout: "Checkout",
-        lines: List["CheckoutLine"],
+        lines: List["CheckoutLineInfo"],
+        address: Optional["Address"],
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -139,9 +150,15 @@ class BasePlugin:
     # TODO: Add information about this change to `breaking changes in changelog`
     def calculate_checkout_line_total(
         self,
+        checkout: "Checkout",
         checkout_line: "CheckoutLine",
-        discounts: List["DiscountInfo"],
+        variant: "ProductVariant",
+        product: "Product",
+        collections: List["Collection"],
+        address: Optional["Address"],
         channel: "Channel",
+        channel_listing: "ProductVariantChannelListing",
+        discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
         """Calculate checkout line total.

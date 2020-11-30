@@ -7,10 +7,11 @@ from ...core.exceptions import InsufficientStock
 from ...core.taxes import zero_money, zero_taxed_money
 from ...order import OrderEvents, OrderEventsEmails
 from ...order.models import OrderEvent
+from ...plugins.manager import get_plugins_manager
 from ...tests.utils import flush_post_commit_hooks
 from .. import calculations
 from ..complete_checkout import _create_order, _prepare_order_data
-from ..utils import add_variant_to_checkout
+from ..utils import add_variant_to_checkout, fetch_checkout_lines
 
 
 def test_create_order_captured_payment_creates_expected_events(
@@ -34,10 +35,12 @@ def test_create_order_captured_payment_creates_expected_events(
     checkout.save()
 
     # Place checkout
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
     order = _create_order(
         checkout=checkout,
         order_data=_prepare_order_data(
-            checkout=checkout, lines=list(checkout), discounts=None,
+            manager=manager, checkout=checkout, lines=lines, discounts=None,
         ),
         user=customer_user,
     )
@@ -155,10 +158,12 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
     checkout.save()
 
     # Place checkout
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
     order = _create_order(
         checkout=checkout,
         order_data=_prepare_order_data(
-            checkout=checkout, lines=list(checkout), discounts=None,
+            manager=manager, checkout=checkout, lines=lines, discounts=None,
         ),
         user=AnonymousUser(),
     )
@@ -268,10 +273,12 @@ def test_create_order_preauth_payment_creates_expected_events(
     checkout.save()
 
     # Place checkout
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
     order = _create_order(
         checkout=checkout,
         order_data=_prepare_order_data(
-            checkout=checkout, lines=list(checkout), discounts=None,
+            manager=manager, checkout=checkout, lines=lines, discounts=None,
         ),
         user=customer_user,
     )
@@ -360,10 +367,12 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
     checkout.save()
 
     # Place checkout
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
     order = _create_order(
         checkout=checkout,
         order_data=_prepare_order_data(
-            checkout=checkout, lines=list(checkout), discounts=None,
+            manager=manager, checkout=checkout, lines=lines, discounts=None,
         ),
         user=AnonymousUser(),
     )
@@ -434,9 +443,11 @@ def test_create_order_insufficient_stock(
     checkout.tracking_code = "tracking_code"
     checkout.save()
 
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
     with pytest.raises(InsufficientStock):
         _prepare_order_data(
-            checkout=checkout, lines=list(checkout), discounts=None,
+            manager=manager, checkout=checkout, lines=lines, discounts=None,
         )
 
 
@@ -452,8 +463,10 @@ def test_create_order_doesnt_duplicate_order(
     checkout.redirect_url = "https://www.example.com"
     checkout.save()
 
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
     order_data = _prepare_order_data(
-        checkout=checkout, lines=list(checkout), discounts=None
+        manager=manager, checkout=checkout, lines=lines, discounts=None
     )
 
     order_1 = _create_order(
@@ -481,10 +494,20 @@ def test_create_order_with_gift_card(
     checkout.redirect_url = "https://www.example.com"
     checkout.save()
 
-    lines = list(checkout)
-    subtotal = calculations.checkout_subtotal(checkout=checkout, lines=lines)
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+
+    subtotal = calculations.checkout_subtotal(
+        manager=manager,
+        checkout=checkout,
+        lines=lines,
+        address=checkout.shipping_address,
+    )
     shipping_price = calculations.checkout_shipping_price(
-        checkout=checkout, lines=lines
+        manager=manager,
+        checkout=checkout,
+        lines=lines,
+        address=checkout.shipping_address,
     )
     total_gross_without_gift_cards = (
         subtotal.gross + shipping_price.gross - checkout.discount
@@ -493,7 +516,9 @@ def test_create_order_with_gift_card(
 
     order = _create_order(
         checkout=checkout,
-        order_data=_prepare_order_data(checkout=checkout, lines=lines, discounts=None,),
+        order_data=_prepare_order_data(
+            manager=manager, checkout=checkout, lines=lines, discounts=None,
+        ),
         user=customer_user if not is_anonymous_user else AnonymousUser(),
     )
 
@@ -514,8 +539,14 @@ def test_create_order_with_gift_card_partial_use(
     checkout.redirect_url = "https://www.example.com"
     checkout.save()
 
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+
     price_without_gift_card = calculations.checkout_total(
-        checkout=checkout, lines=list(checkout)
+        manager=manager,
+        checkout=checkout,
+        lines=lines,
+        address=checkout.shipping_address,
     )
     gift_card_balance_before_order = gift_card_used.current_balance_amount
 
@@ -525,7 +556,7 @@ def test_create_order_with_gift_card_partial_use(
     order = _create_order(
         checkout=checkout,
         order_data=_prepare_order_data(
-            checkout=checkout, lines=list(checkout), discounts=None,
+            manager=manager, checkout=checkout, lines=lines, discounts=None,
         ),
         user=customer_user,
     )
@@ -557,8 +588,14 @@ def test_create_order_with_many_gift_cards(
     checkout.redirect_url = "https://www.example.com"
     checkout.save()
 
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+
     price_without_gift_card = calculations.checkout_total(
-        checkout=checkout, lines=list(checkout)
+        manager=manager,
+        checkout=checkout,
+        lines=lines,
+        address=checkout.shipping_address,
     )
     gift_cards_balance_before_order = (
         gift_card_created_by_staff.current_balance.amount
@@ -572,7 +609,7 @@ def test_create_order_with_many_gift_cards(
     order = _create_order(
         checkout=checkout,
         order_data=_prepare_order_data(
-            checkout=checkout, lines=list(checkout), discounts=None,
+            manager=manager, checkout=checkout, lines=lines, discounts=None,
         ),
         user=customer_user,
     )
@@ -594,10 +631,12 @@ def test_note_in_created_order(checkout_with_item, address, customer_user):
     checkout_with_item.tracking_code = "tracking_code"
     checkout_with_item.redirect_url = "https://www.example.com"
     checkout_with_item.save()
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout_with_item)
     order = _create_order(
         checkout=checkout_with_item,
         order_data=_prepare_order_data(
-            checkout=checkout_with_item, lines=list(checkout_with_item), discounts=None,
+            manager=manager, checkout=checkout_with_item, lines=lines, discounts=None,
         ),
         user=customer_user,
     )
@@ -616,8 +655,11 @@ def test_create_order_with_variant_tracking_false(
     checkout.save()
     add_variant_to_checkout(checkout, variant, 10, check_quantity=False)
 
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+
     order_data = _prepare_order_data(
-        checkout=checkout, lines=list(checkout), discounts=None
+        manager=manager, checkout=checkout, lines=lines, discounts=None
     )
 
     order_1 = _create_order(

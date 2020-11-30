@@ -5,18 +5,20 @@ from django.core.exceptions import ValidationError
 from ..discount import DiscountInfo
 from ..payment import gateway, models as payment_models
 from ..payment.error_codes import PaymentErrorCode
+from ..plugins.manager import PluginsManager
+from . import CheckoutLineInfo
 from .error_codes import CheckoutErrorCode
-from .models import Checkout, CheckoutLine
-from .utils import is_fully_paid, is_valid_shipping_method
+from .models import Checkout
+from .utils import is_fully_paid, is_shipping_required, is_valid_shipping_method
 
 
 def clean_checkout_shipping(
     checkout: Checkout,
-    lines: Iterable[CheckoutLine],
+    lines: Iterable[CheckoutLineInfo],
     discounts: Iterable[DiscountInfo],
     error_code: Union[Type[CheckoutErrorCode], Type[PaymentErrorCode]],
 ):
-    if checkout.is_shipping_required():
+    if is_shipping_required(lines):
         if not checkout.shipping_method:
             raise ValidationError(
                 {
@@ -62,14 +64,15 @@ def clean_billing_address(
 
 
 def clean_checkout_payment(
+    manager: PluginsManager,
     checkout: Checkout,
-    lines: Iterable[CheckoutLine],
+    lines: Iterable[CheckoutLineInfo],
     discounts: Iterable[DiscountInfo],
     error_code: Type[CheckoutErrorCode],
     last_payment: Optional[payment_models.Payment],
 ):
     clean_billing_address(checkout, error_code)
-    if not is_fully_paid(checkout, lines, discounts):
+    if not is_fully_paid(manager, checkout, lines, discounts):
         gateway.payment_refund_or_void(last_payment)
         raise ValidationError(
             "Provided payment methods can not cover the checkout's total amount",

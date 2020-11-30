@@ -14,8 +14,9 @@ from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 from ...checkout import calculations
 from ...core.taxes import TaxType
 from ...graphql.core.utils.error_codes import PluginErrorCode
-from ...product.models import Product, ProductType
+from ...product.models import ProductType
 from ..base_plugin import BasePlugin, ConfigurationTypeField
+from ..manager import get_plugins_manager
 from . import (
     DEFAULT_TAX_RATE_NAME,
     TaxRateType,
@@ -28,10 +29,18 @@ from . import (
 if TYPE_CHECKING:
     # flake8: noqa
     from ...account.models import Address
-    from ...checkout.models import Checkout, CheckoutLine
     from ...channel.models import Channel
+    from ...checkout import CheckoutLineInfo
+    from ...checkout.models import Checkout, CheckoutLine
     from ...discount import DiscountInfo
-    from ...order.models import Order, OrderLine
+    from ...product.models import (
+        Collection,
+        Product,
+        ProductVariant,
+        ProductVariantChannelListing,
+    )
+    from ...account.models import Address
+    from ...order.models import OrderLine, Order
     from ..models import PluginConfiguration
 
 
@@ -74,19 +83,29 @@ class VatlayerPlugin(BasePlugin):
     def calculate_checkout_total(
         self,
         checkout: "Checkout",
-        lines: List["CheckoutLine"],
+        lines: List["CheckoutLineInfo"],
+        address: Optional["Address"],
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
         if self._skip_plugin(previous_value):
             return previous_value
 
+        manager = get_plugins_manager()
         return (
             calculations.checkout_subtotal(
-                checkout=checkout, lines=lines, discounts=discounts
+                manager=manager,
+                checkout=checkout,
+                lines=lines,
+                address=address,
+                discounts=discounts,
             )
             + calculations.checkout_shipping_price(
-                checkout=checkout, lines=lines, discounts=discounts
+                manager=manager,
+                checkout=checkout,
+                lines=lines,
+                address=address,
+                discounts=discounts,
             )
             - checkout.discount
         )
@@ -109,7 +128,8 @@ class VatlayerPlugin(BasePlugin):
     def calculate_checkout_shipping(
         self,
         checkout: "Checkout",
-        lines: List["CheckoutLine"],
+        lines: List["CheckoutLineInfo"],
+        address: Optional["Address"],
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -117,7 +137,6 @@ class VatlayerPlugin(BasePlugin):
         if self._skip_plugin(previous_value):
             return previous_value
 
-        address = checkout.shipping_address or checkout.billing_address
         taxes = None
         if address:
             taxes = self._get_taxes_for_country(address.country)
@@ -147,22 +166,26 @@ class VatlayerPlugin(BasePlugin):
 
     def calculate_checkout_line_total(
         self,
+        checkout: "Checkout",
         checkout_line: "CheckoutLine",
-        discounts: List["DiscountInfo"],
+        variant: "ProductVariant",
+        product: "Product",
+        collections: List["Collection"],
+        address: Optional["Address"],
         channel: "Channel",
+        channel_listing: "ProductVariantChannelListing",
+        discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
         if self._skip_plugin(previous_value):
             return previous_value
 
-        address = (
-            checkout_line.checkout.shipping_address
-            or checkout_line.checkout.billing_address
+        price = variant.get_price(
+            product, collections, channel, channel_listing, discounts
         )
-        price = checkout_line.variant.get_price(channel.slug, discounts)
         country = address.country if address else None
         return (
-            self.__apply_taxes_to_product(checkout_line.variant.product, price, country)
+            self.__apply_taxes_to_product(product, price, country)
             * checkout_line.quantity
         )
 

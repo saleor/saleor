@@ -1,6 +1,6 @@
 from datetime import date
 from decimal import Decimal
-from typing import Iterable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -32,13 +32,16 @@ from ..order.models import Order, OrderLine
 from ..payment import PaymentError, gateway
 from ..payment.models import Payment, Transaction
 from ..payment.utils import store_customer_id
-from ..plugins.manager import get_plugins_manager
 from ..warehouse.availability import check_stock_quantity
 from ..warehouse.management import allocate_stock
 from . import AddressType, models
 from .checkout_cleaner import clean_checkout_payment, clean_checkout_shipping
-from .models import Checkout, CheckoutLine
+from .models import Checkout
 from .utils import get_voucher_for_checkout
+
+if TYPE_CHECKING:
+    from ..checkout import CheckoutLineInfo
+    from ..plugins.manager import PluginsManager
 
 
 def _get_voucher_data_for_order(checkout: Checkout) -> dict:
@@ -72,9 +75,6 @@ def _process_shipping_data_for_order(
     checkout: Checkout, shipping_price: TaxedMoney
 ) -> dict:
     """Fetch, process and return shipping data from checkout."""
-    if not checkout.is_shipping_required():
-        return {}
-
     shipping_address = checkout.shipping_address
 
     if checkout.user:
@@ -125,17 +125,27 @@ def _validate_gift_cards(checkout: Checkout):
 
 
 def _create_line_for_order(
-    checkout_line: "CheckoutLine", discounts, channel: "Channel"
+    manager: "PluginsManager",
+    checkout: "Checkout",
+    checkout_line_info: "CheckoutLineInfo",
+    discounts,
+    channel: "Channel",
 ) -> OrderLine:
     """Create a line for the given order.
 
     :raises InsufficientStock: when there is not enough items in stock for this variant.
     """
 
+    checkout_line = checkout_line_info.line
     quantity = checkout_line.quantity
-    variant = checkout_line.variant
-    product = variant.product
-    country = checkout_line.checkout.get_country()
+    variant = checkout_line_info.variant
+    channel_listing = checkout_line_info.channel_listing
+    product = checkout_line_info.product
+    collections = checkout_line_info.collections
+    country = checkout.get_country()
+    address = (
+        checkout.shipping_address or checkout.billing_address
+    )  # FIXME: check which address we need here
     check_stock_quantity(variant, country, quantity)
 
     product_name = str(product)
@@ -150,9 +160,16 @@ def _create_line_for_order(
     if translated_variant_name == variant_name:
         translated_variant_name = ""
 
-    manager = get_plugins_manager()
     total_line_price = manager.calculate_checkout_line_total(
-        checkout_line, discounts, channel
+        checkout,
+        checkout_line,
+        variant,
+        product,
+        collections,
+        address,
+        channel,
+        channel_listing,
+        discounts,
     )
     unit_price = quantize_price(
         total_line_price / checkout_line.quantity, total_line_price.currency
@@ -179,7 +196,11 @@ def _create_line_for_order(
 
 
 def _prepare_order_data(
-    *, checkout: Checkout, lines: Iterable[CheckoutLine], discounts
+    *,
+    manager: "PluginsManager",
+    checkout: Checkout,
+    lines: Iterable["CheckoutLineInfo"],
+    discounts
 ) -> dict:
     """Run checks and return all the data from a given checkout to create an order.
 
@@ -187,9 +208,16 @@ def _prepare_order_data(
     """
     order_data = {}
 
-    manager = get_plugins_manager()
+    address = (
+        checkout.shipping_address or checkout.billing_address
+    )  # FIXME: check which address we need here
+
     taxed_total = calculations.checkout_total(
-        checkout=checkout, lines=lines, discounts=discounts
+        manager=manager,
+        checkout=checkout,
+        lines=lines,
+        address=address,
+        discounts=discounts,
     )
     cards_total = checkout.get_total_gift_cards_balance()
     taxed_total.gross -= cards_total
@@ -197,7 +225,9 @@ def _prepare_order_data(
 
     taxed_total = max(taxed_total, zero_taxed_money(checkout.currency))
 
-    shipping_total = manager.calculate_checkout_shipping(checkout, lines, discounts)
+    shipping_total = manager.calculate_checkout_shipping(
+        checkout, lines, address, discounts
+    )
     order_data.update(_process_shipping_data_for_order(checkout, shipping_total))
     order_data.update(_process_user_data_for_order(checkout))
     order_data.update(
@@ -210,8 +240,10 @@ def _prepare_order_data(
 
     channel = checkout.channel
     order_data["lines"] = [
-        _create_line_for_order(checkout_line=line, discounts=discounts, channel=channel)
-        for line in lines
+        _create_line_for_order(
+            manager, checkout, checkout_line_info, discounts, channel=channel
+        )
+        for checkout_line_info in lines
     ]
 
     # validate checkout gift cards
@@ -223,7 +255,7 @@ def _prepare_order_data(
     # assign gift cards to the order
 
     order_data["total_price_left"] = (
-        manager.calculate_checkout_subtotal(checkout, lines, discounts)
+        manager.calculate_checkout_subtotal(checkout, lines, address, discounts)
         + shipping_total
         - checkout.discount
     ).gross
@@ -294,14 +326,18 @@ def _create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
 
 
 def _prepare_checkout(
-    checkout: models.Checkout, discounts, tracking_code, redirect_url, payment
+    manager: "PluginsManager",
+    checkout: models.Checkout,
+    lines: Iterable["CheckoutLineInfo"],
+    discounts,
+    tracking_code,
+    redirect_url,
+    payment,
 ):
     """Prepare checkout object to complete the checkout process."""
-    lines = list(checkout)
-
     clean_checkout_shipping(checkout, lines, discounts, CheckoutErrorCode)
     clean_checkout_payment(
-        checkout, lines, discounts, CheckoutErrorCode, last_payment=payment
+        manager, checkout, lines, discounts, CheckoutErrorCode, last_payment=payment
     )
     if not checkout.channel.is_active:
         raise ValidationError(
@@ -342,11 +378,16 @@ def release_voucher_usage(order_data: dict):
             remove_voucher_usage_by_customer(voucher, order_data["user_email"])
 
 
-def _get_order_data(checkout: models.Checkout, discounts: List[DiscountInfo]) -> dict:
+def _get_order_data(
+    manager: "PluginsManager",
+    checkout: models.Checkout,
+    lines: Iterable["CheckoutLineInfo"],
+    discounts: List[DiscountInfo],
+) -> dict:
     """Prepare data that will be converted to order and its lines."""
     try:
         order_data = _prepare_order_data(
-            checkout=checkout, lines=list(checkout), discounts=discounts,
+            manager=manager, checkout=checkout, lines=lines, discounts=discounts,
         )
     except InsufficientStock as e:
         raise ValidationError(f"Insufficient product stock: {e.item}", code=e.code)
@@ -390,7 +431,9 @@ def _process_payment(
 
 
 def complete_checkout(
+    manager: "PluginsManager",
     checkout: models.Checkout,
+    lines: Iterable["CheckoutLineInfo"],
     payment_data,
     store_source,
     discounts,
@@ -406,7 +449,9 @@ def complete_checkout(
     """
     payment = checkout.get_last_active_payment()
     _prepare_checkout(
+        manager=manager,
         checkout=checkout,
+        lines=lines,
         discounts=discounts,
         tracking_code=tracking_code,
         redirect_url=redirect_url,
@@ -414,7 +459,7 @@ def complete_checkout(
     )
 
     try:
-        order_data = _get_order_data(checkout, discounts)
+        order_data = _get_order_data(manager, checkout, lines, discounts)
     except ValidationError as error:
         gateway.payment_refund_or_void(payment)
         raise error
