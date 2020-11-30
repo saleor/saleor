@@ -34,7 +34,6 @@ from ..attribute.models import (
     AttributeValueTranslation,
 )
 from ..attribute.utils import associate_attribute_values_to_instance
-from ..checkout import utils
 from ..checkout.models import Checkout
 from ..checkout.utils import add_variant_to_checkout
 from ..core import JobStatus
@@ -52,7 +51,6 @@ from ..discount.models import (
     VoucherTranslation,
 )
 from ..giftcard.models import GiftCard
-from ..invoice.models import Invoice
 from ..menu.models import Menu, MenuItem, MenuItemTranslation
 from ..order import OrderStatus
 from ..order.actions import cancel_fulfillment, fulfill_order_line
@@ -63,7 +61,6 @@ from ..page.models import Page, PageTranslation, PageType
 from ..payment import ChargeStatus, TransactionKind
 from ..payment.interface import GatewayConfig, PaymentData
 from ..payment.models import Payment
-from ..plugins.invoicing.plugin import InvoicingPlugin
 from ..plugins.models import PluginConfiguration
 from ..plugins.vatlayer.plugin import VatlayerPlugin
 from ..product.models import (
@@ -82,6 +79,7 @@ from ..product.models import (
     ProductVariant,
     ProductVariantChannelListing,
     ProductVariantTranslation,
+    VariantImage,
 )
 from ..product.tests.utils import create_image
 from ..shipping.models import (
@@ -968,7 +966,6 @@ def product(product_type, category, warehouse, channel_USD):
         product_type=product_type,
         category=category,
     )
-
     ProductChannelListing.objects.create(
         product=product,
         channel=channel_USD,

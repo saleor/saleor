@@ -281,15 +281,38 @@ class VariantsChannelListingByProductIdAndChanneSlugLoader(
         ]
 
 
+class ProductImageByIdLoader(DataLoader):
+    context_key = "product_image_by_id"
+
+    def batch_load(self, keys):
+        product_images = ProductImage.objects.in_bulk(keys)
+        return [product_images.get(product_image_id) for product_image_id in keys]
+
+
 class ImagesByProductVariantIdLoader(DataLoader):
     context_key = "images_by_product_variant"
 
     def batch_load(self, keys):
-        variant_images = VariantImage.objects.filter(variant_id__in=keys)
-        image_map = defaultdict(list)
-        for variant_image in variant_images:
-            image_map[variant_image.variant_id].append(variant_image.image)
-        return [image_map[product_id] for product_id in keys]
+        variant_images = VariantImage.objects.filter(variant_id__in=keys).values_list(
+            "variant_id", "image_id"
+        )
+
+        variant_image_pairs = defaultdict(list)
+        for variant_id, image_id in variant_images:
+            variant_image_pairs[variant_id].append(image_id)
+
+        def map_variant_images(images):
+            images_map = {image.id: image for image in images}
+            return [
+                [images_map[image_id] for image_id in variant_image_pairs[variant_id]]
+                for variant_id in keys
+            ]
+
+        return (
+            ProductImageByIdLoader(self.context)
+            .load_many(set(image_id for variant_id, image_id in variant_images))
+            .then(map_variant_images)
+        )
 
 
 class CollectionByIdLoader(DataLoader):
