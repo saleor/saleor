@@ -2401,6 +2401,9 @@ QUERY_GET_FIRST_EVENT = """
                                     id
                                 }
                             }
+                            fulfilledItems {
+                                id
+                            }
                         }
                     }
                 }
