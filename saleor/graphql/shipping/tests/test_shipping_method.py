@@ -390,10 +390,10 @@ def test_create_duplicated_default_shipping_zone(
 
 CREATE_SHIPPING_METHOD_ZIP_CODE_MUTATION = """
     mutation createZipCode(
-        $shippingMethod: ID!, $zipCodeRules: [ShippingZipCodeRulesCreateInputRange]!
+        $shippingMethodId: ID!, $zipCodeRules: [ShippingZipCodeRulesCreateInputRange]!
     ){
         shippingMethodZipCodeRulesCreate(
-            shippingMethod: $shippingMethod
+            shippingMethodId: $shippingMethodId
             input: {
                 zipCodeRules: $zipCodeRules
             }
@@ -425,7 +425,7 @@ def test_create_shipping_method_zip_code(
         {"start": "HB3", "end": "HB6"},
         {"start": "HB8", "end": None},
     ]
-    variables = {"shippingMethod": shipping_method_id, "zipCodeRules": zip_code_rules}
+    variables = {"shippingMethodId": shipping_method_id, "zipCodeRules": zip_code_rules}
     response = staff_api_client.post_graphql(
         CREATE_SHIPPING_METHOD_ZIP_CODE_MUTATION,
         variables,
