@@ -2555,6 +2555,7 @@ type Mutation {
   shopFetchTaxRates: ShopFetchTaxRates
   shopSettingsTranslate(input: ShopSettingsTranslationInput!, languageCode: LanguageCodeEnum!): ShopSettingsTranslate
   shopAddressUpdate(input: AddressInput): ShopAddressUpdate
+  orderSettingsUpdate(input: OrderSettingsUpdateInput!): OrderSettingsUpdate
   shippingMethodChannelListingUpdate(id: ID!, input: ShippingMethodChannelListingInput!): ShippingMethodChannelListingUpdate
   shippingMethodZipCodeRulesCreate(input: ShippingZipCodeRulesCreateInput!, shippingMethodId: ID!): ShippingZipCodeRulesCreate
   shippingMethodZipCodeRulesDelete(id: ID!): ShippingZipCodeRulesDelete
@@ -2563,6 +2564,8 @@ type Mutation {
   shippingPriceBulkDelete(ids: [ID]!): ShippingPriceBulkDelete
   shippingPriceUpdate(id: ID!, input: ShippingPriceInput!): ShippingPriceUpdate
   shippingPriceTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): ShippingPriceTranslate
+  shippingPriceExcludeProducts(id: ID!, input: ShippingPriceExcludeProductsInput!): ShippingPriceExcludeProducts
+  shippingPriceRemoveProductFromExclude(id: ID!, products: [ID]!): ShippingPriceRemoveProductFromExclude
   shippingZoneCreate(input: ShippingZoneCreateInput!): ShippingZoneCreate
   shippingZoneDelete(id: ID!): ShippingZoneDelete
   shippingZoneBulkDelete(ids: [ID]!): ShippingZoneBulkDelete
@@ -2646,6 +2649,7 @@ type Mutation {
   orderAddNote(order: ID!, input: OrderAddNoteInput!): OrderAddNote
   orderCancel(id: ID!): OrderCancel
   orderCapture(amount: PositiveDecimal!, id: ID!): OrderCapture
+  orderConfirm(id: ID!): OrderConfirm
   orderFulfill(input: OrderFulfillInput!, order: ID): OrderFulfill
   orderFulfillmentCancel(id: ID!, input: FulfillmentCancelInput!): FulfillmentCancel
   orderFulfillmentUpdateTracking(id: ID!, input: FulfillmentUpdateTrackingInput!): FulfillmentUpdateTracking
@@ -2885,6 +2889,12 @@ type OrderCapture {
   orderErrors: [OrderError!]!
 }
 
+type OrderConfirm {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  order: Order
+  orderErrors: [OrderError!]!
+}
+
 type OrderCountableConnection {
   pageInfo: PageInfo!
   edges: [OrderCountableEdge!]!
@@ -2987,6 +2997,7 @@ type OrderEventOrderLineObject {
 
 enum OrderEventsEmailsEnum {
   PAYMENT_CONFIRMATION
+  CONFIRMED
   SHIPPING_CONFIRMATION
   TRACKING_UPDATED
   ORDER_CONFIRMATION
@@ -3008,6 +3019,7 @@ enum OrderEventsEnum {
   ORDER_FULLY_PAID
   UPDATED_ADDRESS
   EMAIL_SENT
+  CONFIRMED
   PAYMENT_AUTHORIZED
   PAYMENT_CAPTURED
   EXTERNAL_SERVICE_NOTIFICATION
@@ -3096,6 +3108,30 @@ type OrderRefund {
   orderErrors: [OrderError!]!
 }
 
+type OrderSettings {
+  automaticallyConfirmAllNewOrders: Boolean!
+}
+
+type OrderSettingsError {
+  field: String
+  message: String
+  code: OrderSettingsErrorCode!
+}
+
+enum OrderSettingsErrorCode {
+  INVALID
+}
+
+type OrderSettingsUpdate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  orderSettings: OrderSettings
+  orderSettingsErrors: [OrderSettingsError!]!
+}
+
+input OrderSettingsUpdateInput {
+  automaticallyConfirmAllNewOrders: Boolean!
+}
+
 enum OrderSortField {
   NUMBER
   CREATION_DATE
@@ -3111,6 +3147,7 @@ input OrderSortingInput {
 
 enum OrderStatus {
   DRAFT
+  UNCONFIRMED
   UNFULFILLED
   PARTIALLY_FULFILLED
   FULFILLED
@@ -3121,6 +3158,7 @@ enum OrderStatusFilter {
   READY_TO_FULFILL
   READY_TO_CAPTURE
   UNFULFILLED
+  UNCONFIRMED
   PARTIALLY_FULFILLED
   FULFILLED
   CANCELED
@@ -4294,6 +4332,7 @@ type Query {
   stock(id: ID!): Stock
   stocks(filter: StockFilterInput, before: String, after: String, first: Int, last: Int): StockCountableConnection
   shop: Shop!
+  orderSettings: OrderSettings
   shippingZone(id: ID!, channel: String): ShippingZone
   shippingZones(channel: String, before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
   digitalContent(id: ID!): DigitalContent
@@ -4585,6 +4624,7 @@ type ShippingMethod implements Node & ObjectWithMetadata {
   maximumOrderPrice: Money
   minimumOrderPrice: Money
   zipCodeRules: [ShippingMethodZipCodeRule]
+  excludedProducts(before: String, after: String, first: Int, last: Int): ProductCountableConnection
 }
 
 type ShippingMethodChannelListing implements Node {
@@ -4657,12 +4697,28 @@ type ShippingPriceDelete {
   shippingErrors: [ShippingError!]!
 }
 
+type ShippingPriceExcludeProducts {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  shippingMethod: ShippingMethod
+  shippingErrors: [ShippingError!]!
+}
+
+input ShippingPriceExcludeProductsInput {
+  products: [ID]!
+}
+
 input ShippingPriceInput {
   name: String
   minimumOrderWeight: WeightScalar
   maximumOrderWeight: WeightScalar
   type: ShippingMethodTypeEnum
   shippingZone: ID
+}
+
+type ShippingPriceRemoveProductFromExclude {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  shippingMethod: ShippingMethod
+  shippingErrors: [ShippingError!]!
 }
 
 type ShippingPriceTranslate {
@@ -5632,6 +5688,7 @@ type WebhookEvent {
 enum WebhookEventTypeEnum {
   ANY_EVENTS
   ORDER_CREATED
+  ORDER_CONFIRMED
   ORDER_FULLY_PAID
   ORDER_UPDATED
   ORDER_CANCELLED
@@ -5650,6 +5707,7 @@ enum WebhookEventTypeEnum {
 
 enum WebhookSampleEventTypeEnum {
   ORDER_CREATED
+  ORDER_CONFIRMED
   ORDER_FULLY_PAID
   ORDER_UPDATED
   ORDER_CANCELLED

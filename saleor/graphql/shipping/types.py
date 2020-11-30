@@ -4,6 +4,7 @@ from graphene import relay
 from ...core.permissions import ShippingPermissions
 from ...core.weight import convert_weight_to_default_weight_unit
 from ...shipping import models
+from ..channel import ChannelQsContext
 from ..channel.dataloaders import ChannelByIdLoader
 from ..channel.types import (
     ChannelContext,
@@ -11,6 +12,7 @@ from ..channel.types import (
     ChannelContextTypeWithMetadata,
 )
 from ..core.connection import CountableDjangoObjectType
+from ..core.fields import ChannelContextFilterConnectionField
 from ..core.types import CountryDisplay, Money, MoneyRange
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
@@ -83,6 +85,10 @@ class ShippingMethod(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     zip_code_rules = graphene.List(
         ShippingMethodZipCodeRule,
         description="Zip code exclude range of the shipping method.",
+    )
+    excluded_products = ChannelContextFilterConnectionField(
+        "saleor.graphql.product.types.products.Product",
+        description="List of excluded products for the shipping method.",
     )
 
     class Meta:
@@ -174,6 +180,13 @@ class ShippingMethod(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return ShippingMethodChannelListingByShippingMethodIdLoader(info.context).load(
             root.node.id
         )
+
+    @staticmethod
+    @permission_required(ShippingPermissions.MANAGE_SHIPPING)
+    def resolve_excluded_products(
+        root: ChannelContext[models.ShippingMethod], _info, **_kwargs
+    ):
+        return ChannelQsContext(qs=root.node.excluded_products.all(), channel_slug=None)
 
 
 class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):

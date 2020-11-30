@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 
 from ....core.permissions import ShippingPermissions
+from ....product import models as product_models
 from ....shipping import models
 from ....shipping.error_codes import ShippingErrorCode
 from ....shipping.utils import (
@@ -14,6 +15,8 @@ from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import WeightScalar
 from ...core.types.common import ShippingError
 from ...core.utils import get_duplicates_ids
+from ...product import types as product_types
+from ...utils import resolve_global_ids_to_primary_keys
 from ..enums import ShippingMethodTypeEnum
 from ..types import ShippingMethod, ShippingMethodZipCodeRule, ShippingZone
 
@@ -399,4 +402,94 @@ class ShippingPriceDelete(BaseMutation):
         return ShippingPriceDelete(
             shipping_method=ChannelContext(node=shipping_method, channel_slug=None),
             shipping_zone=ChannelContext(node=shipping_zone, channel_slug=None),
+        )
+
+
+class ShippingPriceExcludeProductsInput(graphene.InputObjectType):
+    products = graphene.List(
+        graphene.ID,
+        description="List of products which will be excluded.",
+        required=True,
+    )
+
+
+class ShippingPriceExcludeProducts(BaseMutation):
+    shipping_method = graphene.Field(
+        ShippingMethod,
+        description="A shipping method with new list of excluded products.",
+    )
+
+    class Arguments:
+        id = graphene.ID(required=True, description="ID of a shipping price.")
+
+        input = ShippingPriceExcludeProductsInput(
+            description="Exclude products input.", required=True
+        )
+
+    class Meta:
+        description = "Exclude products from shipping price."
+        permissions = (ShippingPermissions.MANAGE_SHIPPING,)
+        error_type_class = ShippingError
+        error_type_field = "shipping_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        shipping_method = cls.get_node_or_error(
+            info, data.get("id"), only_type=ShippingMethod
+        )
+        input = data.get("input")
+        product_ids = input.get("products", [])
+
+        _, product_db_ids = resolve_global_ids_to_primary_keys(
+            product_ids, product_types.Product
+        )
+
+        product_to_exclude = product_models.Product.objects.filter(
+            id__in=product_db_ids
+        )
+
+        current_excluded_products = shipping_method.excluded_products.all()
+        shipping_method.excluded_products.set(
+            (current_excluded_products | product_to_exclude).distinct()
+        )
+        return ShippingPriceExcludeProducts(
+            shipping_method=ChannelContext(node=shipping_method, channel_slug=None)
+        )
+
+
+class ShippingPriceRemoveProductFromExclude(BaseMutation):
+    shipping_method = graphene.Field(
+        ShippingMethod,
+        description="A shipping method with new list of excluded products.",
+    )
+
+    class Arguments:
+        id = graphene.ID(required=True, description="ID of a shipping price.")
+        products = graphene.List(
+            graphene.ID,
+            required=True,
+            description="List of products which will be removed from excluded list.",
+        )
+
+    class Meta:
+        description = "Remove product from excluded list for shipping price."
+        permissions = (ShippingPermissions.MANAGE_SHIPPING,)
+        error_type_class = ShippingError
+        error_type_field = "shipping_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        shipping_method = cls.get_node_or_error(
+            info, data.get("id"), only_type=ShippingMethod
+        )
+        product_ids = data.get("products")
+        if product_ids:
+            _, product_db_ids = resolve_global_ids_to_primary_keys(
+                product_ids, product_types.Product
+            )
+            shipping_method.excluded_products.set(
+                shipping_method.excluded_products.exclude(id__in=product_db_ids)
+            )
+        return ShippingPriceExcludeProducts(
+            shipping_method=ChannelContext(node=shipping_method, channel_slug=None)
         )

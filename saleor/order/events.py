@@ -157,6 +157,14 @@ def order_created_event(
     return OrderEvent.objects.create(order=order, type=event_type, user=user)
 
 
+def order_confirmed_event(
+    *, order: Order, user: UserType, from_draft=False
+) -> OrderEvent:
+    if not _user_is_valid(user):
+        user = None
+    return OrderEvent.objects.create(order=order, type=OrderEvents.CONFIRMED, user=user)
+
+
 def draft_order_oversold_items_event(
     *, order: Order, user: UserType, oversold_items: List[str]
 ) -> OrderEvent:
