@@ -89,7 +89,8 @@ class ShippingMethodQueryset(models.QuerySet):
     def weight_based(self):
         return self.filter(type=ShippingMethodType.WEIGHT_BASED)
 
-    def applicable_shipping_methods_by_channel(self, shipping_methods, channel_id):
+    @staticmethod
+    def applicable_shipping_methods_by_channel(shipping_methods, channel_id):
         query = ShippingMethodChannelListing.objects.filter(
             shipping_method=OuterRef("pk"), channel_id=channel_id
         ).values_list("price_amount")
