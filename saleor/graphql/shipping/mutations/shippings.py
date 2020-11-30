@@ -1,7 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Q
 
 from ....core.permissions import ShippingPermissions
 from ....product import models as product_models
@@ -327,13 +326,9 @@ class ShippingPriceDelete(BaseMutation):
 
 class ShippingPriceExcludeProductsInput(graphene.InputObjectType):
     products = graphene.List(
-        graphene.ID, description="List of products which will be excluded."
-    )
-    collections = graphene.List(
-        graphene.ID, description="List of collections which products will be excluded."
-    )
-    categories = graphene.List(
-        graphene.ID, description="List of categories which products will be excluded."
+        graphene.ID,
+        description="List of products which will be excluded.",
+        required=True,
     )
 
 
@@ -357,53 +352,19 @@ class ShippingPriceExcludeProducts(BaseMutation):
         error_type_field = "shipping_errors"
 
     @classmethod
-    def validate_ids(cls, product_ids, collection_ids, category_ids):
-        if not any([product_ids, collection_ids, category_ids]):
-            raise ValidationError(
-                {
-                    field: ValidationError(
-                        (
-                            "At least one of the products, collections, categories "
-                            "require provided data."
-                        ),
-                        code=ShippingErrorCode.INVALID.value,
-                    )
-                    for field in ["products", "collections", "categories"]
-                }
-            )
-
-    @classmethod
     def perform_mutation(cls, _root, info, **data):
         shipping_method = cls.get_node_or_error(
             info, data.get("id"), only_type=ShippingMethod
         )
         input = data.get("input")
         product_ids = input.get("products", [])
-        collection_ids = input.get("collections", [])
-        category_ids = input.get("categories", [])
-        cls.validate_ids(product_ids, collection_ids, category_ids)
 
         _, product_db_ids = resolve_global_ids_to_primary_keys(
             product_ids, product_types.Product
         )
-        _, collection_db_ids = resolve_global_ids_to_primary_keys(
-            collection_ids, product_types.Collection
-        )
 
-        _, category_db_ids = resolve_global_ids_to_primary_keys(
-            category_ids, product_types.Category
-        )
-        parent_categories = product_models.Category.tree.get_queryset().filter(
-            id__in=category_db_ids
-        )
-        child_categories = product_models.Category.tree.get_queryset_descendants(
-            parent_categories
-        )
         product_to_exclude = product_models.Product.objects.filter(
-            Q(id__in=product_db_ids)
-            | Q(collections__id__in=collection_db_ids)
-            | Q(category__in=child_categories)
-            | Q(category__in=parent_categories)
+            id__in=product_db_ids
         )
 
         current_excluded_products = shipping_method.excluded_products.all()

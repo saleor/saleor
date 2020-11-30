@@ -4658,9 +4658,7 @@ type ShippingPriceExcludeProducts {
 }
 
 input ShippingPriceExcludeProductsInput {
-  products: [ID]
-  collections: [ID]
-  categories: [ID]
+  products: [ID]!
 }
 
 input ShippingPriceInput {

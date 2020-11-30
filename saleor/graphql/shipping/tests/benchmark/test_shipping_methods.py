@@ -1,8 +1,6 @@
 import graphene
 import pytest
-from django.db.models import Q
 
-from .....product import models as product_models
 from ....tests.utils import get_graphql_content
 
 SHIPPING_METHODS_QUERY = """
@@ -128,26 +126,8 @@ def test_exclude_products_for_shipping_method(
     product_db_ids = [p.pk for p in product_list]
     product_ids = [graphene.Node.to_global_id("Product", p) for p in product_db_ids]
 
-    # product_list_published has products with slugs slug:test-product-a,
-    # slug:test-product-b, slug:test-product-c
-    published_collection.products.set(list(product_list_published))
-    collection_list = [collection, published_collection]
-    collection_ids = [
-        graphene.Node.to_global_id("Collection", c.pk) for c in collection_list
-    ]
-
-    # category has products: slug:test-product-10 and   slug:test-product-11
-    parent_category = categories_tree_with_published_products
-    tree = parent_category.get_descendants(include_self=True)
-    categories_ids = [graphene.Node.to_global_id("Category", parent_category.pk)]
-
-    expected_products = product_models.Product.objects.filter(
-        Q(category__in=tree)
-        | Q(id__in=product_db_ids)
-        | Q(collections__in=collection_list)
-    ).distinct()
     expected_product_ids = [
-        graphene.Node.to_global_id("Product", p.pk) for p in expected_products
+        graphene.Node.to_global_id("Product", p.pk) for p in product_list
     ]
 
     shipping_method_id = graphene.Node.to_global_id(
@@ -155,11 +135,7 @@ def test_exclude_products_for_shipping_method(
     )
     variables = {
         "id": shipping_method_id,
-        "input": {
-            "categories": categories_ids,
-            "collections": collection_ids,
-            "products": product_ids,
-        },
+        "input": {"products": product_ids},
     }
 
     response = staff_api_client.post_graphql(
@@ -171,7 +147,7 @@ def test_exclude_products_for_shipping_method(
     excluded_products = shipping_method["excludedProducts"]
     total_count = excluded_products["totalCount"]
     excluded_product_ids = {p["node"]["id"] for p in excluded_products["edges"]}
-    assert len(expected_product_ids) == total_count == 5
+    assert len(expected_product_ids) == total_count == 3
     assert excluded_product_ids == set(expected_product_ids)
 
 
