@@ -171,7 +171,7 @@ class OrderEvent(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_fulfilled_items(root: models.OrderEvent, _info):
-        lines = root.parameters.get("fulfilled_items", None)
+        lines = root.parameters.get("fulfilled_items", [])
         return models.FulfillmentLine.objects.filter(pk__in=lines)
 
     @staticmethod
