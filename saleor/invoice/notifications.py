@@ -22,5 +22,5 @@ def send_invoice(invoice: "Invoice", staff_user: "User", manager: "PluginsManage
         "requester_user_id": staff_user.id,
         **get_site_context(),
     }
-    manager.notify(NotifyEventType.INVOICE_READY, payload)
+    manager.notify(NotifyEventType.INVOICE_READY, payload)  # type: ignore
     manager.invoice_sent(invoice, invoice.order.get_customer_email())  # type: ignore
