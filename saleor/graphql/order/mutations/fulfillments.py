@@ -342,10 +342,6 @@ class OrderRefundProductsInput(graphene.InputObjectType):
         graphene.NonNull(OrderRefundFulfillmentLineInput),
         description="List of fulfilled lines to refund.",
     )
-    # TODO  call refund email
-    notify_customer = graphene.Boolean(
-        description="If true, send an refund email notification to the customer."
-    )
     amount_to_refund = PositiveDecimal(
         required=False,
         description=("The total amount of refund when the value is provided manually."),
@@ -408,6 +404,16 @@ class FulfillmentRefundProducts(BaseMutation):
             info, order_id, field="order", only_type=Order, qs=qs
         )
         payment = order.get_last_payment()
+        if not payment or not payment.can_refund():
+            raise ValidationError(
+                {
+                    "order": ValidationError(
+                        "Order cannot be refunded.",
+                        code=OrderErrorCode.CANNOT_REFUND.value,
+                    )
+                }
+            )
+
         if amount_to_refund is not None and amount_to_refund > payment.captured_amount:
             raise ValidationError(
                 {
@@ -416,7 +422,7 @@ class FulfillmentRefundProducts(BaseMutation):
                             "The amountToRefund is greater than the maximal possible "
                             "amount to refund."
                         ),
-                        code=OrderErrorCode.INVALID.value,
+                        code=OrderErrorCode.CANNOT_REFUND.value,
                     ),
                 }
             )
@@ -429,6 +435,19 @@ class FulfillmentRefundProducts(BaseMutation):
         order_lines_data = input.get("order_lines")
         fulfillment_lines_data = input.get("fulfillment_lines")
 
+        if not order_lines_data and not fulfillment_lines_data:
+            raise ValidationError(
+                {
+                    "order_lines": ValidationError(
+                        "The orderLines or fulfillmentLines cannot be empty.",
+                        code=OrderErrorCode.REQUIRED.value,
+                    ),
+                    "fulfillment_lines": ValidationError(
+                        "The orderLines or fulfillmentLines cannot be empty.",
+                        code=OrderErrorCode.REQUIRED.value,
+                    ),
+                }
+            )
         if order_lines_data:
             cls.clean_lines(order_lines_data, cleaned_input)
         if fulfillment_lines_data:
@@ -462,8 +481,8 @@ class FulfillmentRefundProducts(BaseMutation):
         for line, quantity in zip(lines_to_refund, quantities_to_refund):
             if line.quantity < quantity:
                 cls._raise_error_for_line(
-                    "Quantity provided to refund is bigger than quantity from order "
-                    "line",
+                    "Quantity provided to refund is bigger than quantity from "
+                    "fulfillment line",
                     "FulfillmentLine",
                     line.pk,
                     "fulfillment_line_id",

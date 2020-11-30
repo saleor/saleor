@@ -523,6 +523,7 @@ def create_refund_fulfillment(
     if amount:
         amount = min(payment.captured_amount, amount)
         gateway.refund(payment, amount)
+        order_refunded(order, requester, amount, payment)
 
     fulfillment_refunded_event(
         order=order,

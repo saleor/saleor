@@ -2854,7 +2854,6 @@ type Order implements Node & ObjectWithMetadata {
   totalBalance: Money!
   userEmail: String
   isShippingRequired: Boolean!
-  linesAvailableForRefund: [OrderLineAvailableForRefund]!
 }
 
 enum OrderAction {
@@ -3087,11 +3086,6 @@ type OrderLine implements Node {
   allocations: [Allocation!]
 }
 
-type OrderLineAvailableForRefund {
-  quantity: Int
-  orderLine: OrderLine
-}
-
 input OrderLineCreateInput {
   quantity: Int!
   variantId: ID!
@@ -3126,7 +3120,6 @@ input OrderRefundLineInput {
 input OrderRefundProductsInput {
   orderLines: [OrderRefundLineInput!]
   fulfillmentLines: [OrderRefundFulfillmentLineInput!]
-  notifyCustomer: Boolean
   amountToRefund: PositiveDecimal
   includeShippingCosts: Boolean = false
 }
