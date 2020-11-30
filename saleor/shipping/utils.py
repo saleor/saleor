@@ -15,17 +15,3 @@ def get_countries_without_shipping_zone():
     for zone in ShippingZone.objects.all():
         covered_countries.update({c.code for c in zone.countries})
     return (country[0] for country in countries if country[0] not in covered_countries)
-
-
-def check_zip_code_in_excluded_range(code, start, end):
-    # TODO: do actual logic on checking if the zip code is in range
-    return True
-
-
-def check_shipping_method_for_zip_code(customer_zip_code, method):
-    for zip_code in method.zip_code_rules.all():
-        if check_zip_code_in_excluded_range(
-            customer_zip_code, zip_code.start, zip_code.end
-        ):
-            return True
-    return False

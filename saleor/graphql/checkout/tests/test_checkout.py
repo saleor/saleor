@@ -9,6 +9,7 @@ import graphene
 import pytest
 from django.core.exceptions import ValidationError
 from django.test import override_settings
+from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
 from ....account.models import User
@@ -1192,11 +1193,13 @@ def test_checkout_available_shipping_methods(
 def test_checkout_available_shipping_methods_excluded_zip_codes(
     api_client, checkout_with_item, address, shipping_zone
 ):
-    address.postal_code = "HB5"
+    address.country = Country("GB")
+    address.postal_code = "BH16 7HF"
+    address.save()
     checkout_with_item.shipping_address = address
     checkout_with_item.save()
     shipping_method = shipping_zone.shipping_methods.first()
-    shipping_method.zip_code_rules.create(start="HB3", end="HB6")
+    shipping_method.zip_code_rules.create(start="BH16 7HA", end="BH16 7HG")
 
     query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
     variables = {"token": checkout_with_item.token}
