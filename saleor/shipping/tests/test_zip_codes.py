@@ -26,11 +26,11 @@ def test_check_zip_code_for_uk(code, start, end, in_range):
 @pytest.mark.parametrize(
     "code, start, end, in_range",
     [
-        ["IM16 7HF", "IM16 7HA", "IM16 7HG", True],
+        ["IM16 7HF", "IM16 7HA", "IM16 7HG", True],  # Isle of Man
         ["IM16 7HZ", "IM16 7HA", "IM16 7HG", False],
-        ["GY16 7HF", "GY16 7HA", "GY16 7HG", True],
+        ["GY16 7HF", "GY16 7HA", "GY16 7HG", True],  # Jersey
         ["GY16 7HZ", "GY16 7HA", "GY16 7HG", False],
-        ["GG16 7HF", "GG16 7HA", "GG16 7HG", True],
+        ["GG16 7HF", "GG16 7HA", "GG16 7HG", True],  # Guernsey
         ["GG16 7HZ", "GG16 7HA", "GG16 7HG", False],
     ],
 )

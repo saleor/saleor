@@ -40,6 +40,10 @@ def compare_values(code, start, end):
 
 
 def check_uk_zip_code(code, start, end):
+    """Check zip code for uk, split the code by regex.
+
+    Example zip codes: BH20 2BC  (UK), IM16 7HF  (Isle of Man).
+    """
     pattern = r"^([A-Z]{1,2})([0-9]+)([A-Z]?) ?([0-9][A-Z]{2})$"
     code, start, end = group_values(pattern, code, start, end)
     # replace second item of each tuple with it's value casted to int
@@ -48,12 +52,20 @@ def check_uk_zip_code(code, start, end):
 
 
 def check_irish_zip_code(code, start, end):
+    """Check zip code for Ireland, split the code by regex.
+
+    Example zip codes: A65 2F0A, A61 2F0G.
+    """
     pattern = r"([\dA-Z]{3}) ?([\dA-Z]{4})"
     code, start, end = group_values(pattern, code, start, end)
     return compare_values(code, start, end)
 
 
 def check_any_zip_code(code, start, end):
+    """Fallback for any country not present in country_func_map.
+
+    Perform simple lexicographical comparison without splitting to sections.
+    """
     return compare_values(code, start, end)
 
 
