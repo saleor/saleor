@@ -1,15 +1,15 @@
 from unittest import mock
 
-from saleor.account.notifications import get_default_user_payload
-from saleor.invoice import InvoiceEvents
-from saleor.invoice.models import Invoice, InvoiceEvent
-from saleor.order import OrderEvents, OrderEventsEmails
-from saleor.order.notifications import (
+from ....account.notifications import get_default_user_payload
+from ....invoice import InvoiceEvents
+from ....invoice.models import Invoice, InvoiceEvent
+from ....order import OrderEvents, OrderEventsEmails
+from ....order.notifications import (
     get_default_fulfillment_payload,
     get_default_order_payload,
 )
-from saleor.plugins.email_common import EmailConfig
-from saleor.plugins.user_email.tasks import (
+from ....plugins.email_common import EmailConfig
+from ....plugins.user_email.tasks import (
     send_account_confirmation_email_task,
     send_account_delete_confirmation_email_task,
     send_fulfillment_confirmation_email_task,
