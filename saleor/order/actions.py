@@ -628,8 +628,10 @@ def create_refund_fulfillment(
 
     if amount is None:
         amount = refund_amount
-    if refund_shipping_costs:
-        amount += order.shipping_price_gross_amount
+        # we take into consideration the shipping costs only when amount is not
+        # provided.
+        if refund_shipping_costs:
+            amount += order.shipping_price_gross_amount
     if amount:
         amount = min(payment.captured_amount, amount)
         gateway.refund(payment, amount)
