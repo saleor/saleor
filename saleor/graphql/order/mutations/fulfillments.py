@@ -365,8 +365,8 @@ class FulfillmentRefundProducts(BaseMutation):
     order = graphene.Field(Order, description="Order which fulfillment was refunded.")
 
     class Arguments:
-        order_id = graphene.ID(
-            description="ID of the order to be fulfilled.", name="order", required=True
+        order = graphene.ID(
+            description="ID of the order to be fulfilled.", required=True
         )
         input = OrderRefundProductsInput(
             required=True,
@@ -540,7 +540,7 @@ class FulfillmentRefundProducts(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        cleaned_input = cls.clean_input(info, data.get("order_id"), data.get("input"))
+        cleaned_input = cls.clean_input(info, data.get("order"), data.get("input"))
         order = cleaned_input["order"]
         refund_fulfillment = create_refund_fulfillment(
             get_user_or_app_from_context(info.context),
