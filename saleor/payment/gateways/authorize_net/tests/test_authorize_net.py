@@ -2,7 +2,7 @@ import pytest
 
 from .... import TransactionKind
 from ....interface import PaymentData
-from .. import process_payment, authenticate_test, refund, capture
+from .. import process_payment, authenticate_test, refund, capture, void
 
 
 INVALID_TOKEN = "Y29kZTo1MF8yXzA2MDAwIHRva2VuOjEgdjoxLjE="
@@ -132,3 +132,80 @@ def test_authorize_and_capture(dummy_payment_data, authorize_net_gateway_config)
     assert response.amount == dummy_payment_data.amount
     assert response.currency == dummy_payment_data.currency
     assert not response.action_required
+
+
+@pytest.mark.integration
+@pytest.mark.vcr()
+def test_void(authorize_net_payment, authorize_net_gateway_config):
+    payment_data = PaymentData(
+        None,
+        None,
+        None,
+        None,
+        payment_id=authorize_net_payment.pk,
+        graphql_payment_id=None,
+        order_id=authorize_net_payment.order_id,
+        customer_ip_address=authorize_net_payment.customer_ip_address,
+        customer_email=authorize_net_payment.billing_email,
+        token='1',
+    )
+    response = void(
+        payment_data,
+        authorize_net_gateway_config,
+    )
+    assert not response.error
+    assert response.kind == TransactionKind.VOID
+    assert response.is_success
+
+
+@pytest.mark.integration
+@pytest.mark.vcr()
+def test_void_duplicate(authorize_net_payment, authorize_net_gateway_config):
+    """
+    Tests already voided transaction
+    Authorize.net considers this a successful transaction
+    """
+    payment_data = PaymentData(
+        None,
+        None,
+        None,
+        None,
+        payment_id=authorize_net_payment.pk,
+        graphql_payment_id=None,
+        order_id=authorize_net_payment.order_id,
+        customer_ip_address=authorize_net_payment.customer_ip_address,
+        customer_email=authorize_net_payment.billing_email,
+        token='1',
+    )
+    response = void(
+        payment_data,
+        authorize_net_gateway_config,
+    )
+    assert not response.error
+    assert response.kind == TransactionKind.VOID
+    assert response.is_success
+
+
+@pytest.mark.integration
+@pytest.mark.vcr()
+def test_void_failure(authorize_net_payment, authorize_net_gateway_config):
+    """ Tess with invalid transaction id """
+    payment_data = PaymentData(
+        None,
+        None,
+        None,
+        None,
+        payment_id=authorize_net_payment.pk,
+        graphql_payment_id=None,
+        order_id=authorize_net_payment.order_id,
+        customer_ip_address=authorize_net_payment.customer_ip_address,
+        customer_email=authorize_net_payment.billing_email,
+        token='1',
+    )
+    response = void(
+        payment_data,
+        authorize_net_gateway_config,
+    )
+    assert response.error
+    assert response.kind == TransactionKind.VOID
+    assert not response.is_success

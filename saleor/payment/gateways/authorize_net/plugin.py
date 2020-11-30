@@ -14,6 +14,7 @@ from . import (
     refund,
     authorize,
     capture,
+    void,
 )
 
 
@@ -138,7 +139,7 @@ class AuthorizeNetGatewayPlugin(BasePlugin):
     def void_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
-        pass  # return void(payment_information, self._get_gateway_config())
+        return void(payment_information, self._get_gateway_config())
 
     @require_active_plugin
     def process_payment(

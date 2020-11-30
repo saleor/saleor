@@ -173,6 +173,43 @@ def authorize(
     )
 
 
+def void(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
+    merchant_auth = _get_merchant_auth(config.connection_params)
+
+    transaction_request = apicontractsv1.transactionRequestType()
+    transaction_request.transactionType = "voidTransaction"
+    transaction_request.refTransId = payment_information.token
+
+    create_transaction_request = apicontractsv1.createTransactionRequest()
+    create_transaction_request.merchantAuthentication = merchant_auth
+    create_transaction_request.transactionRequest = transaction_request
+
+    response = _make_request(create_transaction_request, config.connection_params)
+
+    (
+        success,
+        error,
+        transaction_id,
+        transaction_response,
+        raw_response,
+    ) = _handle_authorize_net_response(response)
+    payment_method_info = _authorize_net_account_to_payment_method_info(
+        transaction_response
+    )
+    return GatewayResponse(
+        is_success=success,
+        action_required=False,
+        transaction_id=transaction_id,
+        amount=payment_information.amount,
+        currency=payment_information.currency,
+        error=error,
+        payment_method_info=payment_method_info,
+        kind=TransactionKind.VOID,
+        raw_response=raw_response,
+        customer_id=payment_information.customer_id,
+    )
+
+
 def refund(
     payment_information: PaymentData, cc_last_digits: str, config: GatewayConfig
 ) -> GatewayResponse:
