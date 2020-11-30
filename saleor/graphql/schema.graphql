@@ -2556,6 +2556,8 @@ type Mutation {
   shopSettingsTranslate(input: ShopSettingsTranslationInput!, languageCode: LanguageCodeEnum!): ShopSettingsTranslate
   shopAddressUpdate(input: AddressInput): ShopAddressUpdate
   shippingMethodChannelListingUpdate(id: ID!, input: ShippingMethodChannelListingInput!): ShippingMethodChannelListingUpdate
+  shippingMethodZipCodeRulesCreate(input: ShippingZipCodeRulesCreateInput!, shippingMethodId: ID!): ShippingZipCodeRulesCreate
+  shippingMethodZipCodeRulesDelete(id: ID!): ShippingZipCodeRulesDelete
   shippingPriceCreate(input: ShippingPriceInput!): ShippingPriceCreate
   shippingPriceDelete(id: ID!): ShippingPriceDelete
   shippingPriceBulkDelete(ids: [ID]!): ShippingPriceBulkDelete
@@ -4582,6 +4584,7 @@ type ShippingMethod implements Node & ObjectWithMetadata {
   price: Money
   maximumOrderPrice: Money
   minimumOrderPrice: Money
+  zipCodeRules: [ShippingMethodZipCodeRule]
 }
 
 type ShippingMethodChannelListing implements Node {
@@ -4628,6 +4631,12 @@ enum ShippingMethodTypeEnum {
   WEIGHT
 }
 
+type ShippingMethodZipCodeRule implements Node {
+  start: String
+  end: String
+  id: ID!
+}
+
 type ShippingPriceBulkDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   count: Int!
@@ -4667,6 +4676,28 @@ type ShippingPriceUpdate {
   shippingZone: ShippingZone
   shippingMethod: ShippingMethod
   shippingErrors: [ShippingError!]!
+}
+
+type ShippingZipCodeRulesCreate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  zipCodeRules: [ShippingMethodZipCodeRule]
+  shippingMethod: ShippingMethod
+  shippingErrors: [ShippingError!]!
+}
+
+input ShippingZipCodeRulesCreateInput {
+  zipCodeRules: [ShippingZipCodeRulesCreateInputRange]!
+}
+
+input ShippingZipCodeRulesCreateInputRange {
+  start: String!
+  end: String
+}
+
+type ShippingZipCodeRulesDelete {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  shippingErrors: [ShippingError!]!
+  shippingMethodZipCodeRule: ShippingMethodZipCodeRule
 }
 
 type ShippingZone implements Node & ObjectWithMetadata {

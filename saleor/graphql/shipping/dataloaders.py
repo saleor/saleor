@@ -2,7 +2,11 @@ from collections import defaultdict
 
 from django.db.models import F
 
-from ...shipping.models import ShippingMethod, ShippingMethodChannelListing
+from ...shipping.models import (
+    ShippingMethod,
+    ShippingMethodChannelListing,
+    ShippingMethodZipCodeRule,
+)
 from ..core.dataloaders import DataLoader
 
 
@@ -28,6 +32,20 @@ class ShippingMethodsByShippingZoneIdLoader(DataLoader):
             shipping_methods_by_shipping_zone_map[shipping_zone_id]
             for shipping_zone_id in keys
         ]
+
+
+class ZipCodeRulesByShippingMethodIdLoader(DataLoader):
+    context_key = "zip_code_rules_by_shipping_method"
+
+    def batch_load(self, keys):
+        zip_code_rules = ShippingMethodZipCodeRule.objects.filter(
+            shipping_method_id__in=keys
+        )
+
+        zip_code_rules_map = defaultdict(list)
+        for zip_code in zip_code_rules:
+            zip_code_rules_map[zip_code.shipping_method_id].append(zip_code)
+        return [zip_code_rules_map[shipping_method_id] for shipping_method_id in keys]
 
 
 class ShippingMethodsByShippingZoneIdAndChannelSlugLoader(DataLoader):
