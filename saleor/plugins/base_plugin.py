@@ -233,6 +233,14 @@ class BasePlugin:
         """
         return NotImplemented
 
+    def order_confirmed(self, order: "Order", previous_value: Any):
+        """Trigger when order is confirmed by staff.
+
+        Overwrite this method if you need to trigger specific logic after an order is
+        confirmed.
+        """
+        return NotImplemented
+
     def invoice_request(
         self,
         order: "Order",
