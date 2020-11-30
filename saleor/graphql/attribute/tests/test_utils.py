@@ -3,7 +3,7 @@ import graphene
 from ....attribute import AttributeInputType
 from ....page.error_codes import PageErrorCode
 from ....product.error_codes import ProductErrorCode
-from ..mutations.products import AttrValuesInput
+from ...product.mutations.products import AttrValuesInput
 from ..utils import validate_attributes_input
 
 
@@ -42,7 +42,7 @@ def test_validate_attributes_input_for_product(
     errors = validate_attributes_input(
         input_data,
         product_type.product_attributes.all(),
-        ProductErrorCode,
+        is_page_attributes=False,
         variant_validation=False,
     )
 
@@ -85,7 +85,7 @@ def test_validate_attributes_input_for_product_no_values_given(
     errors = validate_attributes_input(
         input_data,
         product_type.product_attributes.all(),
-        ProductErrorCode,
+        is_page_attributes=False,
         variant_validation=False,
     )
 
@@ -136,7 +136,7 @@ def test_validate_attributes_input_for_product_too_many_values_given(
     errors = validate_attributes_input(
         input_data,
         product_type.product_attributes.all(),
-        ProductErrorCode,
+        is_page_attributes=False,
         variant_validation=False,
     )
 
@@ -186,7 +186,7 @@ def test_validate_attributes_input_for_product_empty_values_given(
     errors = validate_attributes_input(
         input_data,
         product_type.product_attributes.all(),
-        ProductErrorCode,
+        is_page_attributes=False,
         variant_validation=False,
     )
 
@@ -226,7 +226,10 @@ def test_validate_attributes_input_for_product_lack_of_required_attribute(
 
     # when
     errors = validate_attributes_input(
-        input_data, product_attributes, ProductErrorCode, variant_validation=False
+        input_data,
+        product_attributes,
+        is_page_attributes=False,
+        variant_validation=False,
     )
 
     # then
@@ -275,7 +278,7 @@ def test_validate_attributes_input_for_product_multiply_errors(
     errors = validate_attributes_input(
         input_data,
         product_type.product_attributes.all(),
-        ProductErrorCode,
+        is_page_attributes=False,
         variant_validation=False,
     )
 
@@ -326,7 +329,7 @@ def test_validate_attributes_input_for_page(
     errors = validate_attributes_input(
         input_data,
         page_type.page_attributes.all(),
-        PageErrorCode,
+        is_page_attributes=True,
         variant_validation=False,
     )
 
@@ -369,7 +372,7 @@ def test_validate_attributes_input_for_page_no_values_given(
     errors = validate_attributes_input(
         input_data,
         page_type.page_attributes.all(),
-        PageErrorCode,
+        is_page_attributes=True,
         variant_validation=False,
     )
 
@@ -420,7 +423,7 @@ def test_validate_attributes_input_for_page_too_many_values_given(
     errors = validate_attributes_input(
         input_data,
         page_type.page_attributes.all(),
-        PageErrorCode,
+        is_page_attributes=True,
         variant_validation=False,
     )
 
@@ -470,7 +473,7 @@ def test_validate_attributes_input_for_page_empty_values_given(
     errors = validate_attributes_input(
         input_data,
         page_type.page_attributes.all(),
-        PageErrorCode,
+        is_page_attributes=True,
         variant_validation=False,
     )
 
@@ -510,7 +513,7 @@ def test_validate_attributes_input_for_page_lack_of_required_attribute(
 
     # when
     errors = validate_attributes_input(
-        input_data, page_attributes, PageErrorCode, variant_validation=False
+        input_data, page_attributes, is_page_attributes=True, variant_validation=False
     )
 
     # then
@@ -559,7 +562,7 @@ def test_validate_attributes_input_for_page_multiply_errors(
     errors = validate_attributes_input(
         input_data,
         page_type.page_attributes.all(),
-        PageErrorCode,
+        is_page_attributes=True,
         variant_validation=False,
     )
 
@@ -608,7 +611,7 @@ def test_validate_attributes_input(weight_attribute, color_attribute, product_ty
 
     # when
     errors = validate_attributes_input(
-        input_data, attributes, ProductErrorCode, variant_validation=True
+        input_data, attributes, is_page_attributes=False, variant_validation=True
     )
 
     # then
@@ -650,7 +653,7 @@ def test_validate_attributes_input_no_values_given(
 
     # when
     errors = validate_attributes_input(
-        input_data, attributes, ProductErrorCode, variant_validation=True
+        input_data, attributes, is_page_attributes=False, variant_validation=True
     )
 
     # then
@@ -698,7 +701,7 @@ def test_validate_attributes_input_too_many_values_given(
 
     # when
     errors = validate_attributes_input(
-        input_data, attributes, ProductErrorCode, variant_validation=True
+        input_data, attributes, is_page_attributes=False, variant_validation=True
     )
 
     # then
@@ -746,7 +749,7 @@ def test_validate_attributes_input_empty_values_given(
 
     # when
     errors = validate_attributes_input(
-        input_data, attributes, ProductErrorCode, variant_validation=True
+        input_data, attributes, is_page_attributes=False, variant_validation=True
     )
 
     # then
@@ -794,7 +797,7 @@ def test_validate_attributes_input_multiply_errors(
 
     # when
     errors = validate_attributes_input(
-        input_data, attributes, ProductErrorCode, variant_validation=True
+        input_data, attributes, is_page_attributes=False, variant_validation=True
     )
 
     # then
@@ -844,7 +847,7 @@ def test_validate_attributes_with_file_input_type_for_product(
     errors = validate_attributes_input(
         input_data,
         product_type.product_attributes.all(),
-        ProductErrorCode,
+        is_page_attributes=False,
         variant_validation=False,
     )
 
@@ -887,7 +890,7 @@ def test_validate_attributes_with_file_input_type_for_product_no_file_given(
     errors = validate_attributes_input(
         input_data,
         product_type.product_attributes.all(),
-        ProductErrorCode,
+        is_page_attributes=False,
         variant_validation=False,
     )
 
@@ -935,7 +938,7 @@ def test_validate_attributes_with_file_input_type_for_product_empty_file_value(
     errors = validate_attributes_input(
         input_data,
         product_type.product_attributes.all(),
-        ProductErrorCode,
+        is_page_attributes=False,
         variant_validation=False,
     )
 
