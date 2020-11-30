@@ -76,6 +76,9 @@ class OrderEvent(CountableDjangoObjectType):
     transaction_reference = graphene.String(
         description="The transaction reference of captured payment."
     )
+    shipping_costs_included = graphene.Boolean(
+        description="Define if shipping costs were included to the refund."
+    )
 
     class Meta:
         description = "History log of the order."
@@ -182,6 +185,10 @@ class OrderEvent(CountableDjangoObjectType):
     @staticmethod
     def resolve_transaction_reference(root: models.OrderEvent, _info):
         return root.parameters.get("transaction_reference")
+
+    @staticmethod
+    def resolve_shipping_costs_included(root: models.OrderEvent, _info):
+        return root.parameters.get("shipping_costs_included")
 
 
 class FulfillmentLine(CountableDjangoObjectType):
