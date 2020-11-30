@@ -50,6 +50,7 @@ from ...discount.models import Sale, SaleChannelListing, Voucher, VoucherChannel
 from ...discount.utils import fetch_discounts
 from ...giftcard.models import GiftCard
 from ...menu.models import Menu
+from ...order import OrderStatus
 from ...order.models import Fulfillment, Order, OrderLine
 from ...order.utils import update_order_status
 from ...page.models import Page, PageType
@@ -633,6 +634,9 @@ def create_fake_order(discounts, max_order_lines=5):
     )
     customer = random.choice([None, customers.first()])
 
+    # 20% chance to be unconfirmed order.
+    will_be_unconfirmed = random.choice([0, 0, 0, 0, 1])
+
     if customer:
         address = customer.default_shipping_address
         order_data = {
@@ -665,6 +669,8 @@ def create_fake_order(discounts, max_order_lines=5):
             "shipping_price": shipping_price,
         }
     )
+    if will_be_unconfirmed:
+        order_data["status"] = OrderStatus.UNCONFIRMED
 
     order = Order.objects.create(**order_data)
     lines = create_order_lines(order, discounts, random.randrange(1, max_order_lines))
@@ -676,7 +682,10 @@ def create_fake_order(discounts, max_order_lines=5):
     order.save()
 
     create_fake_payment(order=order)
-    create_fulfillments(order)
+
+    if not will_be_unconfirmed:
+        create_fulfillments(order)
+
     return order
 
 

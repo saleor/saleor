@@ -94,8 +94,9 @@ def test_process_payment(payment_adyen_for_checkout, checkout_with_items, adyen_
 
 
 @pytest.mark.vcr
+@mock.patch("saleor.payment.gateways.adyen.plugin.call_capture")
 def test_process_payment_with_adyen_auto_capture(
-    payment_adyen_for_checkout, checkout_with_items, adyen_plugin
+    capture_mock, payment_adyen_for_checkout, checkout_with_items, adyen_plugin
 ):
     payment_info = create_payment_information(
         payment_adyen_for_checkout,
@@ -103,8 +104,11 @@ def test_process_payment_with_adyen_auto_capture(
     )
     adyen_plugin = adyen_plugin(adyen_auto_capture=True)
     response = adyen_plugin.process_payment(payment_info, None)
+    # ensure call_capture is not called
+    assert not capture_mock.called
     assert response.is_success is True
     assert response.action_required is False
+    # kind should still be capture as Adyen had adyen_auto_capture set to True
     assert response.kind == TransactionKind.CAPTURE
     assert response.amount == Decimal("80.00")
     assert response.currency == checkout_with_items.currency

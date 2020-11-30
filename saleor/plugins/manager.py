@@ -271,6 +271,10 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins("order_created", default_value, order)
 
+    def order_confirmed(self, order: "Order"):
+        default_value = None
+        return self.__run_method_on_plugins("order_confirmed", default_value, order)
+
     def invoice_request(
         self, order: "Order", invoice: "Invoice", number: Optional[str]
     ):

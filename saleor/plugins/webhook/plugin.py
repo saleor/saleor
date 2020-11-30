@@ -35,6 +35,12 @@ class WebhookPlugin(BasePlugin):
         order_data = generate_order_payload(order)
         trigger_webhooks_for_event.delay(WebhookEventType.ORDER_CREATED, order_data)
 
+    def order_confirmed(self, order: "Order", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        order_data = generate_order_payload(order)
+        trigger_webhooks_for_event.delay(WebhookEventType.ORDER_CONFIRMED, order_data)
+
     def order_fully_paid(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
             return previous_value

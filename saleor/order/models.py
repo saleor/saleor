@@ -35,7 +35,11 @@ class OrderQueryset(models.QuerySet):
         return self.confirmed().filter(checkout_token=token).first()
 
     def confirmed(self):
-        """Return non-draft orders."""
+        """Return orders that aren't draft or unconfirmed."""
+        return self.exclude(status__in=[OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
+
+    def non_draft(self):
+        """Return orders that aren't draft."""
         return self.exclude(status=OrderStatus.DRAFT)
 
     def drafts(self):
@@ -65,6 +69,10 @@ class OrderQueryset(models.QuerySet):
         )
         qs = qs.exclude(status={OrderStatus.DRAFT, OrderStatus.CANCELED})
         return qs.distinct()
+
+    def ready_to_confirm(self):
+        """Return unconfirmed_orders."""
+        return self.filter(status=OrderStatus.UNCONFIRMED)
 
 
 class Order(ModelWithMetadata):

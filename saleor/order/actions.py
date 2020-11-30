@@ -2,10 +2,12 @@ import logging
 from decimal import Decimal
 from typing import TYPE_CHECKING, Dict, List, Optional
 
+from django.contrib.sites.models import Site
 from django.db import transaction
 
 from ..core import analytics
 from ..core.exceptions import InsufficientStock
+from ..order.emails import send_order_confirmed
 from ..payment import ChargeStatus, CustomPaymentChoices, PaymentError, TransactionKind
 from ..payment.models import Payment, Transaction
 from ..payment.utils import create_payment
@@ -31,7 +33,6 @@ if TYPE_CHECKING:
     from ..warehouse.models import Warehouse
     from .models import Order
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -49,6 +50,23 @@ def order_created(order: "Order", user: "User", from_draft: bool = False):
             order_authorized(
                 order=order, user=user, amount=payment.total, payment=payment
             )
+    site_settings = Site.objects.get_current().settings
+    if site_settings.automatically_confirm_all_new_orders:
+        order_confirmed(order, user)
+
+
+def order_confirmed(
+    order: "Order", user: "User", send_confirmation_email: bool = False
+):
+    """Order confirmed.
+
+    Trigger event, plugin hooks and optionally confirmation email.
+    """
+    events.order_confirmed_event(order=order, user=user)
+    manager = get_plugins_manager()
+    manager.order_confirmed(order)
+    if send_confirmation_email:
+        send_order_confirmed.delay(order.pk, user.pk)
 
 
 def handle_fully_paid_order(order: "Order", user: Optional["User"] = None):
