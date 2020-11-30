@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, List, Union
 
 from django.conf import settings
 from django.db import models
@@ -96,13 +96,19 @@ class ShippingMethodQueryset(models.QuerySet):
             "price_amount"
         )
 
+    def exclude_shipping_methods_for_excluded_products(
+        self, qs, product_ids: List[int]
+    ):
+        """Exclude the ShippingMethods which have excluded given products."""
+        return qs.exclude(excluded_products__id__in=product_ids)
+
     def applicable_shipping_methods(
-        self, price: Money, channel_id, weight, country_code
+        self, price: Money, channel_id, weight, country_code, product_ids=None
     ):
         """Return the ShippingMethods that can be used on an order with shipment.
 
         It is based on the given country code, and by shipping methods that are
-        applicable to the given price & weight total.
+        applicable to the given price, weight and products.
         """
         qs = self.filter(
             shipping_zone__countries__contains=country_code,
@@ -110,6 +116,13 @@ class ShippingMethodQueryset(models.QuerySet):
         )
         qs = self.applicable_shipping_methods_by_channel(qs, channel_id)
         qs = qs.prefetch_related("shipping_zone")
+
+        # Products IDs are used to exclude shipping methods that may be not applicable
+        # to some of these products, based on exclusion rules defined in shipping method
+        # instances.
+        if product_ids:
+            qs = self.exclude_shipping_methods_for_excluded_products(qs, product_ids)
+
         price_based_methods = _applicable_price_based_methods(price, qs)
         weight_based_methods = _applicable_weight_based_methods(weight, qs)
         shipping_methods = price_based_methods | weight_based_methods
@@ -127,12 +140,14 @@ class ShippingMethodQueryset(models.QuerySet):
             return None
         if not instance.shipping_address:
             return None
-
+        lines = instance.lines.prefetch_related("variant__product").all()
+        instance_product_ids = set(lines.values_list("variant__product", flat=True))
         return self.applicable_shipping_methods(
             price=price,
             channel_id=channel_id,
             weight=instance.get_total_weight(),
             country_code=country_code or instance.shipping_address.country.code,
+            product_ids=instance_product_ids,
         )
 
 
@@ -152,6 +167,9 @@ class ShippingMethod(ModelWithMetadata):
     maximum_order_weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES, blank=True, null=True
     )
+    excluded_products = models.ManyToManyField(
+        "product.Product", blank=True
+    )  # type: ignore
 
     objects = ShippingMethodQueryset.as_manager()
     translated = TranslationProxy()
