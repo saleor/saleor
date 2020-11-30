@@ -309,7 +309,7 @@ def sum_order_totals(qs, currency_code):
 
 def get_valid_shipping_methods_for_order(order: Order):
     return ShippingMethod.objects.applicable_shipping_methods_for_instance(
-        order, channel_id=order.channel_id, price=order.get_subtotal().gross
+        order, channel_id=order.channel_id, price=order.get_subtotal().gross,
     )
 
 
@@ -329,6 +329,20 @@ def get_prices_of_discounted_specific_product(
         line_prices.extend([line.unit_price_gross] * line.quantity)
 
     return line_prices
+
+
+def check_zip_code_in_excluded_range(code, start, end):
+    # TODO: do actual logic on checking if the zip code is in range
+    return True
+
+
+def check_shipping_method_for_zip_code(customer_zip_code, method: ShippingMethod):
+    for zip_code in method.zip_code_rules.all():
+        if check_zip_code_in_excluded_range(
+            customer_zip_code, zip_code.start, zip_code.end
+        ):
+            return True
+    return False
 
 
 def get_products_voucher_discount_for_order(order: Order) -> Money:
