@@ -9,7 +9,7 @@ from ...payment.models import Payment
 from ...product.models import DigitalContent
 from ...product.tests.utils import create_image
 from ...warehouse.models import Allocation, Stock
-from .. import FulfillmentStatus, OrderEvents, OrderEventsEmails, OrderStatus
+from .. import FulfillmentStatus, OrderEvents, OrderStatus
 from ..actions import (
     automatically_fulfill_digital_lines,
     cancel_fulfillment,
@@ -80,25 +80,9 @@ def test_handle_fully_paid_order_digital_lines(
     handle_fully_paid_order(order)
 
     fulfillment = order.fulfillments.first()
-    (
-        event_order_paid,
-        event_email_sent,
-        event_order_fulfilled,
-        event_digital_links,
-    ) = order.events.all()
+    event_order_paid = order.events.get()
 
     assert event_order_paid.type == OrderEvents.ORDER_FULLY_PAID
-
-    assert event_email_sent.type == OrderEvents.EMAIL_SENT
-    assert event_order_fulfilled.type == OrderEvents.EMAIL_SENT
-    assert event_digital_links.type == OrderEvents.EMAIL_SENT
-
-    assert (
-        event_order_fulfilled.parameters["email_type"] == OrderEventsEmails.FULFILLMENT
-    )
-    assert (
-        event_digital_links.parameters["email_type"] == OrderEventsEmails.DIGITAL_LINKS
-    )
 
     mock_send_payment_confirmation.assert_called_once_with(order, manager)
     send_fulfillment_confirmation_to_customer.assert_called_once_with(
@@ -116,14 +100,8 @@ def test_handle_fully_paid_order(
 ):
     order.payments.add(Payment.objects.create())
     handle_fully_paid_order(order)
-    event_order_paid, event_email_sent = order.events.all()
+    event_order_paid = order.events.get()
     assert event_order_paid.type == OrderEvents.ORDER_FULLY_PAID
-
-    assert event_email_sent.type == OrderEvents.EMAIL_SENT
-    assert event_email_sent.parameters == {
-        "email": order.get_customer_email(),
-        "email_type": OrderEventsEmails.PAYMENT,
-    }
 
     mock_send_payment_confirmation.assert_called_once_with(
         order, mocked_get_plugins_manager()

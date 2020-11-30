@@ -5,7 +5,7 @@ import graphene
 from ....core import JobStatus
 from ....core.notify_events import NotifyEventType
 from ....graphql.tests.utils import get_graphql_content
-from ....invoice.models import Invoice, InvoiceEvent, InvoiceEvents
+from ....invoice.models import Invoice
 from ....invoice.notifications import get_invoice_payload
 from ....order import OrderEvents
 
@@ -38,6 +38,7 @@ def test_invoice_send_notification(
     )
     content = get_graphql_content(response)
     expected_payload = {
+        "requester_user_id": staff_api_client.user.id,
         "invoice": get_invoice_payload(invoice),
         "recipient_email": invoice.order.get_customer_email(),
         "domain": "mirumee.com",
@@ -46,18 +47,6 @@ def test_invoice_send_notification(
 
     mock_notify.assert_called_once_with(NotifyEventType.INVOICE_READY, expected_payload)
     assert not content["data"]["invoiceSendNotification"]["invoiceErrors"]
-    assert InvoiceEvent.objects.filter(
-        type=InvoiceEvents.SENT,
-        user=staff_api_client.user,
-        invoice=invoice,
-        parameters__email=order.user.email,
-    ).exists()
-    assert order.events.filter(
-        type=OrderEvents.INVOICE_SENT,
-        order=order,
-        user=staff_api_client.user,
-        parameters__email=order.user.email,
-    ).exists()
 
 
 @patch("saleor.plugins.manager.PluginsManager.notify")

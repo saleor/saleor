@@ -14,7 +14,15 @@ from ...product.models import Collection
 from ...warehouse.models import Stock
 from ...warehouse.tests.utils import get_quantity_allocated_for_stock
 from .. import OrderEvents, OrderStatus, models
-from ..events import OrderEvent, OrderEventsEmails, email_sent_event
+from ..events import (
+    OrderEventsEmails,
+    notification_fulfillment_confirmation_event,
+    notification_fulfillment_digital_links_event,
+    notification_order_cancel_event,
+    notification_order_confirmation_event,
+    notification_order_refund_event,
+    notification_payment_confirmation_event,
+)
 from ..models import Order
 from ..notifications import (
     get_default_fulfillment_payload,
@@ -711,35 +719,27 @@ def test_send_fulfillment_order_lines_mails(
     send_fulfillment_confirmation_to_customer(
         order=order, fulfillment=fulfillment, user=staff_user, manager=manager
     )
-    events = OrderEvent.objects.all()
-
     expected_payload = get_default_fulfillment_payload(order, fulfillment)
+    expected_payload["requester_user_id"] = staff_user.id
     mocked_notify.assert_called_once_with(
         "order_fulfillment_confirmation", payload=expected_payload
     )
 
-    # Ensure the standard fulfillment event was triggered
-    assert events[0].user == staff_user
-    assert events[0].parameters == {
-        "email": order.user_email,
-        "email_type": OrderEventsEmails.FULFILLMENT,
-    }
 
-    if has_digital:
-        assert len(events) == 2
-        assert events[1].user == staff_user
-        assert events[1].parameters == {
-            "email": order.user_email,
-            "email_type": OrderEventsEmails.DIGITAL_LINKS,
-        }
-    else:
-        assert len(events) == 1
-
-
-def test_email_sent_event_with_user_pk(order):
+@pytest.mark.parametrize(
+    "event_fun, expected_event_type",
+    [
+        (notification_order_cancel_event, OrderEventsEmails.ORDER_CANCEL),
+        (notification_order_confirmation_event, OrderEventsEmails.ORDER_CONFIRMATION),
+        (notification_fulfillment_confirmation_event, OrderEventsEmails.FULFILLMENT),
+        (notification_fulfillment_digital_links_event, OrderEventsEmails.DIGITAL_LINKS),
+        (notification_payment_confirmation_event, OrderEventsEmails.PAYMENT),
+        (notification_order_refund_event, OrderEventsEmails.ORDER_REFUND),
+    ],
+)
+def test_email_sent_event_with_user(order, event_fun, expected_event_type):
     user = order.user
-    email_type = OrderEventsEmails.PAYMENT
-    email_sent_event(order=order, user=None, email_type=email_type, user_pk=user.pk)
+    event_fun(order_id=order.id, user_id=user.pk, customer_email=order.user_email)
     events = order.events.all()
     assert len(events) == 1
     event = events[0]
@@ -750,31 +750,23 @@ def test_email_sent_event_with_user_pk(order):
     assert event.date
     assert event.parameters == {
         "email": order.get_customer_email(),
-        "email_type": email_type,
+        "email_type": expected_event_type,
     }
 
 
-def test_email_sent_event_with_user(order):
-    user = order.user
-    email_type = OrderEventsEmails.PAYMENT
-    email_sent_event(order=order, user=user, email_type=email_type)
-    events = order.events.all()
-    assert len(events) == 1
-    event = events[0]
-    assert event
-    assert event.type == OrderEvents.EMAIL_SENT
-    assert event.user == user
-    assert event.order is order
-    assert event.date
-    assert event.parameters == {
-        "email": order.get_customer_email(),
-        "email_type": email_type,
-    }
-
-
-def test_email_sent_event_without_user_and_user_pk(order):
-    email_type = OrderEventsEmails.PAYMENT
-    email_sent_event(order=order, user=None, email_type=email_type)
+@pytest.mark.parametrize(
+    "event_fun, expected_event_type",
+    [
+        (notification_order_cancel_event, OrderEventsEmails.ORDER_CANCEL),
+        (notification_order_confirmation_event, OrderEventsEmails.ORDER_CONFIRMATION),
+        (notification_fulfillment_confirmation_event, OrderEventsEmails.FULFILLMENT),
+        (notification_fulfillment_digital_links_event, OrderEventsEmails.DIGITAL_LINKS),
+        (notification_payment_confirmation_event, OrderEventsEmails.PAYMENT),
+        (notification_order_refund_event, OrderEventsEmails.ORDER_REFUND),
+    ],
+)
+def test_email_sent_event_without_user_pk(order, event_fun, expected_event_type):
+    event_fun(order_id=order.id, user_id=None, customer_email=order.user_email)
     events = order.events.all()
     assert len(events) == 1
     event = events[0]
@@ -785,5 +777,5 @@ def test_email_sent_event_without_user_and_user_pk(order):
     assert event.date
     assert event.parameters == {
         "email": order.get_customer_email(),
-        "email_type": email_type,
+        "email_type": expected_event_type,
     }

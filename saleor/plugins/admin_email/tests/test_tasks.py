@@ -1,6 +1,8 @@
 from unittest import mock
 
 from ....account.notifications import get_default_user_payload
+from ....csv import ExportEvents
+from ....csv.models import ExportEvent
 from ....csv.notifications import get_default_export_payload
 from ....order.notifications import get_default_order_payload
 from ...email_common import EmailConfig
@@ -86,6 +88,11 @@ def test_send_email_with_link_to_download_file_task_default_template(
 
     # confirm that mail has correct structure and email was sent
     assert mocked_send_mail.called
+    assert ExportEvent.objects.filter(
+        export_file=user_export_file,
+        user=user_export_file.user,
+        type=ExportEvents.EXPORTED_FILE_SENT,
+    ).exists()
 
 
 @mock.patch("saleor.plugins.admin_email.tasks.send_email")
@@ -121,6 +128,11 @@ def test_send_email_with_link_to_download_file_task_custom_template(
         subject=expected_subject,
         template_str=expected_template_str,
     )
+    assert ExportEvent.objects.filter(
+        export_file=user_export_file,
+        user=user_export_file.user,
+        type=ExportEvents.EXPORTED_FILE_SENT,
+    ).exists()
 
 
 @mock.patch("saleor.plugins.email_common.send_mail")
@@ -139,6 +151,11 @@ def test_send_export_failed_email_task_default_template(
 
     # confirm that mail has correct structure and email was sent
     assert mocked_send_mail.called
+    assert ExportEvent.objects.filter(
+        export_file=user_export_file,
+        user=user_export_file.user,
+        type=ExportEvents.EXPORT_FAILED_INFO_SENT,
+    )
 
 
 @mock.patch("saleor.plugins.admin_email.tasks.send_email")
@@ -168,6 +185,11 @@ def test_send_export_failed_email_task_custom_template(
         context=payload,
         subject=expected_subject,
         template_str=expected_template_str,
+    )
+    assert ExportEvent.objects.filter(
+        export_file=user_export_file,
+        user=user_export_file.user,
+        type=ExportEvents.EXPORT_FAILED_INFO_SENT,
     )
 
 
