@@ -214,7 +214,7 @@ class ShippingZipCodeRulesCreate(BaseMutation):
 
 class ShippingZipCodeRulesDelete(ModelDeleteMutation):
     shipping_method = graphene.Field(
-        ShippingMethod, description="Related shipping method."
+        ShippingMethod, description="Shipping method of deleted zip code rule."
     )
 
     class Arguments:
