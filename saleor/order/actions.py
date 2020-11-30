@@ -490,7 +490,7 @@ def create_refund_fulfillment(
             quantity_to_refund -= fulfilled_to_refund
             refunded_line.quantity += fulfilled_to_refund
             fulfillment_line.quantity -= fulfilled_to_refund
-            order_line = order_lines_with_fulfillment.get(
+            order_line: OrderLine = order_lines_with_fulfillment.get(  # type: ignore
                 fulfillment_line.order_line_id
             )
             refund_amount += order_line.unit_price_gross_amount * fulfilled_to_refund
@@ -509,7 +509,10 @@ def create_refund_fulfillment(
                 quantity += fulfilled_to_refund
                 all_refunded_lines[order_line.id] = (quantity, line)
             else:
-                all_refunded_lines[order_line.id] = (fulfilled_to_refund, order_line)
+                all_refunded_lines[order_line.id] = (
+                    fulfilled_to_refund,
+                    order_line,
+                )  # type: ignore
 
         OrderLine.objects.bulk_update(order_lines_to_update, ["quantity_fulfilled"])
         FulfillmentLine.objects.bulk_update(fulfillment_lines_to_update, ["quantity"])
