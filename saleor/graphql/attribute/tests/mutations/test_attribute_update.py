@@ -200,12 +200,12 @@ def test_update_attribute_with_file_input_type_and_values(
 
 def test_update_attribute_with_file_input_type_invalid_settings(
     staff_api_client,
-    image_attribute_without_values_and_file_input_type,
+    file_attribute_with_file_input_type_without_values,
     permission_manage_product_types_and_attributes,
 ):
     # given
     query = UPDATE_ATTRIBUTE_MUTATION
-    attribute = image_attribute_without_values_and_file_input_type
+    attribute = file_attribute_with_file_input_type_without_values
     name = "Wings name"
     node_id = graphene.Node.to_global_id("Attribute", attribute.id)
 
