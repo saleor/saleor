@@ -4,11 +4,15 @@ from typing import TYPE_CHECKING, Dict, List, Optional
 
 from django.db import transaction
 
-from saleor.payment import gateway
-
 from ..core import analytics
 from ..core.exceptions import InsufficientStock
-from ..payment import ChargeStatus, CustomPaymentChoices, PaymentError, TransactionKind
+from ..payment import (
+    ChargeStatus,
+    CustomPaymentChoices,
+    PaymentError,
+    TransactionKind,
+    gateway,
+)
 from ..payment.models import Payment, Transaction
 from ..payment.utils import create_payment
 from ..plugins.manager import get_plugins_manager
