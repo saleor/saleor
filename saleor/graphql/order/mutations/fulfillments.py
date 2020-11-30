@@ -344,12 +344,17 @@ class OrderRefundProductsInput(graphene.InputObjectType):
     )
     amount_to_refund = PositiveDecimal(
         required=False,
-        description=("The total amount of refund when the value is provided manually."),
+        description=(
+            "The total amount of refund when the value is provided manually. The "
+            "amountToRefund and includeShippingCosts are mutually exclusive and "
+            "attempts to call mutation with both options will raise an exception."
+        ),
     )
     include_shipping_costs = graphene.Boolean(
         description=(
-            "If true, Saleor will refund shipping costs. if amountToRefund is "
-            "provided, this field will not be considered."
+            "If true, Saleor will refund shipping costs. The amountToRefund and "
+            "includeShippingCosts are mutually exclusive and attempts to call mutation "
+            "with both options will raise an exception."
         ),
         default_value=False,
     )
