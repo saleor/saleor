@@ -393,17 +393,7 @@ def test_order_query_in_pln_channel(
     assert expected_method.type.upper() == method["type"]
 
 
-def test_order_query_without_available_shipping_methods(
-    staff_api_client,
-    permission_manage_orders,
-    order,
-    shipping_method_channel_PLN,
-    channel_USD,
-):
-    order.channel = channel_USD
-    order.shipping_method = shipping_method_channel_PLN
-    order.save()
-    query = """
+ORDERS_QUERY_SHIPPING_METHODS = """
     query OrdersQuery {
         orders(first: 1) {
             edges {
@@ -415,13 +405,43 @@ def test_order_query_without_available_shipping_methods(
             }
         }
     }
-    """
+"""
+
+
+def test_order_query_without_available_shipping_methods(
+    staff_api_client,
+    permission_manage_orders,
+    order,
+    shipping_method_channel_PLN,
+    channel_USD,
+):
+    order.channel = channel_USD
+    order.shipping_method = shipping_method_channel_PLN
+    order.save()
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)
-    response = staff_api_client.post_graphql(query)
+    response = staff_api_client.post_graphql(ORDERS_QUERY_SHIPPING_METHODS)
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
     assert len(order_data["availableShippingMethods"]) == 0
+
+
+def test_order_query_shipping_methods_excluded_zip_codes(
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines_channel_PLN,
+    channel_PLN,
+):
+    order = order_with_lines_channel_PLN
+    order.shipping_method.zip_code_rules.create(start="HB3", end="HB6")
+    order.shipping_address.postal_code = "HB5"
+    order.shipping_address.save(update_fields=["postal_code"])
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDERS_QUERY_SHIPPING_METHODS)
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    assert order_data["availableShippingMethods"] == []
 
 
 @pytest.mark.parametrize(
@@ -3488,6 +3508,40 @@ def test_order_update_shipping_incorrect_shipping_method(
     query = ORDER_UPDATE_SHIPPING_QUERY
     order_id = graphene.Node.to_global_id("Order", order.id)
     method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    variables = {"order": order_id, "shippingMethod": method_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderUpdateShipping"]
+    assert data["errors"][0]["field"] == "shippingMethod"
+    assert data["errors"][0]["message"] == (
+        "Shipping method cannot be used with this order."
+    )
+
+
+def test_order_update_shipping_excluded_shipping_method_zip_code(
+    staff_api_client,
+    permission_manage_orders,
+    order,
+    staff_user,
+    shipping_method_excldued_by_zip_code,
+):
+    order.shipping_method = shipping_method_excldued_by_zip_code
+    shipping_total = shipping_method_excldued_by_zip_code.channel_listings.get(
+        channel_id=order.channel_id,
+    ).get_total()
+
+    shipping_price = TaxedMoney(shipping_total, shipping_total)
+    order.shipping_price = shipping_price
+    order.shipping_method_name = "Example shipping"
+    order.save()
+
+    query = ORDER_UPDATE_SHIPPING_QUERY
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    method_id = graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method_excldued_by_zip_code.id
+    )
     variables = {"order": order_id, "shippingMethod": method_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
