@@ -198,8 +198,8 @@ class Shop(graphene.ObjectType):
         return get_plugins_manager().list_payment_gateways(currency=currency)
 
     @staticmethod
-    def resolve_available_shipping_methods(_, _info, channel, address=None):
-        return resolve_available_shipping_methods(channel, address)
+    def resolve_available_shipping_methods(_, info, channel, address=None):
+        return resolve_available_shipping_methods(info, channel, address)
 
     @staticmethod
     @permission_required(SitePermissions.MANAGE_SETTINGS)
