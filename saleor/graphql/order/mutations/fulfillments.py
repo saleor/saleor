@@ -316,7 +316,9 @@ class FulfillmentCancel(BaseMutation):
 
 class OrderRefundLineInput(graphene.InputObjectType):
     order_line_id = graphene.ID(
-        description="The ID of the order line to refund.", name="orderLineId"
+        description="The ID of the order line to refund.",
+        name="orderLineId",
+        required=True,
     )
     quantity = graphene.Int(
         description="The number of items to be refunded.", required=True,
@@ -327,6 +329,7 @@ class OrderRefundFulfillmentLineInput(graphene.InputObjectType):
     fulfillment_line_id = graphene.ID(
         description="The ID of the fulfillment line to refund.",
         name="fulfillmentLineId",
+        required=True,
     )
     quantity = graphene.Int(
         description="The number of items to be refunded.", required=True,
@@ -380,9 +383,9 @@ class FulfillmentRefundProducts(BaseMutation):
         error_type_field = "order_errors"
 
     @classmethod
-    def clean_input(cls, info, order_id, input):
-        amount_to_refund = input.get("amount_to_refund")
-        include_shipping_costs = input.get("include_shipping_costs")
+    def validate_amount_to_refund_and_shipping_costs(
+        cls, amount_to_refund, include_shipping_costs
+    ):
         if amount_to_refund is not None and include_shipping_costs:
             raise ValidationError(
                 {
@@ -404,11 +407,9 @@ class FulfillmentRefundProducts(BaseMutation):
                     ),
                 }
             )
-        qs = order_models.Order.objects.prefetch_related("payments")
-        order = cls.get_node_or_error(
-            info, order_id, field="order", only_type=Order, qs=qs
-        )
-        payment = order.get_last_payment()
+
+    @classmethod
+    def clean_order_payment(cls, payment, cleaned_input):
         if not payment or not payment.can_refund():
             raise ValidationError(
                 {
@@ -418,7 +419,10 @@ class FulfillmentRefundProducts(BaseMutation):
                     )
                 }
             )
+        cleaned_input["payment"] = payment
 
+    @classmethod
+    def clean_amount_to_refund(cls, amount_to_refund, payment, cleaned_input):
         if amount_to_refund is not None and amount_to_refund > payment.captured_amount:
             raise ValidationError(
                 {
@@ -431,12 +435,29 @@ class FulfillmentRefundProducts(BaseMutation):
                     ),
                 }
             )
-        cleaned_input = {
-            "amount_to_refund": amount_to_refund,
-            "include_shipping_costs": include_shipping_costs,
-            "order": order,
-            "payment": payment,
-        }
+        cleaned_input["amount_to_refund"] = amount_to_refund
+
+    @classmethod
+    def clean_input(cls, info, order_id, input):
+        cleaned_input = {}
+        amount_to_refund = input.get("amount_to_refund")
+        include_shipping_costs = input["include_shipping_costs"]
+        cls.validate_amount_to_refund_and_shipping_costs(
+            amount_to_refund, include_shipping_costs
+        )
+
+        qs = order_models.Order.objects.prefetch_related("payments")
+        order = cls.get_node_or_error(
+            info, order_id, field="order", only_type=Order, qs=qs
+        )
+        payment = order.get_last_payment()
+        cls.clean_order_payment(payment, cleaned_input)
+        cls.clean_amount_to_refund(amount_to_refund, payment, cleaned_input)
+
+        cleaned_input.update(
+            {"include_shipping_costs": include_shipping_costs, "order": order}
+        )
+
         order_lines_data = input.get("order_lines")
         fulfillment_lines_data = input.get("fulfillment_lines")
 
@@ -444,11 +465,11 @@ class FulfillmentRefundProducts(BaseMutation):
             raise ValidationError(
                 {
                     "order_lines": ValidationError(
-                        "The orderLines or fulfillmentLines cannot be empty.",
+                        "The orderLines and fulfillmentLines cannot be empty.",
                         code=OrderErrorCode.REQUIRED.value,
                     ),
                     "fulfillment_lines": ValidationError(
-                        "The orderLines or fulfillmentLines cannot be empty.",
+                        "The orderLines and fulfillmentLines cannot be empty.",
                         code=OrderErrorCode.REQUIRED.value,
                     ),
                 }

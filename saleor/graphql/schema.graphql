@@ -3108,12 +3108,12 @@ type OrderRefund {
 }
 
 input OrderRefundFulfillmentLineInput {
-  fulfillmentLineId: ID
+  fulfillmentLineId: ID!
   quantity: Int!
 }
 
 input OrderRefundLineInput {
-  orderLineId: ID
+  orderLineId: ID!
   quantity: Int!
 }
 
