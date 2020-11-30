@@ -213,6 +213,10 @@ class ShippingZipCodeRulesCreate(BaseMutation):
 
 
 class ShippingZipCodeRulesDelete(ModelDeleteMutation):
+    shipping_method = graphene.Field(
+        ShippingMethod, description="Related shipping method."
+    )
+
     class Arguments:
         id = graphene.ID(
             required=True, description="ID of a shipping method zip code to delete."
@@ -226,11 +230,13 @@ class ShippingZipCodeRulesDelete(ModelDeleteMutation):
         error_type_field = "shipping_errors"
 
     @classmethod
-    def success_response(cls, instance):
-        instance = ChannelContext(node=instance, channel_slug=None)
-        response = super().success_response(instance)
-
-        return response
+    def perform_mutation(cls, _root, info, **data):
+        instance = cls.get_instance(info, **data)
+        shipping_method = instance.shipping_method
+        super().perform_mutation(_root, info, **data)
+        return ShippingZipCodeRulesDelete(
+            shipping_method=ChannelContext(node=shipping_method, channel_slug=None)
+        )
 
 
 class ShippingZoneDelete(ModelDeleteMutation):

@@ -451,6 +451,9 @@ DELETE_SHIPPING_METHOD_ZIP_CODE_MUTATION = """
         shippingMethodZipCodeRulesDelete(
             id: $id
         ){
+            shippingMethod {
+                name
+            }
             shippingErrors {
                 field
                 code
@@ -473,7 +476,9 @@ def test_delete_shipping_method_zip_code(
         permissions=[permission_manage_shipping],
     )
     content = get_graphql_content(response)
-    assert content["data"]["shippingMethodZipCodeRulesDelete"]["shippingErrors"] == []
+    data = content["data"]["shippingMethodZipCodeRulesDelete"]
+    assert data["shippingErrors"] == []
+    assert data["shippingMethod"]["name"] == shipping_method_excldued_by_zip_code.name
     assert not shipping_method_excldued_by_zip_code.zip_code_rules.exists()
 
 
