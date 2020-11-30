@@ -20,6 +20,7 @@ from ..core.weight import (
     zero_weight,
 )
 from . import ShippingMethodType
+from .zip_codes import check_shipping_method_for_zip_code
 
 if TYPE_CHECKING:
     # flake8: noqa
@@ -124,8 +125,6 @@ class ShippingMethodQueryset(models.QuerySet):
         price: Money,
         country_code=None,
     ):
-        from ..order.utils import check_shipping_method_for_zip_code
-
         if not instance.is_shipping_required():
             return None
         if not instance.shipping_address:
@@ -139,9 +138,7 @@ class ShippingMethodQueryset(models.QuerySet):
         ).prefetch_related("zip_code_rules")
         excluded_methods_by_zip_code = []
         for method in applicable_methods:
-            if check_shipping_method_for_zip_code(
-                instance.shipping_address.postal_code, method
-            ):
+            if check_shipping_method_for_zip_code(instance.shipping_address, method):
                 excluded_methods_by_zip_code.append(method.pk)
         if excluded_methods_by_zip_code:
             return applicable_methods.exclude(pk__in=excluded_methods_by_zip_code)

@@ -18,6 +18,7 @@ from ....order.actions import (
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import get_valid_shipping_methods_for_order, update_order_prices
 from ....payment import CustomPaymentChoices, PaymentError, TransactionKind, gateway
+from ....shipping import models as shipping_models
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
@@ -249,6 +250,9 @@ class OrderUpdateShipping(BaseMutation):
             data["shipping_method"],
             field="shipping_method",
             only_type=ShippingMethod,
+            qs=shipping_models.ShippingMethod.objects.prefetch_related(
+                "zip_code_rules"
+            ),
         )
 
         clean_order_update_shipping(order, method)

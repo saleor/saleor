@@ -3381,6 +3381,40 @@ def test_order_update_shipping_incorrect_shipping_method(
     )
 
 
+def test_order_update_shipping_excluded_shipping_method_zip_code(
+    staff_api_client,
+    permission_manage_orders,
+    order,
+    staff_user,
+    shipping_method_excldued_by_zip_code,
+):
+    order.shipping_method = shipping_method_excldued_by_zip_code
+    shipping_total = shipping_method_excldued_by_zip_code.channel_listings.get(
+        channel_id=order.channel_id,
+    ).get_total()
+
+    shipping_price = TaxedMoney(shipping_total, shipping_total)
+    order.shipping_price = shipping_price
+    order.shipping_method_name = "Example shipping"
+    order.save()
+
+    query = ORDER_UPDATE_SHIPPING_QUERY
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    method_id = graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method_excldued_by_zip_code.id
+    )
+    variables = {"order": order_id, "shippingMethod": method_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderUpdateShipping"]
+    assert data["errors"][0]["field"] == "shippingMethod"
+    assert data["errors"][0]["message"] == (
+        "Shipping method cannot be used with this order."
+    )
+
+
 def test_draft_order_clear_shipping_method(
     staff_api_client, draft_order, permission_manage_orders
 ):
