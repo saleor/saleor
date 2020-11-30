@@ -2,7 +2,7 @@ import pytest
 
 from .... import TransactionKind
 from ....interface import PaymentData
-from .. import process_payment, authenticate_test, refund
+from .. import process_payment, authenticate_test, refund, capture
 
 
 INVALID_TOKEN = "Y29kZTo1MF8yXzA2MDAwIHRva2VuOjEgdjoxLjE="
@@ -107,3 +107,28 @@ def test_refund_error(authorize_net_payment, authorize_net_gateway_config):
     assert response.error
     assert response.kind == TransactionKind.REFUND
     assert not response.is_success
+
+
+@pytest.mark.integration
+@pytest.mark.vcr()
+def test_authorize_and_capture(dummy_payment_data, authorize_net_gateway_config):
+    dummy_payment_data.token = INVALID_TOKEN
+    authorize_net_gateway_config.auto_capture = False
+
+    response = process_payment(dummy_payment_data, authorize_net_gateway_config)
+    transaction_id = response.transaction_id
+    assert not response.error
+    assert response.kind == TransactionKind.AUTH
+    assert response.is_success
+    assert response.amount == dummy_payment_data.amount
+    assert response.currency == dummy_payment_data.currency
+    assert not response.action_required
+
+    dummy_payment_data.token = str(transaction_id)
+    response = capture(dummy_payment_data, authorize_net_gateway_config)
+    assert not response.error
+    assert response.kind == TransactionKind.CAPTURE
+    assert response.is_success
+    assert response.amount == dummy_payment_data.amount
+    assert response.currency == dummy_payment_data.currency
+    assert not response.action_required

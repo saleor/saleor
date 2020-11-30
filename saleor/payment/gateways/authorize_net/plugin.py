@@ -7,7 +7,14 @@ from saleor.plugins.error_codes import PluginErrorCode
 from ... import PaymentError
 from ...models import Payment
 from ..utils import get_supported_currencies
-from . import GatewayConfig, process_payment, authenticate_test, refund
+from . import (
+    GatewayConfig,
+    process_payment,
+    authenticate_test,
+    refund,
+    authorize,
+    capture,
+)
 
 
 GATEWAY_NAME = "Authorize.Net"
@@ -32,6 +39,7 @@ class AuthorizeNetGatewayPlugin(BasePlugin):
         {"name": "transaction_key", "value": None},
         {"name": "client_key", "value": None},
         {"name": "use_sandbox", "value": True},
+        {"name": "automatic_payment_capture", "value": True},
     ]
 
     CONFIG_STRUCTURE = {
@@ -55,6 +63,11 @@ class AuthorizeNetGatewayPlugin(BasePlugin):
             "help_text": "Determines if Saleor should use Authorize.Net sandbox environment.",
             "label": "Use sandbox",
         },
+        "automatic_payment_capture": {
+            "type": ConfigurationTypeField.BOOLEAN,
+            "help_text": "Determines if Saleor should automatically capture payments.",
+            "label": "Automatic payment capture",
+        },
     }
 
     def __init__(self, *args, **kwargs):
@@ -62,9 +75,8 @@ class AuthorizeNetGatewayPlugin(BasePlugin):
         configuration = {item["name"]: item["value"] for item in self.configuration}
         self.config = GatewayConfig(
             gateway_name=GATEWAY_NAME,
-            auto_capture=True,
             supported_currencies="USD",
-            # auto_capture=configuration["Automatic payment capture"],
+            auto_capture=configuration["automatic_payment_capture"],
             # supported_currencies=configuration["Supported currencies"],
             connection_params={
                 "api_login_id": configuration["api_login_id"],
@@ -98,18 +110,17 @@ class AuthorizeNetGatewayPlugin(BasePlugin):
                     message, code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
                 )
 
-    # @require_active_plugin
-    # def authorize_payment(
-    #     self, payment_information: "PaymentData", previous_value
-    # ) -> "GatewayResponse":
-    #     pass
-    # return authorize(payment_information, self._get_gateway_config())
+    @require_active_plugin
+    def authorize_payment(
+        self, payment_information: "PaymentData", previous_value
+    ) -> "GatewayResponse":
+        return authorize(payment_information, self._get_gateway_config())
 
     @require_active_plugin
     def capture_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
-        pass  # return capture(payment_information, self._get_gateway_config())
+        return capture(payment_information, self._get_gateway_config())
 
     @require_active_plugin
     def refund_payment(

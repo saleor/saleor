@@ -43,10 +43,55 @@ def authenticate_test(
 def process_payment(
     payment_information: PaymentData, config: GatewayConfig
 ) -> GatewayResponse:
+    return authorize(payment_information, config)
+
+
+def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
+    merchant_auth = _get_merchant_auth(config.connection_params)
+
+    transaction_request = apicontractsv1.transactionRequestType()
+    transaction_request.transactionType = "priorAuthCaptureTransaction"
+    transaction_request.amount = payment_information.amount
+    transaction_request.refTransId = payment_information.token
+
+    create_transaction_request = apicontractsv1.createTransactionRequest()
+    create_transaction_request.merchantAuthentication = merchant_auth
+    create_transaction_request.transactionRequest = transaction_request
+
+    response = _make_request(create_transaction_request, config.connection_params)
+
+    (
+        success,
+        error,
+        transaction_id,
+        transaction_response,
+        raw_response,
+    ) = _handle_authorize_net_response(response)
+    payment_method_info = _authorize_net_account_to_payment_method_info(
+        transaction_response
+    )
+    return GatewayResponse(
+        is_success=success,
+        action_required=False,
+        transaction_id=transaction_id,
+        amount=payment_information.amount,
+        currency=payment_information.currency,
+        error=error,
+        payment_method_info=payment_method_info,
+        kind=TransactionKind.CAPTURE,
+        raw_response=raw_response,
+        customer_id=payment_information.customer_id,
+    )
+
+
+def authorize(
+    payment_information: PaymentData, config: GatewayConfig
+) -> GatewayResponse:
     """
     Based on
     https://github.com/AuthorizeNet/sample-code-python/blob/master/AcceptSuite/create-an-accept-payment-transaction.py
     """
+    kind = TransactionKind.CAPTURE if config.auto_capture else TransactionKind.AUTH
     merchant_auth = _get_merchant_auth(config.connection_params)
 
     # The Saleor token is the authorize.net "opaque data"
@@ -67,7 +112,9 @@ def process_payment(
     customer_data.email = payment_information.customer_email
 
     transaction_request = apicontractsv1.transactionRequestType()
-    transaction_request.transactionType = "authCaptureTransaction"
+    transaction_request.transactionType = (
+        "authCaptureTransaction" if config.auto_capture else "authOnlyTransaction"
+    )
     transaction_request.amount = payment_information.amount
     transaction_request.order = order
     transaction_request.payment = payment_one
@@ -91,15 +138,7 @@ def process_payment(
     create_transaction_request.refId = str(payment_information.payment_id)
     create_transaction_request.transactionRequest = transaction_request
 
-    create_transaction_controller = createTransactionController(
-        create_transaction_request
-    )
-    if config.connection_params.get("use_sandbox") is False:
-        create_transaction_controller.setenvironment(constants.PRODUCTION)
-
-    create_transaction_controller.execute()
-
-    response = create_transaction_controller.getresponse()
+    response = _make_request(create_transaction_request, config.connection_params)
 
     (
         success,
@@ -127,7 +166,7 @@ def process_payment(
         currency=payment_information.currency,
         error=error,
         payment_method_info=payment_method_info,
-        kind=TransactionKind.CAPTURE,
+        kind=kind,
         raw_response=raw_response,
         customer_id=payment_information.customer_id,
         searchable_key=searchable_key,
@@ -157,12 +196,7 @@ def refund(
     create_transaction_request.merchantAuthentication = merchant_auth
 
     create_transaction_request.transactionRequest = transaction_request
-    create_transaction_controller = createTransactionController(
-        create_transaction_request
-    )
-    create_transaction_controller.execute()
-
-    response = create_transaction_controller.getresponse()
+    response = _make_request(create_transaction_request, config.connection_params)
 
     (
         success,
@@ -258,3 +292,20 @@ def _get_merchant_auth(connection_params: Dict[str, Any]):
     merchant_auth.name = connection_params.get("api_login_id")
     merchant_auth.transactionKey = connection_params.get("transaction_key")
     return merchant_auth
+
+
+def _make_request(create_transaction_request, connection_params: Dict[str, Any]):
+    """
+    Create an auth.net transaction controller and execute the request
+    Returns auth.net response object
+    """
+    create_transaction_controller = createTransactionController(
+        create_transaction_request
+    )
+    if connection_params.get("use_sandbox") is False:
+        create_transaction_controller.setenvironment(constants.PRODUCTION)
+
+    create_transaction_controller.execute()
+
+    response = create_transaction_controller.getresponse()
+    return response
