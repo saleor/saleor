@@ -10,7 +10,8 @@ from ..product.models import Category, Collection
 
 
 class Menu(models.Model):
-    name = models.CharField(max_length=128)
+    name = models.CharField(max_length=250)
+    slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
 
     class Meta:
         ordering = ("pk",)
@@ -49,16 +50,15 @@ class MenuItem(MPTTModel, SortableModel):
         return self.name
 
     def get_ordering_queryset(self):
-        return self.menu.items.all() if not self.parent else self.parent.children.all()
+        return (
+            self.menu.items.filter(level=0)
+            if not self.parent
+            else self.parent.children.all()
+        )
 
     @property
     def linked_object(self):
         return self.category or self.collection or self.page
-
-    def is_public(self):
-        return not self.linked_object or getattr(
-            self.linked_object, "is_published", True
-        )
 
 
 class MenuItemTranslation(models.Model):

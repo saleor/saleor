@@ -8,13 +8,14 @@ from ...checkout.utils import get_user_checkout
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions, OrderPermissions
 from ...order import models as order_models
+from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUserLoader
 from ..checkout.types import Checkout
 from ..core.connection import CountableDjangoObjectType
 from ..core.fields import PrefetchingConnectionField
+from ..core.scalars import UUID
 from ..core.types import CountryDisplay, Image, Permission
 from ..core.utils import from_global_id_strict_type
 from ..decorators import one_of_permissions_required, permission_required
-from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display
 from ..wishlist.resolvers import resolve_wishlist_items_from_user
@@ -191,7 +192,18 @@ class UserPermission(Permission):
 class User(CountableDjangoObjectType):
     addresses = graphene.List(Address, description="List of all user's addresses.")
     checkout = graphene.Field(
-        Checkout, description="Returns the last open checkout of this user."
+        Checkout,
+        description="Returns the last open checkout of this user.",
+        deprecation_reason=(
+            "Use the `checkout_tokens` field to fetch the user checkouts."
+        ),
+    )
+    checkout_tokens = graphene.List(
+        graphene.NonNull(UUID),
+        description="Returns the checkout UUID's assigned to this user.",
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
     )
     gift_cards = PrefetchingConnectionField(
         "saleor.graphql.giftcard.types.GiftCard",
@@ -253,7 +265,29 @@ class User(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_checkout(root: models.User, _info, **_kwargs):
-        return get_user_checkout(root)[0]
+        return get_user_checkout(root)
+
+    @staticmethod
+    def resolve_checkout_tokens(root: models.User, info, channel=None, **_kwargs):
+        def return_checkout_tokens(checkouts):
+            if not checkouts:
+                return []
+            checkout_global_ids = []
+            for checkout in checkouts:
+                checkout_global_ids.append(checkout.token)
+            return checkout_global_ids
+
+        if not channel:
+            return (
+                CheckoutByUserLoader(info.context)
+                .load(root.id)
+                .then(return_checkout_tokens)
+            )
+        return (
+            CheckoutByUserAndChannelLoader(info.context)
+            .load((root.id, channel))
+            .then(return_checkout_tokens)
+        )
 
     @staticmethod
     def resolve_gift_cards(root: models.User, info, **_kwargs):
@@ -319,17 +353,6 @@ class User(CountableDjangoObjectType):
         if root == info.context.user:
             return resolve_payment_sources(root)
         raise PermissionDenied()
-
-    @staticmethod
-    @one_of_permissions_required(
-        [AccountPermissions.MANAGE_USERS, AccountPermissions.MANAGE_STAFF]
-    )
-    def resolve_private_meta(root: models.User, _info):
-        return resolve_private_meta(root, _info)
-
-    @staticmethod
-    def resolve_meta(root: models.User, _info):
-        return resolve_meta(root, _info)
 
     @staticmethod
     def resolve_wishlist(root: models.User, info, **_kwargs):

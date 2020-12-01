@@ -1,21 +1,21 @@
-from decimal import Decimal
 from unittest.mock import patch
 
 import graphene
 import pytest
+from django.utils import timezone
 from prices import Money, TaxedMoney
 
 from ....order import OrderStatus
 from ....order.models import OrderLine
 from ....product.models import (
-    Attribute,
-    AttributeValue,
     Category,
     Collection,
     Product,
+    ProductChannelListing,
     ProductImage,
     ProductType,
     ProductVariant,
+    ProductVariantChannelListing,
 )
 from ...tests.utils import get_graphql_content
 
@@ -34,75 +34,6 @@ def product_type_list():
     product_type_2 = ProductType.objects.create(name="Type 2", slug="type-2")
     product_type_3 = ProductType.objects.create(name="Type 3", slug="type-3")
     return product_type_1, product_type_2, product_type_3
-
-
-@pytest.fixture
-def attribute_value_list(color_attribute):
-    value_1 = AttributeValue.objects.create(
-        slug="pink", name="Pink", attribute=color_attribute, value="#FF69B4"
-    )
-    value_2 = AttributeValue.objects.create(
-        slug="white", name="White", attribute=color_attribute, value="#FFFFFF"
-    )
-    value_3 = AttributeValue.objects.create(
-        slug="black", name="Black", attribute=color_attribute, value="#000000"
-    )
-    return value_1, value_2, value_3
-
-
-def test_delete_attributes(
-    staff_api_client, attribute_list, permission_manage_products
-):
-    query = """
-    mutation attributeBulkDelete($ids: [ID]!) {
-        attributeBulkDelete(ids: $ids) {
-            count
-        }
-    }
-    """
-
-    variables = {
-        "ids": [
-            graphene.Node.to_global_id("Attribute", attr.id) for attr in attribute_list
-        ]
-    }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
-    content = get_graphql_content(response)
-
-    assert content["data"]["attributeBulkDelete"]["count"] == 3
-    assert not Attribute.objects.filter(
-        id__in=[attr.id for attr in attribute_list]
-    ).exists()
-
-
-def test_delete_attribute_values(
-    staff_api_client, attribute_value_list, permission_manage_products
-):
-    query = """
-    mutation attributeValueBulkDelete($ids: [ID]!) {
-        attributeValueBulkDelete(ids: $ids) {
-            count
-        }
-    }
-    """
-
-    variables = {
-        "ids": [
-            graphene.Node.to_global_id("AttributeValue", val.id)
-            for val in attribute_value_list
-        ]
-    }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
-    content = get_graphql_content(response)
-
-    assert content["data"]["attributeValueBulkDelete"]["count"] == 3
-    assert not AttributeValue.objects.filter(
-        id__in=[val.id for val in attribute_value_list]
-    ).exists()
 
 
 MUTATION_CATEGORY_BULK_DELETE = """
@@ -134,18 +65,19 @@ def test_delete_categories(staff_api_client, category_list, permission_manage_pr
     ).exists()
 
 
-@patch("saleor.product.utils.update_products_minimal_variant_prices_task")
+@patch("saleor.product.utils.update_products_discounted_prices_task")
 def test_delete_categories_with_subcategories_and_products(
-    mock_update_products_minimal_variant_prices_task,
+    mock_update_products_discounted_prices_task,
     staff_api_client,
     category_list,
     permission_manage_products,
     product,
     category,
+    channel_USD,
+    channel_PLN,
 ):
     product.category = category
     category.parent = category_list[0]
-    product.save()
     category.save()
 
     parent_product = Product.objects.get(pk=product.pk)
@@ -153,6 +85,20 @@ def test_delete_categories_with_subcategories_and_products(
     parent_product.id = None
     parent_product.category = category_list[0]
     parent_product.save()
+
+    ProductChannelListing.objects.bulk_create(
+        [
+            ProductChannelListing(
+                product=parent_product, channel=channel_USD, is_published=True
+            ),
+            ProductChannelListing(
+                product=parent_product,
+                channel=channel_PLN,
+                is_published=True,
+                publication_date=timezone.now(),
+            ),
+        ]
+    )
 
     product_list = [product, parent_product]
 
@@ -174,19 +120,25 @@ def test_delete_categories_with_subcategories_and_products(
         id__in=[category.id for category in category_list]
     ).exists()
 
-    mock_update_products_minimal_variant_prices_task.delay.assert_called_once()
+    mock_update_products_discounted_prices_task.delay.assert_called_once()
     (
         _call_args,
         call_kwargs,
-    ) = mock_update_products_minimal_variant_prices_task.delay.call_args
+    ) = mock_update_products_discounted_prices_task.delay.call_args
 
     assert set(call_kwargs["product_ids"]) == set([p.pk for p in product_list])
 
     for product in product_list:
         product.refresh_from_db()
         assert not product.category
-        assert not product.is_published
-        assert not product.publication_date
+
+    product_channel_listings = ProductChannelListing.objects.filter(
+        product__in=product_list
+    )
+    for product_channel_listing in product_channel_listings:
+        assert product_channel_listing.is_published is False
+        assert not product_channel_listing.publication_date
+    assert product_channel_listings.count() == 3
 
 
 def test_delete_collections(
@@ -227,7 +179,7 @@ mutation productBulkDelete($ids: [ID]!) {
 
 
 def test_delete_products(
-    staff_api_client, product_list, permission_manage_products, order_list
+    staff_api_client, product_list, permission_manage_products, order_list, channel_USD
 ):
     # given
     query = DELETE_PRODUCTS_MUTATION
@@ -240,7 +192,7 @@ def test_delete_products(
     draft_order_lines_pks = []
     not_draft_order_lines_pks = []
     for variant in [product_list[0].variants.first(), product_list[1].variants.first()]:
-        net = variant.get_price()
+        net = variant.get_price(channel_USD.slug)
         gross = Money(amount=net.amount, currency=net.currency)
 
         order_line = OrderLine.objects.create(
@@ -297,6 +249,10 @@ def test_delete_products_variants_in_draft_order(
 ):
     query = DELETE_PRODUCTS_MUTATION
 
+    assert ProductChannelListing.objects.filter(
+        product_id__in=[product.id for product in product_list]
+    ).exists()
+
     variables = {
         "ids": [
             graphene.Node.to_global_id("Product", product.id)
@@ -311,6 +267,9 @@ def test_delete_products_variants_in_draft_order(
     assert content["data"]["productBulkDelete"]["count"] == 3
     assert not Product.objects.filter(
         id__in=[product.id for product in product_list]
+    ).exists()
+    assert not ProductChannelListing.objects.filter(
+        product_id__in=[product.id for product in product_list]
     ).exists()
 
 
@@ -385,6 +344,10 @@ def test_delete_product_variants(
 ):
     query = PRODUCT_VARIANT_BULK_DELETE_MUTATION
 
+    assert ProductVariantChannelListing.objects.filter(
+        variant_id__in=[variant.id for variant in product_variant_list]
+    ).exists()
+
     variables = {
         "ids": [
             graphene.Node.to_global_id("ProductVariant", variant.id)
@@ -408,6 +371,7 @@ def test_delete_product_variants_in_draft_orders(
     permission_manage_products,
     order_line,
     order_list,
+    channel_USD,
 ):
     # given
     query = PRODUCT_VARIANT_BULK_DELETE_MUTATION
@@ -418,7 +382,7 @@ def test_delete_product_variants_in_draft_orders(
     draft_order.save(update_fields=["status"])
 
     second_variant_in_draft = variants[1]
-    net = second_variant_in_draft.get_price()
+    net = second_variant_in_draft.get_price(channel_USD.slug)
     gross = Money(amount=net.amount, currency=net.currency)
     second_draft_order = OrderLine.objects.create(
         variant=second_variant_in_draft,
@@ -432,7 +396,7 @@ def test_delete_product_variants_in_draft_orders(
     )
 
     variant = variants[0]
-    net = variant.get_price()
+    net = variant.get_price(channel_USD.slug)
     gross = Money(amount=net.amount, currency=net.currency)
     order_not_draft = order_list[-1]
     order_line_not_in_draft = OrderLine.objects.create(
@@ -488,9 +452,9 @@ def test_delete_product_variants_delete_default_variant(
 
     variants = ProductVariant.objects.bulk_create(
         [
-            ProductVariant(product=product, sku="1", price_amount=Decimal(10)),
-            ProductVariant(product=product, sku="2", price_amount=Decimal(10)),
-            ProductVariant(product=product, sku="3", price_amount=Decimal(10)),
+            ProductVariant(product=product, sku="1"),
+            ProductVariant(product=product, sku="2"),
+            ProductVariant(product=product, sku="3"),
         ]
     )
 
@@ -534,8 +498,8 @@ def test_delete_product_variants_delete_all_product_variants(
 
     variants = ProductVariant.objects.bulk_create(
         [
-            ProductVariant(product=product, sku="1", price_amount=Decimal(10)),
-            ProductVariant(product=product, sku="2", price_amount=Decimal(10)),
+            ProductVariant(product=product, sku="1"),
+            ProductVariant(product=product, sku="2"),
         ]
     )
 

@@ -1,9 +1,9 @@
 from django.db import models
-from draftjs_sanitizer import clean_draft_js
 
 from ..core.db.fields import SanitizedJSONField
-from ..core.models import PublishableModel, PublishedQuerySet
-from ..core.permissions import PagePermissions
+from ..core.models import ModelWithMetadata, PublishableModel, PublishedQuerySet
+from ..core.permissions import PagePermissions, PageTypePermissions
+from ..core.sanitizers.editorjs_sanitizer import clean_editor_js
 from ..core.utils.translations import TranslationProxy
 from ..seo.models import SeoModel, SeoModelTranslation
 
@@ -14,12 +14,15 @@ class PagePublishedQuerySet(PublishedQuerySet):
         return user.is_active and user.has_perm(PagePermissions.MANAGE_PAGES)
 
 
-class Page(SeoModel, PublishableModel):
+class Page(ModelWithMetadata, SeoModel, PublishableModel):
     slug = models.SlugField(unique=True, max_length=255)
     title = models.CharField(max_length=250)
+    page_type = models.ForeignKey(
+        "PageType", related_name="pages", on_delete=models.CASCADE
+    )
     content = models.TextField(blank=True)
     content_json = SanitizedJSONField(
-        blank=True, default=dict, sanitizer=clean_draft_js
+        blank=True, default=dict, sanitizer=clean_editor_js
     )
     created = models.DateTimeField(auto_now_add=True)
 
@@ -42,7 +45,7 @@ class PageTranslation(SeoModelTranslation):
     title = models.CharField(max_length=255, blank=True)
     content = models.TextField(blank=True)
     content_json = SanitizedJSONField(
-        blank=True, default=dict, sanitizer=clean_draft_js
+        blank=True, default=dict, sanitizer=clean_editor_js
     )
 
     class Meta:
@@ -60,3 +63,17 @@ class PageTranslation(SeoModelTranslation):
 
     def __str__(self):
         return self.title
+
+
+class PageType(ModelWithMetadata):
+    name = models.CharField(max_length=250)
+    slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
+
+    class Meta:
+        ordering = ("slug",)
+        permissions = (
+            (
+                PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES.codename,
+                "Manage page types and attributes.",
+            ),
+        )

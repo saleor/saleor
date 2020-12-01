@@ -1,16 +1,21 @@
 from measurement.measures import Weight
 
-from .....product.models import Attribute, Product, ProductVariant, VariantImage
+from .....attribute.models import Attribute
+from .....channel.models import Channel
+from .....product.models import Product, ProductVariant, VariantImage
 from .....warehouse.models import Warehouse
-from ....utils.products_data import ProductExportFields, get_products_data
+from ....utils import ProductExportFields
+from ....utils.products_data import get_products_data
 from .utils import (
+    add_channel_to_expected_product_data,
+    add_channel_to_expected_variant_data,
     add_product_attribute_data_to_expected_data,
     add_stocks_to_expected_data,
     add_variant_attribute_data_to_expected_data,
 )
 
 
-def test_get_products_data(product, product_with_image, collection, image):
+def test_get_products_data(product, product_with_image, collection, image, channel_USD):
     # given
     product.weight = Weight(kg=5)
     product.save()
@@ -28,6 +33,7 @@ def test_get_products_data(product, product_with_image, collection, image):
     )
     warehouse_ids = [str(warehouse.pk) for warehouse in Warehouse.objects.all()]
     attribute_ids = [str(attr.pk) for attr in Attribute.objects.all()]
+    channel_ids = [str(channel.pk) for channel in Channel.objects.all()]
 
     variants = []
     for variant in product.variants.all():
@@ -46,7 +52,7 @@ def test_get_products_data(product, product_with_image, collection, image):
 
     # when
     result_data = get_products_data(
-        products, export_fields, attribute_ids, warehouse_ids
+        products, export_fields, attribute_ids, warehouse_ids, channel_ids
     )
 
     # then
@@ -55,9 +61,6 @@ def test_get_products_data(product, product_with_image, collection, image):
         product_data = {
             "id": product.id,
             "name": product.name,
-            "is_published": product.is_published,
-            "available_for_purchase": product.available_for_purchase,
-            "visible_in_listings": product.visible_in_listings,
             "description": product.description,
             "category__slug": product.category.slug,
             "product_type__name": product.product_type.name,
@@ -82,13 +85,13 @@ def test_get_products_data(product, product_with_image, collection, image):
         product_data = add_product_attribute_data_to_expected_data(
             product_data, product, attribute_ids
         )
+        product_data = add_channel_to_expected_product_data(
+            product_data, product, channel_ids
+        )
 
         for variant in product.variants.all():
             data = {
                 "variants__sku": variant.sku,
-                "variants__currency": variant.currency,
-                "variants__price_amount": variant.price_amount,
-                "variants__cost_price_amount": variant.cost_price_amount,
                 "variants__images__image": (
                     ""
                     if not variant.images.all()
@@ -106,9 +109,9 @@ def test_get_products_data(product, product_with_image, collection, image):
             data = add_variant_attribute_data_to_expected_data(
                 data, variant, attribute_ids
             )
+            data = add_channel_to_expected_variant_data(data, variant, channel_ids)
 
             expected_data.append(data)
-
     assert result_data == expected_data
 
 
@@ -119,9 +122,13 @@ def test_get_products_data_for_specified_attributes(
     products = Product.objects.all()
     export_fields = {"id", "variants__sku"}
     attribute_ids = [str(attr.pk) for attr in Attribute.objects.all()][:1]
+    warehouse_ids = []
+    channel_ids = []
 
     # when
-    result_data = get_products_data(products, export_fields, attribute_ids, [])
+    result_data = get_products_data(
+        products, export_fields, attribute_ids, warehouse_ids, channel_ids
+    )
 
     # then
     expected_data = []
@@ -155,10 +162,45 @@ def test_get_products_data_for_specified_warehouses(
     export_fields = {"id", "variants__sku"}
     warehouse_ids = [str(warehouse.pk) for warehouse in Warehouse.objects.all()][:2]
     attribute_ids = []
+    channel_ids = []
 
     # when
     result_data = get_products_data(
-        products, export_fields, attribute_ids, warehouse_ids
+        products, export_fields, attribute_ids, warehouse_ids, channel_ids
+    )
+
+    # then
+    expected_data = []
+    for product in products.order_by("pk"):
+        product_data = {"id": product.pk}
+
+        for variant in product.variants.all():
+            data = {"variants__sku": variant.sku}
+            data.update(product_data)
+
+            data = add_stocks_to_expected_data(data, variant, warehouse_ids)
+
+            expected_data.append(data)
+    for res in result_data:
+        assert res in expected_data
+
+
+def test_get_products_data_for_product_without_channel(
+    product, product_with_image, variant_with_many_stocks
+):
+    # given
+    product.variants.add(variant_with_many_stocks)
+    product_with_image.channel_listings.all().delete()
+
+    products = Product.objects.all()
+    export_fields = {"id", "variants__sku"}
+    warehouse_ids = []
+    attribute_ids = []
+    channel_ids = []
+
+    # when
+    result_data = get_products_data(
+        products, export_fields, attribute_ids, warehouse_ids, channel_ids
     )
 
     # then
@@ -178,7 +220,7 @@ def test_get_products_data_for_specified_warehouses(
         assert res in expected_data
 
 
-def test_get_products_data_for_specified_warehouses_and_attributes(
+def test_get_products_data_for_specified_warehouses_channels_and_attributes(
     product,
     variant_with_many_stocks,
     product_with_image,
@@ -191,10 +233,11 @@ def test_get_products_data_for_specified_warehouses_and_attributes(
     export_fields = {"id", "variants__sku"}
     warehouse_ids = [str(warehouse.pk) for warehouse in Warehouse.objects.all()]
     attribute_ids = [str(attr.pk) for attr in Attribute.objects.all()]
+    channel_ids = [str(channel.pk) for channel in Channel.objects.all()]
 
     # when
     result_data = get_products_data(
-        products, export_fields, attribute_ids, warehouse_ids
+        products, export_fields, attribute_ids, warehouse_ids, channel_ids
     )
 
     # then
@@ -205,6 +248,9 @@ def test_get_products_data_for_specified_warehouses_and_attributes(
         product_data = add_product_attribute_data_to_expected_data(
             product_data, product, attribute_ids
         )
+        product_data = add_channel_to_expected_product_data(
+            product_data, product, channel_ids
+        )
 
         for variant in product.variants.all():
             data = {"variants__sku": variant.sku}
@@ -214,6 +260,7 @@ def test_get_products_data_for_specified_warehouses_and_attributes(
             data = add_variant_attribute_data_to_expected_data(
                 data, variant, attribute_ids
             )
+            data = add_channel_to_expected_variant_data(data, variant, channel_ids)
 
             expected_data.append(data)
 

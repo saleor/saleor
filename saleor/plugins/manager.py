@@ -18,19 +18,21 @@ from .models import PluginConfiguration
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from .base_plugin import BasePlugin
-    from ..checkout.models import Checkout, CheckoutLine
-    from ..product.models import Product, ProductType
     from ..account.models import Address, User
-    from ..order.models import Fulfillment, OrderLine, Order
+    from ..channel.models import Channel
+    from ..checkout.models import Checkout, CheckoutLine
     from ..invoice.models import Invoice
+    from ..order.models import Fulfillment, Order, OrderLine
     from ..payment.interface import (
-        PaymentData,
-        TokenConfig,
-        GatewayResponse,
         CustomerSource,
+        GatewayResponse,
+        PaymentData,
         PaymentGateway,
+        InitializedPaymentResponse,
+        TokenConfig,
     )
+    from ..product.models import Product, ProductType
+    from .base_plugin import BasePlugin
 
 
 class PluginsManager(PaymentInterface):
@@ -124,7 +126,8 @@ class PluginsManager(PaymentInterface):
         discounts: Iterable[DiscountInfo],
     ) -> TaxedMoney:
         line_totals = [
-            self.calculate_checkout_line_total(line, discounts) for line in lines
+            self.calculate_checkout_line_total(line, discounts, checkout.channel)
+            for line in lines
         ]
         default_value = base_calculations.base_checkout_subtotal(
             line_totals, checkout.currency
@@ -153,7 +156,9 @@ class PluginsManager(PaymentInterface):
     def calculate_order_shipping(self, order: "Order") -> TaxedMoney:
         if not order.shipping_method:
             return zero_taxed_money(order.currency)
-        shipping_price = order.shipping_method.price
+        shipping_price = order.shipping_method.channel_listings.get(
+            channel_id=order.channel_id
+        ).price
         default_value = quantize_price(
             TaxedMoney(net=shipping_price, gross=shipping_price),
             shipping_price.currency,
@@ -166,14 +171,21 @@ class PluginsManager(PaymentInterface):
         )
 
     def calculate_checkout_line_total(
-        self, checkout_line: "CheckoutLine", discounts: Iterable[DiscountInfo]
+        self,
+        checkout_line: "CheckoutLine",
+        discounts: Iterable[DiscountInfo],
+        channel: "Channel",
     ):
         default_value = base_calculations.base_checkout_line_total(
-            checkout_line, discounts
+            checkout_line, channel, discounts
         )
         return quantize_price(
             self.__run_method_on_plugins(
-                "calculate_checkout_line_total", default_value, checkout_line, discounts
+                "calculate_checkout_line_total",
+                default_value,
+                checkout_line,
+                discounts,
+                channel,
             ),
             checkout_line.checkout.currency,
         )
@@ -259,6 +271,10 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins("order_created", default_value, order)
 
+    def order_confirmed(self, order: "Order"):
+        default_value = None
+        return self.__run_method_on_plugins("order_confirmed", default_value, order)
+
     def invoice_request(
         self, order: "Order", invoice: "Invoice", number: Optional[str]
     ):
@@ -313,6 +329,19 @@ class PluginsManager(PaymentInterface):
     def checkout_updated(self, checkout: "Checkout"):
         default_value = None
         return self.__run_method_on_plugins("checkout_updated", default_value, checkout)
+
+    def initialize_payment(
+        self, gateway, payment_data: dict
+    ) -> Optional["InitializedPaymentResponse"]:
+        method_name = "initialize_payment"
+        default_value = None
+        gtw = self.get_plugin(gateway)
+        if not gtw:
+            return None
+
+        return self.__run_method_on_single_plugin(
+            gtw, method_name, previous_value=default_value, payment_data=payment_data,
+        )
 
     def authorize_payment(
         self, gateway: str, payment_information: "PaymentData"
@@ -496,9 +525,12 @@ class PluginsManager(PaymentInterface):
                     identifier=plugin_id,
                     defaults={"configuration": plugin.configuration},
                 )
-                return plugin.save_plugin_configuration(
+                configuration = plugin.save_plugin_configuration(
                     plugin_configuration, cleaned_data
                 )
+                configuration.name = plugin.PLUGIN_NAME
+                configuration.description = plugin.PLUGIN_DESCRIPTION
+                return configuration
 
     def get_plugin(self, plugin_id: str) -> Optional["BasePlugin"]:
         for plugin in self.plugins:

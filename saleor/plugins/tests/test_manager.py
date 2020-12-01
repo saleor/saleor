@@ -104,7 +104,7 @@ def test_manager_calculates_checkout_line_total(
     currency = checkout_with_item.currency
     expected_total = Money(amount, currency)
     taxed_total = PluginsManager(plugins=plugins).calculate_checkout_line_total(
-        line, [discount_info]
+        line, [discount_info], checkout_with_item.channel
     )
     assert TaxedMoney(expected_total, expected_total) == taxed_total
 
@@ -146,13 +146,13 @@ def test_manager_show_taxes_on_storefront(plugins, show_taxes):
     "plugins, price",
     [(["saleor.plugins.tests.sample_plugins.PluginSample"], "1.0"), ([], "10.0")],
 )
-def test_manager_apply_taxes_to_product(product, plugins, price):
+def test_manager_apply_taxes_to_product(product, plugins, price, channel_USD):
     country = Country("PL")
     variant = product.variants.all()[0]
-    currency = variant.get_price().currency
+    currency = variant.get_price(channel_USD.slug).currency
     expected_price = Money(price, currency)
     taxed_price = PluginsManager(plugins=plugins).apply_taxes_to_product(
-        product, variant.get_price(), country
+        product, variant.get_price(channel_USD.slug), country
     )
     assert TaxedMoney(expected_price, expected_price) == taxed_price
 
@@ -162,11 +162,14 @@ def test_manager_apply_taxes_to_product(product, plugins, price):
     [(["saleor.plugins.tests.sample_plugins.PluginSample"], "1.0"), ([], "10.0")],
 )
 def test_manager_apply_taxes_to_shipping(
-    shipping_method, address, plugins, price_amount
+    shipping_method, address, plugins, price_amount, channel_USD
 ):
+    shipping_price = shipping_method.channel_listings.get(
+        channel_id=channel_USD.id
+    ).price
     expected_price = Money(price_amount, "USD")
     taxed_price = PluginsManager(plugins=plugins).apply_taxes_to_shipping(
-        shipping_method.price, address
+        shipping_price, address
     )
     assert TaxedMoney(expected_price, expected_price) == taxed_price
 
@@ -312,7 +315,7 @@ def test_manager_serve_list_all_payment_gateways_specified_currency():
     ]
     manager = PluginsManager(plugins=plugins)
     assert (
-        manager.list_payment_gateways(currency="PLN", active_only=False)
+        manager.list_payment_gateways(currency="EUR", active_only=False)
         == expected_gateways
     )
 

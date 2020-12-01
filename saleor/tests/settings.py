@@ -55,3 +55,5 @@ PATTERNS_IGNORED_IN_QUERY_CAPTURES: List[Union[Pattern, SimpleLazyObject]] = [
 INSTALLED_APPS.append("saleor.tests")  # noqa: F405
 
 JWT_EXPIRE = True
+
+DEFAULT_CHANNEL_SLUG = "main"

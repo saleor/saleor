@@ -7,11 +7,13 @@ from django.utils import timezone
 from ...product.models import Product
 from .. import FileTypes
 from ..emails import send_email_with_link_to_download_file
-from .products_data import get_export_fields_and_headers_info, get_products_data
+from .product_headers import get_export_fields_and_headers_info
+from .products_data import get_products_data
 
 if TYPE_CHECKING:
     # flake8: noqa
     from django.db.models import QuerySet
+
     from ..models import ExportFile
 
 
@@ -105,6 +107,7 @@ def export_products_in_batches(
 ):
     warehouses = export_info.get("warehouses")
     attributes = export_info.get("attributes")
+    channels = export_info.get("channels")
 
     for batch_pks in queryset_in_batches(queryset):
         product_batch = Product.objects.filter(pk__in=batch_pks).prefetch_related(
@@ -117,7 +120,7 @@ def export_products_in_batches(
         )
 
         export_data = get_products_data(
-            product_batch, export_fields, attributes, warehouses
+            product_batch, export_fields, attributes, warehouses, channels
         )
 
         append_to_file(export_data, headers, temporary_file, file_type, delimiter)

@@ -21,7 +21,6 @@ from ...core.types import Upload
 from ...core.types.common import AccountError, StaffError
 from ...core.utils import get_duplicates_ids, validate_image_file
 from ...decorators import staff_member_required
-from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ..utils import (
     CustomerDeleteMixin,
     StaffDeleteMixin,
@@ -564,23 +563,3 @@ class UserAvatarDelete(BaseMutation):
         user.avatar.delete_sized_images()
         user.avatar.delete()
         return UserAvatarDelete(user=user)
-
-
-class UserUpdatePrivateMeta(UpdateMetaBaseMutation):
-    class Meta:
-        description = "Updates private metadata for user."
-        permissions = (AccountPermissions.MANAGE_USERS,)
-        model = models.User
-        public = False
-        error_type_class = AccountError
-        error_type_field = "account_errors"
-
-
-class UserClearPrivateMeta(ClearMetaBaseMutation):
-    class Meta:
-        description = "Clear private metadata for user."
-        model = models.User
-        permissions = (AccountPermissions.MANAGE_USERS,)
-        public = False
-        error_type_class = AccountError
-        error_type_field = "account_errors"

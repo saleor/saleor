@@ -1,12 +1,21 @@
 import graphene
 from graphene import relay
 
+from ...core.permissions import PagePermissions
 from ...menu import models
+from ...product.models import Collection
+from ..channel.dataloaders import ChannelBySlugLoader
+from ..channel.types import ChannelContext, ChannelContextType
 from ..core.connection import CountableDjangoObjectType
 from ..page.dataloaders import PageByIdLoader
-from ..product.dataloaders import CategoryByIdLoader, CollectionByIdLoader
+from ..product.dataloaders import (
+    CategoryByIdLoader,
+    CollectionByIdLoader,
+    CollectionChannelListingByCollectionIdAndChannelSlugLoader,
+)
 from ..translations.fields import TranslationField
 from ..translations.types import MenuItemTranslation
+from ..utils import get_user_or_app_from_context
 from .dataloaders import (
     MenuByIdLoader,
     MenuItemByIdLoader,
@@ -15,29 +24,42 @@ from .dataloaders import (
 )
 
 
-class Menu(CountableDjangoObjectType):
+class Menu(ChannelContextType, CountableDjangoObjectType):
     items = graphene.List(lambda: MenuItem)
 
     class Meta:
+        default_resolver = ChannelContextType.resolver_with_context
         description = (
             "Represents a single menu - an object that is used to help navigate "
             "through the store."
         )
         interfaces = [relay.Node]
-        only_fields = ["id", "name"]
+        only_fields = ["id", "name", "slug"]
         model = models.Menu
 
     @staticmethod
-    def resolve_items(root: models.Menu, info, **_kwargs):
-        return MenuItemsByParentMenuLoader(info.context).load(root.id)
+    def resolve_items(root: ChannelContext[models.Menu], info, **_kwargs):
+        menu_items = MenuItemsByParentMenuLoader(info.context).load(root.node.id)
+        return menu_items.then(
+            lambda menu_items: [
+                ChannelContext(node=menu_item, channel_slug=root.channel_slug)
+                for menu_item in menu_items
+            ]
+        )
 
 
-class MenuItem(CountableDjangoObjectType):
+class MenuItem(ChannelContextType, CountableDjangoObjectType):
     children = graphene.List(lambda: MenuItem)
     url = graphene.String(description="URL to the menu item.")
-    translation = TranslationField(MenuItemTranslation, type_name="menu item")
+    translation = TranslationField(
+        MenuItemTranslation,
+        type_name="menu item",
+        resolver=ChannelContextType.resolve_translation,
+    )
 
     class Meta:
+        default_resolver = ChannelContextType.resolver_with_context
+
         description = (
             "Represents a single item of the related menu. Can store categories, "
             "collection or pages."
@@ -56,37 +78,111 @@ class MenuItem(CountableDjangoObjectType):
         model = models.MenuItem
 
     @staticmethod
-    def resolve_category(root: models.MenuItem, info, **_kwargs):
-        if root.category_id:
-            return CategoryByIdLoader(info.context).load(root.category_id)
+    def resolve_category(root: ChannelContext[models.MenuItem], info, **_kwargs):
+        if root.node.category_id:
+            return CategoryByIdLoader(info.context).load(root.node.category_id)
         return None
 
     @staticmethod
-    def resolve_children(root: models.MenuItem, info, **_kwargs):
-        return MenuItemChildrenLoader(info.context).load(root.id)
+    def resolve_children(root: ChannelContext[models.MenuItem], info, **_kwargs):
+        menus = MenuItemChildrenLoader(info.context).load(root.node.id)
+        return menus.then(
+            lambda menus: [
+                ChannelContext(node=menu, channel_slug=root.channel_slug)
+                for menu in menus
+            ]
+        )
 
     @staticmethod
-    def resolve_collection(root: models.MenuItem, info, **_kwargs):
-        if root.collection_id:
-            return CollectionByIdLoader(info.context).load(root.collection_id)
+    def resolve_collection(root: ChannelContext[models.MenuItem], info, **_kwargs):
+        if not root.node.collection_id:
+            return None
+
+        requestor = get_user_or_app_from_context(info.context)
+        requestor_has_access_to_all = Collection.objects.user_has_access_to_all(
+            requestor
+        )
+        if requestor_has_access_to_all:
+            return (
+                CollectionByIdLoader(info.context)
+                .load(root.node.collection_id)
+                .then(
+                    lambda collection: ChannelContext(
+                        node=collection, channel_slug=root.channel_slug
+                    )
+                    if collection
+                    else None
+                )
+            )
+
+        # If it's a non-staff user with proper permission we should check that
+        # channel is active and collection is visible in this channel
+        channel_slug = str(root.channel_slug)
+        channel = ChannelBySlugLoader(info.context).load(channel_slug)
+
+        def calculate_collection_availability(collection_channel_listing):
+            def calculate_collection_availability_with_channel(channel):
+                collection_is_visible = (
+                    collection_channel_listing.is_visible
+                    if collection_channel_listing
+                    else False
+                )
+                if not channel.is_active or not collection_is_visible:
+                    return None
+                return (
+                    CollectionByIdLoader(info.context)
+                    .load(root.node.collection_id)
+                    .then(
+                        lambda collection: ChannelContext(
+                            node=collection, channel_slug=channel_slug
+                        )
+                        if collection
+                        else None
+                    )
+                )
+
+            return channel.then(calculate_collection_availability_with_channel)
+
+        return (
+            CollectionChannelListingByCollectionIdAndChannelSlugLoader(info.context)
+            .load((root.node.collection_id, channel_slug))
+            .then(calculate_collection_availability)
+        )
+
+    @staticmethod
+    def resolve_menu(root: ChannelContext[models.MenuItem], info, **_kwargs):
+        if root.node.menu_id:
+            menu = MenuByIdLoader(info.context).load(root.node.menu_id)
+            return menu.then(
+                lambda menu: ChannelContext(node=menu, channel_slug=root.channel_slug)
+            )
         return None
 
     @staticmethod
-    def resolve_menu(root: models.MenuItem, info, **_kwargs):
-        if root.menu_id:
-            return MenuByIdLoader(info.context).load(root.menu_id)
+    def resolve_parent(root: ChannelContext[models.MenuItem], info, **_kwargs):
+        if root.node.parent_id:
+            menu = MenuItemByIdLoader(info.context).load(root.node.parent_id)
+            return menu.then(
+                lambda menu: ChannelContext(node=menu, channel_slug=root.channel_slug)
+            )
         return None
 
     @staticmethod
-    def resolve_parent(root: models.MenuItem, info, **_kwargs):
-        if root.parent_id:
-            return MenuItemByIdLoader(info.context).load(root.parent_id)
-        return None
-
-    @staticmethod
-    def resolve_page(root: models.MenuItem, info, **kwargs):
-        if root.page_id:
-            return PageByIdLoader(info.context).load(root.page_id)
+    def resolve_page(root: ChannelContext[models.MenuItem], info, **kwargs):
+        if root.node.page_id:
+            requestor = get_user_or_app_from_context(info.context)
+            requestor_has_access_to_all = requestor.is_active and requestor.has_perm(
+                PagePermissions.MANAGE_PAGES
+            )
+            return (
+                PageByIdLoader(info.context)
+                .load(root.node.page_id)
+                .then(
+                    lambda page: page
+                    if requestor_has_access_to_all or page.is_visible
+                    else None
+                )
+            )
         return None
 
 

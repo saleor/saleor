@@ -1,8 +1,7 @@
 import pytest
 
+from ...attribute.models import AttributeTranslation, AttributeValueTranslation
 from ..models import (
-    AttributeTranslation,
-    AttributeValueTranslation,
     CategoryTranslation,
     CollectionTranslation,
     ProductTranslation,

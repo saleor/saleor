@@ -10,7 +10,7 @@ from ....core.permissions import get_permissions_codename
 from ....site import AuthenticationBackends
 from ....site.models import Site
 from ...core.utils import str_to_enum
-from ...tests.utils import get_graphql_content
+from ...tests.utils import assert_no_permission, get_graphql_content
 
 
 def test_query_authorization_keys(
@@ -74,22 +74,6 @@ def test_query_countries_with_translation(
     assert len(data["countries"]) == len(countries)
     assert data["countries"][0]["code"] == "AF"
     assert data["countries"][0]["country"] == expected_value
-
-
-def test_query_currencies(user_api_client, settings):
-    query = """
-    query {
-        shop {
-            currencies
-            defaultCurrency
-        }
-    }
-    """
-    response = user_api_client.post_graphql(query)
-    content = get_graphql_content(response)
-    data = content["data"]["shop"]
-    assert len(data["currencies"]) == len(settings.AVAILABLE_CURRENCIES)
-    assert data["defaultCurrency"] == settings.DEFAULT_CURRENCY
 
 
 def test_query_name(user_api_client, site_settings):
@@ -584,61 +568,6 @@ def test_shop_customer_set_password_url_update_invalid_url(
     assert not site_settings.customer_set_password_url
 
 
-def test_homepage_collection_update(
-    staff_api_client, collection, permission_manage_settings
-):
-    query = """
-        mutation homepageCollectionUpdate($collection: ID!) {
-            homepageCollectionUpdate(collection: $collection) {
-                shop {
-                    homepageCollection {
-                        id,
-                        name
-                    }
-                }
-            }
-        }
-    """
-    collection_id = graphene.Node.to_global_id("Collection", collection.id)
-    variables = {"collection": collection_id}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_settings]
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["homepageCollectionUpdate"]["shop"]
-    assert data["homepageCollection"]["id"] == collection_id
-    assert data["homepageCollection"]["name"] == collection.name
-    site = Site.objects.get_current()
-    assert site.settings.homepage_collection == collection
-
-
-def test_homepage_collection_update_set_null(
-    staff_api_client, collection, site_settings, permission_manage_settings
-):
-    query = """
-        mutation homepageCollectionUpdate($collection: ID) {
-            homepageCollectionUpdate(collection: $collection) {
-                shop {
-                    homepageCollection {
-                        id
-                    }
-                }
-            }
-        }
-    """
-    site_settings.homepage_collection = collection
-    site_settings.save()
-    variables = {"collection": None}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_settings]
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["homepageCollectionUpdate"]["shop"]
-    assert data["homepageCollection"] is None
-    site_settings.refresh_from_db()
-    assert site_settings.homepage_collection is None
-
-
 def test_query_default_country(user_api_client, settings):
     settings.DEFAULT_COUNTRY = "US"
     query = """
@@ -751,11 +680,11 @@ def test_query_available_payment_gateways_specified_currency_USD(
     }
 
 
-def test_query_available_payment_gateways_specified_currency_PLN(
+def test_query_available_payment_gateways_specified_currency_EUR(
     user_api_client, sample_gateway
 ):
     query = AVAILABLE_PAYMENT_GATEWAYS_QUERY
-    response = user_api_client.post_graphql(query, {"currency": "PLN"})
+    response = user_api_client.post_graphql(query, {"currency": "EUR"})
     content = get_graphql_content(response)
     data = content["data"]["shop"]["availablePaymentGateways"]
     assert data[0]["id"] == "sampleDummy.active"
@@ -1201,3 +1130,87 @@ def test_staff_notification_update_mutation_with_empty_email(
             }
         ],
     }
+
+
+ORDER_SETTINGS_UPDATE_MUTATION = """
+    mutation orderSettings($confirmOrders: Boolean!) {
+        orderSettingsUpdate(
+            input: { automaticallyConfirmAllNewOrders: $confirmOrders }
+        ) {
+            orderSettings {
+                automaticallyConfirmAllNewOrders
+            }
+        }
+    }
+"""
+
+
+def test_order_settings_update_by_staff(
+    staff_api_client, permission_manage_orders, site_settings
+):
+    assert site_settings.automatically_confirm_all_new_orders is True
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(
+        ORDER_SETTINGS_UPDATE_MUTATION, {"confirmOrders": False}
+    )
+    content = get_graphql_content(response)
+    response_settings = content["data"]["orderSettingsUpdate"]["orderSettings"]
+    assert response_settings["automaticallyConfirmAllNewOrders"] is False
+    site_settings.refresh_from_db()
+    assert site_settings.automatically_confirm_all_new_orders is False
+
+
+def test_order_settings_update_by_app(
+    app_api_client, permission_manage_orders, site_settings
+):
+    assert site_settings.automatically_confirm_all_new_orders is True
+    app_api_client.app.permissions.set([permission_manage_orders])
+    response = app_api_client.post_graphql(
+        ORDER_SETTINGS_UPDATE_MUTATION, {"confirmOrders": False}
+    )
+    content = get_graphql_content(response)
+    response_settings = content["data"]["orderSettingsUpdate"]["orderSettings"]
+    assert response_settings["automaticallyConfirmAllNewOrders"] is False
+    site_settings.refresh_from_db()
+    assert site_settings.automatically_confirm_all_new_orders is False
+
+
+def test_order_settings_update_by_user_without_permissions(
+    user_api_client, permission_manage_orders, site_settings
+):
+    assert site_settings.automatically_confirm_all_new_orders is True
+    response = user_api_client.post_graphql(
+        ORDER_SETTINGS_UPDATE_MUTATION, {"confirmOrders": False}
+    )
+    assert_no_permission(response)
+    site_settings.refresh_from_db()
+    assert site_settings.automatically_confirm_all_new_orders is True
+
+
+ORDER_SETTINGS_QUERY = """
+    query orderSettings {
+        orderSettings {
+            automaticallyConfirmAllNewOrders
+        }
+    }
+"""
+
+
+def test_order_settings_query_as_staff(
+    staff_api_client, permission_manage_orders, site_settings
+):
+    assert site_settings.automatically_confirm_all_new_orders is True
+
+    site_settings.automatically_confirm_all_new_orders = False
+    site_settings.save(update_fields=["automatically_confirm_all_new_orders"])
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDER_SETTINGS_QUERY)
+    content = get_graphql_content(response)
+
+    assert content["data"]["orderSettings"]["automaticallyConfirmAllNewOrders"] is False
+
+
+def test_order_settings_query_as_user(user_api_client, site_settings):
+    response = user_api_client.post_graphql(ORDER_SETTINGS_QUERY)
+    assert_no_permission(response)

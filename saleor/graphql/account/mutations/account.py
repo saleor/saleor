@@ -15,8 +15,6 @@ from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types.common import AccountError
-from ...meta.deprecated.mutations import UpdateMetaBaseMutation
-from ...meta.deprecated.types import MetaInput
 from ..i18n import I18nMixin
 from .base import (
     INVALID_TOKEN,
@@ -332,29 +330,6 @@ class AccountSetDefaultAddress(BaseMutation):
 
         utils.change_user_default_address(user, address, address_type)
         return cls(user=user)
-
-
-class AccountUpdateMeta(UpdateMetaBaseMutation):
-    class Meta:
-        description = "Updates metadata of the logged-in user."
-        model = models.User
-        public = True
-        error_type_class = AccountError
-        error_type_field = "account_errors"
-
-    class Arguments:
-        input = MetaInput(
-            description="Fields required to update new or stored metadata item.",
-            required=True,
-        )
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.is_authenticated
-
-    @classmethod
-    def get_instance(cls, info, **data):
-        return info.context.user
 
 
 class RequestEmailChange(BaseMutation):
