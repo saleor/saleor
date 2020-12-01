@@ -18,6 +18,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix password reset request - #6351 by @Manfred-Madelaine-pro, Ambroise and Pierre
 - Refund products support - #6530 by @korycins
 - Add possibility to exclude products from shipping method - #6506 by @korycins
+- Add availableShippingMethods to the Shop type - #6551 by @IKarbowiak
 
 # 2.11.1
 
