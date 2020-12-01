@@ -444,26 +444,6 @@ def test_create_shipping_method_zip_code(
     assert zip_code_rules_data == zip_code_rules
 
 
-DELETE_SHIPPING_METHOD_ZIP_CODE_MUTATION = """
-    mutation deleteZipCode(
-        $id: ID!
-    ){
-        shippingMethodZipCodeRulesDelete(
-            id: $id
-        ){
-            shippingMethod {
-                id
-                name
-            }
-            shippingErrors {
-                field
-                code
-            }
-        }
-    }
-"""
-
-
 def test_create_shipping_method_zip_code_duplicate_entry(
     staff_api_client, shipping_method, permission_manage_shipping
 ):
