@@ -33,4 +33,19 @@ class Migration(migrations.Migration):
                 max_length=50,
             ),
         ),
+        migrations.AlterField(
+            model_name="attribute",
+            name="available_in_grid",
+            field=models.BooleanField(blank=True, default=False),
+        ),
+        migrations.AlterField(
+            model_name="attribute",
+            name="filterable_in_dashboard",
+            field=models.BooleanField(blank=True, default=False),
+        ),
+        migrations.AlterField(
+            model_name="attribute",
+            name="filterable_in_storefront",
+            field=models.BooleanField(blank=True, default=False),
+        ),
     ]
