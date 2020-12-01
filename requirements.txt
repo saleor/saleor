@@ -5,8 +5,8 @@ asgiref==3.2.10; python_version >= "3.6"
 babel==2.9.0; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
 beautifulsoup4==4.7.1
 billiard==3.6.3.0; python_version >= "3.6"
-boto3==1.16.23
-botocore==1.19.23
+boto3==1.16.25
+botocore==1.19.25
 braintree==4.5.0
 cachetools==4.1.1; python_version >= "3.5" and python_version < "4.0" and (python_version >= "3.5" and python_full_version < "3.0.0" or python_version >= "3.5" and python_full_version >= "3.6.0")
 cairocffi==1.1.0; python_version >= "3.6"
@@ -125,7 +125,7 @@ threadloop==1.0.2
 thrift==0.13.0
 tinycss2==1.0.2; python_version >= "3.6"
 tornado==6.0.4; python_version >= "3.5"
-tqdm==4.53.0; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
+tqdm==4.54.0; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
 typing-extensions==3.7.4.3; python_version >= "3.6"
 typing-inspect==0.6.0; python_version >= "3.6"
 unidecode==1.1.1; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.4.0"
