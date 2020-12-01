@@ -1,11 +1,12 @@
 import os
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 from typing import TYPE_CHECKING, Dict, List, Optional, Set, Union
 
 from django.conf import settings
 from django.db.models import Case, CharField, Value as V, When
 from django.db.models.functions import Concat
 
+from ...attribute import AttributeInputType
 from ...attribute.models import Attribute
 from ...core.utils import build_absolute_uri
 from . import ProductExportFields
@@ -287,6 +288,9 @@ def add_image_uris_to_data(
     return result_data
 
 
+AttributeData = namedtuple("AttributeData", ["slug", "file_url", "value", "input_type"])
+
+
 def handle_attribute_data(
     pk: int,
     data: dict,
@@ -295,13 +299,13 @@ def handle_attribute_data(
     attribute_fields: dict,
     attribute_owner: str,
 ):
-    attribute_data: dict = {}
-
     attribute_pk = str(data.pop(attribute_fields["attribute_pk"], ""))
-    attribute_data = {
-        "slug": data.pop(attribute_fields["slug"], None),
-        "value": data.pop(attribute_fields["value"], None),
-    }
+    attribute_data = AttributeData(
+        slug=data.pop(attribute_fields["slug"], None),
+        input_type=data.pop(attribute_fields["input_type"], None),
+        file_url=data.pop(attribute_fields["file_url"], None),
+        value=data.pop(attribute_fields["value"], None),
+    )
 
     if attribute_ids and attribute_pk in attribute_ids:
         result_data = add_attribute_info_to_data(
@@ -360,7 +364,7 @@ def handle_warehouse_data(
 
 def add_attribute_info_to_data(
     pk: int,
-    attribute_data: Dict[str, Optional[Union[str]]],
+    attribute_data: AttributeData,
     attribute_owner: str,
     result_data: Dict[int, dict],
 ) -> Dict[int, dict]:
@@ -371,14 +375,21 @@ def add_attribute_info_to_data(
     to set with values.
     It returns updated data.
     """
-    slug = attribute_data["slug"]
+    slug = attribute_data.slug
     header = None
     if slug:
         header = f"{slug} ({attribute_owner})"
+        value = (
+            attribute_data.value
+            if attribute_data.input_type != AttributeInputType.FILE
+            else build_absolute_uri(
+                os.path.join(settings.MEDIA_URL, attribute_data.file_url)
+            )
+        )
         if header in result_data[pk]:
-            result_data[pk][header].add(attribute_data["value"])  # type: ignore
+            result_data[pk][header].add(value)  # type: ignore
         else:
-            result_data[pk][header] = {attribute_data["value"]}
+            result_data[pk][header] = {value}
     return result_data
 
 
