@@ -444,6 +444,29 @@ def test_create_shipping_method_zip_code(
     assert zip_code_rules_data == zip_code_rules
 
 
+def test_create_shipping_method_zip_code_duplicate_entry(
+    staff_api_client, shipping_method, permission_manage_shipping
+):
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method.pk
+    )
+    zip_code_rules = [
+        {"start": "HB3", "end": "HB6"},
+        {"start": "HB3", "end": "HB6"},
+    ]
+    variables = {"shippingMethodId": shipping_method_id, "zipCodeRules": zip_code_rules}
+    response = staff_api_client.post_graphql(
+        CREATE_SHIPPING_METHOD_ZIP_CODE_MUTATION,
+        variables,
+        permissions=[permission_manage_shipping],
+    )
+    content = get_graphql_content(response)
+    errors = content["data"]["shippingMethodZipCodeRulesCreate"]["shippingErrors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ShippingErrorCode.ALREADY_EXISTS.name
+    assert errors[0]["field"] == "zipCodeRules"
+
+
 DELETE_SHIPPING_METHOD_ZIP_CODE_MUTATION = """
     mutation deleteZipCode(
         $id: ID!
