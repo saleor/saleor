@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 
 from ..zip_codes import check_zip_code_in_excluded_range
@@ -60,3 +62,18 @@ def test_check_zip_code_for_ireland(code, start, end, in_range):
 )
 def test_check_zip_code_for_other_countries(code, start, end, in_range):
     assert check_zip_code_in_excluded_range("PL", code, start, end) is in_range
+
+
+@pytest.mark.parametrize(
+    "country, code, start, end",
+    [
+        ["IM", "IM16 7HF", "IM16 7HA", "IM16 7HG"],
+        ["GG", "GG16 7HF", "GG16 7HA", "GG16 7HG"],
+        ["JE", "GY16 7HZ", "GY16 7HA", "GY16 7HG"],
+    ],
+)
+@patch("saleor.shipping.zip_codes.check_uk_zip_code")
+def test_check_uk_islands_follow_uk_check(check_uk_mock, country, code, start, end):
+    """Check if Isle of Man, Guernsey and Jersey triggers check_uk_zip_code method."""
+    assert check_zip_code_in_excluded_range(country, code, start, end)
+    check_uk_mock.assert_called_once_with(code, start, end)
