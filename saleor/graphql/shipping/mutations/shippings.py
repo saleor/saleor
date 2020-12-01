@@ -314,7 +314,11 @@ class ShippingPriceMixin:
 
     @classmethod
     def clean_delivery_time(cls, instance, cleaned_input, errors):
-        """Validate minimum_delivery_days is not higher than maximum_delivery_days."""
+        """Validate delivery days.
+
+        - check if minimum_delivery_days is not higher than maximum_delivery_days
+        - check if minimum_delivery_days and maximum_delivery_days are positive values
+        """
         min_delivery_days = cleaned_input.get("minimum_delivery_days")
         max_delivery_days = cleaned_input.get("maximum_delivery_days")
 
