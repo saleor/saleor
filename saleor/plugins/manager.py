@@ -151,7 +151,7 @@ class PluginsManager(PaymentInterface):
                 line_info.product,
                 line_info.collections,
                 address,
-                checkout.channel,
+                line_info.channel_listing.channel,
                 line_info.channel_listing,
                 discounts,
             )

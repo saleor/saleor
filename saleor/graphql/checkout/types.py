@@ -25,7 +25,10 @@ from ..product.dataloaders import (
     VariantChannelListingByVariantIdAndChannelSlugLoader,
 )
 from ..product.resolvers import resolve_variant
-from ..shipping.dataloaders import ShippingMethodByIdLoader
+from ..shipping.dataloaders import (
+    ShippingMethodByIdLoader,
+    ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
+)
 from ..shipping.types import ShippingMethod
 from ..utils import get_user_or_app_from_context
 from .dataloaders import (
@@ -349,19 +352,32 @@ class Checkout(CountableDjangoObjectType):
             if available is None:
                 return []
             display_gross = display_gross_prices()
+
             for shipping_method in available:
                 # ignore mypy checking because it is checked in
                 # get_valid_shipping_methods_for_checkout
-                shipping_channel_listing = shipping_method.channel_listings.get(
-                    channel=root.channel
+                # TODO add channel loader and shippingmethod loader
+                shipping_channel_listing_dataloader = ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader(
+                    info.context
+                ).load(
+                    (shipping_method.id, root.channel.slug)
                 )
-                taxed_price = info.context.plugins.apply_taxes_to_shipping(
-                    shipping_channel_listing.price, address
+
+                def calculate_available_shipping_methods_with_channel_listing(
+                    shipping_channel_listing,
+                ):
+                    taxed_price = info.context.plugins.apply_taxes_to_shipping(
+                        shipping_channel_listing.price, address
+                    )
+                    if display_gross:
+                        shipping_method.price = taxed_price.gross
+                    else:
+                        shipping_method.price = taxed_price.net
+
+                shipping_channel_listing_dataloader.then(
+                    calculate_available_shipping_methods_with_channel_listing
                 )
-                if display_gross:
-                    shipping_method.price = taxed_price.gross
-                else:
-                    shipping_method.price = taxed_price.net
+
             return available
 
         address = (
@@ -378,6 +394,7 @@ class Checkout(CountableDjangoObjectType):
             .then(calculate_available_shipping_methods)
             .then(
                 lambda available: [
+                    # TODO optimize get channel slug
                     ChannelContext(node=shipping, channel_slug=root.channel.slug)
                     for shipping in available
                 ]
