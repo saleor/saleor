@@ -4638,6 +4638,7 @@ enum ShippingErrorCode {
   REQUIRED
   UNIQUE
   DUPLICATED_INPUT_ITEM
+  ZIP_CODE_RULE_EXISTS
 }
 
 type ShippingMethod implements Node & ObjectWithMetadata {

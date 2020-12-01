@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.utils import IntegrityError
 
 from ....core.permissions import ShippingPermissions
 from ....product import models as product_models
@@ -202,13 +203,24 @@ class ShippingZipCodeRulesCreate(BaseMutation):
             info, data["shipping_method_id"], only_type=ShippingMethod
         )
         instances = []
-        for zip_range in data["input"]["zip_code_rules"]:
-            instance = models.ShippingMethodZipCodeRule.objects.create(
-                shipping_method=shipping_method,
-                start=zip_range["start"],
-                end=zip_range.get("end"),
-            )
-            instances.append(instance)
+        with transaction.atomic():
+            for zip_range in data["input"]["zip_code_rules"]:
+                try:
+                    start = zip_range["start"]
+                    end = zip_range["end"]
+                    instance = models.ShippingMethodZipCodeRule.objects.create(
+                        shipping_method=shipping_method, start=start, end=end,
+                    )
+                except IntegrityError:
+                    raise ValidationError(
+                        {
+                            "zipCodeRules": ValidationError(
+                                f"Entry start: {start}, end: {end} already exists.",
+                                code=ShippingErrorCode.ZIP_CODE_RULE_EXISTS.value,
+                            )
+                        }
+                    )
+                instances.append(instance)
         return ShippingZipCodeRulesCreate(
             zip_code_rules=instances,
             shipping_method=ChannelContext(node=shipping_method, channel_slug=None),
