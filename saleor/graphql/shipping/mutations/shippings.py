@@ -271,7 +271,12 @@ class ShippingPriceMixin:
     @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
         cleaned_input = super().clean_input(info, instance, data)
+        cls.clean_weight(cleaned_input)
+        cls.clean_delivery_time(instance, cleaned_input)
+        return cleaned_input
 
+    @classmethod
+    def clean_weight(cls, cleaned_input):
         min_weight = cleaned_input.get("minimum_order_weight")
         max_weight = cleaned_input.get("maximum_order_weight")
 
@@ -311,7 +316,44 @@ class ShippingPriceMixin:
                     )
                 }
             )
-        return cleaned_input
+
+    @classmethod
+    def clean_delivery_time(cls, instance, cleaned_input):
+        """Validate minimum_delivery_days is not higher than maximum_delivery_days."""
+        min_delivery_days = cleaned_input.get("minimum_delivery_days")
+        max_delivery_days = cleaned_input.get("maximum_delivery_days")
+
+        if not min_delivery_days and not max_delivery_days:
+            return
+
+        if (min_delivery_days and max_delivery_days) or (
+            min_delivery_days and instance.maximum_delivery_days
+        ):
+            max_delivery_days = max_delivery_days or instance.maximum_delivery_days
+            if min_delivery_days > max_delivery_days:
+                raise ValidationError(
+                    {
+                        "minimum_delivery_days": ValidationError(
+                            "Minimum delivery days should be lower "
+                            "than maximum delivery days",
+                            code=ShippingErrorCode.INVALID.value,
+                        )
+                    }
+                )
+        elif (
+            max_delivery_days
+            and instance.minimum_delivery_days
+            and (max_delivery_days < instance.minimum_delivery_days)
+        ):
+            raise ValidationError(
+                {
+                    "maximum_delivery_days": ValidationError(
+                        "Maximum delivery days should be higher than "
+                        "minimum delivery days",
+                        code=ShippingErrorCode.INVALID.value,
+                    )
+                }
+            )
 
 
 class ShippingPriceCreate(ShippingPriceMixin, ModelMutation):
