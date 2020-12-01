@@ -216,7 +216,7 @@ class ShippingZipCodeRulesCreate(BaseMutation):
                         {
                             "zipCodeRules": ValidationError(
                                 f"Entry start: {start}, end: {end} already exists.",
-                                code=ShippingErrorCode.ZIP_CODE_RULE_EXISTS.value,
+                                code=ShippingErrorCode.ALREADY_EXISTS.value,
                             )
                         }
                     )

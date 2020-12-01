@@ -10,4 +10,3 @@ class ShippingErrorCode(Enum):
     REQUIRED = "required"
     UNIQUE = "unique"
     DUPLICATED_INPUT_ITEM = "duplicated_input_item"
-    ZIP_CODE_RULE_EXISTS = "zip_code_rule_exists"

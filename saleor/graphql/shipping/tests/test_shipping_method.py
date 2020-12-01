@@ -483,7 +483,7 @@ def test_create_shipping_method_zip_code_duplicate_entry(
     content = get_graphql_content(response)
     errors = content["data"]["shippingMethodZipCodeRulesCreate"]["shippingErrors"]
     assert len(errors) == 1
-    assert errors[0]["code"] == ShippingErrorCode.ZIP_CODE_RULE_EXISTS.name
+    assert errors[0]["code"] == ShippingErrorCode.ALREADY_EXISTS.name
     assert errors[0]["field"] == "zipCodeRules"
 
 
