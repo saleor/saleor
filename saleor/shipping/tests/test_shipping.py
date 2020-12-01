@@ -24,7 +24,13 @@ from ..utils import default_shipping_zone_exists, get_countries_without_shipping
     ),
 )  # regular case
 def test_applicable_shipping_methods_price(
-    shipping_zone, price, min_price, max_price, shipping_included, channel_USD
+    shipping_zone,
+    price,
+    min_price,
+    max_price,
+    shipping_included,
+    channel_USD,
+    other_channel_USD,
 ):
     method = shipping_zone.shipping_methods.create(type=ShippingMethodType.PRICE_BASED,)
     ShippingMethodChannelListing.objects.create(
@@ -34,6 +40,13 @@ def test_applicable_shipping_methods_price(
         shipping_method=method,
         channel=channel_USD,
     )
+    ShippingMethodChannelListing.objects.create(
+        currency=other_channel_USD.currency_code,
+        minimum_order_price_amount=min_price,
+        maximum_order_price_amount=max_price,
+        shipping_method=method,
+        channel=other_channel_USD,
+    )
     assert "PL" in shipping_zone.countries
     result = ShippingMethod.objects.applicable_shipping_methods(
         price=Money(price, "USD"),
@@ -41,6 +54,8 @@ def test_applicable_shipping_methods_price(
         country_code="PL",
         channel_id=channel_USD.id,
     )
+    result_ids = set([method.id for method in result])
+    assert len(result_ids) == len(result)
     assert (method in result) == shipping_included
 
 
