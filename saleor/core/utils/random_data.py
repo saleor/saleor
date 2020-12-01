@@ -257,7 +257,7 @@ def create_product_variants(variants_data, create_images):
             product.default_variant = variant
             product.save(update_fields=["default_variant", "updated_at"])
         if create_images:
-            image = variant.product.images.filter().first()
+            image = variant.product.images.first()
             VariantImage.objects.create(variant=variant, image=image)
         quantity = random.randint(100, 500)
         create_stocks(variant, quantity=quantity)
