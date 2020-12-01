@@ -4,9 +4,13 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+# 2.11.3
+
+- Optimize variant images query - #6561 by @d-wysocki
+
 # 2.11.2
 
-- Fix reordering collection products - #6488 by @dwysocki
+- Fix reordering collection products - #6488 by @d-wysocki
 - Fix getting config for Apple Pay - #6521 by @korycins
 
 # 2.11.1
