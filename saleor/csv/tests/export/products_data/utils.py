@@ -24,12 +24,13 @@ def add_variant_attribute_data_to_expected_data(data, variant, attribute_ids, pk
     for assigned_attribute in variant.attributes.all():
         header = f"{assigned_attribute.attribute.slug} (variant attribute)"
         if str(assigned_attribute.attribute.pk) in attribute_ids:
-            value = (
-                assigned_attribute.values.first().slug
-                if assigned_attribute.attribute.input_type != AttributeInputType.FILE
-                else "http://mirumee.com/media/"
-                + assigned_attribute.values.first().file_url
-            )
+            if assigned_attribute.attribute.input_type != AttributeInputType.FILE:
+                value = assigned_attribute.values.first().slug
+            else:
+                value = (
+                    "http://mirumee.com/media/"
+                    + assigned_attribute.values.first().file_url
+                )
             if pk:
                 data[pk][header] = value
             else:
