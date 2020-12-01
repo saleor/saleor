@@ -114,6 +114,7 @@ class ShippingMethodQueryset(models.QuerySet):
         qs = self.filter(
             shipping_zone__countries__contains=country_code,
             channel_listings__currency=price.currency,
+            channel_listings__channel_id=channel_id,
         )
         qs = self.applicable_shipping_methods_by_channel(qs, channel_id)
         qs = qs.prefetch_related("shipping_zone")
