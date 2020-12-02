@@ -217,7 +217,7 @@ def test_invalid_query_graphql_errors_are_logged_in_another_logger(
     response = api_client.post_graphql("{ shop }")
     assert response.status_code == 400
     assert graphql_log_handler.messages == [
-        "saleor.graphql.errors.handled[ERROR].GraphQLError"
+        "saleor.graphql.errors.handled[INFO].GraphQLError"
     ]
 
 
@@ -227,7 +227,7 @@ def test_invalid_syntax_graphql_errors_are_logged_in_another_logger(
     response = api_client.post_graphql("{ }")
     assert response.status_code == 400
     assert graphql_log_handler.messages == [
-        "saleor.graphql.errors.handled[ERROR].GraphQLSyntaxError"
+        "saleor.graphql.errors.handled[INFO].GraphQLSyntaxError"
     ]
 
 
@@ -247,7 +247,7 @@ def test_permission_denied_query_graphql_errors_are_logged_in_another_logger(
     )
     assert response.status_code == 200
     assert graphql_log_handler.messages == [
-        "saleor.graphql.errors.handled[ERROR].PermissionDenied"
+        "saleor.graphql.errors.handled[INFO].PermissionDenied"
     ]
 
 
