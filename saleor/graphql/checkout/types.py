@@ -237,6 +237,22 @@ class Checkout(CountableDjangoObjectType):
         filter_fields = ["token"]
 
     @staticmethod
+    def resolve_shipping_address(root: models.Checkout, info):
+        return (
+            AddressByIdLoader(info.context).load(root.shipping_address_id)
+            if root.shipping_address_id
+            else None
+        )
+
+    @staticmethod
+    def resolve_billing_address(root: models.Checkout, info):
+        return (
+            AddressByIdLoader(info.context).load(root.billing_address_id)
+            if root.billing_address_id
+            else None
+        )
+
+    @staticmethod
     def resolve_user(root: models.Checkout, info):
         requestor = get_user_or_app_from_context(info.context)
         if requestor_has_access(requestor, root.user, AccountPermissions.MANAGE_USERS):
@@ -350,9 +366,19 @@ class Checkout(CountableDjangoObjectType):
             address, lines, discounts, channel = data
             channel_slug = channel.slug
             display_gross = display_gross_prices()
-
-            # TODO should get price instead of line and discount
-            available = get_valid_shipping_methods_for_checkout(root, lines, discounts)
+            manager = info.context.plugins
+            subtotal = manager.calculate_checkout_subtotal(
+                root, lines, address, discounts
+            )
+            if not address:
+                return []
+            available = get_valid_shipping_methods_for_checkout(
+                root,
+                lines,
+                discounts,
+                subtotal=subtotal,
+                country_code=address.country.code,
+            )
             if available is None:
                 return []
             else:

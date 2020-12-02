@@ -319,7 +319,10 @@ def get_valid_shipping_methods_for_order(order: Order):
     if not order.shipping_address:
         return None
     return ShippingMethod.objects.applicable_shipping_methods_for_instance(
-        order, channel_id=order.channel_id, price=order.get_subtotal().gross
+        order,
+        channel_id=order.channel_id,
+        price=order.get_subtotal().gross,
+        country_code=order.shipping_address.country.code,
     )
 
 

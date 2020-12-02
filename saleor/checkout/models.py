@@ -112,11 +112,17 @@ class Checkout(ModelWithMetadata):
             return zero_money(currency=self.currency)
         return Money(balance, self.currency)
 
-    def get_total_weight(self) -> "Weight":
+    def get_total_weight(self, lines=None) -> "Weight":
         # Cannot use `sum` as it parses an empty Weight to an int
         weights = zero_weight()
-        for line in self:
-            weights += line.variant.get_weight() * line.quantity
+        # TODO: we should use new data structure for lines in order like in checkout
+        if lines is None:
+            for line in self:
+                weights += line.variant.get_weight() * line.quantity
+        else:
+            for checkout_line_info in lines:
+                line = checkout_line_info.line
+                weights += line.variant.get_weight() * line.quantity
         return weights
 
     def get_line(self, variant: "ProductVariant") -> Optional["CheckoutLine"]:

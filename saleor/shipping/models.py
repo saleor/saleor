@@ -122,15 +122,16 @@ class ShippingMethodQueryset(models.QuerySet):
         channel_id,
         price: Money,
         country_code=None,
+        lines=None,
     ):
-        if not instance.shipping_address:
-            return None
-
+        if not country_code:
+            # TODO: country_code should come from argument
+            country_code = instance.shipping_address.country.code  # type: ignore
         return self.applicable_shipping_methods(
             price=price,
             channel_id=channel_id,
-            weight=instance.get_total_weight(),  # FIXME: optimize get_total_weight
-            country_code=country_code or instance.shipping_address.country.code,
+            weight=instance.get_total_weight(lines),
+            country_code=country_code,
         )
 
 
