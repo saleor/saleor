@@ -7,7 +7,6 @@ from django.db.models import Case, CharField, Value as V, When
 from django.db.models.functions import Concat
 
 from ...attribute import AttributeInputType
-from ...attribute.models import Attribute
 from ...core.utils import build_absolute_uri
 from . import ProductExportFields
 
