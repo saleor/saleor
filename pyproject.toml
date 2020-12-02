@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "saleor"
-version = "3.0.0-a.1"
+version = "3.0.0-a.2"
 description = "A modular, high performance e-commerce storefront built with GraphQL, Django, and ReactJS."
 authors = ["Mirumee Software <hello@mirumee.com>"]
 license = "BSD-3-Clause"
