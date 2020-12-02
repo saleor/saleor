@@ -347,39 +347,57 @@ class Checkout(CountableDjangoObjectType):
     # TODO: We should optimize it in/after PR#5819
     def resolve_available_shipping_methods(root: models.Checkout, info):
         def calculate_available_shipping_methods(data):
-            address, lines, discounts = data
+            address, lines, discounts, channel = data
+            channel_slug = channel.slug
+            display_gross = display_gross_prices()
+
+            # TODO should get price instead of line and discount
             available = get_valid_shipping_methods_for_checkout(root, lines, discounts)
             if available is None:
                 return []
-            display_gross = display_gross_prices()
+            else:
+                available_ids = available.values_list("id", flat=True)
 
-            for shipping_method in available:
-                # ignore mypy checking because it is checked in
-                # get_valid_shipping_methods_for_checkout
-                # TODO add channel loader and shippingmethod loader
-                shipping_channel_listing_dataloader = ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader(
-                    info.context
-                ).load(
-                    (shipping_method.id, root.channel.slug)
+            def map_shipping_method_with_channel(shippings):
+                def apply_price_to_shipping_method(channel_listings):
+                    channel_listing_map = {
+                        channel_listing.shipping_method_id: channel_listing
+                        for channel_listing in channel_listings
+                    }
+                    available_with_channel_context = []
+                    for shipping in shippings:
+                        shipping_channel_listing = channel_listing_map[shipping.id]
+                        taxed_price = info.context.plugins.apply_taxes_to_shipping(
+                            shipping_channel_listing.price, address
+                        )
+                        if display_gross:
+                            shipping.price = taxed_price.gross
+                        else:
+                            shipping.price = taxed_price.net
+                        available_with_channel_context.append(
+                            ChannelContext(node=shipping, channel_slug=channel_slug)
+                        )
+                    return available_with_channel_context
+
+                map_shipping_method_and_channel = (
+                    (shipping_method_id, channel_slug)
+                    for shipping_method_id in available_ids
                 )
-
-                def calculate_available_shipping_methods_with_channel_listing(
-                    shipping_channel_listing,
-                ):
-                    taxed_price = info.context.plugins.apply_taxes_to_shipping(
-                        shipping_channel_listing.price, address
+                return (
+                    ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader(
+                        info.context
                     )
-                    if display_gross:
-                        shipping_method.price = taxed_price.gross
-                    else:
-                        shipping_method.price = taxed_price.net
-
-                shipping_channel_listing_dataloader.then(
-                    calculate_available_shipping_methods_with_channel_listing
+                    .load_many(map_shipping_method_and_channel)
+                    .then(apply_price_to_shipping_method)
                 )
 
-            return available
+            return (
+                ShippingMethodByIdLoader(info.context)
+                .load_many(available_ids)
+                .then(map_shipping_method_with_channel)
+            )
 
+        channel = ChannelByIdLoader(info.context).load(root.channel_id)
         address = (
             AddressByIdLoader(info.context).load(root.shipping_address_id)
             if root.shipping_address_id
@@ -389,16 +407,8 @@ class Checkout(CountableDjangoObjectType):
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )
-        return (
-            Promise.all([address, lines, discounts])
-            .then(calculate_available_shipping_methods)
-            .then(
-                lambda available: [
-                    # TODO optimize get channel slug
-                    ChannelContext(node=shipping, channel_slug=root.channel.slug)
-                    for shipping in available
-                ]
-            )
+        return Promise.all([address, lines, discounts, channel]).then(
+            calculate_available_shipping_methods
         )
 
     @staticmethod
