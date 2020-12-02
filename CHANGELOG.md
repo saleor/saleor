@@ -4,6 +4,10 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+# 2.11.4
+
+- Change `graphql.errors.handled` logger level to INFO - #6566 by @maarcingebala
+
 # 2.11.3
 
 - Optimize variant images query - #6561 by @d-wysocki
