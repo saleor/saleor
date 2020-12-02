@@ -2376,6 +2376,45 @@ def test_create_product_with_file_attribute_required_no_file_url_given(
     ]
 
 
+def test_create_product_no_values_given(
+    staff_api_client, product_type, category, permission_manage_products,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_slug = "product-test-slug"
+
+    # Default attribute defined in product_type fixture
+    color_attr = product_type.product_attributes.get(name="Color")
+    color_attr_id = graphene.Node.to_global_id("Attribute", color_attr.id)
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "attributes": [{"id": color_attr_id, "file": "test.jpg"}],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["productErrors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == product_slug
+    assert data["product"]["productType"]["name"] == product_type.name
+    assert data["product"]["category"]["name"] == category.name
+    assert len(data["product"]["attributes"]) == 1
+    assert data["product"]["attributes"][0]["values"] == []
+
+
 PRODUCT_VARIANT_SET_DEFAULT_MUTATION = """
     mutation Prod($productId: ID!, $variantId: ID!) {
         productVariantSetDefault(productId: $productId, variantId: $variantId) {

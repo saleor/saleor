@@ -212,7 +212,7 @@ class AttributeAssignmentMixin:
             slug = attribute_input.get("slug")
             values = AttrValuesInput(
                 global_id=global_id,
-                values=attribute_input.get("values"),
+                values=attribute_input.get("values", []),
                 file_url=attribute_input.get("file"),
                 content_type=attribute_input.get("content_type"),
             )
