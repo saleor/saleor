@@ -116,7 +116,7 @@ def test_collection_query_error_when_id_and_slug_provided(
     }
     response = user_api_client.post_graphql(QUERY_COLLECTION, variables=variables)
     assert graphql_log_handler.messages == [
-        "saleor.graphql.errors.handled[ERROR].GraphQLError"
+        "saleor.graphql.errors.handled[INFO].GraphQLError"
     ]
     content = get_graphql_content(response, ignore_errors=True)
     assert len(content["errors"]) == 1
@@ -128,7 +128,7 @@ def test_collection_query_error_when_no_param(
     variables = {}
     response = user_api_client.post_graphql(QUERY_COLLECTION, variables=variables)
     assert graphql_log_handler.messages == [
-        "saleor.graphql.errors.handled[ERROR].GraphQLError"
+        "saleor.graphql.errors.handled[INFO].GraphQLError"
     ]
     content = get_graphql_content(response, ignore_errors=True)
     assert len(content["errors"]) == 1
