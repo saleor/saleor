@@ -337,7 +337,7 @@ LOGGING = {
         "saleor": {"level": "DEBUG", "propagate": True},
         "saleor.graphql.errors.handled": {
             "handlers": ["default"],
-            "level": "ERROR",
+            "level": "INFO",
             "propagate": False,
         },
         "graphql.execution.utils": {"propagate": False},
