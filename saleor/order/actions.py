@@ -483,7 +483,9 @@ def _refund_fulfillment_for_order_lines(
             try:
                 deallocate_stock(line_to_refund, unfulfilled_to_refund)
             except AllocationError:
-                logger.warning(f"Unable to deallocate stock for line {line_to_refund}")
+                logger.warning(
+                    f"Unable to deallocate stock for line {line_to_refund.id}"
+                )
 
         # prepare structure which will be used to create new order event.
         all_refunded_lines[line_to_refund.id] = (
