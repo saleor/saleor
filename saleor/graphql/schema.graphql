@@ -393,6 +393,7 @@ type Attribute implements Node & ObjectWithMetadata {
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   inputType: AttributeInputTypeEnum
+  entityType: AttributeEntityTypeEnum
   name: String
   slug: String
   type: AttributeTypeEnum
@@ -448,6 +449,10 @@ type AttributeDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   attributeErrors: [AttributeError!]!
   attribute: Attribute
+}
+
+enum AttributeEntityTypeEnum {
+  PAGE
 }
 
 type AttributeError {

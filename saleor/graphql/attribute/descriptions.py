@@ -1,5 +1,6 @@
 class AttributeDescriptions:
     INPUT_TYPE = "The input type to use for entering attribute values in the dashboard."
+    ENTITY_TYPE = "The entity type which can be used as reference."
     NAME = "Name of an attribute displayed in the interface."
     SLUG = "Internal representation of an attribute name."
     TYPE = "The attribute type."

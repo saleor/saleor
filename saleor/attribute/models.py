@@ -227,7 +227,7 @@ class Attribute(ModelWithMetadata):
         default=AttributeInputType.DROPDOWN,
     )
     entity_type = models.CharField(
-        max_length=50, choices=AttributeEntityType.CHOICES, blank=True,
+        max_length=50, choices=AttributeEntityType.CHOICES, blank=True, null=True
     )
 
     product_types = models.ManyToManyField(
