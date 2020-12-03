@@ -103,6 +103,8 @@ class ShippingMethod(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             "id",
             "maximum_order_weight",
             "minimum_order_weight",
+            "maximum_delivery_days",
+            "minimum_delivery_days",
             "name",
         ]
 
