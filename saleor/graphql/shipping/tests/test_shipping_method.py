@@ -762,19 +762,19 @@ PRICE_BASED_SHIPPING_QUERY = """
     mutation createShippingPrice(
         $type: ShippingMethodTypeEnum,
         $name: String!,
-        $shippingZone: ID!
+        $shippingZone: ID!,
+        $maximumDeliveryDays: Int,
+        $minimumDeliveryDays: Int,
     ) {
     shippingPriceCreate(
         input: {
-            name: $name, shippingZone: $shippingZone, type: $type
+            name: $name, shippingZone: $shippingZone, type: $type,
+            maximumDeliveryDays: $maximumDeliveryDays,
+            minimumDeliveryDays: $minimumDeliveryDays,
         }) {
         shippingErrors {
             field
             code
-        }
-        shippingErrors {
-          field
-          code
         }
         shippingZone {
             id
@@ -794,6 +794,8 @@ PRICE_BASED_SHIPPING_QUERY = """
             }
             }
             type
+            minimumDeliveryDays
+            maximumDeliveryDays
             }
         }
     }
@@ -818,20 +820,105 @@ def test_create_shipping_method(
 ):
     name = "DHL"
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+    max_del_days = 10
+    min_del_days = 3
     variables = {
         "shippingZone": shipping_zone_id,
         "name": name,
         "type": ShippingMethodTypeEnum.PRICE.name,
+        "maximumDeliveryDays": max_del_days,
+        "minimumDeliveryDays": min_del_days,
     }
     response = staff_api_client.post_graphql(
         PRICE_BASED_SHIPPING_QUERY, variables, permissions=[permission_manage_shipping]
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceCreate"]
-    assert "errors" not in data["shippingMethod"]
+    errors = data["shippingErrors"]
+    assert not errors
     assert data["shippingMethod"]["name"] == name
     assert data["shippingMethod"]["type"] == ShippingMethodTypeEnum.PRICE.name
     assert data["shippingZone"]["id"] == shipping_zone_id
+    assert data["shippingMethod"]["minimumDeliveryDays"] == min_del_days
+    assert data["shippingMethod"]["maximumDeliveryDays"] == max_del_days
+
+
+def test_create_shipping_method_minimum_delivery_days_higher_than_maximum(
+    staff_api_client, shipping_zone, permission_manage_shipping,
+):
+    name = "DHL"
+    shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+    max_del_days = 3
+    min_del_days = 10
+    variables = {
+        "shippingZone": shipping_zone_id,
+        "name": name,
+        "type": ShippingMethodTypeEnum.PRICE.name,
+        "maximumDeliveryDays": max_del_days,
+        "minimumDeliveryDays": min_del_days,
+    }
+    response = staff_api_client.post_graphql(
+        PRICE_BASED_SHIPPING_QUERY, variables, permissions=[permission_manage_shipping]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["shippingPriceCreate"]
+    errors = data["shippingErrors"]
+    assert not data["shippingMethod"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ShippingErrorCode.INVALID.name
+    assert errors[0]["field"] == "minimumDeliveryDays"
+
+
+def test_create_shipping_method_minimum_delivery_days_below_0(
+    staff_api_client, shipping_zone, permission_manage_shipping,
+):
+    name = "DHL"
+    shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+    max_del_days = 3
+    min_del_days = -1
+    variables = {
+        "shippingZone": shipping_zone_id,
+        "name": name,
+        "type": ShippingMethodTypeEnum.PRICE.name,
+        "maximumDeliveryDays": max_del_days,
+        "minimumDeliveryDays": min_del_days,
+    }
+    response = staff_api_client.post_graphql(
+        PRICE_BASED_SHIPPING_QUERY, variables, permissions=[permission_manage_shipping]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["shippingPriceCreate"]
+    errors = data["shippingErrors"]
+    assert not data["shippingMethod"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ShippingErrorCode.INVALID.name
+    assert errors[0]["field"] == "minimumDeliveryDays"
+
+
+def test_create_shipping_method_maximum_delivery_days_below_0(
+    staff_api_client, shipping_zone, permission_manage_shipping,
+):
+    name = "DHL"
+    shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+    max_del_days = -1
+    min_del_days = 10
+    variables = {
+        "shippingZone": shipping_zone_id,
+        "name": name,
+        "type": ShippingMethodTypeEnum.PRICE.name,
+        "maximumDeliveryDays": max_del_days,
+        "minimumDeliveryDays": min_del_days,
+    }
+    response = staff_api_client.post_graphql(
+        PRICE_BASED_SHIPPING_QUERY, variables, permissions=[permission_manage_shipping]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["shippingPriceCreate"]
+    errors = data["shippingErrors"]
+    assert not data["shippingMethod"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ShippingErrorCode.INVALID.name
+    assert errors[0]["field"] == "maximumDeliveryDays"
 
 
 WEIGHT_BASED_SHIPPING_QUERY = """
@@ -964,17 +1051,24 @@ def test_create_shipping_method_with_negative_max_weight(
     assert error["code"] == ShippingErrorCode.INVALID.name
 
 
-def test_update_shipping_method(
-    staff_api_client, shipping_zone, permission_manage_shipping
-):
-    query = """
+UPDATE_SHIPPING_PRICE_MUTATION = """
     mutation updateShippingPrice(
         $id: ID!, $shippingZone: ID!,
-        $type: ShippingMethodTypeEnum!) {
+        $type: ShippingMethodTypeEnum!,
+        $maximumDeliveryDays: Int,
+        $minimumDeliveryDays: Int,
+        $maximumOrderWeight: WeightScalar,
+        $minimumOrderWeight: WeightScalar,
+    ) {
         shippingPriceUpdate(
             id: $id, input: {
                 shippingZone: $shippingZone,
-                type: $type}) {
+                type: $type,
+                maximumDeliveryDays: $maximumDeliveryDays,
+                minimumDeliveryDays: $minimumDeliveryDays,
+                minimumOrderWeight:$minimumOrderWeight,
+                maximumOrderWeight: $maximumOrderWeight,
+            }) {
             shippingErrors {
                 field
                 code
@@ -984,19 +1078,31 @@ def test_update_shipping_method(
             }
             shippingMethod {
                 type
+                minimumDeliveryDays
+                maximumDeliveryDays
             }
         }
     }
-    """
+"""
+
+
+def test_update_shipping_method(
+    staff_api_client, shipping_zone, permission_manage_shipping
+):
+    query = UPDATE_SHIPPING_PRICE_MUTATION
     shipping_method = shipping_zone.shipping_methods.first()
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     shipping_method_id = graphene.Node.to_global_id(
         "ShippingMethod", shipping_method.pk
     )
+    max_del_days = 8
+    min_del_days = 2
     variables = {
         "shippingZone": shipping_zone_id,
         "id": shipping_method_id,
         "type": ShippingMethodTypeEnum.PRICE.name,
+        "maximumDeliveryDays": max_del_days,
+        "minimumDeliveryDays": min_del_days,
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_shipping]
@@ -1004,6 +1110,195 @@ def test_update_shipping_method(
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceUpdate"]
     assert data["shippingZone"]["id"] == shipping_zone_id
+    assert data["shippingMethod"]["minimumDeliveryDays"] == min_del_days
+    assert data["shippingMethod"]["maximumDeliveryDays"] == max_del_days
+
+
+def test_update_shipping_method_minimum_delivery_days_higher_than_maximum(
+    staff_api_client, shipping_zone, permission_manage_shipping
+):
+    query = UPDATE_SHIPPING_PRICE_MUTATION
+    shipping_method = shipping_zone.shipping_methods.first()
+    shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method.pk
+    )
+    max_del_days = 2
+    min_del_days = 8
+    variables = {
+        "shippingZone": shipping_zone_id,
+        "id": shipping_method_id,
+        "type": ShippingMethodTypeEnum.PRICE.name,
+        "maximumDeliveryDays": max_del_days,
+        "minimumDeliveryDays": min_del_days,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_shipping]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["shippingPriceUpdate"]
+    errors = data["shippingErrors"]
+    assert not data["shippingMethod"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ShippingErrorCode.INVALID.name
+    assert errors[0]["field"] == "minimumDeliveryDays"
+
+
+def test_update_shipping_method_minimum_delivery_days_below_0(
+    staff_api_client, shipping_zone, permission_manage_shipping
+):
+    query = UPDATE_SHIPPING_PRICE_MUTATION
+    shipping_method = shipping_zone.shipping_methods.first()
+    shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method.pk
+    )
+    max_del_days = 2
+    min_del_days = -1
+    variables = {
+        "shippingZone": shipping_zone_id,
+        "id": shipping_method_id,
+        "type": ShippingMethodTypeEnum.PRICE.name,
+        "maximumDeliveryDays": max_del_days,
+        "minimumDeliveryDays": min_del_days,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_shipping]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["shippingPriceUpdate"]
+    errors = data["shippingErrors"]
+    assert not data["shippingMethod"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ShippingErrorCode.INVALID.name
+    assert errors[0]["field"] == "minimumDeliveryDays"
+
+
+def test_update_shipping_method_maximum_delivery_days_below_0(
+    staff_api_client, shipping_zone, permission_manage_shipping
+):
+    query = UPDATE_SHIPPING_PRICE_MUTATION
+    shipping_method = shipping_zone.shipping_methods.first()
+    shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method.pk
+    )
+    max_del_days = -1
+    min_del_days = 10
+    variables = {
+        "shippingZone": shipping_zone_id,
+        "id": shipping_method_id,
+        "type": ShippingMethodTypeEnum.PRICE.name,
+        "maximumDeliveryDays": max_del_days,
+        "minimumDeliveryDays": min_del_days,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_shipping]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["shippingPriceUpdate"]
+    errors = data["shippingErrors"]
+    assert not data["shippingMethod"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ShippingErrorCode.INVALID.name
+    assert errors[0]["field"] == "maximumDeliveryDays"
+
+
+def test_update_shipping_method_minimum_delivery_days_higher_than_max_from_instance(
+    staff_api_client, shipping_zone, permission_manage_shipping
+):
+    query = UPDATE_SHIPPING_PRICE_MUTATION
+    shipping_method = shipping_zone.shipping_methods.first()
+    shipping_method.maximum_delivery_days = 5
+    shipping_method.save(update_fields=["maximum_delivery_days"])
+    shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method.pk
+    )
+    min_del_days = 8
+    variables = {
+        "shippingZone": shipping_zone_id,
+        "id": shipping_method_id,
+        "type": ShippingMethodTypeEnum.PRICE.name,
+        "minimumDeliveryDays": min_del_days,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_shipping]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["shippingPriceUpdate"]
+    errors = data["shippingErrors"]
+    assert not data["shippingMethod"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ShippingErrorCode.INVALID.name
+    assert errors[0]["field"] == "minimumDeliveryDays"
+
+
+def test_update_shipping_method_maximum_delivery_days_lower_than_min_from_instance(
+    staff_api_client, shipping_zone, permission_manage_shipping
+):
+    query = UPDATE_SHIPPING_PRICE_MUTATION
+    shipping_method = shipping_zone.shipping_methods.first()
+    shipping_method.minimum_delivery_days = 10
+    shipping_method.save(update_fields=["minimum_delivery_days"])
+    shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method.pk
+    )
+    max_del_days = 5
+    variables = {
+        "shippingZone": shipping_zone_id,
+        "id": shipping_method_id,
+        "type": ShippingMethodTypeEnum.PRICE.name,
+        "maximumDeliveryDays": max_del_days,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_shipping]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["shippingPriceUpdate"]
+    errors = data["shippingErrors"]
+    assert not data["shippingMethod"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ShippingErrorCode.INVALID.name
+    assert errors[0]["field"] == "maximumDeliveryDays"
+
+
+def test_update_shipping_method_multiple_errors(
+    staff_api_client, shipping_zone, permission_manage_shipping
+):
+    query = UPDATE_SHIPPING_PRICE_MUTATION
+    shipping_method = shipping_zone.shipping_methods.first()
+    shipping_method.minimum_delivery_days = 10
+    shipping_method.save(update_fields=["minimum_delivery_days"])
+    shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method.pk
+    )
+    max_del_days = 5
+    variables = {
+        "shippingZone": shipping_zone_id,
+        "id": shipping_method_id,
+        "type": ShippingMethodTypeEnum.PRICE.name,
+        "maximumDeliveryDays": max_del_days,
+        "minimumOrderWeight": {"value": -2, "unit": WeightUnitsEnum.KG.name},
+        "maximumOrderWeight": {"value": -1, "unit": WeightUnitsEnum.KG.name},
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_shipping]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["shippingPriceUpdate"]
+    errors = data["shippingErrors"]
+    assert not data["shippingMethod"]
+    assert len(errors) == 3
+    expected_errors = [
+        {"code": ShippingErrorCode.INVALID.name, "field": "maximumDeliveryDays"},
+        {"code": ShippingErrorCode.INVALID.name, "field": "minimumOrderWeight"},
+        {"code": ShippingErrorCode.INVALID.name, "field": "maximumOrderWeight"},
+    ]
+    for error in expected_errors:
+        assert error in errors
 
 
 def test_delete_shipping_method(
