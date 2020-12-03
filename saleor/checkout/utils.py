@@ -38,6 +38,7 @@ from .models import Checkout, CheckoutLine
 if TYPE_CHECKING:
     # flake8: noqa
     from ..account.models import Address
+    from prices import TaxedMoney
 
 
 def get_user_checkout(
@@ -539,7 +540,7 @@ def get_valid_shipping_methods_for_checkout(
     lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable[DiscountInfo],
     country_code: Optional[str] = None,
-    subtotal=None,
+    subtotal: Optional["TaxedMoney"] = None,
 ):
     if not is_shipping_required(lines):
         return None
@@ -567,6 +568,8 @@ def is_valid_shipping_method(
     """Check if shipping method is valid and remove (if not)."""
     if not checkout.shipping_method:
         return False
+    if not checkout.shipping_address:
+        return None
 
     valid_methods = get_valid_shipping_methods_for_checkout(checkout, lines, discounts)
     if valid_methods is None or checkout.shipping_method not in valid_methods:
@@ -684,7 +687,10 @@ def cancel_active_payments(checkout: Checkout):
 def fetch_checkout_lines(checkout: Checkout) -> Iterable[CheckoutLineInfo]:
     """Fetch checkout lines as CheckoutLineInfo objects."""
     lines = CheckoutLine.objects.filter(checkout=checkout).prefetch_related(
-        "variant__product__collections", "variant__channel_listings"
+        "variant__product__collections",
+        "variant__channel_listings",
+        "variant__channel_listings__channel",
+        "variant__product__product_type",
     )
     lines_info = []
 

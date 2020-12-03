@@ -237,22 +237,6 @@ class Checkout(CountableDjangoObjectType):
         filter_fields = ["token"]
 
     @staticmethod
-    def resolve_shipping_address(root: models.Checkout, info):
-        return (
-            AddressByIdLoader(info.context).load(root.shipping_address_id)
-            if root.shipping_address_id
-            else None
-        )
-
-    @staticmethod
-    def resolve_billing_address(root: models.Checkout, info):
-        return (
-            AddressByIdLoader(info.context).load(root.billing_address_id)
-            if root.billing_address_id
-            else None
-        )
-
-    @staticmethod
     def resolve_user(root: models.Checkout, info):
         requestor = get_user_or_app_from_context(info.context)
         if requestor_has_access(requestor, root.user, AccountPermissions.MANAGE_USERS):
