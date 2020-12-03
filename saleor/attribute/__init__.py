@@ -15,3 +15,9 @@ class AttributeType:
     PAGE_TYPE = "page-type"
 
     CHOICES = [(PRODUCT_TYPE, "Product type"), (PAGE_TYPE, "Page type")]
+
+
+class AttributeEntityType:
+    PAGE = "page"
+
+    CHOICES = [(PAGE, "Page")]

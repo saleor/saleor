@@ -8,7 +8,7 @@ from ..core.permissions import ProductPermissions
 from ..core.utils.translations import TranslationProxy
 from ..page.models import Page, PageType
 from ..product.models import Product, ProductType, ProductVariant
-from . import AttributeInputType, AttributeType
+from . import AttributeEntityType, AttributeInputType, AttributeType
 
 if TYPE_CHECKING:
     from ..account.models import User
@@ -225,6 +225,9 @@ class Attribute(ModelWithMetadata):
         max_length=50,
         choices=AttributeInputType.CHOICES,
         default=AttributeInputType.DROPDOWN,
+    )
+    entity_type = models.CharField(
+        max_length=50, choices=AttributeEntityType.CHOICES, blank=True,
     )
 
     product_types = models.ManyToManyField(
