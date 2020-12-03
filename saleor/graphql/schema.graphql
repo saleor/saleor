@@ -432,6 +432,7 @@ type AttributeCreate {
 
 input AttributeCreateInput {
   inputType: AttributeInputTypeEnum
+  entityType: AttributeEntityTypeEnum
   name: String!
   slug: String
   type: AttributeTypeEnum!

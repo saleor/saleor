@@ -2151,7 +2151,6 @@ def test_create_product_with_file_attribute(
     file_attribute,
     color_attribute,
     permission_manage_products,
-    settings,
 ):
     query = CREATE_PRODUCT_MUTATION
 
@@ -2215,7 +2214,6 @@ def test_create_product_with_file_attribute_new_attribute_value(
     file_attribute,
     color_attribute,
     permission_manage_products,
-    settings,
 ):
     query = CREATE_PRODUCT_MUTATION
 
@@ -2279,7 +2277,6 @@ def test_create_product_with_file_attribute_not_required_no_file_url_given(
     file_attribute,
     color_attribute,
     permission_manage_products,
-    settings,
 ):
     query = CREATE_PRODUCT_MUTATION
 
@@ -2332,9 +2329,7 @@ def test_create_product_with_file_attribute_required_no_file_url_given(
     product_type,
     category,
     file_attribute,
-    color_attribute,
     permission_manage_products,
-    settings,
 ):
     query = CREATE_PRODUCT_MUTATION
 
