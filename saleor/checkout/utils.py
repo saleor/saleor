@@ -544,6 +544,8 @@ def get_valid_shipping_methods_for_checkout(
 ):
     if not is_shipping_required(lines):
         return None
+    if not checkout.shipping_address:
+        return None
     # TODO: subtotal should comes from arg instead of calculate it in this function
     # use info.context.plugins from resolver
     if subtotal is None:
