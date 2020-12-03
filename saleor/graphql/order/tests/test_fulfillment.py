@@ -1308,6 +1308,8 @@ def test_fulfillment_refund_products_fulfillment_lines_and_order_lines(
     )
     net = variant.get_price(channel_USD.slug)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    variant.track_inventory = False
+    variant.save()
     order_line = fulfilled_order.lines.create(
         product_name=str(variant.product),
         variant_name=str(variant),
@@ -1318,9 +1320,6 @@ def test_fulfillment_refund_products_fulfillment_lines_and_order_lines(
         variant=variant,
         unit_price=TaxedMoney(net=net, gross=gross),
         tax_rate=23,
-    )
-    Allocation.objects.create(
-        order_line=order_line, stock=stock, quantity_allocated=order_line.quantity
     )
     fulfillment = fulfilled_order.fulfillments.get()
     fulfillment.lines.create(order_line=order_line, quantity=2, stock=stock)

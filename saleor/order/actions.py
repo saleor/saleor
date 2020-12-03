@@ -6,7 +6,7 @@ from django.contrib.sites.models import Site
 from django.db import transaction
 
 from ..core import analytics
-from ..core.exceptions import InsufficientStock
+from ..core.exceptions import AllocationError, InsufficientStock
 from ..order.emails import send_order_confirmed
 from ..payment import (
     ChargeStatus,
@@ -478,7 +478,14 @@ def _refund_fulfillment_for_order_lines(
             # quantity
             fulfillment_lines_to_update.append(refunded_line)
 
-        deallocate_stock(line_to_refund, unfulfilled_to_refund)
+        line_allocations_exists = line_to_refund.allocations.exists()
+        if line_allocations_exists:
+            try:
+                deallocate_stock(line_to_refund, unfulfilled_to_refund)
+            except AllocationError:
+                logger.warning(
+                    f"Unable to deallocate stock for line {line_to_refund.id}"
+                )
 
         # prepare structure which will be used to create new order event.
         all_refunded_lines[line_to_refund.id] = (
