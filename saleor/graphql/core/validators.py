@@ -36,10 +36,9 @@ def validate_price_precision(value: Optional["Decimal"], currency: str):
     # check no needed when there is no value
     if not value:
         return
-
     currency_fraction = get_currency_fraction(currency)
     value = value.normalize()
-    if abs(value.as_tuple().exponent) > currency_fraction:
+    if value.as_tuple().exponent < -currency_fraction:
         raise ValidationError(
             f"Value cannot have more than {currency_fraction} decimal places."
         )
