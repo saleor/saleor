@@ -273,7 +273,11 @@ class ShippingPriceMixin:
         cleaned_input = super().clean_input(info, instance, data)
         errors = {}
         cls.clean_weight(cleaned_input, errors)
-        cls.clean_delivery_time(instance, cleaned_input, errors)
+        if (
+            "minimum_delivery_days" in cleaned_input
+            or "maximum_delivery_days" in cleaned_input
+        ):
+            cls.clean_delivery_time(instance, cleaned_input, errors)
         if errors:
             raise ValidationError(errors)
         return cleaned_input
@@ -319,8 +323,12 @@ class ShippingPriceMixin:
         - check if minimum_delivery_days is not higher than maximum_delivery_days
         - check if minimum_delivery_days and maximum_delivery_days are positive values
         """
-        min_delivery_days = cleaned_input.get("minimum_delivery_days")
-        max_delivery_days = cleaned_input.get("maximum_delivery_days")
+        min_delivery_days = (
+            cleaned_input.get("minimum_delivery_days") or instance.minimum_delivery_days
+        )
+        max_delivery_days = (
+            cleaned_input.get("maximum_delivery_days") or instance.maximum_delivery_days
+        )
 
         if not min_delivery_days and not max_delivery_days:
             return
@@ -342,24 +350,21 @@ class ShippingPriceMixin:
         if error_occurred:
             return
 
-        if (min_delivery_days and max_delivery_days) or (
-            min_delivery_days and instance.maximum_delivery_days
-        ):
-            max_delivery_days = max_delivery_days or instance.maximum_delivery_days
-            if min_delivery_days > max_delivery_days:
-                errors["minimum_delivery_days"] = ValidationError(
+        if min_delivery_days > max_delivery_days:
+            if cleaned_input.get("minimum_delivery_days") is not None:
+                error_msg = (
                     "Minimum delivery days should be lower "
-                    "than maximum delivery days",
-                    code=ShippingErrorCode.INVALID.value,
+                    "than maximum delivery days."
                 )
-        elif (
-            max_delivery_days
-            and instance.minimum_delivery_days
-            and (max_delivery_days < instance.minimum_delivery_days)
-        ):
-            errors["maximum_delivery_days"] = ValidationError(
-                "Maximum delivery days should be higher than " "minimum delivery days",
-                code=ShippingErrorCode.INVALID.value,
+                field = "minimum_delivery_days"
+            else:
+                error_msg = (
+                    "Maximum delivery days should be higher than "
+                    "minimum delivery days."
+                )
+                field = "maximum_delivery_days"
+            errors[field] = ValidationError(
+                error_msg, code=ShippingErrorCode.INVALID.value
             )
 
 
