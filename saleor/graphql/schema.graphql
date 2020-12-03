@@ -490,6 +490,7 @@ enum AttributeInputTypeEnum {
   DROPDOWN
   MULTISELECT
   FILE
+  REFERENCE
 }
 
 type AttributeReorderValues {
