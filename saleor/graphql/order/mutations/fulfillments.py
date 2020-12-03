@@ -487,7 +487,7 @@ class FulfillmentRefundProducts(BaseMutation):
             field="order_lines",
             only_type=OrderLine,
             qs=order_models.OrderLine.objects.prefetch_related(
-                "fulfillment_lines__fulfillment"
+                "fulfillment_lines__fulfillment", "variant", "allocations"
             ),
         )
         lines_to_refund = list(lines_to_refund)
