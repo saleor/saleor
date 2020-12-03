@@ -5,7 +5,7 @@ from ...checkout import calculations, models
 from ...checkout.utils import get_valid_shipping_methods_for_checkout
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
-from ...core.taxes import display_gross_prices, zero_taxed_money
+from ...core.taxes import zero_taxed_money
 from ..account.dataloaders import AddressByIdLoader
 from ..account.utils import requestor_has_access
 from ..channel import ChannelContext
@@ -349,7 +349,7 @@ class Checkout(CountableDjangoObjectType):
         def calculate_available_shipping_methods(data):
             address, lines, discounts, channel = data
             channel_slug = channel.slug
-            display_gross = display_gross_prices()
+            display_gross = info.context.site.settings.display_gross_prices
             manager = info.context.plugins
             subtotal = manager.calculate_checkout_subtotal(
                 root, lines, address, discounts
