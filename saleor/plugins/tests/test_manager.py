@@ -8,6 +8,7 @@ from prices import Money, TaxedMoney
 
 from ...core.taxes import TaxType
 from ...payment.interface import PaymentGateway
+from ..base_plugin import ExternalAccessTokens
 from ..manager import PluginsManager, get_plugins_manager
 from ..models import PluginConfiguration
 from ..tests.sample_plugins import (
@@ -395,7 +396,10 @@ def test_manager_external_authentication(rf):
         "saleor.plugins.tests.sample_plugins.PluginSample",
     ]
     manager = PluginsManager(plugins=plugins)
-    response = manager.external_authentication({"redirectUrl": "ABC"}, rf.request())
+
+    response = manager.external_authentication_url(
+        PluginSample.PLUGIN_ID, {"redirectUrl": "ABC"}, rf.request()
+    )
     assert response == {"authorizeUrl": "http://www.auth.provider.com/authorize/"}
 
 
@@ -405,12 +409,29 @@ def test_manager_external_refresh(rf):
         "saleor.plugins.tests.sample_plugins.PluginSample",
     ]
     manager = PluginsManager(plugins=plugins)
-    response = manager.external_refresh({"refreshToken": "ABC11"}, rf.request())
-    expected_plugin_response = {
-        "token": "ABC",
-        "refreshToken": "refreshABC",
-        "csrfToken": "csrf",
-    }
+    response = manager.external_refresh(
+        PluginSample.PLUGIN_ID, {"refreshToken": "ABC11"}, rf.request()
+    )
+
+    expected_plugin_response = ExternalAccessTokens(
+        token="token4", refresh_token="refresh5", csrf_token="csrf6"
+    )
+    assert response == expected_plugin_response
+
+
+def test_manager_external_obtain_access_tokens(rf):
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+    ]
+    manager = PluginsManager(plugins=plugins)
+    response = manager.external_obtain_access_tokens(
+        PluginSample.PLUGIN_ID, {"code": "ABC11", "state": "state1"}, rf.request()
+    )
+
+    expected_plugin_response = ExternalAccessTokens(
+        token="token1", refresh_token="refresh2", csrf_token="csrf3"
+    )
     assert response == expected_plugin_response
 
 
@@ -430,7 +451,7 @@ def test_manager_external_logout(rf, admin_user):
         "saleor.plugins.tests.sample_plugins.PluginSample",
     ]
     manager = PluginsManager(plugins=plugins)
-    response = manager.external_logout({}, rf.request())
+    response = manager.external_logout(PluginSample.PLUGIN_ID, {}, rf.request())
     assert response == {"logoutUrl": "http://www.auth.provider.com/logout/"}
 
 
@@ -440,7 +461,9 @@ def test_manager_external_verify(rf, admin_user):
         "saleor.plugins.tests.sample_plugins.PluginSample",
     ]
     manager = PluginsManager(plugins=plugins)
-    user, response_data = manager.external_verify({}, rf.request())
+    user, response_data = manager.external_verify(
+        PluginSample.PLUGIN_ID, {}, rf.request()
+    )
     assert user == admin_user
     assert response_data == {"some_data": "data"}
 
@@ -453,7 +476,15 @@ def test_list_external_authentications():
     ]
     manager = PluginsManager(plugins=plugins)
     external_auths = manager.list_external_authentications(active_only=False)
-    assert {PluginInactive.PLUGIN_ID, PluginSample.PLUGIN_ID} == set(external_auths)
+
+    assert {
+        "id": PluginInactive.PLUGIN_ID,
+        "name": PluginInactive.PLUGIN_NAME,
+    } in external_auths
+    assert {
+        "id": PluginSample.PLUGIN_ID,
+        "name": PluginSample.PLUGIN_NAME,
+    } in external_auths
 
 
 def test_list_external_authentications_active_only():
@@ -465,4 +496,8 @@ def test_list_external_authentications_active_only():
 
     manager = PluginsManager(plugins=plugins)
     external_auths = manager.list_external_authentications(active_only=True)
-    assert {PluginSample.PLUGIN_ID} == set(external_auths)
+
+    assert {
+        "id": PluginSample.PLUGIN_ID,
+        "name": PluginSample.PLUGIN_NAME,
+    } in external_auths

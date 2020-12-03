@@ -4,8 +4,8 @@ from unittest.mock import Mock
 from ....tests.utils import get_graphql_content
 
 MUTATION_EXTERNAL_LOGOUT = """
-    mutation externalLogout($input: JSONString!){
-        externalLogout(input: $input){
+    mutation externalLogout($pluginId: String!, $input: JSONString!){
+        externalLogout(pluginId: $pluginId, input: $input){
             logoutData
             accountErrors{
                 field
@@ -17,7 +17,10 @@ MUTATION_EXTERNAL_LOGOUT = """
 
 
 def test_external_logout_plugin_not_active(api_client, customer_user):
-    variables = {"input": json.dumps({"logoutRedirect": "ABCD"})}
+    variables = {
+        "pluginId": "pluginID1",
+        "input": json.dumps({"logoutRedirect": "ABCD"}),
+    }
     response = api_client.post_graphql(MUTATION_EXTERNAL_LOGOUT, variables)
     content = get_graphql_content(response)
     data = content["data"]["externalLogout"]
@@ -31,7 +34,7 @@ def test_external_logout(api_client, customer_user, monkeypatch, rf):
     monkeypatch.setattr(
         "saleor.plugins.manager.PluginsManager.external_logout", mocked_plugin_fun
     )
-    variables = {"input": json.dumps({"logoutParam": "ABCD"})}
+    variables = {"pluginId": "pluginID1", "input": json.dumps({"logoutParam": "ABCD"})}
     response = api_client.post_graphql(MUTATION_EXTERNAL_LOGOUT, variables)
     content = get_graphql_content(response)
     data = content["data"]["externalLogout"]

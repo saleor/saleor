@@ -5,8 +5,8 @@ from .....plugins.base_plugin import ExternalAccessTokens
 from ....tests.utils import get_graphql_content
 
 MUTATION_EXTERNAL_REFRESH = """
-    mutation externalRefresh($pluginId: String!, $input: JSONString!){
-        externalRefresh(pluginId: $pluginId, input: $input){
+    mutation externalObtainAccessTokens($pluginId: String!, $input: JSONString!){
+        externalObtainAccessTokens(pluginId: $pluginId, input: $input){
             token
             refreshToken
             csrfToken
@@ -22,11 +22,14 @@ MUTATION_EXTERNAL_REFRESH = """
 """
 
 
-def test_external_refresh_plugin_not_active(api_client, customer_user):
-    variables = {"pluginId": "pluginId1", "input": json.dumps({"refreshToken": "ABCD"})}
+def test_external_obtain_access_tokens_plugin_not_active(api_client, customer_user):
+    variables = {
+        "pluginId": "pluginId1",
+        "input": json.dumps({"code": "ABCD", "state": "stata-data"}),
+    }
     response = api_client.post_graphql(MUTATION_EXTERNAL_REFRESH, variables)
     content = get_graphql_content(response)
-    data = content["data"]["externalRefresh"]
+    data = content["data"]["externalObtainAccessTokens"]
     assert data["token"] is None
     assert data["refreshToken"] is None
     assert data["csrfToken"] is None
@@ -34,7 +37,7 @@ def test_external_refresh_plugin_not_active(api_client, customer_user):
 
 
 @patch("saleor.core.middleware.jwt_decode")
-def test_external_refresh(
+def test_external_obtain_access_tokens(
     mock_refresh_token_middleware, api_client, customer_user, monkeypatch, rf
 ):
     expected_token = "token1"
@@ -49,12 +52,16 @@ def test_external_refresh(
     )
     mocked_plugin_fun.return_value = expected_return
     monkeypatch.setattr(
-        "saleor.plugins.manager.PluginsManager.external_refresh", mocked_plugin_fun
+        "saleor.plugins.manager.PluginsManager.external_obtain_access_tokens",
+        mocked_plugin_fun,
     )
-    variables = {"pluginId": "pluginId1", "input": json.dumps({"refreshToken": "ABCD"})}
+    variables = {
+        "pluginId": "pluginId1",
+        "input": json.dumps({"code": "ABCD", "state": "stata-data"}),
+    }
     response = api_client.post_graphql(MUTATION_EXTERNAL_REFRESH, variables)
     content = get_graphql_content(response)
-    data = content["data"]["externalRefresh"]
+    data = content["data"]["externalObtainAccessTokens"]
     assert data["token"] == expected_token
     assert data["refreshToken"] == expected_refresh_token
     assert data["csrfToken"] == expected_csrf_token

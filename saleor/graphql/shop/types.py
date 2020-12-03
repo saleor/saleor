@@ -72,6 +72,11 @@ class OrderSettings(CountableDjangoObjectType):
         model = site_models.SiteSettings
 
 
+class ExternalAuthentication(graphene.ObjectType):
+    id = graphene.String(description="ID of external authentication plugin.")
+    name = graphene.String(description="Name of external authentication plugin.")
+
+
 class Shop(graphene.ObjectType):
     available_payment_gateways = graphene.List(
         graphene.NonNull(PaymentGateway),
@@ -84,7 +89,7 @@ class Shop(graphene.ObjectType):
         required=True,
     )
     available_external_authentications = graphene.List(
-        graphene.NonNull(graphene.String),
+        graphene.NonNull(ExternalAuthentication),
         description="List of available external authentications.",
         required=True,
     )
