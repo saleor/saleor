@@ -38,6 +38,7 @@ from .models import Checkout, CheckoutLine
 if TYPE_CHECKING:
     # flake8: noqa
     from ..account.models import Address
+    from prices import TaxedMoney
 
 
 def get_user_checkout(
@@ -539,21 +540,25 @@ def get_valid_shipping_methods_for_checkout(
     lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable[DiscountInfo],
     country_code: Optional[str] = None,
+    subtotal: Optional["TaxedMoney"] = None,
 ):
     if not is_shipping_required(lines):
         return None
     if not checkout.shipping_address:
         return None
-
-    manager = get_plugins_manager()
-    subtotal = manager.calculate_checkout_subtotal(
-        checkout, lines, checkout.shipping_address, discounts
-    )
+    # TODO: subtotal should comes from arg instead of calculate it in this function
+    # use info.context.plugins from resolver
+    if subtotal is None:
+        manager = get_plugins_manager()
+        subtotal = manager.calculate_checkout_subtotal(
+            checkout, lines, checkout.shipping_address, discounts
+        )
     return ShippingMethod.objects.applicable_shipping_methods_for_instance(
         checkout,
         channel_id=checkout.channel_id,
         price=subtotal.gross,
         country_code=country_code,
+        lines=lines,
     )
 
 
@@ -564,6 +569,8 @@ def is_valid_shipping_method(
 ):
     """Check if shipping method is valid and remove (if not)."""
     if not checkout.shipping_method:
+        return False
+    if not checkout.shipping_address:
         return False
 
     valid_methods = get_valid_shipping_methods_for_checkout(checkout, lines, discounts)
@@ -682,7 +689,9 @@ def cancel_active_payments(checkout: Checkout):
 def fetch_checkout_lines(checkout: Checkout) -> Iterable[CheckoutLineInfo]:
     """Fetch checkout lines as CheckoutLineInfo objects."""
     lines = CheckoutLine.objects.filter(checkout=checkout).prefetch_related(
-        "variant__product__collections", "variant__channel_listings"
+        "variant__product__collections",
+        "variant__channel_listings__channel",
+        "variant__product__product_type",
     )
     lines_info = []
 
