@@ -21,6 +21,7 @@ from .mutations.draft_orders import (
 )
 from .mutations.fulfillments import (
     FulfillmentCancel,
+    FulfillmentRefundProducts,
     FulfillmentUpdateTracking,
     OrderFulfill,
 )
@@ -28,6 +29,7 @@ from .mutations.orders import (
     OrderAddNote,
     OrderCancel,
     OrderCapture,
+    OrderConfirm,
     OrderMarkAsPaid,
     OrderRefund,
     OrderUpdate,
@@ -158,9 +160,13 @@ class OrderMutations(graphene.ObjectType):
     order_add_note = OrderAddNote.Field()
     order_cancel = OrderCancel.Field()
     order_capture = OrderCapture.Field()
+    order_confirm = OrderConfirm.Field()
+
     order_fulfill = OrderFulfill.Field()
     order_fulfillment_cancel = FulfillmentCancel.Field()
     order_fulfillment_update_tracking = FulfillmentUpdateTracking.Field()
+    order_fulfillment_refund_products = FulfillmentRefundProducts.Field()
+
     order_mark_as_paid = OrderMarkAsPaid.Field()
     order_refund = OrderRefund.Field()
     order_update = OrderUpdate.Field()

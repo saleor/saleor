@@ -61,6 +61,7 @@ class SiteSettings(models.Model):
     )
     default_mail_sender_address = models.EmailField(blank=True, null=True)
     customer_set_password_url = models.CharField(max_length=255, blank=True, null=True)
+    automatically_confirm_all_new_orders = models.BooleanField(default=True)
     translated = TranslationProxy()
 
     class Meta:

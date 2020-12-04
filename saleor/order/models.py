@@ -35,7 +35,11 @@ class OrderQueryset(models.QuerySet):
         return self.confirmed().filter(checkout_token=token).first()
 
     def confirmed(self):
-        """Return non-draft orders."""
+        """Return orders that aren't draft or unconfirmed."""
+        return self.exclude(status__in=[OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
+
+    def non_draft(self):
+        """Return orders that aren't draft."""
         return self.exclude(status=OrderStatus.DRAFT)
 
     def drafts(self):
@@ -65,6 +69,10 @@ class OrderQueryset(models.QuerySet):
         )
         qs = qs.exclude(status={OrderStatus.DRAFT, OrderStatus.CANCELED})
         return qs.distinct()
+
+    def ready_to_confirm(self):
+        """Return unconfirmed_orders."""
+        return self.filter(status=OrderStatus.UNCONFIRMED)
 
 
 class Order(ModelWithMetadata):
@@ -481,7 +489,7 @@ class Fulfillment(ModelWithMetadata):
 
 class FulfillmentLine(models.Model):
     order_line = models.ForeignKey(
-        OrderLine, related_name="+", on_delete=models.CASCADE
+        OrderLine, related_name="fulfillment_lines", on_delete=models.CASCADE
     )
     fulfillment = models.ForeignKey(
         Fulfillment, related_name="lines", on_delete=models.CASCADE

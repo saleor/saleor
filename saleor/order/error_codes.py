@@ -25,6 +25,8 @@ class OrderErrorCode(Enum):
     UNIQUE = "unique"
     VOID_INACTIVE_PAYMENT = "void_inactive_payment"
     ZERO_QUANTITY = "zero_quantity"
+    INVALID_REFUND_QUANTITY = "invalid_refund_quantity"
+    CANNOT_REFUND_FULFILLMENT_LINE = "cannot_refund_fulfillmet_line"
     INSUFFICIENT_STOCK = "insufficient_stock"
     DUPLICATED_INPUT_ITEM = "duplicated_input_item"
     NOT_AVAILABLE_IN_CHANNEL = "not_available_in_channel"

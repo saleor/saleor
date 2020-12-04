@@ -555,6 +555,13 @@ def order(customer_user, channel_USD):
 
 
 @pytest.fixture
+def order_unconfirmed(order):
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status"])
+    return order
+
+
+@pytest.fixture
 def admin_user(db):
     """Return a Django admin user."""
     return User.objects.create_superuser("admin@example.com", "password")
@@ -676,7 +683,11 @@ def shipping_zone_without_countries(db, channel_USD):  # pylint: disable=W0613
 @pytest.fixture
 def shipping_method(shipping_zone, channel_USD):
     method = ShippingMethod.objects.create(
-        name="DHL", type=ShippingMethodType.PRICE_BASED, shipping_zone=shipping_zone,
+        name="DHL",
+        type=ShippingMethodType.PRICE_BASED,
+        shipping_zone=shipping_zone,
+        maximum_delivery_days=10,
+        minimum_delivery_days=5,
     )
     ShippingMethodChannelListing.objects.create(
         shipping_method=method,
@@ -685,6 +696,12 @@ def shipping_method(shipping_zone, channel_USD):
         price=Money(10, "USD"),
     )
     return method
+
+
+@pytest.fixture
+def shipping_method_excldued_by_zip_code(shipping_method):
+    shipping_method.zip_code_rules.create(start="HB2", end="HB6")
+    return shipping_method
 
 
 @pytest.fixture

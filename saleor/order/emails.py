@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from ..account.models import User  # noqa: F401
 
 CONFIRM_ORDER_TEMPLATE = "order/confirm_order"
+CONFIRMED_ORDER_TEMPLATE = "order/confirmed_order"
 STAFF_CONFIRM_ORDER_TEMPLATE = "order/staff_confirm_order"
 CONFIRM_FULFILLMENT_TEMPLATE = "order/confirm_fulfillment"
 UPDATE_FULFILLMENT_TEMPLATE = "order/update_fulfillment"
@@ -101,6 +102,19 @@ def send_order_confirmation(order_pk, redirect_url, user_pk=None):
         user=None,
         user_pk=user_pk,
         email_type=events.OrderEventsEmails.ORDER_CONFIRMATION,
+    )
+
+
+@app.task
+def send_order_confirmed(order_pk, user_pk):
+    """Send email which tells customer that order has been confirmed."""
+    email_data = collect_data_for_email(order_pk, CONFIRMED_ORDER_TEMPLATE)
+    send_templated_mail(**email_data)
+    events.email_sent_event(
+        order=email_data["context"]["order"],
+        user=None,
+        user_pk=user_pk,
+        email_type=events.OrderEventsEmails.CONFIRMED,
     )
 
 

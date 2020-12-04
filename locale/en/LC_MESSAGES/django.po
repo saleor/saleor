@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-10-23 07:04+0000\n"
+"POT-Creation-Date: 2020-11-10 12:31+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -374,6 +374,88 @@ msgctxt "Order confirmation e-mail text"
 msgid "No shipping required"
 msgstr ""
 
+#: templates/templated_email/order/confirmed_order.email:6
+#, python-format
+msgctxt "Order confirmed e-mail subject"
+msgid "Order %(order)s details"
+msgstr ""
+
+#: templates/templated_email/order/confirmed_order.email:13
+msgctxt "Order confirmed e-mail text"
+msgid ""
+"\n"
+"Your order has been confirmed by staff. Below is the list of ordered "
+"products.\n"
+msgstr ""
+
+#: templates/templated_email/order/confirmed_order.email:17
+#, python-format
+msgctxt "Order confirmed e-mail payment details"
+msgid ""
+"\n"
+"To see your order details please visit:\n"
+"%(order_details_url)s\n"
+msgstr ""
+
+#: templates/templated_email/order/confirmed_order.email:25
+msgctxt "Order confirmed e-mail table header"
+msgid "Order summary"
+msgstr ""
+
+#: templates/templated_email/order/confirmed_order.email:26
+msgctxt "Order confirmed e-mail table header"
+msgid "Subtotal"
+msgstr ""
+
+#: templates/templated_email/order/confirmed_order.email:27
+msgctxt "Order confirmed e-mail table header"
+msgid "Shipping"
+msgstr ""
+
+#: templates/templated_email/order/confirmed_order.email:28
+msgctxt "Order confirmed e-mail table header"
+msgid "Taxes (included)"
+msgstr ""
+
+#: templates/templated_email/order/confirmed_order.email:28
+msgctxt "Order confirmed e-mail table header"
+msgid "Taxes"
+msgstr ""
+
+#: templates/templated_email/order/confirmed_order.email:29
+msgctxt "Order confirmed e-mail table header"
+msgid "Discount:"
+msgstr ""
+
+#: templates/templated_email/order/confirmed_order.email:30
+msgctxt "Order confirmed e-mail table header"
+msgid "Total"
+msgstr ""
+
+#: templates/templated_email/order/confirmed_order.email:32
+#: templates/templated_email/source/confirmed_order.mjml:35
+msgctxt "Order confirmed e-mail billing address"
+msgid "Billing address"
+msgstr ""
+
+#: templates/templated_email/order/confirmed_order.email:33
+#: templates/templated_email/source/confirmed_order.mjml:45
+msgctxt "Order confirmed e-mail text"
+msgid "No billing address"
+msgstr ""
+
+#: templates/templated_email/order/confirmed_order.email:35
+#: templates/templated_email/source/confirmed_order.mjml:36
+msgctxt "Order confirmed e-mail shipping address"
+msgid "Shipping address"
+msgstr ""
+
+#: templates/templated_email/order/confirmed_order.email:36
+#: templates/templated_email/source/confirmed_order.mjml:52
+msgctxt "Order confirmed e-mail text"
+msgid "No shipping required"
+msgstr ""
+
 #: templates/templated_email/order/order_cancel.email:4
 #, python-format
 msgctxt "Order cancel e-mail subject"
@@ -475,6 +557,7 @@ msgstr ""
 #: templates/templated_email/source/confirm_fulfillment.mjml:13
 #: templates/templated_email/source/confirm_order.mjml:14
 #: templates/templated_email/source/confirm_payment.mjml:13
+#: templates/templated_email/source/confirmed_order.mjml:14
 #: templates/templated_email/source/email_changed_notification.mjml:13
 #: templates/templated_email/source/export_failed.mjml:13
 #: templates/templated_email/source/export_products_file.mjml:13
@@ -545,6 +628,21 @@ msgstr ""
 #: templates/templated_email/source/confirm_payment.mjml:16
 msgctxt "Payment confirmation e-mail text"
 msgid "Thank you for your payment. Your payment was successfully processed."
+msgstr ""
+
+#: templates/templated_email/source/confirmed_order.mjml:18
+#, python-format
+msgctxt "Order confirmed e-mail text with order details"
+msgid ""
+"Your order has been confirmed by staff. To see your order details please "
+"visit: <a href=\"%(order_details_url)s\">%(order_details_url)s</a>"
+msgstr ""
+
+#: templates/templated_email/source/confirmed_order.mjml:22
+msgctxt "Order confirmed e-mail text"
+msgid ""
+"Your order has been confirmed by staff. Below is the list of ordered "
+"products."
 msgstr ""
 
 #: templates/templated_email/source/email_changed_notification.mjml:16
