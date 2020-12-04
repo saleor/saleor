@@ -293,7 +293,7 @@ class GraphQLView(View):
             exc = exc.original_error
 
         if isinstance(exc, cls.HANDLED_EXCEPTIONS):
-            handled_errors_logger.error("A query had an error", exc_info=exc)
+            handled_errors_logger.info("A query had an error", exc_info=exc)
         else:
             unhandled_errors_logger.error("A query failed unexpectedly", exc_info=exc)
 

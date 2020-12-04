@@ -7,10 +7,12 @@ from django_countries import countries
 from ....account.models import Address
 from ....core.error_codes import ShopErrorCode
 from ....core.permissions import get_permissions_codename
+from ....shipping.models import ShippingMethod
 from ....site import AuthenticationBackends
 from ....site.models import Site
+from ...account.enums import CountryCodeEnum
 from ...core.utils import str_to_enum
-from ...tests.utils import get_graphql_content
+from ...tests.utils import assert_no_permission, get_graphql_content
 
 
 def test_query_authorization_keys(
@@ -666,6 +668,117 @@ def test_query_available_payment_gateways_specified_currency_EUR(
     assert data[0]["name"] == "SampleDummy"
 
 
+AVAILABLE_SHIPPING_METHODS_QUERY = """
+    query Shop($channel: String!, $address: AddressInput){
+        shop {
+            availableShippingMethods(channel: $channel, address: $address) {
+                id
+                name
+            }
+        }
+    }
+"""
+
+
+def test_query_available_shipping_methods_no_address(
+    staff_api_client, shipping_method, shipping_method_channel_PLN, channel_USD
+):
+    # given
+    query = AVAILABLE_SHIPPING_METHODS_QUERY
+
+    # when
+    response = staff_api_client.post_graphql(query, {"channel": channel_USD.slug})
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["shop"]["availableShippingMethods"]
+    assert {ship_meth["id"] for ship_meth in data} == {
+        graphene.Node.to_global_id("ShippingMethod", ship_meth.pk)
+        for ship_meth in ShippingMethod.objects.filter(
+            channel_listings__channel__slug=channel_USD.slug
+        )
+    }
+
+
+def test_query_available_shipping_methods_for_given_address(
+    staff_api_client,
+    channel_USD,
+    shipping_method,
+    shipping_zone_without_countries,
+    address,
+):
+    # given
+    query = AVAILABLE_SHIPPING_METHODS_QUERY
+    shipping_method_count = ShippingMethod.objects.count()
+    variables = {
+        "channel": channel_USD.slug,
+        "address": {"country": CountryCodeEnum.US.name},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["shop"]["availableShippingMethods"]
+    assert len(data) == shipping_method_count - 1
+    assert graphene.Node.to_global_id(
+        "ShippingMethod", shipping_zone_without_countries.pk
+    ) not in {ship_meth["id"] for ship_meth in data}
+
+
+def test_query_available_shipping_methods_no_address_vatlayer_set(
+    staff_api_client,
+    shipping_method,
+    shipping_method_channel_PLN,
+    channel_USD,
+    setup_vatlayer,
+):
+    # given
+    query = AVAILABLE_SHIPPING_METHODS_QUERY
+
+    # when
+    response = staff_api_client.post_graphql(query, {"channel": channel_USD.slug})
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["shop"]["availableShippingMethods"]
+    assert {ship_meth["id"] for ship_meth in data} == {
+        graphene.Node.to_global_id("ShippingMethod", ship_meth.pk)
+        for ship_meth in ShippingMethod.objects.filter(
+            channel_listings__channel__slug=channel_USD.slug
+        )
+    }
+
+
+def test_query_available_shipping_methods_for_given_address_vatlayer_set(
+    staff_api_client,
+    channel_USD,
+    shipping_method,
+    shipping_zone_without_countries,
+    address,
+    setup_vatlayer,
+):
+    # given
+    query = AVAILABLE_SHIPPING_METHODS_QUERY
+    shipping_method_count = ShippingMethod.objects.count()
+    variables = {
+        "channel": channel_USD.slug,
+        "address": {"country": CountryCodeEnum.US.name},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["shop"]["availableShippingMethods"]
+    assert len(data) == shipping_method_count - 1
+    assert graphene.Node.to_global_id(
+        "ShippingMethod", shipping_zone_without_countries.pk
+    ) not in {ship_meth["id"] for ship_meth in data}
+
+
 AUTHORIZATION_KEY_ADD = """
 mutation AddKey($key: String!, $password: String!, $keyType: AuthorizationKeyType!) {
     authorizationKeyAdd(input: {key: $key, password: $password}, keyType: $keyType) {
@@ -1105,3 +1218,87 @@ def test_staff_notification_update_mutation_with_empty_email(
             }
         ],
     }
+
+
+ORDER_SETTINGS_UPDATE_MUTATION = """
+    mutation orderSettings($confirmOrders: Boolean!) {
+        orderSettingsUpdate(
+            input: { automaticallyConfirmAllNewOrders: $confirmOrders }
+        ) {
+            orderSettings {
+                automaticallyConfirmAllNewOrders
+            }
+        }
+    }
+"""
+
+
+def test_order_settings_update_by_staff(
+    staff_api_client, permission_manage_orders, site_settings
+):
+    assert site_settings.automatically_confirm_all_new_orders is True
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(
+        ORDER_SETTINGS_UPDATE_MUTATION, {"confirmOrders": False}
+    )
+    content = get_graphql_content(response)
+    response_settings = content["data"]["orderSettingsUpdate"]["orderSettings"]
+    assert response_settings["automaticallyConfirmAllNewOrders"] is False
+    site_settings.refresh_from_db()
+    assert site_settings.automatically_confirm_all_new_orders is False
+
+
+def test_order_settings_update_by_app(
+    app_api_client, permission_manage_orders, site_settings
+):
+    assert site_settings.automatically_confirm_all_new_orders is True
+    app_api_client.app.permissions.set([permission_manage_orders])
+    response = app_api_client.post_graphql(
+        ORDER_SETTINGS_UPDATE_MUTATION, {"confirmOrders": False}
+    )
+    content = get_graphql_content(response)
+    response_settings = content["data"]["orderSettingsUpdate"]["orderSettings"]
+    assert response_settings["automaticallyConfirmAllNewOrders"] is False
+    site_settings.refresh_from_db()
+    assert site_settings.automatically_confirm_all_new_orders is False
+
+
+def test_order_settings_update_by_user_without_permissions(
+    user_api_client, permission_manage_orders, site_settings
+):
+    assert site_settings.automatically_confirm_all_new_orders is True
+    response = user_api_client.post_graphql(
+        ORDER_SETTINGS_UPDATE_MUTATION, {"confirmOrders": False}
+    )
+    assert_no_permission(response)
+    site_settings.refresh_from_db()
+    assert site_settings.automatically_confirm_all_new_orders is True
+
+
+ORDER_SETTINGS_QUERY = """
+    query orderSettings {
+        orderSettings {
+            automaticallyConfirmAllNewOrders
+        }
+    }
+"""
+
+
+def test_order_settings_query_as_staff(
+    staff_api_client, permission_manage_orders, site_settings
+):
+    assert site_settings.automatically_confirm_all_new_orders is True
+
+    site_settings.automatically_confirm_all_new_orders = False
+    site_settings.save(update_fields=["automatically_confirm_all_new_orders"])
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDER_SETTINGS_QUERY)
+    content = get_graphql_content(response)
+
+    assert content["data"]["orderSettings"]["automaticallyConfirmAllNewOrders"] is False
+
+
+def test_order_settings_query_as_user(user_api_client, site_settings):
+    response = user_api_client.post_graphql(ORDER_SETTINGS_QUERY)
+    assert_no_permission(response)

@@ -46,16 +46,14 @@ def test_create_order_captured_payment_creates_expected_events(
     )
     flush_post_commit_hooks()
 
-    # Ensure only two events were created, and retrieve them
-    order_events = order.events.all()
-
     (
         order_placed_event,
         payment_captured_event,
         order_fully_paid_event,
         payment_email_sent_event,
+        order_confirmed_event,
         order_placed_email_sent_event,
-    ) = order_events  # type: OrderEvent
+    ) = order.events.all()  # type: OrderEvent
 
     # Ensure the correct order event was created
     # is the event the expected type
@@ -109,6 +107,18 @@ def test_create_order_captured_payment_creates_expected_events(
         "email": order.get_customer_email(),
         "email_type": OrderEventsEmails.PAYMENT,
     }
+
+    # Ensure the correct order confirmed event was created
+    # should be order confirmed event
+    assert order_confirmed_event.type == OrderEvents.CONFIRMED
+    # ensure the user is checkout user
+    assert order_confirmed_event.user == checkout_user
+    # ensure the order confirmed event is related to order
+    assert order_confirmed_event.order is order
+    # ensure a date was set
+    assert order_confirmed_event.date
+    # ensure the event parameters are empty
+    assert order_confirmed_event.parameters == {}
 
     # Ensure the correct email sent event was created
     # should be email sent event
@@ -169,16 +179,14 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
     )
     flush_post_commit_hooks()
 
-    # Ensure only two events were created, and retrieve them
-    order_events = order.events.all()
-
     (
         order_placed_event,
         payment_captured_event,
         order_fully_paid_event,
         payment_email_sent_event,
+        order_confirmed_event,
         order_placed_email_sent_event,
-    ) = order_events  # type: OrderEvent
+    ) = order.events.all()  # type: OrderEvent
 
     # Ensure the correct order event was created
     # is the event the expected type
@@ -233,6 +241,18 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
         "email_type": OrderEventsEmails.PAYMENT,
     }
 
+    # Ensure the correct order confirmed event was created
+    # should be order confirmed event
+    assert order_confirmed_event.type == OrderEvents.CONFIRMED
+    # ensure the user is checkout user
+    assert order_confirmed_event.user == checkout_user
+    # ensure the order confirmed event is related to order
+    assert order_confirmed_event.order is order
+    # ensure a date was set
+    assert order_confirmed_event.date
+    # ensure the event parameters are empty
+    assert order_confirmed_event.parameters == {}
+
     # Ensure the correct email sent event was created
     # should be email sent event
     assert order_placed_email_sent_event.type == OrderEvents.EMAIL_SENT
@@ -284,14 +304,12 @@ def test_create_order_preauth_payment_creates_expected_events(
     )
     flush_post_commit_hooks()
 
-    # Ensure only two events were created, and retrieve them
-    order_events = order.events.all()
-
     (
         order_placed_event,
         payment_authorized_event,
+        order_confirmed_event,
         order_placed_email_sent_event,
-    ) = order_events  # type: OrderEvent
+    ) = order.events.all()  # type: OrderEvent
 
     # Ensure the correct order event was created
     # is the event the expected type
@@ -318,6 +336,18 @@ def test_create_order_preauth_payment_creates_expected_events(
     assert "amount" in payment_authorized_event.parameters.keys()
     assert "payment_id" in payment_authorized_event.parameters.keys()
     assert "payment_gateway" in payment_authorized_event.parameters.keys()
+
+    # Ensure the correct order confirmed event was created
+    # should be order confirmed event
+    assert order_confirmed_event.type == OrderEvents.CONFIRMED
+    # ensure the user is checkout user
+    assert order_confirmed_event.user == checkout_user
+    # ensure the order confirmed event is related to order
+    assert order_confirmed_event.order is order
+    # ensure a date was set
+    assert order_confirmed_event.date
+    # ensure the event parameters are empty
+    assert order_confirmed_event.parameters == {}
 
     # Ensure the correct email sent event was created
     # should be email sent event
@@ -378,14 +408,12 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
     )
     flush_post_commit_hooks()
 
-    # Ensure only two events were created, and retrieve them
-    order_events = order.events.all()
-
     (
         order_placed_event,
         payment_captured_event,
+        order_confirmed_event,
         order_placed_email_sent_event,
-    ) = order_events  # type: OrderEvent
+    ) = order.events.all()  # type: OrderEvent
 
     # Ensure the correct order event was created
     # is the event the expected type
@@ -412,6 +440,18 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
     assert "amount" in payment_captured_event.parameters.keys()
     assert "payment_id" in payment_captured_event.parameters.keys()
     assert "payment_gateway" in payment_captured_event.parameters.keys()
+
+    # Ensure the correct order confirmed event was created
+    # should be order confirmed event
+    assert order_confirmed_event.type == OrderEvents.CONFIRMED
+    # ensure the user is checkout user
+    assert order_confirmed_event.user == checkout_user
+    # ensure the order confirmed event is related to order
+    assert order_confirmed_event.order is order
+    # ensure a date was set
+    assert order_confirmed_event.date
+    # ensure the event parameters are empty
+    assert order_confirmed_event.parameters == {}
 
     # Ensure the correct email sent event was created
     # should be email sent event

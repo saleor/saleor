@@ -157,6 +157,14 @@ def order_created_event(
     return OrderEvent.objects.create(order=order, type=event_type, user=user)
 
 
+def order_confirmed_event(
+    *, order: Order, user: UserType, from_draft=False
+) -> OrderEvent:
+    if not _user_is_valid(user):
+        user = None
+    return OrderEvent.objects.create(order=order, type=OrderEvents.CONFIRMED, user=user)
+
+
 def draft_order_oversold_items_event(
     *, order: Order, user: UserType, oversold_items: List[str]
 ) -> OrderEvent:
@@ -327,6 +335,28 @@ def fulfillment_fulfilled_items_event(
         type=OrderEvents.FULFILLMENT_FULFILLED_ITEMS,
         user=user,
         parameters={"fulfilled_items": [line.pk for line in fulfillment_lines]},
+    )
+
+
+def fulfillment_refunded_event(
+    *,
+    order: Order,
+    user: UserType,
+    refunded_lines: List[Tuple[int, OrderLine]],
+    amount: Decimal,
+    shipping_costs_included: bool
+):
+    if not _user_is_valid(user):
+        user = None
+    return OrderEvent.objects.create(
+        order=order,
+        type=OrderEvents.FULFILLMENT_REFUNDED,
+        user=user,
+        parameters={
+            "lines": _lines_per_quantity_to_line_object_list(refunded_lines),
+            "amount": amount,
+            "shipping_costs_included": shipping_costs_included,
+        },
     )
 
 

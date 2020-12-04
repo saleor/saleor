@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, List, Union
 
 from django.conf import settings
 from django.db import models
@@ -20,6 +20,7 @@ from ..core.weight import (
     zero_weight,
 )
 from . import ShippingMethodType
+from .zip_codes import check_shipping_method_for_zip_code
 
 if TYPE_CHECKING:
     # flake8: noqa
@@ -88,7 +89,8 @@ class ShippingMethodQueryset(models.QuerySet):
     def weight_based(self):
         return self.filter(type=ShippingMethodType.WEIGHT_BASED)
 
-    def applicable_shipping_methods_by_channel(self, shipping_methods, channel_id):
+    @staticmethod
+    def applicable_shipping_methods_by_channel(shipping_methods, channel_id):
         query = ShippingMethodChannelListing.objects.filter(
             shipping_method=OuterRef("pk"), channel_id=channel_id
         ).values_list("price_amount")
@@ -96,20 +98,34 @@ class ShippingMethodQueryset(models.QuerySet):
             "price_amount"
         )
 
+    def exclude_shipping_methods_for_excluded_products(
+        self, qs, product_ids: List[int]
+    ):
+        """Exclude the ShippingMethods which have excluded given products."""
+        return qs.exclude(excluded_products__id__in=product_ids)
+
     def applicable_shipping_methods(
-        self, price: Money, channel_id, weight, country_code
+        self, price: Money, channel_id, weight, country_code, product_ids=None
     ):
         """Return the ShippingMethods that can be used on an order with shipment.
 
         It is based on the given country code, and by shipping methods that are
-        applicable to the given price & weight total.
+        applicable to the given price, weight and products.
         """
         qs = self.filter(
             shipping_zone__countries__contains=country_code,
             channel_listings__currency=price.currency,
+            channel_listings__channel_id=channel_id,
         )
         qs = self.applicable_shipping_methods_by_channel(qs, channel_id)
         qs = qs.prefetch_related("shipping_zone")
+
+        # Products IDs are used to exclude shipping methods that may be not applicable
+        # to some of these products, based on exclusion rules defined in shipping method
+        # instances.
+        if product_ids:
+            qs = self.exclude_shipping_methods_for_excluded_products(qs, product_ids)
+
         price_based_methods = _applicable_price_based_methods(price, qs)
         weight_based_methods = _applicable_weight_based_methods(weight, qs)
         shipping_methods = price_based_methods | weight_based_methods
@@ -125,13 +141,24 @@ class ShippingMethodQueryset(models.QuerySet):
     ):
         if not instance.shipping_address:
             return None
+        lines = instance.lines.prefetch_related("variant__product").all()
+        instance_product_ids = set(lines.values_list("variant__product", flat=True))
 
-        return self.applicable_shipping_methods(
+        applicable_methods = self.applicable_shipping_methods(
             price=price,
             channel_id=channel_id,
             weight=instance.get_total_weight(),  # FIXME: optimize get_total_weight
             country_code=country_code or instance.shipping_address.country.code,
-        )
+            product_ids=instance_product_ids,
+        ).prefetch_related("zip_code_rules")
+
+        excluded_methods_by_zip_code = []
+        for method in applicable_methods:
+            if check_shipping_method_for_zip_code(instance.shipping_address, method):
+                excluded_methods_by_zip_code.append(method.pk)
+        if excluded_methods_by_zip_code:
+            return applicable_methods.exclude(pk__in=excluded_methods_by_zip_code)
+        return applicable_methods
 
 
 class ShippingMethod(ModelWithMetadata):
@@ -150,6 +177,11 @@ class ShippingMethod(ModelWithMetadata):
     maximum_order_weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES, blank=True, null=True
     )
+    excluded_products = models.ManyToManyField(
+        "product.Product", blank=True
+    )  # type: ignore
+    maximum_delivery_days = models.PositiveIntegerField(null=True, blank=True)
+    minimum_delivery_days = models.PositiveIntegerField(null=True, blank=True)
 
     objects = ShippingMethodQueryset.as_manager()
     translated = TranslationProxy()
@@ -169,6 +201,17 @@ class ShippingMethod(ModelWithMetadata):
                 self.minimum_order_weight, self.maximum_order_weight
             ),
         )
+
+
+class ShippingMethodZipCodeRule(models.Model):
+    shipping_method = models.ForeignKey(
+        ShippingMethod, on_delete=models.CASCADE, related_name="zip_code_rules"
+    )
+    start = models.CharField(max_length=32)
+    end = models.CharField(max_length=32, blank=True, null=True)
+
+    class Meta:
+        unique_together = ("shipping_method", "start", "end")
 
 
 class ShippingMethodChannelListing(models.Model):

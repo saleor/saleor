@@ -29,6 +29,7 @@ from ...core.exceptions import InsufficientStock, PermissionDenied, ProductNotPu
 from ...core.transactions import transaction_with_commit_on_errors
 from ...order import models as order_models
 from ...product import models as product_models
+from ...shipping import models as shipping_models
 from ...warehouse.availability import check_stock_quantity_bulk
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
@@ -744,6 +745,9 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             shipping_method_id,
             only_type=ShippingMethod,
             field="shipping_method_id",
+            qs=shipping_models.ShippingMethod.objects.prefetch_related(
+                "zip_code_rules"
+            ),
         )
 
         shipping_method_is_valid = clean_shipping_method(
@@ -752,7 +756,6 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             method=shipping_method,
             discounts=info.context.discounts,
         )
-
         if not shipping_method_is_valid:
             raise ValidationError(
                 {

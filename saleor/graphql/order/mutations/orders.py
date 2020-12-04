@@ -11,6 +11,7 @@ from ....order.actions import (
     clean_mark_order_as_paid,
     mark_order_as_paid,
     order_captured,
+    order_confirmed,
     order_refunded,
     order_shipping_updated,
     order_voided,
@@ -18,8 +19,9 @@ from ....order.actions import (
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import get_valid_shipping_methods_for_order, update_order_prices
 from ....payment import CustomPaymentChoices, PaymentError, TransactionKind, gateway
+from ....shipping import models as shipping_models
 from ...account.types import AddressInput
-from ...core.mutations import BaseMutation
+from ...core.mutations import BaseMutation, ModelMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
 from ...core.utils import validate_required_string_field
@@ -249,6 +251,9 @@ class OrderUpdateShipping(BaseMutation):
             data["shipping_method"],
             field="shipping_method",
             only_type=ShippingMethod,
+            qs=shipping_models.ShippingMethod.objects.prefetch_related(
+                "zip_code_rules"
+            ),
         )
 
         clean_order_update_shipping(order, method)
@@ -486,3 +491,45 @@ class OrderRefund(BaseMutation):
         if transaction.kind == TransactionKind.REFUND:
             order_refunded(order, info.context.user, amount, payment)
         return OrderRefund(order=order)
+
+
+class OrderConfirm(ModelMutation):
+    order = graphene.Field(Order, description="Order which has been confirmed.")
+
+    class Arguments:
+        id = graphene.ID(description="ID of an order to confirm.", required=True)
+
+    class Meta:
+        description = "Confirms an unconfirmed order by changing status to unfulfilled."
+        model = models.Order
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
+
+    @classmethod
+    def get_instance(cls, info, **data):
+        instance = super().get_instance(info, **data)
+        if instance.status != OrderStatus.UNCONFIRMED:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Provided order id belongs to an order with status "
+                        "different than unconfirmed.",
+                        code=OrderErrorCode.INVALID,
+                    )
+                }
+            )
+        return instance
+
+    @classmethod
+    @transaction.atomic
+    def perform_mutation(cls, root, info, **data):
+        order = cls.get_instance(info, **data)
+        order.status = OrderStatus.UNFULFILLED
+        order.save(update_fields=["status"])
+        payment = order.get_last_payment()
+        if payment and payment.is_authorized and payment.can_capture():
+            gateway.capture(payment)
+            order_captured(order, info.context.user, payment.total, payment)
+        order_confirmed(order, info.context.user, send_confirmation_email=True)
+        return OrderConfirm(order=order)

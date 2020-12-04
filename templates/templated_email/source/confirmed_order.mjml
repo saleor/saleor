@@ -1,0 +1,62 @@
+<mjml>
+  <mj-head>
+    <mj-include path="./shared/styles.mjml" />
+  </mj-head>
+  <mj-body>
+    <mj-raw>
+      {% load i18n %}
+      {% load i18n_address_tags %}
+    </mj-raw>
+    <mj-include path="./shared/header.mjml" />
+    <mj-section>
+      <mj-column>
+        <mj-text font-size="16px">
+          {% trans "Hi!" context "Standard e-mail greeting" %}
+        </mj-text>
+        <mj-text>
+          {% if order_details_url %}
+            {% blocktrans trimmed context "Order confirmed e-mail text with order details" %}
+              Your order has been confirmed by staff. To see your order details please visit: <a href="{{ order_details_url }}">{{ order_details_url }}</a>
+            {% endblocktrans %}
+          {% else %}
+            {% blocktrans trimmed context "Order confirmed e-mail text" %}
+              Your order has been confirmed by staff. Below is the list of ordered products.
+            {% endblocktrans %}
+          {% endif %}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-include path="./partials/_order_lines.mjml" />
+    <mj-section>
+      <mj-column>
+        <mj-table>
+          <thead class="table-header-row">
+            <tr>
+              <th>{% trans "Billing address" context "Order confirmed e-mail billing address" %}</th>
+              <th>{% trans "Shipping address" context "Order confirmed e-mail shipping address" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="address">
+                {% if order.billing_address %}
+                  {% format_address order.billing_address %}
+                {% else %}
+                  {% trans "No billing address" context "Order confirmed e-mail text" %}
+                {% endif %}
+              </td>
+              <td css-class="address">
+                {% if order.shipping_address %}
+                  {% format_address order.shipping_address %}
+                {% else %}
+                  {% trans "No shipping required" context "Order confirmed e-mail text" %}
+                {% endif %}
+              </td>
+            </tr>
+          </tbody>
+        </mj-table>
+      </mj-column>
+    </mj-section>
+    <mj-include path="./shared/footer.mjml" />
+  </mj-body>
+</mjml>

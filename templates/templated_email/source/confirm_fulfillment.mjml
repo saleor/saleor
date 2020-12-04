@@ -13,9 +13,15 @@
           {% trans "Hi!" context "Standard e-mail greeting" %}
         </mj-text>
         <mj-text>
-          {% blocktrans trimmed context "Fulfillment confirmation email text" %}
-            Thank you for your order. Below is the list of fulfilled products.
-          {% endblocktrans %}
+          {% if order_details_url %}
+            {% blocktrans trimmed context "Fulfillment confirmation email text with order details" %}
+              Thank you for your order. Below is the list of fulfilled products. To see your order details please visit: <a href="{{ order_details_url }}">{{ order_details_url }}</a>
+            {% endblocktrans %}
+          {% else %}
+            {% blocktrans trimmed context "Fulfillment confirmation email text" %}
+              Thank you for your order. Below is the list of fulfilled products.
+            {% endblocktrans %}
+          {% endif %}
           {% if fulfillment.tracking_number %}
             {% if fulfillment.is_tracking_number_url %}
               {% blocktrans trimmed with tracking_number=fulfillment.tracking_number context "Fulfillment confirmation email text" %}

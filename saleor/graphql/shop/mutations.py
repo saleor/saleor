@@ -3,15 +3,15 @@ from django.core.exceptions import ValidationError
 
 from ...account import models as account_models
 from ...core.error_codes import ShopErrorCode
-from ...core.permissions import SitePermissions
+from ...core.permissions import OrderPermissions, SitePermissions
 from ...core.utils.url import validate_storefront_url
 from ...site import models as site_models
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
 from ..core.enums import WeightUnitsEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ..core.types.common import ShopError
-from .types import AuthorizationKey, AuthorizationKeyType, Shop
+from ..core.types.common import OrderSettingsError, ShopError
+from .types import AuthorizationKey, AuthorizationKeyType, OrderSettings, Shop
 
 
 class ShopSettingsInput(graphene.InputObjectType):
@@ -366,3 +366,36 @@ class StaffNotificationRecipientDelete(ModelDeleteMutation):
         permissions = (SitePermissions.MANAGE_SETTINGS,)
         error_type_class = ShopError
         error_type_field = "shop_errors"
+
+
+class OrderSettingsUpdateInput(graphene.InputObjectType):
+    automatically_confirm_all_new_orders = graphene.Boolean(
+        required=True,
+        description="When disabled, all new orders from checkout "
+        "will be marked as unconfirmed. When enabled orders from checkout will "
+        "become unfulfilled immediately.",
+    )
+
+
+class OrderSettingsUpdate(BaseMutation):
+    order_settings = graphene.Field(OrderSettings, description="Order settings.")
+
+    class Arguments:
+        input = OrderSettingsUpdateInput(
+            required=True, description="Fields required to update shop order settings."
+        )
+
+    class Meta:
+        description = "Update shop order settings."
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = OrderSettingsError
+        error_type_field = "order_settings_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        instance = info.context.site.settings
+        instance.automatically_confirm_all_new_orders = data["input"][
+            "automatically_confirm_all_new_orders"
+        ]
+        instance.save(update_fields=["automatically_confirm_all_new_orders"])
+        return OrderSettingsUpdate(order_settings=instance)
