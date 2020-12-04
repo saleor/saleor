@@ -605,6 +605,7 @@ input AttributeValueInput {
   values: [String]
   file: String
   contentType: String
+  references: [ID!]
 }
 
 type AttributeValueTranslatableContent implements Node {

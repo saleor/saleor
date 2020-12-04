@@ -25,6 +25,7 @@ def test_validate_attributes_input_for_product(
                 values=["a"],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
         (
@@ -34,6 +35,7 @@ def test_validate_attributes_input_for_product(
                 values=["b"],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
     ]
@@ -68,6 +70,7 @@ def test_validate_attributes_input_for_product_no_values_given(
                 values=[],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
         (
@@ -77,6 +80,7 @@ def test_validate_attributes_input_for_product_no_values_given(
                 values=[],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
     ]
@@ -119,6 +123,7 @@ def test_validate_attributes_input_for_product_too_many_values_given(
                 values=["abc", "efg"],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
         (
@@ -128,6 +133,7 @@ def test_validate_attributes_input_for_product_too_many_values_given(
                 values=["a", "b"],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
     ]
@@ -169,6 +175,7 @@ def test_validate_attributes_input_for_product_empty_values_given(
                 values=["a", None],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
         (
@@ -178,6 +185,7 @@ def test_validate_attributes_input_for_product_empty_values_given(
                 values=["  "],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
     ]
@@ -220,6 +228,7 @@ def test_validate_attributes_input_for_product_lack_of_required_attribute(
                 values=["a"],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
     ]
@@ -261,6 +270,7 @@ def test_validate_attributes_input_for_product_multiply_errors(
                 values=[None],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
         (
@@ -270,6 +280,7 @@ def test_validate_attributes_input_for_product_multiply_errors(
                 values=["a", "b"],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
     ]
@@ -312,6 +323,7 @@ def test_validate_attributes_input_for_page(
                 values=["a"],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
         (
@@ -321,6 +333,7 @@ def test_validate_attributes_input_for_page(
                 values=["b"],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
     ]
@@ -355,6 +368,7 @@ def test_validate_attributes_input_for_page_no_values_given(
                 values=[],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
         (
@@ -364,6 +378,7 @@ def test_validate_attributes_input_for_page_no_values_given(
                 values=[],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
     ]
@@ -406,6 +421,7 @@ def test_validate_attributes_input_for_page_too_many_values_given(
                 values=["abc", "efg"],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
         (
@@ -415,6 +431,7 @@ def test_validate_attributes_input_for_page_too_many_values_given(
                 values=["a", "b"],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
     ]
@@ -456,6 +473,7 @@ def test_validate_attributes_input_for_page_empty_values_given(
                 values=["a", None],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
         (
@@ -465,6 +483,7 @@ def test_validate_attributes_input_for_page_empty_values_given(
                 values=["  "],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
     ]
@@ -507,6 +526,7 @@ def test_validate_attributes_input_for_page_lack_of_required_attribute(
                 values=["a"],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
     ]
@@ -545,6 +565,7 @@ def test_validate_attributes_input_for_page_multiply_errors(
                 values=[None],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
         (
@@ -554,6 +575,7 @@ def test_validate_attributes_input_for_page_multiply_errors(
                 values=["a", "b"],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
     ]
@@ -594,6 +616,7 @@ def test_validate_attributes_input(weight_attribute, color_attribute, product_ty
                 values=["a"],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
         (
@@ -603,6 +626,7 @@ def test_validate_attributes_input(weight_attribute, color_attribute, product_ty
                 values=["b"],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
     ]
@@ -636,6 +660,7 @@ def test_validate_attributes_input_no_values_given(
                 values=[],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
         (
@@ -645,6 +670,7 @@ def test_validate_attributes_input_no_values_given(
                 values=[],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
     ]
@@ -684,6 +710,7 @@ def test_validate_attributes_input_too_many_values_given(
                 values=["abc", "efg"],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
         (
@@ -693,6 +720,7 @@ def test_validate_attributes_input_too_many_values_given(
                 values=["a", "b"],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
     ]
@@ -732,6 +760,7 @@ def test_validate_attributes_input_empty_values_given(
                 values=[None],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
         (
@@ -741,6 +770,7 @@ def test_validate_attributes_input_empty_values_given(
                 values=["  "],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
     ]
@@ -780,6 +810,7 @@ def test_validate_attributes_input_multiply_errors(
                 values=[None],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
         (
@@ -789,6 +820,7 @@ def test_validate_attributes_input_multiply_errors(
                 values=["a", "b"],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
     ]
@@ -830,6 +862,7 @@ def test_validate_attributes_with_file_input_type_for_product(
                 values=["a"],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
         (
@@ -839,6 +872,7 @@ def test_validate_attributes_with_file_input_type_for_product(
                 values=[],
                 file_url="test_file.jpeg",
                 content_type="image/jpeg",
+                references=[],
             ),
         ),
     ]
@@ -873,6 +907,7 @@ def test_validate_attributes_with_file_input_type_for_product_no_file_given(
                 values=["a"],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
         (
@@ -882,6 +917,7 @@ def test_validate_attributes_with_file_input_type_for_product_no_file_given(
                 values=[],
                 file_url="",
                 content_type="image/jpeg",
+                references=[],
             ),
         ),
     ]
@@ -921,6 +957,7 @@ def test_validate_attributes_with_file_input_type_for_product_empty_file_value(
                 values=["a"],
                 file_url=None,
                 content_type=None,
+                references=[],
             ),
         ),
         (
@@ -930,6 +967,7 @@ def test_validate_attributes_with_file_input_type_for_product_empty_file_value(
                 values=[],
                 file_url="  ",
                 content_type="image/jpeg",
+                references=[],
             ),
         ),
     ]

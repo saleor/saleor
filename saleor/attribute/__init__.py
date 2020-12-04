@@ -24,6 +24,6 @@ class AttributeType:
 
 
 class AttributeEntityType:
-    PAGE = "page"
+    PAGE = "Page"
 
     CHOICES = [(PAGE, "Page")]
