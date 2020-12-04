@@ -377,8 +377,7 @@ class Checkout(CountableDjangoObjectType):
             )
             if available is None:
                 return []
-            else:
-                available_ids = available.values_list("id", flat=True)
+            available_ids = available.values_list("id", flat=True)
 
             def map_shipping_method_with_channel(shippings):
                 def apply_price_to_shipping_method(channel_listings):

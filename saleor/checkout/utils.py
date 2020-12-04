@@ -571,7 +571,7 @@ def is_valid_shipping_method(
     if not checkout.shipping_method:
         return False
     if not checkout.shipping_address:
-        return None
+        return False
 
     valid_methods = get_valid_shipping_methods_for_checkout(checkout, lines, discounts)
     if valid_methods is None or checkout.shipping_method not in valid_methods:
