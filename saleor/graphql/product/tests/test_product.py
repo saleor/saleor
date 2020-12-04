@@ -2152,7 +2152,6 @@ def test_create_product_with_file_attribute(
     file_attribute,
     color_attribute,
     permission_manage_products,
-    settings,
 ):
     query = CREATE_PRODUCT_MUTATION
 
@@ -2217,7 +2216,6 @@ def test_create_product_with_file_attribute_new_attribute_value(
     file_attribute,
     color_attribute,
     permission_manage_products,
-    settings,
 ):
     query = CREATE_PRODUCT_MUTATION
 
@@ -2285,7 +2283,6 @@ def test_create_product_with_file_attribute_not_required_no_file_url_given(
     file_attribute,
     color_attribute,
     permission_manage_products,
-    settings,
 ):
     query = CREATE_PRODUCT_MUTATION
 
@@ -2338,9 +2335,7 @@ def test_create_product_with_file_attribute_required_no_file_url_given(
     product_type,
     category,
     file_attribute,
-    color_attribute,
     permission_manage_products,
-    settings,
 ):
     query = CREATE_PRODUCT_MUTATION
 
@@ -3912,6 +3907,7 @@ def test_product_type_query_only_variant_selections_value_set(
     product_type,
     file_attribute_with_file_input_type_without_values,
     author_page_attribute,
+    page_reference_attribute,
     product,
     permission_manage_products,
     monkeypatch,
@@ -3930,7 +3926,9 @@ def test_product_type_query_only_variant_selections_value_set(
     )
 
     product_type.variant_attributes.add(
-        file_attribute_with_file_input_type_without_values, author_page_attribute
+        file_attribute_with_file_input_type_without_values,
+        author_page_attribute,
+        page_reference_attribute,
     )
 
     variables = {

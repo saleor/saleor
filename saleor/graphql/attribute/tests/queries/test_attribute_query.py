@@ -41,6 +41,7 @@ query($id: ID!) {
         slug
         name
         inputType
+        entityType
         type
         values {
             slug
@@ -223,6 +224,51 @@ def test_get_single_product_attribute_with_file_value(
 
     for data in attribute_value_data:
         assert data in attribute_data["values"]
+
+
+def test_get_single_reference_attribute_by_staff(
+    staff_api_client, page_reference_attribute, permission_manage_products
+):
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    attribute_gql_id = graphene.Node.to_global_id(
+        "Attribute", page_reference_attribute.id
+    )
+    query = QUERY_ATTRIBUTE
+    content = get_graphql_content(
+        staff_api_client.post_graphql(query, {"id": attribute_gql_id})
+    )
+
+    assert content["data"]["attribute"], "Should have found an attribute"
+    assert content["data"]["attribute"]["id"] == attribute_gql_id
+    assert content["data"]["attribute"]["slug"] == page_reference_attribute.slug
+    assert (
+        content["data"]["attribute"]["valueRequired"]
+        == page_reference_attribute.value_required
+    )
+    assert (
+        content["data"]["attribute"]["visibleInStorefront"]
+        == page_reference_attribute.visible_in_storefront
+    )
+    assert (
+        content["data"]["attribute"]["filterableInStorefront"]
+        == page_reference_attribute.filterable_in_storefront
+    )
+    assert (
+        content["data"]["attribute"]["filterableInDashboard"]
+        == page_reference_attribute.filterable_in_dashboard
+    )
+    assert (
+        content["data"]["attribute"]["availableInGrid"]
+        == page_reference_attribute.available_in_grid
+    )
+    assert (
+        content["data"]["attribute"]["storefrontSearchPosition"]
+        == page_reference_attribute.storefront_search_position
+    )
+    assert (
+        content["data"]["attribute"]["entityType"]
+        == page_reference_attribute.entity_type.upper()
+    )
 
 
 QUERY_ATTRIBUTES = """

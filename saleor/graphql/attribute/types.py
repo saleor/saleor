@@ -14,7 +14,12 @@ from ..translations.fields import TranslationField
 from ..translations.types import AttributeTranslation, AttributeValueTranslation
 from .dataloaders import AttributeValuesByAttributeIdLoader
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
-from .enums import AttributeInputTypeEnum, AttributeTypeEnum, AttributeValueType
+from .enums import (
+    AttributeEntityTypeEnum,
+    AttributeInputTypeEnum,
+    AttributeTypeEnum,
+    AttributeValueType,
+)
 
 COLOR_PATTERN = r"^(#[0-9a-fA-F]{3}|#(?:[0-9a-fA-F]{2}){2,4}|(rgb|hsl)a?\((-?\d+%?[,\s]+){2,3}\s*[\d\.]+%?\))$"  # noqa
 color_pattern = re.compile(COLOR_PATTERN)
@@ -72,6 +77,9 @@ class AttributeValue(CountableDjangoObjectType):
 
 class Attribute(CountableDjangoObjectType):
     input_type = AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE)
+    entity_type = AttributeEntityTypeEnum(
+        description=AttributeDescriptions.ENTITY_TYPE, required=False
+    )
 
     name = graphene.String(description=AttributeDescriptions.NAME)
     slug = graphene.String(description=AttributeDescriptions.SLUG)
