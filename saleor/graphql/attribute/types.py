@@ -64,7 +64,6 @@ class AttributeValue(CountableDjangoObjectType):
         return root.input_type
 
     @staticmethod
-    @check_attribute_value_required_permissions()
     def resolve_file(root: models.AttributeValue, *_args):
         if not root.file_url:
             return
