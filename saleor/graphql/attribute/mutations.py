@@ -24,7 +24,7 @@ from ..core.utils import (
 from ..core.utils.reordering import perform_reordering
 from ..utils import resolve_global_ids_to_primary_keys
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
-from .enums import AttributeInputTypeEnum, AttributeTypeEnum
+from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -86,6 +86,7 @@ class AttributeValueCreateInput(graphene.InputObjectType):
 
 class AttributeCreateInput(graphene.InputObjectType):
     input_type = AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE)
+    entity_type = AttributeEntityTypeEnum(description=AttributeDescriptions.ENTITY_TYPE)
     name = graphene.String(required=True, description=AttributeDescriptions.NAME)
     slug = graphene.String(required=False, description=AttributeDescriptions.SLUG)
     type = AttributeTypeEnum(description=AttributeDescriptions.TYPE, required=True)
@@ -195,11 +196,16 @@ class AttributeMixin:
         if values_input is None:
             return
 
-        if attribute_input_type == AttributeInputType.FILE and values_input:
+        if (
+            attribute_input_type
+            in [AttributeInputType.FILE, AttributeInputType.REFERENCE]
+            and values_input
+        ):
             raise ValidationError(
                 {
                     cls.ATTRIBUTE_VALUES_FIELD: ValidationError(
-                        "Values cannot be used with input type FILE.",
+                        "Values cannot be used with "
+                        f"input type {attribute_input_type}.",
                         code=AttributeErrorCode.INVALID.value,
                     )
                 }
@@ -237,7 +243,10 @@ class AttributeMixin:
         Ensure that any invalid operations will be not performed.
         """
         attribute_input_type = cleaned_input.get("input_type") or instance.input_type
-        if attribute_input_type != AttributeInputType.FILE:
+        if attribute_input_type not in [
+            AttributeInputType.FILE,
+            AttributeInputType.REFERENCE,
+        ]:
             return
         errors = {}
         for field in [
@@ -248,7 +257,7 @@ class AttributeMixin:
         ]:
             if cleaned_input.get(field):
                 errors[field] = ValidationError(
-                    "Cannot set on a file attribute.",
+                    f"Cannot set on a {attribute_input_type} attribute.",
                     code=AttributeErrorCode.INVALID.value,
                 )
         if errors:
@@ -279,6 +288,22 @@ class AttributeCreate(AttributeMixin, ModelMutation):
         description = "Creates an attribute."
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
+
+    @classmethod
+    def clean_input(cls, info, instance, data, input_cls=None):
+        cleaned_input = super().clean_input(info, instance, data, input_cls)
+        if cleaned_input.get(
+            "input_type"
+        ) == AttributeInputType.REFERENCE and not cleaned_input.get("entity_type"):
+            raise ValidationError(
+                {
+                    "entity_type": ValidationError(
+                        "Entity type is required when REFERENCE input type is used.",
+                        code=AttributeErrorCode.REQUIRED.value,
+                    )
+                }
+            )
+        return cleaned_input
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
