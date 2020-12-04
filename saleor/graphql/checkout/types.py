@@ -5,7 +5,7 @@ from ...checkout import calculations, models
 from ...checkout.utils import get_valid_shipping_methods_for_checkout
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
-from ...core.taxes import display_gross_prices, zero_taxed_money
+from ...core.taxes import zero_taxed_money
 from ..account.dataloaders import AddressByIdLoader
 from ..account.utils import requestor_has_access
 from ..channel import ChannelContext
@@ -25,7 +25,10 @@ from ..product.dataloaders import (
     VariantChannelListingByVariantIdAndChannelSlugLoader,
 )
 from ..product.resolvers import resolve_variant
-from ..shipping.dataloaders import ShippingMethodByIdLoader
+from ..shipping.dataloaders import (
+    ShippingMethodByIdLoader,
+    ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
+)
 from ..shipping.types import ShippingMethod
 from ..utils import get_user_or_app_from_context
 from .dataloaders import (
@@ -234,6 +237,18 @@ class Checkout(CountableDjangoObjectType):
         filter_fields = ["token"]
 
     @staticmethod
+    def resolve_shipping_address(root: models.Checkout, info):
+        if not root.shipping_address_id:
+            return
+        return AddressByIdLoader(info.context).load(root.shipping_address_id)
+
+    @staticmethod
+    def resolve_billing_address(root: models.Checkout, info):
+        if not root.billing_address_id:
+            return
+        return AddressByIdLoader(info.context).load(root.billing_address_id)
+
+    @staticmethod
     def resolve_user(root: models.Checkout, info):
         requestor = get_user_or_app_from_context(info.context)
         if requestor_has_access(requestor, root.user, AccountPermissions.MANAGE_USERS):
@@ -344,26 +359,66 @@ class Checkout(CountableDjangoObjectType):
     # TODO: We should optimize it in/after PR#5819
     def resolve_available_shipping_methods(root: models.Checkout, info):
         def calculate_available_shipping_methods(data):
-            address, lines, discounts = data
-            available = get_valid_shipping_methods_for_checkout(root, lines, discounts)
+            address, lines, discounts, channel = data
+            channel_slug = channel.slug
+            display_gross = info.context.site.settings.display_gross_prices
+            manager = info.context.plugins
+            subtotal = manager.calculate_checkout_subtotal(
+                root, lines, address, discounts
+            )
+            if not address:
+                return []
+            available = get_valid_shipping_methods_for_checkout(
+                root,
+                lines,
+                discounts,
+                subtotal=subtotal,
+                country_code=address.country.code,
+            )
             if available is None:
                 return []
-            display_gross = display_gross_prices()
-            for shipping_method in available:
-                # ignore mypy checking because it is checked in
-                # get_valid_shipping_methods_for_checkout
-                shipping_channel_listing = shipping_method.channel_listings.get(
-                    channel=root.channel
-                )
-                taxed_price = info.context.plugins.apply_taxes_to_shipping(
-                    shipping_channel_listing.price, address
-                )
-                if display_gross:
-                    shipping_method.price = taxed_price.gross
-                else:
-                    shipping_method.price = taxed_price.net
-            return available
+            available_ids = available.values_list("id", flat=True)
 
+            def map_shipping_method_with_channel(shippings):
+                def apply_price_to_shipping_method(channel_listings):
+                    channel_listing_map = {
+                        channel_listing.shipping_method_id: channel_listing
+                        for channel_listing in channel_listings
+                    }
+                    available_with_channel_context = []
+                    for shipping in shippings:
+                        shipping_channel_listing = channel_listing_map[shipping.id]
+                        taxed_price = info.context.plugins.apply_taxes_to_shipping(
+                            shipping_channel_listing.price, address
+                        )
+                        if display_gross:
+                            shipping.price = taxed_price.gross
+                        else:
+                            shipping.price = taxed_price.net
+                        available_with_channel_context.append(
+                            ChannelContext(node=shipping, channel_slug=channel_slug)
+                        )
+                    return available_with_channel_context
+
+                map_shipping_method_and_channel = (
+                    (shipping_method_id, channel_slug)
+                    for shipping_method_id in available_ids
+                )
+                return (
+                    ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader(
+                        info.context
+                    )
+                    .load_many(map_shipping_method_and_channel)
+                    .then(apply_price_to_shipping_method)
+                )
+
+            return (
+                ShippingMethodByIdLoader(info.context)
+                .load_many(available_ids)
+                .then(map_shipping_method_with_channel)
+            )
+
+        channel = ChannelByIdLoader(info.context).load(root.channel_id)
         address = (
             AddressByIdLoader(info.context).load(root.shipping_address_id)
             if root.shipping_address_id
@@ -373,15 +428,8 @@ class Checkout(CountableDjangoObjectType):
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )
-        return (
-            Promise.all([address, lines, discounts])
-            .then(calculate_available_shipping_methods)
-            .then(
-                lambda available: [
-                    ChannelContext(node=shipping, channel_slug=root.channel.slug)
-                    for shipping in available
-                ]
-            )
+        return Promise.all([address, lines, discounts, channel]).then(
+            calculate_available_shipping_methods
         )
 
     @staticmethod
