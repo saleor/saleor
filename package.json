@@ -13,10 +13,10 @@
   "homepage": "http://saleor.io/",
   "dependencies": {},
   "devDependencies": {
-    "mjml": "^4.6.2"
+    "mjml": "^4.7.1"
   },
   "scripts": {
     "build-schema": "python manage.py get_graphql_schema > saleor/graphql/schema.graphql",
-    "build-emails": "mjml --config.beautify false -l skip \"templates/templated_email/source/*.mjml\" -o templates/templated_email/compiled"
+    "build-emails": "mjml -c.useMjmlConfigOptions -c.beautify false -l skip \"templates/templated_email/source/*.mjml\" -o templates/templated_email/compiled"
   }
 }
