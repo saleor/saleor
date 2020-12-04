@@ -345,7 +345,7 @@ class Checkout(CountableDjangoObjectType):
             if root.shipping_address_id
             else None
         )
-        lines = CheckoutLinesByCheckoutTokenLoader(info.context).load(root.token)
+        lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )

@@ -72,13 +72,15 @@ def _get_voucher_data_for_order(checkout: Checkout) -> dict:
 
 
 def _process_shipping_data_for_order(
-    checkout: Checkout, shipping_price: TaxedMoney
+    checkout: Checkout, shipping_price: TaxedMoney, manager
 ) -> dict:
     """Fetch, process and return shipping data from checkout."""
     shipping_address = checkout.shipping_address
 
     if checkout.user:
-        store_user_address(checkout.user, shipping_address, AddressType.SHIPPING)
+        store_user_address(
+            checkout.user, shipping_address, AddressType.SHIPPING, manager=manager
+        )
         if (
             shipping_address
             and checkout.user.addresses.filter(pk=shipping_address.pk).exists()
@@ -94,12 +96,14 @@ def _process_shipping_data_for_order(
     }
 
 
-def _process_user_data_for_order(checkout: Checkout):
+def _process_user_data_for_order(checkout: Checkout, manager):
     """Fetch, process and return shipping data from checkout."""
     billing_address = checkout.billing_address
 
     if checkout.user:
-        store_user_address(checkout.user, billing_address, AddressType.BILLING)
+        store_user_address(
+            checkout.user, billing_address, AddressType.BILLING, manager=manager
+        )
         if (
             billing_address
             and checkout.user.addresses.filter(pk=billing_address.pk).exists()
@@ -207,7 +211,6 @@ def _prepare_order_data(
     :raises NotApplicable InsufficientStock:
     """
     order_data = {}
-
     address = (
         checkout.shipping_address or checkout.billing_address
     )  # FIXME: check which address we need here
@@ -228,8 +231,10 @@ def _prepare_order_data(
     shipping_total = manager.calculate_checkout_shipping(
         checkout, lines, address, discounts
     )
-    order_data.update(_process_shipping_data_for_order(checkout, shipping_total))
-    order_data.update(_process_user_data_for_order(checkout))
+    order_data.update(
+        _process_shipping_data_for_order(checkout, shipping_total, manager=manager)
+    )
+    order_data.update(_process_user_data_for_order(checkout, manager))
     order_data.update(
         {
             "language_code": get_language(),
@@ -335,7 +340,10 @@ def _prepare_checkout(
     payment,
 ):
     """Prepare checkout object to complete the checkout process."""
-    clean_checkout_shipping(checkout, lines, discounts, CheckoutErrorCode)
+    subtotal = manager.calculate_checkout_subtotal(
+        checkout, lines, checkout.shipping_address, discounts
+    )
+    clean_checkout_shipping(checkout, lines, discounts, CheckoutErrorCode, subtotal)
     clean_checkout_payment(
         manager, checkout, lines, discounts, CheckoutErrorCode, last_payment=payment
     )

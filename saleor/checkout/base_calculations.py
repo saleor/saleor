@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Iterable, List, Optional
 
 from prices import TaxedMoney
 
+from ..checkout import CheckoutLineInfo
 from ..core.prices import quantize_price
 from ..core.taxes import zero_taxed_money
 from ..discount import DiscountInfo
@@ -24,11 +25,19 @@ if TYPE_CHECKING:
     from ..channel.models import Channel
 
 
-def base_checkout_shipping_price(checkout: "Checkout") -> TaxedMoney:
+def base_checkout_shipping_price(checkout: "Checkout", lines=None) -> TaxedMoney:
     """Return checkout shipping price."""
     # FIXME: Optimize checkout.is_shipping_required
     shipping_method = checkout.shipping_method
-    if not shipping_method or not checkout.is_shipping_required():
+
+    if lines is not None and all(isinstance(line, CheckoutLineInfo) for line in lines):
+        from .utils import is_shipping_required
+
+        shipping_required = is_shipping_required(lines)
+    else:
+        shipping_required = checkout.is_shipping_required()
+
+    if not shipping_method or not shipping_required:
         return zero_taxed_money(checkout.currency)
     shipping_price = shipping_method.channel_listings.get(
         channel_id=checkout.channel_id,

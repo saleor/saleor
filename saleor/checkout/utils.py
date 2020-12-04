@@ -566,6 +566,7 @@ def is_valid_shipping_method(
     checkout: Checkout,
     lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable[DiscountInfo],
+    subtotal: Optional["TaxedMoney"] = None,
 ):
     """Check if shipping method is valid and remove (if not)."""
     if not checkout.shipping_method:
@@ -573,7 +574,9 @@ def is_valid_shipping_method(
     if not checkout.shipping_address:
         return False
 
-    valid_methods = get_valid_shipping_methods_for_checkout(checkout, lines, discounts)
+    valid_methods = get_valid_shipping_methods_for_checkout(
+        checkout, lines, discounts, subtotal=subtotal
+    )
     if valid_methods is None or checkout.shipping_method not in valid_methods:
         clear_shipping_method(checkout)
         return False
