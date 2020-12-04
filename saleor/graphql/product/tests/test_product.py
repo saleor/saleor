@@ -3841,6 +3841,7 @@ def test_product_type_query_only_variant_selections_value_set(
     product_type,
     file_attribute_with_file_input_type_without_values,
     author_page_attribute,
+    page_reference_attribute,
     product,
     permission_manage_products,
     monkeypatch,
@@ -3859,7 +3860,9 @@ def test_product_type_query_only_variant_selections_value_set(
     )
 
     product_type.variant_attributes.add(
-        file_attribute_with_file_input_type_without_values, author_page_attribute
+        file_attribute_with_file_input_type_without_values,
+        author_page_attribute,
+        page_reference_attribute,
     )
 
     variables = {
