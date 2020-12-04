@@ -51,7 +51,7 @@ def test_process_payment_error_response(
         response.error
         == "User authentication failed due to invalid authentication values."
     )
-    assert response.transaction_id == INVALID_TOKEN
+    assert response.transaction_id == None
     assert response.kind == TransactionKind.CAPTURE
     assert not response.is_success
     assert response.amount == dummy_payment_data.amount
@@ -147,12 +147,9 @@ def test_void(authorize_net_payment, authorize_net_gateway_config):
         order_id=authorize_net_payment.order_id,
         customer_ip_address=authorize_net_payment.customer_ip_address,
         customer_email=authorize_net_payment.billing_email,
-        token='1',
+        token="1",
     )
-    response = void(
-        payment_data,
-        authorize_net_gateway_config,
-    )
+    response = void(payment_data, authorize_net_gateway_config,)
     assert not response.error
     assert response.kind == TransactionKind.VOID
     assert response.is_success
@@ -175,12 +172,9 @@ def test_void_duplicate(authorize_net_payment, authorize_net_gateway_config):
         order_id=authorize_net_payment.order_id,
         customer_ip_address=authorize_net_payment.customer_ip_address,
         customer_email=authorize_net_payment.billing_email,
-        token='1',
+        token="1",
     )
-    response = void(
-        payment_data,
-        authorize_net_gateway_config,
-    )
+    response = void(payment_data, authorize_net_gateway_config,)
     assert not response.error
     assert response.kind == TransactionKind.VOID
     assert response.is_success
@@ -200,12 +194,9 @@ def test_void_failure(authorize_net_payment, authorize_net_gateway_config):
         order_id=authorize_net_payment.order_id,
         customer_ip_address=authorize_net_payment.customer_ip_address,
         customer_email=authorize_net_payment.billing_email,
-        token='1',
+        token="1",
     )
-    response = void(
-        payment_data,
-        authorize_net_gateway_config,
-    )
+    response = void(payment_data, authorize_net_gateway_config,)
     assert response.error
     assert response.kind == TransactionKind.VOID
     assert not response.is_success

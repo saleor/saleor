@@ -15,6 +15,7 @@ from . import (
     authorize,
     capture,
     void,
+    list_client_sources,
 )
 
 
@@ -40,7 +41,9 @@ class AuthorizeNetGatewayPlugin(BasePlugin):
         {"name": "transaction_key", "value": None},
         {"name": "client_key", "value": None},
         {"name": "use_sandbox", "value": True},
+        {"name": "store_customers_card", "value": False},
         {"name": "automatic_payment_capture", "value": True},
+        {"name": "supported_currencies", "value": ""},
     ]
 
     CONFIG_STRUCTURE = {
@@ -64,10 +67,22 @@ class AuthorizeNetGatewayPlugin(BasePlugin):
             "help_text": "Determines if Saleor should use Authorize.Net sandbox environment.",
             "label": "Use sandbox",
         },
+        "store_customers_card": {
+            "type": ConfigurationTypeField.BOOLEAN,
+            "help_text": "Determines if Saleor should store cards on payments "
+            "in Stripe customer.",
+            "label": "Store customers card",
+        },
         "automatic_payment_capture": {
             "type": ConfigurationTypeField.BOOLEAN,
             "help_text": "Determines if Saleor should automatically capture payments.",
             "label": "Automatic payment capture",
+        },
+        "supported_currencies": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "Determines currencies supported by gateway."
+            " Please enter currency codes separated by a comma.",
+            "label": "Supported currencies",
         },
     }
 
@@ -76,16 +91,15 @@ class AuthorizeNetGatewayPlugin(BasePlugin):
         configuration = {item["name"]: item["value"] for item in self.configuration}
         self.config = GatewayConfig(
             gateway_name=GATEWAY_NAME,
-            supported_currencies="USD",
             auto_capture=configuration["automatic_payment_capture"],
-            # supported_currencies=configuration["Supported currencies"],
+            supported_currencies=configuration["supported_currencies"],
             connection_params={
                 "api_login_id": configuration["api_login_id"],
                 "transaction_key": configuration["transaction_key"],
                 "client_key": configuration["client_key"],
                 "use_sandbox": configuration["use_sandbox"],
             },
-            # store_customer=configuration["Store customers card"],
+            store_customer=configuration["store_customers_card"],
         )
 
     def _get_gateway_config(self) -> GatewayConfig:
@@ -151,10 +165,9 @@ class AuthorizeNetGatewayPlugin(BasePlugin):
     def list_payment_sources(
         self, customer_id: str, previous_value
     ) -> List["CustomerSource"]:
-        pass
-        # sources = list_client_sources(self._get_gateway_config(), customer_id)
-        # previous_value.extend(sources)
-        # return previous_value
+        sources = list_client_sources(self._get_gateway_config(), customer_id)
+        previous_value.extend(sources)
+        return previous_value
 
     @require_active_plugin
     def get_supported_currencies(self, previous_value):
@@ -171,4 +184,5 @@ class AuthorizeNetGatewayPlugin(BasePlugin):
             },
             {"field": "client_key", "value": config.connection_params["client_key"]},
             {"field": "use_sandbox", "value": config.connection_params["use_sandbox"]},
+            {"field": "store_customer_card", "value": config.store_customer},
         ]

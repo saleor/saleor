@@ -13,7 +13,7 @@ def authorize_net_gateway_config():
             "api_login_id": "public",
             "transaction_key": "secret",
             "client_key": "public",
-            "use_sandbox": True
+            "use_sandbox": True,
         }
     )
 
