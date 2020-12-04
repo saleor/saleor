@@ -481,9 +481,6 @@ CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", None)
 # e.g. HTTP_CF_Connecting_IP for Cloudflare or X_FORWARDED_FOR
 REAL_IP_ENVIRON = os.environ.get("REAL_IP_ENVIRON", "REMOTE_ADDR")
 
-# The maximum length of a graphql query to log in tracings
-OPENTRACING_MAX_QUERY_LENGTH_LOG = 2000
-
 # Slugs for menus precreated in Django migrations
 DEFAULT_MENUS = {"top_menu_name": "navbar", "bottom_menu_name": "footer"}
 
