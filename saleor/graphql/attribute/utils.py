@@ -306,9 +306,9 @@ class AttributeAssignmentMixin:
             raise ValidationError(
                 {
                     "attributes": ValidationError(
-                        "Provided references are invalid. Some of nodes do not exists "
-                        "or are different type than type defined in attribute "
-                        "entity type.",
+                        "Provided references are invalid. Some of the nodes "
+                        "do not exist or are different types than types defined "
+                        "in attribute entity type.",
                         code=error_class.INVALID.value,  # type: ignore
                     )
                 }
@@ -422,7 +422,7 @@ def validate_attributes_input(
             validate_reference_attributes_input(*attrs)
         # validation for other input types
         else:
-            validate_not_file_attributes_input(*attrs)
+            validate_standard_attributes_input(*attrs)
 
     errors = prepare_error_list_from_error_attribute_mapping(
         attribute_errors, error_code_enum
@@ -469,11 +469,9 @@ def validate_reference_attributes_input(
             )
 
 
-# validate standard attributes input ?
-def validate_not_file_attributes_input(
+def validate_standard_attributes_input(
     attribute: "Attribute",
     attr_values: "AttrValuesInput",
-    # errors_data_structure,
     attribute_errors: T_ERROR_DICT,
     variant_validation: bool,
 ):
