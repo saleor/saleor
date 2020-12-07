@@ -8,6 +8,7 @@ on:
     branches:
       - master
       - ci/*/*
+      - feature/docker-hub/*
 
 jobs:
   docker:
@@ -133,7 +134,7 @@ jobs:
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
           build-args: |
-            VERSION=${{ env.NAMED_VERSION }}
+            PROJECT_VERSION=${{ env.NAMED_VERSION }}
             COMMIT_ID=${{ github.sha }}
 
       - name: Image digest
