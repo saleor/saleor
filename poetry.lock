@@ -2244,7 +2244,7 @@ testing = ["flaky (>=3.4.0)", "freezegun (>=0.3.11)", "pathlib2 (>=2.3.3)", "psu
 
 [[package]]
 name = "tqdm"
-version = "4.54.0"
+version = "4.54.1"
 description = "Fast, Extensible Progress Meter"
 category = "main"
 optional = false
@@ -3556,8 +3556,8 @@ tox = [
     {file = "tox-3.20.1.tar.gz", hash = "sha256:4321052bfe28f9d85082341ca8e233e3ea901fdd14dab8a5d3fbd810269fbaf6"},
 ]
 tqdm = [
-    {file = "tqdm-4.54.0-py2.py3-none-any.whl", hash = "sha256:9e7b8ab0ecbdbf0595adadd5f0ebbb9e69010e0bd48bbb0c15e550bf2a5292df"},
-    {file = "tqdm-4.54.0.tar.gz", hash = "sha256:5c0d04e06ccc0da1bd3fa5ae4550effcce42fcad947b4a6cafa77bdc9b09ff22"},
+    {file = "tqdm-4.54.1-py2.py3-none-any.whl", hash = "sha256:d4f413aecb61c9779888c64ddf0c62910ad56dcbe857d8922bb505d4dbff0df1"},
+    {file = "tqdm-4.54.1.tar.gz", hash = "sha256:38b658a3e4ecf9b4f6f8ff75ca16221ae3378b2e175d846b6b33ea3a20852cf5"},
 ]
 transifex-client = [
     {file = "transifex-client-0.14.2.tar.gz", hash = "sha256:b458c56d6d07d2d8269b43d5049026304ed9a34d31bdf655d9e1864807e7555b"},
