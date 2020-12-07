@@ -65,7 +65,7 @@ pyjwt = "^1.7.1"
 python-json-logger = ">=0.1.11,<2.1.0"
 pytimeparse = "^1.1.8"
 django-redis = "^4.12.1"
-Adyen = "^3.0.0"
+Adyen = ">=3,<5"
 google-cloud-pubsub = ">=1.7,<3.0"
 uvicorn = {extras = ["standard"], version = "^0.12.2"}
 gunicorn = "^20.0.4"

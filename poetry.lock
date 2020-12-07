@@ -1,6 +1,6 @@
 [[package]]
 name = "adyen"
-version = "3.1.0"
+version = "4.0.0"
 description = "Adyen Python Api"
 category = "main"
 optional = false
@@ -2464,11 +2464,11 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.8"
-content-hash = "65e467ae62e39785e52afa9aebf1fbc32ab285efc8d742a2b1459c116b1736ec"
+content-hash = "9fd5028ad1fae5428d01d3b7bec834c6018361c30664cfccb4d1b400f4f324df"
 
 [metadata.files]
 adyen = [
-    {file = "Adyen-3.1.0.tar.gz", hash = "sha256:8ac866a5dba790952cdf3bdbbb44a893d9268fa3dd81222db5de5a034b2462c9"},
+    {file = "Adyen-4.0.0.tar.gz", hash = "sha256:f44007fd542d7634bee69f29572442bf9102043141a7d5822ac98539ac5e4d5b"},
 ]
 amqp = [
     {file = "amqp-5.0.1-py2.py3-none-any.whl", hash = "sha256:a8fb8151eb9d12204c9f1784c0da920476077609fa0a70f2468001e3a4258484"},
