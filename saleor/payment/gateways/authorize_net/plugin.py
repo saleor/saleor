@@ -49,17 +49,17 @@ class AuthorizeNetGatewayPlugin(BasePlugin):
     CONFIG_STRUCTURE = {
         "api_login_id": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": ("Provide public Authorize.Net Login ID."),
+            "help_text": "Provide public Authorize.Net Login ID.",
             "label": "API Login ID",
         },
         "transaction_key": {
             "type": ConfigurationTypeField.SECRET,
-            "help_text": ("Provide private Authorize.Net Transaction Key."),
+            "help_text": "Provide private Authorize.Net Transaction Key.",
             "label": "Transaction Key",
         },
         "client_key": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": ("Provide public Authorize.Net Client Key."),
+            "help_text": "Provide public Authorize.Net Client Key.",
             "label": "Client Key",
         },
         "use_sandbox": {
@@ -115,8 +115,9 @@ class AuthorizeNetGatewayPlugin(BasePlugin):
         api_login_id = configuration.get("api_login_id", None)
         transaction_key = configuration.get("transaction_key", None)
 
-        # Only check when both are set, otherwise the dashboard is hard to use
-        if api_login_id and transaction_key:
+        # Only check when active and both credentials are set
+        # Otherwise the dashboard is hard to use
+        if plugin_configuration.active and api_login_id and transaction_key:
             success, message = authenticate_test(
                 api_login_id, transaction_key, configuration.get("use_sandbox")
             )
@@ -144,7 +145,7 @@ class AuthorizeNetGatewayPlugin(BasePlugin):
         try:
             payment = Payment.objects.get(pk=payment_information.payment_id)
         except Payment.DoesNotExist:
-            raise PaymentError("Cannot find Payment.")
+            raise PaymentError(f"Cannot find Payment {payment_information.payment_id}.")
         return refund(
             payment_information, payment.cc_last_digits, self._get_gateway_config()
         )

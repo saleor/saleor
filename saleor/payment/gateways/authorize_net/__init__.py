@@ -103,7 +103,6 @@ def authorize(
     Based on
     https://github.com/AuthorizeNet/sample-code-python/blob/master/AcceptSuite/create-an-accept-payment-transaction.py
     """
-    print(payment_information)
     kind = TransactionKind.CAPTURE if config.auto_capture else TransactionKind.AUTH
     merchant_auth = _get_merchant_auth(config.connection_params)
 
@@ -249,8 +248,6 @@ def list_client_sources(
 
     response = controller.getresponse()
     results = []
-    raw_response = etree.tostring(response).decode()
-    print(raw_response)
 
     if hasattr(response, "profile") and hasattr(response.profile, "paymentProfiles"):
         for payment_profile in response.profile.paymentProfiles:
@@ -348,9 +345,8 @@ def _handle_authorize_net_response(
         if response.messages.resultCode == "Ok":
             if hasattr(response.transactionResponse, "messages"):
                 success = True
-            else:
-                if hasattr(response.transactionResponse, "errors"):
-                    error = response.transactionResponse.errors.error[0].errorText.pyval
+            elif hasattr(response.transactionResponse, "errors"):
+                error = response.transactionResponse.errors.error[0].errorText.pyval
         else:
             if hasattr(response, "transactionResponse") and hasattr(
                 response.transactionResponse, "errors"
