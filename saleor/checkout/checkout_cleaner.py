@@ -1,4 +1,4 @@
-from typing import Iterable, Optional, Type, Union
+from typing import TYPE_CHECKING, Iterable, Optional, Type, Union
 
 from django.core.exceptions import ValidationError
 
@@ -11,12 +11,16 @@ from .error_codes import CheckoutErrorCode
 from .models import Checkout
 from .utils import is_fully_paid, is_shipping_required, is_valid_shipping_method
 
+if TYPE_CHECKING:
+    from prices import TaxedMoney
+
 
 def clean_checkout_shipping(
     checkout: Checkout,
     lines: Iterable[CheckoutLineInfo],
     discounts: Iterable[DiscountInfo],
     error_code: Union[Type[CheckoutErrorCode], Type[PaymentErrorCode]],
+    subtotal: Optional["TaxedMoney"] = None,
 ):
     if is_shipping_required(lines):
         if not checkout.shipping_method:
@@ -37,7 +41,7 @@ def clean_checkout_shipping(
                     )
                 }
             )
-        if not is_valid_shipping_method(checkout, lines, discounts):
+        if not is_valid_shipping_method(checkout, lines, discounts, subtotal):
             raise ValidationError(
                 {
                     "shipping_method": ValidationError(
