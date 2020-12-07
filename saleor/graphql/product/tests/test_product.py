@@ -2872,7 +2872,6 @@ def test_create_product_invalid_product_attributes(
     weight_attribute,
     description_json,
     permission_manage_products,
-    settings,
     monkeypatch,
 ):
     query = CREATE_PRODUCT_MUTATION
@@ -3320,6 +3319,8 @@ def test_update_product_with_reference_attribute_value(
     attribute_id = graphene.Node.to_global_id("Attribute", page_reference_attribute.pk)
     product_type.product_attributes.add(page_reference_attribute)
 
+    values_count = page_reference_attribute.values.count()
+
     reference = graphene.Node.to_global_id("Page", page.pk)
 
     variables = {
@@ -3354,6 +3355,76 @@ def test_update_product_with_reference_attribute_value(
     assert expected_file_att_data in attributes
 
     updated_webhook_mock.assert_called_once_with(product)
+
+    page_reference_attribute.refresh_from_db()
+    assert page_reference_attribute.values.count() == values_count + 1
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_with_reference_attribute_existing_value(
+    updated_webhook_mock,
+    staff_api_client,
+    page_reference_attribute,
+    product,
+    product_type,
+    page,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    attribute_id = graphene.Node.to_global_id("Attribute", page_reference_attribute.pk)
+    product_type.product_attributes.add(page_reference_attribute)
+    attr_value = AttributeValue.objects.create(
+        attribute=page_reference_attribute,
+        name=page.title,
+        slug=f"{product.pk}_{page.pk}",
+    )
+    associate_attribute_values_to_instance(
+        product, page_reference_attribute, attr_value
+    )
+
+    values_count = page_reference_attribute.values.count()
+
+    reference = graphene.Node.to_global_id("Page", page.pk)
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "references": [reference]}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["productErrors"] == []
+
+    attributes = data["product"]["attributes"]
+
+    assert len(attributes) == 2
+    expected_file_att_data = {
+        "attribute": {"id": attribute_id, "name": page_reference_attribute.name},
+        "values": [
+            {
+                "name": page.title,
+                "slug": f"{product.id}_{page.id}",
+                "file": None,
+                "reference": reference,
+            }
+        ],
+    }
+    assert expected_file_att_data in attributes
+
+    updated_webhook_mock.assert_called_once_with(product)
+
+    page_reference_attribute.refresh_from_db()
+    assert page_reference_attribute.values.count() == values_count
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
