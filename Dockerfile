@@ -54,8 +54,8 @@ A modular, high performance, headless e-commerce platform built with Python, \
 GraphQL, Django, and ReactJS."                                                         \
       org.opencontainers.image.url="https://saleor.io/"                                \
       org.opencontainers.image.source="https://github.com/mirumee/saleor"              \
-      org.opencontainers.image.revision=$COMMIT_ID                                     \
-      org.opencontainers.image.version=$VERSION                                        \
+      org.opencontainers.image.revision="$COMMIT_ID"                                   \
+      org.opencontainers.image.version="$VERSION"                                      \
       org.opencontainers.image.authors="Mirumee Software (https://mirumee.com)"        \
       org.opencontainers.image.licenses="BSD 3"
 
