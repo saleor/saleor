@@ -226,27 +226,30 @@ def test_query_menus_with_sort(
         assert menus[order]["node"]["name"] == menu_name
 
 
-def test_menu_item_query(user_api_client, menu_item, published_collection, channel_USD):
-    query = """
-    query menuitem($id: ID!, $channel: String) {
-        menuItem(id: $id, channel: $channel) {
+QUERY_MENU_ITEM_BY_ID = """
+query menuitem($id: ID!, $channel: String) {
+    menuItem(id: $id, channel: $channel) {
+        name
+        children {
             name
-            children {
-                name
-            }
-            collection {
-                name
-            }
-            category {
-                id
-            }
-            page {
-                id
-            }
-            url
         }
+        collection {
+            name
+        }
+        category {
+            id
+        }
+        page {
+            id
+        }
+        url
     }
-    """
+}
+"""
+
+
+def test_menu_item_query(user_api_client, menu_item, published_collection, channel_USD):
+    query = QUERY_MENU_ITEM_BY_ID
     menu_item.collection = published_collection
     menu_item.url = None
     menu_item.save()
@@ -264,6 +267,32 @@ def test_menu_item_query(user_api_client, menu_item, published_collection, chann
     assert len(data["children"]) == 1
     assert data["children"][0]["name"] == child_menu.name
     assert data["collection"]["name"] == published_collection.name
+    assert not data["category"]
+    assert not data["page"]
+    assert data["url"] is None
+
+
+def test_menu_item_query_with_invalid_channel(
+    user_api_client, menu_item, published_collection, channel_USD
+):
+    query = QUERY_MENU_ITEM_BY_ID
+    menu_item.collection = published_collection
+    menu_item.url = None
+    menu_item.save()
+    child_menu = MenuItem.objects.create(
+        menu=menu_item.menu, name="Link 2", url="http://example2.com/", parent=menu_item
+    )
+    variables = {
+        "id": graphene.Node.to_global_id("MenuItem", menu_item.pk),
+        "channel": "invalid",
+    }
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["menuItem"]
+    assert data["name"] == menu_item.name
+    assert len(data["children"]) == 1
+    assert data["children"][0]["name"] == child_menu.name
+    assert not data["collection"]
     assert not data["category"]
     assert not data["page"]
     assert data["url"] is None

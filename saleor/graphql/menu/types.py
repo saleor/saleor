@@ -122,6 +122,8 @@ class MenuItem(ChannelContextType, CountableDjangoObjectType):
 
         def calculate_collection_availability(collection_channel_listing):
             def calculate_collection_availability_with_channel(channel):
+                if not channel:
+                    return None
                 collection_is_visible = (
                     collection_channel_listing.is_visible
                     if collection_channel_listing
