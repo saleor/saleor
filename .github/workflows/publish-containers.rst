@@ -24,7 +24,7 @@ Tagging Process
 Version Label and Argument for Dockerfile
 -----------------------------------------
 
-When the image is built, the following will instructions be provided attached values in the dockerfile:
+When the image is built, the following instructions will be provided to the below attached values in the dockerfile:
 
 .. code-block:: docker
 
