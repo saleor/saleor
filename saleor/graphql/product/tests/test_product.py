@@ -2020,6 +2020,7 @@ CREATE_PRODUCT_MUTATION = """
                                 }
                                 values {
                                     slug
+                                    reference
                                     file {
                                         url
                                         contentType
@@ -2197,6 +2198,7 @@ def test_create_product_with_file_attribute(
                 {
                     "slug": f"{existing_value.slug}-2",
                     "file": {"url": existing_value.file_url, "contentType": None},
+                    "reference": None,
                 }
             ],
         },
@@ -2259,7 +2261,13 @@ def test_create_product_with_page_reference_attribute(
         {"attribute": {"slug": color_attribute.slug}, "values": []},
         {
             "attribute": {"slug": page_reference_attribute.slug},
-            "values": [{"slug": f"{product_id}_{page.id}", "file": None}],
+            "values": [
+                {
+                    "slug": f"{product_id}_{page.id}",
+                    "file": None,
+                    "reference": reference,
+                }
+            ],
         },
     ]
     for attr_data in data["product"]["attributes"]:
@@ -2321,6 +2329,7 @@ def test_create_product_with_file_attribute_new_attribute_value(
                 {
                     "slug": slugify(non_existing_value, allow_unicode=True),
                     "file": {"url": non_existing_value, "contentType": None},
+                    "reference": None,
                 }
             ],
         },
@@ -2701,7 +2710,6 @@ def test_create_product_no_slug_in_input(
     staff_api_client,
     product_type,
     category,
-    size_attribute,
     description_json,
     permission_manage_products,
     monkeypatch,
@@ -2748,13 +2756,7 @@ def test_create_product_no_slug_in_input(
 
 
 def test_create_product_no_category_id(
-    staff_api_client,
-    product_type,
-    category,
-    size_attribute,
-    description_json,
-    permission_manage_products,
-    monkeypatch,
+    staff_api_client, product_type, permission_manage_products, monkeypatch,
 ):
     query = CREATE_PRODUCT_MUTATION
 
@@ -3137,6 +3139,7 @@ MUTATION_UPDATE_PRODUCT = """
                         values {
                             name
                             slug
+                            reference
                             file {
                                 url
                                 contentType
@@ -3266,6 +3269,7 @@ def test_update_product_with_file_attribute_value(
             {
                 "name": new_value,
                 "slug": slugify(new_value),
+                "reference": None,
                 "file": {"url": new_value, "contentType": None},
             }
         ],
@@ -3339,7 +3343,12 @@ def test_update_product_with_reference_attribute_value(
     expected_file_att_data = {
         "attribute": {"id": attribute_id, "name": page_reference_attribute.name},
         "values": [
-            {"name": page.title, "slug": f"{product.id}_{page.id}", "file": None}
+            {
+                "name": page.title,
+                "slug": f"{product.id}_{page.id}",
+                "file": None,
+                "reference": reference,
+            }
         ],
     }
     assert expected_file_att_data in attributes

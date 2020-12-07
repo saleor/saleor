@@ -2,7 +2,7 @@ import re
 
 import graphene
 
-from ...attribute import models
+from ...attribute import AttributeInputType, models
 from ..core.connection import CountableDjangoObjectType
 from ..core.types import File
 from ..decorators import (
@@ -49,6 +49,7 @@ class AttributeValue(CountableDjangoObjectType):
         AttributeValueTranslation, type_name="attribute value"
     )
     input_type = AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE)
+    reference = graphene.ID(description="The ID of the attribute reference.")
     file = graphene.Field(
         File, description=AttributeValueDescriptions.FILE, required=False
     )
@@ -73,6 +74,15 @@ class AttributeValue(CountableDjangoObjectType):
         if not root.file_url:
             return
         return File(url=root.file_url, content_type=root.content_type)
+
+    @staticmethod
+    def resolve_reference(root: models.AttributeValue, *_args):
+        attribute = root.attribute
+        if not attribute.input_type == AttributeInputType.REFERENCE:
+            return
+        reference_pk = root.slug.split("_")[1]
+        reference_id = graphene.Node.to_global_id(attribute.entity_type, reference_pk)
+        return reference_id
 
 
 class Attribute(CountableDjangoObjectType):
