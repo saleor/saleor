@@ -2405,7 +2405,7 @@ python-versions = "*"
 
 [[package]]
 name = "weasyprint"
-version = "52.1"
+version = "52.2"
 description = "The Awesome Document Factory"
 category = "main"
 optional = false
@@ -3648,8 +3648,8 @@ wcwidth = [
     {file = "wcwidth-0.2.5.tar.gz", hash = "sha256:c4d647b99872929fdb7bdcaa4fbe7f01413ed3d98077df798530e5b04f116c83"},
 ]
 weasyprint = [
-    {file = "WeasyPrint-52.1-py3-none-any.whl", hash = "sha256:2f59a1908f363088ba210fc742b376139d4e594b35d02a9bbabb32c2d8f0b384"},
-    {file = "WeasyPrint-52.1.tar.gz", hash = "sha256:98602288ddc5345fcbd5008702f53da03cd07cec6f335de20f41c03a62715ddf"},
+    {file = "WeasyPrint-52.2-py3-none-any.whl", hash = "sha256:36b897d219e1944a1a0c97193a121fc175db326c660c50d937e874a995d9c716"},
+    {file = "WeasyPrint-52.2.tar.gz", hash = "sha256:21a1a9f11650ed14241817bf333a0ae0a42f6ae38cd7c2654845cb17352b7434"},
 ]
 webencodings = [
     {file = "webencodings-0.5.1-py2.py3-none-any.whl", hash = "sha256:a0af1213f3c2226497a97e2b3aa01a7e4bee4f403f95be16fc9acd2947514a78"},
