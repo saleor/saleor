@@ -40,6 +40,7 @@ T_INSTANCE = Union[
     product_models.Product, product_models.ProductVariant, page_models.Page
 ]
 T_INPUT_MAP = List[Tuple[attribute_models.Attribute, AttrValuesInput]]
+T_ERROR_DICT = Dict[Tuple[str, str], List[str]]
 
 
 class AttributeAssignmentMixin:
@@ -360,59 +361,36 @@ class AttributeAssignmentMixin:
             )
 
 
-class ProductAttributeInputErrors:
-    ERROR_NO_VALUE_GIVEN = ValidationError(
-        "Attribute expects a value but none were given",
-        code=PageErrorCode.REQUIRED.value,
+class AttributeInputErrors:
+    """Define error message and error code for given error.
+
+    All used error codes must be specified in PageErrorCode and ProductErrorCode.
+    """
+
+    ERROR_NO_VALUE_GIVEN = ("Attribute expects a value but none were given", "REQUIRED")
+    ERROR_DROPDOWN_GET_MORE_THAN_ONE_VALUE = (
+        "Attribute must take only one value",
+        "INVALID",
     )
-    ERROR_DROPDOWN_GET_MORE_THAN_ONE_VALUE = ValidationError(
-        "Attribute must take only one value", code=PageErrorCode.INVALID.value,
-    )
-    ERROR_BLANK_VALUE = ValidationError(
-        "Attribute values cannot be blank", code=PageErrorCode.REQUIRED.value,
+    ERROR_BLANK_VALUE = (
+        "Attribute values cannot be blank",
+        "REQUIRED",
     )
 
     # file errors
-    ERROR_NO_FILE_GIVEN = ValidationError(
-        "Attribute file url cannot be blank", code=PageErrorCode.REQUIRED.value,
+    ERROR_NO_FILE_GIVEN = (
+        "Attribute file url cannot be blank",
+        "REQUIRED",
     )
-    ERROR_BLANK_FILE_VALUE = ValidationError(
+    ERROR_BLANK_FILE_VALUE = (
         "Attribute expects a file url but none were given",
-        code=PageErrorCode.REQUIRED.value,
+        "REQUIRED",
     )
 
     # reference errors
-    ERROR_NO_REFERENCE_GIVEN = ValidationError(
+    ERROR_NO_REFERENCE_GIVEN = (
         "Attribute expects an reference but none were given.",
-        code=PageErrorCode.REQUIRED.value,
-    )
-
-
-class PageAttributeInputErrors:
-    ERROR_NO_VALUE_GIVEN = ValidationError(
-        "Attribute expects a value but none were given",
-        code=ProductErrorCode.REQUIRED.value,
-    )
-    ERROR_DROPDOWN_GET_MORE_THAN_ONE_VALUE = ValidationError(
-        "Attribute must take only one value", code=ProductErrorCode.INVALID.value,
-    )
-    ERROR_BLANK_VALUE = ValidationError(
-        "Attribute values cannot be blank", code=ProductErrorCode.REQUIRED.value,
-    )
-
-    # file errors
-    ERROR_NO_FILE_GIVEN = ValidationError(
-        "Attribute file url cannot be blank", code=ProductErrorCode.REQUIRED.value,
-    )
-    ERROR_BLANK_FILE_VALUE = ValidationError(
-        "Attribute expects a file url but none were given",
-        code=ProductErrorCode.REQUIRED.value,
-    )
-
-    # referenc errors
-    ERROR_NO_REFERENCE_GIVEN = ValidationError(
-        "Attribute expects an reference but none were given.",
-        code=ProductErrorCode.REQUIRED.value,
+        "REQUIRED",
     )
 
 
@@ -429,15 +407,12 @@ def validate_attributes_input(
     - ensure the values are correct for a products or a page
     """
 
-    errors_data_structure = (
-        PageAttributeInputErrors if is_page_attributes else ProductAttributeInputErrors
-    )
-    attribute_errors: Dict[ValidationError, List[str]] = defaultdict(list)
+    error_code_enum = PageErrorCode if is_page_attributes else ProductErrorCode
+    attribute_errors: T_ERROR_DICT = defaultdict(list)
     for attribute, attr_values in input_data:
         attrs = (
             attribute,
             attr_values,
-            errors_data_structure,
             attribute_errors,
             variant_validation,
         )
@@ -449,10 +424,12 @@ def validate_attributes_input(
         else:
             validate_not_file_attributes_input(*attrs)
 
-    errors = prepare_error_list_from_error_attribute_mapping(attribute_errors)
+    errors = prepare_error_list_from_error_attribute_mapping(
+        attribute_errors, error_code_enum
+    )
     if not variant_validation:
         errors = validate_required_attributes(
-            input_data, attribute_qs, errors, is_page_attributes
+            input_data, attribute_qs, errors, error_code_enum
         )
 
     return errors
@@ -461,19 +438,18 @@ def validate_attributes_input(
 def validate_file_attributes_input(
     attribute: "Attribute",
     attr_values: "AttrValuesInput",
-    errors_data_structure,
-    attribute_errors: Dict[ValidationError, List[str]],
+    attribute_errors: T_ERROR_DICT,
     variant_validation: bool,
 ):
     attribute_id = attr_values.global_id
     value = attr_values.file_url
     if not value:
         if attribute.value_required or variant_validation:
-            attribute_errors[errors_data_structure.ERROR_NO_FILE_GIVEN].append(
+            attribute_errors[AttributeInputErrors.ERROR_NO_FILE_GIVEN].append(
                 attribute_id
             )
     elif not value.strip():
-        attribute_errors[errors_data_structure.ERROR_BLANK_FILE_VALUE].append(
+        attribute_errors[AttributeInputErrors.ERROR_BLANK_FILE_VALUE].append(
             attribute_id
         )
 
@@ -481,15 +457,14 @@ def validate_file_attributes_input(
 def validate_reference_attributes_input(
     attribute: "Attribute",
     attr_values: "AttrValuesInput",
-    errors_data_structure,
-    attribute_errors: Dict[ValidationError, List[str]],
+    attribute_errors: T_ERROR_DICT,
     variant_validation: bool,
 ):
     attribute_id = attr_values.global_id
     references = attr_values.references
     if not references:
         if attribute.value_required or variant_validation:
-            attribute_errors[errors_data_structure.ERROR_NO_REFERENCE_GIVEN].append(
+            attribute_errors[AttributeInputErrors.ERROR_NO_REFERENCE_GIVEN].append(
                 attribute_id
             )
 
@@ -498,14 +473,14 @@ def validate_reference_attributes_input(
 def validate_not_file_attributes_input(
     attribute: "Attribute",
     attr_values: "AttrValuesInput",
-    errors_data_structure,
-    attribute_errors: Dict[ValidationError, List[str]],
+    # errors_data_structure,
+    attribute_errors: T_ERROR_DICT,
     variant_validation: bool,
 ):
     attribute_id = attr_values.global_id
     if not attr_values.values:
         if attribute.value_required or variant_validation:
-            attribute_errors[errors_data_structure.ERROR_NO_VALUE_GIVEN].append(
+            attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(
                 attribute_id
             )
     elif (
@@ -513,11 +488,11 @@ def validate_not_file_attributes_input(
         and len(attr_values.values) != 1
     ):
         attribute_errors[
-            errors_data_structure.ERROR_DROPDOWN_GET_MORE_THAN_ONE_VALUE
+            AttributeInputErrors.ERROR_DROPDOWN_GET_MORE_THAN_ONE_VALUE
         ].append(attribute_id)
     for value in attr_values.values:
         if value is None or not value.strip():
-            attribute_errors[errors_data_structure.ERROR_BLANK_VALUE].append(
+            attribute_errors[AttributeInputErrors.ERROR_BLANK_VALUE].append(
                 attribute_id
             )
 
@@ -526,12 +501,11 @@ def validate_required_attributes(
     input_data: List[Tuple["Attribute", "AttrValuesInput"]],
     attribute_qs: "QuerySet",
     errors: List[ValidationError],
-    is_page_attributes: bool,
+    error_code_enum,
 ):
     """Ensure all required attributes are supplied."""
 
     supplied_attribute_pk = [attribute.pk for attribute, _ in input_data]
-    error_code_enum = PageErrorCode if is_page_attributes else ProductErrorCode
 
     missing_required_attributes = attribute_qs.filter(
         Q(value_required=True) & ~Q(pk__in=supplied_attribute_pk)
@@ -553,11 +527,16 @@ def validate_required_attributes(
 
 
 def prepare_error_list_from_error_attribute_mapping(
-    attribute_errors: Dict[ValidationError, List[str]]
+    attribute_errors: T_ERROR_DICT, error_code_enum
 ):
     errors = []
-    for error, attributes in attribute_errors.items():
-        error.params = {"attributes": attributes}
+    for error_data, attributes in attribute_errors.items():
+        error_msg, error_type = error_data
+        error = ValidationError(
+            error_msg,
+            code=getattr(error_code_enum, error_type).value,
+            params={"attributes": attributes},
+        )
         errors.append(error)
 
     return errors
