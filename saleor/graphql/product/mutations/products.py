@@ -464,6 +464,11 @@ class AttributeValueInput(InputObjectType):
         description="URL of the file attribute. Every time, a new value is created.",
     )
     content_type = graphene.String(required=False, description="File content type.")
+    references = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of entity IDs that will be used as references.",
+        required=False,
+    )
 
 
 class ProductInput(graphene.InputObjectType):
