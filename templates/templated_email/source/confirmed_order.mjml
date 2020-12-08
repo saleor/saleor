@@ -1,0 +1,68 @@
+<mjml>
+  <mj-head>
+    <mj-include path="./shared/styles.mjml" />
+  </mj-head>
+  <mj-body>
+    <mj-include path="./shared/header.mjml" />
+    <mj-section>
+      <mj-column>
+        <mj-text font-size="16px">
+          {{#blocktrans "Standard e-mail greeting"}}
+            Hi!
+          {{/blocktrans}}
+        </mj-text>
+        <mj-text>
+          {{#if order.order_details_url}}
+            {{#blocktrans "Order confirmed e-mail text with order details"}}
+              Your order has been confirmed by staff. To see your order details please visit: <a href="{{order.order_details_url}}">{{order.order_details_url}}</a>
+            {{/blocktrans}}
+          {{else}}
+            {{#blocktrans "Order confirmed e-mail text"}}
+              Your order has been confirmed by staff. Below is the list of ordered products.
+            {{/blocktrans}}
+          {{/if}}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-include path="./partials/_order_lines.mjml" />
+    <mj-section>
+      <mj-column>
+        <mj-table>
+          <thead class="table-header-row">
+            <tr>
+              <th>
+                {{#blocktrans "Order confirmation e-mail billing address"}}
+                  Billing address
+                {{/blocktrans}}
+              </th>
+              <th>
+                {{#blocktrans "Order confirmation e-mail shipping address"}}
+                  Shipping address
+                {{/blocktrans}}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+             <td class="address">
+                {{#if order.billing_address}}
+                  {{format_address order.billing_address}}
+                {{else}}
+                  {{#blocktrans "Order confirmed e-mail text"}}No billing address{{/blocktrans}}
+                {{/if}}
+              </td>
+              <td css-class="address">
+                {{#if order.shipping_address}}
+                  {{format_address order.shipping_address}}
+                {{else}}
+                  {{#blocktrans "Order confirmed e-mail text"}}No shipping required{{/blocktrans}}
+                {{/if}}
+              </td>
+            </tr>
+          </tbody>
+        </mj-table>
+      </mj-column>
+    </mj-section>
+    <mj-include path="./shared/footer.mjml" />
+  </mj-body>
+</mjml>

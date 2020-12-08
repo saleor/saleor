@@ -136,7 +136,7 @@ def get_default_fulfillment_payload(order, fulfillment):
 
     digital_lines = [line for line in lines if line.order_line.is_digital]
     payload = {
-        "order": get_default_order_payload(order),
+        "order": get_default_order_payload(order, order.redirect_url),
         "fulfillment": {
             "tracking_number": fulfillment.tracking_number,
             "is_tracking_number_url": fulfillment.is_tracking_number_url,
@@ -166,6 +166,17 @@ def send_order_confirmation(order, redirect_url, manager):
         **get_site_context(),
     }
     manager.notify(NotifyEventType.ORDER_CONFIRMATION, payload)
+
+
+def send_order_confirmed(order, user, manager):
+    """Send email which tells customer that order has been confirmed."""
+    payload = {
+        "order": get_default_order_payload(order, order.redirect_url),
+        "recipient_email": order.get_customer_email(),
+        "requester_user_id": user.id,
+        **get_site_context(),
+    }
+    manager.notify(NotifyEventType.ORDER_CONFIRMED, payload)
 
 
 def send_staff_order_confirmation(order, redirect_url, manager):

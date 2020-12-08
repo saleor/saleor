@@ -7,11 +7,13 @@ from ...core.permissions import ProductPermissions
 from ...csv import models as csv_models
 from ...csv.events import export_started_event
 from ...csv.tasks import export_products_task
+from ..attribute.types import Attribute
+from ..channel.types import Channel
 from ..core.enums import ExportErrorCode
 from ..core.mutations import BaseMutation
 from ..core.types.common import ExportError
 from ..product.filters import ProductFilterInput
-from ..product.types import Attribute, Product
+from ..product.types import Product
 from ..utils import resolve_global_ids_to_primary_keys
 from ..warehouse.types import Warehouse
 from .enums import ExportScope, FileTypeEnum, ProductFieldEnum
@@ -26,6 +28,10 @@ class ExportInfoInput(graphene.InputObjectType):
     warehouses = graphene.List(
         graphene.NonNull(graphene.ID),
         description="List of warehouse ids witch should be exported.",
+    )
+    channels = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of channels ids which should be exported.",
     )
     fields = graphene.List(
         graphene.NonNull(ProductFieldEnum),
@@ -126,22 +132,28 @@ class ExportProducts(BaseMutation):
             )
         return {"filter": filter}
 
-    @staticmethod
-    def get_export_info(export_info_input):
+    @classmethod
+    def get_export_info(cls, export_info_input):
         export_info = {}
         fields = export_info_input.get("fields")
-        attribute_ids = export_info_input.get("attributes")
-        warehouse_ids = export_info_input.get("warehouses")
         if fields:
             export_info["fields"] = fields
-        if attribute_ids:
-            _, attribute_pks = resolve_global_ids_to_primary_keys(
-                attribute_ids, graphene_type=Attribute
-            )
-            export_info["attributes"] = attribute_pks
-        if warehouse_ids:
-            _, warehouse_pks = resolve_global_ids_to_primary_keys(
-                warehouse_ids, graphene_type=Warehouse
-            )
-            export_info["warehouses"] = warehouse_pks
+
+        for field, graphene_type in [
+            ("attributes", Attribute),
+            ("warehouses", Warehouse),
+            ("channels", Channel),
+        ]:
+            pks = cls.get_items_pks(field, export_info_input, graphene_type)
+            if pks:
+                export_info[field] = pks
+
         return export_info
+
+    @staticmethod
+    def get_items_pks(field, export_info_input, graphene_type):
+        ids = export_info_input.get(field)
+        if not ids:
+            return
+        _, pks = resolve_global_ids_to_primary_keys(ids, graphene_type=graphene_type)
+        return pks

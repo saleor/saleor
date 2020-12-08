@@ -44,13 +44,6 @@ class SiteSettings(models.Model):
     display_gross_prices = models.BooleanField(default=True)
     charge_taxes_on_shipping = models.BooleanField(default=True)
     track_inventory_by_default = models.BooleanField(default=True)
-    homepage_collection = models.ForeignKey(
-        "product.Collection",
-        on_delete=models.SET_NULL,
-        related_name="+",
-        blank=True,
-        null=True,
-    )
     default_weight_unit = models.CharField(
         max_length=10, choices=WeightUnits.CHOICES, default=WeightUnits.KILOGRAM
     )
@@ -70,6 +63,7 @@ class SiteSettings(models.Model):
     )
     default_mail_sender_address = models.EmailField(blank=True, null=True)
     customer_set_password_url = models.CharField(max_length=255, blank=True, null=True)
+    automatically_confirm_all_new_orders = models.BooleanField(default=True)
     translated = TranslationProxy()
 
     class Meta:

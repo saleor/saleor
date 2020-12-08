@@ -52,14 +52,12 @@ def test_create_order_captured_payment_creates_expected_events(
     )
     flush_post_commit_hooks()
 
-    # Ensure only two events were created, and retrieve them
-    order_events = order.events.all()
-
     (
         order_placed_event,
         payment_captured_event,
         order_fully_paid_event,
-    ) = order_events  # type: OrderEvent
+        order_confirmed_event,
+    ) = order.events.all()  # type: OrderEvent
 
     # Ensure the correct order event was created
     # is the event the expected type
@@ -120,6 +118,17 @@ def test_create_order_captured_payment_creates_expected_events(
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
     }
+    # Ensure the correct order confirmed event was created
+    # should be order confirmed event
+    assert order_confirmed_event.type == OrderEvents.CONFIRMED
+    # ensure the user is checkout user
+    assert order_confirmed_event.user == checkout_user
+    # ensure the order confirmed event is related to order
+    assert order_confirmed_event.order is order
+    # ensure a date was set
+    assert order_confirmed_event.date
+    # ensure the event parameters are empty
+    assert order_confirmed_event.parameters == {}
 
     mock_notify.assert_has_calls(
         [
@@ -178,14 +187,12 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
     )
     flush_post_commit_hooks()
 
-    # Ensure only two events were created, and retrieve them
-    order_events = order.events.all()
-
     (
         order_placed_event,
         payment_captured_event,
         order_fully_paid_event,
-    ) = order_events  # type: OrderEvent
+        order_confirmed_event,
+    ) = order.events.all()  # type: OrderEvent
 
     # Ensure the correct order event was created
     # is the event the expected type
@@ -247,6 +254,18 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
         "domain": "mirumee.com",
     }
 
+    # Ensure the correct order confirmed event was created
+    # should be order confirmed event
+    assert order_confirmed_event.type == OrderEvents.CONFIRMED
+    # ensure the user is checkout user
+    assert order_confirmed_event.user == checkout_user
+    # ensure the order confirmed event is related to order
+    assert order_confirmed_event.order is order
+    # ensure a date was set
+    assert order_confirmed_event.date
+    # ensure the event parameters are empty
+    assert order_confirmed_event.parameters == {}
+
     mock_notify.assert_has_calls(
         [
             mock.call(NotifyEventType.ORDER_CONFIRMATION, expected_order_payload),
@@ -296,10 +315,11 @@ def test_create_order_preauth_payment_creates_expected_events(
     )
     flush_post_commit_hooks()
 
-    # Ensure only two events were created, and retrieve them
-    order_events = order.events.all()
-
-    (order_placed_event, payment_authorized_event,) = order_events  # type: OrderEvent
+    (
+        order_placed_event,
+        payment_authorized_event,
+        order_confirmed_event,
+    ) = order.events.all()  # type: OrderEvent
 
     # Ensure the correct order event was created
     # is the event the expected type
@@ -333,6 +353,19 @@ def test_create_order_preauth_payment_creates_expected_events(
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
     }
+
+    # Ensure the correct order confirmed event was created
+    # should be order confirmed event
+    assert order_confirmed_event.type == OrderEvents.CONFIRMED
+    # ensure the user is checkout user
+    assert order_confirmed_event.user == checkout_user
+    # ensure the order confirmed event is related to order
+    assert order_confirmed_event.order is order
+    # ensure a date was set
+    assert order_confirmed_event.date
+    # ensure the event parameters are empty
+    assert order_confirmed_event.parameters == {}
+
     mock_notify.assert_called_once_with(
         NotifyEventType.ORDER_CONFIRMATION, expected_payload
     )
@@ -384,10 +417,11 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
     )
     flush_post_commit_hooks()
 
-    # Ensure only two events were created, and retrieve them
-    order_events = order.events.all()
-
-    (order_placed_event, payment_captured_event,) = order_events  # type: OrderEvent
+    (
+        order_placed_event,
+        payment_captured_event,
+        order_confirmed_event,
+    ) = order.events.all()  # type: OrderEvent
 
     # Ensure the correct order event was created
     # is the event the expected type
@@ -421,6 +455,18 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
     }
+    # Ensure the correct order confirmed event was created
+    # should be order confirmed event
+    assert order_confirmed_event.type == OrderEvents.CONFIRMED
+    # ensure the user is checkout user
+    assert order_confirmed_event.user == checkout_user
+    # ensure the order confirmed event is related to order
+    assert order_confirmed_event.order is order
+    # ensure a date was set
+    assert order_confirmed_event.date
+    # ensure the event parameters are empty
+    assert order_confirmed_event.parameters == {}
+
     mock_notify.assert_called_once_with(
         NotifyEventType.ORDER_CONFIRMATION, expected_payload
     )
@@ -543,7 +589,7 @@ def test_create_order_with_gift_card_partial_use(
     )
 
     assert order.gift_cards.count() > 0
-    assert order.total == zero_taxed_money()
+    assert order.total == zero_taxed_money(order.currency)
     assert gift_card_balance_before_order == expected_old_balance
 
 
@@ -585,7 +631,7 @@ def test_create_order_with_many_gift_cards(
 
     gift_card_created_by_staff.refresh_from_db()
     gift_card.refresh_from_db()
-    zero_price = zero_money()
+    zero_price = zero_money(gift_card.currency)
     assert order.gift_cards.count() > 0
     assert gift_card_created_by_staff.current_balance == zero_price
     assert gift_card.current_balance == zero_price

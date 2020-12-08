@@ -3,11 +3,52 @@ from decimal import Decimal
 from unittest import mock
 
 import pytest
+from django.core.exceptions import ValidationError
+from requests.exceptions import RequestException, SSLError
 
+from .....plugins.models import PluginConfiguration
 from .... import PaymentError, TransactionKind
 from ....interface import GatewayResponse, PaymentMethodInfo
 from ....models import Payment
 from ....utils import create_payment_information, create_transaction
+
+
+@mock.patch("saleor.payment.gateways.adyen.plugin.api_call")
+def test_process_additional_action(
+    mocked_api_call,
+    dummy_payment_data,
+    payment_dummy,
+    checkout_ready_to_complete,
+    adyen_plugin,
+):
+    expected_message = {"resultCode": "authorised", "pspReference": "ref-id"}
+    mocked_app_response = mock.MagicMock(message=expected_message)
+
+    mocked_api_call.return_value = mocked_app_response
+    plugin = adyen_plugin(auto_capture=False)
+    dummy_payment_data.data = {
+        "additional-data": "payment-data",
+    }
+
+    kind = TransactionKind.AUTH
+    response = plugin._process_additional_action(dummy_payment_data, kind)
+
+    assert response == GatewayResponse(
+        is_success=True,
+        action_required=False,
+        action_required_data=None,
+        kind=kind,
+        amount=dummy_payment_data.amount,
+        currency=dummy_payment_data.currency,
+        transaction_id="ref-id",
+        error=None,
+        raw_response=expected_message,
+        searchable_key="ref-id",
+        payment_method_info=PaymentMethodInfo(),
+    )
+    mocked_api_call.assert_called_with(
+        dummy_payment_data.data, plugin.adyen.checkout.payments_details
+    )
 
 
 @pytest.mark.vcr
@@ -53,8 +94,9 @@ def test_process_payment(payment_adyen_for_checkout, checkout_with_items, adyen_
 
 
 @pytest.mark.vcr
+@mock.patch("saleor.payment.gateways.adyen.plugin.call_capture")
 def test_process_payment_with_adyen_auto_capture(
-    payment_adyen_for_checkout, checkout_with_items, adyen_plugin
+    capture_mock, payment_adyen_for_checkout, checkout_with_items, adyen_plugin
 ):
     payment_info = create_payment_information(
         payment_adyen_for_checkout,
@@ -62,8 +104,11 @@ def test_process_payment_with_adyen_auto_capture(
     )
     adyen_plugin = adyen_plugin(adyen_auto_capture=True)
     response = adyen_plugin.process_payment(payment_info, None)
+    # ensure call_capture is not called
+    assert not capture_mock.called
     assert response.is_success is True
     assert response.action_required is False
+    # kind should still be capture as Adyen had adyen_auto_capture set to True
     assert response.kind == TransactionKind.CAPTURE
     assert response.amount == Decimal("80.00")
     assert response.currency == checkout_with_items.currency
@@ -435,3 +480,32 @@ def test_capture_payment(payment_adyen_for_order, order_with_lines, adyen_plugin
     assert response.currency == order_with_lines.currency
     assert response.transaction_id == "852595499936560C"  # ID returned by Adyen
     assert response.payment_method_info == PaymentMethodInfo(brand="visa", type="test")
+
+
+@mock.patch("saleor.payment.gateways.adyen.utils.apple_pay.requests.post")
+def test_validate_plugin_configuration_incorrect_certificate(
+    mocked_request, adyen_plugin
+):
+    plugin = adyen_plugin(apple_pay_cert="cert")
+    mocked_request.side_effect = SSLError()
+    configuration = PluginConfiguration.objects.get()
+    with pytest.raises(ValidationError):
+        plugin.validate_plugin_configuration(configuration)
+
+
+@mock.patch("saleor.payment.gateways.adyen.utils.apple_pay.requests.post")
+def test_validate_plugin_configuration_correct_cert(mocked_request, adyen_plugin):
+    plugin = adyen_plugin(apple_pay_cert="correct_cert")
+    mocked_request.side_effect = RequestException()
+    configuration = PluginConfiguration.objects.get()
+    plugin.validate_plugin_configuration(configuration)
+
+
+def test_validate_plugin_configuration_without_apple_cert(adyen_plugin):
+    plugin = adyen_plugin(apple_pay_cert="correct_cert")
+    configuration = [
+        {"name": "api-key", "value": "key"},
+    ]
+    plugin_configuration = PluginConfiguration.objects.get()
+    plugin_configuration.configuration = configuration
+    plugin.validate_plugin_configuration(plugin_configuration)

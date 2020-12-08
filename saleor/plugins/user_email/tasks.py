@@ -393,3 +393,33 @@ def send_order_refund_email_task(recipient_email, payload, config):
         user_id=payload["requester_user_id"],
         customer_email=recipient_email,
     )
+
+
+@app.task
+def send_order_confirmed_email_task(recipient_email, payload, config):
+    email_config = EmailConfig(**config)
+
+    email_template_str = get_email_template_or_default(
+        constants.PLUGIN_ID,
+        constants.ORDER_CONFIRMED_TEMPLATE_FIELD,
+        constants.ORDER_CONFIRMED_DEFAULT_TEMPLATE,
+    )
+
+    subject = get_email_subject(
+        constants.PLUGIN_ID,
+        constants.ORDER_CONFIRMED_SUBJECT_FIELD,
+        constants.ORDER_CONFIRMED_DEFAULT_SUBJECT,
+    )
+
+    send_email(
+        config=email_config,
+        recipient_list=[recipient_email],
+        context=payload,
+        subject=subject,
+        template_str=email_template_str,
+    )
+    order_events.event_order_confirmed_notification(
+        order_id=payload.get("order", {}).get("id"),
+        user_id=payload.get("requester_user_id"),
+        customer_email=recipient_email,
+    )

@@ -7,7 +7,9 @@ from ..plugins.manager import get_plugins_manager
 
 if TYPE_CHECKING:
     from prices import TaxedMoney
+
     from .models import Checkout, CheckoutLine
+    from ..channel.models import Channel
 
 
 def checkout_shipping_price(
@@ -73,13 +75,16 @@ def checkout_total(
 
 
 def checkout_line_total(
-    *, line: "CheckoutLine", discounts: Optional[Iterable[DiscountInfo]] = None
+    *,
+    line: "CheckoutLine",
+    discounts: Optional[Iterable[DiscountInfo]] = None,
+    channel: "Channel"
 ) -> "TaxedMoney":
     """Return the total price of provided line, taxes included.
 
     It takes in account all plugins.
     """
     calculated_line_total = get_plugins_manager().calculate_checkout_line_total(
-        line, discounts or []
+        line, discounts or [], channel
     )
     return quantize_price(calculated_line_total, line.checkout.currency)

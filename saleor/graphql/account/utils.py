@@ -15,6 +15,7 @@ from ...core.permissions import AccountPermissions
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
+
     from ...account.models import User
     from ...app.models import App
 

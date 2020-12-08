@@ -105,9 +105,9 @@
             <tr>
               <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
-      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{{#if order_details_url}}
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{{#if order.order_details_url}}
             {{#blocktrans "Order confirmation e-mail text with payment details"}}
-              Thank you for your order. Below is the list of ordered products. To see your payment details please visit: <a href="{{order_details_url}}">{{order_details_url}}</a>
+              Thank you for your order. Below is the list of ordered products. To see your payment details please visit: <a href="{{order.order_details_url}}">{{order.order_details_url}}</a>
             {{/blocktrans}}
           {{else}}
             {{#blocktrans "Order confirmation e-mail text"}}

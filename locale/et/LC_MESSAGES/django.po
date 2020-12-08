@@ -7,15 +7,17 @@
 # Carmel Vaher <carmelvaher@gmail.com>, 2020
 # Henri Tamvere <henri.tamvere@magmatech.ee>, 2020
 # Erlend Eelmets <debcf78e@opayq.com>, 2020
+# Patryk Zawadzki <patrys@room-303.com>, 2020
+# Marcin Gębala <maarcin.gebala@gmail.com>, 2020
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-09-11 12:15+0000\n"
+"POT-Creation-Date: 2020-10-23 07:04+0000\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Erlend Eelmets <debcf78e@opayq.com>, 2020\n"
+"Last-Translator: Marcin Gębala <maarcin.gebala@gmail.com>, 2020\n"
 "Language-Team: Estonian (https://www.transifex.com/mirumee/teams/34782/et/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -27,7 +29,7 @@ msgstr ""
 #, python-format
 msgctxt "Address data"
 msgid "%(first_name)s %(last_name)s"
-msgstr "% (eesnimi) s% (perenimi) s"
+msgstr "%(first_name)s %(last_name)s"
 
 #: saleor/account/templatetags/i18n_address_tags.py:16
 #, python-format
@@ -36,56 +38,60 @@ msgid ""
 "%(street_address_1)s\n"
 "%(street_address_2)s"
 msgstr ""
-"% (tänava_adress_1) s \n"
-"% (tänava_adress_2) s%(street_address_1)s\n"
+"%(street_address_1)s\n"
 "%(street_address_2)s"
 
-#: templates/invoices/invoice.html:218
+#: templates/invoices/invoice.html:210
 msgctxt "Invoice PDF header"
 msgid "INVOICE INFORMATION"
 msgstr "ARVETE TEAVE"
 
-#: templates/invoices/invoice.html:221
+#: templates/invoices/invoice.html:213
 msgctxt "Invoice PDF header: Invoice number"
 msgid "Invoice number:"
 msgstr "Arve number:"
 
-#: templates/invoices/invoice.html:227
+#: templates/invoices/invoice.html:219
 msgctxt "Invoice PDF header: order number"
 msgid "Order:"
 msgstr "Tellimus:"
 
-#: templates/invoices/invoice.html:233
+#: templates/invoices/invoice.html:225
 msgctxt "Invoice PDF header"
 msgid "Date:"
 msgstr "Kuupäev:"
 
-#: templates/invoices/invoice.html:239
+#: templates/invoices/invoice.html:231
 msgctxt "Invoice PDF amount (price)"
 msgid "Amount:"
 msgstr "Summa:"
 
-#: templates/invoices/invoice.html:248
+#: templates/invoices/invoice.html:240
 msgctxt "Invoice PDF"
 msgid "BILLING ADDRESS"
 msgstr "ARVE AADRESS"
 
-#: templates/invoices/invoice.html:277
+#: templates/invoices/invoice.html:269
 msgctxt "Invoice PDF"
 msgid "SHIPMENT ADDRESS"
 msgstr "SAADETE AADRESS"
 
-#: templates/invoices/invoice.html:308
+#: templates/invoices/invoice.html:300
 msgctxt "Invoice PDF"
 msgid "PAYMENT METHOD"
 msgstr "MAKSEVIIS"
 
-#: templates/invoices/invoice.html:316
+#: templates/invoices/invoice.html:306
+msgctxt "Invoice PDF: Payment method value"
+msgid "Unpaid"
+msgstr "Maksmata"
+
+#: templates/invoices/invoice.html:314
 msgctxt "Invoice PDF"
 msgid "SHIPMENT METHOD"
 msgstr "SAATMISVIIS"
 
-#: templates/invoices/invoice.html:326
+#: templates/invoices/invoice.html:324
 msgctxt "Invoice PDF table header"
 msgid "ITEMS ORDERED"
 msgstr "TELLITUD PUNKTID"
@@ -165,7 +171,7 @@ msgid ""
 "Please click the link below to do so and log into your account.\n"
 msgstr ""
 "\n"
-"% (Saidi_nimi) s sisselogimiseks peate kõigepealt kinnitama oma e-posti aadressi.\n"
+"%(site_name)s sisselogimiseks peate kõigepealt kinnitama oma e-posti aadressi.\n"
 "Selleks klõpsake alloleval lingil ja logige sisse oma kontole.\n"
 
 #: templates/templated_email/account/email_changed_notification.email:4
@@ -326,7 +332,7 @@ msgid ""
 msgstr ""
 "\n"
 "Makseandmete nägemiseks külastage palun: \n"
-"% (order_details_url) s \n"
+"%(order_details_url)s \n"
 
 #: templates/templated_email/order/confirm_order.email:25
 #: templates/templated_email/order/staff_confirm_order.email:25
@@ -406,7 +412,7 @@ msgstr "Saatmine pole vajalik"
 #, python-format
 msgctxt "Order cancel e-mail subject"
 msgid "Order %(order)s canceled"
-msgstr "Tellimus% (tellimus) on tühistatud"
+msgstr "Tellimus %(order)s on tühistatud"
 
 #: templates/templated_email/order/order_cancel.email:11
 msgctxt "Order cancel e-mail text"
@@ -421,7 +427,7 @@ msgstr ""
 #, python-format
 msgctxt "Order refund e-mail subject"
 msgid "Order %(order)s refunded"
-msgstr "Tellimus% (tellimus) tagastati"
+msgstr "Tellimus %(order)s tagastati"
 
 #: templates/templated_email/order/order_refund.email:11
 #, python-format
@@ -504,7 +510,7 @@ msgstr "See on automaatselt genereeritud e-kiri, palun ärge vastake."
 #, python-format
 msgctxt "Base email footer"
 msgid "Sincerely, %(site_name)s"
-msgstr "Lugupidamisega% (saidi_nimi) s"
+msgstr "Lugupidamisega %(site_name)s"
 
 #: templates/templated_email/shared/_header.email:2
 #: templates/templated_email/source/account_delete.mjml:13
@@ -549,7 +555,7 @@ msgid ""
 "In order to log into %(site_name)s, you have to confirm your email address "
 "first. Please click the link below to do so and log into your account."
 msgstr ""
-"% (Saidi_nimi) s sisselogimiseks peate kinnitama oma e-posti "
+"%(site_name)s sisselogimiseks peate kinnitama oma e-posti "
 "aadressikõigepealt. Selleks klõpsake palun allolevat linki ja logige sisse "
 "oma kontole."
 
@@ -765,7 +771,8 @@ msgid ""
 " <a href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
 "Keegi esitas teie poes uue tellimuse. Tellimuse üksikasjade nägemiseks "
-"külastage palun:<a href = \\"
+"külastage palun: <a "
+"href=\\\"%(order_details_url)s\\\">%(order_details_url)s</a>"
 
 #: templates/templated_email/source/update_fulfillment.mjml:16
 msgctxt "Fulfillment update email text"

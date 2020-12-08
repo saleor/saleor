@@ -1,164 +1,17 @@
 import os
-from collections import ChainMap, defaultdict
-from typing import TYPE_CHECKING, Dict, List, Optional, Set, Tuple, Union
+from collections import defaultdict
+from typing import TYPE_CHECKING, Dict, List, Optional, Set, Union
 
 from django.conf import settings
 from django.db.models import Case, CharField, Value as V, When
 from django.db.models.functions import Concat
 
 from ...core.utils import build_absolute_uri
-from ...product.models import Attribute
-from ...warehouse.models import Warehouse
+from . import ProductExportFields
 
 if TYPE_CHECKING:
     # flake8: noqa
     from django.db.models import QuerySet
-
-
-class ProductExportFields:
-    """Data structure with fields for product export."""
-
-    HEADERS_TO_FIELDS_MAPPING = {
-        "fields": {
-            "id": "id",
-            "name": "name",
-            "description": "description",
-            "visible": "is_published",
-            "available for purchase": "available_for_purchase",
-            "searchable": "visible_in_listings",
-            "category": "category__slug",
-            "product type": "product_type__name",
-            "charge taxes": "charge_taxes",
-            "product weight": "product_weight",
-            "variant sku": "variants__sku",
-            "variant weight": "variant_weight",
-            "cost price": "variants__cost_price_amount",
-            "variant price": "variants__price_amount",
-            "variant currency": "variants__currency",
-        },
-        "product_many_to_many": {
-            "collections": "collections__slug",
-            "product images": "images__image",
-        },
-        "variant_many_to_many": {"variant images": "variants__images__image",},
-    }
-
-    PRODUCT_ATTRIBUTE_FIELDS = {
-        "value": "attributes__values__slug",
-        "slug": "attributes__assignment__attribute__slug",
-        "attribute_pk": "attributes__assignment__attribute__pk",
-    }
-
-    WAREHOUSE_FIELDS = {
-        "slug": "variants__stocks__warehouse__slug",
-        "quantity": "variants__stocks__quantity",
-        "warehouse_pk": "variants__stocks__warehouse__id",
-    }
-
-    VARIANT_ATTRIBUTE_FIELDS = {
-        "value": "variants__attributes__values__slug",
-        "slug": "variants__attributes__assignment__attribute__slug",
-        "attribute_pk": "variants__attributes__assignment__attribute__pk",
-    }
-
-
-def get_export_fields_and_headers_info(
-    export_info: Dict[str, list]
-) -> Tuple[List[str], List[str], List[str]]:
-    """Get export fields, all headers and headers mapping.
-
-    Based on export_info returns exported fields, fields to headers mapping and
-    all headers.
-    Headers contains product, variant, attribute and warehouse headers.
-    """
-    export_fields, file_headers = get_product_export_fields_and_headers(export_info)
-    attributes_headers = get_attributes_headers(export_info)
-    warehouses_headers = get_warehouses_headers(export_info)
-
-    data_headers = export_fields + attributes_headers + warehouses_headers
-    file_headers += attributes_headers + warehouses_headers
-    return export_fields, file_headers, data_headers
-
-
-def get_product_export_fields_and_headers(
-    export_info: Dict[str, list]
-) -> Tuple[List[str], List[str]]:
-    """Get export fields from export info and prepare headers mapping.
-
-    Based on given fields headers from export info, export fields set and
-    headers mapping is prepared.
-    """
-    export_fields = ["id"]
-    file_headers = ["id"]
-
-    fields = export_info.get("fields")
-    if not fields:
-        return export_fields, file_headers
-
-    fields_mapping = dict(
-        ChainMap(*reversed(ProductExportFields.HEADERS_TO_FIELDS_MAPPING.values()))  # type: ignore
-    )
-
-    for field in fields:
-        lookup_field = fields_mapping[field]
-        export_fields.append(lookup_field)
-        file_headers.append(field)
-        # if price is exported, currency is needed too
-        if field == "variant price" or field == "cost price":
-            lookup_field = fields_mapping["variant currency"]
-            if lookup_field not in export_fields:
-                export_fields.append(lookup_field)
-                file_headers.append("variant currency")
-
-    return export_fields, file_headers
-
-
-def get_attributes_headers(export_info: Dict[str, list]) -> List[str]:
-    """Get headers for exported attributes.
-
-    Headers are build from slug and contains information if it's a product or variant
-    attribute. Respectively for product: "slug-value (product attribute)"
-    and for variant: "slug-value (variant attribute)".
-    """
-
-    attribute_ids = export_info.get("attributes")
-    if not attribute_ids:
-        return []
-
-    attributes = Attribute.objects.filter(pk__in=attribute_ids).order_by("slug")
-
-    products_headers = (
-        attributes.filter(product_types__isnull=False)
-        .annotate(header=Concat("slug", V(" (product attribute)")))
-        .values_list("header", flat=True)
-    )
-
-    variant_headers = (
-        attributes.filter(product_variant_types__isnull=False)
-        .annotate(header=Concat("slug", V(" (variant attribute)")))
-        .values_list("header", flat=True)
-    )
-
-    return list(products_headers) + list(variant_headers)
-
-
-def get_warehouses_headers(export_info: Dict[str, list]) -> List[str]:
-    """Get headers for exported warehouses.
-
-    Headers are build from slug. Example: "slug-value (warehouse quantity)"
-    """
-    warehouse_ids = export_info.get("warehouses")
-    if not warehouse_ids:
-        return []
-
-    warehouses_headers = (
-        Warehouse.objects.filter(pk__in=warehouse_ids)
-        .order_by("slug")
-        .annotate(header=Concat("slug", V(" (warehouse quantity)")))
-        .values_list("header", flat=True)
-    )
-
-    return list(warehouses_headers)
 
 
 def get_products_data(
@@ -166,6 +19,7 @@ def get_products_data(
     export_fields: Set[str],
     attribute_ids: Optional[List[int]],
     warehouse_ids: Optional[List[int]],
+    channel_ids: Optional[List[int]],
 ) -> List[Dict[str, Union[str, bool]]]:
     """Create data list of products and their variants with fields values.
 
@@ -203,11 +57,11 @@ def get_products_data(
     )
 
     products_relations_data = get_products_relations_data(
-        queryset, export_fields, attribute_ids
+        queryset, export_fields, attribute_ids, channel_ids
     )
 
     variants_relations_data = get_variants_relations_data(
-        queryset, export_fields, attribute_ids, warehouse_ids
+        queryset, export_fields, attribute_ids, warehouse_ids, channel_ids
     )
 
     for product_data in products_data:
@@ -227,7 +81,10 @@ def get_products_data(
 
 
 def get_products_relations_data(
-    queryset: "QuerySet", export_fields: Set[str], attribute_ids: Optional[List[int]]
+    queryset: "QuerySet",
+    export_fields: Set[str],
+    attribute_ids: Optional[List[int]],
+    channel_ids: Optional[List[int]],
 ) -> Dict[int, Dict[str, str]]:
     """Get data about product relations fields.
 
@@ -239,29 +96,38 @@ def get_products_relations_data(
         ProductExportFields.HEADERS_TO_FIELDS_MAPPING["product_many_to_many"].values()
     )
     relations_fields = export_fields & many_to_many_fields
-    if relations_fields or attribute_ids:
+    if relations_fields or attribute_ids or channel_ids:
         return prepare_products_relations_data(
-            queryset, relations_fields, attribute_ids
+            queryset, relations_fields, attribute_ids, channel_ids
         )
 
     return {}
 
 
 def prepare_products_relations_data(
-    queryset: "QuerySet", fields: Set[str], attribute_ids: Optional[List[int]]
+    queryset: "QuerySet",
+    fields: Set[str],
+    attribute_ids: Optional[List[int]],
+    channel_ids: Optional[List[int]],
 ) -> Dict[int, Dict[str, str]]:
     """Prepare data about products relation fields for given queryset.
 
     It return dict where key is a product pk, value is a dict with relation fields data.
     """
     attribute_fields = ProductExportFields.PRODUCT_ATTRIBUTE_FIELDS
+    channel_fields = ProductExportFields.PRODUCT_CHANNEL_LISTING_FIELDS.copy()
     result_data: Dict[int, dict] = defaultdict(dict)
 
     fields.add("pk")
     if attribute_ids:
-        fields.update(ProductExportFields.PRODUCT_ATTRIBUTE_FIELDS.values())
+        fields.update(attribute_fields.values())
+    if channel_ids:
+        fields.update(channel_fields.values())
 
     relations_data = queryset.values(*fields)
+
+    channel_pk_lookup = channel_fields.pop("channel_pk")
+    channel_slug_lookup = channel_fields.pop("slug")
 
     for data in relations_data.iterator():
         pk = data.get("pk")
@@ -271,22 +137,24 @@ def prepare_products_relations_data(
         result_data = add_image_uris_to_data(pk, image, "images__image", result_data)
         result_data = add_collection_info_to_data(pk, collection, result_data)
 
-        # handle attributes
-        attribute_data: dict = {}
-
-        attribute_pk = str(data.pop(attribute_fields["attribute_pk"], ""))
-        attribute_data = {
-            "slug": data.pop(attribute_fields["slug"], None),
-            "value": data.pop(attribute_fields["value"], None),
-        }
-
-        if attribute_ids and attribute_pk in attribute_ids:
-            result_data = add_attribute_info_to_data(
-                pk, attribute_data, "product attribute", result_data
-            )
+        result_data, data = handle_attribute_data(
+            pk, data, attribute_ids, result_data, attribute_fields, "product attribute"
+        )
+        result_data, data = handle_channel_data(
+            pk,
+            data,
+            channel_ids,
+            result_data,
+            channel_pk_lookup,
+            channel_slug_lookup,
+            channel_fields,
+        )
 
     result: Dict[int, Dict[str, str]] = {
-        pk: {header: ", ".join(sorted(values)) for header, values in data.items()}
+        pk: {
+            header: ", ".join(sorted(values)) if isinstance(values, set) else values
+            for header, values in data.items()
+        }
         for pk, data in result_data.items()
     }
     return result
@@ -297,6 +165,7 @@ def get_variants_relations_data(
     export_fields: Set[str],
     attribute_ids: Optional[List[int]],
     warehouse_ids: Optional[List[int]],
+    channel_ids: Optional[List[int]],
 ) -> Dict[int, Dict[str, str]]:
     """Get data about variants relations fields.
 
@@ -308,9 +177,9 @@ def get_variants_relations_data(
         ProductExportFields.HEADERS_TO_FIELDS_MAPPING["variant_many_to_many"].values()
     )
     relations_fields = export_fields & many_to_many_fields
-    if relations_fields or attribute_ids or warehouse_ids:
+    if relations_fields or attribute_ids or warehouse_ids or channel_ids:
         return prepare_variants_relations_data(
-            queryset, relations_fields, attribute_ids, warehouse_ids
+            queryset, relations_fields, attribute_ids, warehouse_ids, channel_ids
         )
 
     return {}
@@ -321,23 +190,30 @@ def prepare_variants_relations_data(
     fields: Set[str],
     attribute_ids: Optional[List[int]],
     warehouse_ids: Optional[List[int]],
+    channel_ids: Optional[List[int]],
 ) -> Dict[int, Dict[str, str]]:
     """Prepare data about variants relation fields for given queryset.
 
     It return dict where key is a product pk, value is a dict with relation fields data.
     """
-    warehouse_fields = ProductExportFields.WAREHOUSE_FIELDS
     attribute_fields = ProductExportFields.VARIANT_ATTRIBUTE_FIELDS
+    warehouse_fields = ProductExportFields.WAREHOUSE_FIELDS
+    channel_fields = ProductExportFields.VARIANT_CHANNEL_LISTING_FIELDS.copy()
 
     result_data: Dict[int, dict] = defaultdict(dict)
     fields.add("variants__pk")
 
     if attribute_ids:
-        fields.update(ProductExportFields.VARIANT_ATTRIBUTE_FIELDS.values())
+        fields.update(attribute_fields.values())
     if warehouse_ids:
-        fields.update(ProductExportFields.WAREHOUSE_FIELDS.values())
+        fields.update(warehouse_fields.values())
+    if channel_ids:
+        fields.update(channel_fields.values())
 
     relations_data = queryset.values(*fields)
+
+    channel_pk_lookup = channel_fields.pop("channel_pk")
+    channel_slug_lookup = channel_fields.pop("slug")
 
     for data in relations_data.iterator():
         pk = data.get("variants__pk")
@@ -346,30 +222,21 @@ def prepare_variants_relations_data(
         result_data = add_image_uris_to_data(
             pk, image, "variants__images__image", result_data
         )
-
-        # handle attribute and warehouse data
-        attribute_data: dict = {}
-        warehouse_data: dict = {}
-
-        attribute_pk = str(data.pop(attribute_fields["attribute_pk"], ""))
-        attribute_data = {
-            "slug": data.pop(attribute_fields["slug"], None),
-            "value": data.pop(attribute_fields["value"], None),
-        }
-
-        warehouse_pk = str(data.pop(warehouse_fields["warehouse_pk"], ""))
-        warehouse_data = {
-            "slug": data.pop(warehouse_fields["slug"], None),
-            "qty": data.pop(warehouse_fields["quantity"], None),
-        }
-
-        if attribute_ids and attribute_pk in attribute_ids:
-            result_data = add_attribute_info_to_data(
-                pk, attribute_data, "variant attribute", result_data
-            )
-
-        if warehouse_ids and warehouse_pk in warehouse_ids:
-            result_data = add_warehouse_info_to_data(pk, warehouse_data, result_data)
+        result_data, data = handle_attribute_data(
+            pk, data, attribute_ids, result_data, attribute_fields, "variant attribute"
+        )
+        result_data, data = handle_channel_data(
+            pk,
+            data,
+            channel_ids,
+            result_data,
+            channel_pk_lookup,
+            channel_slug_lookup,
+            channel_fields,
+        )
+        result_data, data = handle_warehouse_data(
+            pk, data, warehouse_ids, result_data, warehouse_fields
+        )
 
     result: Dict[int, Dict[str, str]] = {
         pk: {
@@ -419,6 +286,77 @@ def add_image_uris_to_data(
     return result_data
 
 
+def handle_attribute_data(
+    pk: int,
+    data: dict,
+    attribute_ids: Optional[List[int]],
+    result_data: Dict[int, dict],
+    attribute_fields: dict,
+    attribute_owner: str,
+):
+    attribute_data: dict = {}
+
+    attribute_pk = str(data.pop(attribute_fields["attribute_pk"], ""))
+    attribute_data = {
+        "slug": data.pop(attribute_fields["slug"], None),
+        "value": data.pop(attribute_fields["value"], None),
+    }
+
+    if attribute_ids and attribute_pk in attribute_ids:
+        result_data = add_attribute_info_to_data(
+            pk, attribute_data, attribute_owner, result_data
+        )
+
+    return result_data, data
+
+
+def handle_channel_data(
+    pk: int,
+    data: dict,
+    channel_ids: Optional[List[int]],
+    result_data: Dict[int, dict],
+    pk_lookup: str,
+    slug_lookup: str,
+    fields: dict,
+):
+    channel_data: dict = {}
+
+    channel_pk = str(data.pop(pk_lookup, ""))
+    channel_data = {
+        "slug": data.pop(slug_lookup, None),
+    }
+    for field, lookup in fields.items():
+        channel_data[field] = data.pop(lookup, None)
+
+    if channel_ids and channel_pk in channel_ids:
+        result_data = add_channel_info_to_data(
+            pk, channel_data, result_data, list(fields.keys())
+        )
+
+    return result_data, data
+
+
+def handle_warehouse_data(
+    pk: int,
+    data: dict,
+    warehouse_ids: Optional[List[int]],
+    result_data: Dict[int, dict],
+    warehouse_fields: dict,
+):
+    warehouse_data: dict = {}
+
+    warehouse_pk = str(data.pop(warehouse_fields["warehouse_pk"], ""))
+    warehouse_data = {
+        "slug": data.pop(warehouse_fields["slug"], None),
+        "qty": data.pop(warehouse_fields["quantity"], None),
+    }
+
+    if warehouse_ids and warehouse_pk in warehouse_ids:
+        result_data = add_warehouse_info_to_data(pk, warehouse_data, result_data)
+
+    return result_data, data
+
+
 def add_attribute_info_to_data(
     pk: int,
     attribute_data: Dict[str, Optional[Union[str]]],
@@ -430,7 +368,7 @@ def add_attribute_info_to_data(
     This functions adds info about attribute to dict with variant or product data.
     If attribute with given slug already exists in data, attribute value is added
     to set with values.
-    It returns updated data and attribute header created based on attribute slug.
+    It returns updated data.
     """
     slug = attribute_data["slug"]
     header = None
@@ -451,7 +389,7 @@ def add_warehouse_info_to_data(
     """Add info about stock quantity to variant data.
 
     This functions adds info about stock quantity to dict with variant data.
-    It returns updated data and warehouse header created based on warehouse slug.
+    It returns updated data.
     """
 
     slug = warehouse_data["slug"]
@@ -459,5 +397,26 @@ def add_warehouse_info_to_data(
         warehouse_qty_header = f"{slug} (warehouse quantity)"
         if warehouse_qty_header not in result_data[pk]:
             result_data[pk][warehouse_qty_header] = warehouse_data["qty"]
+
+    return result_data
+
+
+def add_channel_info_to_data(
+    pk: int,
+    channel_data: Dict[str, Union[Optional[str]]],
+    result_data: Dict[int, dict],
+    fields: List[str],
+) -> Dict[int, dict]:
+    """Add info about channel currency code, whether is published and publication date.
+
+    This functions adds info about channel to dict with product data.
+    It returns updated data.
+    """
+    slug = channel_data["slug"]
+    if slug:
+        for field in fields:
+            header = f"{slug} (channel {field.replace('_', ' ')})"
+            if header not in result_data[pk]:
+                result_data[pk][header] = channel_data[field]
 
     return result_data

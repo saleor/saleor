@@ -25,6 +25,7 @@ third_url = "http://www.example.com/third/"
         (WebhookEventType.ORDER_FULLY_PAID, 2, {first_url, third_url}),
         (WebhookEventType.ORDER_FULFILLED, 1, {third_url}),
         (WebhookEventType.ORDER_CANCELLED, 1, {third_url}),
+        (WebhookEventType.ORDER_CONFIRMED, 1, {third_url}),
         (WebhookEventType.ORDER_UPDATED, 1, {third_url}),
         (WebhookEventType.ORDER_CREATED, 1, {third_url}),
         (WebhookEventType.CUSTOMER_CREATED, 0, set()),
@@ -83,6 +84,18 @@ def test_order_created(mocked_webhook_trigger, settings, order_with_lines):
     expected_data = generate_order_payload(order_with_lines)
     mocked_webhook_trigger.assert_called_once_with(
         WebhookEventType.ORDER_CREATED, expected_data
+    )
+
+
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_order_confirmed(mocked_webhook_trigger, settings, order_with_lines):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.order_confirmed(order_with_lines)
+
+    expected_data = generate_order_payload(order_with_lines)
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.ORDER_CONFIRMED, expected_data
     )
 
 

@@ -9,6 +9,7 @@ from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.models import Checkout
 from ....core.exceptions import InsufficientStock
 from ....core.taxes import zero_money
+from ....order import OrderStatus
 from ....order.models import Order
 from ....payment import ChargeStatus, PaymentError, TransactionKind
 from ....payment.gateways.dummy_credit_card import TOKEN_VALIDATION_MAPPING
@@ -80,8 +81,73 @@ def test_checkout_complete_order_already_exists(
     assert order_with_lines.token == order_token
 
 
+def test_checkout_complete_with_inactive_channel_order_already_exists(
+    user_api_client, order_with_lines, checkout_with_gift_card,
+):
+    checkout = checkout_with_gift_card
+    order_with_lines.checkout_token = checkout.pk
+    channel = order_with_lines.channel
+    channel.is_active = False
+    channel.save()
+    order_with_lines.save()
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    checkout.delete()
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert data["checkoutErrors"][0]["code"] == CheckoutErrorCode.CHANNEL_INACTIVE.name
+    assert data["checkoutErrors"][0]["field"] == "channel"
+
+
+def test_checkout_complete_with_inactive_channel(
+    user_api_client,
+    checkout_with_gift_card,
+    gift_card,
+    payment_dummy,
+    address,
+    shipping_method,
+):
+    assert not gift_card.last_used_on
+
+    checkout = checkout_with_gift_card
+    channel = checkout.channel
+    channel.is_active = False
+    channel.save()
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.store_value_in_metadata(items={"accepted": "true"})
+    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.save()
+
+    total = calculations.calculate_checkout_total_with_gift_cards(checkout=checkout)
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert data["checkoutErrors"][0]["code"] == CheckoutErrorCode.CHANNEL_INACTIVE.name
+    assert data["checkoutErrors"][0]["field"] == "channel"
+
+
 @pytest.mark.integration
+@patch("saleor.plugins.manager.PluginsManager.order_confirmed")
 def test_checkout_complete(
+    order_confirmed_mock,
+    site_settings,
     user_api_client,
     checkout_with_gift_card,
     gift_card,
@@ -104,6 +170,9 @@ def test_checkout_complete(
     checkout_line_quantity = checkout_line.quantity
     checkout_line_variant = checkout_line.variant
 
+    site_settings.automatically_confirm_all_new_orders = True
+    site_settings.save()
+
     total = calculations.calculate_checkout_total_with_gift_cards(checkout=checkout)
     payment = payment_dummy
     payment.is_active = True
@@ -116,7 +185,8 @@ def test_checkout_complete(
 
     orders_count = Order.objects.count()
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    redirect_url = "https://www.example.com"
+    variables = {"checkoutId": checkout_id, "redirectUrl": redirect_url}
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
     content = get_graphql_content(response)
@@ -126,7 +196,9 @@ def test_checkout_complete(
     order_token = data["order"]["token"]
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.first()
+    assert order.status == OrderStatus.UNFULFILLED
     assert order.token == order_token
+    assert order.redirect_url == redirect_url
     assert order.total.gross == total.gross
     assert order.metadata == checkout.metadata
     assert order.private_metadata == checkout.private_metadata
@@ -142,12 +214,42 @@ def test_checkout_complete(
     assert payment.transactions.count() == 1
 
     gift_card.refresh_from_db()
-    assert gift_card.current_balance == zero_money()
+    assert gift_card.current_balance == zero_money(gift_card.currency)
     assert gift_card.last_used_on
 
     assert not Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
+    order_confirmed_mock.assert_called_once_with(order)
+
+
+@patch("saleor.plugins.manager.PluginsManager.order_confirmed")
+def test_checkout_complete_requires_confirmation(
+    order_confirmed_mock,
+    user_api_client,
+    site_settings,
+    payment_dummy,
+    checkout_ready_to_complete,
+):
+    site_settings.automatically_confirm_all_new_orders = False
+    site_settings.save()
+    payment = payment_dummy
+    payment.checkout = checkout_ready_to_complete
+    payment.save()
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_ready_to_complete.pk)
+    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    content = get_graphql_content(response)
+
+    order_id = int(
+        graphene.Node.from_global_id(
+            content["data"]["checkoutComplete"]["order"]["id"]
+        )[1]
+    )
+    order = Order.objects.get(pk=order_id)
+    assert order.status == OrderStatus.UNCONFIRMED
+    order_confirmed_mock.assert_not_called()
 
 
 @pytest.mark.integration
@@ -492,7 +594,9 @@ def test_checkout_confirm(
     address,
     shipping_method,
 ):
-    mock_get_manager.confirm_payment.return_value = ACTION_REQUIRED_GATEWAY_RESPONSE
+    response = ACTION_REQUIRED_GATEWAY_RESPONSE
+    response.action_required = False
+    mock_get_manager.confirm_payment.return_value = response
 
     checkout = checkout_with_item
     checkout.shipping_address = address
@@ -714,7 +818,7 @@ def test_checkout_complete_without_redirect_url(
     assert payment.transactions.count() == 1
 
     gift_card.refresh_from_db()
-    assert gift_card.current_balance == zero_money()
+    assert gift_card.current_balance == zero_money(gift_card.currency)
     assert gift_card.last_used_on
 
     assert not Checkout.objects.filter(
