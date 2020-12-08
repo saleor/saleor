@@ -2007,9 +2007,19 @@ type FulfillmentRefundProducts {
   orderErrors: [OrderError!]!
 }
 
+type FulfillmentReturnProducts {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  fulfillment: Fulfillment
+  order: Order
+  replaceOrder: Order
+  orderErrors: [OrderError!]!
+}
+
 enum FulfillmentStatus {
   FULFILLED
   REFUNDED
+  RETURNED
+  REFUNDED_AND_RETURNED
   CANCELED
 }
 
@@ -2662,6 +2672,7 @@ type Mutation {
   orderFulfillmentCancel(id: ID!, input: FulfillmentCancelInput!): FulfillmentCancel
   orderFulfillmentUpdateTracking(id: ID!, input: FulfillmentUpdateTrackingInput!): FulfillmentUpdateTracking
   orderFulfillmentRefundProducts(input: OrderRefundProductsInput!, order: ID!): FulfillmentRefundProducts
+  orderFulfillmentReturnProducts(input: OrderReturnProductsInput!, order: ID!): FulfillmentReturnProducts
   orderMarkAsPaid(id: ID!, transactionReference: String): OrderMarkAsPaid
   orderRefund(amount: PositiveDecimal!, id: ID!): OrderRefund
   orderUpdate(id: ID!, input: OrderUpdateInput!): OrderUpdate
@@ -3046,6 +3057,8 @@ enum OrderEventsEnum {
   FULFILLMENT_RESTOCKED_ITEMS
   FULFILLMENT_FULFILLED_ITEMS
   FULFILLMENT_REFUNDED
+  FULFILLMENT_RETURNED
+  FULFILLMENT_RETURNED_AND_REPLACED
   TRACKING_UPDATED
   NOTE_ADDED
   OTHER
@@ -3138,6 +3151,26 @@ input OrderRefundProductsInput {
   includeShippingCosts: Boolean = false
 }
 
+input OrderReturnFulfillmentLineInput {
+  fulfillmentLineId: ID!
+  quantity: Int!
+  replace: Boolean = false
+}
+
+input OrderReturnLineInput {
+  orderLineId: ID!
+  quantity: Int!
+  replace: Boolean = false
+}
+
+input OrderReturnProductsInput {
+  orderLines: [OrderReturnLineInput!]
+  fulfillmentLines: [OrderReturnFulfillmentLineInput!]
+  amountToRefund: PositiveDecimal
+  includeShippingCosts: Boolean = false
+  refund: Boolean = false
+}
+
 type OrderSettings {
   automaticallyConfirmAllNewOrders: Boolean!
 }
@@ -3180,6 +3213,8 @@ enum OrderStatus {
   UNCONFIRMED
   UNFULFILLED
   PARTIALLY_FULFILLED
+  PARTIALLY_RETURNED
+  RETURNED
   FULFILLED
   CANCELED
 }

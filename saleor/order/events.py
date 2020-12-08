@@ -338,6 +338,51 @@ def fulfillment_fulfilled_items_event(
     )
 
 
+def fulfillment_returned_event(
+    *,
+    order: Order,
+    user: UserType,
+    returned_lines: List[Tuple[int, OrderLine]],
+    replaced_lines: List[Tuple[int, OrderLine]]
+):
+    if not _user_is_valid(user):
+        user = None
+
+    return OrderEvent.objects.create(
+        order=order,
+        type=OrderEvents.FULFILLMENT_RETURNED,
+        user=user,
+        parameters={
+            "returned_lines": _lines_per_quantity_to_line_object_list(returned_lines),
+            "replaced_lines": _lines_per_quantity_to_line_object_list(replaced_lines),
+        },
+    )
+
+
+def fulfillment_returned_and_refunded_event(
+    *,
+    order: Order,
+    user: UserType,
+    returned_lines: List[Tuple[int, OrderLine]],
+    replaced_lines: List[Tuple[int, OrderLine]],
+    amount: Decimal,
+    shipping_costs_included: bool
+):
+    if not _user_is_valid(user):
+        user = None
+    return OrderEvent.objects.create(
+        order=order,
+        type=OrderEvents.FULFILLMENT_RETURNED_AND_REFUNDED,
+        user=user,
+        parameters={
+            "returned_lines": _lines_per_quantity_to_line_object_list(returned_lines),
+            "replaced_lines": _lines_per_quantity_to_line_object_list(replaced_lines),
+            "amount": amount,
+            "shipping_costs_included": shipping_costs_included,
+        },
+    )
+
+
 def fulfillment_refunded_event(
     *,
     order: Order,
