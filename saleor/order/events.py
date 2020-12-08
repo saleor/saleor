@@ -32,7 +32,7 @@ def _user_is_valid(user: UserType) -> bool:
     return bool(user and not user.is_anonymous)
 
 
-def notification_order_refund_event(
+def event_order_refunded_notification(
     order_id: int, user_id: Optional[int], customer_email: str
 ):
     return OrderEvent.objects.create(
@@ -46,7 +46,7 @@ def notification_order_refund_event(
     )
 
 
-def notification_order_cancel_event(
+def event_order_cancelled_notification(
     order_id: int, user_id: Optional[int], customer_email: str
 ):
     return OrderEvent.objects.create(
@@ -60,7 +60,7 @@ def notification_order_cancel_event(
     )
 
 
-def notification_order_confirmation_event(
+def event_order_confirmation_notification(
     order_id: int, user_id: Optional[int], customer_email: str
 ):
     return OrderEvent.objects.create(
@@ -74,7 +74,7 @@ def notification_order_confirmation_event(
     )
 
 
-def notification_fulfillment_confirmation_event(
+def event_fulfillment_confirmed_notification(
     order_id: int, user_id: Optional[int], customer_email: str
 ):
     return OrderEvent.objects.create(
@@ -88,7 +88,7 @@ def notification_fulfillment_confirmation_event(
     )
 
 
-def notification_fulfillment_digital_links_event(
+def event_fulfillment_digital_links_notification(
     order_id: int, user_id: Optional[int], customer_email: str
 ):
     return OrderEvent.objects.create(
@@ -102,7 +102,7 @@ def notification_fulfillment_digital_links_event(
     )
 
 
-def notification_payment_confirmation_event(
+def event_payment_confirmed_notification(
     order_id: int, user_id: Optional[int], customer_email: str
 ):
     return OrderEvent.objects.create(
@@ -146,7 +146,7 @@ def invoice_updated_event(
     )
 
 
-def notification_order_invoice_sent_event(
+def event_invoice_sent_notification(
     *, order_id: int, user_id: Optional[int], email: str
 ) -> OrderEvent:
     return OrderEvent.objects.create(

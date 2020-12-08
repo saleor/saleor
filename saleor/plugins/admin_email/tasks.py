@@ -79,7 +79,7 @@ def send_export_failed_email_task(recipient_email: str, payload: dict, config: d
         context=payload,
     )
     export_failed_info_sent_event(
-        export_file_id=payload["export"]["id"], user_id=payload["export"]["user_id"]
+        export_file_id=payload["export"]["id"], user_id=payload["export"].get("user_id")
     )
 
 

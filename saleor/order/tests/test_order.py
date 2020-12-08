@@ -16,12 +16,12 @@ from ...warehouse.tests.utils import get_quantity_allocated_for_stock
 from .. import OrderEvents, OrderStatus, models
 from ..events import (
     OrderEventsEmails,
-    notification_fulfillment_confirmation_event,
-    notification_fulfillment_digital_links_event,
-    notification_order_cancel_event,
-    notification_order_confirmation_event,
-    notification_order_refund_event,
-    notification_payment_confirmation_event,
+    event_fulfillment_confirmed_notification,
+    event_fulfillment_digital_links_notification,
+    event_order_cancelled_notification,
+    event_order_confirmation_notification,
+    event_order_refunded_notification,
+    event_payment_confirmed_notification,
 )
 from ..models import Order
 from ..notifications import (
@@ -729,12 +729,12 @@ def test_send_fulfillment_order_lines_mails(
 @pytest.mark.parametrize(
     "event_fun, expected_event_type",
     [
-        (notification_order_cancel_event, OrderEventsEmails.ORDER_CANCEL),
-        (notification_order_confirmation_event, OrderEventsEmails.ORDER_CONFIRMATION),
-        (notification_fulfillment_confirmation_event, OrderEventsEmails.FULFILLMENT),
-        (notification_fulfillment_digital_links_event, OrderEventsEmails.DIGITAL_LINKS),
-        (notification_payment_confirmation_event, OrderEventsEmails.PAYMENT),
-        (notification_order_refund_event, OrderEventsEmails.ORDER_REFUND),
+        (event_order_cancelled_notification, OrderEventsEmails.ORDER_CANCEL),
+        (event_order_confirmation_notification, OrderEventsEmails.ORDER_CONFIRMATION),
+        (event_fulfillment_confirmed_notification, OrderEventsEmails.FULFILLMENT),
+        (event_fulfillment_digital_links_notification, OrderEventsEmails.DIGITAL_LINKS),
+        (event_payment_confirmed_notification, OrderEventsEmails.PAYMENT),
+        (event_order_refunded_notification, OrderEventsEmails.ORDER_REFUND),
     ],
 )
 def test_email_sent_event_with_user(order, event_fun, expected_event_type):
@@ -757,12 +757,12 @@ def test_email_sent_event_with_user(order, event_fun, expected_event_type):
 @pytest.mark.parametrize(
     "event_fun, expected_event_type",
     [
-        (notification_order_cancel_event, OrderEventsEmails.ORDER_CANCEL),
-        (notification_order_confirmation_event, OrderEventsEmails.ORDER_CONFIRMATION),
-        (notification_fulfillment_confirmation_event, OrderEventsEmails.FULFILLMENT),
-        (notification_fulfillment_digital_links_event, OrderEventsEmails.DIGITAL_LINKS),
-        (notification_payment_confirmation_event, OrderEventsEmails.PAYMENT),
-        (notification_order_refund_event, OrderEventsEmails.ORDER_REFUND),
+        (event_order_cancelled_notification, OrderEventsEmails.ORDER_CANCEL),
+        (event_order_confirmation_notification, OrderEventsEmails.ORDER_CONFIRMATION),
+        (event_fulfillment_confirmed_notification, OrderEventsEmails.FULFILLMENT),
+        (event_fulfillment_digital_links_notification, OrderEventsEmails.DIGITAL_LINKS),
+        (event_payment_confirmed_notification, OrderEventsEmails.PAYMENT),
+        (event_order_refunded_notification, OrderEventsEmails.ORDER_REFUND),
     ],
 )
 def test_email_sent_event_without_user_pk(order, event_fun, expected_event_type):

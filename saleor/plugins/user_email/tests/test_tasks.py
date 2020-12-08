@@ -8,8 +8,8 @@ from ....order.notifications import (
     get_default_fulfillment_payload,
     get_default_order_payload,
 )
-from ....plugins.email_common import EmailConfig
-from ....plugins.user_email.tasks import (
+from ...email_common import EmailConfig
+from ...user_email.tasks import (
     send_account_confirmation_email_task,
     send_account_delete_confirmation_email_task,
     send_fulfillment_confirmation_email_task,

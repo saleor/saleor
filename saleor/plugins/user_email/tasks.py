@@ -207,7 +207,7 @@ def send_invoice_email_task(recipient_email, payload, config):
         invoice_id=payload["invoice"]["id"],
         customer_email=payload["recipient_email"],
     )
-    order_events.notification_order_invoice_sent_event(
+    order_events.event_invoice_sent_notification(
         order_id=payload["invoice"]["order_id"],
         user_id=payload["requester_user_id"],
         email=payload["recipient_email"],
@@ -238,7 +238,7 @@ def send_order_confirmation_email_task(recipient_email, payload, config):
         subject=subject,
         template_str=email_template_str,
     )
-    order_events.notification_order_confirmation_event(
+    order_events.event_order_confirmation_notification(
         order_id=payload["order"]["id"],
         user_id=payload["order"].get("user_id"),
         customer_email=recipient_email,
@@ -268,14 +268,14 @@ def send_fulfillment_confirmation_email_task(recipient_email, payload, config):
         subject=subject,
         template_str=email_template_str,
     )
-    order_events.notification_fulfillment_confirmation_event(
+    order_events.event_fulfillment_confirmed_notification(
         order_id=payload["order"]["id"],
         user_id=payload["requester_user_id"],
         customer_email=recipient_email,
     )
 
     if payload.get("digital_lines"):
-        order_events.notification_fulfillment_digital_links_event(
+        order_events.event_fulfillment_digital_links_notification(
             order_id=payload["order"]["id"],
             user_id=payload["requester_user_id"],
             customer_email=recipient_email,
@@ -328,7 +328,7 @@ def send_payment_confirmation_email_task(recipient_email, payload, config):
         subject=subject,
         template_str=email_template_str,
     )
-    order_events.notification_payment_confirmation_event(
+    order_events.event_payment_confirmed_notification(
         order_id=payload["order"]["id"],
         user_id=payload["order"].get("user_id"),
         customer_email=recipient_email,
@@ -358,7 +358,7 @@ def send_order_canceled_email_task(recipient_email, payload, config):
         subject=subject,
         template_str=email_template_str,
     )
-    order_events.notification_order_cancel_event(
+    order_events.event_order_cancelled_notification(
         order_id=payload["order"]["id"],
         user_id=payload["requester_user_id"],
         customer_email=recipient_email,
@@ -388,7 +388,7 @@ def send_order_refund_email_task(recipient_email, payload, config):
         subject=subject,
         template_str=email_template_str,
     )
-    order_events.notification_order_refund_event(
+    order_events.event_order_refunded_notification(
         order_id=payload["order"]["id"],
         user_id=payload["requester_user_id"],
         customer_email=recipient_email,
