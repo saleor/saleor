@@ -1,6 +1,6 @@
 from measurement.measures import Weight
 
-from .....attribute.models import Attribute
+from .....attribute.models import Attribute, AttributeValue
 from .....attribute.utils import associate_attribute_values_to_instance
 from .....channel.models import Channel
 from .....product.models import Product, ProductVariant, VariantImage
@@ -227,16 +227,38 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
     product_with_image,
     product_with_variant_with_two_attributes,
     file_attribute,
+    page_reference_attribute,
+    page_list,
 ):
     # given
     product.variants.add(variant_with_many_stocks)
-    product.product_type.variant_attributes.add(file_attribute)
-    product.product_type.product_attributes.add(file_attribute)
+    product.product_type.variant_attributes.add(
+        file_attribute, page_reference_attribute
+    )
+    product.product_type.product_attributes.add(
+        file_attribute, page_reference_attribute
+    )
     associate_attribute_values_to_instance(
         variant_with_many_stocks, file_attribute, file_attribute.values.first()
     )
     associate_attribute_values_to_instance(
         product, file_attribute, file_attribute.values.first()
+    )
+    product_ref_value = AttributeValue.objects.create(
+        attribute=page_reference_attribute,
+        slug=f"{product.pk}_{page_list[0].pk}",
+        name=page_list[0].title,
+    )
+    variant_ref_value = AttributeValue.objects.create(
+        attribute=page_reference_attribute,
+        slug=f"{variant_with_many_stocks.pk}_{page_list[1].pk}",
+        name=page_list[1].title,
+    )
+    associate_attribute_values_to_instance(
+        variant_with_many_stocks, page_reference_attribute, variant_ref_value
+    )
+    associate_attribute_values_to_instance(
+        product, page_reference_attribute, product_ref_value
     )
 
     products = Product.objects.all()
