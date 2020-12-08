@@ -13,11 +13,11 @@ from ..base_plugin import BasePlugin
 from .tasks import trigger_webhooks_for_event
 
 if TYPE_CHECKING:
-    from ...order.models import Fulfillment, Order
     from ...account.models import User
-    from ...product.models import Product
     from ...checkout.models import Checkout
     from ...invoice.models import Invoice
+    from ...order.models import Fulfillment, Order
+    from ...product.models import Product
 
 
 class WebhookPlugin(BasePlugin):
@@ -34,6 +34,12 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         order_data = generate_order_payload(order)
         trigger_webhooks_for_event.delay(WebhookEventType.ORDER_CREATED, order_data)
+
+    def order_confirmed(self, order: "Order", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        order_data = generate_order_payload(order)
+        trigger_webhooks_for_event.delay(WebhookEventType.ORDER_CONFIRMED, order_data)
 
     def order_fully_paid(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:

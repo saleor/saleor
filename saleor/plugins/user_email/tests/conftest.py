@@ -32,6 +32,9 @@ from ..constants import (
     ORDER_CONFIRMATION_DEFAULT_SUBJECT,
     ORDER_CONFIRMATION_SUBJECT_FIELD,
     ORDER_CONFIRMATION_TEMPLATE_FIELD,
+    ORDER_CONFIRMED_DEFAULT_SUBJECT,
+    ORDER_CONFIRMED_SUBJECT_FIELD,
+    ORDER_CONFIRMED_TEMPLATE_FIELD,
     ORDER_FULFILLMENT_CONFIRMATION_DEFAULT_SUBJECT,
     ORDER_FULFILLMENT_CONFIRMATION_SUBJECT_FIELD,
     ORDER_FULFILLMENT_CONFIRMATION_TEMPLATE_FIELD,
@@ -88,6 +91,8 @@ def user_email_plugin(settings):
         invoice_ready_subject=INVOICE_READY_DEFAULT_SUBJECT,
         order_confirmation_template=DEFAULT_EMAIL_VALUE,
         order_confirmation_subject=ORDER_CONFIRMATION_DEFAULT_SUBJECT,
+        order_confirmed_template=DEFAULT_EMAIL_VALUE,
+        order_confirmed_subject=ORDER_CONFIRMED_DEFAULT_SUBJECT,
         fulfillment_confirmation_template=DEFAULT_EMAIL_VALUE,
         fulfillment_confirmation_subject=ORDER_FULFILLMENT_CONFIRMATION_DEFAULT_SUBJECT,
         fulfillment_update_template=DEFAULT_EMAIL_VALUE,
@@ -181,6 +186,14 @@ def user_email_plugin(settings):
                         {
                             "name": ORDER_CONFIRMATION_SUBJECT_FIELD,
                             "value": order_confirmation_subject,
+                        },
+                        {
+                            "name": ORDER_CONFIRMED_TEMPLATE_FIELD,
+                            "value": order_confirmed_template,
+                        },
+                        {
+                            "name": ORDER_CONFIRMED_SUBJECT_FIELD,
+                            "value": order_confirmed_subject,
                         },
                         {
                             "name": ORDER_FULFILLMENT_CONFIRMATION_TEMPLATE_FIELD,

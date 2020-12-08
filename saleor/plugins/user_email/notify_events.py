@@ -6,6 +6,7 @@ from .tasks import (
     send_invoice_email_task,
     send_order_canceled_email_task,
     send_order_confirmation_email_task,
+    send_order_confirmed_email_task,
     send_order_refund_email_task,
     send_password_reset_email_task,
     send_payment_confirmation_email_task,
@@ -84,3 +85,8 @@ def send_order_canceled(payload: dict, config: dict):
 def send_order_refund(payload: dict, config: dict):
     recipient_email = payload["recipient_email"]
     send_order_refund_email_task.delay(recipient_email, payload, config)
+
+
+def send_order_confirmed(payload: dict, config: dict):
+    recipient_email = payload["recipient_email"]
+    send_order_confirmed_email_task.delay(recipient_email, payload, config)

@@ -20,6 +20,7 @@ from ..notify_events import (
     send_invoice,
     send_order_canceled,
     send_order_confirmation,
+    send_order_confirmed,
     send_order_refund,
     send_payment_confirmation,
 )
@@ -43,6 +44,7 @@ def test_event_map():
         NotifyEventType.ORDER_PAYMENT_CONFIRMATION: send_payment_confirmation,
         NotifyEventType.ORDER_CANCELED: send_order_canceled,
         NotifyEventType.ORDER_REFUND_CONFIRMATION: send_order_refund,
+        NotifyEventType.ORDER_CONFIRMED: send_order_confirmed,
     }
 
 

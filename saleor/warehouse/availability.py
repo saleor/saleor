@@ -1,7 +1,5 @@
-from collections import defaultdict
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING
 
-from django.conf import settings
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
 
@@ -52,52 +50,11 @@ def get_available_quantity(variant: "ProductVariant", country_code: str) -> int:
     return _get_available_quantity(stocks)
 
 
-def get_available_quantity_for_customer(
-    variant: "ProductVariant", country_code: str = None
-) -> int:
-    """Return maximum checkout line quantity.
-
-    Returns maximum checkout quantity for the given variant and country code.
-    If country code is provided, the function returns the exact variant quantity
-    available in warehouses operating in shipping zones containing this country.
-    Otherwise, it returns the maximum quantity from all shipping zones.
-
-    The returned value is limited by `MAX_CHECKOUT_LINE_QUANTITY` setting to
-    limit the quantity of a variant that can be added in one checkout line.
-    """
-    if not variant.track_inventory:
-        return settings.MAX_CHECKOUT_LINE_QUANTITY
-
-    stocks = Stock.objects.filter(product_variant=variant)
-    if country_code:
-        stocks = stocks.for_country(country_code)
-    stocks = stocks.annotate_available_quantity()
-    stocks = stocks.values_list("warehouse__shipping_zones", "available_quantity")
-
-    if not stocks:
-        return 0
-
-    available_quantity_in_shipping_zones: Dict = defaultdict(int)
-    for shipping_zone_pk, available_quantity in stocks:
-        available_quantity_in_shipping_zones[shipping_zone_pk] += available_quantity
-
-    max_available_quantity = max(
-        available_quantity_in_shipping_zones.items(), key=lambda x: x[1]
-    )[1]
-    return min(max_available_quantity, settings.MAX_CHECKOUT_LINE_QUANTITY)
-
-
 def get_quantity_allocated(variant: "ProductVariant", country_code: str) -> int:
     stocks = Stock.objects.get_variant_stocks_for_country(country_code, variant)
     if not stocks:
         return 0
     return _get_quantity_allocated(stocks)
-
-
-def is_variant_in_stock(variant: "ProductVariant", country_code: str) -> bool:
-    """Check if variant is available in given country."""
-    quantity_available = get_available_quantity_for_customer(variant, country_code)
-    return quantity_available > 0
 
 
 def is_product_in_stock(product: "Product", country_code: str) -> bool:

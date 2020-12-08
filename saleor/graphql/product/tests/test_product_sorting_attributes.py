@@ -4,8 +4,9 @@ from decimal import Decimal
 import graphene
 import pytest
 
+from ....attribute import AttributeType, models as attribute_models
+from ....attribute.utils import associate_attribute_values_to_instance
 from ....product import models as product_models
-from ....product.utils.attributes import associate_attribute_values_to_instance
 from ...tests.utils import get_graphql_content
 
 HERE = os.path.realpath(os.path.dirname(__file__))
@@ -15,9 +16,11 @@ query products(
   $field: ProductOrderField
   $attributeId: ID
   $direction: OrderDirection!
+  $channel: String
 ) {
   products(
-    first: 100
+    first: 100,
+    channel: $channel,
     sortBy: { field: $field, attributeId: $attributeId, direction: $direction }
   ) {
     edges {
@@ -43,13 +46,13 @@ DUMMIES = ("Oopsie",)
 
 
 @pytest.fixture
-def products_structures(category):
+def products_structures(category, channel_USD):
     def attr_value(attribute, *values):
         return [attribute.values.get_or_create(name=v, slug=v)[0] for v in values]
 
     assert product_models.Product.objects.count() == 0
 
-    in_multivals = product_models.AttributeInputType.MULTISELECT
+    in_multivals = attribute_models.AttributeInputType.MULTISELECT
 
     pt_apples, pt_oranges, pt_other = list(
         product_models.ProductType.objects.bulk_create(
@@ -68,13 +71,20 @@ def products_structures(category):
     )
 
     colors_attr, trademark_attr, dummy_attr = list(
-        product_models.Attribute.objects.bulk_create(
+        attribute_models.Attribute.objects.bulk_create(
             [
-                product_models.Attribute(
-                    name="Colors", slug="colors", input_type=in_multivals
+                attribute_models.Attribute(
+                    name="Colors",
+                    slug="colors",
+                    input_type=in_multivals,
+                    type=AttributeType.PRODUCT_TYPE,
                 ),
-                product_models.Attribute(name="Trademark", slug="trademark"),
-                product_models.Attribute(name="Dummy", slug="dummy"),
+                attribute_models.Attribute(
+                    name="Trademark", slug="trademark", type=AttributeType.PRODUCT_TYPE
+                ),
+                attribute_models.Attribute(
+                    name="Dummy", slug="dummy", type=AttributeType.PRODUCT_TYPE
+                ),
             ]
         )
     )
@@ -99,16 +109,27 @@ def products_structures(category):
                     slug=f"{attrs[0]}-apple-{attrs[1]}-({i})",
                     product_type=pt_apples,
                     category=category,
-                    is_published=True,
-                    visible_in_listings=True,
                 )
                 for i, attrs in enumerate(zip(COLORS, TRADEMARKS))
             ]
         )
     )
     for product_apple in apples:
-        product_models.ProductVariant.objects.create(
-            product=product_apple, sku=product_apple.slug, price_amount=Decimal(10)
+        product_models.ProductChannelListing.objects.create(
+            product=product_apple,
+            channel=channel_USD,
+            is_published=True,
+            visible_in_listings=True,
+        )
+        variant = product_models.ProductVariant.objects.create(
+            product=product_apple, sku=product_apple.slug
+        )
+        product_models.ProductVariantChannelListing.objects.create(
+            variant=variant,
+            channel=channel_USD,
+            price_amount=Decimal(10),
+            cost_price_amount=Decimal(1),
+            currency=channel_USD.currency_code,
         )
     oranges = list(
         product_models.Product.objects.bulk_create(
@@ -118,38 +139,68 @@ def products_structures(category):
                     slug=f"{attrs[0]}-orange-{attrs[1]}-({i})",
                     product_type=pt_oranges,
                     category=category,
-                    is_published=True,
-                    visible_in_listings=True,
                 )
                 for i, attrs in enumerate(zip(COLORS, TRADEMARKS))
             ]
         )
     )
     for product_orange in oranges:
-        product_models.ProductVariant.objects.create(
-            product=product_orange, sku=product_orange.slug, price_amount=Decimal(10)
+        product_models.ProductChannelListing.objects.create(
+            product=product_orange,
+            channel=channel_USD,
+            is_published=True,
+            visible_in_listings=True,
+        )
+        variant = product_models.ProductVariant.objects.create(
+            product=product_orange, sku=product_orange.slug
+        )
+        product_models.ProductVariantChannelListing.objects.create(
+            variant=variant,
+            channel=channel_USD,
+            cost_price_amount=Decimal(1),
+            price_amount=Decimal(10),
+            currency=channel_USD.currency_code,
         )
     dummy = product_models.Product.objects.create(
         name="Oopsie Dummy",
         slug="oopsie-dummy",
         product_type=pt_other,
         category=category,
-        is_published=True,
-        visible_in_listings=True,
     )
-    product_models.ProductVariant.objects.create(
-        product=dummy, sku=dummy.slug, price_amount=Decimal(10)
+    product_models.ProductChannelListing.objects.create(
+        product=dummy, channel=channel_USD, is_published=True, visible_in_listings=True,
+    )
+    variant = product_models.ProductVariant.objects.create(
+        product=dummy, sku=dummy.slug
+    )
+    product_models.ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_USD,
+        cost_price_amount=Decimal(1),
+        price_amount=Decimal(10),
+        currency=channel_USD.currency_code,
     )
     other_dummy = product_models.Product.objects.create(
         name="Another Dummy but first in ASC and has no attribute value",
         slug="another-dummy",
         product_type=pt_other,
         category=category,
+    )
+    product_models.ProductChannelListing.objects.create(
+        product=other_dummy,
+        channel=channel_USD,
         is_published=True,
         visible_in_listings=True,
     )
-    product_models.ProductVariant.objects.create(
-        product=other_dummy, sku=other_dummy.slug, price_amount=Decimal(10)
+    variant = product_models.ProductVariant.objects.create(
+        product=other_dummy, sku=other_dummy.slug
+    )
+    product_models.ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_USD,
+        cost_price_amount=Decimal(1),
+        price_amount=Decimal(10),
+        currency=channel_USD.currency_code,
     )
     dummy_attr_value = attr_value(dummy_attr, DUMMIES[0])
     associate_attribute_values_to_instance(dummy, dummy_attr, *dummy_attr_value)
@@ -168,12 +219,19 @@ def products_structures(category):
     return colors_attr, trademark_attr, dummy_attr
 
 
-def test_sort_products_cannot_sort_both_by_field_and_by_attribute(api_client):
+def test_sort_products_cannot_sort_both_by_field_and_by_attribute(
+    api_client, channel_USD
+):
     """Ensure one cannot both sort by a supplied field and sort by a given attribute ID
     at the same time.
     """
     query = QUERY_SORT_PRODUCTS_BY_ATTRIBUTE
-    variables = {"field": "NAME", "attributeId": "SomeAttributeId", "direction": "ASC"}
+    variables = {
+        "field": "NAME",
+        "attributeId": "SomeAttributeId",
+        "direction": "ASC",
+        "channel": channel_USD.slug,
+    }
 
     response = api_client.post_graphql(query, variables)
     response = get_graphql_content(response, ignore_errors=True)
@@ -435,14 +493,18 @@ EXPECTED_SORTED_DATA_MULTIPLE_VALUES_ASC = [
 
 @pytest.mark.parametrize("ascending", [True, False])
 def test_sort_product_by_attribute_single_value(
-    api_client, products_structures, ascending
+    api_client, products_structures, ascending, channel_USD
 ):
     _, attribute, _ = products_structures
     attribute_id: str = graphene.Node.to_global_id("Attribute", attribute.pk)
     direction = "ASC" if ascending else "DESC"
 
     query = QUERY_SORT_PRODUCTS_BY_ATTRIBUTE
-    variables = {"attributeId": attribute_id, "direction": direction}
+    variables = {
+        "attributeId": attribute_id,
+        "direction": direction,
+        "channel": channel_USD.slug,
+    }
 
     response = get_graphql_content(api_client.post_graphql(query, variables))
     products = response["data"]["products"]["edges"]
@@ -457,14 +519,18 @@ def test_sort_product_by_attribute_single_value(
 
 @pytest.mark.parametrize("ascending", [True, False])
 def test_sort_product_by_attribute_multiple_values(
-    api_client, products_structures, ascending
+    api_client, products_structures, ascending, channel_USD
 ):
     attribute, _, _ = products_structures
     attribute_id: str = graphene.Node.to_global_id("Attribute", attribute.pk)
     direction = "ASC" if ascending else "DESC"
 
     query = QUERY_SORT_PRODUCTS_BY_ATTRIBUTE
-    variables = {"attributeId": attribute_id, "direction": direction}
+    variables = {
+        "attributeId": attribute_id,
+        "direction": direction,
+        "channel": channel_USD.slug,
+    }
 
     response = get_graphql_content(api_client.post_graphql(query, variables))
     products = response["data"]["products"]["edges"]
@@ -483,10 +549,7 @@ def test_sort_product_not_having_attribute_data(api_client, category, count_quer
     after the product creation.
     """
     expected_results = ["Z", "Y", "A"]
-    product_create_kwargs = {
-        "category": category,
-        "is_published": True,
-    }
+    product_create_kwargs = {"category": category}
 
     # Create two product types, with one forced to be at the bottom (no such attribute)
     product_type = product_models.ProductType.objects.create(
@@ -497,8 +560,10 @@ def test_sort_product_not_having_attribute_data(api_client, category, count_quer
     )
 
     # Assign an attribute to the product type
-    attribute = product_models.Attribute.objects.create(name="Kind", slug="kind")
-    value = product_models.AttributeValue.objects.create(
+    attribute = attribute_models.Attribute.objects.create(
+        name="Kind", slug="kind", type=AttributeType.PRODUCT_TYPE
+    )
+    value = attribute_models.AttributeValue.objects.create(
         name="Value", slug="value", attribute=attribute
     )
     product_type.product_attributes.add(attribute)
@@ -538,7 +603,7 @@ def test_sort_product_not_having_attribute_data(api_client, category, count_quer
     ],
 )
 def test_sort_product_by_attribute_using_invalid_attribute_id(
-    api_client, product_list_published, attribute_id
+    api_client, product_list_published, attribute_id, channel_USD
 ):
     """Ensure passing an empty attribute ID as sorting field does nothing."""
 
@@ -546,7 +611,11 @@ def test_sort_product_by_attribute_using_invalid_attribute_id(
 
     # Products are ordered in descending order to ensure we
     # are not actually trying to sort them at all
-    variables = {"attributeId": attribute_id, "direction": "DESC"}
+    variables = {
+        "attributeId": attribute_id,
+        "direction": "DESC",
+        "channel": channel_USD.slug,
+    }
 
     response = get_graphql_content(api_client.post_graphql(query, variables))
     products = response["data"]["products"]["edges"]
@@ -557,19 +626,23 @@ def test_sort_product_by_attribute_using_invalid_attribute_id(
 
 @pytest.mark.parametrize("direction", ["ASC", "DESC"])
 def test_sort_product_by_attribute_using_attribute_having_no_products(
-    api_client, product_list_published, direction
+    api_client, product_list_published, direction, channel_USD
 ):
     """Ensure passing an empty attribute ID as sorting field does nothing."""
 
     query = QUERY_SORT_PRODUCTS_BY_ATTRIBUTE
-    attribute_without_products = product_models.Attribute.objects.create(
-        name="Colors 2", slug="colors-2"
+    attribute_without_products = attribute_models.Attribute.objects.create(
+        name="Colors 2", slug="colors-2", type=AttributeType.PRODUCT_TYPE
     )
 
     attribute_id: str = graphene.Node.to_global_id(
         "Attribute", attribute_without_products.pk
     )
-    variables = {"attributeId": attribute_id, "direction": direction}
+    variables = {
+        "attributeId": attribute_id,
+        "direction": direction,
+        "channel": channel_USD.slug,
+    }
 
     response = get_graphql_content(api_client.post_graphql(query, variables))
     products = response["data"]["products"]["edges"]

@@ -12,6 +12,15 @@
           {{/blocktrans}}
         </mj-text>
         <mj-text>
+          {{#if order.order_details_url}}
+            {{#blocktrans "Fulfillment confirmation email text with order details"}}
+              Thank you for your order. Below is the list of fulfilled products. To see your order details please visit: <a href="{{ order.order_details_url }}">{{ order.order_details_url }}</a>
+            {{/blocktrans}}
+          {{else}}
+            {{#blocktrans "Fulfillment confirmation email text"}}
+              Thank you for your order. Below is the list of fulfilled products.
+            {{/blocktrans}}
+          {{/if}}
           {{#blocktrans "Fulfillment confirmation email text"}}
             Thank you for your order. Below is the list of fulfilled products.
           {{/blocktrans}}

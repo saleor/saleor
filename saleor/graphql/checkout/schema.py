@@ -8,8 +8,6 @@ from ..payment.mutations import CheckoutPaymentCreate
 from .mutations import (
     CheckoutAddPromoCode,
     CheckoutBillingAddressUpdate,
-    CheckoutClearMeta,
-    CheckoutClearPrivateMeta,
     CheckoutComplete,
     CheckoutCreate,
     CheckoutCustomerAttach,
@@ -21,8 +19,6 @@ from .mutations import (
     CheckoutRemovePromoCode,
     CheckoutShippingAddressUpdate,
     CheckoutShippingMethodUpdate,
-    CheckoutUpdateMeta,
-    CheckoutUpdatePrivateMeta,
 )
 from .resolvers import resolve_checkout, resolve_checkout_lines, resolve_checkouts
 from .types import Checkout, CheckoutLine
@@ -31,11 +27,17 @@ from .types import Checkout, CheckoutLine
 class CheckoutQueries(graphene.ObjectType):
     checkout = graphene.Field(
         Checkout,
-        description="Look up a checkout by token.",
+        description="Look up a checkout by token and slug of channel.",
         token=graphene.Argument(UUID, description="The checkout's token."),
     )
     # FIXME we could optimize the below field
-    checkouts = BaseDjangoConnectionField(Checkout, description="List of checkouts.")
+    checkouts = BaseDjangoConnectionField(
+        Checkout,
+        description="List of checkouts.",
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
+    )
     checkout_line = graphene.Field(
         CheckoutLine,
         id=graphene.Argument(graphene.ID, description="ID of the checkout line."),
@@ -49,8 +51,8 @@ class CheckoutQueries(graphene.ObjectType):
         return resolve_checkout(info, token)
 
     @permission_required(CheckoutPermissions.MANAGE_CHECKOUTS)
-    def resolve_checkouts(self, *_args, **_kwargs):
-        resolve_checkouts()
+    def resolve_checkouts(self, *_args, channel=None, **_kwargs):
+        return resolve_checkouts(channel)
 
     def resolve_checkout_line(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, CheckoutLine)
@@ -75,27 +77,3 @@ class CheckoutMutations(graphene.ObjectType):
     checkout_payment_create = CheckoutPaymentCreate.Field()
     checkout_shipping_address_update = CheckoutShippingAddressUpdate.Field()
     checkout_shipping_method_update = CheckoutShippingMethodUpdate.Field()
-    checkout_update_metadata = CheckoutUpdateMeta.Field(
-        deprecation_reason=(
-            "Use the `updateMetadata` mutation. This field will be removed after "
-            "2020-07-31."
-        )
-    )
-    checkout_clear_metadata = CheckoutClearMeta.Field(
-        deprecation_reason=(
-            "Use the `deleteMetadata` mutation. This field will be removed after "
-            "2020-07-31."
-        )
-    )
-    checkout_update_private_metadata = CheckoutUpdatePrivateMeta.Field(
-        deprecation_reason=(
-            "Use the `updatePrivateMetadata` mutation. This field will be removed "
-            "after 2020-07-31."
-        )
-    )
-    checkout_clear_private_metadata = CheckoutClearPrivateMeta.Field(
-        deprecation_reason=(
-            "Use the `deletePrivateMetadata` mutation. This field will be removed "
-            "after 2020-07-31."
-        )
-    )

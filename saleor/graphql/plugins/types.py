@@ -22,7 +22,10 @@ def hide_private_configuration_fields(configuration, config_structure):
         if field_type == ConfigurationTypeField.PASSWORD:
             field["value"] = "" if value else None
 
-        if field_type == ConfigurationTypeField.SECRET:
+        if field_type in [
+            ConfigurationTypeField.SECRET,
+            ConfigurationTypeField.SECRET_MULTILINE,
+        ]:
             if not value:
                 field["value"] = None
             elif len(value) > 4:

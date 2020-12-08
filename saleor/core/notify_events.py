@@ -7,6 +7,7 @@ class UserNotifyEvent:
     ACCOUNT_SET_CUSTOMER_PASSWORD = "account_set_customer_password"
     INVOICE_READY = "invoice_ready"
     ORDER_CONFIRMATION = "order_confirmation"
+    ORDER_CONFIRMED = "order_confirmed"
     ORDER_FULFILLMENT_CONFIRMATION = "order_fulfillment_confirmation"
     ORDER_FULFILLMENT_UPDATE = "order_fulfillment_update"
     ORDER_PAYMENT_CONFIRMATION = "order_payment_confirmation"
@@ -22,6 +23,7 @@ class UserNotifyEvent:
         ACCOUNT_SET_CUSTOMER_PASSWORD,
         INVOICE_READY,
         ORDER_CONFIRMATION,
+        ORDER_CONFIRMED,
         ORDER_FULFILLMENT_CONFIRMATION,
         ORDER_FULFILLMENT_UPDATE,
         ORDER_PAYMENT_CONFIRMATION,
