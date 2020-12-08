@@ -32,6 +32,20 @@ def _user_is_valid(user: UserType) -> bool:
     return bool(user and not user.is_anonymous)
 
 
+def event_order_confirmed_notification(
+    order_id: int, user_id: Optional[int], customer_email: str
+):
+    return OrderEvent.objects.create(
+        order_id=order_id,
+        type=OrderEvents.EMAIL_SENT,
+        parameters={
+            "email": customer_email,
+            "email_type": OrderEventsEmails.CONFIRMED,
+        },
+        user_id=user_id,
+    )
+
+
 def email_sent_event(
     *,
     order: Order,
@@ -157,6 +171,14 @@ def order_created_event(
     return OrderEvent.objects.create(order=order, type=event_type, user=user)
 
 
+def order_confirmed_event(
+    *, order: Order, user: UserType, from_draft=False
+) -> OrderEvent:
+    if not _user_is_valid(user):
+        user = None
+    return OrderEvent.objects.create(order=order, type=OrderEvents.CONFIRMED, user=user)
+
+
 def draft_order_oversold_items_event(
     *, order: Order, user: UserType, oversold_items: List[str]
 ) -> OrderEvent:
@@ -176,11 +198,19 @@ def order_canceled_event(*, order: Order, user: UserType) -> OrderEvent:
     return OrderEvent.objects.create(order=order, type=OrderEvents.CANCELED, user=user)
 
 
-def order_manually_marked_as_paid_event(*, order: Order, user: UserType) -> OrderEvent:
+def order_manually_marked_as_paid_event(
+    *, order: Order, user: UserType, transaction_reference: Optional[str] = None
+) -> OrderEvent:
     if not _user_is_valid(user):
         user = None
+    parameters = {}  # type: ignore
+    if transaction_reference:
+        parameters = {"transaction_reference": transaction_reference}
     return OrderEvent.objects.create(
-        order=order, type=OrderEvents.ORDER_MARKED_AS_PAID, user=user
+        order=order,
+        type=OrderEvents.ORDER_MARKED_AS_PAID,
+        user=user,
+        parameters=parameters,
     )
 
 
@@ -319,6 +349,28 @@ def fulfillment_fulfilled_items_event(
         type=OrderEvents.FULFILLMENT_FULFILLED_ITEMS,
         user=user,
         parameters={"fulfilled_items": [line.pk for line in fulfillment_lines]},
+    )
+
+
+def fulfillment_refunded_event(
+    *,
+    order: Order,
+    user: UserType,
+    refunded_lines: List[Tuple[int, OrderLine]],
+    amount: Decimal,
+    shipping_costs_included: bool
+):
+    if not _user_is_valid(user):
+        user = None
+    return OrderEvent.objects.create(
+        order=order,
+        type=OrderEvents.FULFILLMENT_REFUNDED,
+        user=user,
+        parameters={
+            "lines": _lines_per_quantity_to_line_object_list(refunded_lines),
+            "amount": amount,
+            "shipping_costs_included": shipping_costs_included,
+        },
     )
 
 

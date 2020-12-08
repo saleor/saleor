@@ -1,11 +1,12 @@
 from unittest.mock import patch
 
-from .....graphql.csv.enums import ProductFieldEnum
-from .....product.models import Attribute, Product, ProductImage, VariantImage
+from .....attribute.models import Attribute
+from .....product.models import Product, ProductImage, VariantImage
 from .....warehouse.models import Warehouse
+from ....utils import ProductExportFields
 from ....utils.products_data import (
-    ProductExportFields,
     add_attribute_info_to_data,
+    add_channel_info_to_data,
     add_collection_info_to_data,
     add_image_uris_to_data,
     add_warehouse_info_to_data,
@@ -14,6 +15,13 @@ from ....utils.products_data import (
     prepare_products_relations_data,
     prepare_variants_relations_data,
 )
+from .utils import (
+    add_channel_to_expected_product_data,
+    add_channel_to_expected_variant_data,
+    add_product_attribute_data_to_expected_data,
+    add_stocks_to_expected_data,
+    add_variant_attribute_data_to_expected_data,
+)
 
 
 @patch("saleor.csv.utils.products_data.prepare_products_relations_data")
@@ -21,18 +29,27 @@ def test_get_products_relations_data(prepare_products_data_mocked, product_list)
     # given
     qs = Product.objects.all()
     export_fields = {
-        "collections__slug" "images__image",
+        "collections__slug",
+        "images__image",
         "name",
         "description",
     }
     attribute_ids = []
+    channel_ids = []
 
     # when
-    get_products_relations_data(qs, export_fields, attribute_ids)
+    get_products_relations_data(qs, export_fields, attribute_ids, channel_ids)
 
     # then
-    prepare_products_data_mocked.called_once_with(
-        qs, {"collections__slug", "images__image"}, attribute_ids
+    assert prepare_products_data_mocked.call_count == 1
+    args, kwargs = prepare_products_data_mocked.call_args
+    assert set(args[0].values_list("pk", flat=True)) == set(
+        qs.values_list("pk", flat=True)
+    )
+    assert args[1:] == (
+        {"collections__slug", "images__image"},
+        attribute_ids,
+        channel_ids,
     )
 
 
@@ -44,9 +61,10 @@ def test_get_products_relations_data_no_relations_fields(
     qs = Product.objects.all()
     export_fields = {"name", "description"}
     attribute_ids = []
+    channel_ids = []
 
     # when
-    get_products_relations_data(qs, export_fields, attribute_ids)
+    get_products_relations_data(qs, export_fields, attribute_ids, channel_ids)
 
     # then
     prepare_products_data_mocked.assert_not_called()
@@ -60,15 +78,46 @@ def test_get_products_relations_data_attribute_ids(
     qs = Product.objects.all()
     export_fields = {"name", "description"}
     attribute_ids = list(Attribute.objects.values_list("pk", flat=True))
+    channel_ids = []
 
     # when
-    get_products_relations_data(qs, export_fields, attribute_ids)
+    get_products_relations_data(qs, export_fields, attribute_ids, channel_ids)
 
     # then
-    prepare_products_data_mocked.called_once_with(qs, {}, attribute_ids)
+    # then
+    assert prepare_products_data_mocked.call_count == 1
+    args, kwargs = prepare_products_data_mocked.call_args
+    assert set(args[0].values_list("pk", flat=True)) == set(
+        qs.values_list("pk", flat=True)
+    )
+    assert args[1:] == (set(), attribute_ids, channel_ids)
 
 
-def test_prepare_products_relations_data(product_with_image, collection_list):
+@patch("saleor.csv.utils.products_data.prepare_products_relations_data")
+def test_get_products_relations_data_channel_ids(
+    prepare_products_data_mocked, product_list, channel_USD, channel_PLN
+):
+    # given
+    qs = Product.objects.all()
+    export_fields = {"name", "description"}
+    attribute_ids = []
+    channel_ids = [channel_PLN.pk, channel_USD.pk]
+
+    # when
+    get_products_relations_data(qs, export_fields, attribute_ids, channel_ids)
+
+    # then
+    assert prepare_products_data_mocked.call_count == 1
+    args, kwargs = prepare_products_data_mocked.call_args
+    assert set(args[0].values_list("pk", flat=True)) == set(
+        qs.values_list("pk", flat=True)
+    )
+    assert args[1:] == (set(), attribute_ids, channel_ids)
+
+
+def test_prepare_products_relations_data(
+    product_with_image, collection_list, channel_USD, channel_PLN
+):
     # given
     pk = product_with_image.pk
     collection_list[0].products.add(product_with_image)
@@ -81,9 +130,10 @@ def test_prepare_products_relations_data(product_with_image, collection_list):
         str(attr.assignment.attribute.pk)
         for attr in product_with_image.attributes.all()
     ]
+    channel_ids = [str(channel_PLN.pk), str(channel_USD.pk)]
 
     # when
-    result = prepare_products_relations_data(qs, fields, attribute_ids)
+    result = prepare_products_relations_data(qs, fields, attribute_ids, channel_ids)
 
     # then
     collections = ", ".join(
@@ -97,10 +147,12 @@ def test_prepare_products_relations_data(product_with_image, collection_list):
     )
     expected_result = {pk: {"collections__slug": collections, "images__image": images}}
 
-    assigned_attribute = product_with_image.attributes.first()
-    if assigned_attribute:
-        header = f"{assigned_attribute.attribute.slug} (product attribute)"
-        expected_result[pk][header] = assigned_attribute.values.first().slug
+    expected_result = add_product_attribute_data_to_expected_data(
+        expected_result, product_with_image, attribute_ids, pk
+    )
+    expected_result = add_channel_to_expected_product_data(
+        expected_result, product_with_image, channel_ids, pk
+    )
 
     assert result == expected_result
 
@@ -115,9 +167,10 @@ def test_prepare_products_relations_data_only_fields(
     qs = Product.objects.all()
     fields = {"collections__slug"}
     attribute_ids = []
+    channel_ids = []
 
     # when
-    result = prepare_products_relations_data(qs, fields, attribute_ids)
+    result = prepare_products_relations_data(qs, fields, attribute_ids, channel_ids)
 
     # then
     collections = ", ".join(
@@ -141,17 +194,42 @@ def test_prepare_products_relations_data_only_attributes_ids(
         str(attr.assignment.attribute.pk)
         for attr in product_with_image.attributes.all()
     ]
+    channel_ids = []
 
     # when
-    result = prepare_products_relations_data(qs, fields, attribute_ids)
+    result = prepare_products_relations_data(qs, fields, attribute_ids, channel_ids)
 
     # then
     expected_result = {pk: {}}
 
-    assigned_attribute = product_with_image.attributes.first()
-    if assigned_attribute:
-        header = f"{assigned_attribute.attribute.slug} (product attribute)"
-        expected_result[pk][header] = assigned_attribute.values.first().slug
+    expected_result = add_product_attribute_data_to_expected_data(
+        expected_result, product_with_image, attribute_ids, pk
+    )
+
+    assert result == expected_result
+
+
+def test_prepare_products_relations_data_only_channel_ids(
+    product_with_image, collection_list, channel_PLN, channel_USD
+):
+    # given
+    pk = product_with_image.pk
+    collection_list[0].products.add(product_with_image)
+    collection_list[1].products.add(product_with_image)
+    qs = Product.objects.all()
+    fields = {"name"}
+    attribute_ids = []
+    channel_ids = [str(channel_PLN.pk), str(channel_USD.pk)]
+
+    # when
+    result = prepare_products_relations_data(qs, fields, attribute_ids, channel_ids)
+
+    # then
+    expected_result = {pk: {}}
+
+    expected_result = add_channel_to_expected_product_data(
+        expected_result, product_with_image, channel_ids, pk
+    )
 
     assert result == expected_result
 
@@ -167,13 +245,24 @@ def test_get_variants_relations_data(prepare_variants_data_mocked, product_list)
     }
     attribute_ids = []
     warehouse_ids = []
+    channel_ids = []
 
     # when
-    get_variants_relations_data(qs, export_fields, attribute_ids, warehouse_ids)
+    get_variants_relations_data(
+        qs, export_fields, attribute_ids, warehouse_ids, channel_ids
+    )
 
     # then
-    prepare_variants_data_mocked.called_once_with(
-        qs, {ProductFieldEnum.VARIANT_IMAGES.value}, attribute_ids, warehouse_ids
+    assert prepare_variants_data_mocked.call_count == 1
+    args, kwargs = prepare_variants_data_mocked.call_args
+    assert set(args[0].values_list("pk", flat=True)) == set(
+        qs.values_list("pk", flat=True)
+    )
+    assert args[1:] == (
+        {"variants__images__image"},
+        attribute_ids,
+        warehouse_ids,
+        channel_ids,
     )
 
 
@@ -186,9 +275,12 @@ def test_get_variants_relations_data_no_relations_fields(
     export_fields = {"name", "variants__sku"}
     attribute_ids = []
     warehouse_ids = []
+    channel_ids = []
 
     # when
-    get_variants_relations_data(qs, export_fields, attribute_ids, warehouse_ids)
+    get_variants_relations_data(
+        qs, export_fields, attribute_ids, warehouse_ids, channel_ids
+    )
 
     # then
     prepare_variants_data_mocked.assert_not_called()
@@ -203,12 +295,20 @@ def test_get_variants_relations_data_attribute_ids(
     export_fields = {"name", "variants__sku"}
     attribute_ids = list(Attribute.objects.values_list("pk", flat=True))
     warehouse_ids = []
+    channel_ids = []
 
     # when
-    get_variants_relations_data(qs, export_fields, attribute_ids, warehouse_ids)
+    get_variants_relations_data(
+        qs, export_fields, attribute_ids, warehouse_ids, channel_ids
+    )
 
     # then
-    prepare_variants_data_mocked.called_once_with(qs, {}, attribute_ids, warehouse_ids)
+    assert prepare_variants_data_mocked.call_count == 1
+    args, kwargs = prepare_variants_data_mocked.call_args
+    assert set(args[0].values_list("pk", flat=True)) == set(
+        qs.values_list("pk", flat=True)
+    )
+    assert args[1:] == (set(), attribute_ids, warehouse_ids, channel_ids)
 
 
 @patch("saleor.csv.utils.products_data.prepare_variants_relations_data")
@@ -220,33 +320,78 @@ def test_get_variants_relations_data_warehouse_ids(
     export_fields = {"name", "variants__sku"}
     attribute_ids = []
     warehouse_ids = list(Warehouse.objects.values_list("pk", flat=True))
+    channel_ids = []
 
     # when
-    get_variants_relations_data(qs, export_fields, attribute_ids, warehouse_ids)
+    get_variants_relations_data(
+        qs, export_fields, attribute_ids, warehouse_ids, channel_ids
+    )
 
     # then
-    prepare_variants_data_mocked.called_once_with(qs, {}, attribute_ids, warehouse_ids)
+    assert prepare_variants_data_mocked.call_count == 1
+    args, kwargs = prepare_variants_data_mocked.call_args
+    assert set(args[0].values_list("pk", flat=True)) == set(
+        qs.values_list("pk", flat=True)
+    )
+    assert args[1:] == (set(), attribute_ids, warehouse_ids, channel_ids)
 
 
 @patch("saleor.csv.utils.products_data.prepare_variants_relations_data")
-def test_get_variants_relations_data_attributes_and_warehouses_ids(
-    prepare_variants_data_mocked, product_list, warehouses
+def test_get_variants_relations_data_channel_ids(
+    prepare_variants_data_mocked, product_list, channel_USD, channel_PLN
+):
+    # given
+    qs = Product.objects.all()
+    export_fields = {"name", "variants__sku"}
+    attribute_ids = []
+    warehouse_ids = []
+    channel_ids = [channel_PLN.pk, channel_USD.pk]
+
+    # when
+    get_variants_relations_data(
+        qs, export_fields, attribute_ids, warehouse_ids, channel_ids
+    )
+
+    # then
+    assert prepare_variants_data_mocked.call_count == 1
+    args, kwargs = prepare_variants_data_mocked.call_args
+    assert set(args[0].values_list("pk", flat=True)) == set(
+        qs.values_list("pk", flat=True)
+    )
+    assert args[1:] == (set(), attribute_ids, warehouse_ids, channel_ids)
+
+
+@patch("saleor.csv.utils.products_data.prepare_variants_relations_data")
+def test_get_variants_relations_data_attributes_warehouses_and_channels_ids(
+    prepare_variants_data_mocked, product_list, warehouses, channel_PLN, channel_USD
 ):
     # given
     qs = Product.objects.all()
     export_fields = {"name", "description"}
     attribute_ids = list(Attribute.objects.values_list("pk", flat=True))
     warehouse_ids = list(Warehouse.objects.values_list("pk", flat=True))
+    channel_ids = [channel_PLN.pk, channel_USD.pk]
 
     # when
-    get_variants_relations_data(qs, export_fields, attribute_ids, warehouse_ids)
+    get_variants_relations_data(
+        qs, export_fields, attribute_ids, warehouse_ids, channel_ids
+    )
 
     # then
-    prepare_variants_data_mocked.called_once_with(qs, {}, attribute_ids, warehouse_ids)
+    assert prepare_variants_data_mocked.call_count == 1
+    args, kwargs = prepare_variants_data_mocked.call_args
+    assert set(args[0].values_list("pk", flat=True)) == set(
+        qs.values_list("pk", flat=True)
+    )
+    assert args[1:] == (set(), attribute_ids, warehouse_ids, channel_ids)
 
 
 def test_prepare_variants_relations_data(
-    product_with_variant_with_two_attributes, image, media_root
+    product_with_variant_with_two_attributes,
+    image,
+    media_root,
+    channel_PLN,
+    channel_USD,
 ):
     # given
     qs = Product.objects.all()
@@ -259,9 +404,12 @@ def test_prepare_variants_relations_data(
     fields = {"variants__images__image"}
     attribute_ids = [str(attr.pk) for attr in Attribute.objects.all()]
     warehouse_ids = [str(w.pk) for w in Warehouse.objects.all()]
+    channel_ids = [str(channel_PLN.pk), str(channel_USD.pk)]
 
     # when
-    result = prepare_variants_relations_data(qs, fields, attribute_ids, warehouse_ids)
+    result = prepare_variants_relations_data(
+        qs, fields, attribute_ids, warehouse_ids, channel_ids
+    )
 
     # then
     pk = variant.pk
@@ -273,18 +421,16 @@ def test_prepare_variants_relations_data(
     )
     expected_result = {pk: {"variants__images__image": images}}
 
-    for assigned_attribute in variant.attributes.all():
-        header = f"{assigned_attribute.attribute.slug} (variant attribute)"
-        if str(assigned_attribute.attribute.pk) in attribute_ids:
-            expected_result[pk][header] = assigned_attribute.values.first().slug
+    expected_result = add_variant_attribute_data_to_expected_data(
+        expected_result, variant, attribute_ids, pk
+    )
+    expected_result = add_stocks_to_expected_data(
+        expected_result, variant, warehouse_ids, pk
+    )
 
-    for stock in variant.stocks.all():
-        if str(stock.warehouse.pk) in warehouse_ids:
-            slug = stock.warehouse.slug
-            warehouse_headers = [
-                f"{slug} (warehouse quantity)",
-            ]
-            expected_result[pk][warehouse_headers[0]] = stock.quantity
+    expected_result = add_channel_to_expected_variant_data(
+        expected_result, variant, channel_ids, pk
+    )
 
     assert result == expected_result
 
@@ -303,9 +449,12 @@ def test_prepare_variants_relations_data_only_fields(
     fields = {"variants__images__image"}
     attribute_ids = []
     warehouse_ids = []
+    channel_ids = []
 
     # when
-    result = prepare_variants_relations_data(qs, fields, attribute_ids, warehouse_ids)
+    result = prepare_variants_relations_data(
+        qs, fields, attribute_ids, warehouse_ids, channel_ids
+    )
 
     # then
     pk = variant.pk
@@ -334,18 +483,20 @@ def test_prepare_variants_relations_data_attributes_ids(
     fields = set()
     attribute_ids = [str(attr.pk) for attr in Attribute.objects.all()]
     warehouse_ids = []
+    channel_ids = []
 
     # when
-    result = prepare_variants_relations_data(qs, fields, attribute_ids, warehouse_ids)
+    result = prepare_variants_relations_data(
+        qs, fields, attribute_ids, warehouse_ids, channel_ids
+    )
 
     # then
     pk = variant.pk
     expected_result = {pk: {}}
 
-    for assigned_attribute in variant.attributes.all():
-        header = f"{assigned_attribute.attribute.slug} (variant attribute)"
-        if str(assigned_attribute.attribute.pk) in attribute_ids:
-            expected_result[pk][header] = assigned_attribute.values.first().slug
+    expected_result = add_variant_attribute_data_to_expected_data(
+        expected_result, variant, attribute_ids, pk
+    )
 
     assert result == expected_result
 
@@ -360,22 +511,48 @@ def test_prepare_variants_relations_data_warehouse_ids(
     fields = set()
     attribute_ids = []
     warehouse_ids = [str(w.pk) for w in Warehouse.objects.all()]
+    channel_ids = []
 
     # when
-    result = prepare_variants_relations_data(qs, fields, attribute_ids, warehouse_ids)
+    result = prepare_variants_relations_data(
+        qs, fields, attribute_ids, warehouse_ids, channel_ids
+    )
 
     # then
     pk = variant.pk
     expected_result = {pk: {}}
 
-    for stock in variant.stocks.all():
-        if str(stock.warehouse.pk) in warehouse_ids:
-            slug = stock.warehouse.slug
-            warehouse_headers = [
-                f"{slug} (warehouse quantity)",
-            ]
-            expected_result[pk][warehouse_headers[0]] = stock.quantity
+    expected_result = add_stocks_to_expected_data(
+        expected_result, variant, warehouse_ids, pk
+    )
 
+    assert result == expected_result
+
+
+def test_prepare_variants_relations_data_channel_ids(
+    product_with_single_variant, channel_PLN, channel_USD
+):
+    # given
+    qs = Product.objects.all()
+    variant = product_with_single_variant.variants.first()
+
+    fields = set()
+    attribute_ids = []
+    warehouse_ids = []
+    channel_ids = [str(channel_PLN.pk), str(channel_USD.pk)]
+
+    # when
+    result = prepare_variants_relations_data(
+        qs, fields, attribute_ids, warehouse_ids, channel_ids
+    )
+
+    # then
+    pk = variant.pk
+    expected_result = {pk: {}}
+
+    expected_result = add_channel_to_expected_variant_data(
+        expected_result, variant, channel_ids, pk
+    )
     assert result == expected_result
 
 
@@ -578,6 +755,71 @@ def test_add_warehouse_info_to_data_data_no_slug(product):
 
     # when
     result = add_warehouse_info_to_data(product.pk, warehouse_data, input_data)
+
+    # then
+    assert result == input_data
+
+
+def test_add_channel_info_to_data(product):
+    # given
+    pk = product.pk
+    slug = "test_channel"
+    channel_data = {
+        "slug": slug,
+        "currency_code": "USD",
+        "published": True,
+    }
+    input_data = {pk: {}}
+    fields = ["currency_code", "published"]
+
+    # when
+    result = add_channel_info_to_data(product.pk, channel_data, input_data, fields)
+
+    # then
+    assert len(result[pk]) == 2
+    assert (
+        result[pk][f"{slug} (channel currency code)"] == channel_data["currency_code"]
+    )
+    assert result[pk][f"{slug} (channel published)"] == channel_data["published"]
+
+
+def test_add_channel_info_to_data_not_changed(product):
+    # given
+    pk = product.pk
+    slug = "test_channel"
+    channel_data = {
+        "slug": slug,
+        "currency_code": "USD",
+        "published": False,
+    }
+    input_data = {
+        pk: {
+            f"{slug} (channel currency code)": "PLN",
+            f"{slug} (channel published)": True,
+        }
+    }
+    fields = ["currency_code", "published"]
+
+    # when
+    result = add_channel_info_to_data(product.pk, channel_data, input_data, fields)
+
+    # then
+    assert result == input_data
+
+
+def test_add_channel_info_to_data_no_slug(product):
+    # given
+    pk = product.pk
+    channel_data = {
+        "slug": None,
+        "currency_code": None,
+        "published": None,
+    }
+    input_data = {pk: {}}
+    fields = ["currency_code"]
+
+    # when
+    result = add_channel_info_to_data(product.pk, channel_data, input_data, fields)
 
     # then
     assert result == input_data

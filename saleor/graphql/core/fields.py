@@ -8,6 +8,7 @@ from graphql.error import GraphQLError
 from graphql_relay.connection.arrayconnection import connection_from_list_slice
 from promise import Promise
 
+from ..channel import ChannelContext, ChannelQsContext
 from ..utils.sorting import sort_queryset_for_connection
 from .connection import connection_from_queryset_slice
 
@@ -106,7 +107,7 @@ class PrefetchingConnectionField(BaseDjangoConnectionField):
         )
 
 
-class FilterInputConnectionField(PrefetchingConnectionField):
+class FilterInputConnectionField(BaseDjangoConnectionField):
     def __init__(self, *args, **kwargs):
         self.filter_field_name = kwargs.pop("filter_field_name", "filter")
         self.filter_input = kwargs.get(self.filter_field_name)
@@ -173,6 +174,16 @@ class FilterInputConnectionField(PrefetchingConnectionField):
             cls.resolve_connection, connection, args, max_limit=max_limit
         )
 
+        iterable = cls.filter_iterable(
+            iterable, filterset_class, filters_name, info, **args
+        )
+
+        if Promise.is_thenable(iterable):
+            return Promise.resolve(iterable).then(on_resolve)
+        return on_resolve(iterable)
+
+    @classmethod
+    def filter_iterable(cls, iterable, filterset_class, filters_name, info, **args):
         filter_input = args.get(filters_name)
         if filter_input and filterset_class:
             instance = filterset_class(
@@ -182,10 +193,7 @@ class FilterInputConnectionField(PrefetchingConnectionField):
             if not instance.is_valid():
                 raise GraphQLError(json.dumps(instance.errors.get_json_data()))
             iterable = instance.qs
-
-        if Promise.is_thenable(iterable):
-            return Promise.resolve(iterable).then(on_resolve)
-        return on_resolve(iterable)
+        return iterable
 
     def get_resolver(self, parent_resolver):
         return partial(
@@ -193,3 +201,30 @@ class FilterInputConnectionField(PrefetchingConnectionField):
             self.filterset_class,
             self.filter_field_name,
         )
+
+
+class ChannelContextFilterConnectionField(FilterInputConnectionField):
+    @classmethod
+    def filter_iterable(cls, iterable, filterset_class, filters_name, info, **args):
+        # Overriding filter_iterable to unpack the queryset from iterable, which is
+        # an instance of ChannelQsContext and pack it back after filtering is done.
+        channel_slug = iterable.channel_slug
+        iterable = super().filter_iterable(
+            iterable.qs, filterset_class, filters_name, info, **args
+        )
+        return ChannelQsContext(qs=iterable, channel_slug=channel_slug)
+
+    @classmethod
+    def resolve_connection(
+        cls, connection, args, iterable: ChannelQsContext, max_limit=None
+    ):
+        connection = super().resolve_connection(
+            connection, args, iterable.qs, max_limit
+        )
+        edges_with_context = []
+        for edge in connection.edges:
+            node = edge.node
+            edge.node = ChannelContext(node=node, channel_slug=iterable.channel_slug)
+            edges_with_context.append(edge)
+        connection.edges = edges_with_context
+        return connection

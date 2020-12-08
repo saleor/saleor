@@ -1,3 +1,5 @@
+from ...attribute import models as attribute_models
+from ...discount import models as discount_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
 
@@ -12,4 +14,24 @@ def resolve_shipping_methods(info):
 
 
 def resolve_attribute_values(info):
-    return product_models.AttributeValue.objects.all()
+    return attribute_models.AttributeValue.objects.all()
+
+
+def resolve_products(_info):
+    return product_models.Product.objects.all()
+
+
+def resolve_product_variants(_info):
+    return product_models.ProductVariant.objects.all()
+
+
+def resolve_sales(_info):
+    return discount_models.Sale.objects.all()
+
+
+def resolve_vouchers(_info):
+    return discount_models.Voucher.objects.all()
+
+
+def resolve_collections(_info):
+    return product_models.Collection.objects.all()

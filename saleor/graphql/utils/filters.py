@@ -4,6 +4,17 @@ from django.utils import timezone
 from ..core.enums import ReportingPeriod
 
 
+def filter_fields_containing_value(*search_fields: str):
+    """Create a icontains filters through given fields on a given query set object."""
+
+    def _filter_qs(qs, _, value):
+        if value:
+            qs = filter_by_query_param(qs, value, search_fields)
+        return qs
+
+    return _filter_qs
+
+
 def filter_by_query_param(queryset, query, search_fields):
     """Filter queryset according to given parameters.
 

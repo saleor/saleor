@@ -27,6 +27,7 @@ from .notify_events import (
     send_invoice,
     send_order_canceled,
     send_order_confirmation,
+    send_order_confirmed,
     send_order_refund,
     send_payment_confirmation,
 )
@@ -44,6 +45,7 @@ class UserTemplate:
     account_password_reset: Optional[str]
     invoice_ready: Optional[str]
     order_confirmation: Optional[str]
+    order_confirmed: Optional[str]
     order_fulfillment_confirmation: Optional[str]
     order_fulfillment_update: Optional[str]
     order_payment_confirmation: Optional[str]
@@ -67,6 +69,7 @@ def get_user_template_map(templates: UserTemplate):
         UserNotifyEvent.ACCOUNT_PASSWORD_RESET: templates.account_password_reset,
         UserNotifyEvent.INVOICE_READY: templates.invoice_ready,
         UserNotifyEvent.ORDER_CONFIRMATION: templates.order_confirmation,
+        UserNotifyEvent.ORDER_CONFIRMED: templates.order_confirmed,
         UserNotifyEvent.ORDER_FULFILLMENT_CONFIRMATION: (
             templates.order_fulfillment_confirmation
         ),
@@ -91,6 +94,7 @@ def get_user_event_map():
         UserNotifyEvent.ACCOUNT_PASSWORD_RESET: send_account_password_reset_event,
         UserNotifyEvent.INVOICE_READY: send_invoice,
         UserNotifyEvent.ORDER_CONFIRMATION: send_order_confirmation,
+        UserNotifyEvent.ORDER_CONFIRMED: send_order_confirmed,
         UserNotifyEvent.ORDER_FULFILLMENT_CONFIRMATION: send_fulfillment_confirmation,
         UserNotifyEvent.ORDER_FULFILLMENT_UPDATE: send_fulfillment_update,
         UserNotifyEvent.ORDER_PAYMENT_CONFIRMATION: send_payment_confirmation,
@@ -161,6 +165,14 @@ class UserEmailPlugin(BasePlugin):
         },
         {
             "name": constants.ORDER_CONFIRMATION_TEMPLATE_FIELD,
+            "value": DEFAULT_EMAIL_VALUE,
+        },
+        {
+            "name": constants.ORDER_CONFIRMED_SUBJECT_FIELD,
+            "value": constants.ORDER_CONFIRMED_DEFAULT_SUBJECT,
+        },
+        {
+            "name": constants.ORDER_CONFIRMED_TEMPLATE_FIELD,
             "value": DEFAULT_EMAIL_VALUE,
         },
         {
@@ -283,6 +295,16 @@ class UserEmailPlugin(BasePlugin):
             "help_text": DEFAULT_TEMPLATE_MESSAGE,
             "label": "Order confirmation - template",
         },
+        constants.ORDER_CONFIRMED_SUBJECT_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_SUBJECT_MESSAGE,
+            "label": "Order confirmed - subject",
+        },
+        constants.ORDER_CONFIRMED_TEMPLATE_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "label": "Order confirmed - template",
+        },
         constants.ORDER_FULFILLMENT_CONFIRMATION_SUBJECT_FIELD: {
             "type": ConfigurationTypeField.STRING,
             "help_text": DEFAULT_SUBJECT_MESSAGE,
@@ -370,6 +392,7 @@ class UserEmailPlugin(BasePlugin):
             order_confirmation=configuration[
                 constants.ORDER_CONFIRMATION_TEMPLATE_FIELD
             ],
+            order_confirmed=configuration[constants.ORDER_CONFIRMED_TEMPLATE_FIELD],
             order_fulfillment_confirmation=configuration[
                 constants.ORDER_FULFILLMENT_CONFIRMATION_TEMPLATE_FIELD
             ],

@@ -1,6 +1,7 @@
 from unittest import mock
 
 from saleor.account.notifications import get_default_user_payload
+from saleor.order import OrderEvents, OrderEventsEmails
 from saleor.order.notifications import (
     get_default_fulfillment_payload,
     get_default_order_payload,
@@ -14,6 +15,7 @@ from saleor.plugins.user_email.tasks import (
     send_invoice_email_task,
     send_order_canceled_email_task,
     send_order_confirmation_email_task,
+    send_order_confirmed_email_task,
     send_order_refund_email_task,
     send_password_reset_email_task,
     send_payment_confirmation_email_task,
@@ -706,3 +708,68 @@ def test_send_order_refund_email_task_custom_template(
         subject=expected_subject,
         template_str=expected_template_str,
     )
+
+
+@mock.patch("saleor.plugins.email_common.send_mail")
+def test_send_order_confirmed_email_task_default_template(
+    mocked_send_mail, user_email_dict_config, order, staff_user
+):
+    recipient_email = "user@example.com"
+    payload = {
+        "order": get_default_order_payload(order, "http://localhost:8000/redirect"),
+        "recipient_email": recipient_email,
+        "requester_user_id": staff_user.id,
+        "site_name": "Saleor",
+        "domain": "localhost:8000",
+    }
+
+    send_order_confirmed_email_task(recipient_email, payload, user_email_dict_config)
+
+    # confirm that mail has correct structure and email was sent
+    assert mocked_send_mail.called
+
+    assert order.events.filter(
+        type=OrderEvents.EMAIL_SENT,
+        order=order,
+        user=staff_user.id,
+        parameters__email=recipient_email,
+        parameters__email_type=OrderEventsEmails.CONFIRMED,
+    ).exists()
+
+
+@mock.patch("saleor.plugins.user_email.tasks.send_email")
+def test_send_order_confirmed_email_task_custom_template(
+    mocked_send_email, user_email_dict_config, user_email_plugin, order, staff_user
+):
+    expected_template_str = "<html><body>Template body</body></html>"
+    expected_subject = "Test Email Subject"
+    user_email_plugin(
+        order_confirmed_template=expected_template_str,
+        order_confirmed_subject=expected_subject,
+    )
+    recipient_email = "user@example.com"
+    payload = {
+        "order": get_default_order_payload(order, "http://localhost:8000/redirect"),
+        "recipient_email": recipient_email,
+        "requester_user_id": staff_user.id,
+        "site_name": "Saleor",
+        "domain": "localhost:8000",
+    }
+
+    send_order_confirmed_email_task(recipient_email, payload, user_email_dict_config)
+
+    email_config = EmailConfig(**user_email_dict_config)
+    mocked_send_email.assert_called_with(
+        config=email_config,
+        recipient_list=[recipient_email],
+        context=payload,
+        subject=expected_subject,
+        template_str=expected_template_str,
+    )
+    assert order.events.filter(
+        type=OrderEvents.EMAIL_SENT,
+        order=order,
+        user=staff_user.id,
+        parameters__email=recipient_email,
+        parameters__email_type=OrderEventsEmails.CONFIRMED,
+    ).exists()

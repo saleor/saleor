@@ -17,6 +17,7 @@ from ..notify_events import (
     send_invoice,
     send_order_canceled,
     send_order_confirmation,
+    send_order_confirmed,
     send_order_refund,
     send_payment_confirmation,
 )
@@ -260,6 +261,23 @@ def test_send_order_refund(mocked_email_task, order):
     }
     config = {"host": "localhost", "port": "1025"}
     send_order_refund(
+        payload=payload, config=config,
+    )
+    mocked_email_task.assert_called_with(payload["recipient_email"], payload, config)
+
+
+@mock.patch(
+    "saleor.plugins.user_email.notify_events.send_order_confirmed_email_task.delay"
+)
+def test_send_order_confirmed(mocked_email_task, order):
+    payload = {
+        "order": get_default_order_payload(order, "http://localhost:8000/redirect"),
+        "recipient_email": "user@example.com",
+        "site_name": "Saleor",
+        "domain": "localhost:8000",
+    }
+    config = {"host": "localhost", "port": "1025"}
+    send_order_confirmed(
         payload=payload, config=config,
     )
     mocked_email_task.assert_called_with(payload["recipient_email"], payload, config)

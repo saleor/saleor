@@ -123,3 +123,10 @@ class PaymentGateway:
     name: str
     currencies: List[str]
     config: List[Dict[str, Any]]
+
+
+@dataclass
+class InitializedPaymentResponse:
+    gateway: str
+    name: str
+    data: Optional[JSONType] = None

@@ -1,21 +1,22 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Iterable, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union
 
 import opentracing
 from django.conf import settings
 from prices import MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from saleor.product.models import Collection, Product, ProductVariant
-
+from ...channel.models import Channel
 from ...core.utils import to_local_currency
 from ...discount import DiscountInfo
 from ...discount.utils import calculate_discounted_price
 from ...plugins.manager import get_plugins_manager
-from ...warehouse.availability import (
-    are_all_product_variants_in_stock,
-    is_product_in_stock,
+from ...product.models import (
+    Collection,
+    Product,
+    ProductChannelListing,
+    ProductVariant,
+    ProductVariantChannelListing,
 )
-from .. import ProductAvailabilityStatus
 
 if TYPE_CHECKING:
     # flake8: noqa
@@ -40,30 +41,6 @@ class VariantAvailability:
     discount: Optional[TaxedMoney]
     price_local_currency: Optional[TaxedMoney]
     discount_local_currency: Optional[TaxedMoney]
-
-
-def get_product_availability_status(
-    product: "Product", country: str
-) -> ProductAvailabilityStatus:
-    is_visible = product.is_visible
-    are_all_variants_in_stock = are_all_product_variants_in_stock(product, country)
-    is_in_stock = is_product_in_stock(product, country)
-    requires_variants = product.product_type.has_variants
-
-    if not product.is_published:
-        return ProductAvailabilityStatus.NOT_PUBLISHED
-    if requires_variants and not product.variants.exists():
-        # We check the requires_variants flag here in order to not show this
-        # status with product types that don't require variants, as in that
-        # case variants are hidden from the UI and user doesn't manage them.
-        return ProductAvailabilityStatus.VARIANTS_MISSSING
-    if not is_in_stock:
-        return ProductAvailabilityStatus.OUT_OF_STOCK
-    if not are_all_variants_in_stock:
-        return ProductAvailabilityStatus.LOW_STOCK
-    if not is_visible and product.publication_date is not None:
-        return ProductAvailabilityStatus.NOT_YET_AVAILABLE
-    return ProductAvailabilityStatus.READY_FOR_PURCHASE
 
 
 def _get_total_discount_from_range(
@@ -110,15 +87,18 @@ def _get_product_price_range(
 def get_variant_price(
     *,
     variant: ProductVariant,
+    variant_channel_listing: ProductVariantChannelListing,
     product: Product,
     collections: Iterable[Collection],
-    discounts: Iterable[DiscountInfo]
+    discounts: Iterable[DiscountInfo],
+    channel: Channel
 ):
     return calculate_discounted_price(
         product=product,
-        price=variant.price,
+        price=variant_channel_listing.price,
         collections=collections,
         discounts=discounts,
+        channel=channel,
     )
 
 
@@ -126,19 +106,23 @@ def get_product_price_range(
     *,
     product: Product,
     variants: Iterable[ProductVariant],
+    variants_channel_listing: List[ProductVariantChannelListing],
     collections: Iterable[Collection],
-    discounts: Iterable[DiscountInfo]
+    discounts: Iterable[DiscountInfo],
+    channel: Channel,
 ) -> Optional[MoneyRange]:
     with opentracing.global_tracer().start_active_span("get_product_price_range"):
         if variants:
             prices = [
                 get_variant_price(
                     variant=variant,
+                    variant_channel_listing=variants_channel_listing[i],
                     product=product,
                     collections=collections,
                     discounts=discounts,
+                    channel=channel,
                 )
-                for variant in variants
+                for i, variant in enumerate(variants)
             ]
             return MoneyRange(min(prices), max(prices))
 
@@ -148,9 +132,12 @@ def get_product_price_range(
 def get_product_availability(
     *,
     product: Product,
+    product_channel_listing: Optional[ProductChannelListing],
     variants: Iterable[ProductVariant],
+    variants_channel_listing: List[ProductVariantChannelListing],
     collections: Iterable[Collection],
     discounts: Iterable[DiscountInfo],
+    channel: Channel,
     country: Optional[str] = None,
     local_currency: Optional[str] = None,
     plugins: Optional["PluginsManager"] = None,
@@ -163,8 +150,10 @@ def get_product_availability(
         discounted_net_range = get_product_price_range(
             product=product,
             variants=variants,
+            variants_channel_listing=variants_channel_listing,
             collections=collections,
             discounts=discounts,
+            channel=channel,
         )
         if discounted_net_range is not None:
             discounted = TaxedMoneyRange(
@@ -178,7 +167,12 @@ def get_product_availability(
 
         undiscounted = None
         undiscounted_net_range = get_product_price_range(
-            product=product, variants=variants, collections=collections, discounts=[]
+            product=product,
+            variants=variants,
+            variants_channel_listing=variants_channel_listing,
+            collections=collections,
+            discounts=[],
+            channel=channel,
         )
         if undiscounted_net_range is not None:
             undiscounted = TaxedMoneyRange(
@@ -199,7 +193,10 @@ def get_product_availability(
                 discounted, undiscounted, local_currency
             )
 
-        is_on_sale = product.is_visible and discount is not None
+        is_visible = (
+            product_channel_listing is not None and product_channel_listing.is_visible
+        )
+        is_on_sale = is_visible and discount is not None
 
         return ProductAvailability(
             on_sale=is_on_sale,
@@ -213,9 +210,12 @@ def get_product_availability(
 
 def get_variant_availability(
     variant: ProductVariant,
+    variant_channel_listing: ProductVariantChannelListing,
     product: Product,
+    product_channel_listing: Optional[ProductChannelListing],
     collections: Iterable[Collection],
     discounts: Iterable[DiscountInfo],
+    channel: Channel,
     country: Optional[str] = None,
     local_currency: Optional[str] = None,
     plugins: Optional["PluginsManager"] = None,
@@ -227,16 +227,23 @@ def get_variant_availability(
             product,
             get_variant_price(
                 variant=variant,
+                variant_channel_listing=variant_channel_listing,
                 product=product,
                 collections=collections,
                 discounts=discounts,
+                channel=channel,
             ),
             country,
         )
         undiscounted = plugins.apply_taxes_to_product(
             product,
             get_variant_price(
-                variant=variant, product=product, collections=collections, discounts=[]
+                variant=variant,
+                variant_channel_listing=variant_channel_listing,
+                product=product,
+                collections=collections,
+                discounts=[],
+                channel=channel,
             ),
             country,
         )
@@ -253,7 +260,10 @@ def get_variant_availability(
             price_local_currency = None
             discount_local_currency = None
 
-        is_on_sale = product.is_visible and discount is not None
+        is_visible = (
+            product_channel_listing is not None and product_channel_listing.is_visible
+        )
+        is_on_sale = is_visible and discount is not None
 
         return VariantAvailability(
             on_sale=is_on_sale,
