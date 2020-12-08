@@ -14,7 +14,7 @@ def authorize_net_gateway_config():
             "transaction_key": "secret",
             "client_key": "public",
             "use_sandbox": True,
-        }
+        },
     )
 
 

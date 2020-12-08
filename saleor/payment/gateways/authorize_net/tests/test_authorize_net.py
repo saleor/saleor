@@ -5,7 +5,7 @@ from ....interface import PaymentData
 from .. import authenticate_test, capture, process_payment, refund, void
 
 INVALID_TOKEN = "Y29kZTo1MF8yXzA2MDAwIHRva2VuOjEgdjoxLjE="
-SUCCESS_TRANSACTION_ID = 60156217587
+SUCCESS_TRANSACTION_ID = "60156217587"
 REFUND_AMOUNT = 10.0
 REFUND_TOKEN = "test"
 
@@ -50,7 +50,7 @@ def test_process_payment_error_response(
         response.error
         == "User authentication failed due to invalid authentication values."
     )
-    assert response.transaction_id == None
+    assert not response.transaction_id
     assert response.kind == TransactionKind.CAPTURE
     assert not response.is_success
     assert response.amount == dummy_payment_data.amount
