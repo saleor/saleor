@@ -24,6 +24,8 @@ class AttributeType:
 
 
 class AttributeEntityType:
-    PAGE = "page"
+    """Type of a reference entity type. Must match the name of the graphql type."""
+
+    PAGE = "Page"
 
     CHOICES = [(PAGE, "Page")]
