@@ -12,7 +12,7 @@ from ..decorators import (
 from ..meta.types import ObjectWithMetadata
 from ..translations.fields import TranslationField
 from ..translations.types import AttributeTranslation, AttributeValueTranslation
-from .dataloaders import AttributeValuesByAttributeIdLoader
+from .dataloaders import AttributesByAttributeId, AttributeValuesByAttributeIdLoader
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .enums import (
     AttributeEntityTypeEnum,
@@ -76,13 +76,21 @@ class AttributeValue(CountableDjangoObjectType):
         return File(url=root.file_url, content_type=root.content_type)
 
     @staticmethod
-    def resolve_reference(root: models.AttributeValue, *_args):
-        attribute = root.attribute
-        if not attribute.input_type == AttributeInputType.REFERENCE:
-            return
-        reference_pk = root.slug.split("_")[1]
-        reference_id = graphene.Node.to_global_id(attribute.entity_type, reference_pk)
-        return reference_id
+    def resolve_reference(root: models.AttributeValue, info, **_kwargs):
+        def prepare_reference(attribute):
+            if not attribute.input_type == AttributeInputType.REFERENCE:
+                return
+            reference_pk = root.slug.split("_")[1]
+            reference_id = graphene.Node.to_global_id(
+                attribute.entity_type, reference_pk
+            )
+            return reference_id
+
+        return (
+            AttributesByAttributeId(info.context)
+            .load(root.attribute_id)
+            .then(prepare_reference)
+        )
 
 
 class Attribute(CountableDjangoObjectType):
