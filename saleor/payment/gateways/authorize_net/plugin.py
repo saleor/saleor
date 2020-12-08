@@ -1,6 +1,7 @@
-from typing import List
+from typing import TYPE_CHECKING, List
 
 from django.core.exceptions import ValidationError
+
 from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from saleor.plugins.error_codes import PluginErrorCode
 
@@ -9,17 +10,22 @@ from ...models import Payment
 from ..utils import get_supported_currencies
 from . import (
     GatewayConfig,
-    process_payment,
     authenticate_test,
-    refund,
     authorize,
     capture,
-    void,
     list_client_sources,
+    process_payment,
+    refund,
+    void,
 )
 
-
 GATEWAY_NAME = "Authorize.Net"
+
+if TYPE_CHECKING:
+    # flake8: noqa
+    from ...interface import CustomerSource
+    from ..models import PluginConfiguration
+    from . import GatewayResponse, PaymentData
 
 
 def require_active_plugin(fn):
@@ -118,8 +124,9 @@ class AuthorizeNetGatewayPlugin(BasePlugin):
         # Only check when active and both credentials are set
         # Otherwise the dashboard is hard to use
         if plugin_configuration.active and api_login_id and transaction_key:
+            use_sandbox = True if configuration.get("use_sandbox") else False
             success, message = authenticate_test(
-                api_login_id, transaction_key, configuration.get("use_sandbox")
+                api_login_id, transaction_key, use_sandbox
             )
             if not success:
                 raise ValidationError(

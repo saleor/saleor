@@ -1,21 +1,23 @@
 import json
-from typing import Tuple, Dict, Any, Union, List
-from lxml import etree
+from typing import Any, Dict, List, Optional, Tuple, Union
+
 import requests
 from authorizenet import apicontractsv1
 from authorizenet.apicontrollers import (
     constants,
-    createTransactionController,
     createCustomerProfileFromTransactionController,
+    createTransactionController,
     getCustomerProfileController,
 )
+from lxml import etree
+from lxml.objectify import ObjectifiedElement
 
 from ... import TransactionKind
 from ...interface import (
     CustomerSource,
     GatewayConfig,
-    PaymentData,
     GatewayResponse,
+    PaymentData,
     PaymentMethodInfo,
 )
 
@@ -23,8 +25,8 @@ from ...interface import (
 def authenticate_test(
     name: str, transaction_key: str, use_sandbox: bool
 ) -> Tuple[bool, str]:
-    """
-    Check if credentials are correct.
+    """Check if credentials are correct.
+
     This API is not present in the authorizenet Python package.
     https://developer.authorize.net/api/reference/index.html#gettingstarted-section-section-header
     """
@@ -85,7 +87,7 @@ def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
     return GatewayResponse(
         is_success=success,
         action_required=False,
-        transaction_id=transaction_id,
+        transaction_id=str(transaction_id),
         amount=payment_information.amount,
         currency=payment_information.currency,
         error=error,
@@ -99,8 +101,8 @@ def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
 def authorize(
     payment_information: PaymentData, config: GatewayConfig
 ) -> GatewayResponse:
-    """
-    Based on
+    """Based on AcceptSuite create-an-accept-payment-transaction example.
+
     https://github.com/AuthorizeNet/sample-code-python/blob/master/AcceptSuite/create-an-accept-payment-transaction.py
     """
     kind = TransactionKind.CAPTURE if config.auto_capture else TransactionKind.AUTH
@@ -186,7 +188,7 @@ def authorize(
     return GatewayResponse(
         is_success=success,
         action_required=False,
-        transaction_id=transaction_id,
+        transaction_id=str(transaction_id),
         amount=payment_information.amount,
         currency=payment_information.currency,
         error=error,
@@ -194,7 +196,7 @@ def authorize(
         kind=kind,
         raw_response=raw_response,
         customer_id=customer_id,
-        searchable_key=searchable_key,
+        searchable_key=str(searchable_key),
     )
 
 
@@ -224,7 +226,7 @@ def void(payment_information: PaymentData, config: GatewayConfig) -> GatewayResp
     return GatewayResponse(
         is_success=success,
         action_required=False,
-        transaction_id=transaction_id,
+        transaction_id=str(transaction_id),
         amount=payment_information.amount,
         currency=payment_information.currency,
         error=error,
@@ -317,7 +319,7 @@ def refund(
     return GatewayResponse(
         is_success=success,
         action_required=False,
-        transaction_id=transaction_id,
+        transaction_id=str(transaction_id),
         amount=payment_information.amount,
         currency=payment_information.currency,
         error=error,
@@ -329,18 +331,21 @@ def refund(
 
 
 def _handle_authorize_net_response(
-    response: "ObjectifiedElement",
-) -> Tuple[bool, Union[str, None], Union[int, None], str, Any]:
+    response: ObjectifiedElement,
+) -> Tuple[bool, Optional[str], Optional[int], Any, Any]:
     success = False
-    error = None
-    transaction_id = None
-    transaction_response = None
+    error: Optional[str] = None
+    transaction_id: Optional[int] = None
+    transaction_response: Any = None
     raw_response = ""
     if response is not None:
         raw_response = etree.tostring(response).decode()
         if hasattr(response, "transactionResponse"):
             transaction_response = response.transactionResponse[0]
-            if hasattr(transaction_response, "transId"):
+            if (
+                hasattr(transaction_response, "transId")
+                and transaction_response.transId
+            ):
                 transaction_id = transaction_response.transId.pyval
         if response.messages.resultCode == "Ok":
             if hasattr(response.transactionResponse, "messages"):
@@ -367,9 +372,8 @@ def _handle_authorize_net_response(
 
 def _authorize_net_account_to_payment_method_info(
     transaction_response: Union["ObjectifiedElement", None],
-) -> PaymentMethodInfo:
-    """
-    Transform Authorize.Net transactionResponse to Saleor credit card
+) -> Optional[PaymentMethodInfo]:
+    """Transform Authorize.Net transactionResponse to Saleor credit card.
 
     accountNumber: "XXXX0015"
     accountType: "Mastercard"
@@ -389,6 +393,7 @@ def _authorize_net_account_to_payment_method_info(
             brand=transaction_response.accountType.pyval.lower(),
             type="card",
         )
+    return None
 
 
 def _get_merchant_auth(connection_params: Dict[str, Any]):
@@ -399,8 +404,8 @@ def _get_merchant_auth(connection_params: Dict[str, Any]):
 
 
 def _make_request(create_transaction_request, connection_params: Dict[str, Any]):
-    """
-    Create an auth.net transaction controller and execute the request
+    """Create an auth.net transaction controller and execute the request.
+
     Returns auth.net response object
     """
     create_transaction_controller = createTransactionController(
@@ -416,6 +421,8 @@ def _make_request(create_transaction_request, connection_params: Dict[str, Any])
 
 
 def _normalize_last_4(account_number: str):
-    """ XXXX1111 > 1111 """
-    return (account_number.strip("X"),)
+    """Convert authorize.net account number to Saleor "last_4" format.
 
+    Example: XXXX1111 > 1111
+    """
+    return account_number.strip("X")

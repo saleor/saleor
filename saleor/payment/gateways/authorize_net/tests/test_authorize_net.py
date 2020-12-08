@@ -2,8 +2,7 @@ import pytest
 
 from .... import TransactionKind
 from ....interface import PaymentData
-from .. import process_payment, authenticate_test, refund, capture, void
-
+from .. import authenticate_test, capture, process_payment, refund, void
 
 INVALID_TOKEN = "Y29kZTo1MF8yXzA2MDAwIHRva2VuOjEgdjoxLjE="
 SUCCESS_TRANSACTION_ID = 60156217587
