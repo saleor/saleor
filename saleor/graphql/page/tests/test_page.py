@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.utils.text import slugify
 from freezegun import freeze_time
 
+from ....attribute.models import AttributeValue
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....page.error_codes import PageErrorCode
 from ....page.models import Page, PageType
@@ -153,6 +154,7 @@ CREATE_PAGE_MUTATION = """
                     values {
                         slug
                         name
+                        reference
                         file {
                             url
                             contentType
@@ -409,6 +411,7 @@ def test_create_page_with_file_attribute(
                 "slug": f"{attr_value.slug}-2",
                 "name": attr_value.name,
                 "file": {"url": attr_value.file_url, "contentType": None},
+                "reference": None,
             }
         ],
     }
@@ -479,6 +482,7 @@ def test_create_page_with_file_attribute_new_attribute_value(
         "values": [
             {
                 "slug": slugify(new_value),
+                "reference": None,
                 "name": new_value,
                 "file": {
                     "url": "http://testserver/media/" + new_value,
@@ -588,6 +592,170 @@ def test_create_page_with_file_attribute_required_no_file_url_given(
     assert errors[0]["attributes"] == [file_attribute_id]
 
 
+def test_create_page_with_reference_attribute(
+    staff_api_client, permission_manage_pages, page_type, page_reference_attribute, page
+):
+    # given
+    page_slug = "test-slug"
+    page_content = "test content"
+    page_content_json = json.dumps({"content": "test content"})
+    page_title = "test title"
+    page_is_published = True
+    page_type = PageType.objects.create(
+        name="Test page type 2", slug="test-page-type-2"
+    )
+    page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
+
+    ref_attribute_id = graphene.Node.to_global_id(
+        "Attribute", page_reference_attribute.pk
+    )
+    page_type.page_attributes.add(page_reference_attribute)
+    reference = graphene.Node.to_global_id("Page", page.pk)
+
+    values_count = page_reference_attribute.values.count()
+
+    # test creating root page
+    variables = {
+        "title": page_title,
+        "content": page_content,
+        "contentJson": page_content_json,
+        "isPublished": page_is_published,
+        "slug": page_slug,
+        "pageType": page_type_id,
+        "attributes": [{"id": ref_attribute_id, "references": [reference]}],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_PAGE_MUTATION, variables, permissions=[permission_manage_pages]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["pageCreate"]
+    errors = data["pageErrors"]
+
+    assert not errors
+    assert data["page"]["title"] == page_title
+    assert data["page"]["content"] == page_content
+    assert data["page"]["contentJson"] == page_content_json
+    assert data["page"]["slug"] == page_slug
+    assert data["page"]["isPublished"] == page_is_published
+    assert data["page"]["pageType"]["id"] == page_type_id
+    assert len(data["page"]["attributes"]) == 1
+    page_id = data["page"]["id"]
+    _, new_page_pk = graphene.Node.from_global_id(page_id)
+    expected_attr_data = {
+        "attribute": {"slug": page_reference_attribute.slug},
+        "values": [
+            {"slug": f"{new_page_pk}_{page.pk}", "file": None, "name": page.title, "reference": reference}
+        ],
+    }
+    assert data["page"]["attributes"][0] == expected_attr_data
+
+    page_reference_attribute.refresh_from_db()
+    assert page_reference_attribute.values.count() == values_count + 1
+
+
+def test_create_page_with_reference_attribute_not_required_no_references_given(
+    staff_api_client, permission_manage_pages, page_type, page_reference_attribute
+):
+    # given
+    page_slug = "test-slug"
+    page_content = "test content"
+    page_content_json = json.dumps({"content": "test content"})
+    page_title = "test title"
+    page_is_published = True
+    page_type = PageType.objects.create(
+        name="Test page type 2", slug="test-page-type-2"
+    )
+    page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
+
+    file_attribute_id = graphene.Node.to_global_id(
+        "Attribute", page_reference_attribute.pk
+    )
+    page_type.page_attributes.add(page_reference_attribute)
+
+    page_reference_attribute.value_required = False
+    page_reference_attribute.save(update_fields=["value_required"])
+
+    # test creating root page
+    variables = {
+        "title": page_title,
+        "content": page_content,
+        "contentJson": page_content_json,
+        "isPublished": page_is_published,
+        "slug": page_slug,
+        "pageType": page_type_id,
+        "attributes": [{"id": file_attribute_id, "file": ""}],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_PAGE_MUTATION, variables, permissions=[permission_manage_pages]
+    )
+
+    content = get_graphql_content(response)
+    data = content["data"]["pageCreate"]
+    assert data["pageErrors"] == []
+    assert data["page"]["title"] == page_title
+    assert data["page"]["content"] == page_content
+    assert data["page"]["contentJson"] == page_content_json
+    assert data["page"]["slug"] == page_slug
+    assert data["page"]["isPublished"] == page_is_published
+    assert data["page"]["pageType"]["id"] == page_type_id
+    assert len(data["page"]["attributes"]) == 1
+    assert len(data["page"]["attributes"][0]["values"]) == 0
+
+
+def test_create_page_with_reference_attribute_required_no_references_given(
+    staff_api_client, permission_manage_pages, page_type, page_reference_attribute
+):
+    # given
+    page_slug = "test-slug"
+    page_content = "test content"
+    page_content_json = json.dumps({"content": "test content"})
+    page_title = "test title"
+    page_is_published = True
+    page_type = PageType.objects.create(
+        name="Test page type 2", slug="test-page-type-2"
+    )
+    page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
+
+    file_attribute_id = graphene.Node.to_global_id(
+        "Attribute", page_reference_attribute.pk
+    )
+    page_type.page_attributes.add(page_reference_attribute)
+
+    page_reference_attribute.value_required = True
+    page_reference_attribute.save(update_fields=["value_required"])
+
+    # test creating root page
+    variables = {
+        "title": page_title,
+        "content": page_content,
+        "contentJson": page_content_json,
+        "isPublished": page_is_published,
+        "slug": page_slug,
+        "pageType": page_type_id,
+        "attributes": [{"id": file_attribute_id, "file": ""}],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_PAGE_MUTATION, variables, permissions=[permission_manage_pages]
+    )
+
+    content = get_graphql_content(response)
+    data = content["data"]["pageCreate"]
+    errors = data["pageErrors"]
+    assert not data["page"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PageErrorCode.REQUIRED.name
+    assert errors[0]["field"] == "attributes"
+    assert errors[0]["attributes"] == [file_attribute_id]
+
+
 def test_page_delete_mutation(staff_api_client, page, permission_manage_pages):
     query = """
         mutation DeletePage($id: ID!) {
@@ -635,6 +803,7 @@ UPDATE_PAGE_MUTATION = """
                     values {
                         slug
                         name
+                        reference
                         file {
                             url
                             contentType
@@ -694,13 +863,20 @@ def test_update_page(staff_api_client, permission_manage_pages, page):
     for attr in page_type.page_attributes.all():
         if attr.slug != tag_attr.slug:
             values = [
-                {"slug": slug, "file": None, "name": name}
+                {"slug": slug, "file": None, "name": name, "reference": None}
                 for slug, name in page_attr.filter(
                     assignment__attribute=attr
                 ).values_list("values__slug", "values__name")
             ]
         else:
-            values = [{"slug": slugify(new_value), "file": None, "name": new_value}]
+            values = [
+                {
+                    "slug": slugify(new_value),
+                    "file": None,
+                    "name": new_value,
+                    "reference": None
+                }
+            ]
         attr_data = {
             "attribute": {"slug": attr.slug},
             "values": values,
@@ -750,6 +926,7 @@ def test_update_page_with_file_attribute_value(
             {
                 "slug": slugify(new_value),
                 "name": new_value,
+                "reference": None,
                 "file": {
                     "url": "http://testserver/media/" + new_value,
                     "contentType": None,
@@ -802,6 +979,7 @@ def test_update_page_with_file_attribute_new_value_is_not_created(
             {
                 "slug": existing_value.slug,
                 "name": existing_value.name,
+                "reference": None,
                 "file": {
                     "url": existing_value.file_url,
                     "contentType": existing_value.content_type,
@@ -810,6 +988,105 @@ def test_update_page_with_file_attribute_new_value_is_not_created(
         ],
     }
     assert updated_attribute in data["page"]["attributes"]
+
+
+def test_update_page_with_reference_attribute_new_value(
+    staff_api_client, permission_manage_pages, page_list, page_reference_attribute
+):
+    # given
+    query = UPDATE_PAGE_MUTATION
+
+    page = page_list[0]
+    ref_page = page_list[1]
+    page_type = page.page_type
+    page_type.page_attributes.add(page_reference_attribute)
+
+    values_count = page_reference_attribute.values.count()
+    ref_attribute_id = graphene.Node.to_global_id(
+        "Attribute", page_reference_attribute.pk
+    )
+    reference = graphene.Node.to_global_id("Page", ref_page.pk)
+
+    page_id = graphene.Node.to_global_id("Page", page.id)
+
+    variables = {
+        "id": page_id,
+        "input": {"attributes": [{"id": ref_attribute_id, "references": [reference]}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_pages]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["pageUpdate"]
+
+    assert not data["pageErrors"]
+    assert data["page"]
+    updated_attribute = {
+        "attribute": {"slug": page_reference_attribute.slug},
+        "values": [
+            {"slug": f"{page.pk}_{ref_page.pk}", "name": page.title, "file": None, "reference": reference}
+        ],
+    }
+    assert updated_attribute in data["page"]["attributes"]
+
+    page_reference_attribute.refresh_from_db()
+    assert page_reference_attribute.values.count() == values_count + 1
+
+
+def test_update_page_with_reference_attribute_existing_value(
+    staff_api_client, permission_manage_pages, page_list, page_reference_attribute
+):
+    # given
+    query = UPDATE_PAGE_MUTATION
+
+    page = page_list[0]
+    ref_page = page_list[1]
+    page_type = page.page_type
+    page_type.page_attributes.add(page_reference_attribute)
+
+    attr_value = AttributeValue.objects.create(
+        attribute=page_reference_attribute,
+        name=page.title,
+        slug=f"{page.pk}_{ref_page.pk}",
+    )
+    associate_attribute_values_to_instance(page, page_reference_attribute, attr_value)
+
+    values_count = page_reference_attribute.values.count()
+    ref_attribute_id = graphene.Node.to_global_id(
+        "Attribute", page_reference_attribute.pk
+    )
+    reference = graphene.Node.to_global_id("Page", ref_page.pk)
+
+    page_id = graphene.Node.to_global_id("Page", page.id)
+
+    variables = {
+        "id": page_id,
+        "input": {"attributes": [{"id": ref_attribute_id, "references": [reference]}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_pages]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["pageUpdate"]
+
+    assert not data["pageErrors"]
+    assert data["page"]
+    updated_attribute = {
+        "attribute": {"slug": page_reference_attribute.slug},
+        "values": [{"slug": attr_value.slug, "file": None, "name": page.title, "reference": reference}],
+    }
+    assert updated_attribute in data["page"]["attributes"]
+
+    page_reference_attribute.refresh_from_db()
+    assert page_reference_attribute.values.count() == values_count
 
 
 @freeze_time("2020-03-18 12:00:00")
