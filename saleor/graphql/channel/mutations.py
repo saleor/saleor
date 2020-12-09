@@ -95,9 +95,7 @@ class ChannelDeleteInput(graphene.InputObjectType):
 class ChannelDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a channel to delete.")
-        input = ChannelDeleteInput(
-            required=True, description="Fields required to delete a channel."
-        )
+        input = ChannelDeleteInput(description="Fields required to delete a channel.")
 
     class Meta:
         description = (
@@ -137,32 +135,51 @@ class ChannelDelete(ModelDeleteMutation):
             )
 
     @classmethod
-    def perform_delete(cls, origin_channel, target_channel):
+    def migrate_orders_to_target_channel(cls, origin_channel_id, target_channel_id):
+        Order.objects.select_for_update().filter(channel_id=origin_channel_id).update(
+            channel=target_channel_id
+        )
+
+    @classmethod
+    def delete_checkouts(cls, origin_channel_id):
+        Checkout.objects.select_for_update().filter(
+            channel_id=origin_channel_id
+        ).delete()
+
+    @classmethod
+    def perform_delete_with_order_migration(cls, origin_channel, target_channel):
         cls.validate_input(origin_channel, target_channel)
 
         with transaction.atomic():
             origin_channel_id = origin_channel.id
-            cls.migrate_orders_to_target_channel(origin_channel_id, target_channel.id)
             cls.delete_checkouts(origin_channel_id)
+            cls.migrate_orders_to_target_channel(origin_channel_id, target_channel.id)
 
     @classmethod
-    def migrate_orders_to_target_channel(cls, origin_channel, target_channel):
-        Order.objects.select_for_update().filter(channel_id=origin_channel).update(
-            channel=target_channel
-        )
-
-    @classmethod
-    def delete_checkouts(cls, origin_channel):
-        Checkout.objects.select_for_update().filter(channel_id=origin_channel).delete()
+    def perform_delete_channel_without_order(cls, origin_channel):
+        if Order.objects.filter(channel=origin_channel).exists():
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Cannot remove channel with orders. Try to migrate orders to "
+                        "another channel by passing `targetChannel` param.",
+                        code=ChannelErrorCode.CHANNEL_WITH_ORDERS,
+                    )
+                }
+            )
+        cls.delete_checkouts(origin_channel.id)
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         origin_channel = cls.get_node_or_error(info, data["id"], only_type=Channel)
-        target_channel = cls.get_node_or_error(
-            info, data["input"]["target_channel"], only_type=Channel
-        )
-
-        cls.perform_delete(origin_channel, target_channel)
+        target_channel_global_id = data.get("input", {}).get("target_channel")
+        if target_channel_global_id:
+            target_channel = cls.get_node_or_error(
+                info, target_channel_global_id, only_type=Channel
+            )
+            cls.perform_delete_with_order_migration(origin_channel, target_channel)
+        else:
+            cls.perform_delete_channel_without_order(origin_channel)
 
         return super().perform_mutation(_root, info, **data)
 
