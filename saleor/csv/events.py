@@ -54,13 +54,17 @@ def export_deleted_event(
     )
 
 
-def export_file_sent_event(*, export_file: "ExportFile", user: UserType):
+def export_file_sent_event(*, export_file_id: int, user_id: int):
     ExportEvent.objects.create(
-        export_file=export_file, user=user, type=ExportEvents.EXPORTED_FILE_SENT
+        export_file_id=export_file_id,
+        user_id=user_id,
+        type=ExportEvents.EXPORTED_FILE_SENT,
     )
 
 
-def export_failed_info_sent_event(*, export_file: "ExportFile", user: UserType):
+def export_failed_info_sent_event(*, export_file_id: int, user_id: int):
     ExportEvent.objects.create(
-        export_file=export_file, user=user, type=ExportEvents.EXPORT_FAILED_INFO_SENT
+        export_file_id=export_file_id,
+        user_id=user_id,
+        type=ExportEvents.EXPORT_FAILED_INFO_SENT,
     )

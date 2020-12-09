@@ -1,4 +1,5 @@
 from ...celeryconf import app
+from ...csv.events import export_failed_info_sent_event, export_file_sent_event
 from ..email_common import (
     EmailConfig,
     get_email_subject,
@@ -52,6 +53,9 @@ def send_email_with_link_to_download_file_task(
         template_str=email_template_str,
         context=payload,
     )
+    export_file_sent_event(
+        export_file_id=payload["export"]["id"], user_id=payload["export"].get("user_id")
+    )
 
 
 @app.task
@@ -73,6 +77,9 @@ def send_export_failed_email_task(recipient_email: str, payload: dict, config: d
         subject=subject,
         template_str=email_template_str,
         context=payload,
+    )
+    export_failed_info_sent_event(
+        export_file_id=payload["export"]["id"], user_id=payload["export"].get("user_id")
     )
 
 

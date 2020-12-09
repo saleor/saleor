@@ -1,13 +1,15 @@
 from unittest import mock
 
-from saleor.account.notifications import get_default_user_payload
-from saleor.order import OrderEvents, OrderEventsEmails
-from saleor.order.notifications import (
+from ....account.notifications import get_default_user_payload
+from ....invoice import InvoiceEvents
+from ....invoice.models import Invoice, InvoiceEvent
+from ....order import OrderEvents, OrderEventsEmails
+from ....order.notifications import (
     get_default_fulfillment_payload,
     get_default_order_payload,
 )
-from saleor.plugins.email_common import EmailConfig
-from saleor.plugins.user_email.tasks import (
+from ...email_common import EmailConfig
+from ...user_email.tasks import (
     send_account_confirmation_email_task,
     send_account_delete_confirmation_email_task,
     send_fulfillment_confirmation_email_task,
@@ -209,6 +211,8 @@ def test_send_user_change_email_notification_task_default_template(
         "recipient_email": recipient_email,
         "site_name": "Saleor",
         "domain": "localhost:8000",
+        "old_email": "old.admin@example.com",
+        "new_email": "admin@example.com",
     }
 
     send_user_change_email_notification_task(
@@ -235,6 +239,8 @@ def test_send_user_change_email_notification_task_custom_template(
         "recipient_email": recipient_email,
         "site_name": "Saleor",
         "domain": "localhost:8000",
+        "old_email": "old.admin@example.com",
+        "new_email": "admin@example.com",
     }
 
     send_user_change_email_notification_task(
@@ -365,30 +371,46 @@ def test_send_set_user_password_email_task_custom_template(
 
 @mock.patch("saleor.plugins.email_common.send_mail")
 def test_send_invoice_email_task_default_template(
-    mocked_send_mail, user_email_dict_config,
+    mocked_send_mail, user_email_dict_config, staff_user, order,
 ):
+    invoice = Invoice.objects.create(order=order)
     recipient_email = "user@example.com"
     payload = {
         "invoice": {
-            "id": 1,
+            "id": invoice.id,
+            "order_id": order.id,
             "number": 999,
             "download_url": "http://localhost:8000/download",
         },
         "recipient_email": recipient_email,
         "site_name": "Saleor",
         "domain": "localhost:8000",
+        "requester_user_id": staff_user.id,
     }
 
     send_invoice_email_task(recipient_email, payload, user_email_dict_config)
 
     # confirm that mail has correct structure and email was sent
     assert mocked_send_mail.called
+    assert InvoiceEvent.objects.filter(
+        type=InvoiceEvents.SENT,
+        user=staff_user.id,
+        invoice=invoice,
+        parameters__email=recipient_email,
+    ).exists()
+    assert order.events.filter(
+        type=OrderEvents.INVOICE_SENT,
+        order=order,
+        user=staff_user.id,
+        parameters__email=recipient_email,
+    ).exists()
 
 
 @mock.patch("saleor.plugins.user_email.tasks.send_email")
 def test_send_invoice_email_task_custom_template(
-    mocked_send_email, user_email_dict_config, user_email_plugin,
+    mocked_send_email, user_email_dict_config, user_email_plugin, staff_user, order
 ):
+    invoice = Invoice.objects.create(order=order)
     expected_template_str = "<html><body>Template body</body></html>"
     expected_subject = "Test Email Subject"
     user_email_plugin(
@@ -398,13 +420,15 @@ def test_send_invoice_email_task_custom_template(
     recipient_email = "user@example.com"
     payload = {
         "invoice": {
-            "id": 1,
+            "id": invoice.id,
             "number": 999,
+            "order_id": order.id,
             "download_url": "http://localhost:8000/download",
         },
         "recipient_email": recipient_email,
         "site_name": "Saleor",
         "domain": "localhost:8000",
+        "requester_user_id": staff_user.id,
     }
 
     send_invoice_email_task(recipient_email, payload, user_email_dict_config)
@@ -417,6 +441,18 @@ def test_send_invoice_email_task_custom_template(
         subject=expected_subject,
         template_str=expected_template_str,
     )
+    assert InvoiceEvent.objects.filter(
+        type=InvoiceEvents.SENT,
+        user=staff_user.id,
+        invoice=invoice,
+        parameters__email=recipient_email,
+    ).exists()
+    assert order.events.filter(
+        type=OrderEvents.INVOICE_SENT,
+        order=order,
+        user=staff_user.id,
+        parameters__email=recipient_email,
+    ).exists()
 
 
 @mock.patch("saleor.plugins.email_common.send_mail")
@@ -469,9 +505,10 @@ def test_send_order_confirmation_email_task_custom_template(
 
 @mock.patch("saleor.plugins.email_common.send_mail")
 def test_send_fulfillment_confirmation_email_task_default_template(
-    mocked_send_mail, user_email_dict_config, order, fulfillment
+    mocked_send_mail, user_email_dict_config, order, fulfillment, staff_user
 ):
     payload = get_default_fulfillment_payload(order, fulfillment)
+    payload["requester_user_id"] = staff_user.pk
 
     send_fulfillment_confirmation_email_task(
         payload["recipient_email"], payload, user_email_dict_config
@@ -480,10 +517,22 @@ def test_send_fulfillment_confirmation_email_task_default_template(
     # confirm that mail has correct structure and email was sent
     assert mocked_send_mail.called
 
+    event_email_sent = order.events.get()
+    assert event_email_sent.user == staff_user
+    assert event_email_sent.parameters == {
+        "email": order.user_email,
+        "email_type": OrderEventsEmails.FULFILLMENT,
+    }
+
 
 @mock.patch("saleor.plugins.user_email.tasks.send_email")
 def test_send_fulfillment_confirmation_email_task_custom_template(
-    mocked_send_email, user_email_dict_config, user_email_plugin, order, fulfillment
+    mocked_send_email,
+    user_email_dict_config,
+    user_email_plugin,
+    order,
+    fulfillment,
+    staff_user,
 ):
     expected_template_str = "<html><body>Template body</body></html>"
     expected_subject = "Test Email Subject"
@@ -492,7 +541,10 @@ def test_send_fulfillment_confirmation_email_task_custom_template(
         fulfillment_confirmation_subject=expected_subject,
     )
     payload = get_default_fulfillment_payload(order, fulfillment)
+    payload["requester_user_id"] = staff_user.pk
+    payload["digital_lines"] = [{"fulfillmentLine": {"id": 1}}]
     recipient_email = payload["recipient_email"]
+
     send_fulfillment_confirmation_email_task(
         recipient_email, payload, user_email_dict_config
     )
@@ -505,6 +557,18 @@ def test_send_fulfillment_confirmation_email_task_custom_template(
         subject=expected_subject,
         template_str=expected_template_str,
     )
+
+    event_email_sent, event_digital_email_sent = order.events.all().order_by("pk")
+    assert event_email_sent.user == staff_user
+    assert event_email_sent.parameters == {
+        "email": order.user_email,
+        "email_type": OrderEventsEmails.FULFILLMENT,
+    }
+    assert event_digital_email_sent.user == staff_user
+    assert event_digital_email_sent.parameters == {
+        "email": order.user_email,
+        "email_type": OrderEventsEmails.DIGITAL_LINKS,
+    }
 
 
 @mock.patch("saleor.plugins.email_common.send_mail")
@@ -523,7 +587,12 @@ def test_send_fulfillment_update_email_task_default_template(
 
 @mock.patch("saleor.plugins.user_email.tasks.send_email")
 def test_send_fulfillment_update_email_task_custom_template(
-    mocked_send_email, user_email_dict_config, user_email_plugin, order, fulfillment
+    mocked_send_email,
+    user_email_dict_config,
+    user_email_plugin,
+    order,
+    fulfillment,
+    staff_user,
 ):
     expected_template_str = "<html><body>Template body</body></html>"
     expected_subject = "Test Email Subject"
@@ -572,6 +641,12 @@ def test_send_payment_confirmation_email_task_default_template(
     # confirm that mail has correct structure and email was sent
     assert mocked_send_mail.called
 
+    event_email_sent = order.events.get()
+    assert event_email_sent.parameters == {
+        "email": recipient_email,
+        "email_type": OrderEventsEmails.PAYMENT,
+    }
+
 
 @mock.patch("saleor.plugins.user_email.tasks.send_email")
 def test_send_payment_confirmation_email_task_custom_template(
@@ -614,7 +689,7 @@ def test_send_payment_confirmation_email_task_custom_template(
 
 @mock.patch("saleor.plugins.email_common.send_mail")
 def test_send_order_canceled_email_task_default_template(
-    mocked_send_mail, user_email_dict_config, order
+    mocked_send_mail, user_email_dict_config, order, staff_user
 ):
     recipient_email = "user@example.com"
     payload = {
@@ -622,6 +697,7 @@ def test_send_order_canceled_email_task_default_template(
         "recipient_email": recipient_email,
         "site_name": "Saleor",
         "domain": "localhost:8000",
+        "requester_user_id": staff_user.pk,
     }
 
     send_order_canceled_email_task(recipient_email, payload, user_email_dict_config)
@@ -632,7 +708,7 @@ def test_send_order_canceled_email_task_default_template(
 
 @mock.patch("saleor.plugins.user_email.tasks.send_email")
 def test_send_order_canceled_email_task_custom_template(
-    mocked_send_email, user_email_dict_config, user_email_plugin, order
+    mocked_send_email, user_email_dict_config, user_email_plugin, order, staff_user
 ):
     expected_template_str = "<html><body>Template body</body></html>"
     expected_subject = "Test Email Subject"
@@ -646,6 +722,7 @@ def test_send_order_canceled_email_task_custom_template(
         "recipient_email": recipient_email,
         "site_name": "Saleor",
         "domain": "localhost:8000",
+        "requester_user_id": staff_user.pk,
     }
     send_order_canceled_email_task(recipient_email, payload, user_email_dict_config)
 
@@ -661,7 +738,7 @@ def test_send_order_canceled_email_task_custom_template(
 
 @mock.patch("saleor.plugins.email_common.send_mail")
 def test_send_order_refund_email_task_default_template(
-    mocked_send_mail, user_email_dict_config, order
+    mocked_send_mail, user_email_dict_config, order, staff_user
 ):
     recipient_email = "user@example.com"
     payload = {
@@ -671,6 +748,7 @@ def test_send_order_refund_email_task_default_template(
         "currency": order.currency,
         "site_name": "Saleor",
         "domain": "localhost:8000",
+        "requester_user_id": staff_user.pk,
     }
 
     send_order_refund_email_task(recipient_email, payload, user_email_dict_config)
@@ -678,10 +756,16 @@ def test_send_order_refund_email_task_default_template(
     # confirm that mail has correct structure and email was sent
     assert mocked_send_mail.called
 
+    event_email_sent = order.events.get()
+    assert event_email_sent.parameters == {
+        "email": recipient_email,
+        "email_type": OrderEventsEmails.ORDER_REFUND,
+    }
+
 
 @mock.patch("saleor.plugins.user_email.tasks.send_email")
 def test_send_order_refund_email_task_custom_template(
-    mocked_send_email, user_email_dict_config, user_email_plugin, order
+    mocked_send_email, user_email_dict_config, user_email_plugin, order, staff_user
 ):
     expected_template_str = "<html><body>Template body</body></html>"
     expected_subject = "Test Email Subject"
@@ -697,6 +781,7 @@ def test_send_order_refund_email_task_custom_template(
         "currency": order.currency,
         "site_name": "Saleor",
         "domain": "localhost:8000",
+        "requester_user_id": staff_user.pk,
     }
     send_order_refund_email_task(recipient_email, payload, user_email_dict_config)
 
@@ -708,6 +793,11 @@ def test_send_order_refund_email_task_custom_template(
         subject=expected_subject,
         template_str=expected_template_str,
     )
+    event_email_sent = order.events.get()
+    assert event_email_sent.parameters == {
+        "email": recipient_email,
+        "email_type": OrderEventsEmails.ORDER_REFUND,
+    }
 
 
 @mock.patch("saleor.plugins.email_common.send_mail")

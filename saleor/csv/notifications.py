@@ -4,7 +4,6 @@ from ..core.notifications import get_site_context
 from ..core.notify_events import NotifyEventType
 from ..core.utils import build_absolute_uri
 from ..plugins.manager import get_plugins_manager
-from . import events
 
 if TYPE_CHECKING:
     from .models import ExportFile
@@ -18,6 +17,7 @@ def get_default_export_payload(export_file: "ExportFile") -> dict:
         "user_id": user_id,
         "user_email": user_email,
         "app_id": app_id,
+        "id": export_file.id,
         "status": export_file.status,
         "message": export_file.message,
         "created_at": export_file.created_at,
@@ -35,8 +35,7 @@ def send_export_download_link_notification(export_file: "ExportFile"):
     }
 
     manager = get_plugins_manager()
-    manager.notify(NotifyEventType.CSV_PRODUCT_EXPORT_SUCCESS, payload)  # type: ignore
-    events.export_file_sent_event(export_file=export_file, user=export_file.user)
+    manager.notify(NotifyEventType.CSV_PRODUCT_EXPORT_SUCCESS, payload)
 
 
 def send_export_failed_info(export_file: "ExportFile"):
@@ -47,5 +46,4 @@ def send_export_failed_info(export_file: "ExportFile"):
         **get_site_context(),
     }
     manager = get_plugins_manager()
-    manager.notify(NotifyEventType.CSV_EXPORT_FAILED, payload)  # type: ignore
-    events.export_failed_info_sent_event(export_file=export_file, user=export_file.user)
+    manager.notify(NotifyEventType.CSV_EXPORT_FAILED, payload)

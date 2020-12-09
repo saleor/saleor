@@ -32,6 +32,20 @@ def _user_is_valid(user: UserType) -> bool:
     return bool(user and not user.is_anonymous)
 
 
+def event_order_refunded_notification(
+    order_id: int, user_id: Optional[int], customer_email: str
+):
+    return OrderEvent.objects.create(
+        order_id=order_id,
+        type=OrderEvents.EMAIL_SENT,
+        parameters={
+            "email": customer_email,
+            "email_type": OrderEventsEmails.ORDER_REFUND,
+        },
+        user_id=user_id,
+    )
+
+
 def event_order_confirmed_notification(
     order_id: int, user_id: Optional[int], customer_email: str
 ):
@@ -46,26 +60,70 @@ def event_order_confirmed_notification(
     )
 
 
-def email_sent_event(
-    *,
-    order: Order,
-    user: Optional[UserType],
-    email_type: str,  # use "OrderEventsEmails" class
-    user_pk: int = None,
-) -> OrderEvent:
-
-    if user and not user.is_anonymous:
-        kwargs: Dict[str, Union[User, int]] = {"user": user}
-    elif user_pk:
-        kwargs = {"user_id": user_pk}
-    else:
-        kwargs = {}
-
+def event_order_cancelled_notification(
+    order_id: int, user_id: Optional[int], customer_email: str
+):
     return OrderEvent.objects.create(
-        order=order,
+        order_id=order_id,
         type=OrderEvents.EMAIL_SENT,
-        parameters={"email": order.get_customer_email(), "email_type": email_type},
-        **kwargs,
+        parameters={
+            "email": customer_email,
+            "email_type": OrderEventsEmails.ORDER_CANCEL,
+        },
+        user_id=user_id,
+    )
+
+
+def event_order_confirmation_notification(
+    order_id: int, user_id: Optional[int], customer_email: str
+):
+    return OrderEvent.objects.create(
+        order_id=order_id,
+        type=OrderEvents.EMAIL_SENT,
+        parameters={
+            "email": customer_email,
+            "email_type": OrderEventsEmails.ORDER_CONFIRMATION,
+        },
+        user_id=user_id,
+    )
+
+
+def event_fulfillment_confirmed_notification(
+    order_id: int, user_id: Optional[int], customer_email: str
+):
+    return OrderEvent.objects.create(
+        order_id=order_id,
+        type=OrderEvents.EMAIL_SENT,
+        parameters={
+            "email": customer_email,
+            "email_type": OrderEventsEmails.FULFILLMENT,
+        },
+        user_id=user_id,
+    )
+
+
+def event_fulfillment_digital_links_notification(
+    order_id: int, user_id: Optional[int], customer_email: str
+):
+    return OrderEvent.objects.create(
+        order_id=order_id,
+        type=OrderEvents.EMAIL_SENT,
+        parameters={
+            "email": customer_email,
+            "email_type": OrderEventsEmails.DIGITAL_LINKS,
+        },
+        user_id=user_id,
+    )
+
+
+def event_payment_confirmed_notification(
+    order_id: int, user_id: Optional[int], customer_email: str
+):
+    return OrderEvent.objects.create(
+        order_id=order_id,
+        type=OrderEvents.EMAIL_SENT,
+        parameters={"email": customer_email, "email_type": OrderEventsEmails.PAYMENT},
+        user_id=user_id,
     )
 
 
@@ -102,13 +160,13 @@ def invoice_updated_event(
     )
 
 
-def invoice_sent_event(
-    *, order: Order, user: Optional[UserType], email: str,
+def event_invoice_sent_notification(
+    *, order_id: int, user_id: Optional[int], email: str
 ) -> OrderEvent:
     return OrderEvent.objects.create(
-        order=order,
+        order_id=order_id,
         type=OrderEvents.INVOICE_SENT,
-        user=user,
+        user_id=user_id,
         parameters={"email": email},
     )
 

@@ -299,7 +299,7 @@ def _create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
     manager = get_plugins_manager()
     # Send the order confirmation email
     transaction.on_commit(
-        lambda: send_order_confirmation(order, checkout.redirect_url, user, manager)
+        lambda: send_order_confirmation(order, checkout.redirect_url, manager)
     )
     # TODO we can drop it and subscribe admin and user email plugins to the same event
     transaction.on_commit(

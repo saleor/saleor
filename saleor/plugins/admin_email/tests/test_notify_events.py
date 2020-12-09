@@ -1,7 +1,6 @@
 from unittest import mock
 
-from saleor.order.notifications import get_default_order_payload
-
+from ....order.notifications import get_default_order_payload
 from ..notify_events import (
     send_csv_export_failed,
     send_csv_product_export_success,
