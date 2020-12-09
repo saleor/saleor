@@ -194,6 +194,11 @@ class ProductError(Error):
         description="List of attributes IDs which causes the error.",
         required=False,
     )
+    values = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of attribute values IDs which causes the error.",
+        required=False,
+    )
 
 
 class CollectionError(ProductWithoutVariantError):

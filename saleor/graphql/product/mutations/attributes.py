@@ -7,17 +7,21 @@ from django.db import transaction
 from django.db.models import Q
 
 from ....attribute import AttributeType, models as attribute_models
-from ....core.permissions import ProductTypePermissions
+from ....core.permissions import ProductPermissions, ProductTypePermissions
 from ....product import models
 from ....product.error_codes import ProductErrorCode
-from ...attribute.mutations import BaseReorderAttributesMutation
+from ...attribute.mutations import (
+    BaseReorderAttributesMutation,
+    BaseReorderAttributeValuesMutation,
+)
 from ...attribute.types import Attribute
+from ...channel import ChannelContext
 from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation
 from ...core.types.common import ProductError
 from ...core.utils import from_global_id_strict_type
 from ...core.utils.reordering import perform_reordering
-from ...product.types import ProductType
+from ...product.types import Product, ProductType
 from ..enums import ProductAttributeType
 
 
@@ -323,3 +327,79 @@ class ProductTypeReorderAttributes(BaseReorderAttributesMutation):
             perform_reordering(attributes_m2m, operations)
 
         return ProductTypeReorderAttributes(product_type=product_type)
+
+
+class ProductReorderAttributeValues(BaseReorderAttributeValuesMutation):
+    product = graphene.Field(
+        Product, description="Product from which attribute values are reordered."
+    )
+
+    class Meta:
+        description = "Reorder product attribute values."
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
+
+    class Arguments:
+        product_id = graphene.Argument(
+            graphene.ID, required=True, description="ID of a product."
+        )
+        attribute_id = graphene.Argument(
+            graphene.ID, required=True, description="ID of an attribute."
+        )
+        moves = graphene.List(
+            ReorderInput,
+            required=True,
+            description="The list of reordering operations for given attribute values.",
+        )
+
+    @classmethod
+    def perform_mutation(cls, _root, info, product_id, attribute_id, moves):
+        pk = from_global_id_strict_type(
+            product_id, only_type=Product, field="product_id"
+        )
+
+        try:
+            product = models.Product.objects.prefetch_related("attributes").get(pk=pk)
+        except ObjectDoesNotExist:
+            raise ValidationError(
+                {
+                    "product_id": ValidationError(
+                        (f"Couldn't resolve to a product: {product_id}"),
+                        code=ProductErrorCode.NOT_FOUND,
+                    )
+                }
+            )
+        attribute_pk = from_global_id_strict_type(
+            attribute_id, only_type=Attribute, field="attribute_id"
+        )
+
+        try:
+            attribute_assignment = product.attributes.prefetch_related("values").get(
+                assignment__attribute_id=attribute_pk
+            )
+        except ObjectDoesNotExist:
+            raise ValidationError(
+                {
+                    "attribute_id": ValidationError(
+                        f"Couldn't resolve to an product {product_id} "
+                        f"attribute: {attribute_id}",
+                        code=ProductErrorCode.NOT_FOUND,
+                    )
+                }
+            )
+
+        values_m2m = getattr(attribute_assignment, "values")
+
+        try:
+            operations = cls.prepare_operations(moves, values_m2m)
+        except ValidationError as error:
+            error.code = ProductErrorCode.NOT_FOUND.value
+            raise ValidationError({"moves": error})
+
+        with transaction.atomic():
+            perform_reordering(values_m2m, operations)
+
+        return ProductReorderAttributeValues(
+            product=ChannelContext(node=product, channel_slug=None)
+        )

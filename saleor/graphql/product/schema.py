@@ -42,6 +42,7 @@ from .filters import (
 from .mutations.attributes import (
     ProductAttributeAssign,
     ProductAttributeUnassign,
+    ProductReorderAttributeValues,
     ProductTypeReorderAttributes,
 )
 from .mutations.channels import (
@@ -405,6 +406,7 @@ class ProductMutations(graphene.ObjectType):
     product_type_bulk_delete = ProductTypeBulkDelete.Field()
     product_type_update = ProductTypeUpdate.Field()
     product_type_reorder_attributes = ProductTypeReorderAttributes.Field()
+    product_reorder_attribute_values = ProductReorderAttributeValues.Field()
 
     digital_content_create = DigitalContentCreate.Field()
     digital_content_delete = DigitalContentDelete.Field()

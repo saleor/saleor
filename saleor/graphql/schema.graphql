@@ -681,6 +681,7 @@ type BulkProductError {
   message: String
   code: ProductErrorCode!
   attributes: [ID!]
+  values: [ID!]
   index: Int
   warehouses: [ID!]
   channels: [ID!]
@@ -691,6 +692,7 @@ type BulkStockError {
   message: String
   code: ProductErrorCode!
   attributes: [ID!]
+  values: [ID!]
   index: Int
 }
 
@@ -1118,6 +1120,7 @@ type CollectionChannelListingError {
   message: String
   code: ProductErrorCode!
   attributes: [ID!]
+  values: [ID!]
   channels: [ID!]
 }
 
@@ -2634,6 +2637,7 @@ type Mutation {
   productTypeBulkDelete(ids: [ID]!): ProductTypeBulkDelete
   productTypeUpdate(id: ID!, input: ProductTypeInput!): ProductTypeUpdate
   productTypeReorderAttributes(moves: [ReorderInput]!, productTypeId: ID!, type: ProductAttributeType!): ProductTypeReorderAttributes
+  productReorderAttributeValues(attributeId: ID!, moves: [ReorderInput]!, productId: ID!): ProductReorderAttributeValues
   digitalContentCreate(input: DigitalContentUploadInput!, variantId: ID!): DigitalContentCreate
   digitalContentDelete(variantId: ID!): DigitalContentDelete
   digitalContentUpdate(input: DigitalContentInput!, variantId: ID!): DigitalContentUpdate
@@ -3858,6 +3862,7 @@ type ProductChannelListingError {
   message: String
   code: ProductErrorCode!
   attributes: [ID!]
+  values: [ID!]
   channels: [ID!]
 }
 
@@ -3916,6 +3921,7 @@ type ProductError {
   message: String
   code: ProductErrorCode!
   attributes: [ID!]
+  values: [ID!]
 }
 
 enum ProductErrorCode {
@@ -4061,6 +4067,12 @@ type ProductPricingInfo {
   priceRange: TaxedMoneyRange
   priceRangeUndiscounted: TaxedMoneyRange
   priceRangeLocalCurrency: TaxedMoneyRange
+}
+
+type ProductReorderAttributeValues {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  product: Product
+  productErrors: [ProductError!]!
 }
 
 input ProductStockFilterInput {
