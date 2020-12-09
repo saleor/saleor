@@ -3,9 +3,10 @@ from unittest.mock import ANY, patch
 import graphene
 import pytest
 
+from .....attribute.models import Attribute
+from .....channel.models import Channel
 from .....csv import ExportEvents
 from .....csv.models import ExportEvent
-from .....product.models import Attribute
 from .....warehouse.models import Warehouse
 from ....tests.utils import get_graphql_content
 from ...enums import ExportScope, FileTypeEnum, ProductFieldEnum
@@ -165,7 +166,7 @@ def test_export_products_mutation_ids_scope(
             "scope": ExportScope.IDS.name,
             "ids": ids,
             "exportInfo": {
-                "fields": [ProductFieldEnum.VARIANT_PRICE.name],
+                "fields": [ProductFieldEnum.NAME.name],
                 "warehouses": [],
                 "attributes": [],
             },
@@ -186,7 +187,7 @@ def test_export_products_mutation_ids_scope(
     (call_args, call_kwargs,) = export_products_mock.call_args
 
     assert set(call_args[1]["ids"]) == pks
-    assert call_args[2] == {"fields": [ProductFieldEnum.VARIANT_PRICE.value]}
+    assert call_args[2] == {"fields": [ProductFieldEnum.NAME.value]}
     assert call_args[3] == FileTypeEnum.XLSX.value
 
     assert not data["exportErrors"]
@@ -204,6 +205,8 @@ def test_export_products_mutation_with_warehouse_and_attribute_ids(
     export_products_mock,
     staff_api_client,
     product_list,
+    channel_USD,
+    channel_PLN,
     permission_manage_products,
     permission_manage_apps,
 ):
@@ -220,6 +223,7 @@ def test_export_products_mutation_with_warehouse_and_attribute_ids(
 
     attribute_pks = [str(attr.pk) for attr in Attribute.objects.all()]
     warehouse_pks = [str(warehouse.pk) for warehouse in Warehouse.objects.all()]
+    channel_pks = [str(channel.pk) for channel in Channel.objects.all()]
 
     attribute_ids = [
         graphene.Node.to_global_id("Attribute", pk) for pk in attribute_pks
@@ -227,15 +231,17 @@ def test_export_products_mutation_with_warehouse_and_attribute_ids(
     warehouse_ids = [
         graphene.Node.to_global_id("Warehouse", pk) for pk in warehouse_pks
     ]
+    channel_ids = [graphene.Node.to_global_id("Channel", pk) for pk in channel_pks]
 
     variables = {
         "input": {
             "scope": ExportScope.IDS.name,
             "ids": ids,
             "exportInfo": {
-                "fields": [ProductFieldEnum.VARIANT_PRICE.name],
+                "fields": [ProductFieldEnum.NAME.name],
                 "warehouses": warehouse_ids,
                 "attributes": attribute_ids,
+                "channels": channel_ids,
             },
             "fileType": FileTypeEnum.CSV.name,
         }
@@ -255,9 +261,10 @@ def test_export_products_mutation_with_warehouse_and_attribute_ids(
 
     assert set(call_args[1]["ids"]) == pks
     assert call_args[2] == {
-        "fields": [ProductFieldEnum.VARIANT_PRICE.value],
+        "fields": [ProductFieldEnum.NAME.value],
         "warehouses": warehouse_pks,
         "attributes": attribute_pks,
+        "channels": channel_pks,
     }
     assert call_args[3] == FileTypeEnum.CSV.value
 

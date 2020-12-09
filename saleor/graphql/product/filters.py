@@ -7,28 +7,20 @@ from django.db.models import Exists, F, OuterRef, Q, Subquery, Sum
 from django.db.models.functions import Coalesce
 from graphene_django.filter import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 
-from ...product.models import (
+from ...attribute.models import (
     AssignedProductAttribute,
     AssignedVariantAttribute,
     Attribute,
-    Category,
-    Collection,
-    Product,
-    ProductType,
-    ProductVariant,
 )
+from ...product.models import Category, Collection, Product, ProductType, ProductVariant
 from ...search.backends import picker
 from ...warehouse.models import Stock
+from ..channel.filters import get_channel_slug_from_filter_data
 from ..core.filters import EnumFilter, ListObjectTypeFilter, ObjectTypeFilter
-from ..core.types import FilterInputObjectType
+from ..core.types import ChannelFilterInputObjectType, FilterInputObjectType
 from ..core.types.common import IntRangeInput, PriceRangeInput
-from ..core.utils import from_global_id_strict_type
-from ..utils import (
-    get_nodes,
-    get_user_or_app_from_context,
-    resolve_global_ids_to_primary_keys,
-)
-from ..utils.filters import filter_by_query_param, filter_range_field
+from ..utils import get_nodes, resolve_global_ids_to_primary_keys
+from ..utils.filters import filter_fields_containing_value, filter_range_field
 from ..warehouse import types as warehouse_types
 from .enums import (
     CollectionPublished,
@@ -36,17 +28,6 @@ from .enums import (
     ProductTypeEnum,
     StockAvailability,
 )
-
-
-def filter_fields_containing_value(*search_fields: str):
-    """Create a icontains filters through given fields on a given query set object."""
-
-    def _filter_qs(qs, _, value):
-        if value:
-            qs = filter_by_query_param(qs, value, search_fields)
-        return qs
-
-    return _filter_qs
 
 
 def _clean_product_attributes_filter_input(
@@ -107,21 +88,33 @@ def filter_products_by_attributes(qs, filter_value):
     return filter_products_by_attributes_values(qs, queries)
 
 
-def filter_products_by_variant_price(qs, price_lte=None, price_gte=None):
+def filter_products_by_variant_price(qs, channel_slug, price_lte=None, price_gte=None):
     if price_lte:
-        qs = qs.filter(variants__price_amount__lte=price_lte)
+        qs = qs.filter(
+            variants__channel_listings__price_amount__lte=price_lte,
+            variants__channel_listings__channel__slug=channel_slug,
+        )
     if price_gte:
-        qs = qs.filter(variants__price_amount__gte=price_gte)
+        qs = qs.filter(
+            variants__channel_listings__price_amount__gte=price_gte,
+            variants__channel_listings__channel__slug=channel_slug,
+        )
     return qs
 
 
 def filter_products_by_minimal_price(
-    qs, minimal_price_lte=None, minimal_price_gte=None
+    qs, channel_slug, minimal_price_lte=None, minimal_price_gte=None
 ):
     if minimal_price_lte:
-        qs = qs.filter(minimal_variant_price_amount__lte=minimal_price_lte)
+        qs = qs.filter(
+            channel_listings__discounted_price_amount__lte=minimal_price_lte,
+            channel_listings__channel__slug=channel_slug,
+        )
     if minimal_price_gte:
-        qs = qs.filter(minimal_variant_price_amount__gte=minimal_price_gte)
+        qs = qs.filter(
+            channel_listings__discounted_price_amount__gte=minimal_price_gte,
+            channel_listings__channel__slug=channel_slug,
+        )
     return qs
 
 
@@ -185,16 +178,26 @@ def filter_collections(qs, _, value):
     return qs
 
 
-def filter_variant_price(qs, _, value):
+def _filter_is_published(qs, _, value, channel_slug):
+    return qs.filter(
+        channel_listings__is_published=value,
+        channel_listings__channel__slug=channel_slug,
+    )
+
+
+def _filter_variant_price(qs, _, value, channel_slug):
     qs = filter_products_by_variant_price(
-        qs, price_lte=value.get("lte"), price_gte=value.get("gte")
+        qs, channel_slug, price_lte=value.get("lte"), price_gte=value.get("gte")
     )
     return qs
 
 
-def filter_minimal_price(qs, _, value):
+def _filter_minimal_price(qs, _, value, channel_slug):
     qs = filter_products_by_minimal_price(
-        qs, minimal_price_lte=value.get("lte"), minimal_price_gte=value.get("gte")
+        qs,
+        channel_slug,
+        minimal_price_lte=value.get("lte"),
+        minimal_price_gte=value.get("gte"),
     )
     return qs
 
@@ -212,14 +215,6 @@ def filter_search(qs, _, value):
     return qs
 
 
-def filter_collection_publish(qs, _, value):
-    if value == CollectionPublished.PUBLISHED:
-        qs = qs.filter(is_published=True)
-    elif value == CollectionPublished.HIDDEN:
-        qs = qs.filter(is_published=False)
-    return qs
-
-
 def filter_product_type_configurable(qs, _, value):
     if value == ProductTypeConfigurable.CONFIGURABLE:
         qs = qs.filter(has_variants=True)
@@ -234,42 +229,6 @@ def filter_product_type(qs, _, value):
     elif value == ProductTypeEnum.SHIPPABLE:
         qs = qs.filter(is_shipping_required=True)
     return qs
-
-
-def filter_attributes_by_product_types(qs, field, value, requestor):
-    if not value:
-        return qs
-
-    product_qs = Product.objects.visible_to_user(requestor)
-
-    if field == "in_category":
-        category_id = from_global_id_strict_type(
-            value, only_type="Category", field=field
-        )
-        category = Category.objects.filter(pk=category_id).first()
-
-        if category is None:
-            return qs.none()
-
-        tree = category.get_descendants(include_self=True)
-        product_qs = product_qs.filter(category__in=tree)
-
-        if not product_qs.user_has_access_to_all(requestor):
-            product_qs = product_qs.exclude(visible_in_listings=False)
-
-    elif field == "in_collection":
-        collection_id = from_global_id_strict_type(
-            value, only_type="Collection", field=field
-        )
-        product_qs = product_qs.filter(collections__id=collection_id)
-
-    else:
-        raise NotImplementedError(f"Filtering by {field} is unsupported")
-
-    product_types = set(product_qs.values_list("product_type_id", flat=True))
-    return qs.filter(
-        Q(product_types__in=product_types) | Q(product_variant_types__in=product_types)
-    )
 
 
 def filter_stocks(qs, _, value):
@@ -331,18 +290,18 @@ class ProductStockFilterInput(graphene.InputObjectType):
 
 
 class ProductFilter(django_filters.FilterSet):
-    is_published = django_filters.BooleanFilter()
+    is_published = django_filters.BooleanFilter(method="filter_is_published")
     collections = GlobalIDMultipleChoiceFilter(method=filter_collections)
     categories = GlobalIDMultipleChoiceFilter(method=filter_categories)
     has_category = django_filters.BooleanFilter(method=filter_has_category)
-    price = ObjectTypeFilter(input_class=PriceRangeInput, method=filter_variant_price)
+    price = ObjectTypeFilter(input_class=PriceRangeInput, method="filter_variant_price")
     minimal_price = ObjectTypeFilter(
         input_class=PriceRangeInput,
-        method=filter_minimal_price,
+        method="filter_minimal_price",
         field_name="minimal_price_amount",
     )
     attributes = ListObjectTypeFilter(
-        input_class="saleor.graphql.product.types.attributes.AttributeInput",
+        input_class="saleor.graphql.attribute.types.AttributeInput",
         method=filter_attributes,
     )
     stock_availability = EnumFilter(
@@ -368,6 +327,18 @@ class ProductFilter(django_filters.FilterSet):
             "search",
         ]
 
+    def filter_variant_price(self, queryset, name, value):
+        channel_slug = get_channel_slug_from_filter_data(self.data)
+        return _filter_variant_price(queryset, name, value, channel_slug)
+
+    def filter_minimal_price(self, queryset, name, value):
+        channel_slug = get_channel_slug_from_filter_data(self.data)
+        return _filter_minimal_price(queryset, name, value, channel_slug)
+
+    def filter_is_published(self, queryset, name, value):
+        channel_slug = get_channel_slug_from_filter_data(self.data)
+        return _filter_is_published(queryset, name, value, channel_slug)
+
 
 class ProductVariantFilter(django_filters.FilterSet):
     search = django_filters.CharFilter(
@@ -382,7 +353,7 @@ class ProductVariantFilter(django_filters.FilterSet):
 
 class CollectionFilter(django_filters.FilterSet):
     published = EnumFilter(
-        input_class=CollectionPublished, method=filter_collection_publish
+        input_class=CollectionPublished, method="filter_is_published"
     )
     search = django_filters.CharFilter(
         method=filter_fields_containing_value("slug", "name")
@@ -392,6 +363,14 @@ class CollectionFilter(django_filters.FilterSet):
     class Meta:
         model = Collection
         fields = ["published", "search"]
+
+    def filter_is_published(self, queryset, name, value):
+        channel_slug = get_channel_slug_from_filter_data(self.data)
+        if value == CollectionPublished.PUBLISHED:
+            return _filter_is_published(queryset, name, True, channel_slug)
+        elif value == CollectionPublished.HIDDEN:
+            return _filter_is_published(queryset, name, False, channel_slug)
+        return queryset
 
 
 class CategoryFilter(django_filters.FilterSet):
@@ -422,37 +401,7 @@ class ProductTypeFilter(django_filters.FilterSet):
         fields = ["search", "configurable", "product_type"]
 
 
-class AttributeFilter(django_filters.FilterSet):
-    # Search by attribute name and slug
-    search = django_filters.CharFilter(
-        method=filter_fields_containing_value("slug", "name")
-    )
-    ids = GlobalIDMultipleChoiceFilter(field_name="id")
-
-    in_collection = GlobalIDFilter(method="filter_in_collection")
-    in_category = GlobalIDFilter(method="filter_in_category")
-
-    class Meta:
-        model = Attribute
-        fields = [
-            "value_required",
-            "is_variant_only",
-            "visible_in_storefront",
-            "filterable_in_storefront",
-            "filterable_in_dashboard",
-            "available_in_grid",
-        ]
-
-    def filter_in_collection(self, queryset, name, value):
-        requestor = get_user_or_app_from_context(self.request)
-        return filter_attributes_by_product_types(queryset, name, value, requestor)
-
-    def filter_in_category(self, queryset, name, value):
-        requestor = get_user_or_app_from_context(self.request)
-        return filter_attributes_by_product_types(queryset, name, value, requestor)
-
-
-class ProductFilterInput(FilterInputObjectType):
+class ProductFilterInput(ChannelFilterInputObjectType):
     class Meta:
         filterset_class = ProductFilter
 
@@ -462,7 +411,7 @@ class ProductVariantFilterInput(FilterInputObjectType):
         filterset_class = ProductVariantFilter
 
 
-class CollectionFilterInput(FilterInputObjectType):
+class CollectionFilterInput(ChannelFilterInputObjectType):
     class Meta:
         filterset_class = CollectionFilter
 
@@ -475,8 +424,3 @@ class CategoryFilterInput(FilterInputObjectType):
 class ProductTypeFilterInput(FilterInputObjectType):
     class Meta:
         filterset_class = ProductTypeFilter
-
-
-class AttributeFilterInput(FilterInputObjectType):
-    class Meta:
-        filterset_class = AttributeFilter

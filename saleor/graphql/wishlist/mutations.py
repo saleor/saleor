@@ -1,5 +1,8 @@
 import graphene
+from django.core.exceptions import ValidationError
 
+from ...product.error_codes import ProductErrorCode
+from ...product.utils import get_products_ids_without_variants
 from ..core.mutations import BaseMutation
 from ..core.types.common import WishlistError
 from ..product.types import Product, ProductVariant
@@ -40,9 +43,24 @@ class WishlistAddProductMutation(_BaseWishlistProductMutation):
         product = cls.get_node_or_error(
             info, product_id, only_type=Product, field="product_id"
         )
+        cls.clean_products([product])
         wishlist.add_product(product)
         wishlist_items = wishlist.items.all()
         return WishlistAddProductMutation(wishlist=wishlist_items)
+
+    @classmethod
+    def clean_products(cls, products):
+        products_ids_without_variants = get_products_ids_without_variants(products)
+        if products_ids_without_variants:
+            raise ValidationError(
+                {
+                    "products": ValidationError(
+                        "Cannot manage products without variants.",
+                        code=ProductErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT,
+                        params={"products": products_ids_without_variants},
+                    )
+                }
+            )
 
 
 class WishlistRemoveProductMutation(_BaseWishlistProductMutation):

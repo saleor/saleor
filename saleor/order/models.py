@@ -16,6 +16,7 @@ from measurement.measures import Weight
 from prices import Money
 
 from ..account.models import Address
+from ..channel.models import Channel
 from ..core.models import ModelWithMetadata
 from ..core.permissions import OrderPermissions
 from ..core.taxes import zero_money, zero_taxed_money
@@ -34,7 +35,11 @@ class OrderQueryset(models.QuerySet):
         return self.confirmed().filter(checkout_token=token).first()
 
     def confirmed(self):
-        """Return non-draft orders."""
+        """Return orders that aren't draft or unconfirmed."""
+        return self.exclude(status__in=[OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
+
+    def non_draft(self):
+        """Return orders that aren't draft."""
         return self.exclude(status=OrderStatus.DRAFT)
 
     def drafts(self):
@@ -65,6 +70,10 @@ class OrderQueryset(models.QuerySet):
         qs = qs.exclude(status={OrderStatus.DRAFT, OrderStatus.CANCELED})
         return qs.distinct()
 
+    def ready_to_confirm(self):
+        """Return unconfirmed_orders."""
+        return self.filter(status=OrderStatus.UNCONFIRMED)
+
 
 class Order(ModelWithMetadata):
     created = models.DateTimeField(default=now, editable=False)
@@ -88,10 +97,7 @@ class Order(ModelWithMetadata):
     )
     user_email = models.EmailField(blank=True, default="")
 
-    currency = models.CharField(
-        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
-        default=settings.DEFAULT_CURRENCY,
-    )
+    currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,)
 
     shipping_method = models.ForeignKey(
         ShippingMethod,
@@ -103,7 +109,9 @@ class Order(ModelWithMetadata):
     shipping_method_name = models.CharField(
         max_length=255, null=True, default=None, blank=True, editable=False
     )
-
+    channel = models.ForeignKey(
+        Channel, related_name="orders", on_delete=models.PROTECT,
+    )
     shipping_price_net_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
@@ -173,6 +181,7 @@ class Order(ModelWithMetadata):
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES, default=zero_weight
     )
+    redirect_url = models.URLField(blank=True, null=True)
     objects = OrderQueryset.as_manager()
 
     class Meta:
@@ -206,7 +215,7 @@ class Order(ModelWithMetadata):
             ]
         )
         total_captured = [payment.get_captured_amount() for payment in payments]
-        total_paid = sum(total_captured, zero_taxed_money())
+        total_paid = sum(total_captured, zero_taxed_money(currency=self.currency))
         return total_paid
 
     def _index_billing_phone(self):
@@ -270,7 +279,7 @@ class Order(ModelWithMetadata):
 
     def get_subtotal(self):
         subtotal_iterator = (line.get_total() for line in self)
-        return sum(subtotal_iterator, zero_taxed_money())
+        return sum(subtotal_iterator, zero_taxed_money(currency=self.currency))
 
     def get_total_quantity(self):
         return sum([line.quantity for line in self])
@@ -317,7 +326,7 @@ class Order(ModelWithMetadata):
         payment = self.get_last_payment()
         if payment:
             return payment.get_authorized_amount()
-        return zero_money()
+        return zero_money(self.currency)
 
     @property
     def total_captured(self):
@@ -328,7 +337,7 @@ class Order(ModelWithMetadata):
             ChargeStatus.PARTIALLY_REFUNDED,
         ):
             return Money(payment.captured_amount, payment.currency)
-        return zero_money()
+        return zero_money(self.currency)
 
     @property
     def total_balance(self):
@@ -375,10 +384,7 @@ class OrderLine(models.Model):
         validators=[MinValueValidator(0)], default=0
     )
 
-    currency = models.CharField(
-        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
-        default=settings.DEFAULT_CURRENCY,
-    )
+    currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,)
 
     unit_price_net_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
@@ -483,7 +489,7 @@ class Fulfillment(ModelWithMetadata):
 
 class FulfillmentLine(models.Model):
     order_line = models.ForeignKey(
-        OrderLine, related_name="+", on_delete=models.CASCADE
+        OrderLine, related_name="fulfillment_lines", on_delete=models.CASCADE
     )
     fulfillment = models.ForeignKey(
         Fulfillment, related_name="lines", on_delete=models.CASCADE

@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from typing import Union
 
-from django.conf import settings
 from django.contrib.sites.models import Site
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
@@ -10,7 +9,7 @@ class TaxError(Exception):
     """Default tax error."""
 
 
-def zero_money(currency: str = settings.DEFAULT_CURRENCY) -> Money:
+def zero_money(currency: str) -> Money:
     """Return a money object set to zero.
 
     This is a function used as a model's default.
@@ -18,7 +17,7 @@ def zero_money(currency: str = settings.DEFAULT_CURRENCY) -> Money:
     return Money(0, currency)
 
 
-def zero_taxed_money(currency: str = settings.DEFAULT_CURRENCY) -> TaxedMoney:
+def zero_taxed_money(currency: str) -> TaxedMoney:
     zero = zero_money(currency)
     return TaxedMoney(net=zero, gross=zero)
 

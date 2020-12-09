@@ -3,7 +3,10 @@ from decimal import Decimal
 from unittest import mock
 
 import pytest
+from django.core.exceptions import ValidationError
+from requests.exceptions import RequestException, SSLError
 
+from .....plugins.models import PluginConfiguration
 from .... import PaymentError, TransactionKind
 from ....interface import GatewayResponse, PaymentMethodInfo
 from ....models import Payment
@@ -91,8 +94,9 @@ def test_process_payment(payment_adyen_for_checkout, checkout_with_items, adyen_
 
 
 @pytest.mark.vcr
+@mock.patch("saleor.payment.gateways.adyen.plugin.call_capture")
 def test_process_payment_with_adyen_auto_capture(
-    payment_adyen_for_checkout, checkout_with_items, adyen_plugin
+    capture_mock, payment_adyen_for_checkout, checkout_with_items, adyen_plugin
 ):
     payment_info = create_payment_information(
         payment_adyen_for_checkout,
@@ -100,8 +104,11 @@ def test_process_payment_with_adyen_auto_capture(
     )
     adyen_plugin = adyen_plugin(adyen_auto_capture=True)
     response = adyen_plugin.process_payment(payment_info, None)
+    # ensure call_capture is not called
+    assert not capture_mock.called
     assert response.is_success is True
     assert response.action_required is False
+    # kind should still be capture as Adyen had adyen_auto_capture set to True
     assert response.kind == TransactionKind.CAPTURE
     assert response.amount == Decimal("80.00")
     assert response.currency == checkout_with_items.currency
@@ -473,3 +480,32 @@ def test_capture_payment(payment_adyen_for_order, order_with_lines, adyen_plugin
     assert response.currency == order_with_lines.currency
     assert response.transaction_id == "852595499936560C"  # ID returned by Adyen
     assert response.payment_method_info == PaymentMethodInfo(brand="visa", type="test")
+
+
+@mock.patch("saleor.payment.gateways.adyen.utils.apple_pay.requests.post")
+def test_validate_plugin_configuration_incorrect_certificate(
+    mocked_request, adyen_plugin
+):
+    plugin = adyen_plugin(apple_pay_cert="cert")
+    mocked_request.side_effect = SSLError()
+    configuration = PluginConfiguration.objects.get()
+    with pytest.raises(ValidationError):
+        plugin.validate_plugin_configuration(configuration)
+
+
+@mock.patch("saleor.payment.gateways.adyen.utils.apple_pay.requests.post")
+def test_validate_plugin_configuration_correct_cert(mocked_request, adyen_plugin):
+    plugin = adyen_plugin(apple_pay_cert="correct_cert")
+    mocked_request.side_effect = RequestException()
+    configuration = PluginConfiguration.objects.get()
+    plugin.validate_plugin_configuration(configuration)
+
+
+def test_validate_plugin_configuration_without_apple_cert(adyen_plugin):
+    plugin = adyen_plugin(apple_pay_cert="correct_cert")
+    configuration = [
+        {"name": "api-key", "value": "key"},
+    ]
+    plugin_configuration = PluginConfiguration.objects.get()
+    plugin_configuration.configuration = configuration
+    plugin.validate_plugin_configuration(plugin_configuration)

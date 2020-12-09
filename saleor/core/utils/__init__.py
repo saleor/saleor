@@ -1,4 +1,5 @@
 import logging
+import os
 import socket
 from typing import TYPE_CHECKING, Optional, Type, Union
 from urllib.parse import urljoin
@@ -93,7 +94,7 @@ def get_currency_for_country(country):
     currencies = get_territory_currencies(country.code)
     if currencies:
         return currencies[0]
-    return settings.DEFAULT_CURRENCY
+    return os.environ.get("DEFAULT_CURRENCY", "USD")
 
 
 def to_local_currency(price, currency):

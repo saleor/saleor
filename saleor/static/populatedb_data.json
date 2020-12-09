@@ -11,15 +11,11 @@
       "description": "",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": ""
+          },
+          "type": "paragraph"
+        }]
       },
       "parent": null,
       "background_image": "category-backgrounds/accessories_8AEdvHR.jpg",
@@ -43,15 +39,11 @@
       "description": "",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": ""
+          },
+          "type": "paragraph"
+        }]
       },
       "parent": null,
       "background_image": "category-backgrounds/groceries_CFNOYEO.jpg",
@@ -75,15 +67,11 @@
       "description": "",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": ""
+          },
+          "type": "paragraph"
+        }]
       },
       "parent": null,
       "background_image": "category-backgrounds/apparel_j1eQDeZ.jpg",
@@ -275,15 +263,11 @@
       "description": "",
       "description_json": {
         "blocks": [{
-          "key": "89slb",
-          "data": {},
-          "text": "",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": ""
+          },
+          "type": "paragraph"
+        }]
       },
       "parent": 7,
       "background_image": "",
@@ -448,8 +432,6 @@
     "model": "product.product",
     "pk": 61,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "taxes": {
@@ -467,32 +449,22 @@
       "description": "Tonight, my love, let us take fat brushes and paint the skies with the shades of nebula tides. Get the dark, moody shades of the ether.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Tonight, my love, let us take fat brushes and paint the skies with the shades of nebula tides. Get the dark, moody shades of the ether.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Tonight, my love, let us take fat brushes and paint the skies with the shades of nebula tides. Get the dark, moody shades of the ether."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 20,
-      "currency": "USD",
-      "minimal_variant_price_amount": "15.00",
       "updated_at": "2020-08-31T06:53:16.102Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-10-08",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 62,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -506,32 +478,22 @@
       "description": "The rich, deep hue of space dust. Vacuum packed and airlocked for long-lasting freshness of color.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "The rich, deep hue of space dust. Vacuum packed and airlocked for long-lasting freshness of color.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "The rich, deep hue of space dust. Vacuum packed and airlocked for long-lasting freshness of color."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 20,
-      "currency": "USD",
-      "minimal_variant_price_amount": "15.00",
       "updated_at": "2020-08-31T06:53:16.307Z",
       "charge_taxes": true,
-      "weight": "1.0:kg",
-      "available_for_purchase": "2021-02-26",
-      "visible_in_listings": true
+      "weight": "1.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 63,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -545,32 +507,22 @@
       "description": "We are all connected to the universe, because every cell in our bodies was cooked in the hearts of dying stars. Red Dwarf Paint: the color of Carl Sagan’s dreams.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "We are all connected to the universe, because every cell in our bodies was cooked in the hearts of dying stars. Red Dwarf Paint: the color of Carl Sagan’s dreams.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "We are all connected to the universe, because every cell in our bodies was cooked in the hearts of dying stars. Red Dwarf Paint: the color of Carl Sagan’s dreams."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 20,
-      "currency": "USD",
-      "minimal_variant_price_amount": "15.00",
       "updated_at": "2020-08-31T06:53:29.317Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2021-08-06",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 64,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -584,32 +536,22 @@
       "description": "There is life in outer space. This vibrant light speed yellow paint brings life to any surface. Goes on easy and dries at light speed.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "There is life in outer space. This vibrant light speed yellow paint brings life to any surface. Goes on easy and dries at light speed.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "There is life in outer space. This vibrant light speed yellow paint brings life to any surface. Goes on easy and dries at light speed."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 20,
-      "currency": "USD",
-      "minimal_variant_price_amount": "12.00",
       "updated_at": "2020-08-31T06:53:29.548Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2021-01-26",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 65,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -623,32 +565,22 @@
       "description": "Turquoise is the new black. No more gloomy night skies, brighten up your evenings with hyperspace paint.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Turquoise is the new black. No more gloomy night skies, brighten up your evenings with hyperspace paint.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Turquoise is the new black. No more gloomy night skies, brighten up your evenings with hyperspace paint."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 20,
-      "currency": "USD",
-      "minimal_variant_price_amount": "7.50",
       "updated_at": "2020-08-31T06:53:29.787Z",
       "charge_taxes": true,
-      "weight": "1.0:kg",
-      "available_for_purchase": "2021-01-26",
-      "visible_in_listings": true
+      "weight": "1.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 71,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -662,32 +594,22 @@
       "description": "Fell from a tree straight into the bottle. No additives, no preservatives, just the refreshing taste of pure sun-kissed Californian oranges.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Fell from a tree straight into the bottle. No additives, no preservatives, just the refreshing taste of pure sun-kissed Californian oranges.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Fell from a tree straight into the bottle. No additives, no preservatives, just the refreshing taste of pure sun-kissed Californian oranges."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 14,
-      "currency": "USD",
-      "minimal_variant_price_amount": "3.00",
       "updated_at": "2020-08-31T06:53:17.155Z",
       "charge_taxes": true,
-      "weight": "1.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "1.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 72,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -701,32 +623,22 @@
       "description": "Fell straight from the tree, on to Newton’s head, then into the bottle. The autumn taste of English apples. Brought to you by gravity.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Fell straight from the tree, on to Newton’s head, then into the bottle. The autumn taste of English apples. Brought to you by gravity.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Fell straight from the tree, on to Newton’s head, then into the bottle. The autumn taste of English apples. Brought to you by gravity."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 14,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:17.312Z",
       "charge_taxes": true,
-      "weight": "1.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "1.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 73,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -740,32 +652,22 @@
       "description": "Improve your eyesight the natural way with 100% pure, squeezed carrot juice. The sweet, orange nectar of Mother Earth.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Improve your eyesight the natural way with 100% pure, squeezed carrot juice. The sweet, orange nectar of Mother Earth.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Improve your eyesight the natural way with 100% pure, squeezed carrot juice. The sweet, orange nectar of Mother Earth."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 14,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:17.473Z",
       "charge_taxes": true,
-      "weight": "1.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "1.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 74,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -779,32 +681,22 @@
       "description": "Build your protein the natural way, with exotic banana juice made from ripe fruit and packed with all the goodness of the tropical sun.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Build your protein the natural way, with exotic banana juice made from ripe fruit and packed with all the goodness of the tropical sun.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Build your protein the natural way, with exotic banana juice made from ripe fruit and packed with all the goodness of the tropical sun."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 14,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:17.630Z",
       "charge_taxes": true,
-      "weight": "1.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "1.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 75,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -818,32 +710,22 @@
       "description": "I can’t stand pineapples, so this one is not for me. They have a weird, fluffy, tangy taste. But if it is your kind of thing, then knock yourself out.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "I can’t stand pineapples, so this one is not for me. They have a weird, fluffy, tangy taste. But if it is your kind of thing, then knock yourself out.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "I can’t stand pineapples, so this one is not for me. They have a weird, fluffy, tangy taste. But if it is your kind of thing, then knock yourself out."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 14,
-      "currency": "USD",
-      "minimal_variant_price_amount": "3.00",
       "updated_at": "2020-08-31T06:53:17.782Z",
       "charge_taxes": true,
-      "weight": "1.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "1.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 76,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -857,32 +739,22 @@
       "description": "Did you know falling coconuts kill 150 people a year? But did you know that coconut juice is the new superfood? You win some, you lose some.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Did you know falling coconuts kill 150 people a year? But did you know that coconut juice is the new superfood? You win some, you lose some.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Did you know falling coconuts kill 150 people a year? But did you know that coconut juice is the new superfood? You win some, you lose some."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 14,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:31.827Z",
       "charge_taxes": true,
-      "weight": "1.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "1.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 77,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -896,32 +768,22 @@
       "description": "Is it a bird? Is a plane? No! It’s some jacked dude who just sucked down a bottle of our brand new power juice! Look at him go!",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Is it a bird? Is a plane? No! It’s some jacked dude who just sucked down a bottle of our brand new power juice! Look at him go!",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Is it a bird? Is a plane? No! It’s some jacked dude who just sucked down a bottle of our brand new power juice! Look at him go!"
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 14,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:18.105Z",
       "charge_taxes": true,
-      "weight": "1.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "1.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 78,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -935,32 +797,22 @@
       "description": "Brussel sprouts, spinach, peas, kale, lettuce, cabbage, zucchini, more brussel sprouts. All the greens you’ll ever need in one delicious juice.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Brussel sprouts, spinach, peas, kale, lettuce, cabbage, zucchini, more brussel sprouts. All the greens you’ll ever need in one delicious juice.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Brussel sprouts, spinach, peas, kale, lettuce, cabbage, zucchini, more brussel sprouts. All the greens you’ll ever need in one delicious juice."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 14,
-      "currency": "USD",
-      "minimal_variant_price_amount": "3.00",
       "updated_at": "2020-08-31T06:53:32.287Z",
       "charge_taxes": true,
-      "weight": "1.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "1.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 79,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -974,32 +826,22 @@
       "description": "Bean there, drunk that! The energy drink for the health-conscious. Brand new bean juice; from allotment to bottle in under 8 hours.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Bean there, drunk that! The energy drink for the health-conscious. Brand new bean juice; from allotment to bottle in under 8 hours.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Bean there, drunk that! The energy drink for the health-conscious. Brand new bean juice; from allotment to bottle in under 8 hours."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 14,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:18.411Z",
       "charge_taxes": true,
-      "weight": "1.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "1.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 81,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1013,32 +855,22 @@
       "description": "A fine, mature red with a hint of blackberry, an undertone of the alkaline Burgundy soil, a delicate aftertaste of burnt garlic, and a whole lot of grapes.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "A fine, mature red with a hint of blackberry, an undertone of the alkaline Burgundy soil, a delicate aftertaste of burnt garlic, and a whole lot of grapes.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "A fine, mature red with a hint of blackberry, an undertone of the alkaline Burgundy soil, a delicate aftertaste of burnt garlic, and a whole lot of grapes."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 15,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:18.558Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 82,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1052,32 +884,22 @@
       "description": "Watch the slow setting sun of a wild summer evening sink into the horizon as you sip white wine that tastes like bittersweet memories of halcyon days.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Watch the slow setting sun of a wild summer evening sink into the horizon as you sip white wine that tastes like bittersweet memories of halcyon days.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Watch the slow setting sun of a wild summer evening sink into the horizon as you sip white wine that tastes like bittersweet memories of halcyon days."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 15,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:30.364Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 83,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1091,32 +913,22 @@
       "description": "Find your sea legs and then lose the power to use them with extra strong seaman’s lager. Don’t drink and sail, me hearties!",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Find your sea legs and then lose the power to use them with extra strong seaman’s lager. Don’t drink and sail, me hearties!",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Find your sea legs and then lose the power to use them with extra strong seaman’s lager. Don’t drink and sail, me hearties!"
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 15,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:18.900Z",
       "charge_taxes": true,
-      "weight": "1.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "1.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 84,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1130,32 +942,22 @@
       "description": "Best beer on the seven seas. A dark ale for when the dark clouds gather overhead. The nutty nautical taste that sailors love.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Best beer on the seven seas. A dark ale for when the dark clouds gather overhead. The nutty nautical taste that sailors love.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Best beer on the seven seas. A dark ale for when the dark clouds gather overhead. The nutty nautical taste that sailors love."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 15,
-      "currency": "USD",
-      "minimal_variant_price_amount": "3.00",
       "updated_at": "2020-08-31T06:53:30.527Z",
       "charge_taxes": true,
-      "weight": "1.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "1.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 85,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1169,32 +971,22 @@
       "description": "Add a little color to your life with a Saleor parrot cushion. Turns any old sofa into a rainbow of classy interior design.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Add a little color to your life with a Saleor parrot cushion. Turns any old sofa into a rainbow of classy interior design.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Add a little color to your life with a Saleor parrot cushion. Turns any old sofa into a rainbow of classy interior design."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 22,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:30.677Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 86,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1208,32 +1000,22 @@
       "description": "Minimalist interiors need simple, sleek soft furnishings. Don’t parrot what others do, set your own monochrome trends with Saleor designs.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Minimalist interiors need simple, sleek soft furnishings. Don’t parrot what others do, set your own monochrome trends with Saleor designs.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Minimalist interiors need simple, sleek soft furnishings. Don’t parrot what others do, set your own monochrome trends with Saleor designs."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 22,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:20.430Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 87,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1247,32 +1029,22 @@
       "description": "Mellow yellow. Step into summer with Saleor. Every time your head goes down, you see these beauties, and your mood bounces right back up.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Mellow yellow. Step into summer with Saleor. Every time your head goes down, you see these beauties, and your mood bounces right back up.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Mellow yellow. Step into summer with Saleor. Every time your head goes down, you see these beauties, and your mood bounces right back up."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 13,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:32.761Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 88,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1286,32 +1058,22 @@
       "description": "PE at school wouldn’t have been such a drag with these on your feet. Slip on the style and stride tall with Saleor branded plimsolls. PE now stands for pretty elegant.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "PE at school wouldn’t have been such a drag with these on your feet. Slip on the style and stride tall with Saleor branded plimsolls. PE now stands for pretty elegant.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "PE at school wouldn’t have been such a drag with these on your feet. Slip on the style and stride tall with Saleor branded plimsolls. PE now stands for pretty elegant."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 13,
-      "currency": "USD",
-      "minimal_variant_price_amount": "3.00",
       "updated_at": "2020-08-31T06:53:33.172Z",
       "charge_taxes": true,
-      "weight": "1.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "1.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 89,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1325,32 +1087,22 @@
       "description": "Pay homage to the music and art of a Joy Division and Peter Saville, but with a Mirumee twist. Perfect live transmission apparel for dead souls.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Pay homage to the music and art of a Joy Division and Peter Saville, but with a Mirumee twist. Perfect live transmission apparel for dead souls.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Pay homage to the music and art of a Joy Division and Peter Saville, but with a Mirumee twist. Perfect live transmission apparel for dead souls."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 10,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:33.473Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 107,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1364,32 +1116,22 @@
       "description": "Ever have those days where you feel a bit geometric? Can't quite shape yourself up right? Show your different sides with a Saleor styles.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Ever have those days where you feel a bit geometric? Can't quite shape yourself up right? Show your different sides with a Saleor styles.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Ever have those days where you feel a bit geometric? Can't quite shape yourself up right? Show your different sides with a Saleor styles."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 11,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:22.365Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 108,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1403,32 +1145,22 @@
       "description": "Polo? Yolo… so don’t waste time on the wrong apparel. Choose a polo shirt that looks as good as you feel.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Polo? Yolo… so don’t waste time on the wrong apparel. Choose a polo shirt that looks as good as you feel.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Polo? Yolo… so don’t waste time on the wrong apparel. Choose a polo shirt that looks as good as you feel."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 11,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:34.274Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 109,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1442,32 +1174,22 @@
       "description": "Wondering if this will look as good on you as it does on the screen? The answer is yes. A quality polo with smart styling.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Wondering if this will look as good on you as it does on the screen? The answer is yes. A quality polo with smart styling.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Wondering if this will look as good on you as it does on the screen? The answer is yes. A quality polo with smart styling."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 11,
-      "currency": "USD",
-      "minimal_variant_price_amount": "2.50",
       "updated_at": "2020-08-31T06:53:22.900Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 110,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1481,32 +1203,22 @@
       "description": "They say polo is the sport of kings. Or was that stamp collecting? Either way, this shirt is fit for a king of Saturday night.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "They say polo is the sport of kings. Or was that stamp collecting? Either way, this shirt is fit for a king of Saturday night.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "They say polo is the sport of kings. Or was that stamp collecting? Either way, this shirt is fit for a king of Saturday night."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 11,
-      "currency": "USD",
-      "minimal_variant_price_amount": "4.00",
       "updated_at": "2020-08-31T06:53:35.075Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 111,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1520,32 +1232,22 @@
       "description": "One style fits all. Get a look that works even when you are taking it easy. Relaxed wear for the masses.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "One style fits all. Get a look that works even when you are taking it easy. Relaxed wear for the masses.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "One style fits all. Get a look that works even when you are taking it easy. Relaxed wear for the masses."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 10,
-      "currency": "USD",
-      "minimal_variant_price_amount": "3.00",
       "updated_at": "2020-08-31T06:53:35.478Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 112,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1559,32 +1261,22 @@
       "description": "A classic tee for a timeless look, at a great price. Feel like a million bucks without breaking the bank.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "A classic tee for a timeless look, at a great price. Feel like a million bucks without breaking the bank.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "A classic tee for a timeless look, at a great price. Feel like a million bucks without breaking the bank."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 10,
-      "currency": "USD",
-      "minimal_variant_price_amount": "2.50",
       "updated_at": "2020-08-31T06:53:24.137Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 113,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1598,32 +1290,22 @@
       "description": "Want to look like you just fell out of bed? Sometimes style can be effortless. Throw it on get on with having a good day.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Want to look like you just fell out of bed? Sometimes style can be effortless. Throw it on get on with having a good day.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Want to look like you just fell out of bed? Sometimes style can be effortless. Throw it on get on with having a good day."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 10,
-      "currency": "USD",
-      "minimal_variant_price_amount": "4.50",
       "updated_at": "2020-08-31T06:53:36.267Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 114,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1637,32 +1319,22 @@
       "description": "Your t-shirt is your second skin. It’s the version of you that you show to the world. Wear one that flows with your movements and is built to last.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Your t-shirt is your second skin. It’s the version of you that you show to the world. Wear one that flows with your movements and is built to last.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Your t-shirt is your second skin. It’s the version of you that you show to the world. Wear one that flows with your movements and is built to last."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 10,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:36.707Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 115,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1676,32 +1348,22 @@
       "description": "Special offer. Buy a hood and get a free jet black sweater attached. Perfect for when you are up to no good.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Special offer. Buy a hood and get a free jet black sweater attached. Perfect for when you are up to no good.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Special offer. Buy a hood and get a free jet black sweater attached. Perfect for when you are up to no good."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 12,
-      "currency": "USD",
-      "minimal_variant_price_amount": "3.00",
       "updated_at": "2020-08-31T06:53:25.468Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 116,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1715,32 +1377,22 @@
       "description": "Special offer. Buy a superhero blue sweater and get a free hood attached. Ideal for when you are out saving the world.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Special offer. Buy a superhero blue sweater and get a free hood attached. Ideal for when you are out saving the world.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Special offer. Buy a superhero blue sweater and get a free hood attached. Ideal for when you are out saving the world."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 12,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:25.725Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 117,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1754,32 +1406,22 @@
       "description": "Who dunnit? It was Colonel Mustard, in the dining room, with the lead piping, wearing this hot as mustard hoodie.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Who dunnit? It was Colonel Mustard, in the dining room, with the lead piping, wearing this hot as mustard hoodie.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Who dunnit? It was Colonel Mustard, in the dining room, with the lead piping, wearing this hot as mustard hoodie."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 12,
-      "currency": "USD",
-      "minimal_variant_price_amount": "3.00",
       "updated_at": "2020-08-31T06:53:37.920Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 118,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1793,32 +1435,22 @@
       "description": "Get your slouch on and be seen with a whiter than white hoodie straight from the streets. Relaxed stylin’ and profilin’ with flair.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Get your slouch on and be seen with a whiter than white hoodie straight from the streets. Relaxed stylin’ and profilin’ with flair.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Get your slouch on and be seen with a whiter than white hoodie straight from the streets. Relaxed stylin’ and profilin’ with flair."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 12,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:26.266Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 119,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {},
       "seo_title": "",
@@ -1829,32 +1461,22 @@
       "description": "",
       "description_json": {
         "blocks": [{
-          "key": "cjb65",
-          "data": {},
-          "text": "Sea Lullabies by Digital Audio.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Sea Lullabies by Digital Audio."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 23,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:27.068Z",
       "charge_taxes": false,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 120,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {},
       "seo_title": "",
@@ -1865,32 +1487,22 @@
       "description": "",
       "description_json": {
         "blocks": [{
-          "key": "c6n3e",
-          "data": {},
-          "text": "Lake Tunes by Digital Audio.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Lake Tunes by Digital Audio."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 23,
-      "currency": "USD",
-      "minimal_variant_price_amount": "9.99",
       "updated_at": "2020-08-31T06:53:27.344Z",
       "charge_taxes": false,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 121,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {},
       "seo_title": "",
@@ -1901,32 +1513,22 @@
       "description": "",
       "description_json": {
         "blocks": [{
-          "key": "5gh2n",
-          "data": {},
-          "text": "Ocean Poems by Digital Audio.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Ocean Poems by Digital Audio."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 23,
-      "currency": "USD",
-      "minimal_variant_price_amount": "9.99",
       "updated_at": "2020-08-31T06:53:27.611Z",
       "charge_taxes": false,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": false
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 122,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {},
       "seo_title": "",
@@ -1937,32 +1539,22 @@
       "description": "",
       "description_json": {
         "blocks": [{
-          "key": "buneo",
-          "data": {},
-          "text": "Bathroom Songs by Digital Audio.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Bathroom Songs by Digital Audio."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 23,
-      "currency": "USD",
-      "minimal_variant_price_amount": "9.00",
       "updated_at": "2020-08-31T06:53:27.873Z",
       "charge_taxes": false,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": false
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 123,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {},
       "seo_title": "",
@@ -1973,32 +1565,22 @@
       "description": "",
       "description_json": {
         "blocks": [{
-          "key": "675on",
-          "data": {},
-          "text": "Lagoon Chants by Digital Audio.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Lagoon Chants by Digital Audio."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 23,
-      "currency": "USD",
-      "minimal_variant_price_amount": "9.99",
       "updated_at": "2020-08-31T06:53:28.105Z",
       "charge_taxes": false,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": false
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 124,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {},
       "seo_title": "",
@@ -2009,24 +1591,939 @@
       "description": "",
       "description_json": {
         "blocks": [{
-          "key": "bbp2o",
-          "data": {},
-          "text": "Waterfall Ballads by Digital Audio.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Waterfall Ballads by Digital Audio."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 23,
-      "currency": "USD",
-      "minimal_variant_price_amount": "9.00",
       "updated_at": "2020-08-31T06:53:28.398Z",
       "charge_taxes": false,
-      "weight": "0.0:kg",
+      "weight": "0.0:kg"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 1,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 72,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 2,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 74,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 3,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 122,
+      "channel": 1,
+      "visible_in_listings": false,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 4,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 79,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 5,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 115,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 6,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 116,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 7,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 73,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 8,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 76,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 9,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 89,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 10,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 85,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 11,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 78,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 12,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 65,
+      "channel": 1,
+      "visible_in_listings": true,
       "available_for_purchase": "2021-08-31",
-      "visible_in_listings": false
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 13,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 123,
+      "channel": 1,
+      "visible_in_listings": false,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 14,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 120,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 15,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 64,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2021-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 16,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 117,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 17,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 61,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 18,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 121,
+      "channel": 1,
+      "visible_in_listings": false,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 19,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 71,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 20,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 75,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 21,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 107,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 22,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 108,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 23,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 109,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 24,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 110,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 25,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 77,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 26,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 63,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2021-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 27,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 81,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 28,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 119,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 29,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 84,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 30,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 83,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 31,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 62,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2021-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 32,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 112,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 33,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 111,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 34,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 114,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 35,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 113,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 36,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 124,
+      "channel": 1,
+      "visible_in_listings": false,
+      "available_for_purchase": "2021-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 37,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 118,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 38,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 86,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 39,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 88,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 40,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 82,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 41,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 87,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 42,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 72,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 43,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 74,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 44,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 122,
+      "channel": 2,
+      "visible_in_listings": false,
+      "available_for_purchase": "2020-08-31",
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 45,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 79,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 46,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 115,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 47,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 116,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 48,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 73,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 49,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 76,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 50,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 89,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 51,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 85,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 52,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 78,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 53,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 65,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": "2021-08-31",
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 54,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 123,
+      "channel": 2,
+      "visible_in_listings": false,
+      "available_for_purchase": "2020-08-31",
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 55,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 120,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 56,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 64,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": "2021-08-31",
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 57,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 117,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 58,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 61,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 59,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 121,
+      "channel": 2,
+      "visible_in_listings": false,
+      "available_for_purchase": "2020-08-31",
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 60,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 71,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 61,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 75,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 62,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 107,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 63,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 108,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 64,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 109,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 65,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 110,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 66,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 77,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 67,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 63,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": "2021-08-31",
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 68,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 81,
+      "channel": 2,
+      "visible_in_listings": false,
+      "available_for_purchase": "2020-08-31",
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 69,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "product": 119,
+      "channel": 2,
+      "visible_in_listings": false,
+      "available_for_purchase": "2020-08-31",
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 70,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": false,
+      "product": 84,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": "2020-08-31",
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 71,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": false,
+      "product": 83,
+      "channel": 2,
+      "visible_in_listings": false,
+      "available_for_purchase": "2020-08-31",
+      "currency": "PLN"
     }
   },
   {
@@ -2037,11 +2534,8 @@
       "metadata": {},
       "sku": "546451996",
       "name": "1l",
-      "currency": "USD",
-      "price_amount": "15.00",
       "product": 61,
       "track_inventory": true,
-      "cost_price_amount": "5.00",
       "weight": "1.0:kg",
       "default": true
     }
@@ -2054,11 +2548,8 @@
       "metadata": {},
       "sku": "546451997",
       "name": "2.5l",
-      "currency": "USD",
-      "price_amount": "35.00",
       "product": 61,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "2.5:kg"
     }
   },
@@ -2070,11 +2561,8 @@
       "metadata": {},
       "sku": "546451999",
       "name": "5l",
-      "currency": "USD",
-      "price_amount": "49.00",
       "product": 61,
       "track_inventory": true,
-      "cost_price_amount": "20.00",
       "weight": "5.0:kg"
     }
   },
@@ -2086,11 +2574,8 @@
       "metadata": {},
       "sku": "998223591",
       "name": "1l",
-      "currency": "USD",
-      "price_amount": "15.00",
       "product": 62,
       "track_inventory": true,
-      "cost_price_amount": "5.00",
       "weight": "1.0:kg",
       "default": true
     }
@@ -2103,11 +2588,8 @@
       "metadata": {},
       "sku": "998223599",
       "name": "2.5l",
-      "currency": "USD",
-      "price_amount": "25.00",
       "product": 62,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -2119,11 +2601,8 @@
       "metadata": {},
       "sku": "998223594",
       "name": "5l",
-      "currency": "USD",
-      "price_amount": "49.00",
       "product": 62,
       "track_inventory": true,
-      "cost_price_amount": "25.00",
       "weight": "0.0:kg"
     }
   },
@@ -2135,11 +2614,8 @@
       "metadata": {},
       "sku": "998223582",
       "name": "1l",
-      "currency": "USD",
-      "price_amount": "15.00",
       "product": 63,
       "track_inventory": true,
-      "cost_price_amount": "5.00",
       "weight": "1.0:kg",
       "default": true
     }
@@ -2152,11 +2628,8 @@
       "metadata": {},
       "sku": "998223583",
       "name": "2.5l",
-      "currency": "USD",
-      "price_amount": "25.00",
       "product": 63,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "2.5:kg"
     }
   },
@@ -2168,11 +2641,8 @@
       "metadata": {},
       "sku": "998223584",
       "name": "5l",
-      "currency": "USD",
-      "price_amount": "49.00",
       "product": 63,
       "track_inventory": true,
-      "cost_price_amount": "20.00",
       "weight": "5.0:kg"
     }
   },
@@ -2184,11 +2654,8 @@
       "metadata": {},
       "sku": "998323582",
       "name": "1l",
-      "currency": "USD",
-      "price_amount": "15.00",
       "product": 64,
       "track_inventory": true,
-      "cost_price_amount": "5.00",
       "weight": "1.0:kg",
       "default": true
     }
@@ -2201,11 +2668,8 @@
       "metadata": {},
       "sku": "998323583",
       "name": "2.5l",
-      "currency": "USD",
-      "price_amount": "30.00",
       "product": 64,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "2.5:kg"
     }
   },
@@ -2217,11 +2681,8 @@
       "metadata": {},
       "sku": "998323584",
       "name": "5l",
-      "currency": "USD",
-      "price_amount": "49.00",
       "product": 64,
       "track_inventory": true,
-      "cost_price_amount": "15.00",
       "weight": "5.0:kg"
     }
   },
@@ -2233,11 +2694,8 @@
       "metadata": {},
       "sku": "998423582",
       "name": "1l",
-      "currency": "USD",
-      "price_amount": "15.00",
       "product": 65,
       "track_inventory": true,
-      "cost_price_amount": "5.00",
       "weight": "1.0:kg",
       "default": true
     }
@@ -2250,11 +2708,8 @@
       "metadata": {},
       "sku": "998423583",
       "name": "2.5l",
-      "currency": "USD",
-      "price_amount": "30.00",
       "product": 65,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "2.5:kg"
     }
   },
@@ -2266,11 +2721,8 @@
       "metadata": {},
       "sku": "998423585",
       "name": "5l",
-      "currency": "USD",
-      "price_amount": "49.00",
       "product": 65,
       "track_inventory": true,
-      "cost_price_amount": "15.00",
       "weight": "5.0:kg"
     }
   },
@@ -2282,11 +2734,8 @@
       "metadata": {},
       "sku": "988323582",
       "name": "500ml",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 71,
       "track_inventory": true,
-      "cost_price_amount": "1.00",
       "weight": "1.0:kg",
       "default": true
     }
@@ -2299,11 +2748,8 @@
       "metadata": {},
       "sku": "938323582",
       "name": "1l",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 71,
       "track_inventory": true,
-      "cost_price_amount": "1.50",
       "weight": "1.0:kg"
     }
   },
@@ -2315,11 +2761,8 @@
       "metadata": {},
       "sku": "988323522",
       "name": "2l",
-      "currency": "USD",
-      "price_amount": "7.00",
       "product": 71,
       "track_inventory": true,
-      "cost_price_amount": "2.00",
       "weight": "2.0:kg"
     }
   },
@@ -2331,11 +2774,8 @@
       "metadata": {},
       "sku": "12312312321",
       "name": "",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 81,
       "track_inventory": true,
-      "cost_price_amount": null,
       "weight": "0.0:kg",
       "default": true
     }
@@ -2348,11 +2788,8 @@
       "metadata": {},
       "sku": "1231998121",
       "name": "",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 82,
       "track_inventory": true,
-      "cost_price_amount": null,
       "weight": "0.0:kg",
       "default": true
     }
@@ -2365,11 +2802,8 @@
       "metadata": {},
       "sku": "98616712",
       "name": "",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 83,
       "track_inventory": true,
-      "cost_price_amount": null,
       "weight": "0.0:kg",
       "default": true
     }
@@ -2382,11 +2816,8 @@
       "metadata": {},
       "sku": "98616713",
       "name": "",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 84,
       "track_inventory": true,
-      "cost_price_amount": null,
       "weight": "0.0:kg",
       "default": true
     }
@@ -2399,11 +2830,8 @@
       "metadata": {},
       "sku": "698223582",
       "name": "45cm x 45cm",
-      "currency": "USD",
-      "price_amount": "20.00",
       "product": 85,
       "track_inventory": true,
-      "cost_price_amount": "11.00",
       "weight": "0.0:kg",
       "default": true
     }
@@ -2416,11 +2844,8 @@
       "metadata": {},
       "sku": "698223581",
       "name": "55cm x 55cm",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 85,
       "track_inventory": true,
-      "cost_price_amount": "12.00",
       "weight": "0.0:kg"
     }
   },
@@ -2432,11 +2857,8 @@
       "metadata": {},
       "sku": "987126191",
       "name": "45cm x 45cm",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 86,
       "track_inventory": true,
-      "cost_price_amount": "13.00",
       "weight": "0.0:kg",
       "default": true
     }
@@ -2449,11 +2871,8 @@
       "metadata": {},
       "sku": "998223590",
       "name": "55cm x 55cm",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 86,
       "track_inventory": true,
-      "cost_price_amount": "13.00",
       "weight": "0.0:kg"
     }
   },
@@ -2465,11 +2884,8 @@
       "metadata": {},
       "sku": "93855755",
       "name": "500ml",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 72,
       "track_inventory": true,
-      "cost_price_amount": "1.00",
       "weight": "1.0:kg",
       "default": true
     }
@@ -2482,11 +2898,8 @@
       "metadata": {},
       "sku": "43226647",
       "name": "1l",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 72,
       "track_inventory": true,
-      "cost_price_amount": "1.50",
       "weight": "1.0:kg"
     }
   },
@@ -2498,11 +2911,8 @@
       "metadata": {},
       "sku": "80884671",
       "name": "2l",
-      "currency": "USD",
-      "price_amount": "7.00",
       "product": 72,
       "track_inventory": true,
-      "cost_price_amount": "2.00",
       "weight": "2.0:kg"
     }
   },
@@ -2514,11 +2924,8 @@
       "metadata": {},
       "sku": "67882967",
       "name": "500ml",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 73,
       "track_inventory": true,
-      "cost_price_amount": "1.00",
       "weight": "1.0:kg",
       "default": true
     }
@@ -2531,11 +2938,8 @@
       "metadata": {},
       "sku": "14925419",
       "name": "1l",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 73,
       "track_inventory": true,
-      "cost_price_amount": "1.50",
       "weight": "1.0:kg"
     }
   },
@@ -2547,11 +2951,8 @@
       "metadata": {},
       "sku": "62426105",
       "name": "2l",
-      "currency": "USD",
-      "price_amount": "7.00",
       "product": 73,
       "track_inventory": true,
-      "cost_price_amount": "2.00",
       "weight": "2.0:kg"
     }
   },
@@ -2563,11 +2964,8 @@
       "metadata": {},
       "sku": "45328412",
       "name": "500ml",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 74,
       "track_inventory": true,
-      "cost_price_amount": "1.00",
       "weight": "1.0:kg",
       "default": true
     }
@@ -2580,11 +2978,8 @@
       "metadata": {},
       "sku": "27512590",
       "name": "1l",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 74,
       "track_inventory": true,
-      "cost_price_amount": "1.50",
       "weight": "1.0:kg"
     }
   },
@@ -2596,11 +2991,8 @@
       "metadata": {},
       "sku": "40636347",
       "name": "2l",
-      "currency": "USD",
-      "price_amount": "7.00",
       "product": 74,
       "track_inventory": true,
-      "cost_price_amount": "2.00",
       "weight": "2.0:kg"
     }
   },
@@ -2612,11 +3004,8 @@
       "metadata": {},
       "sku": "43200242",
       "name": "500ml",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 75,
       "track_inventory": true,
-      "cost_price_amount": "1.00",
       "weight": "1.0:kg",
       "default": true
     }
@@ -2629,11 +3018,8 @@
       "metadata": {},
       "sku": "79129513",
       "name": "1l",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 75,
       "track_inventory": true,
-      "cost_price_amount": "1.50",
       "weight": "1.0:kg"
     }
   },
@@ -2645,11 +3031,8 @@
       "metadata": {},
       "sku": "75799450",
       "name": "2l",
-      "currency": "USD",
-      "price_amount": "7.00",
       "product": 75,
       "track_inventory": true,
-      "cost_price_amount": "2.00",
       "weight": "2.0:kg"
     }
   },
@@ -2661,11 +3044,8 @@
       "metadata": {},
       "sku": "3944859",
       "name": "500ml",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 76,
       "track_inventory": true,
-      "cost_price_amount": "1.00",
       "weight": "1.0:kg",
       "default": true
     }
@@ -2678,11 +3058,8 @@
       "metadata": {},
       "sku": "5829405",
       "name": "1l",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 76,
       "track_inventory": true,
-      "cost_price_amount": "1.50",
       "weight": "1.0:kg"
     }
   },
@@ -2694,11 +3071,8 @@
       "metadata": {},
       "sku": "84725784",
       "name": "2l",
-      "currency": "USD",
-      "price_amount": "7.00",
       "product": 76,
       "track_inventory": true,
-      "cost_price_amount": "2.00",
       "weight": "2.0:kg"
     }
   },
@@ -2710,11 +3084,8 @@
       "metadata": {},
       "sku": "70058446",
       "name": "500ml",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 77,
       "track_inventory": true,
-      "cost_price_amount": "1.00",
       "weight": "1.0:kg",
       "default": true
     }
@@ -2727,11 +3098,8 @@
       "metadata": {},
       "sku": "94044081",
       "name": "1l",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 77,
       "track_inventory": true,
-      "cost_price_amount": "1.50",
       "weight": "1.0:kg"
     }
   },
@@ -2743,11 +3111,8 @@
       "metadata": {},
       "sku": "80696397",
       "name": "2l",
-      "currency": "USD",
-      "price_amount": "7.00",
       "product": 77,
       "track_inventory": true,
-      "cost_price_amount": "2.00",
       "weight": "2.0:kg"
     }
   },
@@ -2759,11 +3124,8 @@
       "metadata": {},
       "sku": "60752428",
       "name": "500ml",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 78,
       "track_inventory": true,
-      "cost_price_amount": "1.00",
       "weight": "1.0:kg",
       "default": true
     }
@@ -2776,11 +3138,8 @@
       "metadata": {},
       "sku": "81470859",
       "name": "1l",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 78,
       "track_inventory": true,
-      "cost_price_amount": "1.50",
       "weight": "1.0:kg"
     }
   },
@@ -2792,11 +3151,8 @@
       "metadata": {},
       "sku": "30635751",
       "name": "2l",
-      "currency": "USD",
-      "price_amount": "7.00",
       "product": 78,
       "track_inventory": true,
-      "cost_price_amount": "2.00",
       "weight": "2.0:kg"
     }
   },
@@ -2808,11 +3164,8 @@
       "metadata": {},
       "sku": "57211177",
       "name": "500ml",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 79,
       "track_inventory": true,
-      "cost_price_amount": "1.00",
       "weight": "1.0:kg",
       "default": true
     }
@@ -2825,11 +3178,8 @@
       "metadata": {},
       "sku": "57423879",
       "name": "1l",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 79,
       "track_inventory": true,
-      "cost_price_amount": "1.50",
       "weight": "1.0:kg"
     }
   },
@@ -2841,11 +3191,8 @@
       "metadata": {},
       "sku": "21438542",
       "name": "2l",
-      "currency": "USD",
-      "price_amount": "7.00",
       "product": 79,
       "track_inventory": true,
-      "cost_price_amount": "2.00",
       "weight": "2.0:kg"
     }
   },
@@ -2857,11 +3204,8 @@
       "metadata": {},
       "sku": "398323583",
       "name": "39",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 87,
       "track_inventory": true,
-      "cost_price_amount": "20.00",
       "weight": "0.0:kg",
       "default": true
     }
@@ -2874,11 +3218,8 @@
       "metadata": {},
       "sku": "398323584",
       "name": "40",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 87,
       "track_inventory": true,
-      "cost_price_amount": "20.00",
       "weight": "0.0:kg"
     }
   },
@@ -2890,11 +3231,8 @@
       "metadata": {},
       "sku": "398323585",
       "name": "41",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 87,
       "track_inventory": true,
-      "cost_price_amount": "20.00",
       "weight": "0.0:kg"
     }
   },
@@ -2906,11 +3244,8 @@
       "metadata": {},
       "sku": "398323586",
       "name": "42",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 87,
       "track_inventory": true,
-      "cost_price_amount": "20.00",
       "weight": "0.0:kg"
     }
   },
@@ -2922,11 +3257,8 @@
       "metadata": {},
       "sku": "398323588",
       "name": "43",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 87,
       "track_inventory": true,
-      "cost_price_amount": "20.00",
       "weight": "0.0:kg"
     }
   },
@@ -2938,11 +3270,8 @@
       "metadata": {},
       "sku": "993223583",
       "name": "40",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 88,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "1.0:kg",
       "default": true
     }
@@ -2955,11 +3284,8 @@
       "metadata": {},
       "sku": "978223582",
       "name": "41",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 88,
       "track_inventory": true,
-      "cost_price_amount": "20.00",
       "weight": "1.0:kg"
     }
   },
@@ -2971,11 +3297,8 @@
       "metadata": {},
       "sku": "918323583",
       "name": "40",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 88,
       "track_inventory": true,
-      "cost_price_amount": null,
       "weight": "2.0:kg"
     }
   },
@@ -2987,11 +3310,8 @@
       "metadata": {},
       "sku": "918223582",
       "name": "45",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 88,
       "track_inventory": true,
-      "cost_price_amount": "20.00",
       "weight": "2.0:kg"
     }
   },
@@ -3003,11 +3323,8 @@
       "metadata": {},
       "sku": "988323583",
       "name": "S",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 89,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg",
       "default": true
     }
@@ -3020,11 +3337,8 @@
       "metadata": {},
       "sku": "338223582",
       "name": "M",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 89,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3036,11 +3350,8 @@
       "metadata": {},
       "sku": "118223591",
       "name": "L",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 89,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3052,11 +3363,8 @@
       "metadata": {},
       "sku": "448323583",
       "name": "XL",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 89,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3068,11 +3376,8 @@
       "metadata": {},
       "sku": "3128223583",
       "name": "XXL",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 89,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3084,11 +3389,8 @@
       "metadata": {},
       "sku": "29716755",
       "name": "S",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 107,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg",
       "default": true
     }
@@ -3101,11 +3403,8 @@
       "metadata": {},
       "sku": "66594736",
       "name": "M",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 107,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3117,11 +3416,8 @@
       "metadata": {},
       "sku": "50269944",
       "name": "L",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 107,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3133,11 +3429,8 @@
       "metadata": {},
       "sku": "31352185",
       "name": "XL",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 107,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3149,11 +3442,8 @@
       "metadata": {},
       "sku": "85364796",
       "name": "XXL",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 107,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3165,11 +3455,8 @@
       "metadata": {},
       "sku": "44026421",
       "name": "S",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 108,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg",
       "default": true
     }
@@ -3182,11 +3469,8 @@
       "metadata": {},
       "sku": "90892602",
       "name": "M",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 108,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3198,11 +3482,8 @@
       "metadata": {},
       "sku": "59014392",
       "name": "L",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 108,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3214,11 +3495,8 @@
       "metadata": {},
       "sku": "43659438",
       "name": "XL",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 108,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3230,11 +3508,8 @@
       "metadata": {},
       "sku": "60597697",
       "name": "XXL",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 108,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3246,11 +3521,8 @@
       "metadata": {},
       "sku": "26592266",
       "name": "S",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 109,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg",
       "default": true
     }
@@ -3263,11 +3535,8 @@
       "metadata": {},
       "sku": "36260498",
       "name": "M",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 109,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3279,11 +3548,8 @@
       "metadata": {},
       "sku": "37558859",
       "name": "L",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 109,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3295,11 +3561,8 @@
       "metadata": {},
       "sku": "19402012",
       "name": "XL",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 109,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3311,11 +3574,8 @@
       "metadata": {},
       "sku": "17570141",
       "name": "XXL",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 109,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3327,11 +3587,8 @@
       "metadata": {},
       "sku": "98530976",
       "name": "S",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 110,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg",
       "default": true
     }
@@ -3344,11 +3601,8 @@
       "metadata": {},
       "sku": "46806935",
       "name": "M",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 110,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3360,11 +3614,8 @@
       "metadata": {},
       "sku": "71103052",
       "name": "L",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 110,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3376,11 +3627,8 @@
       "metadata": {},
       "sku": "84812015",
       "name": "XL",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 110,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3392,11 +3640,8 @@
       "metadata": {},
       "sku": "89820261",
       "name": "XXL",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 110,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3408,11 +3653,8 @@
       "metadata": {},
       "sku": "81115323",
       "name": "S",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 111,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg",
       "default": true
     }
@@ -3425,11 +3667,8 @@
       "metadata": {},
       "sku": "38254631",
       "name": "M",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 111,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3441,11 +3680,8 @@
       "metadata": {},
       "sku": "11511539",
       "name": "L",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 111,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3457,11 +3693,8 @@
       "metadata": {},
       "sku": "84192227",
       "name": "XL",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 111,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3473,11 +3706,8 @@
       "metadata": {},
       "sku": "91642659",
       "name": "XXL",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 111,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3489,11 +3719,8 @@
       "metadata": {},
       "sku": "76491340",
       "name": "S",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 112,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg",
       "default": true
     }
@@ -3506,11 +3733,8 @@
       "metadata": {},
       "sku": "55101176",
       "name": "M",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 112,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3522,11 +3746,8 @@
       "metadata": {},
       "sku": "28094954",
       "name": "L",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 112,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3538,11 +3759,8 @@
       "metadata": {},
       "sku": "40232182",
       "name": "XL",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 112,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3554,11 +3772,8 @@
       "metadata": {},
       "sku": "21522631",
       "name": "XXL",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 112,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3570,11 +3785,8 @@
       "metadata": {},
       "sku": "29810068",
       "name": "S",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 113,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg",
       "default": true
     }
@@ -3587,11 +3799,8 @@
       "metadata": {},
       "sku": "57917658",
       "name": "M",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 113,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3603,11 +3812,8 @@
       "metadata": {},
       "sku": "42680611",
       "name": "L",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 113,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3619,11 +3825,8 @@
       "metadata": {},
       "sku": "72289815",
       "name": "XL",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 113,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3635,11 +3838,8 @@
       "metadata": {},
       "sku": "98653891",
       "name": "XXL",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 113,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3651,11 +3851,8 @@
       "metadata": {},
       "sku": "77306807",
       "name": "S",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 114,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg",
       "default": true
     }
@@ -3668,11 +3865,8 @@
       "metadata": {},
       "sku": "68848129",
       "name": "M",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 114,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3684,11 +3878,8 @@
       "metadata": {},
       "sku": "35342696",
       "name": "L",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 114,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3700,11 +3891,8 @@
       "metadata": {},
       "sku": "98935349",
       "name": "XL",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 114,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3716,11 +3904,8 @@
       "metadata": {},
       "sku": "45179543",
       "name": "XXL",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 114,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3732,11 +3917,8 @@
       "metadata": {},
       "sku": "62783187",
       "name": "S",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 115,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg",
       "default": true
     }
@@ -3749,11 +3931,8 @@
       "metadata": {},
       "sku": "91406604",
       "name": "M",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 115,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3765,11 +3944,8 @@
       "metadata": {},
       "sku": "22119503",
       "name": "L",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 115,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3781,11 +3957,8 @@
       "metadata": {},
       "sku": "19230637",
       "name": "XL",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 115,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3797,11 +3970,8 @@
       "metadata": {},
       "sku": "61630747",
       "name": "XXL",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 115,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3813,11 +3983,8 @@
       "metadata": {},
       "sku": "15744278",
       "name": "S",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 116,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg",
       "default": true
     }
@@ -3830,11 +3997,8 @@
       "metadata": {},
       "sku": "21599567",
       "name": "M",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 116,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3846,11 +4010,8 @@
       "metadata": {},
       "sku": "65363253",
       "name": "L",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 116,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3862,11 +4023,8 @@
       "metadata": {},
       "sku": "51987722",
       "name": "XL",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 116,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3878,11 +4036,8 @@
       "metadata": {},
       "sku": "43313080",
       "name": "XXL",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 116,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3894,11 +4049,8 @@
       "metadata": {},
       "sku": "33963052",
       "name": "S",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 117,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg",
       "default": true
     }
@@ -3911,11 +4063,8 @@
       "metadata": {},
       "sku": "66846240",
       "name": "M",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 117,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3927,11 +4076,8 @@
       "metadata": {},
       "sku": "55365141",
       "name": "L",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 117,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3943,11 +4089,8 @@
       "metadata": {},
       "sku": "73186143",
       "name": "XL",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 117,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3959,11 +4102,8 @@
       "metadata": {},
       "sku": "42651772",
       "name": "XXL",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 117,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -3975,11 +4115,8 @@
       "metadata": {},
       "sku": "70760297",
       "name": "S",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 118,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg",
       "default": true
     }
@@ -3992,11 +4129,8 @@
       "metadata": {},
       "sku": "36334412",
       "name": "M",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 118,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -4008,11 +4142,8 @@
       "metadata": {},
       "sku": "35994675",
       "name": "L",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 118,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -4024,11 +4155,8 @@
       "metadata": {},
       "sku": "10404946",
       "name": "XL",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 118,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -4040,11 +4168,8 @@
       "metadata": {},
       "sku": "45507483",
       "name": "XXL",
-      "currency": "USD",
-      "price_amount": "5.00",
       "product": 118,
       "track_inventory": true,
-      "cost_price_amount": "10.00",
       "weight": "0.0:kg"
     }
   },
@@ -4056,11 +4181,8 @@
       "metadata": {},
       "sku": "sea-lullabies-mp3",
       "name": "MP3",
-      "currency": "USD",
-      "price_amount": "9.99",
       "product": 119,
       "track_inventory": true,
-      "cost_price_amount": null,
       "weight": null,
       "default": true
     }
@@ -4073,11 +4195,8 @@
       "metadata": {},
       "sku": "lake-tunes-mp3",
       "name": "MP3",
-      "currency": "USD",
-      "price_amount": "9.99",
       "product": 120,
       "track_inventory": true,
-      "cost_price_amount": null,
       "weight": null,
       "default": true
     }
@@ -4090,11 +4209,8 @@
       "metadata": {},
       "sku": "ocean-poems-mp3",
       "name": "MP3",
-      "currency": "USD",
-      "price_amount": "9.99",
       "product": 121,
       "track_inventory": true,
-      "cost_price_amount": null,
       "weight": null,
       "default": true
     }
@@ -4107,11 +4223,8 @@
       "metadata": {},
       "sku": "bathroom-songs-mp3",
       "name": "MP3",
-      "currency": "USD",
-      "price_amount": "9.99",
       "product": 122,
       "track_inventory": true,
-      "cost_price_amount": null,
       "weight": null,
       "default": true
     }
@@ -4124,11 +4237,8 @@
       "metadata": {},
       "sku": "lagoon-chants-mp3",
       "name": "MP3",
-      "currency": "USD",
-      "price_amount": "9.99",
       "product": 123,
       "track_inventory": true,
-      "cost_price_amount": null,
       "weight": null,
       "default": true
     }
@@ -4141,13 +4251,2419 @@
       "metadata": {},
       "sku": "waterfall-ballads-mp3",
       "name": "MP3",
-      "currency": "USD",
-      "price_amount": "9.99",
       "product": 124,
       "track_inventory": true,
-      "cost_price_amount": null,
       "weight": null,
       "default": true
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 1,
+    "fields": {
+      "variant": 314,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 2,
+    "fields": {
+      "variant": 278,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 3,
+    "fields": {
+      "variant": 253,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 4,
+    "fields": {
+      "variant": 193,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": null
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 5,
+    "fields": {
+      "variant": 194,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": null
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 6,
+    "fields": {
+      "variant": 206,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "1.500"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 7,
+    "fields": {
+      "variant": 301,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 8,
+    "fields": {
+      "variant": 270,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 9,
+    "fields": {
+      "variant": 299,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 10,
+    "fields": {
+      "variant": 269,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 11,
+    "fields": {
+      "variant": 225,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "7.000",
+      "cost_price_amount": "2.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 12,
+    "fields": {
+      "variant": 285,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 13,
+    "fields": {
+      "variant": 302,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 14,
+    "fields": {
+      "variant": 298,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 15,
+    "fields": {
+      "variant": 266,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 16,
+    "fields": {
+      "variant": 209,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "1.500"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 17,
+    "fields": {
+      "variant": 283,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 18,
+    "fields": {
+      "variant": 256,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 19,
+    "fields": {
+      "variant": 286,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 20,
+    "fields": {
+      "variant": 222,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "7.000",
+      "cost_price_amount": "2.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 21,
+    "fields": {
+      "variant": 255,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 22,
+    "fields": {
+      "variant": 259,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 23,
+    "fields": {
+      "variant": 252,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 24,
+    "fields": {
+      "variant": 306,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 25,
+    "fields": {
+      "variant": 293,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 26,
+    "fields": {
+      "variant": 313,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 27,
+    "fields": {
+      "variant": 267,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 28,
+    "fields": {
+      "variant": 312,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 29,
+    "fields": {
+      "variant": 268,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 30,
+    "fields": {
+      "variant": 277,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 31,
+    "fields": {
+      "variant": 214,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "1.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 32,
+    "fields": {
+      "variant": 242,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "20.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 33,
+    "fields": {
+      "variant": 243,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "20.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 34,
+    "fields": {
+      "variant": 244,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "20.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 35,
+    "fields": {
+      "variant": 245,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "20.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 36,
+    "fields": {
+      "variant": 246,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "20.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 37,
+    "fields": {
+      "variant": 284,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 38,
+    "fields": {
+      "variant": 210,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "7.000",
+      "cost_price_amount": "2.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 39,
+    "fields": {
+      "variant": 310,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 40,
+    "fields": {
+      "variant": 288,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 41,
+    "fields": {
+      "variant": 211,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "1.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 42,
+    "fields": {
+      "variant": 203,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "1.500"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 43,
+    "fields": {
+      "variant": 305,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 44,
+    "fields": {
+      "variant": 264,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 45,
+    "fields": {
+      "variant": 261,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 46,
+    "fields": {
+      "variant": 254,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 47,
+    "fields": {
+      "variant": 295,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 48,
+    "fields": {
+      "variant": 208,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "1.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 49,
+    "fields": {
+      "variant": 315,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 50,
+    "fields": {
+      "variant": 272,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 51,
+    "fields": {
+      "variant": 258,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 52,
+    "fields": {
+      "variant": 304,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 53,
+    "fields": {
+      "variant": 171,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "15.000",
+      "cost_price_amount": "5.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 54,
+    "fields": {
+      "variant": 172,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "35.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 55,
+    "fields": {
+      "variant": 173,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "49.000",
+      "cost_price_amount": "20.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 56,
+    "fields": {
+      "variant": 282,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 57,
+    "fields": {
+      "variant": 308,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 58,
+    "fields": {
+      "variant": 223,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "1.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 59,
+    "fields": {
+      "variant": 224,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "1.500"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 60,
+    "fields": {
+      "variant": 287,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 61,
+    "fields": {
+      "variant": 215,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "1.500"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 62,
+    "fields": {
+      "variant": 263,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 63,
+    "fields": {
+      "variant": 265,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 64,
+    "fields": {
+      "variant": 220,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "1.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 65,
+    "fields": {
+      "variant": 300,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 66,
+    "fields": {
+      "variant": 207,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "7.000",
+      "cost_price_amount": "2.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 67,
+    "fields": {
+      "variant": 296,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 68,
+    "fields": {
+      "variant": 303,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 69,
+    "fields": {
+      "variant": 257,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 70,
+    "fields": {
+      "variant": 307,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 71,
+    "fields": {
+      "variant": 205,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "1.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 72,
+    "fields": {
+      "variant": 292,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 73,
+    "fields": {
+      "variant": 198,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "12.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 74,
+    "fields": {
+      "variant": 197,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "20.000",
+      "cost_price_amount": "11.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 75,
+    "fields": {
+      "variant": 217,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "1.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 76,
+    "fields": {
+      "variant": 311,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 77,
+    "fields": {
+      "variant": 273,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 78,
+    "fields": {
+      "variant": 289,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 79,
+    "fields": {
+      "variant": 309,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 80,
+    "fields": {
+      "variant": 213,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "7.000",
+      "cost_price_amount": "2.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 81,
+    "fields": {
+      "variant": 281,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 82,
+    "fields": {
+      "variant": 291,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 83,
+    "fields": {
+      "variant": 212,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "1.500"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 84,
+    "fields": {
+      "variant": 219,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "7.000",
+      "cost_price_amount": "2.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 85,
+    "fields": {
+      "variant": 204,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "7.000",
+      "cost_price_amount": "2.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 86,
+    "fields": {
+      "variant": 276,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 87,
+    "fields": {
+      "variant": 221,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "1.500"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 88,
+    "fields": {
+      "variant": 279,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 89,
+    "fields": {
+      "variant": 216,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "7.000",
+      "cost_price_amount": "2.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 90,
+    "fields": {
+      "variant": 274,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 91,
+    "fields": {
+      "variant": 260,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 92,
+    "fields": {
+      "variant": 275,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 93,
+    "fields": {
+      "variant": 262,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 94,
+    "fields": {
+      "variant": 297,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 95,
+    "fields": {
+      "variant": 280,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 96,
+    "fields": {
+      "variant": 250,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "20.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 97,
+    "fields": {
+      "variant": 249,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": null
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 98,
+    "fields": {
+      "variant": 191,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "1.500"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 99,
+    "fields": {
+      "variant": 202,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "1.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 100,
+    "fields": {
+      "variant": 218,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "1.500"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 101,
+    "fields": {
+      "variant": 248,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "20.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 102,
+    "fields": {
+      "variant": 271,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 103,
+    "fields": {
+      "variant": 195,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": null
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 104,
+    "fields": {
+      "variant": 196,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": null
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 105,
+    "fields": {
+      "variant": 290,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 106,
+    "fields": {
+      "variant": 199,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "13.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 107,
+    "fields": {
+      "variant": 192,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "7.000",
+      "cost_price_amount": "2.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 108,
+    "fields": {
+      "variant": 190,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "1.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 109,
+    "fields": {
+      "variant": 251,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 110,
+    "fields": {
+      "variant": 294,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 111,
+    "fields": {
+      "variant": 247,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 112,
+    "fields": {
+      "variant": 177,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "15.000",
+      "cost_price_amount": "5.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 113,
+    "fields": {
+      "variant": 178,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "25.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 114,
+    "fields": {
+      "variant": 179,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "49.000",
+      "cost_price_amount": "20.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 115,
+    "fields": {
+      "variant": 200,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "5.000",
+      "cost_price_amount": "13.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 116,
+    "fields": {
+      "variant": 174,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "15.000",
+      "cost_price_amount": "5.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 117,
+    "fields": {
+      "variant": 176,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "49.000",
+      "cost_price_amount": "25.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 118,
+    "fields": {
+      "variant": 175,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "25.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 119,
+    "fields": {
+      "variant": 180,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "15.000",
+      "cost_price_amount": "5.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 120,
+    "fields": {
+      "variant": 181,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "30.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 121,
+    "fields": {
+      "variant": 182,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "49.000",
+      "cost_price_amount": "15.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 122,
+    "fields": {
+      "variant": 183,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "15.000",
+      "cost_price_amount": "5.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 123,
+    "fields": {
+      "variant": 184,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "30.000",
+      "cost_price_amount": "10.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 124,
+    "fields": {
+      "variant": 185,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "49.000",
+      "cost_price_amount": "15.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 125,
+    "fields": {
+      "variant": 319,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "9.990",
+      "cost_price_amount": null
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 126,
+    "fields": {
+      "variant": 320,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "9.990",
+      "cost_price_amount": null
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 127,
+    "fields": {
+      "variant": 317,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "9.990",
+      "cost_price_amount": null
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 128,
+    "fields": {
+      "variant": 318,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "9.990",
+      "cost_price_amount": null
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 129,
+    "fields": {
+      "variant": 316,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "9.990",
+      "cost_price_amount": null
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 130,
+    "fields": {
+      "variant": 321,
+      "channel": 1,
+      "currency": "USD",
+      "price_amount": "9.990",
+      "cost_price_amount": null
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 131,
+    "fields": {
+      "variant": 203,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "6.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 132,
+    "fields": {
+      "variant": 204,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "28.000",
+      "cost_price_amount": "8.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 133,
+    "fields": {
+      "variant": 202,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "4.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 134,
+    "fields": {
+      "variant": 209,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "6.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 135,
+    "fields": {
+      "variant": 210,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "28.000",
+      "cost_price_amount": "8.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 136,
+    "fields": {
+      "variant": 208,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "4.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 137,
+    "fields": {
+      "variant": 319,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "39.960",
+      "cost_price_amount": null
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 138,
+    "fields": {
+      "variant": 225,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "28.000",
+      "cost_price_amount": "8.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 139,
+    "fields": {
+      "variant": 223,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "4.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 140,
+    "fields": {
+      "variant": 224,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "6.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 141,
+    "fields": {
+      "variant": 299,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 142,
+    "fields": {
+      "variant": 298,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 143,
+    "fields": {
+      "variant": 300,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 144,
+    "fields": {
+      "variant": 296,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 145,
+    "fields": {
+      "variant": 297,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 146,
+    "fields": {
+      "variant": 301,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 147,
+    "fields": {
+      "variant": 302,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 148,
+    "fields": {
+      "variant": 305,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 149,
+    "fields": {
+      "variant": 304,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 150,
+    "fields": {
+      "variant": 303,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 151,
+    "fields": {
+      "variant": 206,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "6.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 152,
+    "fields": {
+      "variant": 207,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "28.000",
+      "cost_price_amount": "8.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 153,
+    "fields": {
+      "variant": 205,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "4.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 154,
+    "fields": {
+      "variant": 214,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "4.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 155,
+    "fields": {
+      "variant": 215,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "6.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 156,
+    "fields": {
+      "variant": 216,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "28.000",
+      "cost_price_amount": "8.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 157,
+    "fields": {
+      "variant": 253,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 158,
+    "fields": {
+      "variant": 255,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 159,
+    "fields": {
+      "variant": 252,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 160,
+    "fields": {
+      "variant": 254,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 161,
+    "fields": {
+      "variant": 251,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 162,
+    "fields": {
+      "variant": 198,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "48.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 163,
+    "fields": {
+      "variant": 197,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "80.000",
+      "cost_price_amount": "44.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 164,
+    "fields": {
+      "variant": 222,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "28.000",
+      "cost_price_amount": "8.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 165,
+    "fields": {
+      "variant": 220,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "4.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 166,
+    "fields": {
+      "variant": 221,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "6.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 167,
+    "fields": {
+      "variant": 183,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "60.000",
+      "cost_price_amount": "20.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 168,
+    "fields": {
+      "variant": 184,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "120.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 169,
+    "fields": {
+      "variant": 185,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "196.000",
+      "cost_price_amount": "60.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 170,
+    "fields": {
+      "variant": 320,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "39.960",
+      "cost_price_amount": null
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 171,
+    "fields": {
+      "variant": 317,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "39.960",
+      "cost_price_amount": null
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 172,
+    "fields": {
+      "variant": 180,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "60.000",
+      "cost_price_amount": "20.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 173,
+    "fields": {
+      "variant": 181,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "120.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 174,
+    "fields": {
+      "variant": 182,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "196.000",
+      "cost_price_amount": "60.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 175,
+    "fields": {
+      "variant": 306,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 176,
+    "fields": {
+      "variant": 310,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 177,
+    "fields": {
+      "variant": 308,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 178,
+    "fields": {
+      "variant": 307,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 179,
+    "fields": {
+      "variant": 309,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 180,
+    "fields": {
+      "variant": 171,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "60.000",
+      "cost_price_amount": "20.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 181,
+    "fields": {
+      "variant": 172,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "140.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 182,
+    "fields": {
+      "variant": 173,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "196.000",
+      "cost_price_amount": "80.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 183,
+    "fields": {
+      "variant": 318,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "39.960",
+      "cost_price_amount": null
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 184,
+    "fields": {
+      "variant": 191,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "6.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 185,
+    "fields": {
+      "variant": 192,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "28.000",
+      "cost_price_amount": "8.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 186,
+    "fields": {
+      "variant": 190,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "4.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 187,
+    "fields": {
+      "variant": 211,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "4.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 188,
+    "fields": {
+      "variant": 213,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "28.000",
+      "cost_price_amount": "8.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 189,
+    "fields": {
+      "variant": 212,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "6.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 190,
+    "fields": {
+      "variant": 256,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 191,
+    "fields": {
+      "variant": 259,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 192,
+    "fields": {
+      "variant": 258,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 193,
+    "fields": {
+      "variant": 257,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 194,
+    "fields": {
+      "variant": 260,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 195,
+    "fields": {
+      "variant": 264,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 196,
+    "fields": {
+      "variant": 261,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 197,
+    "fields": {
+      "variant": 263,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 198,
+    "fields": {
+      "variant": 265,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 199,
+    "fields": {
+      "variant": 262,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 200,
+    "fields": {
+      "variant": 270,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 201,
+    "fields": {
+      "variant": 269,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 202,
+    "fields": {
+      "variant": 266,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 203,
+    "fields": {
+      "variant": 267,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 204,
+    "fields": {
+      "variant": 268,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 205,
+    "fields": {
+      "variant": 272,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 206,
+    "fields": {
+      "variant": 273,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 207,
+    "fields": {
+      "variant": 274,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 208,
+    "fields": {
+      "variant": 275,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 209,
+    "fields": {
+      "variant": 271,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 210,
+    "fields": {
+      "variant": 217,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "4.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 211,
+    "fields": {
+      "variant": 219,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "28.000",
+      "cost_price_amount": "8.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 212,
+    "fields": {
+      "variant": 218,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": "6.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 213,
+    "fields": {
+      "variant": 177,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "60.000",
+      "cost_price_amount": "20.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 214,
+    "fields": {
+      "variant": 178,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "100.000",
+      "cost_price_amount": "40.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 215,
+    "fields": {
+      "variant": 179,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "196.000",
+      "cost_price_amount": "80.000"
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 216,
+    "fields": {
+      "variant": 193,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": null
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 217,
+    "fields": {
+      "variant": 316,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "39.960",
+      "cost_price_amount": null
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 218,
+    "fields": {
+      "variant": 196,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": null
+    }
+  },
+  {
+    "model": "product.productvariantchannellisting",
+    "pk": 219,
+    "fields": {
+      "variant": 195,
+      "channel": 2,
+      "currency": "PLN",
+      "price_amount": "20.000",
+      "cost_price_amount": null
     }
   },
   {
@@ -5911,6 +8427,28 @@
     }
   },
   {
+    "model": "product.assignedpageattribute",
+    "pk": 1,
+    "fields": {
+        "page": 1,
+        "assignment": 3,
+        "values": [
+            87
+        ]
+    }
+  },
+  {
+    "model": "product.assignedpageattribute",
+    "pk": 2,
+    "fields": {
+        "page": 1,
+        "assignment": 2,
+        "values": [
+            93
+        ]
+    }
+  },
+  {
     "model": "product.attributeproduct",
     "pk": 1,
     "fields": {
@@ -6028,6 +8566,33 @@
     }
   },
   {
+    "model": "product.attributepage",
+    "pk": 2,
+    "fields": {
+      "sort_order": null,
+      "attribute": 29,
+      "page_type": 1
+    }
+},
+{
+    "model": "product.attributepage",
+    "pk": 3,
+    "fields": {
+      "sort_order": null,
+      "attribute": 27,
+      "page_type": 1
+    }
+},
+{
+    "model": "product.attributepage",
+    "pk": 4,
+    "fields": {
+      "sort_order": null,
+      "attribute": 29,
+      "page_type": 2
+    }
+},
+  {
     "model": "product.attribute",
     "pk": 13,
     "fields": {
@@ -6035,6 +8600,7 @@
       "metadata": {},
       "slug": "size",
       "name": "Size",
+      "type": "product-type",
       "input_type": "dropdown",
       "value_required": false,
       "is_variant_only": false,
@@ -6053,6 +8619,7 @@
       "metadata": {},
       "slug": "color",
       "name": "Color",
+      "type": "product-type",
       "input_type": "dropdown",
       "value_required": false,
       "is_variant_only": false,
@@ -6071,6 +8638,7 @@
       "metadata": {},
       "slug": "bottle-size",
       "name": "Bottle Size",
+      "type": "product-type",
       "input_type": "dropdown",
       "value_required": false,
       "is_variant_only": false,
@@ -6089,6 +8657,7 @@
       "metadata": {},
       "slug": "flavor",
       "name": "Flavor",
+      "type": "product-type",
       "input_type": "dropdown",
       "value_required": false,
       "is_variant_only": false,
@@ -6107,6 +8676,7 @@
       "metadata": {},
       "slug": "bucket-size",
       "name": "Bucket Size",
+      "type": "product-type",
       "input_type": "dropdown",
       "value_required": false,
       "is_variant_only": false,
@@ -6125,6 +8695,7 @@
       "metadata": {},
       "slug": "medium",
       "name": "Medium",
+      "type": "product-type",
       "input_type": "dropdown",
       "value_required": false,
       "is_variant_only": false,
@@ -6143,6 +8714,7 @@
       "metadata": {},
       "slug": "volume",
       "name": "Volume",
+      "type": "product-type",
       "input_type": "dropdown",
       "value_required": false,
       "is_variant_only": false,
@@ -6161,6 +8733,7 @@
       "metadata": {},
       "slug": "abv",
       "name": "ABV",
+      "type": "product-type",
       "input_type": "dropdown",
       "value_required": false,
       "is_variant_only": false,
@@ -6179,6 +8752,7 @@
       "metadata": {},
       "slug": "cushion-size",
       "name": "Cushion Size",
+      "type": "product-type",
       "input_type": "dropdown",
       "value_required": false,
       "is_variant_only": false,
@@ -6197,6 +8771,7 @@
       "metadata": {},
       "slug": "material",
       "name": "Material",
+      "type": "product-type",
       "input_type": "dropdown",
       "value_required": false,
       "is_variant_only": false,
@@ -6215,6 +8790,7 @@
       "metadata": {},
       "slug": "shoe-size",
       "name": "Shoe size",
+      "type": "product-type",
       "input_type": "dropdown",
       "value_required": false,
       "is_variant_only": false,
@@ -6233,6 +8809,7 @@
       "metadata": {},
       "slug": "ebook-format",
       "name": "Format",
+      "type": "product-type",
       "input_type": "dropdown",
       "value_required": true,
       "is_variant_only": false,
@@ -6251,7 +8828,46 @@
       "metadata": {},
       "slug": "publisher",
       "name": "Publisher",
+      "type": "product-type",
       "input_type": "dropdown",
+      "value_required": false,
+      "is_variant_only": false,
+      "visible_in_storefront": true,
+      "filterable_in_storefront": true,
+      "filterable_in_dashboard": true,
+      "storefront_search_position": 0,
+      "available_in_grid": true
+    }
+  },
+  {
+    "model": "product.attribute",
+    "pk": 27,
+    "fields": {
+      "private_metadata": {},
+      "metadata": {},
+      "slug": "author",
+      "name": "Author",
+      "type": "page-type",
+      "input_type": "dropdown",
+      "value_required": false,
+      "is_variant_only": false,
+      "visible_in_storefront": true,
+      "filterable_in_storefront": true,
+      "filterable_in_dashboard": true,
+      "storefront_search_position": 0,
+      "available_in_grid": true
+    }
+  },
+  {
+    "model": "product.attribute",
+    "pk": 29,
+    "fields": {
+      "private_metadata": {},
+      "metadata": {},
+      "slug": "tag",
+      "name": "Tag",
+      "type": "page-type",
+      "input_type": "multiselect",
       "value_required": false,
       "is_variant_only": false,
       "visible_in_storefront": true,
@@ -6798,6 +9414,83 @@
       "value": "",
       "slug": "digital-audio",
       "attribute": 26
+    }
+  },
+  {
+    "model": "product.attributevalue",
+    "pk": 87,
+    "fields": {
+      "sort_order": 0,
+      "name": "Suzanne Ellison",
+      "value": "",
+      "slug": "suzanne-ellison",
+      "attribute": 27
+    }
+  },
+  {
+    "model": "product.attributevalue",
+    "pk": 88,
+    "fields": {
+      "sort_order": 1,
+      "name": "Dennis Perkins",
+      "value": "",
+      "slug": "dennis-perkins",
+      "attribute": 27
+    }
+  },
+  {
+    "model": "product.attributevalue",
+    "pk": 89,
+    "fields": {
+      "sort_order": 2,
+      "name": "Dylan Lamb",
+      "value": "",
+      "slug": "dylan-lamb",
+      "attribute": 27
+    }
+  },
+  {
+    "model": "product.attributevalue",
+    "pk": 90,
+    "fields": {
+      "sort_order": 0,
+      "name": "Security",
+      "value": "",
+      "slug": "security",
+      "attribute": 29
+    }
+  },
+  {
+    "model": "product.attributevalue",
+    "pk": 91,
+    "fields": {
+      "sort_order": 1,
+      "name": "Support",
+      "value": "",
+      "slug": "support",
+      "attribute": 29
+    }
+  },
+  {
+    "model": "product.attributevalue",
+    "pk": 92,
+    "fields": {
+      "sort_order": 2,
+      "name": "Medical",
+      "value": "",
+      "slug": "medical",
+      "attribute": 29
+    }
+  },
+  {
+    "model": "product.attributevalue",
+    "pk": 93,
+    "fields": {
+      "sort_order": 3,
+      "name": "General",
+      "value": "",
+      "slug": "general",
+      "attribute": 29
     }
   },
   {
@@ -7489,11 +10182,45 @@
     }
   },
   {
+    "model": "product.collectionproduct",
+    "pk": 5,
+    "fields": {
+      "sort_order": null,
+      "collection": 3,
+      "product": 83
+    }
+  },
+  {
+    "model": "product.collectionproduct",
+    "pk": 6,
+    "fields": {
+      "sort_order": null,
+      "collection": 3,
+      "product": 84
+    }
+  },
+  {
+    "model": "product.collectionproduct",
+    "pk": 7,
+    "fields": {
+      "sort_order": null,
+      "collection": 3,
+      "product": 61
+    }
+  },
+  {
+    "model": "product.collectionproduct",
+    "pk": 8,
+    "fields": {
+      "sort_order": null,
+      "collection": 3,
+      "product": 110
+    }
+  },
+  {
     "model": "product.collection",
     "pk": 1,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {},
       "seo_title": null,
@@ -7505,15 +10232,11 @@
       "description": "The Saleor Summer Collection features a range of products that feel the heat of the market. A demo store for all seasons. Saleor captures the open source, e-commerce sun.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "The Saleor Summer Collection features a range of products that feel the heat of the market. A demo store for all seasons. Saleor captures the open source, e-commerce sun.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+            "data": {
+                "text": "The Saleor Summer Collection features a range of products that feel the heat of the market. A demo store for all seasons. Saleor captures the open source, e-commerce sun."
+            },
+            "type": "paragraph"
+        }]
       }
     }
   },
@@ -7521,8 +10244,6 @@
     "model": "product.collection",
     "pk": 2,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {},
       "seo_title": null,
@@ -7534,9 +10255,32 @@
       "description": "The Saleor Winter Sale is snowed under with seasonal offers. Unreal products at unreal prices. Literally, they are not real products, but the Saleor demo store is a genuine e-commerce leader.",
       "description_json": {
         "blocks": [{
+            "data": {
+                "text": "The Saleor Winter Sale is snowed under with seasonal offers. Unreal products at unreal prices. Literally, they are not real products, but the Saleor demo store is a genuine e-commerce leader."
+            },
+            "type": "paragraph"
+        }]
+      }
+    }
+  },
+  {
+    "model": "product.collection",
+    "pk": 3,
+    "fields": {
+      "private_metadata": {},
+      "metadata": {},
+      "seo_title": null,
+      "seo_description": null,
+      "name": "Featured Products",
+      "slug": "featured-products",
+      "background_image": "collection-backgrounds/clothing_R7nkNxS.jpg",
+      "background_image_alt": "",
+      "description": "Featured Products. Literally, they are not real products, but the Saleor demo store is a genuine e-commerce leader.",
+      "description_json": {
+        "blocks": [{
           "key": "",
           "data": {},
-          "text": "The Saleor Winter Sale is snowed under with seasonal offers. Unreal products at unreal prices. Literally, they are not real products, but the Saleor demo store is a genuine e-commerce leader.",
+          "text": "Featured Products. Literally, they are not real products, but the Saleor demo store is a genuine e-commerce leader.",
           "type": "unstyled",
           "depth": 0,
           "entityRanges": [],
@@ -7544,6 +10288,66 @@
         }],
         "entityMap": {}
       }
+    }
+  },
+  {
+    "model": "product.collectionchannellisting",
+    "pk": 1,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "collection": 1,
+      "channel": 1
+    }
+  },
+  {
+    "model": "product.collectionchannellisting",
+    "pk": 2,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "collection": 2,
+      "channel": 1
+    }
+  },
+  {
+    "model": "product.collectionchannellisting",
+    "pk": 3,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "collection": 1,
+      "channel": 2
+    }
+  },
+  {
+    "model": "product.collectionchannellisting",
+    "pk": 4,
+    "fields": {
+      "publication_date": null,
+      "is_published": false,
+      "collection": 2,
+      "channel": 2
+    }
+  },
+  {
+    "model": "product.collectionchannellisting",
+    "pk": 5,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "collection": 3,
+      "channel": 1
+    }
+  },
+  {
+    "model": "product.collectionchannellisting",
+    "pk": 6,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "collection": 3,
+      "channel": 2
     }
   }
 ]

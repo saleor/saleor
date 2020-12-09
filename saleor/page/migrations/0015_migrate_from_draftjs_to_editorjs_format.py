@@ -14,12 +14,18 @@ TAG_MAPPING = {
 
 
 def parse_to_editorjs(data):
-    blocks = data["blocks"]
-    entity_map = data["entityMap"]
+    blocks = data.get("blocks")
+    entity_map = data.get("entityMap")
+
+    if not blocks:
+        return data
 
     editor_js_blocks = []
     list_data = {}
     for block in blocks:
+        # if block doesn't have key it means it isn't in draft.js format
+        if "key" not in block:
+            return data
         key = block["type"]
         inline_style_ranges = block["inlineStyleRanges"]
         entity_ranges = block["entityRanges"]

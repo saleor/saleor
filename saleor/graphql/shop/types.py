@@ -11,23 +11,25 @@ from ...account import models as account_models
 from ...core.permissions import SitePermissions, get_permissions
 from ...core.utils import get_client_ip, get_country_by_ip
 from ...plugins.manager import get_plugins_manager
-from ...product import models as product_models
 from ...site import models as site_models
-from ..account.types import Address, StaffNotificationRecipient
+from ..account.types import Address, AddressInput, StaffNotificationRecipient
+from ..channel import ChannelContext
 from ..checkout.types import PaymentGateway
+from ..core.connection import CountableDjangoObjectType
 from ..core.enums import WeightUnitsEnum
 from ..core.types.common import CountryDisplay, LanguageDisplay, Permission
 from ..core.utils import str_to_enum
 from ..decorators import permission_required
 from ..menu.dataloaders import MenuByIdLoader
 from ..menu.types import Menu
-from ..product.types import Collection
+from ..shipping.types import ShippingMethod
 from ..translations.enums import LanguageCodeEnum
 from ..translations.fields import TranslationField
 from ..translations.resolvers import resolve_translation
 from ..translations.types import ShopTranslation
 from ..utils import format_permissions_for_display
 from .enums import AuthorizationKeyType
+from .resolvers import resolve_available_shipping_methods
 
 
 class Navigation(graphene.ObjectType):
@@ -65,6 +67,13 @@ class Geolocalization(graphene.ObjectType):
         description = "Represents customers's geolocalization data."
 
 
+class OrderSettings(CountableDjangoObjectType):
+    class Meta:
+        only_fields = ["automatically_confirm_all_new_orders"]
+        description = "Order related settings from site settings."
+        model = site_models.SiteSettings
+
+
 class Shop(graphene.ObjectType):
     available_payment_gateways = graphene.List(
         graphene.NonNull(PaymentGateway),
@@ -75,6 +84,23 @@ class Shop(graphene.ObjectType):
         ),
         description="List of available payment gateways.",
         required=True,
+    )
+    available_shipping_methods = graphene.List(
+        ShippingMethod,
+        channel=graphene.Argument(
+            graphene.String,
+            description="Slug of a channel for which the data should be returned.",
+            required=True,
+        ),
+        address=graphene.Argument(
+            AddressInput,
+            description=(
+                "Address for which available shipping methods should be returned."
+            ),
+            required=False,
+        ),
+        required=False,
+        description="Shipping methods that are available for the shop.",
     )
     geolocalization = graphene.Field(
         Geolocalization, description="Customer's geolocalization data."
@@ -96,17 +122,6 @@ class Shop(graphene.ObjectType):
         description="List of countries available in the shop.",
         required=True,
     )
-    currencies = graphene.List(
-        graphene.String,
-        description="List of available currencies.",
-        required=True,
-        deprecation_reason="This field will be removed in Saleor 3.0",
-    )
-    default_currency = graphene.String(
-        description="Shop's default currency.",
-        required=True,
-        deprecation_reason="This field will be removed in Saleor 3.0",
-    )
     default_country = graphene.Field(
         CountryDisplay, description="Shop's default country."
     )
@@ -118,14 +133,6 @@ class Shop(graphene.ObjectType):
     )
     description = graphene.String(description="Shop's description.")
     domain = graphene.Field(Domain, required=True, description="Shop's domain data.")
-    homepage_collection = graphene.Field(
-        Collection,
-        description="Collection displayed on homepage.",
-        deprecation_reason=(
-            "Use the `collection` query with the `slug` parameter. "
-            "This field will be removed in Saleor 3.0"
-        ),
-    )
     languages = graphene.List(
         LanguageDisplay,
         description="List of the shops's supported languages.",
@@ -191,6 +198,10 @@ class Shop(graphene.ObjectType):
         return get_plugins_manager().list_payment_gateways(currency=currency)
 
     @staticmethod
+    def resolve_available_shipping_methods(_, info, channel, address=None):
+        return resolve_available_shipping_methods(info, channel, address)
+
+    @staticmethod
     @permission_required(SitePermissions.MANAGE_SETTINGS)
     def resolve_authorization_keys(_, _info):
         return site_models.AuthorizationKey.objects.all()
@@ -205,10 +216,6 @@ class Shop(graphene.ObjectType):
                 )
                 for country in countries
             ]
-
-    @staticmethod
-    def resolve_currencies(_, _info):
-        return settings.AVAILABLE_CURRENCIES
 
     @staticmethod
     def resolve_domain(_, info):
@@ -230,18 +237,8 @@ class Shop(graphene.ObjectType):
         return Geolocalization(country=None)
 
     @staticmethod
-    def resolve_default_currency(_, _info):
-        return settings.DEFAULT_CURRENCY
-
-    @staticmethod
     def resolve_description(_, info):
         return info.context.site.settings.description
-
-    @staticmethod
-    def resolve_homepage_collection(_, info):
-        collection_pk = info.context.site.settings.homepage_collection_id
-        qs = product_models.Collection.objects.all()
-        return qs.filter(pk=collection_pk).first()
 
     @staticmethod
     def resolve_languages(_, _info):
@@ -259,16 +256,21 @@ class Shop(graphene.ObjectType):
     @staticmethod
     def resolve_navigation(_, info):
         site_settings = info.context.site.settings
-        main = (
-            MenuByIdLoader(info.context).load(site_settings.top_menu_id)
-            if site_settings.top_menu_id
-            else None
-        )
-        secondary = (
-            MenuByIdLoader(info.context).load(site_settings.bottom_menu_id)
-            if site_settings.bottom_menu_id
-            else None
-        )
+        main = None
+        if site_settings.top_menu_id:
+            main = (
+                MenuByIdLoader(info.context)
+                .load(site_settings.top_menu_id)
+                .then(lambda menu: ChannelContext(node=menu, channel_slug=None))
+            )
+        secondary = None
+        if site_settings.bottom_menu_id:
+            secondary = (
+                MenuByIdLoader(info.context)
+                .load(site_settings.bottom_menu_id)
+                .then(lambda menu: ChannelContext(node=menu, channel_slug=None))
+            )
+
         return Navigation(main=main, secondary=secondary)
 
     @staticmethod

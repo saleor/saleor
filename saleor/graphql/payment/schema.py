@@ -3,7 +3,7 @@ import graphene
 from ...core.permissions import OrderPermissions
 from ..core.fields import PrefetchingConnectionField
 from ..decorators import permission_required
-from .mutations import PaymentCapture, PaymentRefund, PaymentVoid
+from .mutations import PaymentCapture, PaymentInitialize, PaymentRefund, PaymentVoid
 from .resolvers import resolve_payments
 from .types import Payment
 
@@ -31,3 +31,4 @@ class PaymentMutations(graphene.ObjectType):
     payment_capture = PaymentCapture.Field()
     payment_refund = PaymentRefund.Field()
     payment_void = PaymentVoid.Field()
+    payment_initialize = PaymentInitialize.Field()

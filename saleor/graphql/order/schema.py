@@ -21,6 +21,7 @@ from .mutations.draft_orders import (
 )
 from .mutations.fulfillments import (
     FulfillmentCancel,
+    FulfillmentRefundProducts,
     FulfillmentUpdateTracking,
     OrderFulfill,
 )
@@ -28,6 +29,7 @@ from .mutations.orders import (
     OrderAddNote,
     OrderCancel,
     OrderCapture,
+    OrderConfirm,
     OrderMarkAsPaid,
     OrderRefund,
     OrderUpdate,
@@ -87,6 +89,9 @@ class OrderQueries(graphene.ObjectType):
                 "This field will be removed after 2020-07-31."
             ),
         ),
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
         description="List of orders.",
     )
     draft_orders = FilterInputConnectionField(
@@ -106,6 +111,10 @@ class OrderQueries(graphene.ObjectType):
         TaxedMoney,
         description="Return the total sales amount from a specific period.",
         period=graphene.Argument(ReportingPeriod, description="A period of time."),
+        channel=graphene.Argument(
+            graphene.String,
+            description="Slug of a channel for which the data should be returned.",
+        ),
     )
     order_by_token = graphene.Field(
         Order,
@@ -122,16 +131,16 @@ class OrderQueries(graphene.ObjectType):
         return resolve_order(info, data.get("id"))
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)
-    def resolve_orders(self, info, created=None, status=None, **_kwargs):
-        return resolve_orders(info, created, status)
+    def resolve_orders(self, info, created=None, status=None, channel=None, **_kwargs):
+        return resolve_orders(info, created, status, channel)
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_draft_orders(self, info, created=None, **_kwargs):
         return resolve_draft_orders(info, created)
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)
-    def resolve_orders_total(self, info, period, **_kwargs):
-        return resolve_orders_total(info, period)
+    def resolve_orders_total(self, info, period, channel=None, **_kwargs):
+        return resolve_orders_total(info, period, channel)
 
     def resolve_order_by_token(self, _info, token):
         return resolve_order_by_token(token)
@@ -151,9 +160,13 @@ class OrderMutations(graphene.ObjectType):
     order_add_note = OrderAddNote.Field()
     order_cancel = OrderCancel.Field()
     order_capture = OrderCapture.Field()
+    order_confirm = OrderConfirm.Field()
+
     order_fulfill = OrderFulfill.Field()
     order_fulfillment_cancel = FulfillmentCancel.Field()
     order_fulfillment_update_tracking = FulfillmentUpdateTracking.Field()
+    order_fulfillment_refund_products = FulfillmentRefundProducts.Field()
+
     order_mark_as_paid = OrderMarkAsPaid.Field()
     order_refund = OrderRefund.Field()
     order_update = OrderUpdate.Field()
