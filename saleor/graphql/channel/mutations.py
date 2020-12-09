@@ -173,7 +173,6 @@ class ChannelDelete(ModelDeleteMutation):
     def perform_mutation(cls, _root, info, **data):
         origin_channel = cls.get_node_or_error(info, data["id"], only_type=Channel)
         target_channel_global_id = data.get("input", {}).get("target_channel")
-        target_channel = None
         if target_channel_global_id:
             target_channel = cls.get_node_or_error(
                 info, target_channel_global_id, only_type=Channel

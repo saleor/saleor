@@ -77,26 +77,26 @@ def test_query_channels_as_anonymous(api_client, channel_USD, channel_PLN):
     assert_no_permission(response)
 
 
-QUERY_CHANNELS_WITH_REMOVE_FLAG = """
+QUERY_CHANNELS_WITH_HAS_ORDERS = """
 query {
     channels {
         name
         slug
         currencyCode
-        canRemoveWithoutOrderMigration
+        hasOrders
     }
 }
 """
 
 
-def test_query_channels_can_remove_without_order_migration(
+def test_query_channels_with_has_orders_order(
     staff_api_client, permission_manage_channels, channel_USD, channel_PLN, order_list
 ):
     # given
 
     # when
     response = staff_api_client.post_graphql(
-        QUERY_CHANNELS_WITH_REMOVE_FLAG, {}, permissions=(permission_manage_channels,),
+        QUERY_CHANNELS_WITH_HAS_ORDERS, {}, permissions=(permission_manage_channels,),
     )
     content = get_graphql_content(response)
 
@@ -107,23 +107,23 @@ def test_query_channels_can_remove_without_order_migration(
         "slug": channel_PLN.slug,
         "name": channel_PLN.name,
         "currencyCode": channel_PLN.currency_code,
-        "canRemoveWithoutOrderMigration": True,
+        "hasOrders": False,
     } in channels
     assert {
         "slug": channel_USD.slug,
         "name": channel_USD.name,
         "currencyCode": channel_USD.currency_code,
-        "canRemoveWithoutOrderMigration": False,
+        "hasOrders": True,
     } in channels
 
 
-def test_query_channels_can_remove_without_order_migration_without_permission(
+def test_query_channels_with_has_orders_without_permission(
     staff_api_client, channel_USD, channel_PLN
 ):
     # given
 
     # when
-    response = staff_api_client.post_graphql(QUERY_CHANNELS_WITH_REMOVE_FLAG, {})
+    response = staff_api_client.post_graphql(QUERY_CHANNELS_WITH_HAS_ORDERS, {})
 
     # then
     assert_no_permission(response)

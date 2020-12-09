@@ -9,7 +9,7 @@ from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
 from ..translations.resolvers import resolve_translation
 from . import ChannelContext
-from .dataloaders import ChannelWithOrderCountByIdLoader
+from .dataloaders import ChannelWithHasOrdersByIdLoader
 
 
 class ChannelContextType(DjangoObjectType):
@@ -61,8 +61,8 @@ class ChannelContextTypeWithMetadata(ChannelContextType):
 
 
 class Channel(CountableDjangoObjectType):
-    can_remove_without_order_migration = graphene.Boolean(
-        required=True, description="Address is user's default shipping address."
+    has_orders = graphene.Boolean(
+        required=True, description="Whether a channel has associated orders."
     )
 
     class Meta:
@@ -73,9 +73,9 @@ class Channel(CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(ChannelPermissions.MANAGE_CHANNELS)
-    def resolve_can_remove_without_order_migration(root: models.Channel, info):
+    def resolve_has_orders(root: models.Channel, info):
         return (
-            ChannelWithOrderCountByIdLoader(info.context)
+            ChannelWithHasOrdersByIdLoader(info.context)
             .load(root.id)
-            .then(lambda channel: channel.order_count < 1)
+            .then(lambda channel: channel.has_orders)
         )

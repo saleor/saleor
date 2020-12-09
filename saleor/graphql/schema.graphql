@@ -797,7 +797,7 @@ type Channel implements Node {
   isActive: Boolean!
   slug: String!
   currencyCode: String!
-  canRemoveWithoutOrderMigration: Boolean!
+  hasOrders: Boolean!
 }
 
 type ChannelActivate {
