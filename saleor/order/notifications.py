@@ -8,7 +8,6 @@ from ..core.notifications import get_site_context
 from ..core.notify_events import NotifyEventType
 from ..core.utils.url import prepare_url
 from ..product.models import DigitalContentUrl
-from . import events
 from .models import FulfillmentLine, Order, OrderLine
 
 if TYPE_CHECKING:
@@ -89,6 +88,7 @@ ORDER_MODEL_FIELDS = [
     "status",
     "metadata",
     "private_metadata",
+    "user_id",
 ]
 
 
@@ -158,7 +158,7 @@ def prepare_order_details_url(order: Order, redirect_url: str) -> str:
     return prepare_url(params, redirect_url)
 
 
-def send_order_confirmation(order, redirect_url, user, manager):
+def send_order_confirmation(order, redirect_url, manager):
     """Send notification with order confirmation."""
     payload = {
         "order": get_default_order_payload(order, redirect_url),
@@ -166,12 +166,6 @@ def send_order_confirmation(order, redirect_url, user, manager):
         **get_site_context(),
     }
     manager.notify(NotifyEventType.ORDER_CONFIRMATION, payload)
-    events.email_sent_event(
-        order=order,
-        user=None,
-        user_pk=user.pk if user else None,
-        email_type=events.OrderEventsEmails.ORDER_CONFIRMATION,
-    )
 
 
 def send_order_confirmed(order, user, manager):
@@ -204,18 +198,8 @@ def send_staff_order_confirmation(order, redirect_url, manager):
 
 def send_fulfillment_confirmation_to_customer(order, fulfillment, user, manager):
     payload = get_default_fulfillment_payload(order, fulfillment)
+    payload["requester_user_id"] = user.id if user else None
     manager.notify(NotifyEventType.ORDER_FULFILLMENT_CONFIRMATION, payload=payload)
-
-    events.email_sent_event(
-        order=order, user=user, email_type=events.OrderEventsEmails.FULFILLMENT
-    )
-
-    # If digital lines were sent in the fulfillment email,
-    # trigger the event
-    if any((line for line in order if line.variant.is_digital())):
-        events.email_sent_event(
-            order=order, user=user, email_type=events.OrderEventsEmails.DIGITAL_LINKS
-        )
 
 
 def send_fulfillment_update(order, fulfillment, manager):
@@ -244,20 +228,19 @@ def send_payment_confirmation(order, manager):
 
 def send_order_canceled_confirmation(order: "Order", user: Optional["User"], manager):
     payload = {
+        "requester_user_id": user.id if user else None,
         "order": get_default_order_payload(order),
         "recipient_email": order.get_customer_email(),
         **get_site_context(),
     }
     manager.notify(NotifyEventType.ORDER_CANCELED, payload)
-    events.email_sent_event(
-        order=order, user=user, email_type=events.OrderEventsEmails.ORDER_CANCEL
-    )
 
 
 def send_order_refunded_confirmation(
     order: "Order", user: Optional["User"], amount: "Decimal", currency: str, manager
 ):
     payload = {
+        "requester_user_id": user.id if user else None,
         "order": get_default_order_payload(order),
         "recipient_email": order.get_customer_email(),
         "amount": amount,
@@ -265,6 +248,3 @@ def send_order_refunded_confirmation(
         **get_site_context(),
     }
     manager.notify(NotifyEventType.ORDER_REFUND_CONFIRMATION, payload)
-    events.email_sent_event(
-        order=order, user=user, email_type=events.OrderEventsEmails.ORDER_REFUND
-    )

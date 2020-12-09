@@ -1,5 +1,6 @@
 from ...account import events as account_events
 from ...celeryconf import app
+from ...invoice import events as invoice_events
 from ...order import events as order_events
 from ..email_common import (
     EmailConfig,
@@ -95,6 +96,7 @@ def send_request_email_change_email_task(recipient_email, payload, config):
 
 @app.task
 def send_user_change_email_notification_task(recipient_email, payload, config):
+    user_id = payload.get("user", {}).get("id")
     email_config = EmailConfig(**config)
 
     email_template_str = get_email_template_or_default(
@@ -115,6 +117,14 @@ def send_user_change_email_notification_task(recipient_email, payload, config):
         context=payload,
         subject=subject,
         template_str=email_template_str,
+    )
+    event_parameters = {
+        "old_email": payload["old_email"],
+        "new_email": payload["new_email"],
+    }
+
+    account_events.customer_email_changed_event(
+        user_id=user_id, parameters=event_parameters
     )
 
 
@@ -192,6 +202,16 @@ def send_invoice_email_task(recipient_email, payload, config):
         subject=subject,
         template_str=email_template_str,
     )
+    invoice_events.notification_invoice_sent_event(
+        user_id=payload["requester_user_id"],
+        invoice_id=payload["invoice"]["id"],
+        customer_email=payload["recipient_email"],
+    )
+    order_events.event_invoice_sent_notification(
+        order_id=payload["invoice"]["order_id"],
+        user_id=payload["requester_user_id"],
+        email=payload["recipient_email"],
+    )
 
 
 @app.task
@@ -218,6 +238,11 @@ def send_order_confirmation_email_task(recipient_email, payload, config):
         subject=subject,
         template_str=email_template_str,
     )
+    order_events.event_order_confirmation_notification(
+        order_id=payload["order"]["id"],
+        user_id=payload["order"].get("user_id"),
+        customer_email=recipient_email,
+    )
 
 
 @app.task
@@ -243,6 +268,18 @@ def send_fulfillment_confirmation_email_task(recipient_email, payload, config):
         subject=subject,
         template_str=email_template_str,
     )
+    order_events.event_fulfillment_confirmed_notification(
+        order_id=payload["order"]["id"],
+        user_id=payload["requester_user_id"],
+        customer_email=recipient_email,
+    )
+
+    if payload.get("digital_lines"):
+        order_events.event_fulfillment_digital_links_notification(
+            order_id=payload["order"]["id"],
+            user_id=payload["requester_user_id"],
+            customer_email=recipient_email,
+        )
 
 
 @app.task
@@ -291,6 +328,11 @@ def send_payment_confirmation_email_task(recipient_email, payload, config):
         subject=subject,
         template_str=email_template_str,
     )
+    order_events.event_payment_confirmed_notification(
+        order_id=payload["order"]["id"],
+        user_id=payload["order"].get("user_id"),
+        customer_email=recipient_email,
+    )
 
 
 @app.task
@@ -316,6 +358,11 @@ def send_order_canceled_email_task(recipient_email, payload, config):
         subject=subject,
         template_str=email_template_str,
     )
+    order_events.event_order_cancelled_notification(
+        order_id=payload["order"]["id"],
+        user_id=payload["requester_user_id"],
+        customer_email=recipient_email,
+    )
 
 
 @app.task
@@ -340,6 +387,11 @@ def send_order_refund_email_task(recipient_email, payload, config):
         context=payload,
         subject=subject,
         template_str=email_template_str,
+    )
+    order_events.event_order_refunded_notification(
+        order_id=payload["order"]["id"],
+        user_id=payload["requester_user_id"],
+        customer_email=recipient_email,
     )
 
 

@@ -59,12 +59,12 @@ def invoice_deleted_event(*, user: UserType, invoice_id: int) -> InvoiceEvent:
     )
 
 
-def invoice_sent_event(*, user: UserType, invoice: Invoice) -> InvoiceEvent:
-    if not _user_is_valid(user):
-        user = None
+def notification_invoice_sent_event(
+    *, user_id: Optional[int], invoice_id: int, customer_email: str
+) -> InvoiceEvent:
     return InvoiceEvent.objects.create(
         type=InvoiceEvents.SENT,
-        user=user,
-        invoice=invoice,
-        parameters={"email": invoice.order.get_customer_email()},  # type: ignore
+        user_id=user_id,
+        invoice_id=invoice_id,
+        parameters={"email": customer_email},  # type: ignore
     )

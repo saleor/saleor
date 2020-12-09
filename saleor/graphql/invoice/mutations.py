@@ -304,9 +304,4 @@ class InvoiceSendNotification(ModelMutation):
         instance = cls.get_instance(info, **data)
         cls.clean_instance(info, instance)
         send_invoice(instance, info.context.user, info.context.plugins)
-        order_events.invoice_sent_event(
-            order=instance.order,
-            user=info.context.user,
-            email=instance.order.get_customer_email(),
-        )
         return InvoiceSendNotification(invoice=instance)

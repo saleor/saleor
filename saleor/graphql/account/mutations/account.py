@@ -456,9 +456,4 @@ class ConfirmEmailChange(BaseMutation):
         notifications.send_user_change_email_notification(
             old_email, user, info.context.plugins
         )
-        event_parameters = {"old_email": old_email, "new_email": new_email}
-
-        account_events.customer_email_changed_event(
-            user=user, parameters=event_parameters
-        )
         return ConfirmEmailChange(user=user)

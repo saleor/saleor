@@ -1,5 +1,6 @@
 import uuid
 from datetime import date, timedelta
+from unittest import mock
 from unittest.mock import ANY, MagicMock, Mock, call, patch
 
 import graphene
@@ -2986,8 +2987,13 @@ def test_order_cancel_as_app(
     mock_cancel_order.assert_called_once_with(order=order, user=AnonymousUser())
 
 
+@mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_order_capture(
-    staff_api_client, permission_manage_orders, payment_txn_preauth, staff_user
+    mocked_notify,
+    staff_api_client,
+    permission_manage_orders,
+    payment_txn_preauth,
+    staff_user,
 ):
     order = payment_txn_preauth.order
     query = """
@@ -3019,7 +3025,7 @@ def test_order_capture(
     assert data["isPaid"]
     assert data["totalCaptured"]["amount"] == float(amount)
 
-    event_captured, event_order_fully_paid, event_email_sent = order.events.all()
+    event_captured, event_order_fully_paid = order.events.all()
 
     assert event_captured.type == order_events.OrderEvents.PAYMENT_CAPTURED
     assert event_captured.user == staff_user
@@ -3032,11 +3038,25 @@ def test_order_capture(
     assert event_order_fully_paid.type == order_events.OrderEvents.ORDER_FULLY_PAID
     assert event_order_fully_paid.user == staff_user
 
-    assert event_email_sent.user == staff_user
-    assert event_email_sent.parameters == {
-        "email": order.user_email,
-        "email_type": order_events.OrderEventsEmails.PAYMENT,
+    payment = Payment.objects.get()
+    expected_payment_payload = {
+        "order": get_default_order_payload(order),
+        "recipient_email": order.get_customer_email(),
+        "payment": {
+            "created": payment.created,
+            "modified": payment.modified,
+            "charge_status": payment.charge_status,
+            "total": payment.total,
+            "captured_amount": payment.captured_amount,
+            "currency": payment.currency,
+        },
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
     }
+
+    mocked_notify.assert_called_once_with(
+        NotifyEventType.ORDER_PAYMENT_CONFIRMATION, expected_payment_payload
+    )
 
 
 MUTATION_MARK_ORDER_AS_PAID = """
@@ -3245,11 +3265,6 @@ def test_order_refund(staff_api_client, permission_manage_orders, payment_txn_ca
         type=order_events.OrderEvents.PAYMENT_REFUNDED
     ).first()
     assert refund_order_event.parameters["amount"] == str(amount)
-
-    email_send_event = order.events.filter(
-        type=order_events.OrderEvents.EMAIL_SENT
-    ).first()
-    assert email_send_event.parameters["email_type"]
 
 
 @pytest.mark.parametrize(

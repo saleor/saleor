@@ -84,9 +84,6 @@ def handle_fully_paid_order(order: "Order", user: Optional["User"] = None):
     events.order_fully_paid_event(order=order, user=user)
     manager = get_plugins_manager()
     if order.get_customer_email():
-        events.email_sent_event(
-            order=order, user=user, email_type=events.OrderEventsEmails.PAYMENT
-        )
         send_payment_confirmation(order, manager)
 
         if utils.order_needs_automatic_fulfillment(order):

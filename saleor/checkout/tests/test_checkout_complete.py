@@ -1,20 +1,29 @@
+from unittest import mock
+
 import pytest
 from django.contrib.auth.models import AnonymousUser
 
 from ...account import CustomerEvents
 from ...account.models import CustomerEvent
 from ...core.exceptions import InsufficientStock
+from ...core.notify_events import NotifyEventType
 from ...core.taxes import zero_money, zero_taxed_money
-from ...order import OrderEvents, OrderEventsEmails
+from ...order import OrderEvents
 from ...order.models import OrderEvent
+from ...order.notifications import get_default_order_payload
 from ...tests.utils import flush_post_commit_hooks
 from .. import calculations
 from ..complete_checkout import _create_order, _prepare_order_data
 from ..utils import add_variant_to_checkout
 
 
+@mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_create_order_captured_payment_creates_expected_events(
-    checkout_with_item, customer_user, shipping_method, payment_txn_captured,
+    mock_notify,
+    checkout_with_item,
+    customer_user,
+    shipping_method,
+    payment_txn_captured,
 ):
     checkout = checkout_with_item
     checkout_user = customer_user
@@ -47,9 +56,7 @@ def test_create_order_captured_payment_creates_expected_events(
         order_placed_event,
         payment_captured_event,
         order_fully_paid_event,
-        payment_email_sent_event,
         order_confirmed_event,
-        order_placed_email_sent_event,
     ) = order.events.all()  # type: OrderEvent
 
     # Ensure the correct order event was created
@@ -90,21 +97,27 @@ def test_create_order_captured_payment_creates_expected_events(
     # should not have any additional parameters
     assert not order_fully_paid_event.parameters
 
-    # Ensure the correct email sent event was created
-    # should be email sent event
-    assert payment_email_sent_event.type == OrderEvents.EMAIL_SENT
-    # ensure the user is none or valid
-    assert payment_email_sent_event.user == checkout_user
-    # ensure the mail event is related to order
-    assert payment_email_sent_event.order is order
-    # ensure a date was set
-    assert payment_email_sent_event.date
-    # ensure the correct parameters were set
-    assert payment_email_sent_event.parameters == {
-        "email": order.get_customer_email(),
-        "email_type": OrderEventsEmails.PAYMENT,
+    expected_order_payload = {
+        "order": get_default_order_payload(order, checkout.redirect_url),
+        "recipient_email": order.get_customer_email(),
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
     }
 
+    expected_payment_payload = {
+        "order": get_default_order_payload(order),
+        "recipient_email": order.get_customer_email(),
+        "payment": {
+            "created": payment_txn_captured.created,
+            "modified": payment_txn_captured.modified,
+            "charge_status": payment_txn_captured.charge_status,
+            "total": payment_txn_captured.total,
+            "captured_amount": payment_txn_captured.captured_amount,
+            "currency": payment_txn_captured.currency,
+        },
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
+    }
     # Ensure the correct order confirmed event was created
     # should be order confirmed event
     assert order_confirmed_event.type == OrderEvents.CONFIRMED
@@ -117,20 +130,15 @@ def test_create_order_captured_payment_creates_expected_events(
     # ensure the event parameters are empty
     assert order_confirmed_event.parameters == {}
 
-    # Ensure the correct email sent event was created
-    # should be email sent event
-    assert order_placed_email_sent_event.type == OrderEvents.EMAIL_SENT
-    # ensure the user is none or valid
-    assert order_placed_email_sent_event.user == checkout_user
-    # ensure the mail event is related to order
-    assert order_placed_email_sent_event.order is order
-    # ensure a date was set
-    assert order_placed_email_sent_event.date
-    # ensure the correct parameters were set
-    assert order_placed_email_sent_event.parameters == {
-        "email": order.get_customer_email(),
-        "email_type": OrderEventsEmails.ORDER_CONFIRMATION,
-    }
+    mock_notify.assert_has_calls(
+        [
+            mock.call(NotifyEventType.ORDER_CONFIRMATION, expected_order_payload),
+            mock.call(
+                NotifyEventType.ORDER_PAYMENT_CONFIRMATION, expected_payment_payload
+            ),
+        ],
+        any_order=True,
+    )
 
     # Ensure the correct customer event was created if the user was not anonymous
     placement_event = customer_user.events.get()  # type: CustomerEvent
@@ -143,8 +151,13 @@ def test_create_order_captured_payment_creates_expected_events(
     # mock_send_staff_order_confirmation.assert_called_once_with(order.pk)
 
 
+@mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_create_order_captured_payment_creates_expected_events_anonymous_user(
-    checkout_with_item, customer_user, shipping_method, payment_txn_captured,
+    mock_notify,
+    checkout_with_item,
+    customer_user,
+    shipping_method,
+    payment_txn_captured,
 ):
     checkout = checkout_with_item
     checkout_user = None
@@ -178,9 +191,7 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
         order_placed_event,
         payment_captured_event,
         order_fully_paid_event,
-        payment_email_sent_event,
         order_confirmed_event,
-        order_placed_email_sent_event,
     ) = order.events.all()  # type: OrderEvent
 
     # Ensure the correct order event was created
@@ -221,19 +232,26 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
     # should not have any additional parameters
     assert not order_fully_paid_event.parameters
 
-    # Ensure the correct email sent event was created
-    # should be email sent event
-    assert payment_email_sent_event.type == OrderEvents.EMAIL_SENT
-    # ensure the user is none or valid
-    assert payment_email_sent_event.user == checkout_user
-    # ensure the mail event is related to order
-    assert payment_email_sent_event.order is order
-    # ensure a date was set
-    assert payment_email_sent_event.date
-    # ensure the correct parameters were set
-    assert payment_email_sent_event.parameters == {
-        "email": order.get_customer_email(),
-        "email_type": OrderEventsEmails.PAYMENT,
+    expected_order_payload = {
+        "order": get_default_order_payload(order, checkout.redirect_url),
+        "recipient_email": order.get_customer_email(),
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
+    }
+
+    expected_payment_payload = {
+        "order": get_default_order_payload(order),
+        "recipient_email": order.get_customer_email(),
+        "payment": {
+            "created": payment_txn_captured.created,
+            "modified": payment_txn_captured.modified,
+            "charge_status": payment_txn_captured.charge_status,
+            "total": payment_txn_captured.total,
+            "captured_amount": payment_txn_captured.captured_amount,
+            "currency": payment_txn_captured.currency,
+        },
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
     }
 
     # Ensure the correct order confirmed event was created
@@ -248,27 +266,27 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
     # ensure the event parameters are empty
     assert order_confirmed_event.parameters == {}
 
-    # Ensure the correct email sent event was created
-    # should be email sent event
-    assert order_placed_email_sent_event.type == OrderEvents.EMAIL_SENT
-    # ensure the user is none or valid
-    assert order_placed_email_sent_event.user == checkout_user
-    # ensure the mail event is related to order
-    assert order_placed_email_sent_event.order is order
-    # ensure a date was set
-    assert order_placed_email_sent_event.date
-    # ensure the correct parameters were set
-    assert order_placed_email_sent_event.parameters == {
-        "email": order.get_customer_email(),
-        "email_type": OrderEventsEmails.ORDER_CONFIRMATION,
-    }
+    mock_notify.assert_has_calls(
+        [
+            mock.call(NotifyEventType.ORDER_CONFIRMATION, expected_order_payload),
+            mock.call(
+                NotifyEventType.ORDER_PAYMENT_CONFIRMATION, expected_payment_payload
+            ),
+        ],
+        any_order=True,
+    )
 
     # Check no event was created if the user was anonymous
     assert not CustomerEvent.objects.exists()  # should not have created any event
 
 
+@mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_create_order_preauth_payment_creates_expected_events(
-    checkout_with_item, customer_user, shipping_method, payment_txn_preauth,
+    mock_notify,
+    checkout_with_item,
+    customer_user,
+    shipping_method,
+    payment_txn_preauth,
 ):
     checkout = checkout_with_item
     checkout_user = customer_user
@@ -301,7 +319,6 @@ def test_create_order_preauth_payment_creates_expected_events(
         order_placed_event,
         payment_authorized_event,
         order_confirmed_event,
-        order_placed_email_sent_event,
     ) = order.events.all()  # type: OrderEvent
 
     # Ensure the correct order event was created
@@ -330,6 +347,13 @@ def test_create_order_preauth_payment_creates_expected_events(
     assert "payment_id" in payment_authorized_event.parameters.keys()
     assert "payment_gateway" in payment_authorized_event.parameters.keys()
 
+    expected_payload = {
+        "order": get_default_order_payload(order, checkout.redirect_url),
+        "recipient_email": order.get_customer_email(),
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
+    }
+
     # Ensure the correct order confirmed event was created
     # should be order confirmed event
     assert order_confirmed_event.type == OrderEvents.CONFIRMED
@@ -342,20 +366,9 @@ def test_create_order_preauth_payment_creates_expected_events(
     # ensure the event parameters are empty
     assert order_confirmed_event.parameters == {}
 
-    # Ensure the correct email sent event was created
-    # should be email sent event
-    assert order_placed_email_sent_event.type == OrderEvents.EMAIL_SENT
-    # ensure the user is none or valid
-    assert order_placed_email_sent_event.user == checkout_user
-    # ensure the mail event is related to order
-    assert order_placed_email_sent_event.order is order
-    # ensure a date was set
-    assert order_placed_email_sent_event.date
-    # ensure the correct parameters were set
-    assert order_placed_email_sent_event.parameters == {
-        "email": order.get_customer_email(),
-        "email_type": OrderEventsEmails.ORDER_CONFIRMATION,
-    }
+    mock_notify.assert_called_once_with(
+        NotifyEventType.ORDER_CONFIRMATION, expected_payload
+    )
 
     # Ensure the correct customer event was created if the user was not anonymous
     placement_event = customer_user.events.get()  # type: CustomerEvent
@@ -368,8 +381,13 @@ def test_create_order_preauth_payment_creates_expected_events(
     # mock_send_staff_order_confirmation.assert_called_once_with(order.pk)
 
 
+@mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
-    checkout_with_item, customer_user, shipping_method, payment_txn_preauth,
+    mock_notify,
+    checkout_with_item,
+    customer_user,
+    shipping_method,
+    payment_txn_preauth,
 ):
     checkout = checkout_with_item
     checkout_user = None
@@ -403,7 +421,6 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
         order_placed_event,
         payment_captured_event,
         order_confirmed_event,
-        order_placed_email_sent_event,
     ) = order.events.all()  # type: OrderEvent
 
     # Ensure the correct order event was created
@@ -432,6 +449,12 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
     assert "payment_id" in payment_captured_event.parameters.keys()
     assert "payment_gateway" in payment_captured_event.parameters.keys()
 
+    expected_payload = {
+        "order": get_default_order_payload(order, checkout.redirect_url),
+        "recipient_email": order.get_customer_email(),
+        "site_name": "mirumee.com",
+        "domain": "mirumee.com",
+    }
     # Ensure the correct order confirmed event was created
     # should be order confirmed event
     assert order_confirmed_event.type == OrderEvents.CONFIRMED
@@ -444,20 +467,9 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
     # ensure the event parameters are empty
     assert order_confirmed_event.parameters == {}
 
-    # Ensure the correct email sent event was created
-    # should be email sent event
-    assert order_placed_email_sent_event.type == OrderEvents.EMAIL_SENT
-    # ensure the user is none or valid
-    assert order_placed_email_sent_event.user == checkout_user
-    # ensure the mail event is related to order
-    assert order_placed_email_sent_event.order is order
-    # ensure a date was set
-    assert order_placed_email_sent_event.date
-    # ensure the correct parameters were set
-    assert order_placed_email_sent_event.parameters == {
-        "email": order.get_customer_email(),
-        "email_type": OrderEventsEmails.ORDER_CONFIRMATION,
-    }
+    mock_notify.assert_called_once_with(
+        NotifyEventType.ORDER_CONFIRMATION, expected_payload
+    )
 
     # Check no event was created if the user was anonymous
     assert not CustomerEvent.objects.exists()  # should not have created any event
