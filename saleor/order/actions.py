@@ -773,8 +773,6 @@ def create_return_fulfillment(
             line_data for line_data in fulfillment_lines_to_return if line_data.replace
         ]
         if order_lines_to_replace or fulfillment_lines_to_replace:
-            # TODO try except for failing allocation.
-            # raise error when we don't have enough stock
             new_order = create_replace_order(
                 original_order=order,
                 order_lines_to_replace=order_lines_to_replace,

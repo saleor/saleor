@@ -415,7 +415,9 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
             [line["fulfillment_line_id"] for line in fulfillment_lines_data],
             field="fulfillment_lines",
             only_type=FulfillmentLine,
-            qs=order_models.FulfillmentLine.objects.prefetch_related("fulfillment"),
+            qs=order_models.FulfillmentLine.objects.prefetch_related(
+                "fulfillment", "order_line"
+            ),
         )
         fulfillment_lines = list(fulfillment_lines)
         cleaned_fulfillment_lines = []
@@ -439,12 +441,16 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
                     "fulfillment_line_id",
                     code=OrderErrorCode.CANNOT_REFUND_FULFILLMENT_LINE.value,
                 )
-            cleaned_fulfillment_lines.append(
-                FulfillmentLineData(
-                    line=line,
-                    quantity=quantity,
-                    replace=line_data.get("replace", False),
+            replace = line_data.get("replace", False)
+            if replace and not line.order_line.variant_id:
+                cls._raise_error_for_line(
+                    "Unable to replace line as the assigned product doesn't exist.",
+                    "OrderLine",
+                    line.pk,
+                    "order_line_id",
                 )
+            cleaned_fulfillment_lines.append(
+                FulfillmentLineData(line=line, quantity=quantity, replace=replace,)
             )
         cleaned_input["fulfillment_lines"] = cleaned_fulfillment_lines
 
@@ -477,12 +483,17 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
                     line.pk,
                     "order_line_id",
                 )
-            cleaned_order_lines.append(
-                OrderLineData(
-                    line=line,
-                    quantity=quantity,
-                    replace=line_data.get("replace", False),
+            replace = line_data.get("replace", False)
+            if replace and not line.variant_id:
+                cls._raise_error_for_line(
+                    "Unable to replace line as the assigned product doesn't exist.",
+                    "OrderLine",
+                    line.pk,
+                    "order_line_id",
                 )
+
+            cleaned_order_lines.append(
+                OrderLineData(line=line, quantity=quantity, replace=replace)
             )
         cleaned_input["order_lines"] = cleaned_order_lines
 
