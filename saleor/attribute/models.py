@@ -29,9 +29,28 @@ class BaseAttributeQuerySet(models.QuerySet):
         return self.get_public_attributes()
 
 
+class AssignedProductAttributeValue(SortableModel):
+    value = models.ForeignKey(
+        "AttributeValue",
+        on_delete=models.CASCADE,
+        related_name="productvalueassignment",
+    )
+    assignment = models.ForeignKey(
+        "AssignedProductAttribute",
+        on_delete=models.CASCADE,
+        related_name="productvalueassignment",
+    )
+
+    class Meta:
+        unique_together = (("value", "assignment"),)
+        ordering = ("sort_order", "pk")
+
+    def get_ordering_queryset(self):
+        return self.assignment.productvalueassignment.all()
+
+
 class BaseAssignedAttribute(models.Model):
     assignment = None
-    values = models.ManyToManyField("AttributeValue")
 
     class Meta:
         abstract = True
@@ -54,6 +73,12 @@ class AssignedProductAttribute(BaseAssignedAttribute):
     assignment = models.ForeignKey(
         "AttributeProduct", on_delete=models.CASCADE, related_name="productassignments"
     )
+    values = models.ManyToManyField(
+        "AttributeValue",
+        blank=True,
+        related_name="assignment",
+        through=AssignedProductAttributeValue,
+    )
 
     class Meta:
         unique_together = (("product", "assignment"),)
@@ -68,6 +93,7 @@ class AssignedVariantAttribute(BaseAssignedAttribute):
     assignment = models.ForeignKey(
         "AttributeVariant", on_delete=models.CASCADE, related_name="variantassignments"
     )
+    values = models.ManyToManyField("AttributeValue")
 
     class Meta:
         unique_together = (("variant", "assignment"),)
@@ -80,6 +106,7 @@ class AssignedPageAttribute(BaseAssignedAttribute):
     assignment = models.ForeignKey(
         "AttributePage", on_delete=models.CASCADE, related_name="pageassignments"
     )
+    values = models.ManyToManyField("AttributeValue")
 
     class Meta:
         unique_together = (("page", "assignment"),)

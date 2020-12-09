@@ -4,6 +4,7 @@ from promise import Promise
 
 from ....attribute.models import (
     AssignedProductAttribute,
+    AssignedProductAttributeValue,
     AssignedVariantAttribute,
     AttributeProduct,
     AttributeValue,
@@ -168,19 +169,18 @@ class AttributeValuesByAssignedProductAttributeIdLoader(DataLoader):
     context_key = "attributevalues_by_assignedproductattribute"
 
     def batch_load(self, keys):
-        AttributeAssignment = AttributeValue.assignedproductattribute_set.through
-        attribute_values = AttributeAssignment.objects.filter(
-            assignedproductattribute_id__in=keys
+        attribute_values = AssignedProductAttributeValue.objects.filter(
+            assignment_id__in=keys
         )
-        value_ids = [a.attributevalue_id for a in attribute_values]
+        value_ids = [a.value_id for a in attribute_values]
 
         def map_assignment_to_values(values):
             value_map = dict(zip(value_ids, values))
             assigned_product_map = defaultdict(list)
             for attribute_value in attribute_values:
-                assigned_product_map[
-                    attribute_value.assignedproductattribute_id
-                ].append(value_map.get(attribute_value.attributevalue_id))
+                assigned_product_map[attribute_value.assignment_id].append(
+                    value_map.get(attribute_value.value_id)
+                )
             return [
                 sorted(assigned_product_map[key], key=lambda v: (v.sort_order, v.id))
                 for key in keys
