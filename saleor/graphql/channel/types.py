@@ -1,12 +1,15 @@
-from graphene import relay
+import graphene
 from graphene.types.resolver import get_default_resolver
 from graphene_django import DjangoObjectType
 
 from ...channel import models
+from ...core.permissions import ChannelPermissions
 from ..core.connection import CountableDjangoObjectType
+from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
 from ..translations.resolvers import resolve_translation
 from . import ChannelContext
+from .dataloaders import ChannelWithOrderCountByIdLoader
 
 
 class ChannelContextType(DjangoObjectType):
@@ -58,8 +61,21 @@ class ChannelContextTypeWithMetadata(ChannelContextType):
 
 
 class Channel(CountableDjangoObjectType):
+    can_remove_without_order_migration = graphene.Boolean(
+        required=True, description="Address is user's default shipping address."
+    )
+
     class Meta:
         description = "Represents channel."
         model = models.Channel
-        interfaces = [relay.Node]
+        interfaces = [graphene.relay.Node]
         only_fields = ["id", "name", "slug", "currency_code", "is_active"]
+
+    @staticmethod
+    @permission_required(ChannelPermissions.MANAGE_CHANNELS)
+    def resolve_can_remove_without_order_migration(root: models.Channel, info):
+        return (
+            ChannelWithOrderCountByIdLoader(info.context)
+            .load(root.id)
+            .then(lambda channel: channel.order_count < 1)
+        )

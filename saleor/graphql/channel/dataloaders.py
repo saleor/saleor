@@ -1,3 +1,5 @@
+from django.db.models import Count
+
 from ...channel.models import Channel
 from ..checkout.dataloaders import CheckoutByIdLoader, CheckoutLineByIdLoader
 from ..core.dataloaders import DataLoader
@@ -62,3 +64,13 @@ class ChannelByOrderLineIdLoader(DataLoader):
             )
 
         return OrderLineByIdLoader(self.context).load_many(keys).then(channel_by_lines)
+
+
+class ChannelWithOrderCountByIdLoader(DataLoader):
+    context_key = "channel_with_order_count_by_id"
+
+    def batch_load(self, keys):
+        channels = (
+            Channel.objects.all().annotate(order_count=Count("orders")).in_bulk(keys)
+        )
+        return [channels.get(channel_id) for channel_id in keys]

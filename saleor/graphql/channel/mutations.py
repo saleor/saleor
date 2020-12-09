@@ -176,7 +176,7 @@ class ChannelDelete(ModelDeleteMutation):
         target_channel = None
         if target_channel_global_id:
             target_channel = cls.get_node_or_error(
-                info, data["input"]["target_channel"], only_type=Channel
+                info, target_channel_global_id, only_type=Channel
             )
             cls.perform_delete_with_order_migration(origin_channel, target_channel)
         else:
