@@ -405,7 +405,7 @@ class ProductReorderAttributeValues(BaseReorderAttributeValuesMutation):
             raise ValidationError(
                 {
                     "attribute_id": ValidationError(
-                        f"Couldn't resolve to an product " f"attribute: {attribute_id}",
+                        f"Couldn't resolve to an product attribute: {attribute_id}",
                         code=ProductErrorCode.NOT_FOUND,
                     )
                 }

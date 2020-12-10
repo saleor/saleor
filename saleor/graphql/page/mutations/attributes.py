@@ -6,17 +6,20 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 
 from ....attribute import AttributeType, models
-from ....core.permissions import PageTypePermissions
+from ....core.permissions import PagePermissions, PageTypePermissions
 from ....page import models as page_models
 from ....page.error_codes import PageErrorCode
-from ...attribute.mutations import BaseReorderAttributesMutation
+from ...attribute.mutations import (
+    BaseReorderAttributesMutation,
+    BaseReorderAttributeValuesMutation,
+)
 from ...attribute.types import Attribute
 from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation
 from ...core.types.common import PageError
 from ...core.utils import from_global_id_strict_type
 from ...core.utils.reordering import perform_reordering
-from ...page.types import PageType
+from ...page.types import Page, PageType
 from ...utils import resolve_global_ids_to_primary_keys
 
 
@@ -197,3 +200,83 @@ class PageTypeReorderAttributes(BaseReorderAttributesMutation):
             perform_reordering(page_attributes, operations)
 
         return PageTypeReorderAttributes(page_type=page_type)
+
+
+class PageReorderAttributeValues(BaseReorderAttributeValuesMutation):
+    page = graphene.Field(
+        Page, description="Page from which attribute values are reordered."
+    )
+
+    class Meta:
+        description = "Reorder page attribute values."
+        permissions = (PagePermissions.MANAGE_PAGES,)
+        error_type_class = PageError
+        error_type_field = "page_errors"
+
+    class Arguments:
+        page_id = graphene.Argument(
+            graphene.ID, required=True, description="ID of a page."
+        )
+        attribute_id = graphene.Argument(
+            graphene.ID, required=True, description="ID of an attribute."
+        )
+        moves = graphene.List(
+            ReorderInput,
+            required=True,
+            description="The list of reordering operations for given attribute values.",
+        )
+
+    @classmethod
+    def perform_mutation(cls, _root, info, page_id, attribute_id, moves):
+        page = cls.get_page(page_id)
+        attribute_assignment = cls.get_attribute_assignment(page, attribute_id)
+        values_m2m = getattr(attribute_assignment, "values")
+
+        try:
+            operations = cls.prepare_operations(moves, values_m2m)
+        except ValidationError as error:
+            error.code = PageErrorCode.NOT_FOUND.value
+            raise ValidationError({"moves": error})
+
+        with transaction.atomic():
+            perform_reordering(values_m2m, operations)
+
+        return PageReorderAttributeValues(page=page)
+
+    @staticmethod
+    def get_page(page_id):
+        pk = from_global_id_strict_type(page_id, only_type=Page, field="page_id")
+
+        try:
+            product = page_models.Page.objects.prefetch_related("attributes").get(pk=pk)
+        except ObjectDoesNotExist:
+            raise ValidationError(
+                {
+                    "page_id": ValidationError(
+                        (f"Couldn't resolve to a page: {page_id}"),
+                        code=PageErrorCode.NOT_FOUND,
+                    )
+                }
+            )
+        return product
+
+    @staticmethod
+    def get_attribute_assignment(page, attribute_id):
+        attribute_pk = from_global_id_strict_type(
+            attribute_id, only_type=Attribute, field="attribute_id"
+        )
+
+        try:
+            attribute_assignment = page.attributes.prefetch_related("values").get(
+                assignment__attribute_id=attribute_pk
+            )
+        except ObjectDoesNotExist:
+            raise ValidationError(
+                {
+                    "attribute_id": ValidationError(
+                        f"Couldn't resolve to a page attribute: {attribute_id}",
+                        code=PageErrorCode.NOT_FOUND,
+                    )
+                }
+            )
+        return attribute_assignment
