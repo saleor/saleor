@@ -355,6 +355,27 @@ class ProductReorderAttributeValues(BaseReorderAttributeValuesMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, product_id, attribute_id, moves):
+        product = cls.get_product(product_id)
+        attribute_assignment = cls.get_attribute_assignment(
+            product, product_id, attribute_id
+        )
+        values_m2m = getattr(attribute_assignment, "values")
+
+        try:
+            operations = cls.prepare_operations(moves, values_m2m)
+        except ValidationError as error:
+            error.code = ProductErrorCode.NOT_FOUND.value
+            raise ValidationError({"moves": error})
+
+        with transaction.atomic():
+            perform_reordering(values_m2m, operations)
+
+        return ProductReorderAttributeValues(
+            product=ChannelContext(node=product, channel_slug=None)
+        )
+
+    @staticmethod
+    def get_product(product_id):
         pk = from_global_id_strict_type(
             product_id, only_type=Product, field="product_id"
         )
@@ -370,6 +391,10 @@ class ProductReorderAttributeValues(BaseReorderAttributeValuesMutation):
                     )
                 }
             )
+        return product
+
+    @staticmethod
+    def get_attribute_assignment(product, product_id, attribute_id):
         attribute_pk = from_global_id_strict_type(
             attribute_id, only_type=Attribute, field="attribute_id"
         )
@@ -388,18 +413,4 @@ class ProductReorderAttributeValues(BaseReorderAttributeValuesMutation):
                     )
                 }
             )
-
-        values_m2m = getattr(attribute_assignment, "values")
-
-        try:
-            operations = cls.prepare_operations(moves, values_m2m)
-        except ValidationError as error:
-            error.code = ProductErrorCode.NOT_FOUND.value
-            raise ValidationError({"moves": error})
-
-        with transaction.atomic():
-            perform_reordering(values_m2m, operations)
-
-        return ProductReorderAttributeValues(
-            product=ChannelContext(node=product, channel_slug=None)
-        )
+        return attribute_assignment
