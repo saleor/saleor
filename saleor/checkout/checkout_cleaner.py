@@ -23,7 +23,7 @@ def clean_checkout_shipping(
     subtotal: Optional["TaxedMoney"] = None,
 ):
     if is_shipping_required(lines):
-        if not checkout.shipping_method:
+        if not checkout.shipping_method_id:
             raise ValidationError(
                 {
                     "shipping_method": ValidationError(
@@ -32,7 +32,7 @@ def clean_checkout_shipping(
                     )
                 }
             )
-        if not checkout.shipping_address:
+        if not checkout.shipping_address_id:
             raise ValidationError(
                 {
                     "shipping_address": ValidationError(
@@ -56,7 +56,7 @@ def clean_billing_address(
     checkout: Checkout,
     error_code: Union[Type[CheckoutErrorCode], Type[PaymentErrorCode]],
 ):
-    if not checkout.billing_address:
+    if not checkout.billing_address_id:
         raise ValidationError(
             {
                 "billing_address": ValidationError(

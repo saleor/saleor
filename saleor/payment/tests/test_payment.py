@@ -5,7 +5,7 @@ import pytest
 
 from ...checkout.calculations import checkout_total
 from ...checkout.utils import fetch_checkout_lines
-from ...plugins.manager import get_plugins_manager
+from ...plugins.manager import PluginsManager, get_plugins_manager
 from .. import ChargeStatus, GatewayError, PaymentError, TransactionKind, gateway
 from ..error_codes import PaymentErrorCode
 from ..interface import GatewayResponse, PaymentMethodInfo
@@ -249,9 +249,13 @@ def test_payment_needs_to_be_active_for_any_action(func, payment_dummy):
     assert exc.value.message == NOT_ACTIVE_PAYMENT_ERROR
 
 
+@patch.object(PluginsManager, "capture_payment")
 @patch("saleor.order.actions.handle_fully_paid_order")
 def test_gateway_charge_failed(
-    mock_handle_fully_paid_order, mock_get_manager, payment_txn_preauth, dummy_response
+    mock_handle_fully_paid_order,
+    mock_capture_payment,
+    payment_txn_preauth,
+    dummy_response,
 ):
     txn = payment_txn_preauth.transactions.first()
     txn.is_success = False
@@ -261,10 +265,10 @@ def test_gateway_charge_failed(
 
     dummy_response.is_success = False
     dummy_response.kind = TransactionKind.CAPTURE
-    mock_get_manager.capture_payment.return_value = dummy_response
+    mock_capture_payment.return_value = dummy_response
     with pytest.raises(PaymentError):
         gateway.capture(payment, amount)
-    mock_get_manager.capture_payment.assert_called_once()
+    mock_capture_payment.assert_called_once()
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
     assert not payment.captured_amount

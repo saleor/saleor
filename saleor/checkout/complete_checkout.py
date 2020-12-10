@@ -74,7 +74,10 @@ def _get_voucher_data_for_order(checkout: Checkout) -> dict:
 
 
 def _process_shipping_data_for_order(
-    checkout: Checkout, shipping_price: TaxedMoney, manager
+    checkout: Checkout,
+    shipping_price: TaxedMoney,
+    manager: "PluginsManager",
+    lines: Iterable["CheckoutLineInfo"],
 ) -> dict:
     """Fetch, process and return shipping data from checkout."""
     shipping_address = checkout.shipping_address
@@ -94,7 +97,7 @@ def _process_shipping_data_for_order(
         "shipping_method": checkout.shipping_method,
         "shipping_method_name": smart_text(checkout.shipping_method),
         "shipping_price": shipping_price,
-        "weight": checkout.get_total_weight(),
+        "weight": checkout.get_total_weight(lines),
     }
 
 
@@ -152,6 +155,10 @@ def _create_line_for_order(
     address = (
         checkout.shipping_address or checkout.billing_address
     )  # FIXME: check which address we need here
+    # TODO: Optimalization
+    # "warehouse_stock 4
+    # COALESCE(SUM(DISTINCT "warehouse_stock 4
+    # we should use `check_stock_quantity_bulk`
     check_stock_quantity(variant, country, quantity)
 
     product_name = str(product)
@@ -234,7 +241,7 @@ def _prepare_order_data(
         checkout, lines, address, discounts
     )
     order_data.update(
-        _process_shipping_data_for_order(checkout, shipping_total, manager=manager)
+        _process_shipping_data_for_order(checkout, shipping_total, manager, lines)
     )
     order_data.update(_process_user_data_for_order(checkout, manager))
     order_data.update(
@@ -246,6 +253,9 @@ def _prepare_order_data(
     )
 
     channel = checkout.channel
+    # TODO: make "_create_lines_for_order"
+    # Bulk Stock_quantity check
+    # fetch all translation
     order_data["lines"] = [
         _create_line_for_order(
             manager, checkout, checkout_line_info, discounts, channel=channel
@@ -429,6 +439,7 @@ def _process_payment(
     store_source: bool,
     payment_data: Optional[dict],
     order_data: dict,
+    plugin_manager: "PluginsManager",
 ) -> Transaction:
     """Process the payment assigned to checkout."""
     try:
@@ -440,6 +451,7 @@ def _process_payment(
                 token=payment.token,
                 store_source=store_source,
                 additional_data=payment_data,
+                plugin_manager=plugin_manager,
             )
         payment.refresh_from_db()
         if not txn.is_success:
@@ -489,6 +501,7 @@ def complete_checkout(
         store_source=store_source,
         payment_data=payment_data,
         order_data=order_data,
+        plugin_manager=manager,
     )
 
     if txn.customer_id and user.is_authenticated:
