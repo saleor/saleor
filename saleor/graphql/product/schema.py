@@ -44,6 +44,7 @@ from .mutations.attributes import (
     ProductAttributeUnassign,
     ProductReorderAttributeValues,
     ProductTypeReorderAttributes,
+    ProductVariantReorderAttributeValues,
 )
 from .mutations.channels import (
     CollectionChannelListingUpdate,
@@ -425,6 +426,9 @@ class ProductMutations(graphene.ObjectType):
     product_variant_set_default = ProductVariantSetDefault.Field()
     product_variant_translate = ProductVariantTranslate.Field()
     product_variant_channel_listing_update = ProductVariantChannelListingUpdate.Field()
+    product_variant_reorder_attribute_values = (
+        ProductVariantReorderAttributeValues.Field()
+    )
 
     variant_image_assign = VariantImageAssign.Field()
     variant_image_unassign = VariantImageUnassign.Field()

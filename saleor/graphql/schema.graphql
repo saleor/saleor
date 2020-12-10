@@ -2653,6 +2653,7 @@ type Mutation {
   productVariantSetDefault(productId: ID!, variantId: ID!): ProductVariantSetDefault
   productVariantTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): ProductVariantTranslate
   productVariantChannelListingUpdate(id: ID!, input: [ProductVariantChannelListingAddInput!]!): ProductVariantChannelListingUpdate
+  productVariantReorderAttributeValues(attributeId: ID!, moves: [ReorderInput]!, variantId: ID!): ProductVariantReorderAttributeValues
   variantImageAssign(imageId: ID!, variantId: ID!): VariantImageAssign
   variantImageUnassign(imageId: ID!, variantId: ID!): VariantImageUnassign
   paymentCapture(amount: PositiveDecimal, paymentId: ID!): PaymentCapture
@@ -4328,6 +4329,12 @@ input ProductVariantInput {
 type ProductVariantReorder {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   product: Product
+  productErrors: [ProductError!]!
+}
+
+type ProductVariantReorderAttributeValues {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  productVariant: ProductVariant
   productErrors: [ProductError!]!
 }
 

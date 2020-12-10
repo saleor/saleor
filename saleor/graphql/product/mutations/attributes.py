@@ -21,7 +21,7 @@ from ...core.mutations import BaseMutation
 from ...core.types.common import ProductError
 from ...core.utils import from_global_id_strict_type
 from ...core.utils.reordering import perform_reordering
-from ...product.types import Product, ProductType
+from ...product.types import Product, ProductType, ProductVariant
 from ..enums import ProductAttributeType
 
 
@@ -356,9 +356,7 @@ class ProductReorderAttributeValues(BaseReorderAttributeValuesMutation):
     @classmethod
     def perform_mutation(cls, _root, info, product_id, attribute_id, moves):
         product = cls.get_product(product_id)
-        attribute_assignment = cls.get_attribute_assignment(
-            product, product_id, attribute_id
-        )
+        attribute_assignment = cls.get_attribute_assignment(product, attribute_id)
         values_m2m = getattr(attribute_assignment, "values")
 
         try:
@@ -394,7 +392,7 @@ class ProductReorderAttributeValues(BaseReorderAttributeValuesMutation):
         return product
 
     @staticmethod
-    def get_attribute_assignment(product, product_id, attribute_id):
+    def get_attribute_assignment(product, attribute_id):
         attribute_pk = from_global_id_strict_type(
             attribute_id, only_type=Attribute, field="attribute_id"
         )
@@ -407,7 +405,94 @@ class ProductReorderAttributeValues(BaseReorderAttributeValuesMutation):
             raise ValidationError(
                 {
                     "attribute_id": ValidationError(
-                        f"Couldn't resolve to an product {product_id} "
+                        f"Couldn't resolve to an product " f"attribute: {attribute_id}",
+                        code=ProductErrorCode.NOT_FOUND,
+                    )
+                }
+            )
+        return attribute_assignment
+
+
+class ProductVariantReorderAttributeValues(BaseReorderAttributeValuesMutation):
+    product_variant = graphene.Field(
+        ProductVariant,
+        description="Product variant from which attribute values are reordered.",
+    )
+
+    class Meta:
+        description = "Reorder product variant attribute values."
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
+
+    class Arguments:
+        variant_id = graphene.Argument(
+            graphene.ID, required=True, description="ID of a product variant."
+        )
+        attribute_id = graphene.Argument(
+            graphene.ID, required=True, description="ID of an attribute."
+        )
+        moves = graphene.List(
+            ReorderInput,
+            required=True,
+            description="The list of reordering operations for given attribute values.",
+        )
+
+    @classmethod
+    def perform_mutation(cls, _root, info, variant_id, attribute_id, moves):
+        variant = cls.get_product_variant(variant_id)
+        attribute_assignment = cls.get_attribute_assignment(variant, attribute_id)
+        values_m2m = getattr(attribute_assignment, "values")
+
+        try:
+            operations = cls.prepare_operations(moves, values_m2m)
+        except ValidationError as error:
+            error.code = ProductErrorCode.NOT_FOUND.value
+            raise ValidationError({"moves": error})
+
+        with transaction.atomic():
+            perform_reordering(values_m2m, operations)
+
+        return ProductVariantReorderAttributeValues(
+            product_variant=ChannelContext(node=variant, channel_slug=None)
+        )
+
+    @staticmethod
+    def get_product_variant(variant_id):
+        pk = from_global_id_strict_type(
+            variant_id, only_type=ProductVariant, field="variant_id"
+        )
+
+        try:
+            variant = models.ProductVariant.objects.prefetch_related("attributes").get(
+                pk=pk
+            )
+        except ObjectDoesNotExist:
+            raise ValidationError(
+                {
+                    "variant_id": ValidationError(
+                        (f"Couldn't resolve to a product variant: {variant_id}"),
+                        code=ProductErrorCode.NOT_FOUND,
+                    )
+                }
+            )
+        return variant
+
+    @staticmethod
+    def get_attribute_assignment(variant, attribute_id):
+        attribute_pk = from_global_id_strict_type(
+            attribute_id, only_type=Attribute, field="attribute_id"
+        )
+
+        try:
+            attribute_assignment = variant.attributes.prefetch_related("values").get(
+                assignment__attribute_id=attribute_pk
+            )
+        except ObjectDoesNotExist:
+            raise ValidationError(
+                {
+                    "attribute_id": ValidationError(
+                        "Couldn't resolve to an product variant "
                         f"attribute: {attribute_id}",
                         code=ProductErrorCode.NOT_FOUND,
                     )
