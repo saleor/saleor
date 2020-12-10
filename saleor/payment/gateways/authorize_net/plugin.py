@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, List
 
 from django.core.exceptions import ValidationError
 
+from saleor.account.models import User
 from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from saleor.plugins.error_codes import PluginErrorCode
 
@@ -130,7 +131,14 @@ class AuthorizeNetGatewayPlugin(BasePlugin):
             )
             if not success:
                 raise ValidationError(
-                    message, code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
+                    {
+                        "api_login_id": ValidationError(
+                            message, code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
+                        ),
+                        "transaction_key": ValidationError(
+                            message, code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
+                        ),
+                    }
                 )
 
     @require_active_plugin
@@ -167,7 +175,11 @@ class AuthorizeNetGatewayPlugin(BasePlugin):
     def process_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
-        return process_payment(payment_information, self._get_gateway_config())
+        user = User.objects.filter(
+            checkouts__payments__id=payment_information.payment_id
+        ).first()
+        user_id = user.id if user else None
+        return process_payment(payment_information, self._get_gateway_config(), user_id)
 
     @require_active_plugin
     def list_payment_sources(

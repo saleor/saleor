@@ -50,7 +50,7 @@ def test_process_payment_error_response(
         response.error
         == "User authentication failed due to invalid authentication values."
     )
-    assert not response.transaction_id
+    assert response.transaction_id == INVALID_TOKEN
     assert response.kind == TransactionKind.CAPTURE
     assert not response.is_success
     assert response.amount == dummy_payment_data.amount

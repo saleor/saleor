@@ -53,9 +53,11 @@ def authenticate_test(
 
 
 def process_payment(
-    payment_information: PaymentData, config: GatewayConfig
+    payment_information: PaymentData,
+    config: GatewayConfig,
+    user_id: Optional[int] = None,
 ) -> GatewayResponse:
-    return authorize(payment_information, config)
+    return authorize(payment_information, config, user_id=user_id)
 
 
 def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
@@ -98,7 +100,9 @@ def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
 
 
 def authorize(
-    payment_information: PaymentData, config: GatewayConfig
+    payment_information: PaymentData,
+    config: GatewayConfig,
+    user_id: Optional[int] = None,
 ) -> GatewayResponse:
     """Based on AcceptSuite create-an-accept-payment-transaction example.
 
@@ -127,7 +131,8 @@ def authorize(
 
     customer_data = apicontractsv1.customerDataType()
     customer_data.type = "individual"
-    # customer_data.id = could be the saleor user id if it was easy to get
+    if user_id:
+        customer_data.id = str(user_id)
     customer_data.email = payment_information.customer_email
 
     transaction_request = apicontractsv1.transactionRequestType()
@@ -173,8 +178,12 @@ def authorize(
         raw_response,
     ) = _handle_authorize_net_response(response)
     searchable_key = None
+    response_transaction_id: Optional[str] = None
     if transaction_id:
         searchable_key = transaction_id
+        response_transaction_id = str(transaction_id)
+    elif payment_information.token:
+        response_transaction_id = payment_information.token
 
     if hasattr(response, "profileResponse") and hasattr(
         response.profileResponse, "customerProfileId"
@@ -188,7 +197,7 @@ def authorize(
     return GatewayResponse(
         is_success=success,
         action_required=False,
-        transaction_id=str(transaction_id) if transaction_id else None,
+        transaction_id=response_transaction_id,
         amount=payment_information.amount,
         currency=payment_information.currency,
         error=error,
@@ -245,6 +254,7 @@ def list_client_sources(
     get_customer_profile = apicontractsv1.getCustomerProfileRequest()
     get_customer_profile.merchantAuthentication = merchant_auth
     get_customer_profile.customerProfileId = customer_id
+    get_customer_profile.unmaskExpirationDate = True
     controller = getCustomerProfileController(get_customer_profile)
     controller.execute()
 
@@ -253,7 +263,9 @@ def list_client_sources(
 
     if hasattr(response, "profile") and hasattr(response.profile, "paymentProfiles"):
         for payment_profile in response.profile.paymentProfiles:
-            if hasattr(payment_profile, "creditCard"):
+            if hasattr(payment_profile, "payment") and hasattr(
+                payment_profile.payment, "creditCard"
+            ):
                 name = None
                 if hasattr(payment_profile, "billTo"):
                     first = payment_profile.billTo.firstName.pyval
@@ -262,16 +274,19 @@ def list_client_sources(
                         name = first + " " + last
                     else:
                         name = last
-                card = payment_profile.creditCard
+                card = payment_profile.payment.creditCard
+                expiration_year, expiration_month = _normalize_card_expiration(
+                    card.expirationDate.pyval
+                )
                 results.append(
                     CustomerSource(
                         id=payment_profile.customerPaymentProfileId.pyval,
                         gateway="authorize.net",
                         credit_card_info=PaymentMethodInfo(
-                            exp_year=card.exp_year,
-                            exp_month=card.exp_month,
-                            last_4=_normalize_last_4(card.cardNumber),
-                            brand=card.cardType,
+                            exp_year=expiration_year,
+                            exp_month=expiration_month,
+                            last_4=_normalize_last_4(card.cardNumber.pyval),
+                            brand=card.cardType.pyval,
                             name=name,
                         ),
                     )
@@ -426,3 +441,18 @@ def _normalize_last_4(account_number: str):
     Example: XXXX1111 > 1111
     """
     return account_number.strip("X")
+
+
+def _normalize_card_expiration(expiration_date: str) -> List[Optional[int]]:
+    """Convert authorize.net combined expiration date into month and year.
+
+    Example: 2021-02 > [2021, 2]
+    Always return List of length 2
+    """
+    dates = expiration_date.split("-")
+    if len(dates) == 2:
+        try:
+            return [int(dates[0]), int(dates[1])]
+        except ValueError:
+            pass
+    return [None, None]
