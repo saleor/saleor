@@ -9,7 +9,6 @@ from .enums import ConfigurationTypeFieldEnum
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from django.contrib.postgres.fields import JSONField
     from ...plugins.base_plugin import PluginConfigurationType
 
 
@@ -23,7 +22,10 @@ def hide_private_configuration_fields(configuration, config_structure):
         if field_type == ConfigurationTypeField.PASSWORD:
             field["value"] = "" if value else None
 
-        if field_type == ConfigurationTypeField.SECRET:
+        if field_type in [
+            ConfigurationTypeField.SECRET,
+            ConfigurationTypeField.SECRET_MULTILINE,
+        ]:
             if not value:
                 field["value"] = None
             elif len(value) > 4:
@@ -54,13 +56,13 @@ class Plugin(CountableDjangoObjectType):
         only_fields = ["id", "name", "description", "active", "configuration"]
 
     def resolve_id(self: models.PluginConfiguration, _info):
-        return self.id
+        return self.identifier
 
     @staticmethod
     def resolve_configuration(
         root: models.PluginConfiguration, _info
     ) -> Optional["PluginConfigurationType"]:
-        plugin = manager.get_plugins_manager().get_plugin(str(root.id))
+        plugin = manager.get_plugins_manager().get_plugin(root.identifier)
         if not plugin:
             return None
         configuration = plugin.configuration

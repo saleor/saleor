@@ -1,22 +1,25 @@
 from typing import Union
 
 from django.conf import settings
+from django.contrib.auth.models import _user_has_perm  # type: ignore
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
+    Permission,
     PermissionsMixin,
 )
-from django.contrib.postgres.fields import JSONField
 from django.db import models
-from django.db.models import Q, Value
+from django.db.models import JSONField  # type: ignore
+from django.db.models import Q, QuerySet, Value
 from django.forms.models import model_to_dict
 from django.utils import timezone
+from django.utils.crypto import get_random_string
 from django_countries.fields import Country, CountryField
 from phonenumber_field.modelfields import PhoneNumber, PhoneNumberField
 from versatileimagefield.fields import VersatileImageField
 
 from ..core.models import ModelWithMetadata
-from ..core.permissions import AccountPermissions, BasePermissionEnum
+from ..core.permissions import AccountPermissions, BasePermissionEnum, get_permissions
 from ..core.utils.json_serializer import CustomJsonEncoder
 from . import CustomerEvents
 from .validators import validate_possible_number
@@ -148,6 +151,7 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
         Address, related_name="+", null=True, blank=True, on_delete=models.SET_NULL
     )
     avatar = VersatileImageField(upload_to="user-avatars", blank=True, null=True)
+    jwt_token_key = models.CharField(max_length=12, default=get_random_string)
 
     USERNAME_FIELD = "email"
 
@@ -159,6 +163,26 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
             (AccountPermissions.MANAGE_USERS.codename, "Manage customers."),
             (AccountPermissions.MANAGE_STAFF.codename, "Manage staff."),
         )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._effective_permissions = None
+
+    @property
+    def effective_permissions(self) -> "QuerySet[Permission]":
+        if self._effective_permissions is None:
+            self._effective_permissions = get_permissions()
+            if not self.is_superuser:
+                self._effective_permissions = self._effective_permissions.filter(
+                    Q(user=self) | Q(group__user=self)
+                )
+        return self._effective_permissions
+
+    @effective_permissions.setter
+    def effective_permissions(self, value: "QuerySet[Permission]"):
+        self._effective_permissions = value
+        # Drop cache for authentication backend
+        self._effective_permissions_cache = None
 
     def get_full_name(self):
         if self.first_name or self.last_name:
@@ -175,8 +199,12 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
 
     def has_perm(self, perm: Union[BasePermissionEnum, str], obj=None):  # type: ignore
         # This method is overridden to accept perm as BasePermissionEnum
-        perm_value = perm.value if hasattr(perm, "value") else perm  # type: ignore
-        return super().has_perm(perm_value, obj)
+        perm = perm.value if hasattr(perm, "value") else perm  # type: ignore
+
+        # Active superusers have all permissions.
+        if self.is_active and self.is_superuser and not self._effective_permissions:
+            return True
+        return _user_has_perm(self, perm, obj)
 
 
 class CustomerNote(models.Model):
@@ -204,10 +232,8 @@ class CustomerEvent(models.Model):
             (type_name.upper(), type_name) for type_name, _ in CustomerEvents.CHOICES
         ],
     )
-
     order = models.ForeignKey("order.Order", on_delete=models.SET_NULL, null=True)
     parameters = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
-
     user = models.ForeignKey(User, related_name="events", on_delete=models.CASCADE)
 
     class Meta:

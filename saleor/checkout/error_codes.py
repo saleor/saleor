@@ -6,6 +6,7 @@ class CheckoutErrorCode(Enum):
     CHECKOUT_NOT_FULLY_PAID = "checkout_not_fully_paid"
     GRAPHQL_ERROR = "graphql_error"
     PRODUCT_NOT_PUBLISHED = "product_not_published"
+    PRODUCT_UNAVAILABLE_FOR_PURCHASE = "product_unavailable_for_purchase"
     INSUFFICIENT_STOCK = "insufficient_stock"
     INVALID = "invalid"
     INVALID_SHIPPING_METHOD = "invalid_shipping_method"
@@ -21,3 +22,5 @@ class CheckoutErrorCode(Enum):
     UNIQUE = "unique"
     VOUCHER_NOT_APPLICABLE = "voucher_not_applicable"
     ZERO_QUANTITY = "zero_quantity"
+    MISSING_CHANNEL_SLUG = "missing_channel_slug"
+    CHANNEL_INACTIVE = "channel_inactive"

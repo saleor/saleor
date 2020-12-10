@@ -1,25 +1,28 @@
 import graphene
 
 from ...core.permissions import ProductPermissions
+from ...product import models
+from ..channel import ChannelContext
+from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core.enums import ReportingPeriod
-from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
+from ..core.fields import (
+    ChannelContextFilterConnectionField,
+    FilterInputConnectionField,
+    PrefetchingConnectionField,
+)
 from ..core.validators import validate_one_of_args_is_in_query
 from ..decorators import permission_required
 from ..translations.mutations import (
-    AttributeTranslate,
-    AttributeValueTranslate,
     CategoryTranslate,
     CollectionTranslate,
     ProductTranslate,
     ProductVariantTranslate,
 )
-from .bulk_mutations.attributes import AttributeBulkDelete, AttributeValueBulkDelete
+from ..utils import get_user_or_app_from_context
 from .bulk_mutations.products import (
     CategoryBulkDelete,
     CollectionBulkDelete,
-    CollectionBulkPublish,
     ProductBulkDelete,
-    ProductBulkPublish,
     ProductImageBulkDelete,
     ProductTypeBulkDelete,
     ProductVariantBulkCreate,
@@ -30,27 +33,21 @@ from .bulk_mutations.products import (
 )
 from .enums import StockAvailability
 from .filters import (
-    AttributeFilterInput,
     CategoryFilterInput,
     CollectionFilterInput,
     ProductFilterInput,
     ProductTypeFilterInput,
+    ProductVariantFilterInput,
 )
 from .mutations.attributes import (
-    AttributeAssign,
-    AttributeClearMeta,
-    AttributeClearPrivateMeta,
-    AttributeCreate,
-    AttributeDelete,
-    AttributeReorderValues,
-    AttributeUnassign,
-    AttributeUpdate,
-    AttributeUpdateMeta,
-    AttributeUpdatePrivateMeta,
-    AttributeValueCreate,
-    AttributeValueDelete,
-    AttributeValueUpdate,
+    ProductAttributeAssign,
+    ProductAttributeUnassign,
     ProductTypeReorderAttributes,
+)
+from .mutations.channels import (
+    CollectionChannelListingUpdate,
+    ProductChannelListingUpdate,
+    ProductVariantChannelListingUpdate,
 )
 from .mutations.digital_contents import (
     DigitalContentCreate,
@@ -59,73 +56,56 @@ from .mutations.digital_contents import (
     DigitalContentUrlCreate,
 )
 from .mutations.products import (
-    CategoryClearMeta,
-    CategoryClearPrivateMeta,
     CategoryCreate,
     CategoryDelete,
     CategoryUpdate,
-    CategoryUpdateMeta,
-    CategoryUpdatePrivateMeta,
     CollectionAddProducts,
-    CollectionClearMeta,
-    CollectionClearPrivateMeta,
     CollectionCreate,
     CollectionDelete,
     CollectionRemoveProducts,
     CollectionReorderProducts,
     CollectionUpdate,
-    CollectionUpdateMeta,
-    CollectionUpdatePrivateMeta,
-    ProductClearMeta,
-    ProductClearPrivateMeta,
     ProductCreate,
     ProductDelete,
     ProductImageCreate,
     ProductImageDelete,
     ProductImageReorder,
     ProductImageUpdate,
-    ProductTypeClearMeta,
-    ProductTypeClearPrivateMeta,
     ProductTypeCreate,
     ProductTypeDelete,
     ProductTypeUpdate,
-    ProductTypeUpdateMeta,
-    ProductTypeUpdatePrivateMeta,
     ProductUpdate,
-    ProductUpdateMeta,
-    ProductUpdatePrivateMeta,
-    ProductVariantClearMeta,
-    ProductVariantClearPrivateMeta,
     ProductVariantCreate,
     ProductVariantDelete,
+    ProductVariantReorder,
+    ProductVariantSetDefault,
     ProductVariantUpdate,
-    ProductVariantUpdateMeta,
-    ProductVariantUpdatePrivateMeta,
     VariantImageAssign,
     VariantImageUnassign,
 )
 from .resolvers import (
-    resolve_attributes,
     resolve_categories,
     resolve_category_by_slug,
+    resolve_collection_by_id,
     resolve_collection_by_slug,
     resolve_collections,
     resolve_digital_contents,
+    resolve_product_by_id,
     resolve_product_by_slug,
     resolve_product_types,
+    resolve_product_variant_by_sku,
     resolve_product_variants,
     resolve_products,
     resolve_report_product_sales,
+    resolve_variant_by_id,
 )
 from .sorters import (
-    AttributeSortingInput,
     CategorySortingInput,
     CollectionSortingInput,
     ProductOrder,
     ProductTypeSortingInput,
 )
 from .types import (
-    Attribute,
     Category,
     Collection,
     DigitalContent,
@@ -145,19 +125,6 @@ class ProductQueries(graphene.ObjectType):
     )
     digital_contents = PrefetchingConnectionField(
         DigitalContent, description="List of digital content."
-    )
-    attributes = FilterInputConnectionField(
-        Attribute,
-        description="List of the shop's attributes.",
-        filter=AttributeFilterInput(description="Filtering options for attributes."),
-        sort_by=AttributeSortingInput(description="Sorting options for attributes."),
-    )
-    attribute = graphene.Field(
-        Attribute,
-        id=graphene.Argument(
-            graphene.ID, description="ID of the attribute.", required=True
-        ),
-        description="Look up an attribute by ID.",
     )
     categories = FilterInputConnectionField(
         Category,
@@ -179,21 +146,30 @@ class ProductQueries(graphene.ObjectType):
         Collection,
         id=graphene.Argument(graphene.ID, description="ID of the collection.",),
         slug=graphene.Argument(graphene.String, description="Slug of the category"),
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
         description="Look up a collection by ID.",
     )
-    collections = FilterInputConnectionField(
+    collections = ChannelContextFilterConnectionField(
         Collection,
         filter=CollectionFilterInput(description="Filtering options for collections."),
         sort_by=CollectionSortingInput(description="Sort collections."),
         description="List of the shop's collections.",
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
     )
     product = graphene.Field(
         Product,
         id=graphene.Argument(graphene.ID, description="ID of the product.",),
-        slug=graphene.Argument(graphene.String, description="Slug of the category"),
+        slug=graphene.Argument(graphene.String, description="Slug of the product."),
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
         description="Look up a product by ID.",
     )
-    products = FilterInputConnectionField(
+    products = ChannelContextFilterConnectionField(
         Product,
         filter=ProductFilterInput(description="Filtering options for products."),
         sort_by=ProductOrder(description="Sort products."),
@@ -203,6 +179,9 @@ class ProductQueries(graphene.ObjectType):
                 "[Deprecated] Filter products by stock availability. Use the `filter` "
                 "field instead. This field will be removed after 2020-07-31."
             ),
+        ),
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
         ),
         description="List of the shop's products.",
     )
@@ -223,51 +202,80 @@ class ProductQueries(graphene.ObjectType):
     )
     product_variant = graphene.Field(
         ProductVariant,
-        id=graphene.Argument(
-            graphene.ID, description="ID of the product variant.", required=True
+        id=graphene.Argument(graphene.ID, description="ID of the product variant.",),
+        sku=graphene.Argument(
+            graphene.String, description="Sku of the product variant."
         ),
-        description="Look up a product variant by ID.",
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
+        description="Look up a product variant by ID or SKU.",
     )
-    product_variants = PrefetchingConnectionField(
+    product_variants = ChannelContextFilterConnectionField(
         ProductVariant,
         ids=graphene.List(
             graphene.ID, description="Filter product variants by given IDs."
         ),
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
+        filter=ProductVariantFilterInput(
+            description="Filtering options for product variant."
+        ),
         description="List of product variants.",
     )
-    report_product_sales = PrefetchingConnectionField(
+    report_product_sales = ChannelContextFilterConnectionField(
         ProductVariant,
         period=graphene.Argument(
             ReportingPeriod, required=True, description="Span of time."
         ),
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned.",
+            required=True,
+        ),
         description="List of top selling products.",
     )
-
-    def resolve_attributes(self, info, **kwargs):
-        return resolve_attributes(info, **kwargs)
-
-    def resolve_attribute(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, Attribute)
 
     def resolve_categories(self, info, level=None, **kwargs):
         return resolve_categories(info, level=level, **kwargs)
 
-    def resolve_category(self, info, id=None, slug=None):
+    def resolve_category(self, info, id=None, slug=None, **kwargs):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
         if id:
             return graphene.Node.get_node_from_global_id(info, id, Category)
         if slug:
             return resolve_category_by_slug(slug=slug)
 
-    def resolve_collection(self, info, id=None, slug=None):
+    def resolve_collection(self, info, id=None, slug=None, channel=None, **_kwargs):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
-        if id:
-            return graphene.Node.get_node_from_global_id(info, id, Collection)
-        if slug:
-            return resolve_collection_by_slug(slug=slug)
+        requestor = get_user_or_app_from_context(info.context)
 
-    def resolve_collections(self, info, **kwargs):
-        return resolve_collections(info, **kwargs)
+        requestor_has_access_to_all = models.Collection.objects.user_has_access_to_all(
+            requestor
+        )
+        if channel is None and not requestor_has_access_to_all:
+            channel = get_default_channel_slug_or_graphql_error()
+        if id:
+            _, id = graphene.Node.from_global_id(id)
+            collection = resolve_collection_by_id(info, id, channel, requestor)
+        else:
+            collection = resolve_collection_by_slug(
+                info, slug=slug, channel_slug=channel, requestor=requestor
+            )
+        return (
+            ChannelContext(node=collection, channel_slug=channel)
+            if collection
+            else None
+        )
+
+    def resolve_collections(self, info, channel=None, *_args, **_kwargs):
+        requestor = get_user_or_app_from_context(info.context)
+        requestor_has_access_to_all = models.Collection.objects.user_has_access_to_all(
+            requestor
+        )
+        if channel is None and not requestor_has_access_to_all:
+            channel = get_default_channel_slug_or_graphql_error()
+        return resolve_collections(info, channel)
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_digital_content(self, info, id):
@@ -277,169 +285,116 @@ class ProductQueries(graphene.ObjectType):
     def resolve_digital_contents(self, info, **_kwargs):
         return resolve_digital_contents(info)
 
-    def resolve_product(self, info, id=None, slug=None):
+    def resolve_product(self, info, id=None, slug=None, channel=None, **_kwargs):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
+        requestor = get_user_or_app_from_context(info.context)
+        requestor_has_access_to_all = models.Collection.objects.user_has_access_to_all(
+            requestor
+        )
+
+        if channel is None and not requestor_has_access_to_all:
+            channel = get_default_channel_slug_or_graphql_error()
         if id:
-            return graphene.Node.get_node_from_global_id(info, id, Product)
-        if slug:
-            return resolve_product_by_slug(slug=slug)
+            _, id = graphene.Node.from_global_id(id)
+            product = resolve_product_by_id(
+                info, id, channel_slug=channel, requestor=requestor
+            )
+        else:
+            product = resolve_product_by_slug(
+                info, product_slug=slug, channel_slug=channel, requestor=requestor
+            )
+        return ChannelContext(node=product, channel_slug=channel) if product else None
 
-    def resolve_products(self, info, **kwargs):
-        return resolve_products(info, **kwargs)
+    def resolve_products(self, info, channel=None, **kwargs):
+        requestor = get_user_or_app_from_context(info.context)
+        requestor_has_access_to_all = models.Product.objects.user_has_access_to_all(
+            requestor
+        )
+        if channel is None and not requestor_has_access_to_all:
+            channel = get_default_channel_slug_or_graphql_error()
+        return resolve_products(info, requestor, channel_slug=channel, **kwargs)
 
-    def resolve_product_type(self, info, id):
+    def resolve_product_type(self, info, id, **_kwargs):
         return graphene.Node.get_node_from_global_id(info, id, ProductType)
 
     def resolve_product_types(self, info, **kwargs):
         return resolve_product_types(info, **kwargs)
 
-    def resolve_product_variant(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, ProductVariant)
+    def resolve_product_variant(
+        self, info, id=None, sku=None, channel=None,
+    ):
+        validate_one_of_args_is_in_query("id", id, "sku", sku)
+        requestor = get_user_or_app_from_context(info.context)
+        requestor_has_access_to_all = models.Product.objects.user_has_access_to_all(
+            requestor
+        )
+        if channel is None and not requestor_has_access_to_all:
+            channel = get_default_channel_slug_or_graphql_error()
+        if id:
+            _, id = graphene.Node.from_global_id(id)
+            variant = resolve_variant_by_id(
+                info, id, channel_slug=channel, requestor=requestor
+            )
+        else:
+            variant = resolve_product_variant_by_sku(
+                info,
+                sku=sku,
+                channel_slug=channel,
+                requestor=requestor,
+                requestor_has_access_to_all=requestor_has_access_to_all,
+            )
+        return ChannelContext(node=variant, channel_slug=channel) if variant else None
 
-    def resolve_product_variants(self, info, ids=None, **_kwargs):
-        return resolve_product_variants(info, ids)
+    def resolve_product_variants(self, info, ids=None, channel=None, **_kwargs):
+        requestor = get_user_or_app_from_context(info.context)
+        requestor_has_access_to_all = models.Product.objects.user_has_access_to_all(
+            requestor
+        )
+        if channel is None and not requestor_has_access_to_all:
+            channel = get_default_channel_slug_or_graphql_error()
+        return resolve_product_variants(
+            info,
+            ids=ids,
+            channel_slug=channel,
+            requestor_has_access_to_all=requestor_has_access_to_all,
+            requestor=requestor,
+        )
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_report_product_sales(self, *_args, period, **_kwargs):
-        return resolve_report_product_sales(period)
+    def resolve_report_product_sales(self, *_args, period, channel, **_kwargs):
+        return resolve_report_product_sales(period, channel_slug=channel)
 
 
 class ProductMutations(graphene.ObjectType):
-    attribute_create = AttributeCreate.Field()
-    attribute_delete = AttributeDelete.Field()
-    attribute_bulk_delete = AttributeBulkDelete.Field()
-    attribute_assign = AttributeAssign.Field()
-    attribute_unassign = AttributeUnassign.Field()
-    attribute_update = AttributeUpdate.Field()
-    attribute_translate = AttributeTranslate.Field()
-    attribute_update_metadata = AttributeUpdateMeta.Field(
-        deprecation_reason=(
-            "Use the `updateMetadata` mutation instead. This field will be removed "
-            "after 2020-07-31."
-        )
-    )
-    attribute_clear_metadata = AttributeClearMeta.Field(
-        deprecation_reason=(
-            "Use the `deleteMetadata` mutation instead. This field will be removed "
-            "after 2020-07-31."
-        )
-    )
-    attribute_update_private_metadata = AttributeUpdatePrivateMeta.Field(
-        deprecation_reason=(
-            "Use the `updatePrivateMetadata` mutation instead. This field will be "
-            "removed after 2020-07-31."
-        )
-    )
-    attribute_clear_private_metadata = AttributeClearPrivateMeta.Field(
-        deprecation_reason=(
-            "Use the `deletePrivateMetadata` mutation instead. This field will be "
-            "removed after 2020-07-31."
-        )
-    )
-
-    attribute_value_create = AttributeValueCreate.Field()
-    attribute_value_delete = AttributeValueDelete.Field()
-    attribute_value_bulk_delete = AttributeValueBulkDelete.Field()
-    attribute_value_update = AttributeValueUpdate.Field()
-    attribute_value_translate = AttributeValueTranslate.Field()
-    attribute_reorder_values = AttributeReorderValues.Field()
+    product_attribute_assign = ProductAttributeAssign.Field()
+    product_attribute_unassign = ProductAttributeUnassign.Field()
 
     category_create = CategoryCreate.Field()
     category_delete = CategoryDelete.Field()
     category_bulk_delete = CategoryBulkDelete.Field()
     category_update = CategoryUpdate.Field()
     category_translate = CategoryTranslate.Field()
-    category_update_metadata = CategoryUpdateMeta.Field(
-        deprecation_reason=(
-            "Use the `updateMetadata` mutation instead. This field will be removed "
-            "after 2020-07-31."
-        )
-    )
-    category_clear_metadata = CategoryClearMeta.Field(
-        deprecation_reason=(
-            "Use the `deleteMetadata` mutation instead. This field will be removed "
-            "after 2020-07-31."
-        )
-    )
-    category_update_private_metadata = CategoryUpdatePrivateMeta.Field(
-        deprecation_reason=(
-            "Use the `updatePrivateMetadata` mutation instead. This field will be "
-            "removed after 2020-07-31."
-        )
-    )
-    category_clear_private_metadata = CategoryClearPrivateMeta.Field(
-        deprecation_reason=(
-            "Use the `deletePrivateMetadata` mutation instead. This field will be "
-            "removed after 2020-07-31."
-        )
-    )
 
     collection_add_products = CollectionAddProducts.Field()
     collection_create = CollectionCreate.Field()
     collection_delete = CollectionDelete.Field()
     collection_reorder_products = CollectionReorderProducts.Field()
     collection_bulk_delete = CollectionBulkDelete.Field()
-    collection_bulk_publish = CollectionBulkPublish.Field()
     collection_remove_products = CollectionRemoveProducts.Field()
     collection_update = CollectionUpdate.Field()
     collection_translate = CollectionTranslate.Field()
-    collection_update_metadata = CollectionUpdateMeta.Field(
-        deprecation_reason=(
-            "Use the `updateMetadata` mutation instead. This field will be removed "
-            "after 2020-07-31."
-        )
-    )
-    collection_clear_metadata = CollectionClearMeta.Field(
-        deprecation_reason=(
-            "Use the `deleteMetadata` mutation instead. This field will be removed "
-            "after 2020-07-31."
-        )
-    )
-    collection_update_private_metadata = CollectionUpdatePrivateMeta.Field(
-        deprecation_reason=(
-            "Use the `updatePrivateMetadata` mutation instead. This field will be "
-            "removed after 2020-07-31."
-        )
-    )
-    collection_clear_private_metadata = CollectionClearPrivateMeta.Field(
-        deprecation_reason=(
-            "Use the `deletePrivateMetadata` mutation instead. This field will be "
-            "removed after 2020-07-31."
-        )
-    )
+    collection_channel_listing_update = CollectionChannelListingUpdate.Field()
 
     product_create = ProductCreate.Field()
     product_delete = ProductDelete.Field()
     product_bulk_delete = ProductBulkDelete.Field()
-    product_bulk_publish = ProductBulkPublish.Field()
     product_update = ProductUpdate.Field()
     product_translate = ProductTranslate.Field()
-    product_update_metadata = ProductUpdateMeta.Field(
-        deprecation_reason=(
-            "Use the `updateMetadata` mutation instead. This field will be removed "
-            "after 2020-07-31."
-        )
-    )
-    product_clear_metadata = ProductClearMeta.Field(
-        deprecation_reason=(
-            "Use the `deleteMetadata` mutation instead. This field will be removed "
-            "after 2020-07-31."
-        )
-    )
-    product_update_private_metadata = ProductUpdatePrivateMeta.Field(
-        deprecation_reason=(
-            "Use the `updatePrivateMetadata` mutation instead. This field will be "
-            "removed after 2020-07-31."
-        )
-    )
-    product_clear_private_metadata = ProductClearPrivateMeta.Field(
-        deprecation_reason=(
-            "Use the `deletePrivateMetadata` mutation instead. This field will be "
-            "removed after 2020-07-31."
-        )
-    )
+
+    product_channel_listing_update = ProductChannelListingUpdate.Field()
 
     product_image_create = ProductImageCreate.Field()
+    product_variant_reorder = ProductVariantReorder.Field()
     product_image_delete = ProductImageDelete.Field()
     product_image_bulk_delete = ProductImageBulkDelete.Field()
     product_image_reorder = ProductImageReorder.Field()
@@ -450,31 +405,6 @@ class ProductMutations(graphene.ObjectType):
     product_type_bulk_delete = ProductTypeBulkDelete.Field()
     product_type_update = ProductTypeUpdate.Field()
     product_type_reorder_attributes = ProductTypeReorderAttributes.Field()
-
-    product_type_update_metadata = ProductTypeUpdateMeta.Field(
-        deprecation_reason=(
-            "Use the `updateMetadata` mutation instead. This field will be removed "
-            "after 2020-07-31."
-        )
-    )
-    product_type_clear_metadata = ProductTypeClearMeta.Field(
-        deprecation_reason=(
-            "Use the `deleteMetadata` mutation instead. This field will be removed "
-            "after 2020-07-31."
-        )
-    )
-    product_type_update_private_metadata = ProductTypeUpdatePrivateMeta.Field(
-        deprecation_reason=(
-            "Use the `updatePrivateMetadata` mutation instead. This field will be "
-            "removed after 2020-07-31."
-        )
-    )
-    product_type_clear_private_metadata = ProductTypeClearPrivateMeta.Field(
-        deprecation_reason=(
-            "Use the `deletePrivateMetadata` mutation instead. This field will be "
-            "removed after 2020-07-31."
-        )
-    )
 
     digital_content_create = DigitalContentCreate.Field()
     digital_content_delete = DigitalContentDelete.Field()
@@ -490,31 +420,9 @@ class ProductMutations(graphene.ObjectType):
     product_variant_stocks_delete = ProductVariantStocksDelete.Field()
     product_variant_stocks_update = ProductVariantStocksUpdate.Field()
     product_variant_update = ProductVariantUpdate.Field()
+    product_variant_set_default = ProductVariantSetDefault.Field()
     product_variant_translate = ProductVariantTranslate.Field()
-    product_variant_update_metadata = ProductVariantUpdateMeta.Field(
-        deprecation_reason=(
-            "Use the `updateMetadata` mutation instead. This field will be removed "
-            "after 2020-07-31."
-        )
-    )
-    product_variant_clear_metadata = ProductVariantClearMeta.Field(
-        deprecation_reason=(
-            "Use the `deleteMetadata` mutation instead. This field will be removed "
-            "after 2020-07-31."
-        )
-    )
-    product_variant_update_private_metadata = ProductVariantUpdatePrivateMeta.Field(
-        deprecation_reason=(
-            "Use the `updatePrivateMetadata` mutation instead. This field will be "
-            "removed after 2020-07-31."
-        )
-    )
-    product_variant_clear_private_metadata = ProductVariantClearPrivateMeta.Field(
-        deprecation_reason=(
-            "Use the `deletePrivateMetadata` mutation instead. This field will be "
-            "removed after 2020-07-31."
-        )
-    )
+    product_variant_channel_listing_update = ProductVariantChannelListingUpdate.Field()
 
     variant_image_assign = VariantImageAssign.Field()
     variant_image_unassign = VariantImageUnassign.Field()

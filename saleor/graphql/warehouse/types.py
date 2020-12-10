@@ -2,11 +2,12 @@ import graphene
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
 
-from ...core.permissions import ProductPermissions
+from ...core.permissions import OrderPermissions, ProductPermissions
 from ...warehouse import models
 from ..account.enums import CountryCodeEnum
+from ..channel import ChannelContext
 from ..core.connection import CountableDjangoObjectType
-from ..decorators import permission_required
+from ..decorators import one_of_permissions_required
 
 
 class WarehouseAddressInput(graphene.InputObjectType):
@@ -58,6 +59,15 @@ class Warehouse(CountableDjangoObjectType):
             "email",
         ]
 
+    @staticmethod
+    def resolve_shipping_zones(root, *_args, **_kwargs):
+        instances = root.shipping_zones.all()
+        shipping_zones = [
+            ChannelContext(node=shipping_zone, channel_slug=None)
+            for shipping_zone in instances
+        ]
+        return shipping_zones
+
 
 class Stock(CountableDjangoObjectType):
     quantity = graphene.Int(
@@ -76,13 +86,48 @@ class Stock(CountableDjangoObjectType):
         only_fields = ["warehouse", "product_variant", "quantity", "quantity_allocated"]
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
+    @one_of_permissions_required(
+        [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
+    )
     def resolve_quantity(root, *_args):
         return root.quantity
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
+    @one_of_permissions_required(
+        [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
+    )
     def resolve_quantity_allocated(root, *_args):
         return root.allocations.aggregate(
             quantity_allocated=Coalesce(Sum("quantity_allocated"), 0)
         )["quantity_allocated"]
+
+    @staticmethod
+    def resolve_product_variant(root, *_args):
+        return ChannelContext(node=root.product_variant, channel_slug=None)
+
+
+class Allocation(CountableDjangoObjectType):
+    quantity = graphene.Int(required=True, description="Quantity allocated for orders.")
+    warehouse = graphene.Field(
+        Warehouse, required=True, description="The warehouse were items were allocated."
+    )
+
+    class Meta:
+        description = "Represents allocation."
+        model = models.Allocation
+        interfaces = [graphene.relay.Node]
+        only_fields = ["id"]
+
+    @staticmethod
+    @one_of_permissions_required(
+        [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
+    )
+    def resolve_warehouse(root, *_args):
+        return root.stock.warehouse
+
+    @staticmethod
+    @one_of_permissions_required(
+        [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
+    )
+    def resolve_quantity(root, *_args):
+        return root.quantity_allocated

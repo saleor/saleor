@@ -103,9 +103,15 @@
             <tr>
               <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
-      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{% blocktrans trimmed context "Fulfillment confirmation email text" %}
-            Thank you for your order. Below is the list of fulfilled products.
-          {% endblocktrans %}
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{% if order_details_url %}
+            {% blocktrans trimmed context "Fulfillment confirmation email text with order details" %}
+              Thank you for your order. Below is the list of fulfilled products. To see your order details please visit: <a href="{{ order_details_url }}">{{ order_details_url }}</a>
+            {% endblocktrans %}
+          {% else %}
+            {% blocktrans trimmed context "Fulfillment confirmation email text" %}
+              Thank you for your order. Below is the list of fulfilled products.
+            {% endblocktrans %}
+          {% endif %}
           {% if fulfillment.tracking_number %}
             {% if fulfillment.is_tracking_number_url %}
               {% blocktrans trimmed with tracking_number=fulfillment.tracking_number context "Fulfillment confirmation email text" %}

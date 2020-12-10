@@ -2,28 +2,24 @@ from itertools import chain
 from typing import Tuple, Union
 
 import graphene
-from django.contrib.auth import get_user_model
 from django.core.exceptions import (
     NON_FIELD_ERRORS,
     ImproperlyConfigured,
     ValidationError,
 )
+from django.core.files.storage import default_storage
 from django.db.models.fields.files import FileField
-from django.utils import timezone
 from graphene import ObjectType
 from graphene.types.mutation import MutationOptions
 from graphene_django.registry import get_global_registry
 from graphql.error import GraphQLError
-from graphql_jwt import ObtainJSONWebToken, Refresh, Verify
-from graphql_jwt.exceptions import JSONWebTokenError, PermissionDenied
 
-from ...account import models
-from ...account.error_codes import AccountErrorCode
+from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
-from ..account.types import User
+from ..decorators import staff_member_or_app_required
 from ..utils import get_nodes
-from .types import Error, Upload
-from .types.common import AccountError
+from .types import Error, Upload, UploadedFile
+from .types.common import UploadError
 from .utils import from_global_id_strict_type, snake_to_camel_case
 from .utils.error_codes import get_error_code_from_error
 
@@ -34,17 +30,6 @@ def get_model_name(model):
     """Return name of the model with first letter lowercase."""
     model_name = model.__name__
     return model_name[:1].lower() + model_name[1:]
-
-
-def get_output_fields(model, return_field_name):
-    """Return mutation output field for model instance."""
-    model_type = registry.get_type_for_model(model)
-    if not model_type:
-        raise ImproperlyConfigured(
-            "Unable to find type for model %s in graphene registry" % model.__name__
-        )
-    fields = {return_field_name: graphene.Field(model_type)}
-    return fields
 
 
 def get_error_fields(error_type_class, error_type_field):
@@ -116,6 +101,7 @@ class BaseMutation(graphene.Mutation):
         _meta=None,
         error_type_class=None,
         error_type_field=None,
+        errors_mapping=None,
         **options,
     ):
         if not _meta:
@@ -135,6 +121,7 @@ class BaseMutation(graphene.Mutation):
         _meta.permissions = permissions
         _meta.error_type_class = error_type_class
         _meta.error_type_field = error_type_field
+        _meta.errors_mapping = errors_mapping
         super().__init_subclass_with_meta__(
             description=description, _meta=_meta, **options
         )
@@ -204,6 +191,20 @@ class BaseMutation(graphene.Mutation):
             )
         return instances
 
+    @staticmethod
+    def remap_error_fields(validation_error, field_map):
+        """Rename validation_error fields accoring to provided field_map.
+
+        Skips renaming fields from field_map that are not on validation_error.
+        """
+        for old_field, new_field in field_map.items():
+            try:
+                validation_error.error_dict[
+                    new_field
+                ] = validation_error.error_dict.pop(old_field)
+            except KeyError:
+                pass
+
     @classmethod
     def clean_instance(cls, info, instance):
         """Clean the instance that was created using the input data.
@@ -222,6 +223,9 @@ class BaseMutation(graphene.Mutation):
                     if field not in cls._meta.exclude:
                         new_error_dict[field] = errors
                 error.error_dict = new_error_dict
+
+            if cls._meta.errors_mapping:
+                cls.remap_error_fields(error, cls._meta.errors_mapping)
 
             if error.error_dict:
                 raise error
@@ -357,12 +361,19 @@ class ModelMutation(BaseMutation):
             return_field_name = get_model_name(model)
         if arguments is None:
             arguments = {}
-        fields = get_output_fields(model, return_field_name)
 
         _meta.model = model
         _meta.return_field_name = return_field_name
         _meta.exclude = exclude
         super().__init_subclass_with_meta__(_meta=_meta, **options)
+
+        model_type = cls.get_type_for_model()
+        if not model_type:
+            raise ImproperlyConfigured(
+                "Unable to find type for model %s in graphene registry" % model.__name__
+            )
+        fields = {return_field_name: graphene.Field(model_type)}
+
         cls._update_mutation_arguments_and_fields(arguments=arguments, fields=fields)
 
     @classmethod
@@ -465,6 +476,11 @@ class ModelMutation(BaseMutation):
         return instance
 
     @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        """Perform an action after saving an object and its m2m."""
+        pass
+
+    @classmethod
     def perform_mutation(cls, _root, info, **data):
         """Perform model mutation.
 
@@ -480,6 +496,7 @@ class ModelMutation(BaseMutation):
         cls.clean_instance(info, instance)
         cls.save(info, instance, cleaned_input)
         cls._save_m2m(info, instance, cleaned_input)
+        cls.post_save_action(info, instance, cleaned_input)
         return cls.success_response(instance)
 
 
@@ -606,93 +623,29 @@ class ModelBulkDeleteMutation(BaseBulkMutation):
         queryset.delete()
 
 
-class CreateToken(ObtainJSONWebToken):
-    """Mutation that authenticates a user and returns token and user data.
+class FileUpload(BaseMutation):
+    uploaded_file = graphene.Field(UploadedFile)
 
-    It overrides the default graphql_jwt.ObtainJSONWebToken to wrap potential
-    authentication errors in our Error type, which is consistent to how the rest of
-    the mutation works.
-    """
+    class Arguments:
+        file = Upload(
+            required=True, description="Represents a file in a multipart request."
+        )
 
-    errors = graphene.List(
-        graphene.NonNull(Error),
-        required=True,
-        deprecation_reason=(
-            "Use typed errors with error codes. This field will be removed after "
-            "2020-07-31."
-        ),
-    )
-    account_errors = graphene.List(
-        graphene.NonNull(AccountError),
-        description="List of errors that occurred executing the mutation.",
-        required=True,
-    )
-    user = graphene.Field(User, description="A user instance.")
+    class Meta:
+        description = (
+            "Upload a file. This mutation must be sent as a `multipart` "
+            "request. More detailed specs of the upload format can be found here: "
+            "https://github.com/jaydenseric/graphql-multipart-request-spec"
+        )
+        error_type_class = UploadError
+        error_type_field = "upload_errors"
 
     @classmethod
-    def mutate(cls, root, info, **kwargs):
-        try:
-            result = super().mutate(root, info, **kwargs)
-        except JSONWebTokenError as e:
-            errors = [Error(message=str(e))]
-            account_errors = [
-                AccountError(
-                    field="email",
-                    message="Please, enter valid credentials",
-                    code=AccountErrorCode.INVALID_CREDENTIALS,
-                )
-            ]
-            return CreateToken(errors=errors, account_errors=account_errors)
-        except ValidationError as e:
-            errors = validation_error_to_error_type(e)
-            return cls.handle_typed_errors(errors)
-        else:
-            user = result.user
-            user.last_login = timezone.now()
-            user.save(update_fields=["last_login"])
-            return result
+    @staff_member_or_app_required
+    def perform_mutation(cls, _root, info, **data):
+        file_data = info.context.FILES.get(data["file"])
+        path = default_storage.save(file_data._name, file_data.file)
 
-    @classmethod
-    def handle_typed_errors(cls, errors: list):
-        account_errors = [
-            AccountError(field=e.field, message=e.message, code=code)
-            for e, code, _params in errors
-        ]
-        return cls(errors=[e[0] for e in errors], account_errors=account_errors)
-
-    @classmethod
-    def resolve(cls, root, info, **kwargs):
-        return cls(user=info.context.user, errors=[], account_errors=[])
-
-
-class RefreshToken(Refresh):
-    """Mutation that refresh user token.
-
-    It overrides the default graphql_jwt.Refresh to update user's last_login field.
-    """
-
-    @classmethod
-    def mutate(cls, root, info, **kwargs):
-        result = super().mutate(root, info, **kwargs)
-        user = graphene.Node.get_node_from_global_id(info, result.payload["user_id"])
-        user.last_login = timezone.now()
-        user.save(update_fields=["last_login"])
-        return result
-
-
-class VerifyToken(Verify):
-    """Mutation that confirms if token is valid and also returns user data."""
-
-    user = graphene.Field(User)
-
-    def resolve_user(self, _info, **_kwargs):
-        username_field = get_user_model().USERNAME_FIELD
-        kwargs = {username_field: self.payload.get(username_field)}
-        return models.User.objects.get(**kwargs)
-
-    @classmethod
-    def mutate(cls, root, info, token, **kwargs):
-        try:
-            return super().mutate(root, info, token, **kwargs)
-        except JSONWebTokenError:
-            return None
+        return FileUpload(
+            uploaded_file=UploadedFile(url=path, content_type=file_data.content_type)
+        )

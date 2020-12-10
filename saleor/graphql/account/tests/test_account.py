@@ -1,10 +1,10 @@
 import re
 import uuid
 from collections import defaultdict
+from datetime import timedelta
 from unittest.mock import ANY, MagicMock, Mock, patch
 
 import graphene
-import jwt
 import pytest
 from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
@@ -12,15 +12,13 @@ from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.core.validators import URLValidator
 from django.test import override_settings
-from django.utils import timezone
 from freezegun import freeze_time
-from prices import Money
 
 from ....account import events as account_events
 from ....account.error_codes import AccountErrorCode
 from ....account.models import Address, User
-from ....account.utils import create_jwt_token
 from ....checkout import AddressType
+from ....core.jwt import create_token
 from ....core.permissions import AccountPermissions, OrderPermissions
 from ....order.models import FulfillmentStatus, Order
 from ....product.tests.utils import create_image
@@ -71,80 +69,6 @@ def query_staff_users_with_filter():
     }
     """
     return query
-
-
-def test_create_token_mutation(api_client, staff_user, settings):
-    query = """
-    mutation TokenCreate($email: String!, $password: String!) {
-        tokenCreate(email: $email, password: $password) {
-            token
-            errors {
-                field
-                message
-            }
-        }
-    }
-    """
-    variables = {"email": staff_user.email, "password": "password"}
-    time = timezone.now()
-    with freeze_time(time):
-        response = api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    token_data = content["data"]["tokenCreate"]
-    token = jwt.decode(token_data["token"], settings.SECRET_KEY)
-    staff_user.refresh_from_db()
-    assert staff_user.last_login == time
-    assert token["email"] == staff_user.email
-    assert token["user_id"] == graphene.Node.to_global_id("User", staff_user.id)
-
-    assert token_data["errors"] == []
-
-    incorrect_variables = {"email": staff_user.email, "password": "incorrect"}
-    response = api_client.post_graphql(query, incorrect_variables)
-    content = get_graphql_content(response)
-    token_data = content["data"]["tokenCreate"]
-    errors = token_data["errors"]
-    assert errors
-    assert not errors[0]["field"]
-    assert not token_data["token"]
-
-
-def test_token_create_user_data(permission_manage_orders, staff_api_client, staff_user):
-    query = """
-    mutation TokenCreate($email: String!, $password: String!) {
-        tokenCreate(email: $email, password: $password) {
-            user {
-                id
-                email
-                permissions {
-                    code
-                    name
-                }
-                userPermissions {
-                    code
-                    name
-                }
-            }
-        }
-    }
-    """
-
-    permission = permission_manage_orders
-    staff_user.user_permissions.add(permission)
-    name = permission.name
-    user_id = graphene.Node.to_global_id("User", staff_user.id)
-
-    variables = {"email": staff_user.email, "password": "password"}
-    response = staff_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    token_data = content["data"]["tokenCreate"]
-    assert token_data["user"]["id"] == user_id
-    assert token_data["user"]["email"] == staff_user.email
-    assert token_data["user"]["userPermissions"][0]["name"] == name
-    assert token_data["user"]["userPermissions"][0]["code"] == "MANAGE_ORDERS"
-    # deprecated, to remove in #5389
-    assert token_data["user"]["permissions"][0]["name"] == name
-    assert token_data["user"]["permissions"][0]["code"] == "MANAGE_ORDERS"
 
 
 FULL_USER_QUERY = """
@@ -683,6 +607,116 @@ def test_me_query_checkout(user_api_client, checkout):
     assert data["checkout"]["token"] == str(checkout.token)
 
 
+def test_me_query_checkout_with_inactive_channel(user_api_client, checkout):
+    user = user_api_client.user
+    channel = checkout.channel
+    channel.is_active = False
+    channel.save()
+    checkout.user = user
+    checkout.save()
+
+    response = user_api_client.post_graphql(ME_QUERY)
+    content = get_graphql_content(response)
+    data = content["data"]["me"]
+    assert not data["checkout"]
+
+
+QUERY_ME_CHECKOUT_TOKENS = """
+query getCheckoutTokens($channel: String) {
+  me {
+    checkoutTokens(channel: $channel)
+  }
+}
+"""
+
+
+def test_me_checkout_tokens_without_channel_param(
+    user_api_client, checkouts_assigned_to_customer
+):
+    # given
+    checkouts = checkouts_assigned_to_customer
+
+    # when
+    response = user_api_client.post_graphql(QUERY_ME_CHECKOUT_TOKENS)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["me"]
+    assert len(data["checkoutTokens"]) == len(checkouts)
+    for checkout in checkouts:
+        assert str(checkout.token) in data["checkoutTokens"]
+
+
+def test_me_checkout_tokens_without_channel_param_inactive_channel(
+    user_api_client, channel_PLN, checkouts_assigned_to_customer
+):
+    # given
+    channel_PLN.is_active = False
+    channel_PLN.save()
+    checkouts = checkouts_assigned_to_customer
+
+    # when
+    response = user_api_client.post_graphql(QUERY_ME_CHECKOUT_TOKENS)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["me"]
+    assert str(checkouts[0].token) in data["checkoutTokens"]
+    assert not str(checkouts[1].token) in data["checkoutTokens"]
+
+
+def test_me_checkout_tokens_with_channel(
+    user_api_client, channel_USD, checkouts_assigned_to_customer
+):
+    # given
+    checkouts = checkouts_assigned_to_customer
+
+    # when
+    response = user_api_client.post_graphql(
+        QUERY_ME_CHECKOUT_TOKENS, {"channel": channel_USD.slug}
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["me"]
+    assert str(checkouts[0].token) in data["checkoutTokens"]
+    assert not str(checkouts[1].token) in data["checkoutTokens"]
+
+
+def test_me_checkout_tokens_with_inactive_channel(
+    user_api_client, channel_USD, checkouts_assigned_to_customer
+):
+    # given
+    channel_USD.is_active = False
+    channel_USD.save()
+
+    # when
+    response = user_api_client.post_graphql(
+        QUERY_ME_CHECKOUT_TOKENS, {"channel": channel_USD.slug}
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["me"]
+    assert not data["checkoutTokens"]
+
+
+def test_me_checkout_tokens_with_not_existing_channel(
+    user_api_client, checkouts_assigned_to_customer
+):
+    # given
+
+    # when
+    response = user_api_client.post_graphql(
+        QUERY_ME_CHECKOUT_TOKENS, {"channel": "Not-existing"}
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["me"]
+    assert not data["checkoutTokens"]
+
+
 def test_me_with_cancelled_fulfillments(
     user_api_client, fulfilled_order_with_cancelled_fulfillment
 ):
@@ -933,6 +967,7 @@ def test_customer_create(
     assert customer_creation_event.user == new_customer
 
 
+@freeze_time("2018-05-31 12:00:01")
 @patch("saleor.account.emails._send_set_user_password_email_with_url.delay")
 def test_customer_create_send_password_with_url(
     _send_set_user_password_email_with_url_mock,
@@ -1297,6 +1332,7 @@ def test_account_request_deletion(send_delete_confirmation_email_mock, user_api_
     url_validator(url)
 
 
+@freeze_time("2018-05-31 12:00:01")
 @patch("saleor.account.emails._send_account_delete_confirmation_email_with_url.delay")
 def test_account_request_deletion_token_validation(
     send_account_delete_confirmation_email_with_url_mock, user_api_client
@@ -1346,6 +1382,7 @@ def test_account_request_deletion_storefront_hosts_not_allowed(
     send_account_delete_confirmation_email_with_url_mock.assert_not_called()
 
 
+@freeze_time("2018-05-31 12:00:01")
 @patch("saleor.account.emails._send_account_delete_confirmation_email_with_url.delay")
 def test_account_request_deletion_all_storefront_hosts_allowed(
     send_account_delete_confirmation_email_with_url_mock, user_api_client, settings
@@ -1368,6 +1405,7 @@ def test_account_request_deletion_all_storefront_hosts_allowed(
     url_validator(url)
 
 
+@freeze_time("2018-05-31 12:00:01")
 @patch("saleor.account.emails._send_account_delete_confirmation_email_with_url.delay")
 def test_account_request_deletion_subdomain(
     send_account_delete_confirmation_email_with_url_mock, user_api_client, settings
@@ -1402,6 +1440,7 @@ ACCOUNT_DELETE_MUTATION = """
 """
 
 
+@freeze_time("2018-05-31 12:00:01")
 def test_account_delete(user_api_client):
     user = user_api_client.user
     token = default_token_generator.make_token(user)
@@ -1445,6 +1484,7 @@ def test_account_delete_staff_user(staff_api_client):
     assert User.objects.filter(pk=user.id).exists()
 
 
+@freeze_time("2018-05-31 12:00:01")
 def test_account_delete_other_customer_token(user_api_client):
     user = user_api_client.user
     other_user = User.objects.create(email="temp@example.com")
@@ -1725,6 +1765,7 @@ def test_staff_create_out_of_scope_group(
     )
 
 
+@freeze_time("2018-05-31 12:00:01")
 @patch("saleor.account.emails._send_set_user_password_email_with_url.delay")
 def test_staff_create_send_password_with_url(
     _send_set_user_password_email_with_url_mock,
@@ -2478,11 +2519,13 @@ SET_PASSWORD_MUTATION = """
                 id
             }
             token
+            refreshToken
         }
     }
 """
 
 
+@freeze_time("2018-05-31 12:00:01")
 def test_set_password(user_api_client, customer_user):
     token = default_token_generator.make_token(customer_user)
     password = "spanish-inquisition"
@@ -2528,6 +2571,7 @@ def test_set_password_invalid_email(user_api_client):
     assert account_errors[0]["code"] == AccountErrorCode.NOT_FOUND.name
 
 
+@freeze_time("2018-05-31 12:00:01")
 def test_set_password_invalid_password(user_api_client, customer_user, settings):
     settings.AUTH_PASSWORD_VALIDATORS = [
         {
@@ -3039,6 +3083,7 @@ def test_account_reset_password(
     url_validator(url)
 
 
+@freeze_time("2018-05-31 12:00:01")
 @patch("saleor.graphql.account.mutations.base.match_orders_with_new_user")
 def test_account_confirmation(
     match_orders_with_new_user_mock, api_client, customer_user
@@ -3059,6 +3104,7 @@ def test_account_confirmation(
     assert customer_user.is_active is True
 
 
+@freeze_time("2018-05-31 12:00:01")
 @patch("saleor.graphql.account.mutations.base.match_orders_with_new_user")
 def test_account_confirmation_invalid_user(
     match_orders_with_new_user_mock, user_api_client, customer_user
@@ -3123,6 +3169,27 @@ def test_account_reset_password_invalid_email(
     content = get_graphql_content(response)
     data = content["data"]["requestPasswordReset"]
     assert len(data["errors"]) == 1
+    assert not send_password_reset_email_mock.called
+
+
+@patch("saleor.account.emails._send_password_reset_email")
+def test_account_reset_password_user_is_inactive(
+    send_password_reset_email_mock, user_api_client, customer_user
+):
+    user = customer_user
+    user.is_active = False
+    user.save()
+
+    variables = {
+        "email": customer_user.email,
+        "redirectUrl": "https://www.example.com",
+    }
+    response = user_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["requestPasswordReset"]
+    assert data["errors"] == [
+        {"field": "email", "message": "User with this email is inactive"}
+    ]
     assert not send_password_reset_email_mock.called
 
 
@@ -3508,11 +3575,12 @@ def test_query_customers_with_filter_placed_orders(
     staff_api_client,
     permission_manage_users,
     customer_user,
+    channel_USD,
 ):
-    Order.objects.create(user=customer_user)
+    Order.objects.create(user=customer_user, channel=channel_USD)
     second_customer = User.objects.create(email="second_example@example.com")
     with freeze_time("2012-01-14 11:00:00"):
-        Order.objects.create(user=second_customer)
+        Order.objects.create(user=second_customer, channel=channel_USD)
     variables = {"filter": customer_filter}
     response = staff_api_client.post_graphql(
         query_customer_with_filter, variables, permissions=[permission_manage_users]
@@ -3568,60 +3636,18 @@ def test_query_customers_with_filter_placed_orders_(
     staff_api_client,
     permission_manage_users,
     customer_user,
+    channel_USD,
 ):
     Order.objects.bulk_create(
         [
-            Order(user=customer_user, token=str(uuid.uuid4())),
-            Order(user=customer_user, token=str(uuid.uuid4())),
-            Order(user=customer_user, token=str(uuid.uuid4())),
+            Order(user=customer_user, token=str(uuid.uuid4()), channel=channel_USD),
+            Order(user=customer_user, token=str(uuid.uuid4()), channel=channel_USD),
+            Order(user=customer_user, token=str(uuid.uuid4()), channel=channel_USD),
         ]
     )
     second_customer = User.objects.create(email="second_example@example.com")
     with freeze_time("2012-01-14 11:00:00"):
-        Order.objects.create(user=second_customer)
-    variables = {"filter": customer_filter}
-    response = staff_api_client.post_graphql(
-        query_customer_with_filter, variables, permissions=[permission_manage_users]
-    )
-    content = get_graphql_content(response)
-    users = content["data"]["customers"]["edges"]
-
-    assert len(users) == count
-
-
-@pytest.mark.parametrize(
-    "customer_filter, count",
-    [
-        ({"moneySpent": {"gte": 16, "lte": 25}}, 1),
-        ({"moneySpent": {"gte": 15, "lte": 26}}, 2),
-        ({"moneySpent": {"gte": 0}}, 2),
-        ({"moneySpent": {"lte": 16}}, 1),
-    ],
-)
-def test_query_customers_with_filter_placed_orders__(
-    customer_filter,
-    count,
-    query_customer_with_filter,
-    staff_api_client,
-    permission_manage_users,
-    customer_user,
-):
-    second_customer = User.objects.create(email="second_example@example.com")
-    Order.objects.bulk_create(
-        [
-            Order(
-                user=customer_user,
-                token=str(uuid.uuid4()),
-                total_gross=Money(15, "USD"),
-            ),
-            Order(
-                user=second_customer,
-                token=str(uuid.uuid4()),
-                total_gross=Money(25, "USD"),
-            ),
-        ]
-    )
-
+        Order.objects.create(user=second_customer, channel=channel_USD)
     variables = {"filter": customer_filter}
     response = staff_api_client.post_graphql(
         query_customer_with_filter, variables, permissions=[permission_manage_users]
@@ -3659,7 +3685,7 @@ QUERY_CUSTOMERS_WITH_SORT = """
     ],
 )
 def test_query_customers_with_sort(
-    customer_sort, result_order, staff_api_client, permission_manage_users,
+    customer_sort, result_order, staff_api_client, permission_manage_users, channel_USD
 ):
     User.objects.bulk_create(
         [
@@ -3686,7 +3712,9 @@ def test_query_customers_with_sort(
             ),
         ]
     )
-    Order.objects.create(user=User.objects.get(email="zordon01@example.com"))
+    Order.objects.create(
+        user=User.objects.get(email="zordon01@example.com"), channel=channel_USD
+    )
     variables = {"sort_by": customer_sort}
     staff_api_client.user.user_permissions.add(permission_manage_users)
     response = staff_api_client.post_graphql(QUERY_CUSTOMERS_WITH_SORT, variables)
@@ -3707,6 +3735,9 @@ def test_query_customers_with_sort(
         ({"search": "Doe"}, 1),  # default_shipping_address__last_name
         ({"search": "wroc"}, 1),  # default_shipping_address__city
         ({"search": "pl"}, 2),  # default_shipping_address__country, email
+        ({"search": "+48713988102"}, 1),
+        ({"search": "7139881"}, 1),
+        ({"search": "+48713"}, 1),
     ],
 )
 def test_query_customer_members_with_filter_search(
@@ -3878,7 +3909,7 @@ QUERY_STAFF_USERS_WITH_SORT = """
     ],
 )
 def test_query_staff_members_with_sort(
-    customer_sort, result_order, staff_api_client, permission_manage_staff
+    customer_sort, result_order, staff_api_client, permission_manage_staff, channel_USD
 ):
     User.objects.bulk_create(
         [
@@ -3905,7 +3936,9 @@ def test_query_staff_members_with_sort(
             ),
         ]
     )
-    Order.objects.create(user=User.objects.get(email="zordon01@example.com"))
+    Order.objects.create(
+        user=User.objects.get(email="zordon01@example.com"), channel=channel_USD
+    )
     variables = {"sort_by": customer_sort}
     staff_api_client.user.user_permissions.add(permission_manage_staff)
     response = staff_api_client.post_graphql(QUERY_STAFF_USERS_WITH_SORT, variables)
@@ -4187,12 +4220,13 @@ mutation emailUpdate($token: String!) {
 
 def test_email_update(user_api_client, customer_user):
     new_email = "new_email@example.com"
-    token_kwargs = {
+    payload = {
         "old_email": customer_user.email,
         "new_email": new_email,
         "user_pk": customer_user.pk,
     }
-    token = create_jwt_token(token_kwargs)
+
+    token = create_token(payload, timedelta(hours=1))
     variables = {"token": token}
 
     response = user_api_client.post_graphql(EMAIL_UPDATE_QUERY, variables)
@@ -4202,12 +4236,12 @@ def test_email_update(user_api_client, customer_user):
 
 
 def test_email_update_to_existing_email(user_api_client, customer_user, staff_user):
-    token_kwargs = {
+    payload = {
         "old_email": customer_user.email,
         "new_email": staff_user.email,
         "user_pk": customer_user.pk,
     }
-    token = create_jwt_token(token_kwargs)
+    token = create_token(payload, timedelta(hours=1))
     variables = {"token": token}
 
     response = user_api_client.post_graphql(EMAIL_UPDATE_QUERY, variables)

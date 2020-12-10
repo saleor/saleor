@@ -5,7 +5,13 @@ import pytest
 from prices import Money, TaxedMoney
 
 from ...core.weight import zero_weight
-from ...discount.models import DiscountValueType, NotApplicable, Voucher, VoucherType
+from ...discount.models import (
+    DiscountValueType,
+    NotApplicable,
+    Voucher,
+    VoucherChannelListing,
+    VoucherType,
+)
 from ...discount.utils import validate_voucher_in_order
 from ...payment import ChargeStatus
 from ...payment.models import Payment
@@ -68,6 +74,28 @@ def test_add_variant_to_draft_order_adds_line_for_new_variant(
     assert line.translated_product_name == str(variant.product.translated)
     assert line.variant_name == str(variant)
     assert line.product_name == str(variant.product)
+
+
+def test_add_variant_to_draft_order_adds_line_for_variant_with_price_0(
+    order_with_lines, product, product_translation_fr, settings
+):
+    order = order_with_lines
+    variant = product.variants.get()
+    variant_channel_listing = variant.channel_listings.get()
+    variant_channel_listing.price = Money(0, "USD")
+    variant_channel_listing.save(update_fields=["price_amount", "currency"])
+
+    lines_before = order.lines.count()
+    settings.LANGUAGE_CODE = "fr"
+    add_variant_to_draft_order(order, variant, 1)
+
+    line = order.lines.last()
+    assert order.lines.count() == lines_before + 1
+    assert line.product_sku == variant.sku
+    assert line.quantity == 1
+    assert line.unit_price == TaxedMoney(net=Money(0, "USD"), gross=Money(0, "USD"))
+    assert line.translated_product_name == str(variant.product.translated)
+    assert line.product_name == variant.product.name
 
 
 def test_add_variant_to_draft_order_not_allocates_stock_for_new_variant(
@@ -258,12 +286,14 @@ def test_validate_fulfillment_tracking_number_as_url(fulfilled_order):
     assert fulfillment.is_tracking_number_url
 
 
-def test_order_queryset_confirmed(draft_order):
+def test_order_queryset_confirmed(draft_order, channel_USD):
     other_orders = [
-        Order.objects.create(status=OrderStatus.UNFULFILLED),
-        Order.objects.create(status=OrderStatus.PARTIALLY_FULFILLED),
-        Order.objects.create(status=OrderStatus.FULFILLED),
-        Order.objects.create(status=OrderStatus.CANCELED),
+        Order.objects.create(status=OrderStatus.UNFULFILLED, channel=channel_USD),
+        Order.objects.create(
+            status=OrderStatus.PARTIALLY_FULFILLED, channel=channel_USD
+        ),
+        Order.objects.create(status=OrderStatus.FULFILLED, channel=channel_USD),
+        Order.objects.create(status=OrderStatus.CANCELED, channel=channel_USD),
     ]
 
     confirmed_orders = Order.objects.confirmed()
@@ -272,12 +302,14 @@ def test_order_queryset_confirmed(draft_order):
     assert all([order in confirmed_orders for order in other_orders])
 
 
-def test_order_queryset_drafts(draft_order):
+def test_order_queryset_drafts(draft_order, channel_USD):
     other_orders = [
-        Order.objects.create(status=OrderStatus.UNFULFILLED),
-        Order.objects.create(status=OrderStatus.PARTIALLY_FULFILLED),
-        Order.objects.create(status=OrderStatus.FULFILLED),
-        Order.objects.create(status=OrderStatus.CANCELED),
+        Order.objects.create(status=OrderStatus.UNFULFILLED, channel=channel_USD),
+        Order.objects.create(
+            status=OrderStatus.PARTIALLY_FULFILLED, channel=channel_USD
+        ),
+        Order.objects.create(status=OrderStatus.FULFILLED, channel=channel_USD),
+        Order.objects.create(status=OrderStatus.CANCELED, channel=channel_USD),
     ]
 
     draft_orders = Order.objects.drafts()
@@ -286,11 +318,15 @@ def test_order_queryset_drafts(draft_order):
     assert all([order not in draft_orders for order in other_orders])
 
 
-def test_order_queryset_to_ship(settings):
+def test_order_queryset_to_ship(settings, channel_USD):
     total = TaxedMoney(net=Money(10, "USD"), gross=Money(15, "USD"))
     orders_to_ship = [
-        Order.objects.create(status=OrderStatus.UNFULFILLED, total=total),
-        Order.objects.create(status=OrderStatus.PARTIALLY_FULFILLED, total=total),
+        Order.objects.create(
+            status=OrderStatus.UNFULFILLED, total=total, channel=channel_USD
+        ),
+        Order.objects.create(
+            status=OrderStatus.PARTIALLY_FULFILLED, total=total, channel=channel_USD
+        ),
     ]
     for order in orders_to_ship:
         order.payments.create(
@@ -302,11 +338,21 @@ def test_order_queryset_to_ship(settings):
         )
 
     orders_not_to_ship = [
-        Order.objects.create(status=OrderStatus.DRAFT, total=total),
-        Order.objects.create(status=OrderStatus.UNFULFILLED, total=total),
-        Order.objects.create(status=OrderStatus.PARTIALLY_FULFILLED, total=total),
-        Order.objects.create(status=OrderStatus.FULFILLED, total=total),
-        Order.objects.create(status=OrderStatus.CANCELED, total=total),
+        Order.objects.create(
+            status=OrderStatus.DRAFT, total=total, channel=channel_USD
+        ),
+        Order.objects.create(
+            status=OrderStatus.UNFULFILLED, total=total, channel=channel_USD
+        ),
+        Order.objects.create(
+            status=OrderStatus.PARTIALLY_FULFILLED, total=total, channel=channel_USD
+        ),
+        Order.objects.create(
+            status=OrderStatus.FULFILLED, total=total, channel=channel_USD
+        ),
+        Order.objects.create(
+            status=OrderStatus.CANCELED, total=total, channel=channel_USD
+        ),
     ]
 
     orders = Order.objects.ready_to_fulfill()
@@ -315,17 +361,21 @@ def test_order_queryset_to_ship(settings):
     assert all([order not in orders for order in orders_not_to_ship])
 
 
-def test_queryset_ready_to_capture():
+def test_queryset_ready_to_capture(channel_USD):
     total = TaxedMoney(net=Money(10, "USD"), gross=Money(15, "USD"))
 
-    preauth_order = Order.objects.create(status=OrderStatus.UNFULFILLED, total=total)
+    preauth_order = Order.objects.create(
+        status=OrderStatus.UNFULFILLED, total=total, channel=channel_USD
+    )
     Payment.objects.create(
         order=preauth_order, charge_status=ChargeStatus.NOT_CHARGED, is_active=True
     )
 
-    Order.objects.create(status=OrderStatus.DRAFT, total=total)
-    Order.objects.create(status=OrderStatus.UNFULFILLED, total=total)
-    Order.objects.create(status=OrderStatus.CANCELED, total=total)
+    Order.objects.create(status=OrderStatus.DRAFT, total=total, channel=channel_USD)
+    Order.objects.create(
+        status=OrderStatus.UNFULFILLED, total=total, channel=channel_USD
+    )
+    Order.objects.create(status=OrderStatus.CANCELED, total=total, channel=channel_USD)
 
     qs = Order.objects.ready_to_capture()
     assert preauth_order in qs
@@ -335,17 +385,21 @@ def test_queryset_ready_to_capture():
 
 
 def test_update_order_prices(order_with_lines):
+    channel_slug = order_with_lines.channel.slug
     address = order_with_lines.shipping_address
     address.country = "DE"
     address.save()
 
     line_1 = order_with_lines.lines.first()
     line_2 = order_with_lines.lines.last()
-    price_1 = line_1.variant.get_price()
+    price_1 = line_1.variant.get_price(channel_slug)
     price_1 = TaxedMoney(net=price_1, gross=price_1)
-    price_2 = line_2.variant.get_price()
+    price_2 = line_2.variant.get_price(channel_slug)
     price_2 = TaxedMoney(net=price_2, gross=price_2)
-    shipping_price = order_with_lines.shipping_method.get_total()
+
+    shipping_price = order_with_lines.shipping_method.channel_listings.get(
+        channel_id=order_with_lines.channel_id
+    ).price
     shipping_price = TaxedMoney(net=shipping_price, gross=shipping_price)
 
     update_order_prices(order_with_lines, None)
@@ -436,7 +490,7 @@ def test_get_voucher_discount_for_order_voucher_validation(
     validate_voucher_in_order(order_with_lines)
 
     mock_validate_voucher.assert_called_once_with(
-        voucher, subtotal.gross, quantity, customer_email
+        voucher, subtotal.gross, quantity, customer_email, order_with_lines.channel
     )
 
 
@@ -490,20 +544,27 @@ def test_display_translated_order_line_name(
     ],
 )
 def test_value_voucher_order_discount(
-    subtotal, discount_value, discount_type, min_spent_amount, expected_value
+    subtotal,
+    discount_value,
+    discount_type,
+    min_spent_amount,
+    expected_value,
+    channel_USD,
 ):
-    voucher = Voucher(
-        code="unique",
-        type=VoucherType.ENTIRE_ORDER,
-        discount_value_type=discount_type,
-        discount_value=discount_value,
-        min_spent=Money(min_spent_amount, "USD")
-        if min_spent_amount is not None
-        else None,
+    voucher = Voucher.objects.create(
+        code="unique", type=VoucherType.ENTIRE_ORDER, discount_value_type=discount_type,
+    )
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(discount_value, channel_USD.currency_code),
+        min_spent_amount=(min_spent_amount if min_spent_amount is not None else None),
     )
     subtotal = Money(subtotal, "USD")
     subtotal = TaxedMoney(net=subtotal, gross=subtotal)
-    order = Mock(get_subtotal=Mock(return_value=subtotal), voucher=voucher)
+    order = Mock(
+        get_subtotal=Mock(return_value=subtotal), voucher=voucher, channel=channel_USD
+    )
     discount = get_voucher_discount_for_order(order)
     assert discount == Money(expected_value, "USD")
 
@@ -513,14 +574,15 @@ def test_value_voucher_order_discount(
     [(10, 50, DiscountValueType.PERCENTAGE, 5), (10, 20, DiscountValueType.FIXED, 10)],
 )
 def test_shipping_voucher_order_discount(
-    shipping_cost, discount_value, discount_type, expected_value
+    shipping_cost, discount_value, discount_type, expected_value, channel_USD
 ):
-    voucher = Voucher(
-        code="unique",
-        type=VoucherType.SHIPPING,
-        discount_value_type=discount_type,
-        discount_value=discount_value,
-        min_spent_amount=None,
+    voucher = Voucher.objects.create(
+        code="unique", type=VoucherType.SHIPPING, discount_value_type=discount_type,
+    )
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(discount_value, channel_USD.currency_code),
     )
     subtotal = Money(100, "USD")
     subtotal = TaxedMoney(net=subtotal, gross=subtotal)
@@ -529,6 +591,7 @@ def test_shipping_voucher_order_discount(
         get_subtotal=Mock(return_value=subtotal),
         shipping_price=shipping_total,
         voucher=voucher,
+        channel=channel_USD,
     )
     discount = get_voucher_discount_for_order(order)
     assert discount == Money(expected_value, "USD")
@@ -550,17 +613,24 @@ def test_shipping_voucher_order_discount(
     ],
 )
 def test_shipping_voucher_checkout_discount_not_applicable_returns_zero(
-    total, total_quantity, min_spent_amount, min_checkout_items_quantity, voucher_type
+    total,
+    total_quantity,
+    min_spent_amount,
+    min_checkout_items_quantity,
+    voucher_type,
+    channel_USD,
 ):
-    voucher = Voucher(
+    voucher = Voucher.objects.create(
         code="unique",
         type=voucher_type,
         discount_value_type=DiscountValueType.FIXED,
-        discount_value=10,
-        min_spent=(
-            Money(min_spent_amount, "USD") if min_spent_amount is not None else None
-        ),
         min_checkout_items_quantity=min_checkout_items_quantity,
+    )
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(10, channel_USD.currency_code),
+        min_spent_amount=(min_spent_amount if min_spent_amount is not None else None),
     )
     price = Money(total, "USD")
     price = TaxedMoney(net=price, gross=price)
@@ -569,6 +639,7 @@ def test_shipping_voucher_checkout_discount_not_applicable_returns_zero(
         get_total_quantity=Mock(return_value=total_quantity),
         shipping_price=price,
         voucher=voucher,
+        channel=channel_USD,
     )
     with pytest.raises(NotApplicable):
         get_voucher_discount_for_order(order)
@@ -591,13 +662,18 @@ def test_get_discount_for_order_specific_products_voucher(
     discount_type,
     apply_once_per_order,
     discount_amount,
+    channel_USD,
 ):
     voucher = Voucher.objects.create(
         code="unique",
         type=VoucherType.SPECIFIC_PRODUCT,
         discount_value_type=discount_type,
-        discount_value=discount_value,
         apply_once_per_order=apply_once_per_order,
+    )
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(discount_value, channel_USD.currency_code),
     )
     voucher.products.add(order_with_lines.lines.first().variant.product)
     voucher.products.add(order_with_lines.lines.last().variant.product)
@@ -608,14 +684,18 @@ def test_get_discount_for_order_specific_products_voucher(
 
 
 def test_product_voucher_checkout_discount_raises_not_applicable(
-    order_with_lines, product_with_images
+    order_with_lines, product_with_images, channel_USD
 ):
     discounted_product = product_with_images
-    voucher = Voucher(
+    voucher = Voucher.objects.create(
         code="unique",
         type=VoucherType.SPECIFIC_PRODUCT,
         discount_value_type=DiscountValueType.FIXED,
-        discount_value=10,
+    )
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(10, channel_USD.currency_code),
     )
     voucher.save()
     voucher.products.add(discounted_product)
@@ -626,15 +706,21 @@ def test_product_voucher_checkout_discount_raises_not_applicable(
         get_voucher_discount_for_order(order_with_lines)
 
 
-def test_category_voucher_checkout_discount_raises_not_applicable(order_with_lines):
+def test_category_voucher_checkout_discount_raises_not_applicable(
+    order_with_lines, channel_USD
+):
     discounted_collection = Collection.objects.create(
         name="Discounted", slug="discount"
     )
-    voucher = Voucher(
+    voucher = Voucher.objects.create(
         code="unique",
         type=VoucherType.SPECIFIC_PRODUCT,
         discount_value_type=DiscountValueType.FIXED,
-        discount_value=10,
+    )
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(10, channel_USD.currency_code),
     )
     voucher.save()
     voucher.collections.add(discounted_collection)
@@ -666,8 +752,9 @@ def test_send_fulfillment_order_lines_mails(
     has_standard,
     has_digital,
 ):
-
+    redirect_url = "http://localhost.pl"
     order = fulfilled_order
+    order.redirect_url = redirect_url
     assert order.lines.count() == 2
 
     if not has_standard:
@@ -683,12 +770,12 @@ def test_send_fulfillment_order_lines_mails(
         line.save()
 
     send_fulfillment_confirmation_to_customer(
-        order=order, fulfillment=fulfillment, user=staff_user
+        order=order, fulfillment=fulfillment, user=staff_user,
     )
     events = OrderEvent.objects.all()
 
     mocked_send_fulfillment_confirmation.delay.assert_called_once_with(
-        order.pk, fulfillment.pk
+        order.pk, fulfillment.pk, redirect_url
     )
 
     # Ensure the standard fulfillment event was triggered

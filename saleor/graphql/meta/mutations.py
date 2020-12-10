@@ -1,11 +1,17 @@
+from typing import List
+
 import graphene
 from django.core.exceptions import ValidationError
-from graphql_jwt.exceptions import PermissionDenied
 
 from ...core import models
 from ...core.error_codes import MetadataErrorCode
+from ...core.exceptions import PermissionDenied
+from ...product import models as product_models
+from ...shipping import models as shipping_models
+from ..channel import ChannelContext
 from ..core.mutations import BaseMutation
 from ..core.types.common import MetadataError
+from .extra_methods import MODEL_EXTRA_METHODS
 from .permissions import PRIVATE_META_PERMISSION_MAP, PUBLIC_META_PERMISSION_MAP
 from .types import ObjectWithMetadata
 
@@ -51,6 +57,19 @@ class BaseMetadataMutation(BaseMutation):
             )
 
     @classmethod
+    def validate_metadata_keys(cls, metadata_list: List[dict]):
+        # raise an error when any of the key is empty
+        if not all([data["key"].strip() for data in metadata_list]):
+            raise ValidationError(
+                {
+                    "input": ValidationError(
+                        "Metadata key cannot be empty.",
+                        code=MetadataErrorCode.REQUIRED.value,
+                    )
+                }
+            )
+
+    @classmethod
     def get_model_for_type_name(cls, info, type_name):
         graphene_type = info.schema.get_type(type_name).graphene_type
         return graphene_type._meta.model
@@ -80,11 +99,37 @@ class BaseMetadataMutation(BaseMutation):
             return cls.handle_errors(e)
         if not cls.check_permissions(info.context, permissions):
             raise PermissionDenied()
-        return super().mutate(root, info, **data)
+        result = super().mutate(root, info, **data)
+        if not result.errors:
+            cls.perform_model_extra_actions(root, info, **data)
+        return result
+
+    @classmethod
+    def perform_model_extra_actions(cls, root, info, **data):
+        """Run extra metadata method based on mutating model."""
+        type_name, _ = graphene.Node.from_global_id(data["id"])
+        if MODEL_EXTRA_METHODS.get(type_name):
+            instance = cls.get_instance(info, **data)
+            MODEL_EXTRA_METHODS[type_name](instance, info, **data)
 
     @classmethod
     def success_response(cls, instance):
         """Return a success response."""
+        # Wrap the instance with ChannelContext for models that use it.
+        use_channel_context = any(
+            [
+                isinstance(instance, Model)
+                for Model in [
+                    product_models.Product,
+                    product_models.ProductVariant,
+                    product_models.Collection,
+                    shipping_models.ShippingMethod,
+                    shipping_models.ShippingZone,
+                ]
+            ]
+        )
+        if use_channel_context:
+            instance = ChannelContext(node=instance, channel_slug=None)
         return cls(**{"item": instance, "errors": []})
 
 
@@ -113,6 +158,7 @@ class UpdateMetadata(BaseMetadataMutation):
         instance = cls.get_instance(info, **data)
         if instance:
             metadata_list = data.pop("input")
+            cls.validate_metadata_keys(metadata_list)
             items = {data.key: data.value for data in metadata_list}
             instance.store_value_in_metadata(items=items)
             instance.save(update_fields=["metadata"])
@@ -165,6 +211,7 @@ class UpdatePrivateMetadata(BaseMetadataMutation):
         instance = cls.get_instance(info, **data)
         if instance:
             metadata_list = data.pop("input")
+            cls.validate_metadata_keys(metadata_list)
             items = {data.key: data.value for data in metadata_list}
             instance.store_value_in_private_metadata(items=items)
             instance.save(update_fields=["private_metadata"])

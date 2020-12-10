@@ -8,11 +8,11 @@ from django.core.management import CommandError, call_command
 from django.db.utils import DataError
 from django.templatetags.static import static
 from django.test import RequestFactory, override_settings
-from measurement.measures import Weight
 
 from ...account.models import Address, User
 from ...account.utils import create_superuser
-from ...discount.models import Sale, Voucher
+from ...channel.models import Channel
+from ...discount.models import Sale, SaleChannelListing, Voucher, VoucherChannelListing
 from ...giftcard.models import GiftCard
 from ...order.models import Order
 from ...product.models import ProductImage, ProductType
@@ -29,7 +29,6 @@ from ..utils import (
     get_currency_for_country,
     random_data,
 )
-from ..weight import WeightUnits, convert_weight
 
 type_schema = {
     "Vegetable": {
@@ -56,7 +55,9 @@ type_schema = {
     ],
 )
 def test_get_country_by_ip(ip_data, expected_country, monkeypatch):
-    monkeypatch.setattr("saleor.core.utils.georeader.get", Mock(return_value=ip_data))
+    monkeypatch.setattr(
+        "saleor.core.utils._get_geo_data_by_ip", Mock(return_value=ip_data)
+    )
     country = get_country_by_ip("127.0.0.1")
     assert country == expected_country
 
@@ -112,6 +113,23 @@ def test_create_shipping_zones(db):
     assert ShippingZone.objects.all().count() == 5
 
 
+def test_create_channels(db):
+    assert Channel.objects.all().count() == 0
+    for _ in random_data.create_channels():
+        pass
+    assert Channel.objects.all().count() == 2
+    assert Channel.objects.get(slug="channel-pln")
+
+
+@override_settings(DEFAULT_CHANNEL_SLUG="test-slug")
+def test_create_channels_with_default_channel_slug(db):
+    assert Channel.objects.all().count() == 0
+    for _ in random_data.create_channels():
+        pass
+    assert Channel.objects.all().count() == 2
+    assert Channel.objects.get(slug="test-slug")
+
+
 def test_create_fake_user(db):
     assert User.objects.all().count() == 0
     random_data.create_fake_user()
@@ -138,9 +156,15 @@ def test_create_fake_order(db, monkeypatch, image, media_root, warehouse):
     monkeypatch.setattr(
         "saleor.core.utils.random_data.get_image", Mock(return_value=image)
     )
+    for _ in random_data.create_channels():
+        pass
     for _ in random_data.create_shipping_zones():
         pass
     for _ in random_data.create_users(3):
+        pass
+    for msg in random_data.create_page_type():
+        pass
+    for msg in random_data.create_page():
         pass
     random_data.create_products_by_schema("/", False)
     how_many = 2
@@ -151,16 +175,25 @@ def test_create_fake_order(db, monkeypatch, image, media_root, warehouse):
 
 def test_create_product_sales(db):
     how_many = 5
+    channel_count = 0
+    for _ in random_data.create_channels():
+        channel_count += 1
     for _ in random_data.create_product_sales(how_many):
         pass
-    assert Sale.objects.all().count() == 5
+    assert Sale.objects.all().count() == how_many
+    assert SaleChannelListing.objects.all().count() == how_many * channel_count
 
 
 def test_create_vouchers(db):
+    voucher_count = 3
+    channel_count = 0
+    for _ in random_data.create_channels():
+        channel_count += 1
     assert Voucher.objects.all().count() == 0
     for _ in random_data.create_vouchers():
         pass
-    assert Voucher.objects.all().count() == 3
+    assert Voucher.objects.all().count() == voucher_count
+    assert VoucherChannelListing.objects.all().count() == voucher_count * channel_count
 
 
 def test_create_gift_card(db):
@@ -219,12 +252,6 @@ def test_storages_not_setting_s3_bucket_domain(storage, settings):
     assert storage.custom_domain is None
 
 
-def test_convert_weight():
-    weight = Weight(kg=1)
-    expected_result = Weight(g=1000)
-    assert convert_weight(weight, WeightUnits.GRAM) == expected_result
-
-
 def test_build_absolute_uri(site_settings, settings):
     # Case when we are using external service for storing static files,
     # eg. Amazon s3
@@ -264,6 +291,8 @@ def test_placeholder(settings):
         ("Shirt", "shirt"),
         ("40.5", "405-2"),
         ("FM1+", "fm1-2"),
+        ("زيوت", "زيوت"),
+        ("わたし-わ にっぽん です", "わたし-わ-にっぽん-です-2"),
     ],
 )
 def test_generate_unique_slug_with_slugable_field(
@@ -275,6 +304,7 @@ def test_generate_unique_slug_with_slugable_field(
         ("Paint test", "paint-2"),
         ("405", "405"),
         ("FM1", "fm1"),
+        ("わたし わ にっぽん です", "わたし-わ-にっぽん-です"),
     ]
     for name, slug in product_names_and_slugs:
         ProductType.objects.create(name=name, slug=slug)

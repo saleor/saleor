@@ -1,3 +1,4 @@
+import fnmatch
 import json
 import logging
 import traceback
@@ -22,9 +23,9 @@ from graphql.error import (
     format_error as format_graphql_error,
 )
 from graphql.execution import ExecutionResult
-from graphql_jwt.exceptions import JSONWebTokenError
+from jwt.exceptions import PyJWTError
 
-from ..core.exceptions import ReadOnlyException
+from ..core.exceptions import PermissionDenied, ReadOnlyException
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
 
 API_PATH = SimpleLazyObject(lambda: reverse("api"))
@@ -41,6 +42,10 @@ def tracing_wrapper(execute, sql, params, many, context):
         span.set_tag(opentracing.tags.COMPONENT, "db")
         span.set_tag(opentracing.tags.DATABASE_STATEMENT, sql)
         span.set_tag(opentracing.tags.DATABASE_TYPE, conn.display_name)
+        span.set_tag(opentracing.tags.PEER_HOSTNAME, conn.settings_dict.get("HOST"))
+        span.set_tag(opentracing.tags.PEER_PORT, conn.settings_dict.get("PORT"))
+        span.set_tag("service.name", "postgres")
+        span.set_tag("span.type", "sql")
         return execute(sql, params, many, context)
 
 
@@ -59,7 +64,7 @@ class GraphQLView(View):
     middleware = None
     root_value = None
 
-    HANDLED_EXCEPTIONS = (GraphQLError, JSONWebTokenError, ReadOnlyException)
+    HANDLED_EXCEPTIONS = (GraphQLError, PyJWTError, ReadOnlyException, PermissionDenied)
 
     def __init__(
         self, schema=None, executor=None, middleware=None, root_value=None, backend=None
@@ -91,11 +96,18 @@ class GraphQLView(View):
         else:
             return HttpResponseNotAllowed(["GET", "OPTIONS", "POST"])
         # Add access control headers
-        response["Access-Control-Allow-Origin"] = settings.ALLOWED_GRAPHQL_ORIGINS
-        response["Access-Control-Allow-Methods"] = "POST, OPTIONS"
-        response[
-            "Access-Control-Allow-Headers"
-        ] = "Origin, Content-Type, Accept, Authorization"
+        if "HTTP_ORIGIN" in request.META:
+            for origin in settings.ALLOWED_GRAPHQL_ORIGINS:
+                if fnmatch.fnmatchcase(request.META["HTTP_ORIGIN"], origin):
+                    response["Access-Control-Allow-Origin"] = request.META[
+                        "HTTP_ORIGIN"
+                    ]
+                    response["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+                    response[
+                        "Access-Control-Allow-Headers"
+                    ] = "Origin, Content-Type, Accept, Authorization"
+                    response["Access-Control-Allow-Credentials"] = "true"
+                    break
         return response
 
     def render_playground(self, request):
@@ -129,6 +141,7 @@ class GraphQLView(View):
                 opentracing.tags.HTTP_URL,
                 request.build_absolute_uri(request.get_full_path()),
             )
+            span.set_tag("span.type", "web")
 
             request_ips = request.META.get(settings.REAL_IP_ENVIRON, "")
             for ip in request_ips.split(","):
@@ -216,9 +229,7 @@ class GraphQLView(View):
                 return error
 
             if document is not None:
-                raw_query_string = document.document_string[
-                    : settings.OPENTRACING_MAX_QUERY_LENGTH_LOG
-                ]
+                raw_query_string = document.document_string
                 span.set_tag("graphql.query", raw_query_string)
 
             extra_options: Dict[str, Optional[Any]] = {}
@@ -285,7 +296,7 @@ class GraphQLView(View):
             exc = exc.original_error
 
         if isinstance(exc, cls.HANDLED_EXCEPTIONS):
-            handled_errors_logger.error("A query had an error", exc_info=exc)
+            handled_errors_logger.info("A query had an error", exc_info=exc)
         else:
             unhandled_errors_logger.error("A query failed unexpectedly", exc_info=exc)
 

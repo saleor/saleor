@@ -3,7 +3,6 @@ from django.contrib.auth import password_validation
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
-from graphql_jwt.exceptions import PermissionDenied
 
 from ....account import events as account_events, models
 from ....account.emails import (
@@ -11,6 +10,7 @@ from ....account.emails import (
     send_user_password_reset_email_with_url,
 )
 from ....account.error_codes import AccountErrorCode
+from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions
 from ....core.utils.url import validate_storefront_url
 from ....order.utils import match_orders_with_new_user
@@ -18,13 +18,12 @@ from ...account.i18n import I18nMixin
 from ...account.types import Address, AddressInput, User
 from ...core.mutations import (
     BaseMutation,
-    CreateToken,
     ModelDeleteMutation,
     ModelMutation,
     validation_error_to_error_type,
 )
 from ...core.types.common import AccountError
-from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
+from .jwt import CreateToken
 
 BILLING_ADDRESS_FIELD = "default_billing_address"
 SHIPPING_ADDRESS_FIELD = "default_shipping_address"
@@ -49,12 +48,16 @@ class SetPassword(CreateToken):
         token = graphene.String(
             description="A one-time token required to set the password.", required=True
         )
+        email = graphene.String(required=True, description="Email of a user.")
+        password = graphene.String(required=True, description="Password of a user.")
 
     class Meta:
         description = (
             "Sets the user's password from the token sent by email "
             "using the RequestPasswordReset mutation."
         )
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
     @classmethod
     def mutate(cls, root, info, **data):
@@ -132,6 +135,16 @@ class RequestPasswordReset(BaseMutation):
                     "email": ValidationError(
                         "User with this email doesn't exist",
                         code=AccountErrorCode.NOT_FOUND,
+                    )
+                }
+            )
+
+        if not user.is_active:
+            raise ValidationError(
+                {
+                    "email": ValidationError(
+                        "User with this email is inactive",
+                        code=AccountErrorCode.INACTIVE,
                     )
                 }
             )
@@ -427,23 +440,3 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
             send_set_password_email_with_url(
                 cleaned_input.get("redirect_url"), instance
             )
-
-
-class UserUpdateMeta(UpdateMetaBaseMutation):
-    class Meta:
-        description = "Updates metadata for user."
-        model = models.User
-        public = True
-        error_type_class = AccountError
-        error_type_field = "account_errors"
-        permissions = (AccountPermissions.MANAGE_USERS,)
-
-
-class UserClearMeta(ClearMetaBaseMutation):
-    class Meta:
-        description = "Clear metadata for user."
-        model = models.User
-        public = True
-        error_type_class = AccountError
-        error_type_field = "account_errors"
-        permissions = (AccountPermissions.MANAGE_USERS,)

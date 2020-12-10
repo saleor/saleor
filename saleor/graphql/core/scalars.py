@@ -5,7 +5,10 @@ from graphql.error import GraphQLError
 from graphql.language import ast
 from measurement.measures import Weight
 
-from ...core.weight import convert_weight, get_default_weight_unit
+from ...core.weight import (
+    convert_weight_to_default_weight_unit,
+    get_default_weight_unit,
+)
 
 
 class Decimal(graphene.Float):
@@ -33,6 +36,22 @@ class Decimal(graphene.Float):
             return None
 
 
+class PositiveDecimal(Decimal):
+    """Positive Decimal scalar implementation.
+
+    Should be used in places where value must be positive.
+    """
+
+    @staticmethod
+    def parse_value(value):
+        value = super(PositiveDecimal, PositiveDecimal).parse_value(value)
+        if value and value < 0:
+            raise GraphQLError(
+                f"Value cannot be lower than 0. Unsupported value: {value}"
+            )
+        return value
+
+
 class WeightScalar(graphene.Scalar):
     @staticmethod
     def parse_value(value):
@@ -48,9 +67,7 @@ class WeightScalar(graphene.Scalar):
     @staticmethod
     def serialize(weight):
         if isinstance(weight, Weight):
-            default_unit = get_default_weight_unit()
-            if weight.unit != default_unit:
-                weight = convert_weight(weight, default_unit)
+            weight = convert_weight_to_default_weight_unit(weight)
             return str(weight)
         return None
 

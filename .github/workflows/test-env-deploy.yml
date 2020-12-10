@@ -1,0 +1,66 @@
+name: TEST-ENV-DEPLOYMENT
+# Build and deploy test instance for every pull request
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, labeled]
+    branches: ["*"]
+
+jobs:
+  deploy:
+    name: Deploy test environment for labeled pull requests
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'test deployment') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: rlespinasse/github-slug-action@3.1.0
+
+      - name: Set domain
+        id: set-domain
+        # Set test instance domain based on branch name slug
+        run: |
+          echo "::set-output name=domain::${{ env.GITHUB_HEAD_REF_SLUG_URL }}.api.saleor.rocks"
+
+      - name: Start deployment
+        uses: bobheadxi/deployments@v0.4.2
+        id: deployment
+        with:
+          step: start
+          token: ${{ secrets.GITHUB_TOKEN }}
+          env: ${{ env.GITHUB_HEAD_REF_SLUG_URL }}
+          ref: ${{ github.head_ref }}
+
+      - name: Build and push
+        uses: kciter/aws-ecr-action@v1
+        with:
+          access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+          repo: saleor-testenvs
+          region: us-east-1
+          tags: ${{ env.GITHUB_HEAD_REF_SLUG_URL }},${{ github.sha }}
+
+      - name: Invoke deployment lambda
+        uses: gagoar/invoke-aws-lambda@v3.3.0
+        with:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          REGION: us-east-1
+          FunctionName: test-env-manager
+          Payload: >-
+            {
+              "action": "${{ github.event.action }}",
+              "label": "${{ env.GITHUB_HEAD_REF_SLUG_URL }}",
+              "image": "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/saleor-testenvs:${{ github.sha }}"
+            }
+          LogType: Tail
+
+      - name: Update deployment status
+        uses: bobheadxi/deployments@v0.4.2
+        if: always()
+        with:
+          step: finish
+          token: ${{ secrets.GITHUB_TOKEN }}
+          status: ${{ job.status }}
+          env_url: https://${{ steps.set-domain.outputs.domain }}/graphql/
+          deployment_id: ${{ steps.deployment.outputs.deployment_id }}

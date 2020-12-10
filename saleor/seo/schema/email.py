@@ -7,7 +7,7 @@ from ...core.utils import build_absolute_uri
 from ...core.utils.json_serializer import HTMLSafeJSON
 
 if TYPE_CHECKING:
-    from ...order.models import OrderLine, Order
+    from ...order.models import Order, OrderLine
 
 
 def get_organization():
@@ -59,8 +59,7 @@ def get_order_confirmation_markup(order: "Order") -> str:
         "orderDate": order.created,
     }
 
-    lines = order.lines.prefetch_related("variant")
-    for line in lines:
+    for line in order.lines.all():
         product_data = get_product_data(line=line, organization=organization)
         data["acceptedOffer"].append(product_data)
     return json.dumps(data, cls=HTMLSafeJSON)

@@ -1,20 +1,21 @@
+from django.core import validators
 from django.db import models
 
 from ..app.models import App
-from ..core.permissions import WebhookPermissions
+
+
+class WebhookURLField(models.URLField):
+    default_validators = [
+        validators.URLValidator(schemes=["http", "https", "awssqs", "gcpubsub"])
+    ]
 
 
 class Webhook(models.Model):
     name = models.CharField(max_length=255, null=True, blank=True)
     app = models.ForeignKey(App, related_name="webhooks", on_delete=models.CASCADE)
-    target_url = models.URLField(max_length=255)
+    target_url = WebhookURLField(max_length=255)
     is_active = models.BooleanField(default=True)
     secret_key = models.CharField(max_length=255, null=True, blank=True)
-
-    class Meta:
-        permissions = (
-            (WebhookPermissions.MANAGE_WEBHOOKS.codename, "Manage webhooks"),
-        )
 
 
 class WebhookEvent(models.Model):

@@ -1,16 +1,30 @@
+import json
 from decimal import Decimal
+from unittest.mock import patch
 
 import graphene
 import pytest
-from django_countries.fields import Country
 
 from ....checkout import calculations
+from ....payment import PaymentError
 from ....payment.error_codes import PaymentErrorCode
-from ....payment.interface import CreditCardInfo, CustomerSource, TokenConfig
+from ....payment.gateways.dummy_credit_card import (
+    TOKEN_EXPIRED,
+    TOKEN_VALIDATION_MAPPING,
+)
+from ....payment.interface import (
+    CustomerSource,
+    InitializedPaymentResponse,
+    PaymentMethodInfo,
+    TokenConfig,
+)
 from ....payment.models import ChargeStatus, Payment, TransactionKind
 from ....payment.utils import fetch_customer_id, store_customer_id
+from ....plugins.manager import PluginsManager
 from ...tests.utils import assert_no_permission, get_graphql_content
 from ..enums import OrderAction, PaymentChargeStatusEnum
+
+DUMMY_GATEWAY = "mirumee.payments.dummy"
 
 VOID_QUERY = """
     mutation PaymentVoid($paymentId: ID!) {
@@ -71,7 +85,7 @@ def test_payment_void_gateway_error(
     assert not txn.is_success
 
 
-CREATE_QUERY = """
+CREATE_PAYMENT_MUTATION = """
     mutation CheckoutPaymentCreate($checkoutId: ID!, $input: PaymentInput!) {
         checkoutPaymentCreate(checkoutId: $checkoutId, input: $input) {
             payment {
@@ -102,12 +116,12 @@ def test_checkout_add_payment_without_shipping_method_and_not_shipping_required(
     variables = {
         "checkoutId": checkout_id,
         "input": {
-            "gateway": "Dummy",
+            "gateway": DUMMY_GATEWAY,
             "token": "sample-token",
             "amount": total.gross.amount,
         },
     }
-    response = user_api_client.post_graphql(CREATE_QUERY, variables)
+    response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutPaymentCreate"]
     assert not data["paymentErrors"]
@@ -138,12 +152,12 @@ def test_checkout_add_payment_without_shipping_method_with_shipping_required(
     variables = {
         "checkoutId": checkout_id,
         "input": {
-            "gateway": "Dummy",
+            "gateway": DUMMY_GATEWAY,
             "token": "sample-token",
             "amount": total.gross.amount,
         },
     }
-    response = user_api_client.post_graphql(CREATE_QUERY, variables)
+    response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutPaymentCreate"]
 
@@ -165,12 +179,12 @@ def test_checkout_add_payment_with_shipping_method_and_shipping_required(
     variables = {
         "checkoutId": checkout_id,
         "input": {
-            "gateway": "Dummy",
+            "gateway": DUMMY_GATEWAY,
             "token": "sample-token",
             "amount": total.gross.amount,
         },
     }
-    response = user_api_client.post_graphql(CREATE_QUERY, variables)
+    response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutPaymentCreate"]
 
@@ -198,15 +212,17 @@ def test_checkout_add_payment(
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+    return_url = "https://www.example.com"
     variables = {
         "checkoutId": checkout_id,
         "input": {
-            "gateway": "Dummy",
+            "gateway": DUMMY_GATEWAY,
             "token": "sample-token",
             "amount": total.gross.amount,
+            "returnUrl": return_url,
         },
     }
-    response = user_api_client.post_graphql(CREATE_QUERY, variables)
+    response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutPaymentCreate"]
 
@@ -223,6 +239,7 @@ def test_checkout_add_payment(
     assert payment.billing_address_1 == checkout.billing_address.street_address_1
     assert payment.billing_first_name == checkout.billing_address.first_name
     assert payment.billing_last_name == checkout.billing_address.last_name
+    assert payment.return_url == return_url
 
 
 def test_checkout_add_payment_default_amount(
@@ -237,9 +254,9 @@ def test_checkout_add_payment_default_amount(
 
     variables = {
         "checkoutId": checkout_id,
-        "input": {"gateway": "DUMMY", "token": "sample-token"},
+        "input": {"gateway": DUMMY_GATEWAY, "token": "sample-token"},
     }
-    response = user_api_client.post_graphql(CREATE_QUERY, variables)
+    response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutPaymentCreate"]
     assert not data["paymentErrors"]
@@ -265,7 +282,7 @@ def test_checkout_add_payment_bad_amount(
     variables = {
         "checkoutId": checkout_id,
         "input": {
-            "gateway": "DUMMY",
+            "gateway": DUMMY_GATEWAY,
             "token": "sample-token",
             "amount": str(
                 calculations.checkout_total(
@@ -275,13 +292,35 @@ def test_checkout_add_payment_bad_amount(
             ),
         },
     }
-    response = user_api_client.post_graphql(CREATE_QUERY, variables)
+    response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutPaymentCreate"]
     assert (
         data["paymentErrors"][0]["code"]
         == PaymentErrorCode.PARTIAL_PAYMENT_NOT_ALLOWED.name
     )
+
+
+def test_checkout_add_payment_not_supported_gateways(
+    user_api_client, checkout_without_shipping_required, address
+):
+    checkout = checkout_without_shipping_required
+    checkout.billing_address = address
+    checkout.currency = "EUR"
+    checkout.save(update_fields=["billing_address", "currency"])
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    variables = {
+        "checkoutId": checkout_id,
+        "input": {"gateway": DUMMY_GATEWAY, "token": "sample-token", "amount": "10.0"},
+    }
+    response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutPaymentCreate"]
+    assert (
+        data["paymentErrors"][0]["code"] == PaymentErrorCode.NOT_SUPPORTED_GATEWAY.name
+    )
+    assert data["paymentErrors"][0]["field"] == "gateway"
 
 
 def test_use_checkout_billing_address_as_payment_billing(
@@ -293,12 +332,12 @@ def test_use_checkout_billing_address_as_payment_billing(
     variables = {
         "checkoutId": checkout_id,
         "input": {
-            "gateway": "Dummy",
+            "gateway": DUMMY_GATEWAY,
             "token": "sample-token",
             "amount": total.gross.amount,
         },
     }
-    response = user_api_client.post_graphql(CREATE_QUERY, variables)
+    response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutPaymentCreate"]
 
@@ -314,7 +353,7 @@ def test_use_checkout_billing_address_as_payment_billing(
     address.save()
     checkout.billing_address = address
     checkout.save()
-    response = user_api_client.post_graphql(CREATE_QUERY, variables)
+    response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
     get_graphql_content(response)
 
     checkout.refresh_from_db()
@@ -323,8 +362,51 @@ def test_use_checkout_billing_address_as_payment_billing(
     assert payment.billing_address_1 == address.street_address_1
 
 
+def test_create_payment_for_checkout_with_active_payments(
+    checkout_with_payments, user_api_client, address
+):
+    # given
+    checkout = checkout_with_payments
+    address.street_address_1 = "spanish-inqusition"
+    address.save()
+    checkout.billing_address = address
+    checkout.save()
+
+    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {
+        "checkoutId": checkout_id,
+        "input": {
+            "gateway": DUMMY_GATEWAY,
+            "token": "sample-token",
+            "amount": total.gross.amount,
+        },
+    }
+
+    payments_count = checkout.payments.count()
+    previous_active_payments = checkout.payments.filter(is_active=True)
+    previous_active_payments_ids = list(
+        previous_active_payments.values_list("pk", flat=True)
+    )
+    assert len(previous_active_payments_ids) > 0
+
+    # when
+    response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["checkoutPaymentCreate"]
+
+    assert not data["paymentErrors"]
+    checkout.refresh_from_db()
+    assert checkout.payments.all().count() == payments_count + 1
+    active_payments = checkout.payments.all().filter(is_active=True)
+    assert active_payments.count() == 1
+    assert active_payments.first().pk not in previous_active_payments_ids
+
+
 CAPTURE_QUERY = """
-    mutation PaymentCapture($paymentId: ID!, $amount: Decimal!) {
+    mutation PaymentCapture($paymentId: ID!, $amount: PositiveDecimal!) {
         paymentCapture(paymentId: $paymentId, amount: $amount) {
             payment {
                 id,
@@ -394,21 +476,27 @@ def test_payment_capture_with_payment_non_authorized_yet(
     content = get_graphql_content(response)
     data = content["data"]["paymentCapture"]
     assert data["errors"] == [
-        {"field": None, "message": "Cannot find successful auth transaction"}
+        {"field": None, "message": "Cannot find successful auth transaction."}
     ]
 
 
 def test_payment_capture_gateway_error(
     staff_api_client, permission_manage_orders, payment_txn_preauth, monkeypatch
 ):
+    # given
     payment = payment_txn_preauth
+
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     variables = {"paymentId": payment_id, "amount": str(payment_txn_preauth.total)}
     monkeypatch.setattr("saleor.payment.gateways.dummy.dummy_success", lambda: False)
+
+    # when
     response = staff_api_client.post_graphql(
         CAPTURE_QUERY, variables, permissions=[permission_manage_orders]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["paymentCapture"]
     assert data["errors"] == [{"field": None, "message": "Unable to process capture"}]
@@ -421,8 +509,53 @@ def test_payment_capture_gateway_error(
     assert not txn.is_success
 
 
+@patch(
+    "saleor.payment.gateways.dummy_credit_card.plugin."
+    "DummyCreditCardGatewayPlugin.DEFAULT_ACTIVE",
+    True,
+)
+def test_payment_capture_gateway_dummy_credit_card_error(
+    staff_api_client, permission_manage_orders, payment_txn_preauth, monkeypatch
+):
+    # given
+    token = TOKEN_EXPIRED
+    error = TOKEN_VALIDATION_MAPPING[token]
+
+    payment = payment_txn_preauth
+    payment.gateway = "mirumee.payments.dummy_credit_card"
+    payment.save()
+
+    transaction = payment.transactions.last()
+    transaction.token = token
+    transaction.save()
+
+    assert payment.charge_status == ChargeStatus.NOT_CHARGED
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    variables = {"paymentId": payment_id, "amount": str(payment_txn_preauth.total)}
+    monkeypatch.setattr(
+        "saleor.payment.gateways.dummy_credit_card.dummy_success", lambda: False
+    )
+
+    # when
+    response = staff_api_client.post_graphql(
+        CAPTURE_QUERY, variables, permissions=[permission_manage_orders]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["paymentCapture"]
+    assert data["errors"] == [{"field": None, "message": error}]
+
+    payment_txn_preauth.refresh_from_db()
+    assert payment.charge_status == ChargeStatus.NOT_CHARGED
+    assert payment.transactions.count() == 2
+    txn = payment.transactions.last()
+    assert txn.kind == TransactionKind.CAPTURE
+    assert not txn.is_success
+
+
 REFUND_QUERY = """
-    mutation PaymentRefund($paymentId: ID!, $amount: Decimal!) {
+    mutation PaymentRefund($paymentId: ID!, $amount: PositiveDecimal!) {
         paymentRefund(paymentId: $paymentId, amount: $amount) {
             payment {
                 id,
@@ -504,40 +637,6 @@ def test_payment_refund_error(
     assert not txn.is_success
 
 
-CONFIRM_QUERY = """
-    mutation PaymentConfirm($paymentId: ID!) {
-        paymentSecureConfirm(paymentId: $paymentId) {
-            payment {
-                id,
-                chargeStatus
-            }
-            errors {
-                field
-                message
-            }
-        }
-    }
-"""
-
-
-def test_payment_confirmation_success(
-    user_api_client, payment_txn_to_confirm, graphql_address_data
-):
-    payment = payment_txn_to_confirm
-    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
-    variables = {"paymentId": payment_id}
-    response = user_api_client.post_graphql(CONFIRM_QUERY, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["paymentSecureConfirm"]
-    assert not data["errors"]
-
-    payment.refresh_from_db()
-    assert payment.charge_status == ChargeStatus.FULLY_CHARGED
-    assert payment.transactions.count() == 2
-    txn = payment.transactions.last()
-    assert txn.kind == TransactionKind.CAPTURE
-
-
 def test_payments_query(
     payment_txn_captured, permission_manage_orders, staff_api_client
 ):
@@ -557,33 +656,11 @@ def test_payments_query(
                     }
                     actions
                     chargeStatus
-                    billingAddress {
-                        country {
-                            code
-                            country
-                        }
-                        firstName
-                        lastName
-                        cityArea
-                        countryArea
-                        city
-                        companyName
-                        streetAddress1
-                        streetAddress2
-                        postalCode
-                    }
                     transactions {
                         amount {
                             currency
                             amount
                         }
-                    }
-                    creditCard {
-                        expMonth
-                        expYear
-                        brand
-                        firstDigits
-                        lastDigits
                     }
                 }
             }
@@ -604,33 +681,11 @@ def test_payments_query(
     assert Decimal(total) == pay.total
     assert data["total"]["currency"] == pay.currency
     assert data["chargeStatus"] == PaymentChargeStatusEnum.FULLY_CHARGED.name
-    assert data["billingAddress"] == {
-        "firstName": pay.billing_first_name,
-        "lastName": pay.billing_last_name,
-        "city": pay.billing_city,
-        "cityArea": pay.billing_city_area,
-        "countryArea": pay.billing_country_area,
-        "companyName": pay.billing_company_name,
-        "streetAddress1": pay.billing_address_1,
-        "streetAddress2": pay.billing_address_2,
-        "postalCode": pay.billing_postal_code,
-        "country": {
-            "code": pay.billing_country_code,
-            "country": Country(pay.billing_country_code).name,
-        },
-    }
     assert data["actions"] == [OrderAction.REFUND.name]
     txn = pay.transactions.get()
     assert data["transactions"] == [
         {"amount": {"currency": pay.currency, "amount": float(str(txn.amount))}}
     ]
-    assert data["creditCard"] == {
-        "expMonth": pay.cc_exp_month,
-        "expYear": pay.cc_exp_year,
-        "brand": pay.cc_brand,
-        "firstDigits": pay.cc_first_digits,
-        "lastDigits": pay.cc_last_digits,
-    }
 
 
 def test_query_payment(payment_dummy, user_api_client, permission_manage_orders):
@@ -709,7 +764,7 @@ def set_braintree_customer_id(customer_user, braintree_customer_id):
 
 @pytest.fixture
 def set_dummy_customer_id(customer_user, dummy_customer_id):
-    gateway_name = "mirumee.payments.dummy"
+    gateway_name = DUMMY_GATEWAY
     store_customer_id(customer_user, gateway_name, dummy_customer_id)
     return customer_user
 
@@ -717,7 +772,7 @@ def set_dummy_customer_id(customer_user, dummy_customer_id):
 def test_list_payment_sources(
     mocker, dummy_customer_id, set_dummy_customer_id, user_api_client
 ):
-    gateway = "mirumee.payments.dummy"
+    gateway = DUMMY_GATEWAY
     query = """
     {
         me {
@@ -730,9 +785,7 @@ def test_list_payment_sources(
         }
     }
     """
-    card = CreditCardInfo(
-        last_4="5678", exp_year=2020, exp_month=12, name_on_card="JohnDoe"
-    )
+    card = PaymentMethodInfo(last_4="5678", exp_year=2020, exp_month=12, name="JohnDoe")
     source = CustomerSource(id="test1", gateway=gateway, credit_card_info=card)
     mock_get_source_list = mocker.patch(
         "saleor.graphql.account.resolvers.gateway.list_payment_sources",
@@ -751,9 +804,7 @@ def test_stored_payment_sources_restriction(
     mocker, staff_api_client, customer_user, permission_manage_users
 ):
     # Only owner of storedPaymentSources can fetch it.
-    card = CreditCardInfo(
-        last_4="5678", exp_year=2020, exp_month=12, name_on_card="JohnDoe"
-    )
+    card = PaymentMethodInfo(last_4="5678", exp_year=2020, exp_month=12, name="JohnDoe")
     source = CustomerSource(id="test1", gateway="dummy", credit_card_info=card)
     mocker.patch(
         "saleor.graphql.account.resolvers.gateway.list_payment_sources",
@@ -778,3 +829,87 @@ def test_stored_payment_sources_restriction(
         query, variables, permissions=[permission_manage_users]
     )
     assert_no_permission(response)
+
+
+PAYMENT_INITIALIZE_MUTATION = """
+mutation PaymentInitialize($gateway: String!, $paymentData: JSONString){
+      paymentInitialize(gateway: $gateway, paymentData: $paymentData)
+      {
+        initializedPayment{
+          gateway
+          name
+          data
+        }
+        paymentErrors{
+          field
+          message
+        }
+      }
+}
+"""
+
+
+@patch.object(PluginsManager, "initialize_payment")
+def test_payment_initialize(mocked_initialize_payment, api_client):
+    exected_initialize_payment_response = InitializedPaymentResponse(
+        gateway="gateway.id",
+        name="PaymentPluginName",
+        data={
+            "epochTimestamp": 1604652056653,
+            "expiresAt": 1604655656653,
+            "merchantSessionIdentifier": "SSH5EFCB46BA25C4B14B3F37795A7F5B974_BB8E",
+        },
+    )
+    mocked_initialize_payment.return_value = exected_initialize_payment_response
+
+    query = PAYMENT_INITIALIZE_MUTATION
+    variables = {
+        "gateway": exected_initialize_payment_response.gateway,
+        "paymentData": json.dumps(
+            {"paymentMethod": "applepay", "validationUrl": "https://127.0.0.1/valid"}
+        ),
+    }
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    init_payment_data = content["data"]["paymentInitialize"]["initializedPayment"]
+    assert init_payment_data["gateway"] == exected_initialize_payment_response.gateway
+    assert init_payment_data["name"] == exected_initialize_payment_response.name
+    assert (
+        json.loads(init_payment_data["data"])
+        == exected_initialize_payment_response.data
+    )
+
+
+def test_payment_initialize_gateway_doesnt_exist(api_client):
+    query = PAYMENT_INITIALIZE_MUTATION
+    variables = {
+        "gateway": "wrong.gateway",
+        "paymentData": json.dumps(
+            {"paymentMethod": "applepay", "validationUrl": "https://127.0.0.1/valid"}
+        ),
+    }
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["paymentInitialize"]["initializedPayment"] is None
+
+
+@patch.object(PluginsManager, "initialize_payment")
+def test_payment_initialize_plugin_raises_error(mocked_initialize_payment, api_client):
+    error_msg = "Missing paymentMethod field."
+    mocked_initialize_payment.side_effect = PaymentError(error_msg)
+
+    query = PAYMENT_INITIALIZE_MUTATION
+    variables = {
+        "gateway": "gateway.id",
+        "paymentData": json.dumps({"validationUrl": "https://127.0.0.1/valid"}),
+    }
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    initialized_payment_data = content["data"]["paymentInitialize"][
+        "initializedPayment"
+    ]
+    errors = content["data"]["paymentInitialize"]["paymentErrors"]
+    assert initialized_payment_data is None
+    assert len(errors) == 1
+    assert errors[0]["field"] == "paymentData"
+    assert errors[0]["message"] == error_msg

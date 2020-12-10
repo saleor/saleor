@@ -4,24 +4,29 @@
 # Mirumee Software <hello@mirumee.com>, 2017.
 #
 # Translators:
-# Dmitriy D, 2018
-# Kirill Makhonin <kroks.rus@gmail.com>, 2018
-# Alex Fadeev, 2019
 # Никита Евстропов <evstropov.n@gmail.com>, 2020
-# Maxim <astra1@users.noreply.github.com>, 2020
 # Evgeny Semenov, 2020
-# Weronika Terpilowska <weronika@mirumee.com>, 2020
-# Дмитрий К <kriv@sngy.ru>, 2020
 # O Z <wiserabbit@ukr.net>, 2020
+# Nikolay T. <damyen441@gmail.com>, 2020
+# Alexey Vaganov <poofeg@gmail.com>, 2020
+# Kirill Makhonin <kroks.rus@gmail.com>, 2020
+# Maxim <astra1@users.noreply.github.com>, 2020
+# Weronika Terpilowska <weronika@mirumee.com>, 2020
+# Dmitriy D, 2020
+# Dima Veselov <d.a.veselov@yandex.ru>, 2020
+# rewr rew <shamilb90@gmail.com>, 2020
+# Vladimir Romashchenko <eaglesemanation@gmail.com>, 2020
+# Blckd Blckd <dimashkarupa19@gmail.com>, 2020
+# Korolev Pavel <korolev.vrn@gmail.com>, 2020
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-05-14 03:45-0500\n"
+"POT-Creation-Date: 2020-09-11 12:15+0000\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: O Z <wiserabbit@ukr.net>, 2020\n"
+"Last-Translator: Korolev Pavel <korolev.vrn@gmail.com>, 2020\n"
 "Language-Team: Russian (https://www.transifex.com/mirumee/teams/34782/ru/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -45,38 +50,123 @@ msgstr ""
 "%(street_address_1)s\n"
 "%(street_address_2)s"
 
+#: templates/invoices/invoice.html:218
+msgctxt "Invoice PDF header"
+msgid "INVOICE INFORMATION"
+msgstr "ИНФОРМАЦИЯ О КВИТАНЦИИ"
+
+#: templates/invoices/invoice.html:221
+msgctxt "Invoice PDF header: Invoice number"
+msgid "Invoice number:"
+msgstr "Номер квитанции:"
+
+#: templates/invoices/invoice.html:227
+msgctxt "Invoice PDF header: order number"
+msgid "Order:"
+msgstr "Заказ:"
+
+#: templates/invoices/invoice.html:233
+msgctxt "Invoice PDF header"
+msgid "Date:"
+msgstr "Дата:"
+
+#: templates/invoices/invoice.html:239
+msgctxt "Invoice PDF amount (price)"
+msgid "Amount:"
+msgstr "Количество:"
+
+#: templates/invoices/invoice.html:248
+msgctxt "Invoice PDF"
+msgid "BILLING ADDRESS"
+msgstr "ПЛАТЕЖНЫЙ АДРЕС"
+
+#: templates/invoices/invoice.html:277
+msgctxt "Invoice PDF"
+msgid "SHIPMENT ADDRESS"
+msgstr "АДРЕС ДОСТАВКИ"
+
+#: templates/invoices/invoice.html:308
+msgctxt "Invoice PDF"
+msgid "PAYMENT METHOD"
+msgstr "СПОСОБ ОПЛАТЫ"
+
+#: templates/invoices/invoice.html:316
+msgctxt "Invoice PDF"
+msgid "SHIPMENT METHOD"
+msgstr "СПОСОБ ДОСТАВКИ"
+
+#: templates/invoices/invoice.html:326
+msgctxt "Invoice PDF table header"
+msgid "ITEMS ORDERED"
+msgstr "ЗАКАЗАННЫЕ ТОВАРЫ"
+
+#: templates/invoices/invoice_products_table.html:7
+msgctxt "Invoice PDF table"
+msgid "Products"
+msgstr "Товары"
+
+#: templates/invoices/invoice_products_table.html:10
+msgctxt "Invoice PDF table"
+msgid "Price"
+msgstr "Цена"
+
+#: templates/invoices/invoice_products_table.html:13
+msgctxt "Invoice PDF table"
+msgid "Quantity"
+msgstr "Количество"
+
+#: templates/invoices/invoice_products_table.html:16
+msgctxt "Invoice PDF table"
+msgid "Total Price"
+msgstr "Итоговая цена"
+
+#: templates/invoices/invoice_summary_table.html:8
+msgctxt "Invoice PDF summary"
+msgid "Subtotal"
+msgstr "Промежуточный итог"
+
+#: templates/invoices/invoice_summary_table.html:21
+msgctxt "Invoice PDF summary"
+msgid "Delivery Cost"
+msgstr "Стоимость Доставки"
+
+#: templates/invoices/invoice_summary_table.html:34
+msgctxt "Invoice PDF summary"
+msgid "Tax"
+msgstr "Налог"
+
+#: templates/invoices/invoice_summary_table.html:47
+msgctxt "Invoice PDF summary"
+msgid "Grand Total"
+msgstr "Общая сумма"
+
 #: templates/templated_email/account/account_delete.email:4
 msgctxt "Account delete reset e-mail subject"
 msgid "Delete your account"
-msgstr "Удалить вашу учётную запись"
+msgstr "Удалить ваш аккаунт"
 
 #: templates/templated_email/account/account_delete.email:9
 #, python-format
 msgctxt "Account delete reset e-mail text"
 msgid ""
 "\n"
-"You're receiving this e-mail because you or someone else has requested a deletion of your user account at %(domain)s.\n"
+"You're receiving this e-mail because you or someone else has requested a deletion of your user account at %(site_name)s.\n"
 "Click the link below to delete your account.\n"
 "\n"
 "Please note that this action is permanent and cannot be reversed.\n"
 msgstr ""
-"\n"
-"Вы получили это письмо, потому что вы или кто-то еще запросил удаление вашей учетной записи пользователя на %(domain)s.\n"
-"Нажмите на ссылку ниже, чтобы удалить свой аккаунт.\n"
-"\n"
-"Обратите внимание, что это действие является окончательным и не может быть отменено.\n"
 
 #: templates/templated_email/account/confirm.email:4
 msgctxt "Account confirmation e-mail subject"
 msgid "Account confirmation e-mail"
-msgstr ""
+msgstr "Почта для подтверждения аккаунта"
 
 #: templates/templated_email/account/confirm.email:9
 #, python-format
 msgctxt "Account confirmation e-mail text"
 msgid ""
 "\n"
-"In order to log into %(domain)s, you have to confirm your email address first.\n"
+"In order to log into %(site_name)s, you have to confirm your email address first.\n"
 "Please click the link below to do so and log into your account.\n"
 msgstr ""
 
@@ -84,7 +174,7 @@ msgstr ""
 #: templates/templated_email/account/request_email_change.email:4
 msgctxt "Email change e-mail subject"
 msgid "Email change e-mail"
-msgstr ""
+msgstr "Смена адреса электронной почты"
 
 #: templates/templated_email/account/email_changed_notification.email:9
 #, python-format
@@ -92,7 +182,7 @@ msgctxt "Email change e-mail text"
 msgid ""
 "\n"
 "\n"
-"You're receiving this e-mail because you or someone else has changed email for your user account at %(domain)s.\n"
+"You're receiving this e-mail because you or someone else has changed email for your user account at %(site_name)s.\n"
 "If you didn't request this change, please contact the administrator.\n"
 msgstr ""
 
@@ -106,12 +196,9 @@ msgstr "Письмо для сброса пароля"
 msgctxt "Password reset e-mail text"
 msgid ""
 "\n"
-"You're receiving this e-mail because you or someone else has requested a password for your user account at %(domain)s.\n"
+"You're receiving this e-mail because you or someone else has requested a password for your user account at %(site_name)s.\n"
 "It can be safely ignored if you did not request a password reset. Click the link below to reset your password.\n"
 msgstr ""
-"\n"
-"Вы получили это письмо потому, что вы или кто-то еще запросил пароль для вашей учетной записи пользователя на %(domain)s.\n"
-"Если вы не запрашивали сброс пароля, это письмо можно смело игнорировать. Либо нажмите на ссылку ниже, для сброса пароля.\n"
 
 #: templates/templated_email/account/request_email_change.email:9
 #, python-format
@@ -119,9 +206,30 @@ msgctxt "Email change e-mail text"
 msgid ""
 "\n"
 "\n"
-"You're receiving this e-mail because you or someone else has requested an email change for your user account at %(domain)s.\n"
+"You're receiving this e-mail because you or someone else has requested an email change for your user account at %(site_name)s.\n"
 "It can be safely ignored if you did not request an email change. Click the link below to confirm new email address.\n"
 msgstr ""
+
+#: templates/templated_email/csv/export_failed.email:4
+#: templates/templated_email/csv/export_products_file.email:4
+msgctxt "Export products e-mail subject"
+msgid "Export products data"
+msgstr "Экспорт данных о товарах"
+
+#: templates/templated_email/csv/export_failed.email:10
+msgctxt "Export products e-mail text"
+msgid ""
+"Sorry, we cannot finish product export, some unexpected errors occurred. "
+"Please try again."
+msgstr ""
+"К сожалению, мы не можем завершить экспорт товаров, произошла непредвиденная"
+" ошибка. Пожалуйста, попробуйте еще раз."
+
+#: templates/templated_email/csv/export_products_file.email:10
+#, python-format
+msgctxt "Export products e-mail text"
+msgid "Your file with products data is ready to download: %(csv_link)s"
+msgstr "Ваш файл с данными о товарах готов к загрузке: %(csv_link)s"
 
 #: templates/templated_email/dashboard/customer/set_password.email:2
 #, python-format
@@ -134,12 +242,9 @@ msgstr "Привет от %(site_name)s!"
 msgctxt "Set password for customer e-mail text"
 msgid ""
 "\n"
-"You're receiving this e-mail because you have to set a password for your customer account at %(domain)s.\n"
+"You're receiving this e-mail because you have to set a password for your customer account at %(site_name)s.\n"
 "Click the link below to reset your password.\n"
 msgstr ""
-"\n"
-"Вы получили это электронное письмо, потому что вы должны задать пароль для своей учетной записи клиента на %(domain)s.\n"
-"Нажмите на ссылку ниже, чтобы сбросить пароль.\n"
 
 #: templates/templated_email/dashboard/staff/set_password.email:2
 #, python-format
@@ -152,12 +257,9 @@ msgstr "Привет от %(site_name)s!"
 msgctxt "Set password for staff member e-mail text"
 msgid ""
 "\n"
-"You're receiving this e-mail because you have to set a password for your staff member account at %(domain)s.\n"
+"You're receiving this e-mail because you have to set a password for your staff member account at %(site_name)s.\n"
 "Click the link below to reset your password.\n"
 msgstr ""
-"\n"
-"Вы получили это письмо, потому что вы должны задать пароль для своей учетной записи сотрудника на %(domain)s.\n"
-"Нажмите на ссылку ниже, чтобы сбросить пароль.\n"
 
 #: templates/templated_email/order/confirm_fulfillment.email:4
 #, python-format
@@ -175,7 +277,8 @@ msgstr ""
 "Спасибо за ваш заказ. Ниже приведен список выбранных товаров.\n"
 
 #: templates/templated_email/order/confirm_fulfillment.email:15
-#: templates/templated_email/source/confirm_fulfillment.mjml:20
+#: templates/templated_email/source/confirm_fulfillment.mjml:25
+#: templates/templated_email/source/update_fulfillment.mjml:25
 #, python-format
 msgctxt "Fulfillment confirmation email text"
 msgid "You can track your shipment with %(tracking_number)s code."
@@ -183,19 +286,22 @@ msgstr "Вы можете отслеживать доставку с помощ�
 
 #: templates/templated_email/order/confirm_order.email:6
 #: templates/templated_email/order/staff_confirm_order.email:6
+#, python-format
 msgctxt "Order confirmation e-mail subject"
-msgid "Order details"
-msgstr "Данные заказа"
+msgid "Order %(order)s details"
+msgstr "Подробности заказа %(order)s"
 
-#: templates/templated_email/order/confirm_order.email:11
+#: templates/templated_email/order/confirm_order.email:13
 msgctxt "Order confirmation e-mail text"
 msgid ""
 "\n"
 "Thank you for your order. Below is the list of ordered products.\n"
 msgstr ""
+"\n"
+"Спасибо за заказ. Ниже приведен список заказанных товаров.\n"
 
-#: templates/templated_email/order/confirm_order.email:15
-#: templates/templated_email/order/staff_confirm_order.email:15
+#: templates/templated_email/order/confirm_order.email:17
+#: templates/templated_email/order/staff_confirm_order.email:17
 #, python-format
 msgctxt "Order confirmation e-mail payment details"
 msgid ""
@@ -203,100 +309,152 @@ msgid ""
 "To see your payment details please visit:\n"
 "%(order_details_url)s\n"
 msgstr ""
-
-#: templates/templated_email/order/confirm_order.email:23
-#: templates/templated_email/order/staff_confirm_order.email:23
-msgctxt "Order confirmation e-mail table header"
-msgid "Order summary"
-msgstr "Краткое описание заказа"
-
-#: templates/templated_email/order/confirm_order.email:24
-#: templates/templated_email/order/staff_confirm_order.email:24
-msgctxt "Order confirmation e-mail table header"
-msgid "Subtotal"
-msgstr "Промежуточный итог"
+"\n"
+"Здесь вы можете увидеть подробности вашего платежа:\n"
+"%(order_details_url)s\n"
 
 #: templates/templated_email/order/confirm_order.email:25
 #: templates/templated_email/order/staff_confirm_order.email:25
 msgctxt "Order confirmation e-mail table header"
-msgid "Shipping"
-msgstr "Доставка"
+msgid "Order summary"
+msgstr "Краткое описание заказа"
 
 #: templates/templated_email/order/confirm_order.email:26
 #: templates/templated_email/order/staff_confirm_order.email:26
 msgctxt "Order confirmation e-mail table header"
-msgid "Taxes (included)"
-msgstr "Налоги (включены)"
-
-#: templates/templated_email/order/confirm_order.email:26
-#: templates/templated_email/order/staff_confirm_order.email:26
-msgctxt "Order confirmation e-mail table header"
-msgid "Taxes"
-msgstr "Налоги"
+msgid "Subtotal"
+msgstr "Промежуточный итог"
 
 #: templates/templated_email/order/confirm_order.email:27
 #: templates/templated_email/order/staff_confirm_order.email:27
 msgctxt "Order confirmation e-mail table header"
-msgid "Discount:"
-msgstr "Скидка:"
+msgid "Shipping"
+msgstr "Доставка"
 
 #: templates/templated_email/order/confirm_order.email:28
 #: templates/templated_email/order/staff_confirm_order.email:28
 msgctxt "Order confirmation e-mail table header"
-msgid "Total"
-msgstr "Сумма"
+msgid "Taxes (included)"
+msgstr "Налоги (включены)"
+
+#: templates/templated_email/order/confirm_order.email:28
+#: templates/templated_email/order/staff_confirm_order.email:28
+msgctxt "Order confirmation e-mail table header"
+msgid "Taxes"
+msgstr "Налоги"
+
+#: templates/templated_email/order/confirm_order.email:29
+#: templates/templated_email/order/staff_confirm_order.email:29
+msgctxt "Order confirmation e-mail table header"
+msgid "Discount:"
+msgstr "Скидка:"
 
 #: templates/templated_email/order/confirm_order.email:30
 #: templates/templated_email/order/staff_confirm_order.email:30
-#: templates/templated_email/source/confirm_order.mjml:29
+msgctxt "Order confirmation e-mail table header"
+msgid "Total"
+msgstr "Сумма"
+
+#: templates/templated_email/order/confirm_order.email:32
+#: templates/templated_email/order/staff_confirm_order.email:32
+#: templates/templated_email/source/confirm_order.mjml:35
 #: templates/templated_email/source/staff_confirm_order.mjml:29
 msgctxt "Order confirmation e-mail billing address"
 msgid "Billing address"
 msgstr "Платежный адрес"
 
-#: templates/templated_email/order/confirm_order.email:31
-#: templates/templated_email/order/staff_confirm_order.email:31
-#: templates/templated_email/source/confirm_order.mjml:39
+#: templates/templated_email/order/confirm_order.email:33
+#: templates/templated_email/order/staff_confirm_order.email:33
+#: templates/templated_email/source/confirm_order.mjml:45
 #: templates/templated_email/source/staff_confirm_order.mjml:39
 msgctxt "Order confirmation e-mail text"
 msgid "No billing address"
 msgstr "Нет адреса выставление счёта"
 
-#: templates/templated_email/order/confirm_order.email:33
-#: templates/templated_email/order/staff_confirm_order.email:33
-#: templates/templated_email/source/confirm_order.mjml:30
+#: templates/templated_email/order/confirm_order.email:35
+#: templates/templated_email/order/staff_confirm_order.email:35
+#: templates/templated_email/source/confirm_order.mjml:36
 #: templates/templated_email/source/staff_confirm_order.mjml:30
 msgctxt "Order confirmation e-mail shipping address"
 msgid "Shipping address"
 msgstr "Адрес доставки"
 
-#: templates/templated_email/order/confirm_order.email:34
-#: templates/templated_email/order/staff_confirm_order.email:34
-#: templates/templated_email/source/confirm_order.mjml:46
+#: templates/templated_email/order/confirm_order.email:36
+#: templates/templated_email/order/staff_confirm_order.email:36
+#: templates/templated_email/source/confirm_order.mjml:52
 #: templates/templated_email/source/staff_confirm_order.mjml:46
 msgctxt "Order confirmation e-mail text"
 msgid "No shipping required"
 msgstr "Доставка не требуется"
 
-#: templates/templated_email/order/payment/confirm_payment.email:4
-msgctxt "Payment confirmation subject"
-msgid "Payment details"
-msgstr "Детали платежа"
+#: templates/templated_email/order/order_cancel.email:4
+#, python-format
+msgctxt "Order cancel e-mail subject"
+msgid "Order %(order)s canceled"
+msgstr "Заказ %(order)s отменен"
 
-#: templates/templated_email/order/payment/confirm_payment.email:9
+#: templates/templated_email/order/order_cancel.email:11
+msgctxt "Order cancel e-mail text"
+msgid ""
+"\n"
+"Your order has been canceled.\n"
+msgstr ""
+"\n"
+"Ваш заказ был отменен\n"
+
+#: templates/templated_email/order/order_refund.email:4
+#, python-format
+msgctxt "Order refund e-mail subject"
+msgid "Order %(order)s refunded"
+msgstr "По заказу %(order)s оформлен возврат"
+
+#: templates/templated_email/order/order_refund.email:11
+#, python-format
+msgctxt "Order refund e-mail text"
+msgid ""
+"\n"
+"A payment of %(amount)s %(currency)s has been refunded for your order.\n"
+msgstr ""
+"\n"
+"Произведен возврат оплаты по вашему заказу в размере %(amount)s%(currency)s\n"
+
+#: templates/templated_email/order/payment/confirm_payment.email:4
+#, python-format
+msgctxt "Payment confirmation subject"
+msgid "Order %(order)s payment details"
+msgstr "Подробности оплаты заказа %(order)s"
+
+#: templates/templated_email/order/payment/confirm_payment.email:11
 msgctxt "Payment confirmation email text"
 msgid ""
 "\n"
 "Thank you for your payment.\n"
-"Your payment was successfully charged.\n"
+"Your payment was successfully processed.\n"
 msgstr ""
 
-#: templates/templated_email/order/staff_confirm_order.email:11
+#: templates/templated_email/order/send_invoice.email:4
+msgctxt "Invoice email subject"
+msgid "Invoice"
+msgstr "Счет"
+
+#: templates/templated_email/order/send_invoice.email:9
+#, python-format
+msgctxt "Send invoice e-mail text"
+msgid ""
+"\n"
+"In order to download invoice %(number)s, click the link below.\n"
+msgstr ""
+"\n"
+"Для загрузки накладной %(number)s, нажмите на ссылку ниже.\n"
+
+#: templates/templated_email/order/staff_confirm_order.email:13
 msgctxt "Order confirmation staff e-mail text"
 msgid ""
 "\n"
 "Below is the list of ordered products.\n"
 msgstr ""
+"\n"
+"Ниже приведен список заказанных товаров.\n"
 
 #: templates/templated_email/order/update_fulfillment.email:4
 #, python-format
@@ -311,7 +469,7 @@ msgid ""
 "Your shipping status has been updated. Below is the list of ordered products that have been updated with new tracking number.\n"
 msgstr ""
 "\n"
-"Ваш статус доставки был обновлен. Ниже приведен список заказанных продуктов, которому был присвоен новый номер отслеживания.\n"
+"Ваш статус доставки был обновлен. Ниже приведен список заказанных товаров, которому был присвоен новый номер отслеживания.\n"
 
 #: templates/templated_email/order/update_fulfillment.email:15
 #, python-format
@@ -343,8 +501,13 @@ msgstr "С уважением, %(site_name)s"
 #: templates/templated_email/source/confirm_order.mjml:14
 #: templates/templated_email/source/confirm_payment.mjml:13
 #: templates/templated_email/source/email_changed_notification.mjml:13
+#: templates/templated_email/source/export_failed.mjml:13
+#: templates/templated_email/source/export_products_file.mjml:13
+#: templates/templated_email/source/order_cancel.mjml:13
+#: templates/templated_email/source/order_refund.mjml:13
 #: templates/templated_email/source/password_reset.mjml:13
 #: templates/templated_email/source/request_email_change.mjml:13
+#: templates/templated_email/source/send_invoice.mjml:13
 #: templates/templated_email/source/set_customer_password.mjml:13
 #: templates/templated_email/source/set_password.mjml:13
 #: templates/templated_email/source/staff_confirm_order.mjml:14
@@ -358,19 +521,16 @@ msgstr "Привет!"
 msgctxt "Account delete e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has requested a "
-"deletion of your user account at %(domain)s.<br/> Click the link below to "
-"delete your account. Please note that this action is permanent and cannot be"
-" reversed."
+"deletion of your user account at %(site_name)s.<br/> Click the link below to"
+" delete your account. Please note that this action is permanent and cannot "
+"be reversed."
 msgstr ""
-"Вы получили это сообщение потому что вы или кто-то запросил удаление учётной"
-" записи на %(domain)s.<br/> Нажмите на нижестоящую ссылку для удаления вашей"
-" учётной записи. Учтите, что это действие необратимо."
 
 #: templates/templated_email/source/confirm.mjml:16
 #, python-format
 msgctxt "Account confirmation e-mail text"
 msgid ""
-"In order to log into %(domain)s, you have to confirm your email address "
+"In order to log into %(site_name)s, you have to confirm your email address "
 "first. Please click the link below to do so and log into your account."
 msgstr ""
 
@@ -379,15 +539,26 @@ msgctxt "Fulfillment confirmation email text"
 msgid "Thank you for your order. Below is the list of fulfilled products."
 msgstr "Спасибо за ваш заказ. Ниже приведен список выбранных товаров."
 
-#: templates/templated_email/source/confirm_fulfillment.mjml:27
+#: templates/templated_email/source/confirm_fulfillment.mjml:21
+#: templates/templated_email/source/update_fulfillment.mjml:21
+#, python-format
+msgctxt "Fulfillment confirmation email text"
+msgid ""
+"You can track your shipment with <a "
+"href=\"%(tracking_number)s\">%(tracking_number)s</a> link."
+msgstr ""
+"Вы можете отслеживать доставку с помощью ссылки <a "
+"href=\"%(tracking_number)s\">%(tracking_number)s</a>."
+
+#: templates/templated_email/source/confirm_fulfillment.mjml:33
 msgctxt "Fulfillment digital products email text"
 msgid ""
 "You can download your digital products by clicking in download link(s)."
-msgstr "Вы можете скачать ваши цифровые покупки, нажав на ссылку скачивания."
+msgstr "Вы можете скачать ваши цифровые товары, нажав на ссылку(и)."
 
-#: templates/templated_email/source/confirm_order.mjml:17
+#: templates/templated_email/source/confirm_order.mjml:18
 #, python-format
-msgctxt "Order confirmation e-mail text"
+msgctxt "Order confirmation e-mail text with payment details"
 msgid ""
 "Thank you for your order. Below is the list of ordered products. To see your"
 " payment details please visit: <a "
@@ -397,9 +568,14 @@ msgstr ""
 "увидеть данные оплаты, пожалуйста, посетите: <a "
 "href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 
+#: templates/templated_email/source/confirm_order.mjml:22
+msgctxt "Order confirmation e-mail text"
+msgid "Thank you for your order. Below is the list of ordered products."
+msgstr "Спасибо за заказ. Ниже список заказанных товаров."
+
 #: templates/templated_email/source/confirm_payment.mjml:16
 msgctxt "Payment confirmation e-mail text"
-msgid "Thank you for your payment. Your payment was successfully charged."
+msgid "Thank you for your payment. Your payment was successfully processed."
 msgstr ""
 
 #: templates/templated_email/source/email_changed_notification.mjml:16
@@ -407,8 +583,38 @@ msgstr ""
 msgctxt "Email change e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has changed email "
-"for your user account at %(domain)s.<br /> If you didn't request this "
+"for your user account at %(site_name)s.<br /> If you didn't request this "
 "change, please contact the administrator."
+msgstr ""
+
+#: templates/templated_email/source/export_failed.mjml:16
+msgctxt "Export products e-mail text"
+msgid ""
+"Sorry, we couldn't finish exporting products, some unexpected errors "
+"occurred. Please try again."
+msgstr ""
+"К сожалению, мы не смогли завершить экспорт товаров, произошли "
+"непредвиденные ошибки. Пожалуйста, попробуйте еще раз."
+
+#: templates/templated_email/source/export_products_file.mjml:16
+#, python-format
+msgctxt "Export products e-mail text"
+msgid ""
+"Your file with products data is ready to download: <a "
+"href=\"%(csv_link)s\">%(csv_link)s</a>"
+msgstr ""
+"Ваш файл с данными о товарах готов к загрузке: <a "
+"href=\"%(csv_link)s\">%(csv_link)s</a>"
+
+#: templates/templated_email/source/order_cancel.mjml:16
+msgctxt "Order cancel e-mail text"
+msgid "Your order has been canceled."
+msgstr ""
+
+#: templates/templated_email/source/order_refund.mjml:16
+#, python-format
+msgctxt "Order refund e-mail text"
+msgid "A payment of %(amount)s %(currency)s has been refunded for your order."
 msgstr ""
 
 #: templates/templated_email/source/partials/_fulfillment_lines.mjml:11
@@ -416,7 +622,7 @@ msgstr ""
 #: templates/templated_email/source/partials/_order_lines.mjml:59
 msgctxt "Ordered item name"
 msgid "Item"
-msgstr "Предмет"
+msgstr "Элемент"
 
 #: templates/templated_email/source/partials/_fulfillment_lines.mjml:12
 #: templates/templated_email/source/partials/_order_lines.mjml:60
@@ -427,7 +633,7 @@ msgstr "Количество"
 #: templates/templated_email/source/partials/_fulfillment_lines.mjml:30
 msgctxt "Ordered item download links"
 msgid "Download Link"
-msgstr ""
+msgstr "Ссылка для загрузки"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:12
 msgctxt "E-mail order lines summary table"
@@ -474,48 +680,44 @@ msgstr "Промежуточный итог"
 msgctxt "Password reset e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has requested a "
-"password for your user account at %(domain)s.<br/> It can be safely ignored "
-"if you did not request a password reset. Click the link below to reset your "
-"password."
+"password for your user account at %(site_name)s.<br/> It can be safely "
+"ignored if you did not request a password reset. Click the link below to "
+"reset your password."
 msgstr ""
-"Вы получили это письмо потому, что вы или кто-то другой запросили сброс "
-"пароля от учётной записи на %(domain)s.<br/> Эта информация может быть "
-"проигнорирована, если вы не запрашивали сброс пароля. Перейдите по ссылке "
-"ниже для сброса пароля."
 
 #: templates/templated_email/source/request_email_change.mjml:16
 #, python-format
 msgctxt "Email change e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has requested an "
-"email change for your user account at %(domain)s.<br /> It can be safely "
+"email change for your user account at %(site_name)s.<br /> It can be safely "
 "ignored if you did not request an email change. Click the link below to "
 "confirm new email address."
 msgstr ""
+
+#: templates/templated_email/source/send_invoice.mjml:16
+#, python-format
+msgctxt "Send invoice e-mail text"
+msgid "In order to download invoice %(number)s, click the link below."
+msgstr "Для загрузки накладной %(number)s , нажмите на ссылку ниже."
 
 #: templates/templated_email/source/set_customer_password.mjml:16
 #, python-format
 msgctxt "Set password for customer e-mail text"
 msgid ""
 "You're receiving this e-mail because you have to set password for your "
-"customer account at %(domain)s.<br/> Click the link below to set up your "
+"customer account at %(site_name)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
-"Вы получили это сообщение, потому что вы должны установить пароль для вашего"
-" аккаунта покупателя на %(domain)s.<br/> Нажмите на ссылку ниже для "
-"установки пароля."
 
 #: templates/templated_email/source/set_password.mjml:16
 #, python-format
 msgctxt "Set password for staff member e-mail text"
 msgid ""
 "You're receiving this e-mail because you have to set password for your staff"
-" member account at %(domain)s.<br/> Click the link below to set up your "
+" member account at %(site_name)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
-"Вы получили это письмо потому, что установили пароль для учётной записи "
-"сотрудника в %(domain)s.<br/> Перейдите по ссылки ниже для создания вашего "
-"пароля."
 
 #: templates/templated_email/source/staff_confirm_order.mjml:17
 #, python-format
@@ -524,6 +726,9 @@ msgid ""
 "Someone placed a new order in your store. To see order details please visit:"
 " <a href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
+"Кто-то разместил новый заказ в вашем магазине. Чтобы увидеть детали заказа, "
+"пожалуйста, посетите: <a "
+"href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 
 #: templates/templated_email/source/update_fulfillment.mjml:16
 msgctxt "Fulfillment update email text"
@@ -533,9 +738,3 @@ msgid ""
 msgstr ""
 "Ваш статус доставки обновлён. Ниже приведён список заказанных товаров, для "
 "которых был добавлен номер для отслеживания."
-
-#: templates/templated_email/source/update_fulfillment.mjml:20
-#, python-format
-msgctxt "Fulfillment update email text"
-msgid "You can track your shipment with %(tracking_number)s code."
-msgstr "Вы можете отслеживать доставку с помощью кода %(tracking_number)s."

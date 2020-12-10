@@ -1,9 +1,6 @@
 from dataclasses import dataclass
-from decimal import Decimal
 from typing import Union
 
-from babel.numbers import get_currency_precision
-from django.conf import settings
 from django.contrib.sites.models import Site
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
@@ -12,7 +9,7 @@ class TaxError(Exception):
     """Default tax error."""
 
 
-def zero_money(currency: str = settings.DEFAULT_CURRENCY) -> Money:
+def zero_money(currency: str) -> Money:
     """Return a money object set to zero.
 
     This is a function used as a model's default.
@@ -20,7 +17,7 @@ def zero_money(currency: str = settings.DEFAULT_CURRENCY) -> Money:
     return Money(0, currency)
 
 
-def zero_taxed_money(currency: str = settings.DEFAULT_CURRENCY) -> TaxedMoney:
+def zero_taxed_money(currency: str) -> TaxedMoney:
     zero = zero_money(currency)
     return TaxedMoney(net=zero, gross=zero)
 
@@ -52,14 +49,6 @@ def get_display_price(
     if isinstance(base, TaxedMoney):
         base = base.gross if display_gross else base.net
     return base
-
-
-def quantize_price(
-    price: Union["TaxedMoney", "Money", "Decimal", "TaxedMoneyRange"], currency: str
-) -> Union["TaxedMoney", "Money", "Decimal", "TaxedMoneyRange"]:
-    precision = get_currency_precision(currency)
-    number_places = Decimal(10) ** -precision
-    return price.quantize(number_places)
 
 
 @dataclass(frozen=True)

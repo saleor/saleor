@@ -4,7 +4,7 @@ import pytest
 from ....account.models import Address
 from ....warehouse.error_codes import WarehouseErrorCode
 from ....warehouse.models import Warehouse
-from ...tests.utils import get_graphql_content
+from ...tests.utils import assert_no_permission, get_graphql_content
 
 QUERY_WAREHOUSES = """
 query {
@@ -213,6 +213,94 @@ def test_warehouse_query(staff_api_client, warehouse, permission_manage_products
     assert queried_address["postalCode"] == address.postal_code
 
 
+def test_warehouse_query_as_staff_with_manage_orders(
+    staff_api_client, warehouse, permission_manage_orders
+):
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+
+    response = staff_api_client.post_graphql(
+        QUERY_WAREHOUSE,
+        variables={"id": warehouse_id},
+        permissions=[permission_manage_orders],
+    )
+    content = get_graphql_content(response)
+
+    queried_warehouse = content["data"]["warehouse"]
+    assert queried_warehouse["name"] == warehouse.name
+    assert queried_warehouse["email"] == warehouse.email
+
+    shipping_zones = queried_warehouse["shippingZones"]["edges"]
+    assert len(shipping_zones) == warehouse.shipping_zones.count()
+    queried_shipping_zone = shipping_zones[0]["node"]
+    shipipng_zone = warehouse.shipping_zones.first()
+    assert queried_shipping_zone["name"] == shipipng_zone.name
+    assert len(queried_shipping_zone["countries"]) == len(shipipng_zone.countries)
+
+    address = warehouse.address
+    queried_address = queried_warehouse["address"]
+    assert queried_address["streetAddress1"] == address.street_address_1
+    assert queried_address["postalCode"] == address.postal_code
+
+
+def test_warehouse_query_as_staff_with_manage_apps(
+    staff_api_client, warehouse, permission_manage_apps
+):
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+
+    response = staff_api_client.post_graphql(
+        QUERY_WAREHOUSE,
+        variables={"id": warehouse_id},
+        permissions=[permission_manage_apps],
+    )
+
+    assert_no_permission(response)
+
+
+def test_warehouse_query_as_customer(user_api_client, warehouse):
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+
+    response = user_api_client.post_graphql(
+        QUERY_WAREHOUSE, variables={"id": warehouse_id},
+    )
+
+    assert_no_permission(response)
+
+
+def test_query_warehouses_as_staff_with_manage_orders(
+    staff_api_client, warehouse, permission_manage_orders
+):
+    response = staff_api_client.post_graphql(
+        QUERY_WAREHOUSES, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)["data"]
+    assert content["warehouses"]["totalCount"] == Warehouse.objects.count()
+    warehouses = content["warehouses"]["edges"]
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    warehouse_first = warehouses[0]["node"]
+    assert warehouse_first["id"] == warehouse_id
+    assert warehouse_first["name"] == warehouse.name
+    assert (
+        len(warehouse_first["shippingZones"]["edges"])
+        == warehouse.shipping_zones.count()
+    )
+
+
+def test_query_warehouses_as_staff_with_manage_apps(
+    staff_api_client, warehouse, permission_manage_apps
+):
+    response = staff_api_client.post_graphql(
+        QUERY_WAREHOUSES, permissions=[permission_manage_apps]
+    )
+    assert_no_permission(response)
+
+
+def test_query_warehouses_as_customer(
+    user_api_client, warehouse, permission_manage_apps
+):
+    response = user_api_client.post_graphql(QUERY_WAREHOUSES)
+    assert_no_permission(response)
+
+
 def test_query_warehouses(staff_api_client, warehouse, permission_manage_products):
     response = staff_api_client.post_graphql(
         QUERY_WAREHOUSES, permissions=[permission_manage_products]
@@ -339,7 +427,6 @@ def test_query_warehouses_with_filters_and_no_id(
 def test_mutation_create_warehouse(
     staff_api_client, permission_manage_products, shipping_zone
 ):
-    Warehouse.objects.all().delete()
     variables = {
         "input": {
             "name": "Test warehouse",
@@ -372,6 +459,41 @@ def test_mutation_create_warehouse(
     )
     assert created_warehouse["name"] == warehouse.name
     assert created_warehouse["slug"] == warehouse.slug
+
+
+def test_mutation_create_warehouse_does_not_create_when_name_is_empty_string(
+    staff_api_client, permission_manage_products, shipping_zone
+):
+    variables = {
+        "input": {
+            "name": "  ",
+            "slug": "test-warhouse",
+            "companyName": "Amazing Company Inc",
+            "email": "test-admin@example.com",
+            "address": {
+                "streetAddress1": "Teczowa 8",
+                "city": "Wroclaw",
+                "country": "PL",
+                "postalCode": "53-601",
+            },
+            "shippingZones": [
+                graphene.Node.to_global_id("ShippingZone", shipping_zone.id)
+            ],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        MUTATION_CREATE_WAREHOUSE,
+        variables=variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["createWarehouse"]
+    errors = data["warehouseErrors"]
+    assert Warehouse.objects.count() == 0
+    assert len(errors) == 1
+    assert errors[0]["field"] == "name"
+    assert errors[0]["code"] == WarehouseErrorCode.REQUIRED.name
 
 
 def test_create_warehouse_creates_address(
@@ -564,14 +686,16 @@ def test_update_warehouse_slug_exists(
 
 
 @pytest.mark.parametrize(
-    "input_slug, expected_slug, input_name, error_message, error_field",
+    "input_slug, expected_slug, input_name, expected_name, error_message, error_field",
     [
-        ("test-slug", "test-slug", "New name", None, None),
-        ("", "", "New name", "Slug value cannot be blank.", "slug"),
-        (None, "", "New name", "Slug value cannot be blank.", "slug"),
-        ("test-slug", "", None, "This field cannot be blank.", "name"),
-        ("test-slug", "", "", "This field cannot be blank.", "name"),
-        (None, None, None, "Slug value cannot be blank.", "slug"),
+        ("test-slug", "test-slug", "New name", "New name", None, None),
+        ("test-slug", "test-slug", " stripped ", "stripped", None, None,),
+        ("", "", "New name", "New name", "Slug value cannot be blank.", "slug"),
+        (None, "", "New name", "New name", "Slug value cannot be blank.", "slug"),
+        ("test-slug", "", None, None, "This field cannot be blank.", "name"),
+        ("test-slug", "", "", None, "This field cannot be blank.", "name"),
+        (None, None, None, None, "Slug value cannot be blank.", "slug"),
+        ("test-slug", "test-slug", "  ", None, "Name value cannot be blank", "name"),
     ],
 )
 def test_update_warehouse_slug_and_name(
@@ -581,6 +705,7 @@ def test_update_warehouse_slug_and_name(
     input_slug,
     expected_slug,
     input_name,
+    expected_name,
     error_message,
     error_field,
 ):
@@ -602,8 +727,10 @@ def test_update_warehouse_slug_and_name(
     data = content["data"]["updateWarehouse"]
     errors = data["warehouseErrors"]
     if not error_message:
-        assert data["warehouse"]["name"] == input_name == warehouse.name
-        assert data["warehouse"]["slug"] == input_slug == warehouse.slug
+        assert data["warehouse"]["name"] == expected_name == warehouse.name
+        assert (
+            data["warehouse"]["slug"] == input_slug == warehouse.slug == expected_slug
+        )
     else:
         assert errors
         assert errors[0]["field"] == error_field

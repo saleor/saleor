@@ -1,13 +1,17 @@
+import json
 from decimal import Decimal
 
 import pytest
+from django.http import HttpResponseNotFound, JsonResponse
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
 from ...core.taxes import TaxType
+from ...payment.interface import PaymentGateway
 from ..manager import PluginsManager, get_plugins_manager
 from ..models import PluginConfiguration
 from ..tests.sample_plugins import (
+    ActiveDummyPaymentGateway,
     ActivePaymentGateway,
     InactivePaymentGateway,
     PluginInactive,
@@ -100,7 +104,7 @@ def test_manager_calculates_checkout_line_total(
     currency = checkout_with_item.currency
     expected_total = Money(amount, currency)
     taxed_total = PluginsManager(plugins=plugins).calculate_checkout_line_total(
-        line, [discount_info]
+        line, [discount_info], checkout_with_item.channel
     )
     assert TaxedMoney(expected_total, expected_total) == taxed_total
 
@@ -142,13 +146,13 @@ def test_manager_show_taxes_on_storefront(plugins, show_taxes):
     "plugins, price",
     [(["saleor.plugins.tests.sample_plugins.PluginSample"], "1.0"), ([], "10.0")],
 )
-def test_manager_apply_taxes_to_product(product, plugins, price):
+def test_manager_apply_taxes_to_product(product, plugins, price, channel_USD):
     country = Country("PL")
     variant = product.variants.all()[0]
-    currency = variant.get_price().currency
+    currency = variant.get_price(channel_USD.slug).currency
     expected_price = Money(price, currency)
     taxed_price = PluginsManager(plugins=plugins).apply_taxes_to_product(
-        product, variant.get_price(), country
+        product, variant.get_price(channel_USD.slug), country
     )
     assert TaxedMoney(expected_price, expected_price) == taxed_price
 
@@ -158,11 +162,14 @@ def test_manager_apply_taxes_to_product(product, plugins, price):
     [(["saleor.plugins.tests.sample_plugins.PluginSample"], "1.0"), ([], "10.0")],
 )
 def test_manager_apply_taxes_to_shipping(
-    shipping_method, address, plugins, price_amount
+    shipping_method, address, plugins, price_amount, channel_USD
 ):
+    shipping_price = shipping_method.channel_listings.get(
+        channel_id=channel_USD.id
+    ).price
     expected_price = Money(price_amount, "USD")
     taxed_price = PluginsManager(plugins=plugins).apply_taxes_to_shipping(
-        shipping_method.price, address
+        shipping_price, address
     )
     assert TaxedMoney(expected_price, expected_price) == taxed_price
 
@@ -252,11 +259,12 @@ def test_plugin_add_new_configuration(
 
 
 def test_manager_serve_list_of_payment_gateways():
-    expected_gateway = {
-        "id": ActivePaymentGateway.PLUGIN_ID,
-        "name": ActivePaymentGateway.PLUGIN_NAME,
-        "config": ActivePaymentGateway.CLIENT_CONFIG,
-    }
+    expected_gateway = PaymentGateway(
+        id=ActivePaymentGateway.PLUGIN_ID,
+        name=ActivePaymentGateway.PLUGIN_NAME,
+        config=ActivePaymentGateway.CLIENT_CONFIG,
+        currencies=ActivePaymentGateway.SUPPORTED_CURRENCIES,
+    )
     plugins = [
         "saleor.plugins.tests.sample_plugins.PluginSample",
         "saleor.plugins.tests.sample_plugins.ActivePaymentGateway",
@@ -268,16 +276,18 @@ def test_manager_serve_list_of_payment_gateways():
 
 def test_manager_serve_list_all_payment_gateways():
     expected_gateways = [
-        {
-            "id": ActivePaymentGateway.PLUGIN_ID,
-            "name": ActivePaymentGateway.PLUGIN_NAME,
-            "config": ActivePaymentGateway.CLIENT_CONFIG,
-        },
-        {
-            "id": InactivePaymentGateway.PLUGIN_ID,
-            "name": InactivePaymentGateway.PLUGIN_NAME,
-            "config": [],
-        },
+        PaymentGateway(
+            id=ActivePaymentGateway.PLUGIN_ID,
+            name=ActivePaymentGateway.PLUGIN_NAME,
+            config=ActivePaymentGateway.CLIENT_CONFIG,
+            currencies=ActivePaymentGateway.SUPPORTED_CURRENCIES,
+        ),
+        PaymentGateway(
+            id=InactivePaymentGateway.PLUGIN_ID,
+            name=InactivePaymentGateway.PLUGIN_NAME,
+            config=[],
+            currencies=[],
+        ),
     ]
 
     plugins = [
@@ -286,3 +296,94 @@ def test_manager_serve_list_all_payment_gateways():
     ]
     manager = PluginsManager(plugins=plugins)
     assert manager.list_payment_gateways(active_only=False) == expected_gateways
+
+
+def test_manager_serve_list_all_payment_gateways_specified_currency():
+    expected_gateways = [
+        PaymentGateway(
+            id=ActiveDummyPaymentGateway.PLUGIN_ID,
+            name=ActiveDummyPaymentGateway.PLUGIN_NAME,
+            config=ActiveDummyPaymentGateway.CLIENT_CONFIG,
+            currencies=ActiveDummyPaymentGateway.SUPPORTED_CURRENCIES,
+        )
+    ]
+
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.ActivePaymentGateway",
+        "saleor.plugins.tests.sample_plugins.InactivePaymentGateway",
+        "saleor.plugins.tests.sample_plugins.ActiveDummyPaymentGateway",
+    ]
+    manager = PluginsManager(plugins=plugins)
+    assert (
+        manager.list_payment_gateways(currency="EUR", active_only=False)
+        == expected_gateways
+    )
+
+
+def test_manager_serve_list_all_payment_gateways_specified_currency_two_gateways():
+    expected_gateways = [
+        PaymentGateway(
+            id=ActivePaymentGateway.PLUGIN_ID,
+            name=ActivePaymentGateway.PLUGIN_NAME,
+            config=ActivePaymentGateway.CLIENT_CONFIG,
+            currencies=ActivePaymentGateway.SUPPORTED_CURRENCIES,
+        ),
+        PaymentGateway(
+            id=ActiveDummyPaymentGateway.PLUGIN_ID,
+            name=ActiveDummyPaymentGateway.PLUGIN_NAME,
+            config=ActiveDummyPaymentGateway.CLIENT_CONFIG,
+            currencies=ActiveDummyPaymentGateway.SUPPORTED_CURRENCIES,
+        ),
+    ]
+
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.ActivePaymentGateway",
+        "saleor.plugins.tests.sample_plugins.InactivePaymentGateway",
+        "saleor.plugins.tests.sample_plugins.ActiveDummyPaymentGateway",
+    ]
+    manager = PluginsManager(plugins=plugins)
+    assert (
+        manager.list_payment_gateways(currency="USD", active_only=False)
+        == expected_gateways
+    )
+
+
+def test_manager_webhook(rf):
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+    ]
+    manager = PluginsManager(plugins=plugins)
+    plugin_path = "/webhook/paid"
+    request = rf.post(path=f"/plugins/{PluginSample.PLUGIN_ID}{plugin_path}")
+
+    response = manager.webhook(request, PluginSample.PLUGIN_ID)
+    assert isinstance(response, JsonResponse)
+    assert response.status_code == 200
+    assert response.content.decode() == json.dumps({"received": True, "paid": True})
+
+
+def test_manager_webhook_plugin_doesnt_have_webhook_support(rf):
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+    ]
+
+    manager = PluginsManager(plugins=plugins)
+    plugin_path = "/webhook/paid"
+    request = rf.post(path=f"/plugins/{PluginInactive.PLUGIN_ID}{plugin_path}")
+    response = manager.webhook(request, PluginSample.PLUGIN_ID)
+    assert isinstance(response, HttpResponseNotFound)
+    assert response.status_code == 404
+
+
+def test_manager_inncorrect_plugin(rf):
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+    ]
+    manager = PluginsManager(plugins=plugins)
+    plugin_path = "/webhook/paid"
+    request = rf.post(path=f"/plugins/incorrect.plugin.id{plugin_path}")
+    response = manager.webhook(request, "incorrect.plugin.id")
+    assert isinstance(response, HttpResponseNotFound)
+    assert response.status_code == 404

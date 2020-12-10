@@ -4,15 +4,16 @@ from typing import TYPE_CHECKING, Optional
 from uuid import uuid4
 
 from django.conf import settings
-from django.contrib.postgres.fields import JSONField
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models import JSONField  # type: ignore
 from django.utils.encoding import smart_str
 from django_countries.fields import Country, CountryField
 from django_prices.models import MoneyField
 from prices import Money
 
 from ..account.models import Address
+from ..channel.models import Channel
 from ..core.models import ModelWithMetadata
 from ..core.permissions import CheckoutPermissions
 from ..core.taxes import zero_money
@@ -22,9 +23,10 @@ from ..shipping.models import ShippingMethod
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ..product.models import ProductVariant
     from django_measurement import Weight
+
     from ..payment.models import Payment
+    from ..product.models import ProductVariant
 
 
 class CheckoutQueryset(models.QuerySet):
@@ -63,6 +65,9 @@ class Checkout(ModelWithMetadata):
     email = models.EmailField()
     token = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     quantity = models.PositiveIntegerField(default=0)
+    channel = models.ForeignKey(
+        Channel, related_name="checkouts", on_delete=models.PROTECT,
+    )
     billing_address = models.ForeignKey(
         Address, related_name="+", editable=False, null=True, on_delete=models.SET_NULL
     )
@@ -78,10 +83,7 @@ class Checkout(ModelWithMetadata):
     )
     note = models.TextField(blank=True, default="")
 
-    currency = models.CharField(
-        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
-        default=settings.DEFAULT_CURRENCY,
-    )
+    currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,)
     country = CountryField(default=get_default_country)
 
     discount_amount = models.DecimalField(
@@ -96,10 +98,13 @@ class Checkout(ModelWithMetadata):
     voucher_code = models.CharField(max_length=12, blank=True, null=True)
     gift_cards = models.ManyToManyField(GiftCard, blank=True, related_name="checkouts")
 
+    redirect_url = models.URLField(blank=True, null=True)
+    tracking_code = models.CharField(max_length=255, blank=True, null=True)
+
     objects = CheckoutQueryset.as_manager()
 
     class Meta:
-        ordering = ("-last_change",)
+        ordering = ("-last_change", "pk")
         permissions = (
             (CheckoutPermissions.MANAGE_CHECKOUTS.codename, "Manage checkouts"),
         )

@@ -4,8 +4,6 @@ from copy import copy
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from graphql_jwt.decorators import staff_member_required
-from graphql_jwt.exceptions import PermissionDenied
 
 from ....account import events as account_events, models, utils
 from ....account.emails import send_set_password_email_with_url
@@ -13,6 +11,7 @@ from ....account.error_codes import AccountErrorCode
 from ....account.thumbnails import create_user_avatar_thumbnails
 from ....account.utils import remove_staff_member
 from ....checkout import AddressType
+from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions
 from ....core.utils.url import validate_storefront_url
 from ...account.enums import AddressTypeEnum
@@ -21,7 +20,7 @@ from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types import Upload
 from ...core.types.common import AccountError, StaffError
 from ...core.utils import get_duplicates_ids, validate_image_file
-from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
+from ...decorators import staff_member_required
 from ..utils import (
     CustomerDeleteMixin,
     StaffDeleteMixin,
@@ -564,23 +563,3 @@ class UserAvatarDelete(BaseMutation):
         user.avatar.delete_sized_images()
         user.avatar.delete()
         return UserAvatarDelete(user=user)
-
-
-class UserUpdatePrivateMeta(UpdateMetaBaseMutation):
-    class Meta:
-        description = "Updates private metadata for user."
-        permissions = (AccountPermissions.MANAGE_USERS,)
-        model = models.User
-        public = False
-        error_type_class = AccountError
-        error_type_field = "account_errors"
-
-
-class UserClearPrivateMeta(ClearMetaBaseMutation):
-    class Meta:
-        description = "Clear private metadata for user."
-        model = models.User
-        permissions = (AccountPermissions.MANAGE_USERS,)
-        public = False
-        error_type_class = AccountError
-        error_type_field = "account_errors"

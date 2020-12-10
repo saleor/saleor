@@ -1,7 +1,5 @@
 import pytest
 
-from .....menu.utils import update_menu
-
 
 @pytest.fixture
 def site_with_top_menu(site_settings):
@@ -9,7 +7,6 @@ def site_with_top_menu(site_settings):
     menu.items.create(name="Link 1", url="http://example.com/")
     menu.items.create(name="Link 2", url="http://example.com/")
     menu.items.create(name="Link 3", url="http://example.com/")
-    update_menu(menu)
     return site_settings
 
 
@@ -19,5 +16,4 @@ def site_with_bottom_menu(site_settings):
     menu.items.create(name="Link 1", url="http://example.com/")
     menu.items.create(name="Link 2", url="http://example.com/")
     menu.items.create(name="Link 3", url="http://example.com/")
-    update_menu(menu)
     return site_settings

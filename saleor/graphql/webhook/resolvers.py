@@ -1,7 +1,7 @@
 import graphene
-from graphql_jwt.exceptions import PermissionDenied
 
-from ...core.permissions import WebhookPermissions
+from ...core.exceptions import PermissionDenied
+from ...core.permissions import AppPermission
 from ...webhook import models, payloads
 from ...webhook.event_types import WebhookEventType
 from .types import Webhook, WebhookEvent
@@ -13,7 +13,7 @@ def resolve_webhooks(info, **_kwargs):
         qs = models.Webhook.objects.filter(app=app)
     else:
         user = info.context.user
-        if not user.has_perm(WebhookPermissions.MANAGE_WEBHOOKS):
+        if not user.has_perm(AppPermission.MANAGE_APPS):
             raise PermissionDenied()
         qs = models.Webhook.objects.all()
     return qs
@@ -25,7 +25,7 @@ def resolve_webhook(info, webhook_id):
         _, webhook_id = graphene.Node.from_global_id(webhook_id)
         return app.webhooks.filter(id=webhook_id).first()
     user = info.context.user
-    if user.has_perm(WebhookPermissions.MANAGE_WEBHOOKS):
+    if user.has_perm(AppPermission.MANAGE_APPS):
         return graphene.Node.get_node_from_global_id(info, webhook_id, Webhook)
     raise PermissionDenied()
 

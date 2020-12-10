@@ -15,6 +15,17 @@ PAGE_QUERY = """
         page(id: $id, slug: $slug) {
             title
             slug
+            pageType {
+                id
+            }
+            attributes {
+                attribute {
+                    slug
+                }
+                values {
+                    slug
+                }
+            }
         }
     }
 """
@@ -24,6 +35,15 @@ def test_query_published_page(user_api_client, page):
     page.is_published = True
     page.save()
 
+    page_type = page.page_type
+
+    assert page.attributes.count() == 1
+    page_attr_assigned = page.attributes.first()
+    page_attr = page_attr_assigned.attribute
+
+    assert page_attr_assigned.values.count() == 1
+    page_attr_value = page_attr_assigned.values.first()
+
     # query by ID
     variables = {"id": graphene.Node.to_global_id("Page", page.id)}
     response = user_api_client.post_graphql(PAGE_QUERY, variables)
@@ -31,6 +51,17 @@ def test_query_published_page(user_api_client, page):
     page_data = content["data"]["page"]
     assert page_data["title"] == page.title
     assert page_data["slug"] == page.slug
+    assert page_data["pageType"]["id"] == graphene.Node.to_global_id(
+        "PageType", page.page_type.pk
+    )
+
+    expected_attributes = []
+    for attr in page_type.page_attributes.all():
+        values = [{"slug": page_attr_value.slug}] if attr.slug == page_attr.slug else []
+        expected_attributes.append({"attribute": {"slug": attr.slug}, "values": values})
+
+    for attr_data in page_data["attributes"]:
+        assert attr_data in expected_attributes
 
     # query by slug
     variables = {"slug": page.slug}
@@ -95,13 +126,14 @@ def test_staff_query_unpublished_page(staff_api_client, page, permission_manage_
 
 CREATE_PAGE_MUTATION = """
     mutation CreatePage(
-            $slug: String, $title: String, $content: String,
-            $contentJson: JSONString, $isPublished: Boolean) {
+            $slug: String, $title: String, $content: String, $pageType: ID!
+            $contentJson: JSONString, $isPublished: Boolean,
+            $attributes: [AttributeValueInput!]) {
         pageCreate(
                 input: {
-                    slug: $slug, title: $title,
+                    slug: $slug, title: $title, pageType: $pageType
                     content: $content, contentJson: $contentJson
-                    isPublished: $isPublished}) {
+                    isPublished: $isPublished, attributes: $attributes}) {
             page {
                 id
                 title
@@ -109,23 +141,48 @@ CREATE_PAGE_MUTATION = """
                 contentJson
                 slug
                 isPublished
+                publicationDate
+                pageType {
+                    id
+                }
+                attributes {
+                    attribute {
+                        slug
+                    }
+                    values {
+                        slug
+                    }
+                }
             }
             pageErrors {
                 field
                 code
                 message
+                attributes
             }
         }
     }
 """
 
 
-def test_page_create_mutation(staff_api_client, permission_manage_pages):
+@freeze_time("2020-03-18 12:00:00")
+def test_page_create_mutation(staff_api_client, permission_manage_pages, page_type):
     page_slug = "test-slug"
     page_content = "test content"
     page_content_json = json.dumps({"content": "test content"})
     page_title = "test title"
     page_is_published = True
+    page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
+
+    # Default attributes defined in product_type fixture
+    tag_attr = page_type.page_attributes.get(name="tag")
+    tag_value_slug = tag_attr.values.first().slug
+    tag_attr_id = graphene.Node.to_global_id("Attribute", tag_attr.id)
+
+    # Add second attribute
+    size_attr = page_type.page_attributes.get(name="Page size")
+    size_attr_id = graphene.Node.to_global_id("Attribute", size_attr.id)
+    non_existent_attr_value = "New value"
 
     # test creating root page
     variables = {
@@ -134,7 +191,13 @@ def test_page_create_mutation(staff_api_client, permission_manage_pages):
         "contentJson": page_content_json,
         "isPublished": page_is_published,
         "slug": page_slug,
+        "pageType": page_type_id,
+        "attributes": [
+            {"id": tag_attr_id, "values": [tag_value_slug]},
+            {"id": size_attr_id, "values": [non_existent_attr_value]},
+        ],
     }
+
     response = staff_api_client.post_graphql(
         CREATE_PAGE_MUTATION, variables, permissions=[permission_manage_pages]
     )
@@ -146,11 +209,22 @@ def test_page_create_mutation(staff_api_client, permission_manage_pages):
     assert data["page"]["contentJson"] == page_content_json
     assert data["page"]["slug"] == page_slug
     assert data["page"]["isPublished"] == page_is_published
+    assert data["page"]["publicationDate"] == "2020-03-18"
+    assert data["page"]["pageType"]["id"] == page_type_id
+    values = (
+        data["page"]["attributes"][0]["values"][0]["slug"],
+        data["page"]["attributes"][1]["values"][0]["slug"],
+    )
+    assert slugify(non_existent_attr_value) in values
+    assert tag_value_slug in values
 
 
-def test_page_create_required_fields(staff_api_client, permission_manage_pages):
+def test_page_create_required_fields(
+    staff_api_client, permission_manage_pages, page_type
+):
+    variables = {"pageType": graphene.Node.to_global_id("PageType", page_type.pk)}
     response = staff_api_client.post_graphql(
-        CREATE_PAGE_MUTATION, {}, permissions=[permission_manage_pages]
+        CREATE_PAGE_MUTATION, variables, permissions=[permission_manage_pages]
     )
     content = get_graphql_content(response)
     errors = content["data"]["pageCreate"]["pageErrors"]
@@ -160,17 +234,117 @@ def test_page_create_required_fields(staff_api_client, permission_manage_pages):
     assert errors[0]["code"] == PageErrorCode.REQUIRED.name
 
 
-def test_create_default_slug(staff_api_client, permission_manage_pages):
+def test_create_default_slug(staff_api_client, permission_manage_pages, page_type):
     # test creating root page
     title = "Spanish inquisition"
+    variables = {
+        "title": title,
+        "pageType": graphene.Node.to_global_id("PageType", page_type.pk),
+    }
     response = staff_api_client.post_graphql(
-        CREATE_PAGE_MUTATION, {"title": title}, permissions=[permission_manage_pages]
+        CREATE_PAGE_MUTATION, variables, permissions=[permission_manage_pages]
     )
     content = get_graphql_content(response)
     data = content["data"]["pageCreate"]
     assert not data["pageErrors"]
     assert data["page"]["title"] == title
     assert data["page"]["slug"] == slugify(title)
+
+
+def test_page_create_mutation_missing_required_attributes(
+    staff_api_client, permission_manage_pages, page_type
+):
+    # given
+    page_slug = "test-slug"
+    page_content = "test content"
+    page_content_json = json.dumps({"content": "test content"})
+    page_title = "test title"
+    page_is_published = True
+    page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
+
+    # Default attributes defined in product_type fixture
+    tag_attr = page_type.page_attributes.get(name="tag")
+    tag_value_slug = tag_attr.values.first().slug
+    tag_attr_id = graphene.Node.to_global_id("Attribute", tag_attr.id)
+
+    # Add second attribute
+    size_attr = page_type.page_attributes.get(name="Page size")
+    size_attr.value_required = True
+    size_attr.save(update_fields=["value_required"])
+
+    # test creating root page
+    variables = {
+        "title": page_title,
+        "content": page_content,
+        "contentJson": page_content_json,
+        "isPublished": page_is_published,
+        "slug": page_slug,
+        "pageType": page_type_id,
+        "attributes": [{"id": tag_attr_id, "values": [tag_value_slug]}],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_PAGE_MUTATION, variables, permissions=[permission_manage_pages]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["pageCreate"]
+    errors = data["pageErrors"]
+
+    assert not data["page"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "attributes"
+    assert errors[0]["code"] == PageErrorCode.REQUIRED.name
+    assert errors[0]["attributes"] == [
+        graphene.Node.to_global_id("Attribute", size_attr.pk)
+    ]
+
+
+def test_page_create_mutation_empty_attribute_value(
+    staff_api_client, permission_manage_pages, page_type
+):
+    # given
+    page_slug = "test-slug"
+    page_content = "test content"
+    page_content_json = json.dumps({"content": "test content"})
+    page_title = "test title"
+    page_is_published = True
+    page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
+
+    # Default attributes defined in product_type fixture
+    tag_attr = page_type.page_attributes.get(name="tag")
+    tag_attr_id = graphene.Node.to_global_id("Attribute", tag_attr.id)
+
+    # test creating root page
+    variables = {
+        "title": page_title,
+        "content": page_content,
+        "contentJson": page_content_json,
+        "isPublished": page_is_published,
+        "slug": page_slug,
+        "pageType": page_type_id,
+        "attributes": [{"id": tag_attr_id, "values": ["  "]}],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_PAGE_MUTATION, variables, permissions=[permission_manage_pages]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["pageCreate"]
+    errors = data["pageErrors"]
+
+    assert not data["page"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "attributes"
+    assert errors[0]["code"] == PageErrorCode.REQUIRED.name
+    assert errors[0]["attributes"] == [
+        graphene.Node.to_global_id("Attribute", tag_attr.pk)
+    ]
 
 
 def test_page_delete_mutation(staff_api_client, page, permission_manage_pages):
@@ -201,12 +375,31 @@ def test_page_delete_mutation(staff_api_client, page, permission_manage_pages):
 
 
 UPDATE_PAGE_MUTATION = """
-    mutation updatePage($id: ID!, $slug: String) {
-        pageUpdate(id: $id, input: {slug: $slug}) {
+    mutation updatePage(
+        $id: ID!,
+        $slug: String,
+        $is_published: Boolean!,
+        $attributes: [AttributeValueInput!]
+    ) {
+        pageUpdate(
+            id: $id, input: {
+                slug: $slug, isPublished: $is_published, attributes: $attributes
+            }
+        ) {
             page {
                 id
                 title
                 slug
+                isPublished
+                publicationDate
+                attributes {
+                    attribute {
+                        slug
+                    }
+                    values {
+                        slug
+                    }
+                }
             }
             pageErrors {
                 field
@@ -219,22 +412,87 @@ UPDATE_PAGE_MUTATION = """
 
 
 def test_update_page(staff_api_client, permission_manage_pages, page):
+    # given
     query = UPDATE_PAGE_MUTATION
+
+    page_type = page.page_type
+    tag_attr = page_type.page_attributes.get(name="tag")
+    tag_attr_id = graphene.Node.to_global_id("Attribute", tag_attr.id)
+    new_value = "Rainbow"
+
     page_title = page.title
     new_slug = "new-slug"
     assert new_slug != page.slug
 
     page_id = graphene.Node.to_global_id("Page", page.id)
-    variables = {"id": page_id, "slug": new_slug}
+
+    variables = {
+        "id": page_id,
+        "slug": new_slug,
+        "is_published": True,
+        "attributes": [{"id": tag_attr_id, "values": [new_value]}],
+    }
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_pages]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["pageUpdate"]
 
     assert not data["pageErrors"]
     assert data["page"]["title"] == page_title
     assert data["page"]["slug"] == new_slug
+
+    expected_attributes = []
+    page_attr = page.attributes.all()
+    for attr in page_type.page_attributes.all():
+        if attr.slug != tag_attr.slug:
+            values = [
+                {"slug": slug}
+                for slug in page_attr.filter(assignment__attribute=attr).values_list(
+                    "values__slug", flat=True
+                )
+            ]
+        else:
+            values = [{"slug": slugify(new_value)}]
+        attr_data = {
+            "attribute": {"slug": attr.slug},
+            "values": values,
+        }
+        expected_attributes.append(attr_data)
+
+    attributes = data["page"]["attributes"]
+    assert len(attributes) == len(expected_attributes)
+    for attr_data in attributes:
+        assert attr_data in expected_attributes
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_public_page_sets_publication_date(
+    staff_api_client, permission_manage_pages, page_type
+):
+    data = {
+        "slug": "test-url",
+        "title": "Test page",
+        "content": "test content",
+        "is_published": False,
+        "page_type": page_type,
+    }
+    page = Page.objects.create(**data)
+    page_id = graphene.Node.to_global_id("Page", page.id)
+    variables = {"id": page_id, "is_published": True, "slug": page.slug}
+    response = staff_api_client.post_graphql(
+        UPDATE_PAGE_MUTATION, variables, permissions=[permission_manage_pages]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["pageUpdate"]
+
+    assert not data["pageErrors"]
+    assert data["page"]["isPublished"] is True
+    assert data["page"]["publicationDate"] == "2020-03-18"
 
 
 @pytest.mark.parametrize("slug_value", [None, ""])
@@ -245,7 +503,7 @@ def test_update_page_blank_slug_value(
     assert slug_value != page.slug
 
     page_id = graphene.Node.to_global_id("Page", page.id)
-    variables = {"id": page_id, "slug": slug_value}
+    variables = {"id": page_id, "slug": slug_value, "is_published": True}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_pages]
     )
@@ -290,19 +548,21 @@ def test_update_page_with_title_value_and_without_slug_value(
     assert errors[0]["code"] == PageErrorCode.REQUIRED.name
 
 
-def test_paginate_pages(user_api_client, page):
+def test_paginate_pages(user_api_client, page, page_type):
     page.is_published = True
     data_02 = {
         "slug": "test02-url",
         "title": "Test page",
         "content": "test content",
         "is_published": True,
+        "page_type": page_type,
     }
     data_03 = {
         "slug": "test03-url",
         "title": "Test page",
         "content": "test content",
         "is_published": True,
+        "page_type": page_type,
     }
 
     Page.objects.create(**data_02)
@@ -379,7 +639,7 @@ def test_bulk_unpublish(staff_api_client, page_list, permission_manage_pages):
     ],
 )
 def test_pages_query_with_filter(
-    page_filter, count, staff_api_client, permission_manage_pages
+    page_filter, count, staff_api_client, permission_manage_pages, page_type
 ):
     query = """
         query ($filter: PageFilterInput) {
@@ -393,9 +653,24 @@ def test_pages_query_with_filter(
             }
         }
     """
-    Page.objects.create(title="Page1", slug="slug_page_1", content="Content for page 1")
-    Page.objects.create(title="Page2", slug="slug_page_2", content="Content for page 2")
-    Page.objects.create(title="About", slug="slug_about", content="About test content")
+    Page.objects.create(
+        title="Page1",
+        slug="slug_page_1",
+        content="Content for page 1",
+        page_type=page_type,
+    )
+    Page.objects.create(
+        title="Page2",
+        slug="slug_page_2",
+        content="Content for page 2",
+        page_type=page_type,
+    )
+    Page.objects.create(
+        title="About",
+        slug="slug_about",
+        content="About test content",
+        page_type=page_type,
+    )
     variables = {"filter": page_filter}
     staff_api_client.user.user_permissions.add(permission_manage_pages)
     response = staff_api_client.post_graphql(query, variables)
@@ -438,7 +713,7 @@ QUERY_PAGE_WITH_SORT = """
     ],
 )
 def test_query_pages_with_sort(
-    page_sort, result_order, staff_api_client, permission_manage_pages
+    page_sort, result_order, staff_api_client, permission_manage_pages, page_type
 ):
     with freeze_time("2017-05-31 12:00:01"):
         Page.objects.create(
@@ -447,6 +722,7 @@ def test_query_pages_with_sort(
             content="p1",
             is_published=True,
             publication_date=timezone.now().replace(year=2018, month=12, day=5),
+            page_type=page_type,
         )
     with freeze_time("2019-05-31 12:00:01"):
         Page.objects.create(
@@ -455,10 +731,15 @@ def test_query_pages_with_sort(
             content="p2",
             is_published=False,
             publication_date=timezone.now().replace(year=2019, month=12, day=5),
+            page_type=page_type,
         )
     with freeze_time("2018-05-31 12:00:01"):
         Page.objects.create(
-            title="About", slug="about", content="Ab", is_published=True
+            title="About",
+            slug="about",
+            content="Ab",
+            is_published=True,
+            page_type=page_type,
         )
     variables = {"sort_by": page_sort}
     staff_api_client.user.user_permissions.add(permission_manage_pages)

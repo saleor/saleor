@@ -3,14 +3,13 @@ import pytest
 
 from ....menu.models import Menu, MenuItem
 from ...tests.utils import get_graphql_content
-from .utils import menu_item_to_json
 
 
 @pytest.fixture
 def menu_list():
-    menu_1 = Menu.objects.create(name="test-navbar-1", json_content={})
-    menu_2 = Menu.objects.create(name="test-navbar-2", json_content={})
-    menu_3 = Menu.objects.create(name="test-navbar-3", json_content={})
+    menu_1 = Menu.objects.create(name="test-navbar-1", slug="test-navbar-1")
+    menu_2 = Menu.objects.create(name="test-navbar-2", slug="test-navbar-2")
+    menu_3 = Menu.objects.create(name="test-navbar-3", slug="test-navbar-3")
     return menu_1, menu_2, menu_3
 
 
@@ -46,9 +45,6 @@ def test_delete_menu_items(staff_api_client, menu_item_list, permission_manage_m
         }
     }
     """
-    menu = menu_item_list[0].menu
-    items_json = [menu_item_to_json(item) for item in menu_item_list]
-
     variables = {
         "ids": [
             graphene.Node.to_global_id("MenuItem", menu_item.id)
@@ -64,10 +60,6 @@ def test_delete_menu_items(staff_api_client, menu_item_list, permission_manage_m
     assert not MenuItem.objects.filter(
         id__in=[menu_item.id for menu_item in menu_item_list]
     ).exists()
-
-    menu.refresh_from_db()
-    for item_json in items_json:
-        assert item_json not in menu.json_content
 
 
 def test_delete_empty_list_of_ids(staff_api_client, permission_manage_menus):

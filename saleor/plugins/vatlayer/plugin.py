@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, List, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -14,6 +14,7 @@ from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 from ...checkout import calculations
 from ...core.taxes import TaxType
 from ...graphql.core.utils.error_codes import PluginErrorCode
+from ...product.models import Product, ProductType
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from . import (
     DEFAULT_TAX_RATE_NAME,
@@ -26,11 +27,11 @@ from . import (
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ...checkout.models import Checkout, CheckoutLine
-    from ...discount import DiscountInfo
-    from ...product.models import Product, ProductType
     from ...account.models import Address
-    from ...order.models import OrderLine, Order
+    from ...checkout.models import Checkout, CheckoutLine
+    from ...channel.models import Channel
+    from ...discount import DiscountInfo
+    from ...order.models import Order, OrderLine
     from ..models import PluginConfiguration
 
 
@@ -122,8 +123,10 @@ class VatlayerPlugin(BasePlugin):
             taxes = self._get_taxes_for_country(address.country)
         if not checkout.shipping_method:
             return previous_value
-
-        return get_taxed_shipping_price(checkout.shipping_method.price, taxes)
+        shipping_price = checkout.shipping_method.channel_listings.get(
+            channel_id=checkout.channel_id
+        ).price
+        return get_taxed_shipping_price(shipping_price, taxes)
 
     def calculate_order_shipping(
         self, order: "Order", previous_value: TaxedMoney
@@ -137,12 +140,16 @@ class VatlayerPlugin(BasePlugin):
             taxes = self._get_taxes_for_country(address.country)
         if not order.shipping_method:
             return previous_value
-        return get_taxed_shipping_price(order.shipping_method.price, taxes)
+        shipping_price = order.shipping_method.channel_listings.get(
+            channel_id=order.channel_id
+        ).price
+        return get_taxed_shipping_price(shipping_price, taxes)
 
     def calculate_checkout_line_total(
         self,
         checkout_line: "CheckoutLine",
         discounts: List["DiscountInfo"],
+        channel: "Channel",
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
         if self._skip_plugin(previous_value):
@@ -152,7 +159,7 @@ class VatlayerPlugin(BasePlugin):
             checkout_line.checkout.shipping_address
             or checkout_line.checkout.billing_address
         )
-        price = checkout_line.variant.get_price(discounts)
+        price = checkout_line.variant.get_price(channel.slug, discounts)
         country = address.country if address else None
         return (
             self.__apply_taxes_to_product(checkout_line.variant.product, price, country)
@@ -236,9 +243,17 @@ class VatlayerPlugin(BasePlugin):
         return apply_tax_to_price(taxes, tax_rate, price)
 
     def assign_tax_code_to_object_meta(
-        self, obj: Union["Product", "ProductType"], tax_code: str, previous_value: Any
+        self,
+        obj: Union["Product", "ProductType"],
+        tax_code: Optional[str],
+        previous_value: Any,
     ):
         if not self.active:
+            return previous_value
+
+        if tax_code is None and obj.pk:
+            obj.delete_value_from_metadata(self.META_CODE_KEY)
+            obj.delete_value_from_metadata(self.META_DESCRIPTION_KEY)
             return previous_value
 
         if tax_code not in dict(TaxRateType.CHOICES):
@@ -246,7 +261,6 @@ class VatlayerPlugin(BasePlugin):
 
         tax_item = {self.META_CODE_KEY: tax_code, self.META_DESCRIPTION_KEY: tax_code}
         obj.store_value_in_metadata(items=tax_item)
-        obj.save()
         return previous_value
 
     def get_tax_code_from_object_meta(
@@ -259,9 +273,19 @@ class VatlayerPlugin(BasePlugin):
     def __get_tax_code_from_object_meta(
         self, obj: Union["Product", "ProductType"]
     ) -> "TaxType":
-        tax_code = obj.get_value_from_metadata(self.META_CODE_KEY, "")
-        tax_description = obj.get_value_from_metadata(self.META_DESCRIPTION_KEY, "")
-        return TaxType(code=tax_code, description=tax_description,)
+
+        # Product has None as it determines if we overwrite taxes for the product
+        default_tax_code = None
+        default_tax_description = None
+        if isinstance(obj, ProductType):
+            default_tax_code = DEFAULT_TAX_RATE_NAME
+            default_tax_description = DEFAULT_TAX_RATE_NAME
+
+        tax_code = obj.get_value_from_metadata(self.META_CODE_KEY, default_tax_code)
+        tax_description = obj.get_value_from_metadata(
+            self.META_DESCRIPTION_KEY, default_tax_description
+        )
+        return TaxType(code=tax_code, description=tax_description)
 
     def get_tax_rate_percentage_value(
         self, obj: Union["Product", "ProductType"], country: Country, previous_value

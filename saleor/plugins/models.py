@@ -1,5 +1,5 @@
-from django.contrib.postgres.fields import JSONField
 from django.db import models
+from django.db.models import JSONField  # type: ignore
 
 from ..core.permissions import PluginsPermissions
 from ..core.utils.json_serializer import CustomJsonEncoder
@@ -9,7 +9,7 @@ class PluginConfiguration(models.Model):
     identifier = models.CharField(max_length=128, unique=True)
     name = models.CharField(max_length=128)
     description = models.TextField(blank=True)
-    active = models.BooleanField(default=True)
+    active = models.BooleanField(default=False)
     configuration = JSONField(
         blank=True, null=True, default=dict, encoder=CustomJsonEncoder
     )

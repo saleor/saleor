@@ -7,12 +7,10 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.utils import timezone
 from graphene import InputField
-from graphql_jwt.shortcuts import get_token
 
-from ....account.error_codes import AccountErrorCode
-from ....product.models import Category, Product
+from ....product.models import Category, Product, ProductChannelListing
 from ...product import types as product_types
-from ...tests.utils import _get_graphql_content_from_response, get_graphql_content
+from ...tests.utils import get_graphql_content, get_graphql_content_from_response
 from ...utils import get_database_id, requestor_is_superuser
 from ...utils.filters import filter_range_field, reporting_period_to_date
 from ..enums import ReportingPeriod
@@ -79,37 +77,6 @@ def test_snake_to_camel_case():
     assert snake_to_camel_case(123) == 123
 
 
-def test_mutation_returns_error_field_in_camel_case(
-    staff_api_client, variant, permission_manage_products
-):
-    # costPrice is snake case variable (cost_price) in the backend
-    query = """
-    mutation testCamel($id: ID!, $cost: Decimal) {
-        productVariantUpdate(id: $id,
-        input: {costPrice: $cost, trackInventory: false}) {
-            errors {
-                field
-                message
-            }
-            productVariant {
-                id
-            }
-        }
-    }
-    """
-    variables = {
-        "id": graphene.Node.to_global_id("ProductVariant", variant.id),
-        "cost": 12.1234,
-    }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
-    content = get_graphql_content(response)
-    errors = content["data"]["productVariantUpdate"]["errors"]
-    assert len(errors) == 1
-    assert errors[0]["field"] == "costPriceAmount"
-
-
 def test_reporting_period_to_date():
     now = timezone.now()
     start_date = reporting_period_to_date(ReportingPeriod.TODAY)
@@ -141,7 +108,7 @@ def test_require_pagination(api_client):
     }
     """
     response = api_client.post_graphql(query)
-    content = _get_graphql_content_from_response(response)
+    content = get_graphql_content_from_response(response)
     assert "errors" in content
     assert content["errors"][0]["message"] == (
         "You must provide a `first` or `last` value to properly paginate the "
@@ -149,79 +116,17 @@ def test_require_pagination(api_client):
     )
 
 
-def test_total_count_query(api_client, product):
+def test_total_count_query(api_client, product, channel_USD):
     query = """
-    query {
-        products {
+    query ($channel: String){
+        products (channel: $channel){
             totalCount
         }
     }
     """
-    response = api_client.post_graphql(query)
+    response = api_client.post_graphql(query, {"channel": channel_USD.slug})
     content = get_graphql_content(response)
     assert content["data"]["products"]["totalCount"] == Product.objects.count()
-
-
-def test_mutation_decimal_input(
-    staff_api_client, variant, stock, permission_manage_products
-):
-    query = """
-    mutation decimalInput($id: ID!, $cost: Decimal) {
-        productVariantUpdate(id: $id,
-        input: {costPrice: $cost}) {
-            errors {
-                field
-                message
-            }
-            productVariant {
-                costPrice{
-                    amount
-                }
-            }
-        }
-    }
-    """
-    variables = {
-        "id": graphene.Node.to_global_id("ProductVariant", variant.id),
-        "cost": 12.12,
-        "quantity": 17,
-    }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["productVariantUpdate"]
-    assert data["errors"] == []
-
-
-def test_mutation_decimal_input_without_arguments(
-    staff_api_client, variant, permission_manage_products
-):
-    query = """
-    mutation {
-        productVariantUpdate(id: "%(variant_id)s",
-        input: {costPrice: "%(cost)s"}) {
-            errors {
-                field
-                message
-            }
-            productVariant {
-                costPrice{
-                    amount
-                }
-            }
-        }
-    }
-    """ % {
-        "variant_id": graphene.Node.to_global_id("ProductVariant", variant.id),
-        "cost": 12.12,
-    }
-    response = staff_api_client.post_graphql(
-        query, permissions=[permission_manage_products]
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["productVariantUpdate"]
-    assert data["errors"] == []
 
 
 def test_filter_input():
@@ -288,83 +193,6 @@ def test_mutation_invalid_permission_in_meta(_mocked, should_fail, permissions_v
     assert exc.value.args[0] == "Permissions should be a tuple or a string in Meta"
 
 
-MUTATION_CREATE_TOKEN = """
-    mutation tokenCreate($email: String!, $password: String!){
-        tokenCreate(email: $email, password: $password) {
-            token
-            user {
-                email
-            }
-            errors {
-                field
-                message
-            }
-            accountErrors {
-                field
-                message
-                code
-            }
-        }
-    }
-"""
-
-
-def test_create_token(api_client, customer_user):
-    variables = {"email": customer_user.email, "password": customer_user._password}
-    response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
-    content = get_graphql_content(response)
-    user_email = content["data"]["tokenCreate"]["user"]["email"]
-    assert customer_user.email == user_email
-    assert content["data"]["tokenCreate"]["token"]
-    assert content["data"]["tokenCreate"]["accountErrors"] == []
-
-
-def test_create_token_invalid_password(api_client, customer_user):
-    variables = {"email": customer_user.email, "password": "wrongpassword"}
-    expected_error_code = AccountErrorCode.INVALID_CREDENTIALS.value.upper()
-    response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
-    content = get_graphql_content(response)
-    response_error = content["data"]["tokenCreate"]["accountErrors"][0]
-    assert response_error["code"] == expected_error_code
-    assert response_error["field"] == "email"
-
-
-def test_create_token_invalid_email(api_client, customer_user):
-    variables = {"email": "wrongemail", "password": "wrongpassword"}
-    expected_error_code = AccountErrorCode.INVALID_CREDENTIALS.value.upper()
-    response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
-    content = get_graphql_content(response)
-    response_error = content["data"]["tokenCreate"]["accountErrors"][0]
-    assert response_error["code"] == expected_error_code
-    assert response_error["field"] == "email"
-
-
-MUTATION_TOKEN_VERIFY = """
-    mutation tokenVerify($token: String!){
-        tokenVerify(token: $token){
-            user{
-                email
-            }
-        }
-    }
-"""
-
-
-def test_verify_token(api_client, customer_user):
-    variables = {"token": get_token(customer_user)}
-    response = api_client.post_graphql(MUTATION_TOKEN_VERIFY, variables)
-    content = get_graphql_content(response)
-    user_email = content["data"]["tokenVerify"]["user"]["email"]
-    assert customer_user.email == user_email
-
-
-def test_verify_token_incorrect_token(api_client):
-    variables = {"token": "incorrect_token"}
-    response = api_client.post_graphql(MUTATION_TOKEN_VERIFY, variables)
-    content = get_graphql_content(response)
-    assert not content["data"]["tokenVerify"]
-
-
 @pytest.mark.parametrize(
     "cleaned_input",
     [
@@ -414,8 +242,8 @@ def test_validate_slug_and_generate_if_needed_generate_slug(cleaned_input):
     ],
 )
 def test_filter_range_field(value, count, product_indexes, product_list):
-    qs = Product.objects.all().order_by("pk")
-    field = "price_amount"
+    qs = ProductChannelListing.objects.all().order_by("pk")
+    field = "discounted_price_amount"
 
     result = filter_range_field(qs, field, value)
 

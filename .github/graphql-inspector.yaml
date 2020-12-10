@@ -1,0 +1,11 @@
+branch: "master"
+schema: "saleor/graphql/schema.graphql"
+diff:
+  # Pull Request annotations
+  annotations: true
+  # Merge Pull Request's branch with the target branch to get the schema
+  experimental_merge: true
+  # Label to mark Pull Request introducing breaking changes as safe and expected
+  approveLabel: 'approved-breaking-change'
+  # Limit a list of changes in summary
+  summaryLimit: 200

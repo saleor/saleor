@@ -1,11 +1,13 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from graphene.types import InputObjectType
 
 from ....account.models import User
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
-from ....core.taxes import zero_taxed_money
+from ....core.taxes import TaxError, zero_taxed_money
+from ....core.utils.url import validate_storefront_url
 from ....order import OrderStatus, events, models
 from ....order.actions import order_created
 from ....order.error_codes import OrderErrorCode
@@ -20,12 +22,17 @@ from ....order.utils import (
 from ....warehouse.management import allocate_stock
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
+from ...channel.types import Channel
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ...core.scalars import Decimal
+from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
 from ...product.types import ProductVariant
 from ..types import Order, OrderLine
-from ..utils import validate_draft_order
+from ..utils import (
+    validate_draft_order,
+    validate_product_is_published_in_channel,
+    validate_variant_channel_listings,
+)
 
 
 class OrderLineInput(graphene.InputObjectType):
@@ -46,7 +53,7 @@ class DraftOrderInput(InputObjectType):
         descripton="Customer associated with the draft order.", name="user"
     )
     user_email = graphene.String(description="Email address of the customer.")
-    discount = Decimal(description="Discount amount for the order.")
+    discount = PositiveDecimal(description="Discount amount for the order.")
     shipping_address = AddressInput(description="Shipping address of the customer.")
     shipping_method = graphene.ID(
         description="ID of a selected shipping method.", name="shippingMethod"
@@ -56,6 +63,16 @@ class DraftOrderInput(InputObjectType):
     )
     customer_note = graphene.String(
         description="A note from a customer. Visible by customers in the order summary."
+    )
+    channel = graphene.ID(
+        description="ID of the channel associated with the order.", name="channel"
+    )
+    redirect_url = graphene.String(
+        required=False,
+        description=(
+            "URL of a view where users should be redirected to "
+            "see the order details. URL in RFC 1808 format."
+        ),
     )
 
 
@@ -82,15 +99,70 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         error_type_field = "order_errors"
 
     @classmethod
+    def clean_channel_id(cls, instance, channel_id):
+        if channel_id and hasattr(instance, "channel"):
+            raise ValidationError(
+                {
+                    "channel": ValidationError(
+                        "Can't update existing order channel id.",
+                        code=OrderErrorCode.NOT_EDITABLE.value,
+                    )
+                }
+            )
+
+    @classmethod
+    def clean_voucher(cls, voucher, channel):
+        if not voucher.channel_listings.filter(channel=channel).exists():
+            raise ValidationError(
+                {
+                    "voucher": ValidationError(
+                        "Voucher not available for this order.",
+                        code=OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.value,
+                    )
+                }
+            )
+
+    @classmethod
+    def clean_redirect_url(cls, redirect_url):
+        try:
+            validate_storefront_url(redirect_url)
+        except ValidationError as error:
+            error.code = OrderErrorCode.INVALID.value
+            raise ValidationError({"redirect_url": error})
+
+    @classmethod
     def clean_input(cls, info, instance, data):
         shipping_address = data.pop("shipping_address", None)
+        redirect_url = data.pop("redirect_url", None)
         billing_address = data.pop("billing_address", None)
         cleaned_input = super().clean_input(info, instance, data)
-
         lines = data.pop("lines", None)
+        channel_id = data.get("channel", None)
+        if "channel" in cleaned_input and channel_id is None:
+            del cleaned_input["channel"]
+        cls.clean_channel_id(instance, channel_id)
+        voucher = cleaned_input.get("voucher", None)
+        if voucher:
+            channel = cleaned_input.get("channel") or instance.channel
+            cls.clean_voucher(voucher, channel)
+
+        channel = instance.channel if hasattr(instance, "channel") else None
+        if not channel and channel_id:
+            channel = cls.get_node_or_error(info, channel_id, only_type=Channel)
+        if channel:
+            cleaned_input["currency"] = channel.currency_code
+
         if lines:
             variant_ids = [line.get("variant_id") for line in lines]
             variants = cls.get_nodes_or_error(variant_ids, "variants", ProductVariant)
+            try:
+                validate_product_is_published_in_channel(variants, channel)
+                validate_variant_channel_listings(variants, channel)
+            except ValidationError as error:
+                field_name = "lines"
+                if error.code == OrderErrorCode.REQUIRED:
+                    field_name = "channel"
+                raise ValidationError({field_name: error})
             quantities = [line.get("quantity") for line in lines]
             cleaned_input["variants"] = variants
             cleaned_input["quantities"] = quantities
@@ -122,11 +194,14 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                 billing_address, "billing", user=instance
             )
             cleaned_input["billing_address"] = billing_address
+        if redirect_url:
+            cls.clean_redirect_url(redirect_url)
+            cleaned_input["redirect_url"] = redirect_url
+
         return cleaned_input
 
     @staticmethod
     def _save_addresses(info, instance: models.Order, cleaned_input):
-        # Create the draft creation event
         shipping_address = cleaned_input.get("shipping_address")
         if shipping_address:
             shipping_address.save()
@@ -173,6 +248,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             update_order_prices(instance, info.context.discounts)
 
     @classmethod
+    @transaction.atomic
     def save(cls, info, instance, cleaned_input):
         new_instance = not bool(instance.pk)
 
@@ -182,15 +258,21 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         # Save any changes create/update the draft
         cls._commit_changes(info, instance, cleaned_input)
 
-        # Process any lines to add
-        cls._save_lines(
-            info,
-            instance,
-            cleaned_input.get("quantities"),
-            cleaned_input.get("variants"),
-        )
+        try:
+            # Process any lines to add
+            cls._save_lines(
+                info,
+                instance,
+                cleaned_input.get("quantities"),
+                cleaned_input.get("variants"),
+            )
 
-        cls._refresh_lines_unit_price(info, instance, cleaned_input, new_instance)
+            cls._refresh_lines_unit_price(info, instance, cleaned_input, new_instance)
+        except TaxError as tax_error:
+            raise ValidationError(
+                "Unable to calculate taxes - %s" % str(tax_error),
+                code=OrderErrorCode.TAX_ERROR.value,
+            )
 
         # Post-process the results
         recalculate_order(instance)
@@ -198,7 +280,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
 class DraftOrderUpdate(DraftOrderCreate):
     class Arguments:
-        id = graphene.ID(required=True, description="ID of an order to update.")
+        id = graphene.ID(required=True, description="ID of a draft order to update.")
         input = DraftOrderInput(
             required=True, description="Fields required to update an order."
         )
@@ -209,6 +291,21 @@ class DraftOrderUpdate(DraftOrderCreate):
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
+
+    @classmethod
+    def get_instance(cls, info, **data):
+        instance = super().get_instance(info, **data)
+        if instance.status != OrderStatus.DRAFT:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Provided order id belongs to non-draft order. "
+                        "Use `orderUpdate` mutation instead.",
+                        code=OrderErrorCode.INVALID,
+                    )
+                }
+            )
+        return instance
 
 
 class DraftOrderDelete(ModelDeleteMutation):
@@ -257,9 +354,10 @@ class DraftOrderComplete(BaseMutation):
 
         if not order.is_shipping_required():
             order.shipping_method_name = None
-            order.shipping_price = zero_taxed_money()
+            order.shipping_price = zero_taxed_money(order.currency)
             if order.shipping_address:
                 order.shipping_address.delete()
+                order.shipping_address = None
 
         order.save()
 
@@ -335,12 +433,24 @@ class DraftOrderLinesCreate(BaseMutation):
                         )
                     }
                 )
-
+        variants = [line[1] for line in lines_to_add]
+        try:
+            channel = order.channel
+            validate_product_is_published_in_channel(variants, channel)
+            validate_variant_channel_listings(variants, channel)
+        except ValidationError as error:
+            raise ValidationError({"input": error})
         # Add the lines
-        lines = [
-            add_variant_to_draft_order(order, variant, quantity)
-            for quantity, variant in lines_to_add
-        ]
+        try:
+            lines = [
+                add_variant_to_draft_order(order, variant, quantity)
+                for quantity, variant in lines_to_add
+            ]
+        except TaxError as tax_error:
+            raise ValidationError(
+                "Unable to calculate taxes - %s" % str(tax_error),
+                code=OrderErrorCode.TAX_ERROR.value,
+            )
 
         # Create the event
         events.draft_order_added_products_event(

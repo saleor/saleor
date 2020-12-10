@@ -1,12 +1,15 @@
 from typing import TYPE_CHECKING, Iterable, Optional
 
-from ..core.taxes import quantize_price
+from ..core.prices import quantize_price
+from ..core.taxes import zero_taxed_money
 from ..discount import DiscountInfo
 from ..plugins.manager import get_plugins_manager
 
 if TYPE_CHECKING:
     from prices import TaxedMoney
+
     from .models import Checkout, CheckoutLine
+    from ..channel.models import Channel
 
 
 def checkout_shipping_price(
@@ -41,6 +44,17 @@ def checkout_subtotal(
     return quantize_price(calculated_checkout_subtotal, checkout.currency)
 
 
+def calculate_checkout_total_with_gift_cards(
+    checkout: "Checkout", discounts: Optional[Iterable[DiscountInfo]] = None
+) -> "TaxedMoney":
+    total = (
+        checkout_total(checkout=checkout, lines=list(checkout), discounts=discounts,)
+        - checkout.get_total_gift_cards_balance()
+    )
+
+    return max(total, zero_taxed_money(total.currency))
+
+
 def checkout_total(
     *,
     checkout: "Checkout",
@@ -61,13 +75,16 @@ def checkout_total(
 
 
 def checkout_line_total(
-    *, line: "CheckoutLine", discounts: Optional[Iterable[DiscountInfo]] = None
+    *,
+    line: "CheckoutLine",
+    discounts: Optional[Iterable[DiscountInfo]] = None,
+    channel: "Channel"
 ) -> "TaxedMoney":
     """Return the total price of provided line, taxes included.
 
     It takes in account all plugins.
     """
     calculated_line_total = get_plugins_manager().calculate_checkout_line_total(
-        line, discounts or []
+        line, discounts or [], channel
     )
     return quantize_price(calculated_line_total, line.checkout.currency)

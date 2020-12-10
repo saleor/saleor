@@ -3,10 +3,10 @@ from typing import Optional
 
 import graphene
 from django.contrib.auth import models as auth_models
-from graphql_jwt.exceptions import PermissionDenied
 from i18naddress import get_validation_rules
 
 from ...account import models
+from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
 from ...payment import gateway
 from ...payment.utils import fetch_customer_id
@@ -109,8 +109,7 @@ def resolve_address_validation_rules(
 
 def resolve_payment_sources(user: models.User):
     stored_customer_accounts = (
-        (gtw["id"], fetch_customer_id(user, gtw["id"]))
-        for gtw in gateway.list_gateways()
+        (gtw.id, fetch_customer_id(user, gtw.id)) for gtw in gateway.list_gateways()
     )
     return list(
         chain(
@@ -156,5 +155,5 @@ def resolve_address(info, id):
 
 def resolve_permissions(root: models.User):
     permissions = get_user_permissions(root)
-    permissions = permissions.prefetch_related("content_type").order_by("codename")
+    permissions = permissions.order_by("codename")
     return format_permissions_for_display(permissions)

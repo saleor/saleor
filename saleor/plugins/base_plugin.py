@@ -2,20 +2,30 @@ from copy import copy
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, List, Optional, Union
 
+from django.core.handlers.wsgi import WSGIRequest
+from django.http import HttpResponse
 from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
+from ..payment.interface import (
+    CustomerSource,
+    GatewayResponse,
+    InitializedPaymentResponse,
+    PaymentData,
+    PaymentGateway,
+)
 from .models import PluginConfiguration
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ..core.taxes import TaxType
-    from ..checkout.models import Checkout, CheckoutLine
-    from ..discount import DiscountInfo
-    from ..product.models import Product, ProductType
     from ..account.models import Address, User
-    from ..order.models import Fulfillment, OrderLine, Order
-    from ..payment.interface import GatewayResponse, PaymentData, CustomerSource
+    from ..channel.models import Channel
+    from ..checkout.models import Checkout, CheckoutLine
+    from ..core.taxes import TaxType
+    from ..discount import DiscountInfo
+    from ..invoice.models import Invoice
+    from ..order.models import Fulfillment, Order, OrderLine
+    from ..product.models import Product, ProductType
 
 
 PluginConfigurationType = List[dict]
@@ -25,12 +35,14 @@ class ConfigurationTypeField:
     STRING = "String"
     BOOLEAN = "Boolean"
     SECRET = "Secret"
+    SECRET_MULTILINE = "SecretMultiline"
     PASSWORD = "Password"
     CHOICES = [
         (STRING, "Field is a String"),
         (BOOLEAN, "Field is a Boolean"),
         (SECRET, "Field is a Secret"),
         (PASSWORD, "Field is a Password"),
+        (SECRET_MULTILINE, "Field is a Secret multiline"),
     ]
 
 
@@ -55,6 +67,13 @@ class BasePlugin:
 
     def __str__(self):
         return self.PLUGIN_NAME
+
+    def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:
+        """Handle received http request.
+
+        Overwrite this method if the plugin expects the incoming requests.
+        """
+        return NotImplemented
 
     def change_user_address(
         self,
@@ -117,10 +136,12 @@ class BasePlugin:
         """
         return NotImplemented
 
+    # TODO: Add information about this change to `breaking changes in changelog`
     def calculate_checkout_line_total(
         self,
         checkout_line: "CheckoutLine",
         discounts: List["DiscountInfo"],
+        channel: "Channel",
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
         """Calculate checkout line total.
@@ -212,8 +233,44 @@ class BasePlugin:
         """
         return NotImplemented
 
+    def order_confirmed(self, order: "Order", previous_value: Any):
+        """Trigger when order is confirmed by staff.
+
+        Overwrite this method if you need to trigger specific logic after an order is
+        confirmed.
+        """
+        return NotImplemented
+
+    def invoice_request(
+        self,
+        order: "Order",
+        invoice: "Invoice",
+        number: Optional[str],
+        previous_value: Any,
+    ) -> Any:
+        """Trigger when invoice creation starts.
+
+        Overwrite to create invoice with proper data, call invoice.update_invoice.
+        """
+        return NotImplemented
+
+    def invoice_delete(self, invoice: "Invoice", previous_value: Any):
+        """Trigger before invoice is deleted.
+
+        Perform any extra logic before the invoice gets deleted.
+        Note there is no need to run invoice.delete() as it will happen in mutation.
+        """
+        return NotImplemented
+
+    def invoice_sent(self, invoice: "Invoice", email: str, previous_value: Any):
+        """Trigger after invoice is sent."""
+        return NotImplemented
+
     def assign_tax_code_to_object_meta(
-        self, obj: Union["Product", "ProductType"], tax_code: str, previous_value: Any
+        self,
+        obj: Union["Product", "ProductType"],
+        tax_code: Optional[str],
+        previous_value: Any,
     ):
         """Assign tax code dedicated to plugin."""
         return NotImplemented
@@ -246,6 +303,14 @@ class BasePlugin:
 
         Overwrite this method if you need to trigger specific logic after a product is
         created.
+        """
+        return NotImplemented
+
+    def product_updated(self, product: "Product", previous_value: Any) -> Any:
+        """Trigger when product is updated.
+
+        Overwrite this method if you need to trigger specific logic after a product is
+        updated.
         """
         return NotImplemented
 
@@ -291,8 +356,35 @@ class BasePlugin:
         """
         return NotImplemented
 
+    # Deprecated. This method will be removed in Saleor 3.0
+    def checkout_quantity_changed(
+        self, checkout: "Checkout", previous_value: Any
+    ) -> Any:
+        return NotImplemented
+
+    def checkout_created(self, checkout: "Checkout", previous_value: Any) -> Any:
+        """Trigger when checkout is created.
+
+        Overwrite this method if you need to trigger specific logic when a checkout is
+        created.
+        """
+        return NotImplemented
+
+    def checkout_updated(self, checkout: "Checkout", previous_value: Any) -> Any:
+        """Trigger when checkout is updated.
+
+        Overwrite this method if you need to trigger specific logic when a checkout is
+        updated.
+        """
+        return NotImplemented
+
     def fetch_taxes_data(self, previous_value: Any) -> Any:
         """Triggered when ShopFetchTaxRates mutation is called."""
+        return NotImplemented
+
+    def initialize_payment(
+        self, payment_data: dict, previous_value
+    ) -> "InitializedPaymentResponse":
         return NotImplemented
 
     def authorize_payment(
@@ -301,6 +393,11 @@ class BasePlugin:
         return NotImplemented
 
     def capture_payment(
+        self, payment_information: "PaymentData", previous_value
+    ) -> "GatewayResponse":
+        return NotImplemented
+
+    def void_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
         return NotImplemented
@@ -330,6 +427,33 @@ class BasePlugin:
 
     def get_payment_config(self, previous_value):
         return NotImplemented
+
+    def get_supported_currencies(self, previous_value):
+        return NotImplemented
+
+    def token_is_required_as_payment_input(self, previous_value):
+        return previous_value
+
+    def get_payment_gateway(
+        self, currency: Optional[str], previous_value
+    ) -> Optional["PaymentGateway"]:
+        payment_config = self.get_payment_config(previous_value)
+        payment_config = payment_config if payment_config != NotImplemented else []
+        currencies = self.get_supported_currencies(previous_value=[])
+        currencies = currencies if currencies != NotImplemented else []
+        if currency and currency not in currencies:
+            return None
+        return PaymentGateway(
+            id=self.PLUGIN_ID,
+            name=self.PLUGIN_NAME,
+            config=payment_config,
+            currencies=currencies,
+        )
+
+    def get_payment_gateway_for_checkout(
+        self, checkout: "Checkout", previous_value,
+    ) -> Optional["PaymentGateway"]:
+        return self.get_payment_gateway(checkout.currency, previous_value)
 
     @classmethod
     def _update_config_items(
@@ -410,21 +534,28 @@ class BasePlugin:
 
     @classmethod
     def _update_configuration_structure(cls, configuration: PluginConfigurationType):
+        updated_configuration = []
         config_structure = getattr(cls, "CONFIG_STRUCTURE") or {}
         desired_config_keys = set(config_structure.keys())
+        for config_field in configuration:
+            if config_field["name"] not in desired_config_keys:
+                continue
+            updated_configuration.append(config_field)
 
-        configured_keys = set(d["name"] for d in configuration)
+        configured_keys = set(d["name"] for d in updated_configuration)
         missing_keys = desired_config_keys - configured_keys
 
         if not missing_keys:
-            return
+            return updated_configuration
 
         default_config = cls.DEFAULT_CONFIGURATION
         if not default_config:
-            return
+            return updated_configuration
 
         update_values = [copy(k) for k in default_config if k["name"] in missing_keys]
-        configuration.extend(update_values)
+        if update_values:
+            updated_configuration.extend(update_values)
+        return updated_configuration
 
     @classmethod
     def get_default_active(cls):
@@ -435,7 +566,7 @@ class BasePlugin:
     ) -> PluginConfigurationType:
         if not configuration:
             configuration = []
-        self._update_configuration_structure(configuration)
+        configuration = self._update_configuration_structure(configuration)
         if configuration:
             # Let's add a translated descriptions and labels
             self._append_config_structure(configuration)

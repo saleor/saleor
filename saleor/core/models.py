@@ -1,8 +1,8 @@
 import datetime
 from typing import Any
 
-from django.contrib.postgres.fields import JSONField
 from django.db import models
+from django.db.models import JSONField  # type: ignore
 from django.db.models import F, Max, Q
 
 from . import JobStatus
@@ -71,7 +71,7 @@ class PublishableModel(models.Model):
     def is_visible(self):
         return self.is_published and (
             self.publication_date is None
-            or self.publication_date < datetime.date.today()
+            or self.publication_date <= datetime.date.today()
         )
 
 
@@ -119,6 +119,7 @@ class Job(models.Model):
     status = models.CharField(
         max_length=50, choices=JobStatus.CHOICES, default=JobStatus.PENDING
     )
+    message = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -4,10 +4,106 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-- Add our implementation of UUID scalar - #5646 by @koradon
-- Add AppTokenVerify mutation - #5716 by @korycins
+- Add possibility to provide external payment ID during the conversion draft order to order - #6320 by @korycins
+- Add basic rating for `Products` - #6284 by @korycins
+- Add metadata to shipping zones and shipping methods - #6340 by @maarcingebala
+- Drop deprecated meta mutations - #6422 by @maarcingebala
+- Add Page Types - #6261 by @IKarbowiak
+- Migrate draftjs content to editorjs format - #6430 by @IKarbowiak
+- Drop deprecated service accounts and webhooks API - #6431 by @maarcingebala
+- Add editorjs sanitizer - #6456 by @IKarbowiak
+- Add generic FileUpload mutation - #6470 by @IKarbowiak
+- Order confirmation backend - #6498 by @tomaszszymanski129
+- Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
+- Fix password reset request - #6351 by @Manfred-Madelaine-pro, Ambroise and Pierre
+- Refund products support - #6530 by @korycins
+- Add possibility to exclude products from shipping method - #6506 by @korycins
+- Add availableShippingMethods to the Shop type - #6551 by @IKarbowiak
+- Add delivery time to shipping method - #6564 by @IKarbowiak
+
+# 2.11.1
+
+- Add support for Apple Pay on the web - #6466 by @korycins
+
+## 2.11.0
+
+### Features
+
+- Add products export - #5255 by @IKarbowiak
+- Add external apps support - #5767 by @korycins
+- Invoices backend - #5732 by @tomaszszymanski129
+- Adyen drop-in integration - #5914 by @korycins, @IKarbowiak
+- Add a callback view to plugins - #5884 by @korycins
+- Support pushing webhook events to message queues - #5940 by @patrys, @korycins
+- Send a confirmation email when the order is canceled or refunded - #6017
+- No secure cookie in debug mode - #6082 by @patrys, @orzechdev
+- Add searchable and available for purchase flags to product - #6060 by @IKarbowiak
+- Add `TotalPrice` to `OrderLine` - #6068 @fowczarek
+- Add `PRODUCT_UPDATED` webhook event - #6100 by @tomaszszymanski129
+- Search orders by GraphQL payment ID - #6135 by @korycins
+- Search orders by a custom key provided by payment gateway - #6135 by @korycins
+- Add ability to set a default product variant - #6140 by @tomaszszymanski129
+- Allow product variants to be sortable - #6138 by @tomaszszymanski129
+- Allow fetching stocks for staff users only with `MANAGE_ORDERS` permissions - #6139 by @fowczarek
+- Add filtering to `ProductVariants` query and option to fetch variant by SKU in `ProductVariant` query - #6190 by @fowczarek
+- Add filtering by Product IDs to `products` query - #6224 by @GrzegorzDerdak
+- Add `change_currency` command - #6016 by @maarcingebala
+- Add dummy credit card payment - #5822 by @IKarbowiak
+- Add custom implementation of UUID scalar - #5646 by @koradon
+- Add `AppTokenVerify` mutation - #5716 by @korycins
+
+### Breaking Changes
+
+- Refactored JWT support. Requires handling of JWT token in the storefront (a case when the backend returns the exception about the invalid token). - #5734, #5816 by @korycins
+- New logging setup will now output JSON logs in production mode for ease of feeding them into log collection systems like Logstash or CloudWatch Logs - #5699 by @patrys
+- Deprecate `WebhookEventType.CHECKOUT_QUANTITY_CHANGED` - #5837 by @korycins
+- Anonymize and update order and payment fields; drop `PaymentSecureConfirm` mutation, drop Payment type fields: `extraData`, `billingAddress`, `billingEmail`, drop `gatewayResponse` from `Transaction` type - #5926 by @IKarbowiak
+- Switch the HTTP stack from WSGI to ASGI based on Uvicorn - #5960 by @patrys
+- Add `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` permission, which is now required to access all attributes and product types related mutations - #6219 by @IKarbowiak
+
+### Fixes
+
+- Fix payment fields in order payload for webhooks - #5862 by @korycins
 - Fix specific product voucher in draft orders - #5727 by @fowczarek
 - Explicit country assignment in default shipping zones - #5736 by @maarcingebala
+- Drop `json_content` field from the `Menu` model - #5761 by @maarcingebala
+- Strip warehouse name in mutations - #5766 by @koradon
+- Add missing order events during checkout flow - #5684 by @koradon
+- Update Google Merchant to get tax rate based by plugin manager - #5823 by @gabmartinez
+- Allow unicode in slug fields - #5877 by @IKarbowiak
+- Fix empty plugin object result after `PluginUpdate` mutation - #5968 by @gabmartinez
+- Allow finishing checkout when price amount is 0 - #6064 by @IKarbowiak
+- Fix incorrect tax calculation for Avatax - #6035 by @korycins
+- Fix incorrect calculation of subtotal with active Avatax - #6035 by @korycins
+- Fix incorrect assignment of tax code for Avatax - #6035 by @korycins
+- Do not allow negative product price - #6091 by @IKarbowiak
+- Handle None as attribute value - #6092 by @IKarbowiak
+- Fix for calling `order_created` before the order was saved - #6095 by @korycins
+- Update default decimal places - #6098 by @IKarbowiak
+- Avoid assigning the same pictures twice to a variant - #6112 by @IKarbowiak
+- Fix crashing system when Avalara is improperly configured - #6117 by @IKarbowiak
+- Fix for failing finalising draft order - #6133 by @korycins
+- Remove corresponding draft order lines when variant is removing - #6119 by @IKarbowiak
+- Update required perms for apps management - #6173 by @IKarbowiak
+- Raise an error for an empty key in metadata - #6176 by @IKarbowiak
+- Add attributes to product error - #6181 by @IKarbowiak
+- Allow to add product variant with 0 price to draft order - #6189 by @IKarbowiak
+- Fix deleting product when default variant is deleted - #6186 by @IKarbowiak
+- Fix get unpublished products, product variants and collection as app - #6194 by @fowczarek
+- Set `OrderFulfillStockInput` fields as required - #6196 by @IKarbowiak
+- Fix attribute filtering by categories and collections - #6214 by @fowczarek
+- Fix `is_visible` when `publication_date` is today - #6225 by @korycins
+- Fix filtering products by multiple attributes - #6215 by @GrzegorzDerdak
+- Add attributes validation while creating/updating a product's variant - #6269 by @GrzegorzDerdak
+- Add metadata to page model - #6292 by @dominik-zeglen
+- Fix for unnecesary attributes validation while updating simple product - #6300 by @GrzegorzDerdak
+- Include order line total price to webhook payload - #6354 by @korycins
+- Fix for fulfilling an order when product quantity equals allocated quantity - #6333 by @GrzegorzDerdak
+- Fix for the ability to filter products on collection - #6363 by @GrzegorzDerdak
+
+## 2.10.2
+
+- Add command to change currencies in the database - #5906 by @d-wysocki
 
 ## 2.10.1
 

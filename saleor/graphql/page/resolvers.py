@@ -1,6 +1,7 @@
 import graphene
 
 from ...page import models
+from .types import PageType
 
 
 def resolve_page(info, global_page_id=None, slug=None):
@@ -18,3 +19,11 @@ def resolve_page(info, global_page_id=None, slug=None):
 def resolve_pages(info, **_kwargs):
     user = info.context.user
     return models.Page.objects.visible_to_user(user)
+
+
+def resolve_page_type(info, global_page_type_id):
+    return graphene.Node.get_node_from_global_id(info, global_page_type_id, PageType)
+
+
+def resolve_page_types(info, **_kwargs):
+    return models.PageType.objects.all()

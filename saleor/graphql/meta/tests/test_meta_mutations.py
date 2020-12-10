@@ -1,10 +1,13 @@
 import base64
 import uuid
+from unittest.mock import patch
 
 import graphene
+import pytest
 
 from ....core.error_codes import MetadataErrorCode
 from ....core.models import ModelWithMetadata
+from ....invoice.models import Invoice
 from ...tests.utils import assert_no_permission, get_graphql_content
 
 PRIVATE_KEY = "private_key"
@@ -25,6 +28,7 @@ mutation UpdatePublicMetadata($id: ID!, $input: [MetadataInput!]!) {
         metadataErrors{
             field
             code
+            message
         }
         item {
             metadata{
@@ -201,6 +205,35 @@ def test_add_public_metadata_for_staff_as_app_no_permission(
     assert_no_permission(response)
 
 
+@pytest.mark.parametrize(
+    "input", [{"key": " ", "value": "test"}, {"key": "   ", "value": ""}],
+)
+def test_staff_update_metadata_empty_key(
+    input, staff_api_client, permission_manage_staff, admin_user
+):
+    # given
+    admin_id = graphene.Node.to_global_id("User", admin_user.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        staff_api_client,
+        permission_manage_staff,
+        admin_id,
+        "User",
+        input["key"],
+        input["value"],
+    )
+
+    # then
+    data = response["data"]["updateMetadata"]
+    errors = data["metadataErrors"]
+
+    assert not data["item"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == MetadataErrorCode.REQUIRED.name
+    assert errors[0]["field"] == "input"
+
+
 def test_add_public_metadata_for_myself_as_customer(user_api_client):
     # given
     customer = user_api_client.user
@@ -214,6 +247,38 @@ def test_add_public_metadata_for_myself_as_customer(user_api_client):
     # then
     assert item_contains_proper_public_metadata(
         response["data"]["updateMetadata"]["item"], customer, customer_id
+    )
+
+
+def test_add_private_metadata_for_invoice(staff_api_client, permission_manage_orders):
+    # given
+    invoice = Invoice.objects.create(number="1/7/2020")
+    invoice_id = graphene.Node.to_global_id("Invoice", invoice.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client, permission_manage_orders, invoice_id, "Invoice"
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"], invoice, invoice_id
+    )
+
+
+def test_add_public_metadata_for_invoice(staff_api_client, permission_manage_orders):
+    # given
+    invoice = Invoice.objects.create(number="1/7/2020")
+    invoice_id = graphene.Node.to_global_id("Invoice", invoice.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        staff_api_client, permission_manage_orders, invoice_id, "Invoice"
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"], invoice, invoice_id
     )
 
 
@@ -278,20 +343,43 @@ def test_add_public_metadata_for_draft_order(api_client, draft_order):
     )
 
 
-def test_add_public_metadata_for_attribute(
-    staff_api_client, permission_manage_products, color_attribute
+def test_add_public_metadata_for_product_attribute(
+    staff_api_client, permission_manage_product_types_and_attributes, color_attribute
 ):
     # given
     attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
 
     # when
     response = execute_update_public_metadata_for_item(
-        staff_api_client, permission_manage_products, attribute_id, "Attribute"
+        staff_api_client,
+        permission_manage_product_types_and_attributes,
+        attribute_id,
+        "Attribute",
     )
 
     # then
     assert item_contains_proper_public_metadata(
         response["data"]["updateMetadata"]["item"], color_attribute, attribute_id
+    )
+
+
+def test_add_public_metadata_for_page_attribute(
+    staff_api_client, permission_manage_page_types_and_attributes, size_page_attribute
+):
+    # given
+    attribute_id = graphene.Node.to_global_id("Attribute", size_page_attribute.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        staff_api_client,
+        permission_manage_page_types_and_attributes,
+        attribute_id,
+        "Attribute",
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"], size_page_attribute, attribute_id
     )
 
 
@@ -313,10 +401,10 @@ def test_add_public_metadata_for_category(
 
 
 def test_add_public_metadata_for_collection(
-    staff_api_client, permission_manage_products, collection
+    staff_api_client, permission_manage_products, published_collection, channel_USD
 ):
     # given
-    collection_id = graphene.Node.to_global_id("Collection", collection.pk)
+    collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
 
     # when
     response = execute_update_public_metadata_for_item(
@@ -325,7 +413,7 @@ def test_add_public_metadata_for_collection(
 
     # then
     assert item_contains_proper_public_metadata(
-        response["data"]["updateMetadata"]["item"], collection, collection_id
+        response["data"]["updateMetadata"]["item"], published_collection, collection_id
     )
 
 
@@ -368,8 +456,9 @@ def test_add_public_metadata_for_fulfillment(
     )
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_add_public_metadata_for_product(
-    staff_api_client, permission_manage_products, product
+    updated_webhook_mock, staff_api_client, permission_manage_products, product
 ):
     # given
     product_id = graphene.Node.to_global_id("Product", product.pk)
@@ -383,17 +472,21 @@ def test_add_public_metadata_for_product(
     assert item_contains_proper_public_metadata(
         response["data"]["updateMetadata"]["item"], product, product_id
     )
+    updated_webhook_mock.assert_called_once_with(product)
 
 
 def test_add_public_metadata_for_product_type(
-    staff_api_client, permission_manage_products, product_type
+    staff_api_client, permission_manage_product_types_and_attributes, product_type
 ):
     # given
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
 
     # when
     response = execute_update_public_metadata_for_item(
-        staff_api_client, permission_manage_products, product_type_id, "ProductType"
+        staff_api_client,
+        permission_manage_product_types_and_attributes,
+        product_type_id,
+        "ProductType",
     )
 
     # then
@@ -431,6 +524,60 @@ def test_add_public_metadata_for_app(staff_api_client, permission_manage_apps, a
     # then
     assert item_contains_proper_public_metadata(
         response["data"]["updateMetadata"]["item"], app, app_id
+    )
+
+
+def test_add_public_metadata_for_page(staff_api_client, permission_manage_pages, page):
+    # given
+    page_id = graphene.Node.to_global_id("Page", page.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        staff_api_client, permission_manage_pages, page_id, "Page",
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"], page, page_id
+    )
+
+
+def test_add_public_metadata_for_shipping_method(
+    staff_api_client, permission_manage_shipping, shipping_method
+):
+    # given
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method.pk
+    )
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        staff_api_client,
+        permission_manage_shipping,
+        shipping_method_id,
+        "ShippingMethod",
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"], shipping_method, shipping_method_id,
+    )
+
+
+def test_add_public_metadata_for_shipping_zone(
+    staff_api_client, permission_manage_shipping, shipping_zone
+):
+    # given
+    shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        staff_api_client, permission_manage_shipping, shipping_zone_id, "ShippingZone",
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"], shipping_zone, shipping_zone_id,
     )
 
 
@@ -764,8 +911,8 @@ def test_delete_public_metadata_for_draft_order(api_client, draft_order):
     )
 
 
-def test_delete_public_metadata_for_attribute(
-    staff_api_client, permission_manage_products, color_attribute
+def test_delete_public_metadata_for_product_attribute(
+    staff_api_client, permission_manage_product_types_and_attributes, color_attribute
 ):
     # given
     color_attribute.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
@@ -774,12 +921,37 @@ def test_delete_public_metadata_for_attribute(
 
     # when
     response = execute_clear_public_metadata_for_item(
-        staff_api_client, permission_manage_products, attribute_id, "Attribute"
+        staff_api_client,
+        permission_manage_product_types_and_attributes,
+        attribute_id,
+        "Attribute",
     )
 
     # then
     assert item_without_public_metadata(
         response["data"]["deleteMetadata"]["item"], color_attribute, attribute_id
+    )
+
+
+def test_delete_public_metadata_for_page_attribute(
+    staff_api_client, permission_manage_page_types_and_attributes, size_page_attribute
+):
+    # given
+    size_page_attribute.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    size_page_attribute.save(update_fields=["metadata"])
+    attribute_id = graphene.Node.to_global_id("Attribute", size_page_attribute.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        staff_api_client,
+        permission_manage_page_types_and_attributes,
+        attribute_id,
+        "Attribute",
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["deleteMetadata"]["item"], size_page_attribute, attribute_id
     )
 
 
@@ -803,9 +975,10 @@ def test_delete_public_metadata_for_category(
 
 
 def test_delete_public_metadata_for_collection(
-    staff_api_client, permission_manage_products, collection
+    staff_api_client, permission_manage_products, published_collection, channel_USD
 ):
     # given
+    collection = published_collection
     collection.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     collection.save(update_fields=["metadata"])
     collection_id = graphene.Node.to_global_id("Collection", collection.pk)
@@ -864,8 +1037,9 @@ def test_delete_public_metadata_for_fulfillment(
     )
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_delete_public_metadata_for_product(
-    staff_api_client, permission_manage_products, product
+    updated_webhook_mock, staff_api_client, permission_manage_products, product
 ):
     # given
     product.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
@@ -881,10 +1055,11 @@ def test_delete_public_metadata_for_product(
     assert item_without_public_metadata(
         response["data"]["deleteMetadata"]["item"], product, product_id
     )
+    updated_webhook_mock.assert_called_once_with(product)
 
 
 def test_delete_public_metadata_for_product_type(
-    staff_api_client, permission_manage_products, product_type
+    staff_api_client, permission_manage_product_types_and_attributes, product_type
 ):
     # given
     product_type.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
@@ -893,7 +1068,10 @@ def test_delete_public_metadata_for_product_type(
 
     # when
     response = execute_clear_public_metadata_for_item(
-        staff_api_client, permission_manage_products, product_type_id, "ProductType"
+        staff_api_client,
+        permission_manage_product_types_and_attributes,
+        product_type_id,
+        "ProductType",
     )
 
     # then
@@ -923,6 +1101,8 @@ def test_delete_public_metadata_for_product_variant(
 
 def test_delete_public_metadata_for_app(staff_api_client, permission_manage_apps, app):
     # given
+    app.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    app.save(update_fields=["metadata"])
     app_id = graphene.Node.to_global_id("App", app.pk)
 
     # when
@@ -933,6 +1113,68 @@ def test_delete_public_metadata_for_app(staff_api_client, permission_manage_apps
     # then
     assert item_without_public_metadata(
         response["data"]["deleteMetadata"]["item"], app, app_id
+    )
+
+
+def test_delete_public_metadata_for_page(
+    staff_api_client, permission_manage_pages, page
+):
+    # given
+    page.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    page.save(update_fields=["metadata"])
+    page_id = graphene.Node.to_global_id("Page", page.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        staff_api_client, permission_manage_pages, page_id, "Page",
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["deleteMetadata"]["item"], page, page_id
+    )
+
+
+def test_delete_public_metadata_for_shipping_method(
+    staff_api_client, permission_manage_shipping, shipping_method
+):
+    # given
+    shipping_method.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    shipping_method.save(update_fields=["metadata"])
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method.pk
+    )
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        staff_api_client,
+        permission_manage_shipping,
+        shipping_method_id,
+        "ShippingMethod",
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["deleteMetadata"]["item"], shipping_method, shipping_method_id,
+    )
+
+
+def test_delete_public_metadata_for_shipping_zone(
+    staff_api_client, permission_manage_shipping, shipping_zone
+):
+    # given
+    shipping_zone.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    shipping_zone.save(update_fields=["metadata"])
+    shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        staff_api_client, permission_manage_shipping, shipping_zone_id, "ShippingZone",
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["deleteMetadata"]["item"], shipping_zone, shipping_zone_id,
     )
 
 
@@ -1213,6 +1455,35 @@ def test_add_private_metadata_for_myself_as_customer_no_permission(user_api_clie
     assert_no_permission(response)
 
 
+@pytest.mark.parametrize(
+    "input", [{"key": " ", "value": "test"}, {"key": "   ", "value": ""}],
+)
+def test_staff_update_private_metadata_empty_key(
+    input, staff_api_client, permission_manage_staff, admin_user
+):
+    # given
+    admin_id = graphene.Node.to_global_id("User", admin_user.pk)
+
+    # when
+    response = response = execute_update_private_metadata_for_item(
+        staff_api_client,
+        permission_manage_staff,
+        admin_id,
+        "User",
+        input["key"],
+        input["value"],
+    )
+
+    # then
+    data = response["data"]["updatePrivateMetadata"]
+    errors = data["metadataErrors"]
+
+    assert not data["item"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == MetadataErrorCode.REQUIRED.name
+    assert errors[0]["field"] == "input"
+
+
 def test_add_private_metadata_for_myself_as_staff(staff_api_client):
     # given
     staff = staff_api_client.user
@@ -1281,20 +1552,45 @@ def test_add_private_metadata_for_draft_order(
     )
 
 
-def test_add_private_metadata_for_attribute(
-    staff_api_client, permission_manage_products, color_attribute
+def test_add_private_metadata_for_product_attribute(
+    staff_api_client, permission_manage_product_types_and_attributes, color_attribute
 ):
     # given
     attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
 
     # when
     response = execute_update_private_metadata_for_item(
-        staff_api_client, permission_manage_products, attribute_id, "Attribute"
+        staff_api_client,
+        permission_manage_product_types_and_attributes,
+        attribute_id,
+        "Attribute",
     )
 
     # then
     assert item_contains_proper_private_metadata(
         response["data"]["updatePrivateMetadata"]["item"], color_attribute, attribute_id
+    )
+
+
+def test_add_private_metadata_for_page_attribute(
+    staff_api_client, permission_manage_page_types_and_attributes, size_page_attribute
+):
+    # given
+    attribute_id = graphene.Node.to_global_id("Attribute", size_page_attribute.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client,
+        permission_manage_page_types_and_attributes,
+        attribute_id,
+        "Attribute",
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"],
+        size_page_attribute,
+        attribute_id,
     )
 
 
@@ -1316,9 +1612,10 @@ def test_add_private_metadata_for_category(
 
 
 def test_add_private_metadata_for_collection(
-    staff_api_client, permission_manage_products, collection
+    staff_api_client, permission_manage_products, published_collection, channel_USD
 ):
     # given
+    collection = published_collection
     collection_id = graphene.Node.to_global_id("Collection", collection.pk)
 
     # when
@@ -1373,8 +1670,9 @@ def test_add_private_metadata_for_fulfillment(
     )
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_add_private_metadata_for_product(
-    staff_api_client, permission_manage_products, product
+    updated_webhook_mock, staff_api_client, permission_manage_products, product
 ):
     # given
     product_id = graphene.Node.to_global_id("Product", product.pk)
@@ -1388,17 +1686,21 @@ def test_add_private_metadata_for_product(
     assert item_contains_proper_private_metadata(
         response["data"]["updatePrivateMetadata"]["item"], product, product_id
     )
+    updated_webhook_mock.assert_called_once_with(product)
 
 
 def test_add_private_metadata_for_product_type(
-    staff_api_client, permission_manage_products, product_type
+    staff_api_client, permission_manage_product_types_and_attributes, product_type
 ):
     # given
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
 
     # when
     response = execute_update_private_metadata_for_item(
-        staff_api_client, permission_manage_products, product_type_id, "ProductType"
+        staff_api_client,
+        permission_manage_product_types_and_attributes,
+        product_type_id,
+        "ProductType",
     )
 
     # then
@@ -1436,6 +1738,64 @@ def test_add_private_metadata_for_app(staff_api_client, permission_manage_apps, 
     # then
     assert item_contains_proper_private_metadata(
         response["data"]["updatePrivateMetadata"]["item"], app, app_id,
+    )
+
+
+def test_add_private_metadata_for_page(staff_api_client, permission_manage_pages, page):
+    # given
+    page_id = graphene.Node.to_global_id("Page", page.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client, permission_manage_pages, page_id, "Page",
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"], page, page_id,
+    )
+
+
+def test_add_private_metadata_for_shipping_method(
+    staff_api_client, permission_manage_shipping, shipping_method
+):
+    # given
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method.pk
+    )
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client,
+        permission_manage_shipping,
+        shipping_method_id,
+        "ShippingMethod",
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"],
+        shipping_method,
+        shipping_method_id,
+    )
+
+
+def test_add_private_metadata_for_shipping_zone(
+    staff_api_client, permission_manage_shipping, shipping_zone
+):
+    # given
+    shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client, permission_manage_shipping, shipping_zone_id, "ShippingZone",
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"],
+        shipping_zone,
+        shipping_zone_id,
     )
 
 
@@ -1789,8 +2149,8 @@ def test_delete_private_metadata_for_draft_order(
     )
 
 
-def test_delete_private_metadata_for_attribute(
-    staff_api_client, permission_manage_products, color_attribute
+def test_delete_private_metadata_for_product_attribute(
+    staff_api_client, permission_manage_product_types_and_attributes, color_attribute
 ):
     # given
     color_attribute.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
@@ -1799,12 +2159,39 @@ def test_delete_private_metadata_for_attribute(
 
     # when
     response = execute_clear_private_metadata_for_item(
-        staff_api_client, permission_manage_products, attribute_id, "Attribute"
+        staff_api_client,
+        permission_manage_product_types_and_attributes,
+        attribute_id,
+        "Attribute",
     )
 
     # then
     assert item_without_private_metadata(
         response["data"]["deletePrivateMetadata"]["item"], color_attribute, attribute_id
+    )
+
+
+def test_delete_private_metadata_for_page_attribute(
+    staff_api_client, permission_manage_page_types_and_attributes, size_page_attribute
+):
+    # given
+    size_page_attribute.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
+    size_page_attribute.save(update_fields=["private_metadata"])
+    attribute_id = graphene.Node.to_global_id("Attribute", size_page_attribute.pk)
+
+    # when
+    response = execute_clear_private_metadata_for_item(
+        staff_api_client,
+        permission_manage_page_types_and_attributes,
+        attribute_id,
+        "Attribute",
+    )
+
+    # then
+    assert item_without_private_metadata(
+        response["data"]["deletePrivateMetadata"]["item"],
+        size_page_attribute,
+        attribute_id,
     )
 
 
@@ -1828,9 +2215,10 @@ def test_delete_private_metadata_for_category(
 
 
 def test_delete_private_metadata_for_collection(
-    staff_api_client, permission_manage_products, collection
+    staff_api_client, permission_manage_products, published_collection, channel_USD
 ):
     # given
+    collection = published_collection
     collection.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
     collection.save(update_fields=["private_metadata"])
     collection_id = graphene.Node.to_global_id("Collection", collection.pk)
@@ -1891,8 +2279,9 @@ def test_delete_private_metadata_for_fulfillment(
     )
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_delete_private_metadata_for_product(
-    staff_api_client, permission_manage_products, product
+    updated_webhook_mock, staff_api_client, permission_manage_products, product
 ):
     # given
     product.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
@@ -1908,10 +2297,11 @@ def test_delete_private_metadata_for_product(
     assert item_without_private_metadata(
         response["data"]["deletePrivateMetadata"]["item"], product, product_id
     )
+    updated_webhook_mock.assert_called_once_with(product)
 
 
 def test_delete_private_metadata_for_product_type(
-    staff_api_client, permission_manage_products, product_type
+    staff_api_client, permission_manage_product_types_and_attributes, product_type
 ):
     # given
     product_type.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
@@ -1920,7 +2310,10 @@ def test_delete_private_metadata_for_product_type(
 
     # when
     response = execute_clear_private_metadata_for_item(
-        staff_api_client, permission_manage_products, product_type_id, "ProductType"
+        staff_api_client,
+        permission_manage_product_types_and_attributes,
+        product_type_id,
+        "ProductType",
     )
 
     # then
@@ -1950,6 +2343,8 @@ def test_delete_private_metadata_for_product_variant(
 
 def test_delete_private_metadata_for_app(staff_api_client, permission_manage_apps, app):
     # given
+    app.store_value_in_private_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    app.save(update_fields=["private_metadata"])
     app_id = graphene.Node.to_global_id("App", app.pk)
 
     # when
@@ -1960,6 +2355,72 @@ def test_delete_private_metadata_for_app(staff_api_client, permission_manage_app
     # then
     assert item_without_private_metadata(
         response["data"]["deletePrivateMetadata"]["item"], app, app_id,
+    )
+
+
+def test_delete_private_metadata_for_page(
+    staff_api_client, permission_manage_pages, page
+):
+    # given
+    page.store_value_in_private_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    page.save(update_fields=["private_metadata"])
+    page_id = graphene.Node.to_global_id("Page", page.pk)
+
+    # when
+    response = execute_clear_private_metadata_for_item(
+        staff_api_client, permission_manage_pages, page_id, "Page",
+    )
+
+    # then
+    assert item_without_private_metadata(
+        response["data"]["deletePrivateMetadata"]["item"], page, page_id,
+    )
+
+
+def test_delete_private_metadata_for_shipping_method(
+    staff_api_client, permission_manage_shipping, shipping_method
+):
+    # given
+    shipping_method.store_value_in_private_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    shipping_method.save(update_fields=["metadata"])
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method.pk
+    )
+
+    # when
+    response = execute_clear_private_metadata_for_item(
+        staff_api_client,
+        permission_manage_shipping,
+        shipping_method_id,
+        "ShippingMethod",
+    )
+
+    # then
+    assert item_without_private_metadata(
+        response["data"]["deletePrivateMetadata"]["item"],
+        shipping_method,
+        shipping_method_id,
+    )
+
+
+def test_delete_private_metadata_for_shipping_zone(
+    staff_api_client, permission_manage_shipping, shipping_zone
+):
+    # given
+    shipping_zone.store_value_in_private_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    shipping_zone.save(update_fields=["metadata"])
+    shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+
+    # when
+    response = execute_clear_private_metadata_for_item(
+        staff_api_client, permission_manage_shipping, shipping_zone_id, "ShippingZone",
+    )
+
+    # then
+    assert item_without_private_metadata(
+        response["data"]["deletePrivateMetadata"]["item"],
+        shipping_zone,
+        shipping_zone_id,
     )
 
 
