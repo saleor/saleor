@@ -354,7 +354,11 @@ class ProductReorderAttributeValues(BaseReorderAttributeValuesMutation):
         )
 
     @classmethod
-    def perform_mutation(cls, _root, info, product_id, attribute_id, moves):
+    def perform_mutation(cls, _root, info, **data):
+        product_id = data["product_id"]
+        attribute_id = data["attribute_id"]
+        moves = data["moves"]
+
         product = cls.get_product(product_id)
         attribute_assignment = cls.get_attribute_assignment(product, attribute_id)
         values_m2m = getattr(attribute_assignment, "values")
@@ -373,7 +377,7 @@ class ProductReorderAttributeValues(BaseReorderAttributeValuesMutation):
         )
 
     @staticmethod
-    def get_product(product_id):
+    def get_product(product_id: str):
         pk = from_global_id_strict_type(
             product_id, only_type=Product, field="product_id"
         )
@@ -385,28 +389,28 @@ class ProductReorderAttributeValues(BaseReorderAttributeValuesMutation):
                 {
                     "product_id": ValidationError(
                         (f"Couldn't resolve to a product: {product_id}"),
-                        code=ProductErrorCode.NOT_FOUND,
+                        code=ProductErrorCode.NOT_FOUND.value,
                     )
                 }
             )
         return product
 
     @staticmethod
-    def get_attribute_assignment(product, attribute_id):
+    def get_attribute_assignment(product: models.Product, attribute_id: str):
         attribute_pk = from_global_id_strict_type(
             attribute_id, only_type=Attribute, field="attribute_id"
         )
 
         try:
             attribute_assignment = product.attributes.prefetch_related("values").get(
-                assignment__attribute_id=attribute_pk
+                assignment__attribute_id=attribute_pk  # type: ignore
             )
         except ObjectDoesNotExist:
             raise ValidationError(
                 {
                     "attribute_id": ValidationError(
                         f"Couldn't resolve to an product attribute: {attribute_id}",
-                        code=ProductErrorCode.NOT_FOUND,
+                        code=ProductErrorCode.NOT_FOUND.value,
                     )
                 }
             )
@@ -439,7 +443,11 @@ class ProductVariantReorderAttributeValues(BaseReorderAttributeValuesMutation):
         )
 
     @classmethod
-    def perform_mutation(cls, _root, info, variant_id, attribute_id, moves):
+    def perform_mutation(cls, _root, info, **data):
+        variant_id = data["variant_id"]
+        attribute_id = data["attribute_id"]
+        moves = data["moves"]
+
         variant = cls.get_product_variant(variant_id)
         attribute_assignment = cls.get_attribute_assignment(variant, attribute_id)
         values_m2m = getattr(attribute_assignment, "values")
@@ -458,7 +466,7 @@ class ProductVariantReorderAttributeValues(BaseReorderAttributeValuesMutation):
         )
 
     @staticmethod
-    def get_product_variant(variant_id):
+    def get_product_variant(variant_id: str):
         pk = from_global_id_strict_type(
             variant_id, only_type=ProductVariant, field="variant_id"
         )
@@ -472,21 +480,21 @@ class ProductVariantReorderAttributeValues(BaseReorderAttributeValuesMutation):
                 {
                     "variant_id": ValidationError(
                         (f"Couldn't resolve to a product variant: {variant_id}"),
-                        code=ProductErrorCode.NOT_FOUND,
+                        code=ProductErrorCode.NOT_FOUND.value,
                     )
                 }
             )
         return variant
 
     @staticmethod
-    def get_attribute_assignment(variant, attribute_id):
+    def get_attribute_assignment(variant: models.ProductVariant, attribute_id: str):
         attribute_pk = from_global_id_strict_type(
             attribute_id, only_type=Attribute, field="attribute_id"
         )
 
         try:
             attribute_assignment = variant.attributes.prefetch_related("values").get(
-                assignment__attribute_id=attribute_pk
+                assignment__attribute_id=attribute_pk  # type: ignore
             )
         except ObjectDoesNotExist:
             raise ValidationError(
@@ -494,7 +502,7 @@ class ProductVariantReorderAttributeValues(BaseReorderAttributeValuesMutation):
                     "attribute_id": ValidationError(
                         "Couldn't resolve to an product variant "
                         f"attribute: {attribute_id}",
-                        code=ProductErrorCode.NOT_FOUND,
+                        code=ProductErrorCode.NOT_FOUND.value,
                     )
                 }
             )
