@@ -49,6 +49,44 @@ class AssignedProductAttributeValue(SortableModel):
         return self.assignment.productvalueassignment.all()
 
 
+class AssignedVariantAttributeValue(SortableModel):
+    value = models.ForeignKey(
+        "AttributeValue",
+        on_delete=models.CASCADE,
+        related_name="variantvalueassignment",
+    )
+    assignment = models.ForeignKey(
+        "AssignedVariantAttribute",
+        on_delete=models.CASCADE,
+        related_name="variantvalueassignment",
+    )
+
+    class Meta:
+        unique_together = (("value", "assignment"),)
+        ordering = ("sort_order", "pk")
+
+    def get_ordering_queryset(self):
+        return self.assignment.variantvalueassignment.all()
+
+
+class AssignedPageAttributeValue(SortableModel):
+    value = models.ForeignKey(
+        "AttributeValue", on_delete=models.CASCADE, related_name="pagevalueassignment",
+    )
+    assignment = models.ForeignKey(
+        "AssignedPageAttribute",
+        on_delete=models.CASCADE,
+        related_name="pagevalueassignment",
+    )
+
+    class Meta:
+        unique_together = (("value", "assignment"),)
+        ordering = ("sort_order", "pk")
+
+    def get_ordering_queryset(self):
+        return self.assignment.pagevalueassignment.all()
+
+
 class BaseAssignedAttribute(models.Model):
     assignment = None
 
@@ -76,7 +114,7 @@ class AssignedProductAttribute(BaseAssignedAttribute):
     values = models.ManyToManyField(
         "AttributeValue",
         blank=True,
-        related_name="assignment",
+        related_name="productassignments",
         through=AssignedProductAttributeValue,
     )
 
@@ -93,7 +131,12 @@ class AssignedVariantAttribute(BaseAssignedAttribute):
     assignment = models.ForeignKey(
         "AttributeVariant", on_delete=models.CASCADE, related_name="variantassignments"
     )
-    values = models.ManyToManyField("AttributeValue")
+    values = models.ManyToManyField(
+        "AttributeValue",
+        blank=True,
+        related_name="variantassignments",
+        through=AssignedVariantAttributeValue,
+    )
 
     class Meta:
         unique_together = (("variant", "assignment"),)
@@ -106,7 +149,12 @@ class AssignedPageAttribute(BaseAssignedAttribute):
     assignment = models.ForeignKey(
         "AttributePage", on_delete=models.CASCADE, related_name="pageassignments"
     )
-    values = models.ManyToManyField("AttributeValue")
+    values = models.ManyToManyField(
+        "AttributeValue",
+        blank=True,
+        related_name="pageassignments",
+        through=AssignedPageAttributeValue,
+    )
 
     class Meta:
         unique_together = (("page", "assignment"),)

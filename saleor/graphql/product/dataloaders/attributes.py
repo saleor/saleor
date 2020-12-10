@@ -6,8 +6,8 @@ from ....attribute.models import (
     AssignedProductAttribute,
     AssignedProductAttributeValue,
     AssignedVariantAttribute,
+    AssignedVariantAttributeValue,
     AttributeProduct,
-    AttributeValue,
     AttributeVariant,
 )
 from ....core.permissions import ProductPermissions
@@ -197,19 +197,18 @@ class AttributeValuesByAssignedVariantAttributeIdLoader(DataLoader):
     context_key = "attributevalues_by_assignedvariantattribute"
 
     def batch_load(self, keys):
-        AttributeAssignment = AttributeValue.assignedvariantattribute_set.through
-        attribute_values = AttributeAssignment.objects.filter(
-            assignedvariantattribute_id__in=keys
+        attribute_values = AssignedVariantAttributeValue.objects.filter(
+            assignment_id__in=keys
         )
-        value_ids = [a.attributevalue_id for a in attribute_values]
+        value_ids = [a.value_id for a in attribute_values]
 
         def map_assignment_to_values(values):
             value_map = dict(zip(value_ids, values))
             assigned_variant_map = defaultdict(list)
             for attribute_value in attribute_values:
-                assigned_variant_map[
-                    attribute_value.assignedvariantattribute_id
-                ].append(value_map.get(attribute_value.attributevalue_id))
+                assigned_variant_map[attribute_value.assignment_id].append(
+                    value_map.get(attribute_value.value_id)
+                )
             return [
                 sorted(assigned_variant_map[key], key=lambda v: (v.sort_order, v.id))
                 for key in keys
