@@ -38,11 +38,11 @@ def test_file_upload_by_staff(staff_api_client, media_root):
     data = content["data"]["fileUpload"]
     errors = data["uploadErrors"]
 
-    expected_path = image_file._name
+    expected_path = "http://testserver/media/" + image_file._name
     assert not errors
     assert data["uploadedFile"]["contentType"] == "image/png"
     assert data["uploadedFile"]["url"] == expected_path
-    assert default_storage.exists(expected_path)
+    assert default_storage.exists(image_file._name)
 
 
 def test_file_upload_by_customer(user_api_client, media_root):
@@ -76,11 +76,11 @@ def test_file_upload_by_app(app_api_client, media_root):
     data = content["data"]["fileUpload"]
     errors = data["uploadErrors"]
 
-    expected_path = image_file._name
+    expected_path = "http://testserver/media/" + image_file._name
     assert not errors
     assert data["uploadedFile"]["contentType"] == "image/png"
     assert data["uploadedFile"]["url"] == expected_path
-    assert default_storage.exists(expected_path)
+    assert default_storage.exists(image_file._name)
 
 
 def test_file_upload_by_superuser(superuser_api_client, media_root):
@@ -99,11 +99,11 @@ def test_file_upload_by_superuser(superuser_api_client, media_root):
     data = content["data"]["fileUpload"]
     errors = data["uploadErrors"]
 
-    expected_path = image_file._name
+    expected_path = "http://testserver/media/" + image_file._name
     assert not errors
     assert data["uploadedFile"]["contentType"] == "image/png"
     assert data["uploadedFile"]["url"] == expected_path
-    assert default_storage.exists(expected_path)
+    assert default_storage.exists(image_file._name)
 
 
 def test_file_upload_file_with_the_same_name_already_exists(
@@ -137,6 +137,6 @@ def test_file_upload_file_with_the_same_name_already_exists(
     assert not errors
     assert data["uploadedFile"]["contentType"] == "image/png"
     file_url = data["uploadedFile"]["url"]
-    assert file_url != image_file._name
-    assert file_url != path
-    assert default_storage.exists(file_url)
+    assert file_url != "http://testserver/media/" + image_file._name
+    assert file_url != "http://testserver/media/" + path
+    assert default_storage.exists(file_url.replace("http://testserver/media/", ""))

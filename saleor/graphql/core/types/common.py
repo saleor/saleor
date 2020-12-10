@@ -1,4 +1,7 @@
+import os
+
 import graphene
+from django.conf import settings
 
 from ....product.templatetags.product_images import get_thumbnail
 from ...translations.enums import LanguageCodeEnum
@@ -342,6 +345,11 @@ class File(graphene.ObjectType):
     content_type = graphene.String(
         required=False, description="Content type of the file."
     )
+
+    def resolve_url(root, info):
+        return info.context.build_absolute_uri(
+            os.path.join(settings.MEDIA_URL, root.url)
+        )
 
 
 class PriceRangeInput(graphene.InputObjectType):

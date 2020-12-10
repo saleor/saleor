@@ -2196,7 +2196,10 @@ def test_create_product_with_file_attribute(
             "values": [
                 {
                     "slug": f"{existing_value.slug}-2",
-                    "file": {"url": existing_value.file_url, "contentType": None},
+                    "file": {
+                        "url": "http://testserver/media/" + existing_value.file_url,
+                        "contentType": None,
+                    },
                 }
             ],
         },
@@ -2260,7 +2263,10 @@ def test_create_product_with_file_attribute_new_attribute_value(
             "values": [
                 {
                     "slug": slugify(non_existing_value, allow_unicode=True),
-                    "file": {"url": non_existing_value, "contentType": None},
+                    "file": {
+                        "url": "http://testserver/media/" + non_existing_value,
+                        "contentType": None,
+                    },
                 }
             ],
         },
@@ -3162,7 +3168,10 @@ def test_update_product_with_file_attribute_value(
             {
                 "name": new_value,
                 "slug": slugify(new_value),
-                "file": {"url": new_value, "contentType": None},
+                "file": {
+                    "url": "http://testserver/media/" + new_value,
+                    "contentType": None,
+                },
             }
         ],
     }

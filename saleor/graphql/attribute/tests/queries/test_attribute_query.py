@@ -183,7 +183,7 @@ def test_get_single_page_attribute_by_staff_no_perm(
 
 
 def test_get_single_product_attribute_with_file_value(
-    staff_api_client, file_attribute, permission_manage_products
+    staff_api_client, file_attribute, permission_manage_products, media_root
 ):
     staff_api_client.user.user_permissions.add(permission_manage_products)
     attribute_gql_id = graphene.Node.to_global_id("Attribute", file_attribute.id)
@@ -217,7 +217,10 @@ def test_get_single_product_attribute_with_file_value(
         data = {
             "slug": value.slug,
             "inputType": value.input_type.upper(),
-            "file": {"url": value.file_url, "contentType": value.content_type},
+            "file": {
+                "url": "http://testserver/media/" + value.file_url,
+                "contentType": value.content_type,
+            },
         }
         attribute_value_data.append(data)
 

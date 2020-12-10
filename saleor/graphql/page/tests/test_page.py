@@ -405,7 +405,10 @@ def test_create_page_with_file_attribute(
         "values": [
             {
                 "slug": f"{attr_value.slug}-2",
-                "file": {"url": attr_value.file_url, "contentType": None},
+                "file": {
+                    "url": "http://testserver/media/" + attr_value.file_url,
+                    "contentType": None,
+                },
             }
         ],
     }
@@ -476,7 +479,10 @@ def test_create_page_with_file_attribute_new_attribute_value(
         "values": [
             {
                 "slug": slugify(new_value),
-                "file": {"url": new_value, "contentType": new_value_content_type},
+                "file": {
+                    "url": "http://testserver/media/" + new_value,
+                    "contentType": new_value_content_type,
+                },
             }
         ],
     }
@@ -741,7 +747,10 @@ def test_update_page_with_file_attribute_value(
         "values": [
             {
                 "slug": slugify(new_value),
-                "file": {"url": new_value, "contentType": None},
+                "file": {
+                    "url": "http://testserver/media/" + new_value,
+                    "contentType": None,
+                },
             }
         ],
     }
