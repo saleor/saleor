@@ -1,6 +1,6 @@
 import pytest
 
-from ..models import ProductType
+from ...product.models import ProductType
 from ..utils import associate_attribute_values_to_instance
 
 
