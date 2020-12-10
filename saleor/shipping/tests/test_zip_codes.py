@@ -49,7 +49,7 @@ def test_check_zip_code_for_uk_fallbacks(code, start, end, in_range):
     ],
 )
 def test_check_zip_code_for_ireland(code, start, end, in_range):
-    assert check_zip_code_in_excluded_range("IR", code, start, end) is in_range
+    assert check_zip_code_in_excluded_range("IE", code, start, end) is in_range
 
 
 @pytest.mark.parametrize(

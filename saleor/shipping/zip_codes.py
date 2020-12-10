@@ -75,7 +75,7 @@ def check_zip_code_in_excluded_range(country, code, start, end):
         "IM": check_uk_zip_code,  # Isle of Man
         "GG": check_uk_zip_code,  # Guernsey
         "JE": check_uk_zip_code,  # Jersey
-        "IR": check_irish_zip_code,  # Ireland
+        "IE": check_irish_zip_code,  # Ireland
     }
     return country_func_map.get(country, check_any_zip_code)(code, start, end)
 
