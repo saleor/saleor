@@ -7,7 +7,7 @@ from django.db.models import Q
 from django.utils.text import slugify
 from graphql_relay import from_global_id
 
-from ...attribute import AttributeInputType, models as attribute_models
+from ...attribute import AttributeInputType, AttributeType, models as attribute_models
 from ...attribute.utils import associate_attribute_values_to_instance
 from ...core.utils import generate_unique_slug
 from ...page import models as page_models
@@ -163,9 +163,10 @@ class AttributeAssignmentMixin:
         """
         variant_validation = False
         if is_variant:
-            if len(cleaned_input) != attribute_qs.count():
+            qs = get_variant_selection_attributes(attribute_qs)
+            if len(cleaned_input) < qs.count():
                 raise ValidationError(
-                    "All attributes must take a value",
+                    "All variant selection attributes must take a value.",
                     code=ProductErrorCode.REQUIRED.value,
                 )
             variant_validation = True
@@ -269,6 +270,13 @@ class AttributeAssignmentMixin:
             associate_attribute_values_to_instance(
                 instance, attribute, *attribute_values
             )
+
+
+def get_variant_selection_attributes(qs: "QuerySet"):
+    return qs.filter(
+        input_type__in=AttributeInputType.ALLOWED_IN_VARIANT_SELECTION,
+        type=AttributeType.PRODUCT_TYPE,
+    )
 
 
 class ProductAttributeInputErrors:
