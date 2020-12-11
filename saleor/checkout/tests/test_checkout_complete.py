@@ -1,5 +1,6 @@
 import pytest
 from django.contrib.auth.models import AnonymousUser
+from django.test import override_settings
 
 from ...account import CustomerEvents
 from ...account.models import CustomerEvent
@@ -8,6 +9,7 @@ from ...core.taxes import zero_money, zero_taxed_money
 from ...order import OrderEvents, OrderEventsEmails
 from ...order.models import OrderEvent
 from ...plugins.manager import get_plugins_manager
+from ...product.models import ProductTranslation, ProductVariantTranslation
 from ...tests.utils import flush_post_commit_hooks
 from .. import calculations
 from ..complete_checkout import _create_order, _prepare_order_data
@@ -706,3 +708,41 @@ def test_create_order_with_variant_tracking_false(
         checkout=checkout, order_data=order_data, user=customer_user,
     )
     assert order_1.checkout_token == checkout.token
+
+
+@override_settings(LANGUAGE_CODE="fr")
+def test_create_order_use_tanslations(
+    checkout_with_item, customer_user, shipping_method
+):
+    translated_product_name = "French name"
+    translated_variant_name = "French variant name"
+
+    checkout = checkout_with_item
+    checkout.user = customer_user
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.shipping_address = customer_user.default_billing_address
+    checkout.shipping_method = shipping_method
+    checkout.tracking_code = ""
+    checkout.redirect_url = "https://www.example.com"
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+
+    variant = lines[0].variant
+    product = lines[0].product
+
+    ProductTranslation.objects.create(
+        language_code="fr", product=product, name=translated_product_name,
+    )
+    ProductVariantTranslation.objects.create(
+        language_code="fr", product_variant=variant, name=translated_variant_name,
+    )
+
+    order_data = _prepare_order_data(
+        manager=manager, checkout=checkout, lines=lines, discounts=None
+    )
+    order_line = order_data["lines"][0]
+
+    assert order_line.translated_product_name == translated_product_name
+    assert order_line.translated_variant_name == translated_variant_name

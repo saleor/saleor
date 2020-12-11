@@ -695,9 +695,6 @@ def fetch_checkout_lines(checkout: Checkout) -> Iterable[CheckoutLineInfo]:
         "variant__product__collections",
         "variant__channel_listings__channel",
         "variant__product__product_type",
-        # TODO: Remove after fetching translation in checkout complate
-        "variant__translations",
-        "variant__product__translations",
     )
     lines_info = []
 
