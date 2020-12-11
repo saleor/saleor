@@ -122,7 +122,10 @@ class AttributeAssignmentMixin:
 
     @classmethod
     def _pre_save_file_value(
-        cls, attribute: attribute_models.Attribute, attr_value: AttrValuesInput
+        cls,
+        instance,
+        attribute: attribute_models.Attribute,
+        attr_value: AttrValuesInput,
     ):
         """Create database file attribute value object from the supplied value.
 
@@ -133,15 +136,29 @@ class AttributeAssignmentMixin:
         if not file_url:
             return tuple()
         name = file_url.split("/")[-1]
-        value = attribute_models.AttributeValue(
-            attribute=attribute,
-            file_url=file_url,
-            name=name,
-            content_type=attr_value.content_type,
+        # don't create ne value when assignment already exists
+        value = cls._get_assigned_attribute_value_if_exists(
+            instance, attribute, attr_value.file_url
         )
-        value.slug = generate_unique_slug(value, name)  # type: ignore
-        value.save()
+        if value is None:
+            value = attribute_models.AttributeValue(
+                attribute=attribute,
+                file_url=file_url,
+                name=name,
+                content_type=attr_value.content_type,
+            )
+            value.slug = generate_unique_slug(value, name)  # type: ignore
+            value.save()
         return (value,)
+
+    @classmethod
+    def _get_assigned_attribute_value_if_exists(
+        cls, instance, attribute: attribute_models.Attribute, file_url
+    ):
+        assignment = instance.attributes.filter(
+            assignment__attribute=attribute, values__file_url=file_url
+        ).first()
+        return None if assignment is None else assignment.values.get(file_url=file_url)
 
     @classmethod
     def _validate_attributes_input(
@@ -263,7 +280,9 @@ class AttributeAssignmentMixin:
         """
         for attribute, attr_values in cleaned_input:
             if attribute.input_type == AttributeInputType.FILE:
-                attribute_values = cls._pre_save_file_value(attribute, attr_values)
+                attribute_values = cls._pre_save_file_value(
+                    instance, attribute, attr_values
+                )
             else:
                 attribute_values = cls._pre_save_values(attribute, attr_values)
             associate_attribute_values_to_instance(

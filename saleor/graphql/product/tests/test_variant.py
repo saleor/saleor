@@ -922,6 +922,10 @@ QUERY_UPDATE_VARIANT_ATTRIBUTES = """
                         values {
                             slug
                             name
+                            file {
+                                url
+                                contentType
+                            }
                         }
                     }
                 }
@@ -1204,6 +1208,54 @@ def test_update_product_variant_with_duplicated_file_attribute(
         "field": "attributes",
         "code": ProductErrorCode.DUPLICATED_INPUT_ITEM.name,
     }
+
+
+def test_update_product_variant_with_file_attribute_new_value_is_not_created(
+    staff_api_client,
+    product_with_variant_with_file_attribute,
+    file_attribute,
+    permission_manage_products,
+):
+    product = product_with_variant_with_file_attribute
+    variant = product.variants.first()
+    sku = str(uuid4())[:12]
+    assert not variant.sku == sku
+
+    existing_value = file_attribute.values.first()
+    assert variant.attributes.filter(
+        assignment__attribute=file_attribute, values=existing_value
+    ).exists()
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    file_attribute_id = graphene.Node.to_global_id("Attribute", file_attribute.pk)
+
+    variables = {
+        "id": variant_id,
+        "sku": sku,
+        "price": 15,
+        "attributes": [{"id": file_attribute_id, "file": existing_value.file_url}],
+    }
+
+    response = staff_api_client.post_graphql(
+        QUERY_UPDATE_VARIANT_ATTRIBUTES,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    data = content["data"]["productVariantUpdate"]
+    assert not data["errors"]
+    variant_data = data["productVariant"]
+    assert variant_data
+    assert variant_data["sku"] == sku
+    assert len(variant_data["attributes"]) == 1
+    assert variant_data["attributes"][0]["attribute"]["slug"] == file_attribute.slug
+    assert len(variant_data["attributes"][0]["values"]) == 1
+    value_data = variant_data["attributes"][0]["values"][0]
+    assert value_data["slug"] == existing_value.slug
+    assert value_data["name"] == existing_value.name
+    assert value_data["file"]["url"] == existing_value.file_url
+    assert value_data["file"]["contentType"] == existing_value.content_type
 
 
 @pytest.mark.parametrize(

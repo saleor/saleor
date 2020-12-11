@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.utils.text import slugify
 from freezegun import freeze_time
 
+from ....attribute.utils import associate_attribute_values_to_instance
 from ....page.error_codes import PageErrorCode
 from ....page.models import Page, PageType
 from ...tests.utils import get_graphql_content
@@ -407,10 +408,7 @@ def test_create_page_with_file_attribute(
             {
                 "slug": f"{attr_value.slug}-2",
                 "name": attr_value.name,
-                "file": {
-                    "url": "http://testserver/media/" + attr_value.file_url,
-                    "contentType": None,
-                },
+                "file": {"url": attr_value.file_url, "contentType": None},
             }
         ],
     }
@@ -755,6 +753,58 @@ def test_update_page_with_file_attribute_value(
                 "file": {
                     "url": "http://testserver/media/" + new_value,
                     "contentType": None,
+                },
+            }
+        ],
+    }
+    assert updated_attribute in data["page"]["attributes"]
+
+
+def test_update_page_with_file_attribute_new_value_is_not_created(
+    staff_api_client, permission_manage_pages, page, page_file_attribute
+):
+    # given
+    query = UPDATE_PAGE_MUTATION
+
+    page_type = page.page_type
+    page_type.page_attributes.add(page_file_attribute)
+    page_file_attribute_id = graphene.Node.to_global_id(
+        "Attribute", page_file_attribute.pk
+    )
+    existing_value = page_file_attribute.values.first()
+    associate_attribute_values_to_instance(page, page_file_attribute, existing_value)
+
+    page_id = graphene.Node.to_global_id("Page", page.id)
+
+    variables = {
+        "id": page_id,
+        "input": {
+            "attributes": [
+                {"id": page_file_attribute_id, "file": existing_value.file_url}
+            ]
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_pages]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["pageUpdate"]
+
+    assert not data["pageErrors"]
+    assert data["page"]
+    updated_attribute = {
+        "attribute": {"slug": page_file_attribute.slug},
+        "values": [
+            {
+                "slug": existing_value.slug,
+                "name": existing_value.name,
+                "file": {
+                    "url": existing_value.file_url,
+                    "contentType": existing_value.content_type,
                 },
             }
         ],
