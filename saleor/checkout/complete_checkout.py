@@ -1,6 +1,6 @@
 from datetime import date
 from decimal import Decimal
-from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple
 
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
@@ -34,6 +34,7 @@ from ..order.models import Order, OrderLine
 from ..payment import PaymentError, gateway
 from ..payment.models import Payment, Transaction
 from ..payment.utils import store_customer_id
+from ..product.models import ProductTranslation, ProductVariantTranslation
 from ..warehouse.availability import check_stock_quantity_bulk
 from ..warehouse.management import allocate_stock
 from . import AddressType, models
@@ -137,8 +138,10 @@ def _create_line_for_order(
     manager: "PluginsManager",
     checkout: "Checkout",
     checkout_line_info: "CheckoutLineInfo",
-    discounts,
+    discounts: Iterable[DiscountInfo],
     channel: "Channel",
+    products_translation: Dict[int, Optional[str]],
+    variants_translation: Dict[int, Optional[str]],
 ) -> OrderLine:
     """Create a line for the given order.
 
@@ -158,8 +161,8 @@ def _create_line_for_order(
     product_name = str(product)
     variant_name = str(variant)
 
-    translated_product_name = str(product.translated)
-    translated_variant_name = str(variant.translated)
+    translated_product_name = products_translation.get(product.id, "")
+    translated_variant_name = variants_translation.get(variant.id, "")
 
     if translated_product_name == product_name:
         translated_product_name = ""
@@ -206,25 +209,50 @@ def _create_lines_for_order(
     manager: "PluginsManager",
     checkout: "Checkout",
     lines: Iterable["CheckoutLineInfo"],
-    discounts,
+    discounts: Iterable[DiscountInfo],
     channel: "Channel",
 ) -> Iterable[OrderLine]:
     """Create a lines for the given order.
 
     :raises InsufficientStock: when there is not enough items in stock for this variant.
     """
-
+    translation_language_code = get_language()
     country_code = checkout.get_country()
     variants = []
     quantities = []
+    products = []
     for line_info in lines:
         variants.append(line_info.variant)
         quantities.append(line_info.line.quantity)
+        products.append(line_info.product)
+
+    products_translation = ProductTranslation.objects.filter(
+        product__in=products, language_code=translation_language_code
+    ).values("product_id", "name")
+    product_translations = {
+        product_translation["product_id"]: product_translation.get("name")
+        for product_translation in products_translation
+    }
+
+    variants_translation = ProductVariantTranslation.objects.filter(
+        product_variant__in=variants, language_code=translation_language_code
+    ).values("product_variant_id", "name")
+    variants_translation = {
+        variant_translation["product_variant_id"]: variant_translation.get("name")
+        for variant_translation in variants_translation
+    }
+
     check_stock_quantity_bulk(variants, country_code, quantities)
 
     return [
         _create_line_for_order(
-            manager, checkout, checkout_line_info, discounts, channel=channel
+            manager,
+            checkout,
+            checkout_line_info,
+            discounts,
+            channel,
+            product_translations,
+            variants_translation,
         )
         for checkout_line_info in lines
     ]
