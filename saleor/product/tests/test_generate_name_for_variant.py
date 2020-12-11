@@ -32,7 +32,7 @@ def variant_with_no_attributes(category, channel_USD):
     return variant
 
 
-def test_generate_name_for_variant(
+def test_generate_name_for_variant_not_variant_selection_attributes(
     variant_with_no_attributes, color_attribute_without_values, size_attribute
 ):
     """Test the name generation from a given variant containing multiple attributes and
@@ -50,6 +50,42 @@ def test_generate_name_for_variant(
     # Set the color attribute to a multi-value attribute
     color_attribute.input_type = AttributeInputType.MULTISELECT
     color_attribute.save(update_fields=["input_type"])
+
+    # Create colors
+    colors = AttributeValue.objects.bulk_create(
+        [
+            AttributeValue(attribute=color_attribute, name="Yellow", slug="yellow"),
+            AttributeValue(attribute=color_attribute, name="Blue", slug="blue"),
+            AttributeValue(attribute=color_attribute, name="Red", slug="red"),
+        ]
+    )
+
+    # Retrieve the size attribute value "Big"
+    size = size_attribute.values.get(slug="big")
+
+    # Associate the colors and size to variant attributes
+    associate_attribute_values_to_instance(variant, color_attribute, *tuple(colors))
+    associate_attribute_values_to_instance(variant, size_attribute, size)
+
+    # Generate the variant name from the attributes
+    name = generate_name_for_variant(variant)
+    assert name == "Big"
+
+
+def test_generate_name_for_variant_only_variant_selection_attributes(
+    variant_with_no_attributes, color_attribute_without_values, size_attribute
+):
+    """Test the name generation from a given variant containing multiple attributes and
+    only allowed in variant selection input types.
+    """
+
+    variant = variant_with_no_attributes
+    color_attribute = color_attribute_without_values
+
+    # Assign the attributes to the product type
+    variant.product.product_type.variant_attributes.set(
+        (color_attribute, size_attribute)
+    )
 
     # Create colors
     colors = AttributeValue.objects.bulk_create(

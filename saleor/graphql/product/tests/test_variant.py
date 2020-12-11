@@ -395,7 +395,7 @@ def test_create_variant_with_file_attribute(
     content = get_graphql_content(response)["data"]["productVariantCreate"]
     assert not content["productErrors"]
     data = content["productVariant"]
-    assert data["name"] == existing_value.name
+    assert data["name"] == sku
     assert data["sku"] == sku
     assert data["attributes"][0]["attribute"]["slug"] == file_attribute.slug
     assert data["attributes"][0]["values"][0]["slug"] == f"{existing_value.slug}-2"
@@ -459,7 +459,7 @@ def test_create_variant_with_file_attribute_new_value(
     content = get_graphql_content(response)["data"]["productVariantCreate"]
     assert not content["productErrors"]
     data = content["productVariant"]
-    assert data["name"] == new_value
+    assert data["name"] == sku
     assert data["sku"] == sku
     assert data["attributes"][0]["attribute"]["slug"] == file_attribute.slug
     assert data["attributes"][0]["values"][0]["slug"] == slugify(new_value)

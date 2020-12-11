@@ -31,7 +31,10 @@ def _update_variants_names(instance: ProductType, saved_attributes: Iterable):
         "attributes__values__translations"
     ).all()
     for variant in variants_to_be_updated:
-        variant.name = generate_name_for_variant(variant)
+        name = generate_name_for_variant(variant)
+        if not name:
+            name = variant.sku
+        variant.name = name
         variant.save(update_fields=["name"])
 
 

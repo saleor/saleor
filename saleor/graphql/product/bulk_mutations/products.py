@@ -302,7 +302,10 @@ class ProductVariantBulkCreate(BaseMutation):
         attributes = cleaned_input.get("attributes")
         if attributes:
             AttributeAssignmentMixin.save(instance, attributes)
-            instance.name = generate_name_for_variant(instance)
+            name = generate_name_for_variant(instance)
+            if not name:
+                name = cleaned_input.get("sku")
+            instance.name = name
             instance.save(update_fields=["name"])
 
     @classmethod
