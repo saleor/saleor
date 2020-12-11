@@ -12,7 +12,6 @@ from prices import TaxedMoney
 from ..account.error_codes import AccountErrorCode
 from ..account.models import User
 from ..account.utils import store_user_address
-from ..channel.models import Channel
 from ..checkout import calculations
 from ..checkout.error_codes import CheckoutErrorCode
 from ..core.exceptions import InsufficientStock
@@ -43,6 +42,7 @@ from .models import Checkout
 from .utils import get_voucher_for_checkout
 
 if TYPE_CHECKING:
+    from ..channel.models import Channel
     from ..checkout import CheckoutLineInfo
     from ..plugins.manager import PluginsManager
 
