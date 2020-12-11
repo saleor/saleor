@@ -208,6 +208,20 @@ def order_fully_paid_event(*, order: Order, user: UserType) -> OrderEvent:
     )
 
 
+def order_replace_draft_created(
+    *, original_order: Order, replace_order: Order, user: UserType
+) -> OrderEvent:
+    if not _user_is_valid(user):
+        user = None
+    parameters = {"replace_order_pk": replace_order.pk}
+    return OrderEvent.objects.create(
+        order=original_order,
+        type=OrderEvents.ORDER_REPLACE_DRAFT_CREATED,
+        user=user,
+        parameters=parameters,
+    )
+
+
 def payment_authorized_event(
     *, order: Order, user: UserType, amount: Decimal, payment: Payment
 ) -> OrderEvent:
@@ -339,11 +353,7 @@ def fulfillment_fulfilled_items_event(
 
 
 def fulfillment_returned_event(
-    *,
-    order: Order,
-    user: UserType,
-    returned_lines: List[Tuple[int, OrderLine]],
-    replaced_lines: List[Tuple[int, OrderLine]]
+    *, order: Order, user: UserType, returned_lines: List[Tuple[int, OrderLine]],
 ):
     if not _user_is_valid(user):
         user = None
@@ -352,34 +362,20 @@ def fulfillment_returned_event(
         order=order,
         type=OrderEvents.FULFILLMENT_RETURNED,
         user=user,
-        parameters={
-            "returned_lines": _lines_per_quantity_to_line_object_list(returned_lines),
-            "replaced_lines": _lines_per_quantity_to_line_object_list(replaced_lines),
-        },
+        parameters={"lines": _lines_per_quantity_to_line_object_list(returned_lines)},
     )
 
 
-def fulfillment_returned_and_refunded_event(
-    *,
-    order: Order,
-    user: UserType,
-    returned_lines: List[Tuple[int, OrderLine]],
-    replaced_lines: List[Tuple[int, OrderLine]],
-    amount: Decimal,
-    shipping_costs_included: bool
+def fulfillment_replaced_event(
+    *, order: Order, user: UserType, replaced_lines: List[Tuple[int, OrderLine]],
 ):
     if not _user_is_valid(user):
         user = None
     return OrderEvent.objects.create(
         order=order,
-        type=OrderEvents.FULFILLMENT_RETURNED_AND_REFUNDED,
+        type=OrderEvents.FULFILLMENT_REPLACED,
         user=user,
-        parameters={
-            "returned_lines": _lines_per_quantity_to_line_object_list(returned_lines),
-            "replaced_lines": _lines_per_quantity_to_line_object_list(replaced_lines),
-            "amount": amount,
-            "shipping_costs_included": shipping_costs_included,
-        },
+        parameters={"lines": _lines_per_quantity_to_line_object_list(replaced_lines)},
     )
 
 

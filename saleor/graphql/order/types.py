@@ -79,6 +79,9 @@ class OrderEvent(CountableDjangoObjectType):
     shipping_costs_included = graphene.Boolean(
         description="Define if shipping costs were included to the refund."
     )
+    replace_order = graphene.Field(
+        lambda: Order, description="The replace order created based on this order."
+    )
 
     class Meta:
         description = "History log of the order."
@@ -189,6 +192,11 @@ class OrderEvent(CountableDjangoObjectType):
     @staticmethod
     def resolve_shipping_costs_included(root: models.OrderEvent, _info):
         return root.parameters.get("shipping_costs_included")
+
+    @staticmethod
+    def resolve_replace_order(root: models.OrderEvent, _info):
+        order_pk = root.parameters.get("replace_order_pk")
+        return models.Order.objects.filter(pk=order_pk).first()
 
 
 class FulfillmentLine(CountableDjangoObjectType):

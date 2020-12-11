@@ -32,6 +32,7 @@ class FulfillmentStatus:
     REFUNDED = "refunded"  # group of refunded products
     RETURNED = "returned"
     REFUNDED_AND_RETURNED = "refunded_and_returned"
+    REPLACED = "replaced"
     CANCELED = "canceled"  # fulfilled group of products in an order marked as canceled
 
     CHOICES = [
@@ -48,6 +49,8 @@ class OrderEvents:
 
     CONFIRMED = "confirmed"
     DRAFT_CREATED = "draft_created"
+    DRAFT_CREATED_FROM_REPLACE = "draft_created_from_replace"
+
     DRAFT_ADDED_PRODUCTS = "draft_added_products"
     DRAFT_REMOVED_PRODUCTS = "draft_removed_products"
 
@@ -59,6 +62,7 @@ class OrderEvents:
 
     ORDER_MARKED_AS_PAID = "order_marked_as_paid"
     ORDER_FULLY_PAID = "order_fully_paid"
+    ORDER_REPLACE_DRAFT_CREATED = "order_replace_draft_created"
 
     UPDATED_ADDRESS = "updated_address"
 
@@ -81,7 +85,7 @@ class OrderEvents:
     FULFILLMENT_FULFILLED_ITEMS = "fulfillment_fulfilled_items"
     FULFILLMENT_REFUNDED = "fulfillment_refunded"
     FULFILLMENT_RETURNED = "fulfillment_returned"
-    FULFILLMENT_RETURNED_AND_REFUNDED = "fulfillment_returned_and_replaced"
+    FULFILLMENT_REPLACED = "fulfillment_replaced"
     TRACKING_UPDATED = "tracking_updated"
     NOTE_ADDED = "note_added"
 
@@ -90,6 +94,7 @@ class OrderEvents:
 
     CHOICES = [
         (DRAFT_CREATED, "The draft order was created"),
+        (DRAFT_CREATED_FROM_REPLACE, "The draft order with replace lines was created"),
         (DRAFT_ADDED_PRODUCTS, "Some products were added to the draft order"),
         (DRAFT_REMOVED_PRODUCTS, "Some products were removed from the draft order"),
         (PLACED, "The order was placed"),
@@ -98,6 +103,10 @@ class OrderEvents:
         (CANCELED, "The order was canceled"),
         (ORDER_MARKED_AS_PAID, "The order was manually marked as fully paid"),
         (ORDER_FULLY_PAID, "The order was fully paid"),
+        (
+            ORDER_REPLACE_DRAFT_CREATED,
+            "The draft order was created based on this order",
+        ),
         (UPDATED_ADDRESS, "The address from the placed order was updated"),
         (EMAIL_SENT, "The email was sent"),
         (CONFIRMED, "Order was confirmed"),
@@ -116,7 +125,7 @@ class OrderEvents:
         (FULFILLMENT_FULFILLED_ITEMS, "Some items were fulfilled"),
         (FULFILLMENT_REFUNDED, "Some items were refunded"),
         (FULFILLMENT_RETURNED, "Some items were returned"),
-        (FULFILLMENT_RETURNED_AND_REFUNDED, "Some items were returned and refunded"),
+        (FULFILLMENT_REPLACED, "Some items were replaced"),
         (TRACKING_UPDATED, "The fulfillment's tracking code was updated"),
         (NOTE_ADDED, "A note was added to the order"),
         (OTHER, "An unknown order event containing a message"),

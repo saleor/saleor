@@ -12,8 +12,8 @@ from ....order.actions import (
     OrderLineData,
     cancel_fulfillment,
     create_fulfillments,
+    create_fulfillments_for_returned_products,
     create_refund_fulfillment,
-    create_return_fulfillment,
     fulfillment_tracking_updated,
 )
 from ....order.emails import send_fulfillment_update
@@ -624,7 +624,12 @@ class OrderReturnProductsInput(graphene.InputObjectType):
 
 
 class FulfillmentReturnProducts(FulfillmentRefundAndReturnProductBase):
-    fulfillment = graphene.Field(Fulfillment, description="A created fulfillment.")
+    return_fulfillment = graphene.Field(
+        Fulfillment, description="A return fulfillment."
+    )
+    replace_fulfillment = graphene.Field(
+        Fulfillment, description="A replace fulfillment."
+    )
     order = graphene.Field(Order, description="Order which fulfillment was returned.")
     replace_order = graphene.Field(
         Order,
@@ -690,7 +695,7 @@ class FulfillmentReturnProducts(FulfillmentRefundAndReturnProductBase):
     def perform_mutation(cls, _root, info, **data):
         cleaned_input = cls.clean_input(info, data.get("order"), data.get("input"))
         order = cleaned_input["order"]
-        return_fulfillment, replace_order = create_return_fulfillment(
+        response = create_fulfillments_for_returned_products(
             get_user_or_app_from_context(info.context),
             order,
             cleaned_input.get("payment"),
@@ -700,6 +705,10 @@ class FulfillmentReturnProducts(FulfillmentRefundAndReturnProductBase):
             cleaned_input.get("amount_to_refund"),
             cleaned_input["include_shipping_costs"],
         )
+        return_fulfillment, replace_fulfillment, replace_order = response
         return cls(
-            order=order, fulfillment=return_fulfillment, replace_order=replace_order
+            order=order,
+            return_fulfillment=return_fulfillment,
+            replace_fulfillment=replace_fulfillment,
+            replace_order=replace_order,
         )

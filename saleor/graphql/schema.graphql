@@ -2009,7 +2009,8 @@ type FulfillmentRefundProducts {
 
 type FulfillmentReturnProducts {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  fulfillment: Fulfillment
+  returnFulfillment: Fulfillment
+  replaceFulfillment: Fulfillment
   order: Order
   replaceOrder: Order
   orderErrors: [OrderError!]!
@@ -2999,6 +3000,7 @@ type OrderEvent implements Node {
   warehouse: Warehouse
   transactionReference: String
   shippingCostsIncluded: Boolean
+  replaceOrder: Order
 }
 
 type OrderEventCountableConnection {
@@ -3032,6 +3034,7 @@ enum OrderEventsEmailsEnum {
 
 enum OrderEventsEnum {
   DRAFT_CREATED
+  DRAFT_CREATED_FROM_REPLACE
   DRAFT_ADDED_PRODUCTS
   DRAFT_REMOVED_PRODUCTS
   PLACED
@@ -3040,6 +3043,7 @@ enum OrderEventsEnum {
   CANCELED
   ORDER_MARKED_AS_PAID
   ORDER_FULLY_PAID
+  ORDER_REPLACE_DRAFT_CREATED
   UPDATED_ADDRESS
   EMAIL_SENT
   CONFIRMED
@@ -3058,7 +3062,7 @@ enum OrderEventsEnum {
   FULFILLMENT_FULFILLED_ITEMS
   FULFILLMENT_REFUNDED
   FULFILLMENT_RETURNED
-  FULFILLMENT_RETURNED_AND_REPLACED
+  FULFILLMENT_REPLACED
   TRACKING_UPDATED
   NOTE_ADDED
   OTHER
