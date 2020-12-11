@@ -217,10 +217,7 @@ def test_get_single_product_attribute_with_file_value(
         data = {
             "slug": value.slug,
             "inputType": value.input_type.upper(),
-            "file": {
-                "url": "http://testserver/media/" + value.file_url,
-                "contentType": value.content_type,
-            },
+            "file": {"url": value.file_url, "contentType": value.content_type},
         }
         attribute_value_data.append(data)
 

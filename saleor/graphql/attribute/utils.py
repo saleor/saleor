@@ -132,13 +132,14 @@ class AttributeAssignmentMixin:
         file_url = attr_value.file_url
         if not file_url:
             return tuple()
+        name = file_url.split("/")[-1]
         value = attribute_models.AttributeValue(
             attribute=attribute,
             file_url=file_url,
-            name=file_url,
+            name=name,
             content_type=attr_value.content_type,
         )
-        value.slug = generate_unique_slug(value, file_url)  # type: ignore
+        value.slug = generate_unique_slug(value, name)  # type: ignore
         value.save()
         return (value,)
 

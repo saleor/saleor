@@ -22,7 +22,7 @@ mutation fileUpload($file: Upload!) {
 """
 
 
-def test_file_upload_by_staff(staff_api_client, media_root):
+def test_file_upload_by_staff(staff_api_client, site_settings, media_root):
     # given
     image_file, image_name = create_image()
     variables = {"image": image_name}

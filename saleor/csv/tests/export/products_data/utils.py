@@ -6,13 +6,13 @@ def add_product_attribute_data_to_expected_data(data, product, attribute_ids, pk
         if assigned_attribute:
             header = f"{assigned_attribute.attribute.slug} (product attribute)"
             if str(assigned_attribute.attribute.pk) in attribute_ids:
-                if assigned_attribute.attribute.input_type != AttributeInputType.FILE:
-                    value = assigned_attribute.values.first().slug
-                else:
-                    value = (
-                        "http://mirumee.com/media/"
-                        + assigned_attribute.values.first().file_url
-                    )
+                value_instance = assigned_attribute.values.first()
+                value = (
+                    value_instance.slug
+                    if assigned_attribute.attribute.input_type
+                    != AttributeInputType.FILE
+                    else value_instance.file_url
+                )
                 if pk:
                     data[pk][header] = value
                 else:
@@ -24,13 +24,12 @@ def add_variant_attribute_data_to_expected_data(data, variant, attribute_ids, pk
     for assigned_attribute in variant.attributes.all():
         header = f"{assigned_attribute.attribute.slug} (variant attribute)"
         if str(assigned_attribute.attribute.pk) in attribute_ids:
-            if assigned_attribute.attribute.input_type != AttributeInputType.FILE:
-                value = assigned_attribute.values.first().slug
-            else:
-                value = (
-                    "http://mirumee.com/media/"
-                    + assigned_attribute.values.first().file_url
-                )
+            value_instance = assigned_attribute.values.first()
+            value = (
+                value_instance.slug
+                if assigned_attribute.attribute.input_type != AttributeInputType.FILE
+                else value_instance.file_url
+            )
             if pk:
                 data[pk][header] = value
             else:

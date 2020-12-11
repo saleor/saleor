@@ -271,6 +271,7 @@ CREATE_VARIANT_MUTATION = """
                                 slug
                             }
                             values {
+                                name
                                 slug
                                 file {
                                     url
@@ -398,6 +399,7 @@ def test_create_variant_with_file_attribute(
     assert data["sku"] == sku
     assert data["attributes"][0]["attribute"]["slug"] == file_attribute.slug
     assert data["attributes"][0]["values"][0]["slug"] == f"{existing_value.slug}-2"
+    assert data["attributes"][0]["values"][0]["name"] == existing_value.name
     assert data["weight"]["unit"] == WeightUnitsEnum.KG.name
     assert data["weight"]["value"] == weight
     assert len(data["stocks"]) == 1
@@ -919,6 +921,7 @@ QUERY_UPDATE_VARIANT_ATTRIBUTES = """
                         }
                         values {
                             slug
+                            name
                         }
                     }
                 }
@@ -1169,6 +1172,9 @@ def test_update_product_variant_with_duplicated_file_attribute(
     file_attr_value = file_attribute.values.last()
     associate_attribute_values_to_instance(variant2, file_attribute, file_attr_value)
 
+    sku = str(uuid4())[:12]
+    assert not variant.sku == sku
+
     assert set(variant.attributes.first().values.values_list("slug", flat=True)) == {
         "test_filetxt"
     }
@@ -1183,6 +1189,7 @@ def test_update_product_variant_with_duplicated_file_attribute(
         "id": variant_id,
         "price": 15,
         "attributes": [{"id": file_attribute_id, "file": file_attr_value.file_url}],
+        "sku": sku,
     }
 
     response = staff_api_client.post_graphql(

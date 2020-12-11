@@ -2019,6 +2019,7 @@ CREATE_PRODUCT_MUTATION = """
                                 }
                                 values {
                                     slug
+                                    name
                                     file {
                                         url
                                         contentType
@@ -2195,11 +2196,9 @@ def test_create_product_with_file_attribute(
             "attribute": {"slug": file_attribute.slug},
             "values": [
                 {
+                    "name": existing_value.name,
                     "slug": f"{existing_value.slug}-2",
-                    "file": {
-                        "url": "http://testserver/media/" + existing_value.file_url,
-                        "contentType": None,
-                    },
+                    "file": {"url": existing_value.file_url, "contentType": None},
                 }
             ],
         },
@@ -2262,6 +2261,7 @@ def test_create_product_with_file_attribute_new_attribute_value(
             "attribute": {"slug": file_attribute.slug},
             "values": [
                 {
+                    "name": non_existing_value,
                     "slug": slugify(non_existing_value, allow_unicode=True),
                     "file": {
                         "url": "http://testserver/media/" + non_existing_value,
