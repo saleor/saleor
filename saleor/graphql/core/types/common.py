@@ -1,4 +1,4 @@
-import os
+from urllib.parse import urljoin
 
 import graphene
 from django.conf import settings
@@ -346,10 +346,9 @@ class File(graphene.ObjectType):
         required=False, description="Content type of the file."
     )
 
+    @staticmethod
     def resolve_url(root, info):
-        return info.context.build_absolute_uri(
-            os.path.join(settings.MEDIA_URL, root.url)
-        )
+        return info.context.build_absolute_uri(urljoin(settings.MEDIA_URL, root.url))
 
 
 class PriceRangeInput(graphene.InputObjectType):

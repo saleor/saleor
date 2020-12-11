@@ -1,6 +1,6 @@
-import os
 from collections import defaultdict, namedtuple
 from typing import TYPE_CHECKING, Dict, List, Optional, Set, Union
+from urllib.parse import urljoin
 
 from django.conf import settings
 from django.db.models import Case, CharField, Value as V, When
@@ -279,7 +279,7 @@ def add_image_uris_to_data(
     absolute uri of given image is added to set with other uris.
     """
     if image:
-        uri = build_absolute_uri(os.path.join(settings.MEDIA_URL, image))
+        uri = build_absolute_uri(urljoin(settings.MEDIA_URL, image))
         if header in result_data[pk]:
             result_data[pk][header].add(uri)
         else:
@@ -382,7 +382,7 @@ def add_attribute_info_to_data(
             attribute_data.value
             if attribute_data.input_type != AttributeInputType.FILE
             else build_absolute_uri(
-                os.path.join(settings.MEDIA_URL, attribute_data.file_url)
+                urljoin(settings.MEDIA_URL, attribute_data.file_url)
             )
         )
         if header in result_data[pk]:
