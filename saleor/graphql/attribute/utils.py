@@ -123,7 +123,7 @@ class AttributeAssignmentMixin:
     @classmethod
     def _pre_save_file_value(
         cls,
-        instance,
+        instance: T_INSTANCE,
         attribute: attribute_models.Attribute,
         attr_value: AttrValuesInput,
     ):
@@ -153,7 +153,7 @@ class AttributeAssignmentMixin:
 
     @classmethod
     def _get_assigned_attribute_value_if_exists(
-        cls, instance, attribute: attribute_models.Attribute, file_url
+        cls, instance: T_INSTANCE, attribute: attribute_models.Attribute, file_url
     ):
         assignment = instance.attributes.filter(
             assignment__attribute=attribute, values__file_url=file_url
