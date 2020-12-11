@@ -34,7 +34,7 @@ from ..order.models import Order, OrderLine
 from ..payment import PaymentError, gateway
 from ..payment.models import Payment, Transaction
 from ..payment.utils import store_customer_id
-from ..warehouse.availability import check_stock_quantity
+from ..warehouse.availability import check_stock_quantity_bulk
 from ..warehouse.management import allocate_stock
 from . import AddressType, models
 from .checkout_cleaner import clean_checkout_payment, clean_checkout_shipping
@@ -151,15 +151,9 @@ def _create_line_for_order(
     channel_listing = checkout_line_info.channel_listing
     product = checkout_line_info.product
     collections = checkout_line_info.collections
-    country = checkout.get_country()
     address = (
         checkout.shipping_address or checkout.billing_address
     )  # FIXME: check which address we need here
-    # TODO: Optimalization
-    # "warehouse_stock 4
-    # COALESCE(SUM(DISTINCT "warehouse_stock 4
-    # we should use `check_stock_quantity_bulk`
-    check_stock_quantity(variant, country, quantity)
 
     product_name = str(product)
     variant_name = str(variant)
@@ -208,6 +202,34 @@ def _create_line_for_order(
     return line
 
 
+def _create_lines_for_order(
+    manager: "PluginsManager",
+    checkout: "Checkout",
+    lines: Iterable["CheckoutLineInfo"],
+    discounts,
+    channel: "Channel",
+) -> Iterable[OrderLine]:
+    """Create a lines for the given order.
+
+    :raises InsufficientStock: when there is not enough items in stock for this variant.
+    """
+
+    country_code = checkout.get_country()
+    variants = []
+    quantities = []
+    for line_info in lines:
+        variants.append(line_info.variant)
+        quantities.append(line_info.line.quantity)
+    check_stock_quantity_bulk(variants, country_code, quantities)
+
+    return [
+        _create_line_for_order(
+            manager, checkout, checkout_line_info, discounts, channel=channel
+        )
+        for checkout_line_info in lines
+    ]
+
+
 def _prepare_order_data(
     *,
     manager: "PluginsManager",
@@ -254,14 +276,10 @@ def _prepare_order_data(
 
     channel = checkout.channel
     # TODO: make "_create_lines_for_order"
-    # Bulk Stock_quantity check
     # fetch all translation
-    order_data["lines"] = [
-        _create_line_for_order(
-            manager, checkout, checkout_line_info, discounts, channel=channel
-        )
-        for checkout_line_info in lines
-    ]
+    order_data["lines"] = _create_lines_for_order(
+        manager, checkout, lines, discounts, channel
+    )
 
     # validate checkout gift cards
     _validate_gift_cards(checkout)
