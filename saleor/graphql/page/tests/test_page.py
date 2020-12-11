@@ -151,6 +151,7 @@ CREATE_PAGE_MUTATION = """
                     }
                     values {
                         slug
+                        name
                         file {
                             url
                             contentType
@@ -405,7 +406,11 @@ def test_create_page_with_file_attribute(
         "values": [
             {
                 "slug": f"{attr_value.slug}-2",
-                "file": {"url": attr_value.file_url, "contentType": None},
+                "name": attr_value.name,
+                "file": {
+                    "url": "http://testserver/media/" + attr_value.file_url,
+                    "contentType": None,
+                },
             }
         ],
     }
@@ -476,7 +481,11 @@ def test_create_page_with_file_attribute_new_attribute_value(
         "values": [
             {
                 "slug": slugify(new_value),
-                "file": {"url": new_value, "contentType": new_value_content_type},
+                "name": new_value,
+                "file": {
+                    "url": "http://testserver/media/" + new_value,
+                    "contentType": new_value_content_type,
+                },
             }
         ],
     }
@@ -627,6 +636,7 @@ UPDATE_PAGE_MUTATION = """
                     }
                     values {
                         slug
+                        name
                         file {
                             url
                             contentType
@@ -686,13 +696,13 @@ def test_update_page(staff_api_client, permission_manage_pages, page):
     for attr in page_type.page_attributes.all():
         if attr.slug != tag_attr.slug:
             values = [
-                {"slug": slug, "file": None}
-                for slug in page_attr.filter(assignment__attribute=attr).values_list(
-                    "values__slug", flat=True
-                )
+                {"slug": slug, "file": None, "name": name}
+                for slug, name in page_attr.filter(
+                    assignment__attribute=attr
+                ).values_list("values__slug", "values__name")
             ]
         else:
-            values = [{"slug": slugify(new_value), "file": None}]
+            values = [{"slug": slugify(new_value), "file": None, "name": new_value}]
         attr_data = {
             "attribute": {"slug": attr.slug},
             "values": values,
@@ -741,7 +751,11 @@ def test_update_page_with_file_attribute_value(
         "values": [
             {
                 "slug": slugify(new_value),
-                "file": {"url": new_value, "contentType": None},
+                "name": new_value,
+                "file": {
+                    "url": "http://testserver/media/" + new_value,
+                    "contentType": None,
+                },
             }
         ],
     }

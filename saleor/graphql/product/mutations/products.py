@@ -755,7 +755,7 @@ class ProductVariantCreate(ModelMutation):
         attribute_values = defaultdict(list)
         for attr, attr_data in attributes_data:
             values = (
-                [slugify(attr_data.file_url)]
+                [slugify(attr_data.file_url.split("/")[-1])]
                 if attr.input_type == AttributeInputType.FILE
                 else attr_data.values
             )
