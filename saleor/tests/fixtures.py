@@ -83,6 +83,7 @@ from ..product.models import (
     VariantImage,
 )
 from ..product.tests.utils import create_image
+from ..reservation.models import Reservation
 from ..shipping.models import (
     ShippingMethod,
     ShippingMethodChannelListing,
@@ -1479,6 +1480,42 @@ def variant_with_many_stocks_different_shipping_zones(
             Stock(warehouse=warehouses[0], product_variant=variant, quantity=4),
             Stock(warehouse=warehouses[1], product_variant=variant, quantity=3),
         ]
+    )
+    return variant
+
+
+@pytest.fixture
+def variant_with_reserved_stock(
+    variant, warehouses_with_shipping_zone, shipping_zone, customer_user
+):
+    warehouses = warehouses_with_shipping_zone
+    Stock.objects.create(
+        warehouse=warehouses[0], product_variant=variant, quantity=4
+    )
+    Reservation.objects.create(
+        user=customer_user,
+        shipping_zone=shipping_zone,
+        expires=timezone.now() + datetime.timedelta(minutes=10),
+        product_variant=variant,
+        quantity=3,
+    )
+    return variant
+
+
+@pytest.fixture
+def variant_with_expired_stock_reservation(
+    variant, warehouses_with_shipping_zone, shipping_zone, customer_user
+):
+    warehouses = warehouses_with_shipping_zone
+    Stock.objects.create(
+        warehouse=warehouses[0], product_variant=variant, quantity=4
+    )
+    Reservation.objects.create(
+        user=customer_user,
+        shipping_zone=shipping_zone,
+        expires=timezone.now() - datetime.timedelta(minutes=10),
+        product_variant=variant,
+        quantity=3,
     )
     return variant
 

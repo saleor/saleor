@@ -1,13 +1,18 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, Iterable, List, Optional
 
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
 
 from ..core.exceptions import InsufficientStock, InsufficientStockData
+from ..reservation.stock import (
+    get_reserved_quantity,
+    get_reserved_quantity_bulk,
+)
 from .models import Stock, StockQuerySet
 
 if TYPE_CHECKING:
+    from ..account.models import User
     from ..product.models import Product, ProductVariant
 
 
@@ -22,7 +27,12 @@ def _get_available_quantity(stocks: StockQuerySet) -> int:
     return max(total_quantity - quantity_allocated, 0)
 
 
-def check_stock_quantity(variant: "ProductVariant", country_code: str, quantity: int):
+def check_stock_quantity(
+    variant: "ProductVariant",
+    country_code: str,
+    quantity: int,
+    user: Optional["User"] = None,
+):
     """Validate if there is stock available for given variant in given country.
 
     If so - returns None. If there is less stock then required raise InsufficientStock
@@ -33,12 +43,16 @@ def check_stock_quantity(variant: "ProductVariant", country_code: str, quantity:
         if not stocks:
             raise InsufficientStock([InsufficientStockData(variant=variant)])
 
-        if quantity > _get_available_quantity(stocks):
+        reserved_quantity = get_reserved_quantity(variant, country_code, user)
+        available_quantity = max(_get_available_quantity(stocks) - reserved_quantity, 0)
+        if quantity > available_quantity:
             raise InsufficientStock([InsufficientStockData(variant=variant)])
 
 
-def check_stock_quantity_bulk(variants, country_code, quantities):
+def check_stock_quantity_bulk(variants: Iterable["ProductVariant"], country_code: str, quantities: int, user: Optional["User"]=None):
     """Validate if there is stock available for given variants in given country.
+
+    If user argument is specified, their reserved amounts are excluded.
 
     :raises InsufficientStock: when there is not enough items in stock for a variant.
     """
@@ -52,10 +66,16 @@ def check_stock_quantity_bulk(variants, country_code, quantities):
     for stock in all_variants_stocks:
         variant_stocks[stock.product_variant_id].append(stock)
 
+    variants_reservations = get_reserved_quantity_bulk(variants, country_code, user)
+
     insufficient_stocks: List[InsufficientStockData] = []
     for variant, quantity in zip(variants, quantities):
         stocks = variant_stocks.get(variant.pk, [])
-        available_quantity = sum([stock.available_quantity for stock in stocks])
+        reserved_quantity = variants_reservations.get(variant.pk, 0)
+        available_quantity = (
+            sum([stock.available_quantity for stock in stocks]) - reserved_quantity
+        )
+        available_quantity = max(available_quantity, 0)
 
         if not stocks:
             insufficient_stocks.append(
@@ -76,12 +96,14 @@ def check_stock_quantity_bulk(variants, country_code, quantities):
         raise InsufficientStock(insufficient_stocks)
 
 
-def get_available_quantity(variant: "ProductVariant", country_code: str) -> int:
+def get_available_quantity(variant: "ProductVariant", country_code: str, user: Optional["User"] = None) -> int:
     """Return available quantity for given product in given country."""
     stocks = Stock.objects.get_variant_stocks_for_country(country_code, variant)
     if not stocks:
         return 0
-    return _get_available_quantity(stocks)
+    available_quantity = _get_available_quantity(stocks)
+    available_quantity -= get_reserved_quantity(variant, country_code, user)
+    return max(available_quantity, 0)
 
 
 def is_product_in_stock(product: "Product", country_code: str) -> bool:

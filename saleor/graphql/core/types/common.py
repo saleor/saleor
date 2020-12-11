@@ -27,6 +27,7 @@ from ..enums import (
     PermissionGroupErrorCode,
     PluginErrorCode,
     ProductErrorCode,
+    ReservationErrorCode,
     ShippingErrorCode,
     ShopErrorCode,
     StockErrorCode,
@@ -288,6 +289,10 @@ class PluginError(Error):
 
 class StockError(Error):
     code = StockErrorCode(description="The error code.", required=True)
+
+
+class ReservationError(Error):
+    code = ReservationErrorCode(description="The error code.", required=True)
 
 
 class BulkStockError(ProductError):

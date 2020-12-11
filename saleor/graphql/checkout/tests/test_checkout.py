@@ -1009,6 +1009,88 @@ def test_checkout_create_check_lines_quantity(
     assert data["checkoutErrors"][0]["field"] == "quantity"
 
 
+def test_checkout_create_check_lines_reserved_quantity(
+    api_client, variant_with_reserved_stock, graphql_address_data, channel_USD
+):
+    variant = variant_with_reserved_stock
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    test_email = "test@example.com"
+    shipping_address = graphql_address_data
+    shipping_address["country"] = "US"
+    shipping_address["countryArea"] = "New York"
+    shipping_address["postalCode"] = 10001
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 2, "variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": shipping_address,
+            "channel": channel_USD.slug,
+        }
+    }
+    assert not Checkout.objects.exists()
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutCreate"]
+    assert data["checkoutErrors"][0]["message"] == (
+        "Could not add item Test product (SKU_A). Only 1 remaining in stock."
+    )
+    assert data["checkoutErrors"][0]["field"] == "quantity"
+
+
+def test_checkout_create_check_lines_expired_reservation_for_quantity(
+    api_client,
+    variant_with_expired_stock_reservation,
+    graphql_address_data,
+    channel_USD,
+):
+    variant = variant_with_expired_stock_reservation
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    test_email = "test@example.com"
+    shipping_address = graphql_address_data
+    shipping_address["country"] = "US"
+    shipping_address["countryArea"] = "New York"
+    shipping_address["postalCode"] = 10001
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 2, "variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": shipping_address,
+            "channel": channel_USD.slug,
+        }
+    }
+    assert not Checkout.objects.exists()
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutCreate"]
+    assert not data["checkoutErrors"]
+    assert Checkout.objects.exists()
+
+
+def test_checkout_create_check_lines_user_reserved_quantity(
+    user_api_client, variant_with_reserved_stock, graphql_address_data, channel_USD
+):
+    variant = variant_with_reserved_stock
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    test_email = "test@example.com"
+    shipping_address = graphql_address_data
+    shipping_address["country"] = "US"
+    shipping_address["countryArea"] = "New York"
+    shipping_address["postalCode"] = 10001
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 2, "variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": shipping_address,
+            "channel": channel_USD.slug,
+        }
+    }
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutCreate"]
+    assert not data["checkoutErrors"]
+    assert Checkout.objects.exists()
+
+
 def test_checkout_create_unavailable_for_purchase_product(
     user_api_client, stock, graphql_address_data, channel_USD
 ):

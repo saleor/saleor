@@ -20,6 +20,7 @@ from ...payment import error_codes as payment_error_codes
 from ...plugins import error_codes as plugin_error_codes
 from ...plugins.vatlayer import TaxRateType as CoreTaxRateType
 from ...product import error_codes as product_error_codes
+from ...reservation import error_codes as reservation_error_codes
 from ...shipping import error_codes as shipping_error_codes
 from ...warehouse import error_codes as warehouse_error_codes
 from ...webhook import error_codes as webhook_error_codes
@@ -112,6 +113,9 @@ PermissionGroupErrorCode = graphene.Enum.from_enum(
 )
 ProductErrorCode = graphene.Enum.from_enum(product_error_codes.ProductErrorCode)
 CollectionErrorCode = graphene.Enum.from_enum(product_error_codes.CollectionErrorCode)
+ReservationErrorCode = graphene.Enum.from_enum(
+    reservation_error_codes.ReservationErrorCode
+)
 ShopErrorCode = graphene.Enum.from_enum(core_error_codes.ShopErrorCode)
 ShippingErrorCode = graphene.Enum.from_enum(shipping_error_codes.ShippingErrorCode)
 StockErrorCode = graphene.Enum.from_enum(warehouse_error_codes.StockErrorCode)
