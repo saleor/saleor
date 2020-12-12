@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
-from ..zip_codes import check_zip_code_in_excluded_range
+from ..zip_codes import check_zip_code_in_range
 
 
 @pytest.mark.parametrize(
@@ -22,7 +22,7 @@ from ..zip_codes import check_zip_code_in_excluded_range
     ],
 )
 def test_check_zip_code_for_uk(code, start, end, in_range):
-    assert check_zip_code_in_excluded_range("GB", code, start, end) is in_range
+    assert check_zip_code_in_range("GB", code, start, end) is in_range
 
 
 @pytest.mark.parametrize(
@@ -37,7 +37,7 @@ def test_check_zip_code_for_uk(code, start, end, in_range):
     ],
 )
 def test_check_zip_code_for_uk_fallbacks(code, start, end, in_range):
-    assert check_zip_code_in_excluded_range("GB", code, start, end) is in_range
+    assert check_zip_code_in_range("GB", code, start, end) is in_range
 
 
 @pytest.mark.parametrize(
@@ -49,7 +49,7 @@ def test_check_zip_code_for_uk_fallbacks(code, start, end, in_range):
     ],
 )
 def test_check_zip_code_for_ireland(code, start, end, in_range):
-    assert check_zip_code_in_excluded_range("IE", code, start, end) is in_range
+    assert check_zip_code_in_range("IE", code, start, end) is in_range
 
 
 @pytest.mark.parametrize(
@@ -61,7 +61,7 @@ def test_check_zip_code_for_ireland(code, start, end, in_range):
     ],
 )
 def test_check_zip_code_for_other_countries(code, start, end, in_range):
-    assert check_zip_code_in_excluded_range("PL", code, start, end) is in_range
+    assert check_zip_code_in_range("PL", code, start, end) is in_range
 
 
 @pytest.mark.parametrize(
@@ -75,5 +75,5 @@ def test_check_zip_code_for_other_countries(code, start, end, in_range):
 @patch("saleor.shipping.zip_codes.check_uk_zip_code")
 def test_check_uk_islands_follow_uk_check(check_uk_mock, country, code, start, end):
     """Check if Isle of Man, Guernsey and Jersey triggers check_uk_zip_code method."""
-    assert check_zip_code_in_excluded_range(country, code, start, end)
+    assert check_zip_code_in_range(country, code, start, end)
     check_uk_mock.assert_called_once_with(code, start, end)

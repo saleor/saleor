@@ -69,7 +69,7 @@ def check_any_zip_code(code, start, end):
     return compare_values(code, start, end)
 
 
-def check_zip_code_in_excluded_range(country, code, start, end):
+def check_zip_code_in_range(country, code, start, end):
     country_func_map = {
         "GB": check_uk_zip_code,  # United Kingdom
         "IM": check_uk_zip_code,  # Isle of Man
@@ -84,8 +84,6 @@ def check_shipping_method_for_zip_code(customer_shipping_address, method):
     country = customer_shipping_address.country.code
     postal_code = customer_shipping_address.postal_code
     for zip_code in method.zip_code_rules.all():
-        if check_zip_code_in_excluded_range(
-            country, postal_code, zip_code.start, zip_code.end
-        ):
+        if check_zip_code_in_range(country, postal_code, zip_code.start, zip_code.end):
             return True
     return False
