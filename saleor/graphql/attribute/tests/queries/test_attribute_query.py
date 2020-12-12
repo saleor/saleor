@@ -34,6 +34,30 @@ def test_get_single_attribute_by_id_as_customer(
     assert content["data"]["attribute"]["slug"] == color_attribute_without_values.slug
 
 
+def test_get_single_attribute_by_slug_as_customer(
+    user_api_client, color_attribute_without_values
+):
+    attribute_gql_slug = color_attribute_without_values.slug
+    query = """
+    query($slug: String!) {
+        attribute(slug: $slug) {
+            id
+            name
+            slug
+        }
+    }
+    """
+    content = get_graphql_content(
+        user_api_client.post_graphql(query, {"slug": attribute_gql_slug})
+    )
+
+    assert content["data"]["attribute"], "Should have found an attribute"
+    assert content["data"]["attribute"]["slug"] == attribute_gql_slug
+    assert content["data"]["attribute"]["id"] == graphene.Node.to_global_id(
+        "Attribute", color_attribute_without_values.id
+    )
+
+
 QUERY_ATTRIBUTE = """
 query($id: ID!) {
     attribute(id: $id) {
