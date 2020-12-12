@@ -19,7 +19,7 @@ from ..core.weight import (
     get_default_weight_unit,
     zero_weight,
 )
-from . import ShippingMethodType
+from . import ShippingMethodType, ZipCodeRuleInclusionType
 from .zip_codes import check_shipping_method_for_zip_code
 
 if TYPE_CHECKING:
@@ -221,6 +221,11 @@ class ShippingMethodZipCodeRule(models.Model):
     )
     start = models.CharField(max_length=32)
     end = models.CharField(max_length=32, blank=True, null=True)
+    inclusion_type = models.CharField(
+        max_length=32,
+        choices=ZipCodeRuleInclusionType.CHOICES,
+        default=ZipCodeRuleInclusionType.EXCLUDE,
+    )
 
     class Meta:
         unique_together = ("shipping_method", "start", "end")
