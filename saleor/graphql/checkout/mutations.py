@@ -33,6 +33,7 @@ from ...shipping import models as shipping_models
 from ...warehouse.availability import check_stock_quantity_bulk
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
+from ..core.enums import LanguageCodeEnum
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.types.common import CheckoutError
 from ..core.utils import from_global_id_strict_type
@@ -182,6 +183,9 @@ class CheckoutCreateInput(graphene.InputObjectType):
         )
     )
     billing_address = AddressInput(description="Billing address of the customer.")
+    language_code = graphene.Argument(
+        LanguageCodeEnum, required=False, description="Checkout language code."
+    )
 
 
 class CheckoutCreate(ModelMutation, I18nMixin):
@@ -315,6 +319,9 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         if user.is_authenticated:
             email = data.pop("email", None)
             cleaned_input["email"] = email or user.email
+
+        language_code = data.get("language_code") or settings.LANGUAGE_CODE
+        cleaned_input["language_code"] = language_code
 
         return cleaned_input
 
@@ -687,6 +694,31 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
             change_billing_address_in_checkout(checkout, billing_address)
             info.context.plugins.checkout_updated(checkout)
         return CheckoutBillingAddressUpdate(checkout=checkout)
+
+
+class CheckoutLanguageCodeUpdate(BaseMutation):
+    checkout = graphene.Field(Checkout, description="An updated checkout.")
+
+    class Arguments:
+        checkout_id = graphene.ID(required=True, description="ID of the checkout.")
+        language_code = graphene.Argument(
+            LanguageCodeEnum, required=True, description="New language code."
+        )
+
+    class Meta:
+        description = "Update language code in the existing checkout."
+        error_type_class = CheckoutError
+        error_type_field = "checkout_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, checkout_id, language_code):
+        checkout = cls.get_node_or_error(
+            info, checkout_id, only_type=Checkout, field="checkout_id"
+        )
+        checkout.language_code = language_code
+        checkout.save(update_fields=["language_code"])
+        info.context.plugins.checkout_updated(checkout)
+        return CheckoutLanguageCodeUpdate(checkout=checkout)
 
 
 class CheckoutEmailUpdate(BaseMutation):

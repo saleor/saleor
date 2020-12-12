@@ -74,6 +74,7 @@ input AccountInput {
   lastName: String
   defaultBillingAddress: AddressInput
   defaultShippingAddress: AddressInput
+  languageCode: LanguageCodeEnum
 }
 
 type AccountRegister {
@@ -87,6 +88,7 @@ input AccountRegisterInput {
   email: String!
   password: String!
   redirectUrl: String
+  languageCode: LanguageCodeEnum
 }
 
 type AccountRequestDeletion {
@@ -876,6 +878,7 @@ type Checkout implements Node & ObjectWithMetadata {
   subtotalPrice: TaxedMoney
   token: UUID!
   totalPrice: TaxedMoney
+  languageCode: LanguageCodeEnum!
 }
 
 type CheckoutAddPromoCode {
@@ -922,6 +925,7 @@ input CheckoutCreateInput {
   email: String
   shippingAddress: AddressInput
   billingAddress: AddressInput
+  languageCode: LanguageCodeEnum
 }
 
 type CheckoutCustomerAttach {
@@ -972,6 +976,12 @@ enum CheckoutErrorCode {
   ZERO_QUANTITY
   MISSING_CHANNEL_SLUG
   CHANNEL_INACTIVE
+}
+
+type CheckoutLanguageCodeUpdate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  checkout: Checkout
+  checkoutErrors: [CheckoutError!]!
 }
 
 type CheckoutLine implements Node {
@@ -1605,6 +1615,7 @@ input CustomerInput {
   email: String
   isActive: Boolean
   note: String
+  languageCode: LanguageCodeEnum
 }
 
 type CustomerUpdate {
@@ -2736,6 +2747,7 @@ type Mutation {
   checkoutPaymentCreate(checkoutId: ID!, input: PaymentInput!): CheckoutPaymentCreate
   checkoutShippingAddressUpdate(checkoutId: ID!, shippingAddress: AddressInput!): CheckoutShippingAddressUpdate
   checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!): CheckoutShippingMethodUpdate
+  checkoutLanguageCodeUpdate(checkoutId: ID!, languageCode: LanguageCodeEnum!): CheckoutLanguageCodeUpdate
   channelCreate(input: ChannelCreateInput!): ChannelCreate
   channelUpdate(id: ID!, input: ChannelUpdateInput!): ChannelUpdate
   channelDelete(id: ID!, input: ChannelDeleteInput): ChannelDelete
@@ -2830,7 +2842,6 @@ type Order implements Node & ObjectWithMetadata {
   created: DateTime!
   status: OrderStatus!
   user: User
-  languageCode: String!
   trackingClientId: String!
   billingAddress: Address
   shippingAddress: Address
@@ -2871,6 +2882,8 @@ type Order implements Node & ObjectWithMetadata {
   totalBalance: Money!
   userEmail: String
   isShippingRequired: Boolean!
+  languageCode: String! @deprecated(reason: "Use the `languageCodeEnum` field to fetch the language code. This field will be removed after 2021-06-30")
+  languageCodeEnum: LanguageCodeEnum!
 }
 
 enum OrderAction {
@@ -5350,6 +5363,7 @@ type User implements Node & ObjectWithMetadata {
   avatar(size: Int): Image
   events: [CustomerEvent]
   storedPaymentSources: [PaymentSource]
+  languageCode: LanguageCodeEnum!
 }
 
 type UserAvatarDelete {
@@ -5389,6 +5403,7 @@ input UserCreateInput {
   email: String
   isActive: Boolean
   note: String
+  languageCode: LanguageCodeEnum
   redirectUrl: String
 }
 

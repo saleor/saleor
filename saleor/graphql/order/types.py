@@ -20,8 +20,10 @@ from ..account.utils import requestor_has_access
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader, ChannelByOrderLineIdLoader
 from ..core.connection import CountableDjangoObjectType
+from ..core.enums import LanguageCodeEnum
 from ..core.types.common import Image
 from ..core.types.money import Money, TaxedMoney
+from ..core.utils import str_to_enum
 from ..decorators import one_of_permissions_required, permission_required
 from ..discount.dataloaders import VoucherByIdLoader
 from ..giftcard.types import GiftCard
@@ -434,6 +436,16 @@ class Order(CountableDjangoObjectType):
     is_shipping_required = graphene.Boolean(
         description="Returns True, if order requires shipping.", required=True
     )
+    language_code = graphene.String(
+        deprecation_reason=(
+            "Use the `languageCodeEnum` field to fetch the language code. "
+            "This field will be removed after 2021-06-30"
+        ),
+        required=True,
+    )
+    language_code_enum = graphene.Field(
+        LanguageCodeEnum, description="Order language code.", required=True
+    )
 
     class Meta:
         description = "Represents an order in the shop."
@@ -449,7 +461,6 @@ class Order(CountableDjangoObjectType):
             "display_gross_prices",
             "gift_cards",
             "id",
-            "language_code",
             "shipping_address",
             "shipping_method",
             "shipping_method_name",
@@ -665,3 +676,7 @@ class Order(CountableDjangoObjectType):
         channel = ChannelByIdLoader(info.context).load(root.channel_id)
 
         return Promise.all([voucher, channel]).then(wrap_voucher_with_channel_context)
+
+    @staticmethod
+    def resolve_language_code_enum(root, _info, **_kwargs):
+        return LanguageCodeEnum[str_to_enum(root.language_code)]

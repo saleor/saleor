@@ -5,7 +5,6 @@ from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils.encoding import smart_text
-from django.utils.translation import get_language
 from prices import TaxedMoney
 
 from ..account.error_codes import AccountErrorCode
@@ -294,7 +293,7 @@ def _prepare_order_data(
     order_data.update(_process_user_data_for_order(checkout, manager))
     order_data.update(
         {
-            "language_code": get_language(),
+            "language_code": checkout.language_code,
             "tracking_client_id": checkout.tracking_code or "",
             "total": taxed_total,
             "shipping_tax_rate": shipping_tax_rate,

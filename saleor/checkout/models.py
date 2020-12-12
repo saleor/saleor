@@ -89,6 +89,10 @@ class Checkout(ModelWithMetadata):
     redirect_url = models.URLField(blank=True, null=True)
     tracking_code = models.CharField(max_length=255, blank=True, null=True)
 
+    language_code = models.CharField(
+        max_length=35, choices=settings.LANGUAGES, default=settings.LANGUAGE_CODE
+    )
+
     class Meta:
         ordering = ("-last_change", "pk")
         permissions = (

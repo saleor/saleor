@@ -9,12 +9,12 @@ from ...page import models as page_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
 from ..channel import ChannelContext
+from ..core.enums import LanguageCodeEnum
 from ..core.mutations import BaseMutation, ModelMutation, registry
 from ..core.types.common import TranslationError
 from ..core.utils import from_global_id_strict_type
 from ..product.types import Product, ProductVariant
 from ..shop.types import Shop
-from .enums import LanguageCodeEnum
 
 # discount types need to be imported to get Voucher in the graphene registry
 from ..discount import types  # noqa # pylint: disable=unused-import, isort:skip

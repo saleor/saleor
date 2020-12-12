@@ -1,4 +1,5 @@
 import graphene
+from django.conf import settings
 
 from ...account import error_codes as account_error_codes
 from ...app import error_codes as app_error_codes
@@ -77,6 +78,11 @@ def to_enum(enum_cls, *, type_name=None, **options) -> graphene.Enum:
     enum_data = [(str_to_enum(code.upper()), code) for code, name in enum_cls.CHOICES]
     return graphene.Enum(type_name, enum_data, **options)
 
+
+LanguageCodeEnum = graphene.Enum(
+    "LanguageCodeEnum",
+    [(lang[0].replace("-", "_").upper(), lang[0]) for lang in settings.LANGUAGES],
+)
 
 TaxRateType = graphene.Enum(
     "TaxRateType", [(str_to_enum(rate[0]), rate[0]) for rate in CoreTaxRateType.CHOICES]

@@ -13,6 +13,7 @@ from .mutations import (
     CheckoutCustomerAttach,
     CheckoutCustomerDetach,
     CheckoutEmailUpdate,
+    CheckoutLanguageCodeUpdate,
     CheckoutLineDelete,
     CheckoutLinesAdd,
     CheckoutLinesUpdate,
@@ -77,3 +78,4 @@ class CheckoutMutations(graphene.ObjectType):
     checkout_payment_create = CheckoutPaymentCreate.Field()
     checkout_shipping_address_update = CheckoutShippingAddressUpdate.Field()
     checkout_shipping_method_update = CheckoutShippingMethodUpdate.Field()
+    checkout_language_code_update = CheckoutLanguageCodeUpdate.Field()

@@ -8,6 +8,20 @@ from .. import notifications
 from ..notifications import get_default_user_payload
 
 
+def test_get_default_user_payload(customer_user):
+    assert get_default_user_payload(customer_user) == {
+        "id": customer_user.id,
+        "email": customer_user.email,
+        "first_name": customer_user.first_name,
+        "last_name": customer_user.last_name,
+        "is_staff": customer_user.is_staff,
+        "is_active": customer_user.is_active,
+        "private_metadata": customer_user.private_metadata,
+        "metadata": customer_user.metadata,
+        "language_code": customer_user.language_code,
+    }
+
+
 @freeze_time("2018-05-31 12:00:01")
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_send_email_request_change(mocked_notify, site_settings, customer_user):
