@@ -87,3 +87,15 @@ def check_shipping_method_for_zip_code(customer_shipping_address, method):
         if check_zip_code_in_range(country, postal_code, zip_code.start, zip_code.end):
             return True
     return False
+
+
+def filter_shipping_methods_by_zip_code_rules(shipping_methods, shipping_address):
+    """Filter shipping methods for given address by ZIP code rules."""
+
+    excluded_methods_by_zip_code = []
+    for method in shipping_methods:
+        if check_shipping_method_for_zip_code(shipping_address, method):
+            excluded_methods_by_zip_code.append(method.pk)
+    if excluded_methods_by_zip_code:
+        return shipping_methods.exclude(pk__in=excluded_methods_by_zip_code)
+    return shipping_methods

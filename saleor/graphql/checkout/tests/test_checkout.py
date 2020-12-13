@@ -2588,7 +2588,7 @@ def test_checkout_shipping_method_update(
         assert checkout.shipping_method is None
 
 
-@patch("saleor.shipping.models.check_shipping_method_for_zip_code")
+@patch("saleor.shipping.zip_codes.check_shipping_method_for_zip_code")
 def test_checkout_shipping_method_update_excluded_zip_code(
     mock_check_zip_code, staff_api_client, shipping_method, checkout_with_item, address
 ):
