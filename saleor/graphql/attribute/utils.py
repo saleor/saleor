@@ -158,7 +158,11 @@ class AttributeAssignmentMixin:
         assignment = instance.attributes.filter(
             assignment__attribute=attribute, values__file_url=file_url
         ).first()
-        return None if assignment is None else assignment.values.get(file_url=file_url)
+        return (
+            None
+            if assignment is None
+            else assignment.values.filter(file_url=file_url).first()
+        )
 
     @classmethod
     def _validate_attributes_input(
