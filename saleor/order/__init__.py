@@ -39,6 +39,7 @@ class FulfillmentStatus:
         (FULFILLED, "Fulfilled"),
         (REFUNDED, "Refunded"),
         (RETURNED, "Returned"),
+        (REPLACED, "Replaced"),
         (REFUNDED_AND_RETURNED, "Refunded and returned"),
         (CANCELED, "Canceled"),
     ]
