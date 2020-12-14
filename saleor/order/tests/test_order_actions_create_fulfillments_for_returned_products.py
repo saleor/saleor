@@ -1,7 +1,10 @@
+from decimal import Decimal
 from unittest.mock import patch
 
+from prices import Money, TaxedMoney
+
 from ...payment import ChargeStatus
-from ...warehouse.models import Allocation
+from ...warehouse.models import Allocation, Stock
 from .. import FulfillmentStatus, OrderEvents
 from ..actions import (
     FulfillmentLineData,
@@ -511,6 +514,75 @@ def test_create_return_fulfillment_multiple_fulfillment_lines_returns(
             order=fulfilled_order,
             payment=payment,
             order_lines=[],
+            fulfillment_lines=[
+                FulfillmentLineData(line=line, quantity=1)
+                for line in fulfillment_lines_to_return
+            ],
+            refund=True,
+        )
+
+    returned_fulfillment = Fulfillment.objects.get(
+        order=fulfilled_order, status=FulfillmentStatus.REFUNDED_AND_RETURNED
+    )
+    returned_fulfillment_lines = returned_fulfillment.lines.all()
+
+    assert returned_fulfillment_lines.count() == len(order_line_ids)
+    for fulfillment_line in returned_fulfillment_lines:
+        assert fulfillment_line.quantity == 2
+        assert fulfillment_line.order_line_id in order_line_ids
+
+    for line in fulfillment_lines:
+        assert line.quantity == original_quantity.get(line.pk) - 2
+
+    assert mocked_refund.call_count == 2
+
+
+@patch("saleor.order.actions.gateway.refund")
+def test_create_return_fulfillment_multiple_lines_returns(
+    mocked_refund,
+    fulfilled_order,
+    payment_dummy,
+    staff_user,
+    channel_USD,
+    variant,
+    warehouse,
+):
+    payment_dummy.captured_amount = payment_dummy.total
+    payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_dummy.save()
+    fulfilled_order.payments.add(payment_dummy)
+    payment = fulfilled_order.get_last_payment()
+    order_line_ids = fulfilled_order.lines.all().values_list("id", flat=True)
+    fulfillment_lines = FulfillmentLine.objects.filter(order_line_id__in=order_line_ids)
+    original_quantity = {line.id: line.quantity for line in fulfillment_lines}
+    fulfillment_lines_to_return = fulfillment_lines
+
+    stock = Stock.objects.create(
+        warehouse=warehouse, product_variant=variant, quantity=5
+    )
+    net = variant.get_price(channel_USD.slug)
+    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    order_line = fulfilled_order.lines.create(
+        product_name=str(variant.product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        quantity=5,
+        quantity_fulfilled=2,
+        variant=variant,
+        unit_price=TaxedMoney(net=net, gross=gross),
+        tax_rate=23,
+    )
+    Allocation.objects.create(
+        order_line=order_line, stock=stock, quantity_allocated=order_line.quantity
+    )
+
+    for _ in range(2):
+        create_fulfillments_for_returned_products(
+            requester=staff_user,
+            order=fulfilled_order,
+            payment=payment,
+            order_lines=[OrderLineData(line=order_line, quantity=1)],
             fulfillment_lines=[
                 FulfillmentLineData(line=line, quantity=1)
                 for line in fulfillment_lines_to_return
