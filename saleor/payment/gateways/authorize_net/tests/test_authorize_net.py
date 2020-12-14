@@ -2,7 +2,14 @@ import pytest
 
 from .... import TransactionKind
 from ....interface import PaymentData
-from .. import authenticate_test, capture, process_payment, refund, void
+from .. import (
+    authenticate_test,
+    capture,
+    list_client_sources,
+    process_payment,
+    refund,
+    void,
+)
 
 INVALID_TOKEN = "Y29kZTo1MF8yXzA2MDAwIHRva2VuOjEgdjoxLjE="
 SUCCESS_TRANSACTION_ID = "60156217587"
@@ -199,3 +206,17 @@ def test_void_failure(authorize_net_payment, authorize_net_gateway_config):
     assert response.error
     assert response.kind == TransactionKind.VOID
     assert not response.is_success
+
+
+@pytest.mark.integration
+@pytest.mark.vcr()
+def test_list_client_sources(authorize_net_gateway_config):
+    customer_id = "1929079648"
+    response = list_client_sources(authorize_net_gateway_config, customer_id)
+    assert len(response) == 1
+    assert response[0].id == 1841309241
+    assert response[0].credit_card_info.last_4 == "1111"
+    assert response[0].credit_card_info.exp_year == 2021
+    assert response[0].credit_card_info.exp_month == 2
+    assert response[0].credit_card_info.brand == "Visa"
+    assert response[0].credit_card_info.name == "John Doe"
