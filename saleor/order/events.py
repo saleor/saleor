@@ -139,6 +139,27 @@ def draft_order_removed_products_event(
     )
 
 
+def draft_order_created_from_replace_event(
+    *,
+    draft_order: Order,
+    original_order: Order,
+    user: UserType,
+    lines: List[Tuple[int, OrderLine]]
+):
+    if not _user_is_valid(user):
+        user = None
+    parameters = {
+        "original_order_pk": original_order.pk,
+        "lines": _lines_per_quantity_to_line_object_list(lines),
+    }
+    return OrderEvent.objects.create(
+        order=draft_order,
+        type=OrderEvents.DRAFT_CREATED_FROM_REPLACE,
+        user=user,
+        parameters=parameters,
+    )
+
+
 def order_created_event(
     *, order: Order, user: UserType, from_draft=False
 ) -> OrderEvent:
@@ -208,7 +229,7 @@ def order_fully_paid_event(*, order: Order, user: UserType) -> OrderEvent:
     )
 
 
-def order_replace_draft_created(
+def order_replace_created(
     *, original_order: Order, replace_order: Order, user: UserType
 ) -> OrderEvent:
     if not _user_is_valid(user):
@@ -216,7 +237,7 @@ def order_replace_draft_created(
     parameters = {"replace_order_pk": replace_order.pk}
     return OrderEvent.objects.create(
         order=original_order,
-        type=OrderEvents.ORDER_REPLACE_DRAFT_CREATED,
+        type=OrderEvents.ORDER_REPLACE_CREATED,
         user=user,
         parameters=parameters,
     )

@@ -63,7 +63,7 @@ class OrderEvents:
 
     ORDER_MARKED_AS_PAID = "order_marked_as_paid"
     ORDER_FULLY_PAID = "order_fully_paid"
-    ORDER_REPLACE_DRAFT_CREATED = "order_replace_draft_created"
+    ORDER_REPLACE_CREATED = "order_replace_created"
 
     UPDATED_ADDRESS = "updated_address"
 
@@ -104,10 +104,7 @@ class OrderEvents:
         (CANCELED, "The order was canceled"),
         (ORDER_MARKED_AS_PAID, "The order was manually marked as fully paid"),
         (ORDER_FULLY_PAID, "The order was fully paid"),
-        (
-            ORDER_REPLACE_DRAFT_CREATED,
-            "The draft order was created based on this order",
-        ),
+        (ORDER_REPLACE_CREATED, "The draft order was created based on this order.",),
         (UPDATED_ADDRESS, "The address from the placed order was updated"),
         (EMAIL_SENT, "The email was sent"),
         (CONFIRMED, "Order was confirmed"),

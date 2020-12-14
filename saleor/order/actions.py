@@ -35,10 +35,11 @@ from .emails import (
     send_payment_confirmation,
 )
 from .events import (
+    draft_order_created_from_replace_event,
     fulfillment_refunded_event,
     fulfillment_replaced_event,
     fulfillment_returned_event,
-    order_replace_draft_created,
+    order_replace_created,
 )
 from .models import Fulfillment, FulfillmentLine, Order, OrderLine
 from .utils import (
@@ -626,6 +627,7 @@ def create_refund_fulfillment(
 
 
 def create_replace_order(
+    requester: Optional["User"],
     original_order: "Order",
     order_lines_to_replace: List[OrderLineData],
     fulfillment_lines_to_replace: List[FulfillmentLineData],
@@ -684,7 +686,14 @@ def create_replace_order(
         order_line.quantity_fulfilled = 0
         order_line_to_create[order_line_id] = order_line
 
-    OrderLine.objects.bulk_create(order_line_to_create.values())
+    lines_to_create = order_line_to_create.values()
+    OrderLine.objects.bulk_create(lines_to_create)
+    draft_order_created_from_replace_event(
+        draft_order=replace_order,
+        original_order=original_order,
+        user=requester,
+        lines=[(line.quantity, line) for line in lines_to_create],
+    )
     return replace_order
 
 
@@ -788,6 +797,7 @@ def process_replace(
         order=order,
     )
     new_order = create_replace_order(
+        requester=requester,
         original_order=order,
         order_lines_to_replace=order_lines,
         fulfillment_lines_to_replace=fulfillment_lines,
@@ -796,7 +806,7 @@ def process_replace(
     fulfillment_replaced_event(
         order=order, user=requester, replaced_lines=replaced_lines,
     )
-    order_replace_draft_created(
+    order_replace_created(
         original_order=order, replace_order=new_order, user=requester,
     )
     # TODO call order_returned
