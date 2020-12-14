@@ -3090,17 +3090,6 @@ def fake_payment_interface(mocker):
 
 
 @pytest.fixture
-def mock_get_manager(mocker, fake_payment_interface):
-    mgr = mocker.patch(
-        "saleor.payment.gateway.get_plugins_manager",
-        autospec=True,
-        return_value=fake_payment_interface,
-    )
-    yield fake_payment_interface
-    mgr.assert_called_once()
-
-
-@pytest.fixture
 def staff_notification_recipient(db, staff_user):
     return StaffNotificationRecipient.objects.create(active=True, user=staff_user)
 
