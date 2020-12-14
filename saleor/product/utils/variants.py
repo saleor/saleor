@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from ..models import ProductVariant
 
 
-def generate_name_for_variant(variant: "ProductVariant") -> str:
+def generate_and_set_variant_name(variant: "ProductVariant", sku: str):
     """Generate ProductVariant's name based on its attributes."""
     attributes_display = []
 
@@ -23,7 +23,12 @@ def generate_name_for_variant(variant: "ProductVariant") -> str:
         translated_values = [str(value.translated) for value in values_qs]
         attributes_display.append(", ".join(translated_values))
 
-    return " / ".join(attributes_display)
+    name = " / ".join(attributes_display)
+    if not name:
+        name = sku
+
+    variant.name = name
+    variant.save(update_fields=["name"])
 
 
 def get_variant_selection_attributes(attributes):

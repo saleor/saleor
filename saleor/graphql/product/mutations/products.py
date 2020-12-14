@@ -25,7 +25,7 @@ from ....product.thumbnails import (
     create_product_thumbnails,
 )
 from ....product.utils import delete_categories, get_products_ids_without_variants
-from ....product.utils.variants import generate_name_for_variant
+from ....product.utils.variants import generate_and_set_variant_name
 from ...attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ...channel import ChannelContext
 from ...core.inputs import ReorderInput
@@ -879,11 +879,7 @@ class ProductVariantCreate(ModelMutation):
         attributes = cleaned_input.get("attributes")
         if attributes:
             AttributeAssignmentMixin.save(instance, attributes)
-            name = generate_name_for_variant(instance)
-            if not name:
-                name = cleaned_input.get("sku")
-            instance.name = name
-            instance.save(update_fields=["name"])
+            generate_and_set_variant_name(instance, cleaned_input.get("sku"))
         info.context.plugins.product_updated(instance.product)
 
     @classmethod

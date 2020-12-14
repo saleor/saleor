@@ -9,7 +9,7 @@ from ...attribute.utils import associate_attribute_values_to_instance
 from ...product.models import ProductVariantChannelListing
 from ..models import Product, ProductType, ProductVariant
 from ..tasks import _update_variants_names
-from ..utils.variants import generate_name_for_variant
+from ..utils.variants import generate_and_set_variant_name
 
 
 @pytest.fixture()
@@ -32,7 +32,7 @@ def variant_with_no_attributes(category, channel_USD):
     return variant
 
 
-def test_generate_name_for_variant_different_attributes(
+def test_generate_and_set_variant_name_different_attributes(
     variant_with_no_attributes, color_attribute_without_values, size_attribute
 ):
     """Test the name generation from a given variant containing multiple attributes and
@@ -68,11 +68,12 @@ def test_generate_name_for_variant_different_attributes(
     associate_attribute_values_to_instance(variant, size_attribute, size)
 
     # Generate the variant name from the attributes
-    name = generate_name_for_variant(variant)
-    assert name == "Big"
+    generate_and_set_variant_name(variant, variant.sku)
+    variant.refresh_from_db()
+    assert variant.name == "Big"
 
 
-def test_generate_name_for_variant_only_variant_selection_attributes(
+def test_generate_and_set_variant_name_only_variant_selection_attributes(
     variant_with_no_attributes, color_attribute_without_values, size_attribute
 ):
     """Test the name generation for a given variant containing multiple attributes
@@ -104,11 +105,12 @@ def test_generate_name_for_variant_only_variant_selection_attributes(
     associate_attribute_values_to_instance(variant, size_attribute, size)
 
     # Generate the variant name from the attributes
-    name = generate_name_for_variant(variant)
-    assert name == "Yellow, Blue, Red / Big"
+    generate_and_set_variant_name(variant, variant.sku)
+    variant.refresh_from_db()
+    assert variant.name == "Yellow, Blue, Red / Big"
 
 
-def test_generate_name_for_variant_only_not_variant_selection_attributes(
+def test_generate_and_set_variant_name_only_not_variant_selection_attributes(
     variant_with_no_attributes, color_attribute_without_values, file_attribute
 ):
     """Test the name generation for a given variant containing multiple attributes
@@ -147,15 +149,18 @@ def test_generate_name_for_variant_only_not_variant_selection_attributes(
     associate_attribute_values_to_instance(variant, file_attribute, values[-1])
 
     # Generate the variant name from the attributes
-    name = generate_name_for_variant(variant)
-    assert name == ""
+    generate_and_set_variant_name(variant, variant.sku)
+    variant.refresh_from_db()
+    assert variant.name == variant.sku
 
 
 def test_generate_name_from_values_empty(variant_with_no_attributes):
     """Ensure generate a variant name from a variant without any attributes assigned
     returns an empty string."""
-    name = generate_name_for_variant(variant_with_no_attributes)
-    assert name == ""
+    variant = variant_with_no_attributes
+    generate_and_set_variant_name(variant, variant.sku)
+    variant.refresh_from_db()
+    assert variant.name == variant.sku
 
 
 def test_product_type_update_changes_variant_name(product):

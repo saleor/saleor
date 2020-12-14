@@ -10,7 +10,7 @@ from .utils.variant_prices import (
     update_products_discounted_prices_of_catalogues,
     update_products_discounted_prices_of_discount,
 )
-from .utils.variants import generate_name_for_variant
+from .utils.variants import generate_and_set_variant_name
 
 
 def _update_variants_names(instance: ProductType, saved_attributes: Iterable):
@@ -31,11 +31,7 @@ def _update_variants_names(instance: ProductType, saved_attributes: Iterable):
         "attributes__values__translations"
     ).all()
     for variant in variants_to_be_updated:
-        name = generate_name_for_variant(variant)
-        if not name:
-            name = variant.sku
-        variant.name = name
-        variant.save(update_fields=["name"])
+        generate_and_set_variant_name(variant, variant.sku)
 
 
 @app.task
