@@ -3180,6 +3180,63 @@ def test_update_product_with_file_attribute_value(
     updated_webhook_mock.assert_called_once_with(product)
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_with_file_attribute_value_new_value_is_not_created(
+    updated_webhook_mock,
+    staff_api_client,
+    file_attribute,
+    product,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    attribute_id = graphene.Node.to_global_id("Attribute", file_attribute.pk)
+    product_type.product_attributes.add(file_attribute)
+    existing_value = file_attribute.values.first()
+    associate_attribute_values_to_instance(product, file_attribute, existing_value)
+
+    variables = {
+        "productId": product_id,
+        "input": {
+            "attributes": [{"id": attribute_id, "file": existing_value.file_url}]
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["productErrors"] == []
+
+    attributes = data["product"]["attributes"]
+
+    assert len(attributes) == 2
+    expected_file_att_data = {
+        "attribute": {"id": attribute_id, "name": file_attribute.name},
+        "values": [
+            {
+                "name": existing_value.name,
+                "slug": existing_value.slug,
+                "file": {
+                    "url": existing_value.file_url,
+                    "contentType": existing_value.content_type,
+                },
+            }
+        ],
+    }
+    assert expected_file_att_data in attributes
+
+    updated_webhook_mock.assert_called_once_with(product)
+
+
 @freeze_time("2020-03-18 12:00:00")
 def test_update_product_rating(
     staff_api_client, product, permission_manage_products,
