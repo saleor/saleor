@@ -32,7 +32,7 @@ def variant_with_no_attributes(category, channel_USD):
     return variant
 
 
-def test_generate_name_for_variant_not_variant_selection_attributes(
+def test_generate_name_for_variant_different_attributes(
     variant_with_no_attributes, color_attribute_without_values, size_attribute
 ):
     """Test the name generation from a given variant containing multiple attributes and
@@ -75,8 +75,8 @@ def test_generate_name_for_variant_not_variant_selection_attributes(
 def test_generate_name_for_variant_only_variant_selection_attributes(
     variant_with_no_attributes, color_attribute_without_values, size_attribute
 ):
-    """Test the name generation from a given variant containing multiple attributes and
-    only allowed in variant selection input types.
+    """Test the name generation for a given variant containing multiple attributes
+    with input types allowed in variant selection.
     """
 
     variant = variant_with_no_attributes
@@ -87,7 +87,7 @@ def test_generate_name_for_variant_only_variant_selection_attributes(
         (color_attribute, size_attribute)
     )
 
-    # Create colors
+    # Create values
     colors = AttributeValue.objects.bulk_create(
         [
             AttributeValue(attribute=color_attribute, name="Yellow", slug="yellow"),
@@ -108,6 +108,49 @@ def test_generate_name_for_variant_only_variant_selection_attributes(
     assert name == "Yellow, Blue, Red / Big"
 
 
+def test_generate_name_for_variant_only_not_variant_selection_attributes(
+    variant_with_no_attributes, color_attribute_without_values, file_attribute
+):
+    """Test the name generation for a given variant containing multiple attributes
+    with input types not allowed in variant selection.
+    """
+
+    variant = variant_with_no_attributes
+    color_attribute = color_attribute_without_values
+
+    # Assign the attributes to the product type
+    variant.product.product_type.variant_attributes.set(
+        (color_attribute, file_attribute)
+    )
+
+    # Set the color attribute to a multi-value attribute
+    color_attribute.input_type = AttributeInputType.MULTISELECT
+    color_attribute.save(update_fields=["input_type"])
+
+    # Create values
+    values = AttributeValue.objects.bulk_create(
+        [
+            AttributeValue(attribute=color_attribute, name="Yellow", slug="yellow"),
+            AttributeValue(attribute=color_attribute, name="Blue", slug="blue"),
+            AttributeValue(
+                attribute=file_attribute,
+                name="test_file_3.txt",
+                slug="test_file3txt",
+                file_url="http://mirumee.com/test_media/test_file3.txt",
+                content_type="text/plain",
+            ),
+        ]
+    )
+
+    # Associate the colors and size to variant attributes
+    associate_attribute_values_to_instance(variant, color_attribute, *values[:2])
+    associate_attribute_values_to_instance(variant, file_attribute, values[-1])
+
+    # Generate the variant name from the attributes
+    name = generate_name_for_variant(variant)
+    assert name == ""
+
+
 def test_generate_name_from_values_empty(variant_with_no_attributes):
     """Ensure generate a variant name from a variant without any attributes assigned
     returns an empty string."""
@@ -126,6 +169,18 @@ def test_product_type_update_changes_variant_name(product):
     _update_variants_names(product.product_type, [attribute])
     product_variant.refresh_from_db()
     assert product_variant.name == new_name
+
+
+def test_only_not_variant_selection_attr_left_variant_name_change_to_sku(product):
+    new_name = "test_name"
+    product_variant = product.variants.first()
+    assert not product_variant.name == new_name
+    attribute = product.product_type.variant_attributes.first()
+    attribute.input_type = AttributeInputType.MULTISELECT
+    attribute.save(update_fields=["input_type"])
+    _update_variants_names(product.product_type, [attribute])
+    product_variant.refresh_from_db()
+    assert product_variant.name == product_variant.sku
 
 
 def test_update_variants_changed_does_nothing_with_no_attributes():
