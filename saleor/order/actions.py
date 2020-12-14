@@ -813,7 +813,7 @@ def create_fulfillments_for_returned_products(
     refund: bool = False,
     amount: Optional[Decimal] = None,
     refund_shipping_costs=False,
-) -> Tuple[Fulfillment, Optional[Fulfillment], Order]:
+) -> Tuple[Fulfillment, Optional[Fulfillment], Optional[Order]]:
     return_order_lines = [data for data in order_lines if not data.replace]
     return_fulfillment_lines = [data for data in fulfillment_lines if not data.replace]
     if refund and payment:
@@ -868,9 +868,7 @@ def _calculate_refund_amount(
     for line_data in return_fulfillment_lines:
         if line_data.line.fulfillment.status == FulfillmentStatus.REFUNDED:
             continue
-        order_line = order_lines_with_fulfillment.get(  # type: ignore
-            line_data.line.order_line_id
-        )
+        order_line = order_lines_with_fulfillment[line_data.line.order_line_id]
         refund_amount += line_data.quantity * order_line.unit_price_gross_amount
 
         data_from_all_refunded_lines = lines_to_refund.get(order_line.id)
