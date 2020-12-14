@@ -303,8 +303,6 @@ def _prepare_order_data(
     )
 
     channel = checkout.channel
-    # TODO: make "_create_lines_for_order"
-    # fetch all translation
     order_data["lines"] = _create_lines_for_order(
         manager, checkout, lines, discounts, channel
     )

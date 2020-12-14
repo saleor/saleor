@@ -79,7 +79,6 @@ def process_payment(
     additional_data: Optional[dict] = None,
     plugin_manager: Optional["PluginsManager"] = None,
 ) -> Transaction:
-    # TODO: remove it
     if not plugin_manager:
         plugin_manager = get_plugins_manager()
     payment_data = create_payment_information(
