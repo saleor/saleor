@@ -9,13 +9,13 @@ def create_through_product_relations(apps, schema_editor):
     AssignedProductAttributeValue = apps.get_model(
         "attribute", "AssignedProductAttributeValue"
     )
-    instances = []
-    for assignment in AssignedProductAttribute.objects.all():
+    for assignment in AssignedProductAttribute.objects.iterator():
+        instances = []
         for value in assignment.values.all():
             instances.append(
                 AssignedProductAttributeValue(value=value, assignment=assignment)
             )
-    AssignedProductAttributeValue.objects.bulk_create(instances)
+        AssignedProductAttributeValue.objects.bulk_create(instances)
 
 
 def create_through_variant_relations(apps, schema_editor):
@@ -23,13 +23,13 @@ def create_through_variant_relations(apps, schema_editor):
     AssignedVariantAttributeValue = apps.get_model(
         "attribute", "AssignedVariantAttributeValue"
     )
-    instances = []
-    for assignment in AssignedVariantAttribute.objects.all():
+    for assignment in AssignedVariantAttribute.objects.iterator():
+        instances = []
         for value in assignment.values.all():
             instances.append(
                 AssignedVariantAttributeValue(value=value, assignment=assignment)
             )
-    AssignedVariantAttributeValue.objects.bulk_create(instances)
+        AssignedVariantAttributeValue.objects.bulk_create(instances)
 
 
 def create_through_page_relations(apps, schema_editor):
@@ -37,13 +37,13 @@ def create_through_page_relations(apps, schema_editor):
     AssignedPageAttributeValue = apps.get_model(
         "attribute", "AssignedPageAttributeValue"
     )
-    instances = []
-    for assignment in AssignedPageAttribute.objects.all():
+    for assignment in AssignedPageAttribute.objects.iterator():
+        instances = []
         for value in assignment.values.all():
             instances.append(
                 AssignedPageAttributeValue(value=value, assignment=assignment)
             )
-    AssignedPageAttributeValue.objects.bulk_create(instances)
+        AssignedPageAttributeValue.objects.bulk_create(instances)
 
 
 class Migration(migrations.Migration):
