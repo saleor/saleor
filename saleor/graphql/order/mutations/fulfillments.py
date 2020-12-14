@@ -398,7 +398,7 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
     def _raise_error_for_line(cls, msg, type, line_id, field_name, code=None):
         line_global_id = graphene.Node.to_global_id(type, line_id)
         if not code:
-            code = OrderErrorCode.INVALID_REFUND_QUANTITY.value
+            code = OrderErrorCode.INVALID_QUANTITY.value
         raise ValidationError(
             {
                 field_name: ValidationError(
