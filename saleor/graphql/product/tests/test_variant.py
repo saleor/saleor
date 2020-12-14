@@ -7,6 +7,7 @@ from django.utils.text import slugify
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
+from ....attribute import AttributeInputType
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....core.weight import WeightUnits
 from ....order import OrderStatus
@@ -395,7 +396,7 @@ def test_create_variant_with_file_attribute(
     content = get_graphql_content(response)["data"]["productVariantCreate"]
     assert not content["productErrors"]
     data = content["productVariant"]
-    assert data["name"] == existing_value.name
+    assert data["name"] == sku
     assert data["sku"] == sku
     assert data["attributes"][0]["attribute"]["slug"] == file_attribute.slug
     assert data["attributes"][0]["values"][0]["slug"] == f"{existing_value.slug}-2"
@@ -459,7 +460,7 @@ def test_create_variant_with_file_attribute_new_value(
     content = get_graphql_content(response)["data"]["productVariantCreate"]
     assert not content["productErrors"]
     data = content["productVariant"]
-    assert data["name"] == new_value
+    assert data["name"] == sku
     assert data["sku"] == sku
     assert data["attributes"][0]["attribute"]["slug"] == file_attribute.slug
     assert data["attributes"][0]["values"][0]["slug"] == slugify(new_value)
@@ -1754,6 +1755,7 @@ PRODUCT_VARIANT_BULK_CREATE_MUTATION = """
             }
             productVariants{
                 id
+                name
                 sku
                 stocks {
                     warehouse {
@@ -1808,6 +1810,50 @@ def test_product_variant_bulk_create_by_attribute_id(
     data = content["data"]["productVariantBulkCreate"]
     assert not data["bulkProductErrors"]
     assert data["count"] == 1
+    assert data["productVariants"][0]["name"] == attribute_value.name
+    assert product_variant_count + 1 == ProductVariant.objects.count()
+    assert attribute_value_count == size_attribute.values.count()
+    product_variant = ProductVariant.objects.get(sku=sku)
+    product.refresh_from_db()
+    assert product.default_variant == product_variant
+
+
+def test_product_variant_bulk_create_only_not_variant_selection_attributes(
+    staff_api_client, product, size_attribute, permission_manage_products
+):
+    """Ensure that sku is set as variant name when only variant selection attributes
+    are assigned.
+    """
+    product_variant_count = ProductVariant.objects.count()
+    attribute_value_count = size_attribute.values.count()
+
+    size_attribute.input_type = AttributeInputType.MULTISELECT
+    size_attribute.save(update_fields=["input_type"])
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribut_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
+
+    attribute_value = size_attribute.values.last()
+    sku = str(uuid4())[:12]
+    variants = [
+        {
+            "sku": sku,
+            "weight": 2.5,
+            "trackInventory": True,
+            "attributes": [{"id": attribut_id, "values": [attribute_value.name]}],
+        }
+    ]
+
+    variables = {"productId": product_id, "variants": variants}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantBulkCreate"]
+    assert not data["bulkProductErrors"]
+    assert data["count"] == 1
+    assert data["productVariants"][0]["name"] == sku
     assert product_variant_count + 1 == ProductVariant.objects.count()
     assert attribute_value_count == size_attribute.values.count()
     product_variant = ProductVariant.objects.get(sku=sku)
