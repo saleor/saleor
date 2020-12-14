@@ -846,6 +846,7 @@ def create_fulfillments_for_returned_products(
             fulfillment_lines=return_fulfillment_lines,
             refund=refund,
         )
+        Fulfillment.objects.filter(order=order, lines=None).delete()
     return return_fulfillment, replace_fulfillment, new_order
 
 
