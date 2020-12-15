@@ -76,7 +76,7 @@ def test_process_payment_reuse_source(dummy_payment_data, authorize_net_gateway_
     assert not response.error
     assert response.kind == TransactionKind.CAPTURE
     assert response.is_success
-    assert response.customer_id == "1929153842"
+    assert response.customer_id == 1929153842
 
 
 @pytest.mark.integration
