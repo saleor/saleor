@@ -56,6 +56,16 @@ def test_payment_gateway_validate(mocked_authenticate_test, authorize_net_plugin
     assert not response
 
 
+@pytest.mark.integration
+@pytest.mark.vcr()
+def test_payment_gateway_validate_production(authorize_net_plugin):
+    for config in authorize_net_plugin.configuration:
+        if config["name"] == "use_sandbox":
+            config["value"] = False
+    with pytest.raises(ValidationError):
+        AuthorizeNetGatewayPlugin.validate_plugin_configuration(authorize_net_plugin)
+
+
 @mock.patch("saleor.payment.gateways.authorize_net.plugin.authenticate_test")
 def test_payment_gateway_validate_failure(
     mocked_authenticate_test, authorize_net_plugin
@@ -63,6 +73,17 @@ def test_payment_gateway_validate_failure(
     mocked_authenticate_test.return_value = (False, "")
     with pytest.raises(ValidationError):
         AuthorizeNetGatewayPlugin.validate_plugin_configuration(authorize_net_plugin)
+
+
+@mock.patch("saleor.payment.gateways.authorize_net.plugin.refund")
+def test_payment_gateway_refund_payment(
+    mocked_refund, authorize_net_plugin, dummy_payment_data
+):
+    mocked_refund.return_value(None)
+    authorize_net_plugin.refund_payment(dummy_payment_data, None)
+    mocked_refund.assert_called_with(
+        dummy_payment_data, "1111", authorize_net_plugin._get_gateway_config()
+    )
 
 
 def test_payment_gateway_refund_payment_no_payment(
