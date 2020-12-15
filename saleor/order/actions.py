@@ -44,8 +44,8 @@ from .events import (
     draft_order_created_from_replace_event,
     fulfillment_refunded_event,
     fulfillment_replaced_event,
-    fulfillment_returned_event,
     order_replacement_created,
+    order_returned_event,
 )
 from .models import Fulfillment, FulfillmentLine, Order, OrderLine
 from .utils import (
@@ -152,6 +152,16 @@ def order_refunded(
 
 def order_voided(order: "Order", user: "User", payment: "Payment"):
     events.payment_voided_event(order=order, user=user, payment=payment)
+    get_plugins_manager().order_updated(order)
+
+
+def order_returned(
+    order: "Order",
+    user: Optional["User"],
+    returned_lines: List[Tuple[QuantityType, OrderLine]],
+):
+    order_returned_event(order=order, user=user, returned_lines=returned_lines)
+    update_order_status(order)
     get_plugins_manager().order_updated(order)
 
 
@@ -818,9 +828,8 @@ def create_return_fulfillment(
                     line_data.quantity,
                     order_line,
                 )
-
-        fulfillment_returned_event(
-            order=order, user=requester, returned_lines=list(returned_lines.values()),
+        order_returned(
+            order, user=requester, returned_lines=list(returned_lines.values())
         )
     return return_fulfillment
 
@@ -856,7 +865,6 @@ def process_replace(
     order_replacement_created(
         original_order=order, replace_order=new_order, user=requester,
     )
-    # TODO call order_returned
 
     return replace_fulfillment, new_order
 
