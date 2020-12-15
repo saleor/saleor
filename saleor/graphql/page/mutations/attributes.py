@@ -227,60 +227,24 @@ class PageReorderAttributeValues(BaseReorderAttributeValuesMutation):
         )
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, _info, **data):
         page_id = data["page_id"]
-        attribute_id = data["attribute_id"]
-        moves = data["moves"]
-
-        page = cls.get_page(page_id)
-        attribute_assignment = cls.get_attribute_assignment(page, attribute_id)
-        values_m2m = getattr(attribute_assignment, "values")
-
-        try:
-            operations = cls.prepare_operations(moves, values_m2m)
-        except ValidationError as error:
-            error.code = PageErrorCode.NOT_FOUND.value
-            raise ValidationError({"moves": error})
-
-        with transaction.atomic():
-            perform_reordering(values_m2m, operations)
-
+        page = cls.perform(page_id, "page", data, PageErrorCode)
         return PageReorderAttributeValues(page=page)
 
     @staticmethod
-    def get_page(page_id: str):
-        pk = from_global_id_strict_type(page_id, only_type=Page, field="page_id")
+    def get_instance(instance_id: str):
+        pk = from_global_id_strict_type(instance_id, only_type=Page, field="page_id")
 
         try:
-            product = page_models.Page.objects.prefetch_related("attributes").get(pk=pk)
+            page = page_models.Page.objects.prefetch_related("attributes").get(pk=pk)
         except ObjectDoesNotExist:
             raise ValidationError(
                 {
                     "page_id": ValidationError(
-                        (f"Couldn't resolve to a page: {page_id}"),
+                        (f"Couldn't resolve to a page: {instance_id}"),
                         code=PageErrorCode.NOT_FOUND.value,
                     )
                 }
             )
-        return product
-
-    @staticmethod
-    def get_attribute_assignment(page: page_models.Page, attribute_id: str):
-        attribute_pk = from_global_id_strict_type(
-            attribute_id, only_type=Attribute, field="attribute_id"
-        )
-
-        try:
-            attribute_assignment = page.attributes.prefetch_related("values").get(
-                assignment__attribute_id=attribute_pk  # type: ignore
-            )
-        except ObjectDoesNotExist:
-            raise ValidationError(
-                {
-                    "attribute_id": ValidationError(
-                        f"Couldn't resolve to a page attribute: {attribute_id}",
-                        code=PageErrorCode.NOT_FOUND.value,
-                    )
-                }
-            )
-        return attribute_assignment
+        return page

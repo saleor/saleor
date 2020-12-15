@@ -85,6 +85,56 @@ class BaseReorderAttributeValuesMutation(BaseMutation):
         abstract = True
 
     @classmethod
+    def perform(cls, instance_id: str, instance_type: str, data: dict, error_code_enum):
+        attribute_id = data["attribute_id"]
+        moves = data["moves"]
+
+        instance = cls.get_instance(instance_id)
+        attribute_assignment = cls.get_attribute_assignment(
+            instance, instance_type, attribute_id, error_code_enum
+        )
+        values_m2m = getattr(attribute_assignment, "values")
+
+        try:
+            operations = cls.prepare_operations(moves, values_m2m)
+        except ValidationError as error:
+            error.code = error_code_enum.NOT_FOUND.value
+            raise ValidationError({"moves": error})
+
+        with transaction.atomic():
+            perform_reordering(values_m2m, operations)
+
+        return instance
+
+    @staticmethod
+    def get_instance(instance_id: str):
+        pass
+
+    @staticmethod
+    def get_attribute_assignment(
+        instance, instance_type, attribute_id: str, error_code_enum
+    ):
+        attribute_pk = from_global_id_strict_type(
+            attribute_id, only_type=Attribute, field="attribute_id"
+        )
+
+        try:
+            attribute_assignment = instance.attributes.prefetch_related("values").get(
+                assignment__attribute_id=attribute_pk  # type: ignore
+            )
+        except ObjectDoesNotExist:
+            raise ValidationError(
+                {
+                    "attribute_id": ValidationError(
+                        f"Couldn't resolve to a {instance_type} "
+                        f"attribute: {attribute_id}.",
+                        code=error_code_enum.NOT_FOUND.value,
+                    )
+                }
+            )
+        return attribute_assignment
+
+    @classmethod
     def prepare_operations(cls, moves: ReorderInput, values: "QuerySet"):
         """Prepare operations dict for reordering attribute values.
 
