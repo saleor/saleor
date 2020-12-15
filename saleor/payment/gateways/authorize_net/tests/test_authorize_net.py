@@ -100,6 +100,17 @@ def test_process_payment_error_response(
 
 @pytest.mark.integration
 @pytest.mark.vcr()
+def test_process_payment_error_response_null(
+    dummy_payment_data, authorize_net_gateway_config
+):
+    dummy_payment_data.token = INVALID_TOKEN
+    response = process_payment(dummy_payment_data, authorize_net_gateway_config)
+    assert response.error == "Null Response"
+    assert not response.is_success
+
+
+@pytest.mark.integration
+@pytest.mark.vcr()
 def test_refund(authorize_net_payment, authorize_net_gateway_config):
     payment_data = PaymentData(
         REFUND_AMOUNT,
@@ -253,3 +264,12 @@ def test_list_client_sources(authorize_net_gateway_config):
     assert response[0].credit_card_info.exp_month == 2
     assert response[0].credit_card_info.brand == "Visa"
     assert response[0].credit_card_info.name == "John Doe"
+
+
+@pytest.mark.integration
+@pytest.mark.vcr()
+def test_list_client_sources_other_name(authorize_net_gateway_config):
+    customer_id = "1929079648"
+    response = list_client_sources(authorize_net_gateway_config, customer_id)
+    assert len(response) == 1
+    assert response[0].credit_card_info.name == "Doe"

@@ -66,6 +66,17 @@ def test_payment_gateway_validate_production(authorize_net_plugin):
         AuthorizeNetGatewayPlugin.validate_plugin_configuration(authorize_net_plugin)
 
 
+@pytest.mark.integration
+@pytest.mark.vcr()
+def test_payment_gateway_process_payment_production_failure(
+    authorize_net_plugin, dummy_payment_data
+):
+    authorize_net_plugin.config.connection_params["use_sandbox"] = False
+    dummy_payment_data.token = "a"
+    response = authorize_net_plugin.process_payment(dummy_payment_data, None)
+    assert not response.is_success
+
+
 @mock.patch("saleor.payment.gateways.authorize_net.plugin.authenticate_test")
 def test_payment_gateway_validate_failure(
     mocked_authenticate_test, authorize_net_plugin
