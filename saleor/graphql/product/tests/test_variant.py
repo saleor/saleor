@@ -522,16 +522,21 @@ def test_create_variant_with_file_attribute_no_file_url_given(
     content = get_graphql_content(response)["data"]["productVariantCreate"]
     errors = content["productErrors"]
     data = content["productVariant"]
-    assert not data
-    assert len(errors) == 1
-    assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
-    assert errors[0]["field"] == "attributes"
-    assert errors[0]["attributes"] == [file_attr_id]
+    assert not errors
+    assert data["name"] == sku
+    assert data["sku"] == sku
+    assert data["attributes"][0]["attribute"]["slug"] == file_attribute.slug
+    assert len(data["attributes"][0]["values"]) == 0
+    assert data["weight"]["unit"] == WeightUnitsEnum.KG.name
+    assert data["weight"]["value"] == weight
+    assert len(data["stocks"]) == 1
+    assert data["stocks"][0]["quantity"] == stocks[0]["quantity"]
+    assert data["stocks"][0]["warehouse"]["slug"] == warehouse.slug
 
     file_attribute.refresh_from_db()
     assert file_attribute.values.count() == values_count
 
-    updated_webhook_mock.assert_not_called()
+    updated_webhook_mock.assert_called_once_with(product)
 
 
 def test_create_product_variant_with_negative_weight(
