@@ -164,7 +164,7 @@ def test_create_fake_order(db, monkeypatch, image, media_root, warehouse):
         pass
     for msg in random_data.create_page_type():
         pass
-    for msg in random_data.create_page():
+    for msg in random_data.create_pages():
         pass
     random_data.create_products_by_schema("/", False)
     how_many = 2

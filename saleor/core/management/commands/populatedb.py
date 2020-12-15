@@ -13,8 +13,8 @@ from ...utils.random_data import (
     create_gift_card,
     create_menus,
     create_orders,
-    create_page,
     create_page_type,
+    create_pages,
     create_permission_groups,
     create_product_sales,
     create_products_by_schema,
@@ -104,7 +104,7 @@ class Command(BaseCommand):
         self.stdout.write("Created warehouses")
         for msg in create_page_type():
             self.stdout.write(msg)
-        for msg in create_page():
+        for msg in create_pages():
             self.stdout.write(msg)
         create_products_by_schema(self.placeholders_dir, create_images)
         self.stdout.write("Created products")
@@ -117,8 +117,6 @@ class Command(BaseCommand):
         for msg in create_users(20):
             self.stdout.write(msg)
         for msg in create_orders(20):
-            self.stdout.write(msg)
-        for msg in create_page():
             self.stdout.write(msg)
         for msg in create_menus():
             self.stdout.write(msg)
