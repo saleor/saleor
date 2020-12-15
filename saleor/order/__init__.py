@@ -30,9 +30,11 @@ class OrderStatus:
 class FulfillmentStatus:
     FULFILLED = "fulfilled"  # group of products in an order marked as fulfilled
     REFUNDED = "refunded"  # group of refunded products
-    RETURNED = "returned"
-    REFUNDED_AND_RETURNED = "refunded_and_returned"
-    REPLACED = "replaced"
+    RETURNED = "returned"  # group of returned products
+    REFUNDED_AND_RETURNED = (
+        "refunded_and_returned"  # group of returned and replaced products
+    )
+    REPLACED = "replaced"  # group of replaced products
     CANCELED = "canceled"  # fulfilled group of products in an order marked as canceled
 
     CHOICES = [

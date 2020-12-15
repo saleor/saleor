@@ -594,7 +594,7 @@ def create_refund_fulfillment(
     refunded line. The refund fulfillment can have assigned lines with the same
     products but with the different stocks.
     """
-    # FIXME Double check if new functions work as expected
+
     _process_refund(
         requester=requester,
         order=order,
@@ -648,9 +648,9 @@ def create_replace_order(
     )
 
     order_line_to_create: Dict[OrderLineIDType, OrderLine] = dict()
-    # order_lines = OrderLine.objects.filter(id_in=[for line)da=order_lines_to_replace])
-    # iterate over lines without fulfillment to get the items for replace.
 
+    # iterate over lines without fulfillment to get the items for replace.
+    # deepcopy to not lose the refence for lines assigned to original order
     for line_data in deepcopy(order_lines_to_replace):
         order_line = line_data.line
         order_line_id = order_line.pk
@@ -742,7 +742,7 @@ def _move_lines_to_replace_fulfillment(
     return target_fulfillment
 
 
-def create_return_fulfillment(  # todo create_fulfillments_for_returned_products (?)
+def create_return_fulfillment(
     requester: Optional["User"],
     order: "Order",
     order_lines: List[OrderLineData],
@@ -877,6 +877,7 @@ def _calculate_refund_amount(
         [line_data.line.order_line_id for line_data in return_fulfillment_lines]
     )
     for line_data in return_fulfillment_lines:
+        # skip lines which were already refunded
         if line_data.line.fulfillment.status == FulfillmentStatus.REFUNDED:
             continue
         order_line = order_lines_with_fulfillment[line_data.line.order_line_id]
