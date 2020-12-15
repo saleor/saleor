@@ -48,6 +48,24 @@ def test_process_payment(dummy_payment_data, authorize_net_gateway_config):
 
 @pytest.mark.integration
 @pytest.mark.vcr()
+def test_process_payment_with_user(
+    dummy_payment_data, authorize_net_gateway_config, address
+):
+    dummy_payment_data.token = INVALID_TOKEN
+    dummy_payment_data.billing = address
+    user_id = 123
+    response = process_payment(
+        dummy_payment_data, authorize_net_gateway_config, user_id
+    )
+    assert not response.error
+    assert response.kind == TransactionKind.CAPTURE
+    assert response.is_success
+    assert response.amount == dummy_payment_data.amount
+    assert response.currency == dummy_payment_data.currency
+
+
+@pytest.mark.integration
+@pytest.mark.vcr()
 def test_process_payment_error_response(
     dummy_payment_data, authorize_net_gateway_config
 ):

@@ -1,3 +1,12 @@
+from unittest import mock
+
+import pytest
+from django.core.exceptions import ValidationError
+
+from .... import PaymentError
+from ..plugin import AuthorizeNetGatewayPlugin
+
+
 def test_get_payment_gateway_for_checkout(
     authorize_net_plugin, checkout_with_single_item, address
 ):
@@ -26,3 +35,59 @@ def test_get_payment_gateway_for_checkout(
         "field": "store_customer_card",
         "value": authorize_net_plugin.config.store_customer,
     }
+
+
+def test_get_payment_gateway_for_checkout_inactive(
+    authorize_net_plugin, checkout_with_single_item
+):
+    authorize_net_plugin.active = False
+    response = authorize_net_plugin.get_payment_gateway_for_checkout(
+        checkout_with_single_item, None
+    )
+    assert not response
+
+
+@mock.patch("saleor.payment.gateways.authorize_net.plugin.authenticate_test")
+def test_payment_gateway_validate(mocked_authenticate_test, authorize_net_plugin):
+    mocked_authenticate_test.return_value = (True, "")
+    response = AuthorizeNetGatewayPlugin.validate_plugin_configuration(
+        authorize_net_plugin
+    )
+    assert not response
+
+
+@mock.patch("saleor.payment.gateways.authorize_net.plugin.authenticate_test")
+def test_payment_gateway_validate_failure(
+    mocked_authenticate_test, authorize_net_plugin
+):
+    mocked_authenticate_test.return_value = (False, "")
+    with pytest.raises(ValidationError):
+        AuthorizeNetGatewayPlugin.validate_plugin_configuration(authorize_net_plugin)
+
+
+def test_payment_gateway_refund_payment_no_payment(
+    authorize_net_plugin, dummy_payment_data
+):
+    dummy_payment_data.payment_id = 100
+    with pytest.raises(PaymentError):
+        authorize_net_plugin.refund_payment(dummy_payment_data, None)
+
+
+@mock.patch("saleor.payment.gateways.authorize_net.plugin.process_payment")
+def test_payment_gateway_process_payment(
+    mocked_process_payment, authorize_net_plugin, dummy_payment_data
+):
+    mocked_process_payment.return_value = None
+    authorize_net_plugin.process_payment(dummy_payment_data, None)
+    mocked_process_payment.assert_called_with(
+        dummy_payment_data, authorize_net_plugin.config, None
+    )
+
+
+@mock.patch("saleor.payment.gateways.authorize_net.plugin.list_client_sources")
+def test_payment_gateway_list_payment_sources(
+    mocked_list_client_sources, authorize_net_plugin
+):
+    mocked_list_client_sources.return_value = []
+    sources = authorize_net_plugin.list_payment_sources("1", [])
+    assert sources == []

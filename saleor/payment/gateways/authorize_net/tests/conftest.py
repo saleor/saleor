@@ -1,3 +1,5 @@
+from unittest import mock
+
 import pytest
 
 from .....plugins.manager import get_plugins_manager
@@ -26,7 +28,11 @@ def authorize_net_payment(payment_dummy):
 
 
 @pytest.fixture
-def authorize_net_plugin(settings, authorize_net_gateway_config):
+@mock.patch(
+    "saleor.payment.gateways.authorize_net.plugin.AuthorizeNetGatewayPlugin"
+    ".validate_plugin_configuration"
+)
+def authorize_net_plugin(_, settings, authorize_net_gateway_config):
     settings.PLUGINS = [
         "saleor.payment.gateways.authorize_net.plugin.AuthorizeNetGatewayPlugin"
     ]
@@ -39,7 +45,7 @@ def authorize_net_plugin(settings, authorize_net_gateway_config):
         {
             "active": True,
             "configuration": [
-                {"name": "api_login_key", "value": connection_params["api_login_id"]},
+                {"name": "api_login_id", "value": connection_params["api_login_id"]},
                 {
                     "name": "transaction_key",
                     "value": connection_params["transaction_key"],
