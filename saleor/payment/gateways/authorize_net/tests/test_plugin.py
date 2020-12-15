@@ -105,13 +105,24 @@ def test_payment_gateway_refund_payment_no_payment(
         authorize_net_plugin.refund_payment(dummy_payment_data, None)
 
 
-@mock.patch("saleor.payment.gateways.authorize_net.plugin.void")
-def test_payment_gateway_void_payment(
-    mocked_refund, authorize_net_plugin, dummy_payment_data
+@mock.patch("saleor.payment.gateways.authorize_net.plugin.authorize")
+def test_payment_gateway_authorize_payment(
+    mocked_authorize, authorize_net_plugin, dummy_payment_data
 ):
-    mocked_refund.return_value(None)
-    authorize_net_plugin.void_payment(dummy_payment_data, None)
-    mocked_refund.assert_called_with(
+    mocked_authorize.return_value(None)
+    authorize_net_plugin.authorize_payment(dummy_payment_data, None)
+    mocked_authorize.assert_called_with(
+        dummy_payment_data, authorize_net_plugin._get_gateway_config()
+    )
+
+
+@mock.patch("saleor.payment.gateways.authorize_net.plugin.capture")
+def test_payment_gateway_capture_payment(
+    mocked_capture, authorize_net_plugin, dummy_payment_data
+):
+    mocked_capture.return_value(None)
+    authorize_net_plugin.capture_payment(dummy_payment_data, None)
+    mocked_capture.assert_called_with(
         dummy_payment_data, authorize_net_plugin._get_gateway_config()
     )
 
