@@ -149,7 +149,7 @@ def draft_order_created_from_replace_event(
     if not _user_is_valid(user):
         user = None
     parameters = {
-        "original_order_pk": original_order.pk,
+        "related_order_pk": original_order.pk,
         "lines": _lines_per_quantity_to_line_object_list(lines),
     }
     return OrderEvent.objects.create(
@@ -234,7 +234,7 @@ def order_replace_created(
 ) -> OrderEvent:
     if not _user_is_valid(user):
         user = None
-    parameters = {"replace_order_pk": replace_order.pk}
+    parameters = {"related_order_pk": replace_order.pk}
     return OrderEvent.objects.create(
         order=original_order,
         type=OrderEvents.ORDER_REPLACE_CREATED,

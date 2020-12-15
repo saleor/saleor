@@ -3003,7 +3003,7 @@ type OrderEvent implements Node {
   warehouse: Warehouse
   transactionReference: String
   shippingCostsIncluded: Boolean
-  replaceOrder: Order
+  relatedOrder: Order
 }
 
 type OrderEventCountableConnection {
