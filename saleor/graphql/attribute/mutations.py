@@ -80,6 +80,104 @@ class BaseReorderAttributesMutation(BaseMutation):
         return operations
 
 
+class BaseReorderAttributeValuesMutation(BaseMutation):
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def perform(cls, instance_id: str, instance_type: str, data: dict, error_code_enum):
+        attribute_id = data["attribute_id"]
+        moves = data["moves"]
+
+        instance = cls.get_instance(instance_id)
+        attribute_assignment = cls.get_attribute_assignment(
+            instance, instance_type, attribute_id, error_code_enum
+        )
+        values_m2m = getattr(attribute_assignment, "values")
+
+        try:
+            operations = cls.prepare_operations(moves, values_m2m)
+        except ValidationError as error:
+            error.code = error_code_enum.NOT_FOUND.value
+            raise ValidationError({"moves": error})
+
+        with transaction.atomic():
+            perform_reordering(values_m2m, operations)
+
+        return instance
+
+    @staticmethod
+    def get_instance(instance_id: str):
+        pass
+
+    @staticmethod
+    def get_attribute_assignment(
+        instance, instance_type, attribute_id: str, error_code_enum
+    ):
+        attribute_pk = from_global_id_strict_type(
+            attribute_id, only_type=Attribute, field="attribute_id"
+        )
+
+        try:
+            attribute_assignment = instance.attributes.prefetch_related("values").get(
+                assignment__attribute_id=attribute_pk  # type: ignore
+            )
+        except ObjectDoesNotExist:
+            raise ValidationError(
+                {
+                    "attribute_id": ValidationError(
+                        f"Couldn't resolve to a {instance_type} "
+                        f"attribute: {attribute_id}.",
+                        code=error_code_enum.NOT_FOUND.value,
+                    )
+                }
+            )
+        return attribute_assignment
+
+    @classmethod
+    def prepare_operations(cls, moves: ReorderInput, values: "QuerySet"):
+        """Prepare operations dict for reordering attribute values.
+
+        Operation dict format:
+            key: attribute value pk,
+            value: sort_order value - relative sorting position of the attribute
+        """
+        value_ids = []
+        sort_orders = []
+
+        # resolve attribute moves
+        for move_info in moves:
+            value_ids.append(move_info.id)
+            sort_orders.append(move_info.sort_order)
+
+        _, values_pks = resolve_global_ids_to_primary_keys(value_ids, AttributeValue)
+        values_pks = [int(pk) for pk in values_pks]
+
+        values_m2m = values.filter(id__in=values_pks)
+
+        if values_m2m.count() != len(values_pks):
+            pks = values_m2m.values_list("pk", flat=True)
+            invalid_values = set(values_pks) - set(pks)
+            invalid_ids = [
+                graphene.Node.to_global_id("AttributeValue", val_pk)
+                for val_pk in invalid_values
+            ]
+            raise ValidationError(
+                "Couldn't resolve to an attribute value.",
+                params={"values": invalid_ids},
+            )
+
+        values_m2m = list(values_m2m)
+        values_m2m.sort(key=lambda e: values_pks.index(e.pk))  # preserve order in pks
+
+        operations = {
+            attribute.pk: sort_order
+            for attribute, sort_order in zip(values_m2m, sort_orders)
+        }
+
+        return operations
+
+
 class AttributeValueCreateInput(graphene.InputObjectType):
     name = graphene.String(required=True, description=AttributeValueDescriptions.NAME)
 
