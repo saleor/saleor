@@ -15,7 +15,7 @@ from ..discount.utils import (
     get_products_voucher_discount,
     validate_voucher_in_order,
 )
-from ..order import OrderStatus
+from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import Order, OrderLine
 from ..plugins.manager import get_plugins_manager
 from ..product.utils.digital_products import get_default_digital_content_settings
@@ -153,11 +153,36 @@ def update_order_prices(order, discounts):
 
 def update_order_status(order):
     """Update order status depending on fulfillments."""
-    quantity_fulfilled = order.quantity_fulfilled
-    total_quantity = order.get_total_quantity()
+    total_quantity = sum([line.quantity for line in order.lines.all()])
+    quantity_fulfilled = sum([line.quantity_fulfilled for line in order.lines.all()])
+    quantity_returned = 0
+    quantity_replaced = 0
+    for fulfillment in order.fulfillments.all():
+        # count returned quantity for order
+        if fulfillment.status in [
+            FulfillmentStatus.RETURNED,
+            FulfillmentStatus.REFUNDED_AND_RETURNED,
+        ]:
+            quantity_returned += fulfillment.get_total_quantity()
+        # count replaced quantity for order
+        elif fulfillment.status == FulfillmentStatus.REPLACED:
+            quantity_replaced += fulfillment.get_total_quantity()
 
-    if quantity_fulfilled <= 0:
+    # Subtract the replace quantity as it shouldn't be taken into consideration for
+    # calculating the order status
+    total_quantity -= quantity_replaced
+    quantity_fulfilled -= quantity_replaced
+
+    # total_quantity == 0 means that all products have been replaced, we don't change
+    # the order status in that case
+    if total_quantity == 0:
+        status = order.status
+    elif quantity_fulfilled <= 0:
         status = OrderStatus.UNFULFILLED
+    elif 0 < quantity_returned < total_quantity:
+        status = OrderStatus.PARTIALLY_RETURNED
+    elif quantity_returned == total_quantity:
+        status = OrderStatus.RETURNED
     elif quantity_fulfilled < total_quantity:
         status = OrderStatus.PARTIALLY_FULFILLED
     else:
