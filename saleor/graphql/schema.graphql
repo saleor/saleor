@@ -681,6 +681,7 @@ type BulkProductError {
   message: String
   code: ProductErrorCode!
   attributes: [ID!]
+  values: [ID!]
   index: Int
   warehouses: [ID!]
   channels: [ID!]
@@ -691,6 +692,7 @@ type BulkStockError {
   message: String
   code: ProductErrorCode!
   attributes: [ID!]
+  values: [ID!]
   index: Int
 }
 
@@ -1118,6 +1120,7 @@ type CollectionChannelListingError {
   message: String
   code: ProductErrorCode!
   attributes: [ID!]
+  values: [ID!]
   channels: [ID!]
 }
 
@@ -2634,6 +2637,7 @@ type Mutation {
   productTypeBulkDelete(ids: [ID]!): ProductTypeBulkDelete
   productTypeUpdate(id: ID!, input: ProductTypeInput!): ProductTypeUpdate
   productTypeReorderAttributes(moves: [ReorderInput]!, productTypeId: ID!, type: ProductAttributeType!): ProductTypeReorderAttributes
+  productReorderAttributeValues(attributeId: ID!, moves: [ReorderInput]!, productId: ID!): ProductReorderAttributeValues
   digitalContentCreate(input: DigitalContentUploadInput!, variantId: ID!): DigitalContentCreate
   digitalContentDelete(variantId: ID!): DigitalContentDelete
   digitalContentUpdate(input: DigitalContentInput!, variantId: ID!): DigitalContentUpdate
@@ -2649,6 +2653,7 @@ type Mutation {
   productVariantSetDefault(productId: ID!, variantId: ID!): ProductVariantSetDefault
   productVariantTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): ProductVariantTranslate
   productVariantChannelListingUpdate(id: ID!, input: [ProductVariantChannelListingAddInput!]!): ProductVariantChannelListingUpdate
+  productVariantReorderAttributeValues(attributeId: ID!, moves: [ReorderInput]!, variantId: ID!): ProductVariantReorderAttributeValues
   variantImageAssign(imageId: ID!, variantId: ID!): VariantImageAssign
   variantImageUnassign(imageId: ID!, variantId: ID!): VariantImageUnassign
   paymentCapture(amount: PositiveDecimal, paymentId: ID!): PaymentCapture
@@ -2668,6 +2673,7 @@ type Mutation {
   pageAttributeAssign(attributeIds: [ID!]!, pageTypeId: ID!): PageAttributeAssign
   pageAttributeUnassign(attributeIds: [ID!]!, pageTypeId: ID!): PageAttributeUnassign
   pageTypeReorderAttributes(moves: [ReorderInput!]!, pageTypeId: ID!): PageTypeReorderAttributes
+  pageReorderAttributeValues(attributeId: ID!, moves: [ReorderInput]!, pageId: ID!): PageReorderAttributeValues
   draftOrderComplete(id: ID!): DraftOrderComplete
   draftOrderCreate(input: DraftOrderCreateInput!): DraftOrderCreate
   draftOrderDelete(id: ID!): DraftOrderDelete
@@ -3327,6 +3333,7 @@ type PageError {
   message: String
   code: PageErrorCode!
   attributes: [ID!]
+  values: [ID!]
 }
 
 enum PageErrorCode {
@@ -3359,6 +3366,12 @@ input PageInput {
   isPublished: Boolean
   publicationDate: String
   seo: SeoInput
+}
+
+type PageReorderAttributeValues {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  page: Page
+  pageErrors: [PageError!]!
 }
 
 enum PageSortField {
@@ -3858,6 +3871,7 @@ type ProductChannelListingError {
   message: String
   code: ProductErrorCode!
   attributes: [ID!]
+  values: [ID!]
   channels: [ID!]
 }
 
@@ -3916,6 +3930,7 @@ type ProductError {
   message: String
   code: ProductErrorCode!
   attributes: [ID!]
+  values: [ID!]
 }
 
 enum ProductErrorCode {
@@ -4061,6 +4076,12 @@ type ProductPricingInfo {
   priceRange: TaxedMoneyRange
   priceRangeUndiscounted: TaxedMoneyRange
   priceRangeLocalCurrency: TaxedMoneyRange
+}
+
+type ProductReorderAttributeValues {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  product: Product
+  productErrors: [ProductError!]!
 }
 
 input ProductStockFilterInput {
@@ -4316,6 +4337,12 @@ input ProductVariantInput {
 type ProductVariantReorder {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   product: Product
+  productErrors: [ProductError!]!
+}
+
+type ProductVariantReorderAttributeValues {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  productVariant: ProductVariant
   productErrors: [ProductError!]!
 }
 

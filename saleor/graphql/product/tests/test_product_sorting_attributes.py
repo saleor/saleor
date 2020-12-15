@@ -4,7 +4,7 @@ from decimal import Decimal
 import graphene
 import pytest
 
-from ....attribute import AttributeType, models as attribute_models
+from ....attribute import AttributeInputType, AttributeType, models as attribute_models
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....product import models as product_models
 from ...tests.utils import get_graphql_content
@@ -52,7 +52,7 @@ def products_structures(category, channel_USD):
 
     assert product_models.Product.objects.count() == 0
 
-    in_multivals = attribute_models.AttributeInputType.MULTISELECT
+    in_multivals = AttributeInputType.MULTISELECT
 
     pt_apples, pt_oranges, pt_other = list(
         product_models.ProductType.objects.bulk_create(
