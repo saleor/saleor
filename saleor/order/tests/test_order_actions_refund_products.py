@@ -4,6 +4,7 @@ from unittest.mock import patch
 from prices import Money, TaxedMoney
 
 from ...payment import ChargeStatus
+from ...plugins.manager import get_plugins_manager
 from ...warehouse.models import Allocation, Stock
 from .. import FulfillmentLineData, FulfillmentStatus, OrderLineData
 from ..actions import create_refund_fulfillment
@@ -38,6 +39,7 @@ def test_create_refund_fulfillment_only_order_lines(
             OrderLineData(line=line, quantity=2) for line in order_lines_to_refund
         ],
         fulfillment_lines_to_refund=[],
+        plugin_manager=get_plugins_manager(),
     )
 
     returned_fulfillment_lines = returned_fulfillemnt.lines.all()
@@ -88,6 +90,7 @@ def test_create_refund_fulfillment_multiple_order_line_refunds(
                 OrderLineData(line=line, quantity=1) for line in order_lines_to_refund
             ],
             fulfillment_lines_to_refund=[],
+            plugin_manager=get_plugins_manager(),
         )
 
     returned_fulfillemnt = Fulfillment.objects.get(
@@ -129,6 +132,7 @@ def test_create_refund_fulfillment_included_shipping_costs(
             OrderLineData(line=line, quantity=2) for line in order_lines_to_refund
         ],
         fulfillment_lines_to_refund=[],
+        plugin_manager=get_plugins_manager(),
         refund_shipping_costs=True,
     )
     returned_fulfillment_lines = returned_fulfillemnt.lines.all()
@@ -167,6 +171,7 @@ def test_create_refund_fulfillment_only_fulfillment_lines(
             FulfillmentLineData(line=line, quantity=2)
             for line in fulfillment_lines_to_refund
         ],
+        plugin_manager=get_plugins_manager(),
     )
     returned_fulfillment_lines = returned_fulfillemnt.lines.all()
     assert returned_fulfillemnt.status == FulfillmentStatus.REFUNDED
@@ -207,6 +212,7 @@ def test_create_refund_fulfillment_multiple_fulfillment_lines_refunds(
                 FulfillmentLineData(line=line, quantity=1)
                 for line in fulfillment_lines_to_refund
             ],
+            plugin_manager=get_plugins_manager(),
         )
 
     returned_fulfillemnt = Fulfillment.objects.get(
@@ -249,6 +255,7 @@ def test_create_refund_fulfillment_custom_amount(
             FulfillmentLineData(line=line, quantity=2)
             for line in fulfillment_lines_to_refund
         ],
+        plugin_manager=get_plugins_manager(),
         amount=amount,
     )
 
@@ -313,6 +320,7 @@ def test_create_refund_fulfillment_multiple_refunds(
                 FulfillmentLineData(line=line, quantity=1)
                 for line in fulfillment_lines_to_refund
             ],
+            plugin_manager=get_plugins_manager(),
         )
 
     returned_fulfillemnt = Fulfillment.objects.get(

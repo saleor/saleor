@@ -564,6 +564,7 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
             cleaned_input["payment"],
             cleaned_input.get("order_lines", []),
             cleaned_input.get("fulfillment_lines", []),
+            info.context.plugins,
             cleaned_input["amount_to_refund"],
             cleaned_input["include_shipping_costs"],
         )
@@ -703,6 +704,7 @@ class FulfillmentReturnProducts(FulfillmentRefundAndReturnProductBase):
             cleaned_input.get("payment"),
             cleaned_input.get("order_lines", []),
             cleaned_input.get("fulfillment_lines", []),
+            info.context.plugins,
             cleaned_input["refund"],
             cleaned_input.get("amount_to_refund"),
             cleaned_input["include_shipping_costs"],

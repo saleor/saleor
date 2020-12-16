@@ -19,7 +19,7 @@ from ..payment import (
 )
 from ..payment.models import Payment, Transaction
 from ..payment.utils import create_payment
-from ..plugins.manager import get_plugins_manager
+from ..plugins.manager import PluginsManager, get_plugins_manager
 from ..warehouse.management import (
     deallocate_stock,
     deallocate_stock_for_order,
@@ -140,12 +140,18 @@ def cancel_order(order: "Order", user: Optional["User"]):
 
 
 def order_refunded(
-    order: "Order", user: Optional["User"], amount: "Decimal", payment: "Payment"
+    order: "Order",
+    user: Optional["User"],
+    amount: "Decimal",
+    payment: "Payment",
+    manager: Optional["PluginsManager"] = None,
 ):
     events.payment_refunded_event(
         order=order, user=user, amount=amount, payment=payment
     )
-    get_plugins_manager().order_updated(order)
+    if not manager:
+        manager = get_plugins_manager()
+    manager.order_updated(order)
 
     send_order_refunded_confirmation(order, user, amount, payment.currency)
 
@@ -159,10 +165,11 @@ def order_returned(
     order: "Order",
     user: Optional["User"],
     returned_lines: List[Tuple[QuantityType, OrderLine]],
+    manager: "PluginsManager",
 ):
     order_returned_event(order=order, user=user, returned_lines=returned_lines)
     update_order_status(order)
-    get_plugins_manager().order_updated(order)
+    manager.order_updated(order)
 
 
 def order_fulfilled(
@@ -591,6 +598,7 @@ def create_refund_fulfillment(
     payment,
     order_lines_to_refund: List[OrderLineData],
     fulfillment_lines_to_refund: List[FulfillmentLineData],
+    plugin_manager: "PluginsManager",
     amount=None,
     refund_shipping_costs=False,
 ):
@@ -613,6 +621,7 @@ def create_refund_fulfillment(
         fulfillment_lines_to_refund=fulfillment_lines_to_refund,
         amount=amount,
         refund_shipping_costs=refund_shipping_costs,
+        manager=plugin_manager,
     )
 
     with transaction.atomic():
@@ -798,6 +807,7 @@ def create_return_fulfillment(
     order: "Order",
     order_lines: List[OrderLineData],
     fulfillment_lines: List[FulfillmentLineData],
+    manager: "PluginsManager",
     refund: bool = False,
 ) -> Fulfillment:
     status = FulfillmentStatus.RETURNED
@@ -829,7 +839,10 @@ def create_return_fulfillment(
                     order_line,
                 )
         order_returned(
-            order, user=requester, returned_lines=list(returned_lines.values())
+            order,
+            user=requester,
+            returned_lines=list(returned_lines.values()),
+            manager=manager,
         )
     return return_fulfillment
 
@@ -875,6 +888,7 @@ def create_fulfillments_for_returned_products(
     payment: Optional[Payment],
     order_lines: List[OrderLineData],
     fulfillment_lines: List[FulfillmentLineData],
+    plugin_manager: PluginsManager,
     refund: bool = False,
     amount: Optional[Decimal] = None,
     refund_shipping_costs=False,
@@ -911,6 +925,7 @@ def create_fulfillments_for_returned_products(
             fulfillment_lines_to_refund=return_fulfillment_lines,
             amount=amount,
             refund_shipping_costs=refund_shipping_costs,
+            manager=plugin_manager,
         )
 
     with transaction.atomic():
@@ -930,6 +945,7 @@ def create_fulfillments_for_returned_products(
             order=order,
             order_lines=return_order_lines,
             fulfillment_lines=return_fulfillment_lines,
+            manager=plugin_manager,
             refund=refund,
         )
         Fulfillment.objects.filter(order=order, lines=None).delete()
@@ -977,6 +993,7 @@ def _process_refund(
     fulfillment_lines_to_refund: List[FulfillmentLineData],
     amount: Optional[Decimal],
     refund_shipping_costs: bool,
+    manager: "PluginsManager",
 ):
     lines_to_refund: Dict[OrderLineIDType, Tuple[QuantityType, OrderLine]] = dict()
     refund_amount = _calculate_refund_amount(
@@ -991,7 +1008,7 @@ def _process_refund(
     if amount:
         amount = min(payment.captured_amount, amount)
         gateway.refund(payment, amount)
-        order_refunded(order, requester, amount, payment)
+        order_refunded(order, requester, amount, payment, manager=manager)
 
     fulfillment_refunded_event(
         order=order,

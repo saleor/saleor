@@ -6,6 +6,7 @@ from prices import Money, TaxedMoney
 
 from ...payment import ChargeStatus, PaymentError, TransactionKind
 from ...payment.models import Payment
+from ...plugins.manager import get_plugins_manager
 from ...product.models import DigitalContent
 from ...product.tests.utils import create_image
 from ...warehouse.models import Allocation, Stock
@@ -235,7 +236,7 @@ def test_order_refunded(
     amount = order.total.gross.amount
 
     # when
-    order_refunded(order, order.user, amount, payment)
+    order_refunded(order, order.user, amount, payment, get_plugins_manager())
 
     # then
     order_event = order.events.last()

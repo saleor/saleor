@@ -153,8 +153,9 @@ def update_order_prices(order, discounts):
 
 def update_order_status(order):
     """Update order status depending on fulfillments."""
-    total_quantity = sum([line.quantity for line in order.lines.all()])
-    quantity_fulfilled = sum([line.quantity_fulfilled for line in order.lines.all()])
+    lines = list(order.lines.all())
+    total_quantity = sum([line.quantity for line in lines])
+    quantity_fulfilled = sum([line.quantity_fulfilled for line in lines])
     quantity_returned = 0
     quantity_replaced = 0
     for fulfillment in order.fulfillments.all():
