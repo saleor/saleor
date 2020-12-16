@@ -62,6 +62,7 @@ from ...warehouse.dataloaders import (
 from ...warehouse.types import Stock
 from ..dataloaders import (
     CategoryByIdLoader,
+    CollectionChannelListingByCollectionIdAndChannelSlugLoader,
     CollectionChannelListingByCollectionIdLoader,
     CollectionsByProductIdLoader,
     ImagesByProductIdLoader,
@@ -695,17 +696,53 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return ProductChannelListingByProductIdLoader(info.context).load(root.node.id)
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_collections(root: ChannelContext[models.Product], info, **_kwargs):
-        return (
-            CollectionsByProductIdLoader(info.context)
-            .load(root.node.id)
-            .then(
-                lambda collections: [
+        requestor = get_user_or_app_from_context(info.context)
+        requestor_has_access_to_all = models.Collection.objects.user_has_access_to_all(
+            requestor
+        )
+
+        def return_collections(collections):
+            if requestor_has_access_to_all:
+                return [
                     ChannelContext(node=collection, channel_slug=root.channel_slug)
                     for collection in collections
                 ]
+
+            dataloader_keys = [
+                (collection.id, str(root.channel_slug)) for collection in collections
+            ]
+            CollectionChannelListingLoader = (
+                CollectionChannelListingByCollectionIdAndChannelSlugLoader
             )
+            channel_listings = CollectionChannelListingLoader(info.context).load_many(
+                dataloader_keys
+            )
+
+            def return_visible_collections(channel_listings):
+                visible_collections = []
+                channel_listings_dict = {
+                    channel_listing.collection_id: channel_listing
+                    for channel_listing in channel_listings
+                    if channel_listing
+                }
+
+                for collection in collections:
+                    channel_listing = channel_listings_dict.get(collection.id)
+                    if channel_listing and channel_listing.is_visible:
+                        visible_collections.append(collection)
+
+                return [
+                    ChannelContext(node=collection, channel_slug=root.channel_slug)
+                    for collection in visible_collections
+                ]
+
+            return channel_listings.then(return_visible_collections)
+
+        return (
+            CollectionsByProductIdLoader(info.context)
+            .load(root.node.id)
+            .then(return_collections)
         )
 
     @staticmethod

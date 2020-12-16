@@ -323,6 +323,116 @@ def test_product_query_by_id_as_app_without_channel_slug(
     assert product_data["name"] == product.name
 
 
+QUERY_COLLECTION_FROM_PRODUCT = """
+    query ($id: ID, $channel:String){
+        product(
+            id: $id,
+            channel: $channel
+        ) {
+            collections {
+                name
+            }
+        }
+    }
+    """
+
+
+def test_get_collections_from_product_as_staff(
+    staff_api_client, permission_manage_products, product_with_collections, channel_USD,
+):
+    # given
+    product = product_with_collections
+    variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_COLLECTION_FROM_PRODUCT,
+        variables=variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    collections = content["data"]["product"]["collections"]
+    assert len(collections) == 3
+    for collection in product.collections.all():
+        assert {"name": collection.name} in collections
+
+
+def test_get_collections_from_product_as_app(
+    app_api_client, permission_manage_products, product_with_collections, channel_USD,
+):
+    # given
+    product = product_with_collections
+    variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
+
+    # when
+    response = app_api_client.post_graphql(
+        QUERY_COLLECTION_FROM_PRODUCT,
+        variables=variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    collections = content["data"]["product"]["collections"]
+    assert len(collections) == 3
+    for collection in product.collections.all():
+        assert {"name": collection.name} in collections
+
+
+def test_get_collections_from_product_as_customer(
+    user_api_client, product_with_collections, channel_USD, published_collection
+):
+    # given
+    product = product_with_collections
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.pk),
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        QUERY_COLLECTION_FROM_PRODUCT,
+        variables=variables,
+        permissions=(),
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    collections = content["data"]["product"]["collections"]
+    assert len(collections) == 1
+    assert {"name": published_collection.name} in collections
+
+
+def test_get_collections_from_product_as_anonymous(
+    api_client, product_with_collections, channel_USD, published_collection
+):
+    # given
+    product = product_with_collections
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.pk),
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = api_client.post_graphql(
+        QUERY_COLLECTION_FROM_PRODUCT,
+        variables=variables,
+        permissions=(),
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    collections = content["data"]["product"]["collections"]
+    assert len(collections) == 1
+    assert {"name": published_collection.name} in collections
+
+
 def test_product_query_by_id_available_as_customer(
     user_api_client, product, channel_USD
 ):
@@ -761,7 +871,7 @@ def test_product_query_unpublished_products_by_slug(
     assert product_data["name"] == product.name
 
 
-def test_product_query_unpublished_products_by_slug_and_anonympus_user(
+def test_product_query_unpublished_products_by_slug_and_anonymous_user(
     api_client, product, channel_USD
 ):
     # given
