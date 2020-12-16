@@ -3,25 +3,17 @@ from unittest.mock import patch
 
 from prices import Money, TaxedMoney
 
-from ...payment import ChargeStatus
 from ...warehouse.models import Allocation, Stock
-from .. import FulfillmentStatus, OrderEvents
-from ..actions import (
-    FulfillmentLineData,
-    OrderLineData,
-    create_fulfillments_for_returned_products,
-)
+from .. import FulfillmentLineData, FulfillmentStatus, OrderEvents, OrderLineData
+from ..actions import create_fulfillments_for_returned_products
 from ..models import Fulfillment, FulfillmentLine
 
 
 @patch("saleor.order.actions.gateway.refund")
 def test_create_return_fulfillment_only_order_lines(
-    mocked_refund, order_with_lines, payment_dummy, staff_user
+    mocked_refund, order_with_lines, payment_dummy_fully_charged, staff_user
 ):
-    payment_dummy.captured_amount = payment_dummy.total
-    payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
-    payment_dummy.save()
-    order_with_lines.payments.add(payment_dummy)
+    order_with_lines.payments.add(payment_dummy_fully_charged)
     payment = order_with_lines.get_last_payment()
 
     order_lines_to_return = order_with_lines.lines.all()
@@ -83,12 +75,9 @@ def test_create_return_fulfillment_only_order_lines(
 
 @patch("saleor.order.actions.gateway.refund")
 def test_create_return_fulfillment_only_order_lines_with_refund(
-    mocked_refund, order_with_lines, payment_dummy, staff_user
+    mocked_refund, order_with_lines, payment_dummy_fully_charged, staff_user
 ):
-    payment_dummy.captured_amount = payment_dummy.total
-    payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
-    payment_dummy.save()
-    order_with_lines.payments.add(payment_dummy)
+    order_with_lines.payments.add(payment_dummy_fully_charged)
     payment = order_with_lines.get_last_payment()
 
     order_lines_to_return = order_with_lines.lines.all()
@@ -134,18 +123,15 @@ def test_create_return_fulfillment_only_order_lines_with_refund(
         )
 
     amount = sum([line.unit_price_gross_amount * 2 for line in order_lines_to_return])
-    mocked_refund.assert_called_once_with(payment_dummy, amount)
+    mocked_refund.assert_called_once_with(payment_dummy_fully_charged, amount)
     assert not replace_order
 
 
 @patch("saleor.order.actions.gateway.refund")
 def test_create_return_fulfillment_only_order_lines_included_shipping_costs(
-    mocked_refund, order_with_lines, payment_dummy, staff_user
+    mocked_refund, order_with_lines, payment_dummy_fully_charged, staff_user
 ):
-    payment_dummy.captured_amount = payment_dummy.total
-    payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
-    payment_dummy.save()
-    order_with_lines.payments.add(payment_dummy)
+    order_with_lines.payments.add(payment_dummy_fully_charged)
     payment = order_with_lines.get_last_payment()
 
     order_lines_to_return = order_with_lines.lines.all()
@@ -193,18 +179,15 @@ def test_create_return_fulfillment_only_order_lines_included_shipping_costs(
 
     amount = sum([line.unit_price_gross_amount * 2 for line in order_lines_to_return])
     amount += order_with_lines.shipping_price_gross_amount
-    mocked_refund.assert_called_once_with(payment_dummy, amount)
+    mocked_refund.assert_called_once_with(payment_dummy_fully_charged, amount)
     assert not replace_order
 
 
 @patch("saleor.order.actions.gateway.refund")
 def test_create_return_fulfillment_only_order_lines_with_replace_request(
-    mocked_refund, order_with_lines, payment_dummy, staff_user
+    mocked_refund, order_with_lines, payment_dummy_fully_charged, staff_user
 ):
-    payment_dummy.captured_amount = payment_dummy.total
-    payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
-    payment_dummy.save()
-    order_with_lines.payments.add(payment_dummy)
+    order_with_lines.payments.add(payment_dummy_fully_charged)
     payment = order_with_lines.get_last_payment()
 
     order_lines_to_return = order_with_lines.lines.all()
@@ -313,12 +296,9 @@ def test_create_return_fulfillment_only_order_lines_with_replace_request(
 
 @patch("saleor.order.actions.gateway.refund")
 def test_create_return_fulfillment_multiple_order_line_returns(
-    mocked_refund, order_with_lines, payment_dummy, staff_user
+    mocked_refund, order_with_lines, payment_dummy_fully_charged, staff_user
 ):
-    payment_dummy.captured_amount = payment_dummy.total
-    payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
-    payment_dummy.save()
-    order_with_lines.payments.add(payment_dummy)
+    order_with_lines.payments.add(payment_dummy_fully_charged)
     payment = order_with_lines.get_last_payment()
     order_lines_to_return = order_with_lines.lines.all()
     original_quantity = {
@@ -356,12 +336,9 @@ def test_create_return_fulfillment_multiple_order_line_returns(
 
 @patch("saleor.order.actions.gateway.refund")
 def test_create_return_fulfillment_only_fulfillment_lines(
-    mocked_refund, fulfilled_order, payment_dummy, staff_user
+    mocked_refund, fulfilled_order, payment_dummy_fully_charged, staff_user
 ):
-    payment_dummy.captured_amount = payment_dummy.total
-    payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
-    payment_dummy.save()
-    fulfilled_order.payments.add(payment_dummy)
+    fulfilled_order.payments.add(payment_dummy_fully_charged)
     payment = fulfilled_order.get_last_payment()
     order_line_ids = fulfilled_order.lines.all().values_list("id", flat=True)
     fulfillment_lines = FulfillmentLine.objects.filter(order_line_id__in=order_line_ids)
@@ -397,12 +374,9 @@ def test_create_return_fulfillment_only_fulfillment_lines(
 
 @patch("saleor.order.actions.gateway.refund")
 def test_create_return_fulfillment_only_fulfillment_lines_replace_order(
-    mocked_refund, fulfilled_order, payment_dummy, staff_user
+    mocked_refund, fulfilled_order, payment_dummy_fully_charged, staff_user
 ):
-    payment_dummy.captured_amount = payment_dummy.total
-    payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
-    payment_dummy.save()
-    fulfilled_order.payments.add(payment_dummy)
+    fulfilled_order.payments.add(payment_dummy_fully_charged)
     payment = fulfilled_order.get_last_payment()
     order_line_ids = fulfilled_order.lines.all().values_list("id", flat=True)
     fulfillment_lines = FulfillmentLine.objects.filter(order_line_id__in=order_line_ids)
@@ -496,12 +470,9 @@ def test_create_return_fulfillment_only_fulfillment_lines_replace_order(
 
 @patch("saleor.order.actions.gateway.refund")
 def test_create_return_fulfillment_multiple_fulfillment_lines_returns(
-    mocked_refund, fulfilled_order, payment_dummy, staff_user
+    mocked_refund, fulfilled_order, payment_dummy_fully_charged, staff_user
 ):
-    payment_dummy.captured_amount = payment_dummy.total
-    payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
-    payment_dummy.save()
-    fulfilled_order.payments.add(payment_dummy)
+    fulfilled_order.payments.add(payment_dummy_fully_charged)
     payment = fulfilled_order.get_last_payment()
     order_line_ids = fulfilled_order.lines.all().values_list("id", flat=True)
     fulfillment_lines = FulfillmentLine.objects.filter(order_line_id__in=order_line_ids)
@@ -541,16 +512,13 @@ def test_create_return_fulfillment_multiple_fulfillment_lines_returns(
 def test_create_return_fulfillment_multiple_lines_returns(
     mocked_refund,
     fulfilled_order,
-    payment_dummy,
+    payment_dummy_fully_charged,
     staff_user,
     channel_USD,
     variant,
     warehouse,
 ):
-    payment_dummy.captured_amount = payment_dummy.total
-    payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
-    payment_dummy.save()
-    fulfilled_order.payments.add(payment_dummy)
+    fulfilled_order.payments.add(payment_dummy_fully_charged)
     payment = fulfilled_order.get_last_payment()
     order_line_ids = fulfilled_order.lines.all().values_list("id", flat=True)
     fulfillment_lines = FulfillmentLine.objects.filter(order_line_id__in=order_line_ids)
@@ -610,16 +578,13 @@ def test_create_return_fulfillment_multiple_lines_returns(
 def test_create_return_fulfillment_multiple_lines_without_refund(
     mocked_refund,
     fulfilled_order,
-    payment_dummy,
+    payment_dummy_fully_charged,
     staff_user,
     channel_USD,
     variant,
     warehouse,
 ):
-    payment_dummy.captured_amount = payment_dummy.total
-    payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
-    payment_dummy.save()
-    fulfilled_order.payments.add(payment_dummy)
+    fulfilled_order.payments.add(payment_dummy_fully_charged)
     payment = fulfilled_order.get_last_payment()
     order_line_ids = fulfilled_order.lines.all().values_list("id", flat=True)
     fulfillment_lines = FulfillmentLine.objects.filter(order_line_id__in=order_line_ids)
@@ -691,3 +656,85 @@ def test_create_return_fulfillment_multiple_lines_without_refund(
     assert returned_and_refunded_lines[0].order_line_id == order_line.id
 
     assert not mocked_refund.called
+
+
+@patch("saleor.order.actions.gateway.refund")
+def test_create_return_fulfillment_with_lines_already_refunded(
+    mocked_refund,
+    fulfilled_order,
+    payment_dummy_fully_charged,
+    staff_user,
+    channel_USD,
+    variant,
+    warehouse,
+):
+    fulfilled_order.payments.add(payment_dummy_fully_charged)
+    payment = fulfilled_order.get_last_payment()
+    order_line_ids = fulfilled_order.lines.all().values_list("id", flat=True)
+    fulfillment_lines = FulfillmentLine.objects.filter(order_line_id__in=order_line_ids)
+    original_quantity = {line.id: line.quantity for line in fulfillment_lines}
+    fulfillment_lines_to_return = fulfillment_lines
+
+    stock = Stock.objects.create(
+        warehouse=warehouse, product_variant=variant, quantity=5
+    )
+    net = variant.get_price(channel_USD.slug)
+    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    order_line = fulfilled_order.lines.create(
+        product_name=str(variant.product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        quantity=5,
+        quantity_fulfilled=2,
+        variant=variant,
+        unit_price=TaxedMoney(net=net, gross=gross),
+        tax_rate=23,
+    )
+    Allocation.objects.create(
+        order_line=order_line, stock=stock, quantity_allocated=order_line.quantity
+    )
+    refunded_fulfillment = Fulfillment.objects.create(
+        order=fulfilled_order, status=FulfillmentStatus.REFUNDED
+    )
+    refunded_fulfillment_line = refunded_fulfillment.lines.create(
+        order_line=order_line, quantity=2
+    )
+
+    fulfillment_lines_to_process = [
+        FulfillmentLineData(line=line, quantity=2)
+        for line in fulfillment_lines_to_return
+    ]
+    fulfillment_lines_to_process.append(
+        FulfillmentLineData(line=refunded_fulfillment_line, quantity=2)
+    )
+    create_fulfillments_for_returned_products(
+        requester=staff_user,
+        order=fulfilled_order,
+        payment=payment,
+        order_lines=[],
+        fulfillment_lines=fulfillment_lines_to_process,
+        refund=True,
+    )
+
+    returned_and_refunded_fulfillment = Fulfillment.objects.get(
+        order=fulfilled_order, status=FulfillmentStatus.REFUNDED_AND_RETURNED
+    )
+    returned_and_refunded_lines = returned_and_refunded_fulfillment.lines.all()
+
+    assert returned_and_refunded_lines.count() == len(order_line_ids)
+    for fulfillment_line in returned_and_refunded_lines:
+        assert fulfillment_line.quantity == 2
+        assert fulfillment_line.order_line_id in order_line_ids
+
+    for line in fulfillment_lines:
+        assert line.quantity == original_quantity.get(line.pk) - 2
+
+    # the already refunded line is not included in amount
+    amount = sum(
+        [
+            line.order_line.unit_price_gross_amount * 2
+            for line in fulfillment_lines_to_return
+        ]
+    )
+    mocked_refund.assert_called_once_with(payment_dummy_fully_charged, amount)

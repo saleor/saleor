@@ -6,10 +6,13 @@ from django.template.defaultfilters import pluralize
 
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
-from ....order import FulfillmentStatus, models as order_models
-from ....order.actions import (
+from ....order import (
     FulfillmentLineData,
+    FulfillmentStatus,
     OrderLineData,
+    models as order_models,
+)
+from ....order.actions import (
     cancel_fulfillment,
     create_fulfillments,
     create_fulfillments_for_returned_products,
@@ -425,7 +428,7 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
             quantity = line_data["quantity"]
             if line.quantity < quantity:
                 cls._raise_error_for_line(
-                    "Quantity provided to refund is bigger than quantity from "
+                    "Provided quantity is bigger than quantity from "
                     "fulfillment line",
                     "FulfillmentLine",
                     line.pk,
@@ -434,12 +437,12 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
             if line.fulfillment.status not in whitelisted_statuses:
                 allowed_statuses_str = ", ".join(whitelisted_statuses)
                 cls._raise_error_for_line(
-                    f"Unable to refund fulfillmentLine with different type than "
-                    f"{allowed_statuses_str}.",
+                    f"Unable to process action for fulfillmentLine with different "
+                    f"status than {allowed_statuses_str}.",
                     "FulfillmentLine",
                     line.pk,
                     "fulfillment_line_id",
-                    code=OrderErrorCode.CANNOT_REFUND_FULFILLMENT_LINE.value,
+                    code=OrderErrorCode.INVALID.value,
                 )
             replace = line_data.get("replace", False)
             if replace and not line.order_line.variant_id:
@@ -637,18 +640,17 @@ class FulfillmentReturnProducts(FulfillmentRefundAndReturnProductBase):
     )
 
     class Meta:
-        description = "Refund products."
+        description = "Return products."
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
 
     class Arguments:
         order = graphene.ID(
-            description="ID of the order to be refunded.", required=True
+            description="ID of the order to be returned.", required=True
         )
         input = OrderReturnProductsInput(
-            required=True,
-            description="Fields required to create an refund fulfillment.",
+            required=True, description="Fields required to return products.",
         )
 
     @classmethod

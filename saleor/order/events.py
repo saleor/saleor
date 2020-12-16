@@ -229,7 +229,7 @@ def order_fully_paid_event(*, order: Order, user: UserType) -> OrderEvent:
     )
 
 
-def order_replace_created(
+def order_replacement_created(
     *, original_order: Order, replace_order: Order, user: UserType
 ) -> OrderEvent:
     if not _user_is_valid(user):
@@ -237,7 +237,7 @@ def order_replace_created(
     parameters = {"related_order_pk": replace_order.pk}
     return OrderEvent.objects.create(
         order=original_order,
-        type=OrderEvents.ORDER_REPLACE_CREATED,
+        type=OrderEvents.ORDER_REPLACEMENT_CREATED,
         user=user,
         parameters=parameters,
     )

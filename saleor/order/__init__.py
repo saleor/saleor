@@ -1,3 +1,10 @@
+from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .models import FulfillmentLine, OrderLine
+
+
 class OrderStatus:
     DRAFT = "draft"  # fully editable, not finalized order created by staff users
     UNCONFIRMED = (
@@ -65,7 +72,7 @@ class OrderEvents:
 
     ORDER_MARKED_AS_PAID = "order_marked_as_paid"
     ORDER_FULLY_PAID = "order_fully_paid"
-    ORDER_REPLACE_CREATED = "order_replace_created"
+    ORDER_REPLACEMENT_CREATED = "order_replacement_created"
 
     UPDATED_ADDRESS = "updated_address"
 
@@ -106,7 +113,7 @@ class OrderEvents:
         (CANCELED, "The order was canceled"),
         (ORDER_MARKED_AS_PAID, "The order was manually marked as fully paid"),
         (ORDER_FULLY_PAID, "The order was fully paid"),
-        (ORDER_REPLACE_CREATED, "The draft order was created based on this order.",),
+        (ORDER_REPLACEMENT_CREATED, "The draft order was created based on this order."),
         (UPDATED_ADDRESS, "The address from the placed order was updated"),
         (EMAIL_SENT, "The email was sent"),
         (CONFIRMED, "Order was confirmed"),
@@ -156,3 +163,17 @@ class OrderEventsEmails:
         (FULFILLMENT, "The fulfillment confirmation email was sent"),
         (DIGITAL_LINKS, "The email containing the digital links was sent"),
     ]
+
+
+@dataclass
+class OrderLineData:
+    line: "OrderLine"
+    quantity: int
+    replace: bool = False
+
+
+@dataclass
+class FulfillmentLineData:
+    line: "FulfillmentLine"
+    quantity: int
+    replace: bool = False

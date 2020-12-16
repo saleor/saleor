@@ -5,8 +5,8 @@ from prices import Money, TaxedMoney
 
 from ...payment import ChargeStatus
 from ...warehouse.models import Allocation, Stock
-from .. import FulfillmentStatus
-from ..actions import FulfillmentLineData, OrderLineData, create_refund_fulfillment
+from .. import FulfillmentLineData, FulfillmentStatus, OrderLineData
+from ..actions import create_refund_fulfillment
 from ..models import Fulfillment, FulfillmentLine
 
 

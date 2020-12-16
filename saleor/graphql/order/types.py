@@ -32,7 +32,11 @@ from ..product.types import ProductVariant
 from ..shipping.dataloaders import ShippingMethodByIdLoader
 from ..shipping.types import ShippingMethod
 from ..warehouse.types import Allocation, Warehouse
-from .dataloaders import AllocationsByOrderLineIdLoader, OrderLinesByOrderIdLoader
+from .dataloaders import (
+    AllocationsByOrderLineIdLoader,
+    OrderByIdLoader,
+    OrderLinesByOrderIdLoader,
+)
 from .enums import OrderEventsEmailsEnum, OrderEventsEnum
 from .utils import validate_draft_order
 
@@ -80,7 +84,7 @@ class OrderEvent(CountableDjangoObjectType):
         description="Define if shipping costs were included to the refund."
     )
     related_order = graphene.Field(
-        lambda: Order, description="The related order to this one."
+        lambda: Order, description="The order which is related to this order."
     )
 
     class Meta:
@@ -194,9 +198,11 @@ class OrderEvent(CountableDjangoObjectType):
         return root.parameters.get("shipping_costs_included")
 
     @staticmethod
-    def resolve_related_order(root: models.OrderEvent, _info):
+    def resolve_related_order(root: models.OrderEvent, info):
         order_pk = root.parameters.get("related_order_pk")
-        return models.Order.objects.filter(pk=order_pk).first()
+        if not order_pk:
+            return None
+        return OrderByIdLoader(info.context).load(order_pk)
 
 
 class FulfillmentLine(CountableDjangoObjectType):
