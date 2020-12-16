@@ -4,6 +4,7 @@ import graphene
 
 from ...attribute import models
 from ..core.connection import CountableDjangoObjectType
+from ..core.types import File
 from ..decorators import (
     check_attribute_required_permissions,
     check_attribute_value_required_permissions,
@@ -43,6 +44,9 @@ class AttributeValue(CountableDjangoObjectType):
         AttributeValueTranslation, type_name="attribute value"
     )
     input_type = AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE)
+    file = graphene.Field(
+        File, description=AttributeValueDescriptions.FILE, required=False
+    )
 
     class Meta:
         description = "Represents a value of an attribute."
@@ -58,6 +62,12 @@ class AttributeValue(CountableDjangoObjectType):
     @check_attribute_value_required_permissions()
     def resolve_input_type(root: models.AttributeValue, *_args):
         return root.input_type
+
+    @staticmethod
+    def resolve_file(root: models.AttributeValue, *_args):
+        if not root.file_url:
+            return
+        return File(url=root.file_url, content_type=root.content_type)
 
 
 class Attribute(CountableDjangoObjectType):

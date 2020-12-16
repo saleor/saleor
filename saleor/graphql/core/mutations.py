@@ -18,7 +18,7 @@ from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
 from ..decorators import staff_member_or_app_required
 from ..utils import get_nodes
-from .types import Error, Upload, UploadedFile
+from .types import Error, File, Upload
 from .types.common import UploadError
 from .utils import from_global_id_strict_type, snake_to_camel_case
 from .utils.error_codes import get_error_code_from_error
@@ -624,7 +624,7 @@ class ModelBulkDeleteMutation(BaseBulkMutation):
 
 
 class FileUpload(BaseMutation):
-    uploaded_file = graphene.Field(UploadedFile)
+    uploaded_file = graphene.Field(File)
 
     class Arguments:
         file = Upload(
@@ -647,5 +647,5 @@ class FileUpload(BaseMutation):
         path = default_storage.save(file_data._name, file_data.file)
 
         return FileUpload(
-            uploaded_file=UploadedFile(url=path, content_type=file_data.content_type)
+            uploaded_file=File(url=path, content_type=file_data.content_type)
         )

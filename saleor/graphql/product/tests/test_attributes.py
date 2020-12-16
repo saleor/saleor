@@ -404,7 +404,7 @@ def test_assign_variant_attribute_to_product_type_with_disabled_variants(
     )
 
 
-def test_assign_variant_attribute_having_unsupported_input_type(
+def test_assign_variant_attribute_having_multiselect_input_type(
     staff_api_client,
     permission_manage_product_types_and_attributes,
     product_type,
@@ -424,26 +424,19 @@ def test_assign_variant_attribute_having_unsupported_input_type(
     )
 
     product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    attr_id = graphene.Node.to_global_id("Attribute", attribute.pk)
 
     query = PRODUCT_ASSIGN_ATTR_QUERY
-    operations = [
-        {"type": "VARIANT", "id": graphene.Node.to_global_id("Attribute", attribute.pk)}
-    ]
+    operations = [{"type": "VARIANT", "id": attr_id}]
     variables = {"productTypeId": product_type_global_id, "operations": operations}
 
     content = get_graphql_content(staff_api_client.post_graphql(query, variables))[
         "data"
     ]["productAttributeAssign"]
-    assert content["productErrors"][0]["field"] == "operations"
-    assert (
-        content["productErrors"][0]["message"]
-        == "Attributes having for input types ['multiselect'] "
-        "cannot be assigned as variant attributes"
-    )
-    assert (
-        content["productErrors"][0]["code"]
-        == ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED.name
-    )
+    assert not content["productErrors"]
+    assert content["productType"]["id"] == product_type_global_id
+    assert len(content["productType"]["variantAttributes"]) == 1
+    assert content["productType"]["variantAttributes"][0]["id"] == attr_id
 
 
 @pytest.mark.parametrize(
@@ -584,19 +577,13 @@ def test_assign_attribute_to_product_type_multiply_errors_returned(
     errors = data["productErrors"]
 
     assert not data["productType"]
-    assert len(errors) == 3
+    assert len(errors) == 2
     expected_errors = [
         {
             "code": ProductErrorCode.ATTRIBUTE_ALREADY_ASSIGNED.name,
             "field": "operations",
             "message": mock.ANY,
             "attributes": [color_attr_id],
-        },
-        {
-            "code": ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED.name,
-            "field": "operations",
-            "message": mock.ANY,
-            "attributes": [unsupported_type_attr_id],
         },
         {
             "code": ProductErrorCode.INVALID.name,

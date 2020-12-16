@@ -1,4 +1,7 @@
+from urllib.parse import urljoin
+
 import graphene
+from django.conf import settings
 
 from ....product.templatetags.product_images import get_thumbnail
 from ...translations.enums import LanguageCodeEnum
@@ -337,11 +340,15 @@ class Image(graphene.ObjectType):
         return Image(url, alt)
 
 
-class UploadedFile(graphene.ObjectType):
-    url = graphene.String(required=True, description="The URL of the uploaded file.")
+class File(graphene.ObjectType):
+    url = graphene.String(required=True, description="The URL of the file.")
     content_type = graphene.String(
-        required=True, description="Content type of uploaded file."
+        required=False, description="Content type of the file."
     )
+
+    @staticmethod
+    def resolve_url(root, info):
+        return info.context.build_absolute_uri(urljoin(settings.MEDIA_URL, root.url))
 
 
 class PriceRangeInput(graphene.InputObjectType):
