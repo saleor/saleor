@@ -698,8 +698,8 @@ def create_replace_order(
 
 
 def _move_lines_to_return_fulfillment(
-    order_lines_to_return: List[OrderLineData],
-    fulfillment_lines_to_return: List[FulfillmentLineData],
+    order_lines: List[OrderLineData],
+    fulfillment_lines: List[FulfillmentLineData],
     fulfillment_status: str,
     order: "Order",
 ) -> Fulfillment:
@@ -708,15 +708,44 @@ def _move_lines_to_return_fulfillment(
     )
     lines_in_target_fulfillment = list(target_fulfillment.lines.all())
     _move_order_lines_to_target_fulfillment(
-        order_lines_to_move=order_lines_to_return,
+        order_lines_to_move=order_lines,
         lines_in_target_fulfillment=lines_in_target_fulfillment,
         target_fulfillment=target_fulfillment,
     )
+
+    fulfillment_lines_already_refunded = FulfillmentLine.objects.filter(
+        fulfillment__order=order, fulfillment__status=FulfillmentStatus.REFUNDED
+    ).values_list("id", flat=True)
+
+    refunded_fulfillment_lines_to_return = []
+    fulfillment_lines_to_return = []
+
+    for line_data in fulfillment_lines:
+        if line_data.line.id in fulfillment_lines_already_refunded:
+            # item already refunded should be moved to fulfillment with status
+            # REFUNDED_AND_RETURNED
+            refunded_fulfillment_lines_to_return.append(line_data)
+        else:
+            # the rest of the items should be moved to target fulfillment
+            fulfillment_lines_to_return.append(line_data)
+
     _move_fulfillment_lines_to_target_fulfillment(
         fulfillment_lines_to_move=fulfillment_lines_to_return,
         lines_in_target_fulfillment=lines_in_target_fulfillment,
         target_fulfillment=target_fulfillment,
     )
+
+    if refunded_fulfillment_lines_to_return:
+        refund_and_return_fulfillment, _ = Fulfillment.objects.get_or_create(
+            status=FulfillmentStatus.REFUNDED_AND_RETURNED, order=order
+        )
+        lines_in_target_fulfillment = list(refund_and_return_fulfillment.lines.all())
+        _move_fulfillment_lines_to_target_fulfillment(
+            fulfillment_lines_to_move=refunded_fulfillment_lines_to_return,
+            lines_in_target_fulfillment=lines_in_target_fulfillment,
+            target_fulfillment=refund_and_return_fulfillment,
+        )
+
     return target_fulfillment
 
 
@@ -754,8 +783,8 @@ def create_return_fulfillment(
         status = FulfillmentStatus.REFUNDED_AND_RETURNED
     with transaction.atomic():
         return_fulfillment = _move_lines_to_return_fulfillment(
-            order_lines_to_return=order_lines,
-            fulfillment_lines_to_return=fulfillment_lines,
+            order_lines=order_lines,
+            fulfillment_lines=fulfillment_lines,
             fulfillment_status=status,
             order=order,
         )

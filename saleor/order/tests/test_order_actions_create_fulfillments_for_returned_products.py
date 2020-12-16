@@ -604,3 +604,90 @@ def test_create_return_fulfillment_multiple_lines_returns(
         assert line.quantity == original_quantity.get(line.pk) - 2
 
     assert mocked_refund.call_count == 2
+
+
+@patch("saleor.order.actions.gateway.refund")
+def test_create_return_fulfillment_multiple_lines_without_refund(
+    mocked_refund,
+    fulfilled_order,
+    payment_dummy,
+    staff_user,
+    channel_USD,
+    variant,
+    warehouse,
+):
+    payment_dummy.captured_amount = payment_dummy.total
+    payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_dummy.save()
+    fulfilled_order.payments.add(payment_dummy)
+    payment = fulfilled_order.get_last_payment()
+    order_line_ids = fulfilled_order.lines.all().values_list("id", flat=True)
+    fulfillment_lines = FulfillmentLine.objects.filter(order_line_id__in=order_line_ids)
+    original_quantity = {line.id: line.quantity for line in fulfillment_lines}
+    fulfillment_lines_to_return = fulfillment_lines
+
+    stock = Stock.objects.create(
+        warehouse=warehouse, product_variant=variant, quantity=5
+    )
+    net = variant.get_price(channel_USD.slug)
+    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    order_line = fulfilled_order.lines.create(
+        product_name=str(variant.product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        quantity=5,
+        quantity_fulfilled=2,
+        variant=variant,
+        unit_price=TaxedMoney(net=net, gross=gross),
+        tax_rate=23,
+    )
+    Allocation.objects.create(
+        order_line=order_line, stock=stock, quantity_allocated=order_line.quantity
+    )
+    refunded_fulfillment = Fulfillment.objects.create(
+        order=fulfilled_order, status=FulfillmentStatus.REFUNDED
+    )
+    refunded_fulfillment_line = refunded_fulfillment.lines.create(
+        order_line=order_line, quantity=2
+    )
+
+    fulfillment_lines_to_process = [
+        FulfillmentLineData(line=line, quantity=1)
+        for line in fulfillment_lines_to_return
+    ]
+    fulfillment_lines_to_process.append(
+        FulfillmentLineData(line=refunded_fulfillment_line, quantity=1)
+    )
+    for _ in range(2):
+        create_fulfillments_for_returned_products(
+            requester=staff_user,
+            order=fulfilled_order,
+            payment=payment,
+            order_lines=[OrderLineData(line=order_line, quantity=1)],
+            fulfillment_lines=fulfillment_lines_to_process,
+            refund=False,
+        )
+
+    returned_fulfillment = Fulfillment.objects.get(
+        order=fulfilled_order, status=FulfillmentStatus.RETURNED
+    )
+    returned_fulfillment_lines = returned_fulfillment.lines.all()
+
+    returned_and_refunded_fulfillment = Fulfillment.objects.get(
+        order=fulfilled_order, status=FulfillmentStatus.REFUNDED_AND_RETURNED
+    )
+    returned_and_refunded_lines = returned_and_refunded_fulfillment.lines.all()
+
+    assert returned_fulfillment_lines.count() == len(order_line_ids)
+    for fulfillment_line in returned_fulfillment_lines:
+        assert fulfillment_line.quantity == 2
+        assert fulfillment_line.order_line_id in order_line_ids
+
+    for line in fulfillment_lines:
+        assert line.quantity == original_quantity.get(line.pk) - 2
+
+    assert returned_and_refunded_lines.count() == 1
+    assert returned_and_refunded_lines[0].order_line_id == order_line.id
+
+    assert not mocked_refund.called
