@@ -253,11 +253,11 @@ class Attribute(ModelWithMetadata):
     is_variant_only = models.BooleanField(default=False, blank=True)
     visible_in_storefront = models.BooleanField(default=True, blank=True)
 
-    filterable_in_storefront = models.BooleanField(default=True, blank=True)
-    filterable_in_dashboard = models.BooleanField(default=True, blank=True)
+    filterable_in_storefront = models.BooleanField(default=False, blank=True)
+    filterable_in_dashboard = models.BooleanField(default=False, blank=True)
 
     storefront_search_position = models.IntegerField(default=0, blank=True)
-    available_in_grid = models.BooleanField(default=True, blank=True)
+    available_in_grid = models.BooleanField(default=False, blank=True)
 
     objects = AttributeQuerySet.as_manager()
     translated = TranslationProxy()
@@ -299,6 +299,8 @@ class AttributeValue(SortableModel):
     name = models.CharField(max_length=250)
     value = models.CharField(max_length=100, blank=True, default="")
     slug = models.SlugField(max_length=255, allow_unicode=True)
+    file_url = models.URLField(null=True, blank=True)
+    content_type = models.CharField(max_length=50, null=True, blank=True)
     attribute = models.ForeignKey(
         Attribute, related_name="values", on_delete=models.CASCADE
     )
