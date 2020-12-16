@@ -648,7 +648,12 @@ def test_create_page_with_reference_attribute(
     expected_attr_data = {
         "attribute": {"slug": page_reference_attribute.slug},
         "values": [
-            {"slug": f"{new_page_pk}_{page.pk}", "file": None, "name": page.title, "reference": reference}
+            {
+                "slug": f"{new_page_pk}_{page.pk}",
+                "file": None,
+                "name": page.title,
+                "reference": reference,
+            }
         ],
     }
     assert data["page"]["attributes"][0] == expected_attr_data
@@ -874,7 +879,7 @@ def test_update_page(staff_api_client, permission_manage_pages, page):
                     "slug": slugify(new_value),
                     "file": None,
                     "name": new_value,
-                    "reference": None
+                    "reference": None,
                 }
             ]
         attr_data = {
@@ -1028,7 +1033,12 @@ def test_update_page_with_reference_attribute_new_value(
     updated_attribute = {
         "attribute": {"slug": page_reference_attribute.slug},
         "values": [
-            {"slug": f"{page.pk}_{ref_page.pk}", "name": page.title, "file": None, "reference": reference}
+            {
+                "slug": f"{page.pk}_{ref_page.pk}",
+                "name": page.title,
+                "file": None,
+                "reference": reference,
+            }
         ],
     }
     assert updated_attribute in data["page"]["attributes"]
@@ -1081,7 +1091,14 @@ def test_update_page_with_reference_attribute_existing_value(
     assert data["page"]
     updated_attribute = {
         "attribute": {"slug": page_reference_attribute.slug},
-        "values": [{"slug": attr_value.slug, "file": None, "name": page.title, "reference": reference}],
+        "values": [
+            {
+                "slug": attr_value.slug,
+                "file": None,
+                "name": page.title,
+                "reference": reference,
+            }
+        ],
     }
     assert updated_attribute in data["page"]["attributes"]
 
