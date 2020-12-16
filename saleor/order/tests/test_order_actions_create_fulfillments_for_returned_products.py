@@ -641,6 +641,7 @@ def test_create_return_fulfillment_multiple_lines_without_refund(
             payment=payment,
             order_lines=[OrderLineData(line=order_line, quantity=1)],
             fulfillment_lines=fulfillment_lines_to_process,
+            plugin_manager=get_plugins_manager(),
             refund=False,
         )
 
@@ -724,6 +725,7 @@ def test_create_return_fulfillment_with_lines_already_refunded(
         payment=payment,
         order_lines=[],
         fulfillment_lines=fulfillment_lines_to_process,
+        plugin_manager=get_plugins_manager(),
         refund=True,
     )
 
