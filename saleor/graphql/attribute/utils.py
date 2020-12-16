@@ -139,7 +139,7 @@ class AttributeAssignmentMixin:
             )[0]
             for value in attr_values.values
         )
-    
+
     @classmethod
     def _pre_save_reference_values(
         cls,
