@@ -321,6 +321,11 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                             product_channel_listing,
                         ):
                             def calculate_pricing_with_collections(collections):
+                                if (
+                                    not variant_channel_listing
+                                    or not product_channel_listing
+                                ):
+                                    return None
                                 availability = get_variant_availability(
                                     variant=root.node,
                                     variant_channel_listing=variant_channel_listing,
@@ -606,6 +611,8 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                             variants_channel_listing,
                         ):
                             def calculate_pricing_with_collections(collections):
+                                if not variants_channel_listing:
+                                    return None
                                 availability = get_product_availability(
                                     product=root.node,
                                     product_channel_listing=product_channel_listing,
