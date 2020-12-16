@@ -1103,6 +1103,14 @@ def product(product_type, category, warehouse, channel_USD):
 
 
 @pytest.fixture
+def product_with_collections(
+    product, published_collection, unpublished_collection, collection
+):
+    product.collections.add(*[published_collection, unpublished_collection, collection])
+    return product
+
+
+@pytest.fixture
 def product_available_in_many_channels(product, channel_PLN):
     ProductChannelListing.objects.create(
         product=product, channel=channel_PLN, is_published=True,
