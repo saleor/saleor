@@ -89,8 +89,7 @@ from ..shipping.models import (
     ShippingMethodType,
     ShippingZone,
 )
-from ..site import AuthenticationBackends
-from ..site.models import AuthorizationKey, SiteSettings
+from ..site.models import SiteSettings
 from ..warehouse.models import Allocation, Stock, Warehouse
 from ..webhook.event_types import WebhookEventType
 from ..webhook.models import Webhook
@@ -2553,21 +2552,6 @@ def discount_info(category, collection, sale, channel_USD):
         product_ids=set(),
         category_ids={category.id},  # assumes this category does not have children
         collection_ids={collection.id},
-    )
-
-
-@pytest.fixture
-def authorization_backend_name():
-    return AuthenticationBackends.FACEBOOK
-
-
-@pytest.fixture
-def authorization_key(site_settings, authorization_backend_name):
-    return AuthorizationKey.objects.create(
-        site_settings=site_settings,
-        name=authorization_backend_name,
-        key="Key",
-        password="Password",
     )
 
 
