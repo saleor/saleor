@@ -6021,8 +6021,10 @@ mutation createProduct(
         $name: String!,
         $sku: String,
         $stocks: [StockInput!],
-        $basePrice: PositiveDecimal!
-        $trackInventory: Boolean)
+        $basePrice: PositiveDecimal!,
+        $trackInventory: Boolean,
+        $country: CountryCode
+        )
     {
         productCreate(
             input: {
@@ -6042,8 +6044,7 @@ mutation createProduct(
                     id
                     sku
                     trackInventory
-                    quantity
-                    stockQuantity
+                    quantityAvailable(countryCode: $country)
                 }
             }
             productErrors {

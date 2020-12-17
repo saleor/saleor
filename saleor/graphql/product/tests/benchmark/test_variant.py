@@ -36,8 +36,6 @@ def test_retrieve_variant_list(
           id
           sku
           name
-          stockQuantity
-          isAvailable
           pricing {
             discountLocalCurrency {
               currency
@@ -86,7 +84,6 @@ def test_retrieve_variant_list(
             edges {
               node {
                 ...ProductVariantFields
-                stockQuantity
                 quantityAvailable
                 quantityAvailablePl: quantityAvailable(countryCode: PL)
                 quantityAvailableUS: quantityAvailable(countryCode: US)
