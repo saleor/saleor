@@ -80,3 +80,69 @@ def test_fetch_all_products(user_api_client, product):
     assert any(
         [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
     )
+
+
+QUERY_COLLECTION_FROM_PRODUCT = """
+    query ($id: ID, $channel:String){
+        product(
+            id: $id,
+            channel: $channel
+        ) {
+            collections {
+                name
+            }
+        }
+    }
+    """
+
+
+def test_get_collections_from_product_as_customer(
+    user_api_client, product_with_collections, channel_USD, published_collection
+):
+    # given
+    product = product_with_collections
+    variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
+
+    # when
+    with warnings.catch_warnings(record=True) as warns:
+        response = user_api_client.post_graphql(
+            QUERY_COLLECTION_FROM_PRODUCT,
+            variables=variables,
+            permissions=(),
+            check_no_permissions=False,
+        )
+
+    # then
+    content = get_graphql_content(response)
+    collections = content["data"]["product"]["collections"]
+    assert len(collections) == 1
+    assert {"name": published_collection.name} in collections
+    assert any(
+        [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
+    )
+
+
+def test_get_collections_from_product_as_anonymous(
+    api_client, product_with_collections, channel_USD, published_collection
+):
+    # given
+    product = product_with_collections
+    variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
+
+    # when
+    with warnings.catch_warnings(record=True) as warns:
+        response = api_client.post_graphql(
+            QUERY_COLLECTION_FROM_PRODUCT,
+            variables=variables,
+            permissions=(),
+            check_no_permissions=False,
+        )
+
+    # then
+    content = get_graphql_content(response)
+    collections = content["data"]["product"]["collections"]
+    assert len(collections) == 1
+    assert {"name": published_collection.name} in collections
+    assert any(
+        [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
+    )

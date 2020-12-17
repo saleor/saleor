@@ -34,6 +34,30 @@ def test_get_single_attribute_by_id_as_customer(
     assert content["data"]["attribute"]["slug"] == color_attribute_without_values.slug
 
 
+def test_get_single_attribute_by_slug_as_customer(
+    user_api_client, color_attribute_without_values
+):
+    attribute_gql_slug = color_attribute_without_values.slug
+    query = """
+    query($slug: String!) {
+        attribute(slug: $slug) {
+            id
+            name
+            slug
+        }
+    }
+    """
+    content = get_graphql_content(
+        user_api_client.post_graphql(query, {"slug": attribute_gql_slug})
+    )
+
+    assert content["data"]["attribute"], "Should have found an attribute"
+    assert content["data"]["attribute"]["slug"] == attribute_gql_slug
+    assert content["data"]["attribute"]["id"] == graphene.Node.to_global_id(
+        "Attribute", color_attribute_without_values.id
+    )
+
+
 QUERY_ATTRIBUTE = """
 query($id: ID!) {
     attribute(id: $id) {
@@ -45,6 +69,10 @@ query($id: ID!) {
         values {
             slug
             inputType
+            file {
+                url
+                contentType
+            }
         }
         valueRequired
         visibleInStorefront
@@ -176,6 +204,49 @@ def test_get_single_page_attribute_by_staff_no_perm(
     response = staff_api_client.post_graphql(query, {"id": attribute_gql_id})
 
     assert_no_permission(response)
+
+
+def test_get_single_product_attribute_with_file_value(
+    staff_api_client, file_attribute, permission_manage_products, media_root
+):
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    attribute_gql_id = graphene.Node.to_global_id("Attribute", file_attribute.id)
+    query = QUERY_ATTRIBUTE
+    content = get_graphql_content(
+        staff_api_client.post_graphql(query, {"id": attribute_gql_id})
+    )
+    attribute_data = content["data"]["attribute"]
+
+    assert attribute_data, "Should have found an attribute"
+    assert attribute_data["id"] == attribute_gql_id
+    assert attribute_data["slug"] == file_attribute.slug
+    assert attribute_data["valueRequired"] == file_attribute.value_required
+    assert attribute_data["visibleInStorefront"] == file_attribute.visible_in_storefront
+    assert (
+        attribute_data["filterableInStorefront"]
+        == file_attribute.filterable_in_storefront
+    )
+    assert (
+        attribute_data["filterableInDashboard"]
+        == file_attribute.filterable_in_dashboard
+    )
+    assert attribute_data["availableInGrid"] == file_attribute.available_in_grid
+    assert (
+        attribute_data["storefrontSearchPosition"]
+        == file_attribute.storefront_search_position
+    )
+    assert len(attribute_data["values"]) == file_attribute.values.count()
+    attribute_value_data = []
+    for value in file_attribute.values.all():
+        data = {
+            "slug": value.slug,
+            "inputType": value.input_type.upper(),
+            "file": {"url": value.file_url, "contentType": value.content_type},
+        }
+        attribute_value_data.append(data)
+
+    for data in attribute_value_data:
+        assert data in attribute_data["values"]
 
 
 QUERY_ATTRIBUTES = """

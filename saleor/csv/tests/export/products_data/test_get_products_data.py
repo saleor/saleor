@@ -1,6 +1,7 @@
 from measurement.measures import Weight
 
 from .....attribute.models import Attribute
+from .....attribute.utils import associate_attribute_values_to_instance
 from .....channel.models import Channel
 from .....product.models import Product, ProductVariant, VariantImage
 from .....warehouse.models import Warehouse
@@ -225,9 +226,18 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
     variant_with_many_stocks,
     product_with_image,
     product_with_variant_with_two_attributes,
+    file_attribute,
 ):
     # given
     product.variants.add(variant_with_many_stocks)
+    product.product_type.variant_attributes.add(file_attribute)
+    product.product_type.product_attributes.add(file_attribute)
+    associate_attribute_values_to_instance(
+        variant_with_many_stocks, file_attribute, file_attribute.values.first()
+    )
+    associate_attribute_values_to_instance(
+        product, file_attribute, file_attribute.values.first()
+    )
 
     products = Product.objects.all()
     export_fields = {"id", "variants__sku"}

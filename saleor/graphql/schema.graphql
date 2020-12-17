@@ -489,6 +489,7 @@ input AttributeInput {
 enum AttributeInputTypeEnum {
   DROPDOWN
   MULTISELECT
+  FILE
 }
 
 type AttributeReorderValues {
@@ -565,6 +566,7 @@ type AttributeValue implements Node {
   type: AttributeValueType @deprecated(reason: "Use the `inputType` field to determine the type of attribute's value. This field will be removed after 2020-07-31.")
   translation(languageCode: LanguageCodeEnum!): AttributeValueTranslation
   inputType: AttributeInputTypeEnum
+  file: File
 }
 
 type AttributeValueBulkDelete {
@@ -593,7 +595,9 @@ type AttributeValueDelete {
 
 input AttributeValueInput {
   id: ID
-  values: [String]!
+  values: [String]
+  file: String
+  contentType: String
 }
 
 type AttributeValueTranslatableContent implements Node {
@@ -656,6 +660,11 @@ input AuthorizationKeyInput {
 enum AuthorizationKeyType {
   FACEBOOK
   GOOGLE_OAUTH2
+}
+
+input BulkAttributeValueInput {
+  id: ID
+  values: [String]!
 }
 
 type BulkProductError {
@@ -797,6 +806,7 @@ type Channel implements Node {
   isActive: Boolean!
   slug: String!
   currencyCode: String!
+  hasOrders: Boolean!
 }
 
 type ChannelActivate {
@@ -849,6 +859,7 @@ enum ChannelErrorCode {
   UNIQUE
   CHANNEL_TARGET_ID_MUST_BE_DIFFERENT
   CHANNELS_CURRENCY_MUST_BE_THE_SAME
+  CHANNEL_WITH_ORDERS
 }
 
 type ChannelUpdate {
@@ -1959,6 +1970,11 @@ enum ExportScope {
   FILTER
 }
 
+type File {
+  url: String!
+  contentType: String
+}
+
 enum FileTypesEnum {
   CSV
   XLSX
@@ -1966,7 +1982,7 @@ enum FileTypesEnum {
 
 type FileUpload {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  uploadedFile: UploadedFile
+  uploadedFile: File
   uploadErrors: [UploadError!]!
 }
 
@@ -2728,7 +2744,7 @@ type Mutation {
   checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!): CheckoutShippingMethodUpdate
   channelCreate(input: ChannelCreateInput!): ChannelCreate
   channelUpdate(id: ID!, input: ChannelUpdateInput!): ChannelUpdate
-  channelDelete(id: ID!, input: ChannelDeleteInput!): ChannelDelete
+  channelDelete(id: ID!, input: ChannelDeleteInput): ChannelDelete
   channelActivate(id: ID!): ChannelActivate
   channelDeactivate(id: ID!): ChannelDeactivate
   attributeCreate(input: AttributeCreateInput!): AttributeCreate
@@ -4085,7 +4101,7 @@ type ProductType implements Node & ObjectWithMetadata {
   products(channel: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection @deprecated(reason: "Use the top-level `products` query with the `productTypes` filter.")
   taxRate: TaxRateType
   taxType: TaxType
-  variantAttributes: [Attribute]
+  variantAttributes(variantSelection: VariantAttributeScope): [Attribute]
   productAttributes: [Attribute]
   availableAttributes(filter: AttributeFilterInput, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
 }
@@ -4188,7 +4204,7 @@ type ProductVariant implements Node & ObjectWithMetadata {
   metadata: [MetadataItem]!
   channelListings: [ProductVariantChannelListing!]
   pricing: VariantPricingInfo
-  attributes: [SelectedAttribute!]!
+  attributes(variantSelection: VariantAttributeScope): [SelectedAttribute!]!
   costPrice: Money
   margin: Int
   quantityOrdered: Int
@@ -4208,7 +4224,7 @@ type ProductVariantBulkCreate {
 }
 
 input ProductVariantBulkCreateInput {
-  attributes: [AttributeValueInput]!
+  attributes: [BulkAttributeValueInput]!
   sku: String!
   trackInventory: Boolean
   weight: WeightScalar
@@ -4408,7 +4424,7 @@ type Query {
   channel(id: ID): Channel
   channels: [Channel!]
   attributes(filter: AttributeFilterInput, sortBy: AttributeSortingInput, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
-  attribute(id: ID!): Attribute
+  attribute(id: ID, slug: String): Attribute
   appsInstallations: [AppInstallation!]!
   apps(filter: AppFilterInput, sortBy: AppSortingInput, before: String, after: String, first: Int, last: Int): AppCountableConnection
   app(id: ID!): App
@@ -5262,11 +5278,6 @@ enum UploadErrorCode {
   GRAPHQL_ERROR
 }
 
-type UploadedFile {
-  url: String!
-  contentType: String!
-}
-
 type User implements Node & ObjectWithMetadata {
   id: ID!
   lastLogin: DateTime
@@ -5357,6 +5368,12 @@ type VAT {
   countryCode: String!
   standardRate: Float
   reducedRates: [ReducedRate]!
+}
+
+enum VariantAttributeScope {
+  ALL
+  VARIANT_SELECTION
+  NOT_VARIANT_SELECTION
 }
 
 type VariantImageAssign {

@@ -10,6 +10,7 @@ import jaeger_client
 import jaeger_client.config
 import pkg_resources
 import sentry_sdk
+import sentry_sdk.utils
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.utils import get_random_secret_key
 from pytimeparse import parse
@@ -489,6 +490,7 @@ DEFAULT_CHANNEL_SLUG = os.environ.get("DEFAULT_CHANNEL_SLUG", "default-channel")
 
 
 #  Sentry
+sentry_sdk.utils.MAX_STRING_LENGTH = 4096
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
 if SENTRY_DSN:
     sentry_sdk.init(

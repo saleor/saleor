@@ -1297,6 +1297,7 @@ def test_fulfillment_refund_products_fulfillment_lines_and_order_lines(
     permission_manage_orders,
     fulfilled_order,
     payment_dummy,
+    collection,
 ):
     payment_dummy.total = fulfilled_order.total_gross_amount
     payment_dummy.captured_amount = payment_dummy.total
@@ -1306,7 +1307,11 @@ def test_fulfillment_refund_products_fulfillment_lines_and_order_lines(
     stock = Stock.objects.create(
         warehouse=warehouse, product_variant=variant, quantity=5
     )
-    net = variant.get_price(channel_USD.slug)
+    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
+
+    net = variant.get_price(
+        variant.product, [collection], channel_USD, variant_channel_listing, []
+    )
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     variant.track_inventory = False
     variant.save()

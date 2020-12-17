@@ -1,4 +1,5 @@
 from dataclasses import asdict
+from typing import Optional
 
 import graphene
 from django.conf import settings
@@ -19,6 +20,7 @@ from ....product.utils.availability import (
     get_product_availability,
     get_variant_availability,
 )
+from ....product.utils.variants import get_variant_selection_attributes
 from ....warehouse.availability import is_product_in_stock
 from ...account.enums import CountryCodeEnum
 from ...attribute.filters import AttributeFilterInput
@@ -58,6 +60,7 @@ from ...warehouse.dataloaders import (
 from ...warehouse.types import Stock
 from ..dataloaders import (
     CategoryByIdLoader,
+    CollectionChannelListingByCollectionIdAndChannelSlugLoader,
     CollectionChannelListingByCollectionIdLoader,
     CollectionsByProductIdLoader,
     ImagesByProductIdLoader,
@@ -76,6 +79,7 @@ from ..dataloaders import (
     VariantChannelListingByVariantIdLoader,
     VariantsChannelListingByProductIdAndChanneSlugLoader,
 )
+from ..enums import VariantAttributeScope
 from ..filters import ProductFilterInput
 from ..sorters import ProductOrder
 from .channels import (
@@ -157,6 +161,9 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         graphene.NonNull(SelectedAttribute),
         required=True,
         description="List of attributes assigned to this variant.",
+        variant_selection=graphene.Argument(
+            VariantAttributeScope, description="Define scope of returned attributes.",
+        ),
     )
     cost_price = graphene.Field(Money, description="Cost price of the variant.")
     margin = graphene.Int(description="Gross margin percentage value.")
@@ -241,9 +248,35 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return getattr(root.node, "digital_content", None)
 
     @staticmethod
-    def resolve_attributes(root: ChannelContext[models.ProductVariant], info):
-        return SelectedAttributesByProductVariantIdLoader(info.context).load(
-            root.node.id
+    def resolve_attributes(
+        root: ChannelContext[models.ProductVariant],
+        info,
+        variant_selection: Optional[str] = None,
+    ):
+        def apply_variant_selection_filter(selected_attributes):
+            if not variant_selection or variant_selection == VariantAttributeScope.ALL:
+                return selected_attributes
+            attributes = [
+                selected_att["attribute"] for selected_att in selected_attributes
+            ]
+            variant_selection_attrs = get_variant_selection_attributes(attributes)
+
+            if variant_selection == VariantAttributeScope.VARIANT_SELECTION:
+                return [
+                    selected_attribute
+                    for selected_attribute in selected_attributes
+                    if selected_attribute["attribute"] in variant_selection_attrs
+                ]
+            return [
+                selected_attribute
+                for selected_attribute in selected_attributes
+                if selected_attribute["attribute"] not in variant_selection_attrs
+            ]
+
+        return (
+            SelectedAttributesByProductVariantIdLoader(info.context)
+            .load(root.node.id)
+            .then(apply_variant_selection_filter)
         )
 
     @staticmethod
@@ -280,6 +313,11 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                             product_channel_listing,
                         ):
                             def calculate_pricing_with_collections(collections):
+                                if (
+                                    not variant_channel_listing
+                                    or not product_channel_listing
+                                ):
+                                    return None
                                 availability = get_variant_availability(
                                     variant=root.node,
                                     variant_channel_listing=variant_channel_listing,
@@ -540,6 +578,8 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                             variants_channel_listing,
                         ):
                             def calculate_pricing_with_collections(collections):
+                                if not variants_channel_listing:
+                                    return None
                                 availability = get_product_availability(
                                     product=root.node,
                                     product_channel_listing=product_channel_listing,
@@ -629,17 +669,53 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return ProductChannelListingByProductIdLoader(info.context).load(root.node.id)
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_collections(root: ChannelContext[models.Product], info, **_kwargs):
-        return (
-            CollectionsByProductIdLoader(info.context)
-            .load(root.node.id)
-            .then(
-                lambda collections: [
+        requestor = get_user_or_app_from_context(info.context)
+        requestor_has_access_to_all = models.Collection.objects.user_has_access_to_all(
+            requestor
+        )
+
+        def return_collections(collections):
+            if requestor_has_access_to_all:
+                return [
                     ChannelContext(node=collection, channel_slug=root.channel_slug)
                     for collection in collections
                 ]
+
+            dataloader_keys = [
+                (collection.id, str(root.channel_slug)) for collection in collections
+            ]
+            CollectionChannelListingLoader = (
+                CollectionChannelListingByCollectionIdAndChannelSlugLoader
             )
+            channel_listings = CollectionChannelListingLoader(info.context).load_many(
+                dataloader_keys
+            )
+
+            def return_visible_collections(channel_listings):
+                visible_collections = []
+                channel_listings_dict = {
+                    channel_listing.collection_id: channel_listing
+                    for channel_listing in channel_listings
+                    if channel_listing
+                }
+
+                for collection in collections:
+                    channel_listing = channel_listings_dict.get(collection.id)
+                    if channel_listing and channel_listing.is_visible:
+                        visible_collections.append(collection)
+
+                return [
+                    ChannelContext(node=collection, channel_slug=root.channel_slug)
+                    for collection in visible_collections
+                ]
+
+            return channel_listings.then(return_visible_collections)
+
+        return (
+            CollectionsByProductIdLoader(info.context)
+            .load(root.node.id)
+            .then(return_collections)
         )
 
     @staticmethod
@@ -706,7 +782,11 @@ class ProductType(CountableDjangoObjectType):
         TaxType, description="A type of tax. Assigned by enabled tax gateway"
     )
     variant_attributes = graphene.List(
-        Attribute, description="Variant attributes of that product type."
+        Attribute,
+        description="Variant attributes of that product type.",
+        variant_selection=graphene.Argument(
+            VariantAttributeScope, description="Define scope of returned attributes.",
+        ),
     )
     product_attributes = graphene.List(
         Attribute, description="Product attributes of that product type."
@@ -750,8 +830,22 @@ class ProductType(CountableDjangoObjectType):
         return ProductAttributesByProductTypeIdLoader(info.context).load(root.pk)
 
     @staticmethod
-    def resolve_variant_attributes(root: models.ProductType, info):
-        return VariantAttributesByProductTypeIdLoader(info.context).load(root.pk)
+    def resolve_variant_attributes(
+        root: models.ProductType, info, variant_selection: Optional[str] = None,
+    ):
+        def apply_variant_selection_filter(attributes):
+            if not variant_selection or variant_selection == VariantAttributeScope.ALL:
+                return attributes
+            variant_selection_attrs = get_variant_selection_attributes(attributes)
+            if variant_selection == VariantAttributeScope.VARIANT_SELECTION:
+                return variant_selection_attrs
+            return [attr for attr in attributes if attr not in variant_selection_attrs]
+
+        return (
+            VariantAttributesByProductTypeIdLoader(info.context)
+            .load(root.pk)
+            .then(apply_variant_selection_filter)
+        )
 
     @staticmethod
     def resolve_products(root: models.ProductType, info, channel=None, **_kwargs):
