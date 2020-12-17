@@ -373,7 +373,7 @@ def fulfillment_fulfilled_items_event(
     )
 
 
-def fulfillment_returned_event(
+def order_returned_event(
     *, order: Order, user: UserType, returned_lines: List[Tuple[int, OrderLine]],
 ):
     if not _user_is_valid(user):
