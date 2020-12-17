@@ -1,11 +1,7 @@
 import pytest
 
 from ...core.exceptions import InsufficientStock
-from ..availability import (
-    check_stock_quantity,
-    get_available_quantity,
-    get_quantity_allocated,
-)
+from ..availability import check_stock_quantity, get_available_quantity
 from ..models import Allocation
 
 COUNTRY_CODE = "US"
@@ -70,21 +66,3 @@ def test_get_available_quantity_without_stocks(variant_with_many_stocks):
     variant_with_many_stocks.stocks.all().delete()
     available_quantity = get_available_quantity(variant_with_many_stocks, COUNTRY_CODE)
     assert available_quantity == 0
-
-
-def test_get_quantity_allocated(
-    variant_with_many_stocks, order_line_with_allocation_in_many_stocks
-):
-    quantity_allocated = get_quantity_allocated(variant_with_many_stocks, COUNTRY_CODE)
-    assert quantity_allocated == 3
-
-
-def test_get_quantity_allocated_without_allocation(variant_with_many_stocks):
-    quantity_allocated = get_quantity_allocated(variant_with_many_stocks, COUNTRY_CODE)
-    assert quantity_allocated == 0
-
-
-def test_get_quantity_allocated_without_stock(variant_with_many_stocks):
-    variant_with_many_stocks.stocks.all().delete()
-    quantity_allocated = get_quantity_allocated(variant_with_many_stocks, COUNTRY_CODE)
-    assert quantity_allocated == 0
