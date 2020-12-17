@@ -91,14 +91,22 @@ def test_generate_and_set_variant_name_only_variant_selection_attributes(
     # Create values
     colors = AttributeValue.objects.bulk_create(
         [
-            AttributeValue(attribute=color_attribute, name="Yellow", slug="yellow"),
-            AttributeValue(attribute=color_attribute, name="Blue", slug="blue"),
-            AttributeValue(attribute=color_attribute, name="Red", slug="red"),
+            AttributeValue(
+                attribute=color_attribute, name="Yellow", slug="yellow", sort_order=1
+            ),
+            AttributeValue(
+                attribute=color_attribute, name="Blue", slug="blue", sort_order=2
+            ),
+            AttributeValue(
+                attribute=color_attribute, name="Red", slug="red", sort_order=3
+            ),
         ]
     )
 
     # Retrieve the size attribute value "Big"
     size = size_attribute.values.get(slug="big")
+    size.sort_order = 4
+    size.save(update_fields=["sort_order"])
 
     # Associate the colors and size to variant attributes
     associate_attribute_values_to_instance(variant, color_attribute, *tuple(colors))

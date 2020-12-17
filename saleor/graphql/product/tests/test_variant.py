@@ -1388,16 +1388,18 @@ def test_delete_variant_in_draft_order(
     draft_order.save(update_fields=["status"])
 
     variant = order_line.variant
+    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     variables = {"id": variant_id}
 
-    net = variant.get_price(channel_USD)
+    product = variant.product
+    net = variant.get_price(product, [], channel_USD, variant_channel_listing, None)
     gross = Money(amount=net.amount, currency=net.currency)
     order_not_draft = order_list[-1]
     order_line_not_in_draft = OrderLine.objects.create(
         variant=variant,
         order=order_not_draft,
-        product_name=str(variant.product),
+        product_name=str(product),
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),

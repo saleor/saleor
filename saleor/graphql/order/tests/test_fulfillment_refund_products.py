@@ -484,7 +484,8 @@ def test_fulfillment_refund_products_fulfillment_lines_and_order_lines(
     stock = Stock.objects.create(
         warehouse=warehouse, product_variant=variant, quantity=5
     )
-    net = variant.get_price(channel_USD.slug)
+    channel_listing = variant.channel_listings.get()
+    net = variant.get_price(variant.product, [], channel_USD, channel_listing)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     variant.track_inventory = False
     variant.save()

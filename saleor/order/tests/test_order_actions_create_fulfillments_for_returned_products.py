@@ -537,7 +537,10 @@ def test_create_return_fulfillment_multiple_lines_returns(
     stock = Stock.objects.create(
         warehouse=warehouse, product_variant=variant, quantity=5
     )
-    net = variant.get_price(channel_USD.slug)
+
+    channel_listing = variant.channel_listings.get()
+    net = variant.get_price(variant.product, [], channel_USD, channel_listing)
+
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order_line = fulfilled_order.lines.create(
         product_name=str(variant.product),
@@ -604,7 +607,9 @@ def test_create_return_fulfillment_multiple_lines_without_refund(
     stock = Stock.objects.create(
         warehouse=warehouse, product_variant=variant, quantity=5
     )
-    net = variant.get_price(channel_USD.slug)
+
+    channel_listing = variant.channel_listings.get()
+    net = variant.get_price(variant.product, [], channel_USD, channel_listing)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order_line = fulfilled_order.lines.create(
         product_name=str(variant.product),
@@ -689,7 +694,9 @@ def test_create_return_fulfillment_with_lines_already_refunded(
     stock = Stock.objects.create(
         warehouse=warehouse, product_variant=variant, quantity=5
     )
-    net = variant.get_price(channel_USD.slug)
+
+    channel_listing = variant.channel_listings.get()
+    net = variant.get_price(variant.product, [], channel_USD, channel_listing)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order_line = fulfilled_order.lines.create(
         product_name=str(variant.product),

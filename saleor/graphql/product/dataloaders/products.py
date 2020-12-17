@@ -38,6 +38,19 @@ class ProductByIdLoader(DataLoader):
         return [products.get(product_id) for product_id in keys]
 
 
+class ProductByVariantIdLoader(DataLoader):
+    context_key = "product_by_variant_id"
+
+    def batch_load(self, keys):
+        def with_variants(variants):
+            product_ids = [variant.product_id for variant in variants]
+            return ProductByIdLoader(self.context).load_many(product_ids)
+
+        return (
+            ProductVariantByIdLoader(self.context).load_many(keys).then(with_variants)
+        )
+
+
 class ProductChannelListingByIdLoader(DataLoader[int, ProductChannelListing]):
     context_key = "productchannelisting_by_id"
 
@@ -347,6 +360,46 @@ class CollectionsByProductIdLoader(DataLoader):
             CollectionByIdLoader(self.context)
             .load_many(set(cid for pid, cid in product_collection_pairs))
             .then(map_collections)
+        )
+
+
+class CollectionsByVariantIdLoader(DataLoader):
+    context_key = "collections_by_variant"
+
+    def batch_load(self, keys):
+        def with_variants(variants):
+            product_ids = [variant.product_id for variant in variants]
+            return CollectionsByProductIdLoader(self.context).load_many(product_ids)
+
+        return (
+            ProductVariantByIdLoader(self.context).load_many(keys).then(with_variants)
+        )
+
+
+class ProductTypeByProductIdLoader(DataLoader):
+    context_key = "producttype_by_product_id"
+
+    def batch_load(self, keys):
+        def with_products(products):
+            product_ids = {p.id for p in products}
+            product_types_map = ProductType.objects.filter(
+                products__in=product_ids
+            ).in_bulk()
+            return [product_types_map[product.product_type_id] for product in products]
+
+        return ProductByIdLoader(self.context).load_many(keys).then(with_products)
+
+
+class ProductTypeByVariantIdLoader(DataLoader):
+    context_key = "producttype_by_variant_id"
+
+    def batch_load(self, keys):
+        def with_variants(variants):
+            product_ids = [v.product_id for v in variants]
+            return ProductTypeByProductIdLoader(self.context).load_many(product_ids)
+
+        return (
+            ProductVariantByIdLoader(self.context).load_many(keys).then(with_variants)
         )
 
 
