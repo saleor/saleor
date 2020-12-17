@@ -3233,14 +3233,15 @@ def test_order_void(
     assert event_payment_voided.user == staff_user
 
 
+@patch.object(PluginsManager, "void_payment")
 def test_order_void_payment_error(
-    mock_get_manager, staff_api_client, permission_manage_orders, payment_txn_preauth
+    mock_void_payment, staff_api_client, permission_manage_orders, payment_txn_preauth
 ):
     msg = "Oops! Something went wrong."
     order = payment_txn_preauth.order
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
-    mock_get_manager.void_payment.side_effect = ValueError(msg)
+    mock_void_payment.side_effect = ValueError(msg)
     response = staff_api_client.post_graphql(
         ORDER_VOID, variables, permissions=[permission_manage_orders]
     )
@@ -3251,6 +3252,8 @@ def test_order_void_payment_error(
 
     order_errors = content["data"]["orderVoid"]["orderErrors"]
     assert order_errors[0]["code"] == OrderErrorCode.PAYMENT_ERROR.name
+
+    mock_void_payment.assert_called_once()
 
 
 def test_order_refund(staff_api_client, permission_manage_orders, payment_txn_captured):

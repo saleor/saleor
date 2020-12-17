@@ -6,6 +6,7 @@ from django.http import HttpResponseNotFound, JsonResponse
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
+from ...checkout.utils import fetch_checkout_lines
 from ...core.taxes import TaxType
 from ...payment.interface import PaymentGateway
 from ..manager import PluginsManager, get_plugins_manager
@@ -37,8 +38,9 @@ def test_manager_calculates_checkout_total(
     currency = checkout_with_item.currency
     expected_total = Money(total_amount, currency)
     manager = PluginsManager(plugins=plugins)
+    lines = fetch_checkout_lines(checkout_with_item)
     taxed_total = manager.calculate_checkout_total(
-        checkout_with_item, list(checkout_with_item), [discount_info]
+        checkout_with_item, lines, None, [discount_info]
     )
     assert TaxedMoney(expected_total, expected_total) == taxed_total
 
@@ -52,8 +54,9 @@ def test_manager_calculates_checkout_subtotal(
 ):
     currency = checkout_with_item.currency
     expected_subtotal = Money(subtotal_amount, currency)
+    lines = fetch_checkout_lines(checkout_with_item)
     taxed_subtotal = PluginsManager(plugins=plugins).calculate_checkout_subtotal(
-        checkout_with_item, list(checkout_with_item), [discount_info]
+        checkout_with_item, lines, None, [discount_info]
     )
     assert TaxedMoney(expected_subtotal, expected_subtotal) == taxed_subtotal
 
@@ -67,8 +70,9 @@ def test_manager_calculates_checkout_shipping(
 ):
     currency = checkout_with_item.currency
     expected_shipping_price = Money(shipping_amount, currency)
+    lines = fetch_checkout_lines(checkout_with_item)
     taxed_shipping_price = PluginsManager(plugins=plugins).calculate_checkout_shipping(
-        checkout_with_item, list(checkout_with_item), [discount_info]
+        checkout_with_item, lines, None, [discount_info]
     )
     assert (
         TaxedMoney(expected_shipping_price, expected_shipping_price)
@@ -101,10 +105,20 @@ def test_manager_calculates_checkout_line_total(
     checkout_with_item, discount_info, plugins, amount
 ):
     line = checkout_with_item.lines.all()[0]
+    channel = checkout_with_item.channel
+    channel_listing = line.variant.channel_listings.get(channel=channel)
     currency = checkout_with_item.currency
     expected_total = Money(amount, currency)
     taxed_total = PluginsManager(plugins=plugins).calculate_checkout_line_total(
-        line, [discount_info], checkout_with_item.channel
+        checkout_with_item,
+        line,
+        line.variant,
+        line.variant.product,
+        [],
+        checkout_with_item.shipping_address,
+        channel,
+        channel_listing,
+        [discount_info],
     )
     assert TaxedMoney(expected_total, expected_total) == taxed_total
 
@@ -149,10 +163,17 @@ def test_manager_show_taxes_on_storefront(plugins, show_taxes):
 def test_manager_apply_taxes_to_product(product, plugins, price, channel_USD):
     country = Country("PL")
     variant = product.variants.all()[0]
-    currency = variant.get_price(channel_USD.slug).currency
+    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
+    currency = variant.get_price(
+        variant.product, [], channel_USD, variant_channel_listing, None
+    ).currency
     expected_price = Money(price, currency)
     taxed_price = PluginsManager(plugins=plugins).apply_taxes_to_product(
-        product, variant.get_price(channel_USD.slug), country
+        product,
+        variant.get_price(
+            variant.product, [], channel_USD, variant_channel_listing, None
+        ),
+        country,
     )
     assert TaxedMoney(expected_price, expected_price) == taxed_price
 

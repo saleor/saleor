@@ -25,7 +25,7 @@ def resolve_category_by_slug(slug):
     return models.Category.objects.filter(slug=slug).first()
 
 
-def resolve_categories(info, level=None, **_kwargs):
+def resolve_categories(_info, level=None, **_kwargs):
     qs = models.Category.objects.prefetch_related("children")
     if level is not None:
         qs = qs.filter(level=level)
@@ -96,7 +96,7 @@ def resolve_variant_by_id(info, id, channel_slug, requestor):
     return qs.filter(pk=id).first()
 
 
-def resolve_product_types(info, **_kwargs):
+def resolve_product_types(_info, **_kwargs):
     return models.ProductType.objects.all()
 
 

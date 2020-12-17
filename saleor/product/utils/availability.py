@@ -113,18 +113,26 @@ def get_product_price_range(
 ) -> Optional[MoneyRange]:
     with opentracing.global_tracer().start_active_span("get_product_price_range"):
         if variants:
-            prices = [
-                get_variant_price(
-                    variant=variant,
-                    variant_channel_listing=variants_channel_listing[i],
-                    product=product,
-                    collections=collections,
-                    discounts=discounts,
-                    channel=channel,
-                )
-                for i, variant in enumerate(variants)
-            ]
-            return MoneyRange(min(prices), max(prices))
+            variants_channel_listing_dict = {
+                channel_listing.variant_id: channel_listing
+                for channel_listing in variants_channel_listing
+                if channel_listing
+            }
+            prices = []
+            for variant in variants:
+                variant_channel_listing = variants_channel_listing_dict.get(variant.id)
+                if variant_channel_listing:
+                    price = get_variant_price(
+                        variant=variant,
+                        variant_channel_listing=variant_channel_listing,
+                        product=product,
+                        collections=collections,
+                        discounts=discounts,
+                        channel=channel,
+                    )
+                    prices.append(price)
+            if prices:
+                return MoneyRange(min(prices), max(prices))
 
         return None
 
@@ -145,7 +153,6 @@ def get_product_availability(
     with opentracing.global_tracer().start_active_span("get_product_availability"):
         if not plugins:
             plugins = get_plugins_manager()
-
         discounted = None
         discounted_net_range = get_product_price_range(
             product=product,

@@ -138,18 +138,23 @@ class ShippingMethodQueryset(models.QuerySet):
         channel_id,
         price: Money,
         country_code=None,
+        lines=None,
     ):
-        if not instance.is_shipping_required():
-            return None
         if not instance.shipping_address:
             return None
-        lines = instance.lines.prefetch_related("variant__product").all()
-        instance_product_ids = set(lines.values_list("variant__product", flat=True))
-
+        if not country_code:
+            # TODO: country_code should come from argument
+            country_code = instance.shipping_address.country.code  # type: ignore
+        if lines is None:
+            # TODO: lines should comes from args in get_valid_shipping_methods_for_order
+            lines = instance.lines.prefetch_related("variant__product").all()
+            instance_product_ids = set(lines.values_list("variant__product", flat=True))
+        else:
+            instance_product_ids = {line.product.id for line in lines}
         applicable_methods = self.applicable_shipping_methods(
             price=price,
             channel_id=channel_id,
-            weight=instance.get_total_weight(),
+            weight=instance.get_total_weight(lines),
             country_code=country_code or instance.shipping_address.country.code,
             product_ids=instance_product_ids,
         ).prefetch_related("zip_code_rules")

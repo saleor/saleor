@@ -248,7 +248,7 @@ def test_fulfillment_return_products_order_lines_quantity_bigger_than_total(
     assert return_fulfillment is None
 
 
-def test_fulfillment_refund_products_order_lines_quantity_bigger_than_unfulfilled(
+def test_fulfillment_return_products_order_lines_quantity_bigger_than_unfulfilled(
     staff_api_client, permission_manage_orders, order_with_lines, payment_dummy
 ):
     payment_dummy.total = order_with_lines.total_gross_amount
@@ -616,7 +616,8 @@ def test_fulfillment_return_products_fulfillment_lines_and_order_lines(
     stock = Stock.objects.create(
         warehouse=warehouse, product_variant=variant, quantity=5
     )
-    net = variant.get_price(channel_USD.slug)
+    channel_listing = variant.channel_listings.get()
+    net = variant.get_price(variant.product, [], channel_USD, channel_listing)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     variant.track_inventory = False
     variant.save()

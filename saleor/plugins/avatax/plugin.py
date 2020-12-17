@@ -10,7 +10,7 @@ from prices import Money, TaxedMoney, TaxedMoneyRange
 from ...checkout import base_calculations
 from ...core.taxes import TaxError, TaxType, charge_taxes_on_shipping, zero_taxed_money
 from ...discount import DiscountInfo
-from ...product.models import Product, ProductType
+from ...product.models import ProductType
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..error_codes import PluginErrorCode
 from . import (
@@ -36,9 +36,17 @@ from .tasks import api_post_request_task
 
 if TYPE_CHECKING:
     # flake8: noqa
+    from ...checkout import CheckoutLineInfo
+    from ...account.models import Address
     from ...checkout.models import Checkout, CheckoutLine
     from ...channel.models import Channel
     from ...order.models import Order, OrderLine
+    from ...product.models import (
+        Collection,
+        Product,
+        ProductVariant,
+        ProductVariantChannelListing,
+    )
     from ..models import PluginConfiguration
 
 
@@ -121,15 +129,21 @@ class AvataxPlugin(BasePlugin):
     def _append_prices_of_not_taxed_lines(
         self,
         price: TaxedMoney,
-        lines: Iterable["CheckoutLine"],
+        lines: Iterable["CheckoutLineInfo"],
         channel: "Channel",
         discounts: Iterable[DiscountInfo],
     ):
-        for line in lines:
-            if line.variant.product.charge_taxes:
+        for line_info in lines:
+            if line_info.variant.product.charge_taxes:
                 continue
             line_price = base_calculations.base_checkout_line_total(
-                line, channel, discounts
+                line_info.line,
+                line_info.variant,
+                line_info.product,
+                line_info.collections,
+                channel,
+                line_info.channel_listing,
+                discounts,
             )
             price.gross.amount += line_price.gross.amount
             price.net.amount += line_price.net.amount
@@ -138,7 +152,8 @@ class AvataxPlugin(BasePlugin):
     def calculate_checkout_total(
         self,
         checkout: "Checkout",
-        lines: Iterable["CheckoutLine"],
+        lines: Iterable["CheckoutLineInfo"],
+        address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -147,7 +162,7 @@ class AvataxPlugin(BasePlugin):
 
         checkout_total = previous_value
 
-        if not _validate_checkout(checkout, lines):
+        if not _validate_checkout(checkout, [line_info.line for line_info in lines]):
             return checkout_total
         response = get_checkout_tax_data(checkout, discounts, self.config)
         if not response or "error" in response:
@@ -169,7 +184,7 @@ class AvataxPlugin(BasePlugin):
     def _calculate_checkout_subtotal(
         self,
         checkout,
-        lines: Iterable["CheckoutLine"],
+        lines: Iterable["CheckoutLineInfo"],
         discounts: Iterable[DiscountInfo],
         base_subtotal: TaxedMoney,
     ) -> TaxedMoney:
@@ -195,7 +210,8 @@ class AvataxPlugin(BasePlugin):
     def calculate_checkout_subtotal(
         self,
         checkout: "Checkout",
-        lines: Iterable["CheckoutLine"],
+        lines: Iterable["CheckoutLineInfo"],
+        address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -203,7 +219,7 @@ class AvataxPlugin(BasePlugin):
             return previous_value
 
         base_subtotal = previous_value
-        if not _validate_checkout(checkout, lines):
+        if not _validate_checkout(checkout, [line_info.line for line_info in lines]):
             return base_subtotal
         response = get_checkout_tax_data(checkout, discounts, self.config)
         if not response or "error" in response:
@@ -226,13 +242,13 @@ class AvataxPlugin(BasePlugin):
 
         shipping_gross = Money(amount=shipping_net + shipping_tax, currency=currency)
         shipping_net = Money(amount=shipping_net, currency=currency)
-
         return TaxedMoney(net=shipping_net, gross=shipping_gross)
 
     def calculate_checkout_shipping(
         self,
         checkout: "Checkout",
-        lines: Iterable["CheckoutLine"],
+        lines: Iterable["CheckoutLineInfo"],
+        address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -244,7 +260,7 @@ class AvataxPlugin(BasePlugin):
         if self._skip_plugin(previous_value):
             return base_shipping_price
 
-        if not _validate_checkout(checkout, lines):
+        if not _validate_checkout(checkout, [line_info.line for line_info in lines]):
             return base_shipping_price
 
         response = get_checkout_tax_data(checkout, discounts, self.config)
@@ -311,9 +327,15 @@ class AvataxPlugin(BasePlugin):
 
     def calculate_checkout_line_total(
         self,
+        checkout: "Checkout",
         checkout_line: "CheckoutLine",
-        discounts: Iterable[DiscountInfo],
+        variant: "ProductVariant",
+        product: "Product",
+        collections: Iterable["Collection"],
+        address: Optional["Address"],
         channel: "Channel",
+        channel_listing: "ProductVariantChannelListing",
+        discounts: Iterable[DiscountInfo],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
         if self._skip_plugin(previous_value):
@@ -323,7 +345,6 @@ class AvataxPlugin(BasePlugin):
         if not checkout_line.variant.product.charge_taxes:
             return base_total
 
-        checkout = checkout_line.checkout
         if not _validate_checkout(checkout, [checkout_line]):
             return base_total
 
@@ -333,7 +354,7 @@ class AvataxPlugin(BasePlugin):
 
         currency = taxes_data.get("currencyCode")
         for line in taxes_data.get("lines", []):
-            if line.get("itemCode") == checkout_line.variant.sku:
+            if line.get("itemCode") == variant.sku:
                 tax = Decimal(line.get("tax", 0.0))
                 line_net = Decimal(line["lineAmount"])
                 line_gross = Money(amount=line_net + tax, currency=currency)
