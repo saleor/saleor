@@ -10,11 +10,7 @@ from ..account.models import User
 from ..core.taxes import zero_money
 from ..core.weight import zero_weight
 from ..discount.models import NotApplicable, Voucher, VoucherType
-from ..discount.utils import (
-    get_discounted_lines,
-    get_products_voucher_discount,
-    validate_voucher_in_order,
-)
+from ..discount.utils import get_products_voucher_discount, validate_voucher_in_order
 from ..order import OrderStatus
 from ..order.models import Order, OrderLine
 from ..plugins.manager import get_plugins_manager
@@ -120,7 +116,12 @@ def update_order_prices(order, discounts):
     channel = order.channel
     for line in order:  # type: OrderLine
         if line.variant:
-            unit_price = line.variant.get_price(channel.slug, discounts)
+            product = line.variant.product
+            channel_listing = line.variant.channel_listings.get(channel=channel)
+            collections = product.collections.all()
+            unit_price = line.variant.get_price(
+                product, collections, channel, channel_listing, discounts
+            )
             unit_price = TaxedMoney(unit_price, unit_price)
             line.unit_price = unit_price
             line.save(
@@ -179,9 +180,14 @@ def add_variant_to_draft_order(order, variant, quantity, discounts=None):
         line.quantity += quantity
         line.save(update_fields=["quantity"])
     except OrderLine.DoesNotExist:
-        unit_price = variant.get_price(order.channel.slug, discounts)
-        unit_price = TaxedMoney(net=unit_price, gross=unit_price)
         product = variant.product
+        collections = product.collections.all()
+        channel = order.channel
+        channel_listing = variant.channel_listings.get(channel=channel)
+        unit_price = variant.get_price(
+            product, collections, channel, channel_listing, discounts
+        )
+        unit_price = TaxedMoney(net=unit_price, gross=unit_price)
         product_name = str(product)
         variant_name = str(variant)
         translated_product_name = str(product.translated)
@@ -308,9 +314,40 @@ def sum_order_totals(qs, currency_code):
 
 
 def get_valid_shipping_methods_for_order(order: Order):
+    if not order.is_shipping_required():
+        return None
+    if not order.shipping_address:
+        return None
     return ShippingMethod.objects.applicable_shipping_methods_for_instance(
-        order, channel_id=order.channel_id, price=order.get_subtotal().gross,
+        order,
+        channel_id=order.channel_id,
+        price=order.get_subtotal().gross,
+        country_code=order.shipping_address.country.code,
     )
+
+
+def get_discounted_lines(lines, voucher):
+    discounted_products = voucher.products.all()
+    discounted_categories = set(voucher.categories.all())
+    discounted_collections = set(voucher.collections.all())
+
+    discounted_lines = []
+    if discounted_products or discounted_collections or discounted_categories:
+        for line in lines:
+            line_product = line.variant.product
+            line_category = line.variant.product.category
+            line_collections = set(line.variant.product.collections.all())
+            if line.variant and (
+                line_product in discounted_products
+                or line_category in discounted_categories
+                or line_collections.intersection(discounted_collections)
+            ):
+                discounted_lines.append(line)
+    else:
+        # If there's no discounted products, collections or categories,
+        # it means that all products are discounted
+        discounted_lines.extend(list(lines))
+    return discounted_lines
 
 
 def get_prices_of_discounted_specific_product(

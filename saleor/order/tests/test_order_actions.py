@@ -39,10 +39,13 @@ def order_with_digital_line(order, digital_content, stock, site_settings):
     product_type.save()
 
     quantity = 3
-    net = variant.get_price(order.channel.slug)
+    product = variant.product
+    channel = order.channel
+    variant_channel_listing = variant.channel_listings.get(channel=channel)
+    net = variant.get_price(product, [], channel, variant_channel_listing, None)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     line = order.lines.create(
-        product_name=str(variant.product),
+        product_name=str(product),
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
@@ -577,18 +580,27 @@ def test_create_refund_fulfillment_custom_amount(
 
 @patch("saleor.order.actions.gateway.refund")
 def test_create_refund_fulfillment_multiple_refunds(
-    mocked_refund, fulfilled_order, variant, payment_dummy, warehouse, channel_USD
+    mocked_refund,
+    fulfilled_order,
+    variant,
+    payment_dummy,
+    warehouse,
+    channel_USD,
+    collection,
 ):
     payment_dummy.captured_amount = payment_dummy.total
     payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
     payment_dummy.save()
     fulfilled_order.payments.add(payment_dummy)
     payment = fulfilled_order.get_last_payment()
+    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
 
     stock = Stock.objects.create(
         warehouse=warehouse, product_variant=variant, quantity=5
     )
-    net = variant.get_price(channel_USD.slug)
+    net = variant.get_price(
+        variant.product, [collection], channel_USD, variant_channel_listing, []
+    )
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order_line = fulfilled_order.lines.create(
         product_name=str(variant.product),

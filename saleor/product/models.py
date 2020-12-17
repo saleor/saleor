@@ -475,15 +475,19 @@ class ProductVariant(SortableModel, ModelWithMetadata):
         return self.name or self.sku
 
     def get_price(
-        self, channel_slug: str, discounts: Optional[Iterable[DiscountInfo]] = None
+        self,
+        product: Product,
+        collections: Iterable["Collection"],
+        channel: Channel,
+        channel_listing: "ProductVariantChannelListing",
+        discounts: Optional[Iterable[DiscountInfo]] = None,
     ) -> "Money":
-        channel_listing = self.channel_listings.get(channel__slug=channel_slug)
         return calculate_discounted_price(
-            product=self.product,
+            product=product,
             price=channel_listing.price,
-            collections=self.product.collections.all(),
             discounts=discounts,
-            channel=channel_listing.channel,
+            collections=collections,
+            channel=channel,
         )
 
     def get_weight(self):

@@ -26,6 +26,7 @@ from graphql_relay import from_global_id
 
 from ....checkout.complete_checkout import complete_checkout
 from ....checkout.models import Checkout
+from ....checkout.utils import fetch_checkout_lines
 from ....core.transactions import transaction_with_commit_on_errors
 from ....core.utils.url import prepare_url
 from ....discount.utils import fetch_active_discounts
@@ -37,6 +38,7 @@ from ....order.actions import (
 )
 from ....order.events import external_notification_event
 from ....payment.models import Payment, Transaction
+from ....plugins.manager import get_plugins_manager
 from ... import ChargeStatus, PaymentError, TransactionKind
 from ...gateway import payment_refund_or_void
 from ...interface import GatewayConfig, GatewayResponse
@@ -145,10 +147,14 @@ def create_payment_notification_for_order(
 
 
 def create_order(payment, checkout):
+    manager = get_plugins_manager()
     try:
         discounts = fetch_active_discounts()
+        lines = fetch_checkout_lines(checkout)
         order, _, _ = complete_checkout(
+            manager=manager,
             checkout=checkout,
+            lines=lines,
             payment_data={},
             store_source=False,
             discounts=discounts,

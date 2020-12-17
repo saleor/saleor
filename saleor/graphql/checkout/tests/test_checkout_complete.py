@@ -7,6 +7,7 @@ import pytest
 from ....checkout import calculations
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.models import Checkout
+from ....checkout.utils import fetch_checkout_lines
 from ....core.exceptions import InsufficientStock
 from ....core.taxes import zero_money
 from ....order import OrderStatus
@@ -14,6 +15,7 @@ from ....order.models import Order
 from ....payment import ChargeStatus, PaymentError, TransactionKind
 from ....payment.gateways.dummy_credit_card import TOKEN_VALIDATION_MAPPING
 from ....payment.interface import GatewayResponse
+from ....plugins.manager import PluginsManager, get_plugins_manager
 from ....warehouse.models import Stock
 from ....warehouse.tests.utils import get_available_quantity_for_stock
 from ...tests.utils import get_graphql_content
@@ -123,7 +125,12 @@ def test_checkout_complete_with_inactive_channel(
     checkout.store_value_in_private_metadata(items={"accepted": "false"})
     checkout.save()
 
-    total = calculations.calculate_checkout_total_with_gift_cards(checkout=checkout)
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager=manager, checkout=checkout, lines=lines, address=address, discounts=[]
+    )
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -170,10 +177,13 @@ def test_checkout_complete(
     checkout_line_quantity = checkout_line.quantity
     checkout_line_variant = checkout_line.variant
 
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout, lines, address
+    )
     site_settings.automatically_confirm_all_new_orders = True
     site_settings.save()
-
-    total = calculations.calculate_checkout_total_with_gift_cards(checkout=checkout)
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -275,7 +285,12 @@ def test_checkout_with_voucher_complete(
     checkout_line_quantity = checkout_line.quantity
     checkout_line_variant = checkout_line.variant
 
-    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+
+    total = calculations.checkout_total(
+        manager=manager, checkout=checkout, lines=lines, address=address
+    )
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -339,7 +354,11 @@ def test_checkout_complete_without_inventory_tracking(
     checkout_line_quantity = checkout_line.quantity
     checkout_line_variant = checkout_line.variant
 
-    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    total = calculations.checkout_total(
+        manager=manager, checkout=checkout, lines=lines, address=address
+    )
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -409,7 +428,11 @@ def test_checkout_complete_error_in_gateway_response_for_dummy_credit_card(
     checkout.store_value_in_private_metadata(items={"accepted": "false"})
     checkout.save()
 
-    total = calculations.calculate_checkout_total_with_gift_cards(checkout=checkout)
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout, lines, address
+    )
     payment = payment_dummy_credit_card
     payment.is_active = True
     payment.order = None
@@ -459,8 +482,9 @@ def error_side_effect(request):
     return request.param
 
 
+@patch.object(PluginsManager, "process_payment")
 def test_checkout_complete_does_not_delete_checkout_after_unsuccessful_payment(
-    mock_get_manager,
+    mocked_process_payment,
     error_side_effect,
     user_api_client,
     checkout_with_voucher,
@@ -469,7 +493,7 @@ def test_checkout_complete_does_not_delete_checkout_after_unsuccessful_payment(
     address,
     shipping_method,
 ):
-    mock_get_manager.process_payment.side_effect = error_side_effect
+    mocked_process_payment.side_effect = error_side_effect
     expected_voucher_usage_count = voucher.used
     checkout = checkout_with_voucher
     checkout.shipping_address = address
@@ -477,7 +501,11 @@ def test_checkout_complete_does_not_delete_checkout_after_unsuccessful_payment(
     checkout.billing_address = address
     checkout.save()
 
-    taxed_total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    taxed_total = calculations.checkout_total(
+        manager=manager, checkout=checkout, lines=lines, address=address
+    )
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -507,6 +535,8 @@ def test_checkout_complete_does_not_delete_checkout_after_unsuccessful_payment(
     assert Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should not have been deleted"
+
+    mocked_process_payment.assert_called_once()
 
 
 def test_checkout_complete_invalid_checkout_id(user_api_client):
@@ -543,22 +573,28 @@ def test_checkout_complete_no_payment(
     assert orders_count == Order.objects.count()
 
 
+@patch.object(PluginsManager, "process_payment")
 def test_checkout_complete_confirmation_needed(
-    mock_get_manager,
+    mocked_process_payment,
     user_api_client,
     checkout_with_item,
     address,
     payment_dummy,
     shipping_method,
 ):
-    mock_get_manager.process_payment.return_value = ACTION_REQUIRED_GATEWAY_RESPONSE
+    mocked_process_payment.return_value = ACTION_REQUIRED_GATEWAY_RESPONSE
+
     checkout = checkout_with_item
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
     checkout.save()
 
-    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    total = calculations.checkout_total(
+        manager=manager, checkout=checkout, lines=lines, address=address
+    )
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -585,10 +621,13 @@ def test_checkout_complete_confirmation_needed(
     assert payment_dummy.is_active
     assert payment_dummy.to_confirm
 
+    mocked_process_payment.assert_called_once()
 
+
+@patch.object(PluginsManager, "confirm_payment")
 def test_checkout_confirm(
+    mocked_confirm_payment,
     user_api_client,
-    mock_get_manager,
     checkout_with_item,
     payment_txn_to_confirm,
     address,
@@ -596,7 +635,7 @@ def test_checkout_confirm(
 ):
     response = ACTION_REQUIRED_GATEWAY_RESPONSE
     response.action_required = False
-    mock_get_manager.confirm_payment.return_value = response
+    mocked_confirm_payment.return_value = response
 
     checkout = checkout_with_item
     checkout.shipping_address = address
@@ -604,7 +643,11 @@ def test_checkout_confirm(
     checkout.billing_address = address
     checkout.save()
 
-    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    total = calculations.checkout_total(
+        manager=manager, checkout=checkout, lines=lines, address=address
+    )
     payment = payment_txn_to_confirm
     payment.is_active = True
     payment.order = None
@@ -624,7 +667,7 @@ def test_checkout_confirm(
     assert not data["checkoutErrors"]
     assert not data["confirmationNeeded"]
 
-    mock_get_manager.confirm_payment.assert_called_once()
+    mocked_confirm_payment.assert_called_once()
 
     new_orders_count = Order.objects.count()
     assert new_orders_count == orders_count + 1
@@ -643,7 +686,13 @@ def test_checkout_complete_insufficient_stock(
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
     checkout.save()
-    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    total = calculations.checkout_total(
+        manager=manager, checkout=checkout, lines=lines, address=address
+    )
+
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -683,7 +732,11 @@ def test_checkout_complete_insufficient_stock_payment_refunded(
     checkout.billing_address = address
     checkout.save()
 
-    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    total = calculations.checkout_total(
+        manager=manager, checkout=checkout, lines=lines, address=address
+    )
 
     payment = payment_dummy
     payment.is_active = True
@@ -733,7 +786,11 @@ def test_checkout_complete_insufficient_stock_payment_voided(
     checkout.billing_address = address
     checkout.save()
 
-    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    total = calculations.checkout_total(
+        manager=manager, checkout=checkout, lines=lines, address=address
+    )
 
     payment = payment_txn_preauth
     payment.is_active = True
@@ -782,7 +839,11 @@ def test_checkout_complete_without_redirect_url(
     checkout_line_quantity = checkout_line.quantity
     checkout_line_variant = checkout_line.variant
 
-    total = calculations.calculate_checkout_total_with_gift_cards(checkout=checkout)
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout, lines, address
+    )
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -842,7 +903,12 @@ def test_checkout_complete_payment_payment_total_different_than_checkout(
     checkout.billing_address = address
     checkout.save()
 
-    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    total = calculations.checkout_total(
+        manager=manager, checkout=checkout, lines=lines, address=address
+    )
+
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -903,7 +969,11 @@ def test_create_order_raises_insufficient_stock(
 ):
     mocked_create_order.side_effect = InsufficientStock("InsufficientStock")
     checkout = checkout_ready_to_complete
-    total = calculations.calculate_checkout_total_with_gift_cards(checkout=checkout)
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout, lines, checkout.shipping_address
+    )
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -942,7 +1012,11 @@ def test_checkout_complete_with_digital(
     checkout.save(update_fields=["billing_address"])
 
     # Create a dummy payment to charge
-    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    total = calculations.checkout_total(
+        manager=manager, checkout=checkout, lines=lines, address=address
+    )
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -995,7 +1069,11 @@ def test_checkout_complete_0_total_value(
 
     checkout.refresh_from_db()
 
-    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    total = calculations.checkout_total(
+        manager=manager, checkout=checkout, lines=lines, address=address
+    )
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
