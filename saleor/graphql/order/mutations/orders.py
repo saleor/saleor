@@ -489,7 +489,9 @@ class OrderRefund(BaseMutation):
         # Confirm that we changed the status to refund. Some payment can receive
         # asynchronous webhook with update status
         if transaction.kind == TransactionKind.REFUND:
-            order_refunded(order, info.context.user, amount, payment)
+            order_refunded(
+                order, info.context.user, amount, payment, info.context.plugins
+            )
         return OrderRefund(order=order)
 
 
