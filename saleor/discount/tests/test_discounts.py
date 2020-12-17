@@ -5,7 +5,8 @@ import pytest
 from django.utils import timezone
 from prices import Money
 
-from ...checkout.utils import get_voucher_discount_for_checkout
+from ...checkout.utils import fetch_checkout_lines, get_voucher_discount_for_checkout
+from ...plugins.manager import get_plugins_manager
 from ...product.models import Product, ProductVariant, ProductVariantChannelListing
 from .. import DiscountInfo, DiscountValueType, VoucherType
 from ..models import (
@@ -124,8 +125,13 @@ def test_variant_discounts(product, channel_USD):
         category_ids=set(),
         collection_ids=set(),
     )
+    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
     final_price = variant.get_price(
-        channel_USD.slug, discounts=[low_discount, discount, high_discount]
+        product,
+        [],
+        channel_USD,
+        variant_channel_listing,
+        discounts=[low_discount, discount, high_discount],
     )
     assert final_price == Money(0, "USD")
 
@@ -135,7 +141,7 @@ def test_variant_discounts(product, channel_USD):
 def test_percentage_discounts(product, channel_USD):
     variant = product.variants.get()
     sale = Sale.objects.create(type=DiscountValueType.PERCENTAGE)
-    sale_cahnnel_listing = SaleChannelListing.objects.create(
+    sale_channel_listing = SaleChannelListing.objects.create(
         sale=sale,
         discount_value=50,
         currency=channel_USD.currency_code,
@@ -143,12 +149,15 @@ def test_percentage_discounts(product, channel_USD):
     )
     discount = DiscountInfo(
         sale=sale,
-        channel_listings={channel_USD.slug: sale_cahnnel_listing},
+        channel_listings={channel_USD.slug: sale_channel_listing},
         product_ids={product.id},
         category_ids=set(),
         collection_ids=set(),
     )
-    final_price = variant.get_price(channel_USD.slug, discounts=[discount])
+    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
+    final_price = variant.get_price(
+        product, [], channel_USD, variant_channel_listing, discounts=[discount]
+    )
     assert final_price == Money(5, "USD")
 
 
@@ -204,7 +213,7 @@ def test_specific_products_voucher_checkout_discount(
     discounts = []
     monkeypatch.setattr(
         "saleor.checkout.utils.get_prices_of_discounted_specific_product",
-        lambda lines, discounts, channel, discounted_products: (
+        lambda manager, checkout, lines, voucher, channel, discounts: (
             Money(price, "USD") for price in prices
         ),
     )
@@ -220,8 +229,10 @@ def test_specific_products_voucher_checkout_discount(
         discount=Money(discount_value, channel_USD.currency_code),
     )
     checkout = checkout_with_item
+    lines = fetch_checkout_lines(checkout)
+    manager = get_plugins_manager()
     discount = get_voucher_discount_for_checkout(
-        voucher, checkout, list(checkout), discounts
+        manager, voucher, checkout, lines, checkout.shipping_address, discounts
     )
     assert discount == Money(expected_value, "USD")
 
