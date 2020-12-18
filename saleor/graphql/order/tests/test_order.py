@@ -4094,6 +4094,94 @@ def test_order_bulk_cancel_as_app(
     assert mock_cancel_order.call_count == expected_count
 
 
+def test_order_query_with_filter_channels_with_one_channel(
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    orders,
+    channel_USD,
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.pk)
+    variables = {"filter": {"channels": [channel_id]}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == 3
+
+
+def test_order_query_with_filter_channels_without_channel(
+    orders_query_with_filter, staff_api_client, permission_manage_orders, orders,
+):
+    # given
+    variables = {"filter": {"channels": []}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == 5
+
+
+def test_order_query_with_filter_channels_without_many_channel(
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    orders,
+    channel_USD,
+    channel_PLN,
+    other_channel_USD,
+):
+    # given
+    Order.objects.create(channel=other_channel_USD)
+    channel_usd_id = graphene.Node.to_global_id("Channel", channel_USD.pk)
+    channel_pln_id = graphene.Node.to_global_id("Channel", channel_PLN.pk)
+    variables = {"filter": {"channels": [channel_pln_id, channel_usd_id]}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == 5
+    assert Order.objects.non_draft().count() == 6
+
+
+def test_order_query_with_filter_channels_with_empty_channel(
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    orders,
+    other_channel_USD,
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", other_channel_USD.pk)
+    variables = {"filter": {"channels": [channel_id]}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        orders_query_with_filter, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == 0
+
+
 @pytest.mark.parametrize(
     "orders_filter, count",
     [
