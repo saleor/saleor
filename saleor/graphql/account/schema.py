@@ -131,8 +131,11 @@ class AccountQueries(graphene.ObjectType):
     )
     user = graphene.Field(
         User,
-        id=graphene.Argument(graphene.ID, description="ID of the user.", required=True),
-        description="Look up a user by ID.",
+        id=graphene.Argument(graphene.ID, description="ID of the user."),
+        email=graphene.Argument(
+            graphene.String, description="Email address of the user."
+        ),
+        description="Look up a user by email address.",
     )
 
     def resolve_address_validation_rules(
@@ -169,8 +172,8 @@ class AccountQueries(graphene.ObjectType):
     @one_of_permissions_required(
         [AccountPermissions.MANAGE_STAFF, AccountPermissions.MANAGE_USERS]
     )
-    def resolve_user(self, info, id):
-        return resolve_user(info, id)
+    def resolve_user(self, info, id=None, email=None):
+        return resolve_user(info, id, email)
 
     def resolve_address(self, info, id):
         return resolve_address(info, id)

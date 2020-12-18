@@ -373,12 +373,26 @@ def test_query_staff_user(
 
 
 USER_QUERY = """
-    query User($id: ID!) {
-        user(id: $id) {
+    query User($id: ID $email: String) {
+        user(id: $id, email: $email) {
+            id
             email
         }
     }
 """
+
+
+def test_query_user_by_email_address(
+    user_api_client, customer_user, permission_manage_users
+):
+    email = customer_user.email
+    variables = {"email": email}
+    response = user_api_client.post_graphql(
+        USER_QUERY, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["user"]
+    assert customer_user.email == data["email"]
 
 
 def test_customer_can_not_see_other_users_data(user_api_client, staff_user):
