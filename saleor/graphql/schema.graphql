@@ -2940,6 +2940,7 @@ input OrderDraftFilterInput {
   customer: String
   created: DateRangeInput
   search: String
+  channels: [ID]
 }
 
 type OrderError {
@@ -3073,6 +3074,7 @@ input OrderFilterInput {
   customer: String
   created: DateRangeInput
   search: String
+  channels: [ID]
 }
 
 type OrderFulfill {
