@@ -4133,7 +4133,7 @@ def test_order_query_with_filter_channels_without_channel(
     assert len(orders) == 5
 
 
-def test_order_query_with_filter_channels_without_many_channel(
+def test_order_query_with_filter_channels_with_many_channel(
     orders_query_with_filter,
     staff_api_client,
     permission_manage_orders,
