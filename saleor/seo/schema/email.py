@@ -16,7 +16,7 @@ def get_organization():
 
 
 def get_product_data(line: "OrderLine", organization: dict) -> dict:
-    gross_product_price = line.get_total().gross
+    gross_product_price = line.total_price.gross
     line_name = str(line)
     if line.translated_product_name:
         line_name = (

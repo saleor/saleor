@@ -73,8 +73,8 @@ def generate_order_lines_payload(lines: Iterable[OrderLine]):
         lines,
         fields=line_fields,
         extra_dict_data={
-            "total_price_net_amount": (lambda l: l.get_total().net.amount),
-            "total_price_gross_amount": (lambda l: l.get_total().gross.amount),
+            "total_price_net_amount": (lambda l: l.total_price.net.amount),
+            "total_price_gross_amount": (lambda l: l.total_price.gross.amount),
         },
     )
 

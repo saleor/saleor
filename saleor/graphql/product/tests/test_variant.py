@@ -1396,6 +1396,8 @@ def test_delete_variant_in_draft_order(
     net = variant.get_price(product, [], channel_USD, variant_channel_listing, None)
     gross = Money(amount=net.amount, currency=net.currency)
     order_not_draft = order_list[-1]
+    unit_price = TaxedMoney(net=net, gross=gross)
+    quantity = 3
     order_line_not_in_draft = OrderLine.objects.create(
         variant=variant,
         order=order_not_draft,
@@ -1403,8 +1405,9 @@ def test_delete_variant_in_draft_order(
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
-        unit_price=TaxedMoney(net=net, gross=gross),
-        quantity=3,
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
+        quantity=quantity,
     )
     order_line_not_in_draft_pk = order_line_not_in_draft.pk
 

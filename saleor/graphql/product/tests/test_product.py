@@ -3862,6 +3862,9 @@ def test_delete_product_variant_in_draft_order(
         variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
         net = variant.get_price(product, [], channel_USD, variant_channel_listing, None)
         gross = Money(amount=net.amount, currency=net.currency)
+        unit_price = TaxedMoney(net=net, gross=gross)
+        quantity = 3
+        total_price = unit_price * quantity
 
         order_line = OrderLine.objects.create(
             variant=variant,
@@ -3871,7 +3874,8 @@ def test_delete_product_variant_in_draft_order(
             product_sku=variant.sku,
             is_shipping_required=variant.is_shipping_required(),
             unit_price=TaxedMoney(net=net, gross=gross),
-            quantity=3,
+            total_price=total_price,
+            quantity=quantity,
         )
         draft_order_lines_pks.append(order_line.pk)
 
@@ -3883,7 +3887,8 @@ def test_delete_product_variant_in_draft_order(
             product_sku=variant.sku,
             is_shipping_required=variant.is_shipping_required(),
             unit_price=TaxedMoney(net=net, gross=gross),
-            quantity=3,
+            total_price=total_price,
+            quantity=quantity,
         )
         not_draft_order_lines_pks.append(order_line_not_draft.pk)
 
@@ -4692,6 +4697,9 @@ def test_product_type_delete_mutation_variants_in_draft_order(
     variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
     net = variant.get_price(product, [], channel_USD, variant_channel_listing, None)
     gross = Money(amount=net.amount, currency=net.currency)
+    quantity = 3
+    unit_price = TaxedMoney(net=net, gross=gross)
+    total_price = unit_price * quantity
 
     order_line_not_in_draft = OrderLine.objects.create(
         variant=variant,
@@ -4701,6 +4709,7 @@ def test_product_type_delete_mutation_variants_in_draft_order(
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
         unit_price=TaxedMoney(net=net, gross=gross),
+        total_price=total_price,
         quantity=3,
     )
 
@@ -4712,6 +4721,7 @@ def test_product_type_delete_mutation_variants_in_draft_order(
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
         unit_price=TaxedMoney(net=net, gross=gross),
+        total_price=total_price,
         quantity=3,
     )
 
