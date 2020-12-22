@@ -80,3 +80,7 @@ def base_checkout_line_total(
     amount = line.quantity * variant_price
     price = quantize_price(amount, amount.currency)
     return TaxedMoney(net=price, gross=price)
+
+
+def base_checkout_line_unit_total(total_line_price: TaxedMoney, quantity: int):
+    return total_line_price / quantity

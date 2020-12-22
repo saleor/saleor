@@ -247,6 +247,22 @@ class PluginsManager(PaymentInterface):
             checkout.currency,
         )
 
+    def calculate_checkout_line_unit_price(
+        self, total_line_price: TaxedMoney, quantity: int
+    ):
+        default_value = base_calculations.base_checkout_line_unit_total(
+            total_line_price, quantity
+        )
+        return quantize_price(
+            self.__run_method_on_plugins(
+                "calculate_checkout_line_unit_price",
+                default_value,
+                total_line_price,
+                quantity,
+            ),
+            total_line_price.currency,
+        )
+
     def calculate_order_line_unit(self, order_line: "OrderLine") -> TaxedMoney:
         unit_price = order_line.unit_price
         default_value = quantize_price(unit_price, unit_price.currency)
