@@ -66,6 +66,8 @@ def generate_order_lines_payload(lines: Iterable[OrderLine]):
         "currency",
         "unit_price_net_amount",
         "unit_price_gross_amount",
+        "total_price_net_amount",
+        "total_price_gross_amount",
         "tax_rate",
     )
     serializer = PayloadSerializer()
