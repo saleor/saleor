@@ -168,6 +168,12 @@ class BasePlugin:
         """
         return NotImplemented
 
+    def calculate_checkout_line_unit_price(
+        self, total_line_price: TaxedMoney, quantity: int, previous_value: TaxedMoney
+    ):
+        """Calculate checkout line unit price."""
+        return NotImplemented
+
     def calculate_order_line_unit(
         self, order_line: "OrderLine", previous_value: TaxedMoney
     ) -> TaxedMoney:

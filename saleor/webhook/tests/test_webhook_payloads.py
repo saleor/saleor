@@ -38,7 +38,7 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
     line_payload = lines_payload[0]
     unit_net_amount = line.unit_price_net_amount.quantize(Decimal("0.001"))
     unit_gross_amount = line.unit_price_gross_amount.quantize(Decimal("0.001"))
-    total_line = line.get_total()
+    total_line = line.total_price
     assert line_payload == {
         "id": line_id,
         "type": "OrderLine",

@@ -196,7 +196,8 @@ def test_delete_products(
         variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
         net = variant.get_price(product, [], channel_USD, variant_channel_listing, None)
         gross = Money(amount=net.amount, currency=net.currency)
-
+        quantity = 3
+        total_price = TaxedMoney(net=net * quantity, gross=gross * quantity)
         order_line = OrderLine.objects.create(
             variant=variant,
             order=draft_order,
@@ -205,6 +206,7 @@ def test_delete_products(
             product_sku=variant.sku,
             is_shipping_required=variant.is_shipping_required(),
             unit_price=TaxedMoney(net=net, gross=gross),
+            total_price=total_price,
             quantity=3,
         )
         draft_order_lines_pks.append(order_line.pk)
@@ -217,6 +219,7 @@ def test_delete_products(
             product_sku=variant.sku,
             is_shipping_required=variant.is_shipping_required(),
             unit_price=TaxedMoney(net=net, gross=gross),
+            total_price=total_price,
             quantity=3,
         )
         not_draft_order_lines_pks.append(order_line_not_draft.pk)
@@ -392,6 +395,9 @@ def test_delete_product_variants_in_draft_orders(
         second_product, [], channel_USD, second_variant_channel_listing, None
     )
     gross = Money(amount=net.amount, currency=net.currency)
+    unit_price = TaxedMoney(net=net, gross=gross)
+    quantity = 3
+    total_price = unit_price * quantity
     second_draft_order = OrderLine.objects.create(
         variant=second_variant_in_draft,
         order=draft_order,
@@ -400,7 +406,8 @@ def test_delete_product_variants_in_draft_orders(
         product_sku=second_variant_in_draft.sku,
         is_shipping_required=second_variant_in_draft.is_shipping_required(),
         unit_price=TaxedMoney(net=net, gross=gross),
-        quantity=3,
+        total_price=total_price,
+        quantity=quantity,
     )
 
     variant = variants[0]
@@ -408,6 +415,9 @@ def test_delete_product_variants_in_draft_orders(
     variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
     net = variant.get_price(product, [], channel_USD, variant_channel_listing, None)
     gross = Money(amount=net.amount, currency=net.currency)
+    unit_price = TaxedMoney(net=net, gross=gross)
+    quantity = 3
+    total_price = unit_price * quantity
     order_not_draft = order_list[-1]
     order_line_not_in_draft = OrderLine.objects.create(
         variant=variant,
@@ -417,7 +427,8 @@ def test_delete_product_variants_in_draft_orders(
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
         unit_price=TaxedMoney(net=net, gross=gross),
-        quantity=3,
+        total_price=total_price,
+        quantity=quantity,
     )
     order_line_not_in_draft_pk = order_line_not_in_draft.pk
 
