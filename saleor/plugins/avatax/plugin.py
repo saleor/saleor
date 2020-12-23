@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 from urllib.parse import urljoin
 
 from django.core.exceptions import ValidationError
+from graphene.types import base
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from ...checkout import base_calculations
@@ -108,7 +109,9 @@ class AvataxPlugin(BasePlugin):
             autocommit=configuration["Autocommit"],
         )
 
-    def _skip_plugin(self, previous_value: Union[TaxedMoney, TaxedMoneyRange]) -> bool:
+    def _skip_plugin(
+        self, previous_value: Union[TaxedMoney, TaxedMoneyRange, Decimal]
+    ) -> bool:
         if not (self.config.username_or_account and self.config.password_or_license):
             return True
 
@@ -420,6 +423,63 @@ class AvataxPlugin(BasePlugin):
             TaxType(code=tax_code, description=desc)
             for tax_code, desc in get_cached_tax_codes_or_fetch(self.config).items()
         ]
+
+    def get_checkout_tax_rate(
+        self,
+        checkout: "Checkout",
+        product: "Product",
+        address: Optional["Address"],
+        checkout_line: "CheckoutLine",
+        discounts: Iterable[DiscountInfo],
+        previous_value: Decimal,
+    ) -> Decimal:
+        return self._get_tax_rate(checkout, previous_value, discounts, [checkout_line])
+
+    def get_order_tax_rate(
+        self,
+        order: "Order",
+        product: "Product",
+        address: Optional["Address"],
+        previous_value: Decimal,
+    ) -> Decimal:
+        return self._get_tax_rate(order, previous_value)
+
+    def _get_tax_rate(
+        self,
+        instance: Union["Order", "Checkout"],
+        base_rate: Decimal,
+        discounts: Optional[Iterable[DiscountInfo]] = None,
+        checkout_lines: Iterable["CheckoutLine"] = [],
+    ):
+        if self._skip_plugin(base_rate):
+            return base_rate
+
+        # if discounts are not provided the tax rate should be calculated for the order
+        is_order = not discounts
+
+        valid = (
+            _validate_order(instance)  # type: ignore
+            if is_order
+            else _validate_checkout(instance, checkout_lines)  # type: ignore
+        )
+
+        if not valid:
+            return base_rate
+
+        response = (
+            get_order_tax_data(instance, self.config, False)  # type: ignore
+            if is_order
+            else get_checkout_tax_data(instance, discounts, self.config)  # type: ignore
+        )
+        if not response or "error" in response:
+            return base_rate
+
+        rate = None
+        response_summary = response.get("summary")
+        if response_summary:
+            rate = Decimal(response_summary[0].get("rate", 0.0))
+
+        return rate if rate else base_rate
 
     def assign_tax_code_to_object_meta(
         self,
