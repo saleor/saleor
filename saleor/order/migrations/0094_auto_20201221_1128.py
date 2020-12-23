@@ -6,7 +6,9 @@ from django.db import migrations, models
 def set_total_prices(apps, schema_editor):
     OrderLine = apps.get_model("order", "OrderLine")
     lines = []
-    for line in OrderLine.objects.filter(total_price_gross_amount__isnull=True):
+    for line in OrderLine.objects.filter(
+        total_price_gross_amount__isnull=True
+    ).iterator():
         line.total_price_gross_amount = line.unit_price_gross_amount * line.quantity
         line.total_price_net_amount = line.unit_price_net_amount * line.quantity
         lines.append(line)

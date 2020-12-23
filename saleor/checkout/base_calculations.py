@@ -82,5 +82,5 @@ def base_checkout_line_total(
     return TaxedMoney(net=price, gross=price)
 
 
-def base_checkout_line_unit_total(total_line_price: TaxedMoney, quantity: int):
+def base_checkout_line_unit_price(total_line_price: TaxedMoney, quantity: int):
     return total_line_price / quantity

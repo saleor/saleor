@@ -250,7 +250,7 @@ class PluginsManager(PaymentInterface):
     def calculate_checkout_line_unit_price(
         self, total_line_price: TaxedMoney, quantity: int
     ):
-        default_value = base_calculations.base_checkout_line_unit_total(
+        default_value = base_calculations.base_checkout_line_unit_price(
             total_line_price, quantity
         )
         return quantize_price(
