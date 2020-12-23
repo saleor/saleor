@@ -581,6 +581,7 @@ def create_order_lines(order, discounts, how_many=10):
             discounts,
         )
         unit_price = TaxedMoney(net=unit_price, gross=unit_price)
+        total_price = unit_price * quantity
         lines.append(
             OrderLine(
                 order=order,
@@ -591,6 +592,7 @@ def create_order_lines(order, discounts, how_many=10):
                 quantity=quantity,
                 variant=variant,
                 unit_price=unit_price,
+                total_price=total_price,
                 tax_rate=0,
             )
         )
@@ -681,7 +683,7 @@ def create_fake_order(discounts, max_order_lines=5):
 
     order = Order.objects.create(**order_data)
     lines = create_order_lines(order, discounts, random.randrange(1, max_order_lines))
-    order.total = sum([line.get_total() for line in lines], shipping_price)
+    order.total = sum([line.total_price for line in lines], shipping_price)
     weight = Weight(kg=0)
     for line in order:
         weight += line.variant.get_weight()

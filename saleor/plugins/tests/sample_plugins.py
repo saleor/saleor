@@ -99,6 +99,11 @@ class PluginSample(BasePlugin):
         price = Money("1.0", currency=checkout_line.checkout.currency)
         return TaxedMoney(price, price)
 
+    def calculate_checkout_line_unit_price(
+        self, total_line_price: TaxedMoney, quantity: int, previous_value: TaxedMoney
+    ):
+        return total_line_price / quantity
+
     def calculate_order_line_unit(self, order_line, previous_value):
         currency = order_line.unit_price.currency
         price = Money("1.0", currency)

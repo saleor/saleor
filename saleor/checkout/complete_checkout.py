@@ -15,7 +15,6 @@ from ..account.utils import store_user_address
 from ..checkout import calculations
 from ..checkout.error_codes import CheckoutErrorCode
 from ..core.exceptions import InsufficientStock
-from ..core.prices import quantize_price
 from ..core.taxes import TaxError, zero_taxed_money
 from ..core.utils.url import validate_storefront_url
 from ..discount import DiscountInfo
@@ -181,9 +180,7 @@ def _create_line_for_order(
         channel_listing,
         discounts,
     )
-    unit_price = quantize_price(
-        total_line_price / checkout_line.quantity, total_line_price.currency
-    )
+    unit_price = manager.calculate_checkout_line_unit_price(total_line_price, quantity)
     tax_rate = Decimal("0.0")
     # The condition will return False when unit_price.gross is 0.0
     if not isinstance(unit_price, Decimal) and unit_price.gross:
@@ -199,6 +196,7 @@ def _create_line_for_order(
         quantity=quantity,
         variant=variant,
         unit_price=unit_price,  # type: ignore
+        total_price=total_line_price,
         tax_rate=tax_rate,
     )
 

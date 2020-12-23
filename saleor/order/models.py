@@ -278,7 +278,7 @@ class Order(ModelWithMetadata):
         return any(line.is_shipping_required for line in self)
 
     def get_subtotal(self):
-        subtotal_iterator = (line.get_total() for line in self)
+        subtotal_iterator = (line.total_price for line in self)
         return sum(subtotal_iterator, zero_taxed_money(currency=self.currency))
 
     def get_total_quantity(self):
@@ -408,6 +408,28 @@ class OrderLine(models.Model):
         currency="currency",
     )
 
+    total_price_net_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+    )
+    total_price_net = MoneyField(
+        amount_field="total_price_net_amount", currency_field="currency",
+    )
+
+    total_price_gross_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+    )
+    total_price_gross = MoneyField(
+        amount_field="total_price_gross_amount", currency_field="currency",
+    )
+
+    total_price = TaxedMoneyField(
+        net_amount_field="total_price_net_amount",
+        gross_amount_field="total_price_gross_amount",
+        currency="currency",
+    )
+
     tax_rate = models.DecimalField(
         max_digits=5, decimal_places=2, default=Decimal("0.0")
     )
@@ -423,9 +445,6 @@ class OrderLine(models.Model):
             if self.variant_name
             else self.product_name
         )
-
-    def get_total(self):
-        return self.unit_price * self.quantity
 
     @property
     def quantity_unfulfilled(self):
