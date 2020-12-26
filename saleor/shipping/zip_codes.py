@@ -1,5 +1,7 @@
 import re
 
+from . import ZipCodeRuleInclusionType
+
 
 def group_values(pattern, *values):
     result = []
@@ -83,9 +85,39 @@ def check_zip_code_in_range(country, code, start, end):
 def check_shipping_method_for_zip_code(customer_shipping_address, method):
     country = customer_shipping_address.country.code
     postal_code = customer_shipping_address.postal_code
-    for zip_code in method.zip_code_rules.all():
-        if check_zip_code_in_range(country, postal_code, zip_code.start, zip_code.end):
-            return True
+    zip_code_rules = method.zip_code_rules.all()
+    if not zip_code_rules:
+        return {}
+    results = {}
+    for zip_code_rule in zip_code_rules:
+        results[zip_code_rule] = check_zip_code_in_range(
+            country, postal_code, zip_code_rule.start, zip_code_rule.end
+        )
+    return results
+
+
+def is_shipping_method_applicable_for_zip_code(
+    customer_shipping_address, method
+) -> bool:
+    """Return if shipping method is applicable with the ZIP code rules."""
+    results = check_shipping_method_for_zip_code(customer_shipping_address, method)
+    if not results:
+        return True
+    if all(
+        map(
+            lambda rule: rule.inclusion_type == ZipCodeRuleInclusionType.INCLUDE,
+            results.keys(),
+        )
+    ):
+        return any(results.values())
+    if all(
+        map(
+            lambda rule: rule.inclusion_type == ZipCodeRuleInclusionType.EXCLUDE,
+            results.keys(),
+        )
+    ):
+        return not any(results.values())
+    # Shipping methods with complex rules are not supported for now
     return False
 
 
@@ -94,7 +126,7 @@ def filter_shipping_methods_by_zip_code_rules(shipping_methods, shipping_address
 
     excluded_methods_by_zip_code = []
     for method in shipping_methods:
-        if check_shipping_method_for_zip_code(shipping_address, method):
+        if not is_shipping_method_applicable_for_zip_code(shipping_address, method):
             excluded_methods_by_zip_code.append(method.pk)
     if excluded_methods_by_zip_code:
         return shipping_methods.exclude(pk__in=excluded_methods_by_zip_code)

@@ -2588,15 +2588,19 @@ def test_checkout_shipping_method_update(
         assert checkout.shipping_method is None
 
 
-@patch("saleor.shipping.zip_codes.check_shipping_method_for_zip_code")
+@patch("saleor.shipping.zip_codes.is_shipping_method_applicable_for_zip_code")
 def test_checkout_shipping_method_update_excluded_zip_code(
-    mock_check_zip_code, staff_api_client, shipping_method, checkout_with_item, address
+    mock_is_shipping_method_available,
+    staff_api_client,
+    shipping_method,
+    checkout_with_item,
+    address,
 ):
     checkout = checkout_with_item
     checkout.shipping_address = address
     checkout.save(update_fields=["shipping_address"])
     query = MUTATION_UPDATE_SHIPPING_METHOD
-    mock_check_zip_code.return_value = True
+    mock_is_shipping_method_available.return_value = False
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
@@ -2616,7 +2620,8 @@ def test_checkout_shipping_method_update_excluded_zip_code(
     ]
     assert checkout.shipping_method is None
     assert (
-        mock_check_zip_code.call_count == shipping_models.ShippingMethod.objects.count()
+        mock_is_shipping_method_available.call_count
+        == shipping_models.ShippingMethod.objects.count()
     )
 
 

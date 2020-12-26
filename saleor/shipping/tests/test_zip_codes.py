@@ -1,8 +1,12 @@
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
 
-from ..zip_codes import check_zip_code_in_range
+from .. import ZipCodeRuleInclusionType
+from ..zip_codes import (
+    check_zip_code_in_range,
+    is_shipping_method_applicable_for_zip_code,
+)
 
 
 @pytest.mark.parametrize(
@@ -77,3 +81,42 @@ def test_check_uk_islands_follow_uk_check(check_uk_mock, country, code, start, e
     """Check if Isle of Man, Guernsey and Jersey triggers check_uk_zip_code method."""
     assert check_zip_code_in_range(country, code, start, end)
     check_uk_mock.assert_called_once_with(code, start, end)
+
+
+@pytest.mark.parametrize(
+    "rules_result, is_applicable",
+    [
+        [{}, True],
+        [{Mock(inclusion_type=ZipCodeRuleInclusionType.INCLUDE): True}, True],
+        [{Mock(inclusion_type=ZipCodeRuleInclusionType.INCLUDE): False}, False],
+        [{Mock(inclusion_type=ZipCodeRuleInclusionType.EXCLUDE): True}, False],
+        [{Mock(inclusion_type=ZipCodeRuleInclusionType.EXCLUDE): False}, True],
+        [
+            {
+                Mock(inclusion_type=ZipCodeRuleInclusionType.INCLUDE): True,
+                Mock(inclusion_type=ZipCodeRuleInclusionType.INCLUDE): False,
+            },
+            True,
+        ],
+        [
+            {
+                Mock(inclusion_type=ZipCodeRuleInclusionType.EXCLUDE): True,
+                Mock(inclusion_type=ZipCodeRuleInclusionType.EXCLUDE): False,
+            },
+            False,
+        ],
+        [
+            {
+                Mock(inclusion_type=ZipCodeRuleInclusionType.EXCLUDE): True,
+                Mock(inclusion_type=ZipCodeRuleInclusionType.INCLUDE): True,
+            },
+            False,
+        ],
+    ],
+)
+@patch("saleor.shipping.zip_codes.check_shipping_method_for_zip_code")
+def test_is_shipping_method_applicable_for_zip_code(
+    check_shipping_method_mock, rules_result, is_applicable
+):
+    check_shipping_method_mock.return_value = rules_result
+    assert is_shipping_method_applicable_for_zip_code(Mock(), Mock()) is is_applicable
