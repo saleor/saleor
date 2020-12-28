@@ -48,7 +48,7 @@ jobs:
 
       - name: Run tests
         run: |
-          pytest \
+          poetry run pytest \
             --cov \
             --junitxml=junit/test-results.xml \
             --django-db-bench=${{ env.BENCH_PATH }}
