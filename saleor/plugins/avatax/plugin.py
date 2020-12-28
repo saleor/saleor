@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 from urllib.parse import urljoin
 
 from django.core.exceptions import ValidationError
-from graphene.types import base
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from ...checkout import base_calculations
