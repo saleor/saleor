@@ -23,6 +23,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop deprecated fields from the `ProductVariant` type: `quantity`, `quantityAllocated`, `stockQuantity`, `isAvailable` - #6436 by @maarcingebala
 - Introduce file attributes - #6568 by @IKarbowiak
 - Drop authorization keys API - #6631 by @maarcingebala
+- Add metadata to menu and menu item - #6648 by @tomaszszymanski129
 
 # 2.11.1
 
