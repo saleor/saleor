@@ -87,5 +87,5 @@ jobs:
       # Run linters and Django related checks
       - name: Run Linters and Checks
         run: |
-          pre-commit run --all
+          poetry run pre-commit run --all
         if: ${{ always() }}
