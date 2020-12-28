@@ -1,5 +1,5 @@
 ### Build and install packages
-FROM python:3.8 as build-python
+FROM python:3.9 as build-python
 
 RUN apt-get -y update \
   && apt-get install -y gettext \
@@ -16,7 +16,7 @@ RUN poetry config virtualenvs.create false
 RUN poetry install --no-root --no-dev
 
 ### Final image
-FROM python:3.8-slim
+FROM python:3.9-slim
 
 RUN groupadd -r saleor && useradd -r -g saleor saleor
 
@@ -36,7 +36,7 @@ RUN apt-get update \
 RUN mkdir -p /app/media /app/static \
   && chown -R saleor:saleor /app/
 
-COPY --from=build-python /usr/local/lib/python3.8/site-packages/ /usr/local/lib/python3.8/site-packages/
+COPY --from=build-python /usr/local/lib/python3.9/site-packages/ /usr/local/lib/python3.9/site-packages/
 COPY --from=build-python /usr/local/bin/ /usr/local/bin/
 COPY . /app
 WORKDIR /app
@@ -47,5 +47,20 @@ RUN SECRET_KEY=dummy STATIC_URL=${STATIC_URL} python3 manage.py collectstatic --
 
 EXPOSE 8000
 ENV PYTHONUNBUFFERED 1
+
+ARG COMMIT_ID
+ARG PROJECT_VERSION
+ENV PROJECT_VERSION="${PROJECT_VERSION}"
+
+LABEL org.opencontainers.image.title="mirumee/saleor"                                  \
+      org.opencontainers.image.description="\
+A modular, high performance, headless e-commerce platform built with Python, \
+GraphQL, Django, and ReactJS."                                                         \
+      org.opencontainers.image.url="https://saleor.io/"                                \
+      org.opencontainers.image.source="https://github.com/mirumee/saleor"              \
+      org.opencontainers.image.revision="$COMMIT_ID"                                   \
+      org.opencontainers.image.version="$PROJECT_VERSION"                              \
+      org.opencontainers.image.authors="Mirumee Software (https://mirumee.com)"        \
+      org.opencontainers.image.licenses="BSD 3"
 
 CMD ["gunicorn", "--bind", ":8000", "--workers", "4", "--worker-class", "uvicorn.workers.UvicornWorker", "saleor.asgi:application"]

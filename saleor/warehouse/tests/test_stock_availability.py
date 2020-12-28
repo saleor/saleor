@@ -1,15 +1,13 @@
 import pytest
-from django.test import override_settings
 
 from ...core.exceptions import InsufficientStock
 from ..availability import (
     are_all_product_variants_in_stock,
     check_stock_quantity,
     get_available_quantity,
-    get_available_quantity_for_customer,
     get_quantity_allocated,
 )
-from ..models import Allocation, Stock
+from ..models import Allocation
 
 COUNTRY_CODE = "US"
 
@@ -73,74 +71,6 @@ def test_get_available_quantity_without_stocks(variant_with_many_stocks):
     variant_with_many_stocks.stocks.all().delete()
     available_quantity = get_available_quantity(variant_with_many_stocks, COUNTRY_CODE)
     assert available_quantity == 0
-
-
-@override_settings(MAX_CHECKOUT_LINE_QUANTITY=15)
-def test_get_available_quantity_for_customer(variant_with_many_stocks, settings):
-    stock = variant_with_many_stocks.stocks.first()
-    stock.quantity = 16
-    stock.save(update_fields=["quantity"])
-    available_quantity = get_available_quantity_for_customer(
-        variant_with_many_stocks, COUNTRY_CODE
-    )
-    assert available_quantity == settings.MAX_CHECKOUT_LINE_QUANTITY
-
-
-def test_get_available_quantity_for_customer_without_stocks(variant_with_many_stocks):
-    variant_with_many_stocks.stocks.all().delete()
-    available_quantity = get_available_quantity_for_customer(
-        variant_with_many_stocks, COUNTRY_CODE
-    )
-    assert available_quantity == 0
-
-
-@override_settings(MAX_CHECKOUT_LINE_QUANTITY=2)
-def test_get_available_quantity_for_customer_with_max(
-    variant_with_many_stocks, settings
-):
-    available_quantity = get_available_quantity_for_customer(
-        variant_with_many_stocks, COUNTRY_CODE
-    )
-    assert available_quantity == settings.MAX_CHECKOUT_LINE_QUANTITY
-
-
-def test_get_available_quantity_for_customer_with_allocations(
-    variant_with_many_stocks,
-    order_line_with_allocation_in_many_stocks,
-    order_line_with_one_allocation,
-):
-    available_quantity = get_available_quantity_for_customer(
-        variant_with_many_stocks, COUNTRY_CODE
-    )
-    assert available_quantity == 3
-
-
-@override_settings(MAX_CHECKOUT_LINE_QUANTITY=15)
-def test_get_available_quantity_for_customer_without_inventory_tracking(
-    variant_with_many_stocks, settings
-):
-    variant_with_many_stocks.track_inventory = False
-    variant_with_many_stocks.save(update_fields=["track_inventory"])
-    available_quantity = get_available_quantity_for_customer(
-        variant_with_many_stocks, COUNTRY_CODE
-    )
-    assert available_quantity == settings.MAX_CHECKOUT_LINE_QUANTITY
-
-
-def test_get_available_quantity_for_customer_without_country(
-    variant_with_many_stocks,
-    warehouse_no_shipping_zone,
-    shipping_zone_without_countries,
-):
-    warehouse_no_shipping_zone.shipping_zones.add(shipping_zone_without_countries)
-    Stock.objects.create(
-        warehouse=warehouse_no_shipping_zone,
-        product_variant=variant_with_many_stocks,
-        quantity=12,
-    )
-
-    available_quantity = get_available_quantity_for_customer(variant_with_many_stocks)
-    assert available_quantity == 12
 
 
 def test_get_quantity_allocated(

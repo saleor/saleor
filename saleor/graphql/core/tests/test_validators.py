@@ -16,6 +16,7 @@ from ..validators import validate_one_of_args_is_in_query, validate_price_precis
         (Decimal("1"), "ISK"),
         (Decimal("1.00"), "ISK"),
         (Decimal("5.12"), None),
+        (Decimal("1000"), "USD"),
     ],
 )
 def test_validate_price_precision(value, currency):

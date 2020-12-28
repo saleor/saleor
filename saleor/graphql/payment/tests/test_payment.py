@@ -1,3 +1,4 @@
+import json
 from decimal import Decimal
 from unittest.mock import patch
 
@@ -5,14 +6,21 @@ import graphene
 import pytest
 
 from ....checkout import calculations
+from ....payment import PaymentError
 from ....payment.error_codes import PaymentErrorCode
 from ....payment.gateways.dummy_credit_card import (
     TOKEN_EXPIRED,
     TOKEN_VALIDATION_MAPPING,
 )
-from ....payment.interface import CustomerSource, PaymentMethodInfo, TokenConfig
+from ....payment.interface import (
+    CustomerSource,
+    InitializedPaymentResponse,
+    PaymentMethodInfo,
+    TokenConfig,
+)
 from ....payment.models import ChargeStatus, Payment, TransactionKind
 from ....payment.utils import fetch_customer_id, store_customer_id
+from ....plugins.manager import PluginsManager
 from ...tests.utils import assert_no_permission, get_graphql_content
 from ..enums import OrderAction, PaymentChargeStatusEnum
 
@@ -821,3 +829,87 @@ def test_stored_payment_sources_restriction(
         query, variables, permissions=[permission_manage_users]
     )
     assert_no_permission(response)
+
+
+PAYMENT_INITIALIZE_MUTATION = """
+mutation PaymentInitialize($gateway: String!, $paymentData: JSONString){
+      paymentInitialize(gateway: $gateway, paymentData: $paymentData)
+      {
+        initializedPayment{
+          gateway
+          name
+          data
+        }
+        paymentErrors{
+          field
+          message
+        }
+      }
+}
+"""
+
+
+@patch.object(PluginsManager, "initialize_payment")
+def test_payment_initialize(mocked_initialize_payment, api_client):
+    exected_initialize_payment_response = InitializedPaymentResponse(
+        gateway="gateway.id",
+        name="PaymentPluginName",
+        data={
+            "epochTimestamp": 1604652056653,
+            "expiresAt": 1604655656653,
+            "merchantSessionIdentifier": "SSH5EFCB46BA25C4B14B3F37795A7F5B974_BB8E",
+        },
+    )
+    mocked_initialize_payment.return_value = exected_initialize_payment_response
+
+    query = PAYMENT_INITIALIZE_MUTATION
+    variables = {
+        "gateway": exected_initialize_payment_response.gateway,
+        "paymentData": json.dumps(
+            {"paymentMethod": "applepay", "validationUrl": "https://127.0.0.1/valid"}
+        ),
+    }
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    init_payment_data = content["data"]["paymentInitialize"]["initializedPayment"]
+    assert init_payment_data["gateway"] == exected_initialize_payment_response.gateway
+    assert init_payment_data["name"] == exected_initialize_payment_response.name
+    assert (
+        json.loads(init_payment_data["data"])
+        == exected_initialize_payment_response.data
+    )
+
+
+def test_payment_initialize_gateway_doesnt_exist(api_client):
+    query = PAYMENT_INITIALIZE_MUTATION
+    variables = {
+        "gateway": "wrong.gateway",
+        "paymentData": json.dumps(
+            {"paymentMethod": "applepay", "validationUrl": "https://127.0.0.1/valid"}
+        ),
+    }
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["paymentInitialize"]["initializedPayment"] is None
+
+
+@patch.object(PluginsManager, "initialize_payment")
+def test_payment_initialize_plugin_raises_error(mocked_initialize_payment, api_client):
+    error_msg = "Missing paymentMethod field."
+    mocked_initialize_payment.side_effect = PaymentError(error_msg)
+
+    query = PAYMENT_INITIALIZE_MUTATION
+    variables = {
+        "gateway": "gateway.id",
+        "paymentData": json.dumps({"validationUrl": "https://127.0.0.1/valid"}),
+    }
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    initialized_payment_data = content["data"]["paymentInitialize"][
+        "initializedPayment"
+    ]
+    errors = content["data"]["paymentInitialize"]["paymentErrors"]
+    assert initialized_payment_data is None
+    assert len(errors) == 1
+    assert errors[0]["field"] == "paymentData"
+    assert errors[0]["message"] == error_msg

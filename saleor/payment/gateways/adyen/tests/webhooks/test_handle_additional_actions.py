@@ -4,6 +4,7 @@ from unittest import mock
 from urllib.parse import quote_plus
 
 import graphene
+import pytest
 
 from ..... import PaymentError, TransactionKind
 from ...webhooks import handle_additional_actions
@@ -59,6 +60,51 @@ def test_handle_additional_actions_post(
     assert transactions.last().kind == TransactionKind.AUTH
     assert payment_adyen_for_checkout.order
     assert payment_adyen_for_checkout.checkout is None
+
+
+@pytest.mark.parametrize(
+    "custom_url",
+    [
+        "adyencheckout://your.package.name",
+        "myiOSapp://path",
+        "https://checkout.saleor.com/",
+    ],
+)
+@mock.patch("saleor.payment.gateways.adyen.webhooks.api_call")
+def test_handle_additional_actions_handles_return_urls(
+    api_call_mock, custom_url, payment_adyen_for_checkout, adyen_plugin
+):
+    # given
+    adyen_plugin()
+    payment_adyen_for_checkout.return_url = custom_url
+    payment_adyen_for_checkout.to_confirm = True
+    payment_adyen_for_checkout.extra_data = json.dumps(
+        [{"payment_data": "test_data", "parameters": ["payload"]}]
+    )
+    payment_adyen_for_checkout.save(
+        update_fields=["to_confirm", "extra_data", "return_url"]
+    )
+
+    checkout = payment_adyen_for_checkout.checkout
+    payment_id = graphene.Node.to_global_id("Payment", payment_adyen_for_checkout.pk)
+
+    request_mock = mock.Mock()
+    request_mock.GET = {"payment": payment_id, "checkout": str(checkout.pk)}
+    request_mock.POST = {"payload": "test"}
+
+    payment_details_mock = mock.Mock()
+    message = {
+        "pspReference": "11111",
+        "resultCode": "Test",
+    }
+    api_call_mock.return_value.message = message
+
+    # when
+    response = handle_additional_actions(request_mock, payment_details_mock)
+
+    # then
+    payment_adyen_for_checkout.refresh_from_db()
+    assert response.status_code == 302
 
 
 @mock.patch("saleor.payment.gateways.adyen.webhooks.api_call")

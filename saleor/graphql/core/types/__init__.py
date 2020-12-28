@@ -2,6 +2,7 @@
 from .common import (
     CountryDisplay,
     Error,
+    File,
     Image,
     LanguageDisplay,
     Permission,
@@ -9,7 +10,7 @@ from .common import (
     TaxType,
     Weight,
 )
-from .filter_input import FilterInputObjectType
+from .filter_input import ChannelFilterInputObjectType, FilterInputObjectType
 from .money import VAT, Money, MoneyRange, ReducedRate, TaxedMoney, TaxedMoneyRange
-from .sort_input import SortInputObjectType
+from .sort_input import ChannelSortInputObjectType, SortInputObjectType
 from .upload import Upload

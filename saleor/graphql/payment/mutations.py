@@ -1,5 +1,4 @@
 import graphene
-from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from ...checkout.calculations import calculate_checkout_total_with_gift_cards
@@ -18,7 +17,7 @@ from ..core.mutations import BaseMutation
 from ..core.scalars import PositiveDecimal
 from ..core.types import common as common_types
 from ..core.utils import from_global_id_strict_type
-from .types import Payment
+from .types import Payment, PaymentInitialized
 
 
 class PaymentInput(graphene.InputObjectType):
@@ -174,7 +173,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             gateway=gateway,
             payment_token=data.get("token", ""),
             total=amount,
-            currency=settings.DEFAULT_CURRENCY,
+            currency=checkout.currency,
             email=checkout.email,
             extra_data=extra_data,
             # FIXME this is not a customer IP address. It is a client storefront ip
@@ -254,3 +253,37 @@ class PaymentVoid(BaseMutation):
         except PaymentError as e:
             raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR)
         return PaymentVoid(payment=payment)
+
+
+class PaymentInitialize(BaseMutation):
+    initialized_payment = graphene.Field(PaymentInitialized, required=False)
+
+    class Arguments:
+        gateway = graphene.String(
+            description="A gateway name used to initialize the payment.", required=True,
+        )
+        payment_data = graphene.JSONString(
+            required=False,
+            description=(
+                "Client-side generated data required to initialize the payment."
+            ),
+        )
+
+    class Meta:
+        description = "Initializes payment process when it is required by gateway."
+        error_type_class = common_types.PaymentError
+        error_type_field = "payment_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, gateway, payment_data):
+        try:
+            response = info.context.plugins.initialize_payment(gateway, payment_data)
+        except PaymentError as e:
+            raise ValidationError(
+                {
+                    "payment_data": ValidationError(
+                        str(e), code=PaymentErrorCode.INVALID.value
+                    )
+                }
+            )
+        return PaymentInitialize(initialized_payment=response)

@@ -11,36 +11,38 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '198'
+      - '188'
       Content-Type:
       - application/json
       User-Agent:
-      - adyen-python-api-library/3.0.0
+      - adyen-python-api-library/3.1.0
       x-api-key:
       - test_key
     method: POST
-    uri: https://pal-test.adyen.com/pal/servlet/Payment/v49/cancel
+    uri: https://pal-test.adyen.com/pal/servlet/Payment/v64/cancel
   response:
     body:
       string: '{"pspReference":"853597151490739D","response":"[cancel-received]"}'
     headers:
+      Adyen-ServerState:
+      - MEDIUM
       Connection:
       - Keep-Alive
       Content-Type:
       - application/json;charset=utf-8
       Date:
-      - Tue, 11 Aug 2020 13:11:30 GMT
+      - Mon, 23 Nov 2020 10:05:54 GMT
       Keep-Alive:
       - timeout=15, max=100
       Server:
       - Apache
       Set-Cookie:
-      - JSESSIONID=9AD68D1916B666D0038F370BB8343FC0.test4e; Path=/pal; Secure; HttpOnly
+      - JSESSIONID=2B67BF77C77565DF7294451B8FAEE350.test4e; Path=/pal; Secure; HttpOnly
       Transfer-Encoding:
       - chunked
       pspReference:
       - 853597151490739D
     status:
       code: 200
-      message: '200'
+      message: OK
 version: 1

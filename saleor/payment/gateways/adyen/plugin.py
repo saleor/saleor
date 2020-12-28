@@ -4,19 +4,31 @@ from urllib.parse import urlencode
 
 import Adyen
 from django.contrib.auth.hashers import make_password
-from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.sites.models import Site
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound
+from requests.exceptions import SSLError
 
 from ....checkout.models import Checkout
 from ....core.utils import build_absolute_uri
 from ....core.utils.url import prepare_url
+from ....order.events import external_notification_event
 from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
+from ....plugins.error_codes import PluginErrorCode
+from ....plugins.models import PluginConfiguration
 from ... import PaymentError, TransactionKind
-from ...interface import GatewayConfig, GatewayResponse, PaymentData, PaymentGateway
+from ...interface import (
+    GatewayConfig,
+    GatewayResponse,
+    InitializedPaymentResponse,
+    PaymentData,
+    PaymentGateway,
+)
 from ...models import Payment, Transaction
 from ..utils import get_supported_currencies
-from .utils import (
+from .utils.apple_pay import initialize_apple_pay, make_request_to_initialize_apple_pay
+from .utils.common import (
     AUTH_STATUS,
     FAILED_STATUSES,
     PENDING_STATUSES,
@@ -61,6 +73,7 @@ class AdyenGatewayPlugin(BasePlugin):
         {"name": "notification-user", "value": ""},
         {"name": "notification-password", "value": ""},
         {"name": "enable-native-3d-secure", "value": False},
+        {"name": "apple-pay-cert", "value": None},
     ]
 
     CONFIG_STRUCTURE = {
@@ -162,10 +175,21 @@ class AdyenGatewayPlugin(BasePlugin):
                 "Saleor uses 3D Secure redirect authentication by default. If you want"
                 " to use native 3D Secure authentication, enable this option. For more"
                 " details see Adyen documentation: native - "
-                "https://docs.adyen.com/checkout/3d-secure/redirect-3ds2-3ds1, redirect"
+                "https://docs.adyen.com/checkout/3d-secure/native-3ds2, redirect"
                 " - https://docs.adyen.com/checkout/3d-secure/redirect-3ds2-3ds1"
             ),
-            "label": "Enable native 3d secure",
+            "label": "Enable native 3D Secure",
+        },
+        "apple-pay-cert": {
+            "type": ConfigurationTypeField.SECRET_MULTILINE,
+            "help_text": (
+                "Follow the Adyen docs related to activating the Apple Pay for the "
+                "web - https://docs.adyen.com/payment-methods/apple-pay/"
+                "enable-apple-pay. This certificate is only required when you offer "
+                "the Apple Pay as a web payment method.  Leave it blank if you don't "
+                "offer Apple Pay or offer it only as a payment method in your iOS app."
+            ),
+            "label": "Apple Pay certificate",
         },
     }
 
@@ -186,6 +210,7 @@ class AdyenGatewayPlugin(BasePlugin):
                 "webhook_user_password": configuration["notification-password"],
                 "adyen_auto_capture": configuration["adyen-auto-capture"],
                 "enable_native_3d_secure": configuration["enable-native-3d-secure"],
+                "apple_pay_cert": configuration["apple-pay-cert"],
             },
         )
         api_key = self.config.connection_params["api_key"]
@@ -214,6 +239,21 @@ class AdyenGatewayPlugin(BasePlugin):
         return False
 
     @require_active_plugin
+    def initialize_payment(
+        self, payment_data, previous_value
+    ) -> "InitializedPaymentResponse":
+        payment_method = payment_data.get("paymentMethod")
+        if payment_method == "applepay":
+            # The apple pay on the web requires additional step
+            session_obj = initialize_apple_pay(
+                payment_data, self.config.connection_params["apple_pay_cert"]
+            )
+            return InitializedPaymentResponse(
+                gateway=self.PLUGIN_ID, name=self.PLUGIN_NAME, data=session_obj
+            )
+        return previous_value
+
+    @require_active_plugin
     def get_payment_gateway_for_checkout(
         self, checkout: "Checkout", previous_value,
     ) -> Optional["PaymentGateway"]:
@@ -235,6 +275,11 @@ class AdyenGatewayPlugin(BasePlugin):
             ],
             currencies=self.get_supported_currencies([]),
         )
+
+    @property
+    def order_auto_confirmation(self):
+        site_settings = Site.objects.get_current().settings
+        return site_settings.automatically_confirm_all_new_orders
 
     @require_active_plugin
     def process_payment(
@@ -283,7 +328,11 @@ class AdyenGatewayPlugin(BasePlugin):
                 payment, action, result.message.get("details", []),
             )
         # If auto capture is enabled, let's make a capture the auth payment
-        elif self.config.auto_capture and result_code == AUTH_STATUS:
+        elif (
+            self.config.auto_capture
+            and result_code == AUTH_STATUS
+            and self.order_auto_confirmation
+        ):
             kind = TransactionKind.CAPTURE
             result = call_capture(
                 payment_information=payment_information,
@@ -333,20 +382,30 @@ class AdyenGatewayPlugin(BasePlugin):
         result = api_call(additional_data, self.adyen.checkout.payments_details)
         result_code = result.message["resultCode"].strip().lower()
         is_success = result_code not in FAILED_STATUSES
-
+        action_required = "action" in result.message
         if result_code in PENDING_STATUSES:
             kind = TransactionKind.PENDING
-        elif is_success and config.auto_capture:
+        elif (
+            is_success
+            and config.auto_capture
+            and self.order_auto_confirmation
+            and not action_required
+        ):
             # For enabled auto_capture on Saleor side we need to proceed an additional
             # action
-            response = self.capture_payment(payment_information, None)
-            is_success = response.is_success
+            kind = TransactionKind.CAPTURE
+            result = call_capture(
+                payment_information=payment_information,
+                merchant_account=self.config.connection_params["merchant_account"],
+                token=result.message.get("pspReference"),
+                adyen_client=self.adyen,
+            )
 
         payment_method_info = get_payment_method_info(payment_information, result)
         action = result.message.get("action")
         return GatewayResponse(
             is_success=is_success,
-            action_required="action" in result.message,
+            action_required=action_required,
             action_required_data=action,
             kind=kind,
             amount=payment_information.amount,
@@ -468,12 +527,25 @@ class AdyenGatewayPlugin(BasePlugin):
         )
         result = api_call(request, self.adyen.payment.refund)
 
+        amount = payment_information.amount
+        currency = payment_information.currency
+        if transaction.payment.order:
+            msg = f"Adyen: Refund for amount {amount}{currency} has been requested."
+            external_notification_event(
+                order=transaction.payment.order,  # type: ignore
+                user=None,
+                message=msg,
+                parameters={
+                    "service": transaction.payment.gateway,
+                    "id": transaction.payment.token,
+                },
+            )
         return GatewayResponse(
             is_success=True,
             action_required=False,
             kind=TransactionKind.REFUND_ONGOING,
-            amount=payment_information.amount,
-            currency=payment_information.currency,
+            amount=amount,
+            currency=currency,
             transaction_id=result.message.get("pspReference", ""),
             error="",
             raw_response=result.message,
@@ -532,3 +604,40 @@ class AdyenGatewayPlugin(BasePlugin):
             raw_response=result.message,
             searchable_key=result.message.get("pspReference", ""),
         )
+
+    @classmethod
+    def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
+        """Validate if provided configuration is correct."""
+        configuration = plugin_configuration.configuration
+        configuration = {item["name"]: item["value"] for item in configuration}
+        apple_certificate = configuration.get("apple-pay-cert")
+        if plugin_configuration.active and apple_certificate:
+            global_apple_url = (
+                "https://apple-pay-gateway.apple.com/paymentservices/paymentSession"
+            )
+            request_data = {
+                "merchantIdentifier": "",
+                "displayName": "",
+                "initiative": "web",
+                "initiativeContext": "",
+            }
+            # Try to exectue the session request without all required data. If the
+            # apple certificate is correct we will get the error related to the missing
+            # parameters. If certificate is incorrect, the SSL error will be raised.
+            try:
+                make_request_to_initialize_apple_pay(
+                    validation_url=global_apple_url,
+                    request_data=request_data,
+                    certificate=apple_certificate,
+                )
+            except SSLError:
+                raise ValidationError(
+                    {
+                        "apple-pay-cert": ValidationError(
+                            "The provided apple certificate is invalid.",
+                            code=PluginErrorCode.INVALID.value,
+                        )
+                    }
+                )
+            except Exception:
+                pass

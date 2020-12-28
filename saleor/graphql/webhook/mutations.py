@@ -16,13 +16,8 @@ class WebhookCreateInput(graphene.InputObjectType):
         WebhookEventTypeEnum,
         description=(
             "The events that webhook wants to subscribe. The CHECKOUT_QUANTITY_CHANGED"
-            " is depreacted. It will be removed in Saleor 3.0"
+            " is deprecated. It will be removed in Saleor 3.0"
         ),
-    )
-    service_account = graphene.ID(
-        required=False,
-        description="DEPRECATED: Use the `app` field instead. This field will be "
-        "removed after 2020-07-31.",
     )
     app = graphene.ID(
         required=False, description="ID of the app to which webhook belongs.",
@@ -52,10 +47,7 @@ class WebhookCreate(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_data = super().clean_input(info, instance, data)
-
-        # This should be removed after we drop service_account
-        service_account = cleaned_data.pop("service_account", None)
-        app = cleaned_data["app"] = cleaned_data.get("app") or service_account
+        app = cleaned_data.get("app")
 
         # We are not able to check it in `check_permission`.
         # We need to confirm that cleaned_data has app_id or
@@ -109,14 +101,9 @@ class WebhookUpdateInput(graphene.InputObjectType):
         WebhookEventTypeEnum,
         description=(
             "The events that webhook wants to subscribe. The CHECKOUT_QUANTITY_CHANGED"
-            " is depreacted. It will be removed in Saleor 3.0"
+            " is deprecated. It will be removed in Saleor 3.0"
         ),
         required=False,
-    )
-    service_account = graphene.ID(
-        required=False,
-        description="DEPRECATED: Use the `app` field instead. This field will be "
-        "removed after 2020-07-31.",
     )
     app = graphene.ID(
         required=False, description="ID of the app to which webhook belongs.",
@@ -144,14 +131,24 @@ class WebhookUpdate(ModelMutation):
         error_type_field = "webhook_errors"
 
     @classmethod
-    def clean_input(cls, info, instance, data, input_cls=None):
-        cleaned_input = super().clean_input(info, instance, data, input_cls)
-        # This should be removed after we drop service_account
-        service_account = cleaned_input.pop("service_account", None)
-        app = cleaned_input.get("app", service_account)
-        if app:
-            cleaned_input["app"] = app
-        return cleaned_input
+    def clean_input(cls, info, instance, data):
+        cleaned_data = super().clean_input(info, instance, data)
+        app = cleaned_data.get("app")
+
+        if not instance.app_id and not app:
+            raise ValidationError("Missing token or app", code=WebhookErrorCode.INVALID)
+
+        if instance.app_id:
+            # Let's skip app id in case when context has
+            # app instance
+            app = instance.app
+            cleaned_data.pop("app", None)
+
+        if not app or not app.is_active:
+            raise ValidationError(
+                "App doesn't exist or is disabled", code=WebhookErrorCode.NOT_FOUND,
+            )
+        return cleaned_data
 
     @classmethod
     def save(cls, info, instance, cleaned_input):

@@ -94,8 +94,10 @@ def test_calculate_checkout_line_total(
     manager.assign_tax_code_to_object_meta(product.product_type, "PC040156")
     product.save()
     product.product_type.save()
-    discounts = [discount_info] if with_discount else None
-    total = manager.calculate_checkout_line_total(line, discounts)
+    discounts = [discount_info] if with_discount else []
+    total = manager.calculate_checkout_line_total(
+        line, discounts, checkout_with_item.channel
+    )
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
         net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
@@ -441,9 +443,12 @@ def test_get_cached_tax_codes_or_fetch_wrong_response(monkeypatch):
     assert len(tax_codes) == 0
 
 
-def test_taxes_need_new_fetch(monkeypatch, checkout_with_item, address):
+def test_checkout_needs_new_fetch(
+    monkeypatch, checkout_with_item, address, shipping_method
+):
     monkeypatch.setattr("saleor.plugins.avatax.cache.get", lambda x: None)
     checkout_with_item.shipping_address = address
+    checkout_with_item.shipping_method = shipping_method
     config = AvataxConfiguration(
         username_or_account="wrong_data", password_or_license="wrong_data"
     )

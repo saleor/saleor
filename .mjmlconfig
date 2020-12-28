@@ -1,0 +1,11 @@
+{
+  "options": {
+    "juicePreserveTags": {
+      "django": {
+        "start": "{%",
+        "end": "%}"
+      }
+    }
+  },
+  "packages": []
+}

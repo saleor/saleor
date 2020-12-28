@@ -10,6 +10,7 @@ from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 from ..payment.interface import (
     CustomerSource,
     GatewayResponse,
+    InitializedPaymentResponse,
     PaymentData,
     PaymentGateway,
 )
@@ -17,13 +18,14 @@ from .models import PluginConfiguration
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ..core.taxes import TaxType
-    from ..checkout.models import Checkout, CheckoutLine
-    from ..discount import DiscountInfo
-    from ..product.models import Product, ProductType
     from ..account.models import Address, User
-    from ..order.models import Fulfillment, OrderLine, Order
+    from ..channel.models import Channel
+    from ..checkout.models import Checkout, CheckoutLine
+    from ..core.taxes import TaxType
+    from ..discount import DiscountInfo
     from ..invoice.models import Invoice
+    from ..order.models import Fulfillment, Order, OrderLine
+    from ..product.models import Product, ProductType
 
 
 PluginConfigurationType = List[dict]
@@ -33,12 +35,14 @@ class ConfigurationTypeField:
     STRING = "String"
     BOOLEAN = "Boolean"
     SECRET = "Secret"
+    SECRET_MULTILINE = "SecretMultiline"
     PASSWORD = "Password"
     CHOICES = [
         (STRING, "Field is a String"),
         (BOOLEAN, "Field is a Boolean"),
         (SECRET, "Field is a Secret"),
         (PASSWORD, "Field is a Password"),
+        (SECRET_MULTILINE, "Field is a Secret multiline"),
     ]
 
 
@@ -132,10 +136,12 @@ class BasePlugin:
         """
         return NotImplemented
 
+    # TODO: Add information about this change to `breaking changes in changelog`
     def calculate_checkout_line_total(
         self,
         checkout_line: "CheckoutLine",
         discounts: List["DiscountInfo"],
+        channel: "Channel",
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
         """Calculate checkout line total.
@@ -224,6 +230,14 @@ class BasePlugin:
 
         Overwrite this method if you need to trigger specific logic after an order is
         created.
+        """
+        return NotImplemented
+
+    def order_confirmed(self, order: "Order", previous_value: Any):
+        """Trigger when order is confirmed by staff.
+
+        Overwrite this method if you need to trigger specific logic after an order is
+        confirmed.
         """
         return NotImplemented
 
@@ -366,6 +380,11 @@ class BasePlugin:
 
     def fetch_taxes_data(self, previous_value: Any) -> Any:
         """Triggered when ShopFetchTaxRates mutation is called."""
+        return NotImplemented
+
+    def initialize_payment(
+        self, payment_data: dict, previous_value
+    ) -> "InitializedPaymentResponse":
         return NotImplemented
 
     def authorize_payment(

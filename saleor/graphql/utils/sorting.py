@@ -71,9 +71,10 @@ def sort_queryset(
     sorting_fields = sort_enum.get(sorting_field)
     sorting_field_name = sorting_fields.name.lower()
 
+    channel_slug = getattr(sort_by, "channel", None)
     custom_sort_by = getattr(sort_enum, f"qs_with_{sorting_field_name}", None)
     if custom_sort_by:
-        queryset = custom_sort_by(queryset)
+        queryset = custom_sort_by(queryset, channel_slug=channel_slug)
 
     sorting_field_value = sorting_fields.value
     sorting_list = [f"{sorting_direction}{field}" for field in sorting_field_value]

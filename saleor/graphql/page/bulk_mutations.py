@@ -1,6 +1,6 @@
 import graphene
 
-from ...core.permissions import PagePermissions
+from ...core.permissions import PagePermissions, PageTypePermissions
 from ...page import models
 from ..core.mutations import BaseBulkMutation, ModelBulkDeleteMutation
 from ..core.types.common import PageError
@@ -39,3 +39,19 @@ class PageBulkPublish(BaseBulkMutation):
     @classmethod
     def bulk_action(cls, queryset, is_published):
         queryset.update(is_published=is_published)
+
+
+class PageTypeBulkDelete(ModelBulkDeleteMutation):
+    class Arguments:
+        ids = graphene.List(
+            graphene.NonNull(graphene.ID),
+            description="List of page type IDs to delete",
+            required=True,
+        )
+
+    class Meta:
+        description = "Delete page types."
+        model = models.PageType
+        permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
+        error_type_class = PageError
+        error_type_field = "page_errors"

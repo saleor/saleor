@@ -22,7 +22,9 @@ def test_export_products_task(export_products_mock, user_export_file):
     export_products_task(user_export_file.id, scope, export_info, file_type, delimiter)
 
     # then
-    export_products_mock.called_once_with()
+    export_products_mock.assert_called_once_with(
+        user_export_file, scope, export_info, file_type, delimiter
+    )
 
 
 @patch("saleor.csv.tasks.send_export_failed_info")
@@ -61,7 +63,9 @@ def test_on_task_failure(send_export_failed_info_mock, user_export_file):
         "error_type": info_type,
     }
 
-    send_export_failed_info_mock.called_once_with(user_export_file, "export_failed")
+    send_export_failed_info_mock.assert_called_once_with(
+        user_export_file, user_export_file.user.email, "export_failed"
+    )
 
 
 @patch("saleor.csv.tasks.send_export_failed_info")

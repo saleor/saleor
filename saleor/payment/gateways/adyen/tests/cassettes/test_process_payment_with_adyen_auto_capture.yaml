@@ -3,7 +3,7 @@ interactions:
     body: '{"amount": {"value": "123400", "currency": "USD"}, "reference": "UGF5bWVudDo3",
                 "paymentMethod": {"paymentdata": ""}, "returnUrl": "http://127.0.0.1:3000/",
                 "merchantAccount": "SaleorECOM", "applicationInfo": {"adyenLibrary": {"name":
-                "adyen-python-api-library", "version": "3.0.0"}}}'
+                "adyen-python-api-library", "version": "3.1.0"}}}'
     headers:
       Accept:
       - '*/*'
@@ -12,15 +12,15 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '4444'
+      - '443'
       Content-Type:
       - application/json
       User-Agent:
-      - adyen-python-api-library/3.0.0
+      - adyen-python-api-library/3.1.0
       x-api-key:
       - test_key
     method: POST
-    uri: https://checkout-test.adyen.com/v49/payments
+    uri: https://checkout-test.adyen.com/v64/payments
   response:
     body:
       string: '{"pspReference":"882595494831959A","resultCode":"Authorised","merchantReference":"UGF5bWVudDoz"}'
@@ -36,7 +36,7 @@ interactions:
       Server:
       - Apache
       Set-Cookie:
-      - JSESSIONID=16B2B5BA678472CFD5D8FEE7C6EB1227.test103e; Path=/checkout; Secure;
+      - JSESSIONID=70BB99EA8A7D04F71CD3E6EAF8348CE3.test3e; Path=/checkout; Secure;
         HttpOnly
       Transfer-Encoding:
       - chunked
@@ -44,5 +44,5 @@ interactions:
       - 881595494831497D
     status:
       code: 200
-      message: '200'
+      message: OK
 version: 1

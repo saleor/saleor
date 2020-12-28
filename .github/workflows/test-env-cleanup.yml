@@ -12,7 +12,7 @@ jobs:
     if: ${{ ((github.event.action == 'unlabeled') && (github.event.label.name == 'test deployment')) || ((github.event.action == 'closed') && contains(github.event.pull_request.labels.*.name, 'test deployment')) }}
     runs-on: ubuntu-latest
     steps:
-      - uses: rlespinasse/github-slug-action@2.0.0
+      - uses: rlespinasse/github-slug-action@3.1.0
 
       - name: Invoke deployment lambda
         uses: gagoar/invoke-aws-lambda@v3.3.0
