@@ -11,7 +11,6 @@ from ..channel.models import Channel
 from ..checkout import calculations
 from ..checkout.error_codes import CheckoutErrorCode
 from ..core.exceptions import ProductNotPublished
-from ..core.prices import quantize_price
 from ..core.taxes import zero_taxed_money
 from ..core.utils.promo_code import (
     InvalidPromoCode,
@@ -312,8 +311,8 @@ def get_prices_of_discounted_specific_product(
             channel_listing=line.variant.channel_listings.get(channel=channel),
             discounts=discounts or [],
         ).gross
-        line_unit_price = quantize_price(
-            (line_total / line.quantity), line_total.currency
+        line_unit_price = manager.calculate_checkout_line_unit_price(
+            line_total, line.quantity
         )
         line_prices.extend([line_unit_price] * line.quantity)
 

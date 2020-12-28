@@ -82,7 +82,7 @@ def recalculate_order(order: Order, **kwargs):
     """
     # avoid using prefetched order lines
     lines = [OrderLine.objects.get(pk=line.pk) for line in order]
-    prices = [line.get_total() for line in lines]
+    prices = [line.total_price for line in lines]
     total = sum(prices, order.shipping_price)
     # discount amount can't be greater than order total
     order.discount_amount = min(order.discount_amount, total.gross.amount)
@@ -190,6 +190,7 @@ def add_variant_to_draft_order(order, variant, quantity, discounts=None):
             product, collections, channel, channel_listing, discounts
         )
         unit_price = TaxedMoney(net=unit_price, gross=unit_price)
+        total_price = unit_price * quantity
         product_name = str(product)
         variant_name = str(variant)
         translated_product_name = str(product.translated)
@@ -207,6 +208,7 @@ def add_variant_to_draft_order(order, variant, quantity, discounts=None):
             is_shipping_required=variant.is_shipping_required(),
             quantity=quantity,
             unit_price=unit_price,
+            total_price=total_price,
             variant=variant,
         )
         manager = get_plugins_manager()

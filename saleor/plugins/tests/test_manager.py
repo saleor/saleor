@@ -193,6 +193,43 @@ def test_manager_get_order_tax_rate_no_plugins(
 
 
 @pytest.mark.parametrize(
+    "plugins, total_line_price, quantity",
+    [
+        (
+            ["saleor.plugins.tests.sample_plugins.PluginSample"],
+            TaxedMoney(
+                net=Money(amount=10, currency="USD"),
+                gross=Money(amount=12, currency="USD"),
+            ),
+            2,
+        ),
+        (
+            [],
+            TaxedMoney(
+                net=Money(amount=15, currency="USD"),
+                gross=Money(amount=15, currency="USD"),
+            ),
+            1,
+        ),
+    ],
+)
+def test_manager_calculates_checkout_line_unit_price(
+    plugins, total_line_price, quantity
+):
+    taxed_total = PluginsManager(plugins=plugins).calculate_checkout_line_unit_price(
+        total_line_price, quantity
+    )
+    currency = total_line_price.net.currency
+    expected_net = Money(
+        amount=total_line_price.net.amount / quantity, currency=currency
+    )
+    expected_gross = Money(
+        amount=total_line_price.gross.amount / quantity, currency=currency
+    )
+    assert TaxedMoney(net=expected_net, gross=expected_gross) == taxed_total
+
+
+@pytest.mark.parametrize(
     "plugins, amount",
     [(["saleor.plugins.tests.sample_plugins.PluginSample"], "1.0"), ([], "12.30")],
 )

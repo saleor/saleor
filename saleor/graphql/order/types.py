@@ -304,7 +304,7 @@ class OrderLine(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_total_price(root: models.OrderLine, _info):
-        return root.unit_price * root.quantity
+        return root.total_price
 
     @staticmethod
     def resolve_translated_product_name(root: models.OrderLine, _info):

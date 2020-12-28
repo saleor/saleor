@@ -1936,15 +1936,19 @@ def order_line(order, variant):
     channel = order.channel
     channel_listing = variant.channel_listings.get(channel=channel)
     net = variant.get_price(product, [], channel, channel_listing)
-    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    currency = net.currency
+    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    quantity = 3
+    unit_price = TaxedMoney(net=net, gross=gross)
     return order.lines.create(
         product_name=str(product),
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
-        quantity=3,
+        quantity=quantity,
         variant=variant,
-        unit_price=TaxedMoney(net=net, gross=gross),
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
         tax_rate=23,
     )
 
@@ -1967,15 +1971,19 @@ def order_line_with_allocation_in_many_stocks(
     product = variant.product
     channel_listing = variant.channel_listings.get(channel=channel_USD)
     net = variant.get_price(product, [], channel_USD, channel_listing)
-    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    currency = net.currency
+    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    quantity = 3
+    unit_price = TaxedMoney(net=net, gross=gross)
     order_line = order.lines.create(
         product_name=str(product),
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
-        quantity=3,
+        quantity=quantity,
         variant=variant,
-        unit_price=TaxedMoney(net=net, gross=gross),
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
         tax_rate=23,
     )
 
@@ -2007,15 +2015,19 @@ def order_line_with_one_allocation(
     product = variant.product
     channel_listing = variant.channel_listings.get(channel=channel_USD)
     net = variant.get_price(product, [], channel_USD, channel_listing)
-    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    currency = net.currency
+    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    quantity = 2
+    unit_price = TaxedMoney(net=net, gross=gross)
     order_line = order.lines.create(
         product_name=str(product),
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
-        quantity=2,
+        quantity=quantity,
         variant=variant,
-        unit_price=TaxedMoney(net=net, gross=gross),
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
         tax_rate=Decimal(23),
     )
 
@@ -2083,15 +2095,19 @@ def order_with_lines(
         warehouse=warehouse, product_variant=variant, quantity=5
     )
     net = variant.get_price(product, [], channel_USD, channel_listing)
-    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    currency = net.currency
+    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    quantity = 3
+    unit_price = TaxedMoney(net=net, gross=gross)
     line = order.lines.create(
         product_name=str(variant.product),
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
-        quantity=3,
+        quantity=quantity,
         variant=variant,
-        unit_price=TaxedMoney(net=net, gross=gross),
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
         tax_rate=23,
     )
     Allocation.objects.create(
@@ -2124,15 +2140,19 @@ def order_with_lines(
     )
 
     net = variant.get_price(product, [], channel_USD, channel_listing)
-    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    currency = net.currency
+    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    unit_price = TaxedMoney(net=net, gross=gross)
+    quantity = 2
     line = order.lines.create(
         product_name=str(variant.product),
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
-        quantity=2,
+        quantity=quantity,
         variant=variant,
-        unit_price=TaxedMoney(net=net, gross=gross),
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
         tax_rate=23,
     )
     Allocation.objects.create(
@@ -2199,15 +2219,19 @@ def order_with_lines_channel_PLN(
         warehouse=warehouse, product_variant=variant, quantity=5
     )
     net = variant.get_price(product, [], channel_PLN, channel_listing)
-    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    currency = net.currency
+    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    quantity = 3
+    unit_price = TaxedMoney(net=net, gross=gross)
     line = order.lines.create(
         product_name=str(variant.product),
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
-        quantity=3,
+        quantity=quantity,
         variant=variant,
-        unit_price=TaxedMoney(net=net, gross=gross),
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
         tax_rate=23,
     )
     Allocation.objects.create(
@@ -2240,15 +2264,19 @@ def order_with_lines_channel_PLN(
     )
 
     net = variant.get_price(product, [], channel_PLN, channel_listing, None)
-    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    currency = net.currency
+    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    quantity = 2
+    unit_price = TaxedMoney(net=net, gross=gross)
     line = order.lines.create(
         product_name=str(variant.product),
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
-        quantity=2,
+        quantity=quantity,
         variant=variant,
-        unit_price=TaxedMoney(net=net, gross=gross),
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
         tax_rate=23,
     )
     Allocation.objects.create(
@@ -2282,15 +2310,19 @@ def order_with_line_without_inventory_tracking(
     channel = order.channel
     channel_listing = variant.channel_listings.get(channel=channel)
     net = variant.get_price(product, [], channel, channel_listing)
-    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    currency = net.currency
+    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    quantity = 3
+    unit_price = TaxedMoney(net=net, gross=gross)
     line = order.lines.create(
         product_name=str(variant.product),
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
-        quantity=3,
+        quantity=quantity,
         variant=variant,
-        unit_price=TaxedMoney(net=net, gross=gross),
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
         tax_rate=23,
     )
 
@@ -3324,6 +3356,7 @@ def allocations(order_list, stock, channel_USD):
     channel_listing = variant.channel_listings.get(channel=channel_USD)
     net = variant.get_price(product, [], channel_USD, channel_listing)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    price = TaxedMoney(net=net, gross=gross)
     lines = OrderLine.objects.bulk_create(
         [
             OrderLine(
@@ -3334,7 +3367,8 @@ def allocations(order_list, stock, channel_USD):
                 variant_name=str(variant),
                 product_sku=variant.sku,
                 is_shipping_required=variant.is_shipping_required(),
-                unit_price=TaxedMoney(net=net, gross=gross),
+                unit_price=price,
+                total_price=price,
                 tax_rate=23,
             ),
             OrderLine(
@@ -3345,7 +3379,8 @@ def allocations(order_list, stock, channel_USD):
                 variant_name=str(variant),
                 product_sku=variant.sku,
                 is_shipping_required=variant.is_shipping_required(),
-                unit_price=TaxedMoney(net=net, gross=gross),
+                unit_price=price,
+                total_price=price,
                 tax_rate=23,
             ),
             OrderLine(
@@ -3356,7 +3391,8 @@ def allocations(order_list, stock, channel_USD):
                 variant_name=str(variant),
                 product_sku=variant.sku,
                 is_shipping_required=variant.is_shipping_required(),
-                unit_price=TaxedMoney(net=net, gross=gross),
+                unit_price=price,
+                total_price=price,
                 tax_rate=23,
             ),
         ]

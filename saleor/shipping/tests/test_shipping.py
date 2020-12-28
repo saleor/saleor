@@ -290,3 +290,90 @@ def test_default_shipping_zone_exists(shipping_zone):
 def test_get_countries_without_shipping_zone(shipping_zone_without_countries):
     countries_no_shipping_zone = set(get_countries_without_shipping_zone())
     assert {c.code for c in countries} == countries_no_shipping_zone
+
+
+def test_applicable_shipping_methods_price_rate_use_proper_channel(
+    shipping_zone, channel_USD, other_channel_USD
+):
+    # given
+    # Price method with different min and max in channels to total to low to apply
+    price_method_1 = shipping_zone.shipping_methods.create(
+        type=ShippingMethodType.PRICE_BASED,
+    )
+    # Price method with different min and max in channels total correct to apply
+    price_method_2 = shipping_zone.shipping_methods.create(
+        type=ShippingMethodType.PRICE_BASED,
+    )
+    # Price method with different min and max in channels total to hight to apply
+    price_method_3 = shipping_zone.shipping_methods.create(
+        type=ShippingMethodType.PRICE_BASED,
+    )
+    # Price method not assigned to channel
+    price_method_4 = shipping_zone.shipping_methods.create(
+        type=ShippingMethodType.PRICE_BASED,
+    )
+
+    ShippingMethodChannelListing.objects.bulk_create(
+        [
+            # price_method_1
+            ShippingMethodChannelListing(
+                minimum_order_price=Money("10.0", "USD"),
+                maximum_order_price=Money("100.0", "USD"),
+                shipping_method=price_method_1,
+                channel=channel_USD,
+            ),
+            ShippingMethodChannelListing(
+                minimum_order_price=Money("1.0", "USD"),
+                maximum_order_price=Money("100.0", "USD"),
+                shipping_method=price_method_1,
+                channel=other_channel_USD,
+            ),
+            # price_method_2
+            ShippingMethodChannelListing(
+                minimum_order_price=Money("4.0", "USD"),
+                maximum_order_price=Money("10.0", "USD"),
+                shipping_method=price_method_2,
+                channel=channel_USD,
+            ),
+            ShippingMethodChannelListing(
+                minimum_order_price=Money("1.0", "USD"),
+                maximum_order_price=Money("100.0", "USD"),
+                shipping_method=price_method_2,
+                channel=other_channel_USD,
+            ),
+            # price_method_3
+            ShippingMethodChannelListing(
+                minimum_order_price=Money("1.0", "USD"),
+                maximum_order_price=Money("4.0", "USD"),
+                shipping_method=price_method_3,
+                channel=channel_USD,
+            ),
+            ShippingMethodChannelListing(
+                minimum_order_price=Money("1.0", "USD"),
+                maximum_order_price=Money("100.0", "USD"),
+                shipping_method=price_method_3,
+                channel=other_channel_USD,
+            ),
+            # price_method_4
+            ShippingMethodChannelListing(
+                minimum_order_price=Money("1.0", "USD"),
+                maximum_order_price=Money("100.0", "USD"),
+                shipping_method=price_method_4,
+                channel=other_channel_USD,
+            ),
+        ]
+    )
+
+    # when
+    result = ShippingMethod.objects.applicable_shipping_methods(
+        price=Money("5.0", "USD"),
+        weight=Weight(kg=5),
+        country_code="PL",
+        channel_id=channel_USD.id,
+    )
+
+    # then
+    assert price_method_1 not in result
+    assert price_method_3 not in result
+    assert price_method_4 not in result
+    assert price_method_2 in result

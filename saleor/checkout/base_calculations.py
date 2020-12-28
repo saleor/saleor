@@ -89,3 +89,7 @@ def base_tax_rate(unit_price: TaxedMoney):
     if not isinstance(unit_price, Decimal) and unit_price.gross:
         tax_rate = unit_price.tax / unit_price.net
     return tax_rate
+
+
+def base_checkout_line_unit_price(total_line_price: TaxedMoney, quantity: int):
+    return total_line_price / quantity
