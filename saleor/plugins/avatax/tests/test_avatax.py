@@ -584,6 +584,39 @@ def test_get_checkout_tax_rate_checkout_not_valid_default_value_returned(
 
 
 @pytest.mark.vcr
+def test_get_checkout_tax_rate_error_in_response(
+    monkeypatch, checkout_with_item, address, plugin_configuration, shipping_zone
+):
+    # given
+    plugin_configuration()
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.get_checkout_tax_data",
+        lambda *_: {"error": "Example error"},
+    )
+    unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
+
+    manager = get_plugins_manager(plugins=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+    line = checkout_with_item.lines.first()
+
+    checkout_with_item.shipping_address = address
+    checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
+    checkout_with_item.save(update_fields=["shipping_address", "shipping_method"])
+
+    # when
+    tax_rate = manager.get_checkout_tax_rate(
+        checkout_with_item,
+        line.variant.product,
+        checkout_with_item.shipping_address,
+        line,
+        [],
+        unit_price,
+    )
+
+    # then
+    assert tax_rate == Decimal("0.25")
+
+
+@pytest.mark.vcr
 def test_get_order_tax_rate(
     monkeypatch, order_line, shipping_zone, plugin_configuration
 ):
@@ -627,6 +660,36 @@ def test_get_order_tax_rate_order_not_valid_default_value_returned(
     manager = get_plugins_manager(plugins=["saleor.plugins.avatax.plugin.AvataxPlugin"])
 
     product = Product.objects.get(name=order_line.product_name)
+
+    # when
+    tax_rate = manager.get_order_tax_rate(order, product, None, unit_price,)
+
+    # then
+    assert tax_rate == Decimal("0.25")
+
+
+@pytest.mark.vcr
+def test_get_order_tax_rate_error_in_response(
+    monkeypatch, order_line, shipping_zone, plugin_configuration
+):
+    # given
+    order = order_line.order
+    plugin_configuration()
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.get_order_tax_data",
+        lambda *_: {"error": "Example error"},
+    )
+    unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
+
+    manager = get_plugins_manager(plugins=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+
+    product = Product.objects.get(name=order_line.product_name)
+
+    method = shipping_zone.shipping_methods.get()
+    order.shipping_address = order.billing_address.get_copy()
+    order.shipping_method_name = method.name
+    order.shipping_method = method
+    order.save()
 
     # when
     tax_rate = manager.get_order_tax_rate(order, product, None, unit_price,)
