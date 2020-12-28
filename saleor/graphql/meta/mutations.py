@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from ...core import models
 from ...core.error_codes import MetadataErrorCode
 from ...core.exceptions import PermissionDenied
+from ...menu import models as menu_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
 from ..channel import ChannelContext
@@ -125,6 +126,8 @@ class BaseMetadataMutation(BaseMutation):
                     product_models.Collection,
                     shipping_models.ShippingMethod,
                     shipping_models.ShippingZone,
+                    menu_models.Menu,
+                    menu_models.MenuItem,
                 ]
             ]
         )

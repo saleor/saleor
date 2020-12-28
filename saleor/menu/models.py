@@ -2,14 +2,14 @@ from django.db import models
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 
-from ..core.models import SortableModel
+from ..core.models import ModelWithMetadata, SortableModel
 from ..core.permissions import MenuPermissions
 from ..core.utils.translations import TranslationProxy
 from ..page.models import Page
 from ..product.models import Category, Collection
 
 
-class Menu(models.Model):
+class Menu(ModelWithMetadata):
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
 
@@ -21,7 +21,7 @@ class Menu(models.Model):
         return self.name
 
 
-class MenuItem(MPTTModel, SortableModel):
+class MenuItem(ModelWithMetadata, MPTTModel, SortableModel):
     menu = models.ForeignKey(Menu, related_name="items", on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
     parent = models.ForeignKey(
