@@ -487,6 +487,37 @@ def test_taxes_need_new_fetch_uses_cached_data(
     assert not taxes_need_new_fetch(checkout_data, str(checkout_with_item.token))
 
 
+AVALARA_TAX_DATA = {
+    "id": 0,
+    "companyId": 123,
+    "date": "2020-12-28",
+    "paymentDate": "2020-12-28",
+    "status": "Temporary",
+    "type": "SalesOrder",
+    "summary": [
+        {
+            "country": "US",
+            "region": "NE",
+            "jurisType": "State",
+            "jurisCode": "31",
+            "jurisName": "NEBRASKA",
+            "taxAuthorityType": 45,
+            "stateAssignedNo": "",
+            "taxType": "Sales",
+            "taxSubType": "S",
+            "taxName": "NE STATE TAX",
+            "rateType": "General",
+            "taxable": 36.94,
+            "rate": 0.055,
+            "tax": 2.03,
+            "taxCalculated": 2.03,
+            "nonTaxable": 0.0,
+            "exemption": 0.0,
+        }
+    ],
+}
+
+
 @pytest.mark.vcr
 def test_get_checkout_tax_rate(
     monkeypatch, checkout_with_item, address, plugin_configuration, shipping_zone
@@ -495,35 +526,7 @@ def test_get_checkout_tax_rate(
     plugin_configuration()
     monkeypatch.setattr(
         "saleor.plugins.avatax.plugin.get_checkout_tax_data",
-        lambda *_: {
-            "id": 0,
-            "companyId": 123,
-            "date": "2020-12-28",
-            "paymentDate": "2020-12-28",
-            "status": "Temporary",
-            "type": "SalesOrder",
-            "summary": [
-                {
-                    "country": "US",
-                    "region": "NE",
-                    "jurisType": "State",
-                    "jurisCode": "31",
-                    "jurisName": "NEBRASKA",
-                    "taxAuthorityType": 45,
-                    "stateAssignedNo": "",
-                    "taxType": "Sales",
-                    "taxSubType": "S",
-                    "taxName": "NE STATE TAX",
-                    "rateType": "General",
-                    "taxable": 36.94,
-                    "rate": 0.055,
-                    "tax": 2.03,
-                    "taxCalculated": 2.03,
-                    "nonTaxable": 0.0,
-                    "exemption": 0.0,
-                }
-            ],
-        },
+        lambda *_: AVALARA_TAX_DATA,
     )
     unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
@@ -556,35 +559,7 @@ def test_get_checkout_tax_rate_checkout_not_valid_default_value_returned(
     plugin_configuration()
     monkeypatch.setattr(
         "saleor.plugins.avatax.plugin.get_checkout_tax_data",
-        lambda *_: {
-            "id": 0,
-            "companyId": 123,
-            "date": "2020-12-28",
-            "paymentDate": "2020-12-28",
-            "status": "Temporary",
-            "type": "SalesOrder",
-            "summary": [
-                {
-                    "country": "US",
-                    "region": "NE",
-                    "jurisType": "State",
-                    "jurisCode": "31",
-                    "jurisName": "NEBRASKA",
-                    "taxAuthorityType": 45,
-                    "stateAssignedNo": "",
-                    "taxType": "Sales",
-                    "taxSubType": "S",
-                    "taxName": "NE STATE TAX",
-                    "rateType": "General",
-                    "taxable": 36.94,
-                    "rate": 0.055,
-                    "tax": 2.03,
-                    "taxCalculated": 2.03,
-                    "nonTaxable": 0.0,
-                    "exemption": 0.0,
-                }
-            ],
-        },
+        lambda *_: AVALARA_TAX_DATA,
     )
     unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
@@ -616,36 +591,7 @@ def test_get_order_tax_rate(
     order = order_line.order
     plugin_configuration()
     monkeypatch.setattr(
-        "saleor.plugins.avatax.plugin.get_order_tax_data",
-        lambda *_: {
-            "id": 0,
-            "companyId": 123,
-            "date": "2020-12-28",
-            "paymentDate": "2020-12-28",
-            "status": "Temporary",
-            "type": "SalesOrder",
-            "summary": [
-                {
-                    "country": "US",
-                    "region": "NE",
-                    "jurisType": "State",
-                    "jurisCode": "31",
-                    "jurisName": "NEBRASKA",
-                    "taxAuthorityType": 45,
-                    "stateAssignedNo": "",
-                    "taxType": "Sales",
-                    "taxSubType": "S",
-                    "taxName": "NE STATE TAX",
-                    "rateType": "General",
-                    "taxable": 36.94,
-                    "rate": 0.055,
-                    "tax": 2.03,
-                    "taxCalculated": 2.03,
-                    "nonTaxable": 0.0,
-                    "exemption": 0.0,
-                }
-            ],
-        },
+        "saleor.plugins.avatax.plugin.get_order_tax_data", lambda *_: AVALARA_TAX_DATA
     )
     unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
@@ -674,36 +620,7 @@ def test_get_order_tax_rate_order_not_valid_default_value_returned(
     order = order_line.order
     plugin_configuration()
     monkeypatch.setattr(
-        "saleor.plugins.avatax.plugin.get_order_tax_data",
-        lambda *_: {
-            "id": 0,
-            "companyId": 123,
-            "date": "2020-12-28",
-            "paymentDate": "2020-12-28",
-            "status": "Temporary",
-            "type": "SalesOrder",
-            "summary": [
-                {
-                    "country": "US",
-                    "region": "NE",
-                    "jurisType": "State",
-                    "jurisCode": "31",
-                    "jurisName": "NEBRASKA",
-                    "taxAuthorityType": 45,
-                    "stateAssignedNo": "",
-                    "taxType": "Sales",
-                    "taxSubType": "S",
-                    "taxName": "NE STATE TAX",
-                    "rateType": "General",
-                    "taxable": 36.94,
-                    "rate": 0.055,
-                    "tax": 2.03,
-                    "taxCalculated": 2.03,
-                    "nonTaxable": 0.0,
-                    "exemption": 0.0,
-                }
-            ],
-        },
+        "saleor.plugins.avatax.plugin.get_order_tax_data", lambda *_: AVALARA_TAX_DATA
     )
     unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
