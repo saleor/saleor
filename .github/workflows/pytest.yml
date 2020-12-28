@@ -41,17 +41,10 @@ jobs:
       - name: Install system dependencies
         run: apt-get install -y libpq-dev
 
-      - uses: actions/cache@v2
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements_dev.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
       - name: Install dependencies
         run: |
-          python -m pip install wheel
-          python -m pip install -r requirements_dev.txt
+          python -m pip install poetry
+          poetry install --no-root
 
       - name: Run tests
         run: |
