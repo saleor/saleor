@@ -136,18 +136,18 @@ class PluginSample(BasePlugin):
         address: Optional["Address"],
         checkout_line: "CheckoutLine",
         discounts: Iterable["DiscountInfo"],
-        unit_price: TaxedMoney,
+        previous_value: Decimal,
     ) -> Decimal:
-        return Decimal("0.080").quantize(Decimal("1."))
+        return Decimal("0.080").quantize(Decimal(".01"))
 
     def get_order_tax_rate(
         self,
         order: "Order",
         product: "Product",
         address: Optional["Address"],
-        unit_price: TaxedMoney,
+        previous_value: Decimal,
     ) -> Decimal:
-        return Decimal("0.080").quantize(Decimal("1."))
+        return Decimal("0.080").quantize(Decimal(".01"))
 
 
 class PluginInactive(BasePlugin):

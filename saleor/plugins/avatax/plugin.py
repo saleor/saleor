@@ -433,7 +433,9 @@ class AvataxPlugin(BasePlugin):
         discounts: Iterable[DiscountInfo],
         previous_value: Decimal,
     ) -> Decimal:
-        return self._get_tax_rate(checkout, previous_value, discounts, [checkout_line])
+        return self._get_tax_rate(
+            checkout, previous_value, False, discounts, [checkout_line]
+        )
 
     def get_order_tax_rate(
         self,
@@ -442,20 +444,18 @@ class AvataxPlugin(BasePlugin):
         address: Optional["Address"],
         previous_value: Decimal,
     ) -> Decimal:
-        return self._get_tax_rate(order, previous_value)
+        return self._get_tax_rate(order, previous_value, True)
 
     def _get_tax_rate(
         self,
         instance: Union["Order", "Checkout"],
         base_rate: Decimal,
+        is_order: bool,
         discounts: Optional[Iterable[DiscountInfo]] = None,
         checkout_lines: Iterable["CheckoutLine"] = [],
     ):
         if self._skip_plugin(base_rate):
             return base_rate
-
-        # if discounts are not provided the tax rate should be calculated for the order
-        is_order = not discounts
 
         valid = (
             _validate_order(instance)  # type: ignore
