@@ -484,9 +484,8 @@ class PluginsManager(PaymentInterface):
     def get_checkout_tax_rate(
         self,
         checkout: "Checkout",
-        product: "Product",
+        checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
-        checkout_line: "CheckoutLine",
         discounts: Iterable[DiscountInfo],
         unit_price: TaxedMoney,
     ) -> Decimal:
@@ -495,9 +494,8 @@ class PluginsManager(PaymentInterface):
             "get_checkout_tax_rate",
             default_value,
             checkout,
-            product,
+            checkout_line_info,
             address,
-            checkout_line,
             discounts,
         ).quantize(Decimal(".001"))
 

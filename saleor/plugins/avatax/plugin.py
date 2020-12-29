@@ -426,14 +426,13 @@ class AvataxPlugin(BasePlugin):
     def get_checkout_tax_rate(
         self,
         checkout: "Checkout",
-        product: "Product",
+        checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
-        checkout_line: "CheckoutLine",
         discounts: Iterable[DiscountInfo],
         previous_value: Decimal,
     ) -> Decimal:
         return self._get_tax_rate(
-            checkout, previous_value, False, discounts, [checkout_line]
+            checkout, previous_value, False, discounts, [checkout_line_info.line]
         )
 
     def get_order_tax_rate(

@@ -12,6 +12,7 @@ from ..base_plugin import BasePlugin, ConfigurationTypeField
 if TYPE_CHECKING:
     # flake8: noqa
     from ...account.models import Address
+    from ...checkout import CheckoutLineInfo
     from ...discount import DiscountInfo
     from ...product.models import Product, ProductType
     from ...order.models import Order
@@ -137,9 +138,8 @@ class PluginSample(BasePlugin):
     def get_checkout_tax_rate(
         self,
         checkout: "Checkout",
-        product: "Product",
+        checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
-        checkout_line: "CheckoutLine",
         discounts: Iterable["DiscountInfo"],
         previous_value: Decimal,
     ) -> Decimal:

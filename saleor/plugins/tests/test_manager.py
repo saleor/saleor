@@ -6,6 +6,7 @@ from django.http import HttpResponseNotFound, JsonResponse
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
+from ...checkout import CheckoutLineInfo
 from ...checkout.utils import fetch_checkout_lines
 from ...core.taxes import TaxType
 from ...payment.interface import PaymentGateway
@@ -128,11 +129,20 @@ def test_manager_get_checkout_tax_rate_sample_plugin(checkout_with_item, discoun
     line = checkout_with_item.lines.all()[0]
     plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
     unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
+
+    variant = line.variant
+    checkout_line_info = CheckoutLineInfo(
+        line=line,
+        variant=variant,
+        channel_listing=variant.channel_listings.first(),
+        product=variant.product,
+        collections=[],
+    )
+
     tax_rate = PluginsManager(plugins=plugins).get_checkout_tax_rate(
         checkout_with_item,
-        line.variant.product,
+        checkout_line_info,
         checkout_with_item.shipping_address,
-        line,
         [discount_info],
         unit_price,
     )
@@ -150,11 +160,18 @@ def test_manager_get_checkout_tax_rate_no_plugins(
     checkout_with_item, discount_info, unit_price, expected_tax_rate
 ):
     line = checkout_with_item.lines.all()[0]
+    variant = line.variant
+    checkout_line_info = CheckoutLineInfo(
+        line=line,
+        variant=variant,
+        channel_listing=variant.channel_listings.first(),
+        product=variant.product,
+        collections=[],
+    )
     tax_rate = PluginsManager(plugins=[]).get_checkout_tax_rate(
         checkout_with_item,
-        line.variant.product,
+        checkout_line_info,
         checkout_with_item.shipping_address,
-        line,
         [discount_info],
         unit_price,
     )

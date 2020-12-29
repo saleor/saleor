@@ -8,6 +8,7 @@ from django.core.exceptions import ValidationError
 from prices import Money, TaxedMoney
 from requests import RequestException
 
+from ....checkout import CheckoutLineInfo
 from ....checkout.utils import add_variant_to_checkout, fetch_checkout_lines
 from ....core.prices import quantize_price
 from ....core.taxes import TaxError, TaxType
@@ -537,12 +538,20 @@ def test_get_checkout_tax_rate(
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save(update_fields=["shipping_address", "shipping_method"])
 
+    variant = line.variant
+    checkout_line_info = CheckoutLineInfo(
+        line=line,
+        variant=variant,
+        channel_listing=variant.channel_listings.first(),
+        product=variant.product,
+        collections=[],
+    )
+
     # when
     tax_rate = manager.get_checkout_tax_rate(
         checkout_with_item,
-        line.variant.product,
+        checkout_line_info,
         checkout_with_item.shipping_address,
-        line,
         [],
         unit_price,
     )
@@ -569,12 +578,20 @@ def test_get_checkout_tax_rate_checkout_not_valid_default_value_returned(
     checkout_with_item.shipping_address = address
     checkout_with_item.save(update_fields=["shipping_address"])
 
+    variant = line.variant
+    checkout_line_info = CheckoutLineInfo(
+        line=line,
+        variant=variant,
+        channel_listing=variant.channel_listings.first(),
+        product=variant.product,
+        collections=[],
+    )
+
     # when
     tax_rate = manager.get_checkout_tax_rate(
         checkout_with_item,
-        line.variant.product,
+        checkout_line_info,
         checkout_with_item.shipping_address,
-        line,
         [],
         unit_price,
     )
@@ -602,12 +619,20 @@ def test_get_checkout_tax_rate_error_in_response(
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save(update_fields=["shipping_address", "shipping_method"])
 
+    variant = line.variant
+    checkout_line_info = CheckoutLineInfo(
+        line=line,
+        variant=variant,
+        channel_listing=variant.channel_listings.first(),
+        product=variant.product,
+        collections=[],
+    )
+
     # when
     tax_rate = manager.get_checkout_tax_rate(
         checkout_with_item,
-        line.variant.product,
+        checkout_line_info,
         checkout_with_item.shipping_address,
-        line,
         [],
         unit_price,
     )

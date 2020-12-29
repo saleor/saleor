@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from ....checkout import calculations
+from ....checkout import CheckoutLineInfo, calculations
 from ....checkout.utils import add_variant_to_checkout, fetch_checkout_lines
 from ....core.prices import quantize_price
 from ....core.taxes import zero_taxed_money
@@ -558,11 +558,19 @@ def test_get_checkout_tax_rate(
 
     unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
+    variant = line.variant
+    checkout_line_info = CheckoutLineInfo(
+        line=line,
+        variant=variant,
+        channel_listing=variant.channel_listings.first(),
+        product=variant.product,
+        collections=[],
+    )
+
     tax_rate = manager.get_checkout_tax_rate(
         checkout_with_item,
-        line.variant.product,
+        checkout_line_info,
         checkout_with_item.shipping_address,
-        line,
         [],
         unit_price,
     )
@@ -586,11 +594,19 @@ def test_get_checkout_tax_rate_order_not_valid(
 
     unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
+    variant = line.variant
+    checkout_line_info = CheckoutLineInfo(
+        line=line,
+        variant=variant,
+        channel_listing=variant.channel_listings.first(),
+        product=variant.product,
+        collections=[],
+    )
+
     tax_rate = manager.get_checkout_tax_rate(
         checkout_with_item,
-        line.variant.product,
+        checkout_line_info,
         checkout_with_item.shipping_address,
-        line,
         [],
         unit_price,
     )
