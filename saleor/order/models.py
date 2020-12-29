@@ -137,6 +137,9 @@ class Order(ModelWithMetadata):
         gross_amount_field="shipping_price_gross_amount",
         currency_field="currency",
     )
+    shipping_tax_rate = models.DecimalField(
+        max_digits=5, decimal_places=4, default=Decimal("0.0")
+    )
 
     token = models.CharField(max_length=36, unique=True, blank=True)
     # Token of a checkout instance that this order was created from
