@@ -520,7 +520,7 @@ AVALARA_TAX_DATA = {
 
 
 @pytest.mark.vcr
-def test_get_checkout_tax_rate(
+def test_get_checkout_line_tax_rate(
     monkeypatch, checkout_with_item, address, plugin_configuration, shipping_zone
 ):
     # given
@@ -548,7 +548,7 @@ def test_get_checkout_tax_rate(
     )
 
     # when
-    tax_rate = manager.get_checkout_tax_rate(
+    tax_rate = manager.get_checkout_line_tax_rate(
         checkout_with_item,
         checkout_line_info,
         checkout_with_item.shipping_address,
@@ -561,7 +561,7 @@ def test_get_checkout_tax_rate(
 
 
 @pytest.mark.vcr
-def test_get_checkout_tax_rate_checkout_not_valid_default_value_returned(
+def test_get_checkout_line_tax_rate_checkout_not_valid_default_value_returned(
     monkeypatch, checkout_with_item, address, plugin_configuration
 ):
     # given
@@ -588,7 +588,7 @@ def test_get_checkout_tax_rate_checkout_not_valid_default_value_returned(
     )
 
     # when
-    tax_rate = manager.get_checkout_tax_rate(
+    tax_rate = manager.get_checkout_line_tax_rate(
         checkout_with_item,
         checkout_line_info,
         checkout_with_item.shipping_address,
@@ -601,7 +601,7 @@ def test_get_checkout_tax_rate_checkout_not_valid_default_value_returned(
 
 
 @pytest.mark.vcr
-def test_get_checkout_tax_rate_error_in_response(
+def test_get_checkout_line_tax_rate_error_in_response(
     monkeypatch, checkout_with_item, address, plugin_configuration, shipping_zone
 ):
     # given
@@ -629,7 +629,7 @@ def test_get_checkout_tax_rate_error_in_response(
     )
 
     # when
-    tax_rate = manager.get_checkout_tax_rate(
+    tax_rate = manager.get_checkout_line_tax_rate(
         checkout_with_item,
         checkout_line_info,
         checkout_with_item.shipping_address,
@@ -642,7 +642,7 @@ def test_get_checkout_tax_rate_error_in_response(
 
 
 @pytest.mark.vcr
-def test_get_order_tax_rate(
+def test_get_order_line_tax_rate(
     monkeypatch, order_line, shipping_zone, plugin_configuration
 ):
     # given
@@ -664,14 +664,14 @@ def test_get_order_tax_rate(
     order.save()
 
     # when
-    tax_rate = manager.get_order_tax_rate(order, product, None, unit_price,)
+    tax_rate = manager.get_order_line_tax_rate(order, product, None, unit_price,)
 
     # then
     assert tax_rate == Decimal("0.055")
 
 
 @pytest.mark.vcr
-def test_get_order_tax_rate_order_not_valid_default_value_returned(
+def test_get_order_line_tax_rate_order_not_valid_default_value_returned(
     monkeypatch, order_line, shipping_zone, plugin_configuration
 ):
     # given
@@ -687,14 +687,14 @@ def test_get_order_tax_rate_order_not_valid_default_value_returned(
     product = Product.objects.get(name=order_line.product_name)
 
     # when
-    tax_rate = manager.get_order_tax_rate(order, product, None, unit_price,)
+    tax_rate = manager.get_order_line_tax_rate(order, product, None, unit_price,)
 
     # then
     assert tax_rate == Decimal("0.25")
 
 
 @pytest.mark.vcr
-def test_get_order_tax_rate_error_in_response(
+def test_get_order_line_tax_rate_error_in_response(
     monkeypatch, order_line, shipping_zone, plugin_configuration
 ):
     # given
@@ -717,7 +717,7 @@ def test_get_order_tax_rate_error_in_response(
     order.save()
 
     # when
-    tax_rate = manager.get_order_tax_rate(order, product, None, unit_price,)
+    tax_rate = manager.get_order_line_tax_rate(order, product, None, unit_price,)
 
     # then
     assert tax_rate == Decimal("0.25")

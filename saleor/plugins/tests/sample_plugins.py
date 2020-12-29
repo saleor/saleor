@@ -135,7 +135,7 @@ class PluginSample(BasePlugin):
     ) -> Decimal:
         return Decimal("15.0").quantize(Decimal("1."))
 
-    def get_checkout_tax_rate(
+    def get_checkout_line_tax_rate(
         self,
         checkout: "Checkout",
         checkout_line_info: "CheckoutLineInfo",
@@ -145,7 +145,7 @@ class PluginSample(BasePlugin):
     ) -> Decimal:
         return Decimal("0.080").quantize(Decimal(".01"))
 
-    def get_order_tax_rate(
+    def get_order_line_tax_rate(
         self,
         order: "Order",
         product: "Product",

@@ -481,7 +481,7 @@ class PluginsManager(PaymentInterface):
             )
         raise Exception(f"Payment plugin {gateway} is inaccessible!")
 
-    def get_checkout_tax_rate(
+    def get_checkout_line_tax_rate(
         self,
         checkout: "Checkout",
         checkout_line_info: "CheckoutLineInfo",
@@ -491,7 +491,7 @@ class PluginsManager(PaymentInterface):
     ) -> Decimal:
         default_value = base_calculations.base_tax_rate(unit_price)
         return self.__run_method_on_plugins(
-            "get_checkout_tax_rate",
+            "get_checkout_line_tax_rate",
             default_value,
             checkout,
             checkout_line_info,
@@ -499,7 +499,7 @@ class PluginsManager(PaymentInterface):
             discounts,
         ).quantize(Decimal(".001"))
 
-    def get_order_tax_rate(
+    def get_order_line_tax_rate(
         self,
         order: "Order",
         product: "Product",
@@ -508,7 +508,7 @@ class PluginsManager(PaymentInterface):
     ) -> Decimal:
         default_value = base_calculations.base_tax_rate(unit_price)
         return self.__run_method_on_plugins(
-            "get_order_tax_rate", default_value, order, product, address
+            "get_order_line_tax_rate", default_value, order, product, address
         ).quantize(Decimal(".001"))
 
     def get_active_plugins(self, plugins=None) -> List["BasePlugin"]:

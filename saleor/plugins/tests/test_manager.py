@@ -125,7 +125,9 @@ def test_manager_calculates_checkout_line_total(
     assert TaxedMoney(expected_total, expected_total) == taxed_total
 
 
-def test_manager_get_checkout_tax_rate_sample_plugin(checkout_with_item, discount_info):
+def test_manager_get_checkout_line_tax_rate_sample_plugin(
+    checkout_with_item, discount_info
+):
     line = checkout_with_item.lines.all()[0]
     plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
     unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
@@ -139,7 +141,7 @@ def test_manager_get_checkout_tax_rate_sample_plugin(checkout_with_item, discoun
         collections=[],
     )
 
-    tax_rate = PluginsManager(plugins=plugins).get_checkout_tax_rate(
+    tax_rate = PluginsManager(plugins=plugins).get_checkout_line_tax_rate(
         checkout_with_item,
         checkout_line_info,
         checkout_with_item.shipping_address,
@@ -156,7 +158,7 @@ def test_manager_get_checkout_tax_rate_sample_plugin(checkout_with_item, discoun
         (Decimal("0.0"), Decimal("0.0")),
     ],
 )
-def test_manager_get_checkout_tax_rate_no_plugins(
+def test_manager_get_checkout_line_tax_rate_no_plugins(
     checkout_with_item, discount_info, unit_price, expected_tax_rate
 ):
     line = checkout_with_item.lines.all()[0]
@@ -168,7 +170,7 @@ def test_manager_get_checkout_tax_rate_no_plugins(
         product=variant.product,
         collections=[],
     )
-    tax_rate = PluginsManager(plugins=[]).get_checkout_tax_rate(
+    tax_rate = PluginsManager(plugins=[]).get_checkout_line_tax_rate(
         checkout_with_item,
         checkout_line_info,
         checkout_with_item.shipping_address,
@@ -178,13 +180,13 @@ def test_manager_get_checkout_tax_rate_no_plugins(
     assert tax_rate == expected_tax_rate
 
 
-def test_manager_get_order_tax_rate_sample_plugin(order_with_lines):
+def test_manager_get_order_line_tax_rate_sample_plugin(order_with_lines):
     order = order_with_lines
     line = order.lines.first()
     product = Product.objects.get(name=line.product_name)
     plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
     unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
-    tax_rate = PluginsManager(plugins=plugins).get_order_tax_rate(
+    tax_rate = PluginsManager(plugins=plugins).get_order_line_tax_rate(
         order, product, None, unit_price,
     )
     assert tax_rate == Decimal("0.08")
@@ -197,13 +199,13 @@ def test_manager_get_order_tax_rate_sample_plugin(order_with_lines):
         (Decimal("0.0"), Decimal("0.0")),
     ],
 )
-def test_manager_get_order_tax_rate_no_plugins(
+def test_manager_get_order_line_tax_rate_no_plugins(
     order_with_lines, unit_price, expected_tax_rate
 ):
     order = order_with_lines
     line = order.lines.first()
     product = Product.objects.get(name=line.product_name)
-    tax_rate = PluginsManager(plugins=[]).get_order_tax_rate(
+    tax_rate = PluginsManager(plugins=[]).get_order_line_tax_rate(
         order, product, None, unit_price,
     )
     assert tax_rate == expected_tax_rate

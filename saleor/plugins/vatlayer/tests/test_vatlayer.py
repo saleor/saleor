@@ -537,7 +537,7 @@ def test_skip_diabled_plugin(settings):
     )
 
 
-def test_get_checkout_tax_rate(
+def test_get_checkout_line_tax_rate(
     site_settings, vatlayer, checkout_with_item, address, shipping_zone,
 ):
     manager = get_plugins_manager(
@@ -567,7 +567,7 @@ def test_get_checkout_tax_rate(
         collections=[],
     )
 
-    tax_rate = manager.get_checkout_tax_rate(
+    tax_rate = manager.get_checkout_line_tax_rate(
         checkout_with_item,
         checkout_line_info,
         checkout_with_item.shipping_address,
@@ -577,7 +577,7 @@ def test_get_checkout_tax_rate(
     assert tax_rate == Decimal("0.230")
 
 
-def test_get_checkout_tax_rate_order_not_valid(
+def test_get_checkout_line_tax_rate_order_not_valid(
     site_settings, vatlayer, checkout_with_item,
 ):
     manager = get_plugins_manager(
@@ -603,7 +603,7 @@ def test_get_checkout_tax_rate_order_not_valid(
         collections=[],
     )
 
-    tax_rate = manager.get_checkout_tax_rate(
+    tax_rate = manager.get_checkout_line_tax_rate(
         checkout_with_item,
         checkout_line_info,
         checkout_with_item.shipping_address,
@@ -613,7 +613,7 @@ def test_get_checkout_tax_rate_order_not_valid(
     assert tax_rate == Decimal("0.25")
 
 
-def test_get_order_tax_rate(
+def test_get_order_line_tax_rate(
     site_settings, vatlayer, order_line, address, shipping_zone,
 ):
     manager = get_plugins_manager(
@@ -637,11 +637,11 @@ def test_get_order_tax_rate(
 
     unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
-    tax_rate = manager.get_order_tax_rate(order, product, address, unit_price,)
+    tax_rate = manager.get_order_line_tax_rate(order, product, address, unit_price)
     assert tax_rate == Decimal("0.230")
 
 
-def test_get_order_tax_rate_order_no_address_given(
+def test_get_order_line_tax_rate_order_no_address_given(
     site_settings, order_line, vatlayer,
 ):
     manager = get_plugins_manager(
@@ -658,5 +658,5 @@ def test_get_order_tax_rate_order_no_address_given(
 
     unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
-    tax_rate = manager.get_order_tax_rate(order, product, None, unit_price,)
+    tax_rate = manager.get_order_line_tax_rate(order, product, None, unit_price)
     assert tax_rate == Decimal("0.25")

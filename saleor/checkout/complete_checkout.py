@@ -179,7 +179,7 @@ def _create_line_for_order(
         discounts,
     )
     unit_price = manager.calculate_checkout_line_unit_price(total_line_price, quantity)
-    tax_rate = manager.get_checkout_tax_rate(
+    tax_rate = manager.get_checkout_line_tax_rate(
         checkout, checkout_line_info, address, discounts, unit_price
     )
 
