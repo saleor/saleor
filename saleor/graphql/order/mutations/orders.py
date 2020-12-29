@@ -258,6 +258,7 @@ class OrderUpdateShipping(BaseMutation):
 
         clean_order_update_shipping(order, method)
 
+        # TODO: update tax rate here - for order
         order.shipping_method = method
         order.shipping_price = info.context.plugins.calculate_order_shipping(order)
         order.shipping_method_name = method.name

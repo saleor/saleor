@@ -282,6 +282,7 @@ def _prepare_order_data(
 
     taxed_total = max(taxed_total, zero_taxed_money(checkout.currency))
 
+    # TODO: get shipping tax_rate
     shipping_total = manager.calculate_checkout_shipping(
         checkout, lines, address, discounts
     )
