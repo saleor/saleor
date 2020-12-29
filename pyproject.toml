@@ -12,7 +12,7 @@ repository = "https://github.com/mirumee/saleor"
 documentation = "https://docs.getsaleor.com/en/latest/"
 
 [tool.poetry.dependencies]
-python = "~3.8"
+python = "~3.9"
 babel = ">=2.8,<2.10"
 boto3 = "^1.14"
 braintree = ">=4.2,<4.6"

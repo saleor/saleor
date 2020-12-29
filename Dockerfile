@@ -13,7 +13,9 @@ COPY pyproject.toml /app/
 WORKDIR /app
 RUN pip install poetry
 RUN poetry config virtualenvs.create false
-RUN poetry install --no-root --no-dev
+
+ARG DEVMODE
+RUN if [ "$DEVMODE" = "on" ] ; then poetry install --no-root ; else poetry install --no-root --no-dev ; fi
 
 ### Final image
 FROM python:3.9-slim
