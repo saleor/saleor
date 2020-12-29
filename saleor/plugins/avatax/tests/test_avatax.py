@@ -519,7 +519,6 @@ AVALARA_TAX_DATA = {
 }
 
 
-@pytest.mark.vcr
 def test_get_checkout_line_tax_rate(
     monkeypatch, checkout_with_item, address, plugin_configuration, shipping_zone
 ):
@@ -560,7 +559,6 @@ def test_get_checkout_line_tax_rate(
     assert tax_rate == Decimal("0.055")
 
 
-@pytest.mark.vcr
 def test_get_checkout_line_tax_rate_checkout_not_valid_default_value_returned(
     monkeypatch, checkout_with_item, address, plugin_configuration
 ):
@@ -600,7 +598,6 @@ def test_get_checkout_line_tax_rate_checkout_not_valid_default_value_returned(
     assert tax_rate == Decimal("0.25")
 
 
-@pytest.mark.vcr
 def test_get_checkout_line_tax_rate_error_in_response(
     monkeypatch, checkout_with_item, address, plugin_configuration, shipping_zone
 ):
@@ -641,7 +638,6 @@ def test_get_checkout_line_tax_rate_error_in_response(
     assert tax_rate == Decimal("0.25")
 
 
-@pytest.mark.vcr
 def test_get_order_line_tax_rate(
     monkeypatch, order_line, shipping_zone, plugin_configuration
 ):
@@ -670,7 +666,6 @@ def test_get_order_line_tax_rate(
     assert tax_rate == Decimal("0.055")
 
 
-@pytest.mark.vcr
 def test_get_order_line_tax_rate_order_not_valid_default_value_returned(
     monkeypatch, order_line, shipping_zone, plugin_configuration
 ):
@@ -693,7 +688,6 @@ def test_get_order_line_tax_rate_order_not_valid_default_value_returned(
     assert tax_rate == Decimal("0.25")
 
 
-@pytest.mark.vcr
 def test_get_order_line_tax_rate_error_in_response(
     monkeypatch, order_line, shipping_zone, plugin_configuration
 ):
