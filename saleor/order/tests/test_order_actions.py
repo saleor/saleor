@@ -54,7 +54,7 @@ def order_with_digital_line(order, digital_content, stock, site_settings):
         variant=variant,
         unit_price=unit_price,
         total_price=unit_price * quantity,
-        tax_rate=23,
+        tax_rate=Decimal("0.23"),
     )
 
     Allocation.objects.create(order_line=line, stock=stock, quantity_allocated=quantity)
@@ -617,7 +617,7 @@ def test_create_refund_fulfillment_multiple_refunds(
         variant=variant,
         unit_price=unit_price,
         total_price=unit_price * quantity,
-        tax_rate=23,
+        tax_rate=Decimal("0.23"),
     )
     Allocation.objects.create(
         order_line=order_line, stock=stock, quantity_allocated=order_line.quantity

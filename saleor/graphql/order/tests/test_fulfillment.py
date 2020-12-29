@@ -1327,7 +1327,7 @@ def test_fulfillment_refund_products_fulfillment_lines_and_order_lines(
         variant=variant,
         unit_price=TaxedMoney(net=net, gross=gross),
         total_price=total_price,
-        tax_rate=23,
+        tax_rate=Decimal("0.23"),
     )
     fulfillment = fulfilled_order.fulfillments.get()
     fulfillment.lines.create(order_line=order_line, quantity=2, stock=stock)

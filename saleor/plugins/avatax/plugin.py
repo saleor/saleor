@@ -477,7 +477,7 @@ class AvataxPlugin(BasePlugin):
         if response_summary:
             rate = Decimal(response_summary[0].get("rate", 0.0))
 
-        return rate if rate else base_rate
+        return rate or base_rate
 
     def assign_tax_code_to_object_meta(
         self,

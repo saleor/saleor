@@ -497,7 +497,7 @@ class PluginsManager(PaymentInterface):
             checkout_line_info,
             address,
             discounts,
-        ).quantize(Decimal(".001"))
+        ).quantize(Decimal(".0001"))
 
     def get_order_line_tax_rate(
         self,
@@ -509,7 +509,7 @@ class PluginsManager(PaymentInterface):
         default_value = base_calculations.base_tax_rate(unit_price)
         return self.__run_method_on_plugins(
             "get_order_line_tax_rate", default_value, order, product, address
-        ).quantize(Decimal(".001"))
+        ).quantize(Decimal(".0001"))
 
     def get_active_plugins(self, plugins=None) -> List["BasePlugin"]:
         if plugins is None:
