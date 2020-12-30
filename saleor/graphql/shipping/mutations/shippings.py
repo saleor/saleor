@@ -61,6 +61,7 @@ class ShippingZoneCreateInput(graphene.InputObjectType):
 
 
 class ShippingZoneUpdateInput(ShippingZoneCreateInput):
+    description = graphene.String(description="Description of the shipping zone.")
     remove_warehouses = graphene.List(
         graphene.ID, description="List of warehouses to unassign from a shipping zone",
     )

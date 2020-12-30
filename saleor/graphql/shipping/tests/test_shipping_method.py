@@ -513,6 +513,7 @@ UPDATE_SHIPPING_ZONE_QUERY = """
     mutation updateShipping(
         $id: ID!
         $name: String
+        $description: String
         $default: Boolean
         $countries: [String]
         $addWarehouses: [ID]
@@ -522,6 +523,7 @@ UPDATE_SHIPPING_ZONE_QUERY = """
             id: $id
             input: {
                 name: $name
+                description: $description
                 default: $default
                 countries: $countries
                 addWarehouses: $addWarehouses
@@ -530,6 +532,7 @@ UPDATE_SHIPPING_ZONE_QUERY = """
         ) {
             shippingZone {
                 name
+                description
                 warehouses {
                     name
                     slug
@@ -549,8 +552,14 @@ def test_update_shipping_zone(
     staff_api_client, shipping_zone, permission_manage_shipping
 ):
     name = "Parabolic name"
+    description = "Description of a shipping zone."
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
-    variables = {"id": shipping_id, "name": name, "countries": []}
+    variables = {
+        "id": shipping_id,
+        "name": name,
+        "countries": [],
+        "description": description,
+    }
     response = staff_api_client.post_graphql(
         UPDATE_SHIPPING_ZONE_QUERY, variables, permissions=[permission_manage_shipping]
     )
@@ -559,6 +568,7 @@ def test_update_shipping_zone(
     assert not data["shippingErrors"]
     data = content["data"]["shippingZoneUpdate"]["shippingZone"]
     assert data["name"] == name
+    assert data["description"] == description
 
 
 def test_update_shipping_zone_default_exists(
