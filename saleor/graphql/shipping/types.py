@@ -27,7 +27,7 @@ from .dataloaders import (
     ShippingMethodsByShippingZoneIdLoader,
     ZipCodeRulesByShippingMethodIdLoader,
 )
-from .enums import ShippingMethodTypeEnum
+from .enums import ShippingMethodTypeEnum, ZipCodeRuleInclusionTypeEnum
 
 
 class ShippingMethodChannelListing(CountableDjangoObjectType):
@@ -51,14 +51,18 @@ class ShippingMethodChannelListing(CountableDjangoObjectType):
 class ShippingMethodZipCodeRule(CountableDjangoObjectType):
     start = graphene.String(description="Start address range.")
     end = graphene.String(description="End address range.")
+    inclusion_type = ZipCodeRuleInclusionTypeEnum(
+        description="Inclusion type of the zip code rule."
+    )
 
     class Meta:
-        description = "Represents shipping method zip code."
+        description = "Represents shipping method zip code rule."
         interfaces = [relay.Node]
         model = models.ShippingMethodZipCodeRule
         only_fields = [
             "start",
             "end",
+            "inclusion_type",
         ]
 
 
@@ -84,7 +88,9 @@ class ShippingMethod(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     )
     zip_code_rules = graphene.List(
         ShippingMethodZipCodeRule,
-        description="Zip code exclude range of the shipping method.",
+        description=(
+            "Zip code ranges rule of exclusion or inclusion of the shipping method."
+        ),
     )
     excluded_products = ChannelContextFilterConnectionField(
         "saleor.graphql.product.types.products.Product",
