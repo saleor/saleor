@@ -5,7 +5,7 @@ from django.db.utils import IntegrityError
 
 from ....core.permissions import ShippingPermissions
 from ....product import models as product_models
-from ....shipping import models
+from ....shipping import ZipCodeRuleInclusionType, models
 from ....shipping.error_codes import ShippingErrorCode
 from ....shipping.utils import (
     default_shipping_zone_exists,
@@ -18,7 +18,7 @@ from ...core.types.common import ShippingError
 from ...core.utils import get_duplicates_ids
 from ...product import types as product_types
 from ...utils import resolve_global_ids_to_primary_keys
-from ..enums import ShippingMethodTypeEnum
+from ..enums import ShippingMethodTypeEnum, ZipCodeRuleInclusionTypeEnum
 from ..types import ShippingMethod, ShippingMethodZipCodeRule, ShippingZone
 
 
@@ -174,6 +174,9 @@ class ShippingZoneUpdate(ShippingZoneMixin, ModelMutation):
 class ShippingZipCodeRulesCreateInputRange(graphene.InputObjectType):
     start = graphene.String(required=True, description="Start range of the zip code.")
     end = graphene.String(required=False, description="End range of the zip code.")
+    inclusion_type = ZipCodeRuleInclusionTypeEnum(
+        required=False, description="Inclusion type for given zip code rules."
+    )
 
 
 class ShippingZipCodeRulesCreateInput(graphene.InputObjectType):
@@ -218,10 +221,14 @@ class ShippingZipCodeRulesCreate(BaseMutation):
                 try:
                     start = zip_range["start"]
                     end = zip_range["end"]
+                    inclusion_type = zip_range.get(
+                        "inclusion_type", ZipCodeRuleInclusionType.EXCLUDE
+                    )
                     instance = models.ShippingMethodZipCodeRule.objects.create(
                         shipping_method=shipping_method,
                         start=start,
                         end=end,
+                        inclusion_type=inclusion_type,
                     )
                 except IntegrityError:
                     raise ValidationError(

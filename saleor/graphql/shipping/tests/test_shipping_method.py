@@ -8,7 +8,7 @@ from ....shipping.utils import get_countries_without_shipping_zone
 from ...core.enums import WeightUnitsEnum
 from ...shipping.resolvers import resolve_price_range
 from ...tests.utils import get_graphql_content
-from ..types import ShippingMethodTypeEnum
+from ..types import ShippingMethodTypeEnum, ZipCodeRuleInclusionTypeEnum
 
 SHIPPING_ZONE_QUERY = """
     query ShippingQuery($id: ID!, $channel: String,) {
@@ -413,6 +413,7 @@ CREATE_SHIPPING_METHOD_ZIP_CODE_MUTATION = """
             zipCodeRules {
                 start
                 end
+                inclusionType
             }
             shippingMethod {
                 id
@@ -436,6 +437,45 @@ def test_create_shipping_method_zip_code(
     zip_code_rules = [
         {"start": "HB3", "end": "HB6"},
         {"start": "HB8", "end": None},
+    ]
+    variables = {"shippingMethodId": shipping_method_id, "zipCodeRules": zip_code_rules}
+    response = staff_api_client.post_graphql(
+        CREATE_SHIPPING_METHOD_ZIP_CODE_MUTATION,
+        variables,
+        permissions=[permission_manage_shipping],
+    )
+    content = get_graphql_content(response)
+    assert not content["data"]["shippingMethodZipCodeRulesCreate"]["shippingErrors"]
+    zip_code_rules_data = content["data"]["shippingMethodZipCodeRulesCreate"][
+        "zipCodeRules"
+    ]
+    shipping_method_data = content["data"]["shippingMethodZipCodeRulesCreate"][
+        "shippingMethod"
+    ]
+    assert shipping_method_data["id"] == shipping_method_id
+    assert shipping_method_data["name"] == shipping_method.name
+    for rule in zip_code_rules:
+        rule["inclusionType"] = "EXCLUDE"
+    assert zip_code_rules_data == zip_code_rules
+
+
+def test_create_shipping_method_zip_code_rule_inclusive(
+    staff_api_client, shipping_method, permission_manage_shipping
+):
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method.pk
+    )
+    zip_code_rules = [
+        {
+            "start": "HB3",
+            "end": "HB6",
+            "inclusionType": ZipCodeRuleInclusionTypeEnum.INCLUDE.name,
+        },
+        {
+            "start": "HB8",
+            "end": None,
+            "inclusionType": ZipCodeRuleInclusionTypeEnum.INCLUDE.name,
+        },
     ]
     variables = {"shippingMethodId": shipping_method_id, "zipCodeRules": zip_code_rules}
     response = staff_api_client.post_graphql(
