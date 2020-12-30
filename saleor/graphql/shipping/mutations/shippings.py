@@ -220,7 +220,7 @@ class ShippingZipCodeRulesCreate(BaseMutation):
             for zip_range in data["input"]["zip_code_rules"]:
                 try:
                     start = zip_range["start"]
-                    end = zip_range["end"]
+                    end = zip_range.get("end")
                     inclusion_type = zip_range.get(
                         "inclusion_type", ZipCodeRuleInclusionType.EXCLUDE
                     )
