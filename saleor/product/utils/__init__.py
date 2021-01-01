@@ -28,9 +28,7 @@ def calculate_revenue_for_variant(
     for order_line in order_lines:
         order = orders_dict[order_line.order_id]
         if order.created >= start_date:
-            net = order_line.unit_price_net * order_line.quantity
-            gross = order_line.unit_price_gross * order_line.quantity
-            revenue += TaxedMoney(net, gross)
+            revenue += order_line.total_price
     return revenue
 
 

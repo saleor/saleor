@@ -44,6 +44,7 @@ def order_with_digital_line(order, digital_content, stock, site_settings):
     variant_channel_listing = variant.channel_listings.get(channel=channel)
     net = variant.get_price(product, [], channel, variant_channel_listing, None)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    unit_price = TaxedMoney(net=net, gross=gross)
     line = order.lines.create(
         product_name=str(product),
         variant_name=str(variant),
@@ -51,7 +52,8 @@ def order_with_digital_line(order, digital_content, stock, site_settings):
         is_shipping_required=variant.is_shipping_required(),
         quantity=quantity,
         variant=variant,
-        unit_price=TaxedMoney(net=net, gross=gross),
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
         tax_rate=23,
     )
 
@@ -601,16 +603,20 @@ def test_create_refund_fulfillment_multiple_refunds(
     net = variant.get_price(
         variant.product, [collection], channel_USD, variant_channel_listing, []
     )
-    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    currency = net.currency
+    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    quantity = 5
+    unit_price = TaxedMoney(net=net, gross=gross)
     order_line = fulfilled_order.lines.create(
         product_name=str(variant.product),
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
-        quantity=5,
+        quantity=quantity,
         quantity_fulfilled=2,
         variant=variant,
-        unit_price=TaxedMoney(net=net, gross=gross),
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
         tax_rate=23,
     )
     Allocation.objects.create(

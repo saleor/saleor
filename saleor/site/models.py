@@ -11,7 +11,6 @@ from django.db import models
 from ..core.permissions import SitePermissions
 from ..core.utils.translations import TranslationProxy
 from ..core.weight import WeightUnits
-from . import AuthenticationBackends
 from .error_codes import SiteErrorCode
 from .patch_sites import patch_contrib_sites
 
@@ -94,9 +93,6 @@ class SiteSettings(models.Model):
         value = str(Address(sender_name, addr_spec=sender_address))
         return value
 
-    def available_backends(self):
-        return self.authorizationkey_set.values_list("name", flat=True)
-
 
 class SiteSettingsTranslation(models.Model):
     language_code = models.CharField(max_length=10)
@@ -119,19 +115,3 @@ class SiteSettingsTranslation(models.Model):
 
     def __str__(self):
         return self.site_settings.site.name
-
-
-class AuthorizationKey(models.Model):
-    site_settings = models.ForeignKey(SiteSettings, on_delete=models.CASCADE)
-    name = models.CharField(max_length=20, choices=AuthenticationBackends.BACKENDS)
-    key = models.TextField()
-    password = models.TextField()
-
-    class Meta:
-        unique_together = (("site_settings", "name"),)
-
-    def __str__(self):
-        return self.name
-
-    def key_and_secret(self):
-        return self.key, self.password

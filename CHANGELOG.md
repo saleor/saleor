@@ -22,6 +22,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add delivery time to shipping method - #6564 by @IKarbowiak
 - Drop deprecated fields from the `ProductVariant` type: `quantity`, `quantityAllocated`, `stockQuantity`, `isAvailable` - #6436 by @maarcingebala
 - Introduce file attributes - #6568 by @IKarbowiak
+- Drop authorization keys API - #6631 by @maarcingebala
 
 # 2.11.1
 

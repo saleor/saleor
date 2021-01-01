@@ -1315,15 +1315,18 @@ def test_fulfillment_refund_products_fulfillment_lines_and_order_lines(
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     variant.track_inventory = False
     variant.save()
+    quantity = 5
+    total_price = TaxedMoney(net=net * quantity, gross=gross * quantity)
     order_line = fulfilled_order.lines.create(
         product_name=str(variant.product),
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
-        quantity=5,
+        quantity=quantity,
         quantity_fulfilled=2,
         variant=variant,
         unit_price=TaxedMoney(net=net, gross=gross),
+        total_price=total_price,
         tax_rate=23,
     )
     fulfillment = fulfilled_order.fulfillments.get()
