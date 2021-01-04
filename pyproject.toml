@@ -12,7 +12,7 @@ repository = "https://github.com/mirumee/saleor"
 documentation = "https://docs.getsaleor.com/en/latest/"
 
 [tool.poetry.dependencies]
-python = "~3.8"
+python = "~3.9"
 babel = ">=2.8,<2.10"
 boto3 = "^1.14"
 braintree = ">=4.2,<4.6"
@@ -32,7 +32,7 @@ django-storages = { version = "^1.7.1", extras = [ "google" ] }
 django-templated-email = "^2.3.0"
 django-versatileimagefield = "^2.0"
 draftjs-sanitizer = "^1.0.0"
-faker = "^4.1"
+faker = ">=4.1,<6.0"
 freezegun = "^0"
 google-cloud-storage = "^1.29.0"
 google-i18n-address = "^2.3.5"
@@ -72,7 +72,7 @@ gunicorn = "^20.0.4"
 
 [tool.poetry.dev-dependencies]
 black = "19.10b0"
-codecov = "^2.1.10"
+codecov = "^2.1.11"
 coverage = "^5.3"
 django-debug-toolbar = "^3.2"
 django-debug-toolbar-request-history = "^0"

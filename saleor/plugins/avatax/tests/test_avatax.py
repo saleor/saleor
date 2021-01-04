@@ -1,4 +1,5 @@
 import datetime
+from decimal import Decimal
 from json import JSONDecodeError
 from unittest.mock import Mock, patch
 
@@ -7,9 +8,11 @@ from django.core.exceptions import ValidationError
 from prices import Money, TaxedMoney
 from requests import RequestException
 
+from ....checkout import CheckoutLineInfo
 from ....checkout.utils import add_variant_to_checkout, fetch_checkout_lines
 from ....core.prices import quantize_price
 from ....core.taxes import TaxError, TaxType
+from ....product.models import Product
 from ...manager import get_plugins_manager
 from ...models import PluginConfiguration
 from .. import (
@@ -483,6 +486,235 @@ def test_taxes_need_new_fetch_uses_cached_data(
         "saleor.plugins.avatax.cache.get", lambda x: [checkout_data, None]
     )
     assert not taxes_need_new_fetch(checkout_data, str(checkout_with_item.token))
+
+
+AVALARA_TAX_DATA = {
+    "id": 0,
+    "companyId": 123,
+    "date": "2020-12-28",
+    "paymentDate": "2020-12-28",
+    "status": "Temporary",
+    "type": "SalesOrder",
+    "summary": [
+        {
+            "country": "US",
+            "region": "NE",
+            "jurisType": "State",
+            "jurisCode": "31",
+            "jurisName": "NEBRASKA",
+            "taxAuthorityType": 45,
+            "stateAssignedNo": "",
+            "taxType": "Sales",
+            "taxSubType": "S",
+            "taxName": "NE STATE TAX",
+            "rateType": "General",
+            "taxable": 36.94,
+            "rate": 0.055,
+            "tax": 2.03,
+            "taxCalculated": 2.03,
+            "nonTaxable": 0.0,
+            "exemption": 0.0,
+        }
+    ],
+}
+
+
+def test_get_checkout_line_tax_rate(
+    monkeypatch, checkout_with_item, address, plugin_configuration, shipping_zone
+):
+    # given
+    plugin_configuration()
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.get_checkout_tax_data",
+        lambda *_: AVALARA_TAX_DATA,
+    )
+    unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
+
+    manager = get_plugins_manager(plugins=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+    line = checkout_with_item.lines.first()
+
+    checkout_with_item.shipping_address = address
+    checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
+    checkout_with_item.save(update_fields=["shipping_address", "shipping_method"])
+
+    variant = line.variant
+    checkout_line_info = CheckoutLineInfo(
+        line=line,
+        variant=variant,
+        channel_listing=variant.channel_listings.first(),
+        product=variant.product,
+        collections=[],
+    )
+
+    # when
+    tax_rate = manager.get_checkout_line_tax_rate(
+        checkout_with_item,
+        checkout_line_info,
+        checkout_with_item.shipping_address,
+        [],
+        unit_price,
+    )
+
+    # then
+    assert tax_rate == Decimal("0.055")
+
+
+def test_get_checkout_line_tax_rate_checkout_not_valid_default_value_returned(
+    monkeypatch, checkout_with_item, address, plugin_configuration
+):
+    # given
+    plugin_configuration()
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.get_checkout_tax_data",
+        lambda *_: AVALARA_TAX_DATA,
+    )
+    unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
+
+    manager = get_plugins_manager(plugins=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+    line = checkout_with_item.lines.first()
+
+    checkout_with_item.shipping_address = address
+    checkout_with_item.save(update_fields=["shipping_address"])
+
+    variant = line.variant
+    checkout_line_info = CheckoutLineInfo(
+        line=line,
+        variant=variant,
+        channel_listing=variant.channel_listings.first(),
+        product=variant.product,
+        collections=[],
+    )
+
+    # when
+    tax_rate = manager.get_checkout_line_tax_rate(
+        checkout_with_item,
+        checkout_line_info,
+        checkout_with_item.shipping_address,
+        [],
+        unit_price,
+    )
+
+    # then
+    assert tax_rate == Decimal("0.25")
+
+
+def test_get_checkout_line_tax_rate_error_in_response(
+    monkeypatch, checkout_with_item, address, plugin_configuration, shipping_zone
+):
+    # given
+    plugin_configuration()
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.get_checkout_tax_data",
+        lambda *_: {"error": "Example error"},
+    )
+    unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
+
+    manager = get_plugins_manager(plugins=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+    line = checkout_with_item.lines.first()
+
+    checkout_with_item.shipping_address = address
+    checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
+    checkout_with_item.save(update_fields=["shipping_address", "shipping_method"])
+
+    variant = line.variant
+    checkout_line_info = CheckoutLineInfo(
+        line=line,
+        variant=variant,
+        channel_listing=variant.channel_listings.first(),
+        product=variant.product,
+        collections=[],
+    )
+
+    # when
+    tax_rate = manager.get_checkout_line_tax_rate(
+        checkout_with_item,
+        checkout_line_info,
+        checkout_with_item.shipping_address,
+        [],
+        unit_price,
+    )
+
+    # then
+    assert tax_rate == Decimal("0.25")
+
+
+def test_get_order_line_tax_rate(
+    monkeypatch, order_line, shipping_zone, plugin_configuration
+):
+    # given
+    order = order_line.order
+    plugin_configuration()
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.get_order_tax_data", lambda *_: AVALARA_TAX_DATA
+    )
+    unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
+
+    manager = get_plugins_manager(plugins=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+
+    product = Product.objects.get(name=order_line.product_name)
+
+    method = shipping_zone.shipping_methods.get()
+    order.shipping_address = order.billing_address.get_copy()
+    order.shipping_method_name = method.name
+    order.shipping_method = method
+    order.save()
+
+    # when
+    tax_rate = manager.get_order_line_tax_rate(order, product, None, unit_price,)
+
+    # then
+    assert tax_rate == Decimal("0.055")
+
+
+def test_get_order_line_tax_rate_order_not_valid_default_value_returned(
+    monkeypatch, order_line, shipping_zone, plugin_configuration
+):
+    # given
+    order = order_line.order
+    plugin_configuration()
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.get_order_tax_data", lambda *_: AVALARA_TAX_DATA
+    )
+    unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
+
+    manager = get_plugins_manager(plugins=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+
+    product = Product.objects.get(name=order_line.product_name)
+
+    # when
+    tax_rate = manager.get_order_line_tax_rate(order, product, None, unit_price,)
+
+    # then
+    assert tax_rate == Decimal("0.25")
+
+
+def test_get_order_line_tax_rate_error_in_response(
+    monkeypatch, order_line, shipping_zone, plugin_configuration
+):
+    # given
+    order = order_line.order
+    plugin_configuration()
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.get_order_tax_data",
+        lambda *_: {"error": "Example error"},
+    )
+    unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
+
+    manager = get_plugins_manager(plugins=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+
+    product = Product.objects.get(name=order_line.product_name)
+
+    method = shipping_zone.shipping_methods.get()
+    order.shipping_address = order.billing_address.get_copy()
+    order.shipping_method_name = method.name
+    order.shipping_method = method
+    order.save()
+
+    # when
+    tax_rate = manager.get_order_line_tax_rate(order, product, None, unit_price,)
+
+    # then
+    assert tax_rate == Decimal("0.25")
 
 
 def test_get_plugin_configuration(settings):
