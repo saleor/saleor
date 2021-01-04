@@ -2609,6 +2609,7 @@ type Mutation {
   shippingMethodChannelListingUpdate(id: ID!, input: ShippingMethodChannelListingInput!): ShippingMethodChannelListingUpdate
   shippingMethodZipCodeRulesCreate(input: ShippingZipCodeRulesCreateInput!, shippingMethodId: ID!): ShippingZipCodeRulesCreate
   shippingMethodZipCodeRulesDelete(id: ID!): ShippingZipCodeRulesDelete
+  shippingMethodZipCodeRulesUpdateInclusionType(inclusionType: ZipCodeRuleInclusionTypeEnum!, shippingMethodId: ID!): ShippingZipCodeRulesUpdateInclusionType
   shippingPriceCreate(input: ShippingPriceInput!): ShippingPriceCreate
   shippingPriceDelete(id: ID!): ShippingPriceDelete
   shippingPriceBulkDelete(ids: [ID]!): ShippingPriceBulkDelete
@@ -4882,6 +4883,13 @@ type ShippingZipCodeRulesDelete {
   shippingMethod: ShippingMethod
   shippingErrors: [ShippingError!]!
   shippingMethodZipCodeRule: ShippingMethodZipCodeRule
+}
+
+type ShippingZipCodeRulesUpdateInclusionType {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  zipCodeRules: [ShippingMethodZipCodeRule]
+  shippingMethod: ShippingMethod
+  shippingErrors: [ShippingError!]!
 }
 
 type ShippingZone implements Node & ObjectWithMetadata {
