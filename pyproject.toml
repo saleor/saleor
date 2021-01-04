@@ -72,7 +72,7 @@ gunicorn = "^20.0.4"
 
 [tool.poetry.dev-dependencies]
 black = "19.10b0"
-codecov = "^2.1.10"
+codecov = "^2.1.11"
 coverage = "^5.3"
 django-debug-toolbar = "^3.2"
 django-debug-toolbar-request-history = "^0"
