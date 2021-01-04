@@ -2828,3 +2828,33 @@ def test_clean_checkout_no_payment(checkout_with_item, shipping_method, address)
 
     msg = "Provided payment methods can not cover the checkout's total amount"
     assert e.value.error_list[0].message == msg
+
+
+def test_get_variant_data_from_checkout_line_variant_hidden_in_listings(
+    checkout_with_item, api_client
+):
+    # given
+    query = """
+        query getCheckout($token: UUID!){
+            checkout(token: $token){
+                id
+                lines{
+                    id
+                    variant{
+                        id
+                    }
+                }
+            }
+        }
+    """
+    checkout = checkout_with_item
+    variant = checkout.lines.get().variant
+    variant.product.channel_listings.update(visible_in_listings=False)
+    variables = {"token": checkout.token}
+
+    # when
+    response = api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["lines"][0]["variant"]["id"]
