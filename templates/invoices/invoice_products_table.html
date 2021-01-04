@@ -32,7 +32,7 @@
                 <span class="normal-text-table cell-quantity-content">{{ product.quantity }}</span>
             </td>
             <td class="cell-total-price">
-                <span class="normal-text-table">{% price product.get_total.gross %}</span>
+                <span class="normal-text-table">{% price product.total_price.gross %}</span>
             </td>
         </tr>
         {% endfor %}
