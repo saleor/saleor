@@ -900,7 +900,7 @@ proto-plus = ">=1.7.1"
 
 [[package]]
 name = "google-cloud-storage"
-version = "1.33.0"
+version = "1.35.0"
 description = "Google Cloud Storage API client library"
 category = "main"
 optional = false
@@ -909,7 +909,7 @@ python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*"
 [package.dependencies]
 google-auth = ">=1.11.0,<2.0dev"
 google-cloud-core = ">=1.4.1,<2.0dev"
-google-resumable-media = ">=1.0.0,<2.0dev"
+google-resumable-media = ">=1.2.0,<2.0dev"
 requests = ">=2.18.0,<3.0.0dev"
 
 [[package]]
@@ -951,11 +951,11 @@ requests = ">=2.0,<3.0a0"
 
 [[package]]
 name = "google-resumable-media"
-version = "1.1.0"
+version = "1.2.0"
 description = "Utilities for Google Media Downloads and Resumable Uploads"
 category = "main"
 optional = false
-python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*"
+python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*"
 
 [package.dependencies]
 google-crc32c = {version = ">=1.0,<2.0dev", markers = "python_version >= \"3.5\""}
@@ -2847,8 +2847,8 @@ google-cloud-pubsub = [
     {file = "google_cloud_pubsub-2.2.0-py2.py3-none-any.whl", hash = "sha256:44ea43f3603a641afee89b5789414a3db55a41a4e0f50c113dd0c8fddbc06e45"},
 ]
 google-cloud-storage = [
-    {file = "google-cloud-storage-1.33.0.tar.gz", hash = "sha256:900ba027bdee6b97f21cd22d1db3d1a6233ede5de2db4754db860438bdad72d2"},
-    {file = "google_cloud_storage-1.33.0-py2.py3-none-any.whl", hash = "sha256:a63b280a225e385fe0f9b606523e5812f37715614cdc646c51dac75cac880d95"},
+    {file = "google-cloud-storage-1.35.0.tar.gz", hash = "sha256:555c0db2f88f3419f123bf9c621d7fd92f7c9e4f8b11f08eda57facacba16a9e"},
+    {file = "google_cloud_storage-1.35.0-py2.py3-none-any.whl", hash = "sha256:7b48b74683dafec5da315c7b0861ab168c208e04c763aa5db7ea8d7ecd8b6c5d"},
 ]
 google-crc32c = [
     {file = "google-crc32c-1.0.0.tar.gz", hash = "sha256:9439b960b6ecd847557675d130fc3626d762bf535da595c20a6949a705fb3eae"},
@@ -2879,8 +2879,8 @@ google-measurement-protocol = [
     {file = "google_measurement_protocol-1.1.0-py2.py3-none-any.whl", hash = "sha256:387800809d143bf490353e19d78bf856066875fdad80817d9f148219c483f087"},
 ]
 google-resumable-media = [
-    {file = "google-resumable-media-1.1.0.tar.gz", hash = "sha256:dcdab13e95bc534d268f87d5293e482cce5bc86dfce6ca0f2e2e89cbb73ef38c"},
-    {file = "google_resumable_media-1.1.0-py2.py3-none-any.whl", hash = "sha256:ecabcd90d74a6e00331af0c87f500f238c44870d9626e01b385dda3af7b99269"},
+    {file = "google-resumable-media-1.2.0.tar.gz", hash = "sha256:ee98b1921e5bda94867a08c864e55b4763d63887664f49ee1c231988f56b9d43"},
+    {file = "google_resumable_media-1.2.0-py2.py3-none-any.whl", hash = "sha256:dbe670cd7f02f3586705fd5a108c8ab8552fa36a1cad8afbc5a54e982cf34f0c"},
 ]
 googleapis-common-protos = [
     {file = "googleapis-common-protos-1.52.0.tar.gz", hash = "sha256:560716c807117394da12cecb0a54da5a451b5cf9866f1d37e9a5e2329a665351"},
