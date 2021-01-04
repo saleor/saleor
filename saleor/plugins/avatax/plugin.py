@@ -495,13 +495,13 @@ class AvataxPlugin(BasePlugin):
         )
         if response is None:
             return base_rate
-        lines_data = response.get("lines")
+        lines_data = response.get("lines", [])
         for line in lines_data:
             if line["itemCode"] == "Shipping":
                 line_details = line.get("details")
                 if not line_details:
                     return
-                return line_details[0]["rate"]
+                return Decimal(line_details[0].get("rate", 0.0))
         return base_rate
 
     def _get_tax_data(
