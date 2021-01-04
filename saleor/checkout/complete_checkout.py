@@ -1,5 +1,4 @@
 from datetime import date
-from decimal import Decimal
 from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple
 
 from django.contrib.sites.models import Site
@@ -146,7 +145,6 @@ def _create_line_for_order(
 
     :raises InsufficientStock: when there is not enough items in stock for this variant.
     """
-
     checkout_line = checkout_line_info.line
     quantity = checkout_line.quantity
     variant = checkout_line_info.variant
@@ -181,10 +179,9 @@ def _create_line_for_order(
         discounts,
     )
     unit_price = manager.calculate_checkout_line_unit_price(total_line_price, quantity)
-    tax_rate = Decimal("0.0")
-    # The condition will return False when unit_price.gross is 0.0
-    if not isinstance(unit_price, Decimal) and unit_price.gross:
-        tax_rate = unit_price.tax / unit_price.net
+    tax_rate = manager.get_checkout_line_tax_rate(
+        checkout, checkout_line_info, address, discounts, unit_price
+    )
 
     line = OrderLine(
         product_name=product_name,

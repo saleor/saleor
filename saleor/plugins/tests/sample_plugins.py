@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Iterable, Optional, Union
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
@@ -11,7 +11,12 @@ from ..base_plugin import BasePlugin, ConfigurationTypeField
 
 if TYPE_CHECKING:
     # flake8: noqa
+    from ...account.models import Address
+    from ...checkout import CheckoutLineInfo
+    from ...discount import DiscountInfo
     from ...product.models import Product, ProductType
+    from ...order.models import Order
+    from ...checkout.models import Checkout, CheckoutLine
 
 
 class PluginSample(BasePlugin):
@@ -129,6 +134,25 @@ class PluginSample(BasePlugin):
         self, obj: Union["Product", "ProductType"], country: Country, previous_value
     ) -> Decimal:
         return Decimal("15.0").quantize(Decimal("1."))
+
+    def get_checkout_line_tax_rate(
+        self,
+        checkout: "Checkout",
+        checkout_line_info: "CheckoutLineInfo",
+        address: Optional["Address"],
+        discounts: Iterable["DiscountInfo"],
+        previous_value: Decimal,
+    ) -> Decimal:
+        return Decimal("0.080").quantize(Decimal(".01"))
+
+    def get_order_line_tax_rate(
+        self,
+        order: "Order",
+        product: "Product",
+        address: Optional["Address"],
+        previous_value: Decimal,
+    ) -> Decimal:
+        return Decimal("0.080").quantize(Decimal(".01"))
 
 
 class PluginInactive(BasePlugin):
