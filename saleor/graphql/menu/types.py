@@ -5,8 +5,13 @@ from ...core.permissions import PagePermissions
 from ...menu import models
 from ...product.models import Collection
 from ..channel.dataloaders import ChannelBySlugLoader
-from ..channel.types import ChannelContext, ChannelContextType
+from ..channel.types import (
+    ChannelContext,
+    ChannelContextType,
+    ChannelContextTypeWithMetadata,
+)
 from ..core.connection import CountableDjangoObjectType
+from ..meta.types import ObjectWithMetadata
 from ..page.dataloaders import PageByIdLoader
 from ..product.dataloaders import (
     CategoryByIdLoader,
@@ -24,7 +29,7 @@ from .dataloaders import (
 )
 
 
-class Menu(ChannelContextType, CountableDjangoObjectType):
+class Menu(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     items = graphene.List(lambda: MenuItem)
 
     class Meta:
@@ -33,7 +38,7 @@ class Menu(ChannelContextType, CountableDjangoObjectType):
             "Represents a single menu - an object that is used to help navigate "
             "through the store."
         )
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         only_fields = ["id", "name", "slug"]
         model = models.Menu
 
@@ -48,7 +53,7 @@ class Menu(ChannelContextType, CountableDjangoObjectType):
         )
 
 
-class MenuItem(ChannelContextType, CountableDjangoObjectType):
+class MenuItem(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     children = graphene.List(lambda: MenuItem)
     url = graphene.String(description="URL to the menu item.")
     translation = TranslationField(
@@ -64,7 +69,7 @@ class MenuItem(ChannelContextType, CountableDjangoObjectType):
             "Represents a single item of the related menu. Can store categories, "
             "collection or pages."
         )
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         only_fields = [
             "category",
             "collection",
