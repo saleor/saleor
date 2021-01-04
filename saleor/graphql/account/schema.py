@@ -1,5 +1,6 @@
 import graphene
 
+from ..core.validators import validate_one_of_args_is_in_query
 from ...core.permissions import AccountPermissions
 from ..core.fields import FilterInputConnectionField
 from ..core.types import FilterInputObjectType
@@ -135,7 +136,7 @@ class AccountQueries(graphene.ObjectType):
         email=graphene.Argument(
             graphene.String, description="Email address of the user."
         ),
-        description="Look up a user by email address.",
+        description="Look up a user by ID or email address.",
     )
 
     def resolve_address_validation_rules(
@@ -173,6 +174,7 @@ class AccountQueries(graphene.ObjectType):
         [AccountPermissions.MANAGE_STAFF, AccountPermissions.MANAGE_USERS]
     )
     def resolve_user(self, info, id=None, email=None):
+        validate_one_of_args_is_in_query("id", id, "email", email)
         return resolve_user(info, id, email)
 
     def resolve_address(self, info, id):

@@ -53,19 +53,19 @@ def resolve_staff_users(info, query, **_kwargs):
 def resolve_user(info, id=None, email=None):
     requester = get_user_or_app_from_context(info.context)
     if requester:
-        filterkwargs = {}
+        filter_kwargs = {}
         if id:
-            _model, filterkwargs["pk"] = graphene.Node.from_global_id(id)
+            _model, filter_kwargs["pk"] = graphene.Node.from_global_id(id)
         if email:
-            filterkwargs["email"] = email
+            filter_kwargs["email"] = email
         if requester.has_perms(
             [AccountPermissions.MANAGE_STAFF, AccountPermissions.MANAGE_USERS]
         ):
-            return models.User.objects.filter(**filterkwargs).first()
+            return models.User.objects.filter(**filter_kwargs).first()
         if requester.has_perm(AccountPermissions.MANAGE_STAFF):
-            return models.User.objects.staff().filter(**filterkwargs).first()
+            return models.User.objects.staff().filter(**filter_kwargs).first()
         if requester.has_perm(AccountPermissions.MANAGE_USERS):
-            return models.User.objects.customers().filter(**filterkwargs).first()
+            return models.User.objects.customers().filter(**filter_kwargs).first()
     return PermissionDenied()
 
 
