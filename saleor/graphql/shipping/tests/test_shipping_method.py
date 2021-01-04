@@ -540,11 +540,11 @@ DELETE_SHIPPING_METHOD_ZIP_CODE_MUTATION = """
 
 
 def test_delete_shipping_method_zip_code(
-    staff_api_client, shipping_method_excldued_by_zip_code, permission_manage_shipping
+    staff_api_client, shipping_method_excluded_by_zip_code, permission_manage_shipping
 ):
     shipping_zip_code_id = graphene.Node.to_global_id(
         "ShippingMethodZipCodeRule",
-        shipping_method_excldued_by_zip_code.zip_code_rules.first().id,
+        shipping_method_excluded_by_zip_code.zip_code_rules.first().id,
     )
     response = staff_api_client.post_graphql(
         DELETE_SHIPPING_METHOD_ZIP_CODE_MUTATION,
@@ -555,10 +555,10 @@ def test_delete_shipping_method_zip_code(
     data = content["data"]["shippingMethodZipCodeRulesDelete"]
     assert data["shippingErrors"] == []
     assert data["shippingMethod"]["id"] == graphene.Node.to_global_id(
-        "ShippingMethod", shipping_method_excldued_by_zip_code.id
+        "ShippingMethod", shipping_method_excluded_by_zip_code.id
     )
-    assert data["shippingMethod"]["name"] == shipping_method_excldued_by_zip_code.name
-    assert not shipping_method_excldued_by_zip_code.zip_code_rules.exists()
+    assert data["shippingMethod"]["name"] == shipping_method_excluded_by_zip_code.name
+    assert not shipping_method_excluded_by_zip_code.zip_code_rules.exists()
 
 
 UPDATE_SHIPPING_ZONE_QUERY = """

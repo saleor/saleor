@@ -3641,10 +3641,10 @@ def test_order_update_shipping_excluded_shipping_method_zip_code(
     permission_manage_orders,
     order,
     staff_user,
-    shipping_method_excldued_by_zip_code,
+    shipping_method_excluded_by_zip_code,
 ):
-    order.shipping_method = shipping_method_excldued_by_zip_code
-    shipping_total = shipping_method_excldued_by_zip_code.channel_listings.get(
+    order.shipping_method = shipping_method_excluded_by_zip_code
+    shipping_total = shipping_method_excluded_by_zip_code.channel_listings.get(
         channel_id=order.channel_id,
     ).get_total()
 
@@ -3656,7 +3656,7 @@ def test_order_update_shipping_excluded_shipping_method_zip_code(
     query = ORDER_UPDATE_SHIPPING_QUERY
     order_id = graphene.Node.to_global_id("Order", order.id)
     method_id = graphene.Node.to_global_id(
-        "ShippingMethod", shipping_method_excldued_by_zip_code.id
+        "ShippingMethod", shipping_method_excluded_by_zip_code.id
     )
     variables = {"order": order_id, "shippingMethod": method_id}
     response = staff_api_client.post_graphql(
