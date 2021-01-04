@@ -24,6 +24,7 @@ from ....order.models import FulfillmentStatus, Order
 from ....product.tests.utils import create_image
 from ...core.utils import str_to_enum
 from ...tests.utils import (
+    assert_graphql_error_with_message,
     assert_no_permission,
     get_graphql_content,
     get_multipart_request_body,
@@ -393,6 +394,23 @@ def test_query_user_by_email_address(
     content = get_graphql_content(response)
     data = content["data"]["user"]
     assert customer_user.email == data["email"]
+
+
+def test_query_user_by_id_and_email(
+    user_api_client, customer_user, permission_manage_users
+):
+    email = customer_user.email
+    id = graphene.Node.to_global_id("User", customer_user.id)
+    variables = {
+        "id": id,
+        "email": email,
+    }
+    response = user_api_client.post_graphql(
+        USER_QUERY, variables, permissions=[permission_manage_users]
+    )
+    content = assert_graphql_error_with_message(
+        response, "Argument 'id' cannot be combined with 'email'"
+    )
 
 
 def test_customer_can_not_see_other_users_data(user_api_client, staff_user):
