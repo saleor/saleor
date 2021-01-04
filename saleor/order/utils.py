@@ -142,12 +142,16 @@ def update_order_prices(order, discounts):
                 line.save()
 
     if order.shipping_method:
-        # TODO: update shipping tax rate here - for order
-        order.shipping_price = manager.calculate_order_shipping(order)
+        shipping_price = manager.calculate_order_shipping(order)
+        order.shipping_price = shipping_price
+        order.shipping_tax_rate = manager.get_order_shipping_tax_rate(
+            order, shipping_price
+        )
         order.save(
             update_fields=[
                 "shipping_price_net_amount",
                 "shipping_price_gross_amount",
+                "shipping_tax_rate",
                 "currency",
             ]
         )
