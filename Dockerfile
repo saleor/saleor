@@ -19,12 +19,16 @@ RUN groupadd -r saleor && useradd -r -g saleor saleor
 
 RUN apt-get update \
   && apt-get install -y \
-  libxml2 \
-  libssl1.1 \
   libcairo2 \
+  libgdk-pixbuf2.0-0 \
+  liblcms2-2 \
+  libopenjp2-7 \
   libpango-1.0-0 \
   libpangocairo-1.0-0 \
-  libgdk-pixbuf2.0-0 \
+  libssl1.1 \
+  libtiff5 \
+  libwebp6 \
+  libxml2 \
   shared-mime-info \
   mime-support \
   && apt-get clean \
