@@ -9,12 +9,8 @@ from django.utils.text import slugify
 from graphql.error import GraphQLError
 from graphql_relay import from_global_id
 
-from ...attribute import (
-    AttributeEntityType,
-    AttributeInputType,
-    AttributeType,
-    models as attribute_models,
-)
+from ...attribute import AttributeEntityType, AttributeInputType, AttributeType
+from ...attribute import models as attribute_models
 from ...attribute.utils import associate_attribute_values_to_instance
 from ...core.utils import generate_unique_slug
 from ...page import models as page_models
@@ -25,6 +21,7 @@ from ..utils import get_nodes
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
+
     from ...attribute.models import Attribute
 
 

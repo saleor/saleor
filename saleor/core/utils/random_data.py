@@ -328,7 +328,8 @@ def assign_attributes_to_product_types(
 
 
 def assign_attributes_to_page_types(
-    association_model: AttributePage, attributes: list,
+    association_model: AttributePage,
+    attributes: list,
 ):
     for value in attributes:
         pk = value["pk"]
@@ -570,10 +571,18 @@ def create_order_lines(order, discounts, how_many=10):
     lines = []
     for _ in range(how_many):
         variant = next(variants_iter)
+        variant_channel_listing = variant.channel_listings.get(channel=channel)
         product = variant.product
         quantity = random.randrange(1, 5)
-        unit_price = variant.get_price(channel.slug, discounts)
+        unit_price = variant.get_price(
+            product,
+            product.collections.all(),
+            channel,
+            variant_channel_listing,
+            discounts,
+        )
         unit_price = TaxedMoney(net=unit_price, gross=unit_price)
+        total_price = unit_price * quantity
         lines.append(
             OrderLine(
                 order=order,
@@ -584,6 +593,7 @@ def create_order_lines(order, discounts, how_many=10):
                 quantity=quantity,
                 variant=variant,
                 unit_price=unit_price,
+                total_price=total_price,
                 tax_rate=0,
             )
         )
@@ -674,7 +684,7 @@ def create_fake_order(discounts, max_order_lines=5):
 
     order = Order.objects.create(**order_data)
     lines = create_order_lines(order, discounts, random.randrange(1, max_order_lines))
-    order.total = sum([line.get_total() for line in lines], shipping_price)
+    order.total = sum([line.total_price for line in lines], shipping_price)
     weight = Weight(kg=0)
     for line in order:
         weight += line.variant.get_weight()
@@ -691,7 +701,8 @@ def create_fake_order(discounts, max_order_lines=5):
 
 def create_fake_sale():
     sale = Sale.objects.create(
-        name="Happy %s day!" % fake.word(), type=DiscountValueType.PERCENTAGE,
+        name="Happy %s day!" % fake.word(),
+        type=DiscountValueType.PERCENTAGE,
     )
     for channel in Channel.objects.all():
         SaleChannelListing.objects.create(
@@ -797,7 +808,8 @@ def create_channels():
         slug=settings.DEFAULT_CHANNEL_SLUG,
     )
     yield create_channel(
-        channel_name="Channel-PLN", currency_code="PLN",
+        channel_name="Channel-PLN",
+        currency_code="PLN",
     )
 
 

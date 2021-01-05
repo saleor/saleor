@@ -21,7 +21,11 @@ from ...tests.utils import assert_no_permission, get_graphql_content
 
 
 def test_fetch_variant(
-    staff_api_client, product, permission_manage_products, site_settings, channel_USD,
+    staff_api_client,
+    product,
+    permission_manage_products,
+    site_settings,
+    channel_USD,
 ):
     query = """
     query ProductVariantDetails($id: ID!, $countyCode: CountryCode, $channel: String) {
@@ -208,7 +212,9 @@ def test_get_product_variant_channel_listing_as_app(
 
 
 def test_get_product_variant_channel_listing_as_customer(
-    user_api_client, product_available_in_many_channels, channel_USD,
+    user_api_client,
+    product_available_in_many_channels,
+    channel_USD,
 ):
     # given
     variant = product_available_in_many_channels.variants.get()
@@ -217,7 +223,8 @@ def test_get_product_variant_channel_listing_as_customer(
 
     # when
     response = user_api_client.post_graphql(
-        QUERY_PRODUCT_VARIANT_CHANNEL_LISTING, variables,
+        QUERY_PRODUCT_VARIANT_CHANNEL_LISTING,
+        variables,
     )
 
     # then
@@ -225,7 +232,9 @@ def test_get_product_variant_channel_listing_as_customer(
 
 
 def test_get_product_variant_channel_listing_as_anonymous(
-    api_client, product_available_in_many_channels, channel_USD,
+    api_client,
+    product_available_in_many_channels,
+    channel_USD,
 ):
     # given
     variant = product_available_in_many_channels.variants.get()
@@ -234,7 +243,8 @@ def test_get_product_variant_channel_listing_as_anonymous(
 
     # when
     response = api_client.post_graphql(
-        QUERY_PRODUCT_VARIANT_CHANNEL_LISTING, variables,
+        QUERY_PRODUCT_VARIANT_CHANNEL_LISTING,
+        variables,
     )
 
     # then
@@ -1559,7 +1569,11 @@ def test_delete_variant(staff_api_client, product, permission_manage_products):
 
 
 def test_delete_variant_in_draft_order(
-    staff_api_client, order_line, permission_manage_products, order_list, channel_USD,
+    staff_api_client,
+    order_line,
+    permission_manage_products,
+    order_list,
+    channel_USD,
 ):
     query = DELETE_VARIANT_MUTATION
 
@@ -1568,21 +1582,26 @@ def test_delete_variant_in_draft_order(
     draft_order.save(update_fields=["status"])
 
     variant = order_line.variant
+    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     variables = {"id": variant_id}
 
-    net = variant.get_price(channel_USD)
+    product = variant.product
+    net = variant.get_price(product, [], channel_USD, variant_channel_listing, None)
     gross = Money(amount=net.amount, currency=net.currency)
     order_not_draft = order_list[-1]
+    unit_price = TaxedMoney(net=net, gross=gross)
+    quantity = 3
     order_line_not_in_draft = OrderLine.objects.create(
         variant=variant,
         order=order_not_draft,
-        product_name=str(variant.product),
+        product_name=str(product),
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
-        unit_price=TaxedMoney(net=net, gross=gross),
-        quantity=3,
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
+        quantity=quantity,
     )
     order_line_not_in_draft_pk = order_line_not_in_draft.pk
 
@@ -1897,7 +1916,9 @@ def test_fetch_unpublished_variant_staff_user(
 ):
     variant = unavailable_product_with_variant.variants.first()
     data = _fetch_variant(
-        staff_api_client, variant, permissions=[permission_manage_products],
+        staff_api_client,
+        variant,
+        permissions=[permission_manage_products],
     )
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)

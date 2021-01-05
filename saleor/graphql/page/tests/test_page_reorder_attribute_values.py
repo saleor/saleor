@@ -42,7 +42,10 @@ PAGE_REORDER_ATTRIBUTE_VALUES_MUTATION = """
 
 
 def test_sort_page_attribute_values(
-    staff_api_client, permission_manage_pages, page, page_reference_attribute,
+    staff_api_client,
+    permission_manage_pages,
+    page,
+    page_reference_attribute,
 ):
     staff_api_client.user.user_permissions.add(permission_manage_pages)
 

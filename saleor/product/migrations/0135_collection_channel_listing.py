@@ -16,7 +16,8 @@ def create_collection_channel_listing(apps, schema_editor):
         currency = os.environ.get("DEFAULT_CURRENCY", "USD")
         name = f"Channel {currency}"
         channel, _ = Channel.objects.get_or_create(
-            currency_code=currency, defaults={"name": name, "slug": slugify(name)},
+            currency_code=currency,
+            defaults={"name": name, "slug": slugify(name)},
         )
         for collection in Collection.objects.iterator():
 
@@ -75,6 +76,12 @@ class Migration(migrations.Migration):
         migrations.RunPython(
             create_collection_channel_listing, migrations.RunPython.noop
         ),
-        migrations.RemoveField(model_name="collection", name="is_published",),
-        migrations.RemoveField(model_name="collection", name="publication_date",),
+        migrations.RemoveField(
+            model_name="collection",
+            name="is_published",
+        ),
+        migrations.RemoveField(
+            model_name="collection",
+            name="publication_date",
+        ),
     ]

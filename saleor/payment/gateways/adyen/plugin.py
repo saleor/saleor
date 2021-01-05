@@ -227,7 +227,8 @@ class AdyenGatewayPlugin(BasePlugin):
             return handle_webhook(request, config)
         elif path.startswith(ADDITIONAL_ACTION_PATH):
             return handle_additional_actions(
-                request, self.adyen.checkout.payments_details,
+                request,
+                self.adyen.checkout.payments_details,
             )
         return HttpResponseNotFound()
 
@@ -255,7 +256,9 @@ class AdyenGatewayPlugin(BasePlugin):
 
     @require_active_plugin
     def get_payment_gateway_for_checkout(
-        self, checkout: "Checkout", previous_value,
+        self,
+        checkout: "Checkout",
+        previous_value,
     ) -> Optional["PaymentGateway"]:
 
         config = self._get_gateway_config()
@@ -325,7 +328,9 @@ class AdyenGatewayPlugin(BasePlugin):
         error_message = result.message.get("refusalReason")
         if action:
             update_payment_with_action_required_data(
-                payment, action, result.message.get("details", []),
+                payment,
+                action,
+                result.message.get("details", []),
             )
         # If auto capture is enabled, let's make a capture the auth payment
         elif (

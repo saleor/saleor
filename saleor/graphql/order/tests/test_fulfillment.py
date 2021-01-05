@@ -755,7 +755,10 @@ query fulfillment($id: ID!){
 
 
 def test_fulfillment_query(
-    staff_api_client, fulfilled_order, warehouse, permission_manage_orders,
+    staff_api_client,
+    fulfilled_order,
+    warehouse,
+    permission_manage_orders,
 ):
     order = fulfilled_order
     order_line_1, order_line_2 = order.lines.all()
@@ -1297,6 +1300,7 @@ def test_fulfillment_refund_products_fulfillment_lines_and_order_lines(
     permission_manage_orders,
     fulfilled_order,
     payment_dummy,
+    collection,
 ):
     payment_dummy.total = fulfilled_order.total_gross_amount
     payment_dummy.captured_amount = payment_dummy.total
@@ -1306,20 +1310,27 @@ def test_fulfillment_refund_products_fulfillment_lines_and_order_lines(
     stock = Stock.objects.create(
         warehouse=warehouse, product_variant=variant, quantity=5
     )
-    net = variant.get_price(channel_USD.slug)
+    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
+
+    net = variant.get_price(
+        variant.product, [collection], channel_USD, variant_channel_listing, []
+    )
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     variant.track_inventory = False
     variant.save()
+    quantity = 5
+    total_price = TaxedMoney(net=net * quantity, gross=gross * quantity)
     order_line = fulfilled_order.lines.create(
         product_name=str(variant.product),
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
-        quantity=5,
+        quantity=quantity,
         quantity_fulfilled=2,
         variant=variant,
         unit_price=TaxedMoney(net=net, gross=gross),
-        tax_rate=23,
+        total_price=total_price,
+        tax_rate=Decimal("0.23"),
     )
     fulfillment = fulfilled_order.fulfillments.get()
     fulfillment.lines.create(order_line=order_line, quantity=2, stock=stock)

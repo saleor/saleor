@@ -78,7 +78,7 @@ class AttributeValue(CountableDjangoObjectType):
     @staticmethod
     def resolve_reference(root: models.AttributeValue, info, **_kwargs):
         def prepare_reference(attribute):
-            if not attribute.input_type == AttributeInputType.REFERENCE:
+            if attribute.input_type != AttributeInputType.REFERENCE:
                 return
             reference_pk = root.slug.split("_")[1]
             reference_id = graphene.Node.to_global_id(

@@ -18,7 +18,8 @@ def add_channel_slug(apps, schema_editor):
         if not channel:
             name = f"Channel {currency}"
             channel, _ = Channel.objects.get_or_create(
-                currency_code=currency, defaults={"name": name, "slug": slugify(name)},
+                currency_code=currency,
+                defaults={"name": name, "slug": slugify(name)},
             )
             channels_dict[currency] = channel
 
@@ -56,7 +57,9 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.AlterField(
-            model_name="order", name="currency", field=models.CharField(max_length=3),
+            model_name="order",
+            name="currency",
+            field=models.CharField(max_length=3),
         ),
         migrations.AlterField(
             model_name="orderline",

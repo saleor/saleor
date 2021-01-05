@@ -179,9 +179,18 @@ class Migration(migrations.Migration):
             create_through_page_relations, reverse_code=migrations.RunPython.noop
         ),
         # remove current `values` relations
-        migrations.RemoveField(model_name="assignedproductattribute", name="values",),
-        migrations.RemoveField(model_name="assignedvariantattribute", name="values",),
-        migrations.RemoveField(model_name="assignedpageattribute", name="values",),
+        migrations.RemoveField(
+            model_name="assignedproductattribute",
+            name="values",
+        ),
+        migrations.RemoveField(
+            model_name="assignedvariantattribute",
+            name="values",
+        ),
+        migrations.RemoveField(
+            model_name="assignedpageattribute",
+            name="values",
+        ),
         # create new values relations with use of through models
         migrations.AddField(
             model_name="assignedproductattribute",

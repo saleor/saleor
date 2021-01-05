@@ -7,7 +7,9 @@ from .base import AssociatedAttributeQuerySet, BaseAssignedAttribute
 
 class AssignedPageAttributeValue(SortableModel):
     value = models.ForeignKey(
-        "AttributeValue", on_delete=models.CASCADE, related_name="pagevalueassignment",
+        "AttributeValue",
+        on_delete=models.CASCADE,
+        related_name="pagevalueassignment",
     )
     assignment = models.ForeignKey(
         "AssignedPageAttribute",

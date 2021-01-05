@@ -41,7 +41,8 @@ def test_filter_page_types(
 
 
 @pytest.mark.parametrize(
-    "direction, order_direction", (("ASC", "name"), ("DESC", "-name")),
+    "direction, order_direction",
+    (("ASC", "name"), ("DESC", "-name")),
 )
 def test_sort_page_types_by_name(
     direction, order_direction, staff_api_client, page_type_list
@@ -63,7 +64,8 @@ def test_sort_page_types_by_name(
 
 
 @pytest.mark.parametrize(
-    "direction, order_direction", (("ASC", "slug"), ("DESC", "-slug")),
+    "direction, order_direction",
+    (("ASC", "slug"), ("DESC", "-slug")),
 )
 def test_sort_page_types_by_slug(
     direction, order_direction, staff_api_client, page_type_list
@@ -85,7 +87,8 @@ def test_sort_page_types_by_slug(
 
 
 @pytest.mark.parametrize(
-    "direction, result_items", (("ASC", [1, 2]), ("DESC", [2, 1])),
+    "direction, result_items",
+    (("ASC", [1, 2]), ("DESC", [2, 1])),
 )
 def test_filter_and_sort_by_slug_page_types(
     direction, result_items, staff_api_client, page_type_list

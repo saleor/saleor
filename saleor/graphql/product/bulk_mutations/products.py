@@ -6,7 +6,8 @@ from django.db import transaction
 from graphene.types import InputObjectType
 
 from ....core.permissions import ProductPermissions, ProductTypePermissions
-from ....order import OrderStatus, models as order_models
+from ....order import OrderStatus
+from ....order import models as order_models
 from ....product import models
 from ....product.error_codes import ProductErrorCode
 from ....product.tasks import update_product_discounted_price_task
@@ -622,7 +623,9 @@ class ProductVariantStocksDelete(BaseMutation):
             required=True,
             description="ID of product variant for which stocks will be deleted.",
         )
-        warehouse_ids = graphene.List(graphene.NonNull(graphene.ID),)
+        warehouse_ids = graphene.List(
+            graphene.NonNull(graphene.ID),
+        )
 
     class Meta:
         description = "Delete stocks from product variant."

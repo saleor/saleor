@@ -131,7 +131,8 @@ class Voucher(models.Model):
                 f"{min_checkout_items_quantity} quantity."
             )
             raise NotApplicable(
-                msg, min_checkout_items_quantity=min_checkout_items_quantity,
+                msg,
+                min_checkout_items_quantity=min_checkout_items_quantity,
             )
 
     def validate_once_per_customer(self, customer_email):
@@ -163,7 +164,9 @@ class VoucherChannelListing(models.Model):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
     )
     discount = MoneyField(amount_field="discount_value", currency_field="currency")
-    currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,)
+    currency = models.CharField(
+        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
+    )
     min_spent_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
@@ -241,7 +244,10 @@ class Sale(models.Model):
         )
 
     def __repr__(self):
-        return "Sale(name=%r, type=%s)" % (str(self.name), self.get_type_display(),)
+        return "Sale(name=%r, type=%s)" % (
+            str(self.name),
+            self.get_type_display(),
+        )
 
     def __str__(self):
         return self.name
@@ -256,7 +262,8 @@ class Sale(models.Model):
             return partial(fixed_discount, discount=discount_amount)
         if self.type == DiscountValueType.PERCENTAGE:
             return partial(
-                percentage_discount, percentage=sale_channel_listing.discount_value,
+                percentage_discount,
+                percentage=sale_channel_listing.discount_value,
             )
         raise NotImplementedError("Unknown discount type")
 
@@ -281,7 +288,9 @@ class SaleChannelListing(models.Model):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=0,
     )
-    currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,)
+    currency = models.CharField(
+        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
+    )
 
     class Meta:
         unique_together = [["sale", "channel"]]

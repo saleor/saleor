@@ -21,6 +21,7 @@ from .utils import (
 if TYPE_CHECKING:
     # flake8: noqa
     from ..payment.interface import CustomerSource, PaymentGateway
+    from ..plugins.manager import PluginsManager
 
 
 logger = logging.getLogger(__name__)
@@ -76,8 +77,10 @@ def process_payment(
     token: str,
     store_source: bool = False,
     additional_data: Optional[dict] = None,
+    plugin_manager: Optional["PluginsManager"] = None,
 ) -> Transaction:
-    plugin_manager = get_plugins_manager()
+    if not plugin_manager:
+        plugin_manager = get_plugins_manager()
     payment_data = create_payment_information(
         payment=payment,
         payment_token=token,

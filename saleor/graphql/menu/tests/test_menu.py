@@ -37,7 +37,8 @@ QUERY_MENU = """
 
 
 def test_menu_query_by_id(
-    user_api_client, menu,
+    user_api_client,
+    menu,
 ):
     variables = {"id": graphene.Node.to_global_id("Menu", menu.pk)}
 
@@ -49,7 +50,8 @@ def test_menu_query_by_id(
 
 
 def test_menu_query_by_name(
-    user_api_client, menu,
+    user_api_client,
+    menu,
 ):
     variables = {"name": menu.name}
     response = user_api_client.post_graphql(QUERY_MENU, variables=variables)
@@ -71,7 +73,9 @@ def test_menu_query_by_slug(user_api_client):
 
 
 def test_menu_query_error_when_id_and_name_provided(
-    user_api_client, menu, graphql_log_handler,
+    user_api_client,
+    menu,
+    graphql_log_handler,
 ):
     variables = {
         "id": graphene.Node.to_global_id("Menu", menu.pk),
@@ -86,7 +90,9 @@ def test_menu_query_error_when_id_and_name_provided(
 
 
 def test_menu_query_error_when_no_param(
-    user_api_client, menu, graphql_log_handler,
+    user_api_client,
+    menu,
+    graphql_log_handler,
 ):
     variables = {}
     response = user_api_client.post_graphql(QUERY_MENU, variables=variables)

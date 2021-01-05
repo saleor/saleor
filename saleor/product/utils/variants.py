@@ -19,11 +19,11 @@ def generate_and_set_variant_name(variant: "ProductVariant", sku: str):
     for (
         attribute_rel
     ) in variant_selection_attributes.iterator():  # type: AssignedVariantAttribute
-        values_qs = attribute_rel.values.order_by()
+        values_qs = attribute_rel.values.all()
         translated_values = [str(value.translated) for value in values_qs]
         attributes_display.append(", ".join(translated_values))
 
-    name = " / ".join(attributes_display)
+    name = " / ".join(sorted(attributes_display))
     if not name:
         name = sku
 

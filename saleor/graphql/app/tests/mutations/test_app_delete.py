@@ -21,7 +21,11 @@ APP_DELETE_MUTATION = """
 
 
 def test_app_delete(
-    staff_api_client, staff_user, app, permission_manage_orders, permission_manage_apps,
+    staff_api_client,
+    staff_user,
+    app,
+    permission_manage_orders,
+    permission_manage_apps,
 ):
     query = APP_DELETE_MUTATION
     app.permissions.add(permission_manage_orders)
@@ -41,7 +45,9 @@ def test_app_delete(
 
 
 def test_app_delete_for_app(
-    app_api_client, permission_manage_orders, permission_manage_apps,
+    app_api_client,
+    permission_manage_orders,
+    permission_manage_apps,
 ):
     requestor = app_api_client.app
     app = App.objects.create(name="New_app")
@@ -63,7 +69,11 @@ def test_app_delete_for_app(
 
 
 def test_app_delete_out_of_scope_app(
-    staff_api_client, staff_user, app, permission_manage_apps, permission_manage_orders,
+    staff_api_client,
+    staff_user,
+    app,
+    permission_manage_apps,
+    permission_manage_orders,
 ):
     """Ensure user can't delete app with wider scope of permissions."""
     query = APP_DELETE_MUTATION
@@ -87,7 +97,10 @@ def test_app_delete_out_of_scope_app(
 
 
 def test_app_delete_superuser_can_delete_any_app(
-    superuser_api_client, app, permission_manage_apps, permission_manage_orders,
+    superuser_api_client,
+    app,
+    permission_manage_apps,
+    permission_manage_orders,
 ):
     """Ensure superuser can delete app with any scope of permissions."""
     query = APP_DELETE_MUTATION
@@ -106,7 +119,9 @@ def test_app_delete_superuser_can_delete_any_app(
 
 
 def test_app_delete_for_app_out_of_scope_app(
-    app_api_client, permission_manage_orders, permission_manage_apps,
+    app_api_client,
+    permission_manage_orders,
+    permission_manage_apps,
 ):
     app = App.objects.create(name="New_app")
     query = APP_DELETE_MUTATION

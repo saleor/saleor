@@ -30,7 +30,8 @@ def validate_manifest_fields(manifest_data):
 
 
 def install_app(
-    app_installation: AppInstallation, activate: bool = False,
+    app_installation: AppInstallation,
+    activate: bool = False,
 ):
     response = requests.get(app_installation.manifest_url, timeout=REQUEST_TIMEOUT)
     response.raise_for_status()

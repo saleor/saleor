@@ -56,7 +56,9 @@ def attributes_for_filtering_with_channels(
 
     product_type = ProductType.objects.create(name="My Product Type")
     product = Product.objects.create(
-        name="Test product", product_type=product_type, category=category,
+        name="Test product",
+        product_type=product_type,
+        category=category,
     )
     ProductChannelListing.objects.bulk_create(
         [
@@ -155,10 +157,15 @@ QUERY_ATTRIBUTES_FILTERING = """
 
 
 @pytest.mark.parametrize(
-    "tested_field", ["inCategory", "inCollection"],
+    "tested_field",
+    ["inCategory", "inCollection"],
 )
 def test_attributes_with_filtering_without_channel(
-    tested_field, staff_api_client, permission_manage_products, category, collection,
+    tested_field,
+    staff_api_client,
+    permission_manage_products,
+    category,
+    collection,
 ):
     # given
     if "Collection" in tested_field:
@@ -183,7 +190,8 @@ def test_attributes_with_filtering_without_channel(
 
 
 @pytest.mark.parametrize(
-    "tested_field, attribute_count", [("inCategory", 5), ("inCollection", 5)],
+    "tested_field, attribute_count",
+    [("inCategory", 5), ("inCollection", 5)],
 )
 def test_products_with_filtering_with_as_staff_user(
     tested_field,
@@ -221,7 +229,8 @@ def test_products_with_filtering_with_as_staff_user(
 
 
 @pytest.mark.parametrize(
-    "tested_field, attribute_count", [("inCategory", 5), ("inCollection", 5)],
+    "tested_field, attribute_count",
+    [("inCategory", 5), ("inCollection", 5)],
 )
 def test_products_with_filtering_as_anonymous_client(
     tested_field,
@@ -253,7 +262,8 @@ def test_products_with_filtering_as_anonymous_client(
 
 
 @pytest.mark.parametrize(
-    "tested_field, attribute_count", [("inCategory", 5), ("inCollection", 5)],
+    "tested_field, attribute_count",
+    [("inCategory", 5), ("inCollection", 5)],
 )
 def test_products_with_filtering_with_not_visible_in_listings_as_staff_user(
     tested_field,
@@ -328,7 +338,8 @@ def test_products_with_filtering_with_not_visible_in_listings_as_anonymous_clien
 
 
 @pytest.mark.parametrize(
-    "tested_field, attribute_count", [("inCategory", 5), ("inCollection", 5)],
+    "tested_field, attribute_count",
+    [("inCategory", 5), ("inCollection", 5)],
 )
 def test_products_with_filtering_with_not_published_as_staff_user(
     tested_field,
@@ -366,7 +377,8 @@ def test_products_with_filtering_with_not_published_as_staff_user(
 
 
 @pytest.mark.parametrize(
-    "tested_field, attribute_count", [("inCategory", 0), ("inCollection", 0)],
+    "tested_field, attribute_count",
+    [("inCategory", 0), ("inCollection", 0)],
 )
 def test_products_with_filtering_with_not_published_as_anonymous_client(
     tested_field,
@@ -398,7 +410,8 @@ def test_products_with_filtering_with_not_published_as_anonymous_client(
 
 
 @pytest.mark.parametrize(
-    "tested_field", ["inCategory", "inCollection"],
+    "tested_field",
+    ["inCategory", "inCollection"],
 )
 def test_products_with_filtering_not_existing_channel(
     tested_field,

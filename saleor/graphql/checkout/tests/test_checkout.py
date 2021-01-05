@@ -21,11 +21,11 @@ from ....checkout.checkout_cleaner import (
 )
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.models import Checkout
-from ....checkout.utils import add_variant_to_checkout
+from ....checkout.utils import add_variant_to_checkout, fetch_checkout_lines
 from ....core.payments import PaymentInterface
 from ....payment import TransactionKind
 from ....payment.interface import GatewayResponse
-from ....plugins.manager import PluginsManager
+from ....plugins.manager import PluginsManager, get_plugins_manager
 from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
 from ....product.models import ProductChannelListing
 from ....shipping import models as shipping_models
@@ -48,9 +48,8 @@ def test_clean_shipping_method_after_shipping_address_changes_stay_the_same(
     checkout = checkout_with_single_item
     checkout.shipping_address = address
 
-    is_valid_method = clean_shipping_method(
-        checkout, list(checkout), shipping_method, []
-    )
+    lines = fetch_checkout_lines(checkout)
+    is_valid_method = clean_shipping_method(checkout, lines, shipping_method, [])
     assert is_valid_method is True
 
 
@@ -61,8 +60,8 @@ def test_clean_shipping_method_does_nothing_if_no_shipping_method(
 
     checkout = checkout_with_single_item
     checkout.shipping_address = address
-
-    is_valid_method = clean_shipping_method(checkout, list(checkout), None, [])
+    lines = fetch_checkout_lines(checkout)
+    is_valid_method = clean_shipping_method(checkout, lines, None, [])
     assert is_valid_method is True
 
 
@@ -81,7 +80,9 @@ def test_update_checkout_shipping_method_if_invalid(
 
     shipping_method.shipping_zone = shipping_zone_without_countries
     shipping_method.save(update_fields=["shipping_zone"])
-    update_checkout_shipping_method_if_invalid(checkout, list(checkout), None)
+
+    lines = fetch_checkout_lines(checkout)
+    update_checkout_shipping_method_if_invalid(checkout, lines, None)
 
     assert checkout.shipping_method == other_shipping_method
 
@@ -1110,7 +1111,9 @@ query getCheckoutPayments($token: UUID!) {
 
 
 def test_checkout_available_payment_gateways(
-    api_client, checkout_with_item, expected_dummy_gateway,
+    api_client,
+    checkout_with_item,
+    expected_dummy_gateway,
 ):
     query = GET_CHECKOUT_PAYMENTS_QUERY
     variables = {"token": str(checkout_with_item.token)}
@@ -1124,7 +1127,10 @@ def test_checkout_available_payment_gateways(
 
 
 def test_checkout_available_payment_gateways_currency_specified_USD(
-    api_client, checkout_with_item, expected_dummy_gateway, sample_gateway,
+    api_client,
+    checkout_with_item,
+    expected_dummy_gateway,
+    sample_gateway,
 ):
     checkout_with_item.currency = "USD"
     checkout_with_item.save(update_fields=["currency"])
@@ -1325,9 +1331,8 @@ def test_checkout_lines_add(
     assert line.variant == variant
     assert line.quantity == 1
 
-    mocked_update_shipping_method.assert_called_once_with(
-        checkout, list(checkout), mock.ANY
-    )
+    lines = fetch_checkout_lines(checkout)
+    mocked_update_shipping_method.assert_called_once_with(checkout, lines, mock.ANY)
 
 
 def test_checkout_lines_add_with_unpublished_product(
@@ -1352,8 +1357,7 @@ def test_checkout_lines_add_with_unpublished_product(
 
     content = get_graphql_content(response)
     error = content["data"]["checkoutLinesAdd"]["checkoutErrors"][0]
-    assert error["message"] == "Can't add unpublished product."
-    assert error["code"] == "PRODUCT_NOT_PUBLISHED"
+    assert error["code"] == CheckoutErrorCode.PRODUCT_NOT_PUBLISHED.name
 
 
 def test_checkout_lines_add_with_unavailable_for_purchase_product(
@@ -1569,9 +1573,8 @@ def test_checkout_lines_update(
     assert line.variant == variant
     assert line.quantity == 1
 
-    mocked_update_shipping_method.assert_called_once_with(
-        checkout, list(checkout), mock.ANY
-    )
+    lines = fetch_checkout_lines(checkout)
+    mocked_update_shipping_method.assert_called_once_with(checkout, lines, mock.ANY)
 
 
 def test_create_checkout_with_unpublished_product(
@@ -1606,9 +1609,7 @@ def test_create_checkout_with_unpublished_product(
     }
     response = get_graphql_content(user_api_client.post_graphql(query, variables))
     error = response["data"]["checkoutCreate"]["checkoutErrors"][0]
-
-    assert error["message"] == "Can't create checkout with unpublished product."
-    assert error["code"] == "PRODUCT_NOT_PUBLISHED"
+    assert error["code"] == CheckoutErrorCode.PRODUCT_NOT_PUBLISHED.name
 
 
 def test_checkout_lines_update_with_unpublished_product(
@@ -1633,8 +1634,7 @@ def test_checkout_lines_update_with_unpublished_product(
 
     content = get_graphql_content(response)
     error = content["data"]["checkoutLinesUpdate"]["checkoutErrors"][0]
-    assert error["message"] == "Can't add unpublished product."
-    assert error["code"] == "PRODUCT_NOT_PUBLISHED"
+    assert error["code"] == CheckoutErrorCode.PRODUCT_NOT_PUBLISHED.name
 
 
 def test_checkout_lines_update_invalid_checkout_id(user_api_client):
@@ -1737,9 +1737,8 @@ def test_checkout_line_delete(
     assert not data["errors"]
     checkout.refresh_from_db()
     assert checkout.lines.count() == 0
-    mocked_update_shipping_method.assert_called_once_with(
-        checkout, list(checkout), mock.ANY
-    )
+    lines = fetch_checkout_lines(checkout)
+    mocked_update_shipping_method.assert_called_once_with(checkout, lines, mock.ANY)
 
 
 @mock.patch(
@@ -1769,9 +1768,8 @@ def test_checkout_line_delete_by_zero_quantity(
     assert not data["checkoutErrors"]
     checkout.refresh_from_db()
     assert checkout.lines.count() == 0
-    mocked_update_shipping_method.assert_called_once_with(
-        checkout, list(checkout), mock.ANY
-    )
+    lines = fetch_checkout_lines(checkout)
+    mocked_update_shipping_method.assert_called_once_with(checkout, lines, mock.ANY)
 
 
 def test_checkout_customer_attach(
@@ -1918,9 +1916,8 @@ def test_checkout_shipping_address_update(
     assert checkout.shipping_address.postal_code == shipping_address["postalCode"]
     assert checkout.shipping_address.country == shipping_address["country"]
     assert checkout.shipping_address.city == shipping_address["city"].upper()
-    mocked_update_shipping_method.assert_called_once_with(
-        checkout, list(checkout), mock.ANY
-    )
+    lines = fetch_checkout_lines(checkout)
+    mocked_update_shipping_method.assert_called_once_with(checkout, lines, mock.ANY)
 
 
 @mock.patch(
@@ -1967,9 +1964,8 @@ def test_checkout_shipping_address_update_changes_checkout_country(
     assert checkout.shipping_address.postal_code == shipping_address["postalCode"]
     assert checkout.shipping_address.country == shipping_address["country"]
     assert checkout.shipping_address.city == shipping_address["city"].upper()
-    mocked_update_shipping_method.assert_called_once_with(
-        checkout, list(checkout), mock.ANY
-    )
+    lines = fetch_checkout_lines(checkout)
+    mocked_update_shipping_method.assert_called_once_with(checkout, lines, mock.ANY)
     assert checkout.country == shipping_address["country"]
 
 
@@ -2253,7 +2249,9 @@ def test_anonymous_client_cant_fetch_checkout_user(api_client, checkout):
 
 
 def test_authorized_access_to_checkout_user_as_customer(
-    user_api_client, checkout, customer_user,
+    user_api_client,
+    checkout,
+    customer_user,
 ):
     query = QUERY_CHECKOUT_USER_ID
     checkout.user = customer_user
@@ -2292,7 +2290,10 @@ def test_authorized_access_to_checkout_user_as_staff(
 
 
 def test_authorized_access_to_checkout_user_as_staff_no_permission(
-    staff_api_client, checkout, customer_user, permission_manage_checkouts,
+    staff_api_client,
+    checkout,
+    customer_user,
+    permission_manage_checkouts,
 ):
     query = QUERY_CHECKOUT_USER_ID
 
@@ -2510,12 +2511,20 @@ def test_checkout_prices(user_api_client, checkout_with_item):
     data = content["data"]["checkout"]
     assert data["token"] == str(checkout_with_item.token)
     assert len(data["lines"]) == checkout_with_item.lines.count()
+    lines = fetch_checkout_lines(checkout_with_item)
+    manager = get_plugins_manager()
     total = calculations.checkout_total(
-        checkout=checkout_with_item, lines=list(checkout_with_item)
+        manager=manager,
+        checkout=checkout_with_item,
+        lines=lines,
+        address=checkout_with_item.shipping_address,
     )
     assert data["totalPrice"]["gross"]["amount"] == (total.gross.amount)
     subtotal = calculations.checkout_subtotal(
-        checkout=checkout_with_item, lines=list(checkout_with_item)
+        manager=manager,
+        checkout=checkout_with_item,
+        lines=lines,
+        address=checkout_with_item.shipping_address,
     )
     assert data["subtotalPrice"]["gross"]["amount"] == (subtotal.gross.amount)
 
@@ -2560,8 +2569,9 @@ def test_checkout_shipping_method_update(
 
     checkout.refresh_from_db()
 
+    lines = fetch_checkout_lines(checkout)
     mock_clean_shipping.assert_called_once_with(
-        checkout=checkout, lines=list(checkout), method=shipping_method, discounts=ANY
+        checkout=checkout, lines=lines, method=shipping_method, discounts=ANY
     )
 
     if is_valid_shipping_method:
@@ -2727,7 +2737,13 @@ def test_clean_checkout(checkout_with_item, payment_dummy, address, shipping_met
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
     checkout.save()
-    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+
+    lines = fetch_checkout_lines(checkout_with_item)
+    manager = get_plugins_manager()
+    total = calculations.checkout_total(
+        manager=manager, checkout=checkout, lines=lines, address=address
+    )
+
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -2736,10 +2752,10 @@ def test_clean_checkout(checkout_with_item, payment_dummy, address, shipping_met
     payment.checkout = checkout
     payment.save()
     # Shouldn't raise any errors
-    lines = list(checkout)
+
     clean_checkout_shipping(checkout, lines, None, CheckoutErrorCode)
     clean_checkout_payment(
-        checkout, lines, None, CheckoutErrorCode, last_payment=payment
+        manager, checkout, lines, None, CheckoutErrorCode, last_payment=payment
     )
 
 
@@ -2748,8 +2764,9 @@ def test_clean_checkout_no_shipping_method(checkout_with_item, address):
     checkout.shipping_address = address
     checkout.save()
 
+    lines = fetch_checkout_lines(checkout)
     with pytest.raises(ValidationError) as e:
-        clean_checkout_shipping(checkout, list(checkout), None, CheckoutErrorCode)
+        clean_checkout_shipping(checkout, lines, None, CheckoutErrorCode)
 
     msg = "Shipping method is not set"
     assert e.value.error_dict["shipping_method"][0].message == msg
@@ -2760,8 +2777,9 @@ def test_clean_checkout_no_shipping_address(checkout_with_item, shipping_method)
     checkout.shipping_method = shipping_method
     checkout.save()
 
+    lines = fetch_checkout_lines(checkout)
     with pytest.raises(ValidationError) as e:
-        clean_checkout_shipping(checkout, list(checkout), None, CheckoutErrorCode)
+        clean_checkout_shipping(checkout, lines, None, CheckoutErrorCode)
     msg = "Shipping address is not set"
     assert e.value.error_dict["shipping_address"][0].message == msg
 
@@ -2775,8 +2793,9 @@ def test_clean_checkout_invalid_shipping_method(
     checkout.shipping_method = shipping_method
     checkout.save()
 
+    lines = fetch_checkout_lines(checkout)
     with pytest.raises(ValidationError) as e:
-        clean_checkout_shipping(checkout, list(checkout), None, CheckoutErrorCode)
+        clean_checkout_shipping(checkout, lines, None, CheckoutErrorCode)
 
     msg = "Shipping method is not valid for your shipping address"
 
@@ -2791,10 +2810,12 @@ def test_clean_checkout_no_billing_address(
     checkout.shipping_method = shipping_method
     checkout.save()
     payment = checkout.get_last_active_payment()
+    lines = fetch_checkout_lines(checkout)
+    manager = get_plugins_manager()
 
     with pytest.raises(ValidationError) as e:
         clean_checkout_payment(
-            checkout, list(checkout), None, CheckoutErrorCode, last_payment=payment
+            manager, checkout, lines, None, CheckoutErrorCode, last_payment=payment
         )
     msg = "Billing address is not set"
     assert e.value.error_dict["billing_address"][0].message == msg
@@ -2807,11 +2828,43 @@ def test_clean_checkout_no_payment(checkout_with_item, shipping_method, address)
     checkout.billing_address = address
     checkout.save()
     payment = checkout.get_last_active_payment()
+    lines = fetch_checkout_lines(checkout)
+    manager = get_plugins_manager()
 
     with pytest.raises(ValidationError) as e:
         clean_checkout_payment(
-            checkout, list(checkout), None, CheckoutErrorCode, last_payment=payment
+            manager, checkout, lines, None, CheckoutErrorCode, last_payment=payment
         )
 
     msg = "Provided payment methods can not cover the checkout's total amount"
     assert e.value.error_list[0].message == msg
+
+
+def test_get_variant_data_from_checkout_line_variant_hidden_in_listings(
+    checkout_with_item, api_client
+):
+    # given
+    query = """
+        query getCheckout($token: UUID!){
+            checkout(token: $token){
+                id
+                lines{
+                    id
+                    variant{
+                        id
+                    }
+                }
+            }
+        }
+    """
+    checkout = checkout_with_item
+    variant = checkout.lines.get().variant
+    variant.product.channel_listings.update(visible_in_listings=False)
+    variables = {"token": checkout.token}
+
+    # when
+    response = api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["lines"][0]["variant"]["id"]

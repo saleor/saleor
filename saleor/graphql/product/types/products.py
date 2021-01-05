@@ -21,11 +21,7 @@ from ....product.utils.availability import (
     get_variant_availability,
 )
 from ....product.utils.variants import get_variant_selection_attributes
-from ....warehouse.availability import (
-    get_available_quantity,
-    get_quantity_allocated,
-    is_product_in_stock,
-)
+from ....warehouse.availability import is_product_in_stock
 from ...account.enums import CountryCodeEnum
 from ...attribute.filters import AttributeFilterInput
 from ...attribute.resolvers import resolve_attributes
@@ -150,28 +146,6 @@ class ProductPricingInfo(BasePricingInfo):
 
 @key(fields="id")
 class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
-    quantity = graphene.Int(
-        required=True,
-        description="Quantity of a product available for sale.",
-        deprecation_reason=(
-            "Use the stock field instead. This field will be removed after 2020-07-31."
-        ),
-    )
-    quantity_allocated = graphene.Int(
-        required=False,
-        description="Quantity allocated for orders.",
-        deprecation_reason=(
-            "Use the stock field instead. This field will be removed after 2020-07-31."
-        ),
-    )
-    stock_quantity = graphene.Int(
-        required=True,
-        description="Quantity of a product available for sale.",
-        deprecation_reason=(
-            "Use the quantityAvailable field instead. "
-            "This field will be removed after 2020-07-31."
-        ),
-    )
     channel_listings = graphene.List(
         graphene.NonNull(ProductVariantChannelListing),
         description="List of price information in channels for the product.",
@@ -183,18 +157,13 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             "only meant for displaying."
         ),
     )
-    is_available = graphene.Boolean(
-        description="Whether the variant is in stock and visible or not.",
-        deprecation_reason=(
-            "Use the stock field instead. This field will be removed after 2020-07-31."
-        ),
-    )
     attributes = graphene.List(
         graphene.NonNull(SelectedAttribute),
         required=True,
         description="List of attributes assigned to this variant.",
         variant_selection=graphene.Argument(
-            VariantAttributeScope, description="Define scope of returned attributes.",
+            VariantAttributeScope,
+            description="Define scope of returned attributes.",
         ),
     )
     cost_price = graphene.Field(Money, description="Cost price of the variant.")
@@ -280,15 +249,6 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return getattr(root.node, "digital_content", None)
 
     @staticmethod
-    def resolve_stock_quantity(root: ChannelContext[models.ProductVariant], info):
-        if not root.node.track_inventory:
-            return settings.MAX_CHECKOUT_LINE_QUANTITY
-
-        return AvailableQuantityByProductVariantIdAndCountryCodeLoader(
-            info.context
-        ).load((root.node.id, info.context.country))
-
-    @staticmethod
     def resolve_attributes(
         root: ChannelContext[models.ProductVariant],
         info,
@@ -354,6 +314,11 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                             product_channel_listing,
                         ):
                             def calculate_pricing_with_collections(collections):
+                                if (
+                                    not variant_channel_listing
+                                    or not product_channel_listing
+                                ):
+                                    return None
                                 availability = get_variant_availability(
                                     variant=root.node,
                                     variant_channel_listing=variant_channel_listing,
@@ -396,36 +361,11 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         )
 
     @staticmethod
-    def resolve_is_available(root: ChannelContext[models.ProductVariant], info):
-        if not root.node.track_inventory:
-            return True
-
-        def is_variant_in_stock(available_quantity):
-            return available_quantity > 0
-
-        return (
-            AvailableQuantityByProductVariantIdAndCountryCodeLoader(info.context)
-            .load((root.node.id, info.context.country))
-            .then(is_variant_in_stock)
-        )
-
-    @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_quantity(root: ChannelContext[models.ProductVariant], info):
-        return get_available_quantity(root.node, info.context.country)
-
-    @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_quantity_ordered(root: ChannelContext[models.ProductVariant], *_args):
         # This field is added through annotation when using the
         # `resolve_report_product_sales` resolver.
         return getattr(root.node, "quantity_ordered", None)
-
-    @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_quantity_allocated(root: ChannelContext[models.ProductVariant], info):
-        country = info.context.country
-        return get_quantity_allocated(root.node, country)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
@@ -639,6 +579,8 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                             variants_channel_listing,
                         ):
                             def calculate_pricing_with_collections(collections):
+                                if not variants_channel_listing:
+                                    return None
                                 availability = get_product_availability(
                                     product=root.node,
                                     product_channel_listing=product_channel_listing,
@@ -844,7 +786,8 @@ class ProductType(CountableDjangoObjectType):
         Attribute,
         description="Variant attributes of that product type.",
         variant_selection=graphene.Argument(
-            VariantAttributeScope, description="Define scope of returned attributes.",
+            VariantAttributeScope,
+            description="Define scope of returned attributes.",
         ),
     )
     product_attributes = graphene.List(
@@ -890,7 +833,9 @@ class ProductType(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_variant_attributes(
-        root: models.ProductType, info, variant_selection: Optional[str] = None,
+        root: models.ProductType,
+        info,
+        variant_selection: Optional[str] = None,
     ):
         def apply_variant_selection_filter(attributes):
             if not variant_selection or variant_selection == VariantAttributeScope.ALL:
@@ -1080,7 +1025,9 @@ class Category(CountableDjangoObjectType):
             qs = (
                 qs.published(channel)
                 .annotate_visible_in_listings(channel)
-                .exclude(visible_in_listings=False,)
+                .exclude(
+                    visible_in_listings=False,
+                )
             )
         if channel and requestor_has_access_to_all:
             qs = qs.filter(channel_listings__channel__slug=channel)

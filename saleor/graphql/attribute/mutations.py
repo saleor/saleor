@@ -5,7 +5,8 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.utils.text import slugify
 
-from ...attribute import AttributeInputType, models as models
+from ...attribute import AttributeInputType
+from ...attribute import models as models
 from ...attribute.error_codes import AttributeErrorCode
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import (

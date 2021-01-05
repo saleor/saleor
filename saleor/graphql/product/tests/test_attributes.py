@@ -935,7 +935,10 @@ PRODUCT_REORDER_ATTRIBUTE_VALUES_MUTATION = """
 
 
 def test_sort_product_attribute_values(
-    staff_api_client, permission_manage_products, product, page_reference_attribute,
+    staff_api_client,
+    permission_manage_products,
+    product,
+    page_reference_attribute,
 ):
     staff_api_client.user.user_permissions.add(permission_manage_products)
 
@@ -1162,7 +1165,10 @@ PRODUCT_VARIANT_REORDER_ATTRIBUTE_VALUES_MUTATION = """
 
 
 def test_sort_product_variant_attribute_values(
-    staff_api_client, permission_manage_products, product, page_reference_attribute,
+    staff_api_client,
+    permission_manage_products,
+    product,
+    page_reference_attribute,
 ):
     staff_api_client.user.user_permissions.add(permission_manage_products)
 
