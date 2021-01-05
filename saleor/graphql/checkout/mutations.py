@@ -340,7 +340,8 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 )
             except ProductNotPublished as exc:
                 raise ValidationError(
-                    "Can't create checkout with unpublished product.", code=exc.code,
+                    "Can't create checkout with unpublished product.",
+                    code=exc.code,
                 )
 
         # Save addresses
@@ -430,7 +431,8 @@ class CheckoutLinesAdd(BaseMutation):
                     )
                 except ProductNotPublished as exc:
                     raise ValidationError(
-                        "Can't add unpublished product.", code=exc.code,
+                        "Can't add unpublished product.",
+                        code=exc.code,
                     )
             info.context.plugins.checkout_quantity_changed(checkout)
 
@@ -832,7 +834,10 @@ class CheckoutComplete(BaseMutation):
         with transaction_with_commit_on_errors():
             try:
                 checkout = cls.get_node_or_error(
-                    info, checkout_id, only_type=Checkout, field="checkout_id",
+                    info,
+                    checkout_id,
+                    only_type=Checkout,
+                    field="checkout_id",
                 )
             except ValidationError as e:
                 checkout_token = from_global_id_strict_type(

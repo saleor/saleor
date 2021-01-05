@@ -4,7 +4,8 @@ from decimal import Decimal
 import graphene
 import pytest
 
-from ....attribute import AttributeType, models as attribute_models
+from ....attribute import AttributeType
+from ....attribute import models as attribute_models
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....product import models as product_models
 from ...tests.utils import get_graphql_content
@@ -168,7 +169,10 @@ def products_structures(category, channel_USD):
         category=category,
     )
     product_models.ProductChannelListing.objects.create(
-        product=dummy, channel=channel_USD, is_published=True, visible_in_listings=True,
+        product=dummy,
+        channel=channel_USD,
+        is_published=True,
+        visible_in_listings=True,
     )
     variant = product_models.ProductVariant.objects.create(
         product=dummy, sku=dummy.slug

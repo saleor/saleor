@@ -17,11 +17,8 @@ from django.views.generic import View
 from graphene_django.settings import graphene_settings
 from graphene_django.views import instantiate_middleware
 from graphql import GraphQLDocument, get_default_backend
-from graphql.error import (
-    GraphQLError,
-    GraphQLSyntaxError,
-    format_error as format_graphql_error,
-)
+from graphql.error import GraphQLError, GraphQLSyntaxError
+from graphql.error import format_error as format_graphql_error
 from graphql.execution import ExecutionResult
 from jwt.exceptions import PyJWTError
 
@@ -209,9 +206,7 @@ class GraphQLView(View):
         # Attempt to parse the query, if it fails, return the error
         try:
             return (
-                self.backend.document_from_string(  # type: ignore
-                    self.schema, query
-                ),
+                self.backend.document_from_string(self.schema, query),  # type: ignore
                 None,
             )
         except (ValueError, GraphQLSyntaxError) as e:

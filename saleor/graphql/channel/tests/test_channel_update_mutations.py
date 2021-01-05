@@ -86,7 +86,9 @@ def test_channel_update_mutation_as_customer(user_api_client, channel_USD):
 
     # when
     response = user_api_client.post_graphql(
-        CHANNEL_UPDATE_MUTATION, variables=variables, permissions=(),
+        CHANNEL_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(),
     )
 
     # then
@@ -102,7 +104,9 @@ def test_channel_update_mutation_as_anonymous(api_client, channel_USD):
 
     # when
     response = api_client.post_graphql(
-        CHANNEL_UPDATE_MUTATION, variables=variables, permissions=(),
+        CHANNEL_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(),
     )
 
     # then

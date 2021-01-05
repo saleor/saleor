@@ -383,7 +383,8 @@ def test_save_plugin_configuration_cannot_be_enabled_without_config(settings):
     manager = get_plugins_manager()
     with pytest.raises(ValidationError):
         manager.save_plugin_configuration(
-            VatlayerPlugin.PLUGIN_ID, {"active": True},
+            VatlayerPlugin.PLUGIN_ID,
+            {"active": True},
         )
 
 
@@ -400,7 +401,8 @@ def test_get_tax_rate_type_choices(vatlayer, settings, monkeypatch):
         "admission to entertainment events",
     ]
     monkeypatch.setattr(
-        "saleor.plugins.vatlayer.plugin.get_tax_rate_types", lambda: expected_choices,
+        "saleor.plugins.vatlayer.plugin.get_tax_rate_types",
+        lambda: expected_choices,
     )
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
     manager = get_plugins_manager()
@@ -538,7 +540,11 @@ def test_skip_diabled_plugin(settings):
 
 
 def test_get_checkout_line_tax_rate(
-    site_settings, vatlayer, checkout_with_item, address, shipping_zone,
+    site_settings,
+    vatlayer,
+    checkout_with_item,
+    address,
+    shipping_zone,
 ):
     manager = get_plugins_manager(
         plugins=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
@@ -578,7 +584,9 @@ def test_get_checkout_line_tax_rate(
 
 
 def test_get_checkout_line_tax_rate_order_not_valid(
-    site_settings, vatlayer, checkout_with_item,
+    site_settings,
+    vatlayer,
+    checkout_with_item,
 ):
     manager = get_plugins_manager(
         plugins=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
@@ -614,7 +622,11 @@ def test_get_checkout_line_tax_rate_order_not_valid(
 
 
 def test_get_order_line_tax_rate(
-    site_settings, vatlayer, order_line, address, shipping_zone,
+    site_settings,
+    vatlayer,
+    order_line,
+    address,
+    shipping_zone,
 ):
     manager = get_plugins_manager(
         plugins=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
@@ -642,7 +654,9 @@ def test_get_order_line_tax_rate(
 
 
 def test_get_order_line_tax_rate_order_no_address_given(
-    site_settings, order_line, vatlayer,
+    site_settings,
+    order_line,
+    vatlayer,
 ):
     manager = get_plugins_manager(
         plugins=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
@@ -663,7 +677,11 @@ def test_get_order_line_tax_rate_order_no_address_given(
 
 
 def test_get_checkout_shipping_tax_rate(
-    site_settings, vatlayer, checkout_with_item, address, shipping_zone,
+    site_settings,
+    vatlayer,
+    checkout_with_item,
+    address,
+    shipping_zone,
 ):
     manager = get_plugins_manager(
         plugins=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
@@ -703,7 +721,9 @@ def test_get_checkout_shipping_tax_rate(
 
 
 def test_get_checkout_shipping_tax_rate_no_address(
-    site_settings, vatlayer, checkout_with_item,
+    site_settings,
+    vatlayer,
+    checkout_with_item,
 ):
     manager = get_plugins_manager(
         plugins=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
@@ -745,7 +765,8 @@ def test_get_checkout_shipping_tax_rate_skip_plugin(
         plugins=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
     )
     monkeypatch.setattr(
-        "saleor.plugins.vatlayer.plugin.VatlayerPlugin._skip_plugin", lambda *_: True,
+        "saleor.plugins.vatlayer.plugin.VatlayerPlugin._skip_plugin",
+        lambda *_: True,
     )
 
     checkout_with_item.shipping_address = address
@@ -783,7 +804,11 @@ def test_get_checkout_shipping_tax_rate_skip_plugin(
 
 
 def test_get_order_shipping_tax_rate(
-    site_settings, vatlayer, order_line, address, shipping_zone,
+    site_settings,
+    vatlayer,
+    order_line,
+    address,
+    shipping_zone,
 ):
     manager = get_plugins_manager(
         plugins=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
@@ -811,7 +836,9 @@ def test_get_order_shipping_tax_rate(
 
 
 def test_get_order_shipping_tax_rate_no_address_given(
-    site_settings, order_line, vatlayer,
+    site_settings,
+    order_line,
+    vatlayer,
 ):
     manager = get_plugins_manager(
         plugins=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
@@ -842,7 +869,8 @@ def test_get_order_shipping_tax_rate_skip_plugin(
         plugins=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
     )
     monkeypatch.setattr(
-        "saleor.plugins.vatlayer.plugin.VatlayerPlugin._skip_plugin", lambda *_: True,
+        "saleor.plugins.vatlayer.plugin.VatlayerPlugin._skip_plugin",
+        lambda *_: True,
     )
     order = order_line.order
     product = Product.objects.get(name=order_line.product_name)

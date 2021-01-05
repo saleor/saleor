@@ -255,7 +255,10 @@ class OrderLine(CountableDjangoObjectType):
     unit_price = graphene.Field(
         TaxedMoney, description="Price of the single item in the order line."
     )
-    total_price = graphene.Field(TaxedMoney, description="Price of the order line.",)
+    total_price = graphene.Field(
+        TaxedMoney,
+        description="Price of the order line.",
+    )
     variant = graphene.Field(
         ProductVariant,
         required=False,

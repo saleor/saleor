@@ -10,9 +10,15 @@ from ...tests.utils import assert_graphql_error_with_message, get_graphql_conten
 def sales_for_sorting_with_channels(db, channel_USD, channel_PLN):
     sales = Sale.objects.bulk_create(
         [
-            Sale(name="Sale1", type=DiscountValueType.PERCENTAGE,),
+            Sale(
+                name="Sale1",
+                type=DiscountValueType.PERCENTAGE,
+            ),
             Sale(name="Sale2"),
-            Sale(name="Sale3", type=DiscountValueType.PERCENTAGE,),
+            Sale(
+                name="Sale3",
+                type=DiscountValueType.PERCENTAGE,
+            ),
             Sale(name="Sale4"),
             Sale(name="Sale15"),
         ]
@@ -91,7 +97,8 @@ QUERY_SALES_WITH_SORTING_AND_FILTERING = """
 
 
 def test_sales_with_sorting_and_without_channel(
-    staff_api_client, permission_manage_discounts,
+    staff_api_client,
+    permission_manage_discounts,
 ):
     # given
     variables = {"sortBy": {"field": "VALUE", "direction": "ASC"}}

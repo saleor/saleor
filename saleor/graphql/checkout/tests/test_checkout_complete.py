@@ -63,7 +63,9 @@ ACTION_REQUIRED_GATEWAY_RESPONSE = GatewayResponse(
 
 
 def test_checkout_complete_order_already_exists(
-    user_api_client, order_with_lines, checkout_with_gift_card,
+    user_api_client,
+    order_with_lines,
+    checkout_with_gift_card,
 ):
     checkout = checkout_with_gift_card
     orders_count = Order.objects.count()
@@ -84,7 +86,9 @@ def test_checkout_complete_order_already_exists(
 
 
 def test_checkout_complete_with_inactive_channel_order_already_exists(
-    user_api_client, order_with_lines, checkout_with_gift_card,
+    user_api_client,
+    order_with_lines,
+    checkout_with_gift_card,
 ):
     checkout = checkout_with_gift_card
     order_with_lines.checkout_token = checkout.pk

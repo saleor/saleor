@@ -12,8 +12,8 @@ if TYPE_CHECKING:
 
     from django.db.models.query import QuerySet
 
-    from ...order.models import OrderLine, Order
-    from ..models import Product, ProductVariant, Category
+    from ...order.models import Order, OrderLine
+    from ..models import Category, Product, ProductVariant
 
 
 def calculate_revenue_for_variant(

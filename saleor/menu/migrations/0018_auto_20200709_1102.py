@@ -11,7 +11,8 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterModelOptions(
-            name="menuitem", options={"ordering": ("sort_order", "pk")},
+            name="menuitem",
+            options={"ordering": ("sort_order", "pk")},
         ),
         migrations.AlterModelOptions(
             name="menuitemtranslation",

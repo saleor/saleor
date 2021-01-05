@@ -232,7 +232,9 @@ def test_cancel_order(
 
 @patch("saleor.order.actions.send_order_refunded_confirmation")
 def test_order_refunded(
-    send_order_refunded_confirmation_mock, order, checkout_with_item,
+    send_order_refunded_confirmation_mock,
+    order,
+    checkout_with_item,
 ):
     # given
     payment = Payment.objects.create(

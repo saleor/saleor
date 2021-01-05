@@ -141,7 +141,11 @@ def test_handle_authorization_for_pending_order(
 
 
 def test_handle_authorization_for_checkout(
-    notification, adyen_plugin, payment_adyen_for_checkout, address, shipping_method,
+    notification,
+    adyen_plugin,
+    payment_adyen_for_checkout,
+    address,
+    shipping_method,
 ):
     checkout = payment_adyen_for_checkout.checkout
     checkout.shipping_address = address
@@ -376,7 +380,11 @@ def test_handle_capture_for_order(notification, adyen_plugin, payment_adyen_for_
 
 
 def test_handle_capture_for_checkout(
-    notification, adyen_plugin, payment_adyen_for_checkout, address, shipping_method,
+    notification,
+    adyen_plugin,
+    payment_adyen_for_checkout,
+    address,
+    shipping_method,
 ):
     checkout = payment_adyen_for_checkout.checkout
     checkout.shipping_address = address

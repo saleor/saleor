@@ -114,7 +114,8 @@ def test_get_price(
     channel_USD,
 ):
     product = models.Product.objects.create(
-        product_type=product_type, category=category,
+        product_type=product_type,
+        category=category,
     )
     variant = product.variants.create()
     channel_listing = models.ProductVariantChannelListing.objects.create(
@@ -132,7 +133,9 @@ def test_product_get_price_do_not_charge_taxes(
     product_type, category, discount_info, channel_USD
 ):
     product = models.Product.objects.create(
-        product_type=product_type, category=category, charge_taxes=False,
+        product_type=product_type,
+        category=category,
+        charge_taxes=False,
     )
     variant = product.variants.create()
     channel_listing = models.ProductVariantChannelListing.objects.create(

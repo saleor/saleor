@@ -36,10 +36,10 @@ from .tasks import api_post_request_task
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ...checkout import CheckoutLineInfo
     from ...account.models import Address
-    from ...checkout.models import Checkout, CheckoutLine
     from ...channel.models import Channel
+    from ...checkout import CheckoutLineInfo
+    from ...checkout.models import Checkout, CheckoutLine
     from ...order.models import Order, OrderLine
     from ...product.models import (
         Collection,
@@ -574,7 +574,10 @@ class AvataxPlugin(BasePlugin):
         tax_description = obj.get_value_from_metadata(
             META_DESCRIPTION_KEY, default_tax_description
         )
-        return TaxType(code=tax_code, description=tax_description,)
+        return TaxType(
+            code=tax_code,
+            description=tax_description,
+        )
 
     def show_taxes_on_storefront(self, previous_value: bool) -> bool:
         if not self.active:

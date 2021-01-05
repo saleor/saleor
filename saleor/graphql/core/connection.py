@@ -2,7 +2,8 @@ import json
 from typing import Any, Dict, Iterable, List, Tuple, Union
 
 import graphene
-from django.db.models import Model as DjangoModel, Q, QuerySet
+from django.db.models import Model as DjangoModel
+from django.db.models import Q, QuerySet
 from graphene.relay.connection import Connection
 from graphene_django.types import DjangoObjectType
 from graphql.error import GraphQLError
@@ -218,7 +219,10 @@ def connection_from_queryset_slice(
     qs = qs[:end_margin]
     edges, page_info = _get_edges_for_connection(edge_type, qs, args, sorting_fields)
 
-    return connection_type(edges=edges, page_info=pageinfo_type(**page_info),)
+    return connection_type(
+        edges=edges,
+        page_info=pageinfo_type(**page_info),
+    )
 
 
 class NonNullConnection(Connection):

@@ -6,7 +6,8 @@ from django.template.defaultfilters import pluralize
 
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
-from ....order import FulfillmentStatus, models as order_models
+from ....order import FulfillmentStatus
+from ....order import models as order_models
 from ....order.actions import (
     cancel_fulfillment,
     create_fulfillments,
@@ -321,7 +322,8 @@ class OrderRefundLineInput(graphene.InputObjectType):
         required=True,
     )
     quantity = graphene.Int(
-        description="The number of items to be refunded.", required=True,
+        description="The number of items to be refunded.",
+        required=True,
     )
 
 
@@ -332,7 +334,8 @@ class OrderRefundFulfillmentLineInput(graphene.InputObjectType):
         required=True,
     )
     quantity = graphene.Int(
-        description="The number of items to be refunded.", required=True,
+        description="The number of items to be refunded.",
+        required=True,
     )
 
 
@@ -441,7 +444,9 @@ class FulfillmentRefundProducts(BaseMutation):
         raise ValidationError(
             {
                 field_name: ValidationError(
-                    msg, code=code, params={field_name: line_global_id},
+                    msg,
+                    code=code,
+                    params={field_name: line_global_id},
                 )
             }
         )

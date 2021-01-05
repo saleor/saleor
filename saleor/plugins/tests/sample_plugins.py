@@ -13,10 +13,10 @@ if TYPE_CHECKING:
     # flake8: noqa
     from ...account.models import Address
     from ...checkout import CheckoutLineInfo
-    from ...discount import DiscountInfo
-    from ...product.models import Product, ProductType
-    from ...order.models import Order
     from ...checkout.models import Checkout, CheckoutLine
+    from ...discount import DiscountInfo
+    from ...order.models import Order
+    from ...product.models import Product, ProductType
 
 
 class PluginSample(BasePlugin):

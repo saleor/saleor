@@ -5,7 +5,8 @@ from templated_email import get_connection
 
 from ...invoice import emails as invoice_emails
 from ...invoice.models import Invoice
-from ...order import OrderEvents, emails as emails
+from ...order import OrderEvents
+from ...order import emails as emails
 from ..utils import add_variant_to_draft_order
 
 

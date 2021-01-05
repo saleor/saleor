@@ -100,7 +100,9 @@ def api_post_request(
 
 
 def api_get_request(
-    url: str, username_or_account: str, password_or_license: str,
+    url: str,
+    username_or_account: str,
+    password_or_license: str,
 ):
     response = None
     try:

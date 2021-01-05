@@ -151,7 +151,13 @@ class Migration(migrations.Migration):
         migrations.SeparateDatabaseAndState(
             state_operations=state_operations, database_operations=database_operations
         ),
-        migrations.AlterModelTable(name="app", table=None,),
-        migrations.AlterModelTable(name="apptoken", table=None,),
+        migrations.AlterModelTable(
+            name="app",
+            table=None,
+        ),
+        migrations.AlterModelTable(
+            name="apptoken",
+            table=None,
+        ),
         migrations.RunPython(convert_service_account_permissions_to_app_permissions),
     ]
