@@ -285,6 +285,9 @@ def _prepare_order_data(
     shipping_total = manager.calculate_checkout_shipping(
         checkout, lines, address, discounts
     )
+    shipping_tax_rate = manager.get_checkout_shipping_tax_rate(
+        checkout, lines, address, discounts, shipping_total
+    )
     order_data.update(
         _process_shipping_data_for_order(checkout, shipping_total, manager, lines)
     )
@@ -294,6 +297,7 @@ def _prepare_order_data(
             "language_code": get_language(),
             "tracking_client_id": checkout.tracking_code or "",
             "total": taxed_total,
+            "shipping_tax_rate": shipping_tax_rate,
         }
     )
 

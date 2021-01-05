@@ -431,7 +431,7 @@ class AvataxPlugin(BasePlugin):
         discounts: Iterable[DiscountInfo],
         previous_value: Decimal,
     ) -> Decimal:
-        return self._get_tax_rate(
+        return self._get_unit_tax_rate(
             checkout, previous_value, False, discounts, [checkout_line_info.line]
         )
 
@@ -442,9 +442,69 @@ class AvataxPlugin(BasePlugin):
         address: Optional["Address"],
         previous_value: Decimal,
     ) -> Decimal:
-        return self._get_tax_rate(order, previous_value, True)
+        return self._get_unit_tax_rate(order, previous_value, True)
 
-    def _get_tax_rate(
+    def get_checkout_shipping_tax_rate(
+        self,
+        checkout: "Checkout",
+        lines: Iterable["CheckoutLineInfo"],
+        address: Optional["Address"],
+        discounts: Iterable[DiscountInfo],
+        previous_value: Decimal,
+    ):
+        return self._get_shipping_tax_rate(
+            checkout,
+            previous_value,
+            False,
+            discounts,
+            [line_info.line for line_info in lines],
+        )
+
+    def get_order_shipping_tax_rate(self, order: "Order", previous_value: Decimal):
+        return self._get_shipping_tax_rate(order, previous_value, True)
+
+    def _get_unit_tax_rate(
+        self,
+        instance: Union["Order", "Checkout"],
+        base_rate: Decimal,
+        is_order: bool,
+        discounts: Optional[Iterable[DiscountInfo]] = None,
+        checkout_lines: Iterable["CheckoutLine"] = [],
+    ):
+        response = self._get_tax_data(
+            instance, base_rate, is_order, discounts, checkout_lines
+        )
+        if response is None:
+            return base_rate
+        rate = None
+        response_summary = response.get("summary")
+        if response_summary:
+            rate = Decimal(response_summary[0].get("rate", 0.0))
+        return rate or base_rate
+
+    def _get_shipping_tax_rate(
+        self,
+        instance: Union["Order", "Checkout"],
+        base_rate: Decimal,
+        is_order: bool,
+        discounts: Optional[Iterable[DiscountInfo]] = None,
+        checkout_lines: Iterable["CheckoutLine"] = [],
+    ):
+        response = self._get_tax_data(
+            instance, base_rate, is_order, discounts, checkout_lines
+        )
+        if response is None:
+            return base_rate
+        lines_data = response.get("lines", [])
+        for line in lines_data:
+            if line["itemCode"] == "Shipping":
+                line_details = line.get("details")
+                if not line_details:
+                    return
+                return Decimal(line_details[0].get("rate", 0.0))
+        return base_rate
+
+    def _get_tax_data(
         self,
         instance: Union["Order", "Checkout"],
         base_rate: Decimal,
@@ -453,7 +513,7 @@ class AvataxPlugin(BasePlugin):
         checkout_lines: Iterable["CheckoutLine"] = [],
     ):
         if self._skip_plugin(base_rate):
-            return base_rate
+            return None
 
         valid = (
             _validate_order(instance)  # type: ignore
@@ -462,7 +522,7 @@ class AvataxPlugin(BasePlugin):
         )
 
         if not valid:
-            return base_rate
+            return None
 
         response = (
             get_order_tax_data(instance, self.config, False)  # type: ignore
@@ -470,14 +530,9 @@ class AvataxPlugin(BasePlugin):
             else get_checkout_tax_data(instance, discounts, self.config)  # type: ignore
         )
         if not response or "error" in response:
-            return base_rate
+            return None
 
-        rate = None
-        response_summary = response.get("summary")
-        if response_summary:
-            rate = Decimal(response_summary[0].get("rate", 0.0))
-
-        return rate or base_rate
+        return response
 
     def assign_tax_code_to_object_meta(
         self,

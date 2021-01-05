@@ -209,6 +209,30 @@ class PluginsManager(PaymentInterface):
             order.currency,
         )
 
+    def get_checkout_shipping_tax_rate(
+        self,
+        checkout: "Checkout",
+        lines: Iterable["CheckoutLineInfo"],
+        address: Optional["Address"],
+        discounts: Iterable[DiscountInfo],
+        shipping_price: TaxedMoney,
+    ):
+        default_value = base_calculations.base_tax_rate(shipping_price)
+        return self.__run_method_on_plugins(
+            "get_checkout_shipping_tax_rate",
+            default_value,
+            checkout,
+            lines,
+            address,
+            discounts,
+        ).quantize(Decimal(".0001"))
+
+    def get_order_shipping_tax_rate(self, order: "Order", shipping_price: TaxedMoney):
+        default_value = base_calculations.base_tax_rate(shipping_price)
+        return self.__run_method_on_plugins(
+            "get_order_shipping_tax_rate", default_value, order
+        ).quantize(Decimal(".0001"))
+
     def calculate_checkout_line_total(
         self,
         checkout: "Checkout",
@@ -272,6 +296,36 @@ class PluginsManager(PaymentInterface):
             ),
             order_line.currency,
         )
+
+    def get_checkout_line_tax_rate(
+        self,
+        checkout: "Checkout",
+        checkout_line_info: "CheckoutLineInfo",
+        address: Optional["Address"],
+        discounts: Iterable[DiscountInfo],
+        unit_price: TaxedMoney,
+    ) -> Decimal:
+        default_value = base_calculations.base_tax_rate(unit_price)
+        return self.__run_method_on_plugins(
+            "get_checkout_line_tax_rate",
+            default_value,
+            checkout,
+            checkout_line_info,
+            address,
+            discounts,
+        ).quantize(Decimal(".0001"))
+
+    def get_order_line_tax_rate(
+        self,
+        order: "Order",
+        product: "Product",
+        address: Optional["Address"],
+        unit_price: TaxedMoney,
+    ) -> Decimal:
+        default_value = base_calculations.base_tax_rate(unit_price)
+        return self.__run_method_on_plugins(
+            "get_order_line_tax_rate", default_value, order, product, address
+        ).quantize(Decimal(".0001"))
 
     def get_tax_rate_type_choices(self) -> List[TaxType]:
         default_value: list = []
@@ -480,36 +534,6 @@ class PluginsManager(PaymentInterface):
                 gtw, "list_payment_sources", default_value, customer_id=customer_id
             )
         raise Exception(f"Payment plugin {gateway} is inaccessible!")
-
-    def get_checkout_line_tax_rate(
-        self,
-        checkout: "Checkout",
-        checkout_line_info: "CheckoutLineInfo",
-        address: Optional["Address"],
-        discounts: Iterable[DiscountInfo],
-        unit_price: TaxedMoney,
-    ) -> Decimal:
-        default_value = base_calculations.base_tax_rate(unit_price)
-        return self.__run_method_on_plugins(
-            "get_checkout_line_tax_rate",
-            default_value,
-            checkout,
-            checkout_line_info,
-            address,
-            discounts,
-        ).quantize(Decimal(".0001"))
-
-    def get_order_line_tax_rate(
-        self,
-        order: "Order",
-        product: "Product",
-        address: Optional["Address"],
-        unit_price: TaxedMoney,
-    ) -> Decimal:
-        default_value = base_calculations.base_tax_rate(unit_price)
-        return self.__run_method_on_plugins(
-            "get_order_line_tax_rate", default_value, order, product, address
-        ).quantize(Decimal(".0001"))
 
     def get_active_plugins(self, plugins=None) -> List["BasePlugin"]:
         if plugins is None:
