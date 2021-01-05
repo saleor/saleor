@@ -26,6 +26,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Shipping zone description - #6653 by @tomaszszymanski129
 - Add metadata to menu and menu item - #6648 by @tomaszszymanski129
 - Get tax rate from plugins - #6649 by @IKarbowiak
+- Added support for querying user by email - #6632 @LeOndaz
 - Add order shipping tax rate - #6678 by @IKarbowiak
 
 # 2.11.1
