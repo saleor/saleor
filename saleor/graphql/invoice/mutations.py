@@ -6,7 +6,8 @@ from ...core.permissions import OrderPermissions
 from ...invoice import events, models
 from ...invoice.emails import send_invoice
 from ...invoice.error_codes import InvoiceErrorCode
-from ...order import OrderStatus, events as order_events
+from ...order import OrderStatus
+from ...order import events as order_events
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types.common import InvoiceError
 from ..invoice.types import Invoice

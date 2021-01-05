@@ -1,5 +1,6 @@
 import graphene
-from django.contrib.auth import get_user_model, models as auth_models
+from django.contrib.auth import get_user_model
+from django.contrib.auth import models as auth_models
 from graphene import relay
 from graphene_federation import key
 

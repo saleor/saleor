@@ -7,7 +7,8 @@ from django.db.models import Q
 from django.utils.text import slugify
 from graphql_relay import from_global_id
 
-from ...attribute import AttributeInputType, AttributeType, models as attribute_models
+from ...attribute import AttributeInputType, AttributeType
+from ...attribute import models as attribute_models
 from ...attribute.utils import associate_attribute_values_to_instance
 from ...core.utils import generate_unique_slug
 from ...page import models as page_models

@@ -12,7 +12,8 @@ from prices import Money, TaxedMoney
 
 from ....account.models import CustomerEvent
 from ....core.taxes import TaxError, zero_taxed_money
-from ....order import OrderStatus, events as order_events
+from ....order import OrderStatus
+from ....order import events as order_events
 from ....order.error_codes import OrderErrorCode
 from ....order.models import Order, OrderEvent
 from ....payment import ChargeStatus, CustomPaymentChoices, PaymentError

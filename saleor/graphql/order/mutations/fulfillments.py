@@ -6,7 +6,8 @@ from django.template.defaultfilters import pluralize
 
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
-from ....order import FulfillmentStatus, models as order_models
+from ....order import FulfillmentStatus
+from ....order import models as order_models
 from ....order.actions import (
     cancel_fulfillment,
     create_fulfillments,
