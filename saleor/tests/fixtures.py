@@ -846,6 +846,17 @@ def page_reference_attribute(db):
 
 
 @pytest.fixture
+def product_reference_attribute(db):
+    return Attribute.objects.create(
+        slug="product-reference",
+        name="Product reference",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.REFERENCE,
+        entity_type=AttributeEntityType.PRODUCT,
+    )
+
+
+@pytest.fixture
 def size_page_attribute(db):
     attribute = Attribute.objects.create(
         slug="page-size",
