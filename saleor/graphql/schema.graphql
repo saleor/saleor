@@ -642,35 +642,6 @@ type AttributeValueUpdate {
   attributeValue: AttributeValue
 }
 
-type AuthorizationKey {
-  name: AuthorizationKeyType!
-  key: String!
-}
-
-type AuthorizationKeyAdd {
-  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  authorizationKey: AuthorizationKey
-  shop: Shop
-  shopErrors: [ShopError!]!
-}
-
-type AuthorizationKeyDelete {
-  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  authorizationKey: AuthorizationKey
-  shop: Shop
-  shopErrors: [ShopError!]!
-}
-
-input AuthorizationKeyInput {
-  key: String!
-  password: String!
-}
-
-enum AuthorizationKeyType {
-  FACEBOOK
-  GOOGLE_OAUTH2
-}
-
 input BulkAttributeValueInput {
   id: ID
   values: [String]!
@@ -2336,10 +2307,12 @@ type Margin {
   stop: Int
 }
 
-type Menu implements Node {
+type Menu implements Node & ObjectWithMetadata {
   id: ID!
   name: String!
   slug: String!
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
   items: [MenuItem]
 }
 
@@ -2406,7 +2379,7 @@ input MenuInput {
   slug: String
 }
 
-type MenuItem implements Node {
+type MenuItem implements Node & ObjectWithMetadata {
   id: ID!
   name: String!
   menu: Menu!
@@ -2415,6 +2388,8 @@ type MenuItem implements Node {
   collection: Collection
   page: Page
   level: Int!
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
   children: [MenuItem]
   url: String
   translation(languageCode: LanguageCodeEnum!): MenuItemTranslation
@@ -2581,8 +2556,6 @@ type Mutation {
   deleteWarehouse(id: ID!): WarehouseDelete
   assignWarehouseShippingZone(id: ID!, shippingZoneIds: [ID!]!): WarehouseShippingZoneAssign
   unassignWarehouseShippingZone(id: ID!, shippingZoneIds: [ID!]!): WarehouseShippingZoneUnassign
-  authorizationKeyAdd(input: AuthorizationKeyInput!, keyType: AuthorizationKeyType!): AuthorizationKeyAdd
-  authorizationKeyDelete(keyType: AuthorizationKeyType!): AuthorizationKeyDelete
   staffNotificationRecipientCreate(input: StaffNotificationRecipientInput!): StaffNotificationRecipientCreate
   staffNotificationRecipientUpdate(id: ID!, input: StaffNotificationRecipientInput!): StaffNotificationRecipientUpdate
   staffNotificationRecipientDelete(id: ID!): StaffNotificationRecipientDelete
@@ -2859,6 +2832,7 @@ type Order implements Node & ObjectWithMetadata {
   shippingMethodName: String
   channel: Channel!
   shippingPrice: TaxedMoney
+  shippingTaxRate: Float!
   token: String!
   voucher: Voucher
   giftCards: [GiftCard]
@@ -2955,6 +2929,7 @@ input OrderDraftFilterInput {
   customer: String
   created: DateRangeInput
   search: String
+  channels: [ID]
 }
 
 type OrderError {
@@ -3088,6 +3063,7 @@ input OrderFilterInput {
   customer: String
   created: DateRangeInput
   search: String
+  channels: [ID]
 }
 
 type OrderFulfill {
@@ -4232,12 +4208,8 @@ type ProductVariant implements Node & ObjectWithMetadata {
   weight: Weight
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
-  quantity: Int! @deprecated(reason: "Use the stock field instead. This field will be removed after 2020-07-31.")
-  quantityAllocated: Int @deprecated(reason: "Use the stock field instead. This field will be removed after 2020-07-31.")
-  stockQuantity: Int! @deprecated(reason: "Use the quantityAvailable field instead. This field will be removed after 2020-07-31.")
   channelListings: [ProductVariantChannelListing!]
   pricing: VariantPricingInfo
-  isAvailable: Boolean @deprecated(reason: "Use the stock field instead. This field will be removed after 2020-07-31.")
   attributes(variantSelection: VariantAttributeScope): [SelectedAttribute!]!
   costPrice: Money
   margin: Int
@@ -4475,7 +4447,7 @@ type Query {
   permissionGroup(id: ID!): Group
   me: User
   staffUsers(filter: StaffUserInput, sortBy: UserSortingInput, before: String, after: String, first: Int, last: Int): UserCountableConnection
-  user(id: ID!): User
+  user(id: ID, email: String): User
   _entities(representations: [_Any]): [_Entity]
   _service: _Service
 }
@@ -4853,6 +4825,7 @@ type ShippingZone implements Node & ObjectWithMetadata {
   countries: [CountryDisplay]
   shippingMethods: [ShippingMethod]
   warehouses: [Warehouse]
+  description: String
 }
 
 type ShippingZoneBulkDelete {
@@ -4880,6 +4853,7 @@ type ShippingZoneCreate {
 
 input ShippingZoneCreateInput {
   name: String
+  description: String
   countries: [String]
   default: Boolean
   addWarehouses: [ID]
@@ -4899,6 +4873,7 @@ type ShippingZoneUpdate {
 
 input ShippingZoneUpdateInput {
   name: String
+  description: String
   countries: [String]
   default: Boolean
   addWarehouses: [ID]
@@ -4909,7 +4884,6 @@ type Shop {
   availablePaymentGateways(currency: String): [PaymentGateway!]!
   availableShippingMethods(channel: String!, address: AddressInput): [ShippingMethod]
   geolocalization: Geolocalization
-  authorizationKeys: [AuthorizationKey]!
   countries(languageCode: LanguageCodeEnum): [CountryDisplay!]!
   defaultCountry: CountryDisplay
   defaultMailSenderName: String

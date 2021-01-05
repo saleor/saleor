@@ -237,7 +237,7 @@
             <td style="padding: 5px; text-align: right;" align="right">
               {% price line.unit_price display_gross=order.display_gross_prices html=False %}
             </td>
-            <td style="padding: 5px; text-align: right;" align="right">{% price line.get_total display_gross=order.display_gross_prices html=False %}</td>
+            <td style="padding: 5px; text-align: right;" align="right">{% price line.total_price display_gross=order.display_gross_prices html=False %}</td>
           </tr>
         {% endfor %}
       </tbody>

@@ -114,19 +114,18 @@ def test_get_price(
     channel_USD,
 ):
     product = models.Product.objects.create(
-        product_type=product_type, category=category,
+        product_type=product_type,
+        category=category,
     )
     variant = product.variants.create()
-    models.ProductVariantChannelListing.objects.create(
+    channel_listing = models.ProductVariantChannelListing.objects.create(
         variant=variant,
         channel=channel_USD,
         price_amount=Decimal(15),
         currency=channel_USD.currency_code,
     )
-    price = variant.get_price(
-        channel_USD.slug, discounts=[discount_info] if include_discounts else []
-    )
-
+    discounts = [discount_info] if include_discounts else []
+    price = variant.get_price(product, [], channel_USD, channel_listing, discounts)
     assert price.amount == expected_price
 
 
@@ -134,18 +133,20 @@ def test_product_get_price_do_not_charge_taxes(
     product_type, category, discount_info, channel_USD
 ):
     product = models.Product.objects.create(
-        product_type=product_type, category=category, charge_taxes=False,
+        product_type=product_type,
+        category=category,
+        charge_taxes=False,
     )
     variant = product.variants.create()
-    models.ProductVariantChannelListing.objects.create(
+    channel_listing = models.ProductVariantChannelListing.objects.create(
         variant=variant,
         channel=channel_USD,
         price_amount=Decimal(10),
         currency=channel_USD.currency_code,
     )
-
-    price = variant.get_price(channel_USD.slug, discounts=[discount_info])
-
+    price = variant.get_price(
+        product, [], channel_USD, channel_listing, discounts=[discount_info]
+    )
     assert price == Money("5.00", "USD")
 
 

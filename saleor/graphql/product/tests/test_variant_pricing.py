@@ -13,24 +13,20 @@ query ($channel: String) {
     edges {
       node {
         variants {
-          isAvailable
           pricing {
             onSale
-
             discount {
               currency
               net {
                 amount
               }
             }
-
             priceUndiscounted {
               currency
               net {
                 amount
               }
             }
-
             price {
               currency
               net {

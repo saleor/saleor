@@ -11,6 +11,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterModelOptions(
-            name="warehouse", options={"ordering": ("-slug",)},
+            name="warehouse",
+            options={"ordering": ("-slug",)},
         ),
     ]

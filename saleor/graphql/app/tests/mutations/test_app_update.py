@@ -206,7 +206,9 @@ def test_app_update_mutation_for_app_out_of_scope_permissions(
     query = APP_UPDATE_MUTATION
     requestor = app_api_client.app
     requestor.permissions.add(
-        permission_manage_apps, permission_manage_products, permission_manage_orders,
+        permission_manage_apps,
+        permission_manage_products,
+        permission_manage_orders,
     )
     app.permissions.add(permission_manage_orders)
     id = graphene.Node.to_global_id("App", app.id)
@@ -244,7 +246,9 @@ def test_app_update_mutation_out_of_scope_app(
     """Ensure user cannot manage app with wider permission scope."""
     query = APP_UPDATE_MUTATION
     staff_user.user_permissions.add(
-        permission_manage_apps, permission_manage_products, permission_manage_users,
+        permission_manage_apps,
+        permission_manage_products,
+        permission_manage_users,
     )
     app.permissions.add(permission_manage_orders)
     id = graphene.Node.to_global_id("App", app.id)
@@ -322,7 +326,9 @@ def test_app_update_mutation_for_app_out_of_scope_app(
     query = APP_UPDATE_MUTATION
     requestor = app_api_client.app
     requestor.permissions.add(
-        permission_manage_apps, permission_manage_products, permission_manage_users,
+        permission_manage_apps,
+        permission_manage_products,
+        permission_manage_users,
     )
     app.permissions.add(permission_manage_orders)
     id = graphene.Node.to_global_id("App", app.id)

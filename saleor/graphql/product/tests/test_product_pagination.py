@@ -109,12 +109,18 @@ QUERY_CATEGORIES_PAGINATION = """
     ],
 )
 def test_categories_pagination_with_sorting(
-    sort_by, categories_order, staff_api_client, categories_for_pagination,
+    sort_by,
+    categories_order,
+    staff_api_client,
+    categories_for_pagination,
 ):
     page_size = 3
 
     variables = {"first": page_size, "after": None, "sortBy": sort_by}
-    response = staff_api_client.post_graphql(QUERY_CATEGORIES_PAGINATION, variables,)
+    response = staff_api_client.post_graphql(
+        QUERY_CATEGORIES_PAGINATION,
+        variables,
+    )
     content = get_graphql_content(response)
     categories_nodes = content["data"]["categories"]["edges"]
     assert categories_order[0] == categories_nodes[0]["node"]["name"]
@@ -132,12 +138,18 @@ def test_categories_pagination_with_sorting(
     ],
 )
 def test_categories_pagination_with_filtering(
-    filter_by, categories_order, staff_api_client, categories_for_pagination,
+    filter_by,
+    categories_order,
+    staff_api_client,
+    categories_for_pagination,
 ):
     page_size = 2
 
     variables = {"first": page_size, "after": None, "filter": filter_by}
-    response = staff_api_client.post_graphql(QUERY_CATEGORIES_PAGINATION, variables,)
+    response = staff_api_client.post_graphql(
+        QUERY_CATEGORIES_PAGINATION,
+        variables,
+    )
     content = get_graphql_content(response)
     categories_nodes = content["data"]["categories"]["edges"]
     assert categories_order[0] == categories_nodes[0]["node"]["name"]
@@ -891,7 +903,10 @@ QUERY_PRODUCT_TYPES_PAGINATION = """
     ],
 )
 def test_product_types_pagination_with_sorting(
-    sort_by, product_types_order, staff_api_client, product_types_for_pagination,
+    sort_by,
+    product_types_order,
+    staff_api_client,
+    product_types_for_pagination,
 ):
     page_size = 3
 
@@ -914,19 +929,28 @@ def test_product_types_pagination_with_sorting(
         ),
         ({"search": "ProductType1"}, ["ProductType1", "ProductTypeProductType1"]),
         ({"search": "pt_pt"}, ["ProductTypeProductType1", "ProductTypeProductType2"]),
-        ({"productType": "DIGITAL"}, ["ProductType1", "ProductType3"],),
+        (
+            {"productType": "DIGITAL"},
+            ["ProductType1", "ProductType3"],
+        ),
         ({"productType": "SHIPPABLE"}, ["ProductType2", "ProductTypeProductType2"]),
         ({"configurable": "CONFIGURABLE"}, ["ProductType1", "ProductTypeProductType1"]),
         ({"configurable": "SIMPLE"}, ["ProductType2", "ProductType3"]),
     ],
 )
 def test_product_types_pagination_with_filtering(
-    filter_by, product_types_order, staff_api_client, product_types_for_pagination,
+    filter_by,
+    product_types_order,
+    staff_api_client,
+    product_types_for_pagination,
 ):
     page_size = 2
 
     variables = {"first": page_size, "after": None, "filter": filter_by}
-    response = staff_api_client.post_graphql(QUERY_PRODUCT_TYPES_PAGINATION, variables,)
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_TYPES_PAGINATION,
+        variables,
+    )
     content = get_graphql_content(response)
     product_types_nodes = content["data"]["productTypes"]["edges"]
     assert product_types_order[0] == product_types_nodes[0]["node"]["name"]

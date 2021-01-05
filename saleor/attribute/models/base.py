@@ -11,8 +11,9 @@ from ...product.models import ProductType
 from .. import AttributeEntityType, AttributeInputType, AttributeType
 
 if TYPE_CHECKING:
-    from ...account.models import User
     from django.db.models import OrderBy
+
+    from ...account.models import User
 
 
 class BaseAssignedAttribute(models.Model):

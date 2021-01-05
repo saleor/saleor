@@ -11,14 +11,44 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterModelTable(name="assignedpageattribute", table=None,),
-        migrations.AlterModelTable(name="assignedproductattribute", table=None,),
-        migrations.AlterModelTable(name="assignedvariantattribute", table=None,),
-        migrations.AlterModelTable(name="attribute", table=None,),
-        migrations.AlterModelTable(name="attributepage", table=None,),
-        migrations.AlterModelTable(name="attributeproduct", table=None,),
-        migrations.AlterModelTable(name="attributetranslation", table=None,),
-        migrations.AlterModelTable(name="attributevalue", table=None,),
-        migrations.AlterModelTable(name="attributevaluetranslation", table=None,),
-        migrations.AlterModelTable(name="attributevariant", table=None,),
+        migrations.AlterModelTable(
+            name="assignedpageattribute",
+            table=None,
+        ),
+        migrations.AlterModelTable(
+            name="assignedproductattribute",
+            table=None,
+        ),
+        migrations.AlterModelTable(
+            name="assignedvariantattribute",
+            table=None,
+        ),
+        migrations.AlterModelTable(
+            name="attribute",
+            table=None,
+        ),
+        migrations.AlterModelTable(
+            name="attributepage",
+            table=None,
+        ),
+        migrations.AlterModelTable(
+            name="attributeproduct",
+            table=None,
+        ),
+        migrations.AlterModelTable(
+            name="attributetranslation",
+            table=None,
+        ),
+        migrations.AlterModelTable(
+            name="attributevalue",
+            table=None,
+        ),
+        migrations.AlterModelTable(
+            name="attributevaluetranslation",
+            table=None,
+        ),
+        migrations.AlterModelTable(
+            name="attributevariant",
+            table=None,
+        ),
     ]

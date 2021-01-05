@@ -16,7 +16,7 @@ AttributeAssignmentType = Union[
 
 
 if TYPE_CHECKING:
-    from .models import AttributeProduct, AttributeVariant, AttributePage
+    from .models import AttributePage, AttributeProduct, AttributeVariant
 
 
 def _associate_attribute_to_instance(

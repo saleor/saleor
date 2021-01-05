@@ -35,7 +35,12 @@ class App(ModelWithMetadata):
 
     class Meta:
         ordering = ("name", "pk")
-        permissions = ((AppPermission.MANAGE_APPS.codename, "Manage apps",),)
+        permissions = (
+            (
+                AppPermission.MANAGE_APPS.codename,
+                "Manage apps",
+            ),
+        )
 
     def get_permissions(self) -> Set[str]:
         """Return the permissions of the app."""

@@ -11,7 +11,9 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RenameField(
-            model_name="attribute", old_name="meta", new_name="metadata",
+            model_name="attribute",
+            old_name="meta",
+            new_name="metadata",
         ),
         migrations.RenameField(
             model_name="attribute",
@@ -19,13 +21,19 @@ class Migration(migrations.Migration):
             new_name="private_metadata",
         ),
         migrations.RenameField(
-            model_name="category", old_name="meta", new_name="metadata",
+            model_name="category",
+            old_name="meta",
+            new_name="metadata",
         ),
         migrations.RenameField(
-            model_name="category", old_name="private_meta", new_name="private_metadata",
+            model_name="category",
+            old_name="private_meta",
+            new_name="private_metadata",
         ),
         migrations.RenameField(
-            model_name="collection", old_name="meta", new_name="metadata",
+            model_name="collection",
+            old_name="meta",
+            new_name="metadata",
         ),
         migrations.RenameField(
             model_name="collection",
@@ -33,7 +41,9 @@ class Migration(migrations.Migration):
             new_name="private_metadata",
         ),
         migrations.RenameField(
-            model_name="digitalcontent", old_name="meta", new_name="metadata",
+            model_name="digitalcontent",
+            old_name="meta",
+            new_name="metadata",
         ),
         migrations.RenameField(
             model_name="digitalcontent",
@@ -41,13 +51,19 @@ class Migration(migrations.Migration):
             new_name="private_metadata",
         ),
         migrations.RenameField(
-            model_name="product", old_name="meta", new_name="metadata",
+            model_name="product",
+            old_name="meta",
+            new_name="metadata",
         ),
         migrations.RenameField(
-            model_name="product", old_name="private_meta", new_name="private_metadata",
+            model_name="product",
+            old_name="private_meta",
+            new_name="private_metadata",
         ),
         migrations.RenameField(
-            model_name="producttype", old_name="meta", new_name="metadata",
+            model_name="producttype",
+            old_name="meta",
+            new_name="metadata",
         ),
         migrations.RenameField(
             model_name="producttype",
@@ -55,7 +71,9 @@ class Migration(migrations.Migration):
             new_name="private_metadata",
         ),
         migrations.RenameField(
-            model_name="productvariant", old_name="meta", new_name="metadata",
+            model_name="productvariant",
+            old_name="meta",
+            new_name="metadata",
         ),
         migrations.RenameField(
             model_name="productvariant",

@@ -42,6 +42,7 @@ ORDER_FIELDS = (
     "shipping_method_name",
     "shipping_price_net_amount",
     "shipping_price_gross_amount",
+    "shipping_tax_rate",
     "total_net_amount",
     "total_gross_amount",
     "shipping_price_net_amount",
@@ -66,6 +67,8 @@ def generate_order_lines_payload(lines: Iterable[OrderLine]):
         "currency",
         "unit_price_net_amount",
         "unit_price_gross_amount",
+        "total_price_net_amount",
+        "total_price_gross_amount",
         "tax_rate",
     )
     serializer = PayloadSerializer()
@@ -73,8 +76,8 @@ def generate_order_lines_payload(lines: Iterable[OrderLine]):
         lines,
         fields=line_fields,
         extra_dict_data={
-            "total_price_net_amount": (lambda l: l.get_total().net.amount),
-            "total_price_gross_amount": (lambda l: l.get_total().gross.amount),
+            "total_price_net_amount": (lambda l: l.total_price.net.amount),
+            "total_price_gross_amount": (lambda l: l.total_price.gross.amount),
         },
     )
 

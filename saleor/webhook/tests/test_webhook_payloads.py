@@ -20,6 +20,7 @@ def test_generate_order_payload(
 
     assert payload.get("payments")
     assert payload.get("shipping_method")
+    assert payload.get("shipping_tax_rate")
     assert payload.get("lines")
     assert payload.get("payments")
     assert payload.get("shipping_address")
@@ -38,7 +39,7 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
     line_payload = lines_payload[0]
     unit_net_amount = line.unit_price_net_amount.quantize(Decimal("0.001"))
     unit_gross_amount = line.unit_price_gross_amount.quantize(Decimal("0.001"))
-    total_line = line.get_total()
+    total_line = line.total_price
     assert line_payload == {
         "id": line_id,
         "type": "OrderLine",
@@ -55,5 +56,5 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
         "total_price_gross_amount": str(
             total_line.gross.amount.quantize(Decimal("0.001"))
         ),
-        "tax_rate": str(line.tax_rate.quantize(Decimal("0.01"))),
+        "tax_rate": str(line.tax_rate.quantize(Decimal("0.0001"))),
     }

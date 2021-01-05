@@ -1,11 +1,14 @@
 import django_filters
 from django.db.models import Sum
+from graphene_django.filter import GlobalIDMultipleChoiceFilter
 
 from ...order.models import Order
+from ..channel.types import Channel
 from ..core.filters import ListObjectTypeFilter, ObjectTypeFilter
 from ..core.types.common import DateRangeInput
 from ..core.utils import from_global_id_strict_type
 from ..payment.enums import PaymentChargeStatusEnum
+from ..utils import resolve_global_ids_to_primary_keys
 from ..utils.filters import filter_by_query_param, filter_range_field
 from .enums import OrderStatusFilter
 
@@ -82,10 +85,18 @@ def filter_order_search(qs, _, value):
     return qs
 
 
+def filter_channels(qs, _, values):
+    if values:
+        _, channels_ids = resolve_global_ids_to_primary_keys(values, Channel)
+        qs = qs.filter(channel_id__in=channels_ids)
+    return qs
+
+
 class DraftOrderFilter(django_filters.FilterSet):
     customer = django_filters.CharFilter(method=filter_customer)
     created = ObjectTypeFilter(input_class=DateRangeInput, method=filter_created_range)
     search = django_filters.CharFilter(method=filter_order_search)
+    channels = GlobalIDMultipleChoiceFilter(method=filter_channels)
 
     class Meta:
         model = Order
@@ -100,6 +111,7 @@ class OrderFilter(DraftOrderFilter):
     customer = django_filters.CharFilter(method=filter_customer)
     created = ObjectTypeFilter(input_class=DateRangeInput, method=filter_created_range)
     search = django_filters.CharFilter(method=filter_order_search)
+    channels = GlobalIDMultipleChoiceFilter(method=filter_channels)
 
     class Meta:
         model = Order

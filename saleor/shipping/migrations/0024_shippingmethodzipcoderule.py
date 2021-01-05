@@ -34,6 +34,8 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={"unique_together": {("shipping_method", "start", "end")},},  # noqa
+            options={
+                "unique_together": {("shipping_method", "start", "end")},
+            },  # noqa
         ),
     ]

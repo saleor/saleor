@@ -190,7 +190,9 @@ def test_variant_channel_listing_update_as_staff_user(
 ):
     # given
     ProductChannelListing.objects.create(
-        product=product, channel=channel_PLN, is_published=True,
+        product=product,
+        channel=channel_PLN,
+        is_published=True,
     )
     variant = product.variants.get()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
@@ -244,7 +246,9 @@ def test_variant_channel_listing_update_trigger_webhook_product_updated(
 ):
     # given
     ProductChannelListing.objects.create(
-        product=product, channel=channel_PLN, is_published=True,
+        product=product,
+        channel=channel_PLN,
+        is_published=True,
     )
     variant = product.variants.get()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
@@ -281,7 +285,9 @@ def test_variant_channel_listing_update_as_app(
 ):
     # given
     ProductChannelListing.objects.create(
-        product=product, channel=channel_PLN, is_published=True,
+        product=product,
+        channel=channel_PLN,
+        is_published=True,
     )
     variant = product.variants.get()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
@@ -321,7 +327,9 @@ def test_variant_channel_listing_update_as_customer(
 ):
     # given
     ProductChannelListing.objects.create(
-        product=product, channel=channel_PLN, is_published=True,
+        product=product,
+        channel=channel_PLN,
+        is_published=True,
     )
     variant = product.variants.get()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
@@ -337,7 +345,8 @@ def test_variant_channel_listing_update_as_customer(
 
     # when
     response = user_api_client.post_graphql(
-        PRODUCT_VARIANT_CHANNEL_LISTING_UPDATE_MUTATION, variables=variables,
+        PRODUCT_VARIANT_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
     )
 
     # then
@@ -349,7 +358,9 @@ def test_variant_channel_listing_update_as_anonymous(
 ):
     # given
     ProductChannelListing.objects.create(
-        product=product, channel=channel_PLN, is_published=True,
+        product=product,
+        channel=channel_PLN,
+        is_published=True,
     )
     variant = product.variants.get()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
@@ -365,7 +376,8 @@ def test_variant_channel_listing_update_as_anonymous(
 
     # when
     response = api_client.post_graphql(
-        PRODUCT_VARIANT_CHANNEL_LISTING_UPDATE_MUTATION, variables=variables,
+        PRODUCT_VARIANT_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
     )
 
     # then
@@ -402,7 +414,10 @@ def test_product_variant_channel_listing_update_updates_discounted_price(
 
 
 def test_product_variant_channel_listing_update_remove_cost_price(
-    staff_api_client, product, permission_manage_products, channel_USD,
+    staff_api_client,
+    product,
+    permission_manage_products,
+    channel_USD,
 ):
     # given
     query = PRODUCT_VARIANT_CHANNEL_LISTING_UPDATE_MUTATION

@@ -150,7 +150,10 @@ def test_orders_total_as_app(
 
 
 def test_orders_total_as_customer(
-    user_api_client, order_with_lines, order_with_lines_channel_PLN, channel_USD,
+    user_api_client,
+    order_with_lines,
+    order_with_lines_channel_PLN,
+    channel_USD,
 ):
     # given
     variables = {"period": ReportingPeriod.TODAY.name, "channel": channel_USD.slug}
@@ -163,7 +166,10 @@ def test_orders_total_as_customer(
 
 
 def test_orders_total_as_anonymous(
-    api_client, order_with_lines, order_with_lines_channel_PLN, channel_USD,
+    api_client,
+    order_with_lines,
+    order_with_lines_channel_PLN,
+    channel_USD,
 ):
     # given
     variables = {"period": ReportingPeriod.TODAY.name, "channel": channel_USD.slug}
@@ -285,7 +291,10 @@ def test_orders_total_count_as_app(
 
 
 def test_orders_total_count_as_customer(
-    user_api_client, order_with_lines, order_with_lines_channel_PLN, channel_USD,
+    user_api_client,
+    order_with_lines,
+    order_with_lines_channel_PLN,
+    channel_USD,
 ):
     # given
     variables = {"created": ReportingPeriod.TODAY.name, "channel": channel_USD.slug}
@@ -298,7 +307,10 @@ def test_orders_total_count_as_customer(
 
 
 def test_orders_total_count_as_anonymous(
-    api_client, order_with_lines, order_with_lines_channel_PLN, channel_USD,
+    api_client,
+    order_with_lines,
+    order_with_lines_channel_PLN,
+    channel_USD,
 ):
     # given
     variables = {"created": ReportingPeriod.TODAY.name, "channel": channel_USD.slug}

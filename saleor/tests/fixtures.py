@@ -89,8 +89,7 @@ from ..shipping.models import (
     ShippingMethodType,
     ShippingZone,
 )
-from ..site import AuthenticationBackends
-from ..site.models import AuthorizationKey, SiteSettings
+from ..site.models import SiteSettings
 from ..warehouse.models import Allocation, Stock, Warehouse
 from ..webhook.event_types import WebhookEventType
 from ..webhook.models import Webhook
@@ -187,7 +186,9 @@ def setup_vatlayer(settings):
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
     data = {
         "active": True,
-        "configuration": [{"name": "Access key", "value": "vatlayer_access_key"},],
+        "configuration": [
+            {"name": "Access key", "value": "vatlayer_access_key"},
+        ],
     }
     PluginConfiguration.objects.create(identifier=VatlayerPlugin.PLUGIN_ID, **data)
     return settings
@@ -327,7 +328,9 @@ def checkout_with_shipping_required(checkout_with_item, product):
 @pytest.fixture
 def other_shipping_method(shipping_zone, channel_USD):
     method = ShippingMethod.objects.create(
-        name="DPD", type=ShippingMethodType.PRICE_BASED, shipping_zone=shipping_zone,
+        name="DPD",
+        type=ShippingMethodType.PRICE_BASED,
+        shipping_zone=shipping_zone,
     )
     ShippingMethodChannelListing.objects.create(
         channel=channel_USD,
@@ -340,7 +343,6 @@ def other_shipping_method(shipping_zone, channel_USD):
 
 @pytest.fixture
 def checkout_without_shipping_required(checkout, product_without_shipping):
-    checkout = checkout
     variant = product_without_shipping.variants.get()
     add_variant_to_checkout(checkout, variant, 1)
     checkout.save()
@@ -607,7 +609,9 @@ def shipping_zone(db, channel_USD):  # pylint: disable=W0613
         name="Europe", countries=[code for code, name in countries]
     )
     method = shipping_zone.shipping_methods.create(
-        name="DHL", type=ShippingMethodType.PRICE_BASED, shipping_zone=shipping_zone,
+        name="DHL",
+        type=ShippingMethodType.PRICE_BASED,
+        shipping_zone=shipping_zone,
     )
     ShippingMethodChannelListing.objects.create(
         channel=channel_USD,
@@ -628,10 +632,14 @@ def shipping_zones(db, channel_USD, channel_PLN):
         ]
     )
     method = shipping_zone_poland.shipping_methods.create(
-        name="DHL", type=ShippingMethodType.PRICE_BASED, shipping_zone=shipping_zone,
+        name="DHL",
+        type=ShippingMethodType.PRICE_BASED,
+        shipping_zone=shipping_zone,
     )
     second_method = shipping_zone_usa.shipping_methods.create(
-        name="DHL", type=ShippingMethodType.PRICE_BASED, shipping_zone=shipping_zone,
+        name="DHL",
+        type=ShippingMethodType.PRICE_BASED,
+        shipping_zone=shipping_zone,
     )
     ShippingMethodChannelListing.objects.bulk_create(
         [
@@ -670,7 +678,9 @@ def shipping_zones(db, channel_USD, channel_PLN):
 def shipping_zone_without_countries(db, channel_USD):  # pylint: disable=W0613
     shipping_zone = ShippingZone.objects.create(name="Europe", countries=[])
     method = shipping_zone.shipping_methods.create(
-        name="DHL", type=ShippingMethodType.PRICE_BASED, shipping_zone=shipping_zone,
+        name="DHL",
+        type=ShippingMethodType.PRICE_BASED,
+        shipping_zone=shipping_zone,
     )
     ShippingMethodChannelListing.objects.create(
         channel=channel_USD,
@@ -708,7 +718,9 @@ def shipping_method_excldued_by_zip_code(shipping_method):
 @pytest.fixture
 def shipping_method_channel_PLN(shipping_zone, channel_PLN):
     method = ShippingMethod.objects.create(
-        name="DHL", type=ShippingMethodType.PRICE_BASED, shipping_zone=shipping_zone,
+        name="DHL",
+        type=ShippingMethodType.PRICE_BASED,
+        shipping_zone=shipping_zone,
     )
     ShippingMethodChannelListing.objects.create(
         shipping_method=method,
@@ -1124,7 +1136,9 @@ def product_with_collections(
 @pytest.fixture
 def product_available_in_many_channels(product, channel_PLN):
     ProductChannelListing.objects.create(
-        product=product, channel=channel_PLN, is_published=True,
+        product=product,
+        channel=channel_PLN,
+        is_published=True,
     )
     variant = product.variants.get()
     ProductVariantChannelListing.objects.create(
@@ -1182,7 +1196,11 @@ def product_with_two_variants(product_type, category, warehouse, channel_USD):
     )
 
     variants = [
-        ProductVariant(product=product, sku=f"Product variant #{i}",) for i in (1, 2)
+        ProductVariant(
+            product=product,
+            sku=f"Product variant #{i}",
+        )
+        for i in (1, 2)
     ]
     ProductVariant.objects.bulk_create(variants)
     variants_channel_listing = [
@@ -1198,7 +1216,11 @@ def product_with_two_variants(product_type, category, warehouse, channel_USD):
     ProductVariantChannelListing.objects.bulk_create(variants_channel_listing)
     Stock.objects.bulk_create(
         [
-            Stock(warehouse=warehouse, product_variant=variant, quantity=10,)
+            Stock(
+                warehouse=warehouse,
+                product_variant=variant,
+                quantity=10,
+            )
             for variant in variants
         ]
     )
@@ -1280,7 +1302,10 @@ def product_with_variant_with_file_attribute(
         available_for_purchase=datetime.date(1999, 1, 1),
     )
 
-    variant = ProductVariant.objects.create(product=product, sku="prodVarTest",)
+    variant = ProductVariant.objects.create(
+        product=product,
+        sku="prodVarTest",
+    )
     ProductVariantChannelListing.objects.create(
         variant=variant,
         channel=channel_USD,
@@ -1369,7 +1394,9 @@ def variant_without_inventory_tracking(
         available_for_purchase=datetime.date.today(),
     )
     variant = ProductVariant.objects.create(
-        product=product, sku="tracking123", track_inventory=False,
+        product=product,
+        sku="tracking123",
+        track_inventory=False,
     )
     ProductVariantChannelListing.objects.create(
         variant=variant,
@@ -1730,13 +1757,19 @@ def product_list_with_many_channels(product_list, channel_PLN):
     ProductChannelListing.objects.bulk_create(
         [
             ProductChannelListing(
-                product=product_list[0], channel=channel_PLN, is_published=True,
+                product=product_list[0],
+                channel=channel_PLN,
+                is_published=True,
             ),
             ProductChannelListing(
-                product=product_list[1], channel=channel_PLN, is_published=True,
+                product=product_list[1],
+                channel=channel_PLN,
+                is_published=True,
             ),
             ProductChannelListing(
-                product=product_list[2], channel=channel_PLN, is_published=True,
+                product=product_list[2],
+                channel=channel_PLN,
+                is_published=True,
             ),
         ]
     )
@@ -1818,7 +1851,10 @@ def unavailable_product_with_variant(product_type, category, warehouse, channel_
     variant_attr = product_type.variant_attributes.first()
     variant_attr_value = variant_attr.values.first()
 
-    variant = ProductVariant.objects.create(product=product, sku="123",)
+    variant = ProductVariant.objects.create(
+        product=product,
+        sku="123",
+    )
     ProductVariantChannelListing.objects.create(
         variant=variant,
         channel=channel_USD,
@@ -1883,7 +1919,8 @@ def voucher_with_many_channels(voucher, channel_PLN):
 @pytest.fixture
 def voucher_percentage(channel_USD):
     voucher = Voucher.objects.create(
-        code="saleor", discount_value_type=DiscountValueType.PERCENTAGE,
+        code="saleor",
+        discount_value_type=DiscountValueType.PERCENTAGE,
     )
     VoucherChannelListing.objects.create(
         voucher=voucher,
@@ -1945,18 +1982,24 @@ def voucher_customer(voucher, customer_user):
 
 @pytest.fixture
 def order_line(order, variant):
-    channel_slug = order.channel.slug
-    net = variant.get_price(channel_slug)
-    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    product = variant.product
+    channel = order.channel
+    channel_listing = variant.channel_listings.get(channel=channel)
+    net = variant.get_price(product, [], channel, channel_listing)
+    currency = net.currency
+    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    quantity = 3
+    unit_price = TaxedMoney(net=net, gross=gross)
     return order.lines.create(
-        product_name=str(variant.product),
+        product_name=str(product),
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
-        quantity=3,
+        quantity=quantity,
         variant=variant,
-        unit_price=TaxedMoney(net=net, gross=gross),
-        tax_rate=23,
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
+        tax_rate=Decimal("0.23"),
     )
 
 
@@ -1975,18 +2018,23 @@ def order_line_with_allocation_in_many_stocks(
         channel=channel_USD,
     )
 
-    channel_slug = order.channel.slug
-    net = variant.get_price(channel_slug)
-    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    product = variant.product
+    channel_listing = variant.channel_listings.get(channel=channel_USD)
+    net = variant.get_price(product, [], channel_USD, channel_listing)
+    currency = net.currency
+    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    quantity = 3
+    unit_price = TaxedMoney(net=net, gross=gross)
     order_line = order.lines.create(
-        product_name=str(variant.product),
+        product_name=str(product),
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
-        quantity=3,
+        quantity=quantity,
         variant=variant,
-        unit_price=TaxedMoney(net=net, gross=gross),
-        tax_rate=23,
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
+        tax_rate=Decimal("0.23"),
     )
 
     Allocation.objects.bulk_create(
@@ -2014,17 +2062,23 @@ def order_line_with_one_allocation(
         channel=channel_USD,
     )
 
-    net = variant.get_price(order.channel.slug)
-    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    product = variant.product
+    channel_listing = variant.channel_listings.get(channel=channel_USD)
+    net = variant.get_price(product, [], channel_USD, channel_listing)
+    currency = net.currency
+    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    quantity = 2
+    unit_price = TaxedMoney(net=net, gross=gross)
     order_line = order.lines.create(
-        product_name=str(variant.product),
+        product_name=str(product),
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
-        quantity=2,
+        quantity=quantity,
         variant=variant,
-        unit_price=TaxedMoney(net=net, gross=gross),
-        tax_rate=Decimal(23),
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
+        tax_rate=Decimal("0.23"),
     )
 
     Allocation.objects.create(
@@ -2080,7 +2134,7 @@ def order_with_lines(
         available_for_purchase=datetime.date.today(),
     )
     variant = ProductVariant.objects.create(product=product, sku="SKU_AA")
-    ProductVariantChannelListing.objects.create(
+    channel_listing = ProductVariantChannelListing.objects.create(
         variant=variant,
         channel=channel_USD,
         price_amount=Decimal(10),
@@ -2090,17 +2144,21 @@ def order_with_lines(
     stock = Stock.objects.create(
         warehouse=warehouse, product_variant=variant, quantity=5
     )
-    net = variant.get_price(channel_USD.slug)
-    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    net = variant.get_price(product, [], channel_USD, channel_listing)
+    currency = net.currency
+    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    quantity = 3
+    unit_price = TaxedMoney(net=net, gross=gross)
     line = order.lines.create(
         product_name=str(variant.product),
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
-        quantity=3,
+        quantity=quantity,
         variant=variant,
-        unit_price=TaxedMoney(net=net, gross=gross),
-        tax_rate=23,
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
+        tax_rate=Decimal("0.23"),
     )
     Allocation.objects.create(
         order_line=line, stock=stock, quantity_allocated=line.quantity
@@ -2120,7 +2178,7 @@ def order_with_lines(
         available_for_purchase=datetime.date.today(),
     )
     variant = ProductVariant.objects.create(product=product, sku="SKU_B")
-    ProductVariantChannelListing.objects.create(
+    channel_listing = ProductVariantChannelListing.objects.create(
         variant=variant,
         channel=channel_USD,
         price_amount=Decimal(20),
@@ -2131,17 +2189,21 @@ def order_with_lines(
         product_variant=variant, warehouse=warehouse, quantity=2
     )
 
-    net = variant.get_price(channel_USD.slug)
-    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    net = variant.get_price(product, [], channel_USD, channel_listing)
+    currency = net.currency
+    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    unit_price = TaxedMoney(net=net, gross=gross)
+    quantity = 2
     line = order.lines.create(
         product_name=str(variant.product),
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
-        quantity=2,
+        quantity=quantity,
         variant=variant,
-        unit_price=TaxedMoney(net=net, gross=gross),
-        tax_rate=23,
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
+        tax_rate=Decimal("0.23"),
     )
     Allocation.objects.create(
         order_line=line, stock=stock, quantity_allocated=line.quantity
@@ -2196,7 +2258,7 @@ def order_with_lines_channel_PLN(
         available_for_purchase=datetime.date.today(),
     )
     variant = ProductVariant.objects.create(product=product, sku="SKU_A_PLN")
-    ProductVariantChannelListing.objects.create(
+    channel_listing = ProductVariantChannelListing.objects.create(
         variant=variant,
         channel=channel_PLN,
         price_amount=Decimal(10),
@@ -2206,17 +2268,21 @@ def order_with_lines_channel_PLN(
     stock = Stock.objects.create(
         warehouse=warehouse, product_variant=variant, quantity=5
     )
-    net = variant.get_price(channel_PLN.slug)
-    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    net = variant.get_price(product, [], channel_PLN, channel_listing)
+    currency = net.currency
+    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    quantity = 3
+    unit_price = TaxedMoney(net=net, gross=gross)
     line = order.lines.create(
         product_name=str(variant.product),
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
-        quantity=3,
+        quantity=quantity,
         variant=variant,
-        unit_price=TaxedMoney(net=net, gross=gross),
-        tax_rate=23,
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
+        tax_rate=Decimal("0.23"),
     )
     Allocation.objects.create(
         order_line=line, stock=stock, quantity_allocated=line.quantity
@@ -2236,7 +2302,7 @@ def order_with_lines_channel_PLN(
         available_for_purchase=datetime.date.today(),
     )
     variant = ProductVariant.objects.create(product=product, sku="SKU_B_PLN")
-    ProductVariantChannelListing.objects.create(
+    channel_listing = ProductVariantChannelListing.objects.create(
         variant=variant,
         channel=channel_PLN,
         price_amount=Decimal(20),
@@ -2247,17 +2313,21 @@ def order_with_lines_channel_PLN(
         product_variant=variant, warehouse=warehouse, quantity=2
     )
 
-    net = variant.get_price(channel_PLN.slug)
-    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    net = variant.get_price(product, [], channel_PLN, channel_listing, None)
+    currency = net.currency
+    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    quantity = 2
+    unit_price = TaxedMoney(net=net, gross=gross)
     line = order.lines.create(
         product_name=str(variant.product),
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
-        quantity=2,
+        quantity=quantity,
         variant=variant,
-        unit_price=TaxedMoney(net=net, gross=gross),
-        tax_rate=23,
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
+        tax_rate=Decimal("0.23"),
     )
     Allocation.objects.create(
         order_line=line, stock=stock, quantity_allocated=line.quantity
@@ -2266,7 +2336,9 @@ def order_with_lines_channel_PLN(
     order.shipping_address = order.billing_address.get_copy()
     order.channel = channel_PLN
     shipping_method = shipping_method_channel_PLN
-    shipping_price = shipping_method.channel_listings.get(channel_id=channel_PLN.id,)
+    shipping_price = shipping_method.channel_listings.get(
+        channel_id=channel_PLN.id,
+    )
     order.shipping_method_name = shipping_method.name
     order.shipping_method = shipping_method
 
@@ -2286,17 +2358,24 @@ def order_with_line_without_inventory_tracking(
     order, variant_without_inventory_tracking
 ):
     variant = variant_without_inventory_tracking
-    net = variant.get_price(order.channel.slug)
-    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    product = variant.product
+    channel = order.channel
+    channel_listing = variant.channel_listings.get(channel=channel)
+    net = variant.get_price(product, [], channel, channel_listing)
+    currency = net.currency
+    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    quantity = 3
+    unit_price = TaxedMoney(net=net, gross=gross)
     line = order.lines.create(
         product_name=str(variant.product),
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
-        quantity=3,
+        quantity=quantity,
         variant=variant,
-        unit_price=TaxedMoney(net=net, gross=gross),
-        tax_rate=23,
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
+        tax_rate=Decimal("0.23"),
     )
 
     recalculate_order(order)
@@ -2561,21 +2640,6 @@ def discount_info(category, collection, sale, channel_USD):
 
 
 @pytest.fixture
-def authorization_backend_name():
-    return AuthenticationBackends.FACEBOOK
-
-
-@pytest.fixture
-def authorization_key(site_settings, authorization_backend_name):
-    return AuthorizationKey.objects.create(
-        site_settings=site_settings,
-        name=authorization_backend_name,
-        key="Key",
-        password="Password",
-    )
-
-
-@pytest.fixture
 def permission_manage_staff():
     return Permission.objects.get(codename="manage_staff")
 
@@ -2647,7 +2711,9 @@ def permission_group_manage_users(permission_manage_users, staff_users):
 @pytest.fixture
 def collection(db):
     collection = Collection.objects.create(
-        name="Collection", slug="collection", description="Test description",
+        name="Collection",
+        slug="collection",
+        description="Test description",
     )
     return collection
 
@@ -2655,7 +2721,9 @@ def collection(db):
 @pytest.fixture
 def published_collection(db, channel_USD):
     collection = Collection.objects.create(
-        name="Collection USD", slug="collection-usd", description="Test description",
+        name="Collection USD",
+        slug="collection-usd",
+        description="Test description",
     )
     CollectionChannelListing.objects.create(
         channel=channel_USD,
@@ -2669,7 +2737,9 @@ def published_collection(db, channel_USD):
 @pytest.fixture
 def published_collection_PLN(db, channel_PLN):
     collection = Collection.objects.create(
-        name="Collection PLN", slug="collection-pln", description="Test description",
+        name="Collection PLN",
+        slug="collection-pln",
+        description="Test description",
     )
     CollectionChannelListing.objects.create(
         channel=channel_PLN,
@@ -2696,7 +2766,9 @@ def unpublished_collection(db, channel_USD):
 @pytest.fixture
 def unpublished_collection_PLN(db, channel_PLN):
     collection = Collection.objects.create(
-        name="Collection", slug="collection", description="Test description",
+        name="Collection",
+        slug="collection",
+        description="Test description",
     )
     CollectionChannelListing.objects.create(
         channel=channel_PLN, collection=collection, is_published=False
@@ -3060,7 +3132,9 @@ def digital_content(category, media_root, warehouse, channel_USD) -> DigitalCont
         currency=channel_USD.currency_code,
     )
     Stock.objects.create(
-        product_variant=product_variant, warehouse=warehouse, quantity=5,
+        product_variant=product_variant,
+        warehouse=warehouse,
+        quantity=5,
     )
 
     assert product_variant.is_digital()
@@ -3235,17 +3309,6 @@ def fake_payment_interface(mocker):
 
 
 @pytest.fixture
-def mock_get_manager(mocker, fake_payment_interface):
-    mgr = mocker.patch(
-        "saleor.payment.gateway.get_plugins_manager",
-        autospec=True,
-        return_value=fake_payment_interface,
-    )
-    yield fake_payment_interface
-    mgr.assert_called_once()
-
-
-@pytest.fixture
 def staff_notification_recipient(db, staff_user):
     return StaffNotificationRecipient.objects.create(active=True, user=staff_user)
 
@@ -3351,8 +3414,11 @@ def allocation(order_line, stock):
 @pytest.fixture
 def allocations(order_list, stock, channel_USD):
     variant = stock.product_variant
-    net = variant.get_price(channel_USD)
+    product = variant.product
+    channel_listing = variant.channel_listings.get(channel=channel_USD)
+    net = variant.get_price(product, [], channel_USD, channel_listing)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    price = TaxedMoney(net=net, gross=gross)
     lines = OrderLine.objects.bulk_create(
         [
             OrderLine(
@@ -3363,8 +3429,9 @@ def allocations(order_list, stock, channel_USD):
                 variant_name=str(variant),
                 product_sku=variant.sku,
                 is_shipping_required=variant.is_shipping_required(),
-                unit_price=TaxedMoney(net=net, gross=gross),
-                tax_rate=23,
+                unit_price=price,
+                total_price=price,
+                tax_rate=Decimal("0.23"),
             ),
             OrderLine(
                 order=order_list[1],
@@ -3374,8 +3441,9 @@ def allocations(order_list, stock, channel_USD):
                 variant_name=str(variant),
                 product_sku=variant.sku,
                 is_shipping_required=variant.is_shipping_required(),
-                unit_price=TaxedMoney(net=net, gross=gross),
-                tax_rate=23,
+                unit_price=price,
+                total_price=price,
+                tax_rate=Decimal("0.23"),
             ),
             OrderLine(
                 order=order_list[2],
@@ -3385,8 +3453,9 @@ def allocations(order_list, stock, channel_USD):
                 variant_name=str(variant),
                 product_sku=variant.sku,
                 is_shipping_required=variant.is_shipping_required(),
-                unit_price=TaxedMoney(net=net, gross=gross),
-                tax_rate=23,
+                unit_price=price,
+                total_price=price,
+                tax_rate=Decimal("0.23"),
             ),
         ]
     )
@@ -3408,7 +3477,8 @@ def allocations(order_list, stock, channel_USD):
 @pytest.fixture
 def app_installation():
     app_installation = AppInstallation.objects.create(
-        app_name="External App", manifest_url="http://localhost:3000/manifest",
+        app_name="External App",
+        manifest_url="http://localhost:3000/manifest",
     )
     return app_installation
 
@@ -3431,10 +3501,18 @@ def export_file_list(staff_user):
         ExportFile.objects.bulk_create(
             [
                 ExportFile(user=staff_user),
-                ExportFile(user=staff_user,),
-                ExportFile(user=staff_user, status=JobStatus.SUCCESS,),
+                ExportFile(
+                    user=staff_user,
+                ),
+                ExportFile(
+                    user=staff_user,
+                    status=JobStatus.SUCCESS,
+                ),
                 ExportFile(user=staff_user, status=JobStatus.SUCCESS),
-                ExportFile(user=staff_user, status=JobStatus.FAILED,),
+                ExportFile(
+                    user=staff_user,
+                    status=JobStatus.FAILED,
+                ),
             ]
         )
     )

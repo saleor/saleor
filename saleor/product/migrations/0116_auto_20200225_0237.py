@@ -11,9 +11,11 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterModelOptions(
-            name="producttype", options={"ordering": ("slug",)},
+            name="producttype",
+            options={"ordering": ("slug",)},
         ),
         migrations.AlterModelOptions(
-            name="productvariant", options={"ordering": ("sku",)},
+            name="productvariant",
+            options={"ordering": ("sku",)},
         ),
     ]
