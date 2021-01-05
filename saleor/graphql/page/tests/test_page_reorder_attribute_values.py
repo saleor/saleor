@@ -45,36 +45,40 @@ def test_sort_page_attribute_values(
     staff_api_client,
     permission_manage_pages,
     page,
-    page_reference_attribute,
+    page_type_page_reference_attribute,
 ):
     staff_api_client.user.user_permissions.add(permission_manage_pages)
 
     page_type = page.page_type
     page_type.page_attributes.clear()
-    page_type.page_attributes.add(page_reference_attribute)
+    page_type.page_attributes.add(page_type_page_reference_attribute)
 
     page_id = graphene.Node.to_global_id("Page", page.id)
-    attribute_id = graphene.Node.to_global_id("Attribute", page_reference_attribute.id)
+    attribute_id = graphene.Node.to_global_id(
+        "Attribute", page_type_page_reference_attribute.id
+    )
     attr_values = AttributeValue.objects.bulk_create(
         [
             AttributeValue(
-                attribute=page_reference_attribute,
+                attribute=page_type_page_reference_attribute,
                 slug=f"{page.pk}_1",
                 name="test name 1",
             ),
             AttributeValue(
-                attribute=page_reference_attribute,
+                attribute=page_type_page_reference_attribute,
                 slug=f"{page.pk}_2",
                 name="test name 2",
             ),
             AttributeValue(
-                attribute=page_reference_attribute,
+                attribute=page_type_page_reference_attribute,
                 slug=f"{page.pk}_3",
                 name="test name 3",
             ),
         ]
     )
-    associate_attribute_values_to_instance(page, page_reference_attribute, *attr_values)
+    associate_attribute_values_to_instance(
+        page, page_type_page_reference_attribute, *attr_values
+    )
 
     variables = {
         "pageId": page_id,
@@ -113,31 +117,33 @@ def test_sort_page_attribute_values_invalid_attribute_id(
     staff_api_client,
     permission_manage_pages,
     page,
-    page_reference_attribute,
+    page_type_page_reference_attribute,
     color_attribute,
 ):
     staff_api_client.user.user_permissions.add(permission_manage_pages)
 
     page_type = page.page_type
     page_type.page_attributes.clear()
-    page_type.page_attributes.add(page_reference_attribute)
+    page_type.page_attributes.add(page_type_page_reference_attribute)
 
     page_id = graphene.Node.to_global_id("Page", page.id)
     attr_values = AttributeValue.objects.bulk_create(
         [
             AttributeValue(
-                attribute=page_reference_attribute,
+                attribute=page_type_page_reference_attribute,
                 slug=f"{page.pk}_1",
                 name="test name 1",
             ),
             AttributeValue(
-                attribute=page_reference_attribute,
+                attribute=page_type_page_reference_attribute,
                 slug=f"{page.pk}_2",
                 name="test name 2",
             ),
         ]
     )
-    associate_attribute_values_to_instance(page, page_reference_attribute, *attr_values)
+    associate_attribute_values_to_instance(
+        page, page_type_page_reference_attribute, *attr_values
+    )
 
     variables = {
         "pageId": page_id,
@@ -164,37 +170,41 @@ def test_sort_page_attribute_values_invalid_value_id(
     staff_api_client,
     permission_manage_pages,
     page,
-    page_reference_attribute,
+    page_type_page_reference_attribute,
     size_page_attribute,
 ):
     staff_api_client.user.user_permissions.add(permission_manage_pages)
 
     page_type = page.page_type
     page_type.page_attributes.clear()
-    page_type.page_attributes.add(page_reference_attribute)
+    page_type.page_attributes.add(page_type_page_reference_attribute)
 
     page_id = graphene.Node.to_global_id("Page", page.id)
-    attribute_id = graphene.Node.to_global_id("Attribute", page_reference_attribute.id)
+    attribute_id = graphene.Node.to_global_id(
+        "Attribute", page_type_page_reference_attribute.id
+    )
     attr_values = AttributeValue.objects.bulk_create(
         [
             AttributeValue(
-                attribute=page_reference_attribute,
+                attribute=page_type_page_reference_attribute,
                 slug=f"{page.pk}_1",
                 name="test name 1",
             ),
             AttributeValue(
-                attribute=page_reference_attribute,
+                attribute=page_type_page_reference_attribute,
                 slug=f"{page.pk}_2",
                 name="test name 2",
             ),
             AttributeValue(
-                attribute=page_reference_attribute,
+                attribute=page_type_page_reference_attribute,
                 slug=f"{page.pk}_3",
                 name="test name 3",
             ),
         ]
     )
-    associate_attribute_values_to_instance(page, page_reference_attribute, *attr_values)
+    associate_attribute_values_to_instance(
+        page, page_type_page_reference_attribute, *attr_values
+    )
 
     invalid_value_id = graphene.Node.to_global_id(
         "AttributeValue", size_page_attribute.values.first().pk

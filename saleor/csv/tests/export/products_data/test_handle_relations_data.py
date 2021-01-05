@@ -77,23 +77,25 @@ def test_get_products_relations_data_attribute_ids(
     prepare_products_data_mocked,
     product_list,
     file_attribute,
-    page_reference_attribute,
+    product_type_page_reference_attribute,
     page,
 ):
     # given
     product = product_list[0]
     product.product_type.product_attributes.add(
-        file_attribute, page_reference_attribute
+        file_attribute, product_type_page_reference_attribute
     )
     associate_attribute_values_to_instance(
         product, file_attribute, file_attribute.values.first()
     )
     ref_value = AttributeValue.objects.create(
-        attribute=page_reference_attribute,
+        attribute=product_type_page_reference_attribute,
         slug=f"{product.pk}_{page.pk}",
         name=page.title,
     )
-    associate_attribute_values_to_instance(product, page_reference_attribute, ref_value)
+    associate_attribute_values_to_instance(
+        product, product_type_page_reference_attribute, ref_value
+    )
 
     qs = Product.objects.all()
     export_fields = {"name", "description"}
@@ -140,25 +142,25 @@ def test_prepare_products_relations_data(
     channel_USD,
     channel_PLN,
     file_attribute,
-    page_reference_attribute,
+    product_type_page_reference_attribute,
     page,
 ):
     # given
     pk = product_with_image.pk
 
     product_with_image.product_type.product_attributes.add(
-        file_attribute, page_reference_attribute
+        file_attribute, product_type_page_reference_attribute
     )
     associate_attribute_values_to_instance(
         product_with_image, file_attribute, file_attribute.values.first()
     )
     ref_value = AttributeValue.objects.create(
-        attribute=page_reference_attribute,
+        attribute=product_type_page_reference_attribute,
         slug=f"{product_with_image.pk}_{page.pk}",
         name=page.title,
     )
     associate_attribute_values_to_instance(
-        product_with_image, page_reference_attribute, ref_value
+        product_with_image, product_type_page_reference_attribute, ref_value
     )
 
     collection_list[0].products.add(product_with_image)
@@ -333,24 +335,26 @@ def test_get_variants_relations_data_attribute_ids(
     prepare_variants_data_mocked,
     product_list,
     file_attribute,
-    page_reference_attribute,
+    product_type_page_reference_attribute,
     page,
 ):
     # given
     product = product_list[0]
     product.product_type.variant_attributes.add(
-        file_attribute, page_reference_attribute
+        file_attribute, product_type_page_reference_attribute
     )
     variant = product.variants.first()
     associate_attribute_values_to_instance(
         variant, file_attribute, file_attribute.values.first()
     )
     ref_value = AttributeValue.objects.create(
-        attribute=page_reference_attribute,
+        attribute=product_type_page_reference_attribute,
         slug=f"{variant.pk}_{page.pk}",
         name=page.title,
     )
-    associate_attribute_values_to_instance(variant, page_reference_attribute, ref_value)
+    associate_attribute_values_to_instance(
+        variant, product_type_page_reference_attribute, ref_value
+    )
 
     qs = Product.objects.all()
     export_fields = {"name", "variants__sku"}
@@ -454,24 +458,26 @@ def test_prepare_variants_relations_data(
     channel_PLN,
     channel_USD,
     file_attribute,
-    page_reference_attribute,
+    product_type_page_reference_attribute,
     page,
 ):
     # given
     product = product_with_variant_with_two_attributes
     product.product_type.variant_attributes.add(
-        file_attribute, page_reference_attribute
+        file_attribute, product_type_page_reference_attribute
     )
     variant = product.variants.first()
     associate_attribute_values_to_instance(
         variant, file_attribute, file_attribute.values.first()
     )
     ref_value = AttributeValue.objects.create(
-        attribute=page_reference_attribute,
+        attribute=product_type_page_reference_attribute,
         slug=f"{variant.pk}_{page.pk}",
         name=page.title,
     )
-    associate_attribute_values_to_instance(variant, page_reference_attribute, ref_value)
+    associate_attribute_values_to_instance(
+        variant, product_type_page_reference_attribute, ref_value
+    )
 
     qs = Product.objects.all()
     variant = product_with_variant_with_two_attributes.variants.first()
