@@ -76,6 +76,7 @@ class ShippingZone(ModelWithMetadata):
     name = models.CharField(max_length=100)
     countries = CountryField(multiple=True, default=[], blank=True)
     default = models.BooleanField(default=False)
+    description = models.TextField(blank=True)
 
     def __str__(self):
         return self.name

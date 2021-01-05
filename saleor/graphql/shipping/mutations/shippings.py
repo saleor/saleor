@@ -46,6 +46,7 @@ class ShippingZoneCreateInput(graphene.InputObjectType):
     name = graphene.String(
         description="Shipping zone's name. Visible only to the staff."
     )
+    description = graphene.String(description="Description of the shipping zone.")
     countries = graphene.List(
         graphene.String, description="List of countries in this shipping zone."
     )
