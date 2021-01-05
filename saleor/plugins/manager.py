@@ -27,9 +27,9 @@ if TYPE_CHECKING:
     from ..payment.interface import (
         CustomerSource,
         GatewayResponse,
+        InitializedPaymentResponse,
         PaymentData,
         PaymentGateway,
-        InitializedPaymentResponse,
         TokenConfig,
     )
     from ..product.models import (
@@ -467,7 +467,10 @@ class PluginsManager(PaymentInterface):
             return None
 
         return self.__run_method_on_single_plugin(
-            gtw, method_name, previous_value=default_value, payment_data=payment_data,
+            gtw,
+            method_name,
+            previous_value=default_value,
+            payment_data=payment_data,
         )
 
     def authorize_payment(
@@ -512,7 +515,9 @@ class PluginsManager(PaymentInterface):
         gtw = self.get_plugin(gateway)
         if gtw is not None:
             return self.__run_method_on_single_plugin(
-                gtw, method_name, previous_value=default_value,
+                gtw,
+                method_name,
+                previous_value=default_value,
             )
         return default_value
 
@@ -564,7 +569,8 @@ class PluginsManager(PaymentInterface):
         return gateways
 
     def checkout_available_payment_gateways(
-        self, checkout: "Checkout",
+        self,
+        checkout: "Checkout",
     ) -> List["PaymentGateway"]:
         payment_plugins = self.list_payment_plugin(active_only=True)
         gateways = []

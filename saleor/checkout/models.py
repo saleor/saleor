@@ -25,9 +25,9 @@ if TYPE_CHECKING:
     # flake8: noqa
     from django_measurement import Weight
 
+    from ..checkout.utils import CheckoutLineInfo
     from ..payment.models import Payment
     from ..product.models import ProductVariant
-    from ..checkout.utils import CheckoutLineInfo
 
 
 def get_default_country():
@@ -50,7 +50,9 @@ class Checkout(ModelWithMetadata):
     token = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     quantity = models.PositiveIntegerField(default=0)
     channel = models.ForeignKey(
-        Channel, related_name="checkouts", on_delete=models.PROTECT,
+        Channel,
+        related_name="checkouts",
+        on_delete=models.PROTECT,
     )
     billing_address = models.ForeignKey(
         Address, related_name="+", editable=False, null=True, on_delete=models.SET_NULL
@@ -67,7 +69,9 @@ class Checkout(ModelWithMetadata):
     )
     note = models.TextField(blank=True, default="")
 
-    currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,)
+    currency = models.CharField(
+        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
+    )
     country = CountryField(default=get_default_country)
 
     discount_amount = models.DecimalField(

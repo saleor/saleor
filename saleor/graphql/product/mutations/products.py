@@ -8,10 +8,12 @@ from django.db import transaction
 from django.utils.text import slugify
 from graphene.types import InputObjectType
 
-from ....attribute import AttributeInputType, AttributeType, models as attribute_models
+from ....attribute import AttributeInputType, AttributeType
+from ....attribute import models as attribute_models
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import ProductPermissions, ProductTypePermissions
-from ....order import OrderStatus, models as order_models
+from ....order import OrderStatus
+from ....order import models as order_models
 from ....product import models
 from ....product.error_codes import CollectionErrorCode, ProductErrorCode
 from ....product.tasks import (
@@ -1309,7 +1311,8 @@ class ProductVariantSetDefault(BaseMutation):
             description="Id of a product that will have the default variant set.",
         )
         variant_id = graphene.ID(
-            required=True, description="Id of a variant that will be set as default.",
+            required=True,
+            description="Id of a variant that will be set as default.",
         )
 
     class Meta:

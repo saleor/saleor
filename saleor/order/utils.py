@@ -360,7 +360,8 @@ def get_discounted_lines(lines, voucher):
 
 
 def get_prices_of_discounted_specific_product(
-    lines: Iterable[OrderLine], voucher: Voucher,
+    lines: Iterable[OrderLine],
+    voucher: Voucher,
 ) -> List[Money]:
     """Get prices of variants belonging to the discounted specific products.
 

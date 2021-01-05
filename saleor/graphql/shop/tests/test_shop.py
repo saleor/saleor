@@ -768,7 +768,10 @@ MUTATION_SHOP_ADDRESS_UPDATE = """
 
 
 def test_mutation_update_company_address(
-    staff_api_client, permission_manage_settings, address, site_settings,
+    staff_api_client,
+    permission_manage_settings,
+    address,
+    site_settings,
 ):
     variables = {
         "input": {

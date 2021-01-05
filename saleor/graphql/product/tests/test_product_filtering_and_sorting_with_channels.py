@@ -228,7 +228,9 @@ QUERY_PRODUCTS_WITH_SORTING_AND_FILTERING = """
     ],
 )
 def test_products_with_sorting_and_without_channel(
-    sort_by, staff_api_client, permission_manage_products,
+    sort_by,
+    staff_api_client,
+    permission_manage_products,
 ):
     # given
     variables = {"sortBy": sort_by}

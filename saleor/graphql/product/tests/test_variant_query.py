@@ -109,7 +109,9 @@ def test_get_unpublished_variant_by_id_as_customer(
 
     # when
     response = user_api_client.post_graphql(
-        VARIANT_QUERY, variables, check_no_permissions=False,
+        VARIANT_QUERY,
+        variables,
+        check_no_permissions=False,
     )
 
     # then
@@ -127,7 +129,9 @@ def test_get_unpublished_variant_by_id_as_anonymous_user(
 
     # when
     response = api_client.post_graphql(
-        VARIANT_QUERY, variables, check_no_permissions=False,
+        VARIANT_QUERY,
+        variables,
+        check_no_permissions=False,
     )
 
     # then
@@ -182,7 +186,9 @@ def test_get_variant_by_id_as_customer(user_api_client, variant, channel_USD):
 
     # when
     response = user_api_client.post_graphql(
-        VARIANT_QUERY, variables, check_no_permissions=False,
+        VARIANT_QUERY,
+        variables,
+        check_no_permissions=False,
     )
 
     # then
@@ -198,7 +204,9 @@ def test_get_variant_by_id_as_anonymous_user(api_client, variant, channel_USD):
 
     # when
     response = api_client.post_graphql(
-        VARIANT_QUERY, variables, check_no_permissions=False,
+        VARIANT_QUERY,
+        variables,
+        check_no_permissions=False,
     )
 
     # then
@@ -258,7 +266,9 @@ def test_get_unpublished_variant_by_sku_as_customer(
 
     # when
     response = user_api_client.post_graphql(
-        VARIANT_QUERY, variables, check_no_permissions=False,
+        VARIANT_QUERY,
+        variables,
+        check_no_permissions=False,
     )
 
     # then
@@ -275,7 +285,9 @@ def test_get_unpublished_variant_by_sku_as_anonymous_user(
 
     # when
     response = api_client.post_graphql(
-        VARIANT_QUERY, variables, check_no_permissions=False,
+        VARIANT_QUERY,
+        variables,
+        check_no_permissions=False,
     )
 
     # then
@@ -327,7 +339,9 @@ def test_get_variant_by_sku_as_customer(user_api_client, variant, channel_USD):
 
     # when
     response = user_api_client.post_graphql(
-        VARIANT_QUERY, variables, check_no_permissions=False,
+        VARIANT_QUERY,
+        variables,
+        check_no_permissions=False,
     )
 
     # then
@@ -342,7 +356,9 @@ def test_get_variant_by_sku_as_anonymous_user(api_client, variant, channel_USD):
 
     # when
     response = api_client.post_graphql(
-        VARIANT_QUERY, variables, check_no_permissions=False,
+        VARIANT_QUERY,
+        variables,
+        check_no_permissions=False,
     )
 
     # then

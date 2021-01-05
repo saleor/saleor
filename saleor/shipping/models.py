@@ -251,7 +251,9 @@ class ShippingMethodChannelListing(models.Model):
     minimum_order_price = MoneyField(
         amount_field="minimum_order_price_amount", currency_field="currency"
     )
-    currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,)
+    currency = models.CharField(
+        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
+    )
     maximum_order_price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,

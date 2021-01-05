@@ -268,7 +268,9 @@ def mark_order_as_paid(
 def clean_mark_order_as_paid(order: "Order"):
     """Check if an order can be marked as paid."""
     if order.payments.exists():
-        raise PaymentError("Orders with payments can not be manually marked as paid.",)
+        raise PaymentError(
+            "Orders with payments can not be manually marked as paid.",
+        )
 
 
 def fulfill_order_line(order_line, quantity, warehouse_pk):
@@ -414,7 +416,10 @@ def create_fulfillments(
 
     FulfillmentLine.objects.bulk_create(fulfillment_lines)
     order_fulfilled(
-        fulfillments, requester, fulfillment_lines, notify_customer,
+        fulfillments,
+        requester,
+        fulfillment_lines,
+        notify_customer,
     )
     return fulfillments
 
@@ -454,7 +459,9 @@ def _refund_fulfillment_for_order_lines(
             # fulfillment
             fulfillment_line_existed = False
             refunded_line = FulfillmentLine(
-                fulfillment=refunded_fulfillment, order_line=line_to_refund, quantity=0,
+                fulfillment=refunded_fulfillment,
+                order_line=line_to_refund,
+                quantity=0,
             )
 
         # calculate the quantity fulfilled/unfulfilled/to refund

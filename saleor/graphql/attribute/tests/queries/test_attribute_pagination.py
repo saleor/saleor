@@ -59,7 +59,9 @@ def attributes_for_pagination(collection, category, channel_USD):
 
     product_type = ProductType.objects.create(name="My Product Type")
     product = Product.objects.create(
-        name="Test product", product_type=product_type, category=category,
+        name="Test product",
+        product_type=product_type,
+        category=category,
     )
     ProductChannelListing.objects.create(
         channel=channel_USD,
@@ -154,7 +156,10 @@ QUERY_ATTRIBUTES_PAGINATION = """
         ({"field": "NAME", "direction": "ASC"}, ["Attr1", "Attr2", "Attr3"]),
         ({"field": "NAME", "direction": "DESC"}, ["AttrAttr2", "AttrAttr1", "Attr3"]),
         ({"field": "SLUG", "direction": "ASC"}, ["Attr1", "Attr2", "Attr3"]),
-        ({"field": "VALUE_REQUIRED", "direction": "ASC"}, ["Attr2", "Attr3", "Attr1"],),
+        (
+            {"field": "VALUE_REQUIRED", "direction": "ASC"},
+            ["Attr2", "Attr3", "Attr1"],
+        ),
         (
             {"field": "STOREFRONT_SEARCH_POSITION", "direction": "ASC"},
             ["Attr3", "AttrAttr2", "AttrAttr1"],
@@ -162,12 +167,18 @@ QUERY_ATTRIBUTES_PAGINATION = """
     ],
 )
 def test_attributes_pagination_with_sorting(
-    sort_by, attributes_order, staff_api_client, attributes_for_pagination,
+    sort_by,
+    attributes_order,
+    staff_api_client,
+    attributes_for_pagination,
 ):
     page_size = 3
 
     variables = {"first": page_size, "after": None, "sortBy": sort_by}
-    response = staff_api_client.post_graphql(QUERY_ATTRIBUTES_PAGINATION, variables,)
+    response = staff_api_client.post_graphql(
+        QUERY_ATTRIBUTES_PAGINATION,
+        variables,
+    )
     content = get_graphql_content(response)
     attributes_nodes = content["data"]["attributes"]["edges"]
     assert attributes_order[0] == attributes_nodes[0]["node"]["name"]
@@ -186,7 +197,10 @@ def test_attributes_pagination_with_sorting(
     ],
 )
 def test_attributes_pagination_with_filtering(
-    filter_by, attributes_order, staff_api_client, attributes_for_pagination,
+    filter_by,
+    attributes_order,
+    staff_api_client,
+    attributes_for_pagination,
 ):
     page_size = 2
 

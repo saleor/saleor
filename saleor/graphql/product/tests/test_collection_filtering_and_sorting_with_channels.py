@@ -98,7 +98,9 @@ QUERY_COLLECTIONS_WITH_SORTING_AND_FILTERING = """
     ],
 )
 def test_collections_with_sorting_and_without_channel(
-    sort_by, staff_api_client, permission_manage_products,
+    sort_by,
+    staff_api_client,
+    permission_manage_products,
 ):
     # given
     variables = {"sortBy": sort_by}
@@ -371,7 +373,8 @@ def test_collections_with_filtering_with_channel_PLN(
 
 
 @pytest.mark.parametrize(
-    "filter_by", [{"published": "PUBLISHED"}, {"published": "HIDDEN"}],
+    "filter_by",
+    [{"published": "PUBLISHED"}, {"published": "HIDDEN"}],
 )
 def test_collections_with_filtering_and_not_existing_channel(
     filter_by,

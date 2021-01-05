@@ -32,7 +32,9 @@ def test_applicable_shipping_methods_price(
     channel_USD,
     other_channel_USD,
 ):
-    method = shipping_zone.shipping_methods.create(type=ShippingMethodType.PRICE_BASED,)
+    method = shipping_zone.shipping_methods.create(
+        type=ShippingMethodType.PRICE_BASED,
+    )
     ShippingMethodChannelListing.objects.create(
         currency=channel_USD.currency_code,
         minimum_order_price_amount=min_price,
@@ -95,7 +97,9 @@ def test_applicable_shipping_methods_weight(
 def test_applicable_shipping_methods_country_code_outside_shipping_zone(
     shipping_zone, channel_USD
 ):
-    method = shipping_zone.shipping_methods.create(type=ShippingMethodType.PRICE_BASED,)
+    method = shipping_zone.shipping_methods.create(
+        type=ShippingMethodType.PRICE_BASED,
+    )
     ShippingMethodChannelListing.objects.create(
         minimum_order_price=Money("1.0", "USD"),
         maximum_order_price=Money("10.0", "USD"),
@@ -121,7 +125,8 @@ def test_applicable_shipping_methods_inproper_shipping_method_type(
     shipping method and the other way around.
     """
     price_method = shipping_zone.shipping_methods.create(
-        minimum_order_weight=Weight(kg=100), type=ShippingMethodType.WEIGHT_BASED,
+        minimum_order_weight=Weight(kg=100),
+        type=ShippingMethodType.WEIGHT_BASED,
     )
     weight_method = shipping_zone.shipping_methods.create(
         minimum_order_weight=Weight(kg=1),

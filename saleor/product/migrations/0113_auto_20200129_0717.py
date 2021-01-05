@@ -11,7 +11,9 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterField(
-            model_name="attribute", name="name", field=models.CharField(max_length=255),
+            model_name="attribute",
+            name="name",
+            field=models.CharField(max_length=255),
         ),
         migrations.AlterField(
             model_name="attribute",
@@ -29,7 +31,9 @@ class Migration(migrations.Migration):
             field=models.SlugField(max_length=255),
         ),
         migrations.AlterField(
-            model_name="category", name="name", field=models.CharField(max_length=250),
+            model_name="category",
+            name="name",
+            field=models.CharField(max_length=250),
         ),
         migrations.AlterField(
             model_name="category",

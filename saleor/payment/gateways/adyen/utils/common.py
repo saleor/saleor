@@ -172,7 +172,9 @@ def get_shipping_data(manager, checkout, lines, address, discounts):
 
 def append_klarna_data(payment_information: "PaymentData", payment_data: dict):
     checkout = (
-        Checkout.objects.prefetch_related("shipping_method",)
+        Checkout.objects.prefetch_related(
+            "shipping_method",
+        )
         .filter(payments__id=payment_information.payment_id)
         .first()
     )
@@ -362,7 +364,9 @@ def call_capture(
 
 
 def request_for_payment_cancel(
-    payment_information: "PaymentData", merchant_account: str, token: str,
+    payment_information: "PaymentData",
+    merchant_account: str,
+    token: str,
 ):
     return {
         "merchantAccount": merchant_account,
@@ -381,6 +385,7 @@ def get_payment_method_info(
     if additional_data:
         brand = additional_data.get("paymentMethod")
     payment_method_info = PaymentMethodInfo(
-        brand=brand, type="card" if payment_method == "scheme" else payment_method,
+        brand=brand,
+        type="card" if payment_method == "scheme" else payment_method,
     )
     return payment_method_info

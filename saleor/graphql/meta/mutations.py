@@ -27,7 +27,11 @@ class BaseMetadataMutation(BaseMutation):
 
     @classmethod
     def __init_subclass_with_meta__(
-        cls, arguments=None, permission_map=[], _meta=None, **kwargs,
+        cls,
+        arguments=None,
+        permission_map=[],
+        _meta=None,
+        **kwargs,
     ):
         if not _meta:
             _meta = MetadataPermissionOptions(cls)

@@ -602,7 +602,9 @@ def test_value_voucher_order_discount(
     channel_USD,
 ):
     voucher = Voucher.objects.create(
-        code="unique", type=VoucherType.ENTIRE_ORDER, discount_value_type=discount_type,
+        code="unique",
+        type=VoucherType.ENTIRE_ORDER,
+        discount_value_type=discount_type,
     )
     VoucherChannelListing.objects.create(
         voucher=voucher,
@@ -627,7 +629,9 @@ def test_shipping_voucher_order_discount(
     shipping_cost, discount_value, discount_type, expected_value, channel_USD
 ):
     voucher = Voucher.objects.create(
-        code="unique", type=VoucherType.SHIPPING, discount_value_type=discount_type,
+        code="unique",
+        type=VoucherType.SHIPPING,
+        discount_value_type=discount_type,
     )
     VoucherChannelListing.objects.create(
         voucher=voucher,
@@ -820,7 +824,9 @@ def test_send_fulfillment_order_lines_mails(
         line.save()
 
     send_fulfillment_confirmation_to_customer(
-        order=order, fulfillment=fulfillment, user=staff_user,
+        order=order,
+        fulfillment=fulfillment,
+        user=staff_user,
     )
     events = OrderEvent.objects.all()
 

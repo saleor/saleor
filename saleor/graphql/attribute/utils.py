@@ -7,7 +7,8 @@ from django.db.models import Q
 from django.utils.text import slugify
 from graphql_relay import from_global_id
 
-from ...attribute import AttributeInputType, AttributeType, models as attribute_models
+from ...attribute import AttributeInputType, AttributeType
+from ...attribute import models as attribute_models
 from ...attribute.utils import associate_attribute_values_to_instance
 from ...core.utils import generate_unique_slug
 from ...page import models as page_models
@@ -17,6 +18,7 @@ from ...product.error_codes import ProductErrorCode
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
+
     from ...attribute.models import Attribute
 
 
@@ -308,15 +310,18 @@ class ProductAttributeInputErrors:
         code=PageErrorCode.REQUIRED.value,
     )
     ERROR_DROPDOWN_GET_MORE_THAN_ONE_VALUE = ValidationError(
-        "Attribute must take only one value", code=PageErrorCode.INVALID.value,
+        "Attribute must take only one value",
+        code=PageErrorCode.INVALID.value,
     )
     ERROR_BLANK_VALUE = ValidationError(
-        "Attribute values cannot be blank", code=PageErrorCode.REQUIRED.value,
+        "Attribute values cannot be blank",
+        code=PageErrorCode.REQUIRED.value,
     )
 
     # file errors
     ERROR_NO_FILE_GIVEN = ValidationError(
-        "Attribute file url cannot be blank", code=PageErrorCode.REQUIRED.value,
+        "Attribute file url cannot be blank",
+        code=PageErrorCode.REQUIRED.value,
     )
     ERROR_BLANK_FILE_VALUE = ValidationError(
         "Attribute expects a file url but none were given",
@@ -330,15 +335,18 @@ class PageAttributeInputErrors:
         code=ProductErrorCode.REQUIRED.value,
     )
     ERROR_DROPDOWN_GET_MORE_THAN_ONE_VALUE = ValidationError(
-        "Attribute must take only one value", code=ProductErrorCode.INVALID.value,
+        "Attribute must take only one value",
+        code=ProductErrorCode.INVALID.value,
     )
     ERROR_BLANK_VALUE = ValidationError(
-        "Attribute values cannot be blank", code=ProductErrorCode.REQUIRED.value,
+        "Attribute values cannot be blank",
+        code=ProductErrorCode.REQUIRED.value,
     )
 
     # file errors
     ERROR_NO_FILE_GIVEN = ValidationError(
-        "Attribute file url cannot be blank", code=ProductErrorCode.REQUIRED.value,
+        "Attribute file url cannot be blank",
+        code=ProductErrorCode.REQUIRED.value,
     )
     ERROR_BLANK_FILE_VALUE = ValidationError(
         "Attribute expects a file url but none were given",

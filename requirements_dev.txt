@@ -11,7 +11,7 @@ babel==2.9.0; (python_version >= "2.7" and python_full_version < "3.0.0") or (py
 beautifulsoup4==4.7.1
 beautifultable==0.7.0
 billiard==3.6.3.0; python_version >= "3.6"
-black==19.10b0; python_version >= "3.6"
+black==20.8b1; python_version >= "3.6"
 boto3==1.16.32
 botocore==1.19.32
 braintree==4.5.0
@@ -92,7 +92,7 @@ httptools==0.1.1; sys_platform != "win32" and sys_platform != "cygwin" and platf
 identify==1.5.10; python_full_version >= "3.6.1"
 idna==2.10; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6"
 iniconfig==1.1.1; python_version >= "3.5" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.5"
-isort==4.3.21; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
+isort==5.7.0; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
 jaeger-client==4.3.0
 jdcal==1.4.1; python_version >= "3.6"
 jinja2==2.11.2; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0"

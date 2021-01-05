@@ -13,15 +13,30 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RenameModel(old_name="ServiceAccount", new_name="App",),
-        migrations.RenameModel(old_name="ServiceAccountToken", new_name="AppToken",),
-        migrations.AlterModelTable(name="app", table="app_app",),
-        migrations.AlterModelTable(name="apptoken", table="app_apptoken",),
+        migrations.RenameModel(
+            old_name="ServiceAccount",
+            new_name="App",
+        ),
+        migrations.RenameModel(
+            old_name="ServiceAccountToken",
+            new_name="AppToken",
+        ),
+        migrations.AlterModelTable(
+            name="app",
+            table="app_app",
+        ),
+        migrations.AlterModelTable(
+            name="apptoken",
+            table="app_apptoken",
+        ),
         migrations.RenameField(
-            model_name="apptoken", old_name="service_account", new_name="app",
+            model_name="apptoken",
+            old_name="service_account",
+            new_name="app",
         ),
         migrations.AlterModelOptions(
-            name="app", options={"permissions": (("manage_apps", "Manage apps"),)},
+            name="app",
+            options={"permissions": (("manage_apps", "Manage apps"),)},
         ),
         migrations.AlterField(
             model_name="app",

@@ -23,7 +23,8 @@ class PaymentInterface(ABC):
 
     @abstractmethod
     def checkout_available_payment_gateways(
-        self, checkout: "Checkout",
+        self,
+        checkout: "Checkout",
     ) -> List["PaymentGateway"]:
         pass
 
