@@ -431,7 +431,7 @@ class OrderLine(models.Model):
     )
 
     tax_rate = models.DecimalField(
-        max_digits=5, decimal_places=2, default=Decimal("0.0")
+        max_digits=5, decimal_places=4, default=Decimal("0.0")
     )
 
     objects = OrderLineQueryset.as_manager()

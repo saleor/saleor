@@ -8,6 +8,7 @@ from ...core.permissions import (
     AppPermission,
     BasePermissionEnum,
     CheckoutPermissions,
+    MenuPermissions,
     OrderPermissions,
     PagePermissions,
     PageTypePermissions,
@@ -63,6 +64,10 @@ def invoice_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
     return [OrderPermissions.MANAGE_ORDERS]
 
 
+def menu_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
+    return [MenuPermissions.MANAGE_MENUS]
+
+
 def app_permissions(_info, _object_pk: int) -> List[BasePermissionEnum]:
     return [AppPermission.MANAGE_APPS]
 
@@ -98,6 +103,8 @@ PUBLIC_META_PERMISSION_MAP = {
     "Collection": product_permissions,
     "DigitalContent": product_permissions,
     "Fulfillment": order_permissions,
+    "Menu": menu_permissions,
+    "MenuItem": menu_permissions,
     "Order": no_permissions,
     "Invoice": invoice_permissions,
     "Page": page_permissions,
@@ -119,6 +126,8 @@ PRIVATE_META_PERMISSION_MAP = {
     "Collection": product_permissions,
     "DigitalContent": product_permissions,
     "Fulfillment": order_permissions,
+    "Menu": menu_permissions,
+    "MenuItem": menu_permissions,
     "Order": order_permissions,
     "Invoice": invoice_permissions,
     "Page": page_permissions,

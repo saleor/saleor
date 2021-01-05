@@ -24,6 +24,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Introduce file attributes - #6568 by @IKarbowiak
 - Drop authorization keys API - #6631 by @maarcingebala
 - Shipping zone description - #6653 by @tomaszszymanski129
+- Add metadata to menu and menu item - #6648 by @tomaszszymanski129
+- Get tax rate from plugins - #6649 by @IKarbowiak
 
 # 2.11.1
 

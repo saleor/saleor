@@ -2295,10 +2295,12 @@ type Margin {
   stop: Int
 }
 
-type Menu implements Node {
+type Menu implements Node & ObjectWithMetadata {
   id: ID!
   name: String!
   slug: String!
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
   items: [MenuItem]
 }
 
@@ -2365,7 +2367,7 @@ input MenuInput {
   slug: String
 }
 
-type MenuItem implements Node {
+type MenuItem implements Node & ObjectWithMetadata {
   id: ID!
   name: String!
   menu: Menu!
@@ -2374,6 +2376,8 @@ type MenuItem implements Node {
   collection: Collection
   page: Page
   level: Int!
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
   children: [MenuItem]
   url: String
   translation(languageCode: LanguageCodeEnum!): MenuItemTranslation

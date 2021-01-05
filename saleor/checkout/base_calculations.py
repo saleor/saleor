@@ -4,6 +4,7 @@ It's recommended to use functions from calculations.py module to take in account
 manager.
 """
 
+from decimal import Decimal
 from typing import TYPE_CHECKING, Iterable, List, Optional
 
 from prices import TaxedMoney
@@ -80,6 +81,14 @@ def base_checkout_line_total(
     amount = line.quantity * variant_price
     price = quantize_price(amount, amount.currency)
     return TaxedMoney(net=price, gross=price)
+
+
+def base_tax_rate(unit_price: TaxedMoney):
+    tax_rate = Decimal("0.0")
+    # The condition will return False when unit_price.gross is 0.0
+    if not isinstance(unit_price, Decimal) and unit_price.gross:
+        tax_rate = unit_price.tax / unit_price.net
+    return tax_rate
 
 
 def base_checkout_line_unit_price(total_line_price: TaxedMoney, quantity: int):

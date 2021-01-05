@@ -1,6 +1,6 @@
 from copy import copy
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Iterable, List, Optional, Union
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
@@ -443,6 +443,25 @@ class BasePlugin:
     def list_payment_sources(
         self, customer_id: str, previous_value
     ) -> List["CustomerSource"]:
+        return NotImplemented
+
+    def get_checkout_line_tax_rate(
+        self,
+        checkout: "Checkout",
+        checkout_line_info: "CheckoutLineInfo",
+        address: Optional["Address"],
+        discounts: Iterable["DiscountInfo"],
+        previous_value: Decimal,
+    ) -> Decimal:
+        return NotImplemented
+
+    def get_order_line_tax_rate(
+        self,
+        order: "Order",
+        product: "Product",
+        address: Optional["Address"],
+        previous_value: Decimal,
+    ) -> Decimal:
         return NotImplemented
 
     def get_client_token(self, token_config, previous_value):

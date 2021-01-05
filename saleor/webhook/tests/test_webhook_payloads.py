@@ -55,5 +55,5 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
         "total_price_gross_amount": str(
             total_line.gross.amount.quantize(Decimal("0.001"))
         ),
-        "tax_rate": str(line.tax_rate.quantize(Decimal("0.01"))),
+        "tax_rate": str(line.tax_rate.quantize(Decimal("0.0001"))),
     }
