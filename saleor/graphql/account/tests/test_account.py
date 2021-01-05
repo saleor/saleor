@@ -408,7 +408,7 @@ def test_query_user_by_id_and_email(
     response = user_api_client.post_graphql(
         USER_QUERY, variables, permissions=[permission_manage_users]
     )
-    content = assert_graphql_error_with_message(
+    assert_graphql_error_with_message(
         response, "Argument 'id' cannot be combined with 'email'"
     )
 
