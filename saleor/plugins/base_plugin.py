@@ -186,6 +186,38 @@ class BasePlugin:
         """
         return NotImplemented
 
+    def get_checkout_line_tax_rate(
+        self,
+        checkout: "Checkout",
+        checkout_line_info: "CheckoutLineInfo",
+        address: Optional["Address"],
+        discounts: Iterable["DiscountInfo"],
+        previous_value: Decimal,
+    ) -> Decimal:
+        return NotImplemented
+
+    def get_order_line_tax_rate(
+        self,
+        order: "Order",
+        product: "Product",
+        address: Optional["Address"],
+        previous_value: Decimal,
+    ) -> Decimal:
+        return NotImplemented
+
+    def get_checkout_shipping_tax_rate(
+        self,
+        checkout: "Checkout",
+        lines: Iterable["CheckoutLineInfo"],
+        address: Optional["Address"],
+        discounts: Iterable["DiscountInfo"],
+        previous_value: Decimal,
+    ):
+        return NotImplemented
+
+    def get_order_shipping_tax_rate(self, order: "Order", previous_value: Decimal):
+        return NotImplemented
+
     def get_tax_rate_type_choices(
         self, previous_value: List["TaxType"]
     ) -> List["TaxType"]:
@@ -443,25 +475,6 @@ class BasePlugin:
     def list_payment_sources(
         self, customer_id: str, previous_value
     ) -> List["CustomerSource"]:
-        return NotImplemented
-
-    def get_checkout_line_tax_rate(
-        self,
-        checkout: "Checkout",
-        checkout_line_info: "CheckoutLineInfo",
-        address: Optional["Address"],
-        discounts: Iterable["DiscountInfo"],
-        previous_value: Decimal,
-    ) -> Decimal:
-        return NotImplemented
-
-    def get_order_line_tax_rate(
-        self,
-        order: "Order",
-        product: "Product",
-        address: Optional["Address"],
-        previous_value: Decimal,
-    ) -> Decimal:
         return NotImplemented
 
     def get_client_token(self, token_config, previous_value):

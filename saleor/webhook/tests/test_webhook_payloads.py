@@ -20,6 +20,7 @@ def test_generate_order_payload(
 
     assert payload.get("payments")
     assert payload.get("shipping_method")
+    assert payload.get("shipping_tax_rate")
     assert payload.get("lines")
     assert payload.get("payments")
     assert payload.get("shipping_address")
