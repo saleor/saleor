@@ -83,11 +83,11 @@ def base_checkout_line_total(
     return TaxedMoney(net=price, gross=price)
 
 
-def base_tax_rate(unit_price: TaxedMoney):
+def base_tax_rate(price: TaxedMoney):
     tax_rate = Decimal("0.0")
     # The condition will return False when unit_price.gross is 0.0
-    if not isinstance(unit_price, Decimal) and unit_price.gross:
-        tax_rate = unit_price.tax / unit_price.net
+    if not isinstance(price, Decimal) and price.gross:
+        tax_rate = price.tax / price.net
     return tax_rate
 
 

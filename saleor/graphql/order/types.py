@@ -439,6 +439,7 @@ class Order(CountableDjangoObjectType):
             "shipping_method",
             "shipping_method_name",
             "shipping_price",
+            "shipping_tax_rate",
             "status",
             "token",
             "tracking_client_id",

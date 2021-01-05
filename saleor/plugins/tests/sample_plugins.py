@@ -154,6 +154,19 @@ class PluginSample(BasePlugin):
     ) -> Decimal:
         return Decimal("0.080").quantize(Decimal(".01"))
 
+    def get_checkout_shipping_tax_rate(
+        self,
+        checkout: "Checkout",
+        lines: Iterable["CheckoutLineInfo"],
+        address: Optional["Address"],
+        discounts: Iterable["DiscountInfo"],
+        previous_value: Decimal,
+    ):
+        return Decimal("0.080").quantize(Decimal(".01"))
+
+    def get_order_shipping_tax_rate(self, order: "Order", previous_value: Decimal):
+        return Decimal("0.080").quantize(Decimal(".01"))
+
 
 class PluginInactive(BasePlugin):
     PLUGIN_ID = "plugin.inactive"

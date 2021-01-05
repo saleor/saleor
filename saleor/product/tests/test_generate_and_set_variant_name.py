@@ -115,7 +115,7 @@ def test_generate_and_set_variant_name_only_variant_selection_attributes(
     # Generate the variant name from the attributes
     generate_and_set_variant_name(variant, variant.sku)
     variant.refresh_from_db()
-    assert variant.name == "Yellow, Blue, Red / Big"
+    assert variant.name == "Big / Yellow, Blue, Red"
 
 
 def test_generate_and_set_variant_name_only_not_variant_selection_attributes(
