@@ -4812,6 +4812,7 @@ type ShippingZoneCreate {
 
 input ShippingZoneCreateInput {
   name: String
+  description: String
   countries: [String]
   default: Boolean
   addWarehouses: [ID]
@@ -4831,10 +4832,10 @@ type ShippingZoneUpdate {
 
 input ShippingZoneUpdateInput {
   name: String
+  description: String
   countries: [String]
   default: Boolean
   addWarehouses: [ID]
-  description: String
   removeWarehouses: [ID]
 }
 
