@@ -2817,6 +2817,7 @@ type Order implements Node & ObjectWithMetadata {
   shippingMethodName: String
   channel: Channel!
   shippingPrice: TaxedMoney
+  shippingTaxRate: Float!
   token: String!
   voucher: Voucher
   giftCards: [GiftCard]

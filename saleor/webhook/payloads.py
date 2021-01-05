@@ -42,6 +42,7 @@ ORDER_FIELDS = (
     "shipping_method_name",
     "shipping_price_net_amount",
     "shipping_price_gross_amount",
+    "shipping_tax_rate",
     "total_net_amount",
     "total_gross_amount",
     "shipping_price_net_amount",

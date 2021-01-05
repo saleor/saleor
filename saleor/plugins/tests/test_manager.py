@@ -211,6 +211,88 @@ def test_manager_get_order_line_tax_rate_no_plugins(
     assert tax_rate == expected_tax_rate
 
 
+def test_manager_get_checkout_shipping_tax_rate_sample_plugin(
+    checkout_with_item, discount_info
+):
+    line = checkout_with_item.lines.all()[0]
+    plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
+    shipping_price = TaxedMoney(Money(12, "USD"), Money(14, "USD"))
+
+    variant = line.variant
+    checkout_line_info = CheckoutLineInfo(
+        line=line,
+        variant=variant,
+        channel_listing=variant.channel_listings.first(),
+        product=variant.product,
+        collections=[],
+    )
+
+    tax_rate = PluginsManager(plugins=plugins).get_checkout_shipping_tax_rate(
+        checkout_with_item,
+        [checkout_line_info],
+        checkout_with_item.shipping_address,
+        [discount_info],
+        shipping_price,
+    )
+    assert tax_rate == Decimal("0.08")
+
+
+@pytest.mark.parametrize(
+    "shipping_price, expected_tax_rate",
+    [
+        (TaxedMoney(Money(12, "USD"), Money(14, "USD")), Decimal("0.1667")),
+        (Decimal("0.0"), Decimal("0.0")),
+    ],
+)
+def test_manager_get_checkout_shipping_tax_rate_no_plugins(
+    checkout_with_item, discount_info, shipping_price, expected_tax_rate
+):
+    line = checkout_with_item.lines.all()[0]
+    variant = line.variant
+    checkout_line_info = CheckoutLineInfo(
+        line=line,
+        variant=variant,
+        channel_listing=variant.channel_listings.first(),
+        product=variant.product,
+        collections=[],
+    )
+    tax_rate = PluginsManager(plugins=[]).get_checkout_shipping_tax_rate(
+        checkout_with_item,
+        [checkout_line_info],
+        checkout_with_item.shipping_address,
+        [discount_info],
+        shipping_price,
+    )
+    assert tax_rate == expected_tax_rate
+
+
+def test_manager_get_order_shipping_tax_rate_sample_plugin(order_with_lines):
+    order = order_with_lines
+    plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
+    shipping_price = TaxedMoney(Money(12, "USD"), Money(14, "USD"))
+    tax_rate = PluginsManager(plugins=plugins).get_order_shipping_tax_rate(
+        order, shipping_price,
+    )
+    assert tax_rate == Decimal("0.08")
+
+
+@pytest.mark.parametrize(
+    "shipping_price, expected_tax_rate",
+    [
+        (TaxedMoney(Money(12, "USD"), Money(14, "USD")), Decimal("0.1667")),
+        (Decimal("0.0"), Decimal("0.0")),
+    ],
+)
+def test_manager_get_order_shipping_tax_rate_no_plugins(
+    order_with_lines, shipping_price, expected_tax_rate
+):
+    order = order_with_lines
+    tax_rate = PluginsManager(plugins=[]).get_order_shipping_tax_rate(
+        order, shipping_price,
+    )
+    assert tax_rate == expected_tax_rate
+
+
 @pytest.mark.parametrize(
     "plugins, total_line_price, quantity",
     [
