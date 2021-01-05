@@ -12,7 +12,7 @@ class AttributeInputType:
         (FILE, "File"),
         (REFERENCE, "Reference"),
     ]
-    # list of the input types that can be used in variant selection
+    # list of the input types that can be used in variant selectionn
     ALLOWED_IN_VARIANT_SELECTION = [DROPDOWN]
 
 
@@ -27,5 +27,6 @@ class AttributeEntityType:
     """Type of a reference entity type. Must match the name of the graphql type."""
 
     PAGE = "Page"
+    PRODUCT = "Product"
 
-    CHOICES = [(PAGE, "Page")]
+    CHOICES = [(PAGE, "Page"), (PRODUCT, "Product")]
