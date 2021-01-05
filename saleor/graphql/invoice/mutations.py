@@ -62,7 +62,8 @@ class InvoiceRequest(ModelMutation):
         cls.clean_order(order)
 
         shallow_invoice = models.Invoice.objects.create(
-            order=order, number=data.get("number"),
+            order=order,
+            number=data.get("number"),
         )
         invoice = info.context.plugins.invoice_request(
             order=order, invoice=shallow_invoice, number=data.get("number")
@@ -70,7 +71,9 @@ class InvoiceRequest(ModelMutation):
 
         if invoice.status == JobStatus.SUCCESS:
             order_events.invoice_generated_event(
-                order=order, user=info.context.user, invoice_number=invoice.number,
+                order=order,
+                user=info.context.user,
+                invoice_number=invoice.number,
             )
         else:
             order_events.invoice_requested_event(user=info.context.user, order=order)
@@ -108,7 +111,8 @@ class InvoiceCreate(ModelMutation):
         for field in ["url", "number"]:
             if data["input"][field] == "":
                 validation_errors[field] = ValidationError(
-                    f"{field} cannot be empty.", code=InvoiceErrorCode.REQUIRED,
+                    f"{field} cannot be empty.",
+                    code=InvoiceErrorCode.REQUIRED,
                 )
         if validation_errors:
             raise ValidationError(validation_errors)
@@ -154,7 +158,9 @@ class InvoiceCreate(ModelMutation):
             url=cleaned_input["url"],
         )
         order_events.invoice_generated_event(
-            order=order, user=info.context.user, invoice_number=cleaned_input["number"],
+            order=order,
+            user=info.context.user,
+            invoice_number=cleaned_input["number"],
         )
         return InvoiceCreate(invoice=invoice)
 

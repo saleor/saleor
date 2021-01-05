@@ -202,7 +202,8 @@ class Checkout(CountableDjangoObjectType):
         description="The price of the shipping, with all the taxes included.",
     )
     shipping_method = graphene.Field(
-        ShippingMethod, description="The shipping method related with checkout.",
+        ShippingMethod,
+        description="The shipping method related with checkout.",
     )
     subtotal_price = graphene.Field(
         TaxedMoney,

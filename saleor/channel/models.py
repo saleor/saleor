@@ -14,7 +14,10 @@ class Channel(models.Model):
         ordering = ("slug",)
         app_label = "channel"
         permissions = (
-            (ChannelPermissions.MANAGE_CHANNELS.codename, "Manage channels.",),
+            (
+                ChannelPermissions.MANAGE_CHANNELS.codename,
+                "Manage channels.",
+            ),
         )
 
     def __str__(self):

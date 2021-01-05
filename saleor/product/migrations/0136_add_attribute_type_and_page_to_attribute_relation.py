@@ -27,7 +27,8 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.RunPython(
-            set_product_type_to_all_existing_attributes, migrations.RunPython.noop,
+            set_product_type_to_all_existing_attributes,
+            migrations.RunPython.noop,
         ),
         migrations.AlterField(
             model_name="attribute",

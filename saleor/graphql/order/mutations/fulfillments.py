@@ -321,7 +321,8 @@ class OrderRefundLineInput(graphene.InputObjectType):
         required=True,
     )
     quantity = graphene.Int(
-        description="The number of items to be refunded.", required=True,
+        description="The number of items to be refunded.",
+        required=True,
     )
 
 
@@ -332,7 +333,8 @@ class OrderRefundFulfillmentLineInput(graphene.InputObjectType):
         required=True,
     )
     quantity = graphene.Int(
-        description="The number of items to be refunded.", required=True,
+        description="The number of items to be refunded.",
+        required=True,
     )
 
 
@@ -441,7 +443,9 @@ class FulfillmentRefundProducts(BaseMutation):
         raise ValidationError(
             {
                 field_name: ValidationError(
-                    msg, code=code, params={field_name: line_global_id},
+                    msg,
+                    code=code,
+                    params={field_name: line_global_id},
                 )
             }
         )

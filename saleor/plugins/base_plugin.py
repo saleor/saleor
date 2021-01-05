@@ -19,10 +19,9 @@ from .models import PluginConfiguration
 if TYPE_CHECKING:
     # flake8: noqa
     from ..account.models import Address, User
-    from ..core.taxes import TaxType
+    from ..channel.models import Channel
     from ..checkout import CheckoutLineInfo
     from ..checkout.models import Checkout, CheckoutLine
-    from ..channel.models import Channel
     from ..core.taxes import TaxType
     from ..discount import DiscountInfo
     from ..invoice.models import Invoice
@@ -506,7 +505,9 @@ class BasePlugin:
         )
 
     def get_payment_gateway_for_checkout(
-        self, checkout: "Checkout", previous_value,
+        self,
+        checkout: "Checkout",
+        previous_value,
     ) -> Optional["PaymentGateway"]:
         return self.get_payment_gateway(checkout.currency, previous_value)
 

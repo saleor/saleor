@@ -6,17 +6,18 @@ from ..discount import DiscountInfo
 
 if TYPE_CHECKING:
     from prices import TaxedMoney
+
     from ..account.models import Address
     from ..channel.models import Channel
+    from ..plugins.manager import PluginsManager
     from ..product.models import (
         Collection,
         Product,
         ProductVariant,
         ProductVariantChannelListing,
     )
-    from ..plugins.manager import PluginsManager
-    from .models import Checkout, CheckoutLine
     from . import CheckoutLineInfo
+    from .models import Checkout, CheckoutLine
 
 
 def checkout_shipping_price(

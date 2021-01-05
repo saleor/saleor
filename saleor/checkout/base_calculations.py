@@ -16,6 +16,7 @@ from ..discount import DiscountInfo
 
 if TYPE_CHECKING:
     # flake8: noqa
+    from ..channel.models import Channel
     from ..product.models import (
         Collection,
         Product,
@@ -23,7 +24,6 @@ if TYPE_CHECKING:
         ProductVariantChannelListing,
     )
     from .models import Checkout, CheckoutLine
-    from ..channel.models import Channel
 
 
 def base_checkout_shipping_price(checkout: "Checkout", lines=None) -> TaxedMoney:

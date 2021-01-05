@@ -1309,7 +1309,8 @@ class ProductVariantSetDefault(BaseMutation):
             description="Id of a product that will have the default variant set.",
         )
         variant_id = graphene.ID(
-            required=True, description="Id of a variant that will be set as default.",
+            required=True,
+            description="Id of a variant that will be set as default.",
         )
 
     class Meta:

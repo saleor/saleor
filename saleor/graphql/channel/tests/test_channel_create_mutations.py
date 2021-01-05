@@ -24,7 +24,8 @@ CHANNEL_CREATE_MUTATION = """
 
 
 def test_channel_create_mutation_as_staff_user(
-    permission_manage_channels, staff_api_client,
+    permission_manage_channels,
+    staff_api_client,
 ):
     # given
     name = "testName"
@@ -51,7 +52,8 @@ def test_channel_create_mutation_as_staff_user(
 
 
 def test_channel_create_mutation_as_app(
-    permission_manage_channels, app_api_client,
+    permission_manage_channels,
+    app_api_client,
 ):
     # given
     name = "testName"
@@ -86,7 +88,9 @@ def test_channel_create_mutation_as_customer(user_api_client):
 
     # when
     response = user_api_client.post_graphql(
-        CHANNEL_CREATE_MUTATION, variables=variables, permissions=(),
+        CHANNEL_CREATE_MUTATION,
+        variables=variables,
+        permissions=(),
     )
 
     # then
@@ -102,7 +106,9 @@ def test_channel_create_mutation_as_anonymous(api_client):
 
     # when
     response = api_client.post_graphql(
-        CHANNEL_CREATE_MUTATION, variables=variables, permissions=(),
+        CHANNEL_CREATE_MUTATION,
+        variables=variables,
+        permissions=(),
     )
 
     # then
@@ -110,7 +116,8 @@ def test_channel_create_mutation_as_anonymous(api_client):
 
 
 def test_channel_create_mutation_slugify_slug_field(
-    permission_manage_channels, staff_api_client,
+    permission_manage_channels,
+    staff_api_client,
 ):
     # given
     name = "testName"

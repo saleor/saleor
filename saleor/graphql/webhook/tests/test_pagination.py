@@ -35,7 +35,9 @@ def webhooks_for_pagination(db):
                 is_active=False,
             ),
             Webhook(
-                name="Webhook3", app=apps[0], target_url="http://www.example.com/test",
+                name="Webhook3",
+                app=apps[0],
+                target_url="http://www.example.com/test",
             ),
         ]
     )

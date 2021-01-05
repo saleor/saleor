@@ -20,7 +20,8 @@ def test_install_app_task(app_installation):
 @pytest.mark.vcr
 def test_install_app_task_wrong_format_of_target_token_url():
     app_installation = AppInstallation.objects.create(
-        app_name="External App", manifest_url="http://localhost:3000/manifest-wrong",
+        app_name="External App",
+        manifest_url="http://localhost:3000/manifest-wrong",
     )
     install_app_task(app_installation.id, activate=False)
     app_installation.refresh_from_db()
@@ -47,7 +48,8 @@ def test_install_app_task_request_timeout(monkeypatch, app_installation):
 @pytest.mark.vcr
 def test_install_app_task_wrong_response_code(monkeypatch):
     app_installation = AppInstallation.objects.create(
-        app_name="External App", manifest_url="http://localhost:3000/manifest-wrong1",
+        app_name="External App",
+        manifest_url="http://localhost:3000/manifest-wrong1",
     )
     mocked_post = Mock()
     mocked_post.status_code = 404

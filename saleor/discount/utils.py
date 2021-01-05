@@ -14,7 +14,6 @@ from .models import NotApplicable, Sale, SaleChannelListing, VoucherCustomer
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from .models import Voucher
     from ..checkout import CheckoutLineInfo
     from ..checkout.models import Checkout
     from ..order.models import Order
@@ -129,7 +128,11 @@ def validate_voucher_for_checkout(
 
     customer_email = checkout.get_customer_email()
     validate_voucher(
-        voucher, subtotal.gross, checkout.quantity, customer_email, checkout.channel,
+        voucher,
+        subtotal.gross,
+        checkout.quantity,
+        customer_email,
+        checkout.channel,
     )
 
 
@@ -213,7 +216,9 @@ def fetch_products(sale_pks: Iterable[str]) -> Dict[int, Set[int]]:
     return product_map
 
 
-def fetch_sale_channel_listings(sale_pks: Iterable[str],):
+def fetch_sale_channel_listings(
+    sale_pks: Iterable[str],
+):
     channel_listings = SaleChannelListing.objects.filter(sale_id__in=sale_pks).annotate(
         channel_slug=F("channel__slug")
     )

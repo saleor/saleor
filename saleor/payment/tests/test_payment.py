@@ -472,7 +472,8 @@ def test_validate_gateway_response_not_json_serializable(gateway_response):
 
 
 @pytest.mark.parametrize(
-    "currency, exp_response", [("EUR", True), ("USD", True), ("PLN", False)],
+    "currency, exp_response",
+    [("EUR", True), ("USD", True), ("PLN", False)],
 )
 def test_is_currency_supported(
     currency, exp_response, dummy_gateway_config, monkeypatch

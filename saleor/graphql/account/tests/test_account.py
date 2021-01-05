@@ -2134,7 +2134,10 @@ def test_staff_update_duplicated_input_items(
 
 
 def test_staff_update_doesnt_change_existing_avatar(
-    staff_api_client, permission_manage_staff, media_root, staff_users,
+    staff_api_client,
+    permission_manage_staff,
+    media_root,
+    staff_users,
 ):
     query = STAFF_UPDATE_MUTATIONS
 
@@ -3807,7 +3810,9 @@ def test_query_staff_members_with_filter_status(
 
 
 def test_query_staff_members_app_no_permission(
-    query_staff_users_with_filter, app_api_client, permission_manage_staff,
+    query_staff_users_with_filter,
+    app_api_client,
+    permission_manage_staff,
 ):
 
     User.objects.bulk_create(
@@ -4085,7 +4090,9 @@ def test_address_query_as_not_owner(
 
 
 def test_address_query_as_app_with_permission(
-    app_api_client, address_other_country, permission_manage_users,
+    app_api_client,
+    address_other_country,
+    permission_manage_users,
 ):
     variables = {"id": graphene.Node.to_global_id("Address", address_other_country.pk)}
     response = app_api_client.post_graphql(

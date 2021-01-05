@@ -187,7 +187,10 @@ def test_manager_get_order_line_tax_rate_sample_plugin(order_with_lines):
     plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
     unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
     tax_rate = PluginsManager(plugins=plugins).get_order_line_tax_rate(
-        order, product, None, unit_price,
+        order,
+        product,
+        None,
+        unit_price,
     )
     assert tax_rate == Decimal("0.08")
 
@@ -206,7 +209,10 @@ def test_manager_get_order_line_tax_rate_no_plugins(
     line = order.lines.first()
     product = Product.objects.get(name=line.product_name)
     tax_rate = PluginsManager(plugins=[]).get_order_line_tax_rate(
-        order, product, None, unit_price,
+        order,
+        product,
+        None,
+        unit_price,
     )
     assert tax_rate == expected_tax_rate
 
@@ -271,7 +277,8 @@ def test_manager_get_order_shipping_tax_rate_sample_plugin(order_with_lines):
     plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
     shipping_price = TaxedMoney(Money(12, "USD"), Money(14, "USD"))
     tax_rate = PluginsManager(plugins=plugins).get_order_shipping_tax_rate(
-        order, shipping_price,
+        order,
+        shipping_price,
     )
     assert tax_rate == Decimal("0.08")
 
@@ -288,7 +295,8 @@ def test_manager_get_order_shipping_tax_rate_no_plugins(
 ):
     order = order_with_lines
     tax_rate = PluginsManager(plugins=[]).get_order_shipping_tax_rate(
-        order, shipping_price,
+        order,
+        shipping_price,
     )
     assert tax_rate == expected_tax_rate
 
@@ -447,7 +455,10 @@ def test_manager_save_plugin_configuration(plugin_configuration):
 
 
 def test_plugin_updates_configuration_shape(
-    new_config, new_config_structure, plugin_configuration, monkeypatch,
+    new_config,
+    new_config_structure,
+    plugin_configuration,
+    monkeypatch,
 ):
 
     config_structure = PluginSample.CONFIG_STRUCTURE.copy()
@@ -470,11 +481,15 @@ def test_plugin_updates_configuration_shape(
 
 
 def test_plugin_add_new_configuration(
-    new_config, new_config_structure, monkeypatch,
+    new_config,
+    new_config_structure,
+    monkeypatch,
 ):
     monkeypatch.setattr(PluginInactive, "DEFAULT_ACTIVE", True)
     monkeypatch.setattr(
-        PluginInactive, "DEFAULT_CONFIGURATION", [new_config],
+        PluginInactive,
+        "DEFAULT_CONFIGURATION",
+        [new_config],
     )
     config_structure = {"Foo": new_config_structure}
     monkeypatch.setattr(PluginInactive, "CONFIG_STRUCTURE", config_structure)

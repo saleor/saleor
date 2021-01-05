@@ -133,7 +133,9 @@ QUERY_VOUCHERS_WITH_SORTING_AND_FILTERING = """
     ],
 )
 def test_voucher_with_sorting_and_without_channel(
-    sort_by, staff_api_client, permission_manage_discounts,
+    sort_by,
+    staff_api_client,
+    permission_manage_discounts,
 ):
     # given
     variables = {"sortBy": sort_by}

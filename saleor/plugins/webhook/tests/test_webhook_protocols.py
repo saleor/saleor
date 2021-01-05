@@ -24,7 +24,8 @@ def test_trigger_webhooks_with_aws_sqs(
     mocked_client_constructor = MagicMock(spec=boto3.client, return_value=mocked_client)
 
     monkeypatch.setattr(
-        "saleor.plugins.webhook.tasks.boto3.client", mocked_client_constructor,
+        "saleor.plugins.webhook.tasks.boto3.client",
+        mocked_client_constructor,
     )
 
     webhook.app.permissions.add(permission_manage_orders)
@@ -70,7 +71,8 @@ def test_trigger_webhooks_with_aws_sqs_and_secret_key(
     mocked_client_constructor = MagicMock(spec=boto3.client, return_value=mocked_client)
 
     monkeypatch.setattr(
-        "saleor.plugins.webhook.tasks.boto3.client", mocked_client_constructor,
+        "saleor.plugins.webhook.tasks.boto3.client",
+        mocked_client_constructor,
     )
 
     webhook.app.permissions.add(permission_manage_orders)

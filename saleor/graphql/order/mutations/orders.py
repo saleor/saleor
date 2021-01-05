@@ -315,7 +315,8 @@ class OrderAddNote(BaseMutation):
             raise ValidationError(
                 {
                     "message": ValidationError(
-                        "Message can't be empty.", code=OrderErrorCode.REQUIRED,
+                        "Message can't be empty.",
+                        code=OrderErrorCode.REQUIRED,
                     )
                 }
             )
@@ -326,7 +327,9 @@ class OrderAddNote(BaseMutation):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         cleaned_input = cls.clean_input(info, order, data)
         event = events.order_note_added_event(
-            order=order, user=info.context.user, message=cleaned_input["message"],
+            order=order,
+            user=info.context.user,
+            message=cleaned_input["message"],
         )
         return OrderAddNote(order=order, event=event)
 

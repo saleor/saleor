@@ -17,7 +17,10 @@ from ..utils import add_variant_to_checkout, fetch_checkout_lines
 
 
 def test_create_order_captured_payment_creates_expected_events(
-    checkout_with_item, customer_user, shipping_method, payment_txn_captured,
+    checkout_with_item,
+    customer_user,
+    shipping_method,
+    payment_txn_captured,
 ):
     checkout = checkout_with_item
     checkout_user = customer_user
@@ -42,7 +45,10 @@ def test_create_order_captured_payment_creates_expected_events(
     order = _create_order(
         checkout=checkout,
         order_data=_prepare_order_data(
-            manager=manager, checkout=checkout, lines=lines, discounts=None,
+            manager=manager,
+            checkout=checkout,
+            lines=lines,
+            discounts=None,
         ),
         user=customer_user,
     )
@@ -149,7 +155,10 @@ def test_create_order_captured_payment_creates_expected_events(
 
 
 def test_create_order_captured_payment_creates_expected_events_anonymous_user(
-    checkout_with_item, customer_user, shipping_method, payment_txn_captured,
+    checkout_with_item,
+    customer_user,
+    shipping_method,
+    payment_txn_captured,
 ):
     checkout = checkout_with_item
     checkout_user = None
@@ -175,7 +184,10 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
     order = _create_order(
         checkout=checkout,
         order_data=_prepare_order_data(
-            manager=manager, checkout=checkout, lines=lines, discounts=None,
+            manager=manager,
+            checkout=checkout,
+            lines=lines,
+            discounts=None,
         ),
         user=AnonymousUser(),
     )
@@ -275,7 +287,10 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
 
 
 def test_create_order_preauth_payment_creates_expected_events(
-    checkout_with_item, customer_user, shipping_method, payment_txn_preauth,
+    checkout_with_item,
+    customer_user,
+    shipping_method,
+    payment_txn_preauth,
 ):
     checkout = checkout_with_item
     checkout_user = customer_user
@@ -300,7 +315,10 @@ def test_create_order_preauth_payment_creates_expected_events(
     order = _create_order(
         checkout=checkout,
         order_data=_prepare_order_data(
-            manager=manager, checkout=checkout, lines=lines, discounts=None,
+            manager=manager,
+            checkout=checkout,
+            lines=lines,
+            discounts=None,
         ),
         user=customer_user,
     )
@@ -378,7 +396,10 @@ def test_create_order_preauth_payment_creates_expected_events(
 
 
 def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
-    checkout_with_item, customer_user, shipping_method, payment_txn_preauth,
+    checkout_with_item,
+    customer_user,
+    shipping_method,
+    payment_txn_preauth,
 ):
     checkout = checkout_with_item
     checkout_user = None
@@ -404,7 +425,10 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
     order = _create_order(
         checkout=checkout,
         order_data=_prepare_order_data(
-            manager=manager, checkout=checkout, lines=lines, discounts=None,
+            manager=manager,
+            checkout=checkout,
+            lines=lines,
+            discounts=None,
         ),
         user=AnonymousUser(),
     )
@@ -489,7 +513,10 @@ def test_create_order_insufficient_stock(
     lines = fetch_checkout_lines(checkout)
     with pytest.raises(InsufficientStock):
         _prepare_order_data(
-            manager=manager, checkout=checkout, lines=lines, discounts=None,
+            manager=manager,
+            checkout=checkout,
+            lines=lines,
+            discounts=None,
         )
 
 
@@ -512,12 +539,16 @@ def test_create_order_doesnt_duplicate_order(
     )
 
     order_1 = _create_order(
-        checkout=checkout, order_data=order_data, user=customer_user,
+        checkout=checkout,
+        order_data=order_data,
+        user=customer_user,
     )
     assert order_1.checkout_token == checkout.token
 
     order_2 = _create_order(
-        checkout=checkout, order_data=order_data, user=customer_user,
+        checkout=checkout,
+        order_data=order_data,
+        user=customer_user,
     )
     assert order_1.pk == order_2.pk
 
@@ -559,7 +590,10 @@ def test_create_order_with_gift_card(
     order = _create_order(
         checkout=checkout,
         order_data=_prepare_order_data(
-            manager=manager, checkout=checkout, lines=lines, discounts=None,
+            manager=manager,
+            checkout=checkout,
+            lines=lines,
+            discounts=None,
         ),
         user=customer_user if not is_anonymous_user else AnonymousUser(),
     )
@@ -598,7 +632,10 @@ def test_create_order_with_gift_card_partial_use(
     order = _create_order(
         checkout=checkout,
         order_data=_prepare_order_data(
-            manager=manager, checkout=checkout, lines=lines, discounts=None,
+            manager=manager,
+            checkout=checkout,
+            lines=lines,
+            discounts=None,
         ),
         user=customer_user,
     )
@@ -651,7 +688,10 @@ def test_create_order_with_many_gift_cards(
     order = _create_order(
         checkout=checkout,
         order_data=_prepare_order_data(
-            manager=manager, checkout=checkout, lines=lines, discounts=None,
+            manager=manager,
+            checkout=checkout,
+            lines=lines,
+            discounts=None,
         ),
         user=customer_user,
     )
@@ -678,7 +718,10 @@ def test_note_in_created_order(checkout_with_item, address, customer_user):
     order = _create_order(
         checkout=checkout_with_item,
         order_data=_prepare_order_data(
-            manager=manager, checkout=checkout_with_item, lines=lines, discounts=None,
+            manager=manager,
+            checkout=checkout_with_item,
+            lines=lines,
+            discounts=None,
         ),
         user=customer_user,
     )
@@ -705,7 +748,9 @@ def test_create_order_with_variant_tracking_false(
     )
 
     order_1 = _create_order(
-        checkout=checkout, order_data=order_data, user=customer_user,
+        checkout=checkout,
+        order_data=order_data,
+        user=customer_user,
     )
     assert order_1.checkout_token == checkout.token
 
@@ -733,10 +778,14 @@ def test_create_order_use_tanslations(
     product = lines[0].product
 
     ProductTranslation.objects.create(
-        language_code="fr", product=product, name=translated_product_name,
+        language_code="fr",
+        product=product,
+        name=translated_product_name,
     )
     ProductVariantTranslation.objects.create(
-        language_code="fr", product_variant=variant, name=translated_variant_name,
+        language_code="fr",
+        product_variant=variant,
+        name=translated_variant_name,
     )
 
     order_data = _prepare_order_data(

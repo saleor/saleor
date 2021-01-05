@@ -51,7 +51,9 @@ def jwt_user_payload(
 
 def jwt_encode(payload: Dict[str, Any]) -> str:
     return jwt.encode(
-        payload, settings.SECRET_KEY, JWT_ALGORITHM,  # type: ignore
+        payload,
+        settings.SECRET_KEY,  # type: ignore
+        JWT_ALGORITHM,
     ).decode("utf-8")
 
 
@@ -82,7 +84,10 @@ def create_refresh_token(
     user: User, additional_payload: Optional[Dict[str, Any]] = None
 ) -> str:
     payload = jwt_user_payload(
-        user, JWT_REFRESH_TYPE, settings.JWT_TTL_REFRESH, additional_payload,
+        user,
+        JWT_REFRESH_TYPE,
+        settings.JWT_TTL_REFRESH,
+        additional_payload,
     )
     return jwt_encode(payload)
 

@@ -187,7 +187,8 @@ def test_sort_products_by_publication_date(
 
 
 @pytest.mark.parametrize(
-    "direction, order_direction", (("ASC", "rating"), ("DESC", "-rating")),
+    "direction, order_direction",
+    (("ASC", "rating"), ("DESC", "-rating")),
 )
 def test_sort_products_by_rating(
     direction, order_direction, api_client, product_list, channel_USD

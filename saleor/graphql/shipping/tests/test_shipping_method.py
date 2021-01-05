@@ -249,7 +249,8 @@ def test_shipping_methods_query(
     """
     shipping_zone.shipping_methods.add(shipping_method_channel_PLN)
     response = staff_api_client.post_graphql(
-        query, permissions=[permission_manage_shipping, permission_manage_products],
+        query,
+        permissions=[permission_manage_shipping, permission_manage_products],
     )
     content = get_graphql_content(response)
     assert (
@@ -603,7 +604,10 @@ def test_update_shipping_zone_default_exists(
 
 
 def test_update_shipping_zone_add_warehouses(
-    staff_api_client, shipping_zone, warehouses, permission_manage_shipping,
+    staff_api_client,
+    shipping_zone,
+    warehouses,
+    permission_manage_shipping,
 ):
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     warehouse_ids = [
@@ -657,7 +661,10 @@ def test_update_shipping_zone_add_second_warehouses(
 
 
 def test_update_shipping_zone_remove_warehouses(
-    staff_api_client, shipping_zone, warehouse, permission_manage_shipping,
+    staff_api_client,
+    shipping_zone,
+    warehouse,
+    permission_manage_shipping,
 ):
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
@@ -677,7 +684,10 @@ def test_update_shipping_zone_remove_warehouses(
 
 
 def test_update_shipping_zone_remove_one_warehouses(
-    staff_api_client, shipping_zone, warehouses, permission_manage_shipping,
+    staff_api_client,
+    shipping_zone,
+    warehouses,
+    permission_manage_shipping,
 ):
     for warehouse in warehouses:
         warehouse.shipping_zones.add(shipping_zone)
@@ -731,7 +741,10 @@ def test_update_shipping_zone_replace_warehouse(
 
 
 def test_update_shipping_zone_same_warehouse_id_in_add_and_remove(
-    staff_api_client, shipping_zone, warehouse, permission_manage_shipping,
+    staff_api_client,
+    shipping_zone,
+    warehouse,
+    permission_manage_shipping,
 ):
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
@@ -865,7 +878,9 @@ def test_create_shipping_method(
 
 
 def test_create_shipping_method_minimum_delivery_days_higher_than_maximum(
-    staff_api_client, shipping_zone, permission_manage_shipping,
+    staff_api_client,
+    shipping_zone,
+    permission_manage_shipping,
 ):
     name = "DHL"
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
@@ -891,7 +906,9 @@ def test_create_shipping_method_minimum_delivery_days_higher_than_maximum(
 
 
 def test_create_shipping_method_minimum_delivery_days_below_0(
-    staff_api_client, shipping_zone, permission_manage_shipping,
+    staff_api_client,
+    shipping_zone,
+    permission_manage_shipping,
 ):
     name = "DHL"
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
@@ -917,7 +934,9 @@ def test_create_shipping_method_minimum_delivery_days_below_0(
 
 
 def test_create_shipping_method_maximum_delivery_days_below_0(
-    staff_api_client, shipping_zone, permission_manage_shipping,
+    staff_api_client,
+    shipping_zone,
+    permission_manage_shipping,
 ):
     name = "DHL"
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)

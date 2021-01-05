@@ -168,7 +168,10 @@ def products_structures(category, channel_USD):
         category=category,
     )
     product_models.ProductChannelListing.objects.create(
-        product=dummy, channel=channel_USD, is_published=True, visible_in_listings=True,
+        product=dummy,
+        channel=channel_USD,
+        is_published=True,
+        visible_in_listings=True,
     )
     variant = product_models.ProductVariant.objects.create(
         product=dummy, sku=dummy.slug

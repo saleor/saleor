@@ -218,7 +218,10 @@ def connection_from_queryset_slice(
     qs = qs[:end_margin]
     edges, page_info = _get_edges_for_connection(edge_type, qs, args, sorting_fields)
 
-    return connection_type(edges=edges, page_info=pageinfo_type(**page_info),)
+    return connection_type(
+        edges=edges,
+        page_info=pageinfo_type(**page_info),
+    )
 
 
 class NonNullConnection(Connection):

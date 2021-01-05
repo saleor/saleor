@@ -209,9 +209,7 @@ class GraphQLView(View):
         # Attempt to parse the query, if it fails, return the error
         try:
             return (
-                self.backend.document_from_string(  # type: ignore
-                    self.schema, query
-                ),
+                self.backend.document_from_string(self.schema, query),  # type: ignore
                 None,
             )
         except (ValueError, GraphQLSyntaxError) as e:

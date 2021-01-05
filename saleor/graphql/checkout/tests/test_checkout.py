@@ -1111,7 +1111,9 @@ query getCheckoutPayments($token: UUID!) {
 
 
 def test_checkout_available_payment_gateways(
-    api_client, checkout_with_item, expected_dummy_gateway,
+    api_client,
+    checkout_with_item,
+    expected_dummy_gateway,
 ):
     query = GET_CHECKOUT_PAYMENTS_QUERY
     variables = {"token": str(checkout_with_item.token)}
@@ -1125,7 +1127,10 @@ def test_checkout_available_payment_gateways(
 
 
 def test_checkout_available_payment_gateways_currency_specified_USD(
-    api_client, checkout_with_item, expected_dummy_gateway, sample_gateway,
+    api_client,
+    checkout_with_item,
+    expected_dummy_gateway,
+    sample_gateway,
 ):
     checkout_with_item.currency = "USD"
     checkout_with_item.save(update_fields=["currency"])
@@ -2244,7 +2249,9 @@ def test_anonymous_client_cant_fetch_checkout_user(api_client, checkout):
 
 
 def test_authorized_access_to_checkout_user_as_customer(
-    user_api_client, checkout, customer_user,
+    user_api_client,
+    checkout,
+    customer_user,
 ):
     query = QUERY_CHECKOUT_USER_ID
     checkout.user = customer_user
@@ -2283,7 +2290,10 @@ def test_authorized_access_to_checkout_user_as_staff(
 
 
 def test_authorized_access_to_checkout_user_as_staff_no_permission(
-    staff_api_client, checkout, customer_user, permission_manage_checkouts,
+    staff_api_client,
+    checkout,
+    customer_user,
+    permission_manage_checkouts,
 ):
     query = QUERY_CHECKOUT_USER_ID
 

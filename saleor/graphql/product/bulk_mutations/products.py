@@ -622,7 +622,9 @@ class ProductVariantStocksDelete(BaseMutation):
             required=True,
             description="ID of product variant for which stocks will be deleted.",
         )
-        warehouse_ids = graphene.List(graphene.NonNull(graphene.ID),)
+        warehouse_ids = graphene.List(
+            graphene.NonNull(graphene.ID),
+        )
 
     class Meta:
         description = "Delete stocks from product variant."
