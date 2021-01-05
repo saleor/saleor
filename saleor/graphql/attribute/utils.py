@@ -57,9 +57,15 @@ class AttributeAssignmentMixin:
     be unable to build or might only be partially built.
     """
 
-    REFERENCE_VALUE_NAME_MAPPING = {AttributeEntityType.PAGE: "title"}
+    REFERENCE_VALUE_NAME_MAPPING = {
+        AttributeEntityType.PAGE: "title",
+        AttributeEntityType.PRODUCT: "name",
+    }
 
-    ENTITY_TYPE_TO_MODEL_MAPPING = {AttributeEntityType.PAGE: page_models.Page}
+    ENTITY_TYPE_TO_MODEL_MAPPING = {
+        AttributeEntityType.PAGE: page_models.Page,
+        AttributeEntityType.PRODUCT: product_models.Product,
+    }
 
     @classmethod
     def _resolve_attribute_nodes(
