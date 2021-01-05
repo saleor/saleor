@@ -6,6 +6,7 @@ def test_get_variant_selection_attributes(
     product_type_attribute_list,
     file_attribute_with_file_input_type_without_values,
     page_reference_attribute,
+    product_reference_attribute,
 ):
     # given
     multiselect_attr = product_type_attribute_list[0]
@@ -15,6 +16,7 @@ def test_get_variant_selection_attributes(
     attrs = product_type_attribute_list + [
         file_attribute_with_file_input_type_without_values,
         page_reference_attribute,
+        product_reference_attribute,
     ]
 
     # when
