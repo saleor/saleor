@@ -86,7 +86,7 @@ openpyxl==3.0.5; python_version >= "3.6"
 opentracing==2.3.0
 petl==1.6.8; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
 phonenumberslite==8.12.12
-pillow==7.2.0; python_version >= "3.6"
+pillow==8.1.0; python_version >= "3.6"
 prices==1.1.0
 promise==2.3
 prompt-toolkit==3.0.7; python_full_version >= "3.6.1" and python_version >= "3.6"
