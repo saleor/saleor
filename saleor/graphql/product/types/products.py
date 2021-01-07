@@ -495,9 +495,7 @@ class Product(CountableDjangoObjectType):
     )
     description = graphene.String(
         description="Description for the product.",
-        deprecation_reason=(
-            "Will be removed in Saleor 3.0. Use the `descriptionJson` instead."
-        ),
+        deprecation_reason="Use the `descriptionJson` instead.",
         required=True,
     )
 
@@ -772,9 +770,7 @@ class Collection(CountableDjangoObjectType):
     )
     description = graphene.String(
         description="Description for the collection.",
-        deprecation_reason=(
-            "Will be removed in Saleor 3.0. Use the `descriptionJson` instead."
-        ),
+        deprecation_reason="Use the `descriptionJson` instead.",
         required=True,
     )
     translation = TranslationField(CollectionTranslation, type_name="collection")
@@ -851,9 +847,7 @@ class Category(CountableDjangoObjectType):
     )
     description = graphene.String(
         description="Description for the category.",
-        deprecation_reason=(
-            "Will be removed in Saleor 3.0. Use the `descriptionJson` instead."
-        ),
+        deprecation_reason="Use the `descriptionJson` instead.",
         required=True,
     )
     children = PrefetchingConnectionField(
