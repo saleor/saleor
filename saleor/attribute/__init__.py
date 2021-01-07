@@ -12,7 +12,7 @@ class AttributeInputType:
         (FILE, "File"),
         (REFERENCE, "Reference"),
     ]
-    # list of the input types that can be used in variant selectionn
+    # list of the input types that can be used in variant selection
     ALLOWED_IN_VARIANT_SELECTION = [DROPDOWN]
 
 
