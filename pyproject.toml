@@ -71,7 +71,7 @@ uvicorn = {extras = ["standard"], version = "^0.12.2"}
 gunicorn = "^20.0.4"
 
 [tool.poetry.dev-dependencies]
-black = "19.10b0"
+black = "20.8b1"
 codecov = "^2.1.11"
 coverage = "^5.3"
 django-debug-toolbar = "^3.2"
@@ -79,7 +79,7 @@ django-debug-toolbar-request-history = "^0"
 django-graphiql-debug-toolbar = "^0.1.4"
 django-extensions = "^3.1.0"
 flake8 = "^3.8.4"
-isort = "^4.3.21"
+isort = "^5.7.0"
 pre-commit = "^2.9"
 pycodestyle = "^2.5"
 pydocstyle = "^5.1"
