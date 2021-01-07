@@ -19,7 +19,6 @@ BASIC_TRANSLATABLE_FIELDS = ["id", "name"]
 EXTENDED_TRANSLATABLE_FIELDS = [
     "id",
     "name",
-    "description",
     "description_json",
     "seo_title",
     "seo_description",
@@ -133,6 +132,13 @@ class ProductVariantTranslatableContent(CountableDjangoObjectType):
 
 
 class ProductTranslation(BaseTranslationType):
+    description = graphene.String(
+        description="Description for the product translation.",
+        deprecation_reason=(
+            "Will be removed in Saleor 3.0. Use the `descriptionJson` instead."
+        ),
+    )
+
     class Meta:
         model = product_models.ProductTranslation
         interfaces = [graphene.relay.Node]
@@ -140,6 +146,12 @@ class ProductTranslation(BaseTranslationType):
 
 
 class ProductTranslatableContent(CountableDjangoObjectType):
+    description = graphene.String(
+        description="Description for the product.",
+        deprecation_reason=(
+            "Will be removed in Saleor 3.0. Use the `descriptionJson` instead."
+        ),
+    )
     translation = TranslationField(ProductTranslation, type_name="product")
     product = graphene.Field(
         "saleor.graphql.product.types.products.Product",
@@ -161,6 +173,13 @@ class ProductTranslatableContent(CountableDjangoObjectType):
 
 
 class CollectionTranslation(BaseTranslationType):
+    description = graphene.String(
+        description="Description for the collection translation.",
+        deprecation_reason=(
+            "Will be removed in Saleor 3.0. Use the `descriptionJson` instead."
+        ),
+    )
+
     class Meta:
         model = product_models.CollectionTranslation
         interfaces = [graphene.relay.Node]
@@ -168,6 +187,12 @@ class CollectionTranslation(BaseTranslationType):
 
 
 class CollectionTranslatableContent(CountableDjangoObjectType):
+    description = graphene.String(
+        description="Description for the collection.",
+        deprecation_reason=(
+            "Will be removed in Saleor 3.0. Use the `descriptionJson` instead."
+        ),
+    )
     translation = TranslationField(CollectionTranslation, type_name="collection")
     collection = graphene.Field(
         "saleor.graphql.product.types.products.Collection",
@@ -189,6 +214,13 @@ class CollectionTranslatableContent(CountableDjangoObjectType):
 
 
 class CategoryTranslation(BaseTranslationType):
+    description = graphene.String(
+        description="Description for the category translation.",
+        deprecation_reason=(
+            "Will be removed in Saleor 3.0. Use the `descriptionJson` instead."
+        ),
+    )
+
     class Meta:
         model = product_models.CategoryTranslation
         interfaces = [graphene.relay.Node]
@@ -196,6 +228,12 @@ class CategoryTranslation(BaseTranslationType):
 
 
 class CategoryTranslatableContent(CountableDjangoObjectType):
+    description = graphene.String(
+        description="Description for the category.",
+        deprecation_reason=(
+            "Will be removed in Saleor 3.0. Use the `descriptionJson` instead."
+        ),
+    )
     translation = TranslationField(CategoryTranslation, type_name="category")
     category = graphene.Field(
         "saleor.graphql.product.types.products.Category",
