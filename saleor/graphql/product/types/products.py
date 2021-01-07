@@ -494,7 +494,7 @@ class Product(CountableDjangoObjectType):
         required=True, description="Whether the product is published."
     )
     description = graphene.String(
-        description="Description for the product.",
+        description="Description of the product.",
         deprecation_reason="Use the `descriptionJson` field instead.",
         required=True,
     )
@@ -769,7 +769,7 @@ class Collection(CountableDjangoObjectType):
         Image, size=graphene.Int(description="Size of the image.")
     )
     description = graphene.String(
-        description="Description for the collection.",
+        description="Description of the collection.",
         deprecation_reason="Use the `descriptionJson` field instead.",
         required=True,
     )
@@ -846,7 +846,7 @@ class Category(CountableDjangoObjectType):
         deprecation_reason="This field will be removed after 2020-07-31.",
     )
     description = graphene.String(
-        description="Description for the category.",
+        description="Description of the category.",
         deprecation_reason="Use the `descriptionJson` field instead.",
         required=True,
     )

@@ -133,7 +133,7 @@ class ProductVariantTranslatableContent(CountableDjangoObjectType):
 
 class ProductTranslation(BaseTranslationType):
     description = graphene.String(
-        description="Description for the product translation.",
+        description="Translated description of the product.",
         deprecation_reason="Use the `descriptionJson` field instead.",
         required=True,
     )
@@ -146,7 +146,7 @@ class ProductTranslation(BaseTranslationType):
 
 class ProductTranslatableContent(CountableDjangoObjectType):
     description = graphene.String(
-        description="Description for the product.",
+        description="Description of the product.",
         deprecation_reason="Use the `descriptionJson` field instead.",
         required=True,
     )
@@ -172,7 +172,7 @@ class ProductTranslatableContent(CountableDjangoObjectType):
 
 class CollectionTranslation(BaseTranslationType):
     description = graphene.String(
-        description="Description for the collection translation.",
+        description="Translated description of the collection.",
         deprecation_reason="Use the `descriptionJson` field instead.",
         required=True,
     )
@@ -185,7 +185,7 @@ class CollectionTranslation(BaseTranslationType):
 
 class CollectionTranslatableContent(CountableDjangoObjectType):
     description = graphene.String(
-        description="Description for the collection.",
+        description="Description of the collection.",
         deprecation_reason="Use the `descriptionJson` field instead.",
         required=True,
     )
@@ -211,7 +211,7 @@ class CollectionTranslatableContent(CountableDjangoObjectType):
 
 class CategoryTranslation(BaseTranslationType):
     description = graphene.String(
-        description="Description for the category translation.",
+        description="Translated description of the category.",
         deprecation_reason="Use the `descriptionJson` field instead.",
         required=True,
     )
@@ -224,7 +224,7 @@ class CategoryTranslation(BaseTranslationType):
 
 class CategoryTranslatableContent(CountableDjangoObjectType):
     description = graphene.String(
-        description="Description for the category.",
+        description="Description of the category.",
         deprecation_reason="Use the `descriptionJson` field instead.",
         required=True,
     )
@@ -246,8 +246,8 @@ class CategoryTranslatableContent(CountableDjangoObjectType):
 
 class PageTranslation(BaseTranslationType):
     content = graphene.String(
-        description="Content for the page.",
-        deprecation_reason="Use the `contentJson` field instead.",
+        description="Content of the page.",
+        deprecation_reason="Translated description of the page.",
         required=True,
     )
 
@@ -265,7 +265,7 @@ class PageTranslation(BaseTranslationType):
 
 class PageTranslatableContent(CountableDjangoObjectType):
     content = graphene.String(
-        description="Content for the page.",
+        description="Content of the page.",
         deprecation_reason="Use the `contentJson` field instead.",
         required=True,
     )

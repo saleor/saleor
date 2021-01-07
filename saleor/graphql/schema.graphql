@@ -3369,7 +3369,7 @@ type PageTranslation implements Node {
   title: String!
   contentJson: JSONString!
   language: LanguageDisplay!
-  content: String! @deprecated(reason: "Use the `contentJson` field instead.")
+  content: String! @deprecated(reason: "Translated description of the page.")
 }
 
 input PageTranslationInput {
