@@ -1093,7 +1093,8 @@ def test_create_shipping_method_with_negative_max_weight(
 
 UPDATE_SHIPPING_PRICE_MUTATION = """
     mutation updateShippingPrice(
-        $id: ID!, $shippingZone: ID!,
+        $id: ID!,
+        $shippingZone: ID!,
         $type: ShippingMethodTypeEnum!,
         $maximumDeliveryDays: Int,
         $minimumDeliveryDays: Int,
@@ -1339,6 +1340,47 @@ def test_update_shipping_method_multiple_errors(
     ]
     for error in expected_errors:
         assert error in errors
+
+
+@pytest.mark.parametrize(
+    "min_delivery_days, max_delivery_days",
+    [
+        (None, 1),
+        (1, None),
+        (None, None),
+    ],
+)
+def test_update_shipping_method_delivery_days_without_value(
+    staff_api_client,
+    shipping_zone,
+    permission_manage_shipping,
+    min_delivery_days,
+    max_delivery_days,
+):
+    shipping_method = shipping_zone.shipping_methods.first()
+    shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method.pk
+    )
+    variables = {
+        "shippingZone": shipping_zone_id,
+        "id": shipping_method_id,
+        "type": ShippingMethodTypeEnum.PRICE.name,
+        "minimumDeliveryDays": min_delivery_days,
+        "maximumDeliveryDays": max_delivery_days,
+    }
+
+    response = staff_api_client.post_graphql(
+        UPDATE_SHIPPING_PRICE_MUTATION,
+        variables,
+        permissions=[permission_manage_shipping],
+    )
+    content = get_graphql_content(response)
+    shipping_method.refresh_from_db()
+
+    assert not content["data"]["shippingPriceUpdate"]["shippingErrors"]
+    assert shipping_method.minimum_delivery_days == min_delivery_days
+    assert shipping_method.maximum_delivery_days == max_delivery_days
 
 
 def test_delete_shipping_method(
