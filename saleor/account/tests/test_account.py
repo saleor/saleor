@@ -10,7 +10,7 @@ from django_countries.fields import Country
 from .. import forms, i18n
 from ..models import User
 from ..templatetags.i18n_address_tags import format_address
-from ..utils import remove_staff_member
+from ..utils import remove_staff_member, requestor_is_staff_member
 from ..validators import validate_possible_number
 
 
@@ -304,3 +304,33 @@ def test_remove_staff_member_with_orders(staff_user, permission_manage_products,
 def test_remove_staff_member(staff_user):
     remove_staff_member(staff_user)
     assert not User.objects.filter(pk=staff_user.pk).exists()
+
+
+def test_requestor_is_staff_member_active_app(app):
+    assert app.is_active is True
+    assert requestor_is_staff_member(app) is True
+
+
+def test_requestor_is_staff_member_not_active_app(app):
+    app.is_active = False
+    app.save(update_fields=["is_active"])
+    assert requestor_is_staff_member(app) is False
+
+
+def test_requestor_is_staff_member_not_active_staff_user(staff_user):
+    staff_user.is_active = False
+    staff_user.save(update_fields=["is_active"])
+    assert requestor_is_staff_member(staff_user) is False
+
+
+def test_requestor_is_staff_member_active_staff_user(staff_user):
+    assert staff_user.is_active is True
+    assert requestor_is_staff_member(staff_user) is True
+
+
+def test_requestor_is_staff_member_superuser(superuser):
+    assert requestor_is_staff_member(superuser) is True
+
+
+def test_requestor_is_staff_member_customer_user(customer_user):
+    assert requestor_is_staff_member(customer_user) is False

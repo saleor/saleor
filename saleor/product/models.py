@@ -31,6 +31,7 @@ from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
+from ..account.utils import requestor_is_staff_member
 from ..channel.models import Channel
 from ..core.db.fields import SanitizedJSONField
 from ..core.models import ModelWithMetadata, PublishableModel, SortableModel
@@ -50,6 +51,7 @@ if TYPE_CHECKING:
     from prices import Money
 
     from ..account.models import User
+    from ..app.models import App
 
 
 class Category(MPTTModel, ModelWithMetadata, SeoModel):
@@ -161,8 +163,8 @@ class ProductsQueryset(models.QuerySet):
         ).values_list("variant", flat=True)
         return published.filter(variants__in=query).distinct()
 
-    def visible_to_user(self, user: "User", channel_slug: str):
-        if self.user_has_access_to_all(user):
+    def visible_to_user(self, requestor: Union["User", "App"], channel_slug: str):
+        if requestor_is_staff_member(requestor):
             if channel_slug:
                 return self.filter(channel_listings__channel__slug=str(channel_slug))
             return self.all()
@@ -682,8 +684,8 @@ class CollectionsQueryset(models.QuerySet):
             channel_listings__is_published=True,
         )
 
-    def visible_to_user(self, user: "User", channel_slug: str):
-        if self.user_has_access_to_all(user):
+    def visible_to_user(self, requestor: Union["User", "App"], channel_slug: str):
+        if requestor_is_staff_member(requestor):
             if channel_slug:
                 return self.filter(channel_listings__channel__slug=str(channel_slug))
             return self.all()

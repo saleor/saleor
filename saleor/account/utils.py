@@ -1,7 +1,12 @@
+from typing import TYPE_CHECKING, Union
+
 from ..checkout import AddressType
 from ..core.utils import create_thumbnails
 from ..plugins.manager import get_plugins_manager
 from .models import User
+
+if TYPE_CHECKING:
+    from ..app.models import App
 
 
 def store_user_address(user, address, address_type, manager=None):
@@ -77,3 +82,9 @@ def remove_staff_member(staff):
         staff.save()
     else:
         staff.delete()
+
+
+def requestor_is_staff_member(requestor: Union[User, "App"]):
+    """Return true if requestor is an active app or active staff user."""
+    is_staff = getattr(requestor, "is_staff", True)
+    return is_staff and requestor.is_active

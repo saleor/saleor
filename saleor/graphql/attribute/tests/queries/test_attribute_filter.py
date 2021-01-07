@@ -407,11 +407,10 @@ def test_filter_attributes_in_category_not_published_by_staff_with_perm(
     assert len(attributes) == attribute_count
 
 
-def test_filter_attributes_in_category_not_published_by_staff_without_perm(
+def test_filter_attributes_in_category_not_published_by_staff_without_manage_products(
     staff_api_client,
     product_list,
     weight_attribute,
-    permission_manage_products,
     channel_USD,
 ):
     # given
@@ -448,10 +447,7 @@ def test_filter_attributes_in_category_not_published_by_staff_without_perm(
     )["data"]["attributes"]["edges"]
 
     # then
-    assert len(attributes) == attribute_count - 1
-    assert weight_attribute.slug not in {
-        attribute["node"]["slug"] for attribute in attributes
-    }
+    assert len(attributes) == attribute_count
 
 
 def test_filter_attributes_in_category_not_published_by_app_with_perm(
@@ -500,11 +496,10 @@ def test_filter_attributes_in_category_not_published_by_app_with_perm(
     assert len(attributes) == attribute_count
 
 
-def test_filter_attributes_in_category_not_published_by_app_without_perm(
+def test_filter_attributes_in_category_not_published_by_app_without_manage_products(
     app_api_client,
     product_list,
     weight_attribute,
-    permission_manage_products,
     channel_USD,
 ):
     # given
@@ -541,10 +536,7 @@ def test_filter_attributes_in_category_not_published_by_app_without_perm(
     )["data"]["attributes"]["edges"]
 
     # then
-    assert len(attributes) == attribute_count - 1
-    assert weight_attribute.slug not in {
-        attribute["node"]["slug"] for attribute in attributes
-    }
+    assert len(attributes) == attribute_count
 
 
 def test_filter_attributes_in_collection_not_visible_in_listings_by_customer(
@@ -683,11 +675,10 @@ def test_filter_in_collection_not_published_by_staff_with_perm(
     assert len(attributes) == attribute_count
 
 
-def test_filter_in_collection_not_published_by_staff_without_perm(
+def test_filter_in_collection_not_published_by_staff_without_manage_products(
     staff_api_client,
     product_list,
     weight_attribute,
-    permission_manage_products,
     collection,
     channel_USD,
 ):
@@ -727,10 +718,7 @@ def test_filter_in_collection_not_published_by_staff_without_perm(
     )["data"]["attributes"]["edges"]
 
     # then
-    assert len(attributes) == attribute_count - 1
-    assert weight_attribute.slug not in {
-        attribute["node"]["slug"] for attribute in attributes
-    }
+    assert len(attributes) == attribute_count
 
 
 def test_filter_in_collection_not_published_by_app_with_perm(
@@ -782,11 +770,10 @@ def test_filter_in_collection_not_published_by_app_with_perm(
     assert len(attributes) == attribute_count
 
 
-def test_filter_in_collection_not_published_by_app_without_perm(
+def test_filter_in_collection_not_published_by_app_without_manage_products(
     app_api_client,
     product_list,
     weight_attribute,
-    permission_manage_products,
     collection,
     channel_USD,
 ):
@@ -826,10 +813,7 @@ def test_filter_in_collection_not_published_by_app_without_perm(
     )["data"]["attributes"]["edges"]
 
     # then
-    assert len(attributes) == attribute_count - 1
-    assert weight_attribute.slug not in {
-        attribute["node"]["slug"] for attribute in attributes
-    }
+    assert len(attributes) == attribute_count
 
 
 def test_filter_attributes_by_page_type(

@@ -1,5 +1,6 @@
 import graphene
 
+from ...account.utils import requestor_is_staff_member
 from ...core.permissions import ProductPermissions
 from ...product import models
 from ..channel import ChannelContext
@@ -316,10 +317,7 @@ class ProductQueries(graphene.ObjectType):
 
     def resolve_products(self, info, channel=None, **kwargs):
         requestor = get_user_or_app_from_context(info.context)
-        requestor_has_access_to_all = models.Product.objects.user_has_access_to_all(
-            requestor
-        )
-        if channel is None and not requestor_has_access_to_all:
+        if channel is None and not requestor_is_staff_member(requestor):
             channel = get_default_channel_slug_or_graphql_error()
         return resolve_products(info, requestor, channel_slug=channel, **kwargs)
 
