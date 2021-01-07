@@ -3,7 +3,9 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Set, Union
 from urllib.parse import urljoin
 
 from django.conf import settings
-from django.db.models import Case, CharField, Value as V, When
+from django.db.models import Case, CharField
+from django.db.models import Value as V
+from django.db.models import When
 from django.db.models.functions import Concat
 
 from ...attribute import AttributeInputType

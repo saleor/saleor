@@ -11,7 +11,6 @@ from ..channel.models import Channel
 from ..checkout import calculations
 from ..checkout.error_codes import CheckoutErrorCode
 from ..core.exceptions import ProductNotPublished
-from ..core.prices import quantize_price
 from ..core.taxes import zero_taxed_money
 from ..core.utils.promo_code import (
     InvalidPromoCode,
@@ -37,8 +36,9 @@ from .models import Checkout, CheckoutLine
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ..account.models import Address
     from prices import TaxedMoney
+
+    from ..account.models import Address
 
 
 def get_user_checkout(
@@ -117,7 +117,8 @@ def add_variants_to_checkout(checkout, variants, quantities):
     check_stock_quantity_bulk(variants, country_code, quantities)
 
     channel_listings = product_models.ProductChannelListing.objects.filter(
-        channel_id=checkout.channel.id, product_id__in=[v.product_id for v in variants],
+        channel_id=checkout.channel.id,
+        product_id__in=[v.product_id for v in variants],
     )
     channel_listings_by_product_id = {cl.product_id: cl for cl in channel_listings}
 
@@ -312,8 +313,8 @@ def get_prices_of_discounted_specific_product(
             channel_listing=line.variant.channel_listings.get(channel=channel),
             discounts=discounts or [],
         ).gross
-        line_unit_price = quantize_price(
-            (line_total / line.quantity), line_total.currency
+        line_unit_price = manager.calculate_checkout_line_unit_price(
+            line_total, line.quantity
         )
         line_prices.extend([line_unit_price] * line.quantity)
 

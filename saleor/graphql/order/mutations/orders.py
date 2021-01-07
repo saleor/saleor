@@ -259,7 +259,11 @@ class OrderUpdateShipping(BaseMutation):
         clean_order_update_shipping(order, method)
 
         order.shipping_method = method
-        order.shipping_price = info.context.plugins.calculate_order_shipping(order)
+        shipping_price = info.context.plugins.calculate_order_shipping(order)
+        order.shipping_price = shipping_price
+        order.shipping_tax_rate = info.context.plugins.get_order_shipping_tax_rate(
+            order, shipping_price
+        )
         order.shipping_method_name = method.name
         order.save(
             update_fields=[
@@ -268,6 +272,7 @@ class OrderUpdateShipping(BaseMutation):
                 "shipping_method_name",
                 "shipping_price_net_amount",
                 "shipping_price_gross_amount",
+                "shipping_tax_rate",
             ]
         )
         update_order_prices(order, info.context.discounts)
@@ -310,7 +315,8 @@ class OrderAddNote(BaseMutation):
             raise ValidationError(
                 {
                     "message": ValidationError(
-                        "Message can't be empty.", code=OrderErrorCode.REQUIRED,
+                        "Message can't be empty.",
+                        code=OrderErrorCode.REQUIRED,
                     )
                 }
             )
@@ -321,7 +327,9 @@ class OrderAddNote(BaseMutation):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         cleaned_input = cls.clean_input(info, order, data)
         event = events.order_note_added_event(
-            order=order, user=info.context.user, message=cleaned_input["message"],
+            order=order,
+            user=info.context.user,
+            message=cleaned_input["message"],
         )
         return OrderAddNote(order=order, event=event)
 

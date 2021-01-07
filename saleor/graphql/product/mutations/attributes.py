@@ -6,7 +6,8 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.db.models import Q
 
-from ....attribute import AttributeType, models as attribute_models
+from ....attribute import AttributeType
+from ....attribute import models as attribute_models
 from ....core.permissions import ProductTypePermissions
 from ....product import models
 from ....product.error_codes import ProductErrorCode

@@ -10,5 +10,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(model_name="shippingmethod", name="meta",),
+        migrations.RemoveField(
+            model_name="shippingmethod",
+            name="meta",
+        ),
     ]

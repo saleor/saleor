@@ -73,7 +73,8 @@ def filter_products_by_attributes_values(qs, queries: T_PRODUCT_FILTER_QUERIES):
         | Q(
             Exists(
                 AssignedVariantAttribute.objects.filter(
-                    variant__product__id=OuterRef("pk"), values__pk__in=values,
+                    variant__product__id=OuterRef("pk"),
+                    values__pk__in=values,
                 )
             )
         )

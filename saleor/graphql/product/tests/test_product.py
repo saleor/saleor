@@ -339,7 +339,10 @@ QUERY_COLLECTION_FROM_PRODUCT = """
 
 
 def test_get_collections_from_product_as_staff(
-    staff_api_client, permission_manage_products, product_with_collections, channel_USD,
+    staff_api_client,
+    permission_manage_products,
+    product_with_collections,
+    channel_USD,
 ):
     # given
     product = product_with_collections
@@ -362,7 +365,10 @@ def test_get_collections_from_product_as_staff(
 
 
 def test_get_collections_from_product_as_app(
-    app_api_client, permission_manage_products, product_with_collections, channel_USD,
+    app_api_client,
+    permission_manage_products,
+    product_with_collections,
+    channel_USD,
 ):
     # given
     product = product_with_collections
@@ -941,7 +947,9 @@ def test_product_query_by_id_without_channel_not_available_as_staff_user(
 
 
 def test_product_query_error_when_id_and_slug_provided(
-    user_api_client, product, graphql_log_handler,
+    user_api_client,
+    product,
+    graphql_log_handler,
 ):
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),
@@ -956,7 +964,9 @@ def test_product_query_error_when_id_and_slug_provided(
 
 
 def test_product_query_error_when_no_param(
-    user_api_client, product, graphql_log_handler,
+    user_api_client,
+    product,
+    graphql_log_handler,
 ):
     variables = {}
     response = user_api_client.post_graphql(QUERY_PRODUCT, variables=variables)
@@ -1139,7 +1149,10 @@ def test_fetch_all_products_not_available_as_customer(
         is_published=False
     )
 
-    response = user_api_client.post_graphql(QUERY_FETCH_ALL_PRODUCTS, variables,)
+    response = user_api_client.post_graphql(
+        QUERY_FETCH_ALL_PRODUCTS,
+        variables,
+    )
     content = get_graphql_content(response)
     assert content["data"]["products"]["totalCount"] == 0
     assert not content["data"]["products"]["edges"]
@@ -1174,7 +1187,10 @@ def test_fetch_all_products_not_available_as_anonymous(
         is_published=False
     )
 
-    response = api_client.post_graphql(QUERY_FETCH_ALL_PRODUCTS, variables,)
+    response = api_client.post_graphql(
+        QUERY_FETCH_ALL_PRODUCTS,
+        variables,
+    )
     content = get_graphql_content(response)
     assert content["data"]["products"]["totalCount"] == 0
     assert not content["data"]["products"]["edges"]
@@ -1564,7 +1580,10 @@ def test_products_query_with_filter_collection(
 
 
 def test_products_query_with_filter_category_and_search(
-    query_products_with_filter, staff_api_client, product, permission_manage_products,
+    query_products_with_filter,
+    staff_api_client,
+    product,
+    permission_manage_products,
 ):
     category = Category.objects.create(name="Custom", slug="custom")
     second_product = product
@@ -1641,7 +1660,8 @@ def test_products_query_with_filter(
     second_product.slug = "apple-juice1"
     second_product.save()
     variant_second_product = second_product.variants.create(
-        product=second_product, sku=second_product.slug,
+        product=second_product,
+        sku=second_product.slug,
     )
     ProductVariantChannelListing.objects.create(
         variant=variant_second_product,
@@ -1651,7 +1671,9 @@ def test_products_query_with_filter(
         currency=channel_USD.currency_code,
     )
     ProductChannelListing.objects.create(
-        product=second_product, channel=channel_USD, is_published=True,
+        product=second_product,
+        channel=channel_USD,
+        is_published=True,
     )
     variables = {"filter": {"search": "Juice1"}, "channel": channel_USD.slug}
     staff_api_client.user.user_permissions.add(permission_manage_products)
@@ -2225,7 +2247,11 @@ def test_create_product(
 
 @freeze_time("2020-03-18 12:00:00")
 def test_create_product_with_rating(
-    staff_api_client, product_type, category, permission_manage_products, settings,
+    staff_api_client,
+    product_type,
+    category,
+    permission_manage_products,
+    settings,
 ):
     query = CREATE_PRODUCT_MUTATION
 
@@ -2493,7 +2519,10 @@ def test_create_product_with_file_attribute_required_no_file_url_given(
 
 
 def test_create_product_no_values_given(
-    staff_api_client, product_type, category, permission_manage_products,
+    staff_api_client,
+    product_type,
+    category,
+    permission_manage_products,
 ):
     query = CREATE_PRODUCT_MUTATION
 
@@ -2651,7 +2680,9 @@ def test_product_variant_set_default_not_products_variant(
 
 
 def test_reorder_variants(
-    staff_api_client, product_with_two_variants, permission_manage_products,
+    staff_api_client,
+    product_with_two_variants,
+    permission_manage_products,
 ):
     default_variants = product_with_two_variants.variants.all()
     new_variants = [default_variants[1], default_variants[0]]
@@ -2679,7 +2710,10 @@ def test_reorder_variants(
 
 
 def test_reorder_variants_invalid_variants(
-    staff_api_client, product, product_with_two_variants, permission_manage_products,
+    staff_api_client,
+    product,
+    product_with_two_variants,
+    permission_manage_products,
 ):
     default_variants = product_with_two_variants.variants.all()
     new_variants = [product.variants.first(), default_variants[1]]
@@ -3349,7 +3383,9 @@ def test_update_product_with_file_attribute_value_new_value_is_not_created(
 
 @freeze_time("2020-03-18 12:00:00")
 def test_update_product_rating(
-    staff_api_client, product, permission_manage_products,
+    staff_api_client,
+    product,
+    permission_manage_products,
 ):
     query = MUTATION_UPDATE_PRODUCT
 
@@ -3862,6 +3898,9 @@ def test_delete_product_variant_in_draft_order(
         variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
         net = variant.get_price(product, [], channel_USD, variant_channel_listing, None)
         gross = Money(amount=net.amount, currency=net.currency)
+        unit_price = TaxedMoney(net=net, gross=gross)
+        quantity = 3
+        total_price = unit_price * quantity
 
         order_line = OrderLine.objects.create(
             variant=variant,
@@ -3871,7 +3910,8 @@ def test_delete_product_variant_in_draft_order(
             product_sku=variant.sku,
             is_shipping_required=variant.is_shipping_required(),
             unit_price=TaxedMoney(net=net, gross=gross),
-            quantity=3,
+            total_price=total_price,
+            quantity=quantity,
         )
         draft_order_lines_pks.append(order_line.pk)
 
@@ -3883,7 +3923,8 @@ def test_delete_product_variant_in_draft_order(
             product_sku=variant.sku,
             is_shipping_required=variant.is_shipping_required(),
             unit_price=TaxedMoney(net=net, gross=gross),
-            quantity=3,
+            total_price=total_price,
+            quantity=quantity,
         )
         not_draft_order_lines_pks.append(order_line_not_draft.pk)
 
@@ -4611,7 +4652,9 @@ def test_update_product_type_slug_and_name(
 
 
 def test_update_product_type_with_negative_weight(
-    staff_api_client, product_type, permission_manage_product_types_and_attributes,
+    staff_api_client,
+    product_type,
+    permission_manage_product_types_and_attributes,
 ):
     query = """
         mutation($id: ID!, $weight: WeightScalar) {
@@ -4692,6 +4735,9 @@ def test_product_type_delete_mutation_variants_in_draft_order(
     variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
     net = variant.get_price(product, [], channel_USD, variant_channel_listing, None)
     gross = Money(amount=net.amount, currency=net.currency)
+    quantity = 3
+    unit_price = TaxedMoney(net=net, gross=gross)
+    total_price = unit_price * quantity
 
     order_line_not_in_draft = OrderLine.objects.create(
         variant=variant,
@@ -4701,6 +4747,7 @@ def test_product_type_delete_mutation_variants_in_draft_order(
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
         unit_price=TaxedMoney(net=net, gross=gross),
+        total_price=total_price,
         quantity=3,
     )
 
@@ -4712,6 +4759,7 @@ def test_product_type_delete_mutation_variants_in_draft_order(
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
         unit_price=TaxedMoney(net=net, gross=gross),
+        total_price=total_price,
         quantity=3,
     )
 
@@ -5180,7 +5228,8 @@ def test_product_variants_no_ids_list(user_api_client, variant, channel_USD):
 
 
 @pytest.mark.parametrize(
-    "variant_price_amount, api_variant_price", [(200, 200), (0, 0)],
+    "variant_price_amount, api_variant_price",
+    [(200, 200), (0, 0)],
 )
 def test_product_variant_price(
     variant_price_amount,
@@ -5342,7 +5391,8 @@ def test_product_restricted_fields_permissions(
 
 
 @pytest.mark.parametrize(
-    "field, is_nested", (("digitalContent", True), ("quantityOrdered", False)),
+    "field, is_nested",
+    (("digitalContent", True), ("quantityOrdered", False)),
 )
 def test_variant_restricted_fields_permissions(
     staff_api_client,
@@ -5610,7 +5660,10 @@ def test_categories_query_with_sort(
         name="Cat1", slug="slug_category1", description="Description cat1"
     )
     Product.objects.create(
-        name="Test", slug="test", product_type=product_type, category=cat1,
+        name="Test",
+        slug="test",
+        product_type=product_type,
+        category=cat1,
     )
     Category.objects.create(
         name="Cat2", slug="slug_category2", description="Description cat2"
@@ -5628,7 +5681,10 @@ def test_categories_query_with_sort(
         description="Subcategory_description of cat1",
     )
     Product.objects.create(
-        name="Test2", slug="test2", product_type=product_type, category=subsubcat,
+        name="Test2",
+        slug="test2",
+        product_type=product_type,
+        category=subsubcat,
     )
     variables = {"sort_by": category_sort}
     staff_api_client.user.user_permissions.add(permission_manage_products)
@@ -6100,7 +6156,9 @@ def test_create_stocks(variant, warehouse):
 
 def test_update_or_create_variant_stocks(variant, warehouses):
     Stock.objects.create(
-        product_variant=variant, warehouse=warehouses[0], quantity=5,
+        product_variant=variant,
+        warehouse=warehouses[0],
+        quantity=5,
     )
     stocks_data = [
         {"quantity": 10, "warehouse": "123"},
@@ -6123,7 +6181,9 @@ def test_update_or_create_variant_stocks(variant, warehouses):
 
 def test_update_or_create_variant_stocks_empty_stocks_data(variant, warehouses):
     Stock.objects.create(
-        product_variant=variant, warehouse=warehouses[0], quantity=5,
+        product_variant=variant,
+        warehouse=warehouses[0],
+        quantity=5,
     )
 
     ProductVariantStocksUpdate.update_or_create_variant_stocks(variant, [], warehouses)
@@ -6275,7 +6335,9 @@ def test_create_product_with_weight_input(
         "name": "Test",
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products],
+        query,
+        variables,
+        permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
     result_weight = content["data"]["productCreate"]["product"]["weight"]

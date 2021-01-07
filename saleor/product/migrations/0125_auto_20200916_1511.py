@@ -11,7 +11,8 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterModelOptions(
-            name="productvariant", options={"ordering": ("sort_order", "sku")},
+            name="productvariant",
+            options={"ordering": ("sort_order", "sku")},
         ),
         migrations.AddField(
             model_name="productvariant",

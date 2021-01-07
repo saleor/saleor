@@ -1111,7 +1111,9 @@ query getCheckoutPayments($token: UUID!) {
 
 
 def test_checkout_available_payment_gateways(
-    api_client, checkout_with_item, expected_dummy_gateway,
+    api_client,
+    checkout_with_item,
+    expected_dummy_gateway,
 ):
     query = GET_CHECKOUT_PAYMENTS_QUERY
     variables = {"token": str(checkout_with_item.token)}
@@ -1125,7 +1127,10 @@ def test_checkout_available_payment_gateways(
 
 
 def test_checkout_available_payment_gateways_currency_specified_USD(
-    api_client, checkout_with_item, expected_dummy_gateway, sample_gateway,
+    api_client,
+    checkout_with_item,
+    expected_dummy_gateway,
+    sample_gateway,
 ):
     checkout_with_item.currency = "USD"
     checkout_with_item.save(update_fields=["currency"])
@@ -2244,7 +2249,9 @@ def test_anonymous_client_cant_fetch_checkout_user(api_client, checkout):
 
 
 def test_authorized_access_to_checkout_user_as_customer(
-    user_api_client, checkout, customer_user,
+    user_api_client,
+    checkout,
+    customer_user,
 ):
     query = QUERY_CHECKOUT_USER_ID
     checkout.user = customer_user
@@ -2283,7 +2290,10 @@ def test_authorized_access_to_checkout_user_as_staff(
 
 
 def test_authorized_access_to_checkout_user_as_staff_no_permission(
-    staff_api_client, checkout, customer_user, permission_manage_checkouts,
+    staff_api_client,
+    checkout,
+    customer_user,
+    permission_manage_checkouts,
 ):
     query = QUERY_CHECKOUT_USER_ID
 
@@ -2828,3 +2838,33 @@ def test_clean_checkout_no_payment(checkout_with_item, shipping_method, address)
 
     msg = "Provided payment methods can not cover the checkout's total amount"
     assert e.value.error_list[0].message == msg
+
+
+def test_get_variant_data_from_checkout_line_variant_hidden_in_listings(
+    checkout_with_item, api_client
+):
+    # given
+    query = """
+        query getCheckout($token: UUID!){
+            checkout(token: $token){
+                id
+                lines{
+                    id
+                    variant{
+                        id
+                    }
+                }
+            }
+        }
+    """
+    checkout = checkout_with_item
+    variant = checkout.lines.get().variant
+    variant.product.channel_listings.update(visible_in_listings=False)
+    variables = {"token": checkout.token}
+
+    # when
+    response = api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["lines"][0]["variant"]["id"]

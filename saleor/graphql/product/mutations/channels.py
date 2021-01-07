@@ -28,12 +28,10 @@ from ...core.validators import validate_price_precision
 from ..types.products import Collection, Product, ProductVariant
 
 if TYPE_CHECKING:
-    from ....product.models import (
-        Product as ProductModel,
-        Collection as CollectionModel,
-        ProductVariant as ProductVariantModel,
-    )
     from ....channel.models import Channel as ChannelModel
+    from ....product.models import Collection as CollectionModel
+    from ....product.models import Product as ProductModel
+    from ....product.models import ProductVariant as ProductVariantModel
 
 ErrorType = DefaultDict[str, List[ValidationError]]
 
@@ -184,7 +182,10 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
         errors = defaultdict(list)
 
         cleaned_input = cls.clean_channels(
-            info, input, errors, ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
+            info,
+            input,
+            errors,
+            ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
         )
         cls.clean_publication_date(cleaned_input)
         cls.clean_available_for_purchase(cleaned_input, errors)
@@ -326,7 +327,9 @@ class ProductVariantChannelListingUpdate(BaseMutation):
                     "cost_price", None
                 )
             ProductVariantChannelListing.objects.update_or_create(
-                variant=variant, channel=channel, defaults=defaults,
+                variant=variant,
+                channel=channel,
+                defaults=defaults,
             )
         update_product_discounted_price_task.delay(variant.product_id)
         info.context.plugins.product_updated(variant.product)
@@ -414,7 +417,10 @@ class CollectionChannelListingUpdate(BaseChannelListingMutation):
         errors = defaultdict(list)
 
         cleaned_input = cls.clean_channels(
-            info, input, errors, CollectionErrorCode.DUPLICATED_INPUT_ITEM.value,
+            info,
+            input,
+            errors,
+            CollectionErrorCode.DUPLICATED_INPUT_ITEM.value,
         )
         cls.clean_publication_date(cleaned_input)
         if errors:

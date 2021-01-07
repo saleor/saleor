@@ -111,7 +111,9 @@ def test_deallocate_stock_partially(allocation):
     assert allocation.quantity_allocated == 30
 
 
-def test_deallocate_stock_many_allocations(order_line_with_allocation_in_many_stocks,):
+def test_deallocate_stock_many_allocations(
+    order_line_with_allocation_in_many_stocks,
+):
     order_line = order_line_with_allocation_in_many_stocks
 
     deallocate_stock(order_line, 3)
@@ -208,7 +210,9 @@ def test_decrease_stock_partially(allocation):
     assert allocation.quantity_allocated == 0
 
 
-def test_decrease_stock_many_allocations(order_line_with_allocation_in_many_stocks,):
+def test_decrease_stock_many_allocations(
+    order_line_with_allocation_in_many_stocks,
+):
     order_line = order_line_with_allocation_in_many_stocks
     allocations = order_line.allocations.all()
     warehouse_pk = allocations[1].stock.warehouse.pk
@@ -236,7 +240,9 @@ def test_decrease_stock_many_allocations_partially(
     assert allocations[1].stock.quantity == 3
 
 
-def test_decrease_stock_more_then_allocated(order_line_with_allocation_in_many_stocks,):
+def test_decrease_stock_more_then_allocated(
+    order_line_with_allocation_in_many_stocks,
+):
     order_line = order_line_with_allocation_in_many_stocks
     allocations = order_line.allocations.all()
     warehouse_pk = allocations[0].stock.warehouse.pk
@@ -253,7 +259,9 @@ def test_decrease_stock_more_then_allocated(order_line_with_allocation_in_many_s
     assert allocations[1].stock.quantity == 3
 
 
-def test_deallocate_stock_for_order(order_line_with_allocation_in_many_stocks,):
+def test_deallocate_stock_for_order(
+    order_line_with_allocation_in_many_stocks,
+):
     order_line = order_line_with_allocation_in_many_stocks
     order = order_line.order
 

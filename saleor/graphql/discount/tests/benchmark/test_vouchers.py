@@ -129,7 +129,10 @@ def test_vouchers_query_with_channel_slug(
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
 def test_vouchers_query_withot_channel_slug(
-    staff_api_client, vouchers_list, permission_manage_discounts, count_queries,
+    staff_api_client,
+    vouchers_list,
+    permission_manage_discounts,
+    count_queries,
 ):
     get_graphql_content(
         staff_api_client.post_graphql(

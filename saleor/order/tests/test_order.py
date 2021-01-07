@@ -484,7 +484,46 @@ def test_update_order_prices(order_with_lines):
     assert line_1.unit_price == price_1
     assert line_2.unit_price == price_2
     assert order_with_lines.shipping_price == shipping_price
-    total = line_1.quantity * price_1 + line_2.quantity * price_2 + shipping_price
+    assert order_with_lines.shipping_tax_rate == Decimal("0.0")
+    total = line_1.total_price + line_2.total_price + shipping_price
+    assert order_with_lines.total == total
+
+
+def test_update_order_prices_tax_included(order_with_lines, vatlayer):
+    channel = order_with_lines.channel
+    address = order_with_lines.shipping_address
+    address.country = "DE"
+    address.save()
+
+    line_1 = order_with_lines.lines.first()
+    variant_1 = line_1.variant
+    product_1 = variant_1.product
+    variant_channel_listing_1 = variant_1.channel_listings.get(channel=channel)
+    price_1 = variant_1.get_price(
+        product_1, [], channel, variant_channel_listing_1, None
+    )
+
+    line_2 = order_with_lines.lines.last()
+    variant_2 = line_2.variant
+    product_2 = variant_2.product
+    variant_channel_listing_2 = variant_2.channel_listings.get(channel=channel)
+    price_2 = variant_2.get_price(
+        product_2, [], channel, variant_channel_listing_2, None
+    )
+
+    shipping_price = order_with_lines.shipping_method.channel_listings.get(
+        channel_id=order_with_lines.channel_id
+    ).price
+
+    update_order_prices(order_with_lines, None)
+
+    line_1.refresh_from_db()
+    line_2.refresh_from_db()
+    assert line_1.unit_price.gross == price_1
+    assert line_2.unit_price.gross == price_2
+    assert order_with_lines.shipping_price.gross == shipping_price
+    assert order_with_lines.shipping_tax_rate == Decimal("0.19")
+    total = line_1.total_price + line_2.total_price + order_with_lines.shipping_price
     assert order_with_lines.total == total
 
 
@@ -627,7 +666,9 @@ def test_value_voucher_order_discount(
     channel_USD,
 ):
     voucher = Voucher.objects.create(
-        code="unique", type=VoucherType.ENTIRE_ORDER, discount_value_type=discount_type,
+        code="unique",
+        type=VoucherType.ENTIRE_ORDER,
+        discount_value_type=discount_type,
     )
     VoucherChannelListing.objects.create(
         voucher=voucher,
@@ -652,7 +693,9 @@ def test_shipping_voucher_order_discount(
     shipping_cost, discount_value, discount_type, expected_value, channel_USD
 ):
     voucher = Voucher.objects.create(
-        code="unique", type=VoucherType.SHIPPING, discount_value_type=discount_type,
+        code="unique",
+        type=VoucherType.SHIPPING,
+        discount_value_type=discount_type,
     )
     VoucherChannelListing.objects.create(
         voucher=voucher,
@@ -845,7 +888,9 @@ def test_send_fulfillment_order_lines_mails(
         line.save()
 
     send_fulfillment_confirmation_to_customer(
-        order=order, fulfillment=fulfillment, user=staff_user,
+        order=order,
+        fulfillment=fulfillment,
+        user=staff_user,
     )
     events = OrderEvent.objects.all()
 

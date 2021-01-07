@@ -1191,9 +1191,16 @@ def test_query_vouchers_with_filter_status(
 ):
     Voucher.objects.bulk_create(
         [
-            Voucher(name="Voucher1", code="abc", start_date=timezone.now(),),
             Voucher(
-                name="Voucher2", code="123", start_date=start_date, end_date=end_date,
+                name="Voucher1",
+                code="abc",
+                start_date=timezone.now(),
+            ),
+            Voucher(
+                name="Voucher2",
+                code="123",
+                start_date=start_date,
+                end_date=end_date,
             ),
         ]
     )
@@ -1302,7 +1309,9 @@ def test_query_vouchers_with_filter_discount_type(
                 discount_value_type=DiscountValueType.FIXED,
             ),
             Voucher(
-                name="Voucher2", code="123", discount_value_type=discount_value_type,
+                name="Voucher2",
+                code="123",
+                discount_value_type=discount_value_type,
             ),
         ]
     )

@@ -275,6 +275,9 @@ def test_create_refund_fulfillment_custom_amount(
 def test_create_refund_fulfillment_multiple_refunds(
     mocked_refund, fulfilled_order, variant, payment_dummy, warehouse, channel_USD
 ):
+    import ipdb
+
+    ipdb.set_trace()
     payment_dummy.captured_amount = payment_dummy.total
     payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
     payment_dummy.save()

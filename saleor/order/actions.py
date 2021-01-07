@@ -303,7 +303,9 @@ def mark_order_as_paid(
 def clean_mark_order_as_paid(order: "Order"):
     """Check if an order can be marked as paid."""
     if order.payments.exists():
-        raise PaymentError("Orders with payments can not be manually marked as paid.",)
+        raise PaymentError(
+            "Orders with payments can not be manually marked as paid.",
+        )
 
 
 def fulfill_order_line(order_line, quantity, warehouse_pk):
@@ -449,7 +451,10 @@ def create_fulfillments(
 
     FulfillmentLine.objects.bulk_create(fulfillment_lines)
     order_fulfilled(
-        fulfillments, requester, fulfillment_lines, notify_customer,
+        fulfillments,
+        requester,
+        fulfillment_lines,
+        notify_customer,
     )
     return fulfillments
 
@@ -472,7 +477,9 @@ def _get_fulfillment_line(
     """Get fulfillment line if extists or create new fulfillment line object."""
     # Check if line for order_line_id and stock_id does not exist in DB.
     moved_line = _get_fulfillment_line_if_exists(
-        lines_in_target_fulfillment, order_line_id, stock_id,
+        lines_in_target_fulfillment,
+        order_line_id,
+        stock_id,
     )
     fulfillment_line_existed = True
     if not moved_line:
@@ -873,10 +880,14 @@ def process_replace(
     )
     replaced_lines = [(line.quantity, line) for line in new_order.lines.all()]
     fulfillment_replaced_event(
-        order=order, user=requester, replaced_lines=replaced_lines,
+        order=order,
+        user=requester,
+        replaced_lines=replaced_lines,
     )
     order_replacement_created(
-        original_order=order, replace_order=new_order, user=requester,
+        original_order=order,
+        replace_order=new_order,
+        user=requester,
     )
 
     return replace_fulfillment, new_order

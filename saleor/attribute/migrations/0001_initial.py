@@ -484,7 +484,8 @@ class Migration(migrations.Migration):
             unique_together={("product", "assignment")},
         ),
         migrations.AlterUniqueTogether(
-            name="assignedpageattribute", unique_together={("page", "assignment")},
+            name="assignedpageattribute",
+            unique_together={("page", "assignment")},
         ),
     ]
 

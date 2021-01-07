@@ -3,7 +3,8 @@ from typing import TYPE_CHECKING, Iterable, Optional, Type, Union
 from django.core.exceptions import ValidationError
 
 from ..discount import DiscountInfo
-from ..payment import gateway, models as payment_models
+from ..payment import gateway
+from ..payment import models as payment_models
 from ..payment.error_codes import PaymentErrorCode
 from ..plugins.manager import PluginsManager
 from . import CheckoutLineInfo

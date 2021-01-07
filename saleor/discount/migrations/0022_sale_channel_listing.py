@@ -70,7 +70,10 @@ class Migration(migrations.Migration):
             options={"ordering": ("pk",), "unique_together": {("sale", "channel")}},
         ),
         migrations.RunPython(migrate_sale_data, migrations.RunPython.noop),
-        migrations.RemoveField(model_name="sale", name="value",),
+        migrations.RemoveField(
+            model_name="sale",
+            name="value",
+        ),
         migrations.AlterField(
             model_name="sale",
             name="type",

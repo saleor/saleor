@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Iterable, List, Optional, Union
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -33,14 +33,13 @@ if TYPE_CHECKING:
     from ...checkout import CheckoutLineInfo
     from ...checkout.models import Checkout, CheckoutLine
     from ...discount import DiscountInfo
+    from ...order.models import Order, OrderLine
     from ...product.models import (
         Collection,
         Product,
         ProductVariant,
         ProductVariantChannelListing,
     )
-    from ...account.models import Address
-    from ...order.models import OrderLine, Order
     from ..models import PluginConfiguration
 
 
@@ -65,7 +64,9 @@ class VatlayerPlugin(BasePlugin):
         self.config = VatlayerConfiguration(access_key=configuration["Access key"])
         self._cached_taxes = {}
 
-    def _skip_plugin(self, previous_value: Union[TaxedMoney, TaxedMoneyRange]) -> bool:
+    def _skip_plugin(
+        self, previous_value: Union[TaxedMoney, TaxedMoneyRange, Decimal]
+    ) -> bool:
         if not self.active or not self.config.access_key:
             return True
 
@@ -204,6 +205,65 @@ class VatlayerPlugin(BasePlugin):
             variant.product, order_line.unit_price, country
         )
 
+    def get_checkout_line_tax_rate(
+        self,
+        checkout: "Checkout",
+        checkout_line_info: "CheckoutLineInfo",
+        address: Optional["Address"],
+        discounts: Iterable["DiscountInfo"],
+        previous_value: Decimal,
+    ) -> Decimal:
+        return self._get_tax_rate(checkout_line_info.product, address, previous_value)
+
+    def get_order_line_tax_rate(
+        self,
+        order: "Order",
+        product: "Product",
+        address: Optional["Address"],
+        previous_value: Decimal,
+    ) -> Decimal:
+        return self._get_tax_rate(product, address, previous_value)
+
+    def _get_tax_rate(
+        self, product: "Product", address: Optional["Address"], previous_value: Decimal
+    ):
+        if self._skip_plugin(previous_value):
+            return previous_value
+        country = address.country if address else None
+        taxes, tax_rate = self.__get_tax_data_for_product(product, country)
+        if not taxes or not tax_rate:
+            return previous_value
+        tax = taxes.get(tax_rate) or taxes.get(DEFAULT_TAX_RATE_NAME)
+        # tax value is given in precentage so it need be be converted into decimal value
+        return Decimal(tax["value"] / 100)
+
+    def get_checkout_shipping_tax_rate(
+        self,
+        checkout: "Checkout",
+        lines: Iterable["CheckoutLineInfo"],
+        address: Optional["Address"],
+        discounts: Iterable["DiscountInfo"],
+        previous_value: Decimal,
+    ):
+        return self._get_shipping_tax_rate(address, previous_value)
+
+    def get_order_shipping_tax_rate(self, order: "Order", previous_value: Decimal):
+        address = order.shipping_address or order.billing_address
+        return self._get_shipping_tax_rate(address, previous_value)
+
+    def _get_shipping_tax_rate(
+        self, address: Optional["Address"], previous_value: Decimal
+    ):
+        if self._skip_plugin(previous_value):
+            return previous_value
+        country = address.country if address else None
+        taxes = self._get_taxes_for_country(country)
+        if not taxes:
+            return previous_value
+        tax = taxes.get(DEFAULT_TAX_RATE_NAME)
+        # tax value is given in precentage so it need be be converted into decimal value
+        return Decimal(tax["value"] / 100)
+
     def get_tax_rate_type_choices(
         self, previous_value: List["TaxType"]
     ) -> List["TaxType"]:
@@ -254,16 +314,19 @@ class VatlayerPlugin(BasePlugin):
     def __apply_taxes_to_product(
         self, product: "Product", price: Money, country: Country
     ):
+        taxes, tax_rate = self.__get_tax_data_for_product(product, country)
+        return apply_tax_to_price(taxes, tax_rate, price)
+
+    def __get_tax_data_for_product(self, product: "Product", country: Country):
         taxes = None
         if country and product.charge_taxes:
             taxes = self._get_taxes_for_country(country)
-
         product_tax_rate = self.__get_tax_code_from_object_meta(product).code
         tax_rate = (
             product_tax_rate
             or self.__get_tax_code_from_object_meta(product.product_type).code
         )
-        return apply_tax_to_price(taxes, tax_rate, price)
+        return taxes, tax_rate
 
     def assign_tax_code_to_object_meta(
         self,

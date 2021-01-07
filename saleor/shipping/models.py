@@ -37,17 +37,21 @@ def _applicable_weight_based_methods(weight, qs):
     return qs.filter(min_weight_matched & (no_weight_limit | max_weight_matched))
 
 
-def _applicable_price_based_methods(price: Money, qs):
+def _applicable_price_based_methods(price: Money, qs, channel_id):
     """Return price based shipping methods that are applicable for the given total."""
     qs_shipping_method = qs.price_based()
 
     price_based = Q(shipping_method_id__in=qs_shipping_method)
+    channel_filter = Q(channel_id=channel_id)
     min_price_matched = Q(minimum_order_price_amount__lte=price.amount)
     no_price_limit = Q(maximum_order_price_amount__isnull=True)
     max_price_matched = Q(maximum_order_price_amount__gte=price.amount)
 
     applicable_price_based_methods = ShippingMethodChannelListing.objects.filter(
-        price_based & min_price_matched & (no_price_limit | max_price_matched)
+        channel_filter
+        & price_based
+        & min_price_matched
+        & (no_price_limit | max_price_matched)
     ).values_list("shipping_method__id", flat=True)
     return qs_shipping_method.filter(id__in=applicable_price_based_methods)
 
@@ -72,6 +76,7 @@ class ShippingZone(ModelWithMetadata):
     name = models.CharField(max_length=100)
     countries = CountryField(multiple=True, default=[], blank=True)
     default = models.BooleanField(default=False)
+    description = models.TextField(blank=True)
 
     def __str__(self):
         return self.name
@@ -126,7 +131,7 @@ class ShippingMethodQueryset(models.QuerySet):
         if product_ids:
             qs = self.exclude_shipping_methods_for_excluded_products(qs, product_ids)
 
-        price_based_methods = _applicable_price_based_methods(price, qs)
+        price_based_methods = _applicable_price_based_methods(price, qs, channel_id)
         weight_based_methods = _applicable_weight_based_methods(weight, qs)
         shipping_methods = price_based_methods | weight_based_methods
 
@@ -246,7 +251,9 @@ class ShippingMethodChannelListing(models.Model):
     minimum_order_price = MoneyField(
         amount_field="minimum_order_price_amount", currency_field="currency"
     )
-    currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,)
+    currency = models.CharField(
+        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
+    )
     maximum_order_price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,

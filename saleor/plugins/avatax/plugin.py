@@ -36,10 +36,10 @@ from .tasks import api_post_request_task
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ...checkout import CheckoutLineInfo
     from ...account.models import Address
-    from ...checkout.models import Checkout, CheckoutLine
     from ...channel.models import Channel
+    from ...checkout import CheckoutLineInfo
+    from ...checkout.models import Checkout, CheckoutLine
     from ...order.models import Order, OrderLine
     from ...product.models import (
         Collection,
@@ -108,7 +108,9 @@ class AvataxPlugin(BasePlugin):
             autocommit=configuration["Autocommit"],
         )
 
-    def _skip_plugin(self, previous_value: Union[TaxedMoney, TaxedMoneyRange]) -> bool:
+    def _skip_plugin(
+        self, previous_value: Union[TaxedMoney, TaxedMoneyRange, Decimal]
+    ) -> bool:
         if not (self.config.username_or_account and self.config.password_or_license):
             return True
 
@@ -421,6 +423,117 @@ class AvataxPlugin(BasePlugin):
             for tax_code, desc in get_cached_tax_codes_or_fetch(self.config).items()
         ]
 
+    def get_checkout_line_tax_rate(
+        self,
+        checkout: "Checkout",
+        checkout_line_info: "CheckoutLineInfo",
+        address: Optional["Address"],
+        discounts: Iterable[DiscountInfo],
+        previous_value: Decimal,
+    ) -> Decimal:
+        return self._get_unit_tax_rate(
+            checkout, previous_value, False, discounts, [checkout_line_info.line]
+        )
+
+    def get_order_line_tax_rate(
+        self,
+        order: "Order",
+        product: "Product",
+        address: Optional["Address"],
+        previous_value: Decimal,
+    ) -> Decimal:
+        return self._get_unit_tax_rate(order, previous_value, True)
+
+    def get_checkout_shipping_tax_rate(
+        self,
+        checkout: "Checkout",
+        lines: Iterable["CheckoutLineInfo"],
+        address: Optional["Address"],
+        discounts: Iterable[DiscountInfo],
+        previous_value: Decimal,
+    ):
+        return self._get_shipping_tax_rate(
+            checkout,
+            previous_value,
+            False,
+            discounts,
+            [line_info.line for line_info in lines],
+        )
+
+    def get_order_shipping_tax_rate(self, order: "Order", previous_value: Decimal):
+        return self._get_shipping_tax_rate(order, previous_value, True)
+
+    def _get_unit_tax_rate(
+        self,
+        instance: Union["Order", "Checkout"],
+        base_rate: Decimal,
+        is_order: bool,
+        discounts: Optional[Iterable[DiscountInfo]] = None,
+        checkout_lines: Iterable["CheckoutLine"] = [],
+    ):
+        response = self._get_tax_data(
+            instance, base_rate, is_order, discounts, checkout_lines
+        )
+        if response is None:
+            return base_rate
+        rate = None
+        response_summary = response.get("summary")
+        if response_summary:
+            rate = Decimal(response_summary[0].get("rate", 0.0))
+        return rate or base_rate
+
+    def _get_shipping_tax_rate(
+        self,
+        instance: Union["Order", "Checkout"],
+        base_rate: Decimal,
+        is_order: bool,
+        discounts: Optional[Iterable[DiscountInfo]] = None,
+        checkout_lines: Iterable["CheckoutLine"] = [],
+    ):
+        response = self._get_tax_data(
+            instance, base_rate, is_order, discounts, checkout_lines
+        )
+        if response is None:
+            return base_rate
+        lines_data = response.get("lines", [])
+        for line in lines_data:
+            if line["itemCode"] == "Shipping":
+                line_details = line.get("details")
+                if not line_details:
+                    return
+                return Decimal(line_details[0].get("rate", 0.0))
+        return base_rate
+
+    def _get_tax_data(
+        self,
+        instance: Union["Order", "Checkout"],
+        base_rate: Decimal,
+        is_order: bool,
+        discounts: Optional[Iterable[DiscountInfo]] = None,
+        checkout_lines: Iterable["CheckoutLine"] = [],
+    ):
+        if self._skip_plugin(base_rate):
+            return None
+
+        valid = (
+            _validate_order(instance)  # type: ignore
+            if is_order
+            else _validate_checkout(instance, checkout_lines)  # type: ignore
+        )
+
+        if not valid:
+            return None
+
+        response = (
+            get_order_tax_data(instance, self.config, False)  # type: ignore
+            if is_order
+            else get_checkout_tax_data(instance, discounts, self.config)  # type: ignore
+        )
+        if not response or "error" in response:
+            return None
+
+        return response
+
     def assign_tax_code_to_object_meta(
         self,
         obj: Union["Product", "ProductType"],
@@ -461,7 +574,10 @@ class AvataxPlugin(BasePlugin):
         tax_description = obj.get_value_from_metadata(
             META_DESCRIPTION_KEY, default_tax_description
         )
-        return TaxType(code=tax_code, description=tax_description,)
+        return TaxType(
+            code=tax_code,
+            description=tax_description,
+        )
 
     def show_taxes_on_storefront(self, previous_value: bool) -> bool:
         if not self.active:

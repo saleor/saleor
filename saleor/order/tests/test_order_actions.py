@@ -44,6 +44,7 @@ def order_with_digital_line(order, digital_content, stock, site_settings):
     variant_channel_listing = variant.channel_listings.get(channel=channel)
     net = variant.get_price(product, [], channel, variant_channel_listing, None)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    unit_price = TaxedMoney(net=net, gross=gross)
     line = order.lines.create(
         product_name=str(product),
         variant_name=str(variant),
@@ -51,8 +52,9 @@ def order_with_digital_line(order, digital_content, stock, site_settings):
         is_shipping_required=variant.is_shipping_required(),
         quantity=quantity,
         variant=variant,
-        unit_price=TaxedMoney(net=net, gross=gross),
-        tax_rate=23,
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
+        tax_rate=Decimal("0.23"),
     )
 
     Allocation.objects.create(order_line=line, stock=stock, quantity_allocated=quantity)
@@ -230,7 +232,9 @@ def test_cancel_order(
 
 @patch("saleor.order.actions.send_order_refunded_confirmation")
 def test_order_refunded(
-    send_order_refunded_confirmation_mock, order, checkout_with_item,
+    send_order_refunded_confirmation_mock,
+    order,
+    checkout_with_item,
 ):
     # given
     payment = Payment.objects.create(

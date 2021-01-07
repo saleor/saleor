@@ -110,7 +110,10 @@ WEBHOOK_CREATE_BY_STAFF = """
 
 
 def test_webhook_create_by_staff(
-    staff_api_client, app, permission_manage_apps, permission_manage_orders,
+    staff_api_client,
+    app,
+    permission_manage_apps,
+    permission_manage_orders,
 ):
     query = WEBHOOK_CREATE_BY_STAFF
     app.permissions.add(permission_manage_orders)
@@ -353,7 +356,9 @@ def test_query_webhook_by_app(app_api_client, webhook):
     assert events[0].event_type == WebhookEventTypeEnum.ORDER_CREATED.value
 
 
-def test_query_webhook_by_app_without_permission(app_api_client,):
+def test_query_webhook_by_app_without_permission(
+    app_api_client,
+):
     second_app = App.objects.create(name="Sample app account", is_active=True)
     webhook = Webhook.objects.create(
         app=second_app, target_url="http://www.example.com/test"

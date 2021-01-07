@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Iterable, Optional, Union
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
@@ -11,6 +11,11 @@ from ..base_plugin import BasePlugin, ConfigurationTypeField
 
 if TYPE_CHECKING:
     # flake8: noqa
+    from ...account.models import Address
+    from ...checkout import CheckoutLineInfo
+    from ...checkout.models import Checkout, CheckoutLine
+    from ...discount import DiscountInfo
+    from ...order.models import Order
     from ...product.models import Product, ProductType
 
 
@@ -99,6 +104,11 @@ class PluginSample(BasePlugin):
         price = Money("1.0", currency=checkout_line.checkout.currency)
         return TaxedMoney(price, price)
 
+    def calculate_checkout_line_unit_price(
+        self, total_line_price: TaxedMoney, quantity: int, previous_value: TaxedMoney
+    ):
+        return total_line_price / quantity
+
     def calculate_order_line_unit(self, order_line, previous_value):
         currency = order_line.unit_price.currency
         price = Money("1.0", currency)
@@ -124,6 +134,38 @@ class PluginSample(BasePlugin):
         self, obj: Union["Product", "ProductType"], country: Country, previous_value
     ) -> Decimal:
         return Decimal("15.0").quantize(Decimal("1."))
+
+    def get_checkout_line_tax_rate(
+        self,
+        checkout: "Checkout",
+        checkout_line_info: "CheckoutLineInfo",
+        address: Optional["Address"],
+        discounts: Iterable["DiscountInfo"],
+        previous_value: Decimal,
+    ) -> Decimal:
+        return Decimal("0.080").quantize(Decimal(".01"))
+
+    def get_order_line_tax_rate(
+        self,
+        order: "Order",
+        product: "Product",
+        address: Optional["Address"],
+        previous_value: Decimal,
+    ) -> Decimal:
+        return Decimal("0.080").quantize(Decimal(".01"))
+
+    def get_checkout_shipping_tax_rate(
+        self,
+        checkout: "Checkout",
+        lines: Iterable["CheckoutLineInfo"],
+        address: Optional["Address"],
+        discounts: Iterable["DiscountInfo"],
+        previous_value: Decimal,
+    ):
+        return Decimal("0.080").quantize(Decimal(".01"))
+
+    def get_order_shipping_tax_rate(self, order: "Order", previous_value: Decimal):
+        return Decimal("0.080").quantize(Decimal(".01"))
 
 
 class PluginInactive(BasePlugin):

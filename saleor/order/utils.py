@@ -82,7 +82,7 @@ def recalculate_order(order: Order, **kwargs):
     """
     # avoid using prefetched order lines
     lines = [OrderLine.objects.get(pk=line.pk) for line in order]
-    prices = [line.get_total() for line in lines]
+    prices = [line.total_price for line in lines]
     total = sum(prices, order.shipping_price)
     # discount amount can't be greater than order total
     order.discount_amount = min(order.discount_amount, total.gross.amount)
@@ -136,15 +136,22 @@ def update_order_prices(order, discounts):
             if price != line.unit_price:
                 line.unit_price = price
                 if price.tax and price.net:
-                    line.tax_rate = price.tax / price.net
+                    line.tax_rate = manager.get_order_line_tax_rate(
+                        order, product, None, price
+                    )
                 line.save()
 
     if order.shipping_method:
-        order.shipping_price = manager.calculate_order_shipping(order)
+        shipping_price = manager.calculate_order_shipping(order)
+        order.shipping_price = shipping_price
+        order.shipping_tax_rate = manager.get_order_shipping_tax_rate(
+            order, shipping_price
+        )
         order.save(
             update_fields=[
                 "shipping_price_net_amount",
                 "shipping_price_gross_amount",
+                "shipping_tax_rate",
                 "currency",
             ]
         )
@@ -214,6 +221,7 @@ def add_variant_to_draft_order(order, variant, quantity, discounts=None):
             product, collections, channel, channel_listing, discounts
         )
         unit_price = TaxedMoney(net=unit_price, gross=unit_price)
+        total_price = unit_price * quantity
         product_name = str(product)
         variant_name = str(variant)
         translated_product_name = str(product.translated)
@@ -231,13 +239,14 @@ def add_variant_to_draft_order(order, variant, quantity, discounts=None):
             is_shipping_required=variant.is_shipping_required(),
             quantity=quantity,
             unit_price=unit_price,
+            total_price=total_price,
             variant=variant,
         )
         manager = get_plugins_manager()
         unit_price = manager.calculate_order_line_unit(line)
         line.unit_price = unit_price
-        line.tax_rate = (
-            unit_price.tax / unit_price.net if unit_price.net.amount != 0 else 0
+        line.tax_rate = manager.get_order_line_tax_rate(
+            order, product, None, unit_price
         )
         line.save(
             update_fields=[
@@ -377,7 +386,8 @@ def get_discounted_lines(lines, voucher):
 
 
 def get_prices_of_discounted_specific_product(
-    lines: Iterable[OrderLine], voucher: Voucher,
+    lines: Iterable[OrderLine],
+    voucher: Voucher,
 ) -> List[Money]:
     """Get prices of variants belonging to the discounted specific products.
 

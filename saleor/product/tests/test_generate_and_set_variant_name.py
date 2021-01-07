@@ -19,7 +19,9 @@ def variant_with_no_attributes(category, channel_USD):
         name="Test product type", has_variants=True, is_shipping_required=True
     )
     product = Product.objects.create(
-        name="Test product", product_type=product_type, category=category,
+        name="Test product",
+        product_type=product_type,
+        category=category,
     )
     variant = ProductVariant.objects.create(product=product, sku="123")
     ProductVariantChannelListing.objects.create(
@@ -115,7 +117,7 @@ def test_generate_and_set_variant_name_only_variant_selection_attributes(
     # Generate the variant name from the attributes
     generate_and_set_variant_name(variant, variant.sku)
     variant.refresh_from_db()
-    assert variant.name == "Yellow, Blue, Red / Big"
+    assert variant.name == "Big / Yellow, Blue, Red"
 
 
 def test_generate_and_set_variant_name_only_not_variant_selection_attributes(
