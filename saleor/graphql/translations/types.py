@@ -19,7 +19,6 @@ BASIC_TRANSLATABLE_FIELDS = ["id", "name"]
 EXTENDED_TRANSLATABLE_FIELDS = [
     "id",
     "name",
-    "description",
     "description_json",
     "seo_title",
     "seo_description",
@@ -133,6 +132,12 @@ class ProductVariantTranslatableContent(CountableDjangoObjectType):
 
 
 class ProductTranslation(BaseTranslationType):
+    description = graphene.String(
+        description="Translated description of the product.",
+        deprecation_reason="Use the `descriptionJson` field instead.",
+        required=True,
+    )
+
     class Meta:
         model = product_models.ProductTranslation
         interfaces = [graphene.relay.Node]
@@ -140,6 +145,11 @@ class ProductTranslation(BaseTranslationType):
 
 
 class ProductTranslatableContent(CountableDjangoObjectType):
+    description = graphene.String(
+        description="Description of the product.",
+        deprecation_reason="Use the `descriptionJson` field instead.",
+        required=True,
+    )
     translation = TranslationField(ProductTranslation, type_name="product")
     product = graphene.Field(
         "saleor.graphql.product.types.products.Product",
@@ -161,6 +171,12 @@ class ProductTranslatableContent(CountableDjangoObjectType):
 
 
 class CollectionTranslation(BaseTranslationType):
+    description = graphene.String(
+        description="Translated description of the collection.",
+        deprecation_reason="Use the `descriptionJson` field instead.",
+        required=True,
+    )
+
     class Meta:
         model = product_models.CollectionTranslation
         interfaces = [graphene.relay.Node]
@@ -168,6 +184,11 @@ class CollectionTranslation(BaseTranslationType):
 
 
 class CollectionTranslatableContent(CountableDjangoObjectType):
+    description = graphene.String(
+        description="Description of the collection.",
+        deprecation_reason="Use the `descriptionJson` field instead.",
+        required=True,
+    )
     translation = TranslationField(CollectionTranslation, type_name="collection")
     collection = graphene.Field(
         "saleor.graphql.product.types.products.Collection",
@@ -189,6 +210,12 @@ class CollectionTranslatableContent(CountableDjangoObjectType):
 
 
 class CategoryTranslation(BaseTranslationType):
+    description = graphene.String(
+        description="Translated description of the category.",
+        deprecation_reason="Use the `descriptionJson` field instead.",
+        required=True,
+    )
+
     class Meta:
         model = product_models.CategoryTranslation
         interfaces = [graphene.relay.Node]
@@ -196,6 +223,11 @@ class CategoryTranslation(BaseTranslationType):
 
 
 class CategoryTranslatableContent(CountableDjangoObjectType):
+    description = graphene.String(
+        description="Description of the category.",
+        deprecation_reason="Use the `descriptionJson` field instead.",
+        required=True,
+    )
     translation = TranslationField(CategoryTranslation, type_name="category")
     category = graphene.Field(
         "saleor.graphql.product.types.products.Category",
@@ -213,11 +245,16 @@ class CategoryTranslatableContent(CountableDjangoObjectType):
 
 
 class PageTranslation(BaseTranslationType):
+    content = graphene.String(
+        description="Translated description of the page.",
+        deprecation_reason="Use the `contentJson` field instead.",
+        required=True,
+    )
+
     class Meta:
         model = page_models.PageTranslation
         interfaces = [graphene.relay.Node]
         only_fields = [
-            "content",
             "content_json",
             "id",
             "seo_description",
@@ -227,6 +264,11 @@ class PageTranslation(BaseTranslationType):
 
 
 class PageTranslatableContent(CountableDjangoObjectType):
+    content = graphene.String(
+        description="Content of the page.",
+        deprecation_reason="Use the `contentJson` field instead.",
+        required=True,
+    )
     translation = TranslationField(PageTranslation, type_name="page")
     page = graphene.Field(
         "saleor.graphql.page.types.Page",
@@ -240,7 +282,6 @@ class PageTranslatableContent(CountableDjangoObjectType):
         model = page_models.Page
         interfaces = [graphene.relay.Node]
         only_fields = [
-            "content",
             "content_json",
             "id",
             "seo_description",

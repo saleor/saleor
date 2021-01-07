@@ -1,4 +1,4 @@
-from graphene import Boolean, relay
+from graphene import Boolean, String, relay
 
 from ...page import models
 from ..core.connection import CountableDjangoObjectType
@@ -9,6 +9,11 @@ from ..translations.types import PageTranslation
 
 
 class Page(CountableDjangoObjectType):
+    content = String(
+        description="Content of the page.",
+        deprecation_reason="Use the `contentJson` field instead.",
+        required=True,
+    )
     translation = TranslationField(PageTranslation, type_name="page")
     is_published = Boolean(required=True, description="Whether the page is published.")
 
@@ -18,7 +23,6 @@ class Page(CountableDjangoObjectType):
             "dashboard."
         )
         only_fields = [
-            "content",
             "content_json",
             "created",
             "id",
