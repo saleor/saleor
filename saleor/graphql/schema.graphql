@@ -3351,7 +3351,7 @@ type PageTranslatableContent implements Node {
   id: ID!
   title: String!
   contentJson: JSONString!
-  content: String! @deprecated(reason: "Will be removed in Saleor 3.0. Use the `descriptionJson` instead.")
+  content: String! @deprecated(reason: "Will be removed in Saleor 3.0. Use the `contentJson` instead.")
   translation(languageCode: LanguageCodeEnum!): PageTranslation
   page: Page
 }
