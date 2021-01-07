@@ -246,8 +246,8 @@ class CategoryTranslatableContent(CountableDjangoObjectType):
 
 class PageTranslation(BaseTranslationType):
     content = graphene.String(
-        description="Content of the page.",
-        deprecation_reason="Translated description of the page.",
+        description="Translated description of the page.",
+        deprecation_reason="Use the `contentJson` field instead.",
         required=True,
     )
 
