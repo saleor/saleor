@@ -9,7 +9,7 @@ from ..translations.types import PageTranslation
 
 
 class Page(CountableDjangoObjectType):
-    description = String(
+    content = String(
         description="Content for the page.",
         deprecation_reason=(
             "Will be removed in Saleor 3.0. Use the `contentJson` instead."
