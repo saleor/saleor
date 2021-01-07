@@ -55,7 +55,9 @@ if TYPE_CHECKING:
 class Category(MPTTModel, ModelWithMetadata, SeoModel):
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
-    description = models.TextField(blank=True)
+    description = SanitizedJSONField(
+        blank=True, default=dict, sanitizer=clean_editor_js
+    )
     description_json = SanitizedJSONField(
         blank=True, default=dict, sanitizer=clean_editor_js
     )
@@ -81,7 +83,9 @@ class CategoryTranslation(SeoModelTranslation):
         Category, related_name="translations", on_delete=models.CASCADE
     )
     name = models.CharField(max_length=128)
-    description = models.TextField(blank=True)
+    description = SanitizedJSONField(
+        blank=True, default=dict, sanitizer=clean_editor_js
+    )
     description_json = SanitizedJSONField(
         blank=True, default=dict, sanitizer=clean_editor_js
     )
@@ -310,7 +314,9 @@ class Product(SeoModel, ModelWithMetadata):
     )
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
-    description = models.TextField(blank=True)
+    description = SanitizedJSONField(
+        blank=True, default=dict, sanitizer=clean_editor_js
+    )
     description_json = SanitizedJSONField(
         blank=True, default=dict, sanitizer=clean_editor_js
     )
@@ -364,7 +370,7 @@ class Product(SeoModel, ModelWithMetadata):
 
     @property
     def plain_text_description(self) -> str:
-        return json_content_to_raw_text(self.description_json)
+        return json_content_to_raw_text(self.description)
 
     def get_first_image(self):
         images = list(self.images.all())
@@ -381,7 +387,9 @@ class ProductTranslation(SeoModelTranslation):
         Product, related_name="translations", on_delete=models.CASCADE
     )
     name = models.CharField(max_length=250)
-    description = models.TextField(blank=True)
+    description = SanitizedJSONField(
+        blank=True, default=dict, sanitizer=clean_editor_js
+    )
     description_json = SanitizedJSONField(
         blank=True, default=dict, sanitizer=clean_editor_js
     )
@@ -704,7 +712,9 @@ class Collection(SeoModel, ModelWithMetadata):
         upload_to="collection-backgrounds", blank=True, null=True
     )
     background_image_alt = models.CharField(max_length=128, blank=True)
-    description = models.TextField(blank=True)
+    description = SanitizedJSONField(
+        blank=True, default=dict, sanitizer=clean_editor_js
+    )
     description_json = SanitizedJSONField(
         blank=True, default=dict, sanitizer=clean_editor_js
     )
@@ -747,7 +757,9 @@ class CollectionTranslation(SeoModelTranslation):
         Collection, related_name="translations", on_delete=models.CASCADE
     )
     name = models.CharField(max_length=128)
-    description = models.TextField(blank=True)
+    description = SanitizedJSONField(
+        blank=True, default=dict, sanitizer=clean_editor_js
+    )
     description_json = SanitizedJSONField(
         blank=True, default=dict, sanitizer=clean_editor_js
     )

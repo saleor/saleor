@@ -667,7 +667,7 @@ type Category implements Node & ObjectWithMetadata {
   seoDescription: String
   id: ID!
   name: String!
-  description: String!
+  description: JSONString!
   descriptionJson: JSONString!
   slug: String!
   parent: Category
@@ -743,7 +743,7 @@ type CategoryTranslatableContent implements Node {
   seoDescription: String
   id: ID!
   name: String!
-  description: String!
+  description: JSONString!
   descriptionJson: JSONString!
   translation(languageCode: LanguageCodeEnum!): CategoryTranslation
   category: Category
@@ -760,7 +760,7 @@ type CategoryTranslation implements Node {
   seoDescription: String
   id: ID!
   name: String!
-  description: String!
+  description: JSONString!
   descriptionJson: JSONString!
   language: LanguageDisplay!
 }
@@ -1047,7 +1047,7 @@ type Collection implements Node & ObjectWithMetadata {
   seoDescription: String
   id: ID!
   name: String!
-  description: String!
+  description: JSONString!
   descriptionJson: JSONString!
   slug: String!
   privateMetadata: [MetadataItem]!
@@ -1203,7 +1203,7 @@ type CollectionTranslatableContent implements Node {
   seoDescription: String
   id: ID!
   name: String!
-  description: String!
+  description: JSONString!
   descriptionJson: JSONString!
   translation(languageCode: LanguageCodeEnum!): CollectionTranslation
   collection: Collection
@@ -1220,7 +1220,7 @@ type CollectionTranslation implements Node {
   seoDescription: String
   id: ID!
   name: String!
-  description: String!
+  description: JSONString!
   descriptionJson: JSONString!
   language: LanguageDisplay!
 }
@@ -3219,7 +3219,7 @@ type Page implements Node & ObjectWithMetadata {
   seoDescription: String
   id: ID!
   title: String!
-  content: String!
+  content: JSONString!
   contentJson: JSONString!
   publicationDate: Date
   isPublished: Boolean!
@@ -3348,7 +3348,7 @@ type PageTranslatableContent implements Node {
   seoDescription: String
   id: ID!
   title: String!
-  content: String!
+  content: JSONString!
   contentJson: JSONString!
   translation(languageCode: LanguageCodeEnum!): PageTranslation
   page: Page
@@ -3365,7 +3365,7 @@ type PageTranslation implements Node {
   seoDescription: String
   id: ID!
   title: String!
-  content: String!
+  content: JSONString!
   contentJson: JSONString!
   language: LanguageDisplay!
 }
@@ -3743,7 +3743,7 @@ type Product implements Node & ObjectWithMetadata {
   seoTitle: String
   seoDescription: String
   name: String!
-  description: String!
+  description: JSONString!
   descriptionJson: JSONString!
   productType: ProductType!
   slug: String!
@@ -4042,7 +4042,7 @@ type ProductTranslatableContent implements Node {
   seoTitle: String
   seoDescription: String
   name: String!
-  description: String!
+  description: JSONString!
   descriptionJson: JSONString!
   translation(languageCode: LanguageCodeEnum!): ProductTranslation
   product: Product
@@ -4059,7 +4059,7 @@ type ProductTranslation implements Node {
   seoTitle: String
   seoDescription: String
   name: String!
-  description: String!
+  description: JSONString!
   descriptionJson: JSONString!
   language: LanguageDisplay!
 }
