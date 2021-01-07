@@ -212,7 +212,7 @@ xcb = ["xcffib (>=0.3.2)"]
 
 [[package]]
 name = "cairosvg"
-version = "2.5.0"
+version = "2.5.1"
 description = "A Simple SVG Converter based on Cairo"
 category = "main"
 optional = false
@@ -2490,7 +2490,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "8cf67b05d387cc9ec1b6d6f73f42bbc4a3c03e15a642cc25e831b0b82fdf733a"
+content-hash = "460b0413d98c910bd43d880d115abf5d1382b649b3116d8a6638892c52b0abef"
 
 [metadata.files]
 adyen = [
@@ -2569,8 +2569,8 @@ cairocffi = [
     {file = "cairocffi-1.2.0.tar.gz", hash = "sha256:9a979b500c64c8179fec286f337e8fe644eca2f2cd05860ce0b62d25f22ea140"},
 ]
 cairosvg = [
-    {file = "CairoSVG-2.5.0-py3-none-any.whl", hash = "sha256:cf1d8dcba8984ce46ddfecf5bb4768b4bdd86577873470ccb798cba0b024b842"},
-    {file = "CairoSVG-2.5.0.tar.gz", hash = "sha256:3fc50d10f0cbef53b3ee376a97a88d81bbd9e2f190f7e63de08431a1a08e9afa"},
+    {file = "CairoSVG-2.5.1-py3-none-any.whl", hash = "sha256:f1ff02625520493eafb5695d987f69544555524bb0f95695b9ddd3f9dc7d29d5"},
+    {file = "CairoSVG-2.5.1.tar.gz", hash = "sha256:bfa0deea7fa0b9b2f29e41b747a915c249dbca731a4667c2917e47ff96e773e0"},
 ]
 celery = [
     {file = "celery-5.0.4-py3-none-any.whl", hash = "sha256:533f3635065b7ed362ffc04228635b4c82d53a9ab812118ccdedb5eae281fb97"},
