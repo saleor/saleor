@@ -11,7 +11,7 @@ from ..translations.types import PageTranslation
 class Page(CountableDjangoObjectType):
     content = String(
         description="Content for the page.",
-        deprecation_reason="Use the `contentJson` instead.",
+        deprecation_reason="Use the `contentJson` field instead.",
         required=True,
     )
     translation = TranslationField(PageTranslation, type_name="page")
