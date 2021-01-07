@@ -137,6 +137,7 @@ class ProductTranslation(BaseTranslationType):
         deprecation_reason=(
             "Will be removed in Saleor 3.0. Use the `descriptionJson` instead."
         ),
+        required=True,
     )
 
     class Meta:
@@ -151,6 +152,7 @@ class ProductTranslatableContent(CountableDjangoObjectType):
         deprecation_reason=(
             "Will be removed in Saleor 3.0. Use the `descriptionJson` instead."
         ),
+        required=True,
     )
     translation = TranslationField(ProductTranslation, type_name="product")
     product = graphene.Field(
@@ -178,6 +180,7 @@ class CollectionTranslation(BaseTranslationType):
         deprecation_reason=(
             "Will be removed in Saleor 3.0. Use the `descriptionJson` instead."
         ),
+        required=True,
     )
 
     class Meta:
@@ -192,6 +195,7 @@ class CollectionTranslatableContent(CountableDjangoObjectType):
         deprecation_reason=(
             "Will be removed in Saleor 3.0. Use the `descriptionJson` instead."
         ),
+        required=True,
     )
     translation = TranslationField(CollectionTranslation, type_name="collection")
     collection = graphene.Field(
@@ -219,6 +223,7 @@ class CategoryTranslation(BaseTranslationType):
         deprecation_reason=(
             "Will be removed in Saleor 3.0. Use the `descriptionJson` instead."
         ),
+        required=True,
     )
 
     class Meta:
@@ -233,6 +238,7 @@ class CategoryTranslatableContent(CountableDjangoObjectType):
         deprecation_reason=(
             "Will be removed in Saleor 3.0. Use the `descriptionJson` instead."
         ),
+        required=True,
     )
     translation = TranslationField(CategoryTranslation, type_name="category")
     category = graphene.Field(
@@ -251,11 +257,18 @@ class CategoryTranslatableContent(CountableDjangoObjectType):
 
 
 class PageTranslation(BaseTranslationType):
+    content = graphene.String(
+        description="Content for the page.",
+        deprecation_reason=(
+            "Will be removed in Saleor 3.0. Use the `descriptionJson` instead."
+        ),
+        required=True,
+    )
+
     class Meta:
         model = page_models.PageTranslation
         interfaces = [graphene.relay.Node]
         only_fields = [
-            "content",
             "content_json",
             "id",
             "seo_description",
@@ -265,6 +278,13 @@ class PageTranslation(BaseTranslationType):
 
 
 class PageTranslatableContent(CountableDjangoObjectType):
+    content = graphene.String(
+        description="Content for the page.",
+        deprecation_reason=(
+            "Will be removed in Saleor 3.0. Use the `descriptionJson` instead."
+        ),
+        required=True,
+    )
     translation = TranslationField(PageTranslation, type_name="page")
     page = graphene.Field(
         "saleor.graphql.page.types.Page",
@@ -278,7 +298,6 @@ class PageTranslatableContent(CountableDjangoObjectType):
         model = page_models.Page
         interfaces = [graphene.relay.Node]
         only_fields = [
-            "content",
             "content_json",
             "id",
             "seo_description",

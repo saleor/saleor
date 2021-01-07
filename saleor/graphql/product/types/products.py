@@ -498,6 +498,7 @@ class Product(CountableDjangoObjectType):
         deprecation_reason=(
             "Will be removed in Saleor 3.0. Use the `descriptionJson` instead."
         ),
+        required=True,
     )
 
     class Meta:
@@ -774,6 +775,7 @@ class Collection(CountableDjangoObjectType):
         deprecation_reason=(
             "Will be removed in Saleor 3.0. Use the `descriptionJson` instead."
         ),
+        required=True,
     )
     translation = TranslationField(CollectionTranslation, type_name="collection")
     is_published = graphene.Boolean(
@@ -852,6 +854,7 @@ class Category(CountableDjangoObjectType):
         deprecation_reason=(
             "Will be removed in Saleor 3.0. Use the `descriptionJson` instead."
         ),
+        required=True,
     )
     children = PrefetchingConnectionField(
         lambda: Category, description="List of children of the category."

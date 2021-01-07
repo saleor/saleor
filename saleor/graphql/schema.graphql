@@ -729,7 +729,7 @@ type Category implements Node & ObjectWithMetadata {
   ancestors(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
   url: String @deprecated(reason: "This field will be removed after 2020-07-31.")
-  description: String @deprecated(reason: "Will be removed in Saleor 3.0. Use the `descriptionJson` instead.")
+  description: String! @deprecated(reason: "Will be removed in Saleor 3.0. Use the `descriptionJson` instead.")
   children(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   backgroundImage(size: Int): Image
   translation(languageCode: LanguageCodeEnum!): CategoryTranslation
@@ -808,7 +808,7 @@ type CategoryTranslatableContent implements Node {
   id: ID!
   name: String!
   descriptionJson: JSONString!
-  description: String @deprecated(reason: "Will be removed in Saleor 3.0. Use the `descriptionJson` instead.")
+  description: String! @deprecated(reason: "Will be removed in Saleor 3.0. Use the `descriptionJson` instead.")
   translation(languageCode: LanguageCodeEnum!): CategoryTranslation
   category: Category
 }
@@ -826,7 +826,7 @@ type CategoryTranslation implements Node {
   name: String!
   descriptionJson: JSONString!
   language: LanguageDisplay!
-  description: String @deprecated(reason: "Will be removed in Saleor 3.0. Use the `descriptionJson` instead.")
+  description: String! @deprecated(reason: "Will be removed in Saleor 3.0. Use the `descriptionJson` instead.")
 }
 
 type CategoryUpdate {
@@ -1080,7 +1080,7 @@ type Collection implements Node & ObjectWithMetadata {
   meta: [MetaStore]! @deprecated(reason: "Use the `metadata` field. This field will be removed after 2020-07-31.")
   products(filter: ProductFilterInput, sortBy: ProductOrder, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   backgroundImage(size: Int): Image
-  description: String @deprecated(reason: "Will be removed in Saleor 3.0. Use the `descriptionJson` instead.")
+  description: String! @deprecated(reason: "Will be removed in Saleor 3.0. Use the `descriptionJson` instead.")
   translation(languageCode: LanguageCodeEnum!): CollectionTranslation
   isPublished: Boolean!
 }
@@ -1204,7 +1204,7 @@ type CollectionTranslatableContent implements Node {
   id: ID!
   name: String!
   descriptionJson: JSONString!
-  description: String @deprecated(reason: "Will be removed in Saleor 3.0. Use the `descriptionJson` instead.")
+  description: String! @deprecated(reason: "Will be removed in Saleor 3.0. Use the `descriptionJson` instead.")
   translation(languageCode: LanguageCodeEnum!): CollectionTranslation
   collection: Collection
 }
@@ -1222,7 +1222,7 @@ type CollectionTranslation implements Node {
   name: String!
   descriptionJson: JSONString!
   language: LanguageDisplay!
-  description: String @deprecated(reason: "Will be removed in Saleor 3.0. Use the `descriptionJson` instead.")
+  description: String! @deprecated(reason: "Will be removed in Saleor 3.0. Use the `descriptionJson` instead.")
 }
 
 type CollectionUpdate {
@@ -3249,7 +3249,6 @@ type Page implements Node & ObjectWithMetadata {
   seoDescription: String
   id: ID!
   title: String!
-  content: String!
   contentJson: JSONString!
   publicationDate: Date
   slug: String!
@@ -3258,6 +3257,7 @@ type Page implements Node & ObjectWithMetadata {
   metadata: [MetadataItem]!
   privateMeta: [MetaStore]! @deprecated(reason: "Use the `privetaMetadata` field. This field will be removed after 2020-07-31.")
   meta: [MetaStore]! @deprecated(reason: "Use the `metadata` field. This field will be removed after 2020-07-31.")
+  description: String! @deprecated(reason: "Will be removed in Saleor 3.0. Use the `contentJson` instead.")
   translation(languageCode: LanguageCodeEnum!): PageTranslation
   isPublished: Boolean!
 }
@@ -3350,8 +3350,8 @@ type PageTranslatableContent implements Node {
   seoDescription: String
   id: ID!
   title: String!
-  content: String!
   contentJson: JSONString!
+  content: String! @deprecated(reason: "Will be removed in Saleor 3.0. Use the `descriptionJson` instead.")
   translation(languageCode: LanguageCodeEnum!): PageTranslation
   page: Page
 }
@@ -3367,9 +3367,9 @@ type PageTranslation implements Node {
   seoDescription: String
   id: ID!
   title: String!
-  content: String!
   contentJson: JSONString!
   language: LanguageDisplay!
+  content: String! @deprecated(reason: "Will be removed in Saleor 3.0. Use the `descriptionJson` instead.")
 }
 
 input PageTranslationInput {
@@ -3696,7 +3696,7 @@ type Product implements Node & ObjectWithMetadata {
   translation(languageCode: LanguageCodeEnum!): ProductTranslation
   isAvailableForPurchase: Boolean
   isPublished: Boolean!
-  description: String @deprecated(reason: "Will be removed in Saleor 3.0. Use the `descriptionJson` instead.")
+  description: String! @deprecated(reason: "Will be removed in Saleor 3.0. Use the `descriptionJson` instead.")
 }
 
 type ProductBulkDelete {
@@ -3940,7 +3940,7 @@ type ProductTranslatableContent implements Node {
   seoDescription: String
   name: String!
   descriptionJson: JSONString!
-  description: String @deprecated(reason: "Will be removed in Saleor 3.0. Use the `descriptionJson` instead.")
+  description: String! @deprecated(reason: "Will be removed in Saleor 3.0. Use the `descriptionJson` instead.")
   translation(languageCode: LanguageCodeEnum!): ProductTranslation
   product: Product
 }
@@ -3958,7 +3958,7 @@ type ProductTranslation implements Node {
   name: String!
   descriptionJson: JSONString!
   language: LanguageDisplay!
-  description: String @deprecated(reason: "Will be removed in Saleor 3.0. Use the `descriptionJson` instead.")
+  description: String! @deprecated(reason: "Will be removed in Saleor 3.0. Use the `descriptionJson` instead.")
 }
 
 type ProductType implements Node & ObjectWithMetadata {
