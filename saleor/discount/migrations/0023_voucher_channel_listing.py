@@ -82,9 +82,18 @@ class Migration(migrations.Migration):
             options={"ordering": ("pk",), "unique_together": {("voucher", "channel")}},
         ),
         migrations.RunPython(migrate_voucher_data, migrations.RunPython.noop),
-        migrations.RemoveField(model_name="voucher", name="currency",),
-        migrations.RemoveField(model_name="voucher", name="discount_value",),
-        migrations.RemoveField(model_name="voucher", name="min_spent_amount",),
+        migrations.RemoveField(
+            model_name="voucher",
+            name="currency",
+        ),
+        migrations.RemoveField(
+            model_name="voucher",
+            name="discount_value",
+        ),
+        migrations.RemoveField(
+            model_name="voucher",
+            name="min_spent_amount",
+        ),
         migrations.AlterField(
             model_name="voucher",
             name="discount_value_type",

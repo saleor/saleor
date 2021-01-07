@@ -212,13 +212,15 @@ def test_create_checkout(
                 {
                     "quantity": 3,
                     "variantId": Node.to_global_id(
-                        "ProductVariant", product_with_two_variants.variants.first().pk,
+                        "ProductVariant",
+                        product_with_two_variants.variants.first().pk,
                     ),
                 },
                 {
                     "quantity": 2,
                     "variantId": Node.to_global_id(
-                        "ProductVariant", product_with_two_variants.variants.last().pk,
+                        "ProductVariant",
+                        product_with_two_variants.variants.last().pk,
                     ),
                 },
             ],
@@ -231,7 +233,10 @@ def test_create_checkout(
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
 def test_add_shipping_to_checkout(
-    api_client, checkout_with_shipping_address, shipping_method, count_queries,
+    api_client,
+    checkout_with_shipping_address,
+    shipping_method,
+    count_queries,
 ):
     query = (
         FRAGMENT_CHECKOUT
@@ -343,25 +348,29 @@ def test_update_checkout_lines(
             {
                 "quantity": 2,
                 "variantId": Node.to_global_id(
-                    "ProductVariant", product_with_default_variant.variants.first().pk,
+                    "ProductVariant",
+                    product_with_default_variant.variants.first().pk,
                 ),
             },
             {
                 "quantity": 10,
                 "variantId": Node.to_global_id(
-                    "ProductVariant", product_with_single_variant.variants.first().pk,
+                    "ProductVariant",
+                    product_with_single_variant.variants.first().pk,
                 ),
             },
             {
                 "quantity": 3,
                 "variantId": Node.to_global_id(
-                    "ProductVariant", product_with_two_variants.variants.first().pk,
+                    "ProductVariant",
+                    product_with_two_variants.variants.first().pk,
                 ),
             },
             {
                 "quantity": 2,
                 "variantId": Node.to_global_id(
-                    "ProductVariant", product_with_two_variants.variants.last().pk,
+                    "ProductVariant",
+                    product_with_two_variants.variants.last().pk,
                 ),
             },
         ],

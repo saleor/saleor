@@ -5,7 +5,8 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
-from ....account import events as account_events, models, utils
+from ....account import events as account_events
+from ....account import models, utils
 from ....account.emails import send_set_password_email_with_url
 from ....account.error_codes import AccountErrorCode
 from ....account.thumbnails import create_user_avatar_thumbnails

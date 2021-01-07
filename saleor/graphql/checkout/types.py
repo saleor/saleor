@@ -24,7 +24,6 @@ from ..product.dataloaders import (
     ProductVariantByIdLoader,
     VariantChannelListingByVariantIdAndChannelSlugLoader,
 )
-from ..product.resolvers import resolve_variant
 from ..shipping.dataloaders import (
     ShippingMethodByIdLoader,
     ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
@@ -85,8 +84,12 @@ class CheckoutLine(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_variant(root: models.CheckoutLine, info):
-        dataloader = ChannelByCheckoutLineIDLoader(info.context)
-        return resolve_variant(info, root, dataloader)
+        variant = ProductVariantByIdLoader(info.context).load(root.variant_id)
+        channel = ChannelByCheckoutLineIDLoader(info.context).load(root.id)
+
+        return Promise.all([variant, channel]).then(
+            lambda data: ChannelContext(node=data[0], channel_slug=data[1].slug)
+        )
 
     @staticmethod
     def resolve_total_price(root, info):
@@ -199,7 +202,8 @@ class Checkout(CountableDjangoObjectType):
         description="The price of the shipping, with all the taxes included.",
     )
     shipping_method = graphene.Field(
-        ShippingMethod, description="The shipping method related with checkout.",
+        ShippingMethod,
+        description="The shipping method related with checkout.",
     )
     subtotal_price = graphene.Field(
         TaxedMoney,

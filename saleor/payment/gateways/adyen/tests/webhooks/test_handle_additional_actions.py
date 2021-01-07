@@ -353,7 +353,8 @@ def test_handle_additional_actions_payment_does_not_have_checkout(
 
 @mock.patch("saleor.payment.gateways.adyen.webhooks.api_call")
 def test_handle_additional_actions_api_call_error(
-    api_call_mock, payment_adyen_for_checkout,
+    api_call_mock,
+    payment_adyen_for_checkout,
 ):
     # given
     payment_adyen_for_checkout.extra_data = json.dumps(

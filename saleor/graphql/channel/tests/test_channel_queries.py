@@ -96,7 +96,9 @@ def test_query_channels_with_has_orders_order(
 
     # when
     response = staff_api_client.post_graphql(
-        QUERY_CHANNELS_WITH_HAS_ORDERS, {}, permissions=(permission_manage_channels,),
+        QUERY_CHANNELS_WITH_HAS_ORDERS,
+        {},
+        permissions=(permission_manage_channels,),
     )
     content = get_graphql_content(response)
 

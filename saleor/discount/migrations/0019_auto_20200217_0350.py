@@ -21,9 +21,13 @@ class Migration(migrations.Migration):
             name="saletranslation",
             options={"ordering": ("language_code", "name", "pk")},
         ),
-        migrations.AlterModelOptions(name="voucher", options={"ordering": ("code",)},),
         migrations.AlterModelOptions(
-            name="vouchercustomer", options={"ordering": ("voucher", "customer_email")},
+            name="voucher",
+            options={"ordering": ("code",)},
+        ),
+        migrations.AlterModelOptions(
+            name="vouchercustomer",
+            options={"ordering": ("voucher", "customer_email")},
         ),
         migrations.AlterModelOptions(
             name="vouchertranslation",

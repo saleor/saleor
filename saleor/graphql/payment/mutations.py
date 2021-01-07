@@ -263,7 +263,8 @@ class PaymentInitialize(BaseMutation):
 
     class Arguments:
         gateway = graphene.String(
-            description="A gateway name used to initialize the payment.", required=True,
+            description="A gateway name used to initialize the payment.",
+            required=True,
         )
         payment_data = graphene.JSONString(
             required=False,

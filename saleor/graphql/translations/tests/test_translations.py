@@ -1401,7 +1401,10 @@ QUERY_TRANSLATION_PRODUCT = """
 
 
 def test_translation_query_product(
-    staff_api_client, permission_manage_translations, product, product_translation_fr,
+    staff_api_client,
+    permission_manage_translations,
+    product,
+    product_translation_fr,
 ):
 
     product_id = graphene.Node.to_global_id("Product", product.id)

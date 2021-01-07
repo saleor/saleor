@@ -39,7 +39,10 @@ mutation UpdateShippingMethodChannelListing(
 
 
 def test_shipping_method_channel_listing_create_as_staff_user(
-    staff_api_client, shipping_method, permission_manage_shipping, channel_PLN,
+    staff_api_client,
+    shipping_method,
+    permission_manage_shipping,
+    channel_PLN,
 ):
     # given
     shipping_method_id = graphene.Node.to_global_id(
@@ -95,7 +98,10 @@ def test_shipping_method_channel_listing_create_as_staff_user(
 
 
 def test_shipping_method_channel_listing_update_as_staff_user(
-    staff_api_client, shipping_method, permission_manage_shipping, channel_USD,
+    staff_api_client,
+    shipping_method,
+    permission_manage_shipping,
+    channel_USD,
 ):
     # given
     shipping_method_id = graphene.Node.to_global_id(
@@ -160,7 +166,10 @@ def test_shipping_method_channel_listing_update_as_staff_user(
 
 
 def test_shipping_method_channel_listing_update_with_negative_price(
-    staff_api_client, shipping_method, permission_manage_shipping, channel_PLN,
+    staff_api_client,
+    shipping_method,
+    permission_manage_shipping,
+    channel_PLN,
 ):
     # given
     staff_api_client.user.user_permissions.add(permission_manage_shipping)
@@ -188,7 +197,8 @@ def test_shipping_method_channel_listing_update_with_negative_price(
 
     # when
     response = staff_api_client.post_graphql(
-        SHIPPING_METHOD_CHANNEL_LISTING_UPDATE_MUTATION, variables=variables,
+        SHIPPING_METHOD_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
     )
 
     # then
@@ -196,7 +206,10 @@ def test_shipping_method_channel_listing_update_with_negative_price(
 
 
 def test_shipping_method_channel_listing_update_with_negative_min_value(
-    staff_api_client, shipping_method, permission_manage_shipping, channel_PLN,
+    staff_api_client,
+    shipping_method,
+    permission_manage_shipping,
+    channel_PLN,
 ):
     # given
     staff_api_client.user.user_permissions.add(permission_manage_shipping)
@@ -224,7 +237,8 @@ def test_shipping_method_channel_listing_update_with_negative_min_value(
 
     # when
     response = staff_api_client.post_graphql(
-        SHIPPING_METHOD_CHANNEL_LISTING_UPDATE_MUTATION, variables=variables,
+        SHIPPING_METHOD_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
     )
 
     # then
@@ -232,7 +246,10 @@ def test_shipping_method_channel_listing_update_with_negative_min_value(
 
 
 def test_shipping_method_channel_listing_update_with_negative_max_value(
-    staff_api_client, shipping_method, permission_manage_shipping, channel_PLN,
+    staff_api_client,
+    shipping_method,
+    permission_manage_shipping,
+    channel_PLN,
 ):
     # given
     staff_api_client.user.user_permissions.add(permission_manage_shipping)
@@ -258,7 +275,8 @@ def test_shipping_method_channel_listing_update_with_negative_max_value(
 
     # when
     response = staff_api_client.post_graphql(
-        SHIPPING_METHOD_CHANNEL_LISTING_UPDATE_MUTATION, variables=variables,
+        SHIPPING_METHOD_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
     )
 
     # then
@@ -266,7 +284,10 @@ def test_shipping_method_channel_listing_update_with_negative_max_value(
 
 
 def test_shipping_method_channel_listing_update_with_max_less_than_min(
-    staff_api_client, shipping_method, permission_manage_shipping, channel_PLN,
+    staff_api_client,
+    shipping_method,
+    permission_manage_shipping,
+    channel_PLN,
 ):
     # given
     shipping_method_id = graphene.Node.to_global_id(
@@ -307,7 +328,10 @@ def test_shipping_method_channel_listing_update_with_max_less_than_min(
 
 
 def test_shipping_method_channel_listing_create_without_price(
-    staff_api_client, shipping_method, permission_manage_shipping, channel_PLN,
+    staff_api_client,
+    shipping_method,
+    permission_manage_shipping,
+    channel_PLN,
 ):
     # given
     shipping_method_id = graphene.Node.to_global_id(
@@ -346,7 +370,10 @@ def test_shipping_method_channel_listing_create_without_price(
 
 
 def test_shipping_method_channel_listing_update_with_to_many_decimal_places_in_price(
-    staff_api_client, shipping_method, permission_manage_shipping, channel_PLN,
+    staff_api_client,
+    shipping_method,
+    permission_manage_shipping,
+    channel_PLN,
 ):
     # given
     shipping_method_id = graphene.Node.to_global_id(
@@ -387,7 +414,10 @@ def test_shipping_method_channel_listing_update_with_to_many_decimal_places_in_p
 
 
 def test_shipping_method_channel_listing_update_with_to_many_decimal_places_in_min_val(
-    staff_api_client, shipping_method, permission_manage_shipping, channel_PLN,
+    staff_api_client,
+    shipping_method,
+    permission_manage_shipping,
+    channel_PLN,
 ):
     # given
     shipping_method_id = graphene.Node.to_global_id(
@@ -428,7 +458,10 @@ def test_shipping_method_channel_listing_update_with_to_many_decimal_places_in_m
 
 
 def test_shipping_method_channel_listing_update_with_to_many_decimal_places_in_max_val(
-    staff_api_client, shipping_method, permission_manage_shipping, channel_PLN,
+    staff_api_client,
+    shipping_method,
+    permission_manage_shipping,
+    channel_PLN,
 ):
     # given
     shipping_method_id = graphene.Node.to_global_id(

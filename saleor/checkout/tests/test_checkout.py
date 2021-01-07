@@ -634,13 +634,16 @@ def test_recalculate_checkout_discount_with_sale(
     lines = fetch_checkout_lines(checkout)
     recalculate_checkout_discount(manager, checkout, lines, [discount_info])
     assert checkout.discount == Money("1.50", "USD")
-    assert calculations.checkout_total(
-        manager=manager,
-        checkout=checkout,
-        lines=lines,
-        address=checkout.shipping_address,
-        discounts=[discount_info],
-    ).gross == Money("13.50", "USD")
+    assert (
+        calculations.checkout_total(
+            manager=manager,
+            checkout=checkout,
+            lines=lines,
+            address=checkout.shipping_address,
+            discounts=[discount_info],
+        ).gross
+        == Money("13.50", "USD")
+    )
 
 
 def test_recalculate_checkout_discount_voucher_not_applicable(
@@ -683,12 +686,15 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_less_than_shipping
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     channel_listing = shipping_method.channel_listings.get(channel_id=channel_USD.id)
-    channel_listing.price = calculations.checkout_subtotal(
-        manager=manager,
-        checkout=checkout,
-        lines=lines,
-        address=checkout.shipping_address,
-    ).gross + Money("10.00", "USD")
+    channel_listing.price = (
+        calculations.checkout_subtotal(
+            manager=manager,
+            checkout=checkout,
+            lines=lines,
+            address=checkout.shipping_address,
+        ).gross
+        + Money("10.00", "USD")
+    )
     channel_listing.save()
 
     recalculate_checkout_discount(manager, checkout, lines, None)
@@ -720,12 +726,15 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_bigger_than_shippi
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     channel_listing = shipping_method.channel_listings.get(channel=channel_USD)
-    channel_listing.price = calculations.checkout_subtotal(
-        manager=manager,
-        checkout=checkout,
-        lines=lines,
-        address=checkout.shipping_address,
-    ).gross - Money("1.00", "USD")
+    channel_listing.price = (
+        calculations.checkout_subtotal(
+            manager=manager,
+            checkout=checkout,
+            lines=lines,
+            address=checkout.shipping_address,
+        ).gross
+        - Money("1.00", "USD")
+    )
     channel_listing.save()
 
     recalculate_checkout_discount(manager, checkout, lines, None)
@@ -847,7 +856,10 @@ def test_add_voucher_to_checkout_fail(
     lines = fetch_checkout_lines(checkout_with_item)
     with pytest.raises(NotApplicable):
         add_voucher_to_checkout(
-            manager, checkout_with_item, lines, voucher_with_high_min_spent_amount,
+            manager,
+            checkout_with_item,
+            lines,
+            voucher_with_high_min_spent_amount,
         )
 
     assert checkout_with_item.voucher_code is None

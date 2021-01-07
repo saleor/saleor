@@ -451,7 +451,9 @@ def test_attributes_in_collection_query(
     # Create another collection with products but shouldn't get matched
     # as we don't look for this other collection
     other_collection = Collection.objects.create(
-        name="Other Collection", slug="other-collection", description="Description",
+        name="Other Collection",
+        slug="other-collection",
+        description="Description",
     )
     other_collection.products.add(other_product)
 

@@ -231,7 +231,8 @@ def test_query_customers_pagination_with_sort(
     variables = {"first": page_size, "after": None, "sortBy": customer_sort}
     staff_api_client.user.user_permissions.add(permission_manage_users)
     response = staff_api_client.post_graphql(
-        QUERY_CUSTOMERS_WITH_PAGINATION, variables,
+        QUERY_CUSTOMERS_WITH_PAGINATION,
+        variables,
     )
     content = get_graphql_content(response)
     nodes = content["data"]["customers"]["edges"]
@@ -274,7 +275,8 @@ def test_query_customer_members_pagination_with_filter_search(
     variables = {"first": page_size, "after": None, "filter": customer_filter}
     staff_api_client.user.user_permissions.add(permission_manage_users)
     response = staff_api_client.post_graphql(
-        QUERY_CUSTOMERS_WITH_PAGINATION, variables,
+        QUERY_CUSTOMERS_WITH_PAGINATION,
+        variables,
     )
     content = get_graphql_content(response)
 

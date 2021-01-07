@@ -55,14 +55,21 @@ def email_sent_event(
     )
 
 
-def invoice_requested_event(*, order: Order, user: Optional[UserType],) -> OrderEvent:
+def invoice_requested_event(
+    *,
+    order: Order,
+    user: Optional[UserType],
+) -> OrderEvent:
     return OrderEvent.objects.create(
         order=order, type=OrderEvents.INVOICE_REQUESTED, user=user
     )
 
 
 def invoice_generated_event(
-    *, order: Order, user: Optional[UserType], invoice_number: str,
+    *,
+    order: Order,
+    user: Optional[UserType],
+    invoice_number: str,
 ) -> OrderEvent:
     return OrderEvent.objects.create(
         order=order,
@@ -89,7 +96,10 @@ def invoice_updated_event(
 
 
 def invoice_sent_event(
-    *, order: Order, user: Optional[UserType], email: str,
+    *,
+    order: Order,
+    user: Optional[UserType],
+    email: str,
 ) -> OrderEvent:
     return OrderEvent.objects.create(
         order=order,
@@ -374,7 +384,10 @@ def fulfillment_fulfilled_items_event(
 
 
 def order_returned_event(
-    *, order: Order, user: UserType, returned_lines: List[Tuple[int, OrderLine]],
+    *,
+    order: Order,
+    user: UserType,
+    returned_lines: List[Tuple[int, OrderLine]],
 ):
     if not _user_is_valid(user):
         user = None
@@ -388,7 +401,10 @@ def order_returned_event(
 
 
 def fulfillment_replaced_event(
-    *, order: Order, user: UserType, replaced_lines: List[Tuple[int, OrderLine]],
+    *,
+    order: Order,
+    user: UserType,
+    replaced_lines: List[Tuple[int, OrderLine]],
 ):
     if not _user_is_valid(user):
         user = None

@@ -144,7 +144,10 @@ class ProductQueries(graphene.ObjectType):
     )
     collection = graphene.Field(
         Collection,
-        id=graphene.Argument(graphene.ID, description="ID of the collection.",),
+        id=graphene.Argument(
+            graphene.ID,
+            description="ID of the collection.",
+        ),
         slug=graphene.Argument(graphene.String, description="Slug of the category"),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
@@ -162,7 +165,10 @@ class ProductQueries(graphene.ObjectType):
     )
     product = graphene.Field(
         Product,
-        id=graphene.Argument(graphene.ID, description="ID of the product.",),
+        id=graphene.Argument(
+            graphene.ID,
+            description="ID of the product.",
+        ),
         slug=graphene.Argument(graphene.String, description="Slug of the product."),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
@@ -202,7 +208,10 @@ class ProductQueries(graphene.ObjectType):
     )
     product_variant = graphene.Field(
         ProductVariant,
-        id=graphene.Argument(graphene.ID, description="ID of the product variant.",),
+        id=graphene.Argument(
+            graphene.ID,
+            description="ID of the product variant.",
+        ),
         sku=graphene.Argument(
             graphene.String, description="Sku of the product variant."
         ),
@@ -321,7 +330,11 @@ class ProductQueries(graphene.ObjectType):
         return resolve_product_types(info, **kwargs)
 
     def resolve_product_variant(
-        self, info, id=None, sku=None, channel=None,
+        self,
+        info,
+        id=None,
+        sku=None,
+        channel=None,
     ):
         validate_one_of_args_is_in_query("id", id, "sku", sku)
         requestor = get_user_or_app_from_context(info.context)

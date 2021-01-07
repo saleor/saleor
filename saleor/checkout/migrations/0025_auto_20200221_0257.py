@@ -11,9 +11,13 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RenameField(
-            model_name="checkout", old_name="meta", new_name="metadata",
+            model_name="checkout",
+            old_name="meta",
+            new_name="metadata",
         ),
         migrations.RenameField(
-            model_name="checkout", old_name="private_meta", new_name="private_metadata",
+            model_name="checkout",
+            old_name="private_meta",
+            new_name="private_metadata",
         ),
     ]

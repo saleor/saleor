@@ -6,12 +6,8 @@ from django.template.defaultfilters import pluralize
 
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
-from ....order import (
-    FulfillmentLineData,
-    FulfillmentStatus,
-    OrderLineData,
-    models as order_models,
-)
+from ....order import FulfillmentLineData, FulfillmentStatus, OrderLineData
+from ....order import models as order_models
 from ....order.actions import (
     cancel_fulfillment,
     create_fulfillments,
@@ -327,7 +323,8 @@ class OrderRefundLineInput(graphene.InputObjectType):
         required=True,
     )
     quantity = graphene.Int(
-        description="The number of items to be refunded.", required=True,
+        description="The number of items to be refunded.",
+        required=True,
     )
 
 
@@ -338,7 +335,8 @@ class OrderRefundFulfillmentLineInput(graphene.InputObjectType):
         required=True,
     )
     quantity = graphene.Int(
-        description="The number of items to be refunded.", required=True,
+        description="The number of items to be refunded.",
+        required=True,
     )
 
 
@@ -405,7 +403,9 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
         raise ValidationError(
             {
                 field_name: ValidationError(
-                    msg, code=code, params={field_name: line_global_id},
+                    msg,
+                    code=code,
+                    params={field_name: line_global_id},
                 )
             }
         )
@@ -453,7 +453,11 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
                     "order_line_id",
                 )
             cleaned_fulfillment_lines.append(
-                FulfillmentLineData(line=line, quantity=quantity, replace=replace,)
+                FulfillmentLineData(
+                    line=line,
+                    quantity=quantity,
+                    replace=replace,
+                )
             )
         cleaned_input["fulfillment_lines"] = cleaned_fulfillment_lines
 
@@ -578,7 +582,8 @@ class OrderReturnLineInput(graphene.InputObjectType):
         required=True,
     )
     quantity = graphene.Int(
-        description="The number of items to be returned.", required=True,
+        description="The number of items to be returned.",
+        required=True,
     )
     replace = graphene.Boolean(
         description="Determines, if the line should be added to replace order.",
@@ -593,7 +598,8 @@ class OrderReturnFulfillmentLineInput(graphene.InputObjectType):
         required=True,
     )
     quantity = graphene.Int(
-        description="The number of items to be returned.", required=True,
+        description="The number of items to be returned.",
+        required=True,
     )
     replace = graphene.Boolean(
         description="Determines, if the line should be added to replace order.",
@@ -651,7 +657,8 @@ class FulfillmentReturnProducts(FulfillmentRefundAndReturnProductBase):
             description="ID of the order to be returned.", required=True
         )
         input = OrderReturnProductsInput(
-            required=True, description="Fields required to return products.",
+            required=True,
+            description="Fields required to return products.",
         )
 
     @classmethod

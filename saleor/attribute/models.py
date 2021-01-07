@@ -11,8 +11,9 @@ from ..product.models import Product, ProductType, ProductVariant
 from . import AttributeInputType, AttributeType
 
 if TYPE_CHECKING:
-    from ..account.models import User
     from django.db.models import OrderBy
+
+    from ..account.models import User
 
 
 class BaseAttributeQuerySet(models.QuerySet):

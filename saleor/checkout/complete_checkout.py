@@ -1,5 +1,4 @@
 from datetime import date
-from decimal import Decimal
 from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple
 
 from django.contrib.sites.models import Site
@@ -15,7 +14,6 @@ from ..account.utils import store_user_address
 from ..checkout import calculations
 from ..checkout.error_codes import CheckoutErrorCode
 from ..core.exceptions import InsufficientStock
-from ..core.prices import quantize_price
 from ..core.taxes import TaxError, zero_taxed_money
 from ..core.utils.url import validate_storefront_url
 from ..discount import DiscountInfo
@@ -147,7 +145,6 @@ def _create_line_for_order(
 
     :raises InsufficientStock: when there is not enough items in stock for this variant.
     """
-
     checkout_line = checkout_line_info.line
     quantity = checkout_line.quantity
     variant = checkout_line_info.variant
@@ -181,13 +178,10 @@ def _create_line_for_order(
         channel_listing,
         discounts,
     )
-    unit_price = quantize_price(
-        total_line_price / checkout_line.quantity, total_line_price.currency
+    unit_price = manager.calculate_checkout_line_unit_price(total_line_price, quantity)
+    tax_rate = manager.get_checkout_line_tax_rate(
+        checkout, checkout_line_info, address, discounts, unit_price
     )
-    tax_rate = Decimal("0.0")
-    # The condition will return False when unit_price.gross is 0.0
-    if not isinstance(unit_price, Decimal) and unit_price.gross:
-        tax_rate = unit_price.tax / unit_price.net
 
     line = OrderLine(
         product_name=product_name,
@@ -199,6 +193,7 @@ def _create_line_for_order(
         quantity=quantity,
         variant=variant,
         unit_price=unit_price,  # type: ignore
+        total_price=total_line_price,
         tax_rate=tax_rate,
     )
 
@@ -290,6 +285,9 @@ def _prepare_order_data(
     shipping_total = manager.calculate_checkout_shipping(
         checkout, lines, address, discounts
     )
+    shipping_tax_rate = manager.get_checkout_shipping_tax_rate(
+        checkout, lines, address, discounts, shipping_total
+    )
     order_data.update(
         _process_shipping_data_for_order(checkout, shipping_total, manager, lines)
     )
@@ -299,6 +297,7 @@ def _prepare_order_data(
             "language_code": get_language(),
             "tracking_client_id": checkout.tracking_code or "",
             "total": taxed_total,
+            "shipping_tax_rate": shipping_tax_rate,
         }
     )
 
@@ -461,7 +460,10 @@ def _get_order_data(
     """Prepare data that will be converted to order and its lines."""
     try:
         order_data = _prepare_order_data(
-            manager=manager, checkout=checkout, lines=lines, discounts=discounts,
+            manager=manager,
+            checkout=checkout,
+            lines=lines,
+            discounts=discounts,
         )
     except InsufficientStock as e:
         raise ValidationError(f"Insufficient product stock: {e.item}", code=e.code)
@@ -558,7 +560,9 @@ def complete_checkout(
     if not action_required:
         try:
             order = _create_order(
-                checkout=checkout, order_data=order_data, user=user,  # type: ignore
+                checkout=checkout,
+                order_data=order_data,
+                user=user,  # type: ignore
             )
             # remove checkout after order is successfully created
             checkout.delete()
