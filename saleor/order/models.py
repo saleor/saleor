@@ -97,7 +97,9 @@ class Order(ModelWithMetadata):
     )
     user_email = models.EmailField(blank=True, default="")
 
-    currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,)
+    currency = models.CharField(
+        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
+    )
 
     shipping_method = models.ForeignKey(
         ShippingMethod,
@@ -110,7 +112,9 @@ class Order(ModelWithMetadata):
         max_length=255, null=True, default=None, blank=True, editable=False
     )
     channel = models.ForeignKey(
-        Channel, related_name="orders", on_delete=models.PROTECT,
+        Channel,
+        related_name="orders",
+        on_delete=models.PROTECT,
     )
     shipping_price_net_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
@@ -387,7 +391,9 @@ class OrderLine(models.Model):
         validators=[MinValueValidator(0)], default=0
     )
 
-    currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,)
+    currency = models.CharField(
+        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
+    )
 
     unit_price_net_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
@@ -416,7 +422,8 @@ class OrderLine(models.Model):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
     )
     total_price_net = MoneyField(
-        amount_field="total_price_net_amount", currency_field="currency",
+        amount_field="total_price_net_amount",
+        currency_field="currency",
     )
 
     total_price_gross_amount = models.DecimalField(
@@ -424,7 +431,8 @@ class OrderLine(models.Model):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
     )
     total_price_gross = MoneyField(
-        amount_field="total_price_gross_amount", currency_field="currency",
+        amount_field="total_price_gross_amount",
+        currency_field="currency",
     )
 
     total_price = TaxedMoneyField(

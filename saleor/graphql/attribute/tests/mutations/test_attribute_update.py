@@ -313,7 +313,9 @@ def test_update_attribute_slug(
 
 
 def test_update_attribute_slug_exists(
-    staff_api_client, color_attribute, permission_manage_product_types_and_attributes,
+    staff_api_client,
+    color_attribute,
+    permission_manage_product_types_and_attributes,
 ):
     # given
     query = UPDATE_ATTRIBUTE_SLUG_MUTATION

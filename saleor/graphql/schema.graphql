@@ -4411,7 +4411,7 @@ type Query {
   permissionGroup(id: ID!): Group
   me: User
   staffUsers(filter: StaffUserInput, sortBy: UserSortingInput, before: String, after: String, first: Int, last: Int): UserCountableConnection
-  user(id: ID!): User
+  user(id: ID, email: String): User
   _entities(representations: [_Any]): [_Entity]
   _service: _Service
 }

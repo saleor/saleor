@@ -1,7 +1,8 @@
 from typing import Any, List
 
 from ...account import models as account_models
-from ...attribute import AttributeType, models as attribute_models
+from ...attribute import AttributeType
+from ...attribute import models as attribute_models
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import (
     AccountPermissions,

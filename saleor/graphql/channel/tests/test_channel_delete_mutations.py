@@ -78,7 +78,11 @@ def test_channel_delete_mutation_with_the_same_channel_and_target_channel_id(
 
 
 def test_channel_delete_mutation_without_migration_channel_with_orders(
-    permission_manage_channels, staff_api_client, channel_USD, checkout, order_list,
+    permission_manage_channels,
+    staff_api_client,
+    channel_USD,
+    checkout,
+    order_list,
 ):
     # given
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
@@ -103,7 +107,10 @@ def test_channel_delete_mutation_without_migration_channel_with_orders(
 
 
 def test_channel_delete_mutation_without_orders_in_channel(
-    permission_manage_channels, staff_api_client, channel_USD, checkout,
+    permission_manage_channels,
+    staff_api_client,
+    channel_USD,
+    checkout,
 ):
     # given
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
@@ -190,7 +197,9 @@ def test_channel_delete_mutation_as_customer(
 
     # when
     response = user_api_client.post_graphql(
-        CHANNEL_DELETE_MUTATION, variables=variables, permissions=(),
+        CHANNEL_DELETE_MUTATION,
+        variables=variables,
+        permissions=(),
     )
 
     # then
@@ -208,7 +217,9 @@ def test_channel_delete_mutation_as_anonymous(
 
     # when
     response = api_client.post_graphql(
-        CHANNEL_DELETE_MUTATION, variables=variables, permissions=(),
+        CHANNEL_DELETE_MUTATION,
+        variables=variables,
+        permissions=(),
     )
 
     # then

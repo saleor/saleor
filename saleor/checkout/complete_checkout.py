@@ -460,7 +460,10 @@ def _get_order_data(
     """Prepare data that will be converted to order and its lines."""
     try:
         order_data = _prepare_order_data(
-            manager=manager, checkout=checkout, lines=lines, discounts=discounts,
+            manager=manager,
+            checkout=checkout,
+            lines=lines,
+            discounts=discounts,
         )
     except InsufficientStock as e:
         raise ValidationError(f"Insufficient product stock: {e.item}", code=e.code)
@@ -557,7 +560,9 @@ def complete_checkout(
     if not action_required:
         try:
             order = _create_order(
-                checkout=checkout, order_data=order_data, user=user,  # type: ignore
+                checkout=checkout,
+                order_data=order_data,
+                user=user,  # type: ignore
             )
             # remove checkout after order is successfully created
             checkout.delete()

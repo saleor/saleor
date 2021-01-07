@@ -10,6 +10,7 @@ from ...warehouse.models import Stock
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
+
     from ...product.models import ProductVariant
 
 

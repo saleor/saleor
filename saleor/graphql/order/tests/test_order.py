@@ -12,7 +12,8 @@ from prices import Money, TaxedMoney
 
 from ....account.models import CustomerEvent
 from ....core.taxes import TaxError, zero_taxed_money
-from ....order import OrderStatus, events as order_events
+from ....order import OrderStatus
+from ....order import events as order_events
 from ....order.error_codes import OrderErrorCode
 from ....order.models import Order, OrderEvent
 from ....payment import ChargeStatus, CustomPaymentChoices, PaymentError
@@ -189,7 +190,9 @@ def test_orderline_query(staff_api_client, permission_manage_orders, fulfilled_o
 
 
 def test_order_line_with_allocations(
-    staff_api_client, permission_manage_orders, order_with_lines,
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
 ):
     # given
     order = order_with_lines
@@ -2107,7 +2110,10 @@ DRAFT_ORDER_COMPLETE_MUTATION = """
 
 
 def test_draft_order_complete(
-    staff_api_client, permission_manage_orders, staff_user, draft_order,
+    staff_api_client,
+    permission_manage_orders,
+    staff_user,
+    draft_order,
 ):
     order = draft_order
 
@@ -2147,7 +2153,10 @@ def test_draft_order_complete(
 
 
 def test_draft_order_complete_with_inactive_channel(
-    staff_api_client, permission_manage_orders, staff_user, draft_order,
+    staff_api_client,
+    permission_manage_orders,
+    staff_user,
+    draft_order,
 ):
     order = draft_order
     channel = order.channel
@@ -2293,7 +2302,11 @@ def test_draft_order_complete_anonymous_user_no_email(
 
 
 def test_draft_order_complete_drops_shipping_address(
-    staff_api_client, permission_manage_orders, staff_user, draft_order, address,
+    staff_api_client,
+    permission_manage_orders,
+    staff_user,
+    draft_order,
+    address,
 ):
     order = draft_order
     order.shipping_address = address.get_copy()
@@ -2923,7 +2936,13 @@ def test_order_add_note_as_staff_user(
     assert not CustomerEvent.objects.exists()
 
 
-@pytest.mark.parametrize("message", ("", "   ",))
+@pytest.mark.parametrize(
+    "message",
+    (
+        "",
+        "   ",
+    ),
+)
 def test_order_add_note_fail_on_empty_message(
     staff_api_client, permission_manage_orders, order_with_lines, message
 ):
@@ -4169,7 +4188,10 @@ def test_order_query_with_filter_channels_with_one_channel(
 
 
 def test_order_query_with_filter_channels_without_channel(
-    orders_query_with_filter, staff_api_client, permission_manage_orders, orders,
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    orders,
 ):
     # given
     variables = {"filter": {"channels": []}}

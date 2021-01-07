@@ -755,7 +755,10 @@ query fulfillment($id: ID!){
 
 
 def test_fulfillment_query(
-    staff_api_client, fulfilled_order, warehouse, permission_manage_orders,
+    staff_api_client,
+    fulfilled_order,
+    warehouse,
+    permission_manage_orders,
 ):
     order = fulfilled_order
     order_line_1, order_line_2 = order.lines.all()

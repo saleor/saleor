@@ -14,7 +14,8 @@ def update_groups_with_manage_pages_with_new_permission(apps, schema_editor):
     Permission = apps.get_model("auth", "Permission")
 
     manage_page_types_and_attributes_perm = Permission.objects.filter(
-        codename="manage_page_types_and_attributes", content_type__app_label="page",
+        codename="manage_page_types_and_attributes",
+        content_type__app_label="page",
     ).first()
 
     groups = Group.objects.filter(

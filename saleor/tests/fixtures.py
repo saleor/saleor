@@ -186,7 +186,9 @@ def setup_vatlayer(settings):
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
     data = {
         "active": True,
-        "configuration": [{"name": "Access key", "value": "vatlayer_access_key"},],
+        "configuration": [
+            {"name": "Access key", "value": "vatlayer_access_key"},
+        ],
     }
     PluginConfiguration.objects.create(identifier=VatlayerPlugin.PLUGIN_ID, **data)
     return settings
@@ -326,7 +328,9 @@ def checkout_with_shipping_required(checkout_with_item, product):
 @pytest.fixture
 def other_shipping_method(shipping_zone, channel_USD):
     method = ShippingMethod.objects.create(
-        name="DPD", type=ShippingMethodType.PRICE_BASED, shipping_zone=shipping_zone,
+        name="DPD",
+        type=ShippingMethodType.PRICE_BASED,
+        shipping_zone=shipping_zone,
     )
     ShippingMethodChannelListing.objects.create(
         channel=channel_USD,
@@ -605,7 +609,9 @@ def shipping_zone(db, channel_USD):  # pylint: disable=W0613
         name="Europe", countries=[code for code, name in countries]
     )
     method = shipping_zone.shipping_methods.create(
-        name="DHL", type=ShippingMethodType.PRICE_BASED, shipping_zone=shipping_zone,
+        name="DHL",
+        type=ShippingMethodType.PRICE_BASED,
+        shipping_zone=shipping_zone,
     )
     ShippingMethodChannelListing.objects.create(
         channel=channel_USD,
@@ -626,10 +632,14 @@ def shipping_zones(db, channel_USD, channel_PLN):
         ]
     )
     method = shipping_zone_poland.shipping_methods.create(
-        name="DHL", type=ShippingMethodType.PRICE_BASED, shipping_zone=shipping_zone,
+        name="DHL",
+        type=ShippingMethodType.PRICE_BASED,
+        shipping_zone=shipping_zone,
     )
     second_method = shipping_zone_usa.shipping_methods.create(
-        name="DHL", type=ShippingMethodType.PRICE_BASED, shipping_zone=shipping_zone,
+        name="DHL",
+        type=ShippingMethodType.PRICE_BASED,
+        shipping_zone=shipping_zone,
     )
     ShippingMethodChannelListing.objects.bulk_create(
         [
@@ -668,7 +678,9 @@ def shipping_zones(db, channel_USD, channel_PLN):
 def shipping_zone_without_countries(db, channel_USD):  # pylint: disable=W0613
     shipping_zone = ShippingZone.objects.create(name="Europe", countries=[])
     method = shipping_zone.shipping_methods.create(
-        name="DHL", type=ShippingMethodType.PRICE_BASED, shipping_zone=shipping_zone,
+        name="DHL",
+        type=ShippingMethodType.PRICE_BASED,
+        shipping_zone=shipping_zone,
     )
     ShippingMethodChannelListing.objects.create(
         channel=channel_USD,
@@ -706,7 +718,9 @@ def shipping_method_excldued_by_zip_code(shipping_method):
 @pytest.fixture
 def shipping_method_channel_PLN(shipping_zone, channel_PLN):
     method = ShippingMethod.objects.create(
-        name="DHL", type=ShippingMethodType.PRICE_BASED, shipping_zone=shipping_zone,
+        name="DHL",
+        type=ShippingMethodType.PRICE_BASED,
+        shipping_zone=shipping_zone,
     )
     ShippingMethodChannelListing.objects.create(
         shipping_method=method,
@@ -1111,7 +1125,9 @@ def product_with_collections(
 @pytest.fixture
 def product_available_in_many_channels(product, channel_PLN):
     ProductChannelListing.objects.create(
-        product=product, channel=channel_PLN, is_published=True,
+        product=product,
+        channel=channel_PLN,
+        is_published=True,
     )
     variant = product.variants.get()
     ProductVariantChannelListing.objects.create(
@@ -1169,7 +1185,11 @@ def product_with_two_variants(product_type, category, warehouse, channel_USD):
     )
 
     variants = [
-        ProductVariant(product=product, sku=f"Product variant #{i}",) for i in (1, 2)
+        ProductVariant(
+            product=product,
+            sku=f"Product variant #{i}",
+        )
+        for i in (1, 2)
     ]
     ProductVariant.objects.bulk_create(variants)
     variants_channel_listing = [
@@ -1185,7 +1205,11 @@ def product_with_two_variants(product_type, category, warehouse, channel_USD):
     ProductVariantChannelListing.objects.bulk_create(variants_channel_listing)
     Stock.objects.bulk_create(
         [
-            Stock(warehouse=warehouse, product_variant=variant, quantity=10,)
+            Stock(
+                warehouse=warehouse,
+                product_variant=variant,
+                quantity=10,
+            )
             for variant in variants
         ]
     )
@@ -1267,7 +1291,10 @@ def product_with_variant_with_file_attribute(
         available_for_purchase=datetime.date(1999, 1, 1),
     )
 
-    variant = ProductVariant.objects.create(product=product, sku="prodVarTest",)
+    variant = ProductVariant.objects.create(
+        product=product,
+        sku="prodVarTest",
+    )
     ProductVariantChannelListing.objects.create(
         variant=variant,
         channel=channel_USD,
@@ -1356,7 +1383,9 @@ def variant_without_inventory_tracking(
         available_for_purchase=datetime.date.today(),
     )
     variant = ProductVariant.objects.create(
-        product=product, sku="tracking123", track_inventory=False,
+        product=product,
+        sku="tracking123",
+        track_inventory=False,
     )
     ProductVariantChannelListing.objects.create(
         variant=variant,
@@ -1717,13 +1746,19 @@ def product_list_with_many_channels(product_list, channel_PLN):
     ProductChannelListing.objects.bulk_create(
         [
             ProductChannelListing(
-                product=product_list[0], channel=channel_PLN, is_published=True,
+                product=product_list[0],
+                channel=channel_PLN,
+                is_published=True,
             ),
             ProductChannelListing(
-                product=product_list[1], channel=channel_PLN, is_published=True,
+                product=product_list[1],
+                channel=channel_PLN,
+                is_published=True,
             ),
             ProductChannelListing(
-                product=product_list[2], channel=channel_PLN, is_published=True,
+                product=product_list[2],
+                channel=channel_PLN,
+                is_published=True,
             ),
         ]
     )
@@ -1805,7 +1840,10 @@ def unavailable_product_with_variant(product_type, category, warehouse, channel_
     variant_attr = product_type.variant_attributes.first()
     variant_attr_value = variant_attr.values.first()
 
-    variant = ProductVariant.objects.create(product=product, sku="123",)
+    variant = ProductVariant.objects.create(
+        product=product,
+        sku="123",
+    )
     ProductVariantChannelListing.objects.create(
         variant=variant,
         channel=channel_USD,
@@ -1870,7 +1908,8 @@ def voucher_with_many_channels(voucher, channel_PLN):
 @pytest.fixture
 def voucher_percentage(channel_USD):
     voucher = Voucher.objects.create(
-        code="saleor", discount_value_type=DiscountValueType.PERCENTAGE,
+        code="saleor",
+        discount_value_type=DiscountValueType.PERCENTAGE,
     )
     VoucherChannelListing.objects.create(
         voucher=voucher,
@@ -2286,7 +2325,9 @@ def order_with_lines_channel_PLN(
     order.shipping_address = order.billing_address.get_copy()
     order.channel = channel_PLN
     shipping_method = shipping_method_channel_PLN
-    shipping_price = shipping_method.channel_listings.get(channel_id=channel_PLN.id,)
+    shipping_price = shipping_method.channel_listings.get(
+        channel_id=channel_PLN.id,
+    )
     order.shipping_method_name = shipping_method.name
     order.shipping_method = shipping_method
 
@@ -2659,7 +2700,9 @@ def permission_group_manage_users(permission_manage_users, staff_users):
 @pytest.fixture
 def collection(db):
     collection = Collection.objects.create(
-        name="Collection", slug="collection", description="Test description",
+        name="Collection",
+        slug="collection",
+        description="Test description",
     )
     return collection
 
@@ -2667,7 +2710,9 @@ def collection(db):
 @pytest.fixture
 def published_collection(db, channel_USD):
     collection = Collection.objects.create(
-        name="Collection USD", slug="collection-usd", description="Test description",
+        name="Collection USD",
+        slug="collection-usd",
+        description="Test description",
     )
     CollectionChannelListing.objects.create(
         channel=channel_USD,
@@ -2681,7 +2726,9 @@ def published_collection(db, channel_USD):
 @pytest.fixture
 def published_collection_PLN(db, channel_PLN):
     collection = Collection.objects.create(
-        name="Collection PLN", slug="collection-pln", description="Test description",
+        name="Collection PLN",
+        slug="collection-pln",
+        description="Test description",
     )
     CollectionChannelListing.objects.create(
         channel=channel_PLN,
@@ -2708,7 +2755,9 @@ def unpublished_collection(db, channel_USD):
 @pytest.fixture
 def unpublished_collection_PLN(db, channel_PLN):
     collection = Collection.objects.create(
-        name="Collection", slug="collection", description="Test description",
+        name="Collection",
+        slug="collection",
+        description="Test description",
     )
     CollectionChannelListing.objects.create(
         channel=channel_PLN, collection=collection, is_published=False
@@ -3072,7 +3121,9 @@ def digital_content(category, media_root, warehouse, channel_USD) -> DigitalCont
         currency=channel_USD.currency_code,
     )
     Stock.objects.create(
-        product_variant=product_variant, warehouse=warehouse, quantity=5,
+        product_variant=product_variant,
+        warehouse=warehouse,
+        quantity=5,
     )
 
     assert product_variant.is_digital()
@@ -3415,7 +3466,8 @@ def allocations(order_list, stock, channel_USD):
 @pytest.fixture
 def app_installation():
     app_installation = AppInstallation.objects.create(
-        app_name="External App", manifest_url="http://localhost:3000/manifest",
+        app_name="External App",
+        manifest_url="http://localhost:3000/manifest",
     )
     return app_installation
 
@@ -3438,10 +3490,18 @@ def export_file_list(staff_user):
         ExportFile.objects.bulk_create(
             [
                 ExportFile(user=staff_user),
-                ExportFile(user=staff_user,),
-                ExportFile(user=staff_user, status=JobStatus.SUCCESS,),
+                ExportFile(
+                    user=staff_user,
+                ),
+                ExportFile(
+                    user=staff_user,
+                    status=JobStatus.SUCCESS,
+                ),
                 ExportFile(user=staff_user, status=JobStatus.SUCCESS),
-                ExportFile(user=staff_user, status=JobStatus.FAILED,),
+                ExportFile(
+                    user=staff_user,
+                    status=JobStatus.FAILED,
+                ),
             ]
         )
     )

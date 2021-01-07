@@ -19,8 +19,8 @@ def resolve_object_with_metadata_type(instance: ModelWithMetadata):
     from ...invoice import models as invoice_models
     from ...menu import models as menu_models
     from ..account import types as account_types
-    from ..attribute import types as attribute_types
     from ..app import types as app_types
+    from ..attribute import types as attribute_types
     from ..checkout import types as checkout_types
     from ..invoice import types as invoice_types
     from ..menu import types as menu_types
@@ -55,7 +55,8 @@ def resolve_object_with_metadata_type(instance: ModelWithMetadata):
 
 def resolve_metadata(metadata: dict):
     return sorted(
-        [{"key": k, "value": v} for k, v in metadata.items()], key=itemgetter("key"),
+        [{"key": k, "value": v} for k, v in metadata.items()],
+        key=itemgetter("key"),
     )
 
 

@@ -162,7 +162,8 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         required=True,
         description="List of attributes assigned to this variant.",
         variant_selection=graphene.Argument(
-            VariantAttributeScope, description="Define scope of returned attributes.",
+            VariantAttributeScope,
+            description="Define scope of returned attributes.",
         ),
     )
     cost_price = graphene.Field(Money, description="Cost price of the variant.")
@@ -785,7 +786,8 @@ class ProductType(CountableDjangoObjectType):
         Attribute,
         description="Variant attributes of that product type.",
         variant_selection=graphene.Argument(
-            VariantAttributeScope, description="Define scope of returned attributes.",
+            VariantAttributeScope,
+            description="Define scope of returned attributes.",
         ),
     )
     product_attributes = graphene.List(
@@ -831,7 +833,9 @@ class ProductType(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_variant_attributes(
-        root: models.ProductType, info, variant_selection: Optional[str] = None,
+        root: models.ProductType,
+        info,
+        variant_selection: Optional[str] = None,
     ):
         def apply_variant_selection_filter(attributes):
             if not variant_selection or variant_selection == VariantAttributeScope.ALL:
@@ -1021,7 +1025,9 @@ class Category(CountableDjangoObjectType):
             qs = (
                 qs.published(channel)
                 .annotate_visible_in_listings(channel)
-                .exclude(visible_in_listings=False,)
+                .exclude(
+                    visible_in_listings=False,
+                )
             )
         if channel and requestor_has_access_to_all:
             qs = qs.filter(channel_listings__channel__slug=channel)

@@ -260,7 +260,8 @@ def test_warehouse_query_as_customer(user_api_client, warehouse):
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
 
     response = user_api_client.post_graphql(
-        QUERY_WAREHOUSE, variables={"id": warehouse_id},
+        QUERY_WAREHOUSE,
+        variables={"id": warehouse_id},
     )
 
     assert_no_permission(response)
@@ -535,7 +536,11 @@ def test_create_warehouse_creates_address(
 
 @pytest.mark.parametrize(
     "input_slug, expected_slug",
-    (("test-slug", "test-slug"), (None, "test-warehouse"), ("", "test-warehouse"),),
+    (
+        ("test-slug", "test-slug"),
+        (None, "test-warehouse"),
+        ("", "test-warehouse"),
+    ),
 )
 def test_create_warehouse_with_given_slug(
     staff_api_client, permission_manage_products, input_slug, expected_slug
@@ -689,7 +694,14 @@ def test_update_warehouse_slug_exists(
     "input_slug, expected_slug, input_name, expected_name, error_message, error_field",
     [
         ("test-slug", "test-slug", "New name", "New name", None, None),
-        ("test-slug", "test-slug", " stripped ", "stripped", None, None,),
+        (
+            "test-slug",
+            "test-slug",
+            " stripped ",
+            "stripped",
+            None,
+            None,
+        ),
         ("", "", "New name", "New name", "Slug value cannot be blank.", "slug"),
         (None, "", "New name", "New name", "Slug value cannot be blank.", "slug"),
         ("test-slug", "", None, None, "This field cannot be blank.", "name"),

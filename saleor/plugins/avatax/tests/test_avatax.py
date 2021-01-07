@@ -362,7 +362,11 @@ def test_calculate_order_shipping(
 
 @pytest.mark.vcr
 def test_calculate_order_line_unit(
-    order_line, shipping_zone, site_settings, address_usa, plugin_configuration,
+    order_line,
+    shipping_zone,
+    site_settings,
+    address_usa,
+    plugin_configuration,
 ):
     plugin_configuration()
     manager = get_plugins_manager(plugins=["saleor.plugins.avatax.plugin.AvataxPlugin"])
@@ -667,7 +671,12 @@ def test_get_order_line_tax_rate(
     order.save()
 
     # when
-    tax_rate = manager.get_order_line_tax_rate(order, product, None, unit_price,)
+    tax_rate = manager.get_order_line_tax_rate(
+        order,
+        product,
+        None,
+        unit_price,
+    )
 
     # then
     assert tax_rate == Decimal("0.055")
@@ -689,7 +698,12 @@ def test_get_order_line_tax_rate_order_not_valid_default_value_returned(
     product = Product.objects.get(name=order_line.product_name)
 
     # when
-    tax_rate = manager.get_order_line_tax_rate(order, product, None, unit_price,)
+    tax_rate = manager.get_order_line_tax_rate(
+        order,
+        product,
+        None,
+        unit_price,
+    )
 
     # then
     assert tax_rate == Decimal("0.25")
@@ -718,7 +732,12 @@ def test_get_order_line_tax_rate_error_in_response(
     order.save()
 
     # when
-    tax_rate = manager.get_order_line_tax_rate(order, product, None, unit_price,)
+    tax_rate = manager.get_order_line_tax_rate(
+        order,
+        product,
+        None,
+        unit_price,
+    )
 
     # then
     assert tax_rate == Decimal("0.25")
@@ -853,7 +872,8 @@ def test_get_checkout_shipping_tax_rate_skip_plugin(
         lambda *_: {"error": "Example error"},
     )
     monkeypatch.setattr(
-        "saleor.plugins.avatax.plugin.AvataxPlugin._skip_plugin", lambda *_: True,
+        "saleor.plugins.avatax.plugin.AvataxPlugin._skip_plugin",
+        lambda *_: True,
     )
     shipping_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
@@ -970,7 +990,8 @@ def test_get_order_shipping_tax_rate_skip_plugin(
         lambda *_: {"error": "Example error"},
     )
     monkeypatch.setattr(
-        "saleor.plugins.avatax.plugin.AvataxPlugin._skip_plugin", lambda *_: True,
+        "saleor.plugins.avatax.plugin.AvataxPlugin._skip_plugin",
+        lambda *_: True,
     )
     shipping_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
@@ -1210,7 +1231,9 @@ def test_api_get_request_handles_request_errors(product, monkeypatch):
     monkeypatch.setattr("saleor.plugins.avatax.requests.get", mocked_response)
 
     config = AvataxConfiguration(
-        username_or_account="test", password_or_license="test", use_sandbox=False,
+        username_or_account="test",
+        password_or_license="test",
+        use_sandbox=False,
     )
     url = "https://www.avatax.api.com/some-get-path"
 
@@ -1227,7 +1250,9 @@ def test_api_get_request_handles_json_errors(product, monkeypatch):
     monkeypatch.setattr("saleor.plugins.avatax.requests.get", mocked_response)
 
     config = AvataxConfiguration(
-        username_or_account="test", password_or_license="test", use_sandbox=False,
+        username_or_account="test",
+        password_or_license="test",
+        use_sandbox=False,
     )
     url = "https://www.avatax.api.com/some-get-path"
 
@@ -1244,7 +1269,9 @@ def test_api_post_request_handles_request_errors(product, monkeypatch):
     monkeypatch.setattr("saleor.plugins.avatax.requests.post", mocked_response)
 
     config = AvataxConfiguration(
-        username_or_account="test", password_or_license="test", use_sandbox=False,
+        username_or_account="test",
+        password_or_license="test",
+        use_sandbox=False,
     )
     url = "https://www.avatax.api.com/some-get-path"
 
@@ -1259,7 +1286,9 @@ def test_api_post_request_handles_json_errors(product, monkeypatch):
     monkeypatch.setattr("saleor.plugins.avatax.requests.post", mocked_response)
 
     config = AvataxConfiguration(
-        username_or_account="test", password_or_license="test", use_sandbox=False,
+        username_or_account="test",
+        password_or_license="test",
+        use_sandbox=False,
     )
     url = "https://www.avatax.api.com/some-get-path"
 
@@ -1286,7 +1315,9 @@ def test_get_order_request_data_checks_when_taxes_are_included_to_price(
     order_with_lines.save()
 
     config = AvataxConfiguration(
-        username_or_account="", password_or_license="", use_sandbox=False,
+        username_or_account="",
+        password_or_license="",
+        use_sandbox=False,
     )
     request_data = get_order_request_data(order_with_lines, config)
     lines_data = request_data["createTransactionModel"]["lines"]
@@ -1312,7 +1343,9 @@ def test_get_order_request_data_checks_when_taxes_are_not_included_to_price(
     order_with_lines.save()
 
     config = AvataxConfiguration(
-        username_or_account="", password_or_license="", use_sandbox=False,
+        username_or_account="",
+        password_or_license="",
+        use_sandbox=False,
     )
 
     request_data = get_order_request_data(order_with_lines, config)

@@ -39,7 +39,10 @@ class Migration(migrations.Migration):
                 blank=True, decimal_places=3, max_digits=12, null=True
             ),
         ),
-        migrations.RunPython(set_total_prices, migrations.RunPython.noop,),
+        migrations.RunPython(
+            set_total_prices,
+            migrations.RunPython.noop,
+        ),
         migrations.AlterField(
             model_name="orderline",
             name="total_price_gross_amount",

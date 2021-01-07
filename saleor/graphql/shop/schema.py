@@ -18,7 +18,9 @@ from .types import OrderSettings, Shop
 
 class ShopQueries(graphene.ObjectType):
     shop = graphene.Field(
-        Shop, description="Return information about the shop.", required=True,
+        Shop,
+        description="Return information about the shop.",
+        required=True,
     )
     order_settings = graphene.Field(
         OrderSettings, description="Order related settings from site settings."

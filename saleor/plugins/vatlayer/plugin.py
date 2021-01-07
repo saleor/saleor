@@ -33,14 +33,13 @@ if TYPE_CHECKING:
     from ...checkout import CheckoutLineInfo
     from ...checkout.models import Checkout, CheckoutLine
     from ...discount import DiscountInfo
+    from ...order.models import Order, OrderLine
     from ...product.models import (
         Collection,
         Product,
         ProductVariant,
         ProductVariantChannelListing,
     )
-    from ...account.models import Address
-    from ...order.models import OrderLine, Order
     from ..models import PluginConfiguration
 
 

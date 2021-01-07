@@ -58,7 +58,9 @@ def test_app_query(
     id = graphene.Node.to_global_id("App", app.id)
     variables = {"id": id}
     response = staff_api_client.post_graphql(
-        QUERY_APP, variables, permissions=[permission_manage_apps],
+        QUERY_APP,
+        variables,
+        permissions=[permission_manage_apps],
     )
     content = get_graphql_content(response)
 
@@ -107,7 +109,10 @@ def test_app_query_no_permission(
 
 
 def test_app_with_access_to_resources(
-    app_api_client, app, permission_manage_orders, order_with_lines,
+    app_api_client,
+    app,
+    permission_manage_orders,
+    order_with_lines,
 ):
     query = """
       query {

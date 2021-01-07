@@ -328,7 +328,8 @@ def assign_attributes_to_product_types(
 
 
 def assign_attributes_to_page_types(
-    association_model: AttributePage, attributes: list,
+    association_model: AttributePage,
+    attributes: list,
 ):
     for value in attributes:
         pk = value["pk"]
@@ -700,7 +701,8 @@ def create_fake_order(discounts, max_order_lines=5):
 
 def create_fake_sale():
     sale = Sale.objects.create(
-        name="Happy %s day!" % fake.word(), type=DiscountValueType.PERCENTAGE,
+        name="Happy %s day!" % fake.word(),
+        type=DiscountValueType.PERCENTAGE,
     )
     for channel in Channel.objects.all():
         SaleChannelListing.objects.create(
@@ -806,7 +808,8 @@ def create_channels():
         slug=settings.DEFAULT_CHANNEL_SLUG,
     )
     yield create_channel(
-        channel_name="Channel-PLN", currency_code="PLN",
+        channel_name="Channel-PLN",
+        currency_code="PLN",
     )
 
 

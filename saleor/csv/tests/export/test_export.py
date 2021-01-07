@@ -25,7 +25,8 @@ from ...utils.export import (
 
 
 @pytest.mark.parametrize(
-    "file_type", [FileTypes.CSV, FileTypes.XLSX],
+    "file_type",
+    [FileTypes.CSV, FileTypes.XLSX],
 )
 @patch("saleor.csv.utils.export.create_file_with_headers")
 @patch("saleor.csv.utils.export.export_products_in_batches")
@@ -111,7 +112,14 @@ def test_export_products_ids(
     assert set(args[0].values_list("pk", flat=True)) == set(
         Product.objects.filter(pk__in=pks).values_list("pk", flat=True)
     )
-    assert args[1:] == (export_info, {"id"}, ["id"], ";", mock_file, file_type,)
+    assert args[1:] == (
+        export_info,
+        {"id"},
+        ["id"],
+        ";",
+        mock_file,
+        file_type,
+    )
     send_email_mock.assert_called_once_with(
         user_export_file, user_export_file.user.email, "export_products_success"
     )
@@ -163,7 +171,14 @@ def test_export_products_filter_is_published(
             channel_listings__is_published=True, channel_listings__channel=channel_USD
         ).values_list("pk", flat=True)
     )
-    assert args[1:] == (export_info, {"id"}, ["id"], ";", mock_file, file_type,)
+    assert args[1:] == (
+        export_info,
+        {"id"},
+        ["id"],
+        ";",
+        mock_file,
+        file_type,
+    )
     send_email_mock.assert_called_once_with(
         user_export_file, user_export_file.user.email, "export_products_success"
     )
@@ -444,7 +459,10 @@ def test_append_to_file_for_xlsx(user_export_file, tmpdir, media_root):
 
 @patch("saleor.csv.utils.export.BATCH_SIZE", 1)
 def test_export_products_in_batches_for_csv(
-    product_list, user_export_file, tmpdir, media_root,
+    product_list,
+    user_export_file,
+    tmpdir,
+    media_root,
 ):
     # given
     qs = Product.objects.all()
@@ -498,7 +516,10 @@ def test_export_products_in_batches_for_csv(
 
 @patch("saleor.csv.utils.export.BATCH_SIZE", 1)
 def test_export_products_in_batches_for_xlsx(
-    product_list, user_export_file, tmpdir, media_root,
+    product_list,
+    user_export_file,
+    tmpdir,
+    media_root,
 ):
     # given
     qs = Product.objects.all()

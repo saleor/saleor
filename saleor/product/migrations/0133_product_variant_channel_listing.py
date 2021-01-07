@@ -55,7 +55,12 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
-                ("currency", models.CharField(max_length=3,),),
+                (
+                    "currency",
+                    models.CharField(
+                        max_length=3,
+                    ),
+                ),
                 ("price_amount", models.DecimalField(decimal_places=3, max_digits=12)),
                 (
                     "channel",
@@ -83,7 +88,16 @@ class Migration(migrations.Migration):
             options={"ordering": ("pk",), "unique_together": {("variant", "channel")}},
         ),
         migrations.RunPython(migrate_variant_price_data),
-        migrations.RemoveField(model_name="productvariant", name="price_amount",),
-        migrations.RemoveField(model_name="productvariant", name="cost_price_amount",),
-        migrations.RemoveField(model_name="productvariant", name="currency",),
+        migrations.RemoveField(
+            model_name="productvariant",
+            name="price_amount",
+        ),
+        migrations.RemoveField(
+            model_name="productvariant",
+            name="cost_price_amount",
+        ),
+        migrations.RemoveField(
+            model_name="productvariant",
+            name="currency",
+        ),
     ]
