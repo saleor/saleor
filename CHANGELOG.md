@@ -4,6 +4,11 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+# 2.11.5
+
+- Fix duplicated products in `Collection.products` query - #6666 by @d-wysocki
+- Deprecate description field - #6688 by @d-wysocki
+
 # 2.11.4
 
 - Change `graphql.errors.handled` logger level to INFO - #6566 by @maarcingebala
