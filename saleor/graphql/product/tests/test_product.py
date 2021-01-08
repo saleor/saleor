@@ -5182,13 +5182,63 @@ def test_product_update_variants_names(mock__update_variants_names, product_type
     assert mock__update_variants_names.call_count == 1
 
 
-def test_product_variants_by_ids(user_api_client, variant, channel_USD):
+def test_product_variants_by_ids(staff_api_client, variant, channel_USD):
     query = """
         query getProduct($ids: [ID!], $channel: String) {
             productVariants(ids: $ids, first: 1, channel: $channel) {
                 edges {
                     node {
                         id
+                        name
+                        sku
+                        channelListings {
+                            channel {
+                                id
+                                isActive
+                                name
+                                currencyCode
+                            }
+                            price {
+                                amount
+                                currency
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    """
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    variables = {"ids": [variant_id], "channel": channel_USD.slug}
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["productVariants"]
+    assert data["edges"][0]["node"]["id"] == variant_id
+    assert len(data["edges"]) == 1
+
+
+def test_product_variants_by_customer(user_api_client, variant, channel_USD):
+    query = """
+        query getProduct($ids: [ID!], $channel: String) {
+            productVariants(ids: $ids, first: 1, channel: $channel) {
+                edges {
+                    node {
+                        id
+                        name
+                        sku
+                        channelListings {
+                            channel {
+                                id
+                                isActive
+                                name
+                                currencyCode
+                            }
+                            price {
+                                amount
+                                currency
+                            }
+                        }
                     }
                 }
             }
@@ -5198,10 +5248,7 @@ def test_product_variants_by_ids(user_api_client, variant, channel_USD):
 
     variables = {"ids": [variant_id], "channel": channel_USD.slug}
     response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["productVariants"]
-    assert data["edges"][0]["node"]["id"] == variant_id
-    assert len(data["edges"]) == 1
+    assert_no_permission(response)
 
 
 def test_product_variants_no_ids_list(user_api_client, variant, channel_USD):

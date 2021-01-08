@@ -140,7 +140,6 @@ QUERY_PRODUCT_VARIANT_CHANNEL_LISTING = """
 def test_get_product_variant_channel_listing_as_staff_user(
     staff_api_client,
     product_available_in_many_channels,
-    permission_manage_products,
     channel_USD,
 ):
     # given
@@ -152,7 +151,6 @@ def test_get_product_variant_channel_listing_as_staff_user(
     response = staff_api_client.post_graphql(
         QUERY_PRODUCT_VARIANT_CHANNEL_LISTING,
         variables,
-        permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
 
@@ -177,7 +175,6 @@ def test_get_product_variant_channel_listing_as_staff_user(
 def test_get_product_variant_channel_listing_as_app(
     app_api_client,
     product_available_in_many_channels,
-    permission_manage_products,
     channel_USD,
 ):
     # given
@@ -189,7 +186,6 @@ def test_get_product_variant_channel_listing_as_app(
     response = app_api_client.post_graphql(
         QUERY_PRODUCT_VARIANT_CHANNEL_LISTING,
         variables,
-        permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
 

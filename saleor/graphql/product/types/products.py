@@ -39,7 +39,11 @@ from ...core.fields import (
     PrefetchingConnectionField,
 )
 from ...core.types import Image, Money, TaxedMoney, TaxedMoneyRange, TaxType
-from ...decorators import one_of_permissions_required, permission_required
+from ...decorators import (
+    one_of_permissions_required,
+    permission_required,
+    staff_member_or_app_required,
+)
 from ...discount.dataloaders import DiscountsByDateTimeLoader
 from ...meta.types import ObjectWithMetadata
 from ...order.dataloaders import (
@@ -282,7 +286,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         )
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
+    @staff_member_or_app_required
     def resolve_channel_listings(
         root: ChannelContext[models.ProductVariant], info, **_kwargs
     ):
