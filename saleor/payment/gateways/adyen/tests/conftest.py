@@ -11,6 +11,13 @@ from ....utils import create_payment
 from ..plugin import AdyenGatewayPlugin
 
 
+@pytest.fixture(scope="module")
+def vcr_config():
+    return {
+        "filter_headers": [("x-api-key", "test_key")],
+    }
+
+
 @pytest.fixture
 def adyen_plugin(settings):
     def fun(
@@ -153,4 +160,15 @@ def notification_with_hmac_signature():
         "pspReference": "test_AUTHORISATION_4",
         "reason": "REFUSED",
         "success": "false",
+    }
+
+
+@pytest.fixture
+def adyen_payment_method():
+    return {
+        "type": "scheme",
+        "encryptedCardNumber": "test_4646464646464644",
+        "encryptedExpiryMonth": "test_03",
+        "encryptedExpiryYear": "test_2030",
+        "encryptedSecurityCode": "test_737",
     }
