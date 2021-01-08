@@ -425,6 +425,10 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
 @key(fields="id")
 class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
+    description_json = graphene.String(
+        description="Description of the product (JSON).",
+        deprecation_reason="Use the `description` field instead.",
+    )
     url = graphene.String(
         description="The storefront URL for the product.",
         required=True,
@@ -492,7 +496,6 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             "category",
             "charge_taxes",
             "description",
-            "description_json",
             "id",
             "name",
             "slug",
@@ -878,6 +881,10 @@ class ProductType(CountableDjangoObjectType):
 
 @key(fields="id")
 class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
+    description_json = graphene.String(
+        description="Description of the collection (JSON).",
+        deprecation_reason="Use the `description` field instead.",
+    )
     products = ChannelContextFilterConnectionField(
         Product,
         filter=ProductFilterInput(description="Filtering options for products."),
@@ -902,7 +909,6 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         description = "Represents a collection of products."
         only_fields = [
             "description",
-            "description_json",
             "id",
             "name",
             "seo_description",
@@ -946,6 +952,10 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
 @key(fields="id")
 class Category(CountableDjangoObjectType):
+    description_json = graphene.String(
+        description="Description of the category (JSON).",
+        deprecation_reason="Use the `description` field instead.",
+    )
     ancestors = PrefetchingConnectionField(
         lambda: Category, description="List of ancestors of the category."
     )
@@ -976,7 +986,6 @@ class Category(CountableDjangoObjectType):
         )
         only_fields = [
             "description",
-            "description_json",
             "id",
             "level",
             "name",

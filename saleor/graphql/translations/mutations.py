@@ -53,8 +53,7 @@ class SeoTranslationInput(graphene.InputObjectType):
 
 
 class TranslationInput(NameTranslationInput, SeoTranslationInput):
-    description = graphene.String()
-    description_json = graphene.JSONString()
+    description = graphene.JSONString()
 
 
 class CategoryTranslate(BaseTranslateMutation):

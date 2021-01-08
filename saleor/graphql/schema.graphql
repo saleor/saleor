@@ -668,12 +668,12 @@ type Category implements Node & ObjectWithMetadata {
   id: ID!
   name: String!
   description: JSONString!
-  descriptionJson: JSONString!
   slug: String!
   parent: Category
   level: Int!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
+  descriptionJson: String @deprecated(reason: "Use the `description` field instead.")
   ancestors(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   products(channel: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   url: String @deprecated(reason: "This field will be removed after 2020-07-31.")
@@ -717,8 +717,7 @@ input CategoryFilterInput {
 }
 
 input CategoryInput {
-  description: String
-  descriptionJson: JSONString
+  description: JSONString
   name: String
   slug: String
   seo: SeoInput
@@ -744,7 +743,7 @@ type CategoryTranslatableContent implements Node {
   id: ID!
   name: String!
   description: JSONString!
-  descriptionJson: JSONString!
+  descriptionJson: String @deprecated(reason: "Use the `description` field instead.")
   translation(languageCode: LanguageCodeEnum!): CategoryTranslation
   category: Category
 }
@@ -761,8 +760,8 @@ type CategoryTranslation implements Node {
   id: ID!
   name: String!
   description: JSONString!
-  descriptionJson: JSONString!
   language: LanguageDisplay!
+  descriptionJson: String @deprecated(reason: "Use the `description` field instead.")
 }
 
 type CategoryUpdate {
@@ -1048,10 +1047,10 @@ type Collection implements Node & ObjectWithMetadata {
   id: ID!
   name: String!
   description: JSONString!
-  descriptionJson: JSONString!
   slug: String!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
+  descriptionJson: String @deprecated(reason: "Use the `description` field instead.")
   products(filter: ProductFilterInput, sortBy: ProductOrder, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   backgroundImage(size: Int): Image
   translation(languageCode: LanguageCodeEnum!): CollectionTranslation
@@ -1117,8 +1116,7 @@ input CollectionCreateInput {
   isPublished: Boolean
   name: String
   slug: String
-  description: String
-  descriptionJson: JSONString
+  description: JSONString
   backgroundImage: Upload
   backgroundImageAlt: String
   seo: SeoInput
@@ -1160,8 +1158,7 @@ input CollectionInput {
   isPublished: Boolean
   name: String
   slug: String
-  description: String
-  descriptionJson: JSONString
+  description: JSONString
   backgroundImage: Upload
   backgroundImageAlt: String
   seo: SeoInput
@@ -1204,7 +1201,7 @@ type CollectionTranslatableContent implements Node {
   id: ID!
   name: String!
   description: JSONString!
-  descriptionJson: JSONString!
+  descriptionJson: String @deprecated(reason: "Use the `description` field instead.")
   translation(languageCode: LanguageCodeEnum!): CollectionTranslation
   collection: Collection
 }
@@ -1221,8 +1218,8 @@ type CollectionTranslation implements Node {
   id: ID!
   name: String!
   description: JSONString!
-  descriptionJson: JSONString!
   language: LanguageDisplay!
+  descriptionJson: String @deprecated(reason: "Use the `description` field instead.")
 }
 
 type CollectionUpdate {
@@ -3220,7 +3217,6 @@ type Page implements Node & ObjectWithMetadata {
   id: ID!
   title: String!
   content: JSONString!
-  contentJson: JSONString!
   publicationDate: Date
   isPublished: Boolean!
   slug: String!
@@ -3228,6 +3224,7 @@ type Page implements Node & ObjectWithMetadata {
   created: DateTime!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
+  contentJson: String! @deprecated(reason: "Use the `content` field instead.")
   translation(languageCode: LanguageCodeEnum!): PageTranslation
   attributes: [SelectedAttribute!]!
 }
@@ -3276,8 +3273,7 @@ type PageCreate {
 input PageCreateInput {
   slug: String
   title: String
-  content: String
-  contentJson: JSONString
+  content: JSONString
   attributes: [AttributeValueInput!]
   isPublished: Boolean
   publicationDate: String
@@ -3322,8 +3318,7 @@ type PageInfo {
 input PageInput {
   slug: String
   title: String
-  content: String
-  contentJson: JSONString
+  content: JSONString
   attributes: [AttributeValueInput!]
   isPublished: Boolean
   publicationDate: String
@@ -3349,7 +3344,7 @@ type PageTranslatableContent implements Node {
   id: ID!
   title: String!
   content: JSONString!
-  contentJson: JSONString!
+  contentJson: String @deprecated(reason: "Use the `content` field instead.")
   translation(languageCode: LanguageCodeEnum!): PageTranslation
   page: Page
 }
@@ -3366,8 +3361,8 @@ type PageTranslation implements Node {
   id: ID!
   title: String!
   content: JSONString!
-  contentJson: JSONString!
   language: LanguageDisplay!
+  contentJson: String @deprecated(reason: "Use the `content` field instead.")
 }
 
 input PageTranslationInput {
@@ -3744,7 +3739,6 @@ type Product implements Node & ObjectWithMetadata {
   seoDescription: String
   name: String!
   description: JSONString!
-  descriptionJson: JSONString!
   productType: ProductType!
   slug: String!
   category: Category
@@ -3755,6 +3749,7 @@ type Product implements Node & ObjectWithMetadata {
   rating: Float
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
+  descriptionJson: String @deprecated(reason: "Use the `description` field instead.")
   url: String! @deprecated(reason: "This field will be removed after 2020-07-31.")
   thumbnail(size: Int): Image
   pricing: ProductPricingInfo
@@ -3863,8 +3858,7 @@ input ProductCreateInput {
   category: ID
   chargeTaxes: Boolean
   collections: [ID]
-  description: String
-  descriptionJson: JSONString
+  description: JSONString
   name: String
   slug: String
   taxCode: String
@@ -3994,8 +3988,7 @@ input ProductInput {
   category: ID
   chargeTaxes: Boolean
   collections: [ID]
-  description: String
-  descriptionJson: JSONString
+  description: JSONString
   name: String
   slug: String
   taxCode: String
@@ -4043,7 +4036,7 @@ type ProductTranslatableContent implements Node {
   seoDescription: String
   name: String!
   description: JSONString!
-  descriptionJson: JSONString!
+  descriptionJson: String @deprecated(reason: "Use the `description` field instead.")
   translation(languageCode: LanguageCodeEnum!): ProductTranslation
   product: Product
 }
@@ -4060,8 +4053,8 @@ type ProductTranslation implements Node {
   seoDescription: String
   name: String!
   description: JSONString!
-  descriptionJson: JSONString!
   language: LanguageDisplay!
+  descriptionJson: String @deprecated(reason: "Use the `description` field instead.")
 }
 
 type ProductType implements Node & ObjectWithMetadata {
@@ -5221,8 +5214,7 @@ input TranslationInput {
   seoTitle: String
   seoDescription: String
   name: String
-  description: String
-  descriptionJson: JSONString
+  description: JSONString
 }
 
 scalar UUID

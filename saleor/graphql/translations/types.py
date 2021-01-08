@@ -22,7 +22,6 @@ EXTENDED_TRANSLATABLE_FIELDS = [
     "id",
     "name",
     "description",
-    "description_json",
     "seo_title",
     "seo_description",
 ]
@@ -130,6 +129,11 @@ class ProductVariantTranslatableContent(CountableDjangoObjectType):
 
 
 class ProductTranslation(BaseTranslationType):
+    description_json = graphene.String(
+        description="Translated description of the product (JSON).",
+        deprecation_reason="Use the `description` field instead.",
+    )
+
     class Meta:
         model = product_models.ProductTranslation
         interfaces = [graphene.relay.Node]
@@ -137,6 +141,10 @@ class ProductTranslation(BaseTranslationType):
 
 
 class ProductTranslatableContent(CountableDjangoObjectType):
+    description_json = graphene.String(
+        description="Description of the product (JSON).",
+        deprecation_reason="Use the `description` field instead.",
+    )
     translation = TranslationField(ProductTranslation, type_name="product")
     product = graphene.Field(
         "saleor.graphql.product.types.products.Product",
@@ -154,6 +162,11 @@ class ProductTranslatableContent(CountableDjangoObjectType):
 
 
 class CollectionTranslation(BaseTranslationType):
+    description_json = graphene.String(
+        description="Translated description of the product (JSON).",
+        deprecation_reason="Use the `description` field instead.",
+    )
+
     class Meta:
         model = product_models.CollectionTranslation
         interfaces = [graphene.relay.Node]
@@ -161,6 +174,10 @@ class CollectionTranslation(BaseTranslationType):
 
 
 class CollectionTranslatableContent(CountableDjangoObjectType):
+    description_json = graphene.String(
+        description="Description of the collection (JSON).",
+        deprecation_reason="Use the `description` field instead.",
+    )
     translation = TranslationField(CollectionTranslation, type_name="collection")
     collection = graphene.Field(
         "saleor.graphql.product.types.products.Collection",
@@ -181,6 +198,11 @@ class CollectionTranslatableContent(CountableDjangoObjectType):
 
 
 class CategoryTranslation(BaseTranslationType):
+    description_json = graphene.String(
+        description="Translated description of the product (JSON).",
+        deprecation_reason="Use the `description` field instead.",
+    )
+
     class Meta:
         model = product_models.CategoryTranslation
         interfaces = [graphene.relay.Node]
@@ -188,6 +210,10 @@ class CategoryTranslation(BaseTranslationType):
 
 
 class CategoryTranslatableContent(CountableDjangoObjectType):
+    description_json = graphene.String(
+        description="Description of the category (JSON).",
+        deprecation_reason="Use the `description` field instead.",
+    )
     translation = TranslationField(CategoryTranslation, type_name="category")
     category = graphene.Field(
         "saleor.graphql.product.types.products.Category",
@@ -205,12 +231,16 @@ class CategoryTranslatableContent(CountableDjangoObjectType):
 
 
 class PageTranslation(BaseTranslationType):
+    content_json = graphene.String(
+        description="Translated description of the page (JSON).",
+        deprecation_reason="Use the `content` field instead.",
+    )
+
     class Meta:
         model = page_models.PageTranslation
         interfaces = [graphene.relay.Node]
         only_fields = [
             "content",
-            "content_json",
             "id",
             "seo_description",
             "seo_title",
@@ -219,6 +249,10 @@ class PageTranslation(BaseTranslationType):
 
 
 class PageTranslatableContent(CountableDjangoObjectType):
+    content_json = graphene.String(
+        description="Content of the page (JSON).",
+        deprecation_reason="Use the `content` field instead.",
+    )
     translation = TranslationField(PageTranslation, type_name="page")
     page = graphene.Field(
         "saleor.graphql.page.types.Page",
@@ -233,7 +267,6 @@ class PageTranslatableContent(CountableDjangoObjectType):
         interfaces = [graphene.relay.Node]
         only_fields = [
             "content",
-            "content_json",
             "id",
             "seo_description",
             "seo_title",
