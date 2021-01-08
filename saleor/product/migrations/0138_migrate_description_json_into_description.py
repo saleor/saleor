@@ -59,7 +59,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(clean_description_field, migrations.RunPython.noop,),
+        migrations.RunPython(
+            clean_description_field,
+            migrations.RunPython.noop,
+        ),
         migrations.AlterField(
             model_name="category",
             name="description",
@@ -115,6 +118,7 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.RunPython(
-            migrate_description_json_into_description_field, migrations.RunPython.noop,
+            migrate_description_json_into_description_field,
+            migrations.RunPython.noop,
         ),
     ]
