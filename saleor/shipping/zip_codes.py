@@ -86,14 +86,10 @@ def check_shipping_method_for_zip_code(customer_shipping_address, method):
     country = customer_shipping_address.country.code
     postal_code = customer_shipping_address.postal_code
     zip_code_rules = method.zip_code_rules.all()
-    if not zip_code_rules:
-        return {}
-    results = {}
-    for zip_code_rule in zip_code_rules:
-        results[zip_code_rule] = check_zip_code_in_range(
-            country, postal_code, zip_code_rule.start, zip_code_rule.end
-        )
-    return results
+    return {
+        rule: check_zip_code_in_range(country, postal_code, rule.start, rule.end)
+        for rule in zip_code_rules
+    }
 
 
 def is_shipping_method_applicable_for_zip_code(
