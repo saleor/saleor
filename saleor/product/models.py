@@ -170,10 +170,6 @@ class ProductsQueryset(models.QuerySet):
             return self.all()
         return self.published_with_variants(channel_slug)
 
-    @staticmethod
-    def user_has_access_to_all(user):
-        return user.is_active and user.has_perm(ProductPermissions.MANAGE_PRODUCTS)
-
     def annotate_publication_info(self, channel_slug: str):
         return self.annotate_is_published(channel_slug).annotate_publication_date(
             channel_slug
@@ -670,10 +666,6 @@ class CollectionProduct(SortableModel):
 
 
 class CollectionsQueryset(models.QuerySet):
-    @staticmethod
-    def user_has_access_to_all(user):
-        return user.is_active and user.has_perm(ProductPermissions.MANAGE_PRODUCTS)
-
     def published(self, channel_slug: str):
         today = datetime.date.today()
         return self.filter(

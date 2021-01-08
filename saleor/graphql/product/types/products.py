@@ -677,12 +677,10 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     @staticmethod
     def resolve_collections(root: ChannelContext[models.Product], info, **_kwargs):
         requestor = get_user_or_app_from_context(info.context)
-        requestor_has_access_to_all = models.Collection.objects.user_has_access_to_all(
-            requestor
-        )
+        staff_member = requestor_is_staff_member(requestor)
 
         def return_collections(collections):
-            if requestor_has_access_to_all:
+            if staff_member:
                 return [
                     ChannelContext(node=collection, channel_slug=root.channel_slug)
                     for collection in collections

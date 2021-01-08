@@ -4,7 +4,7 @@ from ...account.utils import requestor_is_staff_member
 from ...order import OrderStatus
 from ...product import models
 from ..channel import ChannelQsContext
-from ..utils import get_database_id
+from ..utils import get_database_id, get_user_or_app_from_context
 from ..utils.filters import filter_by_period
 from .filters import filter_products_by_stock_availability
 
@@ -37,8 +37,8 @@ def resolve_collection_by_slug(info, slug, channel_slug, requestor):
 
 
 def resolve_collections(info, channel_slug):
-    user = info.context.user
-    qs = models.Collection.objects.visible_to_user(user, channel_slug)
+    requestor = get_user_or_app_from_context(info.context)
+    qs = models.Collection.objects.visible_to_user(requestor, channel_slug)
 
     return ChannelQsContext(qs=qs, channel_slug=channel_slug)
 

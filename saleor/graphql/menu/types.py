@@ -1,9 +1,9 @@
 import graphene
 from graphene import relay
 
+from ...account.utils import requestor_is_staff_member
 from ...core.permissions import PagePermissions
 from ...menu import models
-from ...product.models import Collection
 from ..channel.dataloaders import ChannelBySlugLoader
 from ..channel.types import (
     ChannelContext,
@@ -104,10 +104,8 @@ class MenuItem(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             return None
 
         requestor = get_user_or_app_from_context(info.context)
-        requestor_has_access_to_all = Collection.objects.user_has_access_to_all(
-            requestor
-        )
-        if requestor_has_access_to_all:
+        staff_member = requestor_is_staff_member(requestor)
+        if staff_member:
             return (
                 CollectionByIdLoader(info.context)
                 .load(root.node.collection_id)
