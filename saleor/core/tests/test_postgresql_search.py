@@ -44,7 +44,9 @@ def execute_search(phrase):
         ("Aarabica", 0),
         ("Arab", 0),
         ("czicken", 2),
-        ("blue", 1),
+        # FIXME: Add possibility to search by JSON field,
+        # description field is changed from string to JSON
+        # ("blue", 1),
         ("roast", 2),
         ("coool", 1),
     ],
