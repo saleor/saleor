@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 from graphene import relay
 from promise import Promise
 
-from ...account.utils import requestor_is_staff_member
+from ...account.utils import requestor_is_staff_member_or_app
 from ...core.anonymize import obfuscate_address, obfuscate_email
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions, OrderPermissions, ProductPermissions
@@ -331,8 +331,8 @@ class OrderLine(CountableDjangoObjectType):
             variant, channel = data
 
             requester = get_user_or_app_from_context(context)
-            staff_member = requestor_is_staff_member(requester)
-            if staff_member:
+            is_staff = requestor_is_staff_member_or_app(requester)
+            if is_staff:
                 return ChannelContext(node=variant, channel_slug=channel.slug)
 
             def product_is_available(product_channel_listing):

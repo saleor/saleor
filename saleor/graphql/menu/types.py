@@ -1,7 +1,7 @@
 import graphene
 from graphene import relay
 
-from ...account.utils import requestor_is_staff_member
+from ...account.utils import requestor_is_staff_member_or_app
 from ...core.permissions import PagePermissions
 from ...menu import models
 from ..channel.dataloaders import ChannelBySlugLoader
@@ -104,8 +104,8 @@ class MenuItem(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             return None
 
         requestor = get_user_or_app_from_context(info.context)
-        staff_member = requestor_is_staff_member(requestor)
-        if staff_member:
+        is_staff = requestor_is_staff_member_or_app(requestor)
+        if is_staff:
             return (
                 CollectionByIdLoader(info.context)
                 .load(root.node.collection_id)

@@ -48,9 +48,9 @@ class PublishedQuerySet(models.QuerySet):
         )
 
     def visible_to_user(self, requestor):
-        from ..account.utils import requestor_is_staff_member
+        from ..account.utils import requestor_is_staff_member_or_app
 
-        if requestor_is_staff_member(requestor):
+        if requestor_is_staff_member_or_app(requestor):
             return self.all()
         return self.published()
 

@@ -1,6 +1,6 @@
 from django.db.models import Sum
 
-from ...account.utils import requestor_is_staff_member
+from ...account.utils import requestor_is_staff_member_or_app
 from ...order import OrderStatus
 from ...product import models
 from ..channel import ChannelQsContext
@@ -69,7 +69,7 @@ def resolve_products(
     qs = models.Product.objects.visible_to_user(requestor, channel_slug)
     if stock_availability:
         qs = filter_products_by_stock_availability(qs, stock_availability)
-    if not requestor_is_staff_member(requestor):
+    if not requestor_is_staff_member_or_app(requestor):
         qs = qs.annotate_visible_in_listings(channel_slug).exclude(
             visible_in_listings=False
         )

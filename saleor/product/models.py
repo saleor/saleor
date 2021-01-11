@@ -31,7 +31,7 @@ from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
-from ..account.utils import requestor_is_staff_member
+from ..account.utils import requestor_is_staff_member_or_app
 from ..channel.models import Channel
 from ..core.db.fields import SanitizedJSONField
 from ..core.models import ModelWithMetadata, PublishableModel, SortableModel
@@ -164,7 +164,7 @@ class ProductsQueryset(models.QuerySet):
         return published.filter(variants__in=query).distinct()
 
     def visible_to_user(self, requestor: Union["User", "App"], channel_slug: str):
-        if requestor_is_staff_member(requestor):
+        if requestor_is_staff_member_or_app(requestor):
             if channel_slug:
                 return self.filter(channel_listings__channel__slug=str(channel_slug))
             return self.all()
@@ -677,7 +677,7 @@ class CollectionsQueryset(models.QuerySet):
         )
 
     def visible_to_user(self, requestor: Union["User", "App"], channel_slug: str):
-        if requestor_is_staff_member(requestor):
+        if requestor_is_staff_member_or_app(requestor):
             if channel_slug:
                 return self.filter(channel_listings__channel__slug=str(channel_slug))
             return self.all()

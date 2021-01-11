@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Union
 from django.db import models
 from django.db.models import F, Q
 
-from ..account.utils import requestor_is_staff_member
+from ..account.utils import requestor_is_staff_member_or_app
 from ..core.models import ModelWithMetadata, SortableModel
 from ..core.utils.translations import TranslationProxy
 from ..page.models import Page, PageType
@@ -22,7 +22,7 @@ class BaseAttributeQuerySet(models.QuerySet):
         raise NotImplementedError
 
     def get_visible_to_user(self, requestor: Union["User", "App"]):
-        if requestor_is_staff_member(requestor):
+        if requestor_is_staff_member_or_app(requestor):
             return self.all()
         return self.get_public_attributes()
 

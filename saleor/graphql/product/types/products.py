@@ -7,7 +7,7 @@ from graphene import relay
 from graphene_federation import key
 from graphql.error import GraphQLError
 
-from ....account.utils import requestor_is_staff_member
+from ....account.utils import requestor_is_staff_member_or_app
 from ....attribute import models as attribute_models
 from ....core.permissions import OrderPermissions, ProductPermissions
 from ....core.weight import convert_weight_to_default_weight_unit
@@ -677,10 +677,10 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     @staticmethod
     def resolve_collections(root: ChannelContext[models.Product], info, **_kwargs):
         requestor = get_user_or_app_from_context(info.context)
-        staff_member = requestor_is_staff_member(requestor)
+        is_staff = requestor_is_staff_member_or_app(requestor)
 
         def return_collections(collections):
-            if staff_member:
+            if is_staff:
                 return [
                     ChannelContext(node=collection, channel_slug=root.channel_slug)
                     for collection in collections
@@ -1017,12 +1017,12 @@ class Category(CountableDjangoObjectType):
     @staticmethod
     def resolve_products(root: models.Category, info, channel=None, **_kwargs):
         requestor = get_user_or_app_from_context(info.context)
-        staff_member = requestor_is_staff_member(requestor)
+        is_staff = requestor_is_staff_member_or_app(requestor)
         tree = root.get_descendants(include_self=True)
-        if channel is None and not staff_member:
+        if channel is None and not is_staff:
             channel = get_default_channel_slug_or_graphql_error()
         qs = models.Product.objects.all()
-        if not staff_member:
+        if not is_staff:
             qs = (
                 qs.published(channel)
                 .annotate_visible_in_listings(channel)
@@ -1030,7 +1030,7 @@ class Category(CountableDjangoObjectType):
                     visible_in_listings=False,
                 )
             )
-        if channel and staff_member:
+        if channel and is_staff:
             qs = qs.filter(channel_listings__channel__slug=channel)
         qs = qs.filter(category__in=tree)
         return ChannelQsContext(qs=qs, channel_slug=channel)
