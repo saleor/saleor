@@ -46,6 +46,7 @@ def execute_search(phrase):
         ("czicken", 2),
         # FIXME: Add possibility to search by JSON field,
         # description field is changed from string to JSON
+        # https://github.com/mirumee/saleor/issues/5679
         # ("blue", 1),
         ("roast", 2),
         ("coool", 1),
