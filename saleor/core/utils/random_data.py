@@ -1275,18 +1275,7 @@ def create_page_type():
 
 
 def create_page():
-    content = """
-    <h2>E-commerce for the PWA era</h2>
-    <h3>A modular, high performance e-commerce storefront built with GraphQL,
-        Django, and ReactJS.</h3>
-    <p>Saleor is a rapidly-growing open source e-commerce platform that has served
-       high-volume companies from branches like publishing and apparel since 2012.
-       Based on Python and Django, the latest major update introduces a modular
-       front end with a GraphQL API and storefront and dashboard written in React
-       to make Saleor a full-functionality open source e-commerce.</p>
-    <p><a href="https://github.com/mirumee/saleor">Get Saleor today!</a></p>
-    """
-    content_json = {
+    content = {
         "blocks": [
             {
                 "data": {"text": "E-commerce for the PWA era", "level": 2},
@@ -1329,7 +1318,6 @@ def create_page():
     }
     page_data = {
         "content": content,
-        "content_json": content_json,
         "title": "About",
         "is_published": True,
         "page_type_id": 1,

@@ -427,7 +427,9 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     description_json = graphene.String(
         description="Description of the product (JSON).",
-        deprecation_reason="Use the `description` field instead.",
+        deprecation_reason=(
+            "Will be removed in Saleor 4.0. Use the `description` field instead."
+        ),
     )
     url = graphene.String(
         description="The storefront URL for the product.",
@@ -883,7 +885,9 @@ class ProductType(CountableDjangoObjectType):
 class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     description_json = graphene.String(
         description="Description of the collection (JSON).",
-        deprecation_reason="Use the `description` field instead.",
+        deprecation_reason=(
+            "Will be removed in Saleor 4.0. Use the `description` field instead."
+        ),
     )
     products = ChannelContextFilterConnectionField(
         Product,
@@ -954,7 +958,9 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 class Category(CountableDjangoObjectType):
     description_json = graphene.String(
         description="Description of the category (JSON).",
-        deprecation_reason="Use the `description` field instead.",
+        deprecation_reason=(
+            "Will be removed in Saleor 4.0. Use the `description` field instead."
+        ),
     )
     ancestors = PrefetchingConnectionField(
         lambda: Category, description="List of ancestors of the category."

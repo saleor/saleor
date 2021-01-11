@@ -18,7 +18,7 @@ def named_products(category, product_type, channel_USD):
         product = Product.objects.create(
             name=name,
             slug=slugify(name),
-            description=description,
+            description={"content": description},
             product_type=product_type,
             category=category,
         )

@@ -453,7 +453,9 @@ def test_attributes_in_collection_query(
     other_collection = Collection.objects.create(
         name="Other Collection",
         slug="other-collection",
-        description="Description",
+        description={
+            "blocks": [{"data": {"text": "Test description."}, "type": "paragraph"}]
+        },
     )
     other_collection.products.add(other_product)
 

@@ -2133,7 +2133,7 @@ CREATE_PRODUCT_MUTATION = """
                             category {
                                 name
                             }
-                            descriptionJson
+                            description
                             chargeTaxes
                             taxType {
                                 taxCode
@@ -2214,7 +2214,7 @@ def test_create_product(
             "category": category_id,
             "name": product_name,
             "slug": product_slug,
-            "descriptionJson": description_json,
+            "description": description_json,
             "chargeTaxes": product_charge_taxes,
             "taxCode": product_tax_rate,
             "attributes": [
@@ -2232,7 +2232,7 @@ def test_create_product(
     assert data["productErrors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
-    assert data["product"]["descriptionJson"] == description_json
+    assert data["product"]["description"] == description_json
     assert data["product"]["chargeTaxes"] == product_charge_taxes
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert data["product"]["productType"]["name"] == product_type.name
@@ -2956,7 +2956,7 @@ def test_create_product_invalid_product_attributes(
             "category": category_id,
             "name": product_name,
             "slug": product_slug,
-            "descriptionJson": description_json,
+            "description": description_json,
             "chargeTaxes": product_charge_taxes,
             "taxCode": product_tax_rate,
             "attributes": [
@@ -3159,7 +3159,7 @@ MUTATION_UPDATE_PRODUCT = """
                         name
                     }
                     rating
-                    descriptionJson
+                    description
                     chargeTaxes
                     variants {
                         name
@@ -3235,7 +3235,7 @@ def test_update_product(
             "category": category_id,
             "name": product_name,
             "slug": product_slug,
-            "descriptionJson": other_description_json,
+            "description": other_description_json,
             "chargeTaxes": product_charge_taxes,
             "taxCode": product_tax_rate,
             "attributes": [{"id": attribute_id, "values": ["Rainbow"]}],
@@ -3250,7 +3250,7 @@ def test_update_product(
     assert data["productErrors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
-    assert data["product"]["descriptionJson"] == other_description_json
+    assert data["product"]["description"] == other_description_json
     assert data["product"]["chargeTaxes"] == product_charge_taxes
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert not data["product"]["category"]["name"] == category.name
@@ -5474,19 +5474,31 @@ def test_collections_query_with_filter(
                 id=1,
                 name="Collection1",
                 slug="collection-published1",
-                description="Test description",
+                description={
+                    "blocks": [
+                        {"data": {"text": "Test description"}, "type": "paragraph"}
+                    ]
+                },
             ),
             Collection(
                 id=2,
                 name="Collection2",
                 slug="collection-published2",
-                description="Test description",
+                description={
+                    "blocks": [
+                        {"data": {"text": "Test description"}, "type": "paragraph"}
+                    ]
+                },
             ),
             Collection(
                 id=3,
                 name="Collection3",
                 slug="collection-unpublished",
-                description="Test description",
+                description={
+                    "blocks": [
+                        {"data": {"text": "Test description"}, "type": "paragraph"}
+                    ]
+                },
             ),
         ]
     )
@@ -5588,17 +5600,35 @@ def test_categories_query_with_filter(
     permission_manage_products,
 ):
     Category.objects.create(
-        id=1, name="Category1", slug="slug_category1", description="Description cat1"
+        id=1,
+        name="Category1",
+        slug="slug_category1",
+        description={
+            "blocks": [{"data": {"text": "Description cat1."}, "type": "paragraph"}]
+        },
     )
     Category.objects.create(
-        id=2, name="Category2", slug="slug_category2", description="Description cat2"
+        id=2,
+        name="Category2",
+        slug="slug_category2",
+        description={
+            "blocks": [{"data": {"text": "Description cat2."}, "type": "paragraph"}]
+        },
     )
+
     Category.objects.create(
         id=3,
         name="SubCategory",
         slug="slug_subcategory",
         parent=Category.objects.get(name="Category1"),
-        description="Subcategory_description of cat1",
+        description={
+            "blocks": [
+                {
+                    "data": {"text": "Subcategory_description of cat1."},
+                    "type": "paragraph",
+                }
+            ]
+        },
     )
     variables = {"filter": category_filter}
     staff_api_client.user.user_permissions.add(permission_manage_products)
@@ -5657,7 +5687,11 @@ def test_categories_query_with_sort(
     product_type,
 ):
     cat1 = Category.objects.create(
-        name="Cat1", slug="slug_category1", description="Description cat1"
+        name="Cat1",
+        slug="slug_category1",
+        description={
+            "blocks": [{"data": {"text": "Description cat1."}, "type": "paragraph"}]
+        },
     )
     Product.objects.create(
         name="Test",
@@ -5666,19 +5700,37 @@ def test_categories_query_with_sort(
         category=cat1,
     )
     Category.objects.create(
-        name="Cat2", slug="slug_category2", description="Description cat2"
+        name="Cat2",
+        slug="slug_category2",
+        description={
+            "blocks": [{"data": {"text": "Description cat2."}, "type": "paragraph"}]
+        },
     )
     Category.objects.create(
         name="SubCat",
         slug="slug_subcategory1",
         parent=Category.objects.get(name="Cat1"),
-        description="Subcategory_description of cat1",
+        description={
+            "blocks": [
+                {
+                    "data": {"text": "Subcategory_description of cat1."},
+                    "type": "paragraph",
+                }
+            ]
+        },
     )
     subsubcat = Category.objects.create(
         name="SubSubCat",
         slug="slug_subcategory2",
         parent=Category.objects.get(name="SubCat"),
-        description="Subcategory_description of cat1",
+        description={
+            "blocks": [
+                {
+                    "data": {"text": "Subcategory_description of cat1."},
+                    "type": "paragraph",
+                }
+            ]
+        },
     )
     Product.objects.create(
         name="Test2",

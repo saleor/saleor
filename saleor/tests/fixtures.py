@@ -2702,7 +2702,9 @@ def collection(db):
     collection = Collection.objects.create(
         name="Collection",
         slug="collection",
-        description="Test description",
+        description={
+            "blocks": [{"data": {"text": "Test description."}, "type": "paragraph"}]
+        },
     )
     return collection
 
@@ -2712,7 +2714,9 @@ def published_collection(db, channel_USD):
     collection = Collection.objects.create(
         name="Collection USD",
         slug="collection-usd",
-        description="Test description",
+        description={
+            "blocks": [{"data": {"text": "Test description."}, "type": "paragraph"}]
+        },
     )
     CollectionChannelListing.objects.create(
         channel=channel_USD,
@@ -2728,7 +2732,9 @@ def published_collection_PLN(db, channel_PLN):
     collection = Collection.objects.create(
         name="Collection PLN",
         slug="collection-pln",
-        description="Test description",
+        description={
+            "blocks": [{"data": {"text": "Test description."}, "type": "paragraph"}]
+        },
     )
     CollectionChannelListing.objects.create(
         channel=channel_PLN,
@@ -2744,7 +2750,9 @@ def unpublished_collection(db, channel_USD):
     collection = Collection.objects.create(
         name="Unpublished Collection",
         slug="unpublished-collection",
-        description="Test description",
+        description={
+            "blocks": [{"data": {"text": "Test description."}, "type": "paragraph"}]
+        },
     )
     CollectionChannelListing.objects.create(
         channel=channel_USD, collection=collection, is_published=False
@@ -2757,7 +2765,9 @@ def unpublished_collection_PLN(db, channel_PLN):
     collection = Collection.objects.create(
         name="Collection",
         slug="collection",
-        description="Test description",
+        description={
+            "blocks": [{"data": {"text": "Test description."}, "type": "paragraph"}]
+        },
     )
     CollectionChannelListing.objects.create(
         channel=channel_PLN, collection=collection, is_published=False
@@ -2776,7 +2786,9 @@ def collection_with_image(db, image, media_root, channel_USD):
     collection = Collection.objects.create(
         name="Collection",
         slug="collection",
-        description="Test description",
+        description={
+            "blocks": [{"data": {"text": "Test description."}, "type": "paragraph"}]
+        },
         background_image=image,
     )
     CollectionChannelListing.objects.create(
@@ -2810,7 +2822,9 @@ def page(db, page_type):
     data = {
         "slug": "test-url",
         "title": "Test page",
-        "content": "test content",
+        "content": {
+            "blocks": [{"data": {"text": "Test content."}, "type": "paragraph"}]
+        },
         "is_published": True,
         "page_type": page_type,
     }
@@ -2830,14 +2844,18 @@ def page_list(db, page_type):
     data_1 = {
         "slug": "test-url",
         "title": "Test page",
-        "content": "test content",
+        "content": {
+            "blocks": [{"data": {"text": "Test content."}, "type": "paragraph"}]
+        },
         "is_published": True,
         "page_type": page_type,
     }
     data_2 = {
         "slug": "test-url-2",
         "title": "Test page",
-        "content": "test content",
+        "content": {
+            "blocks": [{"data": {"text": "Test content."}, "type": "paragraph"}]
+        },
         "is_published": True,
         "page_type": page_type,
     }
@@ -2974,7 +2992,9 @@ def product_translation_fr(product):
         language_code="fr",
         product=product,
         name="French name",
-        description="French description",
+        description={
+            "blocks": [{"data": {"text": "French description."}, "type": "paragraph"}]
+        },
     )
 
 
@@ -2991,7 +3011,9 @@ def collection_translation_fr(published_collection):
         language_code="fr",
         collection=published_collection,
         name="French collection name",
-        description="French description",
+        description={
+            "blocks": [{"data": {"text": "French description."}, "type": "paragraph"}]
+        },
     )
 
 
@@ -3001,7 +3023,11 @@ def category_translation_fr(category):
         language_code="fr",
         category=category,
         name="French category name",
-        description="French category description",
+        description={
+            "blocks": [
+                {"data": {"text": "French category description."}, "type": "paragraph"}
+            ]
+        },
     )
 
 
@@ -3011,7 +3037,9 @@ def page_translation_fr(page):
         language_code="fr",
         page=page,
         title="French page title",
-        content="French page content",
+        content={
+            "blocks": [{"data": {"text": "French page content."}, "type": "paragraph"}]
+        },
     )
 
 

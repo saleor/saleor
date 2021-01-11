@@ -131,7 +131,9 @@ class ProductVariantTranslatableContent(CountableDjangoObjectType):
 class ProductTranslation(BaseTranslationType):
     description_json = graphene.String(
         description="Translated description of the product (JSON).",
-        deprecation_reason="Use the `description` field instead.",
+        deprecation_reason=(
+            "Will be removed in Saleor 4.0. Use the `description` field instead."
+        ),
     )
 
     class Meta:
@@ -143,7 +145,9 @@ class ProductTranslation(BaseTranslationType):
 class ProductTranslatableContent(CountableDjangoObjectType):
     description_json = graphene.String(
         description="Description of the product (JSON).",
-        deprecation_reason="Use the `description` field instead.",
+        deprecation_reason=(
+            "Will be removed in Saleor 4.0. Use the `description` field instead."
+        ),
     )
     translation = TranslationField(ProductTranslation, type_name="product")
     product = graphene.Field(
@@ -164,7 +168,9 @@ class ProductTranslatableContent(CountableDjangoObjectType):
 class CollectionTranslation(BaseTranslationType):
     description_json = graphene.String(
         description="Translated description of the product (JSON).",
-        deprecation_reason="Use the `description` field instead.",
+        deprecation_reason=(
+            "Will be removed in Saleor 4.0. Use the `description` field instead."
+        ),
     )
 
     class Meta:
@@ -176,7 +182,9 @@ class CollectionTranslation(BaseTranslationType):
 class CollectionTranslatableContent(CountableDjangoObjectType):
     description_json = graphene.String(
         description="Description of the collection (JSON).",
-        deprecation_reason="Use the `description` field instead.",
+        deprecation_reason=(
+            "Will be removed in Saleor 4.0. Use the `description` field instead."
+        ),
     )
     translation = TranslationField(CollectionTranslation, type_name="collection")
     collection = graphene.Field(
@@ -200,7 +208,9 @@ class CollectionTranslatableContent(CountableDjangoObjectType):
 class CategoryTranslation(BaseTranslationType):
     description_json = graphene.String(
         description="Translated description of the product (JSON).",
-        deprecation_reason="Use the `description` field instead.",
+        deprecation_reason=(
+            "Will be removed in Saleor 4.0. Use the `description` field instead."
+        ),
     )
 
     class Meta:
@@ -212,7 +222,9 @@ class CategoryTranslation(BaseTranslationType):
 class CategoryTranslatableContent(CountableDjangoObjectType):
     description_json = graphene.String(
         description="Description of the category (JSON).",
-        deprecation_reason="Use the `description` field instead.",
+        deprecation_reason=(
+            "Will be removed in Saleor 4.0. Use the `description` field instead."
+        ),
     )
     translation = TranslationField(CategoryTranslation, type_name="category")
     category = graphene.Field(
@@ -233,7 +245,9 @@ class CategoryTranslatableContent(CountableDjangoObjectType):
 class PageTranslation(BaseTranslationType):
     content_json = graphene.String(
         description="Translated description of the page (JSON).",
-        deprecation_reason="Use the `content` field instead.",
+        deprecation_reason=(
+            "Will be removed in Saleor 4.0. Use the `content` field instead."
+        ),
     )
 
     class Meta:
@@ -251,7 +265,9 @@ class PageTranslation(BaseTranslationType):
 class PageTranslatableContent(CountableDjangoObjectType):
     content_json = graphene.String(
         description="Content of the page (JSON).",
-        deprecation_reason="Use the `content` field instead.",
+        deprecation_reason=(
+            "Will be removed in Saleor 4.0. Use the `content` field instead."
+        ),
     )
     translation = TranslationField(PageTranslation, type_name="page")
     page = graphene.Field(

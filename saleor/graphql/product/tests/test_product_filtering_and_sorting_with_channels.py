@@ -26,7 +26,11 @@ def products_for_sorting_with_channels(category, channel_USD, channel_PLN):
                 slug="prod1",
                 category=category,
                 product_type=product_type,
-                description="desc1",
+                description={
+                    "blocks": [
+                        {"data": {"text": "Test description 1."}, "type": "paragraph"}
+                    ]
+                },
             ),
             Product(
                 name="ProductProduct1",
@@ -45,14 +49,22 @@ def products_for_sorting_with_channels(category, channel_USD, channel_PLN):
                 slug="prod2",
                 category=category,
                 product_type=product_type,
-                description="desc2",
+                description={
+                    "blocks": [
+                        {"data": {"text": "Test description 2."}, "type": "paragraph"}
+                    ]
+                },
             ),
             Product(
                 name="Product3",
                 slug="prod3",
                 category=category,
                 product_type=product_type,
-                description="desc3",
+                description={
+                    "blocks": [
+                        {"data": {"text": "Test description 3."}, "type": "paragraph"}
+                    ]
+                },
             ),
         ]
     )

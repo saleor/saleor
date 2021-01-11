@@ -217,15 +217,14 @@ def test_query_category_product_only_visible_in_listings_as_app_with_perm(
 
 CATEGORY_CREATE_MUTATION = """
         mutation(
-                $name: String, $slug: String, $description: String,
-                $descriptionJson: JSONString, $backgroundImage: Upload,
+                $name: String, $slug: String,
+                $description: JSONString, $backgroundImage: Upload,
                 $backgroundImageAlt: String, $parentId: ID) {
             categoryCreate(
                 input: {
                     name: $name
                     slug: $slug
                     description: $description
-                    descriptionJson: $descriptionJson
                     backgroundImage: $backgroundImage
                     backgroundImageAlt: $backgroundImageAlt
                 },
@@ -236,7 +235,6 @@ CATEGORY_CREATE_MUTATION = """
                     name
                     slug
                     description
-                    descriptionJson
                     parent {
                         name
                         id
@@ -271,8 +269,7 @@ def test_category_create_mutation(
 
     category_name = "Test category"
     category_slug = slugify(category_name)
-    category_description = "Test description"
-    category_description_json = json.dumps({"content": "description"})
+    category_description = json.dumps({"content": "description"})
     image_file, image_name = create_image()
     image_alt = "Alt text for an image."
 
@@ -280,7 +277,6 @@ def test_category_create_mutation(
     variables = {
         "name": category_name,
         "description": category_description,
-        "descriptionJson": category_description_json,
         "backgroundImage": image_name,
         "backgroundImageAlt": image_alt,
         "slug": category_slug,
@@ -294,7 +290,6 @@ def test_category_create_mutation(
     assert data["productErrors"] == []
     assert data["category"]["name"] == category_name
     assert data["category"]["description"] == category_description
-    assert data["category"]["descriptionJson"] == category_description_json
     assert not data["category"]["parent"]
     category = Category.objects.get(name=category_name)
     assert category.background_image.file
@@ -360,6 +355,7 @@ def test_category_create_mutation_without_background_image(
     monkeypatch, staff_api_client, permission_manage_products
 ):
     query = CATEGORY_CREATE_MUTATION
+    description = json.dumps({"content": "description"})
 
     mock_create_thumbnails = Mock(return_value=None)
     monkeypatch.setattr(
@@ -374,7 +370,7 @@ def test_category_create_mutation_without_background_image(
     category_name = "Test category"
     variables = {
         "name": category_name,
-        "description": "Test description",
+        "description": description,
         "slug": slugify(category_name),
     }
     response = staff_api_client.post_graphql(
@@ -389,7 +385,7 @@ def test_category_create_mutation_without_background_image(
 MUTATION_CATEGORY_UPDATE_MUTATION = """
     mutation($id: ID!, $name: String, $slug: String,
             $backgroundImage: Upload, $backgroundImageAlt: String,
-            $description: String) {
+            $description: JSONString) {
 
         categoryUpdate(
             id: $id
@@ -439,7 +435,8 @@ def test_category_update_mutation(
 
     category_name = "Updated name"
     category_slug = slugify(category_name)
-    category_description = "Updated description"
+    category_description = json.dumps({"content": "description"})
+
     image_file, image_name = create_image()
     image_alt = "Alt text for an image."
 
@@ -502,7 +499,7 @@ def test_category_update_mutation_without_background_image(
     monkeypatch, staff_api_client, category, permission_manage_products
 ):
     query = """
-        mutation($id: ID!, $name: String, $slug: String, $description: String) {
+        mutation($id: ID!, $name: String, $slug: String, $description: JSONString) {
             categoryUpdate(
                 id: $id
                 input: {
@@ -534,7 +531,7 @@ def test_category_update_mutation_without_background_image(
             "Category", category.children.create(name="child").pk
         ),
         "name": category_name,
-        "description": "Updated description",
+        "description": json.dumps({"content": "description"}),
         "slug": slugify(category_name),
     }
     response = staff_api_client.post_graphql(
