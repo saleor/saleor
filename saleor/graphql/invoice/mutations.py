@@ -35,11 +35,11 @@ class InvoiceRequest(ModelMutation):
 
     @staticmethod
     def clean_order(order):
-        if order.status == OrderStatus.DRAFT:
+        if order.status in (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED):
             raise ValidationError(
                 {
                     "orderId": ValidationError(
-                        "Cannot request an invoice for draft order.",
+                        "Cannot request an invoice for draft or unconfirmed order.",
                         code=InvoiceErrorCode.INVALID_STATUS,
                     )
                 }
@@ -121,11 +121,11 @@ class InvoiceCreate(ModelMutation):
 
     @classmethod
     def clean_order(cls, info, order):
-        if order.status == OrderStatus.DRAFT:
+        if order.status in (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED):
             raise ValidationError(
                 {
                     "orderId": ValidationError(
-                        "Cannot request an invoice for draft order.",
+                        "Cannot create an invoice for draft or unconfirmed order.",
                         code=InvoiceErrorCode.INVALID_STATUS,
                     )
                 }
@@ -135,7 +135,7 @@ class InvoiceCreate(ModelMutation):
             raise ValidationError(
                 {
                     "orderId": ValidationError(
-                        "Cannot request an invoice for order without billing address.",
+                        "Cannot create an invoice for order without billing address.",
                         code=InvoiceErrorCode.NOT_READY,
                     )
                 }
