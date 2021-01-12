@@ -297,7 +297,7 @@ def create_product_variants(variants_data, create_images):
             product.save(update_fields=["default_variant", "updated_at"])
         if create_images:
             image = variant.product.images.filter().first()
-            VariantImage.objects.create(variant=variant, image=image)
+            VariantImage.objects.get_or_create(variant=variant, image=image)
         quantity = random.randint(100, 500)
         create_stocks(variant, quantity=quantity)
 
@@ -743,6 +743,25 @@ def create_permission_groups():
     yield f"Group: {group}"
 
 
+def create_staffs():
+    for permission in get_permissions():
+        base_name = permission.codename.split("_")[1:]
+
+        group_name = " ".join(base_name)
+        group_name += " management"
+        group_name = group_name.capitalize()
+
+        email_base_name = [name[:-1] if name[-1] == "s" else name for name in base_name]
+        user_email = ".".join(email_base_name)
+        user_email += ".manager@example.com"
+
+        user = _create_staff_user(email=user_email)
+        group = create_group(group_name, [permission], [user])
+
+        yield f"Group: {group}"
+        yield f"User: {user}"
+
+
 def create_group(name, permissions, users):
     group, _ = Group.objects.get_or_create(name=name)
     group.permissions.add(*permissions)
@@ -750,25 +769,34 @@ def create_group(name, permissions, users):
     return group
 
 
+def _create_staff_user(email=None, superuser=False):
+    user = User.objects.filter(email=email).first()
+    if user:
+        return user
+    address = create_address()
+    first_name = address.first_name
+    last_name = address.last_name
+    if not email:
+        email = get_email(first_name, last_name)
+
+    staff_user = User.objects.create_user(
+        first_name=first_name,
+        last_name=last_name,
+        email=email,
+        password="password",
+        default_billing_address=address,
+        default_shipping_address=address,
+        is_staff=True,
+        is_active=True,
+        is_superuser=superuser,
+    )
+    return staff_user
+
+
 def create_staff_users(how_many=2, superuser=False):
     users = []
     for _ in range(how_many):
-        address = create_address()
-        first_name = address.first_name
-        last_name = address.last_name
-        email = get_email(first_name, last_name)
-
-        staff_user = User.objects.create_user(
-            first_name=first_name,
-            last_name=last_name,
-            email=email,
-            password="password",
-            default_billing_address=address,
-            default_shipping_address=address,
-            is_staff=True,
-            is_active=True,
-            is_superuser=superuser,
-        )
+        staff_user = _create_staff_user(superuser)
         users.append(staff_user)
     return users
 
