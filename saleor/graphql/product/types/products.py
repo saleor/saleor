@@ -7,6 +7,7 @@ from graphene import relay
 from graphene_federation import key
 from graphql.error import GraphQLError
 
+from ....account.utils import requestor_is_staff_member_or_app
 from ....attribute import models as attribute_models
 from ....core.permissions import OrderPermissions, ProductPermissions
 from ....core.weight import convert_weight_to_default_weight_unit
@@ -38,7 +39,11 @@ from ...core.fields import (
     PrefetchingConnectionField,
 )
 from ...core.types import Image, Money, TaxedMoney, TaxedMoneyRange, TaxType
-from ...decorators import one_of_permissions_required, permission_required
+from ...decorators import (
+    one_of_permissions_required,
+    permission_required,
+    staff_member_or_app_required,
+)
 from ...discount.dataloaders import DiscountsByDateTimeLoader
 from ...meta.types import ObjectWithMetadata
 from ...order.dataloaders import (
@@ -281,7 +286,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         )
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
+    @staff_member_or_app_required
     def resolve_channel_listings(
         root: ChannelContext[models.ProductVariant], info, **_kwargs
     ):
@@ -677,12 +682,10 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     @staticmethod
     def resolve_collections(root: ChannelContext[models.Product], info, **_kwargs):
         requestor = get_user_or_app_from_context(info.context)
-        requestor_has_access_to_all = models.Collection.objects.user_has_access_to_all(
-            requestor
-        )
+        is_staff = requestor_is_staff_member_or_app(requestor)
 
         def return_collections(collections):
-            if requestor_has_access_to_all:
+            if is_staff:
                 return [
                     ChannelContext(node=collection, channel_slug=root.channel_slug)
                     for collection in collections
@@ -858,10 +861,10 @@ class ProductType(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_products(root: models.ProductType, info, channel=None, **_kwargs):
-        user = info.context.user
+        requestor = get_user_or_app_from_context(info.context)
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
-        qs = root.products.visible_to_user(user, channel)
+        qs = root.products.visible_to_user(requestor, channel)
         return ChannelQsContext(qs=qs, channel_slug=channel)
 
     @staticmethod
@@ -938,8 +941,8 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     def resolve_products(root: ChannelContext[models.Collection], info, **kwargs):
-        user = info.context.user
-        qs = root.node.products.visible_to_user(user, root.channel_slug)
+        requestor = get_user_or_app_from_context(info.context)
+        qs = root.node.products.visible_to_user(requestor, root.channel_slug)
         return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
 
     @staticmethod
@@ -1029,14 +1032,12 @@ class Category(CountableDjangoObjectType):
     @staticmethod
     def resolve_products(root: models.Category, info, channel=None, **_kwargs):
         requestor = get_user_or_app_from_context(info.context)
-        requestor_has_access_to_all = models.Product.objects.user_has_access_to_all(
-            requestor
-        )
+        is_staff = requestor_is_staff_member_or_app(requestor)
         tree = root.get_descendants(include_self=True)
-        if channel is None and not requestor_has_access_to_all:
+        if channel is None and not is_staff:
             channel = get_default_channel_slug_or_graphql_error()
         qs = models.Product.objects.all()
-        if not requestor_has_access_to_all:
+        if not is_staff:
             qs = (
                 qs.published(channel)
                 .annotate_visible_in_listings(channel)
@@ -1044,7 +1045,7 @@ class Category(CountableDjangoObjectType):
                     visible_in_listings=False,
                 )
             )
-        if channel and requestor_has_access_to_all:
+        if channel and is_staff:
             qs = qs.filter(channel_listings__channel__slug=channel)
         qs = qs.filter(category__in=tree)
         return ChannelQsContext(qs=qs, channel_slug=channel)

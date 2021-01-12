@@ -29,6 +29,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Added support for querying user by email - #6632 @LeOndaz
 - Add order shipping tax rate - #6678 by @IKarbowiak
 - Deprecate field `descriptionJSON` from `Product`, `Category`, `Collection` and field `contentJSON` from `Page` - #6692 by @d-wysocki
+- Fix products visibility - #6704 by @IKarbowiak
 
 # 2.11.1
 
