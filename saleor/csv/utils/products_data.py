@@ -13,7 +13,6 @@ from ...core.utils import build_absolute_uri
 from . import ProductExportFields
 
 if TYPE_CHECKING:
-    # flake8: noqa
     from django.db.models import QuerySet
 
 
@@ -289,7 +288,9 @@ def add_image_uris_to_data(
     return result_data
 
 
-AttributeData = namedtuple("AttributeData", ["slug", "file_url", "value", "input_type"])
+AttributeData = namedtuple(
+    "AttributeData", ["slug", "file_url", "value", "input_type", "entity_type"]
+)
 
 
 def handle_attribute_data(
@@ -306,6 +307,7 @@ def handle_attribute_data(
         input_type=data.pop(attribute_fields["input_type"], None),
         file_url=data.pop(attribute_fields["file_url"], None),
         value=data.pop(attribute_fields["value"], None),
+        entity_type=data.pop(attribute_fields["entity_type"], None),
     )
 
     if attribute_ids and attribute_pk in attribute_ids:
@@ -380,13 +382,16 @@ def add_attribute_info_to_data(
     header = None
     if slug:
         header = f"{slug} ({attribute_owner})"
-        value = (
-            attribute_data.value
-            if attribute_data.input_type != AttributeInputType.FILE
-            else build_absolute_uri(
+        input_type = attribute_data.input_type
+        if input_type == AttributeInputType.FILE:
+            value = build_absolute_uri(
                 urljoin(settings.MEDIA_URL, attribute_data.file_url)
             )
-        )
+        elif input_type == AttributeInputType.REFERENCE:
+            reference_id = attribute_data.value.split("_")[1]
+            value = f"{attribute_data.entity_type}_{reference_id}"
+        else:
+            value = attribute_data.value
         if header in result_data[pk]:
             result_data[pk][header].add(value)  # type: ignore
         else:
