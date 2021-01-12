@@ -6,8 +6,6 @@ from graphene.utils.str_converters import to_camel_case
 from .....attribute.models import Attribute
 from .....product.models import Category, Collection, Product, ProductType
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...enums import AttributeValueType
-from ...types import resolve_attribute_value_type
 
 
 def test_get_single_attribute_by_id_as_customer(
@@ -429,28 +427,6 @@ def test_retrieving_the_restricted_attributes_restricted(
 
     assert len(found_attributes) == 1
     assert found_attributes[0]["node"][attribute] == expected_value
-
-
-@pytest.mark.parametrize(
-    "raw_value, expected_type",
-    [
-        ("#0000", AttributeValueType.COLOR),
-        ("#FF69B4", AttributeValueType.COLOR),
-        ("rgb(255, 0, 0)", AttributeValueType.COLOR),
-        ("hsl(0, 100%, 50%)", AttributeValueType.COLOR),
-        ("hsla(120,  60%, 70%, 0.3)", AttributeValueType.COLOR),
-        ("rgba(100%, 255, 0, 0)", AttributeValueType.COLOR),
-        ("http://example.com", AttributeValueType.URL),
-        ("https://example.com", AttributeValueType.URL),
-        ("ftp://example.com", AttributeValueType.URL),
-        ("example.com", AttributeValueType.STRING),
-        ("Foo", AttributeValueType.STRING),
-        ("linear-gradient(red, yellow)", AttributeValueType.GRADIENT),
-        ("radial-gradient(#0000, yellow)", AttributeValueType.GRADIENT),
-    ],
-)
-def test_resolve_attribute_value_type(raw_value, expected_type):
-    assert resolve_attribute_value_type(raw_value) == expected_type
 
 
 @pytest.mark.parametrize("tested_field", ["inCategory", "inCollection"])
