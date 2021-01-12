@@ -344,7 +344,7 @@ def test_attributes_query_hidden_attribute(user_api_client, product, color_attri
 
 
 def test_attributes_query_hidden_attribute_as_staff_user(
-    staff_api_client, product, color_attribute, permission_manage_products
+    staff_api_client, product, color_attribute
 ):
     query = QUERY_ATTRIBUTES
 
@@ -353,13 +353,6 @@ def test_attributes_query_hidden_attribute_as_staff_user(
     color_attribute.save(update_fields=["visible_in_storefront"])
 
     attribute_count = Attribute.objects.all().count()
-
-    # The user doesn't have the permission yet to manage products,
-    # the user shouldn't be able to see the hidden attributes
-    assert Attribute.objects.get_visible_to_user(staff_api_client.user).count() == 1
-
-    # The user should now be able to see the attributes
-    staff_api_client.user.user_permissions.add(permission_manage_products)
 
     response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)

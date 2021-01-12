@@ -89,7 +89,7 @@ def test_customer_query_unpublished_page(user_api_client, page):
     assert content["data"]["page"] is None
 
 
-def test_staff_query_unpublished_page(staff_api_client, page, permission_manage_pages):
+def test_staff_query_unpublished_page(staff_api_client, page):
     page.is_published = False
     page.save()
 
@@ -97,31 +97,11 @@ def test_staff_query_unpublished_page(staff_api_client, page, permission_manage_
     variables = {"id": graphene.Node.to_global_id("Page", page.id)}
     response = staff_api_client.post_graphql(PAGE_QUERY, variables)
     content = get_graphql_content(response)
-    assert content["data"]["page"] is None
+    assert content["data"]["page"] is not None
+
     # query by slug
     variables = {"slug": page.slug}
     response = staff_api_client.post_graphql(PAGE_QUERY, variables)
-    content = get_graphql_content(response)
-    assert content["data"]["page"] is None
-
-    # query by ID with page permissions
-    variables = {"id": graphene.Node.to_global_id("Page", page.id)}
-    response = staff_api_client.post_graphql(
-        PAGE_QUERY,
-        variables,
-        permissions=[permission_manage_pages],
-        check_no_permissions=False,
-    )
-    content = get_graphql_content(response)
-    assert content["data"]["page"] is not None
-    # query by slug with page permissions
-    variables = {"slug": page.slug}
-    response = staff_api_client.post_graphql(
-        PAGE_QUERY,
-        variables,
-        permissions=[permission_manage_pages],
-        check_no_permissions=False,
-    )
     content = get_graphql_content(response)
     assert content["data"]["page"] is not None
 

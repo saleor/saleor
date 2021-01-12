@@ -140,7 +140,6 @@ QUERY_PRODUCT_VARIANT_CHANNEL_LISTING = """
 def test_get_product_variant_channel_listing_as_staff_user(
     staff_api_client,
     product_available_in_many_channels,
-    permission_manage_products,
     channel_USD,
 ):
     # given
@@ -152,7 +151,6 @@ def test_get_product_variant_channel_listing_as_staff_user(
     response = staff_api_client.post_graphql(
         QUERY_PRODUCT_VARIANT_CHANNEL_LISTING,
         variables,
-        permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
 
@@ -177,7 +175,6 @@ def test_get_product_variant_channel_listing_as_staff_user(
 def test_get_product_variant_channel_listing_as_app(
     app_api_client,
     product_available_in_many_channels,
-    permission_manage_products,
     channel_USD,
 ):
     # given
@@ -189,7 +186,6 @@ def test_get_product_variant_channel_listing_as_app(
     response = app_api_client.post_graphql(
         QUERY_PRODUCT_VARIANT_CHANNEL_LISTING,
         variables,
-        permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
 
@@ -1824,7 +1820,7 @@ def test_product_variants_visible_in_listings_by_customer(
     assert data["totalCount"] == product_count - 1
 
 
-def test_product_variants_visible_in_listings_by_staff_without_perm(
+def test_product_variants_visible_in_listings_by_staff_without_manage_products(
     staff_api_client, product_list, channel_USD
 ):
     # given
@@ -1837,7 +1833,7 @@ def test_product_variants_visible_in_listings_by_staff_without_perm(
         staff_api_client, variables={"channel": channel_USD.slug}
     )
 
-    assert data["totalCount"] == product_count - 1
+    assert data["totalCount"] == product_count
 
 
 def test_product_variants_visible_in_listings_by_staff_with_perm(
@@ -1858,7 +1854,7 @@ def test_product_variants_visible_in_listings_by_staff_with_perm(
     assert data["totalCount"] == product_count
 
 
-def test_product_variants_visible_in_listings_by_app_without_perm(
+def test_product_variants_visible_in_listings_by_app_without_manage_products(
     app_api_client, product_list, channel_USD
 ):
     # given
@@ -1869,7 +1865,7 @@ def test_product_variants_visible_in_listings_by_app_without_perm(
     # when
     data = _fetch_all_variants(app_api_client, variables={"channel": channel_USD.slug})
 
-    assert data["totalCount"] == product_count - 1
+    assert data["totalCount"] == product_count
 
 
 def test_product_variants_visible_in_listings_by_app_with_perm(
