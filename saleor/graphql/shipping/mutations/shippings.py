@@ -370,7 +370,11 @@ class ShippingPriceMixin:
         if error_occurred:
             return
 
-        if min_delivery_days > max_delivery_days:
+        if (
+            min_delivery_days is not None
+            and max_delivery_days is not None
+            and min_delivery_days > max_delivery_days
+        ):
             if cleaned_input.get("minimum_delivery_days") is not None:
                 error_msg = (
                     "Minimum delivery days should be lower "
