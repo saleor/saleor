@@ -3369,8 +3369,7 @@ input PageTranslationInput {
   seoTitle: String
   seoDescription: String
   title: String
-  content: String
-  contentJson: JSONString
+  content: JSONString
 }
 
 type PageType implements Node & ObjectWithMetadata {

@@ -268,8 +268,7 @@ class MenuItemTranslate(BaseTranslateMutation):
 
 class PageTranslationInput(SeoTranslationInput):
     title = graphene.String()
-    content = graphene.String()
-    content_json = graphene.JSONString()
+    content = graphene.JSONString()
 
 
 class PageTranslate(BaseTranslateMutation):
