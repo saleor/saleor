@@ -15,6 +15,7 @@ from ....product.models import (
     ProductVariant,
     ProductVariantChannelListing,
 )
+from ....tests.utils import dummy_editorjs
 from ....warehouse.models import Stock
 from ...tests.utils import get_graphql_content
 
@@ -304,11 +305,7 @@ def products_for_pagination(
                 slug="prod1",
                 category=category,
                 product_type=product_type2,
-                description={
-                    "blocks": [
-                        {"data": {"text": "Test description 1."}, "type": "paragraph"}
-                    ]
-                },
+                description=dummy_editorjs("Test description 1."),
             ),
             Product(
                 name="ProductProduct1",
@@ -327,22 +324,14 @@ def products_for_pagination(
                 slug="prod2",
                 category=category,
                 product_type=product_type,
-                description={
-                    "blocks": [
-                        {"data": {"text": "Test description 2."}, "type": "paragraph"}
-                    ]
-                },
+                description=dummy_editorjs("Test description 2."),
             ),
             Product(
                 name="Product3",
                 slug="prod3",
                 category=category,
                 product_type=product_type2,
-                description={
-                    "blocks": [
-                        {"data": {"text": "Test description 3."}, "type": "paragraph"}
-                    ]
-                },
+                description=dummy_editorjs("Test description 3."),
             ),
         ]
     )

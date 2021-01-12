@@ -94,6 +94,7 @@ from ..warehouse.models import Allocation, Stock, Warehouse
 from ..webhook.event_types import WebhookEventType
 from ..webhook.models import Webhook
 from ..wishlist.models import Wishlist
+from .utils import dummy_editorjs
 
 
 class CaptureQueriesContext(BaseCaptureQueriesContext):
@@ -2702,9 +2703,7 @@ def collection(db):
     collection = Collection.objects.create(
         name="Collection",
         slug="collection",
-        description={
-            "blocks": [{"data": {"text": "Test description."}, "type": "paragraph"}]
-        },
+        description=dummy_editorjs("Test description."),
     )
     return collection
 
@@ -2714,9 +2713,7 @@ def published_collection(db, channel_USD):
     collection = Collection.objects.create(
         name="Collection USD",
         slug="collection-usd",
-        description={
-            "blocks": [{"data": {"text": "Test description."}, "type": "paragraph"}]
-        },
+        description=dummy_editorjs("Test description."),
     )
     CollectionChannelListing.objects.create(
         channel=channel_USD,
@@ -2732,9 +2729,7 @@ def published_collection_PLN(db, channel_PLN):
     collection = Collection.objects.create(
         name="Collection PLN",
         slug="collection-pln",
-        description={
-            "blocks": [{"data": {"text": "Test description."}, "type": "paragraph"}]
-        },
+        description=dummy_editorjs("Test description."),
     )
     CollectionChannelListing.objects.create(
         channel=channel_PLN,
@@ -2750,9 +2745,7 @@ def unpublished_collection(db, channel_USD):
     collection = Collection.objects.create(
         name="Unpublished Collection",
         slug="unpublished-collection",
-        description={
-            "blocks": [{"data": {"text": "Test description."}, "type": "paragraph"}]
-        },
+        description=dummy_editorjs("Test description."),
     )
     CollectionChannelListing.objects.create(
         channel=channel_USD, collection=collection, is_published=False
@@ -2765,9 +2758,7 @@ def unpublished_collection_PLN(db, channel_PLN):
     collection = Collection.objects.create(
         name="Collection",
         slug="collection",
-        description={
-            "blocks": [{"data": {"text": "Test description."}, "type": "paragraph"}]
-        },
+        description=dummy_editorjs("Test description."),
     )
     CollectionChannelListing.objects.create(
         channel=channel_PLN, collection=collection, is_published=False
@@ -2786,9 +2777,7 @@ def collection_with_image(db, image, media_root, channel_USD):
     collection = Collection.objects.create(
         name="Collection",
         slug="collection",
-        description={
-            "blocks": [{"data": {"text": "Test description."}, "type": "paragraph"}]
-        },
+        description=dummy_editorjs("Test description."),
         background_image=image,
     )
     CollectionChannelListing.objects.create(
@@ -2822,9 +2811,7 @@ def page(db, page_type):
     data = {
         "slug": "test-url",
         "title": "Test page",
-        "content": {
-            "blocks": [{"data": {"text": "Test content."}, "type": "paragraph"}]
-        },
+        "content": dummy_editorjs("Test content."),
         "is_published": True,
         "page_type": page_type,
     }
@@ -2844,18 +2831,14 @@ def page_list(db, page_type):
     data_1 = {
         "slug": "test-url",
         "title": "Test page",
-        "content": {
-            "blocks": [{"data": {"text": "Test content."}, "type": "paragraph"}]
-        },
+        "content": dummy_editorjs("Test content."),
         "is_published": True,
         "page_type": page_type,
     }
     data_2 = {
         "slug": "test-url-2",
         "title": "Test page",
-        "content": {
-            "blocks": [{"data": {"text": "Test content."}, "type": "paragraph"}]
-        },
+        "content": dummy_editorjs("Test content."),
         "is_published": True,
         "page_type": page_type,
     }
@@ -2992,9 +2975,7 @@ def product_translation_fr(product):
         language_code="fr",
         product=product,
         name="French name",
-        description={
-            "blocks": [{"data": {"text": "French description."}, "type": "paragraph"}]
-        },
+        description=dummy_editorjs("French description."),
     )
 
 
@@ -3011,9 +2992,7 @@ def collection_translation_fr(published_collection):
         language_code="fr",
         collection=published_collection,
         name="French collection name",
-        description={
-            "blocks": [{"data": {"text": "French description."}, "type": "paragraph"}]
-        },
+        description=dummy_editorjs("French description."),
     )
 
 
@@ -3023,11 +3002,7 @@ def category_translation_fr(category):
         language_code="fr",
         category=category,
         name="French category name",
-        description={
-            "blocks": [
-                {"data": {"text": "French category description."}, "type": "paragraph"}
-            ]
-        },
+        description=dummy_editorjs("French category description."),
     )
 
 
@@ -3037,9 +3012,7 @@ def page_translation_fr(page):
         language_code="fr",
         page=page,
         title="French page title",
-        content={
-            "blocks": [{"data": {"text": "French page content."}, "type": "paragraph"}]
-        },
+        content=dummy_editorjs("French page content."),
     )
 
 

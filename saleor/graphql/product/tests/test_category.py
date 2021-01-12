@@ -1,4 +1,3 @@
-import json
 from unittest.mock import Mock, patch
 
 import graphene
@@ -9,6 +8,7 @@ from graphql_relay import to_global_id
 from ....product.error_codes import ProductErrorCode
 from ....product.models import Category, Product, ProductChannelListing
 from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
+from ....tests.utils import dummy_editorjs
 from ...tests.utils import get_graphql_content, get_multipart_request_body
 
 QUERY_CATEGORY = """
@@ -269,7 +269,7 @@ def test_category_create_mutation(
 
     category_name = "Test category"
     category_slug = slugify(category_name)
-    category_description = json.dumps({"content": "description"})
+    category_description = dummy_editorjs("description", True)
     image_file, image_name = create_image()
     image_alt = "Alt text for an image."
 
@@ -355,7 +355,7 @@ def test_category_create_mutation_without_background_image(
     monkeypatch, staff_api_client, permission_manage_products
 ):
     query = CATEGORY_CREATE_MUTATION
-    description = json.dumps({"content": "description"})
+    description = dummy_editorjs("description", True)
 
     mock_create_thumbnails = Mock(return_value=None)
     monkeypatch.setattr(
@@ -435,7 +435,7 @@ def test_category_update_mutation(
 
     category_name = "Updated name"
     category_slug = slugify(category_name)
-    category_description = json.dumps({"content": "description"})
+    category_description = dummy_editorjs("description", True)
 
     image_file, image_name = create_image()
     image_alt = "Alt text for an image."
@@ -531,7 +531,7 @@ def test_category_update_mutation_without_background_image(
             "Category", category.children.create(name="child").pk
         ),
         "name": category_name,
-        "description": json.dumps({"content": "description"}),
+        "description": dummy_editorjs("description", True),
         "slug": slugify(category_name),
     }
     response = staff_api_client.post_graphql(

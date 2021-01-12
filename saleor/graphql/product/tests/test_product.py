@@ -36,6 +36,7 @@ from ....product.models import (
 from ....product.tasks import update_variants_names
 from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
 from ....product.utils.costs import get_product_costs_data
+from ....tests.utils import dummy_editorjs
 from ....warehouse.models import Allocation, Stock, Warehouse
 from ...core.enums import ReportingPeriod
 from ...tests.utils import (
@@ -5474,31 +5475,19 @@ def test_collections_query_with_filter(
                 id=1,
                 name="Collection1",
                 slug="collection-published1",
-                description={
-                    "blocks": [
-                        {"data": {"text": "Test description"}, "type": "paragraph"}
-                    ]
-                },
+                description=dummy_editorjs("Test description"),
             ),
             Collection(
                 id=2,
                 name="Collection2",
                 slug="collection-published2",
-                description={
-                    "blocks": [
-                        {"data": {"text": "Test description"}, "type": "paragraph"}
-                    ]
-                },
+                description=dummy_editorjs("Test description"),
             ),
             Collection(
                 id=3,
                 name="Collection3",
                 slug="collection-unpublished",
-                description={
-                    "blocks": [
-                        {"data": {"text": "Test description"}, "type": "paragraph"}
-                    ]
-                },
+                description=dummy_editorjs("Test description"),
             ),
         ]
     )
@@ -5603,17 +5592,13 @@ def test_categories_query_with_filter(
         id=1,
         name="Category1",
         slug="slug_category1",
-        description={
-            "blocks": [{"data": {"text": "Description cat1."}, "type": "paragraph"}]
-        },
+        description=dummy_editorjs("Description cat1."),
     )
     Category.objects.create(
         id=2,
         name="Category2",
         slug="slug_category2",
-        description={
-            "blocks": [{"data": {"text": "Description cat2."}, "type": "paragraph"}]
-        },
+        description=dummy_editorjs("Description cat2."),
     )
 
     Category.objects.create(
@@ -5621,14 +5606,7 @@ def test_categories_query_with_filter(
         name="SubCategory",
         slug="slug_subcategory",
         parent=Category.objects.get(name="Category1"),
-        description={
-            "blocks": [
-                {
-                    "data": {"text": "Subcategory_description of cat1."},
-                    "type": "paragraph",
-                }
-            ]
-        },
+        description=dummy_editorjs("Subcategory_description of cat1."),
     )
     variables = {"filter": category_filter}
     staff_api_client.user.user_permissions.add(permission_manage_products)
@@ -5689,9 +5667,7 @@ def test_categories_query_with_sort(
     cat1 = Category.objects.create(
         name="Cat1",
         slug="slug_category1",
-        description={
-            "blocks": [{"data": {"text": "Description cat1."}, "type": "paragraph"}]
-        },
+        description=dummy_editorjs("Description cat1."),
     )
     Product.objects.create(
         name="Test",
@@ -5702,35 +5678,19 @@ def test_categories_query_with_sort(
     Category.objects.create(
         name="Cat2",
         slug="slug_category2",
-        description={
-            "blocks": [{"data": {"text": "Description cat2."}, "type": "paragraph"}]
-        },
+        description=dummy_editorjs("Description cat2."),
     )
     Category.objects.create(
         name="SubCat",
         slug="slug_subcategory1",
         parent=Category.objects.get(name="Cat1"),
-        description={
-            "blocks": [
-                {
-                    "data": {"text": "Subcategory_description of cat1."},
-                    "type": "paragraph",
-                }
-            ]
-        },
+        description=dummy_editorjs("Subcategory_description of cat1."),
     )
     subsubcat = Category.objects.create(
         name="SubSubCat",
         slug="slug_subcategory2",
         parent=Category.objects.get(name="SubCat"),
-        description={
-            "blocks": [
-                {
-                    "data": {"text": "Subcategory_description of cat1."},
-                    "type": "paragraph",
-                }
-            ]
-        },
+        description=dummy_editorjs("Subcategory_description of cat1."),
     )
     Product.objects.create(
         name="Test2",

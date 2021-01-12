@@ -8,6 +8,7 @@ from graphql_relay import to_global_id
 from ....product.error_codes import CollectionErrorCode, ProductErrorCode
 from ....product.models import Collection, Product
 from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
+from ....tests.utils import dummy_editorjs
 from ...tests.utils import get_graphql_content, get_multipart_request_body
 
 QUERY_COLLECTION = """
@@ -388,7 +389,7 @@ def test_create_collection(
     image_alt = "Alt text for an image."
     name = "test-name"
     slug = "test-slug"
-    description = json.dumps({"content": "description"})
+    description = dummy_editorjs("description", True)
     variables = {
         "name": name,
         "slug": slug,
@@ -493,7 +494,7 @@ def test_update_collection(
             }
         }
     """
-    description = json.dumps({"content": "test description"})
+    description = dummy_editorjs("test description", True)
     mock_create_thumbnails = Mock(return_value=None)
     monkeypatch.setattr(
         (

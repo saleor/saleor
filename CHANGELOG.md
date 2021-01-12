@@ -28,6 +28,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Get tax rate from plugins - #6649 by @IKarbowiak
 - Added support for querying user by email - #6632 @LeOndaz
 - Add order shipping tax rate - #6678 by @IKarbowiak
+- Deprecate field `descriptionJSON` from `Product`, `Category`, `Collection` and field `contentJSON` from `Page` - #6692 by @d-wysocki
 
 # 2.11.1
 

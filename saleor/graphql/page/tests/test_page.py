@@ -1,5 +1,3 @@
-import json
-
 import graphene
 import pytest
 from django.utils import timezone
@@ -9,6 +7,7 @@ from freezegun import freeze_time
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....page.error_codes import PageErrorCode
 from ....page.models import Page, PageType
+from ....tests.utils import dummy_editorjs
 from ...tests.utils import get_graphql_content
 
 PAGE_QUERY = """
@@ -173,7 +172,7 @@ CREATE_PAGE_MUTATION = """
 @freeze_time("2020-03-18 12:00:00")
 def test_page_create_mutation(staff_api_client, permission_manage_pages, page_type):
     page_slug = "test-slug"
-    page_content = json.dumps({"content": "test content"})
+    page_content = dummy_editorjs("test content", True)
     page_title = "test title"
     page_is_published = True
     page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
@@ -258,7 +257,7 @@ def test_page_create_mutation_missing_required_attributes(
 ):
     # given
     page_slug = "test-slug"
-    page_content = json.dumps({"content": "test content"})
+    page_content = dummy_editorjs("test content", True)
     page_title = "test title"
     page_is_published = True
     page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
@@ -307,7 +306,7 @@ def test_page_create_mutation_empty_attribute_value(
 ):
     # given
     page_slug = "test-slug"
-    page_content = json.dumps({"content": "test content"})
+    page_content = dummy_editorjs("test content", True)
     page_title = "test title"
     page_is_published = True
     page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
@@ -350,7 +349,7 @@ def test_create_page_with_file_attribute(
 ):
     # given
     page_slug = "test-slug"
-    page_content = json.dumps({"content": "test content"})
+    page_content = dummy_editorjs("test content", True)
     page_title = "test title"
     page_is_published = True
     page_type = PageType.objects.create(
@@ -412,7 +411,7 @@ def test_create_page_with_file_attribute_new_attribute_value(
 ):
     # given
     page_slug = "test-slug"
-    page_content = json.dumps({"content": "test content"})
+    page_content = dummy_editorjs("test content", True)
     page_title = "test title"
     page_is_published = True
     page_type = PageType.objects.create(
@@ -484,7 +483,7 @@ def test_create_page_with_file_attribute_not_required_no_file_url_given(
 ):
     # given
     page_slug = "test-slug"
-    page_content = json.dumps({"content": "test content"})
+    page_content = dummy_editorjs("test content", True)
     page_title = "test title"
     page_is_published = True
     page_type = PageType.objects.create(
@@ -530,7 +529,7 @@ def test_create_page_with_file_attribute_required_no_file_url_given(
 ):
     # given
     page_slug = "test-slug"
-    page_content = json.dumps({"content": "test content"})
+    page_content = dummy_editorjs("test content", True)
     page_title = "test title"
     page_is_published = True
     page_type = PageType.objects.create(
@@ -800,9 +799,7 @@ def test_public_page_sets_publication_date(
     data = {
         "slug": "test-url",
         "title": "Test page",
-        "content": {
-            "blocks": [{"data": {"text": "Content for page 1"}, "type": "paragraph"}]
-        },
+        "content": dummy_editorjs("Content for page 1"),
         "is_published": False,
         "page_type": page_type,
     }
@@ -878,18 +875,14 @@ def test_paginate_pages(user_api_client, page, page_type):
     data_02 = {
         "slug": "test02-url",
         "title": "Test page",
-        "content": {
-            "blocks": [{"data": {"text": "Content for page 1"}, "type": "paragraph"}]
-        },
+        "content": dummy_editorjs("Content for page 1"),
         "is_published": True,
         "page_type": page_type,
     }
     data_03 = {
         "slug": "test03-url",
         "title": "Test page",
-        "content": {
-            "blocks": [{"data": {"text": "Content for page 1"}, "type": "paragraph"}]
-        },
+        "content": dummy_editorjs("Content for page 1"),
         "is_published": True,
         "page_type": page_type,
     }
@@ -985,25 +978,19 @@ def test_pages_query_with_filter(
     Page.objects.create(
         title="Page1",
         slug="slug_page_1",
-        content={
-            "blocks": [{"data": {"text": "Content for page 1"}, "type": "paragraph"}]
-        },
+        content=dummy_editorjs("Content for page 1"),
         page_type=page_type,
     )
     Page.objects.create(
         title="Page2",
         slug="slug_page_2",
-        content={
-            "blocks": [{"data": {"text": "Content for page 2"}, "type": "paragraph"}]
-        },
+        content=dummy_editorjs("Content for page 2"),
         page_type=page_type,
     )
     Page.objects.create(
         title="About",
         slug="slug_about",
-        content={
-            "blocks": [{"data": {"text": "About test content"}, "type": "paragraph"}]
-        },
+        content=dummy_editorjs("About test content"),
         page_type=page_type,
     )
     variables = {"filter": page_filter}
@@ -1054,7 +1041,7 @@ def test_query_pages_with_sort(
         Page.objects.create(
             title="Page1",
             slug="slug_page_1",
-            content={"blocks": [{"data": {"text": "p1."}, "type": "paragraph"}]},
+            content=dummy_editorjs("p1."),
             is_published=True,
             publication_date=timezone.now().replace(year=2018, month=12, day=5),
             page_type=page_type,
@@ -1063,7 +1050,7 @@ def test_query_pages_with_sort(
         Page.objects.create(
             title="Page2",
             slug="page_2",
-            content={"blocks": [{"data": {"text": "p2."}, "type": "paragraph"}]},
+            content=dummy_editorjs("p2."),
             is_published=False,
             publication_date=timezone.now().replace(year=2019, month=12, day=5),
             page_type=page_type,
@@ -1072,7 +1059,7 @@ def test_query_pages_with_sort(
         Page.objects.create(
             title="About",
             slug="about",
-            content={"blocks": [{"data": {"text": "Ab."}, "type": "paragraph"}]},
+            content=dummy_editorjs("Ab."),
             is_published=True,
             page_type=page_type,
         )

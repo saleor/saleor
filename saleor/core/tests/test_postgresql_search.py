@@ -4,6 +4,7 @@ from django.utils.text import slugify
 from ...account.models import Address
 from ...product.models import Product, ProductChannelListing
 from ...search.backends.postgresql import search_storefront
+from ...tests.utils import dummy_editorjs
 
 PRODUCTS = [
     ("Arabica Coffee", "The best grains in galactic"),
@@ -18,7 +19,7 @@ def named_products(category, product_type, channel_USD):
         product = Product.objects.create(
             name=name,
             slug=slugify(name),
-            description={"content": description},
+            description=dummy_editorjs(description),
             product_type=product_type,
             category=category,
         )
