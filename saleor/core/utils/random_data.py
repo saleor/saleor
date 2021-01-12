@@ -88,6 +88,8 @@ from ...warehouse.models import Stock, Warehouse
 fake = Factory.create()
 PRODUCTS_LIST_DIR = "products-list/"
 
+DUMMY_STAFF_PASSWORD = "password"
+
 IMAGES_MAPPING = {
     61: ["saleordemoproduct_paints_01.png"],
     62: ["saleordemoproduct_paints_02.png"],
@@ -783,7 +785,7 @@ def _create_staff_user(email=None, superuser=False):
         first_name=first_name,
         last_name=last_name,
         email=email,
-        password="password",
+        password=DUMMY_STAFF_PASSWORD,
         default_billing_address=address,
         default_shipping_address=address,
         is_staff=True,
