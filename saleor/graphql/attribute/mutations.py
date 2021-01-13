@@ -247,7 +247,34 @@ class AttributeUpdateInput(graphene.InputObjectType):
     )
 
 
+class AttributeProperties:
+    FILTERABLE_IN_STOREFRONT = "filterable_in_storefront"
+    FILTERABLE_IN_DASHBOARD = "filterable_in_dashboard"
+    AVAILABLE_IN_GRID = "available_in_grid"
+    STOREFRONT_SEARCH_POSITION = "storefront_search_position"
+
+
 class AttributeMixin:
+    INPUT_TYPE_TO_NOT_ALLOWED_ATTRIBUTE_PROPERTIES = {
+        AttributeInputType.FILE: [
+            AttributeProperties.FILTERABLE_IN_STOREFRONT,
+            AttributeProperties.FILTERABLE_IN_DASHBOARD,
+            AttributeProperties.AVAILABLE_IN_GRID,
+            AttributeProperties.STOREFRONT_SEARCH_POSITION,
+        ],
+        AttributeInputType.REFERENCE: [
+            AttributeProperties.FILTERABLE_IN_STOREFRONT,
+            AttributeProperties.FILTERABLE_IN_DASHBOARD,
+            AttributeProperties.AVAILABLE_IN_GRID,
+            AttributeProperties.STOREFRONT_SEARCH_POSITION,
+        ],
+        AttributeInputType.DIMENSIONS: [
+            AttributeProperties.FILTERABLE_IN_STOREFRONT,
+            AttributeProperties.FILTERABLE_IN_DASHBOARD,
+            AttributeProperties.STOREFRONT_SEARCH_POSITION,
+        ],
+    }
+
     @classmethod
     def check_values_are_unique(cls, values_input, attribute):
         # Check values uniqueness in case of creating new attribute.
@@ -341,19 +368,12 @@ class AttributeMixin:
 
         Ensure that any invalid operations will be not performed.
         """
+        input_type_mapping = cls.INPUT_TYPE_TO_NOT_ALLOWED_ATTRIBUTE_PROPERTIES
         attribute_input_type = cleaned_input.get("input_type") or instance.input_type
-        if attribute_input_type not in [
-            AttributeInputType.FILE,
-            AttributeInputType.REFERENCE,
-        ]:
+        if attribute_input_type not in input_type_mapping.keys():
             return
         errors = {}
-        for field in [
-            "filterable_in_storefront",
-            "filterable_in_dashboard",
-            "available_in_grid",
-            "storefront_search_position",
-        ]:
+        for field in input_type_mapping[attribute_input_type]:
             if cleaned_input.get(field):
                 errors[field] = ValidationError(
                     f"Cannot set on a {attribute_input_type} attribute.",
