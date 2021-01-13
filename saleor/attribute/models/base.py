@@ -1,9 +1,11 @@
 from typing import TYPE_CHECKING, Union
 
+from django.conf import settings
 from django.db import models
 from django.db.models import F, Q
 
 from ...account.utils import requestor_is_staff_member_or_app
+from ...core import DimensionUnits
 from ...core.models import ModelWithMetadata, SortableModel
 from ...core.utils.translations import TranslationProxy
 from ...page.models import PageType
@@ -189,6 +191,27 @@ class AttributeValue(SortableModel):
     attribute = models.ForeignKey(
         Attribute, related_name="values", on_delete=models.CASCADE
     )
+
+    # dimensions fields
+    length = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        blank=True,
+        null=True,
+    )
+    width = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        blank=True,
+        null=True,
+    )
+    height = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        blank=True,
+        null=True,
+    )
+    unit = models.CharField(max_length=50, choices=DimensionUnits.CHOICES, blank=True)
 
     translated = TranslationProxy()
 

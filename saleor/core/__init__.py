@@ -10,3 +10,17 @@ class JobStatus:
         (FAILED, "Failed"),
         (DELETED, "Deleted"),
     ]
+
+
+class DimensionUnits:
+    CM = "cm"
+    M = "m"
+    FT = "ft"
+    INCH = "inch"
+
+    CHOICES = [
+        (CM, "cm"),
+        (M, "m"),
+        (FT, "ft"),
+        (INCH, "inch"),
+    ]
