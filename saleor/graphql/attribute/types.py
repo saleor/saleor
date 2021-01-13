@@ -4,7 +4,7 @@ import graphene
 
 from ...attribute import AttributeInputType, models
 from ..core.connection import CountableDjangoObjectType
-from ..core.types import File
+from ..core.types import Dimensions, File
 from ..decorators import (
     check_attribute_required_permissions,
     check_attribute_value_required_permissions,
@@ -53,6 +53,9 @@ class AttributeValue(CountableDjangoObjectType):
     file = graphene.Field(
         File, description=AttributeValueDescriptions.FILE, required=False
     )
+    dimensions = graphene.Field(
+        Dimensions, description=AttributeValueDescriptions.DIMENSIONS, required=False
+    )
 
     class Meta:
         description = "Represents a value of an attribute."
@@ -90,6 +93,21 @@ class AttributeValue(CountableDjangoObjectType):
             AttributesByAttributeId(info.context)
             .load(root.attribute_id)
             .then(prepare_reference)
+        )
+
+    @staticmethod
+    def resolve_dimensions(root: models.AttributeValue, info, **_kwargs):
+        def prepare_dimensions(attribute):
+            if attribute.input_type != AttributeInputType.DIMENSIONS:
+                return
+            return Dimensions(
+                length=root.length, width=root.width, height=root.height, unit=root.unit
+            )
+
+        return (
+            AttributesByAttributeId(info.context)
+            .load(root.attribute_id)
+            .then(prepare_dimensions)
         )
 
 

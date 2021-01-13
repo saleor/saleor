@@ -12,6 +12,7 @@ from ..enums import (
     ChannelErrorCode,
     CheckoutErrorCode,
     CollectionErrorCode,
+    DimensionUnitsEnum,
     DiscountErrorCode,
     ExportErrorCode,
     GiftCardErrorCode,
@@ -361,6 +362,13 @@ class File(graphene.ObjectType):
     @staticmethod
     def resolve_url(root, info):
         return info.context.build_absolute_uri(urljoin(settings.MEDIA_URL, root.url))
+
+
+class Dimensions(graphene.ObjectType):
+    length = graphene.Float(description="The length value.")
+    width = graphene.Float(description="The width value.")
+    height = graphene.Float(description="The height value.")
+    unit = DimensionUnitsEnum(description="Dimensions unit.")
 
 
 class PriceRangeInput(graphene.InputObjectType):

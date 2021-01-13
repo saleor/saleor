@@ -74,6 +74,12 @@ query($id: ID!) {
                 url
                 contentType
             }
+            dimensions {
+                length
+                width
+                height
+                unit
+            }
         }
         valueRequired
         visibleInStorefront
@@ -243,6 +249,7 @@ def test_get_single_product_attribute_with_file_value(
             "slug": value.slug,
             "inputType": value.input_type.upper(),
             "file": {"url": value.file_url, "contentType": value.content_type},
+            "dimensions": None,
         }
         attribute_value_data.append(data)
 
@@ -296,6 +303,43 @@ def test_get_single_reference_attribute_by_staff(
         content["data"]["attribute"]["entityType"]
         == product_type_page_reference_attribute.entity_type.upper()
     )
+
+
+def test_get_single_dimensions_attribute_by_staff(
+    staff_api_client, product_dimensions_attribute, permission_manage_products
+):
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    attribute_gql_id = graphene.Node.to_global_id(
+        "Attribute", product_dimensions_attribute.id
+    )
+    query = QUERY_ATTRIBUTE
+    content = get_graphql_content(
+        staff_api_client.post_graphql(query, {"id": attribute_gql_id})
+    )
+
+    attribute_data = content["data"]["attribute"]
+    assert attribute_data, "Should have found an attribute"
+    assert attribute_data["id"] == attribute_gql_id
+    assert attribute_data["slug"] == product_dimensions_attribute.slug
+    assert len(attribute_data["values"]) == 2
+
+    attribute_value_data = []
+    for value in product_dimensions_attribute.values.all():
+        data = {
+            "slug": value.slug,
+            "inputType": value.input_type.upper(),
+            "file": None,
+            "dimensions": {
+                "length": value.length,
+                "width": value.width,
+                "height": value.height,
+                "unit": value.unit.upper(),
+            },
+        }
+        attribute_value_data.append(data)
+
+    for data in attribute_value_data:
+        assert data in attribute_data["values"]
 
 
 QUERY_ATTRIBUTES = """

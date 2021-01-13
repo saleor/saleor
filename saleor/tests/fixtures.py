@@ -36,7 +36,7 @@ from ..attribute.models import (
 from ..attribute.utils import associate_attribute_values_to_instance
 from ..checkout.models import Checkout
 from ..checkout.utils import add_variant_to_checkout
-from ..core import JobStatus
+from ..core import DimensionUnits, JobStatus
 from ..core.payments import PaymentInterface
 from ..csv.events import ExportEvents
 from ..csv.models import ExportEvent, ExportFile
@@ -876,6 +876,34 @@ def page_type_product_reference_attribute(db):
         input_type=AttributeInputType.REFERENCE,
         entity_type=AttributeEntityType.PRODUCT,
     )
+
+
+@pytest.fixture
+def product_dimensions_attribute(db):
+    attribute = Attribute.objects.create(
+        slug="measurement",
+        name="Measurement",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.DIMENSIONS,
+    )
+    AttributeValue.objects.create(
+        attribute=attribute,
+        name="Box size",
+        slug="box-size",
+        length=30,
+        width=15,
+        height=5,
+        unit=DimensionUnits.CM,
+    )
+    AttributeValue.objects.create(
+        attribute=attribute,
+        name="Product size",
+        slug="product-size",
+        length=25,
+        width=10,
+        unit=DimensionUnits.CM,
+    )
+    return attribute
 
 
 @pytest.fixture

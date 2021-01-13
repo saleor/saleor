@@ -26,3 +26,6 @@ class AttributeValueDescriptions:
     SLUG = "Internal representation of a value (unique per attribute)."
     TYPE = "Type of value (used only when `value` field is set)."
     FILE = "Represents file URL and content type (if attribute value is a file)."
+    DIMENSIONS = (
+        "Represents dimensions data (if the attribute value is dimensions type)."
+    )

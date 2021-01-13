@@ -1,6 +1,7 @@
 # flake8: noqa
 from .common import (
     CountryDisplay,
+    Dimensions,
     Error,
     File,
     Image,
