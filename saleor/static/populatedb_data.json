@@ -7052,6 +7052,17 @@
     }
   },
   {
+    "model": "attribute.assignedproductattribute",
+    "pk": 36,
+    "fields": {
+      "product": 74,
+      "assignment": 9,
+      "values": [
+          95, 96
+      ]
+    }
+  },
+  {
     "model": "attribute.assignedvariantattribute",
     "pk": 1,
     "fields": {
@@ -8523,6 +8534,15 @@
     }
   },
   {
+    "model": "attribute.attributeproduct",
+    "pk": 9,
+    "fields": {
+      "sort_order": null,
+      "attribute": 31,
+      "product_type": 9
+    }
+  },
+  {
     "model": "attribute.attributevariant",
     "pk": 1,
     "fields": {
@@ -8915,6 +8935,26 @@
         "filterable_in_dashboard": true,
         "storefront_search_position": 0,
         "available_in_grid": true
+    }
+  },
+  {
+    "model": "attribute.attribute",
+    "pk": 31,
+    "fields": {
+        "private_metadata": {},
+        "metadata": {},
+        "slug": "related-products",
+        "name": "Related products",
+        "type": "product-type",
+        "input_type": "reference",
+        "entity_type": "Product",
+        "value_required": false,
+        "is_variant_only": false,
+        "visible_in_storefront": true,
+        "filterable_in_storefront": false,
+        "filterable_in_dashboard": false,
+        "storefront_search_position": 0,
+        "available_in_grid": false
     }
   },
   {
@@ -9545,6 +9585,32 @@
         "content_type": null,
         "attribute": 30
     }
+  },
+  {
+    "model": "attribute.attributevalue",
+    "pk": 95,
+    "fields": {
+        "sort_order": 0,
+        "name": "Bean Juice",
+        "value": "",
+        "slug": "74_79",
+        "file_url": null,
+        "content_type": null,
+        "attribute": 31
+    }
+  },
+  {
+      "model": "attribute.attributevalue",
+      "pk": 96,
+      "fields": {
+          "sort_order": 1,
+          "name": "Carrot Juice",
+          "value": "",
+          "slug": "74_73",
+          "file_url": null,
+          "content_type": null,
+          "attribute": 31
+      }
   },
   {
     "model": "product.productimage",

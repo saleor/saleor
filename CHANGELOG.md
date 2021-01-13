@@ -29,6 +29,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Added support for querying user by email - #6632 @LeOndaz
 - Add order shipping tax rate - #6678 by @IKarbowiak
 - Fix products visibility - #6704 by @IKarbowiak
+- Introduce product reference attributes - #6711 by @IKarbowiak
 
 # 2.11.1
 
