@@ -2,6 +2,7 @@ import django_filters
 from django.db.models import Q
 from graphene_django.filter import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 
+from ...account.utils import requestor_is_staff_member_or_app
 from ...attribute.models import Attribute
 from ...product.models import Category, Product
 from ..attribute.enums import AttributeTypeEnum
@@ -31,7 +32,7 @@ def filter_attributes_by_product_types(qs, field, value, requestor, channel_slug
         tree = category.get_descendants(include_self=True)
         product_qs = product_qs.filter(category__in=tree)
 
-        if not product_qs.user_has_access_to_all(requestor):
+        if not requestor_is_staff_member_or_app(requestor):
             product_qs = product_qs.annotate_visible_in_listings(channel_slug).exclude(
                 visible_in_listings=False
             )

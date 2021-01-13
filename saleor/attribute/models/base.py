@@ -3,8 +3,8 @@ from typing import TYPE_CHECKING, Union
 from django.db import models
 from django.db.models import F, Q
 
+from ...account.utils import requestor_is_staff_member_or_app
 from ...core.models import ModelWithMetadata, SortableModel
-from ...core.permissions import ProductPermissions
 from ...core.utils.translations import TranslationProxy
 from ...page.models import PageType
 from ...product.models import ProductType
@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from django.db.models import OrderBy
 
     from ...account.models import User
+    from ...app.models import App
 
 
 class BaseAssignedAttribute(models.Model):
@@ -32,15 +33,11 @@ class BaseAssignedAttribute(models.Model):
 
 
 class BaseAttributeQuerySet(models.QuerySet):
-    @staticmethod
-    def user_has_access_to_all(user: "User") -> bool:
-        return user.is_active and user.has_perm(ProductPermissions.MANAGE_PRODUCTS)
-
     def get_public_attributes(self):
         raise NotImplementedError
 
-    def get_visible_to_user(self, user: "User"):
-        if self.user_has_access_to_all(user):
+    def get_visible_to_user(self, requestor: Union["User", "App"]):
+        if requestor_is_staff_member_or_app(requestor):
             return self.all()
         return self.get_public_attributes()
 

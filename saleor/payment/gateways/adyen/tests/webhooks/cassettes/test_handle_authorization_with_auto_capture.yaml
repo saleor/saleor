@@ -1,9 +1,9 @@
 interactions:
 - request:
-    body: '{"merchantAccount": "SaleorECOM", "modificationAmount": {"value": "123400",
-      "currency": "USD"}, "originalReference": "853596537720508F", "reference": "UGF5bWVudDoxMA==",
+    body: '{"merchantAccount": "SaleorECOM", "modificationAmount": {"value": "8000",
+      "currency": "USD"}, "originalReference": "853596537720508F", "reference": "UGF5bWVudDoxMTk5",
       "applicationInfo": {"adyenLibrary": {"name": "adyen-python-api-library", "version":
-      "3.1.0"}}}'
+      "4.0.0"}}}'
     headers:
       Accept:
       - '*/*'
@@ -16,14 +16,14 @@ interactions:
       Content-Type:
       - application/json
       User-Agent:
-      - adyen-python-api-library/3.1.0
+      - adyen-python-api-library/4.0.0
       x-api-key:
-        - test_key
+      - test_key
     method: POST
     uri: https://pal-test.adyen.com/pal/servlet/Payment/v64/capture
   response:
     body:
-      string: '{"pspReference":"853596621736884E","response":"[capture-received]"}'
+      string: '{"pspReference":"853610013045881J","response":"[capture-received]"}'
     headers:
       Adyen-ServerState:
       - HIGH
@@ -32,18 +32,18 @@ interactions:
       Content-Type:
       - application/json;charset=utf-8
       Date:
-      - Wed, 05 Aug 2020 10:02:16 GMT
+      - Thu, 07 Jan 2021 09:50:45 GMT
       Keep-Alive:
       - timeout=15, max=100
       Server:
       - Apache
       Set-Cookie:
-      - JSESSIONID=B33CB1EEE84AD96541DC3468DD28D0F8.test4e; Path=/pal; Secure; HttpOnly
+      - JSESSIONID=F00A8F106CFADD404CBCDF6D896235D3.test4e; Path=/pal; Secure; HttpOnly
       Transfer-Encoding:
       - chunked
       pspReference:
-      - 853596621736884E
+      - 853610013045881J
     status:
       code: 200
-      message: OK
+      message: '200'
 version: 1
