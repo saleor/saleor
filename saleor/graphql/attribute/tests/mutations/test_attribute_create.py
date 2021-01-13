@@ -138,7 +138,12 @@ def test_create_attribute_with_file_input_type(
     assert data["attribute"]["inputType"] == AttributeInputTypeEnum.FILE.name
 
 
+@pytest.mark.parametrize(
+    "entity_type",
+    [AttributeEntityTypeEnum.PAGE.name, AttributeEntityTypeEnum.PRODUCT.name],
+)
 def test_create_attribute_with_reference_input_type(
+    entity_type,
     staff_api_client,
     permission_manage_product_types_and_attributes,
     permission_manage_products,
@@ -152,7 +157,7 @@ def test_create_attribute_with_reference_input_type(
             "name": attribute_name,
             "type": AttributeTypeEnum.PRODUCT_TYPE.name,
             "inputType": AttributeInputTypeEnum.REFERENCE.name,
-            "entityType": AttributeEntityTypeEnum.PAGE.name,
+            "entityType": entity_type,
         }
     }
 
@@ -184,7 +189,7 @@ def test_create_attribute_with_reference_input_type(
     assert len(data["attribute"]["values"]) == 0
     assert data["attribute"]["type"] == AttributeTypeEnum.PRODUCT_TYPE.name
     assert data["attribute"]["inputType"] == AttributeInputTypeEnum.REFERENCE.name
-    assert data["attribute"]["entityType"] == AttributeEntityTypeEnum.PAGE.name
+    assert data["attribute"]["entityType"] == entity_type
 
 
 def test_create_attribute_with_reference_input_type_entity_type_not_given(
@@ -416,7 +421,12 @@ def test_create_attribute_with_file_input_type_and_invalid_settings(
     assert {error["code"] for error in errors} == {AttributeErrorCode.INVALID.name}
 
 
+@pytest.mark.parametrize(
+    "entity_type",
+    [AttributeEntityTypeEnum.PAGE.name, AttributeEntityTypeEnum.PRODUCT.name],
+)
 def test_create_attribute_with_reference_input_type_invalid_settings(
+    entity_type,
     staff_api_client,
     permission_manage_product_types_and_attributes,
     permission_manage_products,
@@ -430,7 +440,7 @@ def test_create_attribute_with_reference_input_type_invalid_settings(
             "name": attribute_name,
             "type": AttributeTypeEnum.PRODUCT_TYPE.name,
             "inputType": AttributeInputTypeEnum.REFERENCE.name,
-            "entityType": AttributeEntityTypeEnum.PAGE.name,
+            "entityType": entity_type,
             "filterableInStorefront": True,
             "filterableInDashboard": True,
             "availableInGrid": True,
@@ -565,7 +575,12 @@ def test_create_attribute_with_reference_input_type_invalid_one_settings_value(
     assert errors[0]["code"] == AttributeErrorCode.INVALID.name
 
 
+@pytest.mark.parametrize(
+    "entity_type",
+    [AttributeEntityTypeEnum.PAGE.name, AttributeEntityTypeEnum.PRODUCT.name],
+)
 def test_create_attribute_with_reference_input_type_values_given(
+    entity_type,
     staff_api_client,
     permission_manage_product_types_and_attributes,
     permission_manage_products,
@@ -579,7 +594,7 @@ def test_create_attribute_with_reference_input_type_values_given(
             "name": attribute_name,
             "type": AttributeTypeEnum.PRODUCT_TYPE.name,
             "inputType": AttributeInputTypeEnum.REFERENCE.name,
-            "entityType": AttributeEntityTypeEnum.PAGE.name,
+            "entityType": entity_type,
             "values": [{"name": "test-value"}],
         }
     }
