@@ -571,7 +571,6 @@ type AttributeValue implements Node {
   id: ID!
   name: String
   slug: String
-  type: AttributeValueType @deprecated(reason: "Use the `inputType` field to determine the type of attribute's value. This field will be removed after 2020-07-31.")
   translation(languageCode: LanguageCodeEnum!): AttributeValueTranslation
   inputType: AttributeInputTypeEnum
   reference: ID
@@ -627,13 +626,6 @@ type AttributeValueTranslation implements Node {
   id: ID!
   name: String!
   language: LanguageDisplay!
-}
-
-enum AttributeValueType {
-  COLOR
-  GRADIENT
-  URL
-  STRING
 }
 
 type AttributeValueUpdate {
