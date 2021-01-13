@@ -14,37 +14,15 @@ from ..translations.fields import TranslationField
 from ..translations.types import AttributeTranslation, AttributeValueTranslation
 from .dataloaders import AttributesByAttributeId, AttributeValuesByAttributeIdLoader
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
-from .enums import (
-    AttributeEntityTypeEnum,
-    AttributeInputTypeEnum,
-    AttributeTypeEnum,
-    AttributeValueType,
-)
+from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
 
 COLOR_PATTERN = r"^(#[0-9a-fA-F]{3}|#(?:[0-9a-fA-F]{2}){2,4}|(rgb|hsl)a?\((-?\d+%?[,\s]+){2,3}\s*[\d\.]+%?\))$"  # noqa
 color_pattern = re.compile(COLOR_PATTERN)
 
 
-def resolve_attribute_value_type(attribute_value):
-    if color_pattern.match(attribute_value):
-        return AttributeValueType.COLOR
-    if "gradient(" in attribute_value:
-        return AttributeValueType.GRADIENT
-    if "://" in attribute_value:
-        return AttributeValueType.URL
-    return AttributeValueType.STRING
-
-
 class AttributeValue(CountableDjangoObjectType):
     name = graphene.String(description=AttributeValueDescriptions.NAME)
     slug = graphene.String(description=AttributeValueDescriptions.SLUG)
-    type = AttributeValueType(
-        description=AttributeValueDescriptions.TYPE,
-        deprecation_reason=(
-            "Use the `inputType` field to determine the type of attribute's value. "
-            "This field will be removed after 2020-07-31."
-        ),
-    )
     translation = TranslationField(
         AttributeValueTranslation, type_name="attribute value"
     )
@@ -59,10 +37,6 @@ class AttributeValue(CountableDjangoObjectType):
         only_fields = ["id"]
         interfaces = [graphene.relay.Node]
         model = models.AttributeValue
-
-    @staticmethod
-    def resolve_type(root: models.AttributeValue, *_args):
-        return resolve_attribute_value_type(root.value)
 
     @staticmethod
     @check_attribute_value_required_permissions()

@@ -708,7 +708,6 @@ def test_retrieve_product_attributes_input_type(
               node {
                 attributes {
                   values {
-                    type
                     inputType
                   }
                 }
@@ -728,7 +727,6 @@ def test_retrieve_product_attributes_input_type(
 
     for gql_attr in found_products[0]["node"]["attributes"]:
         assert len(gql_attr["values"]) == 1
-        assert gql_attr["values"][0]["type"] == "STRING"
         assert gql_attr["values"][0]["inputType"] == "DROPDOWN"
 
 
