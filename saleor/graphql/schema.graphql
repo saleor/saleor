@@ -454,6 +454,7 @@ type AttributeDelete {
 
 enum AttributeEntityTypeEnum {
   PAGE
+  PRODUCT
 }
 
 type AttributeError {
