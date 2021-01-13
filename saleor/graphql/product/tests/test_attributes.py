@@ -936,37 +936,39 @@ def test_sort_product_attribute_values(
     staff_api_client,
     permission_manage_products,
     product,
-    page_reference_attribute,
+    product_type_page_reference_attribute,
 ):
     staff_api_client.user.user_permissions.add(permission_manage_products)
 
     product_type = product.product_type
     product_type.product_attributes.clear()
-    product_type.product_attributes.add(page_reference_attribute)
+    product_type.product_attributes.add(product_type_page_reference_attribute)
 
     product_id = graphene.Node.to_global_id("Product", product.id)
-    attribute_id = graphene.Node.to_global_id("Attribute", page_reference_attribute.id)
+    attribute_id = graphene.Node.to_global_id(
+        "Attribute", product_type_page_reference_attribute.id
+    )
     attr_values = AttributeValue.objects.bulk_create(
         [
             AttributeValue(
-                attribute=page_reference_attribute,
+                attribute=product_type_page_reference_attribute,
                 slug=f"{product.pk}_1",
                 name="test name 1",
             ),
             AttributeValue(
-                attribute=page_reference_attribute,
+                attribute=product_type_page_reference_attribute,
                 slug=f"{product.pk}_2",
                 name="test name 2",
             ),
             AttributeValue(
-                attribute=page_reference_attribute,
+                attribute=product_type_page_reference_attribute,
                 slug=f"{product.pk}_3",
                 name="test name 3",
             ),
         ]
     )
     associate_attribute_values_to_instance(
-        product, page_reference_attribute, *attr_values
+        product, product_type_page_reference_attribute, *attr_values
     )
 
     variables = {
@@ -1008,32 +1010,32 @@ def test_sort_product_attribute_values_invalid_attribute_id(
     staff_api_client,
     permission_manage_products,
     product,
-    page_reference_attribute,
+    product_type_page_reference_attribute,
     color_attribute,
 ):
     staff_api_client.user.user_permissions.add(permission_manage_products)
 
     product_type = product.product_type
     product_type.product_attributes.clear()
-    product_type.product_attributes.add(page_reference_attribute)
+    product_type.product_attributes.add(product_type_page_reference_attribute)
 
     product_id = graphene.Node.to_global_id("Product", product.id)
     attr_values = AttributeValue.objects.bulk_create(
         [
             AttributeValue(
-                attribute=page_reference_attribute,
+                attribute=product_type_page_reference_attribute,
                 slug=f"{product.pk}_1",
                 name="test name 1",
             ),
             AttributeValue(
-                attribute=page_reference_attribute,
+                attribute=product_type_page_reference_attribute,
                 slug=f"{product.pk}_2",
                 name="test name 2",
             ),
         ]
     )
     associate_attribute_values_to_instance(
-        product, page_reference_attribute, *attr_values
+        product, product_type_page_reference_attribute, *attr_values
     )
 
     variables = {
@@ -1063,38 +1065,40 @@ def test_sort_product_attribute_values_invalid_value_id(
     staff_api_client,
     permission_manage_products,
     product,
-    page_reference_attribute,
+    product_type_page_reference_attribute,
     size_page_attribute,
 ):
     staff_api_client.user.user_permissions.add(permission_manage_products)
 
     product_type = product.product_type
     product_type.product_attributes.clear()
-    product_type.product_attributes.add(page_reference_attribute)
+    product_type.product_attributes.add(product_type_page_reference_attribute)
 
     product_id = graphene.Node.to_global_id("Product", product.id)
-    attribute_id = graphene.Node.to_global_id("Attribute", page_reference_attribute.id)
+    attribute_id = graphene.Node.to_global_id(
+        "Attribute", product_type_page_reference_attribute.id
+    )
     attr_values = AttributeValue.objects.bulk_create(
         [
             AttributeValue(
-                attribute=page_reference_attribute,
+                attribute=product_type_page_reference_attribute,
                 slug=f"{product.pk}_1",
                 name="test name 1",
             ),
             AttributeValue(
-                attribute=page_reference_attribute,
+                attribute=product_type_page_reference_attribute,
                 slug=f"{product.pk}_2",
                 name="test name 2",
             ),
             AttributeValue(
-                attribute=page_reference_attribute,
+                attribute=product_type_page_reference_attribute,
                 slug=f"{product.pk}_3",
                 name="test name 3",
             ),
         ]
     )
     associate_attribute_values_to_instance(
-        product, page_reference_attribute, *attr_values
+        product, product_type_page_reference_attribute, *attr_values
     )
 
     invalid_value_id = graphene.Node.to_global_id(
@@ -1166,38 +1170,40 @@ def test_sort_product_variant_attribute_values(
     staff_api_client,
     permission_manage_products,
     product,
-    page_reference_attribute,
+    product_type_page_reference_attribute,
 ):
     staff_api_client.user.user_permissions.add(permission_manage_products)
 
     variant = product.variants.first()
     product_type = product.product_type
     product_type.variant_attributes.clear()
-    product_type.variant_attributes.add(page_reference_attribute)
+    product_type.variant_attributes.add(product_type_page_reference_attribute)
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
-    attribute_id = graphene.Node.to_global_id("Attribute", page_reference_attribute.id)
+    attribute_id = graphene.Node.to_global_id(
+        "Attribute", product_type_page_reference_attribute.id
+    )
     attr_values = AttributeValue.objects.bulk_create(
         [
             AttributeValue(
-                attribute=page_reference_attribute,
+                attribute=product_type_page_reference_attribute,
                 slug=f"{variant.pk}_1",
                 name="test name 1",
             ),
             AttributeValue(
-                attribute=page_reference_attribute,
+                attribute=product_type_page_reference_attribute,
                 slug=f"{variant.pk}_2",
                 name="test name 2",
             ),
             AttributeValue(
-                attribute=page_reference_attribute,
+                attribute=product_type_page_reference_attribute,
                 slug=f"{variant.pk}_3",
                 name="test name 3",
             ),
         ]
     )
     associate_attribute_values_to_instance(
-        variant, page_reference_attribute, *attr_values
+        variant, product_type_page_reference_attribute, *attr_values
     )
 
     variables = {
@@ -1241,7 +1247,7 @@ def test_sort_product_variant_attribute_values_invalid_attribute_id(
     staff_api_client,
     permission_manage_products,
     product,
-    page_reference_attribute,
+    product_type_page_reference_attribute,
     color_attribute,
 ):
     staff_api_client.user.user_permissions.add(permission_manage_products)
@@ -1249,25 +1255,25 @@ def test_sort_product_variant_attribute_values_invalid_attribute_id(
     variant = product.variants.first()
     product_type = product.product_type
     product_type.variant_attributes.clear()
-    product_type.variant_attributes.add(page_reference_attribute)
+    product_type.variant_attributes.add(product_type_page_reference_attribute)
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     attr_values = AttributeValue.objects.bulk_create(
         [
             AttributeValue(
-                attribute=page_reference_attribute,
+                attribute=product_type_page_reference_attribute,
                 slug=f"{variant.pk}_1",
                 name="test name 1",
             ),
             AttributeValue(
-                attribute=page_reference_attribute,
+                attribute=product_type_page_reference_attribute,
                 slug=f"{variant.pk}_2",
                 name="test name 2",
             ),
         ]
     )
     associate_attribute_values_to_instance(
-        variant, page_reference_attribute, *attr_values
+        variant, product_type_page_reference_attribute, *attr_values
     )
 
     variables = {
@@ -1297,7 +1303,7 @@ def test_sort_product_variant_attribute_values_invalid_value_id(
     staff_api_client,
     permission_manage_products,
     product,
-    page_reference_attribute,
+    product_type_page_reference_attribute,
     size_page_attribute,
 ):
     staff_api_client.user.user_permissions.add(permission_manage_products)
@@ -1305,31 +1311,33 @@ def test_sort_product_variant_attribute_values_invalid_value_id(
     variant = product.variants.first()
     product_type = product.product_type
     product_type.variant_attributes.clear()
-    product_type.variant_attributes.add(page_reference_attribute)
+    product_type.variant_attributes.add(product_type_page_reference_attribute)
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
-    attribute_id = graphene.Node.to_global_id("Attribute", page_reference_attribute.id)
+    attribute_id = graphene.Node.to_global_id(
+        "Attribute", product_type_page_reference_attribute.id
+    )
     attr_values = AttributeValue.objects.bulk_create(
         [
             AttributeValue(
-                attribute=page_reference_attribute,
+                attribute=product_type_page_reference_attribute,
                 slug=f"{variant.pk}_1",
                 name="test name 1",
             ),
             AttributeValue(
-                attribute=page_reference_attribute,
+                attribute=product_type_page_reference_attribute,
                 slug=f"{variant.pk}_2",
                 name="test name 2",
             ),
             AttributeValue(
-                attribute=page_reference_attribute,
+                attribute=product_type_page_reference_attribute,
                 slug=f"{variant.pk}_3",
                 name="test name 3",
             ),
         ]
     )
     associate_attribute_values_to_instance(
-        variant, page_reference_attribute, *attr_values
+        variant, product_type_page_reference_attribute, *attr_values
     )
 
     invalid_value_id = graphene.Node.to_global_id(
