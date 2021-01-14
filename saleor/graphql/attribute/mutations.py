@@ -247,31 +247,25 @@ class AttributeUpdateInput(graphene.InputObjectType):
     )
 
 
-class AttributeProperties:
-    FILTERABLE_IN_STOREFRONT = "filterable_in_storefront"
-    FILTERABLE_IN_DASHBOARD = "filterable_in_dashboard"
-    AVAILABLE_IN_GRID = "available_in_grid"
-    STOREFRONT_SEARCH_POSITION = "storefront_search_position"
-
-
 class AttributeMixin:
-    INPUT_TYPE_TO_NOT_ALLOWED_ATTRIBUTE_PROPERTIES = {
-        AttributeInputType.FILE: [
-            AttributeProperties.FILTERABLE_IN_STOREFRONT,
-            AttributeProperties.FILTERABLE_IN_DASHBOARD,
-            AttributeProperties.AVAILABLE_IN_GRID,
-            AttributeProperties.STOREFRONT_SEARCH_POSITION,
+    # list of input types that allowed for given attribute property
+    ATTRIBUTE_PROPERTIES_CONFIGURATION = {
+        "filterable_in_storefront": [
+            AttributeInputType.DROPDOWN,
+            AttributeInputType.MULTISELECT,
         ],
-        AttributeInputType.REFERENCE: [
-            AttributeProperties.FILTERABLE_IN_STOREFRONT,
-            AttributeProperties.FILTERABLE_IN_DASHBOARD,
-            AttributeProperties.AVAILABLE_IN_GRID,
-            AttributeProperties.STOREFRONT_SEARCH_POSITION,
+        "filterable_in_dashboard": [
+            AttributeInputType.DROPDOWN,
+            AttributeInputType.MULTISELECT,
         ],
-        AttributeInputType.DIMENSIONS: [
-            AttributeProperties.FILTERABLE_IN_STOREFRONT,
-            AttributeProperties.FILTERABLE_IN_DASHBOARD,
-            AttributeProperties.STOREFRONT_SEARCH_POSITION,
+        "available_in_grid": [
+            AttributeInputType.DROPDOWN,
+            AttributeInputType.MULTISELECT,
+            AttributeInputType.DIMENSIONS,
+        ],
+        "storefront_search_position": [
+            AttributeInputType.DROPDOWN,
+            AttributeInputType.MULTISELECT,
         ],
     }
 
@@ -368,13 +362,13 @@ class AttributeMixin:
 
         Ensure that any invalid operations will be not performed.
         """
-        input_type_mapping = cls.INPUT_TYPE_TO_NOT_ALLOWED_ATTRIBUTE_PROPERTIES
         attribute_input_type = cleaned_input.get("input_type") or instance.input_type
-        if attribute_input_type not in input_type_mapping.keys():
-            return
         errors = {}
-        for field in input_type_mapping[attribute_input_type]:
-            if cleaned_input.get(field):
+        for field in cls.ATTRIBUTE_PROPERTIES_CONFIGURATION.keys():
+            allowed_input_type = cls.ATTRIBUTE_PROPERTIES_CONFIGURATION[field]
+            if attribute_input_type not in allowed_input_type and cleaned_input.get(
+                field
+            ):
                 errors[field] = ValidationError(
                     f"Cannot set on a {attribute_input_type} attribute.",
                     code=AttributeErrorCode.INVALID.value,
