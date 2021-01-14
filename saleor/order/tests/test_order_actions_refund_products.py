@@ -287,16 +287,19 @@ def test_create_refund_fulfillment_multiple_refunds(
     channel_listing = variant.channel_listings.get()
     net = variant.get_price(variant.product, [], channel_USD, channel_listing)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    quantity = 5
+    unit_price = TaxedMoney(net=net, gross=gross)
     order_line = fulfilled_order.lines.create(
         product_name=str(variant.product),
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
-        quantity=5,
+        quantity=quantity,
         quantity_fulfilled=2,
         variant=variant,
         unit_price=TaxedMoney(net=net, gross=gross),
-        tax_rate=23,
+        tax_rate=Decimal("0.23"),
+        total_price=unit_price * quantity,
     )
     Allocation.objects.create(
         order_line=order_line, stock=stock, quantity_allocated=order_line.quantity
