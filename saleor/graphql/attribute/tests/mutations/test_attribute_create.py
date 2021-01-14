@@ -28,6 +28,12 @@ CREATE_ATTRIBUTE_MUTATION = """
                 values {
                     name
                     slug
+                    dimensions {
+                        length
+                        width
+                        height
+                        unit
+                    }
                 }
                 productTypes(first: 10) {
                     edges {

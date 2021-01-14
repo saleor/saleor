@@ -1743,7 +1743,7 @@ type Dimensions {
   length: Float
   width: Float
   height: Float
-  unit: DimensionUnitsEnum
+  unit: DimensionUnitsEnum!
 }
 
 type DiscountError {

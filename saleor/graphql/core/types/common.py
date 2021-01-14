@@ -368,7 +368,7 @@ class Dimensions(graphene.ObjectType):
     length = graphene.Float(description="The length value.")
     width = graphene.Float(description="The width value.")
     height = graphene.Float(description="The height value.")
-    unit = DimensionUnitsEnum(description="Dimensions unit.")
+    unit = DimensionUnitsEnum(description="Dimensions unit.", required=True)
 
 
 class PriceRangeInput(graphene.InputObjectType):

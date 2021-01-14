@@ -97,17 +97,10 @@ class AttributeValue(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_dimensions(root: models.AttributeValue, info, **_kwargs):
-        def prepare_dimensions(attribute):
-            if attribute.input_type != AttributeInputType.DIMENSIONS:
-                return
-            return Dimensions(
-                length=root.length, width=root.width, height=root.height, unit=root.unit
-            )
-
-        return (
-            AttributesByAttributeId(info.context)
-            .load(root.attribute_id)
-            .then(prepare_dimensions)
+        if not root.unit:
+            return
+        return Dimensions(
+            length=root.length, width=root.width, height=root.height, unit=root.unit
         )
 
 
