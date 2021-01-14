@@ -1,3 +1,4 @@
+from decimal import Decimal
 from functools import wraps
 from typing import Iterable, List
 
@@ -256,7 +257,19 @@ def change_order_line_quantity(user, line, old_quantity, new_quantity):
     """Change the quantity of ordered items in a order line."""
     if new_quantity:
         line.quantity = new_quantity
-        line.save(update_fields=["quantity"])
+        total_price_net_amount = line.quantity * line.unit_price_net_amount
+        total_price_gross_amount = line.quantity * line.unit_price_gross_amount
+        line.total_price_net_amount = total_price_net_amount.quantize(Decimal("0.001"))
+        line.total_price_gross_amount = total_price_gross_amount.quantize(
+            Decimal("0.001")
+        )
+        line.save(
+            update_fields=[
+                "quantity",
+                "total_price_net_amount",
+                "total_price_gross_amount",
+            ]
+        )
     else:
         delete_order_line(line)
 
