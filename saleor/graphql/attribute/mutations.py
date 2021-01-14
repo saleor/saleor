@@ -86,7 +86,14 @@ class BaseReorderAttributeValuesMutation(BaseMutation):
         abstract = True
 
     @classmethod
-    def perform(cls, instance_id: str, instance_type: str, data: dict, error_code_enum):
+    def perform(
+        cls,
+        instance_id: str,
+        instance_type: str,
+        data: dict,
+        assignment_lookup: str,
+        error_code_enum,
+    ):
         attribute_id = data["attribute_id"]
         moves = data["moves"]
 
@@ -94,7 +101,7 @@ class BaseReorderAttributeValuesMutation(BaseMutation):
         attribute_assignment = cls.get_attribute_assignment(
             instance, instance_type, attribute_id, error_code_enum
         )
-        values_m2m = getattr(attribute_assignment, "values")
+        values_m2m = getattr(attribute_assignment, assignment_lookup)
 
         try:
             operations = cls.prepare_operations(moves, values_m2m)
@@ -154,10 +161,10 @@ class BaseReorderAttributeValuesMutation(BaseMutation):
         _, values_pks = resolve_global_ids_to_primary_keys(value_ids, AttributeValue)
         values_pks = [int(pk) for pk in values_pks]
 
-        values_m2m = values.filter(id__in=values_pks)
+        values_m2m = values.filter(value_id__in=values_pks)
 
         if values_m2m.count() != len(values_pks):
-            pks = values_m2m.values_list("pk", flat=True)
+            pks = values_m2m.values_list("value_id", flat=True)
             invalid_values = set(values_pks) - set(pks)
             invalid_ids = [
                 graphene.Node.to_global_id("AttributeValue", val_pk)
@@ -169,11 +176,12 @@ class BaseReorderAttributeValuesMutation(BaseMutation):
             )
 
         values_m2m = list(values_m2m)
-        values_m2m.sort(key=lambda e: values_pks.index(e.pk))  # preserve order in pks
+        values_m2m.sort(
+            key=lambda e: values_pks.index(e.value_id)
+        )  # preserve order in pks
 
         operations = {
-            attribute.pk: sort_order
-            for attribute, sort_order in zip(values_m2m, sort_orders)
+            value.pk: sort_order for value, sort_order in zip(values_m2m, sort_orders)
         }
 
         return operations
