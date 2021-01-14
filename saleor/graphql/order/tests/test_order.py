@@ -2359,9 +2359,9 @@ def test_draft_order_complete_unavailable_for_purchase(
     assert error["code"] == OrderErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE.name
 
 
-DRAFT_ORDER_LINES_CREATE_MUTATION = """
-    mutation DraftOrderLinesCreate($orderId: ID!, $variantId: ID!, $quantity: Int!) {
-        draftOrderLinesCreate(id: $orderId,
+ORDER_LINES_CREATE_MUTATION = """
+    mutation OrderLinesCreate($orderId: ID!, $variantId: ID!, $quantity: Int!) {
+        orderLinesCreate(id: $orderId,
                 input: [{variantId: $variantId, quantity: $quantity}]) {
 
             orderErrors {
@@ -2390,7 +2390,7 @@ DRAFT_ORDER_LINES_CREATE_MUTATION = """
 def test_draft_order_lines_create(
     draft_order, permission_manage_orders, staff_api_client
 ):
-    query = DRAFT_ORDER_LINES_CREATE_MUTATION
+    query = ORDER_LINES_CREATE_MUTATION
     order = draft_order
     line = order.lines.first()
     variant = line.variant
@@ -2408,7 +2408,7 @@ def test_draft_order_lines_create(
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-    data = content["data"]["draftOrderLinesCreate"]
+    data = content["data"]["orderLinesCreate"]
     assert data["orderLines"][0]["productSku"] == variant.sku
     assert data["orderLines"][0]["quantity"] == old_quantity + quantity
 
@@ -2416,7 +2416,7 @@ def test_draft_order_lines_create(
     variables = {"orderId": order_id, "variantId": variant_id, "quantity": 0}
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-    data = content["data"]["draftOrderLinesCreate"]
+    data = content["data"]["orderLinesCreate"]
     assert data["orderErrors"]
     assert data["orderErrors"][0]["field"] == "quantity"
 
@@ -2424,7 +2424,7 @@ def test_draft_order_lines_create(
 def test_draft_order_lines_create_with_product_and_variant_not_assigned_to_channel(
     draft_order, permission_manage_orders, staff_api_client, variant
 ):
-    query = DRAFT_ORDER_LINES_CREATE_MUTATION
+    query = ORDER_LINES_CREATE_MUTATION
     order = draft_order
     line = order.lines.first()
     assert variant != line.variant
@@ -2438,7 +2438,7 @@ def test_draft_order_lines_create_with_product_and_variant_not_assigned_to_chann
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    error = content["data"]["draftOrderLinesCreate"]["orderErrors"][0]
+    error = content["data"]["orderLinesCreate"]["orderErrors"][0]
     assert error["code"] == OrderErrorCode.PRODUCT_NOT_PUBLISHED.name
     assert error["field"] == "input"
     assert error["variants"] == [variant_id]
@@ -2454,7 +2454,7 @@ def test_draft_order_lines_create_with_variant_not_assigned_to_channel(
     channel_USD,
     graphql_address_data,
 ):
-    query = DRAFT_ORDER_LINES_CREATE_MUTATION
+    query = ORDER_LINES_CREATE_MUTATION
     order = draft_order
     line = order.lines.first()
     assert variant != line.variant
@@ -2467,7 +2467,7 @@ def test_draft_order_lines_create_with_variant_not_assigned_to_channel(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    error = content["data"]["draftOrderLinesCreate"]["orderErrors"][0]
+    error = content["data"]["orderLinesCreate"]["orderErrors"][0]
     assert error["code"] == OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.name
     assert error["field"] == "input"
     assert error["variants"] == [variant_id]
@@ -2476,7 +2476,7 @@ def test_draft_order_lines_create_with_variant_not_assigned_to_channel(
 def test_require_draft_order_when_creating_lines(
     order_with_lines, staff_api_client, permission_manage_orders
 ):
-    query = DRAFT_ORDER_LINES_CREATE_MUTATION
+    query = ORDER_LINES_CREATE_MUTATION
     order = order_with_lines
     line = order.lines.first()
     variant = line.variant
@@ -2487,13 +2487,13 @@ def test_require_draft_order_when_creating_lines(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    data = content["data"]["draftOrderLinesCreate"]
+    data = content["data"]["orderLinesCreate"]
     assert data["orderErrors"]
 
 
-DRAFT_ORDER_LINE_UPDATE_MUTATION = """
-    mutation DraftOrderLineUpdate($lineId: ID!, $quantity: Int!) {
-        draftOrderLineUpdate(id: $lineId, input: {quantity: $quantity}) {
+ORDER_LINE_UPDATE_MUTATION = """
+    mutation OrderLineUpdate($lineId: ID!, $quantity: Int!) {
+        orderLineUpdate(id: $lineId, input: {quantity: $quantity}) {
             errors {
                 field
                 message
@@ -2517,7 +2517,7 @@ DRAFT_ORDER_LINE_UPDATE_MUTATION = """
 def test_draft_order_line_update(
     draft_order, permission_manage_orders, staff_api_client, staff_user
 ):
-    query = DRAFT_ORDER_LINE_UPDATE_MUTATION
+    query = ORDER_LINE_UPDATE_MUTATION
     order = draft_order
     line = order.lines.first()
     new_quantity = 1
@@ -2539,7 +2539,7 @@ def test_draft_order_line_update(
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-    data = content["data"]["draftOrderLineUpdate"]
+    data = content["data"]["orderLineUpdate"]
     assert data["orderLine"]["quantity"] == new_quantity
 
     removed_items_event = OrderEvent.objects.last()  # type: OrderEvent
@@ -2553,7 +2553,7 @@ def test_draft_order_line_update(
     variables = {"lineId": line_id, "quantity": 0}
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-    data = content["data"]["draftOrderLineUpdate"]
+    data = content["data"]["orderLineUpdate"]
     assert data["errors"]
     assert data["errors"][0]["field"] == "quantity"
 
@@ -2561,7 +2561,7 @@ def test_draft_order_line_update(
 def test_require_draft_order_when_updating_lines(
     order_with_lines, staff_api_client, permission_manage_orders
 ):
-    query = DRAFT_ORDER_LINE_UPDATE_MUTATION
+    query = ORDER_LINE_UPDATE_MUTATION
     order = order_with_lines
     line = order.lines.first()
     line_id = graphene.Node.to_global_id("OrderLine", line.id)
@@ -2570,7 +2570,7 @@ def test_require_draft_order_when_updating_lines(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    data = content["data"]["draftOrderLineUpdate"]
+    data = content["data"]["orderLineUpdate"]
     assert data["errors"]
 
 
@@ -2664,9 +2664,9 @@ def test_retrieving_event_lines_with_missing_line_pk_in_data(
     assert received_line["orderLine"] is None
 
 
-DRAFT_ORDER_LINE_DELETE_MUTATION = """
-    mutation DraftOrderLineDelete($id: ID!) {
-        draftOrderLineDelete(id: $id) {
+ORDER_LINE_DELETE_MUTATION = """
+    mutation OrderLineDelete($id: ID!) {
+        orderLineDelete(id: $id) {
             errors {
                 field
                 message
@@ -2685,7 +2685,7 @@ DRAFT_ORDER_LINE_DELETE_MUTATION = """
 def test_draft_order_line_remove(
     draft_order, permission_manage_orders, staff_api_client
 ):
-    query = DRAFT_ORDER_LINE_DELETE_MUTATION
+    query = ORDER_LINE_DELETE_MUTATION
     order = draft_order
     line = order.lines.first()
     line_id = graphene.Node.to_global_id("OrderLine", line.id)
@@ -2695,7 +2695,7 @@ def test_draft_order_line_remove(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    data = content["data"]["draftOrderLineDelete"]
+    data = content["data"]["orderLineDelete"]
     assert data["orderLine"]["id"] == line_id
     assert line not in order.lines.all()
 
@@ -2703,7 +2703,7 @@ def test_draft_order_line_remove(
 def test_require_draft_order_when_removing_lines(
     staff_api_client, order_with_lines, permission_manage_orders
 ):
-    query = DRAFT_ORDER_LINE_DELETE_MUTATION
+    query = ORDER_LINE_DELETE_MUTATION
     order = order_with_lines
     line = order.lines.first()
     line_id = graphene.Node.to_global_id("OrderLine", line.id)
@@ -2712,7 +2712,7 @@ def test_require_draft_order_when_removing_lines(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    data = content["data"]["draftOrderLineDelete"]
+    data = content["data"]["orderLineDelete"]
     assert data["errors"]
 
 
