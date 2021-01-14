@@ -5,7 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.utils.text import slugify
 
-from ...attribute import AttributeInputType
+from ...attribute import ATTRIBUTE_PROPERTIES_CONFIGURATION, AttributeInputType
 from ...attribute import models as models
 from ...attribute.error_codes import AttributeErrorCode
 from ...core.exceptions import PermissionDenied
@@ -248,27 +248,6 @@ class AttributeUpdateInput(graphene.InputObjectType):
 
 
 class AttributeMixin:
-    # list of input types that allowed for given attribute property
-    ATTRIBUTE_PROPERTIES_CONFIGURATION = {
-        "filterable_in_storefront": [
-            AttributeInputType.DROPDOWN,
-            AttributeInputType.MULTISELECT,
-        ],
-        "filterable_in_dashboard": [
-            AttributeInputType.DROPDOWN,
-            AttributeInputType.MULTISELECT,
-        ],
-        "available_in_grid": [
-            AttributeInputType.DROPDOWN,
-            AttributeInputType.MULTISELECT,
-            AttributeInputType.DIMENSIONS,
-        ],
-        "storefront_search_position": [
-            AttributeInputType.DROPDOWN,
-            AttributeInputType.MULTISELECT,
-        ],
-    }
-
     @classmethod
     def check_values_are_unique(cls, values_input, attribute):
         # Check values uniqueness in case of creating new attribute.
@@ -364,8 +343,8 @@ class AttributeMixin:
         """
         attribute_input_type = cleaned_input.get("input_type") or instance.input_type
         errors = {}
-        for field in cls.ATTRIBUTE_PROPERTIES_CONFIGURATION.keys():
-            allowed_input_type = cls.ATTRIBUTE_PROPERTIES_CONFIGURATION[field]
+        for field in ATTRIBUTE_PROPERTIES_CONFIGURATION.keys():
+            allowed_input_type = ATTRIBUTE_PROPERTIES_CONFIGURATION[field]
             if attribute_input_type not in allowed_input_type and cleaned_input.get(
                 field
             ):

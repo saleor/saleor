@@ -18,6 +18,28 @@ class AttributeInputType:
     ALLOWED_IN_VARIANT_SELECTION = [DROPDOWN]
 
 
+# list of input types that are allowed for given attribute property
+ATTRIBUTE_PROPERTIES_CONFIGURATION = {
+    "filterable_in_storefront": [
+        AttributeInputType.DROPDOWN,
+        AttributeInputType.MULTISELECT,
+    ],
+    "filterable_in_dashboard": [
+        AttributeInputType.DROPDOWN,
+        AttributeInputType.MULTISELECT,
+    ],
+    "available_in_grid": [
+        AttributeInputType.DROPDOWN,
+        AttributeInputType.MULTISELECT,
+        AttributeInputType.DIMENSIONS,
+    ],
+    "storefront_search_position": [
+        AttributeInputType.DROPDOWN,
+        AttributeInputType.MULTISELECT,
+    ],
+}
+
+
 class AttributeType:
     PRODUCT_TYPE = "product-type"
     PAGE_TYPE = "page-type"
