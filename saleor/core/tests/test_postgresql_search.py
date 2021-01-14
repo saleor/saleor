@@ -1,4 +1,5 @@
 import pytest
+from django.contrib.postgres.search import SearchVector
 from django.utils.text import slugify
 
 from ...account.models import Address
@@ -20,9 +21,12 @@ def named_products(category, product_type, channel_USD):
             name=name,
             slug=slugify(name),
             description=dummy_editorjs(description),
+            description_search=description,
             product_type=product_type,
             category=category,
         )
+        product.search_vector = SearchVector("description_search")
+        product.save(update_fields=["search_vector"])
         ProductChannelListing.objects.create(
             product=product,
             channel=channel_USD,
@@ -45,10 +49,7 @@ def execute_search(phrase):
         ("Aarabica", 0),
         ("Arab", 0),
         ("czicken", 2),
-        # FIXME: Add possibility to search by JSON field,
-        # description field is changed from string to JSON
-        # https://github.com/mirumee/saleor/issues/5679
-        # ("blue", 1),
+        ("blue", 1),
         ("roast", 2),
         ("coool", 1),
     ],

@@ -3,6 +3,7 @@ from collections import defaultdict
 from typing import List, Tuple
 
 import graphene
+from django.contrib.postgres.search import SearchVector
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.utils.text import slugify
@@ -12,6 +13,7 @@ from ....attribute import AttributeInputType, AttributeType
 from ....attribute import models as attribute_models
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import ProductPermissions, ProductTypePermissions
+from ....core.sanitizers.editorjs_sanitizer import clean_text_data
 from ....order import OrderStatus
 from ....order import models as order_models
 from ....product import models
@@ -525,9 +527,37 @@ class ProductCreate(ModelMutation):
         )
         return attributes
 
+    @staticmethod
+    def parse_description_json_to_string(description):
+        string = ""
+        blocks = description.get("blocks")
+        if not blocks or not isinstance(blocks, list):
+            return ""
+
+        for block in blocks:
+            block_type = block["type"]
+            if block_type == "list":
+                for item in block["data"].get("items"):
+                    if not item:
+                        continue
+                    string += clean_text_data(item)
+            else:
+
+                text = block["data"].get("text")
+                if not text:
+                    continue
+                string += clean_text_data(text)
+        return string
+
     @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
+
+        description = cleaned_input.get("description")
+        if description:
+            cleaned_input["description_search"] = cls.parse_description_json_to_string(
+                description
+            )
 
         weight = cleaned_input.get("weight")
         if weight and weight.value < 0:
@@ -600,8 +630,12 @@ class ProductCreate(ModelMutation):
     @classmethod
     @transaction.atomic
     def save(cls, info, instance, cleaned_input):
+        description_search = cleaned_input.get("description_search")
         instance.save()
 
+        if description_search:
+            instance.search_vector = SearchVector("description_search")
+            instance.save(update_fields=["search_vector"])
         attributes = cleaned_input.get("attributes")
         if attributes:
             AttributeAssignmentMixin.save(instance, attributes)
@@ -645,6 +679,10 @@ class ProductUpdate(ProductCreate):
     @transaction.atomic
     def save(cls, info, instance, cleaned_input):
         instance.save()
+        description_search = cleaned_input.get("description_search")
+        if description_search:
+            instance.search_vector = SearchVector("description_search")
+            instance.save(update_fields=["search_vector"])
         attributes = cleaned_input.get("attributes")
         if attributes:
             AttributeAssignmentMixin.save(instance, attributes)

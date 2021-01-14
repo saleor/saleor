@@ -3154,7 +3154,9 @@ def description_json():
         "blocks": [
             {
                 "key": "",
-                "data": {},
+                "data": {
+                    "text": "E-commerce for the PWA era",
+                },
                 "text": "E-commerce for the PWA era",
                 "type": "header-two",
                 "depth": 0,
@@ -3163,7 +3165,12 @@ def description_json():
             },
             {
                 "key": "",
-                "data": {},
+                "data": {
+                    "text": (
+                        "A modular, high performance e-commerce storefront "
+                        "built with GraphQL, Django, and ReactJS."
+                    )
+                },
                 "text": (
                     "A modular, high performance e-commerce storefront "
                     "built with GraphQL, Django, and ReactJS."
@@ -3184,7 +3191,17 @@ def description_json():
             },
             {
                 "key": "",
-                "data": {},
+                "data": {
+                    "text": (
+                        "Saleor is a rapidly-growing open source e-commerce platform "
+                        "that has served high-volume companies from branches "
+                        "like publishing and apparel since 2012. Based on Python "
+                        "and Django, the latest major update introduces a modular "
+                        "front end with a GraphQL API and storefront and dashboard "
+                        "written in React to make Saleor a full-functionality "
+                        "open source e-commerce."
+                    ),
+                },
                 "text": (
                     "Saleor is a rapidly-growing open source e-commerce platform "
                     "that has served high-volume companies from branches "
@@ -3201,7 +3218,7 @@ def description_json():
             },
             {
                 "key": "",
-                "data": {},
+                "data": {"text": ""},
                 "text": "",
                 "type": "unstyled",
                 "depth": 0,
@@ -3210,7 +3227,9 @@ def description_json():
             },
             {
                 "key": "",
-                "data": {},
+                "data": {
+                    "text": "Get Saleor today!",
+                },
                 "text": "Get Saleor today!",
                 "type": "unstyled",
                 "depth": 0,
@@ -3234,7 +3253,9 @@ def other_description_json():
         "blocks": [
             {
                 "key": "",
-                "data": {},
+                "data": {
+                    "text": "A GRAPHQL-FIRST ECOMMERCE PLATFORM FOR PERFECTIONISTS",
+                },
                 "text": "A GRAPHQL-FIRST ECOMMERCE PLATFORM FOR PERFECTIONISTS",
                 "type": "header-two",
                 "depth": 0,
@@ -3243,7 +3264,12 @@ def other_description_json():
             },
             {
                 "key": "",
-                "data": {},
+                "data": {
+                    "text": (
+                        "Saleor is powered by a GraphQL server running on "
+                        "top of Python 3 and a Django 2 framework."
+                    ),
+                },
                 "text": (
                     "Saleor is powered by a GraphQL server running on "
                     "top of Python 3 and a Django 2 framework."

@@ -4,8 +4,9 @@ from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.postgres.aggregates import StringAgg
+from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.search import SearchVectorField
 from django.db import models
-from django.db.models import JSONField  # type: ignore
 from django.db.models import (
     BooleanField,
     Case,
@@ -18,6 +19,7 @@ from django.db.models import (
     Q,
     Subquery,
     Sum,
+    TextField,
     Value,
     When,
 )
@@ -315,6 +317,9 @@ class Product(SeoModel, ModelWithMetadata):
     description = SanitizedJSONField(
         blank=True, default=dict, sanitizer=clean_editor_js
     )
+    description_search = TextField(blank=True, default="")
+    search_vector = SearchVectorField(null=True, blank=True)
+
     description_json = SanitizedJSONField(
         blank=True, default=dict, sanitizer=clean_editor_js
     )
@@ -348,6 +353,7 @@ class Product(SeoModel, ModelWithMetadata):
         permissions = (
             (ProductPermissions.MANAGE_PRODUCTS.codename, "Manage products."),
         )
+        indexes = [GinIndex(fields=["search_vector"])]
 
     def __iter__(self):
         if not hasattr(self, "__variants"):
