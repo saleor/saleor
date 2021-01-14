@@ -4,7 +4,7 @@ from django.db import transaction
 
 from ....account.models import User
 from ....core.permissions import OrderPermissions
-from ....core.taxes import zero_taxed_money
+from ....core.taxes import TaxError, zero_taxed_money
 from ....order import OrderStatus, events, models
 from ....order.actions import (
     cancel_order,
@@ -17,7 +17,14 @@ from ....order.actions import (
     order_voided,
 )
 from ....order.error_codes import OrderErrorCode
-from ....order.utils import get_valid_shipping_methods_for_order, update_order_prices
+from ....order.utils import (
+    add_variant_to_draft_order,
+    change_order_line_quantity,
+    delete_order_line,
+    get_valid_shipping_methods_for_order,
+    recalculate_order,
+    update_order_prices,
+)
 from ....payment import CustomPaymentChoices, PaymentError, TransactionKind, gateway
 from ....shipping import models as shipping_models
 from ...account.types import AddressInput
@@ -25,9 +32,20 @@ from ...core.mutations import BaseMutation, ModelMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
 from ...core.utils import validate_required_string_field
-from ...order.mutations.draft_orders import DraftOrderCreate
-from ...order.types import Order, OrderEvent
+from ...order.mutations.draft_orders import (
+    DraftOrderCreate,
+    OrderLineCreateInput,
+    OrderLineInput,
+)
+from ...product.types import ProductVariant
 from ...shipping.types import ShippingMethod
+from ..types import Order, OrderEvent, OrderLine
+from ..utils import (
+    validate_product_is_published_in_channel,
+    validate_variant_channel_listings,
+)
+
+ORDER_EDITABLE_STATUS = (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED)
 
 
 def clean_order_update_shipping(order, method):
@@ -541,3 +559,183 @@ class OrderConfirm(ModelMutation):
             order_captured(order, info.context.user, payment.total, payment)
         order_confirmed(order, info.context.user, send_confirmation_email=True)
         return OrderConfirm(order=order)
+
+
+class OrderLinesCreate(BaseMutation):
+    order = graphene.Field(Order, description="Related order.")
+    order_lines = graphene.List(
+        graphene.NonNull(OrderLine), description="List of added order lines."
+    )
+
+    class Arguments:
+        id = graphene.ID(
+            required=True, description="ID of the order to add the lines to."
+        )
+        input = graphene.List(
+            OrderLineCreateInput,
+            required=True,
+            description="Fields required to add order lines.",
+        )
+
+    class Meta:
+        description = "Create order lines for an order."
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
+        if order.status not in ORDER_EDITABLE_STATUS:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Only draft and unconfirmed orders can be edited.",
+                        code=OrderErrorCode.NOT_EDITABLE,
+                    )
+                }
+            )
+
+        lines_to_add = []
+        for input_line in data.get("input"):
+            variant_id = input_line["variant_id"]
+            variant = cls.get_node_or_error(
+                info, variant_id, "variant_id", only_type=ProductVariant
+            )
+            quantity = input_line["quantity"]
+            if quantity > 0:
+                if variant:
+                    lines_to_add.append((quantity, variant))
+            else:
+                raise ValidationError(
+                    {
+                        "quantity": ValidationError(
+                            "Ensure this value is greater than 0.",
+                            code=OrderErrorCode.ZERO_QUANTITY,
+                        )
+                    }
+                )
+        variants = [line[1] for line in lines_to_add]
+        try:
+            channel = order.channel
+            validate_product_is_published_in_channel(variants, channel)
+            validate_variant_channel_listings(variants, channel)
+        except ValidationError as error:
+            raise ValidationError({"input": error})
+        # Add the lines
+        try:
+            lines = [
+                add_variant_to_draft_order(order, variant, quantity)
+                for quantity, variant in lines_to_add
+            ]
+        except TaxError as tax_error:
+            raise ValidationError(
+                "Unable to calculate taxes - %s" % str(tax_error),
+                code=OrderErrorCode.TAX_ERROR.value,
+            )
+
+        # Create the event
+        events.draft_order_added_products_event(
+            order=order, user=info.context.user, order_lines=lines_to_add
+        )
+
+        recalculate_order(order)
+        return OrderLinesCreate(order=order, order_lines=lines)
+
+
+class OrderLineDelete(BaseMutation):
+    order = graphene.Field(Order, description="A related order.")
+    order_line = graphene.Field(
+        OrderLine, description="An order line that was deleted."
+    )
+
+    class Arguments:
+        id = graphene.ID(description="ID of the order line to delete.", required=True)
+
+    class Meta:
+        description = "Deletes an order line from an order."
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, id):
+        line = cls.get_node_or_error(info, id, only_type=OrderLine)
+        order = line.order
+        if order.status not in ORDER_EDITABLE_STATUS:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Only draft and unconfirmed orders can be edited.",
+                        code=OrderErrorCode.NOT_EDITABLE,
+                    )
+                }
+            )
+
+        db_id = line.id
+        delete_order_line(line)
+        line.id = db_id
+
+        # Create the removal event
+        events.draft_order_removed_products_event(
+            order=order, user=info.context.user, order_lines=[(line.quantity, line)]
+        )
+
+        recalculate_order(order)
+        return OrderLineDelete(order=order, order_line=line)
+
+
+class OrderLineUpdate(ModelMutation):
+    order = graphene.Field(Order, description="Related order.")
+
+    class Arguments:
+        id = graphene.ID(description="ID of the order line to update.", required=True)
+        input = OrderLineInput(
+            required=True, description="Fields required to update an order line."
+        )
+
+    class Meta:
+        description = "Updates an order line of an order."
+        model = models.OrderLine
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
+
+    @classmethod
+    def clean_input(cls, info, instance, data):
+        instance.old_quantity = instance.quantity
+        cleaned_input = super().clean_input(info, instance, data)
+        if instance.order.status not in ORDER_EDITABLE_STATUS:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Only draft and unconfirmed orders can be edited.",
+                        code=OrderErrorCode.NOT_EDITABLE,
+                    )
+                }
+            )
+
+        quantity = data["quantity"]
+        if quantity <= 0:
+            raise ValidationError(
+                {
+                    "quantity": ValidationError(
+                        "Ensure this value is greater than 0.",
+                        code=OrderErrorCode.ZERO_QUANTITY,
+                    )
+                }
+            )
+        return cleaned_input
+
+    @classmethod
+    def save(cls, info, instance, cleaned_input):
+        change_order_line_quantity(
+            info.context.user, instance, instance.old_quantity, instance.quantity
+        )
+        recalculate_order(instance.order)
+
+    @classmethod
+    def success_response(cls, instance):
+        response = super().success_response(instance)
+        response.order = instance.order
+        return response
