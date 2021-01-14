@@ -47,7 +47,6 @@ from ...tests.utils import (
 )
 from ..bulk_mutations.products import ProductVariantStocksUpdate
 from ..enums import VariantAttributeScope
-from ..mutations.products import ProductCreate
 from ..utils import create_stocks
 
 
@@ -1683,20 +1682,6 @@ def test_products_query_with_filter(
     assert len(products) == 1
     assert products[0]["node"]["id"] == second_product_id
     assert products[0]["node"]["name"] == second_product.name
-
-
-def test_product_parse_description():
-    parser = ProductCreate.parse_description_json_to_string
-
-    assert parser({}) == ""
-
-    assert parser({"blocks": {"data": "some data"}}) == ""
-
-    data = {"blocks": [{"type": "list", "data": {"items": "some text"}}]}
-    assert parser(data) == "some text"
-
-    data = {"blocks": [{"type": "unstyled", "data": {"text": "some text"}}]}
-    assert parser(data) == "some text"
 
 
 @pytest.mark.parametrize("is_published", [(True), (False)])
@@ -3383,25 +3368,46 @@ def test_update_and_search_product_by_description(
     assert data["product"]["slug"] == product_slug
     assert data["product"]["description"] == other_description_json
 
-    search_query = """
-    query Products($filters: ProductFilterInput, $channel: String) {
-      products(first: 5, filter: $filters, channel: $channel) {
-        edges {
-        node {
-          id
-          name
-          slug
-        }
-        }
-      }
+
+def test_update_product_without_description_clear_description_search(
+    staff_api_client,
+    category,
+    non_default_category,
+    product,
+    other_description_json,
+    permission_manage_products,
+    color_attribute,
+):
+    query = MUTATION_UPDATE_PRODUCT
+    description_search = "some desc"
+    product.description_search = description_search
+    product.save()
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    category_id = graphene.Node.to_global_id("Category", non_default_category.pk)
+    product_name = "updated name"
+    product_slug = "updated-product"
+
+    variables = {
+        "productId": product_id,
+        "input": {
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+        },
     }
-    """
-    variables = {"search": "powered by a GraphQL"}
-    response = staff_api_client.post_graphql(search_query, variables)
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
     content = get_graphql_content(response)
-    data = content["data"]["products"]["edges"][0]
-    assert data["node"]["name"] == product_name
-    assert data["node"]["slug"] == product_slug
+    data = content["data"]["productUpdate"]
+    assert not data["productErrors"]
+    assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == product_slug
+    assert data["product"]["description"] == "{}"
+
+    product.refresh_from_db()
+    assert product.description_search == ""
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")

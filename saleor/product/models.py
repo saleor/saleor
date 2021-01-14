@@ -38,9 +38,9 @@ from ..channel.models import Channel
 from ..core.db.fields import SanitizedJSONField
 from ..core.models import ModelWithMetadata, PublishableModel, SortableModel
 from ..core.permissions import ProductPermissions, ProductTypePermissions
-from ..core.sanitizers.editorjs_sanitizer import clean_editor_js
 from ..core.utils import build_absolute_uri
 from ..core.utils.draftjs import json_content_to_raw_text
+from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.translations import TranslationProxy
 from ..core.weight import WeightUnits, zero_weight
 from ..discount import DiscountInfo

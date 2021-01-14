@@ -13,7 +13,7 @@ from ....attribute import AttributeInputType, AttributeType
 from ....attribute import models as attribute_models
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import ProductPermissions, ProductTypePermissions
-from ....core.sanitizers.editorjs_sanitizer import clean_text_data
+from ....core.utils.editorjs import clean_editor_js
 from ....order import OrderStatus
 from ....order import models as order_models
 from ....product import models
@@ -527,37 +527,14 @@ class ProductCreate(ModelMutation):
         )
         return attributes
 
-    @staticmethod
-    def parse_description_json_to_string(description):
-        string = ""
-        blocks = description.get("blocks")
-        if not blocks or not isinstance(blocks, list):
-            return ""
-
-        for block in blocks:
-            block_type = block["type"]
-            if block_type == "list":
-                for item in block["data"].get("items"):
-                    if not item:
-                        continue
-                    string += clean_text_data(item)
-            else:
-
-                text = block["data"].get("text")
-                if not text:
-                    continue
-                string += clean_text_data(text)
-        return string
-
     @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
 
         description = cleaned_input.get("description")
-        if description:
-            cleaned_input["description_search"] = cls.parse_description_json_to_string(
-                description
-            )
+        cleaned_input["description_search"] = (
+            clean_editor_js(description, to_string=True) if description else ""
+        )
 
         weight = cleaned_input.get("weight")
         if weight and weight.value < 0:

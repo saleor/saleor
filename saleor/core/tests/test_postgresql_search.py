@@ -3,8 +3,8 @@ from django.contrib.postgres.search import SearchVector
 from django.utils.text import slugify
 
 from ...account.models import Address
+from ...graphql.product.filters import product_search
 from ...product.models import Product, ProductChannelListing
-from ...search.backends.postgresql import search_storefront
 from ...tests.utils import dummy_editorjs
 
 PRODUCTS = [
@@ -39,7 +39,7 @@ def named_products(category, product_type, channel_USD):
 
 def execute_search(phrase):
     """Execute storefront search."""
-    return search_storefront(phrase)
+    return product_search(phrase)
 
 
 @pytest.mark.parametrize(
