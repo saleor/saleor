@@ -621,16 +621,19 @@ def test_fulfillment_return_products_fulfillment_lines_and_order_lines(
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     variant.track_inventory = False
     variant.save()
+    unit_price = TaxedMoney(net=net, gross=gross)
+    quantity = 5
     order_line = fulfilled_order.lines.create(
         product_name=str(variant.product),
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
-        quantity=5,
+        quantity=quantity,
         quantity_fulfilled=2,
         variant=variant,
-        unit_price=TaxedMoney(net=net, gross=gross),
-        tax_rate=23,
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
+        tax_rate=Decimal("0.23"),
     )
     fulfillment = fulfilled_order.fulfillments.get()
     fulfillment.lines.create(order_line=order_line, quantity=2, stock=stock)
