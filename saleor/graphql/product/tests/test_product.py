@@ -47,6 +47,7 @@ from ...tests.utils import (
 )
 from ..bulk_mutations.products import ProductVariantStocksUpdate
 from ..enums import VariantAttributeScope
+from ..mutations.products import ProductCreate
 from ..utils import create_stocks
 
 
@@ -1682,6 +1683,20 @@ def test_products_query_with_filter(
     assert len(products) == 1
     assert products[0]["node"]["id"] == second_product_id
     assert products[0]["node"]["name"] == second_product.name
+
+
+def test_product_parse_description():
+    parser = ProductCreate.parse_description_json_to_string
+
+    assert parser({}) == ""
+
+    assert parser({"blocks": {"data": "some data"}}) == ""
+
+    data = {"blocks": [{"type": "list", "data": {"items": "some text"}}]}
+    assert parser(data) == "some text"
+
+    data = {"blocks": [{"type": "unstyled", "data": {"text": "some text"}}]}
+    assert parser(data) == "some text"
 
 
 @pytest.mark.parametrize("is_published", [(True), (False)])
