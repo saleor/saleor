@@ -5,15 +5,17 @@ class AttributeInputType:
     MULTISELECT = "multiselect"
     FILE = "file"
     REFERENCE = "reference"
+    NUMERIC = "numeric"
 
     CHOICES = [
         (DROPDOWN, "Dropdown"),
         (MULTISELECT, "Multi Select"),
         (FILE, "File"),
         (REFERENCE, "Reference"),
+        (NUMERIC, "Numeric"),
     ]
     # list of the input types that can be used in variant selection
-    ALLOWED_IN_VARIANT_SELECTION = [DROPDOWN]
+    ALLOWED_IN_VARIANT_SELECTION = [DROPDOWN, NUMERIC]
 
 
 class AttributeType:

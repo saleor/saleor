@@ -498,6 +498,7 @@ enum AttributeInputTypeEnum {
   MULTISELECT
   FILE
   REFERENCE
+  NUMERIC
 }
 
 type AttributeReorderValues {
