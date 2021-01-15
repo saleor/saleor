@@ -54,14 +54,14 @@ def jwt_encode(payload: Dict[str, Any]) -> str:
         payload,
         settings.SECRET_KEY,  # type: ignore
         JWT_ALGORITHM,
-    ).decode("utf-8")
+    )
 
 
 def jwt_decode(token: str) -> Dict[str, Any]:
     return jwt.decode(
         token,
         settings.SECRET_KEY,  # type: ignore
-        algorithms=JWT_ALGORITHM,
+        algorithms=[JWT_ALGORITHM],
         verify_expiration=settings.JWT_EXPIRE,
     )
 
