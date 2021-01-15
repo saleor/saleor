@@ -18,7 +18,7 @@ from ....order import events as order_events
 from ....order.error_codes import OrderErrorCode
 from ....order.events import order_replacement_created
 from ....order.models import Order, OrderEvent
-from ....payment import ChargeStatus, CustomPaymentChoices, PaymentError
+from ....payment import ChargeStatus, PaymentError
 from ....payment.models import Payment
 from ....plugins.manager import PluginsManager
 from ....shipping.models import ShippingMethod
@@ -3396,11 +3396,10 @@ def test_try_payment_action_generates_event(order, staff_user, payment_dummy):
 
 def test_clean_order_refund_payment():
     payment = MagicMock(spec=Payment)
-    payment.gateway = CustomPaymentChoices.MANUAL
-    Mock(spec="string")
+    payment.can_refund.return_value = False
     with pytest.raises(ValidationError) as e:
         clean_refund_payment(payment)
-    msg = "Manual payments can not be refunded."
+    msg = "Payment cannot be refunded."
     assert e.value.error_dict["payment"][0].message == msg
 
 
