@@ -46,10 +46,21 @@ def check_stock_quantity(
         reserved_quantity = get_reserved_quantity(variant, country_code, user)
         available_quantity = max(_get_available_quantity(stocks) - reserved_quantity, 0)
         if quantity > available_quantity:
+<<<<<<< HEAD
             raise InsufficientStock([InsufficientStockData(variant=variant)])
+=======
+            raise InsufficientStock(
+                variant, context={"available_quantity": available_quantity}
+            )
+>>>>>>> c6a5fa99f... Format code with black
 
 
-def check_stock_quantity_bulk(variants: Iterable["ProductVariant"], country_code: str, quantities: int, user: Optional["User"]=None):
+def check_stock_quantity_bulk(
+    variants: Iterable["ProductVariant"],
+    country_code: str,
+    quantities: int,
+    user: Optional["User"] = None,
+):
     """Validate if there is stock available for given variants in given country.
 
     If user argument is specified, their reserved amounts are excluded.
@@ -96,7 +107,9 @@ def check_stock_quantity_bulk(variants: Iterable["ProductVariant"], country_code
         raise InsufficientStock(insufficient_stocks)
 
 
-def get_available_quantity(variant: "ProductVariant", country_code: str, user: Optional["User"] = None) -> int:
+def get_available_quantity(
+    variant: "ProductVariant", country_code: str, user: Optional["User"] = None
+) -> int:
     """Return available quantity for given product in given country."""
     stocks = Stock.objects.get_variant_stocks_for_country(country_code, variant)
     if not stocks:

@@ -66,24 +66,28 @@ def test_get_available_quantity_with_allocations(
     assert available_quantity == 3
 
 
-def test_get_available_quantity_with_reservation(
-    variant_with_reserved_stock
-):
-    available_quantity = get_available_quantity(variant_with_reserved_stock, COUNTRY_CODE)
+def test_get_available_quantity_with_reservation(variant_with_reserved_stock):
+    available_quantity = get_available_quantity(
+        variant_with_reserved_stock, COUNTRY_CODE
+    )
     assert available_quantity == 1
 
 
 def test_get_available_quantity_for_given_user_with_reservation(
     variant_with_reserved_stock, customer_user
 ):
-    available_quantity = get_available_quantity(variant_with_reserved_stock, COUNTRY_CODE, customer_user)
+    available_quantity = get_available_quantity(
+        variant_with_reserved_stock, COUNTRY_CODE, customer_user
+    )
     assert available_quantity == 4
 
 
 def test_get_available_quantity_with_expired_reservation(
-    variant_with_expired_stock_reservation
+    variant_with_expired_stock_reservation,
 ):
-    available_quantity = get_available_quantity(variant_with_expired_stock_reservation, COUNTRY_CODE)
+    available_quantity = get_available_quantity(
+        variant_with_expired_stock_reservation, COUNTRY_CODE
+    )
     assert available_quantity == 4
 
 

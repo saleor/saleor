@@ -21,11 +21,10 @@ def remove_user_reservations(
 def get_reserved_quantity_bulk(
     variants: Iterable["ProductVariant"],
     country_code: str,
-    exclude_user: Optional["User"] = None
+    exclude_user: Optional["User"] = None,
 ):
     reservations = (
-        Reservation.objects
-        .filter(product_variant__in=variants)
+        Reservation.objects.filter(product_variant__in=variants)
         .for_country(country_code)
         .exclude_user(exclude_user)
         .active()
@@ -36,7 +35,9 @@ def get_reserved_quantity_bulk(
 
     variant_reservations = defaultdict(int)
     for reservation in reservations:
-        variant_reservations[reservation["product_variant_id"]] = reservation["total_quantity"]
+        variant_reservations[reservation["product_variant_id"]] = reservation[
+            "total_quantity"
+        ]
 
     return variant_reservations
 
@@ -44,11 +45,10 @@ def get_reserved_quantity_bulk(
 def get_reserved_quantity(
     product_variant: "ProductVariant",
     country_code: str,
-    exclude_user: Optional["User"] = None
+    exclude_user: Optional["User"] = None,
 ) -> int:
     reservations = (
-        Reservation.objects
-        .filter(product_variant=product_variant)
+        Reservation.objects.filter(product_variant=product_variant)
         .for_country(country_code)
         .exclude_user(exclude_user)
         .active()

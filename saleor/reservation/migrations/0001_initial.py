@@ -10,25 +10,54 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('product', '0137_drop_attribute_models'),
+        ("product", "0137_drop_attribute_models"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('shipping', '0026_shippingzone_description'),
+        ("shipping", "0026_shippingzone_description"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Reservation',
+            name="Reservation",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('expires', models.DateTimeField()),
-                ('quantity', models.PositiveIntegerField(default=0)),
-                ('product_variant', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='reservations', to='product.productvariant')),
-                ('shipping_zone', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='reservations', to='shipping.shippingzone')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='reservations', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("expires", models.DateTimeField()),
+                ("quantity", models.PositiveIntegerField(default=0)),
+                (
+                    "product_variant",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="reservations",
+                        to="product.productvariant",
+                    ),
+                ),
+                (
+                    "shipping_zone",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="reservations",
+                        to="shipping.shippingzone",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="reservations",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'ordering': ('pk',),
-                'unique_together': {('user', 'product_variant')},
+                "ordering": ("pk",),
+                "unique_together": {("user", "product_variant")},
             },
         ),
     ]

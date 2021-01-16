@@ -311,7 +311,9 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             (
                 cleaned_input["variants"],
                 cleaned_input["quantities"],
-            ) = cls.clean_checkout_lines(lines, country, cleaned_input["channel"].id, info.context.user)
+            ) = cls.clean_checkout_lines(
+                lines, country, cleaned_input["channel"].id, info.context.user
+            )
 
         # Use authenticated user's email as default email
         if user.is_authenticated:
@@ -427,7 +429,9 @@ class CheckoutLinesAdd(BaseMutation):
         variants = cls.get_nodes_or_error(variant_ids, "variant_id", ProductVariant)
         quantities = [line.get("quantity") for line in lines]
 
-        check_lines_quantity(variants, quantities, checkout.get_country(), info.context.user)
+        check_lines_quantity(
+            variants, quantities, checkout.get_country(), info.context.user
+        )
         validate_variants_available_for_purchase(variants, checkout.channel_id)
 
         if variants and quantities:

@@ -17,19 +17,13 @@ if TYPE_CHECKING:
 
 class ReservationQuerySet(models.QuerySet):
     def annotate_total_quantity(self):
-        return self.annotate(
-            total_quantity=Coalesce(Sum("quantity"), 0)
-        )
+        return self.annotate(total_quantity=Coalesce(Sum("quantity"), 0))
 
     def for_country(self, country_code: str):
         query_shipping_zone = models.Subquery(
-            ShippingZone.objects.filter(
-                countries__contains=country_code
-            ).values("pk")
+            ShippingZone.objects.filter(countries__contains=country_code).values("pk")
         )
-        return self.filter(
-            shipping_zone__in=query_shipping_zone
-        )
+        return self.filter(shipping_zone__in=query_shipping_zone)
 
     def exclude_user(self, user: Optional["User"]):
         if user and user.is_authenticated:

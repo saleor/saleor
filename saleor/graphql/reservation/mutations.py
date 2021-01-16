@@ -65,7 +65,9 @@ def check_reservation_quantity(user, product_variant, country_code, quantity):
 
 
 @transaction.atomic
-def reserve_stock_for_user(user: "User", country_code: str, quantity: int, product_variant: "ProductVariant") -> "Reservation":
+def reserve_stock_for_user(
+    user: "User", country_code: str, quantity: int, product_variant: "ProductVariant"
+) -> "Reservation":
     """Reserve stock of given product variant for the user.
 
     Function lock for update all reservations for variant and user. Next, create or
@@ -105,8 +107,12 @@ class ReserveStock(BaseMutation):
 
     class Arguments:
         country_code = CountryCodeEnum(description="Country code.", required=True)
-        quantity = graphene.Int(required=True, description="The number of items to reserve.")
-        variant_id = graphene.ID(required=True, description="ID of the product variant.")
+        quantity = graphene.Int(
+            required=True, description="The number of items to reserve."
+        )
+        variant_id = graphene.ID(
+            required=True, description="ID of the product variant."
+        )
 
     class Meta:
         description = "Reserve the stock for authenticated user checkout."
@@ -119,14 +125,15 @@ class ReserveStock(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
-        product_variant = cls.get_node_or_error(info, data["variant_id"], ProductVariant)
-        check_reservation_quantity(info.context.user, product_variant, data["country_code"], data["quantity"])
+        product_variant = cls.get_node_or_error(
+            info, data["variant_id"], ProductVariant
+        )
+        check_reservation_quantity(
+            info.context.user, product_variant, data["country_code"], data["quantity"]
+        )
 
         reservation = reserve_stock_for_user(
-            info.context.user,
-            data["country_code"],
-            data["quantity"],
-            product_variant
+            info.context.user, data["country_code"], data["quantity"], product_variant
         )
 
         return ReserveStock(reservation=reservation)
