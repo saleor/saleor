@@ -192,17 +192,21 @@ def test_delete_products(
     draft_order_lines_pks = []
     not_draft_order_lines_pks = []
     for variant in [product_list[0].variants.first(), product_list[1].variants.first()]:
-        net = variant.get_price(channel_USD.slug)
+        product = variant.product
+        variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
+        net = variant.get_price(product, [], channel_USD, variant_channel_listing, None)
         gross = Money(amount=net.amount, currency=net.currency)
-
+        quantity = 3
+        total_price = TaxedMoney(net=net * quantity, gross=gross * quantity)
         order_line = OrderLine.objects.create(
             variant=variant,
             order=draft_order,
-            product_name=str(variant.product),
+            product_name=str(product),
             variant_name=str(variant),
             product_sku=variant.sku,
             is_shipping_required=variant.is_shipping_required(),
             unit_price=TaxedMoney(net=net, gross=gross),
+            total_price=total_price,
             quantity=3,
         )
         draft_order_lines_pks.append(order_line.pk)
@@ -210,11 +214,12 @@ def test_delete_products(
         order_line_not_draft = OrderLine.objects.create(
             variant=variant,
             order=not_draft_order,
-            product_name=str(variant.product),
+            product_name=str(product),
             variant_name=str(variant),
             product_sku=variant.sku,
             is_shipping_required=variant.is_shipping_required(),
             unit_price=TaxedMoney(net=net, gross=gross),
+            total_price=total_price,
             quantity=3,
         )
         not_draft_order_lines_pks.append(order_line_not_draft.pk)
@@ -382,32 +387,48 @@ def test_delete_product_variants_in_draft_orders(
     draft_order.save(update_fields=["status"])
 
     second_variant_in_draft = variants[1]
-    net = second_variant_in_draft.get_price(channel_USD.slug)
+    second_product = second_variant_in_draft.product
+    second_variant_channel_listing = second_variant_in_draft.channel_listings.get(
+        channel=channel_USD
+    )
+    net = second_variant_in_draft.get_price(
+        second_product, [], channel_USD, second_variant_channel_listing, None
+    )
     gross = Money(amount=net.amount, currency=net.currency)
+    unit_price = TaxedMoney(net=net, gross=gross)
+    quantity = 3
+    total_price = unit_price * quantity
     second_draft_order = OrderLine.objects.create(
         variant=second_variant_in_draft,
         order=draft_order,
-        product_name=str(second_variant_in_draft.product),
+        product_name=str(second_product),
         variant_name=str(second_variant_in_draft),
         product_sku=second_variant_in_draft.sku,
         is_shipping_required=second_variant_in_draft.is_shipping_required(),
         unit_price=TaxedMoney(net=net, gross=gross),
-        quantity=3,
+        total_price=total_price,
+        quantity=quantity,
     )
 
     variant = variants[0]
-    net = variant.get_price(channel_USD.slug)
+    product = variant.product
+    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
+    net = variant.get_price(product, [], channel_USD, variant_channel_listing, None)
     gross = Money(amount=net.amount, currency=net.currency)
+    unit_price = TaxedMoney(net=net, gross=gross)
+    quantity = 3
+    total_price = unit_price * quantity
     order_not_draft = order_list[-1]
     order_line_not_in_draft = OrderLine.objects.create(
         variant=variant,
         order=order_not_draft,
-        product_name=str(variant.product),
+        product_name=str(product),
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
         unit_price=TaxedMoney(net=net, gross=gross),
-        quantity=3,
+        total_price=total_price,
+        quantity=quantity,
     )
     order_line_not_in_draft_pk = order_line_not_in_draft.pk
 

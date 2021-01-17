@@ -37,7 +37,7 @@ from ....product.tasks import update_variants_names
 from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
 from ....product.utils.costs import get_product_costs_data
 from ....warehouse.models import Allocation, Stock, Warehouse
-from ...core.enums import ReportingPeriod
+from ...core.enums import AttributeErrorCode, ReportingPeriod
 from ...tests.utils import (
     assert_no_permission,
     get_graphql_content,
@@ -45,6 +45,7 @@ from ...tests.utils import (
     get_multipart_request_body,
 )
 from ..bulk_mutations.products import ProductVariantStocksUpdate
+from ..enums import VariantAttributeScope
 from ..utils import create_stocks
 
 
@@ -321,6 +322,122 @@ def test_product_query_by_id_as_app_without_channel_slug(
     product_data = content["data"]["product"]
     assert product_data is not None
     assert product_data["name"] == product.name
+
+
+QUERY_COLLECTION_FROM_PRODUCT = """
+    query ($id: ID, $channel:String){
+        product(
+            id: $id,
+            channel: $channel
+        ) {
+            collections {
+                name
+            }
+        }
+    }
+    """
+
+
+def test_get_collections_from_product_as_staff(
+    staff_api_client,
+    permission_manage_products,
+    product_with_collections,
+    channel_USD,
+):
+    # given
+    product = product_with_collections
+    variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_COLLECTION_FROM_PRODUCT,
+        variables=variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    collections = content["data"]["product"]["collections"]
+    assert len(collections) == 3
+    for collection in product.collections.all():
+        assert {"name": collection.name} in collections
+
+
+def test_get_collections_from_product_as_app(
+    app_api_client,
+    permission_manage_products,
+    product_with_collections,
+    channel_USD,
+):
+    # given
+    product = product_with_collections
+    variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
+
+    # when
+    response = app_api_client.post_graphql(
+        QUERY_COLLECTION_FROM_PRODUCT,
+        variables=variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    collections = content["data"]["product"]["collections"]
+    assert len(collections) == 3
+    for collection in product.collections.all():
+        assert {"name": collection.name} in collections
+
+
+def test_get_collections_from_product_as_customer(
+    user_api_client, product_with_collections, channel_USD, published_collection
+):
+    # given
+    product = product_with_collections
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.pk),
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        QUERY_COLLECTION_FROM_PRODUCT,
+        variables=variables,
+        permissions=(),
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    collections = content["data"]["product"]["collections"]
+    assert len(collections) == 1
+    assert {"name": published_collection.name} in collections
+
+
+def test_get_collections_from_product_as_anonymous(
+    api_client, product_with_collections, channel_USD, published_collection
+):
+    # given
+    product = product_with_collections
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.pk),
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = api_client.post_graphql(
+        QUERY_COLLECTION_FROM_PRODUCT,
+        variables=variables,
+        permissions=(),
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    collections = content["data"]["product"]["collections"]
+    assert len(collections) == 1
+    assert {"name": published_collection.name} in collections
 
 
 def test_product_query_by_id_available_as_customer(
@@ -737,10 +854,10 @@ def test_product_query_is_available_for_purchase_false_no_available_for_purchase
 
 
 def test_product_query_unpublished_products_by_slug(
-    user_api_client, product, permission_manage_products, channel_USD
+    staff_api_client, product, permission_manage_products, channel_USD
 ):
     # given
-    user = user_api_client.user
+    user = staff_api_client.user
     user.user_permissions.add(permission_manage_products)
 
     ProductChannelListing.objects.filter(product=product, channel=channel_USD).update(
@@ -752,7 +869,7 @@ def test_product_query_unpublished_products_by_slug(
     }
 
     # when
-    response = user_api_client.post_graphql(QUERY_PRODUCT, variables=variables)
+    response = staff_api_client.post_graphql(QUERY_PRODUCT, variables=variables)
 
     # then
     content = get_graphql_content(response)
@@ -761,7 +878,7 @@ def test_product_query_unpublished_products_by_slug(
     assert product_data["name"] == product.name
 
 
-def test_product_query_unpublished_products_by_slug_and_anonympus_user(
+def test_product_query_unpublished_products_by_slug_and_anonymous_user(
     api_client, product, channel_USD
 ):
     # given
@@ -830,7 +947,9 @@ def test_product_query_by_id_without_channel_not_available_as_staff_user(
 
 
 def test_product_query_error_when_id_and_slug_provided(
-    user_api_client, product, graphql_log_handler,
+    user_api_client,
+    product,
+    graphql_log_handler,
 ):
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),
@@ -845,7 +964,9 @@ def test_product_query_error_when_id_and_slug_provided(
 
 
 def test_product_query_error_when_no_param(
-    user_api_client, product, graphql_log_handler,
+    user_api_client,
+    product,
+    graphql_log_handler,
 ):
     variables = {}
     response = user_api_client.post_graphql(QUERY_PRODUCT, variables=variables)
@@ -1028,7 +1149,10 @@ def test_fetch_all_products_not_available_as_customer(
         is_published=False
     )
 
-    response = user_api_client.post_graphql(QUERY_FETCH_ALL_PRODUCTS, variables,)
+    response = user_api_client.post_graphql(
+        QUERY_FETCH_ALL_PRODUCTS,
+        variables,
+    )
     content = get_graphql_content(response)
     assert content["data"]["products"]["totalCount"] == 0
     assert not content["data"]["products"]["edges"]
@@ -1063,7 +1187,10 @@ def test_fetch_all_products_not_available_as_anonymous(
         is_published=False
     )
 
-    response = api_client.post_graphql(QUERY_FETCH_ALL_PRODUCTS, variables,)
+    response = api_client.post_graphql(
+        QUERY_FETCH_ALL_PRODUCTS,
+        variables,
+    )
     content = get_graphql_content(response)
     assert content["data"]["products"]["totalCount"] == 0
     assert not content["data"]["products"]["edges"]
@@ -1124,8 +1251,8 @@ def test_fetch_all_products_visible_in_listings_by_staff_with_perm(
     assert len(product_data) == product_count
 
 
-def test_fetch_all_products_visible_in_listings_by_staff_without_perm(
-    staff_api_client, product_list, permission_manage_products, channel_USD
+def test_fetch_all_products_visible_in_listings_by_staff_without_manage_products(
+    staff_api_client, product_list, channel_USD
 ):
     # given
     product_list[0].channel_listings.update(visible_in_listings=False)
@@ -1139,9 +1266,7 @@ def test_fetch_all_products_visible_in_listings_by_staff_without_perm(
     # then
     content = get_graphql_content(response)
     product_data = content["data"]["products"]["edges"]
-    assert len(product_data) == product_count - 1
-    products_ids = [product["node"]["id"] for product in product_data]
-    assert graphene.Node.to_global_id("Product", product_list[0].pk) not in products_ids
+    assert len(product_data) == product_count
 
 
 def test_fetch_all_products_visible_in_listings_by_app_with_perm(
@@ -1167,8 +1292,8 @@ def test_fetch_all_products_visible_in_listings_by_app_with_perm(
     assert len(product_data) == product_count
 
 
-def test_fetch_all_products_visible_in_listings_by_app_without_perm(
-    app_api_client, product_list, permission_manage_products, channel_USD
+def test_fetch_all_products_visible_in_listings_by_app_without_manage_products(
+    app_api_client, product_list, channel_USD
 ):
     # given
     product_list[0].channel_listings.update(visible_in_listings=False)
@@ -1182,9 +1307,7 @@ def test_fetch_all_products_visible_in_listings_by_app_without_perm(
     # then
     content = get_graphql_content(response)
     product_data = content["data"]["products"]["edges"]
-    assert len(product_data) == product_count - 1
-    products_ids = [product["node"]["id"] for product in product_data]
-    assert graphene.Node.to_global_id("Product", product_list[0].pk) not in products_ids
+    assert len(product_data) == product_count
 
 
 def test_fetch_product_from_category_query(
@@ -1453,7 +1576,10 @@ def test_products_query_with_filter_collection(
 
 
 def test_products_query_with_filter_category_and_search(
-    query_products_with_filter, staff_api_client, product, permission_manage_products,
+    query_products_with_filter,
+    staff_api_client,
+    product,
+    permission_manage_products,
 ):
     category = Category.objects.create(name="Custom", slug="custom")
     second_product = product
@@ -1530,7 +1656,8 @@ def test_products_query_with_filter(
     second_product.slug = "apple-juice1"
     second_product.save()
     variant_second_product = second_product.variants.create(
-        product=second_product, sku=second_product.slug,
+        product=second_product,
+        sku=second_product.slug,
     )
     ProductVariantChannelListing.objects.create(
         variant=variant_second_product,
@@ -1540,7 +1667,9 @@ def test_products_query_with_filter(
         currency=channel_USD.currency_code,
     )
     ProductChannelListing.objects.create(
-        product=second_product, channel=channel_USD, is_published=True,
+        product=second_product,
+        channel=channel_USD,
+        is_published=True,
     )
     variables = {"filter": {"search": "Juice1"}, "channel": channel_USD.slug}
     staff_api_client.user.user_permissions.add(permission_manage_products)
@@ -1763,6 +1892,67 @@ def test_product_with_collections(
     data = content["data"]["product"]
     assert data["collections"][0]["name"] == published_collection.name
     assert len(data["collections"]) == 1
+
+
+def test_get_product_with_sorted_attribute_values(
+    staff_api_client,
+    product,
+    permission_manage_products,
+    product_type_page_reference_attribute,
+    page_list,
+):
+    # given
+    query = """
+        query getProduct($productID: ID!) {
+            product(id: $productID) {
+                attributes {
+                    attribute {
+                        name
+                    }
+                    values {
+                        id
+                        slug
+                        reference
+                    }
+                }
+            }
+        }
+        """
+    product_type = product.product_type
+    product_type.product_attributes.set([product_type_page_reference_attribute])
+
+    attr_value_1 = AttributeValue.objects.create(
+        attribute=product_type_page_reference_attribute,
+        name=page_list[0].title,
+        slug=f"{product.pk}_{page_list[0].pk}",
+    )
+    attr_value_2 = AttributeValue.objects.create(
+        attribute=product_type_page_reference_attribute,
+        name=page_list[1].title,
+        slug=f"{product.pk}_{page_list[1].pk}",
+    )
+
+    associate_attribute_values_to_instance(
+        product, product_type_page_reference_attribute, attr_value_2, attr_value_1
+    )
+
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    variables = {"productID": product_id}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["product"]
+    assert len(data["attributes"]) == 1
+    values = data["attributes"][0]["values"]
+    assert len(values) == 2
+    assert [value["id"] for value in values] == [
+        graphene.Node.to_global_id("AttributeValue", val.pk)
+        for val in [attr_value_2, attr_value_1]
+    ]
 
 
 def test_filter_products_by_wrong_attributes(user_api_client, product, channel_USD):
@@ -1997,6 +2187,7 @@ CREATE_PRODUCT_MUTATION = """
                 productCreate(
                     input: $input) {
                         product {
+                            id
                             category {
                                 name
                             }
@@ -2018,6 +2209,12 @@ CREATE_PRODUCT_MUTATION = """
                                 }
                                 values {
                                     slug
+                                    name
+                                    reference
+                                    file {
+                                        url
+                                        contentType
+                                    }
                                 }
                             }
                           }
@@ -2109,7 +2306,11 @@ def test_create_product(
 
 @freeze_time("2020-03-18 12:00:00")
 def test_create_product_with_rating(
-    staff_api_client, product_type, category, permission_manage_products, settings,
+    staff_api_client,
+    product_type,
+    category,
+    permission_manage_products,
+    settings,
 ):
     query = CREATE_PRODUCT_MUTATION
 
@@ -2137,6 +2338,594 @@ def test_create_product_with_rating(
     assert data["productErrors"] == []
     assert data["product"]["rating"] == expected_rating
     assert Product.objects.get().rating == expected_rating
+
+
+def test_create_product_with_file_attribute(
+    staff_api_client,
+    product_type,
+    category,
+    file_attribute,
+    color_attribute,
+    permission_manage_products,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_slug = "product-test-slug"
+
+    values_count = file_attribute.values.count()
+
+    # Add second attribute
+    product_type.product_attributes.add(file_attribute)
+    file_attr_id = graphene.Node.to_global_id("Attribute", file_attribute.id)
+    existing_value = file_attribute.values.first()
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "attributes": [{"id": file_attr_id, "file": existing_value.file_url}],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["productErrors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == product_slug
+    assert data["product"]["productType"]["name"] == product_type.name
+    assert data["product"]["category"]["name"] == category.name
+    assert len(data["product"]["attributes"]) == 2
+    expected_attributes_data = [
+        {"attribute": {"slug": color_attribute.slug}, "values": []},
+        {
+            "attribute": {"slug": file_attribute.slug},
+            "values": [
+                {
+                    "name": existing_value.name,
+                    "slug": f"{existing_value.slug}-2",
+                    "file": {"url": existing_value.file_url, "contentType": None},
+                    "reference": None,
+                }
+            ],
+        },
+    ]
+    for attr_data in data["product"]["attributes"]:
+        assert attr_data in expected_attributes_data
+
+    file_attribute.refresh_from_db()
+    assert file_attribute.values.count() == values_count + 1
+
+
+def test_create_product_with_page_reference_attribute(
+    staff_api_client,
+    product_type,
+    category,
+    color_attribute,
+    product_type_page_reference_attribute,
+    permission_manage_products,
+    page,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    values_count = product_type_page_reference_attribute.values.count()
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_slug = "product-test-slug"
+
+    # Add second attribute
+    product_type.product_attributes.add(product_type_page_reference_attribute)
+    reference_attr_id = graphene.Node.to_global_id(
+        "Attribute", product_type_page_reference_attribute.id
+    )
+    reference = graphene.Node.to_global_id("Page", page.pk)
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "attributes": [{"id": reference_attr_id, "references": [reference]}],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["productErrors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == product_slug
+    assert data["product"]["productType"]["name"] == product_type.name
+    assert data["product"]["category"]["name"] == category.name
+    _, product_id = graphene.Node.from_global_id(data["product"]["id"])
+    expected_attributes_data = [
+        {"attribute": {"slug": color_attribute.slug}, "values": []},
+        {
+            "attribute": {"slug": product_type_page_reference_attribute.slug},
+            "values": [
+                {
+                    "slug": f"{product_id}_{page.id}",
+                    "name": page.title,
+                    "file": None,
+                    "reference": reference,
+                }
+            ],
+        },
+    ]
+    for attr_data in data["product"]["attributes"]:
+        assert attr_data in expected_attributes_data
+
+    product_type_page_reference_attribute.refresh_from_db()
+    assert product_type_page_reference_attribute.values.count() == values_count + 1
+
+
+def test_create_product_with_product_reference_attribute(
+    staff_api_client,
+    product_type,
+    category,
+    color_attribute,
+    product_type_product_reference_attribute,
+    permission_manage_products,
+    product,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    values_count = product_type_product_reference_attribute.values.count()
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_slug = "product-test-slug"
+
+    # Add second attribute
+    product_type.product_attributes.add(product_type_product_reference_attribute)
+    reference_attr_id = graphene.Node.to_global_id(
+        "Attribute", product_type_product_reference_attribute.id
+    )
+    reference = graphene.Node.to_global_id("Product", product.pk)
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "attributes": [{"id": reference_attr_id, "references": [reference]}],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["productErrors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == product_slug
+    assert data["product"]["productType"]["name"] == product_type.name
+    assert data["product"]["category"]["name"] == category.name
+    _, product_id = graphene.Node.from_global_id(data["product"]["id"])
+    expected_attributes_data = [
+        {"attribute": {"slug": color_attribute.slug}, "values": []},
+        {
+            "attribute": {"slug": product_type_product_reference_attribute.slug},
+            "values": [
+                {
+                    "slug": f"{product_id}_{product.id}",
+                    "name": product.name,
+                    "file": None,
+                    "reference": reference,
+                }
+            ],
+        },
+    ]
+    for attr_data in data["product"]["attributes"]:
+        assert attr_data in expected_attributes_data
+
+    product_type_product_reference_attribute.refresh_from_db()
+    assert product_type_product_reference_attribute.values.count() == values_count + 1
+
+
+def test_create_product_with_product_reference_attribute_values_saved_in_order(
+    staff_api_client,
+    product_type,
+    category,
+    color_attribute,
+    product_type_product_reference_attribute,
+    permission_manage_products,
+    product_list,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    values_count = product_type_product_reference_attribute.values.count()
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_slug = "product-test-slug"
+
+    # Add second attribute
+    product_type.product_attributes.set([product_type_product_reference_attribute])
+    reference_attr_id = graphene.Node.to_global_id(
+        "Attribute", product_type_product_reference_attribute.id
+    )
+    reference_1 = graphene.Node.to_global_id("Product", product_list[0].pk)
+    reference_2 = graphene.Node.to_global_id("Product", product_list[1].pk)
+    reference_3 = graphene.Node.to_global_id("Product", product_list[2].pk)
+
+    # test creating root product
+    reference_ids = [reference_3, reference_1, reference_2]
+    reference_instances = [product_list[2], product_list[0], product_list[1]]
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "attributes": [{"id": reference_attr_id, "references": reference_ids}],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["productErrors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == product_slug
+    assert data["product"]["productType"]["name"] == product_type.name
+    assert data["product"]["category"]["name"] == category.name
+    _, product_id = graphene.Node.from_global_id(data["product"]["id"])
+    expected_values = [
+        {
+            "slug": f"{product_id}_{product.id}",
+            "name": product.name,
+            "file": None,
+            "reference": reference,
+        }
+        for product, reference in zip(reference_instances, reference_ids)
+    ]
+
+    assert len(data["product"]["attributes"]) == 1
+    attribute_data = data["product"]["attributes"][0]
+    assert (
+        attribute_data["attribute"]["slug"]
+        == product_type_product_reference_attribute.slug
+    )
+    assert len(attribute_data["values"]) == 3
+    assert attribute_data["values"] == expected_values
+
+    product_type_product_reference_attribute.refresh_from_db()
+    assert product_type_product_reference_attribute.values.count() == values_count + 3
+
+
+def test_create_product_with_file_attribute_new_attribute_value(
+    staff_api_client,
+    product_type,
+    category,
+    file_attribute,
+    color_attribute,
+    permission_manage_products,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_slug = "product-test-slug"
+
+    values_count = file_attribute.values.count()
+
+    # Add second attribute
+    product_type.product_attributes.add(file_attribute)
+    file_attr_id = graphene.Node.to_global_id("Attribute", file_attribute.id)
+    non_existing_value = "new_test.jpg"
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "attributes": [{"id": file_attr_id, "file": non_existing_value}],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["productErrors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == product_slug
+    assert data["product"]["productType"]["name"] == product_type.name
+    assert data["product"]["category"]["name"] == category.name
+    assert len(data["product"]["attributes"]) == 2
+    expected_attributes_data = [
+        {"attribute": {"slug": color_attribute.slug}, "values": []},
+        {
+            "attribute": {"slug": file_attribute.slug},
+            "values": [
+                {
+                    "name": non_existing_value,
+                    "slug": slugify(non_existing_value, allow_unicode=True),
+                    "reference": None,
+                    "file": {
+                        "url": "http://testserver/media/" + non_existing_value,
+                        "contentType": None,
+                    },
+                }
+            ],
+        },
+    ]
+    for attr_data in data["product"]["attributes"]:
+        assert attr_data in expected_attributes_data
+
+    file_attribute.refresh_from_db()
+    assert file_attribute.values.count() == values_count + 1
+
+
+def test_create_product_with_file_attribute_not_required_no_file_url_given(
+    staff_api_client,
+    product_type,
+    category,
+    file_attribute,
+    color_attribute,
+    permission_manage_products,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_slug = "product-test-slug"
+
+    file_attribute.value_required = False
+    file_attribute.save(update_fields=["value_required"])
+
+    # Add second attribute
+    product_type.product_attributes.add(file_attribute)
+    file_attr_id = graphene.Node.to_global_id("Attribute", file_attribute.id)
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "attributes": [{"id": file_attr_id, "values": ["test.txt"]}],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["productErrors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == product_slug
+    assert data["product"]["productType"]["name"] == product_type.name
+    assert data["product"]["category"]["name"] == category.name
+    assert len(data["product"]["attributes"]) == 2
+    expected_attributes_data = [
+        {"attribute": {"slug": color_attribute.slug}, "values": []},
+        {"attribute": {"slug": file_attribute.slug}, "values": []},
+    ]
+    for attr_data in data["product"]["attributes"]:
+        assert attr_data in expected_attributes_data
+
+    file_attribute.refresh_from_db()
+
+
+def test_create_product_with_file_attribute_required_no_file_url_given(
+    staff_api_client,
+    product_type,
+    category,
+    file_attribute,
+    permission_manage_products,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_slug = "product-test-slug"
+
+    file_attribute.value_required = True
+    file_attribute.save(update_fields=["value_required"])
+
+    # Add second attribute
+    product_type.product_attributes.add(file_attribute)
+    file_attr_id = graphene.Node.to_global_id("Attribute", file_attribute.id)
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "attributes": [{"id": file_attr_id, "values": ["test.txt"]}],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    errors = data["productErrors"]
+    assert not data["product"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
+    assert errors[0]["field"] == "attributes"
+    assert errors[0]["attributes"] == [
+        graphene.Node.to_global_id("Attribute", file_attribute.pk)
+    ]
+
+
+def test_create_product_with_page_reference_attribute_required_no_references(
+    staff_api_client,
+    product_type,
+    category,
+    product_type_page_reference_attribute,
+    permission_manage_products,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_page_reference_attribute.value_required = True
+    product_type_page_reference_attribute.save(update_fields=["value_required"])
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_slug = "product-test-slug"
+
+    # Add second attribute
+    product_type.product_attributes.add(product_type_page_reference_attribute)
+    reference_attr_id = graphene.Node.to_global_id(
+        "Attribute", product_type_page_reference_attribute.id
+    )
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "attributes": [{"id": reference_attr_id, "references": []}],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    errors = data["productErrors"]
+    assert not data["product"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
+    assert errors[0]["field"] == "attributes"
+    assert errors[0]["attributes"] == [
+        graphene.Node.to_global_id(
+            "Attribute", product_type_page_reference_attribute.pk
+        )
+    ]
+
+
+def test_create_product_with_product_reference_attribute_required_no_references(
+    staff_api_client,
+    product_type,
+    category,
+    product_type_product_reference_attribute,
+    permission_manage_products,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_product_reference_attribute.value_required = True
+    product_type_product_reference_attribute.save(update_fields=["value_required"])
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_slug = "product-test-slug"
+
+    # Add second attribute
+    product_type.product_attributes.add(product_type_product_reference_attribute)
+    reference_attr_id = graphene.Node.to_global_id(
+        "Attribute", product_type_product_reference_attribute.id
+    )
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "attributes": [{"id": reference_attr_id, "references": []}],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    errors = data["productErrors"]
+    assert not data["product"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
+    assert errors[0]["field"] == "attributes"
+    assert errors[0]["attributes"] == [
+        graphene.Node.to_global_id(
+            "Attribute", product_type_product_reference_attribute.pk
+        )
+    ]
+
+
+def test_create_product_no_values_given(
+    staff_api_client,
+    product_type,
+    category,
+    permission_manage_products,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_slug = "product-test-slug"
+
+    # Default attribute defined in product_type fixture
+    color_attr = product_type.product_attributes.get(name="Color")
+    color_attr_id = graphene.Node.to_global_id("Attribute", color_attr.id)
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "attributes": [{"id": color_attr_id, "file": "test.jpg"}],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["productErrors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == product_slug
+    assert data["product"]["productType"]["name"] == product_type.name
+    assert data["product"]["category"]["name"] == category.name
+    assert len(data["product"]["attributes"]) == 1
+    assert data["product"]["attributes"][0]["values"] == []
 
 
 PRODUCT_VARIANT_SET_DEFAULT_MUTATION = """
@@ -2259,7 +3048,9 @@ def test_product_variant_set_default_not_products_variant(
 
 
 def test_reorder_variants(
-    staff_api_client, product_with_two_variants, permission_manage_products,
+    staff_api_client,
+    product_with_two_variants,
+    permission_manage_products,
 ):
     default_variants = product_with_two_variants.variants.all()
     new_variants = [default_variants[1], default_variants[0]]
@@ -2287,7 +3078,10 @@ def test_reorder_variants(
 
 
 def test_reorder_variants_invalid_variants(
-    staff_api_client, product, product_with_two_variants, permission_manage_products,
+    staff_api_client,
+    product,
+    product_with_two_variants,
+    permission_manage_products,
 ):
     default_variants = product_with_two_variants.variants.all()
     new_variants = [product.variants.first(), default_variants[1]]
@@ -2319,7 +3113,6 @@ def test_create_product_no_slug_in_input(
     staff_api_client,
     product_type,
     category,
-    size_attribute,
     description_json,
     permission_manage_products,
     monkeypatch,
@@ -2368,9 +3161,6 @@ def test_create_product_no_slug_in_input(
 def test_create_product_no_category_id(
     staff_api_client,
     product_type,
-    category,
-    size_attribute,
-    description_json,
     permission_manage_products,
     monkeypatch,
 ):
@@ -2488,7 +3278,6 @@ def test_create_product_invalid_product_attributes(
     weight_attribute,
     description_json,
     permission_manage_products,
-    settings,
     monkeypatch,
 ):
     query = CREATE_PRODUCT_MUTATION
@@ -2589,6 +3378,7 @@ QUERY_CREATE_PRODUCT_WITHOUT_VARIANTS = """
                 id
                 name
                 slug
+                rating
                 category {
                     name
                 }
@@ -2725,99 +3515,52 @@ def test_product_create_with_collections_webhook(
 
 
 MUTATION_UPDATE_PRODUCT = """
-    mutation updateProduct(
-            $productId: ID!,
-            $categoryId: ID!,
-            $name: String!,
-            $slug: String!,
-            $descriptionJson: JSONString!,
-            $chargeTaxes: Boolean!,
-            $taxCode: String!,
-            $attributes: [AttributeValueInput!]) {
-                productUpdate(
-                    id: $productId,
-                    input: {
-                        category: $categoryId,
-                        name: $name,
-                        slug: $slug,
-                        descriptionJson: $descriptionJson,
-                        chargeTaxes: $chargeTaxes,
-                        taxCode: $taxCode,
-                        attributes: $attributes
-                    }) {
-                        product {
-                            category {
-                                name
-                            }
-                            descriptionJson
-                            chargeTaxes
-                            variants {
-                                name
-                            }
-                            taxType {
-                                taxCode
-                                description
-                            }
+    mutation updateProduct($productId: ID!, $input: ProductInput!) {
+        productUpdate(id: $productId, input: $input) {
+                product {
+                    category {
+                        name
+                    }
+                    rating
+                    descriptionJson
+                    chargeTaxes
+                    variants {
+                        name
+                    }
+                    taxType {
+                        taxCode
+                        description
+                    }
+                    name
+                    slug
+                    productType {
+                        name
+                    }
+                    attributes {
+                        attribute {
+                            id
+                            name
+                        }
+                        values {
+                            id
                             name
                             slug
-                            productType {
-                                name
+                            reference
+                            file {
+                                url
+                                contentType
                             }
-                            attributes {
-                                attribute {
-                                    id
-                                    name
-                                }
-                                values {
-                                    name
-                                    slug
-                                }
-                            }
-                          }
-                          errors {
-                            message
-                            field
-                          }
                         }
-                      }
-"""
-
-
-@freeze_time("2020-03-18 12:00:00")
-def test_update_product_rating(
-    staff_api_client, product, permission_manage_products,
-):
-    query = """
-        mutation updateProduct($productId: ID!, $input: ProductInput!) {
-            productUpdate(id: $productId, input: $input) {
-                product {
-                    rating
+                    }
                 }
                 productErrors {
+                    message
                     field
                     code
-                    message
-                    attributes
                 }
             }
         }
-    """
-
-    product.rating = 5.5
-    product.save(update_fields=["rating"])
-    product_id = graphene.Node.to_global_id("Product", product.pk)
-    expected_rating = 9.57
-    variables = {"productId": product_id, "input": {"rating": expected_rating}}
-
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["productUpdate"]
-    assert data["productErrors"] == []
-    assert data["product"]["rating"] == expected_rating
-    product.refresh_from_db()
-    assert product.rating == expected_rating
+"""
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
@@ -2853,13 +3596,15 @@ def test_update_product(
 
     variables = {
         "productId": product_id,
-        "categoryId": category_id,
-        "name": product_name,
-        "slug": product_slug,
-        "descriptionJson": other_description_json,
-        "chargeTaxes": product_charge_taxes,
-        "taxCode": product_tax_rate,
-        "attributes": [{"id": attribute_id, "values": ["Rainbow"]}],
+        "input": {
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "descriptionJson": other_description_json,
+            "chargeTaxes": product_charge_taxes,
+            "taxCode": product_tax_rate,
+            "attributes": [{"id": attribute_id, "values": ["Rainbow"]}],
+        },
     }
 
     response = staff_api_client.post_graphql(
@@ -2867,7 +3612,7 @@ def test_update_product(
     )
     content = get_graphql_content(response)
     data = content["data"]["productUpdate"]
-    assert data["errors"] == []
+    assert data["productErrors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
     assert data["product"]["descriptionJson"] == other_description_json
@@ -2883,6 +3628,605 @@ def test_update_product(
     assert attributes[0]["attribute"]["id"] == attribute_id
     assert attributes[0]["values"][0]["name"] == "Rainbow"
     assert attributes[0]["values"][0]["slug"] == "rainbow"
+
+    updated_webhook_mock.assert_called_once_with(product)
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_with_file_attribute_value(
+    updated_webhook_mock,
+    staff_api_client,
+    file_attribute,
+    product,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    attribute_id = graphene.Node.to_global_id("Attribute", file_attribute.pk)
+    product_type.product_attributes.add(file_attribute)
+
+    new_value = "new_file.json"
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "file": new_value}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["productErrors"] == []
+
+    attributes = data["product"]["attributes"]
+
+    assert len(attributes) == 2
+    expected_file_att_data = {
+        "attribute": {"id": attribute_id, "name": file_attribute.name},
+        "values": [
+            {
+                "id": ANY,
+                "name": new_value,
+                "slug": slugify(new_value),
+                "reference": None,
+                "file": {
+                    "url": "http://testserver/media/" + new_value,
+                    "contentType": None,
+                },
+            }
+        ],
+    }
+    assert expected_file_att_data in attributes
+
+    updated_webhook_mock.assert_called_once_with(product)
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_with_file_attribute_value_new_value_is_not_created(
+    updated_webhook_mock,
+    staff_api_client,
+    file_attribute,
+    product,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    attribute_id = graphene.Node.to_global_id("Attribute", file_attribute.pk)
+    product_type.product_attributes.add(file_attribute)
+    existing_value = file_attribute.values.first()
+    associate_attribute_values_to_instance(product, file_attribute, existing_value)
+
+    values_count = file_attribute.values.count()
+
+    variables = {
+        "productId": product_id,
+        "input": {
+            "attributes": [{"id": attribute_id, "file": existing_value.file_url}]
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["productErrors"] == []
+
+    attributes = data["product"]["attributes"]
+
+    assert len(attributes) == 2
+    expected_file_att_data = {
+        "attribute": {"id": attribute_id, "name": file_attribute.name},
+        "values": [
+            {
+                "id": graphene.Node.to_global_id("AttributeValue", existing_value.pk),
+                "name": existing_value.name,
+                "slug": existing_value.slug,
+                "reference": None,
+                "file": {
+                    "url": existing_value.file_url,
+                    "contentType": existing_value.content_type,
+                },
+            }
+        ],
+    }
+    assert expected_file_att_data in attributes
+
+    file_attribute.refresh_from_db()
+    assert file_attribute.values.count() == values_count
+
+    updated_webhook_mock.assert_called_once_with(product)
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_update_product_rating(
+    staff_api_client,
+    product,
+    permission_manage_products,
+):
+    query = MUTATION_UPDATE_PRODUCT
+
+    product.rating = 5.5
+    product.save(update_fields=["rating"])
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    expected_rating = 9.57
+    variables = {"productId": product_id, "input": {"rating": expected_rating}}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["productErrors"] == []
+    assert data["product"]["rating"] == expected_rating
+    product.refresh_from_db()
+    assert product.rating == expected_rating
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_with_page_reference_attribute_value(
+    updated_webhook_mock,
+    staff_api_client,
+    product_type_page_reference_attribute,
+    product,
+    product_type,
+    page,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    attribute_id = graphene.Node.to_global_id(
+        "Attribute", product_type_page_reference_attribute.pk
+    )
+    product_type.product_attributes.add(product_type_page_reference_attribute)
+
+    values_count = product_type_page_reference_attribute.values.count()
+
+    reference = graphene.Node.to_global_id("Page", page.pk)
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "references": [reference]}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["productErrors"] == []
+
+    attributes = data["product"]["attributes"]
+
+    assert len(attributes) == 2
+    expected_file_att_data = {
+        "attribute": {
+            "id": attribute_id,
+            "name": product_type_page_reference_attribute.name,
+        },
+        "values": [
+            {
+                "id": ANY,
+                "name": page.title,
+                "slug": f"{product.id}_{page.id}",
+                "file": None,
+                "reference": reference,
+            }
+        ],
+    }
+    assert expected_file_att_data in attributes
+
+    updated_webhook_mock.assert_called_once_with(product)
+
+    product_type_page_reference_attribute.refresh_from_db()
+    assert product_type_page_reference_attribute.values.count() == values_count + 1
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_with_page_reference_attribute_existing_value(
+    updated_webhook_mock,
+    staff_api_client,
+    product_type_page_reference_attribute,
+    product,
+    product_type,
+    page,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    attribute_id = graphene.Node.to_global_id(
+        "Attribute", product_type_page_reference_attribute.pk
+    )
+    product_type.product_attributes.add(product_type_page_reference_attribute)
+    attr_value = AttributeValue.objects.create(
+        attribute=product_type_page_reference_attribute,
+        name=page.title,
+        slug=f"{product.pk}_{page.pk}",
+    )
+    associate_attribute_values_to_instance(
+        product, product_type_page_reference_attribute, attr_value
+    )
+
+    values_count = product_type_page_reference_attribute.values.count()
+
+    reference = graphene.Node.to_global_id("Page", page.pk)
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "references": [reference]}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["productErrors"] == []
+
+    attributes = data["product"]["attributes"]
+
+    assert len(attributes) == 2
+    expected_file_att_data = {
+        "attribute": {
+            "id": attribute_id,
+            "name": product_type_page_reference_attribute.name,
+        },
+        "values": [
+            {
+                "id": graphene.Node.to_global_id("AttributeValue", attr_value.pk),
+                "name": page.title,
+                "slug": f"{product.id}_{page.id}",
+                "file": None,
+                "reference": reference,
+            }
+        ],
+    }
+    assert expected_file_att_data in attributes
+
+    updated_webhook_mock.assert_called_once_with(product)
+
+    product_type_page_reference_attribute.refresh_from_db()
+    assert product_type_page_reference_attribute.values.count() == values_count
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_with_page_reference_attribute_value_not_given(
+    updated_webhook_mock,
+    staff_api_client,
+    product_type_page_reference_attribute,
+    product,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_type_page_reference_attribute.value_required = True
+    product_type_page_reference_attribute.save(update_fields=["value_required"])
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    attribute_id = graphene.Node.to_global_id(
+        "Attribute", product_type_page_reference_attribute.pk
+    )
+    product_type.product_attributes.add(product_type_page_reference_attribute)
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "values": ["test"]}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    errors = data["productErrors"]
+
+    assert not data["product"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "attributes"
+    assert errors[0]["code"] == AttributeErrorCode.REQUIRED.name
+
+    updated_webhook_mock.assert_not_called()
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_with_product_reference_attribute_value(
+    updated_webhook_mock,
+    staff_api_client,
+    product_type_product_reference_attribute,
+    product_list,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product = product_list[0]
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    product_ref = product_list[1]
+
+    attribute_id = graphene.Node.to_global_id(
+        "Attribute", product_type_product_reference_attribute.pk
+    )
+    product_type.product_attributes.add(product_type_product_reference_attribute)
+
+    values_count = product_type_product_reference_attribute.values.count()
+
+    reference = graphene.Node.to_global_id("Product", product_ref.pk)
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "references": [reference]}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["productErrors"] == []
+
+    attributes = data["product"]["attributes"]
+
+    assert len(attributes) == 2
+    expected_file_att_data = {
+        "attribute": {
+            "id": attribute_id,
+            "name": product_type_product_reference_attribute.name,
+        },
+        "values": [
+            {
+                "id": ANY,
+                "name": product_ref.name,
+                "slug": f"{product.id}_{product_ref.id}",
+                "file": None,
+                "reference": reference,
+            }
+        ],
+    }
+    assert expected_file_att_data in attributes
+
+    updated_webhook_mock.assert_called_once_with(product)
+
+    product_type_product_reference_attribute.refresh_from_db()
+    assert product_type_product_reference_attribute.values.count() == values_count + 1
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_with_product_reference_attribute_existing_value(
+    updated_webhook_mock,
+    staff_api_client,
+    product_type_product_reference_attribute,
+    product_list,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product = product_list[0]
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    product_ref = product_list[1]
+
+    attribute_id = graphene.Node.to_global_id(
+        "Attribute", product_type_product_reference_attribute.pk
+    )
+    product_type.product_attributes.add(product_type_product_reference_attribute)
+    attr_value = AttributeValue.objects.create(
+        attribute=product_type_product_reference_attribute,
+        name=product_ref.name,
+        slug=f"{product.pk}_{product_ref.pk}",
+    )
+    associate_attribute_values_to_instance(
+        product, product_type_product_reference_attribute, attr_value
+    )
+
+    values_count = product_type_product_reference_attribute.values.count()
+
+    reference = graphene.Node.to_global_id("Product", product_ref.pk)
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "references": [reference]}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["productErrors"] == []
+
+    attributes = data["product"]["attributes"]
+
+    assert len(attributes) == 2
+    expected_file_att_data = {
+        "attribute": {
+            "id": attribute_id,
+            "name": product_type_product_reference_attribute.name,
+        },
+        "values": [
+            {
+                "id": graphene.Node.to_global_id("AttributeValue", attr_value.pk),
+                "name": product_ref.name,
+                "slug": f"{product.id}_{product_ref.id}",
+                "file": None,
+                "reference": reference,
+            }
+        ],
+    }
+    assert expected_file_att_data in attributes
+
+    updated_webhook_mock.assert_called_once_with(product)
+
+    product_type_product_reference_attribute.refresh_from_db()
+    assert product_type_product_reference_attribute.values.count() == values_count
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_with_product_reference_attribute_value_not_given(
+    updated_webhook_mock,
+    staff_api_client,
+    product_type_product_reference_attribute,
+    product,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_type_product_reference_attribute.value_required = True
+    product_type_product_reference_attribute.save(update_fields=["value_required"])
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    attribute_id = graphene.Node.to_global_id(
+        "Attribute", product_type_product_reference_attribute.pk
+    )
+    product_type.product_attributes.add(product_type_product_reference_attribute)
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "values": ["test"]}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    errors = data["productErrors"]
+
+    assert not data["product"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "attributes"
+    assert errors[0]["code"] == AttributeErrorCode.REQUIRED.name
+
+    updated_webhook_mock.assert_not_called()
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_change_values_ordering(
+    updated_webhook_mock,
+    staff_api_client,
+    product,
+    permission_manage_products,
+    page_list,
+    product_type_page_reference_attribute,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    attribute_id = graphene.Node.to_global_id(
+        "Attribute", product_type_page_reference_attribute.pk
+    )
+
+    product_type = product.product_type
+    product_type.product_attributes.set([product_type_page_reference_attribute])
+
+    attr_value_1 = AttributeValue.objects.create(
+        attribute=product_type_page_reference_attribute,
+        name=page_list[0].title,
+        slug=f"{product.pk}_{page_list[0].pk}",
+    )
+    attr_value_2 = AttributeValue.objects.create(
+        attribute=product_type_page_reference_attribute,
+        name=page_list[1].title,
+        slug=f"{product.pk}_{page_list[1].pk}",
+    )
+
+    associate_attribute_values_to_instance(
+        product, product_type_page_reference_attribute, attr_value_2, attr_value_1
+    )
+
+    assert list(
+        product.attributes.first().productvalueassignment.values_list(
+            "value_id", flat=True
+        )
+    ) == [attr_value_2.pk, attr_value_1.pk]
+
+    variables = {
+        "productId": product_id,
+        "input": {
+            "attributes": [
+                {
+                    "id": attribute_id,
+                    "references": [
+                        graphene.Node.to_global_id("Page", page_list[0].pk),
+                        graphene.Node.to_global_id("Page", page_list[1].pk),
+                    ],
+                }
+            ]
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["productErrors"] == []
+
+    attributes = data["product"]["attributes"]
+
+    assert len(attributes) == 1
+    values = attributes[0]["values"]
+    assert len(values) == 2
+    assert [value["id"] for value in values] == [
+        graphene.Node.to_global_id("AttributeValue", val.pk)
+        for val in [attr_value_1, attr_value_2]
+    ]
+    product.refresh_from_db()
+    assert list(
+        product.attributes.first().productvalueassignment.values_list(
+            "value_id", flat=True
+        )
+    ) == [attr_value_1.pk, attr_value_2.pk]
 
     updated_webhook_mock.assert_called_once_with(product)
 
@@ -3376,8 +4720,12 @@ def test_delete_product_variant_in_draft_order(
     draft_order_lines_pks = []
     not_draft_order_lines_pks = []
     for variant in product.variants.all():
-        net = variant.get_price(channel_USD.slug)
+        variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
+        net = variant.get_price(product, [], channel_USD, variant_channel_listing, None)
         gross = Money(amount=net.amount, currency=net.currency)
+        unit_price = TaxedMoney(net=net, gross=gross)
+        quantity = 3
+        total_price = unit_price * quantity
 
         order_line = OrderLine.objects.create(
             variant=variant,
@@ -3387,7 +4735,8 @@ def test_delete_product_variant_in_draft_order(
             product_sku=variant.sku,
             is_shipping_required=variant.is_shipping_required(),
             unit_price=TaxedMoney(net=net, gross=gross),
-            quantity=3,
+            total_price=total_price,
+            quantity=quantity,
         )
         draft_order_lines_pks.append(order_line.pk)
 
@@ -3399,7 +4748,8 @@ def test_delete_product_variant_in_draft_order(
             product_sku=variant.sku,
             is_shipping_required=variant.is_shipping_required(),
             unit_price=TaxedMoney(net=net, gross=gross),
-            quantity=3,
+            total_price=total_price,
+            quantity=quantity,
         )
         not_draft_order_lines_pks.append(order_line_not_draft.pk)
 
@@ -3449,10 +4799,38 @@ def test_product_type(user_api_client, product_type, channel_USD):
     assert len(content["data"]["productTypes"]["edges"]) == no_product_types
 
 
+PRODUCT_TYPE_QUERY = """
+    query getProductType(
+        $id: ID!, $variantSelection: VariantAttributeScope, $channel: String
+    ) {
+        productType(id: $id) {
+            name
+            variantAttributes(variantSelection: $variantSelection) {
+                slug
+            }
+            products(first: 20, channel:$channel) {
+                totalCount
+                edges {
+                    node {
+                        name
+                    }
+                }
+            }
+            taxRate
+            taxType {
+                taxCode
+                description
+            }
+        }
+    }
+"""
+
+
 def test_product_type_query(
     user_api_client,
     staff_api_client,
     product_type,
+    file_attribute_with_file_input_type_without_values,
     product,
     permission_manage_products,
     monkeypatch,
@@ -3463,30 +4841,19 @@ def test_product_type_query(
         "get_tax_code_from_object_meta",
         lambda self, x: TaxType(code="123", description="Standard Taxes"),
     )
-    query = """
-            query getProductType($id: ID!, $channel: String) {
-                productType(id: $id) {
-                    name
-                    products(first: 20, channel:$channel) {
-                        totalCount
-                        edges {
-                            node {
-                                name
-                            }
-                        }
-                    }
-                    taxRate
-                    taxType {
-                        taxCode
-                        description
-                    }
-                }
-            }
-        """
+
+    query = PRODUCT_TYPE_QUERY
+
     no_products = Product.objects.count()
     ProductChannelListing.objects.filter(product=product, channel=channel_USD).update(
         is_published=False
     )
+
+    product_type.variant_attributes.add(
+        file_attribute_with_file_input_type_without_values
+    )
+    variant_attributes_count = product_type.variant_attributes.count()
+
     variables = {
         "id": graphene.Node.to_global_id("ProductType", product_type.id),
         "channel": channel_USD.slug,
@@ -3504,6 +4871,86 @@ def test_product_type_query(
     assert data["productType"]["products"]["totalCount"] == no_products
     assert data["productType"]["taxType"]["taxCode"] == "123"
     assert data["productType"]["taxType"]["description"] == "Standard Taxes"
+    assert len(data["productType"]["variantAttributes"]) == variant_attributes_count
+
+
+@pytest.mark.parametrize(
+    "variant_selection",
+    [
+        VariantAttributeScope.ALL.name,
+        VariantAttributeScope.VARIANT_SELECTION.name,
+        VariantAttributeScope.NOT_VARIANT_SELECTION.name,
+    ],
+)
+def test_product_type_query_only_variant_selections_value_set(
+    variant_selection,
+    user_api_client,
+    staff_api_client,
+    product_type,
+    file_attribute_with_file_input_type_without_values,
+    author_page_attribute,
+    product_type_page_reference_attribute,
+    product,
+    permission_manage_products,
+    monkeypatch,
+    channel_USD,
+):
+    monkeypatch.setattr(
+        PluginsManager,
+        "get_tax_code_from_object_meta",
+        lambda self, x: TaxType(code="123", description="Standard Taxes"),
+    )
+    query = PRODUCT_TYPE_QUERY
+
+    no_products = Product.objects.count()
+    ProductChannelListing.objects.filter(product=product, channel=channel_USD).update(
+        is_published=False
+    )
+
+    product_type.variant_attributes.add(
+        file_attribute_with_file_input_type_without_values,
+        author_page_attribute,
+        product_type_page_reference_attribute,
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("ProductType", product_type.id),
+        "variantSelection": variant_selection,
+        "channel": channel_USD.slug,
+    }
+
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]
+    assert data["productType"]["products"]["totalCount"] == no_products - 1
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]
+    assert data["productType"]["products"]["totalCount"] == no_products
+    assert data["productType"]["taxType"]["taxCode"] == "123"
+    assert data["productType"]["taxType"]["description"] == "Standard Taxes"
+
+    if variant_selection == VariantAttributeScope.VARIANT_SELECTION.name:
+        assert (
+            len(data["productType"]["variantAttributes"])
+            == product_type.variant_attributes.filter(
+                input_type=AttributeInputType.DROPDOWN, type=AttributeType.PRODUCT_TYPE
+            ).count()
+        )
+    elif variant_selection == VariantAttributeScope.NOT_VARIANT_SELECTION.name:
+        assert (
+            len(data["productType"]["variantAttributes"])
+            == product_type.variant_attributes.exclude(
+                input_type=AttributeInputType.DROPDOWN, type=AttributeType.PRODUCT_TYPE
+            ).count()
+        )
+    else:
+        assert (
+            len(data["productType"]["variantAttributes"])
+            == product_type.variant_attributes.count()
+        )
 
 
 PRODUCT_TYPE_CREATE_MUTATION = """
@@ -4033,7 +5480,9 @@ def test_update_product_type_slug_and_name(
 
 
 def test_update_product_type_with_negative_weight(
-    staff_api_client, product_type, permission_manage_product_types_and_attributes,
+    staff_api_client,
+    product_type,
+    permission_manage_product_types_and_attributes,
 ):
     query = """
         mutation($id: ID!, $weight: WeightScalar) {
@@ -4111,8 +5560,12 @@ def test_product_type_delete_mutation_variants_in_draft_order(
     draft_order.status = OrderStatus.DRAFT
     draft_order.save(update_fields=["status"])
 
-    net = variant.get_price(channel_USD.slug)
+    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
+    net = variant.get_price(product, [], channel_USD, variant_channel_listing, None)
     gross = Money(amount=net.amount, currency=net.currency)
+    quantity = 3
+    unit_price = TaxedMoney(net=net, gross=gross)
+    total_price = unit_price * quantity
 
     order_line_not_in_draft = OrderLine.objects.create(
         variant=variant,
@@ -4122,6 +5575,7 @@ def test_product_type_delete_mutation_variants_in_draft_order(
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
         unit_price=TaxedMoney(net=net, gross=gross),
+        total_price=total_price,
         quantity=3,
     )
 
@@ -4133,6 +5587,7 @@ def test_product_type_delete_mutation_variants_in_draft_order(
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
         unit_price=TaxedMoney(net=net, gross=gross),
+        total_price=total_price,
         quantity=3,
     )
 
@@ -4559,13 +6014,63 @@ def test_product_update_variants_names(mock__update_variants_names, product_type
     assert mock__update_variants_names.call_count == 1
 
 
-def test_product_variants_by_ids(user_api_client, variant, channel_USD):
+def test_product_variants_by_ids(staff_api_client, variant, channel_USD):
     query = """
         query getProduct($ids: [ID!], $channel: String) {
             productVariants(ids: $ids, first: 1, channel: $channel) {
                 edges {
                     node {
                         id
+                        name
+                        sku
+                        channelListings {
+                            channel {
+                                id
+                                isActive
+                                name
+                                currencyCode
+                            }
+                            price {
+                                amount
+                                currency
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    """
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    variables = {"ids": [variant_id], "channel": channel_USD.slug}
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["productVariants"]
+    assert data["edges"][0]["node"]["id"] == variant_id
+    assert len(data["edges"]) == 1
+
+
+def test_product_variants_by_customer(user_api_client, variant, channel_USD):
+    query = """
+        query getProduct($ids: [ID!], $channel: String) {
+            productVariants(ids: $ids, first: 1, channel: $channel) {
+                edges {
+                    node {
+                        id
+                        name
+                        sku
+                        channelListings {
+                            channel {
+                                id
+                                isActive
+                                name
+                                currencyCode
+                            }
+                            price {
+                                amount
+                                currency
+                            }
+                        }
                     }
                 }
             }
@@ -4575,10 +6080,7 @@ def test_product_variants_by_ids(user_api_client, variant, channel_USD):
 
     variables = {"ids": [variant_id], "channel": channel_USD.slug}
     response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["productVariants"]
-    assert data["edges"][0]["node"]["id"] == variant_id
-    assert len(data["edges"]) == 1
+    assert_no_permission(response)
 
 
 def test_product_variants_no_ids_list(user_api_client, variant, channel_USD):
@@ -4601,7 +6103,8 @@ def test_product_variants_no_ids_list(user_api_client, variant, channel_USD):
 
 
 @pytest.mark.parametrize(
-    "variant_price_amount, api_variant_price", [(200, 200), (0, 0)],
+    "variant_price_amount, api_variant_price",
+    [(200, 200), (0, 0)],
 )
 def test_product_variant_price(
     variant_price_amount,
@@ -4763,7 +6266,8 @@ def test_product_restricted_fields_permissions(
 
 
 @pytest.mark.parametrize(
-    "field, is_nested", (("digitalContent", True), ("quantityOrdered", False)),
+    "field, is_nested",
+    (("digitalContent", True), ("quantityOrdered", False)),
 )
 def test_variant_restricted_fields_permissions(
     staff_api_client,
@@ -5031,7 +6535,10 @@ def test_categories_query_with_sort(
         name="Cat1", slug="slug_category1", description="Description cat1"
     )
     Product.objects.create(
-        name="Test", slug="test", product_type=product_type, category=cat1,
+        name="Test",
+        slug="test",
+        product_type=product_type,
+        category=cat1,
     )
     Category.objects.create(
         name="Cat2", slug="slug_category2", description="Description cat2"
@@ -5049,7 +6556,10 @@ def test_categories_query_with_sort(
         description="Subcategory_description of cat1",
     )
     Product.objects.create(
-        name="Test2", slug="test2", product_type=product_type, category=subsubcat,
+        name="Test2",
+        slug="test2",
+        product_type=product_type,
+        category=subsubcat,
     )
     variables = {"sort_by": category_sort}
     staff_api_client.user.user_permissions.add(permission_manage_products)
@@ -5442,8 +6952,10 @@ mutation createProduct(
         $name: String!,
         $sku: String,
         $stocks: [StockInput!],
-        $basePrice: PositiveDecimal!
-        $trackInventory: Boolean)
+        $basePrice: PositiveDecimal!,
+        $trackInventory: Boolean,
+        $country: CountryCode
+        )
     {
         productCreate(
             input: {
@@ -5463,8 +6975,7 @@ mutation createProduct(
                     id
                     sku
                     trackInventory
-                    quantity
-                    stockQuantity
+                    quantityAvailable(countryCode: $country)
                 }
             }
             productErrors {
@@ -5520,7 +7031,9 @@ def test_create_stocks(variant, warehouse):
 
 def test_update_or_create_variant_stocks(variant, warehouses):
     Stock.objects.create(
-        product_variant=variant, warehouse=warehouses[0], quantity=5,
+        product_variant=variant,
+        warehouse=warehouses[0],
+        quantity=5,
     )
     stocks_data = [
         {"quantity": 10, "warehouse": "123"},
@@ -5543,7 +7056,9 @@ def test_update_or_create_variant_stocks(variant, warehouses):
 
 def test_update_or_create_variant_stocks_empty_stocks_data(variant, warehouses):
     Stock.objects.create(
-        product_variant=variant, warehouse=warehouses[0], quantity=5,
+        product_variant=variant,
+        warehouse=warehouses[0],
+        quantity=5,
     )
 
     ProductVariantStocksUpdate.update_or_create_variant_stocks(variant, [], warehouses)
@@ -5695,7 +7210,9 @@ def test_create_product_with_weight_input(
         "name": "Test",
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products],
+        query,
+        variables,
+        permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
     result_weight = content["data"]["productCreate"]["product"]["weight"]

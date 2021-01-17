@@ -22,7 +22,10 @@ class ProductExportFields:
 
     PRODUCT_ATTRIBUTE_FIELDS = {
         "value": "attributes__values__slug",
+        "file_url": "attributes__values__file_url",
         "slug": "attributes__assignment__attribute__slug",
+        "input_type": "attributes__assignment__attribute__input_type",
+        "entity_type": "attributes__assignment__attribute__entity_type",
         "attribute_pk": "attributes__assignment__attribute__pk",
     }
 
@@ -44,7 +47,10 @@ class ProductExportFields:
 
     VARIANT_ATTRIBUTE_FIELDS = {
         "value": "variants__attributes__values__slug",
+        "file_url": "variants__attributes__values__file_url",
         "slug": "variants__attributes__assignment__attribute__slug",
+        "input_type": "variants__attributes__assignment__attribute__input_type",
+        "entity_type": "variants__attributes__assignment__attribute__entity_type",
         "attribute_pk": "variants__attributes__assignment__attribute__pk",
     }
 

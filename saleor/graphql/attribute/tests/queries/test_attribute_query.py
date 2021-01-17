@@ -6,8 +6,6 @@ from graphene.utils.str_converters import to_camel_case
 from .....attribute.models import Attribute
 from .....product.models import Category, Collection, Product, ProductType
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...enums import AttributeValueType
-from ...types import resolve_attribute_value_type
 
 
 def test_get_single_attribute_by_id_as_customer(
@@ -34,6 +32,30 @@ def test_get_single_attribute_by_id_as_customer(
     assert content["data"]["attribute"]["slug"] == color_attribute_without_values.slug
 
 
+def test_get_single_attribute_by_slug_as_customer(
+    user_api_client, color_attribute_without_values
+):
+    attribute_gql_slug = color_attribute_without_values.slug
+    query = """
+    query($slug: String!) {
+        attribute(slug: $slug) {
+            id
+            name
+            slug
+        }
+    }
+    """
+    content = get_graphql_content(
+        user_api_client.post_graphql(query, {"slug": attribute_gql_slug})
+    )
+
+    assert content["data"]["attribute"], "Should have found an attribute"
+    assert content["data"]["attribute"]["slug"] == attribute_gql_slug
+    assert content["data"]["attribute"]["id"] == graphene.Node.to_global_id(
+        "Attribute", color_attribute_without_values.id
+    )
+
+
 QUERY_ATTRIBUTE = """
 query($id: ID!) {
     attribute(id: $id) {
@@ -41,10 +63,15 @@ query($id: ID!) {
         slug
         name
         inputType
+        entityType
         type
         values {
             slug
             inputType
+            file {
+                url
+                contentType
+            }
         }
         valueRequired
         visibleInStorefront
@@ -178,6 +205,97 @@ def test_get_single_page_attribute_by_staff_no_perm(
     assert_no_permission(response)
 
 
+def test_get_single_product_attribute_with_file_value(
+    staff_api_client, file_attribute, permission_manage_products, media_root
+):
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    attribute_gql_id = graphene.Node.to_global_id("Attribute", file_attribute.id)
+    query = QUERY_ATTRIBUTE
+    content = get_graphql_content(
+        staff_api_client.post_graphql(query, {"id": attribute_gql_id})
+    )
+    attribute_data = content["data"]["attribute"]
+
+    assert attribute_data, "Should have found an attribute"
+    assert attribute_data["id"] == attribute_gql_id
+    assert attribute_data["slug"] == file_attribute.slug
+    assert attribute_data["valueRequired"] == file_attribute.value_required
+    assert attribute_data["visibleInStorefront"] == file_attribute.visible_in_storefront
+    assert (
+        attribute_data["filterableInStorefront"]
+        == file_attribute.filterable_in_storefront
+    )
+    assert (
+        attribute_data["filterableInDashboard"]
+        == file_attribute.filterable_in_dashboard
+    )
+    assert attribute_data["availableInGrid"] == file_attribute.available_in_grid
+    assert (
+        attribute_data["storefrontSearchPosition"]
+        == file_attribute.storefront_search_position
+    )
+    assert len(attribute_data["values"]) == file_attribute.values.count()
+    attribute_value_data = []
+    for value in file_attribute.values.all():
+        data = {
+            "slug": value.slug,
+            "inputType": value.input_type.upper(),
+            "file": {"url": value.file_url, "contentType": value.content_type},
+        }
+        attribute_value_data.append(data)
+
+    for data in attribute_value_data:
+        assert data in attribute_data["values"]
+
+
+def test_get_single_reference_attribute_by_staff(
+    staff_api_client, product_type_page_reference_attribute, permission_manage_products
+):
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    attribute_gql_id = graphene.Node.to_global_id(
+        "Attribute", product_type_page_reference_attribute.id
+    )
+    query = QUERY_ATTRIBUTE
+    content = get_graphql_content(
+        staff_api_client.post_graphql(query, {"id": attribute_gql_id})
+    )
+
+    assert content["data"]["attribute"], "Should have found an attribute"
+    assert content["data"]["attribute"]["id"] == attribute_gql_id
+    assert (
+        content["data"]["attribute"]["slug"]
+        == product_type_page_reference_attribute.slug
+    )
+    assert (
+        content["data"]["attribute"]["valueRequired"]
+        == product_type_page_reference_attribute.value_required
+    )
+    assert (
+        content["data"]["attribute"]["visibleInStorefront"]
+        == product_type_page_reference_attribute.visible_in_storefront
+    )
+    assert (
+        content["data"]["attribute"]["filterableInStorefront"]
+        == product_type_page_reference_attribute.filterable_in_storefront
+    )
+    assert (
+        content["data"]["attribute"]["filterableInDashboard"]
+        == product_type_page_reference_attribute.filterable_in_dashboard
+    )
+    assert (
+        content["data"]["attribute"]["availableInGrid"]
+        == product_type_page_reference_attribute.available_in_grid
+    )
+    assert (
+        content["data"]["attribute"]["storefrontSearchPosition"]
+        == product_type_page_reference_attribute.storefront_search_position
+    )
+    assert (
+        content["data"]["attribute"]["entityType"]
+        == product_type_page_reference_attribute.entity_type.upper()
+    )
+
+
 QUERY_ATTRIBUTES = """
     query {
         attributes(first: 20) {
@@ -227,7 +345,7 @@ def test_attributes_query_hidden_attribute(user_api_client, product, color_attri
 
 
 def test_attributes_query_hidden_attribute_as_staff_user(
-    staff_api_client, product, color_attribute, permission_manage_products
+    staff_api_client, product, color_attribute
 ):
     query = QUERY_ATTRIBUTES
 
@@ -236,13 +354,6 @@ def test_attributes_query_hidden_attribute_as_staff_user(
     color_attribute.save(update_fields=["visible_in_storefront"])
 
     attribute_count = Attribute.objects.all().count()
-
-    # The user doesn't have the permission yet to manage products,
-    # the user shouldn't be able to see the hidden attributes
-    assert Attribute.objects.get_visible_to_user(staff_api_client.user).count() == 1
-
-    # The user should now be able to see the attributes
-    staff_api_client.user.user_permissions.add(permission_manage_products)
 
     response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
@@ -321,28 +432,6 @@ def test_retrieving_the_restricted_attributes_restricted(
     assert found_attributes[0]["node"][attribute] == expected_value
 
 
-@pytest.mark.parametrize(
-    "raw_value, expected_type",
-    [
-        ("#0000", AttributeValueType.COLOR),
-        ("#FF69B4", AttributeValueType.COLOR),
-        ("rgb(255, 0, 0)", AttributeValueType.COLOR),
-        ("hsl(0, 100%, 50%)", AttributeValueType.COLOR),
-        ("hsla(120,  60%, 70%, 0.3)", AttributeValueType.COLOR),
-        ("rgba(100%, 255, 0, 0)", AttributeValueType.COLOR),
-        ("http://example.com", AttributeValueType.URL),
-        ("https://example.com", AttributeValueType.URL),
-        ("ftp://example.com", AttributeValueType.URL),
-        ("example.com", AttributeValueType.STRING),
-        ("Foo", AttributeValueType.STRING),
-        ("linear-gradient(red, yellow)", AttributeValueType.GRADIENT),
-        ("radial-gradient(#0000, yellow)", AttributeValueType.GRADIENT),
-    ],
-)
-def test_resolve_attribute_value_type(raw_value, expected_type):
-    assert resolve_attribute_value_type(raw_value) == expected_type
-
-
 @pytest.mark.parametrize("tested_field", ["inCategory", "inCollection"])
 def test_attributes_in_collection_query(
     user_api_client,
@@ -380,7 +469,9 @@ def test_attributes_in_collection_query(
     # Create another collection with products but shouldn't get matched
     # as we don't look for this other collection
     other_collection = Collection.objects.create(
-        name="Other Collection", slug="other-collection", description="Description",
+        name="Other Collection",
+        slug="other-collection",
+        description="Description",
     )
     other_collection.products.add(other_product)
 

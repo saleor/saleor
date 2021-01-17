@@ -397,16 +397,27 @@ def test_queryset_ready_to_capture(channel_USD):
 
 
 def test_update_order_prices(order_with_lines):
-    channel_slug = order_with_lines.channel.slug
+    channel = order_with_lines.channel
     address = order_with_lines.shipping_address
     address.country = "DE"
     address.save()
 
     line_1 = order_with_lines.lines.first()
-    line_2 = order_with_lines.lines.last()
-    price_1 = line_1.variant.get_price(channel_slug)
+    variant_1 = line_1.variant
+    product_1 = variant_1.product
+    variant_channel_listing_1 = variant_1.channel_listings.get(channel=channel)
+    price_1 = variant_1.get_price(
+        product_1, [], channel, variant_channel_listing_1, None
+    )
     price_1 = TaxedMoney(net=price_1, gross=price_1)
-    price_2 = line_2.variant.get_price(channel_slug)
+
+    line_2 = order_with_lines.lines.last()
+    variant_2 = line_2.variant
+    product_2 = variant_2.product
+    variant_channel_listing_2 = variant_2.channel_listings.get(channel=channel)
+    price_2 = variant_2.get_price(
+        product_2, [], channel, variant_channel_listing_2, None
+    )
     price_2 = TaxedMoney(net=price_2, gross=price_2)
 
     shipping_price = order_with_lines.shipping_method.channel_listings.get(
@@ -421,7 +432,46 @@ def test_update_order_prices(order_with_lines):
     assert line_1.unit_price == price_1
     assert line_2.unit_price == price_2
     assert order_with_lines.shipping_price == shipping_price
-    total = line_1.quantity * price_1 + line_2.quantity * price_2 + shipping_price
+    assert order_with_lines.shipping_tax_rate == Decimal("0.0")
+    total = line_1.total_price + line_2.total_price + shipping_price
+    assert order_with_lines.total == total
+
+
+def test_update_order_prices_tax_included(order_with_lines, vatlayer):
+    channel = order_with_lines.channel
+    address = order_with_lines.shipping_address
+    address.country = "DE"
+    address.save()
+
+    line_1 = order_with_lines.lines.first()
+    variant_1 = line_1.variant
+    product_1 = variant_1.product
+    variant_channel_listing_1 = variant_1.channel_listings.get(channel=channel)
+    price_1 = variant_1.get_price(
+        product_1, [], channel, variant_channel_listing_1, None
+    )
+
+    line_2 = order_with_lines.lines.last()
+    variant_2 = line_2.variant
+    product_2 = variant_2.product
+    variant_channel_listing_2 = variant_2.channel_listings.get(channel=channel)
+    price_2 = variant_2.get_price(
+        product_2, [], channel, variant_channel_listing_2, None
+    )
+
+    shipping_price = order_with_lines.shipping_method.channel_listings.get(
+        channel_id=order_with_lines.channel_id
+    ).price
+
+    update_order_prices(order_with_lines, None)
+
+    line_1.refresh_from_db()
+    line_2.refresh_from_db()
+    assert line_1.unit_price.gross == price_1
+    assert line_2.unit_price.gross == price_2
+    assert order_with_lines.shipping_price.gross == shipping_price
+    assert order_with_lines.shipping_tax_rate == Decimal("0.19")
+    total = line_1.total_price + line_2.total_price + order_with_lines.shipping_price
     assert order_with_lines.total == total
 
 
@@ -564,7 +614,9 @@ def test_value_voucher_order_discount(
     channel_USD,
 ):
     voucher = Voucher.objects.create(
-        code="unique", type=VoucherType.ENTIRE_ORDER, discount_value_type=discount_type,
+        code="unique",
+        type=VoucherType.ENTIRE_ORDER,
+        discount_value_type=discount_type,
     )
     VoucherChannelListing.objects.create(
         voucher=voucher,
@@ -589,7 +641,9 @@ def test_shipping_voucher_order_discount(
     shipping_cost, discount_value, discount_type, expected_value, channel_USD
 ):
     voucher = Voucher.objects.create(
-        code="unique", type=VoucherType.SHIPPING, discount_value_type=discount_type,
+        code="unique",
+        type=VoucherType.SHIPPING,
+        discount_value_type=discount_type,
     )
     VoucherChannelListing.objects.create(
         voucher=voucher,
@@ -749,6 +803,17 @@ def test_ordered_item_change_quantity(transactional_db, order_with_lines):
     change_order_line_quantity(None, lines[1], lines[1].quantity, 0)
     change_order_line_quantity(None, lines[0], lines[0].quantity, 0)
     assert order_with_lines.get_total_quantity() == 0
+
+
+def test_change_order_line_quantity_changes_total_prices(
+    transactional_db, order_with_lines
+):
+    assert not order_with_lines.events.count()
+    line = order_with_lines.lines.all()[0]
+    new_quantity = line.quantity + 1
+    change_order_line_quantity(None, line, line.quantity, new_quantity)
+    line.refresh_from_db()
+    assert line.total_price == line.unit_price * new_quantity
 
 
 @patch("saleor.plugins.manager.PluginsManager.notify")

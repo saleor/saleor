@@ -14,9 +14,10 @@ from .models import NotApplicable, Sale, SaleChannelListing, VoucherCustomer
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ..channel.models import Channel
-    from ..checkout.models import Checkout, CheckoutLine
+    from ..checkout import CheckoutLineInfo
+    from ..checkout.models import Checkout
     from ..order.models import Order
+    from ..plugins.manager import PluginsManager
     from ..product.models import Collection, Product
     from .models import Voucher
 
@@ -109,43 +110,29 @@ def calculate_discounted_price(
     return price
 
 
-def get_discounted_lines(lines, voucher):
-    discounted_products = voucher.products.all()
-    discounted_categories = set(voucher.categories.all())
-    discounted_collections = set(voucher.collections.all())
-
-    discounted_lines = []
-    if discounted_products or discounted_collections or discounted_categories:
-        for line in lines:
-            line_product = line.variant.product
-            line_category = line.variant.product.category
-            line_collections = set(line.variant.product.collections.all())
-            if line.variant and (
-                line_product in discounted_products
-                or line_category in discounted_categories
-                or line_collections.intersection(discounted_collections)
-            ):
-                discounted_lines.append(line)
-    else:
-        # If there's no discounted products, collections or categories,
-        # it means that all products are discounted
-        discounted_lines.extend(list(lines))
-    return discounted_lines
-
-
 def validate_voucher_for_checkout(
+    manager: "PluginsManager",
     voucher: "Voucher",
     checkout: "Checkout",
-    lines: Iterable["CheckoutLine"],
+    lines: Iterable["CheckoutLineInfo"],
     discounts: Optional[Iterable[DiscountInfo]],
 ):
+    address = checkout.shipping_address or checkout.billing_address
     subtotal = calculations.checkout_subtotal(
-        checkout=checkout, lines=lines, discounts=discounts
+        manager=manager,
+        checkout=checkout,
+        lines=lines,
+        address=address,
+        discounts=discounts,
     )
 
     customer_email = checkout.get_customer_email()
     validate_voucher(
-        voucher, subtotal.gross, checkout.quantity, customer_email, checkout.channel,
+        voucher,
+        subtotal.gross,
+        checkout.quantity,
+        customer_email,
+        checkout.channel,
     )
 
 
@@ -229,7 +216,9 @@ def fetch_products(sale_pks: Iterable[str]) -> Dict[int, Set[int]]:
     return product_map
 
 
-def fetch_sale_channel_listings(sale_pks: Iterable[str],):
+def fetch_sale_channel_listings(
+    sale_pks: Iterable[str],
+):
     channel_listings = SaleChannelListing.objects.filter(sale_id__in=sale_pks).annotate(
         channel_slug=F("channel__slug")
     )

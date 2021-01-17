@@ -127,14 +127,21 @@ def event_payment_confirmed_notification(
     )
 
 
-def invoice_requested_event(*, order: Order, user: Optional[UserType],) -> OrderEvent:
+def invoice_requested_event(
+    *,
+    order: Order,
+    user: Optional[UserType],
+) -> OrderEvent:
     return OrderEvent.objects.create(
         order=order, type=OrderEvents.INVOICE_REQUESTED, user=user
     )
 
 
 def invoice_generated_event(
-    *, order: Order, user: Optional[UserType], invoice_number: str,
+    *,
+    order: Order,
+    user: Optional[UserType],
+    invoice_number: str,
 ) -> OrderEvent:
     return OrderEvent.objects.create(
         order=order,

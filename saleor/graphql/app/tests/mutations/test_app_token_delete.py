@@ -43,7 +43,9 @@ def test_app_token_delete(
 
 
 def test_app_token_delete_for_app(
-    permission_manage_apps, app_api_client, permission_manage_products,
+    permission_manage_apps,
+    app_api_client,
+    permission_manage_products,
 ):
     app = App.objects.create(name="New_app", is_active=True)
     token = AppToken.objects.create(app=app)
@@ -107,7 +109,10 @@ def test_app_token_delete_out_of_scope_app(
 
 
 def test_app_token_delete_superuser_can_delete_token_for_any_app(
-    permission_manage_apps, superuser_api_client, app, permission_manage_products,
+    permission_manage_apps,
+    superuser_api_client,
+    app,
+    permission_manage_products,
 ):
     """Ensure superuser can delete app token for app with any scope of permissions."""
     query = APP_TOKEN_DELETE_MUTATION
@@ -129,7 +134,9 @@ def test_app_token_delete_superuser_can_delete_token_for_any_app(
 
 
 def test_app_token_delete_for_app_out_of_scope_app(
-    permission_manage_apps, app_api_client, permission_manage_products,
+    permission_manage_apps,
+    app_api_client,
+    permission_manage_products,
 ):
     app = App.objects.create(name="New_app", is_active=True)
     token = AppToken.objects.create(app=app)

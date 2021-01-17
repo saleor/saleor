@@ -1,11 +1,13 @@
 import graphene
 
 from ....channel.error_codes import ChannelErrorCode
+from ....channel.models import Channel
 from ....checkout.models import Checkout
+from ....order.models import Order
 from ...tests.utils import assert_no_permission, get_graphql_content
 
 CHANNEL_DELETE_MUTATION = """
-    mutation deleteChannel($id: ID!,$input: ChannelDeleteInput!){
+    mutation deleteChannel($id: ID!, $input: ChannelDeleteInput){
         channelDelete(id: $id, input: $input){
             channel{
                 id
@@ -52,6 +54,7 @@ def test_channel_delete_mutation_as_staff_user(
 
     assert order.channel == other_channel_USD
     assert Checkout.objects.first() is None
+    assert not Channel.objects.filter(slug=channel_USD.slug).exists()
 
 
 def test_channel_delete_mutation_with_the_same_channel_and_target_channel_id(
@@ -72,6 +75,62 @@ def test_channel_delete_mutation_with_the_same_channel_and_target_channel_id(
 
     assert error["field"] == "targetChannel"
     assert error["code"] == ChannelErrorCode.CHANNEL_TARGET_ID_MUST_BE_DIFFERENT.name
+
+
+def test_channel_delete_mutation_without_migration_channel_with_orders(
+    permission_manage_channels,
+    staff_api_client,
+    channel_USD,
+    checkout,
+    order_list,
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {"id": channel_id}
+    checkout = Checkout.objects.first()
+    assert checkout.channel == channel_USD
+    assert Order.objects.filter(channel=channel_USD).exists()
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_DELETE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    error = content["data"]["channelDelete"]["channelErrors"][0]
+    assert error["field"] == "id"
+    assert error["code"] == ChannelErrorCode.CHANNEL_WITH_ORDERS.name
+    assert Channel.objects.filter(slug=channel_USD.slug).exists()
+
+
+def test_channel_delete_mutation_without_orders_in_channel(
+    permission_manage_channels,
+    staff_api_client,
+    channel_USD,
+    checkout,
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {"id": channel_id}
+    checkout = Checkout.objects.first()
+    assert checkout.channel == channel_USD
+    assert Order.objects.first() is None
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_DELETE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["channelDelete"]["channelErrors"]
+    assert Checkout.objects.first() is None
+    assert not Channel.objects.filter(slug=channel_USD.slug).exists()
 
 
 def test_channel_delete_mutation_with_different_currency(
@@ -125,6 +184,7 @@ def test_channel_delete_mutation_as_app(
     # then
     assert order.channel == other_channel_USD
     assert Checkout.objects.first() is None
+    assert not Channel.objects.filter(slug=channel_USD.slug).exists()
 
 
 def test_channel_delete_mutation_as_customer(
@@ -137,11 +197,14 @@ def test_channel_delete_mutation_as_customer(
 
     # when
     response = user_api_client.post_graphql(
-        CHANNEL_DELETE_MUTATION, variables=variables, permissions=(),
+        CHANNEL_DELETE_MUTATION,
+        variables=variables,
+        permissions=(),
     )
 
     # then
     assert_no_permission(response)
+    assert Channel.objects.filter(slug=channel_USD.slug).exists()
 
 
 def test_channel_delete_mutation_as_anonymous(
@@ -154,8 +217,11 @@ def test_channel_delete_mutation_as_anonymous(
 
     # when
     response = api_client.post_graphql(
-        CHANNEL_DELETE_MUTATION, variables=variables, permissions=(),
+        CHANNEL_DELETE_MUTATION,
+        variables=variables,
+        permissions=(),
     )
 
     # then
     assert_no_permission(response)
+    assert Channel.objects.filter(slug=channel_USD.slug).exists()

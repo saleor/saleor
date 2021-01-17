@@ -88,6 +88,8 @@ from ...warehouse.models import Stock, Warehouse
 fake = Factory.create()
 PRODUCTS_LIST_DIR = "products-list/"
 
+DUMMY_STAFF_PASSWORD = "password"
+
 IMAGES_MAPPING = {
     61: ["saleordemoproduct_paints_01.png"],
     62: ["saleordemoproduct_paints_02.png"],
@@ -297,7 +299,7 @@ def create_product_variants(variants_data, create_images):
             product.save(update_fields=["default_variant", "updated_at"])
         if create_images:
             image = variant.product.images.filter().first()
-            VariantImage.objects.create(variant=variant, image=image)
+            VariantImage.objects.get_or_create(variant=variant, image=image)
         quantity = random.randint(100, 500)
         create_stocks(variant, quantity=quantity)
 
@@ -328,7 +330,8 @@ def assign_attributes_to_product_types(
 
 
 def assign_attributes_to_page_types(
-    association_model: AttributePage, attributes: list,
+    association_model: AttributePage,
+    attributes: list,
 ):
     for value in attributes:
         pk = value["pk"]
@@ -402,8 +405,8 @@ def create_products_by_schema(placeholder_dir, create_images):
     create_categories(
         categories_data=types["product.category"], placeholder_dir=placeholder_dir
     )
-    create_attributes(attributes_data=types["product.attribute"])
-    create_attributes_values(values_data=types["product.attributevalue"])
+    create_attributes(attributes_data=types["attribute.attribute"])
+    create_attributes_values(values_data=types["attribute.attributevalue"])
     create_products(
         products_data=types["product.product"],
         placeholder_dir=placeholder_dir,
@@ -421,21 +424,21 @@ def create_products_by_schema(placeholder_dir, create_images):
         ],
     )
     assign_attributes_to_product_types(
-        AttributeProduct, attributes=types["product.attributeproduct"]
+        AttributeProduct, attributes=types["attribute.attributeproduct"]
     )
     assign_attributes_to_product_types(
-        AttributeVariant, attributes=types["product.attributevariant"]
+        AttributeVariant, attributes=types["attribute.attributevariant"]
     )
     assign_attributes_to_page_types(
-        AttributePage, attributes=types["product.attributepage"]
+        AttributePage, attributes=types["attribute.attributepage"]
     )
     assign_attributes_to_products(
-        product_attributes=types["product.assignedproductattribute"]
+        product_attributes=types["attribute.assignedproductattribute"]
     )
     assign_attributes_to_variants(
-        variant_attributes=types["product.assignedvariantattribute"]
+        variant_attributes=types["attribute.assignedvariantattribute"]
     )
-    assign_attributes_to_pages(page_attributes=types["product.assignedpageattribute"])
+    assign_attributes_to_pages(page_attributes=types["attribute.assignedpageattribute"])
     create_collections(
         data=types["product.collection"], placeholder_dir=placeholder_dir
     )
@@ -570,10 +573,18 @@ def create_order_lines(order, discounts, how_many=10):
     lines = []
     for _ in range(how_many):
         variant = next(variants_iter)
+        variant_channel_listing = variant.channel_listings.get(channel=channel)
         product = variant.product
         quantity = random.randrange(1, 5)
-        unit_price = variant.get_price(channel.slug, discounts)
+        unit_price = variant.get_price(
+            product,
+            product.collections.all(),
+            channel,
+            variant_channel_listing,
+            discounts,
+        )
         unit_price = TaxedMoney(net=unit_price, gross=unit_price)
+        total_price = unit_price * quantity
         lines.append(
             OrderLine(
                 order=order,
@@ -584,6 +595,7 @@ def create_order_lines(order, discounts, how_many=10):
                 quantity=quantity,
                 variant=variant,
                 unit_price=unit_price,
+                total_price=total_price,
                 tax_rate=0,
             )
         )
@@ -674,7 +686,7 @@ def create_fake_order(discounts, max_order_lines=5):
 
     order = Order.objects.create(**order_data)
     lines = create_order_lines(order, discounts, random.randrange(1, max_order_lines))
-    order.total = sum([line.get_total() for line in lines], shipping_price)
+    order.total = sum([line.total_price for line in lines], shipping_price)
     weight = Weight(kg=0)
     for line in order:
         weight += line.variant.get_weight()
@@ -691,7 +703,8 @@ def create_fake_order(discounts, max_order_lines=5):
 
 def create_fake_sale():
     sale = Sale.objects.create(
-        name="Happy %s day!" % fake.word(), type=DiscountValueType.PERCENTAGE,
+        name="Happy %s day!" % fake.word(),
+        type=DiscountValueType.PERCENTAGE,
     )
     for channel in Channel.objects.all():
         SaleChannelListing.objects.create(
@@ -732,6 +745,25 @@ def create_permission_groups():
     yield f"Group: {group}"
 
 
+def create_staffs():
+    for permission in get_permissions():
+        base_name = permission.codename.split("_")[1:]
+
+        group_name = " ".join(base_name)
+        group_name += " management"
+        group_name = group_name.capitalize()
+
+        email_base_name = [name[:-1] if name[-1] == "s" else name for name in base_name]
+        user_email = ".".join(email_base_name)
+        user_email += ".manager@example.com"
+
+        user = _create_staff_user(email=user_email)
+        group = create_group(group_name, [permission], [user])
+
+        yield f"Group: {group}"
+        yield f"User: {user}"
+
+
 def create_group(name, permissions, users):
     group, _ = Group.objects.get_or_create(name=name)
     group.permissions.add(*permissions)
@@ -739,25 +771,34 @@ def create_group(name, permissions, users):
     return group
 
 
+def _create_staff_user(email=None, superuser=False):
+    user = User.objects.filter(email=email).first()
+    if user:
+        return user
+    address = create_address()
+    first_name = address.first_name
+    last_name = address.last_name
+    if not email:
+        email = get_email(first_name, last_name)
+
+    staff_user = User.objects.create_user(
+        first_name=first_name,
+        last_name=last_name,
+        email=email,
+        password=DUMMY_STAFF_PASSWORD,
+        default_billing_address=address,
+        default_shipping_address=address,
+        is_staff=True,
+        is_active=True,
+        is_superuser=superuser,
+    )
+    return staff_user
+
+
 def create_staff_users(how_many=2, superuser=False):
     users = []
     for _ in range(how_many):
-        address = create_address()
-        first_name = address.first_name
-        last_name = address.last_name
-        email = get_email(first_name, last_name)
-
-        staff_user = User.objects.create_user(
-            first_name=first_name,
-            last_name=last_name,
-            email=email,
-            password="password",
-            default_billing_address=address,
-            default_shipping_address=address,
-            is_staff=True,
-            is_active=True,
-            is_superuser=superuser,
-        )
+        staff_user = _create_staff_user(superuser)
         users.append(staff_user)
     return users
 
@@ -797,7 +838,8 @@ def create_channels():
         slug=settings.DEFAULT_CHANNEL_SLUG,
     )
     yield create_channel(
-        channel_name="Channel-PLN", currency_code="PLN",
+        channel_name="Channel-PLN",
+        currency_code="PLN",
     )
 
 
@@ -1253,6 +1295,15 @@ def create_page_type():
                 "slug": "mission",
             },
         },
+        {
+            "pk": 3,
+            "fields": {
+                "private_metadata": {},
+                "metadata": {},
+                "name": "Product details",
+                "slug": "product-details",
+            },
+        },
     ]
     for page_type_data in data:
         pk = page_type_data.pop("pk")
@@ -1262,68 +1313,105 @@ def create_page_type():
         yield "Page type %s created" % page_type.slug
 
 
-def create_page():
-    content = """
-    <h2>E-commerce for the PWA era</h2>
-    <h3>A modular, high performance e-commerce storefront built with GraphQL,
-        Django, and ReactJS.</h3>
-    <p>Saleor is a rapidly-growing open source e-commerce platform that has served
-       high-volume companies from branches like publishing and apparel since 2012.
-       Based on Python and Django, the latest major update introduces a modular
-       front end with a GraphQL API and storefront and dashboard written in React
-       to make Saleor a full-functionality open source e-commerce.</p>
-    <p><a href="https://github.com/mirumee/saleor">Get Saleor today!</a></p>
-    """
-    content_json = {
-        "blocks": [
-            {
-                "data": {"text": "E-commerce for the PWA era", "level": 2},
-                "type": "header",
+def create_pages():
+    data_pages = {
+        1: {
+            "title": "About",
+            "slug": "about",
+            "page_type_id": 1,
+            "content": """
+                <h2>E-commerce for the PWA era</h2>
+                <h3>A modular, high performance e-commerce storefront built
+                with GraphQL, Django, and ReactJS.</h3>
+                <p>Saleor is a rapidly-growing open source e-commerce platform that
+                has served high-volume companies from branches like publishing
+                and apparel since 2012. Based on Python and Django, the latest major
+                update introduces a modular front end with a GraphQL API and storefront
+                and dashboard written in React to make Saleor a full-functionality
+                open source e-commerce.</p>
+                <p><a href="https://github.com/mirumee/saleor">Get Saleor today!</a></p>
+                """,
+            "content_json": {
+                "blocks": [
+                    {
+                        "data": {"text": "E-commerce for the PWA era", "level": 2},
+                        "type": "header",
+                    },
+                    {
+                        "data": {
+                            "text": (
+                                "A modular, high performance e-commerce storefront "
+                                "built with GraphQL, Django, and ReactJS."
+                            ),
+                            "level": 2,
+                        },
+                        "type": "header",
+                    },
+                    {"data": {"text": ""}, "type": "paragraph"},
+                    {
+                        "data": {
+                            "text": (
+                                "Saleor is a rapidly-growing open source e-commerce "
+                                "platform that has served high-volume companies "
+                                "from branches like publishing and apparel since 2012. "
+                                "Based on Python and Django, the latest major update "
+                                "introduces a modular front end with a GraphQL API "
+                                "and storefront and dashboard written in React "
+                                "to make Saleor a full-functionality "
+                                "open source e-commerce."
+                            )
+                        },
+                        "type": "paragraph",
+                    },
+                    {"data": {"text": ""}, "type": "paragraph"},
+                    {
+                        "data": {
+                            "text": (
+                                '<a href="https://github.com/mirumee/saleor">'
+                                "Get Saleor today!</a>"
+                            )
+                        },
+                        "type": "paragraph",
+                    },
+                ],
             },
-            {
-                "data": {
-                    "text": (
-                        "A modular, high performance e-commerce storefront built with "
-                        "GraphQL, Django, and ReactJS."
-                    )
-                },
-                "type": "paragraph",
+        },
+        2: {
+            "title": "Apple juice details",
+            "slug": "apple-juice-details",
+            "page_type_id": 3,
+            "content": (
+                "\n<h2>Apple juice details</h2>\n"
+                "<p>This is example product details page.</p>\n"
+            ),
+            "content_json": {
+                "blocks": [
+                    {
+                        "data": {"text": "Apple juice details", "level": 2},
+                        "type": "header",
+                    },
+                    {
+                        "data": {"text": "This is example product details page."},
+                        "type": "paragraph",
+                    },
+                ]
             },
-            {"data": {"text": ""}, "type": "paragraph"},
-            {
-                "data": {
-                    "text": (
-                        "Saleor is a rapidly-growing open source e-commerce platform "
-                        "that has served high-volume companies from branches like "
-                        "publishing and apparel since 2012. Based on Python and Django,"
-                        " the latest major update introduces a modular front end with "
-                        "a GraphQL API and storefront and dashboard written in React "
-                        "to make Saleor a full-functionality open source e-commerce."
-                    )
-                },
-                "type": "paragraph",
-            },
-            {"data": {"text": ""}, "type": "paragraph"},
-            {
-                "data": {
-                    "text": (
-                        '<a href="https://github.com/mirumee/saleor">'
-                        "Get Saleor today!</a>"
-                    )
-                },
-                "type": "paragraph",
-            },
-        ],
+        },
     }
-    page_data = {
-        "content": content,
-        "content_json": content_json,
-        "title": "About",
-        "is_published": True,
-        "page_type_id": 1,
-    }
-    page, dummy = Page.objects.get_or_create(pk=1, slug="about", defaults=page_data)
-    yield "Page %s created" % page.slug
+
+    for pk in [1, 2]:
+        data = data_pages[pk]
+        page_data = {
+            "content": data["content"],
+            "content_json": data["content_json"],
+            "title": data["title"],
+            "is_published": True,
+            "page_type_id": data["page_type_id"],
+        }
+        page, _ = Page.objects.get_or_create(
+            pk=pk, slug=data["slug"], defaults=page_data
+        )
+        yield "Page %s created" % page.slug
 
 
 def generate_menu_items(menu: Menu, category: Category, parent_menu_item):

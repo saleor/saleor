@@ -1,11 +1,14 @@
-from typing import TYPE_CHECKING, Set, Union
+from typing import TYPE_CHECKING, Iterable, Set, Union
 
 from ..page.models import Page
 from ..product.models import Product, ProductVariant
 from .models import (
     AssignedPageAttribute,
+    AssignedPageAttributeValue,
     AssignedProductAttribute,
+    AssignedProductAttributeValue,
     AssignedVariantAttribute,
+    AssignedVariantAttributeValue,
     Attribute,
     AttributeValue,
 )
@@ -13,14 +16,50 @@ from .models import (
 AttributeAssignmentType = Union[
     AssignedProductAttribute, AssignedVariantAttribute, AssignedPageAttribute
 ]
+T_INSTANCE = Union[Product, ProductVariant, Page]
 
 
 if TYPE_CHECKING:
-    from .models import AttributeProduct, AttributeVariant, AttributePage
+    from .models import AttributePage, AttributeProduct, AttributeVariant
+
+
+def associate_attribute_values_to_instance(
+    instance: T_INSTANCE,
+    attribute: Attribute,
+    *values: AttributeValue,
+) -> AttributeAssignmentType:
+    """Assign given attribute values to a product or variant.
+
+    Note: be award this function invokes the ``set`` method on the instance's
+    attribute association. Meaning any values already assigned or concurrently
+    assigned will be overridden by this call.
+    """
+    values_ids = {value.pk for value in values}
+
+    # Ensure the values are actually form the given attribute
+    validate_attribute_owns_values(attribute, values_ids)
+
+    # Associate the attribute and the passed values
+    assignment = _associate_attribute_to_instance(instance, attribute.pk)
+    assignment.values.set(values)
+    sort_assigned_attribute_values(instance, assignment, values)
+
+    return assignment
+
+
+def validate_attribute_owns_values(attribute: Attribute, value_ids: Set[int]) -> None:
+    """Check given value IDs are belonging to the given attribute.
+
+    :raise: AssertionError
+    """
+    attribute_actual_value_ids = set(attribute.values.values_list("pk", flat=True))
+    found_associated_ids = attribute_actual_value_ids & value_ids
+    if found_associated_ids != value_ids:
+        raise AssertionError("Some values are not from the provided attribute.")
 
 
 def _associate_attribute_to_instance(
-    instance: Union[Product, ProductVariant, Page], attribute_pk: int
+    instance: T_INSTANCE, attribute_pk: int
 ) -> AttributeAssignmentType:
     """Associate a given attribute to an instance."""
     assignment: AttributeAssignmentType
@@ -51,34 +90,28 @@ def _associate_attribute_to_instance(
     return assignment
 
 
-def validate_attribute_owns_values(attribute: Attribute, value_ids: Set[int]) -> None:
-    """Check given value IDs are belonging to the given attribute.
+def sort_assigned_attribute_values(
+    instance: T_INSTANCE,
+    assignment: AttributeAssignmentType,
+    values: Iterable[AttributeValue],
+) -> None:
+    """Sort assigned attribute values based on values list order."""
 
-    :raise: AssertionError
-    """
-    attribute_actual_value_ids = set(attribute.values.values_list("pk", flat=True))
-    found_associated_ids = attribute_actual_value_ids & value_ids
-    if found_associated_ids != value_ids:
-        raise AssertionError("Some values are not from the provided attribute.")
+    instance_to_value_assignment_mapping = {
+        "Product": ("productvalueassignment", AssignedProductAttributeValue),
+        "ProductVariant": ("variantvalueassignment", AssignedVariantAttributeValue),
+        "Page": ("pagevalueassignment", AssignedPageAttributeValue),
+    }
+    assignment_lookup, assignment_model = instance_to_value_assignment_mapping[
+        instance.__class__.__name__
+    ]
+    values_pks = [value.pk for value in values]
 
+    values_assignment = list(
+        getattr(assignment, assignment_lookup).select_related("value")
+    )
+    values_assignment.sort(key=lambda e: values_pks.index(e.value.pk))
+    for index, value_assignment in enumerate(values_assignment):
+        value_assignment.sort_order = index
 
-def associate_attribute_values_to_instance(
-    instance: Union[Product, ProductVariant, Page],
-    attribute: Attribute,
-    *values: AttributeValue,
-) -> AttributeAssignmentType:
-    """Assign given attribute values to a product or variant.
-
-    Note: be award this function invokes the ``set`` method on the instance's
-    attribute association. Meaning any values already assigned or concurrently
-    assigned will be overridden by this call.
-    """
-    values_ids = {value.pk for value in values}
-
-    # Ensure the values are actually form the given attribute
-    validate_attribute_owns_values(attribute, values_ids)
-
-    # Associate the attribute and the passed values
-    assignment = _associate_attribute_to_instance(instance, attribute.pk)
-    assignment.values.set(values)
-    return assignment
+    assignment_model.objects.bulk_update(values_assignment, ["sort_order"])

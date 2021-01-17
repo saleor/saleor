@@ -5,6 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.utils.text import slugify
 
+from ...attribute import AttributeInputType
 from ...attribute import models as models
 from ...attribute.error_codes import AttributeErrorCode
 from ...core.exceptions import PermissionDenied
@@ -24,7 +25,7 @@ from ..core.utils import (
 from ..core.utils.reordering import perform_reordering
 from ..utils import resolve_global_ids_to_primary_keys
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
-from .enums import AttributeInputTypeEnum, AttributeTypeEnum
+from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -80,12 +81,119 @@ class BaseReorderAttributesMutation(BaseMutation):
         return operations
 
 
+class BaseReorderAttributeValuesMutation(BaseMutation):
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def perform(
+        cls,
+        instance_id: str,
+        instance_type: str,
+        data: dict,
+        assignment_lookup: str,
+        error_code_enum,
+    ):
+        attribute_id = data["attribute_id"]
+        moves = data["moves"]
+
+        instance = cls.get_instance(instance_id)
+        attribute_assignment = cls.get_attribute_assignment(
+            instance, instance_type, attribute_id, error_code_enum
+        )
+        values_m2m = getattr(attribute_assignment, assignment_lookup)
+
+        try:
+            operations = cls.prepare_operations(moves, values_m2m)
+        except ValidationError as error:
+            error.code = error_code_enum.NOT_FOUND.value
+            raise ValidationError({"moves": error})
+
+        with transaction.atomic():
+            perform_reordering(values_m2m, operations)
+
+        return instance
+
+    @staticmethod
+    def get_instance(instance_id: str):
+        pass
+
+    @staticmethod
+    def get_attribute_assignment(
+        instance, instance_type, attribute_id: str, error_code_enum
+    ):
+        attribute_pk = from_global_id_strict_type(
+            attribute_id, only_type=Attribute, field="attribute_id"
+        )
+
+        try:
+            attribute_assignment = instance.attributes.prefetch_related("values").get(
+                assignment__attribute_id=attribute_pk  # type: ignore
+            )
+        except ObjectDoesNotExist:
+            raise ValidationError(
+                {
+                    "attribute_id": ValidationError(
+                        f"Couldn't resolve to a {instance_type} "
+                        f"attribute: {attribute_id}.",
+                        code=error_code_enum.NOT_FOUND.value,
+                    )
+                }
+            )
+        return attribute_assignment
+
+    @classmethod
+    def prepare_operations(cls, moves: ReorderInput, values: "QuerySet"):
+        """Prepare operations dict for reordering attribute values.
+
+        Operation dict format:
+            key: attribute value pk,
+            value: sort_order value - relative sorting position of the attribute
+        """
+        value_ids = []
+        sort_orders = []
+
+        # resolve attribute moves
+        for move_info in moves:
+            value_ids.append(move_info.id)
+            sort_orders.append(move_info.sort_order)
+
+        _, values_pks = resolve_global_ids_to_primary_keys(value_ids, AttributeValue)
+        values_pks = [int(pk) for pk in values_pks]
+
+        values_m2m = values.filter(value_id__in=values_pks)
+
+        if values_m2m.count() != len(values_pks):
+            pks = values_m2m.values_list("value_id", flat=True)
+            invalid_values = set(values_pks) - set(pks)
+            invalid_ids = [
+                graphene.Node.to_global_id("AttributeValue", val_pk)
+                for val_pk in invalid_values
+            ]
+            raise ValidationError(
+                "Couldn't resolve to an attribute value.",
+                params={"values": invalid_ids},
+            )
+
+        values_m2m = list(values_m2m)
+        values_m2m.sort(
+            key=lambda e: values_pks.index(e.value_id)
+        )  # preserve order in pks
+
+        operations = {
+            value.pk: sort_order for value, sort_order in zip(values_m2m, sort_orders)
+        }
+
+        return operations
+
+
 class AttributeValueCreateInput(graphene.InputObjectType):
     name = graphene.String(required=True, description=AttributeValueDescriptions.NAME)
 
 
 class AttributeCreateInput(graphene.InputObjectType):
     input_type = AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE)
+    entity_type = AttributeEntityTypeEnum(description=AttributeDescriptions.ENTITY_TYPE)
     name = graphene.String(required=True, description=AttributeDescriptions.NAME)
     slug = graphene.String(required=False, description=AttributeDescriptions.SLUG)
     type = AttributeTypeEnum(description=AttributeDescriptions.TYPE, required=True)
@@ -190,9 +298,25 @@ class AttributeMixin:
         an attribute.
         """
         values_input = cleaned_input.get(cls.ATTRIBUTE_VALUES_FIELD)
+        attribute_input_type = cleaned_input.get("input_type") or attribute.input_type
 
         if values_input is None:
             return
+
+        if (
+            attribute_input_type
+            in [AttributeInputType.FILE, AttributeInputType.REFERENCE]
+            and values_input
+        ):
+            raise ValidationError(
+                {
+                    cls.ATTRIBUTE_VALUES_FIELD: ValidationError(
+                        "Values cannot be used with "
+                        f"input type {attribute_input_type}.",
+                        code=AttributeErrorCode.INVALID.value,
+                    )
+                }
+            )
 
         for value_data in values_input:
             value_data["slug"] = slugify(value_data["name"], allow_unicode=True)
@@ -215,8 +339,36 @@ class AttributeMixin:
         except ValidationError as error:
             error.code = AttributeErrorCode.REQUIRED.value
             raise ValidationError({"slug": error})
+        cls._clean_attribute_settings(instance, cleaned_input)
 
         return cleaned_input
+
+    @classmethod
+    def _clean_attribute_settings(cls, instance, cleaned_input):
+        """Validate attributes settings.
+
+        Ensure that any invalid operations will be not performed.
+        """
+        attribute_input_type = cleaned_input.get("input_type") or instance.input_type
+        if attribute_input_type not in [
+            AttributeInputType.FILE,
+            AttributeInputType.REFERENCE,
+        ]:
+            return
+        errors = {}
+        for field in [
+            "filterable_in_storefront",
+            "filterable_in_dashboard",
+            "available_in_grid",
+            "storefront_search_position",
+        ]:
+            if cleaned_input.get(field):
+                errors[field] = ValidationError(
+                    f"Cannot set on a {attribute_input_type} attribute.",
+                    code=AttributeErrorCode.INVALID.value,
+                )
+        if errors:
+            raise ValidationError(errors)
 
     @classmethod
     def _save_m2m(cls, info, attribute, cleaned_data):
@@ -243,6 +395,22 @@ class AttributeCreate(AttributeMixin, ModelMutation):
         description = "Creates an attribute."
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
+
+    @classmethod
+    def clean_input(cls, info, instance, data, input_cls=None):
+        cleaned_input = super().clean_input(info, instance, data, input_cls)
+        if cleaned_input.get(
+            "input_type"
+        ) == AttributeInputType.REFERENCE and not cleaned_input.get("entity_type"):
+            raise ValidationError(
+                {
+                    "entity_type": ValidationError(
+                        "Entity type is required when REFERENCE input type is used.",
+                        code=AttributeErrorCode.REQUIRED.value,
+                    )
+                }
+            )
+        return cleaned_input
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):

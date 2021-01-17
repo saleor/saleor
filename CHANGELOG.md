@@ -20,6 +20,18 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add possibility to exclude products from shipping method - #6506 by @korycins
 - Add availableShippingMethods to the Shop type - #6551 by @IKarbowiak
 - Add delivery time to shipping method - #6564 by @IKarbowiak
+- Drop deprecated fields from the `ProductVariant` type: `quantity`, `quantityAllocated`, `stockQuantity`, `isAvailable` - #6436 by @maarcingebala
+- Introduce file attributes - #6568 by @IKarbowiak
+- Drop authorization keys API - #6631 by @maarcingebala
+- Shipping zone description - #6653 by @tomaszszymanski129
+- Add metadata to menu and menu item - #6648 by @tomaszszymanski129
+- Get tax rate from plugins - #6649 by @IKarbowiak
+- Added support for querying user by email - #6632 @LeOndaz
+- Add order shipping tax rate - #6678 by @IKarbowiak
+- Fix products visibility - #6704 by @IKarbowiak
+- Introduce page reference attributes - #6624 by @IKarbowiak
+- Introduce product reference attributes - #6711 by @IKarbowiak
+- Drop `type` field from `AttributeValue` type - #6710 by @IKarbowiak
 
 # 2.11.1
 

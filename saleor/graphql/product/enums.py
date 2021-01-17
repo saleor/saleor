@@ -24,3 +24,9 @@ class ProductTypeConfigurable(graphene.Enum):
 class ProductTypeEnum(graphene.Enum):
     DIGITAL = "digital"
     SHIPPABLE = "shippable"
+
+
+class VariantAttributeScope(graphene.Enum):
+    ALL = "all"
+    VARIANT_SELECTION = "variant_selection"
+    NOT_VARIANT_SELECTION = "not_variant_selection"

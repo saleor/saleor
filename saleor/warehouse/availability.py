@@ -1,3 +1,4 @@
+from collections import defaultdict
 from typing import TYPE_CHECKING
 
 from django.db.models import Sum
@@ -8,12 +9,6 @@ from .models import Stock, StockQuerySet
 
 if TYPE_CHECKING:
     from ..product.models import Product, ProductVariant
-
-
-def _get_quantity_allocated(stocks: StockQuerySet) -> int:
-    return stocks.aggregate(
-        quantity_allocated=Coalesce(Sum("allocations__quantity_allocated"), 0)
-    )["quantity_allocated"]
 
 
 def _get_available_quantity(stocks: StockQuerySet) -> int:
@@ -42,6 +37,37 @@ def check_stock_quantity(variant: "ProductVariant", country_code: str, quantity:
             raise InsufficientStock(variant)
 
 
+def check_stock_quantity_bulk(variants, country_code, quantities):
+    """Validate if there is stock available for given variants in given country.
+
+    :raises InsufficientStock: when there is not enough items in stock for a variant.
+    """
+    all_variants_stocks = (
+        Stock.objects.for_country(country_code)
+        .filter(product_variant__in=variants)
+        .annotate_available_quantity()
+    )
+
+    variant_stocks = defaultdict(list)
+    for stock in all_variants_stocks:
+        variant_stocks[stock.product_variant_id].append(stock)
+
+    for variant, quantity in zip(variants, quantities):
+        stocks = variant_stocks.get(variant.pk)
+        available_quantity = sum([stock.available_quantity for stock in stocks])
+
+        if not stocks:
+            raise InsufficientStock(
+                variant, context={"available_quantity": available_quantity}
+            )
+
+        if variant.track_inventory:
+            if quantity > available_quantity:
+                raise InsufficientStock(
+                    variant, context={"available_quantity": available_quantity}
+                )
+
+
 def get_available_quantity(variant: "ProductVariant", country_code: str) -> int:
     """Return available quantity for given product in given country."""
     stocks = Stock.objects.get_variant_stocks_for_country(country_code, variant)
@@ -50,29 +76,9 @@ def get_available_quantity(variant: "ProductVariant", country_code: str) -> int:
     return _get_available_quantity(stocks)
 
 
-def get_quantity_allocated(variant: "ProductVariant", country_code: str) -> int:
-    stocks = Stock.objects.get_variant_stocks_for_country(country_code, variant)
-    if not stocks:
-        return 0
-    return _get_quantity_allocated(stocks)
-
-
 def is_product_in_stock(product: "Product", country_code: str) -> bool:
     """Check if there is any variant of given product available in given country."""
     stocks = Stock.objects.get_product_stocks_for_country(
         country_code, product
     ).annotate_available_quantity()
     return any(stocks.values_list("available_quantity", flat=True))
-
-
-def are_all_product_variants_in_stock(product: "Product", country_code: str) -> bool:
-    """Check if all variants of given product are available in given country."""
-    stocks = Stock.objects.get_product_stocks_for_country(
-        country_code, product
-    ).annotate_available_quantity()
-    stocks = stocks.values_list("available_quantity", "product_variant_id").all()
-    are_all_available = all([elem[0] for elem in stocks])
-    variants_with_stocks = [elem[1] for elem in stocks]
-
-    product_variants = product.variants.exclude(id__in=variants_with_stocks).exists()
-    return are_all_available and not product_variants

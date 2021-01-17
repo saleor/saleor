@@ -115,7 +115,10 @@ def test_sort_products_within_collection(
 
     variables = {
         "collectionId": collection_id,
-        "moves": [{"productId": product, "sortOrder": 1}],
+        "moves": [
+            {"productId": product, "sortOrder": 1},
+            {"productId": second_product, "sortOrder": -1},
+        ],
     }
     content = get_graphql_content(
         staff_api_client.post_graphql(COLLECTION_RESORT_QUERY, variables)
@@ -123,8 +126,8 @@ def test_sort_products_within_collection(
 
     products = content["collection"]["products"]["edges"]
     assert products[0]["node"]["id"] == third_product
-    assert products[1]["node"]["id"] == product
-    assert products[2]["node"]["id"] == second_product
+    assert products[1]["node"]["id"] == second_product
+    assert products[2]["node"]["id"] == product
 
 
 GET_SORTED_PRODUCTS_QUERY = """
@@ -184,7 +187,8 @@ def test_sort_products_by_publication_date(
 
 
 @pytest.mark.parametrize(
-    "direction, order_direction", (("ASC", "rating"), ("DESC", "-rating")),
+    "direction, order_direction",
+    (("ASC", "rating"), ("DESC", "-rating")),
 )
 def test_sort_products_by_rating(
     direction, order_direction, api_client, product_list, channel_USD

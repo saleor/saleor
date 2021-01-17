@@ -4,6 +4,8 @@ from unittest.mock import Mock, patch
 import pytest
 
 from ...checkout.calculations import checkout_total
+from ...checkout.utils import fetch_checkout_lines
+from ...plugins.manager import PluginsManager, get_plugins_manager
 from .. import ChargeStatus, GatewayError, PaymentError, TransactionKind, gateway
 from ..error_codes import PaymentErrorCode
 from ..interface import GatewayResponse, PaymentMethodInfo
@@ -84,12 +86,16 @@ def test_create_payment(checkout_with_item, address):
     checkout_with_item.billing_address = address
     checkout_with_item.save()
 
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout_with_item)
+    total = checkout_total(
+        manager=manager, checkout=checkout_with_item, lines=lines, address=address
+    )
+
     data = {
         "gateway": "Dummy",
         "payment_token": "token",
-        "total": checkout_total(
-            checkout=checkout_with_item, lines=list(checkout_with_item)
-        ).gross.amount,
+        "total": total.gross.amount,
         "currency": checkout_with_item.currency,
         "email": "test@example.com",
         "customer_ip_address": "127.0.0.1",
@@ -119,12 +125,16 @@ def test_create_payment_from_checkout_requires_billing_address(checkout_with_ite
     checkout_with_item.billing_address = None
     checkout_with_item.save()
 
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout_with_item)
+    total = checkout_total(
+        manager=manager, checkout=checkout_with_item, lines=lines, address=None
+    )
+
     data = {
         "gateway": "Dummy",
         "payment_token": "token",
-        "total": checkout_total(
-            checkout=checkout_with_item, lines=list(checkout_with_item)
-        ),
+        "total": total.gross.amount,
         "currency": checkout_with_item.currency,
         "email": "test@example.com",
         "checkout": checkout_with_item,
@@ -155,12 +165,17 @@ def test_create_payment_information_for_checkout_payment(address, checkout_with_
     checkout_with_item.billing_address = address
     checkout_with_item.shipping_address = address
     checkout_with_item.save()
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout_with_item)
+    total = checkout_total(
+        manager=manager, checkout=checkout_with_item, lines=lines, address=address
+    )
+
     data = {
         "gateway": "Dummy",
         "payment_token": "token",
-        "total": checkout_total(
-            checkout=checkout_with_item, lines=list(checkout_with_item)
-        ).gross.amount,
+        "total": total.gross.amount,
         "currency": checkout_with_item.currency,
         "email": "test@example.com",
         "customer_ip_address": "127.0.0.1",
@@ -234,9 +249,13 @@ def test_payment_needs_to_be_active_for_any_action(func, payment_dummy):
     assert exc.value.message == NOT_ACTIVE_PAYMENT_ERROR
 
 
+@patch.object(PluginsManager, "capture_payment")
 @patch("saleor.order.actions.handle_fully_paid_order")
 def test_gateway_charge_failed(
-    mock_handle_fully_paid_order, mock_get_manager, payment_txn_preauth, dummy_response
+    mock_handle_fully_paid_order,
+    mock_capture_payment,
+    payment_txn_preauth,
+    dummy_response,
 ):
     txn = payment_txn_preauth.transactions.first()
     txn.is_success = False
@@ -246,10 +265,10 @@ def test_gateway_charge_failed(
 
     dummy_response.is_success = False
     dummy_response.kind = TransactionKind.CAPTURE
-    mock_get_manager.capture_payment.return_value = dummy_response
+    mock_capture_payment.return_value = dummy_response
     with pytest.raises(PaymentError):
         gateway.capture(payment, amount)
-    mock_get_manager.capture_payment.assert_called_once()
+    mock_capture_payment.assert_called_once()
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
     assert not payment.captured_amount
@@ -453,7 +472,8 @@ def test_validate_gateway_response_not_json_serializable(gateway_response):
 
 
 @pytest.mark.parametrize(
-    "currency, exp_response", [("EUR", True), ("USD", True), ("PLN", False)],
+    "currency, exp_response",
+    [("EUR", True), ("USD", True), ("PLN", False)],
 )
 def test_is_currency_supported(
     currency, exp_response, dummy_gateway_config, monkeypatch

@@ -42,7 +42,6 @@ CREATE_ATTRIBUTE_VALUE_MUTATION = """
         }
         attributeValue {
             name
-            type
             slug
         }
     }
@@ -73,7 +72,6 @@ def test_create_attribute_value(
     attr_data = data["attributeValue"]
     assert attr_data["name"] == name
     assert attr_data["slug"] == slugify(name)
-    assert attr_data["type"] == "STRING"
     assert name in [value["name"] for value in data["attribute"]["values"]]
 
 

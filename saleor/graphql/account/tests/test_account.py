@@ -27,6 +27,7 @@ from ....order.models import FulfillmentStatus, Order
 from ....product.tests.utils import create_image
 from ...core.utils import str_to_enum
 from ...tests.utils import (
+    assert_graphql_error_with_message,
     assert_no_permission,
     get_graphql_content,
     get_multipart_request_body,
@@ -376,12 +377,43 @@ def test_query_staff_user(
 
 
 USER_QUERY = """
-    query User($id: ID!) {
-        user(id: $id) {
+    query User($id: ID $email: String) {
+        user(id: $id, email: $email) {
+            id
             email
         }
     }
 """
+
+
+def test_query_user_by_email_address(
+    user_api_client, customer_user, permission_manage_users
+):
+    email = customer_user.email
+    variables = {"email": email}
+    response = user_api_client.post_graphql(
+        USER_QUERY, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["user"]
+    assert customer_user.email == data["email"]
+
+
+def test_query_user_by_id_and_email(
+    user_api_client, customer_user, permission_manage_users
+):
+    email = customer_user.email
+    id = graphene.Node.to_global_id("User", customer_user.id)
+    variables = {
+        "id": id,
+        "email": email,
+    }
+    response = user_api_client.post_graphql(
+        USER_QUERY, variables, permissions=[permission_manage_users]
+    )
+    assert_graphql_error_with_message(
+        response, "Argument 'id' cannot be combined with 'email'"
+    )
 
 
 def test_customer_can_not_see_other_users_data(user_api_client, staff_user):
@@ -1004,7 +1036,10 @@ def test_customer_create(
 @patch("saleor.account.notifications.default_token_generator.make_token")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_customer_create_send_password_with_url(
-    mocked_notify, mocked_generator, staff_api_client, permission_manage_users,
+    mocked_notify,
+    mocked_generator,
+    staff_api_client,
+    permission_manage_users,
 ):
     mocked_generator.return_value = "token"
     email = "api_user@example.com"
@@ -1872,7 +1907,10 @@ def test_staff_create_out_of_scope_group(
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_staff_create_send_password_with_url(
-    mocked_notify, staff_api_client, media_root, permission_manage_staff,
+    mocked_notify,
+    staff_api_client,
+    media_root,
+    permission_manage_staff,
 ):
     email = "api_user@example.com"
     redirect_url = "https://www.example.com"
@@ -2247,7 +2285,10 @@ def test_staff_update_duplicated_input_items(
 
 
 def test_staff_update_doesnt_change_existing_avatar(
-    staff_api_client, permission_manage_staff, media_root, staff_users,
+    staff_api_client,
+    permission_manage_staff,
+    media_root,
+    staff_users,
 ):
     query = STAFF_UPDATE_MUTATIONS
 
@@ -3955,7 +3996,9 @@ def test_query_staff_members_with_filter_status(
 
 
 def test_query_staff_members_app_no_permission(
-    query_staff_users_with_filter, app_api_client, permission_manage_staff,
+    query_staff_users_with_filter,
+    app_api_client,
+    permission_manage_staff,
 ):
 
     User.objects.bulk_create(
@@ -4233,7 +4276,9 @@ def test_address_query_as_not_owner(
 
 
 def test_address_query_as_app_with_permission(
-    app_api_client, address_other_country, permission_manage_users,
+    app_api_client,
+    address_other_country,
+    permission_manage_users,
 ):
     variables = {"id": graphene.Node.to_global_id("Address", address_other_country.pk)}
     response = app_api_client.post_graphql(

@@ -49,7 +49,8 @@ def test_update_products_discounted_prices_of_catalogues_for_category(
 ):
     variant = product.variants.first()
     variant_channel_listing = variant.channel_listings.get(
-        channel=channel_USD, variant=variant,
+        channel=channel_USD,
+        variant=variant,
     )
     variant_channel_listing.price = Money("0.89", "USD")
     variant_channel_listing.save()
@@ -69,7 +70,8 @@ def test_update_products_discounted_prices_of_catalogues_for_collection(
 ):
     variant = product.variants.first()
     variant_channel_listing = variant.channel_listings.get(
-        channel=channel_USD, variant=variant,
+        channel=channel_USD,
+        variant=variant,
     )
     variant_channel_listing.price = Money("0.79", "USD")
     product_channel_listing = product.channel_listings.get(channel_id=channel_USD.id)

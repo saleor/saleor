@@ -5,7 +5,8 @@ from django.contrib.auth import password_validation
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 
-from ....account import events as account_events, models, notifications, utils
+from ....account import events as account_events
+from ....account import models, notifications, utils
 from ....account.error_codes import AccountErrorCode
 from ....checkout import AddressType
 from ....core.jwt import create_token, jwt_decode

@@ -3,6 +3,8 @@ from graphene import Node
 
 from .....checkout import calculations
 from .....checkout.models import Checkout
+from .....checkout.utils import fetch_checkout_lines
+from .....plugins.manager import get_plugins_manager
 from ....tests.utils import get_graphql_content
 
 FRAGMENT_PRICE = """
@@ -58,7 +60,6 @@ FRAGMENT_CHECKOUT_LINE = (
             ...Price
           }
           variant {
-            stockQuantity
             ...ProductVariant
           }
           quantity
@@ -211,13 +212,15 @@ def test_create_checkout(
                 {
                     "quantity": 3,
                     "variantId": Node.to_global_id(
-                        "ProductVariant", product_with_two_variants.variants.first().pk,
+                        "ProductVariant",
+                        product_with_two_variants.variants.first().pk,
                     ),
                 },
                 {
                     "quantity": 2,
                     "variantId": Node.to_global_id(
-                        "ProductVariant", product_with_two_variants.variants.last().pk,
+                        "ProductVariant",
+                        product_with_two_variants.variants.last().pk,
                     ),
                 },
             ],
@@ -230,7 +233,10 @@ def test_create_checkout(
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
 def test_add_shipping_to_checkout(
-    api_client, checkout_with_shipping_address, shipping_method, count_queries,
+    api_client,
+    checkout_with_shipping_address,
+    shipping_method,
+    count_queries,
 ):
     query = (
         FRAGMENT_CHECKOUT
@@ -342,25 +348,29 @@ def test_update_checkout_lines(
             {
                 "quantity": 2,
                 "variantId": Node.to_global_id(
-                    "ProductVariant", product_with_default_variant.variants.first().pk,
+                    "ProductVariant",
+                    product_with_default_variant.variants.first().pk,
                 ),
             },
             {
                 "quantity": 10,
                 "variantId": Node.to_global_id(
-                    "ProductVariant", product_with_single_variant.variants.first().pk,
+                    "ProductVariant",
+                    product_with_single_variant.variants.first().pk,
                 ),
             },
             {
                 "quantity": 3,
                 "variantId": Node.to_global_id(
-                    "ProductVariant", product_with_two_variants.variants.first().pk,
+                    "ProductVariant",
+                    product_with_two_variants.variants.first().pk,
                 ),
             },
             {
                 "quantity": 2,
                 "variantId": Node.to_global_id(
-                    "ProductVariant", product_with_two_variants.variants.last().pk,
+                    "ProductVariant",
+                    product_with_two_variants.variants.last().pk,
                 ),
             },
         ],
@@ -481,13 +491,19 @@ def test_checkout_payment_charge(
         }
     """
 
+    lines = fetch_checkout_lines(checkout_with_billing_address)
+    manager = get_plugins_manager()
+    total = calculations.checkout_total(
+        manager=manager,
+        checkout=checkout_with_billing_address,
+        lines=lines,
+        address=checkout_with_billing_address.shipping_address,
+    )
+
     variables = {
         "checkoutId": Node.to_global_id("Checkout", checkout_with_billing_address.pk),
         "input": {
-            "amount": calculations.checkout_total(
-                checkout=checkout_with_billing_address,
-                lines=list(checkout_with_billing_address),
-            ).gross.amount,
+            "amount": total.gross.amount,
             "gateway": "mirumee.payments.dummy",
             "token": "charged",
         },
@@ -516,6 +532,36 @@ def test_complete_checkout(api_client, checkout_with_charged_payment, count_quer
 
     variables = {
         "checkoutId": Node.to_global_id("Checkout", checkout_with_charged_payment.pk),
+    }
+
+    response = get_graphql_content(api_client.post_graphql(query, variables))
+    assert not response["data"]["checkoutComplete"]["errors"]
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_customer_complete_checkout(
+    api_client, checkout_with_charged_payment, count_queries, customer_user
+):
+    query = """
+        mutation completeCheckout($checkoutId: ID!) {
+          checkoutComplete(checkoutId: $checkoutId) {
+            errors {
+              field
+              message
+            }
+            order {
+              id
+              token
+            }
+          }
+        }
+    """
+    checkout = checkout_with_charged_payment
+    checkout.user = customer_user
+    checkout.save()
+    variables = {
+        "checkoutId": Node.to_global_id("Checkout", checkout.pk),
     }
 
     response = get_graphql_content(api_client.post_graphql(query, variables))

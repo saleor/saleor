@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from graphene import relay
 from promise import Promise
 
+from ...account.utils import requestor_is_staff_member_or_app
 from ...core.anonymize import obfuscate_address, obfuscate_email
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions, OrderPermissions, ProductPermissions
@@ -27,7 +28,10 @@ from ..giftcard.types import GiftCard
 from ..invoice.types import Invoice
 from ..meta.types import ObjectWithMetadata
 from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
-from ..product.resolvers import resolve_variant
+from ..product.dataloaders import (
+    ProductChannelListingByProductIdAndChannelSlugLoader,
+    ProductVariantByIdLoader,
+)
 from ..product.types import ProductVariant
 from ..shipping.dataloaders import ShippingMethodByIdLoader
 from ..shipping.types import ShippingMethod
@@ -251,7 +255,10 @@ class OrderLine(CountableDjangoObjectType):
     unit_price = graphene.Field(
         TaxedMoney, description="Price of the single item in the order line."
     )
-    total_price = graphene.Field(TaxedMoney, description="Price of the order line.",)
+    total_price = graphene.Field(
+        TaxedMoney,
+        description="Price of the order line.",
+    )
     variant = graphene.Field(
         ProductVariant,
         required=False,
@@ -304,7 +311,7 @@ class OrderLine(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_total_price(root: models.OrderLine, _info):
-        return root.unit_price * root.quantity
+        return root.total_price
 
     @staticmethod
     def resolve_translated_product_name(root: models.OrderLine, _info):
@@ -316,8 +323,33 @@ class OrderLine(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_variant(root: models.OrderLine, info):
-        dataloader = ChannelByOrderLineIdLoader(info.context)
-        return resolve_variant(info, root, dataloader)
+        context = info.context
+        if not root.variant_id:
+            return None
+
+        def requestor_has_access_to_variant(data):
+            variant, channel = data
+
+            requester = get_user_or_app_from_context(context)
+            is_staff = requestor_is_staff_member_or_app(requester)
+            if is_staff:
+                return ChannelContext(node=variant, channel_slug=channel.slug)
+
+            def product_is_available(product_channel_listing):
+                if product_channel_listing and product_channel_listing.is_visible:
+                    return ChannelContext(node=variant, channel_slug=channel.slug)
+                return None
+
+            return (
+                ProductChannelListingByProductIdAndChannelSlugLoader(context)
+                .load((variant.product_id, channel.slug))
+                .then(product_is_available)
+            )
+
+        variant = ProductVariantByIdLoader(context).load(root.variant_id)
+        channel = ChannelByOrderLineIdLoader(context).load(root.id)
+
+        return Promise.all([variant, channel]).then(requestor_has_access_to_variant)
 
     @staticmethod
     @one_of_permissions_required(
@@ -408,6 +440,7 @@ class Order(CountableDjangoObjectType):
             "shipping_method",
             "shipping_method_name",
             "shipping_price",
+            "shipping_tax_rate",
             "status",
             "token",
             "tracking_client_id",

@@ -29,7 +29,6 @@ def test_query_page_type(
                     values {
                         name
                         slug
-                        type
                     }
                     valueRequired
                     visibleInStorefront
@@ -45,7 +44,6 @@ def test_query_page_type(
                             values {
                                 name
                                 slug
-                                type
                             }
                             valueRequired
                             visibleInStorefront
@@ -94,7 +92,6 @@ def test_query_page_types(
                             values {
                                 name
                                 slug
-                                type
                             }
                             valueRequired
                             visibleInStorefront
@@ -110,7 +107,6 @@ def test_query_page_types(
                                     values {
                                         name
                                         slug
-                                        type
                                     }
                                     valueRequired
                                     visibleInStorefront
@@ -124,7 +120,9 @@ def test_query_page_types(
         }
     """
     response = staff_api_client.post_graphql(
-        query, {}, permissions=[permission_manage_products, permission_manage_pages],
+        query,
+        {},
+        permissions=[permission_manage_products, permission_manage_pages],
     )
     content = get_graphql_content(response)
     data = content["data"]["pageTypes"]

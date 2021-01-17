@@ -4,8 +4,6 @@ from ...core.permissions import OrderPermissions
 from ..decorators import permission_required
 from ..translations.mutations import ShopSettingsTranslate
 from .mutations import (
-    AuthorizationKeyAdd,
-    AuthorizationKeyDelete,
     OrderSettingsUpdate,
     ShopAddressUpdate,
     ShopDomainUpdate,
@@ -20,7 +18,9 @@ from .types import OrderSettings, Shop
 
 class ShopQueries(graphene.ObjectType):
     shop = graphene.Field(
-        Shop, description="Return information about the shop.", required=True,
+        Shop,
+        description="Return information about the shop.",
+        required=True,
     )
     order_settings = graphene.Field(
         OrderSettings, description="Order related settings from site settings."
@@ -35,9 +35,6 @@ class ShopQueries(graphene.ObjectType):
 
 
 class ShopMutations(graphene.ObjectType):
-    authorization_key_add = AuthorizationKeyAdd.Field()
-    authorization_key_delete = AuthorizationKeyDelete.Field()
-
     staff_notification_recipient_create = StaffNotificationRecipientCreate.Field()
     staff_notification_recipient_update = StaffNotificationRecipientUpdate.Field()
     staff_notification_recipient_delete = StaffNotificationRecipientDelete.Field()

@@ -75,10 +75,12 @@ def test_get_payment_gateway_for_checkout(
 
 
 @pytest.mark.vcr
-def test_process_payment(payment_adyen_for_checkout, checkout_with_items, adyen_plugin):
+def test_process_payment(
+    payment_adyen_for_checkout, checkout_with_items, adyen_plugin, adyen_payment_method
+):
     payment_info = create_payment_information(
         payment_adyen_for_checkout,
-        additional_data={"paymentMethod": {"paymentdata": "", "type": "test"}},
+        additional_data={"paymentMethod": adyen_payment_method},
     )
     adyen_plugin = adyen_plugin()
     response = adyen_plugin.process_payment(payment_info, None)
@@ -87,20 +89,24 @@ def test_process_payment(payment_adyen_for_checkout, checkout_with_items, adyen_
     assert response.kind == TransactionKind.AUTH
     assert response.amount == Decimal("80.00")
     assert response.currency == checkout_with_items.currency
-    assert response.transaction_id == "882595494831959A"  # ID returned by Adyen
+    assert response.transaction_id == "882609854544793A"  # ID returned by Adyen
     assert response.error is None
     assert response.action_required_data is None
-    assert response.payment_method_info == PaymentMethodInfo(brand="visa", type="test")
+    assert response.payment_method_info == PaymentMethodInfo(brand="visa", type="card")
 
 
 @pytest.mark.vcr
 @mock.patch("saleor.payment.gateways.adyen.plugin.call_capture")
 def test_process_payment_with_adyen_auto_capture(
-    capture_mock, payment_adyen_for_checkout, checkout_with_items, adyen_plugin
+    capture_mock,
+    payment_adyen_for_checkout,
+    checkout_with_items,
+    adyen_plugin,
+    adyen_payment_method,
 ):
     payment_info = create_payment_information(
         payment_adyen_for_checkout,
-        additional_data={"paymentMethod": {"paymentdata": ""}},
+        additional_data={"paymentMethod": adyen_payment_method},
     )
     adyen_plugin = adyen_plugin(adyen_auto_capture=True)
     response = adyen_plugin.process_payment(payment_info, None)
@@ -112,17 +118,17 @@ def test_process_payment_with_adyen_auto_capture(
     assert response.kind == TransactionKind.CAPTURE
     assert response.amount == Decimal("80.00")
     assert response.currency == checkout_with_items.currency
-    assert response.transaction_id == "882595494831959A"  # ID returned by Adyen
+    assert response.transaction_id == "852610008487439C"  # ID returned by Adyen
     assert response.error is None
 
 
 @pytest.mark.vcr
 def test_process_payment_with_auto_capture(
-    payment_adyen_for_checkout, checkout_with_items, adyen_plugin
+    payment_adyen_for_checkout, checkout_with_items, adyen_plugin, adyen_payment_method
 ):
     payment_info = create_payment_information(
         payment_adyen_for_checkout,
-        additional_data={"paymentMethod": {"paymentdata": ""}},
+        additional_data={"paymentMethod": adyen_payment_method},
     )
     adyen_plugin = adyen_plugin(auto_capture=True)
     response = adyen_plugin.process_payment(payment_info, None)
@@ -131,7 +137,7 @@ def test_process_payment_with_auto_capture(
     assert response.kind == TransactionKind.CAPTURE
     assert response.amount == Decimal("80.00")
     assert response.currency == checkout_with_items.currency
-    assert response.transaction_id == "853596624248395G"  # ID returned by Adyen
+    assert response.transaction_id == "853610014787942J"  # ID returned by Adyen
     assert response.error is None
     assert response.action_required_data is None
 
@@ -255,7 +261,9 @@ def test_process_payment_additional_action_checkout_does_not_exists(
 
 
 def test_confirm_payment(payment_adyen_for_order, adyen_plugin):
-    payment_info = create_payment_information(payment_adyen_for_order,)
+    payment_info = create_payment_information(
+        payment_adyen_for_order,
+    )
     gateway_response = GatewayResponse(
         kind=TransactionKind.ACTION_TO_CONFIRM,
         action_required=False,
@@ -284,7 +292,9 @@ def test_confirm_payment(payment_adyen_for_order, adyen_plugin):
 
 
 def test_confirm_payment_pending_order(payment_adyen_for_checkout, adyen_plugin):
-    payment_info = create_payment_information(payment_adyen_for_checkout,)
+    payment_info = create_payment_information(
+        payment_adyen_for_checkout,
+    )
     gateway_response = GatewayResponse(
         kind=TransactionKind.ACTION_TO_CONFIRM,
         action_required=False,
@@ -312,7 +322,9 @@ def test_confirm_payment_pending_order(payment_adyen_for_checkout, adyen_plugin)
 
 
 def test_confirm_already_processed_payment(payment_adyen_for_order, adyen_plugin):
-    payment_info = create_payment_information(payment_adyen_for_order,)
+    payment_info = create_payment_information(
+        payment_adyen_for_order,
+    )
     gateway_response = GatewayResponse(
         kind=TransactionKind.ACTION_TO_CONFIRM,
         action_required=False,
@@ -349,7 +361,9 @@ def test_confirm_already_processed_payment(payment_adyen_for_order, adyen_plugin
 
 
 def test_confirm_payment_with_adyen_auto_capture(payment_adyen_for_order, adyen_plugin):
-    payment_info = create_payment_information(payment_adyen_for_order,)
+    payment_info = create_payment_information(
+        payment_adyen_for_order,
+    )
     gateway_response = GatewayResponse(
         kind=TransactionKind.ACTION_TO_CONFIRM,
         action_required=False,
@@ -381,7 +395,9 @@ def test_confirm_payment_with_adyen_auto_capture(payment_adyen_for_order, adyen_
 @pytest.mark.skip(reason="To finish when additional auth data schema will be known")
 def test_confirm_payment_with_additional_details(payment_adyen_for_order, adyen_plugin):
     return  # test it when we will have additional auth data
-    payment_info = create_payment_information(payment_adyen_for_order,)
+    payment_info = create_payment_information(
+        payment_adyen_for_order,
+    )
     adyen_plugin = adyen_plugin()
     adyen_plugin.confirm_payment(payment_info, None)
 
@@ -415,45 +431,52 @@ def test_refund_payment(payment_adyen_for_order, order_with_lines, adyen_plugin)
     assert response.kind == TransactionKind.REFUND_ONGOING
     assert response.amount == Decimal("80.00")
     assert response.currency == order_with_lines.currency
-    assert response.transaction_id == "882595499620961A"  # ID returned by Adyen
+    assert response.transaction_id == "882610009233471H"  # ID returned by Adyen
 
 
 @pytest.mark.vcr
-def test_void_payment(payment_adyen_for_order, order_with_lines, adyen_plugin):
-    payment_info = create_payment_information(payment_adyen_for_order,)
+def test_void_payment(
+    payment_adyen_for_order, order_with_lines, adyen_plugin, adyen_payment_method
+):
+    payment_info = create_payment_information(
+        payment_adyen_for_order,
+        payment_token="852610010025849H",
+        additional_data={"paymentMethod": adyen_payment_method},
+    )
     gateway_response = GatewayResponse(
         kind=TransactionKind.AUTH,
         action_required=False,
-        transaction_id="883597146907178J",
+        transaction_id="852610010025849H",
         is_success=True,
         amount=payment_info.amount,
         currency=payment_info.currency,
         error="",
         raw_response={},
     )
+
     create_transaction(
         payment=payment_adyen_for_order,
         payment_information=payment_info,
         kind=TransactionKind.AUTH,
         gateway_response=gateway_response,
     )
-
     response = adyen_plugin().void_payment(payment_info, None)
-
     assert response.is_success is True
     assert response.action_required is False
     assert response.kind == TransactionKind.VOID
     assert response.amount == Decimal("80.00")
     assert response.currency == order_with_lines.currency
-    assert response.transaction_id == "853597151490739D"  # ID returned by Adyen
+    assert response.transaction_id == "852610010936232E"  # ID returned by Adyen
 
 
 @pytest.mark.vcr
-def test_capture_payment(payment_adyen_for_order, order_with_lines, adyen_plugin):
+def test_capture_payment(
+    payment_adyen_for_order, order_with_lines, adyen_plugin, adyen_payment_method
+):
     payment_info = create_payment_information(
         payment_adyen_for_order,
         payment_token="882595494831959A",
-        additional_data={"paymentMethod": {"paymentdata": "", "type": "test"}},
+        additional_data={"paymentMethod": adyen_payment_method},
     )
     gateway_response = GatewayResponse(
         kind=TransactionKind.AUTH,
@@ -478,8 +501,7 @@ def test_capture_payment(payment_adyen_for_order, order_with_lines, adyen_plugin
     assert response.kind == TransactionKind.CAPTURE
     assert response.amount == Decimal("80.00")
     assert response.currency == order_with_lines.currency
-    assert response.transaction_id == "852595499936560C"  # ID returned by Adyen
-    assert response.payment_method_info == PaymentMethodInfo(brand="visa", type="test")
+    assert response.transaction_id == "852610007697063J"  # ID returned by Adyen
 
 
 @mock.patch("saleor.payment.gateways.adyen.utils.apple_pay.requests.post")

@@ -5,7 +5,7 @@ from django.conf import settings
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from .models import Sale, Voucher, SaleChannelListing
+    from .models import Sale, SaleChannelListing, Voucher
 
 
 class DiscountValueType:
