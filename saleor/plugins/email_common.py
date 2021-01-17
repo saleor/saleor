@@ -125,11 +125,6 @@ DEFAULT_EMAIL_CONFIG_STRUCTURE = {
 }
 
 
-def block_trans(this, options, *args, **kwargs):
-    # TODO add translation here
-    return options["fn"](this)
-
-
 def format_address(this, address, include_phone=True, inline=False, latin=False):
     address["name"] = pgettext("Address data", "%(first_name)s %(last_name)s") % address
     address["country_code"] = address["country"]
@@ -191,7 +186,6 @@ def send_email(
     template = compiler.compile(template_str)
     subject_template = compiler.compile(subject)
     helpers = {
-        "blocktrans": block_trans,
         "format_address": format_address,
         "price": price,
     }

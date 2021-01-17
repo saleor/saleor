@@ -1,18 +1,14 @@
 <mj-section>
   <mj-column>
     <mj-text>
-      {{#blocktrans "Base email text" }}
         This is an automatically generated e-mail, please do not reply.
-      {{/blocktrans}}
     </mj-text>
   </mj-column>
 </mj-section>
 <mj-section background-color="#F2F2F2">
   <mj-column>
     <mj-text align="center">
-      {{#blocktrans "Base email footer" }}
         Sincerely, {{ site_name }}
-      {{/blocktrans}}
     </mj-text>
   </mj-column>
 </mj-section>

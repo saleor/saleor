@@ -5,16 +5,8 @@
         <table style="width:100%">
           <thead class="table-header-row">
             <tr>
-              <th style="text-align: left;">
-                {{#blocktrans "Ordered item name"}}
-                  Item
-                {{/blocktrans}}
-              </th>
-              <th style="text-align: right;">
-                {{#blocktrans "Quantity ordered of a product"}}
-                  Quantity
-                {{/blocktrans}}
-              </th>
+              <th style="text-align: left;">Item</th>
+              <th style="text-align: right;">Quantity</th>
             </tr>
           </thead>
           <tbody>
@@ -35,16 +27,8 @@
         <table style="width:100%">
           <thead class="table-header-row">
             <tr>
-              <th style="text-align: left;">
-                {{#blocktrans "Ordered item name"}}
-                  Item
-                {{/blocktrans}}
-              </th>
-              <th style="text-align: right;">
-                {{#blocktrans "Ordered item download links"}}
-                  Download Link
-                {{/blocktrans}}
-              </th>
+              <th style="text-align: left;">Item</th>
+              <th style="text-align: right;">Download Link</th>
             </tr>
           </thead>
           <tbody>
