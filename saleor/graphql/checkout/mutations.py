@@ -716,7 +716,7 @@ class CheckoutLanguageCodeUpdate(BaseMutation):
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
         checkout.language_code = language_code
-        checkout.save(update_fields=["language_code"])
+        checkout.save(update_fields=["language_code", "last_change"])
         info.context.plugins.checkout_updated(checkout)
         return CheckoutLanguageCodeUpdate(checkout=checkout)
 
