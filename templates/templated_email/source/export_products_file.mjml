@@ -7,14 +7,10 @@
     <mj-section>
       <mj-column>
         <mj-text font-size="16px">
-          {{#blocktrans "Standard e-mail greeting"}}
             Hi!
-          {{/blocktrans}}
         </mj-text>
         <mj-text>
-        {{#blocktrans "Export products e-mail text"}}
             Your file with products data is ready to download: <a href="{{csv_link}}">{{csv_link}}</a>
-        {{/blocktrans}}
         </mj-text>
       </mj-column>
     </mj-section>
