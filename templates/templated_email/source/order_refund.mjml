@@ -7,14 +7,10 @@
     <mj-section>
       <mj-column>
         <mj-text font-size="16px">
-          {{#blocktrans "Standard e-mail greeting"}}
             Hi!
-          {{/blocktrans}}
         </mj-text>
         <mj-text>
-          {{#blocktrans "Order refund e-mail text"}}
             A payment of {{amount}} {{currency}} has been refunded for your order.
-          {{/blocktrans}}
         </mj-text>
       </mj-column>
     </mj-section>

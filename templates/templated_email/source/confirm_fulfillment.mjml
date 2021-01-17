@@ -7,40 +7,28 @@
     <mj-section>
       <mj-column>
         <mj-text font-size="16px">
-          {{#blocktrans "Standard e-mail greeting"}}
             Hi!
-          {{/blocktrans}}
         </mj-text>
         <mj-text>
           {{#if order.order_details_url}}
-            {{#blocktrans "Fulfillment confirmation email text with order details"}}
-              Thank you for your order. Below is the list of fulfilled products. To see your order details please visit: <a href="{{ order.order_details_url }}">{{ order.order_details_url }}</a>
-            {{/blocktrans}}
+              Thank you for your order. Below is the list of fulfilled products. To see your order details please visit:
+               <a href="{{ order.order_details_url }}">{{ order.order_details_url }}</a>
           {{else}}
-            {{#blocktrans "Fulfillment confirmation email text"}}
               Thank you for your order. Below is the list of fulfilled products.
-            {{/blocktrans}}
           {{/if}}
-          {{#blocktrans "Fulfillment confirmation email text"}}
             Thank you for your order. Below is the list of fulfilled products.
-          {{/blocktrans}}
           {{#if fulfillment.tracking_number}}
             {{#if fulfillment.is_tracking_number_url}}
-              {{#blocktrans "Fulfillment confirmation email text"}}
-                You can track your shipment with <a href="{{fulfillment.tracking_number}}">{{fulfillment.tracking_number}}</a> link.
-              {{/blocktrans}}
+                You can track your shipment with
+                <a href="{{fulfillment.tracking_number}}">{{fulfillment.tracking_number}}</a> link.
             {{else}}
-              {{#blocktrans "Fulfillment confirmation email text"}}
                 You can track your shipment with {{fulfillment.tracking_number}} code.
-              {{/blocktrans}}
             {{/if}}
           {{/if}}
         </mj-text>
         <mj-text>
           {{#if digital_lines}}
-            {{#blocktrans "Fulfillment digital products email text"}}
               You can download your digital products by clicking in download link(s).
-            {{/blocktrans}}
           {{/if}}
         </mj-text>
       </mj-column>

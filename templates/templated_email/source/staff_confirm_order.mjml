@@ -7,15 +7,11 @@
     <mj-section>
       <mj-column>
         <mj-text font-size="16px">
-          {{#blocktrans "Standard e-mail greeting"}}
             Hi!
-          {{/blocktrans}}
         </mj-text>
         <mj-text>
-          {{#blocktrans "Order confirmation staff e-mail text"}}
             Someone placed a new order in your store. To see order details please visit:
             <a href="{{order.order_details_url}}">{{order.order_details_url}}</a>
-          {{/blocktrans}}
         </mj-text>
       </mj-column>
     </mj-section>
@@ -25,8 +21,8 @@
         <mj-table>
           <thead class="table-header-row">
             <tr>
-              <th>{{#blocktrans "Order confirmation e-mail billing address"}}Billing address{{/blocktrans}}</th>
-              <th>{{#blocktrans "Order confirmation e-mail shipping address"}}Shipping address{{/blocktrans}}</th>
+              <th>Billing address</th>
+              <th>Shipping address</th>
             </tr>
           </thead>
           <tbody>
@@ -35,14 +31,14 @@
                 {{#if order.billing_address}}
                   {{format_address order.billing_address}}
                 {{else}}
-                  {{#blocktrans "Order confirmation e-mail text"}}No billing address{{/blocktrans}}
+                  No billing address
                 {{/if}}
               </td>
               <td css-class="address">
                 {{#if order.shipping_address}}
                   {{format_address order.shipping_address}}
                 {{else}}
-                  {{#blocktrans "Order confirmation e-mail text"}}No shipping required{{/blocktrans}}
+                  No shipping required
                 {{/if}}
               </td>
             </tr>

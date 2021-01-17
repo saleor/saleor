@@ -7,15 +7,11 @@
     <mj-section>
       <mj-column>
         <mj-text font-size="16px">
-          {{#blocktrans "Standard e-mail greeting"}}
             Hi!
-          {{/blocktrans}}
         </mj-text>
         <mj-text>
-          {{#blocktrans "Email change e-mail text"}}
           You're receiving this e-mail because you or someone else has requested an email change for your user account at {{site_name}}.<br />
           It can be safely ignored if you did not request an email change. Click the link below to confirm new email address.
-          {{/blocktrans}}
         </mj-text>
         <mj-text>
           <a href="{{redirect_url}}">

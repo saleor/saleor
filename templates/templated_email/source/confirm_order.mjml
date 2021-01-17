@@ -7,19 +7,14 @@
     <mj-section>
       <mj-column>
         <mj-text font-size="16px">
-          {{#blocktrans "Standard e-mail greeting"}}
             Hi!
-          {{/blocktrans}}
         </mj-text>
         <mj-text>
           {{#if order.order_details_url}}
-            {{#blocktrans "Order confirmation e-mail text with payment details"}}
-              Thank you for your order. Below is the list of ordered products. To see your payment details please visit: <a href="{{order.order_details_url}}">{{order.order_details_url}}</a>
-            {{/blocktrans}}
+              Thank you for your order. Below is the list of ordered products. To see your payment details please
+              visit: <a href="{{order.order_details_url}}">{{order.order_details_url}}</a>
           {{else}}
-            {{#blocktrans "Order confirmation e-mail text"}}
               Thank you for your order. Below is the list of ordered products.
-            {{/blocktrans}}
           {{/if}}
         </mj-text>
       </mj-column>
@@ -31,14 +26,10 @@
           <thead class="table-header-row">
             <tr>
               <th>
-                {{#blocktrans "Order confirmation e-mail billing address"}}
                   Billing address
-                {{/blocktrans}}
               </th>
               <th>
-                {{#blocktrans "Order confirmation e-mail shipping address"}}
                   Shipping address
-                {{/blocktrans}}
               </th>
             </tr>
           </thead>
@@ -48,14 +39,14 @@
                 {{#if order.billing_address}}
                   {{format_address order.billing_address}}
                 {{else}}
-                  {{#blocktrans "Order confirmation e-mail text"}}No billing address{{/blocktrans}}
+                 No billing address
                 {{/if}}
               </td>
               <td css-class="address">
                 {{#if order.shipping_address}}
                   {{format_address order.shipping_address}}
                 {{else}}
-                  {{#blocktrans "Order confirmation e-mail text"}}No shipping required{{/blocktrans}}
+                  No shipping required
                 {{/if}}
               </td>
             </tr>
