@@ -3,20 +3,14 @@
     <mj-table>
       <tfoot>
         <tr>
-          <td colspan="3" style="text-align: right;">
-            {{#blocktrans "E-mail order lines summary table"}}
-              Subtotal
-            {{/blocktrans}}
-          </td>
+          <td colspan="3" style="text-align: right;">Subtotal</td>
           <td style="text-align: right;">
             {{price order.subtotal_net_amount order.subtotal_gross_amount order.currency display_gross=order.display_gross_prices}}
           </td>
         </tr>
         <tr>
           <td colspan="3" style="text-align: right;">
-            {{#blocktrans "E-mail order lines summary table"}}
               Shipping
-            {{/blocktrans}}
           </td>
           <td style="text-align: right;">
             {{price order.shipping_price_net_amount order.shipping_price_gross_amount order.currency display_gross=order.display_gross_prices}}
@@ -25,13 +19,9 @@
         <tr>
           <td colspan="3" style="text-align: right;">
             {{#if order.display_gross_prices}}
-              {{#blocktrans "E-mail order lines summary table"}}
                 Taxes (included)
-              {{/blocktrans}}
             {{else}}
-              {{#blocktrans "E-mail order lines summary table"}}
                 Taxes
-              {{/blocktrans}}
             {{/if}}
           </td>
           <td style="text-align: right;">
@@ -42,9 +32,7 @@
           <tr>
             <td colspan="3" style="text-align: right;">
               {{order.discount_amount}}
-              {{#blocktrans "E-mail order lines summary table"}}
                 Discount
-              {{/blocktrans}}
             </td>
             <td style="text-align: right;">
               {{price order.discount_amount order.discount_amount order.currency display_gross=order.display_gross_prices}}
@@ -54,7 +42,7 @@
         <tr>
           <td colspan="3" style="text-align: right;">
             <strong>
-              {{#blocktrans "E-mail order lines summary table"}}Total{{/blocktrans}}
+              Total
             </strong>
           </td>
           <td style="text-align: right;">
@@ -66,10 +54,10 @@
       </tfoot>
       <thead class="table-header-row">
         <tr>
-          <th>{{#blocktrans "Ordered item name"}}Item{{/blocktrans}}</th>
-          <th>{{#blocktrans "Quantity ordered of a product"}}Quantity{{/blocktrans}}</th>
-          <th>{{#blocktrans "Unit price of a product"}}Per unit{{/blocktrans}}</th>
-          <th>{{#blocktrans "Ordered item subtotal (unit price * quantity)"}}Subtotal{{/blocktrans}}</th>
+          <th>Item</th>
+          <th>Quantity</th>
+          <th>Per unit</th>
+          <th>Subtotal</th>
         </tr>
       </thead>
       <tbody>

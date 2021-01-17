@@ -95,9 +95,7 @@
             <tr>
               <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
-      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:16px;line-height:1;text-align:left;color:#000000;">{{#blocktrans "Standard e-mail greeting"}}
-            Hi!
-          {{/blocktrans}}</div>
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:16px;line-height:1;text-align:left;color:#000000;">Hi!</div>
     
               </td>
             </tr>
@@ -106,26 +104,18 @@
               <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
       <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{{#if order.order_details_url}}
-            {{#blocktrans "Fulfillment confirmation email text with order details"}}
-              Thank you for your order. Below is the list of fulfilled products. To see your order details please visit: <a href="{{ order.order_details_url }}">{{ order.order_details_url }}</a>
-            {{/blocktrans}}
+              Thank you for your order. Below is the list of fulfilled products. To see your order details please visit:
+               <a href="{{ order.order_details_url }}">{{ order.order_details_url }}</a>
           {{else}}
-            {{#blocktrans "Fulfillment confirmation email text"}}
               Thank you for your order. Below is the list of fulfilled products.
-            {{/blocktrans}}
           {{/if}}
-          {{#blocktrans "Fulfillment confirmation email text"}}
             Thank you for your order. Below is the list of fulfilled products.
-          {{/blocktrans}}
           {{#if fulfillment.tracking_number}}
             {{#if fulfillment.is_tracking_number_url}}
-              {{#blocktrans "Fulfillment confirmation email text"}}
-                You can track your shipment with <a href="{{fulfillment.tracking_number}}">{{fulfillment.tracking_number}}</a> link.
-              {{/blocktrans}}
+                You can track your shipment with
+                <a href="{{fulfillment.tracking_number}}">{{fulfillment.tracking_number}}</a> link.
             {{else}}
-              {{#blocktrans "Fulfillment confirmation email text"}}
                 You can track your shipment with {{fulfillment.tracking_number}} code.
-              {{/blocktrans}}
             {{/if}}
           {{/if}}</div>
     
@@ -136,9 +126,7 @@
               <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
       <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{{#if digital_lines}}
-            {{#blocktrans "Fulfillment digital products email text"}}
               You can download your digital products by clicking in download link(s).
-            {{/blocktrans}}
           {{/if}}</div>
     
               </td>
@@ -203,16 +191,8 @@
         <table style="width:100%">
           <thead class="table-header-row" style="border-bottom: 2px solid #000;">
             <tr>
-              <th style="padding: 5px; text-align: left;" align="left">
-                {{#blocktrans "Ordered item name"}}
-                  Item
-                {{/blocktrans}}
-              </th>
-              <th style="padding: 5px; text-align: right;" align="right">
-                {{#blocktrans "Quantity ordered of a product"}}
-                  Quantity
-                {{/blocktrans}}
-              </th>
+              <th style="padding: 5px; text-align: left;" align="left">Item</th>
+              <th style="padding: 5px; text-align: right;" align="right">Quantity</th>
             </tr>
           </thead>
           <tbody>
@@ -233,16 +213,8 @@
         <table style="width:100%">
           <thead class="table-header-row" style="border-bottom: 2px solid #000;">
             <tr>
-              <th style="padding: 5px; text-align: left;" align="left">
-                {{#blocktrans "Ordered item name"}}
-                  Item
-                {{/blocktrans}}
-              </th>
-              <th style="padding: 5px; text-align: right;" align="right">
-                {{#blocktrans "Ordered item download links"}}
-                  Download Link
-                {{/blocktrans}}
-              </th>
+              <th style="padding: 5px; text-align: left;" align="left">Item</th>
+              <th style="padding: 5px; text-align: right;" align="right">Download Link</th>
             </tr>
           </thead>
           <tbody>
@@ -320,9 +292,7 @@
             <tr>
               <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
-      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{{#blocktrans "Base email text" }}
-        This is an automatically generated e-mail, please do not reply.
-      {{/blocktrans}}</div>
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">This is an automatically generated e-mail, please do not reply.</div>
     
               </td>
             </tr>
@@ -382,9 +352,7 @@
             <tr>
               <td align="center" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
-      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:center;color:#000000;">{{#blocktrans "Base email footer" }}
-        Sincerely, {{ site_name }}
-      {{/blocktrans}}</div>
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:center;color:#000000;">Sincerely, {{ site_name }}</div>
     
               </td>
             </tr>

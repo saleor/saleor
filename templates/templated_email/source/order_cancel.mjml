@@ -7,14 +7,10 @@
     <mj-section>
       <mj-column>
         <mj-text font-size="16px">
-          {{#blocktrans "Standard e-mail greeting"}}
             Hi!
-          {{/blocktrans}}
         </mj-text>
         <mj-text>
-          {{#blocktrans "Order cancel e-mail text"}}
             Your order #{{order.id}} has been canceled.
-          {{/blocktrans}}
         </mj-text>
       </mj-column>
     </mj-section>

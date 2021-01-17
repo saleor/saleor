@@ -95,9 +95,7 @@
             <tr>
               <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
-      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:16px;line-height:1;text-align:left;color:#000000;">{{#blocktrans "Standard e-mail greeting"}}
-            Hi!
-          {{/blocktrans}}</div>
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:16px;line-height:1;text-align:left;color:#000000;">Hi!</div>
     
               </td>
             </tr>
@@ -105,10 +103,8 @@
             <tr>
               <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
-      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{{#blocktrans "Order confirmation staff e-mail text"}}
-            Someone placed a new order in your store. To see order details please visit:
-            <a href="{{order.order_details_url}}">{{order.order_details_url}}</a>
-          {{/blocktrans}}</div>
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">Someone placed a new order in your store. To see order details please visit:
+            <a href="{{order.order_details_url}}">{{order.order_details_url}}</a></div>
     
               </td>
             </tr>
@@ -171,20 +167,14 @@
       <table cellpadding="0" cellspacing="0" width="100%" border="0" style="color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:22px;table-layout:auto;width:100%;border:none;">
         <tfoot>
         <tr>
-          <td colspan="3" style="padding: 5px; text-align: right;" align="right">
-            {{#blocktrans "E-mail order lines summary table"}}
-              Subtotal
-            {{/blocktrans}}
-          </td>
+          <td colspan="3" style="padding: 5px; text-align: right;" align="right">Subtotal</td>
           <td style="padding: 5px; text-align: right;" align="right">
             {{price order.subtotal_net_amount order.subtotal_gross_amount order.currency display_gross=order.display_gross_prices}}
           </td>
         </tr>
         <tr>
           <td colspan="3" style="padding: 5px; text-align: right;" align="right">
-            {{#blocktrans "E-mail order lines summary table"}}
               Shipping
-            {{/blocktrans}}
           </td>
           <td style="padding: 5px; text-align: right;" align="right">
             {{price order.shipping_price_net_amount order.shipping_price_gross_amount order.currency display_gross=order.display_gross_prices}}
@@ -193,13 +183,9 @@
         <tr>
           <td colspan="3" style="padding: 5px; text-align: right;" align="right">
             {{#if order.display_gross_prices}}
-              {{#blocktrans "E-mail order lines summary table"}}
                 Taxes (included)
-              {{/blocktrans}}
             {{else}}
-              {{#blocktrans "E-mail order lines summary table"}}
                 Taxes
-              {{/blocktrans}}
             {{/if}}
           </td>
           <td style="padding: 5px; text-align: right;" align="right">
@@ -210,9 +196,7 @@
           <tr>
             <td colspan="3" style="padding: 5px; text-align: right;" align="right">
               {{order.discount_amount}}
-              {{#blocktrans "E-mail order lines summary table"}}
                 Discount
-              {{/blocktrans}}
             </td>
             <td style="padding: 5px; text-align: right;" align="right">
               {{price order.discount_amount order.discount_amount order.currency display_gross=order.display_gross_prices}}
@@ -222,7 +206,7 @@
         <tr>
           <td colspan="3" style="padding: 5px; text-align: right;" align="right">
             <strong>
-              {{#blocktrans "E-mail order lines summary table"}}Total{{/blocktrans}}
+              Total
             </strong>
           </td>
           <td style="padding: 5px; text-align: right;" align="right">
@@ -234,10 +218,10 @@
       </tfoot>
       <thead class="table-header-row" style="border-bottom: 2px solid #000;">
         <tr>
-          <th style="padding: 5px;">{{#blocktrans "Ordered item name"}}Item{{/blocktrans}}</th>
-          <th style="padding: 5px;">{{#blocktrans "Quantity ordered of a product"}}Quantity{{/blocktrans}}</th>
-          <th style="padding: 5px;">{{#blocktrans "Unit price of a product"}}Per unit{{/blocktrans}}</th>
-          <th style="padding: 5px;">{{#blocktrans "Ordered item subtotal (unit price * quantity)"}}Subtotal{{/blocktrans}}</th>
+          <th style="padding: 5px;">Item</th>
+          <th style="padding: 5px;">Quantity</th>
+          <th style="padding: 5px;">Per unit</th>
+          <th style="padding: 5px;">Subtotal</th>
         </tr>
       </thead>
       <tbody>
@@ -321,8 +305,8 @@
       <table cellpadding="0" cellspacing="0" width="100%" border="0" style="color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:22px;table-layout:auto;width:100%;border:none;">
         <thead class="table-header-row" style="border-bottom: 2px solid #000;">
             <tr>
-              <th style="padding: 5px;">{{#blocktrans "Order confirmation e-mail billing address"}}Billing address{{/blocktrans}}</th>
-              <th style="padding: 5px;">{{#blocktrans "Order confirmation e-mail shipping address"}}Shipping address{{/blocktrans}}</th>
+              <th style="padding: 5px;">Billing address</th>
+              <th style="padding: 5px;">Shipping address</th>
             </tr>
           </thead>
           <tbody>
@@ -331,14 +315,14 @@
                 {{#if order.billing_address}}
                   {{format_address order.billing_address}}
                 {{else}}
-                  {{#blocktrans "Order confirmation e-mail text"}}No billing address{{/blocktrans}}
+                  No billing address
                 {{/if}}
               </td>
               <td css-class="address" style="padding: 5px;">
                 {{#if order.shipping_address}}
                   {{format_address order.shipping_address}}
                 {{else}}
-                  {{#blocktrans "Order confirmation e-mail text"}}No shipping required{{/blocktrans}}
+                  No shipping required
                 {{/if}}
               </td>
             </tr>
@@ -403,9 +387,7 @@
             <tr>
               <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
-      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{{#blocktrans "Base email text" }}
-        This is an automatically generated e-mail, please do not reply.
-      {{/blocktrans}}</div>
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">This is an automatically generated e-mail, please do not reply.</div>
     
               </td>
             </tr>
@@ -465,9 +447,7 @@
             <tr>
               <td align="center" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
-      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:center;color:#000000;">{{#blocktrans "Base email footer" }}
-        Sincerely, {{ site_name }}
-      {{/blocktrans}}</div>
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:center;color:#000000;">Sincerely, {{ site_name }}</div>
     
               </td>
             </tr>
