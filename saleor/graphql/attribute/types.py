@@ -2,8 +2,9 @@ import re
 
 import graphene
 
-from ...attribute import models
+from ...attribute import AttributeInputType, models
 from ..core.connection import CountableDjangoObjectType
+from ..core.types import File
 from ..decorators import (
     check_attribute_required_permissions,
     check_attribute_value_required_permissions,
@@ -11,38 +12,25 @@ from ..decorators import (
 from ..meta.types import ObjectWithMetadata
 from ..translations.fields import TranslationField
 from ..translations.types import AttributeTranslation, AttributeValueTranslation
-from .dataloaders import AttributeValuesByAttributeIdLoader
+from .dataloaders import AttributesByAttributeId, AttributeValuesByAttributeIdLoader
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
-from .enums import AttributeInputTypeEnum, AttributeTypeEnum, AttributeValueType
+from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
 
 COLOR_PATTERN = r"^(#[0-9a-fA-F]{3}|#(?:[0-9a-fA-F]{2}){2,4}|(rgb|hsl)a?\((-?\d+%?[,\s]+){2,3}\s*[\d\.]+%?\))$"  # noqa
 color_pattern = re.compile(COLOR_PATTERN)
 
 
-def resolve_attribute_value_type(attribute_value):
-    if color_pattern.match(attribute_value):
-        return AttributeValueType.COLOR
-    if "gradient(" in attribute_value:
-        return AttributeValueType.GRADIENT
-    if "://" in attribute_value:
-        return AttributeValueType.URL
-    return AttributeValueType.STRING
-
-
 class AttributeValue(CountableDjangoObjectType):
     name = graphene.String(description=AttributeValueDescriptions.NAME)
     slug = graphene.String(description=AttributeValueDescriptions.SLUG)
-    type = AttributeValueType(
-        description=AttributeValueDescriptions.TYPE,
-        deprecation_reason=(
-            "Use the `inputType` field to determine the type of attribute's value. "
-            "This field will be removed after 2020-07-31."
-        ),
-    )
     translation = TranslationField(
         AttributeValueTranslation, type_name="attribute value"
     )
     input_type = AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE)
+    reference = graphene.ID(description="The ID of the attribute reference.")
+    file = graphene.Field(
+        File, description=AttributeValueDescriptions.FILE, required=False
+    )
 
     class Meta:
         description = "Represents a value of an attribute."
@@ -51,17 +39,39 @@ class AttributeValue(CountableDjangoObjectType):
         model = models.AttributeValue
 
     @staticmethod
-    def resolve_type(root: models.AttributeValue, *_args):
-        return resolve_attribute_value_type(root.value)
-
-    @staticmethod
     @check_attribute_value_required_permissions()
     def resolve_input_type(root: models.AttributeValue, *_args):
         return root.input_type
 
+    @staticmethod
+    def resolve_file(root: models.AttributeValue, *_args):
+        if not root.file_url:
+            return
+        return File(url=root.file_url, content_type=root.content_type)
+
+    @staticmethod
+    def resolve_reference(root: models.AttributeValue, info, **_kwargs):
+        def prepare_reference(attribute):
+            if attribute.input_type != AttributeInputType.REFERENCE:
+                return
+            reference_pk = root.slug.split("_")[1]
+            reference_id = graphene.Node.to_global_id(
+                attribute.entity_type, reference_pk
+            )
+            return reference_id
+
+        return (
+            AttributesByAttributeId(info.context)
+            .load(root.attribute_id)
+            .then(prepare_reference)
+        )
+
 
 class Attribute(CountableDjangoObjectType):
     input_type = AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE)
+    entity_type = AttributeEntityTypeEnum(
+        description=AttributeDescriptions.ENTITY_TYPE, required=False
+    )
 
     name = graphene.String(description=AttributeDescriptions.NAME)
     slug = graphene.String(description=AttributeDescriptions.SLUG)

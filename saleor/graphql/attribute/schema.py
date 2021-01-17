@@ -13,7 +13,7 @@ from .mutations import (
     AttributeValueDelete,
     AttributeValueUpdate,
 )
-from .resolvers import resolve_attributes
+from .resolvers import resolve_attribute_by_slug, resolve_attributes
 from .sorters import AttributeSortingInput
 from .types import Attribute
 
@@ -27,17 +27,18 @@ class AttributeQueries(graphene.ObjectType):
     )
     attribute = graphene.Field(
         Attribute,
-        id=graphene.Argument(
-            graphene.ID, description="ID of the attribute.", required=True
-        ),
+        id=graphene.Argument(graphene.ID, description="ID of the attribute."),
+        slug=graphene.Argument(graphene.String, description="Slug of the attribute."),
         description="Look up an attribute by ID.",
     )
 
     def resolve_attributes(self, info, **kwargs):
         return resolve_attributes(info, **kwargs)
 
-    def resolve_attribute(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, Attribute)
+    def resolve_attribute(self, info, id=None, slug=None):
+        if id:
+            return graphene.Node.get_node_from_global_id(info, id, Attribute)
+        return resolve_attribute_by_slug(slug=slug)
 
 
 class AttributeMutations(graphene.ObjectType):

@@ -11,9 +11,16 @@ class Migration(migrations.Migration):
     ]
 
     state_operations = [
-        migrations.RemoveField(model_name="apptoken", name="app",),
-        migrations.DeleteModel(name="App",),
-        migrations.DeleteModel(name="AppToken",),
+        migrations.RemoveField(
+            model_name="apptoken",
+            name="app",
+        ),
+        migrations.DeleteModel(
+            name="App",
+        ),
+        migrations.DeleteModel(
+            name="AppToken",
+        ),
     ]
 
     operations = [

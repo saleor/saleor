@@ -4,7 +4,8 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 
-from ....account import events as account_events, models
+from ....account import events as account_events
+from ....account import models
 from ....account.error_codes import AccountErrorCode
 from ....account.notifications import (
     send_set_password_notification,

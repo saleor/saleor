@@ -530,7 +530,9 @@ def test_draft_orders_query_pagination_with_filter_search(
 
 
 def test_draft_orders_query_pagination_with_filter_search_by_id(
-    draft_order, staff_api_client, permission_manage_orders,
+    draft_order,
+    staff_api_client,
+    permission_manage_orders,
 ):
     page_size = 2
     variables = {

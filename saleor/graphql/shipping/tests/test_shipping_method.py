@@ -249,7 +249,8 @@ def test_shipping_methods_query(
     """
     shipping_zone.shipping_methods.add(shipping_method_channel_PLN)
     response = staff_api_client.post_graphql(
-        query, permissions=[permission_manage_shipping, permission_manage_products],
+        query,
+        permissions=[permission_manage_shipping, permission_manage_products],
     )
     content = get_graphql_content(response)
     assert (
@@ -260,19 +261,28 @@ def test_shipping_methods_query(
 
 CREATE_SHIPPING_ZONE_QUERY = """
     mutation createShipping(
-        $name: String, $default: Boolean, $countries: [String], $addWarehouses: [ID] ){
+        $name: String
+        $description: String
+        $default: Boolean
+        $countries: [String]
+        $addWarehouses: [ID]
+    ) {
         shippingZoneCreate(
             input: {
-                name: $name, countries: $countries,
-                default: $default, addWarehouses: $addWarehouses
-            })
-        {
+                name: $name
+                description: $description
+                countries: $countries
+                default: $default
+                addWarehouses: $addWarehouses
+            }
+        ) {
             shippingErrors {
                 field
                 code
             }
             shippingZone {
                 name
+                description
                 countries {
                     code
                 }
@@ -290,6 +300,7 @@ def test_create_shipping_zone(staff_api_client, warehouse, permission_manage_shi
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
     variables = {
         "name": "test shipping",
+        "description": "test description",
         "countries": ["PL"],
         "addWarehouses": [warehouse_id],
     }
@@ -300,6 +311,7 @@ def test_create_shipping_zone(staff_api_client, warehouse, permission_manage_shi
     data = content["data"]["shippingZoneCreate"]
     zone = data["shippingZone"]
     assert zone["name"] == "test shipping"
+    assert zone["description"] == "test description"
     assert zone["countries"] == [{"code": "PL"}]
     assert zone["warehouses"][0]["name"] == warehouse.name
     assert zone["default"] is False
@@ -513,6 +525,7 @@ UPDATE_SHIPPING_ZONE_QUERY = """
     mutation updateShipping(
         $id: ID!
         $name: String
+        $description: String
         $default: Boolean
         $countries: [String]
         $addWarehouses: [ID]
@@ -522,6 +535,7 @@ UPDATE_SHIPPING_ZONE_QUERY = """
             id: $id
             input: {
                 name: $name
+                description: $description
                 default: $default
                 countries: $countries
                 addWarehouses: $addWarehouses
@@ -530,6 +544,7 @@ UPDATE_SHIPPING_ZONE_QUERY = """
         ) {
             shippingZone {
                 name
+                description
                 warehouses {
                     name
                     slug
@@ -549,8 +564,14 @@ def test_update_shipping_zone(
     staff_api_client, shipping_zone, permission_manage_shipping
 ):
     name = "Parabolic name"
+    description = "Description of a shipping zone."
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
-    variables = {"id": shipping_id, "name": name, "countries": []}
+    variables = {
+        "id": shipping_id,
+        "name": name,
+        "countries": [],
+        "description": description,
+    }
     response = staff_api_client.post_graphql(
         UPDATE_SHIPPING_ZONE_QUERY, variables, permissions=[permission_manage_shipping]
     )
@@ -559,6 +580,7 @@ def test_update_shipping_zone(
     assert not data["shippingErrors"]
     data = content["data"]["shippingZoneUpdate"]["shippingZone"]
     assert data["name"] == name
+    assert data["description"] == description
 
 
 def test_update_shipping_zone_default_exists(
@@ -582,7 +604,10 @@ def test_update_shipping_zone_default_exists(
 
 
 def test_update_shipping_zone_add_warehouses(
-    staff_api_client, shipping_zone, warehouses, permission_manage_shipping,
+    staff_api_client,
+    shipping_zone,
+    warehouses,
+    permission_manage_shipping,
 ):
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     warehouse_ids = [
@@ -636,7 +661,10 @@ def test_update_shipping_zone_add_second_warehouses(
 
 
 def test_update_shipping_zone_remove_warehouses(
-    staff_api_client, shipping_zone, warehouse, permission_manage_shipping,
+    staff_api_client,
+    shipping_zone,
+    warehouse,
+    permission_manage_shipping,
 ):
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
@@ -656,7 +684,10 @@ def test_update_shipping_zone_remove_warehouses(
 
 
 def test_update_shipping_zone_remove_one_warehouses(
-    staff_api_client, shipping_zone, warehouses, permission_manage_shipping,
+    staff_api_client,
+    shipping_zone,
+    warehouses,
+    permission_manage_shipping,
 ):
     for warehouse in warehouses:
         warehouse.shipping_zones.add(shipping_zone)
@@ -710,7 +741,10 @@ def test_update_shipping_zone_replace_warehouse(
 
 
 def test_update_shipping_zone_same_warehouse_id_in_add_and_remove(
-    staff_api_client, shipping_zone, warehouse, permission_manage_shipping,
+    staff_api_client,
+    shipping_zone,
+    warehouse,
+    permission_manage_shipping,
 ):
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
@@ -844,7 +878,9 @@ def test_create_shipping_method(
 
 
 def test_create_shipping_method_minimum_delivery_days_higher_than_maximum(
-    staff_api_client, shipping_zone, permission_manage_shipping,
+    staff_api_client,
+    shipping_zone,
+    permission_manage_shipping,
 ):
     name = "DHL"
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
@@ -870,7 +906,9 @@ def test_create_shipping_method_minimum_delivery_days_higher_than_maximum(
 
 
 def test_create_shipping_method_minimum_delivery_days_below_0(
-    staff_api_client, shipping_zone, permission_manage_shipping,
+    staff_api_client,
+    shipping_zone,
+    permission_manage_shipping,
 ):
     name = "DHL"
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
@@ -896,7 +934,9 @@ def test_create_shipping_method_minimum_delivery_days_below_0(
 
 
 def test_create_shipping_method_maximum_delivery_days_below_0(
-    staff_api_client, shipping_zone, permission_manage_shipping,
+    staff_api_client,
+    shipping_zone,
+    permission_manage_shipping,
 ):
     name = "DHL"
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
@@ -1053,7 +1093,8 @@ def test_create_shipping_method_with_negative_max_weight(
 
 UPDATE_SHIPPING_PRICE_MUTATION = """
     mutation updateShippingPrice(
-        $id: ID!, $shippingZone: ID!,
+        $id: ID!,
+        $shippingZone: ID!,
         $type: ShippingMethodTypeEnum!,
         $maximumDeliveryDays: Int,
         $minimumDeliveryDays: Int,
@@ -1299,6 +1340,47 @@ def test_update_shipping_method_multiple_errors(
     ]
     for error in expected_errors:
         assert error in errors
+
+
+@pytest.mark.parametrize(
+    "min_delivery_days, max_delivery_days",
+    [
+        (None, 1),
+        (1, None),
+        (None, None),
+    ],
+)
+def test_update_shipping_method_delivery_days_without_value(
+    staff_api_client,
+    shipping_zone,
+    permission_manage_shipping,
+    min_delivery_days,
+    max_delivery_days,
+):
+    shipping_method = shipping_zone.shipping_methods.first()
+    shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method.pk
+    )
+    variables = {
+        "shippingZone": shipping_zone_id,
+        "id": shipping_method_id,
+        "type": ShippingMethodTypeEnum.PRICE.name,
+        "minimumDeliveryDays": min_delivery_days,
+        "maximumDeliveryDays": max_delivery_days,
+    }
+
+    response = staff_api_client.post_graphql(
+        UPDATE_SHIPPING_PRICE_MUTATION,
+        variables,
+        permissions=[permission_manage_shipping],
+    )
+    content = get_graphql_content(response)
+    shipping_method.refresh_from_db()
+
+    assert not content["data"]["shippingPriceUpdate"]["shippingErrors"]
+    assert shipping_method.minimum_delivery_days == min_delivery_days
+    assert shipping_method.maximum_delivery_days == max_delivery_days
 
 
 def test_delete_shipping_method(

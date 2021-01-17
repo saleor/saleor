@@ -3,11 +3,19 @@ from unittest import mock
 import pytest
 
 from .....checkout import calculations
+from .....checkout.utils import fetch_checkout_lines
 from .....plugins.manager import get_plugins_manager
 from .... import TransactionKind
 from ....models import Transaction
 from ....utils import create_payment
 from ..plugin import AdyenGatewayPlugin
+
+
+@pytest.fixture(scope="module")
+def vcr_config():
+    return {
+        "filter_headers": [("x-api-key", "test_key")],
+    }
 
 
 @pytest.fixture
@@ -63,8 +71,10 @@ def payment_adyen_for_checkout(checkout_with_items, address, shipping_method):
     checkout_with_items.shipping_address = address
     checkout_with_items.shipping_method = shipping_method
     checkout_with_items.save()
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout_with_items)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        checkout=checkout_with_items
+        manager, checkout_with_items, lines, address
     )
     payment = create_payment(
         gateway=AdyenGatewayPlugin.PLUGIN_ID,
@@ -150,4 +160,15 @@ def notification_with_hmac_signature():
         "pspReference": "test_AUTHORISATION_4",
         "reason": "REFUSED",
         "success": "false",
+    }
+
+
+@pytest.fixture
+def adyen_payment_method():
+    return {
+        "type": "scheme",
+        "encryptedCardNumber": "test_4646464646464644",
+        "encryptedExpiryMonth": "test_03",
+        "encryptedExpiryYear": "test_2030",
+        "encryptedSecurityCode": "test_737",
     }

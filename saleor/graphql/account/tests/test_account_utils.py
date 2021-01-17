@@ -95,7 +95,8 @@ def test_get_out_of_scope_permissions_app_has_all_permissions(
 ):
     app.permissions.add(permission_manage_orders, permission_manage_users)
     missing_perms = get_out_of_scope_permissions(
-        app, [AccountPermissions.MANAGE_USERS, OrderPermissions.MANAGE_ORDERS],
+        app,
+        [AccountPermissions.MANAGE_USERS, OrderPermissions.MANAGE_ORDERS],
     )
     assert missing_perms == []
 
@@ -105,7 +106,8 @@ def test_get_out_of_scope_permissions_app_does_not_have_all_permissions(
 ):
     app.permissions.add(permission_manage_orders)
     missing_perms = get_out_of_scope_permissions(
-        app, [AccountPermissions.MANAGE_USERS, OrderPermissions.MANAGE_ORDERS],
+        app,
+        [AccountPermissions.MANAGE_USERS, OrderPermissions.MANAGE_ORDERS],
     )
     assert missing_perms == [AccountPermissions.MANAGE_USERS]
 
@@ -231,7 +233,8 @@ def test_get_groups_which_user_can_manage_admin_user(
 
 
 def test_get_groups_which_user_can_manage_customer_user(
-    customer_user, permission_group_manage_users,
+    customer_user,
+    permission_group_manage_users,
 ):
     Group.objects.create(name="empty group")
 
@@ -801,7 +804,10 @@ def test_get_not_manageable_permissions_after_removing_perms_from_group_some_can
 
 
 def test_can_manage_app_no_permission(
-    app, staff_user, permission_manage_products, permission_manage_apps,
+    app,
+    staff_user,
+    permission_manage_products,
+    permission_manage_apps,
 ):
     app.permissions.add(permission_manage_products)
     staff_user.user_permissions.add(permission_manage_apps)
@@ -811,7 +817,10 @@ def test_can_manage_app_no_permission(
 
 
 def test_can_manage_app_account(
-    app, staff_user, permission_manage_products, permission_manage_apps,
+    app,
+    staff_user,
+    permission_manage_products,
+    permission_manage_apps,
 ):
     app.permissions.add(permission_manage_products)
     staff_user.user_permissions.add(permission_manage_apps, permission_manage_products)
@@ -821,7 +830,8 @@ def test_can_manage_app_account(
 
 
 def test_can_manage_app_for_app_no_permission(
-    permission_manage_products, permission_manage_apps,
+    permission_manage_products,
+    permission_manage_apps,
 ):
     apps = App.objects.bulk_create([App(name="sa1"), App(name="sa2")])
     apps[1].permissions.add(permission_manage_products)
@@ -832,7 +842,8 @@ def test_can_manage_app_for_app_no_permission(
 
 
 def test_can_manage_app_for_app(
-    permission_manage_products, permission_manage_apps,
+    permission_manage_products,
+    permission_manage_apps,
 ):
     apps = App.objects.bulk_create([App(name="sa1"), App(name="sa2")])
     apps[1].permissions.add(permission_manage_products)

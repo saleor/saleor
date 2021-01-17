@@ -21,13 +21,19 @@ def sales_for_pagination(channel_USD):
                 end_date=now + timezone.timedelta(hours=14),
                 type=DiscountValueType.PERCENTAGE,
             ),
-            Sale(name="Sale2", end_date=now + timezone.timedelta(hours=1),),
+            Sale(
+                name="Sale2",
+                end_date=now + timezone.timedelta(hours=1),
+            ),
             Sale(
                 name="Sale3",
                 end_date=now + timezone.timedelta(hours=2),
                 type=DiscountValueType.PERCENTAGE,
             ),
-            Sale(name="Sale4", end_date=now + timezone.timedelta(hours=1),),
+            Sale(
+                name="Sale4",
+                end_date=now + timezone.timedelta(hours=1),
+            ),
             Sale(
                 name="Sale15",
                 start_date=now + timezone.timedelta(hours=1),
@@ -110,7 +116,10 @@ def test_sales_pagination_with_sorting(
 
 
 def test_sales_pagination_with_sorting_and_channel(
-    staff_api_client, permission_manage_discounts, sales_for_pagination, channel_USD,
+    staff_api_client,
+    permission_manage_discounts,
+    sales_for_pagination,
+    channel_USD,
 ):
     page_size = 3
     sales_order = ["Sale1", "Sale3", "Sale4"]

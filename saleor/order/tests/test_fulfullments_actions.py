@@ -60,7 +60,10 @@ def test_create_fulfillments(
 
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
 def test_create_fulfillments_without_notification(
-    mock_email_fulfillment, staff_user, order_with_lines, warehouse,
+    mock_email_fulfillment,
+    staff_user,
+    order_with_lines,
+    warehouse,
 ):
     order = order_with_lines
     order_line1, order_line2 = order.lines.all()
@@ -102,7 +105,9 @@ def test_create_fulfillments_without_notification(
 
 
 def test_create_fulfillments_many_warehouses(
-    staff_user, order_with_lines, warehouses,
+    staff_user,
+    order_with_lines,
+    warehouses,
 ):
     order = order_with_lines
     warehouse1, warehouse2 = warehouses
@@ -301,7 +306,10 @@ def test_create_fulfillments_without_allocations(
 
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
 def test_create_fulfillments_warehouse_with_out_of_stock(
-    mock_email_fulfillment, staff_user, order_with_lines, warehouse,
+    mock_email_fulfillment,
+    staff_user,
+    order_with_lines,
+    warehouse,
 ):
     order = order_with_lines
     order_line1, order_line2 = order.lines.all()
@@ -347,7 +355,10 @@ def test_create_fulfillments_warehouse_with_out_of_stock(
 
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
 def test_create_fulfillments_warehouse_without_stock(
-    mock_email_fulfillment, staff_user, order_with_lines, warehouse_no_shipping_zone,
+    mock_email_fulfillment,
+    staff_user,
+    order_with_lines,
+    warehouse_no_shipping_zone,
 ):
     order = order_with_lines
     order_line1, order_line2 = order.lines.all()

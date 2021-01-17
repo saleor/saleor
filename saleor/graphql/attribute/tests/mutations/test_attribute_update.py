@@ -7,13 +7,11 @@ from ....tests.utils import get_graphql_content
 
 UPDATE_ATTRIBUTE_MUTATION = """
     mutation updateAttribute(
-        $id: ID!, $name: String!, $addValues: [AttributeValueCreateInput]!,
-        $removeValues: [ID]!) {
+        $id: ID!, $input: AttributeUpdateInput!
+    ) {
     attributeUpdate(
             id: $id,
-            input: {
-                name: $name, addValues: $addValues,
-                removeValues: $removeValues}) {
+            input: $input) {
         attributeErrors {
             field
             message
@@ -48,7 +46,10 @@ def test_update_attribute_name(
     name = "Wings name"
     slug = attribute.slug
     node_id = graphene.Node.to_global_id("Attribute", attribute.id)
-    variables = {"name": name, "id": node_id, "addValues": [], "removeValues": []}
+    variables = {
+        "input": {"name": name, "addValues": [], "removeValues": []},
+        "id": node_id,
+    }
 
     # when
     response = staff_api_client.post_graphql(
@@ -76,10 +77,12 @@ def test_update_attribute_remove_and_add_values(
     attribute_value_id = attribute.values.first().id
     value_id = graphene.Node.to_global_id("AttributeValue", attribute_value_id)
     variables = {
-        "name": name,
         "id": node_id,
-        "addValues": [{"name": attribute_value_name}],
-        "removeValues": [value_id],
+        "input": {
+            "name": name,
+            "addValues": [{"name": attribute_value_name}],
+            "removeValues": [value_id],
+        },
     }
 
     # when
@@ -109,10 +112,12 @@ def test_update_empty_attribute_and_add_values(
     attribute_value_name = "Yellow Color"
     node_id = graphene.Node.to_global_id("Attribute", attribute.id)
     variables = {
-        "name": name,
         "id": node_id,
-        "addValues": [{"name": attribute_value_name}],
-        "removeValues": [],
+        "input": {
+            "name": name,
+            "addValues": [{"name": attribute_value_name}],
+            "removeValues": [],
+        },
     }
 
     # when
@@ -125,6 +130,117 @@ def test_update_empty_attribute_and_add_values(
     attribute.refresh_from_db()
     assert attribute.values.count() == 1
     assert attribute.values.filter(name=attribute_value_name).exists()
+
+
+def test_update_attribute_with_file_input_type(
+    staff_api_client,
+    file_attribute_with_file_input_type_without_values,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    query = UPDATE_ATTRIBUTE_MUTATION
+    attribute = file_attribute_with_file_input_type_without_values
+    name = "Wings name"
+    node_id = graphene.Node.to_global_id("Attribute", attribute.id)
+
+    variables = {
+        "id": node_id,
+        "input": {"name": name, "addValues": [], "removeValues": []},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    attribute.refresh_from_db()
+    data = content["data"]["attributeUpdate"]
+    assert not data["attributeErrors"]
+    assert data["attribute"]["name"] == name == attribute.name
+
+
+def test_update_attribute_with_file_input_type_and_values(
+    staff_api_client,
+    file_attribute_with_file_input_type_without_values,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    query = UPDATE_ATTRIBUTE_MUTATION
+    attribute = file_attribute_with_file_input_type_without_values
+    name = "Wings name"
+    attribute_value_name = "Test file"
+    node_id = graphene.Node.to_global_id("Attribute", attribute.id)
+
+    variables = {
+        "id": node_id,
+        "input": {
+            "name": name,
+            "addValues": [{"name": attribute_value_name}],
+            "removeValues": [],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    attribute.refresh_from_db()
+    data = content["data"]["attributeUpdate"]
+    errors = data["attributeErrors"]
+    assert not data["attribute"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "addValues"
+    assert errors[0]["code"] == AttributeErrorCode.INVALID.name
+
+
+def test_update_attribute_with_file_input_type_invalid_settings(
+    staff_api_client,
+    file_attribute_with_file_input_type_without_values,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    query = UPDATE_ATTRIBUTE_MUTATION
+    attribute = file_attribute_with_file_input_type_without_values
+    name = "Wings name"
+    node_id = graphene.Node.to_global_id("Attribute", attribute.id)
+
+    variables = {
+        "id": node_id,
+        "input": {
+            "name": name,
+            "addValues": [],
+            "removeValues": [],
+            "filterableInStorefront": True,
+            "filterableInDashboard": True,
+            "availableInGrid": True,
+            "storefrontSearchPosition": 3,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    attribute.refresh_from_db()
+    data = content["data"]["attributeUpdate"]
+    errors = data["attributeErrors"]
+    assert not data["attribute"]
+    assert len(errors) == 4
+    assert {error["field"] for error in errors} == {
+        "filterableInStorefront",
+        "filterableInDashboard",
+        "availableInGrid",
+        "storefrontSearchPosition",
+    }
+    assert {error["code"] for error in errors} == {AttributeErrorCode.INVALID.name}
 
 
 UPDATE_ATTRIBUTE_SLUG_MUTATION = """
@@ -197,7 +313,9 @@ def test_update_attribute_slug(
 
 
 def test_update_attribute_slug_exists(
-    staff_api_client, color_attribute, permission_manage_product_types_and_attributes,
+    staff_api_client,
+    color_attribute,
+    permission_manage_product_types_and_attributes,
 ):
     # given
     query = UPDATE_ATTRIBUTE_SLUG_MUTATION
@@ -335,10 +453,12 @@ def test_update_attribute_and_add_attribute_values_errors(
     attribute = color_attribute
     node_id = graphene.Node.to_global_id("Attribute", attribute.id)
     variables = {
-        "name": "Example name",
         "id": node_id,
-        "removeValues": [],
-        "addValues": [{"name": name_1}, {"name": name_2}],
+        "input": {
+            "name": "Example name",
+            "removeValues": [],
+            "addValues": [{"name": name_1}, {"name": name_2}],
+        },
     }
 
     # when
@@ -368,10 +488,8 @@ def test_update_attribute_and_remove_others_attribute_value(
     size_attribute = size_attribute.values.first()
     attr_id = graphene.Node.to_global_id("AttributeValue", size_attribute.pk)
     variables = {
-        "name": "Example name",
         "id": node_id,
-        "addValues": [],
-        "removeValues": [attr_id],
+        "input": {"name": "Example name", "addValues": [], "removeValues": [attr_id]},
     }
 
     # when

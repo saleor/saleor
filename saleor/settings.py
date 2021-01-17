@@ -10,6 +10,7 @@ import jaeger_client
 import jaeger_client.config
 import pkg_resources
 import sentry_sdk
+import sentry_sdk.utils
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.utils import get_random_secret_key
 from pytimeparse import parse
@@ -415,6 +416,10 @@ GS_PROJECT_ID = os.environ.get("GS_PROJECT_ID")
 GS_STORAGE_BUCKET_NAME = os.environ.get("GS_STORAGE_BUCKET_NAME")
 GS_MEDIA_BUCKET_NAME = os.environ.get("GS_MEDIA_BUCKET_NAME")
 GS_AUTO_CREATE_BUCKET = get_bool_from_env("GS_AUTO_CREATE_BUCKET", False)
+GS_QUERYSTRING_AUTH = get_bool_from_env("GS_QUERYSTRING_AUTH", False)
+GS_DEFAULT_ACL = os.environ.get("GS_DEFAULT_ACL", None)
+GS_MEDIA_CUSTOM_ENDPOINT = os.environ.get("GS_MEDIA_CUSTOM_ENDPOINT", None)
+GS_EXPIRATION = os.environ.get("GS_EXPIRATION", None)
 
 # If GOOGLE_APPLICATION_CREDENTIALS is set there is no need to load OAuth token
 # See https://django-storages.readthedocs.io/en/latest/backends/gcloud.html
@@ -490,6 +495,7 @@ DEFAULT_CHANNEL_SLUG = os.environ.get("DEFAULT_CHANNEL_SLUG", "default-channel")
 
 
 #  Sentry
+sentry_sdk.utils.MAX_STRING_LENGTH = 4096
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
 if SENTRY_DSN:
     sentry_sdk.init(

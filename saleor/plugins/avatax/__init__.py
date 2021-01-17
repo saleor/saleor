@@ -100,7 +100,9 @@ def api_post_request(
 
 
 def api_get_request(
-    url: str, username_or_account: str, password_or_license: str,
+    url: str,
+    username_or_account: str,
+    password_or_license: str,
 ):
     response = None
     try:
@@ -235,6 +237,8 @@ def get_checkout_lines_data(
     for line in lines:
         name = line.variant.product.name
         product = line.variant.product
+        collections = product.collections.all()
+        channel_listing = line.variant.channel_listings.get(channel=channel)
         product_type = line.variant.product.product_type
         tax_code = retrieve_tax_code_from_meta(product, default=None)
         tax_code = tax_code or retrieve_tax_code_from_meta(product_type)
@@ -242,7 +246,13 @@ def get_checkout_lines_data(
             data=data,
             quantity=line.quantity,
             amount=base_calculations.base_checkout_line_total(
-                line, channel, discounts
+                line,
+                line.variant,
+                product,
+                collections,
+                channel,
+                channel_listing,
+                discounts,
             ).gross.amount,
             tax_code=tax_code,
             item_code=line.variant.sku,

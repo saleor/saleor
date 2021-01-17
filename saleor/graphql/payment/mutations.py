@@ -3,11 +3,11 @@ from django.core.exceptions import ValidationError
 
 from ...checkout.calculations import calculate_checkout_total_with_gift_cards
 from ...checkout.checkout_cleaner import clean_billing_address, clean_checkout_shipping
-from ...checkout.utils import cancel_active_payments
+from ...checkout.utils import cancel_active_payments, fetch_checkout_lines
 from ...core.permissions import OrderPermissions
 from ...core.utils import get_client_ip
 from ...core.utils.url import validate_storefront_url
-from ...payment import PaymentError, gateway, models
+from ...payment import PaymentError, gateway
 from ...payment.error_codes import PaymentErrorCode
 from ...payment.utils import create_payment, is_currency_supported
 from ..account.i18n import I18nMixin
@@ -16,7 +16,6 @@ from ..checkout.types import Checkout
 from ..core.mutations import BaseMutation
 from ..core.scalars import PositiveDecimal
 from ..core.types import common as common_types
-from ..core.utils import from_global_id_strict_type
 from .types import Payment, PaymentInitialized
 
 
@@ -140,13 +139,9 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, **data):
-        checkout_id = from_global_id_strict_type(
-            checkout_id, only_type=Checkout, field="checkout_id"
+        checkout = cls.get_node_or_error(
+            info, checkout_id, only_type=Checkout, field="checkout_id"
         )
-        checkout = models.Checkout.objects.prefetch_related(
-            "lines__variant__product__collections"
-        ).get(pk=checkout_id)
-
         data = data["input"]
         gateway = data["gateway"]
 
@@ -154,12 +149,20 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         cls.validate_token(info.context.plugins, gateway, data)
         cls.validate_return_url(data)
 
+        lines = fetch_checkout_lines(checkout)
+        address = (
+            checkout.shipping_address or checkout.billing_address
+        )  # FIXME: check which address we need here
         checkout_total = calculate_checkout_total_with_gift_cards(
-            checkout, info.context.discounts
+            manager=info.context.plugins,
+            checkout=checkout,
+            lines=lines,
+            address=address,
+            discounts=info.context.discounts,
         )
         amount = data.get("amount", checkout_total.gross.amount)
         clean_checkout_shipping(
-            checkout, list(checkout), info.context.discounts, PaymentErrorCode
+            checkout, lines, info.context.discounts, PaymentErrorCode
         )
         clean_billing_address(checkout, PaymentErrorCode)
         cls.clean_payment_amount(info, checkout_total, amount)
@@ -260,7 +263,8 @@ class PaymentInitialize(BaseMutation):
 
     class Arguments:
         gateway = graphene.String(
-            description="A gateway name used to initialize the payment.", required=True,
+            description="A gateway name used to initialize the payment.",
+            required=True,
         )
         payment_data = graphene.JSONString(
             required=False,

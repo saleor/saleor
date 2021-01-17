@@ -13,12 +13,13 @@ from ...utils.random_data import (
     create_gift_card,
     create_menus,
     create_orders,
-    create_page,
     create_page_type,
+    create_pages,
     create_permission_groups,
     create_product_sales,
     create_products_by_schema,
     create_shipping_zones,
+    create_staffs,
     create_users,
     create_vouchers,
     create_warehouses,
@@ -43,13 +44,6 @@ class Command(BaseCommand):
             dest="withoutimages",
             default=False,
             help="Don't create product images",
-        )
-        parser.add_argument(
-            "--withoutsearch",
-            action="store_true",
-            dest="withoutsearch",
-            default=False,
-            help="Don't update search index",
         )
         parser.add_argument(
             "--skipsequencereset",
@@ -104,7 +98,7 @@ class Command(BaseCommand):
         self.stdout.write("Created warehouses")
         for msg in create_page_type():
             self.stdout.write(msg)
-        for msg in create_page():
+        for msg in create_pages():
             self.stdout.write(msg)
         create_products_by_schema(self.placeholders_dir, create_images)
         self.stdout.write("Created products")
@@ -118,8 +112,6 @@ class Command(BaseCommand):
             self.stdout.write(msg)
         for msg in create_orders(20):
             self.stdout.write(msg)
-        for msg in create_page():
-            self.stdout.write(msg)
         for msg in create_menus():
             self.stdout.write(msg)
 
@@ -132,4 +124,6 @@ class Command(BaseCommand):
             self.sequence_reset()
 
         for msg in create_permission_groups():
+            self.stdout.write(msg)
+        for msg in create_staffs():
             self.stdout.write(msg)

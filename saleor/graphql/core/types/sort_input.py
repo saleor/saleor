@@ -39,7 +39,8 @@ class SortInputObjectType(graphene.InputObjectType):
 
 class ChannelSortInputObjectType(SortInputObjectType):
     channel = graphene.Argument(
-        graphene.String, description="Specifies the channel in which to sort the data.",
+        graphene.String,
+        description="Specifies the channel in which to sort the data.",
     )
 
     class Meta:

@@ -19,3 +19,27 @@ Tagging Process
 | ``refs/heads/preview/my-feature`` | docker.io/mirumee/saleor:my-feature                                   |
 |                                   | docker.io/mirumee/saleor:sha-d122141d318518e216fc0e5b657259de317318c5 |
 +-----------------------------------+-----------------------------------------------------------------------+
+
+
+Version Label and Argument for Dockerfile
+-----------------------------------------
+
+When the image is built, the following instructions will be provided to the below attached values in the dockerfile:
+
+.. code-block:: docker
+
+  ARG VERSION=<NAMED_VERSION>
+  LABEL org.opencontainers.image.version=<NAMED_VERSION>
+
+
++-----------------------------------+--------------------------------------------------------+
+| Git Ref                           | Open Containers Version Value (``<NAMED_VERSION>``)    |
++===================================+========================================================+
+| ``refs/tags/1.0.0``               | 1.0.0                                                  |
++-----------------------------------+--------------------------------------------------------+
+| ``refs/tags/1.0.0a1``             | 1.0.0a1                                                |
++-----------------------------------+--------------------------------------------------------+
+| ``refs/heads/master``             | heads/master-0-g8ccaf9                                 |
++-----------------------------------+--------------------------------------------------------+
+| ``refs/heads/preview/my-feature`` | heads/preview/my-feature-0-gd12214                     |
++-----------------------------------+--------------------------------------------------------+

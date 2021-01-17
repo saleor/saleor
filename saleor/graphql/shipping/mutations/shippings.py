@@ -46,6 +46,7 @@ class ShippingZoneCreateInput(graphene.InputObjectType):
     name = graphene.String(
         description="Shipping zone's name. Visible only to the staff."
     )
+    description = graphene.String(description="Description of the shipping zone.")
     countries = graphene.List(
         graphene.String, description="List of countries in this shipping zone."
     )
@@ -56,13 +57,15 @@ class ShippingZoneCreateInput(graphene.InputObjectType):
         )
     )
     add_warehouses = graphene.List(
-        graphene.ID, description="List of warehouses to assign to a shipping zone",
+        graphene.ID,
+        description="List of warehouses to assign to a shipping zone",
     )
 
 
 class ShippingZoneUpdateInput(ShippingZoneCreateInput):
     remove_warehouses = graphene.List(
-        graphene.ID, description="List of warehouses to unassign from a shipping zone",
+        graphene.ID,
+        description="List of warehouses to unassign from a shipping zone",
     )
 
 
@@ -183,7 +186,8 @@ class ShippingZipCodeRulesCreateInput(graphene.InputObjectType):
 
 class ShippingZipCodeRulesCreate(BaseMutation):
     zip_code_rules = graphene.List(
-        ShippingMethodZipCodeRule, description="A shipping method zip code range.",
+        ShippingMethodZipCodeRule,
+        description="A shipping method zip code range.",
     )
     shipping_method = graphene.Field(
         ShippingMethod, description="Related shipping method."
@@ -215,7 +219,9 @@ class ShippingZipCodeRulesCreate(BaseMutation):
                     start = zip_range["start"]
                     end = zip_range["end"]
                     instance = models.ShippingMethodZipCodeRule.objects.create(
-                        shipping_method=shipping_method, start=start, end=end,
+                        shipping_method=shipping_method,
+                        start=start,
+                        end=end,
                     )
                 except IntegrityError:
                     raise ValidationError(
@@ -301,11 +307,13 @@ class ShippingPriceMixin:
 
         if min_weight and min_weight.value < 0:
             errors["minimum_order_weight"] = ValidationError(
-                "Shipping can't have negative weight.", code=ShippingErrorCode.INVALID,
+                "Shipping can't have negative weight.",
+                code=ShippingErrorCode.INVALID,
             )
         if max_weight and max_weight.value < 0:
             errors["maximum_order_weight"] = ValidationError(
-                "Shipping can't have negative weight.", code=ShippingErrorCode.INVALID,
+                "Shipping can't have negative weight.",
+                code=ShippingErrorCode.INVALID,
             )
 
         if errors:
@@ -362,7 +370,11 @@ class ShippingPriceMixin:
         if error_occurred:
             return
 
-        if min_delivery_days > max_delivery_days:
+        if (
+            min_delivery_days is not None
+            and max_delivery_days is not None
+            and min_delivery_days > max_delivery_days
+        ):
             if cleaned_input.get("minimum_delivery_days") is not None:
                 error_msg = (
                     "Minimum delivery days should be lower "

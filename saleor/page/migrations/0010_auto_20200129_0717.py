@@ -16,6 +16,8 @@ class Migration(migrations.Migration):
             field=models.SlugField(max_length=255, unique=True),
         ),
         migrations.AlterField(
-            model_name="page", name="title", field=models.CharField(max_length=250),
+            model_name="page",
+            name="title",
+            field=models.CharField(max_length=250),
         ),
     ]
