@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
 from django.core.exceptions import ValidationError
 from django.db.models import Max, Min, Sum
 from django.utils import timezone
+from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoneyRange
 
 from ..account.models import User
@@ -558,7 +559,7 @@ def get_valid_shipping_methods_for_checkout(
         checkout,
         channel_id=checkout.channel_id,
         price=subtotal.gross,
-        country_code=country_code,
+        country_code=country_code,  # type: ignore
         lines=lines,
     )
 
@@ -612,7 +613,9 @@ def get_shipping_price_estimate(
         start=Money(min_price_amount, checkout.currency),
         stop=Money(max_price_amount, checkout.currency),
     )
-    return manager.apply_taxes_to_shipping_price_range(prices, country_code)
+    return manager.apply_taxes_to_shipping_price_range(
+        prices, country_code  # type: ignore
+    )
 
 
 def clear_shipping_method(checkout: Checkout):
