@@ -262,7 +262,7 @@ class VatlayerPlugin(BasePlugin):
             return previous_value
         tax = taxes.get(DEFAULT_TAX_RATE_NAME)
         # tax value is given in precentage so it need be be converted into decimal value
-        return Decimal(tax["value"] / 100)
+        return Decimal(tax["value"]) / 100
 
     def get_tax_rate_type_choices(
         self, previous_value: List["TaxType"]

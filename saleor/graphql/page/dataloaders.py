@@ -2,7 +2,11 @@ from collections import defaultdict
 
 from promise import Promise
 
-from ...attribute.models import AssignedPageAttribute, AttributePage, AttributeValue
+from ...attribute.models import (
+    AssignedPageAttribute,
+    AssignedPageAttributeValue,
+    AttributePage,
+)
 from ...core.permissions import PagePermissions
 from ...page.models import Page, PageType
 from ..attribute.dataloaders import AttributesByAttributeId, AttributeValueByIdLoader
@@ -122,23 +126,19 @@ class AttributeValuesByAssignedPageAttributeIdLoader(DataLoader):
     context_key = "attributevalues_by_assigned_pageattribute"
 
     def batch_load(self, keys):
-        AttributeAssignment = AttributeValue.assignedpageattribute_set.through
-        attribute_values = AttributeAssignment.objects.filter(
-            assignedpageattribute_id__in=keys
+        attribute_values = AssignedPageAttributeValue.objects.filter(
+            assignment_id__in=keys
         )
-        value_ids = [a.attributevalue_id for a in attribute_values]
+        value_ids = [a.value_id for a in attribute_values]
 
         def map_assignment_to_values(values):
             value_map = dict(zip(value_ids, values))
             assigned_page_map = defaultdict(list)
             for attribute_value in attribute_values:
-                assigned_page_map[attribute_value.assignedpageattribute_id].append(
-                    value_map.get(attribute_value.attributevalue_id)
+                assigned_page_map[attribute_value.assignment_id].append(
+                    value_map.get(attribute_value.value_id)
                 )
-            return [
-                sorted(assigned_page_map[key], key=lambda v: (v.sort_order, v.id))
-                for key in keys
-            ]
+            return [assigned_page_map[key] for key in keys]
 
         return (
             AttributeValueByIdLoader(self.context)

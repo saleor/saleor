@@ -10,6 +10,7 @@ from ....attribute.models import (
     AttributeValue,
     AttributeVariant,
 )
+from ....attribute.utils import associate_attribute_values_to_instance
 from ....product.error_codes import ProductErrorCode
 from ....product.models import ProductType
 from ...attribute.enums import AttributeTypeEnum
@@ -707,7 +708,6 @@ def test_retrieve_product_attributes_input_type(
               node {
                 attributes {
                   values {
-                    type
                     inputType
                   }
                 }
@@ -727,7 +727,6 @@ def test_retrieve_product_attributes_input_type(
 
     for gql_attr in found_products[0]["node"]["attributes"]:
         assert len(gql_attr["values"]) == 1
-        assert gql_attr["values"][0]["type"] == "STRING"
         assert gql_attr["values"][0]["inputType"] == "DROPDOWN"
 
 
@@ -895,3 +894,476 @@ def test_sort_attributes_within_product_type(
         gql_type, gql_attr_id = graphene.Node.from_global_id(attr["id"])
         assert gql_type == "Attribute"
         assert int(gql_attr_id) == expected_pk
+
+
+PRODUCT_REORDER_ATTRIBUTE_VALUES_MUTATION = """
+    mutation ProductReorderAttributeValues(
+      $productId: ID!
+      $attributeId: ID!
+      $moves: [ReorderInput]!
+    ) {
+      productReorderAttributeValues(
+        productId: $productId
+        attributeId: $attributeId
+        moves: $moves
+      ) {
+        product {
+          id
+          attributes {
+            attribute {
+                id
+                slug
+            }
+            values {
+                id
+            }
+          }
+        }
+
+        productErrors {
+          field
+          message
+          code
+          attributes
+          values
+        }
+      }
+    }
+"""
+
+
+def test_sort_product_attribute_values(
+    staff_api_client,
+    permission_manage_products,
+    product,
+    product_type_page_reference_attribute,
+):
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    product_type = product.product_type
+    product_type.product_attributes.clear()
+    product_type.product_attributes.add(product_type_page_reference_attribute)
+
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    attribute_id = graphene.Node.to_global_id(
+        "Attribute", product_type_page_reference_attribute.id
+    )
+    attr_values = AttributeValue.objects.bulk_create(
+        [
+            AttributeValue(
+                attribute=product_type_page_reference_attribute,
+                slug=f"{product.pk}_1",
+                name="test name 1",
+            ),
+            AttributeValue(
+                attribute=product_type_page_reference_attribute,
+                slug=f"{product.pk}_2",
+                name="test name 2",
+            ),
+            AttributeValue(
+                attribute=product_type_page_reference_attribute,
+                slug=f"{product.pk}_3",
+                name="test name 3",
+            ),
+        ]
+    )
+    associate_attribute_values_to_instance(
+        product, product_type_page_reference_attribute, *attr_values
+    )
+
+    variables = {
+        "productId": product_id,
+        "attributeId": attribute_id,
+        "moves": [
+            {
+                "id": graphene.Node.to_global_id("AttributeValue", attr_values[0].pk),
+                "sortOrder": +1,
+            },
+            {
+                "id": graphene.Node.to_global_id("AttributeValue", attr_values[2].pk),
+                "sortOrder": -1,
+            },
+        ],
+    }
+
+    expected_order = [attr_values[1].pk, attr_values[2].pk, attr_values[0].pk]
+
+    content = get_graphql_content(
+        staff_api_client.post_graphql(
+            PRODUCT_REORDER_ATTRIBUTE_VALUES_MUTATION, variables
+        )
+    )["data"]["productReorderAttributeValues"]
+    assert not content["productErrors"]
+
+    assert content["product"]["id"] == product_id, "Did not return the correct product"
+
+    gql_attribute_values = content["product"]["attributes"][0]["values"]
+    assert len(gql_attribute_values) == 3
+
+    for attr, expected_pk in zip(gql_attribute_values, expected_order):
+        db_type, value_pk = graphene.Node.from_global_id(attr["id"])
+        assert db_type == "AttributeValue"
+        assert int(value_pk) == expected_pk
+
+
+def test_sort_product_attribute_values_invalid_attribute_id(
+    staff_api_client,
+    permission_manage_products,
+    product,
+    product_type_page_reference_attribute,
+    color_attribute,
+):
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    product_type = product.product_type
+    product_type.product_attributes.clear()
+    product_type.product_attributes.add(product_type_page_reference_attribute)
+
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    attr_values = AttributeValue.objects.bulk_create(
+        [
+            AttributeValue(
+                attribute=product_type_page_reference_attribute,
+                slug=f"{product.pk}_1",
+                name="test name 1",
+            ),
+            AttributeValue(
+                attribute=product_type_page_reference_attribute,
+                slug=f"{product.pk}_2",
+                name="test name 2",
+            ),
+        ]
+    )
+    associate_attribute_values_to_instance(
+        product, product_type_page_reference_attribute, *attr_values
+    )
+
+    variables = {
+        "productId": product_id,
+        "attributeId": graphene.Node.to_global_id("Attribute", color_attribute.pk),
+        "moves": [
+            {
+                "id": graphene.Node.to_global_id("AttributeValue", attr_values[0].pk),
+                "sortOrder": +1,
+            },
+        ],
+    }
+
+    content = get_graphql_content(
+        staff_api_client.post_graphql(
+            PRODUCT_REORDER_ATTRIBUTE_VALUES_MUTATION, variables
+        )
+    )["data"]["productReorderAttributeValues"]
+    errors = content["productErrors"]
+    assert not content["product"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductErrorCode.NOT_FOUND.name
+    assert errors[0]["field"] == "attributeId"
+
+
+def test_sort_product_attribute_values_invalid_value_id(
+    staff_api_client,
+    permission_manage_products,
+    product,
+    product_type_page_reference_attribute,
+    size_page_attribute,
+):
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    product_type = product.product_type
+    product_type.product_attributes.clear()
+    product_type.product_attributes.add(product_type_page_reference_attribute)
+
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    attribute_id = graphene.Node.to_global_id(
+        "Attribute", product_type_page_reference_attribute.id
+    )
+    attr_values = AttributeValue.objects.bulk_create(
+        [
+            AttributeValue(
+                attribute=product_type_page_reference_attribute,
+                slug=f"{product.pk}_1",
+                name="test name 1",
+            ),
+            AttributeValue(
+                attribute=product_type_page_reference_attribute,
+                slug=f"{product.pk}_2",
+                name="test name 2",
+            ),
+            AttributeValue(
+                attribute=product_type_page_reference_attribute,
+                slug=f"{product.pk}_3",
+                name="test name 3",
+            ),
+        ]
+    )
+    associate_attribute_values_to_instance(
+        product, product_type_page_reference_attribute, *attr_values
+    )
+
+    invalid_value_id = graphene.Node.to_global_id(
+        "AttributeValue", size_page_attribute.values.first().pk
+    )
+
+    variables = {
+        "productId": product_id,
+        "attributeId": attribute_id,
+        "moves": [
+            {"id": invalid_value_id, "sortOrder": +1},
+            {
+                "id": graphene.Node.to_global_id("AttributeValue", attr_values[2].pk),
+                "sortOrder": -1,
+            },
+        ],
+    }
+
+    content = get_graphql_content(
+        staff_api_client.post_graphql(
+            PRODUCT_REORDER_ATTRIBUTE_VALUES_MUTATION, variables
+        )
+    )["data"]["productReorderAttributeValues"]
+    errors = content["productErrors"]
+    assert not content["product"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductErrorCode.NOT_FOUND.name
+    assert errors[0]["field"] == "moves"
+    assert errors[0]["values"] == [invalid_value_id]
+
+
+PRODUCT_VARIANT_REORDER_ATTRIBUTE_VALUES_MUTATION = """
+    mutation ProductVariantReorderAttributeValues(
+      $variantId: ID!
+      $attributeId: ID!
+      $moves: [ReorderInput]!
+    ) {
+      productVariantReorderAttributeValues(
+        variantId: $variantId
+        attributeId: $attributeId
+        moves: $moves
+      ) {
+        productVariant {
+          id
+          attributes {
+            attribute {
+                id
+                slug
+            }
+            values {
+                id
+            }
+          }
+        }
+
+        productErrors {
+          field
+          message
+          code
+          attributes
+          values
+        }
+      }
+    }
+"""
+
+
+def test_sort_product_variant_attribute_values(
+    staff_api_client,
+    permission_manage_products,
+    product,
+    product_type_page_reference_attribute,
+):
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    variant = product.variants.first()
+    product_type = product.product_type
+    product_type.variant_attributes.clear()
+    product_type.variant_attributes.add(product_type_page_reference_attribute)
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    attribute_id = graphene.Node.to_global_id(
+        "Attribute", product_type_page_reference_attribute.id
+    )
+    attr_values = AttributeValue.objects.bulk_create(
+        [
+            AttributeValue(
+                attribute=product_type_page_reference_attribute,
+                slug=f"{variant.pk}_1",
+                name="test name 1",
+            ),
+            AttributeValue(
+                attribute=product_type_page_reference_attribute,
+                slug=f"{variant.pk}_2",
+                name="test name 2",
+            ),
+            AttributeValue(
+                attribute=product_type_page_reference_attribute,
+                slug=f"{variant.pk}_3",
+                name="test name 3",
+            ),
+        ]
+    )
+    associate_attribute_values_to_instance(
+        variant, product_type_page_reference_attribute, *attr_values
+    )
+
+    variables = {
+        "variantId": variant_id,
+        "attributeId": attribute_id,
+        "moves": [
+            {
+                "id": graphene.Node.to_global_id("AttributeValue", attr_values[0].pk),
+                "sortOrder": +1,
+            },
+            {
+                "id": graphene.Node.to_global_id("AttributeValue", attr_values[2].pk),
+                "sortOrder": -1,
+            },
+        ],
+    }
+
+    expected_order = [attr_values[1].pk, attr_values[2].pk, attr_values[0].pk]
+
+    content = get_graphql_content(
+        staff_api_client.post_graphql(
+            PRODUCT_VARIANT_REORDER_ATTRIBUTE_VALUES_MUTATION, variables
+        )
+    )["data"]["productVariantReorderAttributeValues"]
+    assert not content["productErrors"]
+
+    assert (
+        content["productVariant"]["id"] == variant_id
+    ), "Did not return the correct product variant"
+
+    gql_attribute_values = content["productVariant"]["attributes"][0]["values"]
+    assert len(gql_attribute_values) == 3
+
+    for attr, expected_pk in zip(gql_attribute_values, expected_order):
+        db_type, value_pk = graphene.Node.from_global_id(attr["id"])
+        assert db_type == "AttributeValue"
+        assert int(value_pk) == expected_pk
+
+
+def test_sort_product_variant_attribute_values_invalid_attribute_id(
+    staff_api_client,
+    permission_manage_products,
+    product,
+    product_type_page_reference_attribute,
+    color_attribute,
+):
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    variant = product.variants.first()
+    product_type = product.product_type
+    product_type.variant_attributes.clear()
+    product_type.variant_attributes.add(product_type_page_reference_attribute)
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    attr_values = AttributeValue.objects.bulk_create(
+        [
+            AttributeValue(
+                attribute=product_type_page_reference_attribute,
+                slug=f"{variant.pk}_1",
+                name="test name 1",
+            ),
+            AttributeValue(
+                attribute=product_type_page_reference_attribute,
+                slug=f"{variant.pk}_2",
+                name="test name 2",
+            ),
+        ]
+    )
+    associate_attribute_values_to_instance(
+        variant, product_type_page_reference_attribute, *attr_values
+    )
+
+    variables = {
+        "variantId": variant_id,
+        "attributeId": graphene.Node.to_global_id("Attribute", color_attribute.pk),
+        "moves": [
+            {
+                "id": graphene.Node.to_global_id("AttributeValue", attr_values[0].pk),
+                "sortOrder": +1,
+            },
+        ],
+    }
+
+    content = get_graphql_content(
+        staff_api_client.post_graphql(
+            PRODUCT_VARIANT_REORDER_ATTRIBUTE_VALUES_MUTATION, variables
+        )
+    )["data"]["productVariantReorderAttributeValues"]
+    errors = content["productErrors"]
+    assert not content["productVariant"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductErrorCode.NOT_FOUND.name
+    assert errors[0]["field"] == "attributeId"
+
+
+def test_sort_product_variant_attribute_values_invalid_value_id(
+    staff_api_client,
+    permission_manage_products,
+    product,
+    product_type_page_reference_attribute,
+    size_page_attribute,
+):
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    variant = product.variants.first()
+    product_type = product.product_type
+    product_type.variant_attributes.clear()
+    product_type.variant_attributes.add(product_type_page_reference_attribute)
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    attribute_id = graphene.Node.to_global_id(
+        "Attribute", product_type_page_reference_attribute.id
+    )
+    attr_values = AttributeValue.objects.bulk_create(
+        [
+            AttributeValue(
+                attribute=product_type_page_reference_attribute,
+                slug=f"{variant.pk}_1",
+                name="test name 1",
+            ),
+            AttributeValue(
+                attribute=product_type_page_reference_attribute,
+                slug=f"{variant.pk}_2",
+                name="test name 2",
+            ),
+            AttributeValue(
+                attribute=product_type_page_reference_attribute,
+                slug=f"{variant.pk}_3",
+                name="test name 3",
+            ),
+        ]
+    )
+    associate_attribute_values_to_instance(
+        variant, product_type_page_reference_attribute, *attr_values
+    )
+
+    invalid_value_id = graphene.Node.to_global_id(
+        "AttributeValue", size_page_attribute.values.first().pk
+    )
+
+    variables = {
+        "variantId": variant_id,
+        "attributeId": attribute_id,
+        "moves": [
+            {"id": invalid_value_id, "sortOrder": +1},
+            {
+                "id": graphene.Node.to_global_id("AttributeValue", attr_values[2].pk),
+                "sortOrder": -1,
+            },
+        ],
+    }
+
+    content = get_graphql_content(
+        staff_api_client.post_graphql(
+            PRODUCT_VARIANT_REORDER_ATTRIBUTE_VALUES_MUTATION, variables
+        )
+    )["data"]["productVariantReorderAttributeValues"]
+    errors = content["productErrors"]
+    assert not content["productVariant"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductErrorCode.NOT_FOUND.name
+    assert errors[0]["field"] == "moves"
+    assert errors[0]["values"] == [invalid_value_id]

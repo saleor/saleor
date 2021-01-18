@@ -29,7 +29,6 @@ def test_query_page_type(
                     values {
                         name
                         slug
-                        type
                     }
                     valueRequired
                     visibleInStorefront
@@ -45,7 +44,6 @@ def test_query_page_type(
                             values {
                                 name
                                 slug
-                                type
                             }
                             valueRequired
                             visibleInStorefront
@@ -94,7 +92,6 @@ def test_query_page_types(
                             values {
                                 name
                                 slug
-                                type
                             }
                             valueRequired
                             visibleInStorefront
@@ -110,7 +107,6 @@ def test_query_page_types(
                                     values {
                                         name
                                         slug
-                                        type
                                     }
                                     valueRequired
                                     visibleInStorefront
