@@ -19,7 +19,9 @@ from .tasks import (
 def send_account_password_reset_event(payload: dict, config: dict):
     recipient_email = payload["recipient_email"]
     send_password_reset_email_task.delay(
-        recipient_email, payload, config,
+        recipient_email,
+        payload,
+        config,
     )
 
 
@@ -31,7 +33,9 @@ def send_account_confirmation(payload: dict, config: dict):
 def send_account_change_email_request(payload: dict, config: dict):
     recipient_email = payload["recipient_email"]
     send_request_email_change_email_task.delay(
-        recipient_email, payload, config,
+        recipient_email,
+        payload,
+        config,
     )
 
 
@@ -53,7 +57,9 @@ def send_account_set_customer_password(payload: dict, config: dict):
 def send_invoice(payload: dict, config: dict):
     recipient_email = payload["recipient_email"]
     send_invoice_email_task.delay(
-        recipient_email, payload, config,
+        recipient_email,
+        payload,
+        config,
     )
 
 

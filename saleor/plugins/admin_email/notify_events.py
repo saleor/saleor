@@ -9,7 +9,9 @@ from .tasks import (
 def send_set_staff_password_email(payload: dict, config: dict):
     recipient_email = payload["recipient_email"]
     send_set_staff_password_email_task.delay(
-        recipient_email, payload, config,
+        recipient_email,
+        payload,
+        config,
     )
 
 
