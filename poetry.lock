@@ -2248,7 +2248,7 @@ python-versions = ">= 3.5"
 
 [[package]]
 name = "tox"
-version = "3.21.0"
+version = "3.21.1"
 description = "tox is a generic virtualenv management and test command line tool"
 category = "dev"
 optional = false
@@ -2491,7 +2491,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "c18215491cd2ab9456075e834e81172113f7af7dbbc7f2796037af8a31aebeab"
+content-hash = "6a92f4489c370e2fcffe382c2124ba2f2b2ecddadbb659a4f0f35eddd6552a6b"
 
 [metadata.files]
 adyen = [
@@ -3691,8 +3691,8 @@ tornado = [
     {file = "tornado-6.1.tar.gz", hash = "sha256:33c6e81d7bd55b468d2e793517c909b139960b6c790a60b7991b9b6b76fb9791"},
 ]
 tox = [
-    {file = "tox-3.21.0-py2.py3-none-any.whl", hash = "sha256:5efda30ad73e662c3844ac51ce1381bf28f61063773e06996aa8b6277133a7c0"},
-    {file = "tox-3.21.0.tar.gz", hash = "sha256:8cccede64802e78aa6c69f81051b25f0706639d1cbbb34d9366ce00c70ee054f"},
+    {file = "tox-3.21.1-py2.py3-none-any.whl", hash = "sha256:8a28facf65275c84b3bfde102afe24541d2ce02fd83ea07ce906537c3a74ed2d"},
+    {file = "tox-3.21.1.tar.gz", hash = "sha256:31379f2662393034203c5d6b2ebb7b86c67452cfc689784475c1c6e4a3cbc0cd"},
 ]
 tqdm = [
     {file = "tqdm-4.56.0-py2.py3-none-any.whl", hash = "sha256:4621f6823bab46a9cc33d48105753ccbea671b68bab2c50a9f0be23d4065cb5a"},
