@@ -88,7 +88,7 @@ def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
     return GatewayResponse(
         is_success=success,
         action_required=False,
-        transaction_id=str(transaction_id) if transaction_id else None,
+        transaction_id=transaction_id,
         amount=payment_information.amount,
         currency=payment_information.currency,
         error=error,
@@ -178,12 +178,10 @@ def authorize(
         raw_response,
     ) = _handle_authorize_net_response(response)
     searchable_key = None
-    response_transaction_id: Optional[str] = None
     if transaction_id:
         searchable_key = transaction_id
-        response_transaction_id = str(transaction_id)
     elif payment_information.token:
-        response_transaction_id = payment_information.token
+        transaction_id = payment_information.token
 
     if hasattr(response, "profileResponse") and hasattr(
         response.profileResponse, "customerProfileId"
@@ -197,7 +195,7 @@ def authorize(
     return GatewayResponse(
         is_success=success,
         action_required=False,
-        transaction_id=response_transaction_id,
+        transaction_id=transaction_id,
         amount=payment_information.amount,
         currency=payment_information.currency,
         error=error,
@@ -235,7 +233,7 @@ def void(payment_information: PaymentData, config: GatewayConfig) -> GatewayResp
     return GatewayResponse(
         is_success=success,
         action_required=False,
-        transaction_id=str(transaction_id) if transaction_id else None,
+        transaction_id=transaction_id,
         amount=payment_information.amount,
         currency=payment_information.currency,
         error=error,
@@ -334,7 +332,7 @@ def refund(
     return GatewayResponse(
         is_success=success,
         action_required=False,
-        transaction_id=str(transaction_id) if transaction_id else None,
+        transaction_id=transaction_id,
         amount=payment_information.amount,
         currency=payment_information.currency,
         error=error,
@@ -347,7 +345,7 @@ def refund(
 
 def _handle_authorize_net_response(
     response: ObjectifiedElement,
-) -> Tuple[bool, Optional[str], Optional[int], Any, Any]:
+) -> Tuple[bool, Optional[str], str, Any, Any]:
     success = False
     error: Optional[str] = None
     transaction_id: Optional[int] = None
@@ -376,6 +374,7 @@ def _handle_authorize_net_response(
                 error = response.messages.message[0]["text"].text
     else:
         error = "Null Response"
+    transaction_id = str(transaction_id) if transaction_id else ""
     return (
         success,
         error,
