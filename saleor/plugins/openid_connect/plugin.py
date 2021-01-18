@@ -180,18 +180,20 @@ class OpenIDConnectPlugin(BasePlugin):
         if not self.active:
             return previous_value
 
-        code = data.get("code")
         state = data.get("state")
         if not state:
             msg = "Missing required field - state"
             raise ValidationError(
                 {"state": ValidationError(msg, code=PluginErrorCode.NOT_FOUND.value)}
             )
+
+        code = data.get("code")
         if not code:
             msg = "Missing required field - code"
             raise ValidationError(
                 {"code": ValidationError(msg, code=PluginErrorCode.NOT_FOUND.value)}
             )
+
         state_data = signing.loads(state)
         redirect_uri = state_data.get("redirectUri")
         if not redirect_uri:
@@ -199,6 +201,7 @@ class OpenIDConnectPlugin(BasePlugin):
             raise ValidationError(
                 {"code": ValidationError(msg, code=PluginErrorCode.INVALID.value)}
             )
+
         token_data = self.oauth.fetch_token(
             self.config.token_url, code=code, redirect_uri=redirect_uri
         )
@@ -207,6 +210,7 @@ class OpenIDConnectPlugin(BasePlugin):
             user_permissions = get_saleor_permissions_from_scope(
                 token_data.get("scope")
             )
+
         parsed_id_token = get_parsed_id_token(
             token_data, self.config.json_web_key_set_url
         )

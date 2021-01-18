@@ -73,7 +73,9 @@ class OrderSettings(CountableDjangoObjectType):
 
 
 class ExternalAuthentication(graphene.ObjectType):
-    id = graphene.String(description="ID of external authentication plugin.")
+    id = graphene.String(
+        description="ID of external authentication plugin.", required=True
+    )
     name = graphene.String(description="Name of external authentication plugin.")
 
 

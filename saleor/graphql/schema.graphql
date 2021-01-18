@@ -1960,7 +1960,7 @@ enum ExportScope {
 }
 
 type ExternalAuthentication {
-  id: String
+  id: String!
   name: String
 }
 
