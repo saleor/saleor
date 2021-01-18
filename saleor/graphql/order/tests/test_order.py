@@ -3399,8 +3399,7 @@ def test_clean_order_refund_payment():
     payment.can_refund.return_value = False
     with pytest.raises(ValidationError) as e:
         clean_refund_payment(payment)
-    msg = "Payment cannot be refunded."
-    assert e.value.error_dict["payment"][0].message == msg
+    assert e.value.error_dict["payment"][0].code == OrderErrorCode.CANNOT_REFUND
 
 
 def test_clean_order_capture():
