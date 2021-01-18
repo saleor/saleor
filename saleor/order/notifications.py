@@ -17,28 +17,26 @@ if TYPE_CHECKING:
 
 
 def get_order_line_payload(line: "OrderLine"):
-    unit_tax_amount = line.unit_price_gross_amount - line.unit_price_net_amount
-    total_gross = line.unit_price_gross * line.quantity
-    total_net = line.unit_price_net * line.quantity
-    total_tax = total_gross - total_net
     digital_url = ""
     if line.is_digital:
         content = DigitalContentUrl.objects.filter(line=line).first()
         digital_url = content.get_absolute_url() if content else None  # type: ignore
     return {
         "id": line.id,
-        "product_name": line.translated_product_name or line.product_name,
-        "variant_name": line.translated_variant_name or line.variant_name,
+        "product_name": line.product_name,
+        "translated_product_name": line.translated_product_name or line.product_name,
+        "variant_name": line.variant_name,
+        "translated_variant_name": line.translated_variant_name or line.variant_name,
         "product_sku": line.product_sku,
         "quantity": line.quantity,
         "quantity_fulfilled": line.quantity_fulfilled,
         "currency": line.currency,
-        "unit_price_net_amount": line.unit_price_net_amount,
-        "unit_price_gross_amount": line.unit_price_gross_amount,
-        "unit_tax_amount": unit_tax_amount,
-        "total_gross_amount": total_gross.amount,
-        "total_net_amount": total_net.amount,
-        "total_tax_amount": total_tax.amount,
+        "unit_price_net_amount": line.unit_price.net.amount,
+        "unit_price_gross_amount": line.unit_price.gross.amount,
+        "unit_tax_amount": line.unit_price.tax.amount,
+        "total_gross_amount": line.total_price.gross.amount,
+        "total_net_amount": line.total_price.net.amount,
+        "total_tax_amount": line.total_price.tax.amount,
         "tax_rate": line.tax_rate,
         "is_shipping_required": line.is_shipping_required,
         "is_digital": line.is_digital,
@@ -102,6 +100,7 @@ def get_default_order_payload(order: "Order", redirect_url: str = ""):
     order_payload = model_to_dict(order, fields=ORDER_MODEL_FIELDS)
     order_payload.update(
         {
+            "channel_slug": order.channel.slug,
             "created": order.created,
             "shipping_price_net_amount": order.shipping_price_net_amount,
             "shipping_price_gross_amount": order.shipping_price_gross_amount,
