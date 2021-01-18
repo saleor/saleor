@@ -71,7 +71,7 @@ class OrderQueryset(models.QuerySet):
         return qs.distinct()
 
     def ready_to_confirm(self):
-        """Return unconfirmed_orders."""
+        """Return unconfirmed orders."""
         return self.filter(status=OrderStatus.UNCONFIRMED)
 
 
