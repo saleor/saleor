@@ -24,6 +24,7 @@ def authorize_net_gateway_config():
 
 @pytest.fixture()
 def authorize_net_payment(payment_dummy):
+    payment_dummy.gateway = "mirumee.payments.authorize_net"
     return payment_dummy
 
 
