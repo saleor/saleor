@@ -857,6 +857,17 @@ def test_ordered_item_change_quantity(transactional_db, order_with_lines):
     assert order_with_lines.get_total_quantity() == 0
 
 
+def test_change_order_line_quantity_changes_total_prices(
+    transactional_db, order_with_lines
+):
+    assert not order_with_lines.events.count()
+    line = order_with_lines.lines.all()[0]
+    new_quantity = line.quantity + 1
+    change_order_line_quantity(None, line, line.quantity, new_quantity)
+    line.refresh_from_db()
+    assert line.total_price == line.unit_price * new_quantity
+
+
 @patch("saleor.order.actions.emails.send_fulfillment_confirmation")
 @pytest.mark.parametrize(
     "has_standard,has_digital", ((True, True), (True, False), (False, True))

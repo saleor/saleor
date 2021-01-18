@@ -1,7 +1,7 @@
 import graphene
 
+from ...account.utils import requestor_is_staff_member_or_app
 from ...core.permissions import ProductPermissions
-from ...product import models
 from ..channel import ChannelContext
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core.enums import ReportingPeriod
@@ -42,7 +42,9 @@ from .filters import (
 from .mutations.attributes import (
     ProductAttributeAssign,
     ProductAttributeUnassign,
+    ProductReorderAttributeValues,
     ProductTypeReorderAttributes,
+    ProductVariantReorderAttributeValues,
 )
 from .mutations.channels import (
     CollectionChannelListingUpdate,
@@ -259,10 +261,8 @@ class ProductQueries(graphene.ObjectType):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
         requestor = get_user_or_app_from_context(info.context)
 
-        requestor_has_access_to_all = models.Collection.objects.user_has_access_to_all(
-            requestor
-        )
-        if channel is None and not requestor_has_access_to_all:
+        is_staff = requestor_is_staff_member_or_app(requestor)
+        if channel is None and not is_staff:
             channel = get_default_channel_slug_or_graphql_error()
         if id:
             _, id = graphene.Node.from_global_id(id)
@@ -279,10 +279,8 @@ class ProductQueries(graphene.ObjectType):
 
     def resolve_collections(self, info, channel=None, *_args, **_kwargs):
         requestor = get_user_or_app_from_context(info.context)
-        requestor_has_access_to_all = models.Collection.objects.user_has_access_to_all(
-            requestor
-        )
-        if channel is None and not requestor_has_access_to_all:
+        is_staff = requestor_is_staff_member_or_app(requestor)
+        if channel is None and not is_staff:
             channel = get_default_channel_slug_or_graphql_error()
         return resolve_collections(info, channel)
 
@@ -297,11 +295,9 @@ class ProductQueries(graphene.ObjectType):
     def resolve_product(self, info, id=None, slug=None, channel=None, **_kwargs):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
         requestor = get_user_or_app_from_context(info.context)
-        requestor_has_access_to_all = models.Collection.objects.user_has_access_to_all(
-            requestor
-        )
+        is_staff = requestor_is_staff_member_or_app(requestor)
 
-        if channel is None and not requestor_has_access_to_all:
+        if channel is None and not is_staff:
             channel = get_default_channel_slug_or_graphql_error()
         if id:
             _, id = graphene.Node.from_global_id(id)
@@ -316,10 +312,7 @@ class ProductQueries(graphene.ObjectType):
 
     def resolve_products(self, info, channel=None, **kwargs):
         requestor = get_user_or_app_from_context(info.context)
-        requestor_has_access_to_all = models.Product.objects.user_has_access_to_all(
-            requestor
-        )
-        if channel is None and not requestor_has_access_to_all:
+        if channel is None and not requestor_is_staff_member_or_app(requestor):
             channel = get_default_channel_slug_or_graphql_error()
         return resolve_products(info, requestor, channel_slug=channel, **kwargs)
 
@@ -338,10 +331,8 @@ class ProductQueries(graphene.ObjectType):
     ):
         validate_one_of_args_is_in_query("id", id, "sku", sku)
         requestor = get_user_or_app_from_context(info.context)
-        requestor_has_access_to_all = models.Product.objects.user_has_access_to_all(
-            requestor
-        )
-        if channel is None and not requestor_has_access_to_all:
+        is_staff = requestor_is_staff_member_or_app(requestor)
+        if channel is None and not is_staff:
             channel = get_default_channel_slug_or_graphql_error()
         if id:
             _, id = graphene.Node.from_global_id(id)
@@ -354,22 +345,20 @@ class ProductQueries(graphene.ObjectType):
                 sku=sku,
                 channel_slug=channel,
                 requestor=requestor,
-                requestor_has_access_to_all=requestor_has_access_to_all,
+                requestor_has_access_to_all=is_staff,
             )
         return ChannelContext(node=variant, channel_slug=channel) if variant else None
 
     def resolve_product_variants(self, info, ids=None, channel=None, **_kwargs):
         requestor = get_user_or_app_from_context(info.context)
-        requestor_has_access_to_all = models.Product.objects.user_has_access_to_all(
-            requestor
-        )
-        if channel is None and not requestor_has_access_to_all:
+        is_staff = requestor_is_staff_member_or_app(requestor)
+        if channel is None and not is_staff:
             channel = get_default_channel_slug_or_graphql_error()
         return resolve_product_variants(
             info,
             ids=ids,
             channel_slug=channel,
-            requestor_has_access_to_all=requestor_has_access_to_all,
+            requestor_has_access_to_all=is_staff,
             requestor=requestor,
         )
 
@@ -418,6 +407,7 @@ class ProductMutations(graphene.ObjectType):
     product_type_bulk_delete = ProductTypeBulkDelete.Field()
     product_type_update = ProductTypeUpdate.Field()
     product_type_reorder_attributes = ProductTypeReorderAttributes.Field()
+    product_reorder_attribute_values = ProductReorderAttributeValues.Field()
 
     digital_content_create = DigitalContentCreate.Field()
     digital_content_delete = DigitalContentDelete.Field()
@@ -436,6 +426,9 @@ class ProductMutations(graphene.ObjectType):
     product_variant_set_default = ProductVariantSetDefault.Field()
     product_variant_translate = ProductVariantTranslate.Field()
     product_variant_channel_listing_update = ProductVariantChannelListingUpdate.Field()
+    product_variant_reorder_attribute_values = (
+        ProductVariantReorderAttributeValues.Field()
+    )
 
     variant_image_assign = VariantImageAssign.Field()
     variant_image_unassign = VariantImageUnassign.Field()

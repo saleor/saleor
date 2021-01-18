@@ -7,6 +7,7 @@ from .filters import PageFilterInput, PageTypeFilterInput
 from .mutations.attributes import (
     PageAttributeAssign,
     PageAttributeUnassign,
+    PageReorderAttributeValues,
     PageTypeReorderAttributes,
 )
 from .mutations.pages import (
@@ -86,3 +87,4 @@ class PageMutations(graphene.ObjectType):
     page_attribute_assign = PageAttributeAssign.Field()
     page_attribute_unassign = PageAttributeUnassign.Field()
     page_type_reorder_attributes = PageTypeReorderAttributes.Field()
+    page_reorder_attribute_values = PageReorderAttributeValues.Field()

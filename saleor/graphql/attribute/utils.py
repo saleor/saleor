@@ -1,13 +1,15 @@
-from collections import defaultdict, namedtuple
-from typing import TYPE_CHECKING, Dict, Iterable, List, Tuple, Union
+from collections import defaultdict
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple, Union
 
 import graphene
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.utils.text import slugify
+from graphql.error import GraphQLError
 from graphql_relay import from_global_id
 
-from ...attribute import AttributeInputType, AttributeType
+from ...attribute import AttributeEntityType, AttributeInputType, AttributeType
 from ...attribute import models as attribute_models
 from ...attribute.utils import associate_attribute_values_to_instance
 from ...core.utils import generate_unique_slug
@@ -15,6 +17,7 @@ from ...page import models as page_models
 from ...page.error_codes import PageErrorCode
 from ...product import models as product_models
 from ...product.error_codes import ProductErrorCode
+from ..utils import get_nodes
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -22,13 +25,20 @@ if TYPE_CHECKING:
     from ...attribute.models import Attribute
 
 
-AttrValuesInput = namedtuple(
-    "AttrValuesInput", ["global_id", "values", "file_url", "content_type"]
-)
+@dataclass
+class AttrValuesInput:
+    global_id: str
+    values: List[str]
+    references: Union[List[str], List[page_models.Page]]
+    file_url: Optional[str] = None
+    content_type: Optional[str] = None
+
+
 T_INSTANCE = Union[
     product_models.Product, product_models.ProductVariant, page_models.Page
 ]
 T_INPUT_MAP = List[Tuple[attribute_models.Attribute, AttrValuesInput]]
+T_ERROR_DICT = Dict[Tuple[str, str], List[str]]
 
 
 class AttributeAssignmentMixin:
@@ -47,10 +57,21 @@ class AttributeAssignmentMixin:
     be unable to build or might only be partially built.
     """
 
+    REFERENCE_VALUE_NAME_MAPPING = {
+        AttributeEntityType.PAGE: "title",
+        AttributeEntityType.PRODUCT: "name",
+    }
+
+    ENTITY_TYPE_TO_MODEL_MAPPING = {
+        AttributeEntityType.PAGE: page_models.Page,
+        AttributeEntityType.PRODUCT: product_models.Product,
+    }
+
     @classmethod
     def _resolve_attribute_nodes(
         cls,
         qs: "QuerySet",
+        error_class,
         *,
         global_ids: List[str],
         pks: Iterable[int],
@@ -66,7 +87,7 @@ class AttributeAssignmentMixin:
                     f"Could not resolve to a node: ids={global_ids}"
                     f" and slugs={list(slugs)}"
                 ),
-                code=ProductErrorCode.NOT_FOUND.value,
+                code=error_class.NOT_FOUND.value,
             )
 
         nodes_pk_list = set()
@@ -79,31 +100,31 @@ class AttributeAssignmentMixin:
             if pk not in nodes_pk_list:
                 raise ValidationError(
                     f"Could not resolve {global_id!r} to Attribute",
-                    code=ProductErrorCode.NOT_FOUND.value,
+                    code=error_class.NOT_FOUND.value,
                 )
 
         for slug in slugs:
             if slug not in nodes_slug_list:
                 raise ValidationError(
                     f"Could not resolve slug {slug!r} to Attribute",
-                    code=ProductErrorCode.NOT_FOUND.value,
+                    code=error_class.NOT_FOUND.value,
                 )
 
         return nodes
 
     @classmethod
-    def _resolve_attribute_global_id(cls, global_id: str) -> int:
+    def _resolve_attribute_global_id(cls, error_class, global_id: str) -> int:
         """Resolve an Attribute global ID into an internal ID (int)."""
         graphene_type, internal_id = from_global_id(global_id)  # type: str, str
         if graphene_type != "Attribute":
             raise ValidationError(
                 f"Must receive an Attribute id, got {graphene_type}.",
-                code=ProductErrorCode.INVALID.value,
+                code=error_class.INVALID.value,
             )
         if not internal_id.isnumeric():
             raise ValidationError(
                 f"An invalid ID value was passed: {global_id}",
-                code=ProductErrorCode.INVALID.value,
+                code=error_class.INVALID.value,
             )
         return int(internal_id)
 
@@ -120,6 +141,33 @@ class AttributeAssignmentMixin:
                 defaults={"name": value},
             )[0]
             for value in attr_values.values
+        )
+
+    @classmethod
+    def _pre_save_reference_values(
+        cls,
+        instance,
+        attribute: attribute_models.Attribute,
+        attr_values: AttrValuesInput,
+    ):
+        """Lazy-retrieve or create the database objects from the supplied raw values.
+
+        Slug value is generated based on instance and reference entity id.
+        """
+        field_name = cls.REFERENCE_VALUE_NAME_MAPPING[
+            attribute.entity_type  # type: ignore
+        ]
+        get_or_create = attribute.values.get_or_create
+        return tuple(
+            get_or_create(
+                attribute=attribute,
+                slug=slugify(
+                    f"{instance.id}_{reference.id}",  # type: ignore
+                    allow_unicode=True,
+                ),
+                defaults={"name": getattr(reference, field_name)},
+            )[0]
+            for reference in attr_values.references
         )
 
     @classmethod
@@ -224,6 +272,7 @@ class AttributeAssignmentMixin:
         :raises ValidationError: contain the message.
         :return: The resolved data
         """
+        error_class = PageErrorCode if is_page_attributes else ProductErrorCode
 
         # Mapping to associate the input values back to the resolved attribute nodes
         pks = {}
@@ -240,10 +289,11 @@ class AttributeAssignmentMixin:
                 values=attribute_input.get("values", []),
                 file_url=attribute_input.get("file"),
                 content_type=attribute_input.get("content_type"),
+                references=attribute_input.get("references", []),
             )
 
             if global_id:
-                internal_id = cls._resolve_attribute_global_id(global_id)
+                internal_id = cls._resolve_attribute_global_id(error_class, global_id)
                 global_ids.append(global_id)
                 pks[internal_id] = values
             elif slug:
@@ -251,12 +301,17 @@ class AttributeAssignmentMixin:
             else:
                 raise ValidationError(
                     "You must whether supply an ID or a slug",
-                    code=ProductErrorCode.REQUIRED.value,
+                    code=error_class.REQUIRED.value,  # type: ignore
                 )
 
         attributes = cls._resolve_attribute_nodes(
-            attributes_qs, global_ids=global_ids, pks=pks.keys(), slugs=slugs.keys()
+            attributes_qs,
+            error_class,
+            global_ids=global_ids,
+            pks=pks.keys(),
+            slugs=slugs.keys(),
         )
+        attr_with_invalid_references = []
         cleaned_input = []
         for attribute in attributes:
             key = pks.get(attribute.pk, None)
@@ -266,7 +321,22 @@ class AttributeAssignmentMixin:
             if key is None:
                 key = slugs[attribute.slug]
 
+            if attribute.input_type == AttributeInputType.REFERENCE:
+                try:
+                    key = cls._validate_references(error_class, attribute, key)
+                except GraphQLError:
+                    attr_with_invalid_references.append(attribute)
+
             cleaned_input.append((attribute, key))
+
+        if attr_with_invalid_references:
+            raise ValidationError(
+                "Provided references are invalid. Some of the nodes "
+                "do not exist or are different types than types defined "
+                "in attribute entity type.",
+                code=error_class.INVALID.value,  # type: ignore
+            )
+
         cls._validate_attributes_input(
             cleaned_input,
             attributes_qs,
@@ -275,6 +345,21 @@ class AttributeAssignmentMixin:
         )
 
         return cleaned_input
+
+    @classmethod
+    def _validate_references(
+        cls, error_class, attribute: attribute_models.Attribute, values: AttrValuesInput
+    ) -> AttrValuesInput:
+        references = values.references
+        if not references:
+            return values
+
+        entity_model = cls.ENTITY_TYPE_TO_MODEL_MAPPING[
+            attribute.entity_type  # type: ignore
+        ]
+        ref_instances = get_nodes(references, attribute.entity_type, model=entity_model)
+        values.references = ref_instances
+        return values
 
     @classmethod
     def save(cls, instance: T_INSTANCE, cleaned_input: T_INPUT_MAP):
@@ -288,6 +373,10 @@ class AttributeAssignmentMixin:
         for attribute, attr_values in cleaned_input:
             if attribute.input_type == AttributeInputType.FILE:
                 attribute_values = cls._pre_save_file_value(
+                    instance, attribute, attr_values
+                )
+            elif attribute.input_type == AttributeInputType.REFERENCE:
+                attribute_values = cls._pre_save_reference_values(
                     instance, attribute, attr_values
                 )
             else:
@@ -304,53 +393,36 @@ def get_variant_selection_attributes(qs: "QuerySet"):
     )
 
 
-class ProductAttributeInputErrors:
-    ERROR_NO_VALUE_GIVEN = ValidationError(
-        "Attribute expects a value but none were given",
-        code=PageErrorCode.REQUIRED.value,
-    )
-    ERROR_DROPDOWN_GET_MORE_THAN_ONE_VALUE = ValidationError(
+class AttributeInputErrors:
+    """Define error message and error code for given error.
+
+    All used error codes must be specified in PageErrorCode and ProductErrorCode.
+    """
+
+    ERROR_NO_VALUE_GIVEN = ("Attribute expects a value but none were given", "REQUIRED")
+    ERROR_DROPDOWN_GET_MORE_THAN_ONE_VALUE = (
         "Attribute must take only one value",
-        code=PageErrorCode.INVALID.value,
+        "INVALID",
     )
-    ERROR_BLANK_VALUE = ValidationError(
+    ERROR_BLANK_VALUE = (
         "Attribute values cannot be blank",
-        code=PageErrorCode.REQUIRED.value,
+        "REQUIRED",
     )
 
     # file errors
-    ERROR_NO_FILE_GIVEN = ValidationError(
+    ERROR_NO_FILE_GIVEN = (
         "Attribute file url cannot be blank",
-        code=PageErrorCode.REQUIRED.value,
+        "REQUIRED",
     )
-    ERROR_BLANK_FILE_VALUE = ValidationError(
+    ERROR_BLANK_FILE_VALUE = (
         "Attribute expects a file url but none were given",
-        code=PageErrorCode.REQUIRED.value,
+        "REQUIRED",
     )
 
-
-class PageAttributeInputErrors:
-    ERROR_NO_VALUE_GIVEN = ValidationError(
-        "Attribute expects a value but none were given",
-        code=ProductErrorCode.REQUIRED.value,
-    )
-    ERROR_DROPDOWN_GET_MORE_THAN_ONE_VALUE = ValidationError(
-        "Attribute must take only one value",
-        code=ProductErrorCode.INVALID.value,
-    )
-    ERROR_BLANK_VALUE = ValidationError(
-        "Attribute values cannot be blank",
-        code=ProductErrorCode.REQUIRED.value,
-    )
-
-    # file errors
-    ERROR_NO_FILE_GIVEN = ValidationError(
-        "Attribute file url cannot be blank",
-        code=ProductErrorCode.REQUIRED.value,
-    )
-    ERROR_BLANK_FILE_VALUE = ValidationError(
-        "Attribute expects a file url but none were given",
-        code=ProductErrorCode.REQUIRED.value,
+    # reference errors
+    ERROR_NO_REFERENCE_GIVEN = (
+        "Attribute expects an reference but none were given.",
+        "REQUIRED",
     )
 
 
@@ -367,34 +439,29 @@ def validate_attributes_input(
     - ensure the values are correct for a products or a page
     """
 
-    errors_data_structure = (
-        PageAttributeInputErrors if is_page_attributes else ProductAttributeInputErrors
-    )
-    attribute_errors: Dict[ValidationError, List[str]] = defaultdict(list)
+    error_code_enum = PageErrorCode if is_page_attributes else ProductErrorCode
+    attribute_errors: T_ERROR_DICT = defaultdict(list)
     for attribute, attr_values in input_data:
-        # validation for file attribute
+        attrs = (
+            attribute,
+            attr_values,
+            attribute_errors,
+            variant_validation,
+        )
         if attribute.input_type == AttributeInputType.FILE:
-            validate_file_attributes_input(
-                attribute,
-                attr_values,
-                errors_data_structure,
-                attribute_errors,
-                variant_validation,
-            )
+            validate_file_attributes_input(*attrs)
+        elif attribute.input_type == AttributeInputType.REFERENCE:
+            validate_reference_attributes_input(*attrs)
         # validation for other input types
         else:
-            validate_not_file_attributes_input(
-                attribute,
-                attr_values,
-                errors_data_structure,
-                attribute_errors,
-                variant_validation,
-            )
+            validate_standard_attributes_input(*attrs)
 
-    errors = prepare_error_list_from_error_attribute_mapping(attribute_errors)
+    errors = prepare_error_list_from_error_attribute_mapping(
+        attribute_errors, error_code_enum
+    )
     if not variant_validation:
         errors = validate_required_attributes(
-            input_data, attribute_qs, errors, is_page_attributes
+            input_data, attribute_qs, errors, error_code_enum
         )
 
     return errors
@@ -403,8 +470,7 @@ def validate_attributes_input(
 def validate_file_attributes_input(
     attribute: "Attribute",
     attr_values: "AttrValuesInput",
-    errors_data_structure,
-    attribute_errors: Dict[ValidationError, List[str]],
+    attribute_errors: T_ERROR_DICT,
     variant_validation: bool,
 ):
     attribute_id = attr_values.global_id
@@ -413,20 +479,34 @@ def validate_file_attributes_input(
         if attribute.value_required or (
             variant_validation and is_variant_selection_attribute(attribute)
         ):
-            attribute_errors[errors_data_structure.ERROR_NO_FILE_GIVEN].append(
+            attribute_errors[AttributeInputErrors.ERROR_NO_FILE_GIVEN].append(
                 attribute_id
             )
     elif not value.strip():
-        attribute_errors[errors_data_structure.ERROR_BLANK_FILE_VALUE].append(
+        attribute_errors[AttributeInputErrors.ERROR_BLANK_FILE_VALUE].append(
             attribute_id
         )
 
 
-def validate_not_file_attributes_input(
+def validate_reference_attributes_input(
     attribute: "Attribute",
     attr_values: "AttrValuesInput",
-    errors_data_structure,
-    attribute_errors: Dict[ValidationError, List[str]],
+    attribute_errors: T_ERROR_DICT,
+    variant_validation: bool,
+):
+    attribute_id = attr_values.global_id
+    references = attr_values.references
+    if not references:
+        if attribute.value_required or variant_validation:
+            attribute_errors[AttributeInputErrors.ERROR_NO_REFERENCE_GIVEN].append(
+                attribute_id
+            )
+
+
+def validate_standard_attributes_input(
+    attribute: "Attribute",
+    attr_values: "AttrValuesInput",
+    attribute_errors: T_ERROR_DICT,
     variant_validation: bool,
 ):
     attribute_id = attr_values.global_id
@@ -434,7 +514,7 @@ def validate_not_file_attributes_input(
         if attribute.value_required or (
             variant_validation and is_variant_selection_attribute(attribute)
         ):
-            attribute_errors[errors_data_structure.ERROR_NO_VALUE_GIVEN].append(
+            attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(
                 attribute_id
             )
     elif (
@@ -442,11 +522,11 @@ def validate_not_file_attributes_input(
         and len(attr_values.values) != 1
     ):
         attribute_errors[
-            errors_data_structure.ERROR_DROPDOWN_GET_MORE_THAN_ONE_VALUE
+            AttributeInputErrors.ERROR_DROPDOWN_GET_MORE_THAN_ONE_VALUE
         ].append(attribute_id)
     for value in attr_values.values:
         if value is None or not value.strip():
-            attribute_errors[errors_data_structure.ERROR_BLANK_VALUE].append(
+            attribute_errors[AttributeInputErrors.ERROR_BLANK_VALUE].append(
                 attribute_id
             )
 
@@ -459,12 +539,11 @@ def validate_required_attributes(
     input_data: List[Tuple["Attribute", "AttrValuesInput"]],
     attribute_qs: "QuerySet",
     errors: List[ValidationError],
-    is_page_attributes: bool,
+    error_code_enum,
 ):
     """Ensure all required attributes are supplied."""
 
     supplied_attribute_pk = [attribute.pk for attribute, _ in input_data]
-    error_code_enum = PageErrorCode if is_page_attributes else ProductErrorCode
 
     missing_required_attributes = attribute_qs.filter(
         Q(value_required=True) & ~Q(pk__in=supplied_attribute_pk)
@@ -486,11 +565,16 @@ def validate_required_attributes(
 
 
 def prepare_error_list_from_error_attribute_mapping(
-    attribute_errors: Dict[ValidationError, List[str]]
+    attribute_errors: T_ERROR_DICT, error_code_enum
 ):
     errors = []
-    for error, attributes in attribute_errors.items():
-        error.params = {"attributes": attributes}
+    for error_data, attributes in attribute_errors.items():
+        error_msg, error_type = error_data
+        error = ValidationError(
+            error_msg,
+            code=getattr(error_code_enum, error_type).value,
+            params={"attributes": attributes},
+        )
         errors.append(error)
 
     return errors
