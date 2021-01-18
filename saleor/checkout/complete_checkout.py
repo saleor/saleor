@@ -210,7 +210,7 @@ def _create_lines_for_order(
 
     :raises InsufficientStock: when there is not enough items in stock for this variant.
     """
-    translation_language_code = get_language()
+    translation_language_code = checkout.language_code
     country_code = checkout.get_country()
     variants = []
     quantities = []
