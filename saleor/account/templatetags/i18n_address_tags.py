@@ -17,5 +17,5 @@ def format_address(address, include_phone=True, inline=False, latin=False):
     )
     address_lines = i18naddress.format_address(address_data, latin).split("\n")
     if include_phone and address.phone:
-        address_lines.append(address.phone)
+        address_lines.append(str(address.phone))
     return {"address_lines": address_lines, "inline": inline}
