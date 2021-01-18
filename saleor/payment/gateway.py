@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Callable, List, Optional
 
 from django.db import transaction
 
-from ..payment.interface import PaymentData, TokenConfig
+from ..payment.interface import TokenConfig
 from ..plugins.manager import get_plugins_manager
 from . import GatewayError, PaymentError, TransactionKind
 from .models import Payment, Transaction
