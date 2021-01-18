@@ -5,10 +5,16 @@ from ...app import error_codes as app_error_codes
 from ...attribute import error_codes as attribute_error_codes
 from ...channel import error_codes as channel_error_codes
 from ...checkout import error_codes as checkout_error_codes
-from ...core import JobStatus
+from ...core import (
+    AreaUnits,
+    DistanceUnits,
+    JobStatus,
+    MeasurementUnits,
+    VolumeUnits,
+    WeightUnits,
+)
 from ...core import error_codes as core_error_codes
 from ...core.permissions import get_permissions_enum_list
-from ...core.weight import WeightUnits
 from ...csv import error_codes as csv_error_codes
 from ...discount import error_codes as discount_error_codes
 from ...giftcard import error_codes as giftcard_error_codes
@@ -84,10 +90,14 @@ TaxRateType = graphene.Enum(
 
 JobStatusEnum = to_enum(JobStatus)
 PermissionEnum = graphene.Enum("PermissionEnum", get_permissions_enum_list())
-WeightUnitsEnum = graphene.Enum(
-    "WeightUnitsEnum", [(str_to_enum(unit[0]), unit[0]) for unit in WeightUnits.CHOICES]
-)
 
+# unit enums
+MeasurementUnitsEnum = to_enum(MeasurementUnits)
+DistanceUnitsEnum = to_enum(DistanceUnits)
+AreaUnitsEnum = to_enum(AreaUnits)
+VolumeUnitsEnum = to_enum(VolumeUnits)
+WeightUnitsEnum = to_enum(WeightUnits)
+unit_enums = [DistanceUnitsEnum, AreaUnitsEnum, VolumeUnitsEnum, WeightUnitsEnum]
 
 AccountErrorCode = graphene.Enum.from_enum(account_error_codes.AccountErrorCode)
 AppErrorCode = graphene.Enum.from_enum(app_error_codes.AppErrorCode)

@@ -380,6 +380,41 @@ type AppUpdate {
   app: App
 }
 
+enum AreaUnitsEnum {
+  SQ_CHAIN
+  SQ_CHAIN_BENOIT
+  SQ_CHAIN_SEARS
+  SQ_BRITISH_CHAIN_BENOIT
+  SQ_BRITISH_CHAIN_SEARS
+  SQ_BRITISH_CHAIN_SEARS_TRUNCATED
+  SQ_CM
+  SQ_BRITISH_FT
+  SQ_BRITISH_YD
+  SQ_CLARKE_FT
+  SQ_CLARKE_LINK
+  SQ_FATHOM
+  SQ_FT
+  SQ_FURLONG
+  SQ_GERMAN_M
+  SQ_GOLD_COAST_FT
+  SQ_INDIAN_YD
+  SQ_INCH
+  SQ_KM
+  SQ_LINK
+  SQ_LINK_BENOIT
+  SQ_LINK_SEARS
+  SQ_M
+  SQ_MI
+  SQ_MM
+  SQ_NM
+  SQ_NM_UK
+  SQ_ROD
+  SQ_SEARS_YD
+  SQ_SURVEY_FT
+  SQ_UM
+  SQ_YD
+}
+
 type AssignNavigation {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   menu: Menu
@@ -397,6 +432,7 @@ type Attribute implements Node & ObjectWithMetadata {
   name: String
   slug: String
   type: AttributeTypeEnum
+  unit: MeasurementUnitsEnum
   values: [AttributeValue]
   valueRequired: Boolean!
   visibleInStorefront: Boolean!
@@ -1753,6 +1789,41 @@ enum DiscountValueTypeEnum {
   PERCENTAGE
 }
 
+enum DistanceUnitsEnum {
+  CHAIN
+  CHAIN_BENOIT
+  CHAIN_SEARS
+  BRITISH_CHAIN_BENOIT
+  BRITISH_CHAIN_SEARS
+  BRITISH_CHAIN_SEARS_TRUNCATED
+  CM
+  BRITISH_FT
+  BRITISH_YD
+  CLARKE_FT
+  CLARKE_LINK
+  FATHOM
+  FT
+  FURLONG
+  GERMAN_M
+  GOLD_COAST_FT
+  INDIAN_YD
+  INCH
+  KM
+  LINK
+  LINK_BENOIT
+  LINK_SEARS
+  M
+  MI
+  MM
+  NM
+  NM_UK
+  ROD
+  SEARS_YD
+  SURVEY_FT
+  UM
+  YD
+}
+
 type Domain {
   host: String!
   sslEnabled: Boolean!
@@ -2299,6 +2370,105 @@ type Manifest {
 type Margin {
   start: Int
   stop: Int
+}
+
+enum MeasurementUnitsEnum {
+  CHAIN
+  CHAIN_BENOIT
+  CHAIN_SEARS
+  BRITISH_CHAIN_BENOIT
+  BRITISH_CHAIN_SEARS
+  BRITISH_CHAIN_SEARS_TRUNCATED
+  CM
+  BRITISH_FT
+  BRITISH_YD
+  CLARKE_FT
+  CLARKE_LINK
+  FATHOM
+  FT
+  FURLONG
+  GERMAN_M
+  GOLD_COAST_FT
+  INDIAN_YD
+  INCH
+  KM
+  LINK
+  LINK_BENOIT
+  LINK_SEARS
+  M
+  MI
+  MM
+  NM
+  NM_UK
+  ROD
+  SEARS_YD
+  SURVEY_FT
+  UM
+  YD
+  SQ_CHAIN
+  SQ_CHAIN_BENOIT
+  SQ_CHAIN_SEARS
+  SQ_BRITISH_CHAIN_BENOIT
+  SQ_BRITISH_CHAIN_SEARS
+  SQ_BRITISH_CHAIN_SEARS_TRUNCATED
+  SQ_CM
+  SQ_BRITISH_FT
+  SQ_BRITISH_YD
+  SQ_CLARKE_FT
+  SQ_CLARKE_LINK
+  SQ_FATHOM
+  SQ_FT
+  SQ_FURLONG
+  SQ_GERMAN_M
+  SQ_GOLD_COAST_FT
+  SQ_INDIAN_YD
+  SQ_INCH
+  SQ_KM
+  SQ_LINK
+  SQ_LINK_BENOIT
+  SQ_LINK_SEARS
+  SQ_M
+  SQ_MI
+  SQ_MM
+  SQ_NM
+  SQ_NM_UK
+  SQ_ROD
+  SQ_SEARS_YD
+  SQ_SURVEY_FT
+  SQ_UM
+  SQ_YD
+  US_G
+  MIL_US_G
+  US_QT
+  US_PINT
+  US_CUP
+  US_OZ
+  US_TBSP
+  US_TSP
+  CUBIC_MILLIMETER
+  CUBIC_CENTIMETER
+  CUBIC_DECIMETER
+  CUBIC_METER
+  L
+  CUBIC_FOOT
+  CUBIC_INCH
+  CUBIC_YARD
+  IMPERIAL_G
+  IMPERIAL_QT
+  IMPERIAL_PINT
+  IMPERIAL_OZ
+  IMPERIAL_TBSP
+  IMPERIAL_TSP
+  ACRE_IN
+  ACRE_FT
+  G
+  TONNE
+  OZ
+  LB
+  STONE
+  SHORT_TON
+  LONG_TON
+  KG
 }
 
 type Menu implements Node & ObjectWithMetadata {
@@ -5415,6 +5585,33 @@ type VerifyToken {
   accountErrors: [AccountError!]!
 }
 
+enum VolumeUnitsEnum {
+  US_G
+  MIL_US_G
+  US_QT
+  US_PINT
+  US_CUP
+  US_OZ
+  US_TBSP
+  US_TSP
+  CUBIC_MILLIMETER
+  CUBIC_CENTIMETER
+  CUBIC_DECIMETER
+  CUBIC_METER
+  L
+  CUBIC_FOOT
+  CUBIC_INCH
+  CUBIC_YARD
+  IMPERIAL_G
+  IMPERIAL_QT
+  IMPERIAL_PINT
+  IMPERIAL_OZ
+  IMPERIAL_TBSP
+  IMPERIAL_TSP
+  ACRE_IN
+  ACRE_FT
+}
+
 type Voucher implements Node {
   id: ID!
   name: String
@@ -5803,10 +6000,14 @@ type Weight {
 scalar WeightScalar
 
 enum WeightUnitsEnum {
-  KG
-  LB
-  OZ
   G
+  TONNE
+  OZ
+  LB
+  STONE
+  SHORT_TON
+  LONG_TON
+  KG
 }
 
 scalar _Any

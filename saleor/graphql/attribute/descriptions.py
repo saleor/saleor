@@ -4,6 +4,7 @@ class AttributeDescriptions:
     NAME = "Name of an attribute displayed in the interface."
     SLUG = "Internal representation of an attribute name."
     TYPE = "The attribute type."
+    UNIT = "The unit of attribute values."
     VALUES = "List of attribute's values."
     VALUE_REQUIRED = "Whether the attribute requires values to be passed or not."
     IS_VARIANT_ONLY = "Whether the attribute is for variants only."

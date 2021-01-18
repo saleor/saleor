@@ -36,7 +36,7 @@ from ..attribute.models import (
 from ..attribute.utils import associate_attribute_values_to_instance
 from ..checkout.models import Checkout
 from ..checkout.utils import add_variant_to_checkout
-from ..core import JobStatus
+from ..core import JobStatus, MeasurementUnits
 from ..core.payments import PaymentInterface
 from ..csv.events import ExportEvents
 from ..csv.models import ExportEvent, ExportFile
@@ -773,6 +773,7 @@ def size_attribute(db):  # pylint: disable=W0613
         slug="size",
         name="Size",
         type=AttributeType.PRODUCT_TYPE,
+        unit=MeasurementUnits.CM,
         filterable_in_storefront=True,
         filterable_in_dashboard=True,
         available_in_grid=True,

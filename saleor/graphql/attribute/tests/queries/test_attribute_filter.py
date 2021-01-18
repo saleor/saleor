@@ -5,6 +5,7 @@ import pytest
 
 from .....attribute.models import Attribute
 from .....attribute.utils import associate_attribute_values_to_instance
+from .....core import MeasurementUnits
 from .....product.models import ProductType
 from ....tests.utils import get_graphql_content
 from ...filters import filter_attributes_by_product_types
@@ -16,6 +17,7 @@ ATTRIBUTES_FILTER_QUERY = """
           node {
             name
             slug
+            unit
           }
         }
       }
@@ -48,6 +50,7 @@ def test_filter_attributes_if_filterable_in_dashboard(
 
     assert len(attributes) == 1
     assert attributes[0]["node"]["slug"] == "size"
+    assert attributes[0]["node"]["unit"] == MeasurementUnits.CM.upper()
 
 
 def test_filter_attributes_if_available_in_grid(

@@ -1,7 +1,5 @@
-from enum import Enum
-
 from django.contrib.gis.measure import Area, Distance
-from measurement.measures import Volume, Weight
+from measurement.measures import Mass, Volume
 
 
 class JobStatus:
@@ -18,26 +16,37 @@ class JobStatus:
     ]
 
 
-DISTANCE_UNITS = Enum(  # type: ignore
-    "DistanceUnits", [(unit.upper(), unit) for unit in Distance.UNITS.keys()]
-)
+def prepare_units_dict(measure, **kwargs):
+    """Prepare dict with unit class arguments based on units from providing measure.
 
-AREA_UNITS = Enum(  # type: ignore
-    "AreaUnits", [(unit.upper(), unit) for unit in Area.UNITS.keys()]
-)
-VOLUME_UNITS = Enum(  # type: ignore
-    "VolumeUnits", [(unit.upper(), unit) for unit in Volume.UNITS.keys()]
-)
-WEIGHT_UNITS = Enum(  # type: ignore
-    "WeightUnits", [(unit.upper(), unit) for unit in Weight.UNITS.keys()]
-)
+    Args:
+        measure: measurement class with UNITS class argument
+        kwargs: additional arguments that should be attached to the unit dict
+
+    """
+    units_dict = {unit.upper(): unit for unit in measure.UNITS.keys()}
+    units_dict.update(kwargs)
+    units_dict["CHOICES"] = [(v, v) for v in units_dict.values()]
+    return units_dict
 
 
-MEASUREMENT_UNITS = Enum(  # type: ignore
-    "MeasurmentUnits",
-    [
-        (unit.value, unit.value.replace("_", " "))
-        for enum in [DISTANCE_UNITS, AREA_UNITS, VOLUME_UNITS, WEIGHT_UNITS]
-        for unit in enum
-    ],
-)
+DistanceUnits = type("DistanceUnits", (object,), prepare_units_dict(Distance))
+
+AreaUnits = type("AreaUnits", (object,), prepare_units_dict(Area))
+
+VolumeUnits = type("VolumeUnits", (object,), prepare_units_dict(Volume))
+
+WeightUnits = type("WeightUnits", (object,), prepare_units_dict(Mass, KG="kg"))
+
+
+def prepare_all_units_dict():
+    measurement_dict = {
+        unit.upper(): unit
+        for units in [DistanceUnits, AreaUnits, VolumeUnits, WeightUnits]
+        for unit, _ in units.CHOICES
+    }
+    measurement_dict["CHOICES"] = [(v, v) for v in measurement_dict.values()]
+    return measurement_dict
+
+
+MeasurementUnits = type("MeasurementUnits", (object,), prepare_all_units_dict())

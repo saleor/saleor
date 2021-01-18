@@ -10,15 +10,11 @@ from measurement.measures import Weight
 from prices import Money
 
 from ..channel.models import Channel
+from ..core import WeightUnits
 from ..core.models import ModelWithMetadata
 from ..core.permissions import ShippingPermissions
 from ..core.utils.translations import TranslationProxy
-from ..core.weight import (
-    WeightUnits,
-    convert_weight,
-    get_default_weight_unit,
-    zero_weight,
-)
+from ..core.weight import convert_weight, get_default_weight_unit, zero_weight
 from . import ShippingMethodType
 from .zip_codes import check_shipping_method_for_zip_code
 
@@ -181,13 +177,16 @@ class ShippingMethod(ModelWithMetadata):
     )
     minimum_order_weight = MeasurementField(
         measurement=Weight,
-        unit_choices=WeightUnits.CHOICES,
+        unit_choices=WeightUnits.CHOICES,  # type: ignore
         default=zero_weight,
         blank=True,
         null=True,
     )
     maximum_order_weight = MeasurementField(
-        measurement=Weight, unit_choices=WeightUnits.CHOICES, blank=True, null=True
+        measurement=Weight,
+        unit_choices=WeightUnits.CHOICES,  # type: ignore
+        blank=True,
+        null=True,
     )
     excluded_products = models.ManyToManyField(
         "product.Product", blank=True

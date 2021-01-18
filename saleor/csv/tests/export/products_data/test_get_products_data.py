@@ -72,9 +72,7 @@ def test_get_products_data(product, product_with_image, collection, image, chann
                 else product.collections.first().slug
             ),
             "product_weight": (
-                "{} g".format(int(product.weight.value * 1000))
-                if product.weight
-                else ""
+                "{} g".format(int(product.weight.value)) if product.weight else ""
             ),
             "images__image": (
                 ""
@@ -99,9 +97,7 @@ def test_get_products_data(product, product_with_image, collection, image, chann
                     else "http://mirumee.com{}".format(variant.images.first().image.url)
                 ),
                 "variant_weight": (
-                    "{} g".foramt(int(variant.weight.value * 1000))
-                    if variant.weight
-                    else ""
+                    "{} g".foramt(int(variant.weight.value)) if variant.weight else ""
                 ),
             }
             data.update(product_data)
