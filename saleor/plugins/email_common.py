@@ -134,7 +134,7 @@ def format_address(this, address, include_phone=True, inline=False, latin=False)
     address_lines = i18naddress.format_address(address, latin).split("\n")
     phone = address.get("phone")
     if include_phone and phone:
-        address_lines.append(phone)
+        address_lines.append(str(phone))
     if inline is True:
         return pybars.strlist([", ".join(address_lines)])
     return pybars.strlist(["<br>".join(address_lines)])
@@ -236,10 +236,12 @@ def validate_default_email_configuration(plugin_configuration: "PluginConfigurat
         raise ValidationError(
             {
                 "use_ssl": ValidationError(
-                    error_msg, code=PluginErrorCode.INVALID.value,
+                    error_msg,
+                    code=PluginErrorCode.INVALID.value,
                 ),
                 "use_tls": ValidationError(
-                    error_msg, code=PluginErrorCode.INVALID.value,
+                    error_msg,
+                    code=PluginErrorCode.INVALID.value,
                 ),
             }
         )

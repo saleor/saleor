@@ -371,7 +371,10 @@ def test_send_set_user_password_email_task_custom_template(
 
 @mock.patch("saleor.plugins.email_common.send_mail")
 def test_send_invoice_email_task_default_template(
-    mocked_send_mail, user_email_dict_config, staff_user, order,
+    mocked_send_mail,
+    user_email_dict_config,
+    staff_user,
+    order,
 ):
     invoice = Invoice.objects.create(order=order)
     recipient_email = "user@example.com"

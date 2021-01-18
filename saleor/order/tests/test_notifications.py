@@ -96,7 +96,8 @@ def test_get_default_order_payload(order_line):
 
 
 def test_get_default_fulfillment_payload(
-    fulfillment, digital_content,
+    fulfillment,
+    digital_content,
 ):
     order = fulfillment.order
     fulfillment.tracking_number = "http://tracking.url.com/123"
@@ -203,7 +204,10 @@ def test_send_email_order_confirmation(mocked_notify, order, site_settings):
 
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_send_confirmation_emails_without_addresses_for_payment(
-    mocked_notify, site_settings, digital_content, payment_dummy,
+    mocked_notify,
+    site_settings,
+    digital_content,
+    payment_dummy,
 ):
     order = payment_dummy.order
 

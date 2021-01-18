@@ -38,7 +38,8 @@ def test_send_account_password_reset_event(mocked_email_task, customer_user):
     }
     config = {"host": "localhost", "port": "1025"}
     send_account_password_reset_event(
-        payload=payload, config=config,
+        payload=payload,
+        config=config,
     )
     mocked_email_task.assert_called_with(payload["recipient_email"], payload, config)
 
@@ -58,7 +59,8 @@ def test_send_account_confirmation(mocked_email_task, customer_user):
     }
     config = {"host": "localhost", "port": "1025"}
     send_account_confirmation(
-        payload=payload, config=config,
+        payload=payload,
+        config=config,
     )
     mocked_email_task.assert_called_with(payload["recipient_email"], payload, config)
 
@@ -80,7 +82,8 @@ def test_send_account_change_email_request(mocked_email_task, customer_user):
     }
     config = {"host": "localhost", "port": "1025"}
     send_account_change_email_request(
-        payload=payload, config=config,
+        payload=payload,
+        config=config,
     )
     mocked_email_task.assert_called_with(payload["recipient_email"], payload, config)
 
@@ -98,7 +101,8 @@ def test_send_account_change_email_confirm(mocked_email_task, customer_user):
     }
     config = {"host": "localhost", "port": "1025"}
     send_account_change_email_confirm(
-        payload=payload, config=config,
+        payload=payload,
+        config=config,
     )
     mocked_email_task.assert_called_with(payload["recipient_email"], payload, config)
 
@@ -119,7 +123,8 @@ def test_send_account_delete(mocked_email_task, customer_user):
     }
     config = {"host": "localhost", "port": "1025"}
     send_account_delete(
-        payload=payload, config=config,
+        payload=payload,
+        config=config,
     )
     mocked_email_task.assert_called_with(payload["recipient_email"], payload, config)
 
@@ -139,13 +144,16 @@ def test_send_account_set_customer_password(mocked_email_task, customer_user):
     }
     config = {"host": "localhost", "port": "1025"}
     send_account_set_customer_password(
-        payload=payload, config=config,
+        payload=payload,
+        config=config,
     )
     mocked_email_task.assert_called_with(payload["recipient_email"], payload, config)
 
 
 @mock.patch("saleor.plugins.user_email.notify_events.send_invoice_email_task.delay")
-def test_send_invoice(mocked_email_task,):
+def test_send_invoice(
+    mocked_email_task,
+):
     payload = {
         "invoice": {
             "id": 1,
@@ -158,7 +166,8 @@ def test_send_invoice(mocked_email_task,):
     }
     config = {"host": "localhost", "port": "1025"}
     send_invoice(
-        payload=payload, config=config,
+        payload=payload,
+        config=config,
     )
     mocked_email_task.assert_called_with(payload["recipient_email"], payload, config)
 
@@ -175,7 +184,8 @@ def test_send_order_confirmation(mocked_email_task, order):
     }
     config = {"host": "localhost", "port": "1025"}
     send_order_confirmation(
-        payload=payload, config=config,
+        payload=payload,
+        config=config,
     )
     mocked_email_task.assert_called_with(payload["recipient_email"], payload, config)
 
@@ -188,7 +198,8 @@ def test_send_fulfillment_confirmation(mocked_email_task, order, fulfillment):
     payload = get_default_fulfillment_payload(order, fulfillment)
     config = {"host": "localhost", "port": "1025"}
     send_fulfillment_confirmation(
-        payload=payload, config=config,
+        payload=payload,
+        config=config,
     )
     mocked_email_task.assert_called_with(payload["recipient_email"], payload, config)
 
@@ -200,7 +211,8 @@ def test_send_fulfillment_update(mocked_email_task, order, fulfillment):
     payload = get_default_fulfillment_payload(order, fulfillment)
     config = {"host": "localhost", "port": "1025"}
     send_fulfillment_update(
-        payload=payload, config=config,
+        payload=payload,
+        config=config,
     )
     mocked_email_task.assert_called_with(payload["recipient_email"], payload, config)
 
@@ -225,7 +237,8 @@ def test_send_payment_confirmation(mocked_email_task, order, payment_dummy):
     }
     config = {"host": "localhost", "port": "1025"}
     send_payment_confirmation(
-        payload=payload, config=config,
+        payload=payload,
+        config=config,
     )
     mocked_email_task.assert_called_with(payload["recipient_email"], payload, config)
 
@@ -242,7 +255,8 @@ def test_send_order_canceled(mocked_email_task, order):
     }
     config = {"host": "localhost", "port": "1025"}
     send_order_canceled(
-        payload=payload, config=config,
+        payload=payload,
+        config=config,
     )
     mocked_email_task.assert_called_with(payload["recipient_email"], payload, config)
 
@@ -261,7 +275,8 @@ def test_send_order_refund(mocked_email_task, order):
     }
     config = {"host": "localhost", "port": "1025"}
     send_order_refund(
-        payload=payload, config=config,
+        payload=payload,
+        config=config,
     )
     mocked_email_task.assert_called_with(payload["recipient_email"], payload, config)
 
@@ -278,6 +293,7 @@ def test_send_order_confirmed(mocked_email_task, order):
     }
     config = {"host": "localhost", "port": "1025"}
     send_order_confirmed(
-        payload=payload, config=config,
+        payload=payload,
+        config=config,
     )
     mocked_email_task.assert_called_with(payload["recipient_email"], payload, config)
