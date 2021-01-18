@@ -5,11 +5,9 @@ import pytest
 from authlib.jose.errors import JoseError
 from django.core import signing
 from django.core.exceptions import ValidationError
-from django.http import HttpResponseNotFound, HttpResponseRedirect
 from django.middleware.csrf import _get_new_csrf_token
 from freezegun import freeze_time
 
-from saleor.account.models import User
 from saleor.core.jwt import (
     JWT_ACCESS_TYPE,
     JWT_REFRESH_TOKEN_COOKIE_NAME,
@@ -19,6 +17,7 @@ from saleor.core.jwt import (
     jwt_user_payload,
 )
 
+from ...base_plugin import ExternalAccessTokens
 from ...models import PluginConfiguration
 from ..utils import (
     create_jwt_refresh_token,
@@ -41,7 +40,7 @@ def test_get_oauth_session_dont_add_refresh_scope_when_disabled(openid_plugin):
     assert "offline_access" not in session.scope
 
 
-def test_external_authentication_returns_redirect_url(openid_plugin, settings, rf):
+def test_external_authentication_url_returns_redirect_url(openid_plugin, settings, rf):
     settings.ALLOWED_CLIENT_HOSTS = ["*"]
     authorize_path = "/authorize"
     domain = "saleor-test.eu.auth0.com"
@@ -49,29 +48,26 @@ def test_external_authentication_returns_redirect_url(openid_plugin, settings, r
     client_id = "test_client"
     plugin = openid_plugin(oauth_authorization_url=authorize_url, client_id=client_id)
 
-    storefront_redirect_url = "http://localhost:3000/authorization/"
-    input = {"redirectUrl": storefront_redirect_url}
-    response = plugin.external_authentication(input, rf.request(), None)
+    redirect_uri = "http://localhost:3000/oauth-callback/"
+    input = {"redirectUri": redirect_uri}
+    response = plugin.external_authentication_url(input, rf.request(), None)
     assert isinstance(response, dict)
     auth_url = response.get("authorizationUrl")
     parsed_url = urlparse(auth_url)
     parsed_qs = parse_qs(parsed_url.query)
-    expected_redirect_url = (
-        "http://mirumee.com/plugins/mirumee.authentication.openidconnect/callback"
-    )
     state = signing.loads(parsed_qs["state"][0])
     assert parsed_url.netloc == domain
     assert parsed_url.path == authorize_path
-    assert parsed_qs["redirect_uri"][0] == expected_redirect_url
+    assert parsed_qs["redirect_uri"][0] == redirect_uri
     assert parsed_qs["client_id"][0] == client_id
-    assert state["redirectUrl"] == storefront_redirect_url
+    assert state["redirectUri"] == redirect_uri
 
 
 def test_external_authentication_plugin_disabled(openid_plugin, rf):
     plugin = openid_plugin(active=False)
     input = {"redirectUrl": "http://localhost:3000/authorization/"}
     previous_value = "previous"
-    response = plugin.external_authentication(input, rf.request(), previous_value)
+    response = plugin.external_authentication_url(input, rf.request(), previous_value)
     assert response == previous_value
 
 
@@ -80,7 +76,7 @@ def test_external_authentication_raises_error_when_missing_redirect(openid_plugi
     plugin = openid_plugin(client_id=client_id)
     input = {}
     with pytest.raises(ValidationError):
-        plugin.external_authentication(input, rf.request(), None)
+        plugin.external_authentication_url(input, rf.request(), None)
 
 
 def test_external_authentication_raises_error_when_redirect_is_wrong(openid_plugin, rf):
@@ -88,7 +84,7 @@ def test_external_authentication_raises_error_when_redirect_is_wrong(openid_plug
     plugin = openid_plugin(client_id=client_id)
     input = {"redirectUrl": "localhost:3000/authorization/"}
     with pytest.raises(ValidationError):
-        plugin.external_authentication(input, rf.request(), None)
+        plugin.external_authentication_url(input, rf.request(), None)
 
 
 @freeze_time("2019-03-18 12:00:00")
@@ -131,17 +127,13 @@ def test_external_refresh_from_cookie(
     data = {"csrfToken": csrf_token}
     response = plugin.external_refresh(data, request, None)
 
-    assert "token" in response
-    assert "refreshToken" in response
-    assert "csrfToken" in response
-
-    decoded_token = jwt_decode(response.get("token"))
+    decoded_token = jwt_decode(response.token)
     assert decoded_token["exp"] == id_payload["exp"]
     assert decoded_token["oauth_access_key"] == oauth_payload["access_token"]
 
-    decoded_refresh_token = jwt_decode(response.get("refreshToken"))
+    decoded_refresh_token = jwt_decode(response.refresh_token)
     assert decoded_refresh_token["oauth_refresh_token"] == "new_refresh"
-    assert decoded_refresh_token["csrf_token"] == response["csrfToken"]
+    assert decoded_refresh_token["csrf_token"] == response.csrf_token
     mocked_refresh_token.assert_called_once_with(
         "https://saleor-test.eu.auth0.com/oauth/token",
         refresh_token=oauth_refresh_token,
@@ -187,17 +179,13 @@ def test_external_refresh_from_input(
     data = {"refreshToken": saleor_refresh_token}
     response = plugin.external_refresh(data, request, None)
 
-    assert "token" in response
-    assert "refreshToken" in response
-    assert "csrfToken" in response
-
-    decoded_token = jwt_decode(response.get("token"))
+    decoded_token = jwt_decode(response.token)
     assert decoded_token["exp"] == id_payload["exp"]
     assert decoded_token["oauth_access_key"] == oauth_payload["access_token"]
 
-    decoded_refresh_token = jwt_decode(response.get("refreshToken"))
+    decoded_refresh_token = jwt_decode(response.refresh_token)
     assert decoded_refresh_token["oauth_refresh_token"] == "new_refresh"
-    assert decoded_refresh_token["csrf_token"] == response["csrfToken"]
+    assert decoded_refresh_token["csrf_token"] == response.csrf_token
     mocked_refresh_token.assert_called_once_with(
         "https://saleor-test.eu.auth0.com/oauth/token",
         refresh_token=oauth_refresh_token,
@@ -242,18 +230,14 @@ def test_external_refresh_with_scope_permissions(
     data = {"refreshToken": saleor_refresh_token}
     response = plugin.external_refresh(data, request, None)
 
-    assert "token" in response
-    assert "refreshToken" in response
-    assert "csrfToken" in response
-
-    decoded_token = jwt_decode(response.get("token"))
+    decoded_token = jwt_decode(response.token)
     assert decoded_token["exp"] == id_payload["exp"]
     assert decoded_token["oauth_access_key"] == oauth_payload["access_token"]
     assert decoded_token["permissions"] == ["MANAGE_ORDERS"]
 
-    decoded_refresh_token = jwt_decode(response.get("refreshToken"))
+    decoded_refresh_token = jwt_decode(response.refresh_token)
     assert decoded_refresh_token["oauth_refresh_token"] == "new_refresh"
-    assert decoded_refresh_token["csrf_token"] == response["csrfToken"]
+    assert decoded_refresh_token["csrf_token"] == response.csrf_token
     mocked_refresh_token.assert_called_once_with(
         "https://saleor-test.eu.auth0.com/oauth/token",
         refresh_token=oauth_refresh_token,
@@ -360,8 +344,9 @@ def test_external_refresh_incorrect_csrf(
 
 @freeze_time("2019-03-18 12:00:00")
 @pytest.mark.vcr
-def test_handle_oauth_callback(openid_plugin, monkeypatch, rf, id_token, id_payload):
-
+def test_external_obtain_access_tokens(
+    openid_plugin, monkeypatch, rf, id_token, id_payload
+):
     mocked_jwt_validator = MagicMock()
     mocked_jwt_validator.__getitem__.side_effect = id_payload.__getitem__
     mocked_jwt_validator.get.side_effect = id_payload.get
@@ -370,6 +355,7 @@ def test_handle_oauth_callback(openid_plugin, monkeypatch, rf, id_token, id_payl
         "saleor.plugins.openid_connect.utils.jwt.decode",
         Mock(return_value=mocked_jwt_validator),
     )
+    plugin = openid_plugin()
     oauth_payload = {
         "access_token": "FeHkE_QbuU3cYy1a1eQUrCE5jRcUnBK3",
         "refresh_token": "refresh",
@@ -384,121 +370,82 @@ def test_handle_oauth_callback(openid_plugin, monkeypatch, rf, id_token, id_payl
         "saleor.plugins.openid_connect.plugin.OAuth2Session.fetch_token",
         mocked_fetch_token,
     )
-    storefront_redirect_url = "http://localhost:3000/used-logged-in"
-    state = signing.dumps({"redirectUrl": storefront_redirect_url})
-    request = rf.get(f"/callback?state={state}")
-    plugin = openid_plugin()
-
-    redirect_response = plugin.handle_auth_callback(request)
-
-    # new user created
-    User.objects.get(email=id_payload["email"])
-
-    expected_auth_response = f"http://testserver/callback?state={state}"
-    expected_redirect_uri = (
-        "http://mirumee.com/plugins/mirumee.authentication.openidconnect/callback"
+    redirect_uri = "http://localhost:3000/used-logged-in"
+    state = signing.dumps({"redirectUri": redirect_uri})
+    code = "oauth-code"
+    tokens = plugin.external_obtain_access_tokens(
+        {"state": state, "code": code}, rf.request(), previous_value=None
     )
+
     mocked_fetch_token.assert_called_once_with(
         "https://saleor-test.eu.auth0.com/oauth/token",
-        authorization_response=expected_auth_response,
-        redirect_uri=expected_redirect_uri,
+        code=code,
+        redirect_uri=redirect_uri,
     )
 
-    assert isinstance(redirect_response, HttpResponseRedirect)
-    redirect_url = redirect_response.url
-    parsed_url = urlparse(redirect_url)
-    parsed_qs = parse_qs(parsed_url.query)
     claims = get_parsed_id_token(oauth_payload, plugin.config.json_web_key_set_url,)
     user = get_or_create_user_from_token(claims)
     expected_tokens = create_tokens_from_oauth_payload(
         oauth_payload, user, claims, permissions=None, owner=plugin.PLUGIN_ID
     )
-    assert parsed_url.netloc == "localhost:3000"
-    assert parsed_url.path == "/used-logged-in"
-    assert set(parsed_qs.keys()) == set(["token", "refreshToken", "csrfToken"])
-    assert parsed_qs["token"][0] == expected_tokens["token"]
-    decoded_refresh_token = jwt_decode(parsed_qs["refreshToken"][0])
-    assert parsed_qs["csrfToken"][0] == decoded_refresh_token["csrf_token"]
+
+    assert tokens.token == expected_tokens["token"]
+    decoded_refresh_token = jwt_decode(tokens.refresh_token)
+    assert tokens.csrf_token == decoded_refresh_token["csrf_token"]
     assert decoded_refresh_token["oauth_refresh_token"] == "refresh"
 
 
 @freeze_time("2019-03-18 12:00:00")
-def test_handle_oauth_callback_with_scope_permissions(
+def test_external_obtain_access_tokens_plugin_disabled(
     openid_plugin, monkeypatch, rf, id_token, id_payload
 ):
-    mocked_jwt_validator = MagicMock()
-    mocked_jwt_validator.__getitem__.side_effect = id_payload.__getitem__
-    mocked_jwt_validator.get.side_effect = id_payload.get
-
-    monkeypatch.setattr(
-        "saleor.plugins.openid_connect.plugin.get_parsed_id_token",
-        Mock(return_value=mocked_jwt_validator),
+    plugin = openid_plugin(active=False)
+    redirect_uri = "http://localhost:3000/used-logged-in"
+    state = signing.dumps({"redirectUri": redirect_uri})
+    code = "oauth-code"
+    previous_value = ExternalAccessTokens(token="previous")
+    tokens = plugin.external_obtain_access_tokens(
+        {"state": state, "code": code}, rf.request(), previous_value=previous_value
     )
-    oauth_payload = {
-        "access_token": "FeHkE_QbuU3cYy1a1eQUrCE5jRcUnBK3",
-        "refresh_token": "refresh",
-        "id_token": id_token,
-        "scope": "openid profile email offline_access saleor:manage_orders",
-        "expires_in": 86400,
-        "token_type": "Bearer",
-        "expires_at": 1600851112,
-    }
-    mocked_fetch_token = Mock(return_value=oauth_payload)
-    monkeypatch.setattr(
-        "saleor.plugins.openid_connect.plugin.OAuth2Session.fetch_token",
-        mocked_fetch_token,
-    )
-    storefront_redirect_url = "http://localhost:3000/used-logged-in"
-    state = signing.dumps({"redirectUrl": storefront_redirect_url})
-    request = rf.get(f"/callback?state={state}")
-    plugin = openid_plugin(use_oauth_scope_permissions=True)
-
-    redirect_response = plugin.handle_auth_callback(request)
-
-    expected_auth_response = f"http://testserver/callback?state={state}"
-    expected_redirect_uri = (
-        "http://mirumee.com/plugins/mirumee.authentication.openidconnect/callback"
-    )
-    mocked_fetch_token.assert_called_once_with(
-        "https://saleor-test.eu.auth0.com/oauth/token",
-        authorization_response=expected_auth_response,
-        redirect_uri=expected_redirect_uri,
-    )
-
-    assert isinstance(redirect_response, HttpResponseRedirect)
-    redirect_url = redirect_response.url
-    parsed_url = urlparse(redirect_url)
-    parsed_qs = parse_qs(parsed_url.query)
-    user = get_or_create_user_from_token(id_payload)
-    expected_tokens = create_tokens_from_oauth_payload(
-        oauth_payload,
-        user,
-        id_payload,
-        permissions=["MANAGE_ORDERS"],
-        owner=plugin.PLUGIN_ID,
-    )
-    assert parsed_url.netloc == "localhost:3000"
-    assert parsed_url.path == "/used-logged-in"
-    assert set(parsed_qs.keys()) == set(["token", "refreshToken", "csrfToken"])
-    assert parsed_qs["token"][0] == expected_tokens["token"]
-    decoded_refresh_token = jwt_decode(parsed_qs["refreshToken"][0])
-    assert parsed_qs["csrfToken"][0] == decoded_refresh_token["csrf_token"]
-    assert decoded_refresh_token["oauth_refresh_token"] == "refresh"
+    assert tokens == previous_value
 
 
 @freeze_time("2019-03-18 12:00:00")
-@pytest.mark.vcr
-def test_handle_oauth_callback_missing_redirect_url(
+def test_external_obtain_access_tokens_missing_code(
     openid_plugin, monkeypatch, rf, id_token, id_payload
 ):
-    request = rf.get("/callback")
     plugin = openid_plugin()
+    redirect_uri = "http://localhost:3000/used-logged-in"
+    state = signing.dumps({"redirectUri": redirect_uri})
+    with pytest.raises(ValidationError):
+        plugin.external_obtain_access_tokens(
+            {"state": state}, rf.request(), previous_value=None
+        )
 
-    redirect_response = plugin.handle_auth_callback(request)
-    assert redirect_response.status_code == 400
 
-    # new user created
-    assert not User.objects.filter(email=id_payload["email"]).first()
+@freeze_time("2019-03-18 12:00:00")
+def test_external_obtain_access_tokens_missing_state(
+    openid_plugin, monkeypatch, rf, id_token, id_payload
+):
+    plugin = openid_plugin()
+    code = "oauth-code"
+    with pytest.raises(ValidationError):
+        plugin.external_obtain_access_tokens(
+            {"code": code}, rf.request(), previous_value=None
+        )
+
+
+@freeze_time("2019-03-18 12:00:00")
+def test_external_obtain_access_tokens_missing_redirect_uri_in_state(
+    openid_plugin, monkeypatch, rf, id_token, id_payload
+):
+    plugin = openid_plugin()
+    state = signing.dumps({})
+    code = "oauth-code"
+    with pytest.raises(ValidationError):
+        plugin.external_obtain_access_tokens(
+            {"state": state, "code": code}, rf.request(), previous_value=None
+        )
 
 
 test_url = "http://saleor.auth.com/"
@@ -646,30 +593,6 @@ def test_external_verify_user_with_effective_permissions(
     user, data = response
     assert user == customer_user
     assert list(user.effective_permissions) == [permission_manage_orders]
-
-
-def test_webhook_when_plugin_is_disabled(openid_plugin, rf):
-    plugin = openid_plugin(active=False)
-    response = plugin.webhook(rf.request(), "/callback?some=value", None)
-    assert isinstance(response, HttpResponseNotFound)
-
-
-def test_webhook_wrong_path(openid_plugin, rf):
-    plugin = openid_plugin(active=True)
-    response = plugin.webhook(rf.request(), "/wrong?some=value", None)
-    assert isinstance(response, HttpResponseNotFound)
-
-
-def test_webhook_calls_callback(openid_plugin, rf, monkeypatch):
-    mocked_callback = Mock()
-    monkeypatch.setattr(
-        "saleor.plugins.openid_connect.plugin.OpenIDConnectPlugin.handle_auth_callback",
-        mocked_callback,
-    )
-    plugin = openid_plugin(active=True)
-    request = rf.request()
-    plugin.webhook(request, "/callback?some=value", None)
-    mocked_callback.assert_called_once_with(request)
 
 
 @freeze_time("2019-03-18 12:00:00")

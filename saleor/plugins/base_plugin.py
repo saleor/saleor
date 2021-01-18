@@ -1,4 +1,5 @@
 from copy import copy
+from dataclasses import dataclass
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Union
 
@@ -46,6 +47,14 @@ class ConfigurationTypeField:
     ]
 
 
+@dataclass
+class ExternalAccessTokens:
+    token: Optional[str] = None
+    refresh_token: Optional[str] = None
+    csrf_token: Optional[str] = None
+    user: Optional["User"] = None
+
+
 class BasePlugin:
     """Abstract class for storing all methods available for any plugin.
 
@@ -68,7 +77,7 @@ class BasePlugin:
     def __str__(self):
         return self.PLUGIN_NAME
 
-    def external_authentication(
+    def external_authentication_url(
         self, data: dict, request: WSGIRequest, previous_value
     ) -> dict:
         """Handle authentication request.
@@ -77,9 +86,18 @@ class BasePlugin:
         """
         return NotImplemented
 
+    def external_obtain_access_tokens(
+        self, data: dict, request: WSGIRequest, previous_value
+    ) -> ExternalAccessTokens:
+        """Handle authentication request responsible for obtaining access tokens.
+
+        Overwrite this method if the plugin handles authentication flow.
+        """
+        return NotImplemented
+
     def external_refresh(
         self, data: dict, request: WSGIRequest, previous_value
-    ) -> dict:
+    ) -> ExternalAccessTokens:
         """Handle authentication refresh request.
 
         Overwrite this method if the plugin handles authentication flow and supports

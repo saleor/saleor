@@ -4,8 +4,8 @@ from unittest.mock import Mock
 from ....tests.utils import get_graphql_content
 
 MUTATION_EXTERNAL_VERIFY = """
-    mutation externalVerify($input: JSONString!){
-        externalVerify(input: $input){
+    mutation externalVerify($pluginId: String!, $input: JSONString!){
+        externalVerify(pluginId:$pluginId, input: $input){
             verifyData
             user{
                email
@@ -21,7 +21,7 @@ MUTATION_EXTERNAL_VERIFY = """
 
 
 def test_external_verify_plugin_not_active(api_client, customer_user):
-    variables = {"input": json.dumps({"token": "ABCD"})}
+    variables = {"pluginId": "pluginId3", "input": json.dumps({"token": "ABCD"})}
     response = api_client.post_graphql(MUTATION_EXTERNAL_VERIFY, variables)
     content = get_graphql_content(response)
     data = content["data"]["externalVerify"]
@@ -35,7 +35,7 @@ def test_external_verify(api_client, customer_user, monkeypatch, rf):
     monkeypatch.setattr(
         "saleor.plugins.manager.PluginsManager.external_verify", mocked_plugin_fun
     )
-    variables = {"input": json.dumps({"token": "ABCD"})}
+    variables = {"pluginId": "pluginId3", "input": json.dumps({"token": "ABCD"})}
     response = api_client.post_graphql(MUTATION_EXTERNAL_VERIFY, variables)
     content = get_graphql_content(response)
     data = content["data"]["externalVerify"]

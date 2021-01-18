@@ -1,14 +1,11 @@
 import logging
-from typing import Callable, Optional, Tuple
+from typing import Optional, Tuple
 
 from authlib.common.errors import AuthlibBaseError
 from authlib.integrations.requests_client import OAuth2Session
 from django.core import signing
 from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
-from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
-from django.shortcuts import redirect
-from django.urls import reverse
 from jwt import ExpiredSignature, InvalidTokenError
 from requests import PreparedRequest
 
@@ -22,8 +19,7 @@ from ...core.jwt import (
     jwt_decode,
 )
 from ...core.permissions import get_permissions_codename, get_permissions_from_names
-from ...core.utils import build_absolute_uri
-from ..base_plugin import BasePlugin, ConfigurationTypeField
+from ..base_plugin import BasePlugin, ConfigurationTypeField, ExternalAccessTokens
 from ..error_codes import PluginErrorCode
 from ..models import PluginConfiguration
 from .dataclasses import OpenIDConnectConfig
@@ -38,20 +34,9 @@ from .utils import (
     get_user_from_token,
     is_owner_of_token_valid,
     validate_refresh_token,
-    validate_storefront_redirect_url,
 )
 
 logger = logging.getLogger(__name__)
-
-
-def convert_error_to_http_response(fn: Callable) -> Callable:
-    def wrapped(*args, **kwargs):
-        try:
-            return fn(*args, **kwargs)
-        except AuthenticationError as e:
-            return HttpResponseBadRequest(str(e))
-
-    return wrapped
 
 
 class OpenIDConnectPlugin(BasePlugin):
@@ -189,17 +174,70 @@ class OpenIDConnectPlugin(BasePlugin):
             scope=scope,
         )
 
-    def external_authentication(
+    def external_obtain_access_tokens(
+        self, data: dict, request: WSGIRequest, previous_value
+    ) -> ExternalAccessTokens:
+        if not self.active:
+            return previous_value
+
+        state = data.get("state")
+        if not state:
+            msg = "Missing required field - state"
+            raise ValidationError(
+                {"state": ValidationError(msg, code=PluginErrorCode.NOT_FOUND.value)}
+            )
+
+        code = data.get("code")
+        if not code:
+            msg = "Missing required field - code"
+            raise ValidationError(
+                {"code": ValidationError(msg, code=PluginErrorCode.NOT_FOUND.value)}
+            )
+
+        state_data = signing.loads(state)
+        redirect_uri = state_data.get("redirectUri")
+        if not redirect_uri:
+            msg = "The state value is incorrect"
+            raise ValidationError(
+                {"code": ValidationError(msg, code=PluginErrorCode.INVALID.value)}
+            )
+
+        token_data = self.oauth.fetch_token(
+            self.config.token_url, code=code, redirect_uri=redirect_uri
+        )
+        user_permissions = None
+        if self.config.use_scope_permissions:
+            user_permissions = get_saleor_permissions_from_scope(
+                token_data.get("scope")
+            )
+
+        parsed_id_token = get_parsed_id_token(
+            token_data, self.config.json_web_key_set_url
+        )
+        user = get_or_create_user_from_token(parsed_id_token)
+        tokens = create_tokens_from_oauth_payload(
+            token_data, user, parsed_id_token, user_permissions, owner=self.PLUGIN_ID
+        )
+        return ExternalAccessTokens(user=user, **tokens)
+
+    def external_authentication_url(
         self, data: dict, request: WSGIRequest, previous_value
     ) -> dict:
         if not self.active:
             return previous_value
-        storefront_redirect_url = data.get("redirectUrl")
-        validate_storefront_redirect_url(storefront_redirect_url)
-        plugin_path = reverse("plugins", kwargs={"plugin_id": self.PLUGIN_ID})
+        redirect_uri = data.get("redirectUri")
+        if not redirect_uri:
+            msg = "Missing required field - redirectUri"
+            raise ValidationError(
+                {
+                    "redirectUri": ValidationError(
+                        msg, code=PluginErrorCode.NOT_FOUND.value
+                    )
+                }
+            )
         kwargs = {
-            "redirect_uri": build_absolute_uri(f"{plugin_path}callback"),
-            "state": signing.dumps({"redirectUrl": storefront_redirect_url}),
+            "redirect_uri": redirect_uri,
+            "state": signing.dumps({"redirectUri": redirect_uri}),
         }
         if self.config.audience:
             kwargs["audience"] = self.config.audience
@@ -210,13 +248,15 @@ class OpenIDConnectPlugin(BasePlugin):
 
     def external_refresh(
         self, data: dict, request: WSGIRequest, previous_value
-    ) -> dict:
+    ) -> ExternalAccessTokens:
         if not self.active:
             return previous_value
 
         error_code = PluginErrorCode.INVALID.value
         if not self.config.enable_refresh_token:
-            msg = "Unable to refresh the token. Support for refresh tokens is disabled"
+            msg = (
+                "Unable to refresh the token. Support for refreshing tokens is disabled"
+            )
             raise ValidationError(
                 {"refresh_token": ValidationError(msg, code=error_code)}
             )
@@ -250,13 +290,14 @@ class OpenIDConnectPlugin(BasePlugin):
                 token_data, self.config.json_web_key_set_url
             )
             user = get_user_from_token(parsed_id_token)
-            return create_tokens_from_oauth_payload(
+            tokens = create_tokens_from_oauth_payload(
                 token_data,
                 user,
                 parsed_id_token,
                 user_permissions,
                 owner=self.PLUGIN_ID,
             )
+            return ExternalAccessTokens(user=user, **tokens)
         except AuthenticationError as e:
             raise ValidationError(
                 {"refreshToken": ValidationError(str(e), code=error_code)}
@@ -309,42 +350,3 @@ class OpenIDConnectPlugin(BasePlugin):
         payload = jwt_decode(token)
         user = get_user_from_access_payload(payload)
         return user
-
-    @convert_error_to_http_response
-    def handle_auth_callback(self, request: WSGIRequest) -> HttpResponse:
-        state = request.GET.get("state")
-        if not state:
-            raise AuthenticationError("Missing GET parameter - state.")
-        state_data = signing.loads(state)
-
-        storefront_redirect_url = state_data.get("redirectUrl")
-        if not storefront_redirect_url:
-            raise AuthenticationError("Missing redirectUrl in state.")
-        plugin_path = reverse("plugins", kwargs={"plugin_id": self.PLUGIN_ID})
-        token_data = self.oauth.fetch_token(
-            self.config.token_url,
-            authorization_response=request.build_absolute_uri(),
-            redirect_uri=build_absolute_uri(f"{plugin_path}callback"),
-        )
-        user_permissions = None
-        if self.config.use_scope_permissions:
-            user_permissions = get_saleor_permissions_from_scope(
-                token_data.get("scope")
-            )
-        parsed_id_token = get_parsed_id_token(
-            token_data, self.config.json_web_key_set_url
-        )
-        user = get_or_create_user_from_token(parsed_id_token)
-        params = create_tokens_from_oauth_payload(
-            token_data, user, parsed_id_token, user_permissions, owner=self.PLUGIN_ID
-        )
-        req = PreparedRequest()
-        req.prepare_url(storefront_redirect_url, params)
-        return redirect(req.url)
-
-    def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:
-        if not self.active:
-            return HttpResponseNotFound()
-        if path.startswith("/callback"):
-            return self.handle_auth_callback(request)
-        return HttpResponseNotFound()

@@ -22,8 +22,9 @@ from .mutations.account import (
 from .mutations.authentication import (
     CreateToken,
     DeactivateAllUserTokens,
-    ExternalAuthentication,
+    ExternalAuthenticationUrl,
     ExternalLogout,
+    ExternalObtainAccessTokens,
     ExternalRefresh,
     ExternalVerify,
     RefreshToken,
@@ -187,7 +188,9 @@ class AccountMutations(graphene.ObjectType):
     token_verify = VerifyToken.Field()
     tokens_deactivate_all = DeactivateAllUserTokens.Field()
 
-    external_authentication = ExternalAuthentication.Field()
+    external_authentication_url = ExternalAuthenticationUrl.Field()
+    external_obtain_access_tokens = ExternalObtainAccessTokens.Field()
+
     external_refresh = ExternalRefresh.Field()
     external_logout = ExternalLogout.Field()
     external_verify = ExternalVerify.Field()

@@ -129,7 +129,7 @@ def test_create_tokens_from_oauth_payload(
     decoded_token = jwt_decode(tokens["token"])
     assert decoded_token.get(PERMISSIONS_FIELD) == permissions_from_scope
 
-    decoded_refresh_token = jwt_decode(tokens["refreshToken"])
+    decoded_refresh_token = jwt_decode(tokens["refresh_token"])
     assert decoded_refresh_token["oauth_refresh_token"] == "refresh"
 
 

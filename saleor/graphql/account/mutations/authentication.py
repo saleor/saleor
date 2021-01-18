@@ -281,42 +281,108 @@ class DeactivateAllUserTokens(BaseMutation):
         return cls()
 
 
-class ExternalAuthentication(BaseMutation):
-    """Authenticate a user by a custom plugin."""
+class ExternalAuthenticationUrl(BaseMutation):
+    """Prepare external authentication url for user by a custom plugin."""
 
     authentication_data = graphene.JSONString(
         description="The data returned by authentication plugin."
     )
 
     class Arguments:
+        plugin_id = graphene.String(
+            description="The ID of the authentication plugin.", required=True
+        )
         input = graphene.JSONString(
             required=True,
-            description="The data required by plugin to proceed the authentication.",
+            description=(
+                "The data required by plugin to create external authentication url."
+            ),
         )
 
     class Meta:
-        description = "Authenticate user by custom plugin."
+        description = "Prepare external authentication url for user by custom plugin."
         error_type_class = AccountError
         error_type_field = "account_errors"
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
         request = info.context
+        plugin_id = data["plugin_id"]
         input_data = data["input"]
         manager = info.context.plugins
         return cls(
-            authentication_data=manager.external_authentication(input_data, request)
+            authentication_data=manager.external_authentication_url(
+                plugin_id, input_data, request
+            )
+        )
+
+
+class ExternalObtainAccessTokens(BaseMutation):
+    """Obtain external access tokens by a custom plugin."""
+
+    token = graphene.String(description="The token, required to authenticate.")
+    refresh_token = graphene.String(
+        description="The refresh token, required to re-generate external access token."
+    )
+    csrf_token = graphene.String(
+        description="CSRF token required to re-generate external access token."
+    )
+    user = graphene.Field(User, description="A user instance.")
+
+    class Arguments:
+        plugin_id = graphene.String(
+            description="The ID of the authentication plugin.", required=True
+        )
+        input = graphene.JSONString(
+            required=True,
+            description="The data required by plugin to create authentication data.",
+        )
+
+    class Meta:
+        description = "Obtain external access tokens for user by custom plugin."
+        error_type_class = AccountError
+        error_type_field = "account_errors"
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        request = info.context
+        plugin_id = data["plugin_id"]
+        input_data = data["input"]
+        manager = info.context.plugins
+        access_tokens_response = manager.external_obtain_access_tokens(
+            plugin_id, input_data, request
+        )
+        info.context.refresh_token = access_tokens_response.refresh_token
+
+        if access_tokens_response.user and access_tokens_response.user.id:
+            info.context._cached_user = access_tokens_response.user
+            access_tokens_response.user.last_login = timezone.now()
+            access_tokens_response.user.save(update_fields=["last_login"])
+
+        return cls(
+            token=access_tokens_response.token,
+            refresh_token=access_tokens_response.refresh_token,
+            csrf_token=access_tokens_response.csrf_token,
+            user=access_tokens_response.user,
         )
 
 
 class ExternalRefresh(BaseMutation):
     """Refresh user's access by a custom plugin."""
 
-    refreshed_data = graphene.JSONString(
-        description="The data returned by authentication plugin."
+    token = graphene.String(description="The token, required to authenticate.")
+    refresh_token = graphene.String(
+        description="The refresh token, required to re-generate external access token."
     )
+    csrf_token = graphene.String(
+        description="CSRF token required to re-generate external access token."
+    )
+    user = graphene.Field(User, description="A user instance.")
 
     class Arguments:
+        plugin_id = graphene.String(
+            description="The ID of the authentication plugin.", required=True
+        )
         input = graphene.JSONString(
             required=True,
             description="The data required by plugin to proceed the refresh process.",
@@ -330,9 +396,22 @@ class ExternalRefresh(BaseMutation):
     @classmethod
     def perform_mutation(cls, root, info, **data):
         request = info.context
+        plugin_id = data["plugin_id"]
         input_data = data["input"]
         manager = info.context.plugins
-        return cls(refreshed_data=manager.external_refresh(input_data, request))
+        access_tokens_response = manager.external_refresh(
+            plugin_id, input_data, request
+        )
+        info.context.refresh_token = access_tokens_response.refresh_token
+        if access_tokens_response.user and access_tokens_response.user.id:
+            info.context._cached_user = access_tokens_response.user
+
+        return cls(
+            token=access_tokens_response.token,
+            refresh_token=access_tokens_response.refresh_token,
+            csrf_token=access_tokens_response.csrf_token,
+            user=access_tokens_response.user,
+        )
 
 
 class ExternalLogout(BaseMutation):
@@ -343,6 +422,9 @@ class ExternalLogout(BaseMutation):
     )
 
     class Arguments:
+        plugin_id = graphene.String(
+            description="The ID of the authentication plugin.", required=True
+        )
         input = graphene.JSONString(
             required=True,
             description="The data required by plugin to proceed the logout process.",
@@ -356,9 +438,10 @@ class ExternalLogout(BaseMutation):
     @classmethod
     def perform_mutation(cls, root, info, **data):
         request = info.context
+        plugin_id = data["plugin_id"]
         input_data = data["input"]
         manager = info.context.plugins
-        return cls(logout_data=manager.external_logout(input_data, request))
+        return cls(logout_data=manager.external_logout(plugin_id, input_data, request))
 
 
 class ExternalVerify(BaseMutation):
@@ -371,9 +454,12 @@ class ExternalVerify(BaseMutation):
     verify_data = graphene.JSONString(description="External data.")
 
     class Arguments:
+        plugin_id = graphene.String(
+            description="The ID of the authentication plugin.", required=True
+        )
         input = graphene.JSONString(
             required=True,
-            description=("The data required by plugin to proceed the verification."),
+            description="The data required by plugin to proceed the verification.",
         )
 
     class Meta:
@@ -384,7 +470,8 @@ class ExternalVerify(BaseMutation):
     @classmethod
     def perform_mutation(cls, root, info, **data):
         request = info.context
+        plugin_id = data["plugin_id"]
         input_data = data["input"]
         manager = info.context.plugins
-        user, data = manager.external_verify(input_data, request)
+        user, data = manager.external_verify(plugin_id, input_data, request)
         return cls(user=user, is_valid=bool(user), verify_data=data)

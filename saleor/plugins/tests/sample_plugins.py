@@ -8,7 +8,7 @@ from prices import Money, TaxedMoney
 
 from ...account.models import User
 from ...core.taxes import TaxType
-from ..base_plugin import BasePlugin, ConfigurationTypeField
+from ..base_plugin import BasePlugin, ConfigurationTypeField, ExternalAccessTokens
 
 if TYPE_CHECKING:
     # flake8: noqa
@@ -110,15 +110,24 @@ class PluginSample(BasePlugin):
     ) -> Decimal:
         return Decimal("15.0").quantize(Decimal("1."))
 
-    def external_authentication(
+    def external_authentication_url(
         self, data: dict, request: WSGIRequest, previous_value
     ) -> dict:
         return {"authorizeUrl": "http://www.auth.provider.com/authorize/"}
 
+    def external_obtain_access_tokens(
+        self, data: dict, request: WSGIRequest, previous_value
+    ) -> ExternalAccessTokens:
+        return ExternalAccessTokens(
+            token="token1", refresh_token="refresh2", csrf_token="csrf3"
+        )
+
     def external_refresh(
         self, data: dict, request: WSGIRequest, previous_value
-    ) -> dict:
-        return {"token": "ABC", "refreshToken": "refreshABC", "csrfToken": "csrf"}
+    ) -> ExternalAccessTokens:
+        return ExternalAccessTokens(
+            token="token4", refresh_token="refresh5", csrf_token="csrf6"
+        )
 
     def external_verify(
         self, data: dict, request: WSGIRequest, previous_value
@@ -140,10 +149,12 @@ class PluginInactive(BasePlugin):
     PLUGIN_NAME = "PluginInactive"
     PLUGIN_DESCRIPTION = "Test plugin description_2"
 
-    def external_authentication(
+    def external_obtain_access_tokens(
         self, data: dict, request: WSGIRequest, previous_value
-    ) -> dict:
-        return {"authorizeUrl": "http://www.auth.provider.com/authorize/"}
+    ) -> ExternalAccessTokens:
+        return ExternalAccessTokens(
+            token="token1", refresh_token="refresh2", csrf_token="csrf3"
+        )
 
 
 class ActivePlugin(BasePlugin):

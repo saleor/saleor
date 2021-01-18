@@ -196,10 +196,10 @@ def create_tokens_from_oauth_payload(
     }
     if refresh_token:
         csrf_token = _get_new_csrf_token()
-        tokens["refreshToken"] = create_jwt_refresh_token(
+        tokens["refresh_token"] = create_jwt_refresh_token(
             user, refresh_token, csrf_token, owner
         )
-        tokens["csrfToken"] = csrf_token
+        tokens["csrf_token"] = csrf_token
     return tokens
 
 
