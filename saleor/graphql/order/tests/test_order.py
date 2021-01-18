@@ -2387,11 +2387,14 @@ ORDER_LINES_CREATE_MUTATION = """
 """
 
 
-def test_draft_order_lines_create(
-    draft_order, permission_manage_orders, staff_api_client
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
+def test_order_lines_create(
+    status, order_with_lines, permission_manage_orders, staff_api_client
 ):
     query = ORDER_LINES_CREATE_MUTATION
-    order = draft_order
+    order = order_with_lines
+    order.status = status
+    order.save(update_fields=["status"])
     line = order.lines.first()
     variant = line.variant
     old_quantity = line.quantity
@@ -2421,11 +2424,14 @@ def test_draft_order_lines_create(
     assert data["orderErrors"][0]["field"] == "quantity"
 
 
-def test_draft_order_lines_create_with_product_and_variant_not_assigned_to_channel(
-    draft_order, permission_manage_orders, staff_api_client, variant
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
+def test_order_lines_create_with_product_and_variant_not_assigned_to_channel(
+    status, order_with_lines, permission_manage_orders, staff_api_client, variant
 ):
     query = ORDER_LINES_CREATE_MUTATION
-    order = draft_order
+    order = order_with_lines
+    order.status = status
+    order.save(update_fields=["status"])
     line = order.lines.first()
     assert variant != line.variant
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -2444,8 +2450,10 @@ def test_draft_order_lines_create_with_product_and_variant_not_assigned_to_chann
     assert error["variants"] == [variant_id]
 
 
-def test_draft_order_lines_create_with_variant_not_assigned_to_channel(
-    draft_order,
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
+def test_order_lines_create_with_variant_not_assigned_to_channel(
+    status,
+    order_with_lines,
     staff_api_client,
     permission_manage_orders,
     customer_user,
@@ -2455,7 +2463,9 @@ def test_draft_order_lines_create_with_variant_not_assigned_to_channel(
     graphql_address_data,
 ):
     query = ORDER_LINES_CREATE_MUTATION
-    order = draft_order
+    order = order_with_lines
+    order.status = status
+    order.save(update_fields=["status"])
     line = order.lines.first()
     assert variant != line.variant
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -2473,7 +2483,7 @@ def test_draft_order_lines_create_with_variant_not_assigned_to_channel(
     assert error["variants"] == [variant_id]
 
 
-def test_require_draft_order_when_creating_lines(
+def test_invalid_order_when_creating_lines(
     order_with_lines, staff_api_client, permission_manage_orders
 ):
     query = ORDER_LINES_CREATE_MUTATION
@@ -2514,11 +2524,14 @@ ORDER_LINE_UPDATE_MUTATION = """
 """
 
 
-def test_draft_order_line_update(
-    draft_order, permission_manage_orders, staff_api_client, staff_user
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
+def test_order_line_update(
+    status, order_with_lines, permission_manage_orders, staff_api_client, staff_user
 ):
     query = ORDER_LINE_UPDATE_MUTATION
-    order = draft_order
+    order = order_with_lines
+    order.status = status
+    order.save(update_fields=["status"])
     line = order.lines.first()
     new_quantity = 1
     removed_quantity = 2
@@ -2558,7 +2571,7 @@ def test_draft_order_line_update(
     assert data["errors"][0]["field"] == "quantity"
 
 
-def test_require_draft_order_when_updating_lines(
+def test_invalid_order_when_updating_lines(
     order_with_lines, staff_api_client, permission_manage_orders
 ):
     query = ORDER_LINE_UPDATE_MUTATION
@@ -2682,11 +2695,14 @@ ORDER_LINE_DELETE_MUTATION = """
 """
 
 
-def test_draft_order_line_remove(
-    draft_order, permission_manage_orders, staff_api_client
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
+def test_order_line_remove(
+    status, order_with_lines, permission_manage_orders, staff_api_client
 ):
     query = ORDER_LINE_DELETE_MUTATION
-    order = draft_order
+    order = order_with_lines
+    order.status = status
+    order.save(update_fields=["status"])
     line = order.lines.first()
     line_id = graphene.Node.to_global_id("OrderLine", line.id)
     variables = {"id": line_id}
@@ -2700,7 +2716,7 @@ def test_draft_order_line_remove(
     assert line not in order.lines.all()
 
 
-def test_require_draft_order_when_removing_lines(
+def test_invalid_order_when_removing_lines(
     staff_api_client, order_with_lines, permission_manage_orders
 ):
     query = ORDER_LINE_DELETE_MUTATION
