@@ -4,6 +4,8 @@ from graphene.relay import GlobalID
 from graphene.types.resolver import default_resolver
 from graphql import ResolveInfo
 
+DEFAULT_RESOLVERS = {default_resolver, GlobalID.id_resolver}
+
 
 def should_trace(info: ResolveInfo) -> bool:
     if info.field_name not in info.parent_type.fields:
@@ -26,9 +28,8 @@ def is_introspection_field(info: ResolveInfo):
 
 
 def is_default_resolver(resolver):
-    default_resolvers = [default_resolver, GlobalID.id_resolver]
     while isinstance(resolver, partial):
         resolver = resolver.func
-        if resolver in default_resolvers:
+        if resolver in DEFAULT_RESOLVERS:
             return True
-    return resolver in default_resolvers
+    return resolver in DEFAULT_RESOLVERS
