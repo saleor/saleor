@@ -2305,18 +2305,17 @@ def test_create_product(
     assert color_value_slug in values
 
 
-def test_create_search_product_by_description(
+def test_create_product_description_plaintext(
     staff_api_client,
     product_type,
     category,
     size_attribute,
-    description_json,
     permission_manage_products,
     monkeypatch,
 ):
     query = CREATE_PRODUCT_MUTATION
-
-    description_json = json.dumps(description_json)
+    description = "some test description"
+    description_json = dummy_editorjs(description, json_format=True)
 
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
     category_id = graphene.Node.to_global_id("Category", category.pk)
@@ -2351,6 +2350,11 @@ def test_create_search_product_by_description(
     data = content["data"]["productCreate"]
     assert not data["productErrors"]
 
+    product = Product.objects.all().first()
+    product.description_plaintext = description
+
+
+def test_search_product_by_description(user_api_client, product_list, channel_USD):
     search_query = """
     query Products($filters: ProductFilterInput, $channel: String) {
       products(first: 5, filter: $filters, channel: $channel) {
@@ -2358,18 +2362,21 @@ def test_create_search_product_by_description(
         node {
           id
           name
-          slug
         }
         }
       }
     }
     """
-    variables = {"search": "built with GraphQL"}
-    response = staff_api_client.post_graphql(search_query, variables)
+    variables = {"filters": {"search": "big"}, "channel": channel_USD.slug}
+    response = user_api_client.post_graphql(search_query, variables)
     content = get_graphql_content(response)
-    data = content["data"]["products"]["edges"][0]
-    assert data["node"]["name"] == product_name
-    assert data["node"]["slug"] == product_slug
+    assert len(content["data"]["products"]["edges"]) == 2
+
+    variables = {"filters": {"search": "small"}, "channel": channel_USD.slug}
+    response = user_api_client.post_graphql(search_query, variables)
+    content = get_graphql_content(response)
+
+    assert len(content["data"]["products"]["edges"]) == 1
 
 
 @freeze_time("2020-03-18 12:00:00")

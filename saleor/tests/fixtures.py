@@ -12,6 +12,7 @@ import pytest
 import pytz
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
+from django.contrib.postgres.search import SearchVector
 from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -1573,6 +1574,7 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
                     pk=1486,
                     name="Test product 1",
                     slug="test-product-a",
+                    description_plaintext="big blue product",
                     category=category,
                     product_type=product_type,
                 ),
@@ -1580,6 +1582,7 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
                     pk=1487,
                     name="Test product 2",
                     slug="test-product-b",
+                    description_plaintext="big orange product",
                     category=category,
                     product_type=product_type,
                 ),
@@ -1587,12 +1590,16 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
                     pk=1489,
                     name="Test product 3",
                     slug="test-product-c",
+                    description_plaintext="small red",
                     category=category,
                     product_type=product_type,
                 ),
             ]
         )
     )
+    for product in products:
+        product.search_vector = SearchVector("description_plaintext")
+        product.save()
     ProductChannelListing.objects.bulk_create(
         [
             ProductChannelListing(

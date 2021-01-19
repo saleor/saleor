@@ -617,6 +617,7 @@ class ProductCreate(ModelMutation):
 
         if description_plaintext:
             instance.search_vector = SearchVector("description_plaintext")
+            # SearchVector works only with update instance
             instance.save(update_fields=["search_vector"])
         attributes = cleaned_input.get("attributes")
         if attributes:
@@ -664,6 +665,7 @@ class ProductUpdate(ProductCreate):
         description_plaintext = cleaned_input.get("description_plaintext")
         if description_plaintext:
             instance.search_vector = SearchVector("description_plaintext")
+            # SearchVector works only with update instance
             instance.save(update_fields=["search_vector"])
         attributes = cleaned_input.get("attributes")
         if attributes:
