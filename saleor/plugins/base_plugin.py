@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, Iterable, List, Optional, Union
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
 from django_countries.fields import Country
-from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
+from prices import Money, TaxedMoney
 
 from ..payment.interface import (
     CustomerSource,
