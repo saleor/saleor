@@ -122,5 +122,7 @@ y18Ae9n7dHVueyslrb6weq7dTkYDi3iOYRW8HRkIQh06wEdbxt0shTzAJvvCQfrB
 jg/3747WSsf/zBTcHihTRBdAv6OmdhV4/dD5YBfLAkLrd+mX7iE=
 -----END RSA PRIVATE KEY-----"""
     return jwt.encode(
-        id_payload, private_key, "RS256",  # type: ignore
+        id_payload,
+        private_key,
+        "RS256",  # type: ignore
     )

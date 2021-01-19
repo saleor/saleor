@@ -250,7 +250,8 @@ def validate_refresh_token(refresh_token, data):
             raise ValidationError(
                 {
                     "csrfToken": ValidationError(
-                        "CSRF token doesn't match.", code=PluginErrorCode.INVALID.value,
+                        "CSRF token doesn't match.",
+                        code=PluginErrorCode.INVALID.value,
                     )
                 }
             )

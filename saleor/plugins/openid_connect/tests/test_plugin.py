@@ -383,7 +383,10 @@ def test_external_obtain_access_tokens(
         redirect_uri=redirect_uri,
     )
 
-    claims = get_parsed_id_token(oauth_payload, plugin.config.json_web_key_set_url,)
+    claims = get_parsed_id_token(
+        oauth_payload,
+        plugin.config.json_web_key_set_url,
+    )
     user = get_or_create_user_from_token(claims)
     expected_tokens = create_tokens_from_oauth_payload(
         oauth_payload, user, claims, permissions=None, owner=plugin.PLUGIN_ID
