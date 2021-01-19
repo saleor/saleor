@@ -163,6 +163,7 @@ python-slugify==4.0.1; python_version >= "2.7" and python_full_version < "3.0.0"
 pytimeparse==1.1.8
 pytz==2020.5; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 pywatchman==1.4.1
+pyxb==1.2.5
 pyyaml==5.3.1; python_full_version >= "3.6.1" and (python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6") and (python_version >= "3.5" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.5")
 razorpay==1.2.0
 redis==3.5.3; python_version >= "3.6" and python_full_version < "3.0.0" or python_version >= "3.6" and python_full_version >= "3.5.0"
