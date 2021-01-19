@@ -802,8 +802,8 @@ def weight_attribute(db):
 @pytest.fixture
 def numeric_attribute(db):
     attribute = Attribute.objects.create(
-        slug="product-size",
-        name="Product size",
+        slug="length",
+        name="Length",
         type=AttributeType.PRODUCT_TYPE,
         input_type=AttributeInputType.NUMERIC,
         unit=MeasurementUnits.CM,
@@ -811,8 +811,8 @@ def numeric_attribute(db):
         filterable_in_dashboard=True,
         available_in_grid=True,
     )
-    AttributeValue.objects.create(attribute=attribute, name="Length", slug="length")
-    AttributeValue.objects.create(attribute=attribute, name="Width", slug="width")
+    AttributeValue.objects.create(attribute=attribute, name="10", slug="10")
+    AttributeValue.objects.create(attribute=attribute, name="15", slug="15")
     return attribute
 
 

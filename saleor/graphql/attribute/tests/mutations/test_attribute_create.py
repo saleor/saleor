@@ -102,7 +102,7 @@ def test_create_numeric_attribute_and_attribute_values(
     query = CREATE_ATTRIBUTE_MUTATION
 
     attribute_name = "Example numeric attribute name"
-    name = "Width"
+    name = "12.1"
     variables = {
         "input": {
             "name": attribute_name,
@@ -150,7 +150,51 @@ def test_create_numeric_attribute_and_attribute_values(
     assert data["attribute"]["availableInGrid"] is True
     assert data["attribute"]["storefrontSearchPosition"] == 0
     assert data["attribute"]["values"][0]["name"] == name
-    assert data["attribute"]["values"][0]["slug"] == slugify(name)
+    assert data["attribute"]["values"][0]["slug"] == slugify(name.replace(".", "_"))
+
+
+def test_create_numeric_attribute_and_attribute_values_not_numeric_value_provided(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    permission_manage_products,
+):
+    # given
+    query = CREATE_ATTRIBUTE_MUTATION
+
+    attribute_name = "Example numeric attribute name"
+    name = "Width"
+    variables = {
+        "input": {
+            "name": attribute_name,
+            "values": [{"name": name}],
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+            "unit": MeasurementUnitsEnum.M.name,
+            "inputType": AttributeInputTypeEnum.NUMERIC.name,
+            "filterableInStorefront": True,
+            "filterableInDashboard": True,
+            "availableInGrid": True,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeCreate"]
+    errors = content["data"]["attributeCreate"]["attributeErrors"]
+
+    assert not data["attribute"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "values"
+    assert errors[0]["code"] == AttributeErrorCode.INVALID.name
 
 
 def test_create_attribute_with_file_input_type(

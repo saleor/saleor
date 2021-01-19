@@ -320,8 +320,14 @@ class AttributeMixin:
                 }
             )
 
+        is_numeric_attr = attribute_input_type == AttributeInputType.NUMERIC
         for value_data in values_input:
-            value_data["slug"] = slugify(value_data["name"], allow_unicode=True)
+            value = value_data["name"]
+            if is_numeric_attr:
+                cls.validate_numeric_value(value)
+            slug_value = value if not is_numeric_attr else value.replace(".", "_")
+            value_data["slug"] = slugify(slug_value, allow_unicode=True)
+
             attribute_value = models.AttributeValue(**value_data, attribute=attribute)
             try:
                 attribute_value.full_clean()
@@ -331,6 +337,20 @@ class AttributeMixin:
                         continue
                     raise ValidationError({cls.ATTRIBUTE_VALUES_FIELD: err})
         cls.check_values_are_unique(values_input, attribute)
+
+    @classmethod
+    def validate_numeric_value(cls, value):
+        try:
+            float(value)
+        except ValueError:
+            raise ValidationError(
+                {
+                    cls.ATTRIBUTE_VALUES_FIELD: ValidationError(
+                        "Value of numeric attribute must be numeric.",
+                        code=AttributeErrorCode.INVALID,
+                    )
+                }
+            )
 
     @classmethod
     def clean_attribute(cls, instance, cleaned_input):
