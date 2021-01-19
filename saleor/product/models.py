@@ -317,7 +317,7 @@ class Product(SeoModel, ModelWithMetadata):
     description = SanitizedJSONField(
         blank=True, default=dict, sanitizer=clean_editor_js
     )
-    description_search = TextField(blank=True, default="")
+    description_plaintext = TextField(blank=True, default="")
     search_vector = SearchVectorField(null=True, blank=True)
 
     description_json = SanitizedJSONField(

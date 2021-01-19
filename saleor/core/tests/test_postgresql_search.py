@@ -21,11 +21,11 @@ def named_products(category, product_type, channel_USD):
             name=name,
             slug=slugify(name),
             description=dummy_editorjs(description),
-            description_search=description,
+            description_plaintext=description,
             product_type=product_type,
             category=category,
         )
-        product.search_vector = SearchVector("description_search")
+        product.search_vector = SearchVector("description_plaintext")
         product.save(update_fields=["search_vector"])
         ProductChannelListing.objects.create(
             product=product,

@@ -26,15 +26,15 @@ def parse_description_json_to_string(description):
     return string
 
 
-def migrate_description_into_description_search(apps, schema):
+def migrate_description_into_description_plaintext(apps, schema):
     Product = apps.get_model("product", "Product")
     for product in Product.objects.iterator():
-        product.description_search = parse_description_json_to_string(
+        product.description_plaintext = parse_description_json_to_string(
             product.description
         )
         product.save()
 
-    Product.objects.update(search_vector=SearchVector("description_search"))
+    Product.objects.update(search_vector=SearchVector("description_plaintext"))
 
 
 class Migration(migrations.Migration):
@@ -46,7 +46,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name="product",
-            name="description_search",
+            name="description_plaintext",
             field=models.TextField(blank=True, default=""),
         ),
         migrations.AddField(
@@ -63,7 +63,7 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.RunPython(
-            migrate_description_into_description_search,
+            migrate_description_into_description_plaintext,
             migrations.RunPython.noop,
         ),
     ]

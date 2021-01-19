@@ -3738,7 +3738,7 @@ def test_update_and_search_product_by_description(
     assert data["product"]["description"] == other_description_json
 
 
-def test_update_product_without_description_clear_description_search(
+def test_update_product_without_description_clear_description_plaintext(
     staff_api_client,
     category,
     non_default_category,
@@ -3748,8 +3748,8 @@ def test_update_product_without_description_clear_description_search(
     color_attribute,
 ):
     query = MUTATION_UPDATE_PRODUCT
-    description_search = "some desc"
-    product.description_search = description_search
+    description_plaintext = "some desc"
+    product.description_plaintext = description_plaintext
     product.save()
     product_id = graphene.Node.to_global_id("Product", product.pk)
     category_id = graphene.Node.to_global_id("Category", non_default_category.pk)
@@ -3776,7 +3776,7 @@ def test_update_product_without_description_clear_description_search(
     assert data["product"]["description"] == "{}"
 
     product.refresh_from_db()
-    assert product.description_search == ""
+    assert product.description_plaintext == ""
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")

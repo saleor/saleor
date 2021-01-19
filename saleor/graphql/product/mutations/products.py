@@ -537,7 +537,7 @@ class ProductCreate(ModelMutation):
         cleaned_input = super().clean_input(info, instance, data)
 
         description = cleaned_input.get("description")
-        cleaned_input["description_search"] = (
+        cleaned_input["description_plaintext"] = (
             clean_editor_js(description, to_string=True) if description else ""
         )
 
@@ -612,11 +612,11 @@ class ProductCreate(ModelMutation):
     @classmethod
     @transaction.atomic
     def save(cls, info, instance, cleaned_input):
-        description_search = cleaned_input.get("description_search")
+        description_plaintext = cleaned_input.get("description_plaintext")
         instance.save()
 
-        if description_search:
-            instance.search_vector = SearchVector("description_search")
+        if description_plaintext:
+            instance.search_vector = SearchVector("description_plaintext")
             instance.save(update_fields=["search_vector"])
         attributes = cleaned_input.get("attributes")
         if attributes:
@@ -661,9 +661,9 @@ class ProductUpdate(ProductCreate):
     @transaction.atomic
     def save(cls, info, instance, cleaned_input):
         instance.save()
-        description_search = cleaned_input.get("description_search")
-        if description_search:
-            instance.search_vector = SearchVector("description_search")
+        description_plaintext = cleaned_input.get("description_plaintext")
+        if description_plaintext:
+            instance.search_vector = SearchVector("description_plaintext")
             instance.save(update_fields=["search_vector"])
         attributes = cleaned_input.get("attributes")
         if attributes:
