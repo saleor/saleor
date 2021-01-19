@@ -134,10 +134,16 @@ class AttributeAssignmentMixin:
     ):
         """Lazy-retrieve or create the database objects from the supplied raw values."""
         get_or_create = attribute.values.get_or_create
+        is_numeric_attr = attribute.input_type == AttributeInputType.NUMERIC
+
+        def get_slug_value(value):
+            slug_value = value if not is_numeric_attr else value.replace(".", "_")
+            return slugify(slug_value, allow_unicode=True)
+
         return tuple(
             get_or_create(
                 attribute=attribute,
-                slug=slugify(value, allow_unicode=True),
+                slug=get_slug_value(value),
                 defaults={"name": value},
             )[0]
             for value in attr_values.values
@@ -399,23 +405,26 @@ class AttributeInputErrors:
     All used error codes must be specified in PageErrorCode and ProductErrorCode.
     """
 
-    ERROR_NO_VALUE_GIVEN = ("Attribute expects a value but none were given", "REQUIRED")
-    ERROR_DROPDOWN_GET_MORE_THAN_ONE_VALUE = (
-        "Attribute must take only one value",
+    ERROR_NO_VALUE_GIVEN = (
+        "Attribute expects a value but none were given.",
+        "REQUIRED",
+    )
+    ERROR_MORE_THAN_ONE_VALUE_GIVEN = (
+        "Attribute must take only one value.",
         "INVALID",
     )
     ERROR_BLANK_VALUE = (
-        "Attribute values cannot be blank",
+        "Attribute values cannot be blank.",
         "REQUIRED",
     )
 
     # file errors
     ERROR_NO_FILE_GIVEN = (
-        "Attribute file url cannot be blank",
+        "Attribute file url cannot be blank.",
         "REQUIRED",
     )
     ERROR_BLANK_FILE_VALUE = (
-        "Attribute expects a file url but none were given",
+        "Attribute expects a file url but none were given.",
         "REQUIRED",
     )
 
@@ -423,6 +432,12 @@ class AttributeInputErrors:
     ERROR_NO_REFERENCE_GIVEN = (
         "Attribute expects an reference but none were given.",
         "REQUIRED",
+    )
+
+    # numeric errors
+    ERROR_NUMERIC_VALUE_REQUIRED = (
+        "Numeric value is required.",
+        "INVALID",
     )
 
 
@@ -521,14 +536,31 @@ def validate_standard_attributes_input(
         attribute.input_type != AttributeInputType.MULTISELECT
         and len(attr_values.values) != 1
     ):
-        attribute_errors[
-            AttributeInputErrors.ERROR_DROPDOWN_GET_MORE_THAN_ONE_VALUE
-        ].append(attribute_id)
-    for value in attr_values.values:
-        if value is None or not value.strip():
+        attribute_errors[AttributeInputErrors.ERROR_MORE_THAN_ONE_VALUE_GIVEN].append(
+            attribute_id
+        )
+
+    validate_values(
+        attribute_id, attribute.input_type, attr_values.values, attribute_errors
+    )
+
+
+def validate_values(
+    attribute_id: str, input_type: str, values: list, attribute_errors: T_ERROR_DICT
+):
+    is_numeric = input_type == AttributeInputType.NUMERIC
+    for value in values:
+        if value is None or (not is_numeric and not value.strip()):
             attribute_errors[AttributeInputErrors.ERROR_BLANK_VALUE].append(
                 attribute_id
             )
+        elif is_numeric:
+            try:
+                float(value)
+            except ValueError:
+                attribute_errors[
+                    AttributeInputErrors.ERROR_NUMERIC_VALUE_REQUIRED
+                ].append(attribute_id)
 
 
 def is_variant_selection_attribute(attribute: attribute_models.Attribute):
