@@ -416,21 +416,6 @@ def test_get_tax_rate_type_choices(vatlayer, settings, monkeypatch):
         assert choice.code in expected_choices
 
 
-def test_apply_taxes_to_shipping_price_range(vatlayer, settings):
-    settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
-    money_range = MoneyRange(Money(100, "USD"), Money(200, "USD"))
-    country = Country("PL")
-    manager = get_plugins_manager()
-
-    expected_start = TaxedMoney(net=Money("81.30", "USD"), gross=Money("100", "USD"))
-    expected_stop = TaxedMoney(net=Money("162.60", "USD"), gross=Money("200", "USD"))
-
-    price_range = manager.apply_taxes_to_shipping_price_range(money_range, country)
-
-    assert price_range.start == expected_start
-    assert price_range.stop == expected_stop
-
-
 def test_apply_taxes_to_product(
     vatlayer, settings, variant, discount_info, channel_USD
 ):

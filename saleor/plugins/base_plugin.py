@@ -237,15 +237,6 @@ class BasePlugin:
         """
         return NotImplemented
 
-    def apply_taxes_to_shipping_price_range(
-        self, prices: MoneyRange, country: Country, previous_value: TaxedMoneyRange
-    ) -> TaxedMoneyRange:
-        """Provide the estimation of shipping costs based on country.
-
-        It is used only by the old storefront in the cart view.
-        """
-        return NotImplemented
-
     def apply_taxes_to_shipping(
         self, price: Money, shipping_address: "Address", previous_value: TaxedMoney
     ) -> TaxedMoney:
