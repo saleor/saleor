@@ -14,9 +14,8 @@ def assing_permissions(apps, schema_editor):
     manage_channels = Permission.objects.filter(
         codename="manage_channels", content_type__app_label="channel"
     ).first()
-    full_access = Group.objects.filter(name="Full Access").first()
-    if full_access:
-        full_access.permissions.add(manage_channels)
+    for group in Group.objects.iterator():
+        group.permissions.add(manage_channels)
 
 
 def get_default_currency(Checkout, Order, Product, ShippingMethod, Voucher):

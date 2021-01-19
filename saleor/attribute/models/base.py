@@ -3,33 +3,22 @@ from typing import TYPE_CHECKING, Union
 from django.db import models
 from django.db.models import F, Q
 
-from ..account.utils import requestor_is_staff_member_or_app
-from ..core.models import ModelWithMetadata, SortableModel
-from ..core.utils.translations import TranslationProxy
-from ..page.models import Page, PageType
-from ..product.models import Product, ProductType, ProductVariant
-from . import AttributeInputType, AttributeType
+from ...account.utils import requestor_is_staff_member_or_app
+from ...core.models import ModelWithMetadata, SortableModel
+from ...core.utils.translations import TranslationProxy
+from ...page.models import PageType
+from ...product.models import ProductType
+from .. import AttributeEntityType, AttributeInputType, AttributeType
 
 if TYPE_CHECKING:
     from django.db.models import OrderBy
 
-    from ..account.models import User
-    from ..app.models import App
-
-
-class BaseAttributeQuerySet(models.QuerySet):
-    def get_public_attributes(self):
-        raise NotImplementedError
-
-    def get_visible_to_user(self, requestor: Union["User", "App"]):
-        if requestor_is_staff_member_or_app(requestor):
-            return self.all()
-        return self.get_public_attributes()
+    from ...account.models import User
+    from ...app.models import App
 
 
 class BaseAssignedAttribute(models.Model):
     assignment = None
-    values = models.ManyToManyField("AttributeValue")
 
     class Meta:
         abstract = True
@@ -43,124 +32,19 @@ class BaseAssignedAttribute(models.Model):
         return self.assignment.attribute_id
 
 
-class AssignedProductAttribute(BaseAssignedAttribute):
-    """Associate a product type attribute and selected values to a given product."""
+class BaseAttributeQuerySet(models.QuerySet):
+    def get_public_attributes(self):
+        raise NotImplementedError
 
-    product = models.ForeignKey(
-        Product, related_name="attributes", on_delete=models.CASCADE
-    )
-    assignment = models.ForeignKey(
-        "AttributeProduct", on_delete=models.CASCADE, related_name="productassignments"
-    )
-
-    class Meta:
-        unique_together = (("product", "assignment"),)
-
-
-class AssignedVariantAttribute(BaseAssignedAttribute):
-    """Associate a product type attribute and selected values to a given variant."""
-
-    variant = models.ForeignKey(
-        ProductVariant, related_name="attributes", on_delete=models.CASCADE
-    )
-    assignment = models.ForeignKey(
-        "AttributeVariant", on_delete=models.CASCADE, related_name="variantassignments"
-    )
-
-    class Meta:
-        unique_together = (("variant", "assignment"),)
-
-
-class AssignedPageAttribute(BaseAssignedAttribute):
-    """Associate a page type attribute and selected values to a given page."""
-
-    page = models.ForeignKey(Page, related_name="attributes", on_delete=models.CASCADE)
-    assignment = models.ForeignKey(
-        "AttributePage", on_delete=models.CASCADE, related_name="pageassignments"
-    )
-
-    class Meta:
-        unique_together = (("page", "assignment"),)
+    def get_visible_to_user(self, requestor: Union["User", "App"]):
+        if requestor_is_staff_member_or_app(requestor):
+            return self.all()
+        return self.get_public_attributes()
 
 
 class AssociatedAttributeQuerySet(BaseAttributeQuerySet):
     def get_public_attributes(self):
         return self.filter(attribute__visible_in_storefront=True)
-
-
-class AttributeProduct(SortableModel):
-    attribute = models.ForeignKey(
-        "Attribute", related_name="attributeproduct", on_delete=models.CASCADE
-    )
-    product_type = models.ForeignKey(
-        ProductType, related_name="attributeproduct", on_delete=models.CASCADE
-    )
-    assigned_products = models.ManyToManyField(
-        Product,
-        blank=True,
-        through=AssignedProductAttribute,
-        through_fields=("assignment", "product"),
-        related_name="attributesrelated",
-    )
-
-    objects = AssociatedAttributeQuerySet.as_manager()
-
-    class Meta:
-        unique_together = (("attribute", "product_type"),)
-        ordering = ("sort_order", "pk")
-
-    def get_ordering_queryset(self):
-        return self.product_type.attributeproduct.all()
-
-
-class AttributeVariant(SortableModel):
-    attribute = models.ForeignKey(
-        "Attribute", related_name="attributevariant", on_delete=models.CASCADE
-    )
-    product_type = models.ForeignKey(
-        ProductType, related_name="attributevariant", on_delete=models.CASCADE
-    )
-    assigned_variants = models.ManyToManyField(
-        ProductVariant,
-        blank=True,
-        through=AssignedVariantAttribute,
-        through_fields=("assignment", "variant"),
-        related_name="attributesrelated",
-    )
-
-    objects = AssociatedAttributeQuerySet.as_manager()
-
-    class Meta:
-        unique_together = (("attribute", "product_type"),)
-        ordering = ("sort_order", "pk")
-
-    def get_ordering_queryset(self):
-        return self.product_type.attributevariant.all()
-
-
-class AttributePage(SortableModel):
-    attribute = models.ForeignKey(
-        "Attribute", related_name="attributepage", on_delete=models.CASCADE
-    )
-    page_type = models.ForeignKey(
-        PageType, related_name="attributepage", on_delete=models.CASCADE
-    )
-    assigned_pages = models.ManyToManyField(
-        Page,
-        blank=True,
-        through=AssignedPageAttribute,
-        through_fields=("assignment", "page"),
-        related_name="attributesrelated",
-    )
-
-    objects = AssociatedAttributeQuerySet.as_manager()
-
-    class Meta:
-        unique_together = (("attribute", "page_type"),)
-        ordering = ("sort_order", "pk")
-
-    def get_ordering_queryset(self):
-        return self.page_type.attributepage.all()
 
 
 class AttributeQuerySet(BaseAttributeQuerySet):
@@ -224,26 +108,29 @@ class Attribute(ModelWithMetadata):
         choices=AttributeInputType.CHOICES,
         default=AttributeInputType.DROPDOWN,
     )
+    entity_type = models.CharField(
+        max_length=50, choices=AttributeEntityType.CHOICES, blank=True, null=True
+    )
 
     product_types = models.ManyToManyField(
         ProductType,
         blank=True,
         related_name="product_attributes",
-        through=AttributeProduct,
+        through="AttributeProduct",
         through_fields=("attribute", "product_type"),
     )
     product_variant_types = models.ManyToManyField(
         ProductType,
         blank=True,
         related_name="variant_attributes",
-        through=AttributeVariant,
+        through="AttributeVariant",
         through_fields=("attribute", "product_type"),
     )
     page_types = models.ManyToManyField(
         PageType,
         blank=True,
         related_name="page_attributes",
-        through=AttributePage,
+        through="AttributePage",
         through_fields=("attribute", "page_type"),
     )
 

@@ -29,7 +29,7 @@ from ..types import User
 def get_payload(token):
     try:
         payload = jwt_decode(token)
-    except jwt.ExpiredSignature:
+    except jwt.ExpiredSignatureError:
         raise ValidationError(
             "Signature has expired", code=AccountErrorCode.JWT_SIGNATURE_EXPIRED.value
         )

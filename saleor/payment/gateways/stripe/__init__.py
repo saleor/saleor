@@ -194,7 +194,7 @@ def _error_response(
     return GatewayResponse(
         is_success=False,
         action_required=action_required,
-        transaction_id=payment_info.token,
+        transaction_id=payment_info.token or "",
         amount=payment_info.amount,
         currency=payment_info.currency,
         error=exc.user_message,

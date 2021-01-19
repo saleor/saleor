@@ -53,7 +53,7 @@ def test_incorrect_token(rf, staff_user, settings):
         payload,
         "Wrong secret",
         JWT_ALGORITHM,
-    ).decode("utf-8")
+    )
     request = rf.request(HTTP_AUTHORIZATION=f"JWT {token}")
     backend = JSONWebTokenBackend()
     with pytest.raises(InvalidSignatureError):

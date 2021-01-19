@@ -7,8 +7,6 @@ from .....attribute.models import Attribute
 from .....product.models import Category, Collection, Product, ProductType
 from .....tests.utils import dummy_editorjs
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...enums import AttributeValueType
-from ...types import resolve_attribute_value_type
 
 
 def test_get_single_attribute_by_id_as_customer(
@@ -66,6 +64,7 @@ query($id: ID!) {
         slug
         name
         inputType
+        entityType
         type
         values {
             slug
@@ -250,6 +249,54 @@ def test_get_single_product_attribute_with_file_value(
         assert data in attribute_data["values"]
 
 
+def test_get_single_reference_attribute_by_staff(
+    staff_api_client, product_type_page_reference_attribute, permission_manage_products
+):
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    attribute_gql_id = graphene.Node.to_global_id(
+        "Attribute", product_type_page_reference_attribute.id
+    )
+    query = QUERY_ATTRIBUTE
+    content = get_graphql_content(
+        staff_api_client.post_graphql(query, {"id": attribute_gql_id})
+    )
+
+    assert content["data"]["attribute"], "Should have found an attribute"
+    assert content["data"]["attribute"]["id"] == attribute_gql_id
+    assert (
+        content["data"]["attribute"]["slug"]
+        == product_type_page_reference_attribute.slug
+    )
+    assert (
+        content["data"]["attribute"]["valueRequired"]
+        == product_type_page_reference_attribute.value_required
+    )
+    assert (
+        content["data"]["attribute"]["visibleInStorefront"]
+        == product_type_page_reference_attribute.visible_in_storefront
+    )
+    assert (
+        content["data"]["attribute"]["filterableInStorefront"]
+        == product_type_page_reference_attribute.filterable_in_storefront
+    )
+    assert (
+        content["data"]["attribute"]["filterableInDashboard"]
+        == product_type_page_reference_attribute.filterable_in_dashboard
+    )
+    assert (
+        content["data"]["attribute"]["availableInGrid"]
+        == product_type_page_reference_attribute.available_in_grid
+    )
+    assert (
+        content["data"]["attribute"]["storefrontSearchPosition"]
+        == product_type_page_reference_attribute.storefront_search_position
+    )
+    assert (
+        content["data"]["attribute"]["entityType"]
+        == product_type_page_reference_attribute.entity_type.upper()
+    )
+
+
 QUERY_ATTRIBUTES = """
     query {
         attributes(first: 20) {
@@ -384,28 +431,6 @@ def test_retrieving_the_restricted_attributes_restricted(
 
     assert len(found_attributes) == 1
     assert found_attributes[0]["node"][attribute] == expected_value
-
-
-@pytest.mark.parametrize(
-    "raw_value, expected_type",
-    [
-        ("#0000", AttributeValueType.COLOR),
-        ("#FF69B4", AttributeValueType.COLOR),
-        ("rgb(255, 0, 0)", AttributeValueType.COLOR),
-        ("hsl(0, 100%, 50%)", AttributeValueType.COLOR),
-        ("hsla(120,  60%, 70%, 0.3)", AttributeValueType.COLOR),
-        ("rgba(100%, 255, 0, 0)", AttributeValueType.COLOR),
-        ("http://example.com", AttributeValueType.URL),
-        ("https://example.com", AttributeValueType.URL),
-        ("ftp://example.com", AttributeValueType.URL),
-        ("example.com", AttributeValueType.STRING),
-        ("Foo", AttributeValueType.STRING),
-        ("linear-gradient(red, yellow)", AttributeValueType.GRADIENT),
-        ("radial-gradient(#0000, yellow)", AttributeValueType.GRADIENT),
-    ],
-)
-def test_resolve_attribute_value_type(raw_value, expected_type):
-    assert resolve_attribute_value_type(raw_value) == expected_type
 
 
 @pytest.mark.parametrize("tested_field", ["inCategory", "inCollection"])
