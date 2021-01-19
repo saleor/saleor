@@ -5,13 +5,12 @@ from ...account import models as account_models
 from ...core.error_codes import ShopErrorCode
 from ...core.permissions import OrderPermissions, SitePermissions
 from ...core.utils.url import validate_storefront_url
-from ...site import models as site_models
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
 from ..core.enums import WeightUnitsEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import OrderSettingsError, ShopError
-from .types import AuthorizationKey, AuthorizationKeyType, OrderSettings, Shop
+from .types import OrderSettings, Shop
 
 
 class ShopSettingsInput(graphene.InputObjectType):
@@ -175,92 +174,6 @@ class ShopFetchTaxRates(BaseMutation):
                 code=ShopErrorCode.CANNOT_FETCH_TAX_RATES.value,
             )
         return ShopFetchTaxRates(shop=Shop())
-
-
-class AuthorizationKeyInput(graphene.InputObjectType):
-    key = graphene.String(
-        required=True, description="Client authorization key (client ID)."
-    )
-    password = graphene.String(required=True, description="Client secret.")
-
-
-class AuthorizationKeyAdd(BaseMutation):
-    authorization_key = graphene.Field(
-        AuthorizationKey, description="Newly added authorization key."
-    )
-    shop = graphene.Field(Shop, description="Updated shop.")
-
-    class Meta:
-        description = "Adds an authorization key."
-        permissions = (SitePermissions.MANAGE_SETTINGS,)
-        error_type_class = ShopError
-        error_type_field = "shop_errors"
-
-    class Arguments:
-        key_type = AuthorizationKeyType(
-            required=True, description="Type of an authorization key to add."
-        )
-        input = AuthorizationKeyInput(
-            required=True, description="Fields required to create an authorization key."
-        )
-
-    @classmethod
-    def perform_mutation(cls, _root, info, key_type, **data):
-        if site_models.AuthorizationKey.objects.filter(name=key_type).exists():
-            raise ValidationError(
-                {
-                    "key_type": ValidationError(
-                        "Authorization key already exists.",
-                        code=ShopErrorCode.ALREADY_EXISTS,
-                    )
-                }
-            )
-
-        site_settings = info.context.site.settings
-        instance = site_models.AuthorizationKey(
-            name=key_type, site_settings=site_settings, **data.get("input")
-        )
-        cls.clean_instance(info, instance)
-        instance.save()
-        return AuthorizationKeyAdd(authorization_key=instance, shop=Shop())
-
-
-class AuthorizationKeyDelete(BaseMutation):
-    authorization_key = graphene.Field(
-        AuthorizationKey, description="Authorization key that was deleted."
-    )
-    shop = graphene.Field(Shop, description="Updated shop.")
-
-    class Arguments:
-        key_type = AuthorizationKeyType(
-            required=True, description="Type of a key to delete."
-        )
-
-    class Meta:
-        description = "Deletes an authorization key."
-        permissions = (SitePermissions.MANAGE_SETTINGS,)
-        error_type_class = ShopError
-        error_type_field = "shop_errors"
-
-    @classmethod
-    def perform_mutation(cls, _root, info, key_type):
-        try:
-            site_settings = info.context.site.settings
-            instance = site_models.AuthorizationKey.objects.get(
-                name=key_type, site_settings=site_settings
-            )
-        except site_models.AuthorizationKey.DoesNotExist:
-            raise ValidationError(
-                {
-                    "key_type": ValidationError(
-                        "Couldn't resolve authorization key",
-                        code=ShopErrorCode.NOT_FOUND,
-                    )
-                }
-            )
-
-        instance.delete()
-        return AuthorizationKeyDelete(authorization_key=instance, shop=Shop())
 
 
 class StaffNotificationRecipientInput(graphene.InputObjectType):

@@ -1,4 +1,5 @@
 import datetime
+from decimal import Decimal
 from unittest.mock import Mock
 
 from freezegun import freeze_time
@@ -67,6 +68,91 @@ def test_availability(stock, monkeypatch, settings, channel_USD):
     assert availability.price_range.stop.tax.amount
     assert availability.price_range_undiscounted.start.tax.amount
     assert availability.price_range_undiscounted.stop.tax.amount
+
+
+def test_availability_with_all_variant_channel_listings(stock, channel_USD):
+    # given
+    product = stock.product_variant.product
+    product_channel_listing = product.channel_listings.first()
+    variants = product.variants.all()
+    variants_channel_listing = models.ProductVariantChannelListing.objects.filter(
+        variant__in=variants, channel=channel_USD
+    )
+    [variant1_channel_listing, variant2_channel_listing] = variants_channel_listing
+    variant2_channel_listing.price_amount = Decimal(15)
+    variant2_channel_listing.save()
+
+    # when
+    availability = get_product_availability(
+        product=product,
+        product_channel_listing=product_channel_listing,
+        variants=variants,
+        variants_channel_listing=variants_channel_listing,
+        channel=channel_USD,
+        collections=[],
+        discounts=[],
+        country="PL",
+    )
+
+    # then
+    price_range = availability.price_range
+    assert price_range.start.gross.amount == variant1_channel_listing.price_amount
+    assert price_range.stop.gross.amount == variant2_channel_listing.price_amount
+
+
+def test_availability_with_missing_variant_channel_listings(stock, channel_USD):
+    # given
+    product = stock.product_variant.product
+    product_channel_listing = product.channel_listings.first()
+    variants = product.variants.all()
+    variants_channel_listing = models.ProductVariantChannelListing.objects.filter(
+        variant__in=variants, channel=channel_USD
+    )
+    [variant1_channel_listing, variant2_channel_listing] = variants_channel_listing
+    variant2_channel_listing.delete()
+
+    # when
+    availability = get_product_availability(
+        product=product,
+        product_channel_listing=product_channel_listing,
+        variants=variants,
+        variants_channel_listing=variants_channel_listing,
+        channel=channel_USD,
+        collections=[],
+        discounts=[],
+        country="PL",
+    )
+
+    # then
+    price_range = availability.price_range
+    assert price_range.start.gross.amount == variant1_channel_listing.price_amount
+    assert price_range.stop.gross.amount == variant1_channel_listing.price_amount
+
+
+def test_availability_without_variant_channel_listings(stock, channel_USD):
+    # given
+    product = stock.product_variant.product
+    product_channel_listing = product.channel_listings.first()
+    variants = product.variants.all()
+    models.ProductVariantChannelListing.objects.filter(
+        variant__in=variants, channel=channel_USD
+    ).delete()
+
+    # when
+    availability = get_product_availability(
+        product=product,
+        product_channel_listing=product_channel_listing,
+        variants=variants,
+        variants_channel_listing=[],
+        channel=channel_USD,
+        collections=[],
+        discounts=[],
+        country="PL",
+    )
+
+    # then
+    price_range = availability.price_range
+    assert price_range is None
 
 
 def test_available_products_only_published(product_list, channel_USD):
@@ -183,14 +269,13 @@ def test_visible_to_customer_user(customer_user, product_list, channel_USD):
 
 
 def test_visible_to_staff_user(
-    customer_user, product_list, channel_USD, permission_manage_products
+    staff_user, product_list, channel_USD, permission_manage_products
 ):
     product = product_list[0]
     product.variants.all().delete()
-    customer_user.user_permissions.add(permission_manage_products)
 
     available_products = models.Product.objects.visible_to_user(
-        customer_user, channel_USD.slug
+        staff_user, channel_USD.slug
     )
     assert available_products.count() == 3
 

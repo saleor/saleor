@@ -108,7 +108,9 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
 
     @classmethod
     def get_shipping_method_channel_listing_to_create(
-        cls, shipping_method_id, input,
+        cls,
+        shipping_method_id,
+        input,
     ):
         channels = [data.get("channel") for data in input]
         channel_listings = ShippingMethodChannelListing.objects.filter(

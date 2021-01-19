@@ -6,7 +6,7 @@ from django.contrib.sites.models import Site
 from django.db import transaction
 
 from ..core import analytics
-from ..core.exceptions import InsufficientStock
+from ..core.exceptions import AllocationError, InsufficientStock
 from ..order.emails import send_order_confirmed
 from ..payment import (
     ChargeStatus,
@@ -268,7 +268,9 @@ def mark_order_as_paid(
 def clean_mark_order_as_paid(order: "Order"):
     """Check if an order can be marked as paid."""
     if order.payments.exists():
-        raise PaymentError("Orders with payments can not be manually marked as paid.",)
+        raise PaymentError(
+            "Orders with payments can not be manually marked as paid.",
+        )
 
 
 def fulfill_order_line(order_line, quantity, warehouse_pk):
@@ -414,7 +416,10 @@ def create_fulfillments(
 
     FulfillmentLine.objects.bulk_create(fulfillment_lines)
     order_fulfilled(
-        fulfillments, requester, fulfillment_lines, notify_customer,
+        fulfillments,
+        requester,
+        fulfillment_lines,
+        notify_customer,
     )
     return fulfillments
 
@@ -454,7 +459,9 @@ def _refund_fulfillment_for_order_lines(
             # fulfillment
             fulfillment_line_existed = False
             refunded_line = FulfillmentLine(
-                fulfillment=refunded_fulfillment, order_line=line_to_refund, quantity=0,
+                fulfillment=refunded_fulfillment,
+                order_line=line_to_refund,
+                quantity=0,
             )
 
         # calculate the quantity fulfilled/unfulfilled/to refund
@@ -478,7 +485,14 @@ def _refund_fulfillment_for_order_lines(
             # quantity
             fulfillment_lines_to_update.append(refunded_line)
 
-        deallocate_stock(line_to_refund, unfulfilled_to_refund)
+        line_allocations_exists = line_to_refund.allocations.exists()
+        if line_allocations_exists:
+            try:
+                deallocate_stock(line_to_refund, unfulfilled_to_refund)
+            except AllocationError:
+                logger.warning(
+                    f"Unable to deallocate stock for line {line_to_refund.id}"
+                )
 
         # prepare structure which will be used to create new order event.
         all_refunded_lines[line_to_refund.id] = (

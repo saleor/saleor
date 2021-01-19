@@ -26,6 +26,7 @@ from graphql_relay import from_global_id
 
 from ....checkout.complete_checkout import complete_checkout
 from ....checkout.models import Checkout
+from ....checkout.utils import fetch_checkout_lines
 from ....core.transactions import transaction_with_commit_on_errors
 from ....core.utils.url import prepare_url
 from ....discount.utils import fetch_active_discounts
@@ -37,6 +38,7 @@ from ....order.actions import (
 )
 from ....order.events import external_notification_event
 from ....payment.models import Payment, Transaction
+from ....plugins.manager import get_plugins_manager
 from ... import ChargeStatus, PaymentError, TransactionKind
 from ...gateway import payment_refund_or_void
 from ...interface import GatewayConfig, GatewayResponse
@@ -88,7 +90,10 @@ def get_checkout(payment: Payment) -> Optional[Checkout]:
     # Lock checkout in the same way as in checkoutComplete
     return (
         Checkout.objects.select_for_update(of=("self",))
-        .prefetch_related("gift_cards", "lines__variant__product",)
+        .prefetch_related(
+            "gift_cards",
+            "lines__variant__product",
+        )
         .select_related("shipping_method__shipping_zone")
         .filter(pk=payment.checkout.pk)
         .first()
@@ -96,7 +101,9 @@ def get_checkout(payment: Payment) -> Optional[Checkout]:
 
 
 def get_transaction(
-    payment: "Payment", transaction_id: Optional[str], kind: str,
+    payment: "Payment",
+    transaction_id: Optional[str],
+    kind: str,
 ) -> Optional[Transaction]:
     transaction = payment.transactions.filter(kind=kind, token=transaction_id).last()
     return transaction
@@ -145,10 +152,14 @@ def create_payment_notification_for_order(
 
 
 def create_order(payment, checkout):
+    manager = get_plugins_manager()
     try:
         discounts = fetch_active_discounts()
+        lines = fetch_checkout_lines(checkout)
         order, _, _ = complete_checkout(
+            manager=manager,
             checkout=checkout,
+            lines=lines,
             payment_data={},
             store_source=False,
             discounts=discounts,
@@ -292,7 +303,9 @@ def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig)
         )
     else:
         capture_transaction = payment.transactions.filter(
-            action_required=False, is_success=True, kind=TransactionKind.CAPTURE,
+            action_required=False,
+            is_success=True,
+            kind=TransactionKind.CAPTURE,
         ).last()
         new_transaction = create_new_transaction(
             notification, payment, TransactionKind.CAPTURE
@@ -634,7 +647,8 @@ def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
 
 @transaction_with_commit_on_errors()
 def handle_additional_actions(
-    request: WSGIRequest, payment_details: Callable,
+    request: WSGIRequest,
+    payment_details: Callable,
 ):
     payment_id = request.GET.get("payment")
     checkout_pk = request.GET.get("checkout")
@@ -707,9 +721,7 @@ def prepare_api_request_data(request: WSGIRequest, data: dict):
 def prepare_redirect_url(
     payment_id: str, checkout_pk: str, api_response: Adyen.Adyen, return_url: str
 ):
-    checkout_id = graphene.Node.to_global_id(
-        "Checkout", checkout_pk  # type: ignore
-    )
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_pk)  # type: ignore
 
     params = {
         "checkout": checkout_id,
@@ -725,11 +737,13 @@ def prepare_redirect_url(
 
 
 def handle_api_response(
-    payment: Payment, response: Adyen.Adyen,
+    payment: Payment,
+    response: Adyen.Adyen,
 ):
     checkout = get_checkout(payment)
     payment_data = create_payment_information(
-        payment=payment, payment_token=payment.token,
+        payment=payment,
+        payment_token=payment.token,
     )
     payment_brand = response.message.get("additionalData", {}).get("paymentMethod")
     if payment_brand:

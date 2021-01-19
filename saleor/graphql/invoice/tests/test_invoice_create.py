@@ -1,4 +1,5 @@
 import graphene
+import pytest
 
 from ....core import JobStatus
 from ....graphql.tests.utils import get_graphql_content
@@ -86,10 +87,11 @@ def test_create_invoice_no_billing_address(
     assert not order.events.filter(type=OrderEvents.INVOICE_GENERATED).exists()
 
 
-def test_create_invoice_for_draft_order(
-    staff_api_client, permission_manage_orders, order
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
+def test_create_invoice_invalid_order_status(
+    status, staff_api_client, permission_manage_orders, order
 ):
-    order.status = OrderStatus.DRAFT
+    order.status = status
     order.save()
     number = "01/12/2020/TEST"
     url = "http://www.example.com"

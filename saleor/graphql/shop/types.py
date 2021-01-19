@@ -12,7 +12,7 @@ from ...core.permissions import SitePermissions, get_permissions
 from ...core.utils import get_client_ip, get_country_by_ip
 from ...plugins.manager import get_plugins_manager
 from ...site import models as site_models
-from ..account.types import Address, StaffNotificationRecipient
+from ..account.types import Address, AddressInput, StaffNotificationRecipient
 from ..channel import ChannelContext
 from ..checkout.types import PaymentGateway
 from ..core.connection import CountableDjangoObjectType
@@ -22,12 +22,13 @@ from ..core.utils import str_to_enum
 from ..decorators import permission_required
 from ..menu.dataloaders import MenuByIdLoader
 from ..menu.types import Menu
+from ..shipping.types import ShippingMethod
 from ..translations.enums import LanguageCodeEnum
 from ..translations.fields import TranslationField
 from ..translations.resolvers import resolve_translation
 from ..translations.types import ShopTranslation
 from ..utils import format_permissions_for_display
-from .enums import AuthorizationKeyType
+from .resolvers import resolve_available_shipping_methods
 
 
 class Navigation(graphene.ObjectType):
@@ -36,13 +37,6 @@ class Navigation(graphene.ObjectType):
 
     class Meta:
         description = "Represents shop's navigation menus."
-
-
-class AuthorizationKey(graphene.ObjectType):
-    name = AuthorizationKeyType(
-        description="Name of the authorization backend.", required=True
-    )
-    key = graphene.String(description="Authorization key (client ID).", required=True)
 
 
 class Domain(graphene.ObjectType):
@@ -95,16 +89,25 @@ class Shop(graphene.ObjectType):
         description="List of available external authentications.",
         required=True,
     )
+    available_shipping_methods = graphene.List(
+        ShippingMethod,
+        channel=graphene.Argument(
+            graphene.String,
+            description="Slug of a channel for which the data should be returned.",
+            required=True,
+        ),
+        address=graphene.Argument(
+            AddressInput,
+            description=(
+                "Address for which available shipping methods should be returned."
+            ),
+            required=False,
+        ),
+        required=False,
+        description="Shipping methods that are available for the shop.",
+    )
     geolocalization = graphene.Field(
         Geolocalization, description="Customer's geolocalization data."
-    )
-    authorization_keys = graphene.List(
-        AuthorizationKey,
-        description=(
-            "List of configured authorization keys. Authorization keys are used to "
-            "enable third-party OAuth authorization (currently Facebook or Google)."
-        ),
-        required=True,
     )
     countries = graphene.List(
         graphene.NonNull(CountryDisplay),
@@ -195,9 +198,8 @@ class Shop(graphene.ObjectType):
         return info.context.plugins.list_external_authentications(active_only=True)
 
     @staticmethod
-    @permission_required(SitePermissions.MANAGE_SETTINGS)
-    def resolve_authorization_keys(_, _info):
-        return site_models.AuthorizationKey.objects.all()
+    def resolve_available_shipping_methods(_, info, channel, address=None):
+        return resolve_available_shipping_methods(info, channel, address)
 
     @staticmethod
     def resolve_countries(_, _info, language_code=None):

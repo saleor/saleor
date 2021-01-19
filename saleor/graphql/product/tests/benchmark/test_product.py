@@ -24,8 +24,6 @@ def test_product_details(product_with_image, api_client, count_queries, channel_
           id
           sku
           name
-          stockQuantity
-          isAvailable
           pricing {
             discountLocalCurrency {
               currency
@@ -273,7 +271,10 @@ def test_retrieve_channel_listings(
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
 def test_retrive_products_with_product_types_and_attributes(
-    product_list, api_client, count_queries, channel_USD,
+    product_list,
+    api_client,
+    count_queries,
+    channel_USD,
 ):
     query = """
         query($channel: String) {

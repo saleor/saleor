@@ -13,7 +13,7 @@ from django.db.models import (
     Subquery,
 )
 from django.db.models.expressions import Window
-from django.db.models.functions import Coalesce, RowNumber
+from django.db.models.functions import Coalesce, DenseRank
 
 from ...product.models import (
     Category,
@@ -131,7 +131,7 @@ class ProductOrderField(graphene.Enum):
     TYPE = ["product_type__name", "name", "slug"]
     PUBLISHED = ["is_published", "name", "slug"]
     PUBLICATION_DATE = ["publication_date", "name", "slug"]
-    COLLECTION = ["row_number"]
+    COLLECTION = ["sort_order"]
     RATING = ["rating", "name", "slug"]
 
     @property
@@ -204,8 +204,8 @@ class ProductOrderField(graphene.Enum):
     @staticmethod
     def qs_with_collection(queryset: QuerySet, **_kwargs) -> QuerySet:
         return queryset.annotate(
-            row_number=Window(
-                expression=RowNumber(),
+            sort_order=Window(
+                expression=DenseRank(),
                 order_by=(
                     F("collectionproduct__sort_order").asc(nulls_last=True),
                     F("collectionproduct__id"),

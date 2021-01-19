@@ -7,33 +7,11 @@ from django_countries import countries
 from ....account.models import Address
 from ....core.error_codes import ShopErrorCode
 from ....core.permissions import get_permissions_codename
-from ....site import AuthenticationBackends
+from ....shipping.models import ShippingMethod
 from ....site.models import Site
+from ...account.enums import CountryCodeEnum
 from ...core.utils import str_to_enum
 from ...tests.utils import assert_no_permission, get_graphql_content
-
-
-def test_query_authorization_keys(
-    authorization_key, staff_api_client, permission_manage_settings
-):
-    query = """
-    query {
-        shop {
-            authorizationKeys {
-                name
-                key
-            }
-        }
-    }
-    """
-    response = staff_api_client.post_graphql(
-        query, permissions=[permission_manage_settings]
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["shop"]
-    assert data["authorizationKeys"][0]["name"] == "FACEBOOK"
-    assert data["authorizationKeys"][0]["key"] == authorization_key.key
-
 
 COUNTRIES_QUERY = """
     query {
@@ -700,75 +678,115 @@ def test_query_available_payment_gateways_specified_currency_EUR(
     assert data[0]["name"] == "SampleDummy"
 
 
-AUTHORIZATION_KEY_ADD = """
-mutation AddKey($key: String!, $password: String!, $keyType: AuthorizationKeyType!) {
-    authorizationKeyAdd(input: {key: $key, password: $password}, keyType: $keyType) {
-        errors {
-            field
-            message
-        }
-        authorizationKey {
-            name
-            key
+AVAILABLE_SHIPPING_METHODS_QUERY = """
+    query Shop($channel: String!, $address: AddressInput){
+        shop {
+            availableShippingMethods(channel: $channel, address: $address) {
+                id
+                name
+            }
         }
     }
-}
 """
 
 
-def test_mutation_authorization_key_add_existing(
-    staff_api_client, authorization_key, permission_manage_settings
+def test_query_available_shipping_methods_no_address(
+    staff_api_client, shipping_method, shipping_method_channel_PLN, channel_USD
 ):
+    # given
+    query = AVAILABLE_SHIPPING_METHODS_QUERY
 
-    # adding a key of type that already exists should return an error
-    assert authorization_key.name == AuthenticationBackends.FACEBOOK
-    variables = {"keyType": "FACEBOOK", "key": "key", "password": "secret"}
-    response = staff_api_client.post_graphql(
-        AUTHORIZATION_KEY_ADD, variables, permissions=[permission_manage_settings]
-    )
+    # when
+    response = staff_api_client.post_graphql(query, {"channel": channel_USD.slug})
+
+    # then
     content = get_graphql_content(response)
-    assert content["data"]["authorizationKeyAdd"]["errors"][0]["field"] == "keyType"
-
-
-def test_mutation_authorization_key_add(staff_api_client, permission_manage_settings):
-
-    # mutation with correct input data should create a new key instance
-    variables = {"keyType": "FACEBOOK", "key": "key", "password": "secret"}
-    response = staff_api_client.post_graphql(
-        AUTHORIZATION_KEY_ADD, variables, permissions=[permission_manage_settings]
-    )
-    content = get_graphql_content(response)
-    assert content["data"]["authorizationKeyAdd"]["authorizationKey"]["key"] == "key"
-
-
-def test_mutation_authorization_key_delete(
-    staff_api_client, authorization_key, permission_manage_settings
-):
-
-    query = """
-    mutation DeleteKey($keyType: AuthorizationKeyType!) {
-        authorizationKeyDelete(keyType: $keyType) {
-            errors {
-                field
-                message
-            }
-            authorizationKey {
-                name
-                key
-            }
-        }
+    data = content["data"]["shop"]["availableShippingMethods"]
+    assert {ship_meth["id"] for ship_meth in data} == {
+        graphene.Node.to_global_id("ShippingMethod", ship_meth.pk)
+        for ship_meth in ShippingMethod.objects.filter(
+            channel_listings__channel__slug=channel_USD.slug
+        )
     }
-    """
 
-    assert authorization_key.name == AuthenticationBackends.FACEBOOK
 
-    # deleting non-existing key should return an error
-    variables = {"keyType": "FACEBOOK"}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_settings]
-    )
+def test_query_available_shipping_methods_for_given_address(
+    staff_api_client,
+    channel_USD,
+    shipping_method,
+    shipping_zone_without_countries,
+    address,
+):
+    # given
+    query = AVAILABLE_SHIPPING_METHODS_QUERY
+    shipping_method_count = ShippingMethod.objects.count()
+    variables = {
+        "channel": channel_USD.slug,
+        "address": {"country": CountryCodeEnum.US.name},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
     content = get_graphql_content(response)
-    assert content["data"]["authorizationKeyDelete"]["authorizationKey"]
+    data = content["data"]["shop"]["availableShippingMethods"]
+    assert len(data) == shipping_method_count - 1
+    assert graphene.Node.to_global_id(
+        "ShippingMethod", shipping_zone_without_countries.pk
+    ) not in {ship_meth["id"] for ship_meth in data}
+
+
+def test_query_available_shipping_methods_no_address_vatlayer_set(
+    staff_api_client,
+    shipping_method,
+    shipping_method_channel_PLN,
+    channel_USD,
+    setup_vatlayer,
+):
+    # given
+    query = AVAILABLE_SHIPPING_METHODS_QUERY
+
+    # when
+    response = staff_api_client.post_graphql(query, {"channel": channel_USD.slug})
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["shop"]["availableShippingMethods"]
+    assert {ship_meth["id"] for ship_meth in data} == {
+        graphene.Node.to_global_id("ShippingMethod", ship_meth.pk)
+        for ship_meth in ShippingMethod.objects.filter(
+            channel_listings__channel__slug=channel_USD.slug
+        )
+    }
+
+
+def test_query_available_shipping_methods_for_given_address_vatlayer_set(
+    staff_api_client,
+    channel_USD,
+    shipping_method,
+    shipping_zone_without_countries,
+    address,
+    setup_vatlayer,
+):
+    # given
+    query = AVAILABLE_SHIPPING_METHODS_QUERY
+    shipping_method_count = ShippingMethod.objects.count()
+    variables = {
+        "channel": channel_USD.slug,
+        "address": {"country": CountryCodeEnum.US.name},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["shop"]["availableShippingMethods"]
+    assert len(data) == shipping_method_count - 1
+    assert graphene.Node.to_global_id(
+        "ShippingMethod", shipping_zone_without_countries.pk
+    ) not in {ship_meth["id"] for ship_meth in data}
 
 
 MUTATION_SHOP_ADDRESS_UPDATE = """
@@ -785,7 +803,6 @@ MUTATION_SHOP_ADDRESS_UPDATE = """
 
 def test_mutation_update_company_address(
     staff_api_client,
-    authorization_key,
     permission_manage_settings,
     address,
     site_settings,

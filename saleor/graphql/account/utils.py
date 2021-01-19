@@ -338,7 +338,8 @@ def get_not_manageable_permissions_after_group_deleting(group):
 
 
 def get_not_manageable_permissions(
-    groups_data: dict, not_manageable_permissions: Set[str],
+    groups_data: dict,
+    not_manageable_permissions: Set[str],
 ):
     # get users from groups with manage staff and look for not_manageable_permissions
     # if any of not_manageable_permissions is found it is removed from set
@@ -403,7 +404,8 @@ def get_group_to_permissions_and_users_mapping():
 
 
 def get_users_and_look_for_permissions_in_groups_with_manage_staff(
-    groups_data: dict, permissions_to_find: Set[str],
+    groups_data: dict,
+    permissions_to_find: Set[str],
 ):
     """Search for permissions in groups with manage staff and return their users.
 
@@ -430,7 +432,9 @@ def get_users_and_look_for_permissions_in_groups_with_manage_staff(
 
 
 def look_for_permission_in_users_with_manage_staff(
-    groups_data: dict, users_to_check: Set[int], permissions_to_find: Set[str],
+    groups_data: dict,
+    users_to_check: Set[int],
+    permissions_to_find: Set[str],
 ):
     """Search for permissions in user with manage staff groups.
 

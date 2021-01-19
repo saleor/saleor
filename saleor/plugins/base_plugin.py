@@ -1,7 +1,7 @@
 from copy import copy
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Iterable, List, Optional, Tuple, Union
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
@@ -21,12 +21,19 @@ if TYPE_CHECKING:
     # flake8: noqa
     from ..account.models import Address, User
     from ..channel.models import Channel
+    from ..checkout import CheckoutLineInfo
     from ..checkout.models import Checkout, CheckoutLine
     from ..core.taxes import TaxType
     from ..discount import DiscountInfo
     from ..invoice.models import Invoice
     from ..order.models import Fulfillment, Order, OrderLine
-    from ..product.models import Product, ProductType
+    from ..product.models import (
+        Collection,
+        Product,
+        ProductType,
+        ProductVariant,
+        ProductVariantChannelListing,
+    )
 
 
 PluginConfigurationType = List[dict]
@@ -149,7 +156,8 @@ class BasePlugin:
     def calculate_checkout_total(
         self,
         checkout: "Checkout",
-        lines: List["CheckoutLine"],
+        lines: List["CheckoutLineInfo"],
+        address: Optional["Address"],
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -163,7 +171,8 @@ class BasePlugin:
     def calculate_checkout_subtotal(
         self,
         checkout: "Checkout",
-        lines: List["CheckoutLine"],
+        lines: List["CheckoutLineInfo"],
+        address: Optional["Address"],
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -177,7 +186,8 @@ class BasePlugin:
     def calculate_checkout_shipping(
         self,
         checkout: "Checkout",
-        lines: List["CheckoutLine"],
+        lines: List["CheckoutLineInfo"],
+        address: Optional["Address"],
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -201,9 +211,15 @@ class BasePlugin:
     # TODO: Add information about this change to `breaking changes in changelog`
     def calculate_checkout_line_total(
         self,
+        checkout: "Checkout",
         checkout_line: "CheckoutLine",
-        discounts: List["DiscountInfo"],
+        variant: "ProductVariant",
+        product: "Product",
+        collections: List["Collection"],
+        address: Optional["Address"],
         channel: "Channel",
+        channel_listing: "ProductVariantChannelListing",
+        discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
         """Calculate checkout line total.
@@ -211,6 +227,12 @@ class BasePlugin:
         Overwrite this method if you need to apply specific logic for the calculation
         of a checkout line total. Return TaxedMoney.
         """
+        return NotImplemented
+
+    def calculate_checkout_line_unit_price(
+        self, total_line_price: TaxedMoney, quantity: int, previous_value: TaxedMoney
+    ):
+        """Calculate checkout line unit price."""
         return NotImplemented
 
     def calculate_order_line_unit(
@@ -223,6 +245,38 @@ class BasePlugin:
         Overwrite this method if you need to apply specific logic for the calculation
         of an order line unit price.
         """
+        return NotImplemented
+
+    def get_checkout_line_tax_rate(
+        self,
+        checkout: "Checkout",
+        checkout_line_info: "CheckoutLineInfo",
+        address: Optional["Address"],
+        discounts: Iterable["DiscountInfo"],
+        previous_value: Decimal,
+    ) -> Decimal:
+        return NotImplemented
+
+    def get_order_line_tax_rate(
+        self,
+        order: "Order",
+        product: "Product",
+        address: Optional["Address"],
+        previous_value: Decimal,
+    ) -> Decimal:
+        return NotImplemented
+
+    def get_checkout_shipping_tax_rate(
+        self,
+        checkout: "Checkout",
+        lines: Iterable["CheckoutLineInfo"],
+        address: Optional["Address"],
+        discounts: Iterable["DiscountInfo"],
+        previous_value: Decimal,
+    ):
+        return NotImplemented
+
+    def get_order_shipping_tax_rate(self, order: "Order", previous_value: Decimal):
         return NotImplemented
 
     def get_tax_rate_type_choices(
@@ -513,7 +567,9 @@ class BasePlugin:
         )
 
     def get_payment_gateway_for_checkout(
-        self, checkout: "Checkout", previous_value,
+        self,
+        checkout: "Checkout",
+        previous_value,
     ) -> Optional["PaymentGateway"]:
         return self.get_payment_gateway(checkout.currency, previous_value)
 

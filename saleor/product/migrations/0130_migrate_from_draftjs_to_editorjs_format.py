@@ -24,7 +24,7 @@ def parse_to_editorjs(data):
     list_data = {}
     for block in blocks:
         # if block doesn't have key it means it isn't in draft.js format
-        if not block.get("key"):
+        if "key" not in block:
             return data
         key = block["type"]
         inline_style_ranges = block["inlineStyleRanges"]

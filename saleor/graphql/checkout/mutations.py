@@ -1,24 +1,26 @@
-from typing import List, Optional, Tuple
+from typing import Iterable, List, Optional, Tuple
 
 import graphene
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
-from django.db.models import Prefetch
 
 from ...channel.exceptions import ChannelNotDefined
 from ...channel.models import Channel
 from ...channel.utils import get_default_channel
-from ...checkout import models
+from ...checkout import CheckoutLineInfo, models
 from ...checkout.complete_checkout import complete_checkout
 from ...checkout.error_codes import CheckoutErrorCode
 from ...checkout.utils import (
     add_promo_code_to_checkout,
     add_variant_to_checkout,
+    add_variants_to_checkout,
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
+    fetch_checkout_lines,
     get_user_checkout,
     get_valid_shipping_methods_for_checkout,
+    is_shipping_required,
     recalculate_checkout_discount,
     remove_promo_code_from_checkout,
 )
@@ -26,10 +28,9 @@ from ...core import analytics
 from ...core.exceptions import InsufficientStock, PermissionDenied, ProductNotPublished
 from ...core.transactions import transaction_with_commit_on_errors
 from ...order import models as order_models
-from ...payment import models as payment_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
-from ...warehouse.availability import check_stock_quantity, get_available_quantity
+from ...warehouse.availability import check_stock_quantity_bulk
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
 from ..core.mutations import BaseMutation, ModelMutation
@@ -45,7 +46,7 @@ ERROR_DOES_NOT_SHIP = "This checkout doesn't need shipping"
 
 def clean_shipping_method(
     checkout: models.Checkout,
-    lines: List[models.CheckoutLine],
+    lines: Iterable[CheckoutLineInfo],
     method: Optional[models.ShippingMethod],
     discounts,
 ) -> bool:
@@ -55,7 +56,7 @@ def clean_shipping_method(
         # no shipping method was provided, it is valid
         return True
 
-    if not checkout.is_shipping_required():
+    if not is_shipping_required(lines):
         raise ValidationError(
             ERROR_DOES_NOT_SHIP, code=CheckoutErrorCode.SHIPPING_NOT_REQUIRED.value
         )
@@ -72,10 +73,10 @@ def clean_shipping_method(
 
 
 def update_checkout_shipping_method_if_invalid(
-    checkout: models.Checkout, lines: List[models.CheckoutLine], discounts
+    checkout: models.Checkout, lines: Iterable[CheckoutLineInfo], discounts
 ):
     # remove shipping method when empty checkout
-    if checkout.quantity == 0 or not checkout.is_shipping_required():
+    if checkout.quantity == 0 or not is_shipping_required(lines):
         checkout.shipping_method = None
         checkout.save(update_fields=["shipping_method", "last_change"])
 
@@ -95,8 +96,8 @@ def update_checkout_shipping_method_if_invalid(
 
 
 def check_lines_quantity(variants, quantities, country):
-    """Check if stock is sufficient for each line in the list of dicts."""
-    for variant, quantity in zip(variants, quantities):
+    """Clean quantities and check if stock is sufficient for each checkout line."""
+    for quantity in quantities:
         if quantity < 0:
             raise ValidationError(
                 {
@@ -116,19 +117,15 @@ def check_lines_quantity(variants, quantities, country):
                     )
                 }
             )
-        try:
-            check_stock_quantity(variant, country, quantity)
-        except InsufficientStock as e:
-            available_quantity = get_available_quantity(e.item, country)
-            message = (
-                "Could not add item "
-                + "%(item_name)s. Only %(remaining)d remaining in stock."
-                % {
-                    "remaining": available_quantity,
-                    "item_name": e.item.display_product(),
-                }
-            )
-            raise ValidationError({"quantity": ValidationError(message, code=e.code)})
+    try:
+        check_stock_quantity_bulk(variants, country, quantities)
+    except InsufficientStock as e:
+        remaining = e.context["available_quantity"]
+        item_name = e.item.display_product()
+        message = (
+            f"Could not add item {item_name}. Only {remaining} remaining in stock."
+        )
+        raise ValidationError({"quantity": ValidationError(message, code=e.code)})
 
 
 def validate_variants_available_for_purchase(variants, channel_id):
@@ -210,10 +207,10 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def process_checkout_lines(
+    def clean_checkout_lines(
         cls, lines, country, channel_id
     ) -> Tuple[List[product_models.ProductVariant], List[int]]:
-        variant_ids = [line.get("variant_id") for line in lines]
+        variant_ids = [line["variant_id"] for line in lines]
         variants = cls.get_nodes_or_error(
             variant_ids,
             "variant_id",
@@ -222,11 +219,10 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 "product__product_type"
             ),
         )
-        quantities = [line.get("quantity") for line in lines]
 
+        quantities = [line["quantity"] for line in lines]
         validate_variants_available_for_purchase(variants, channel_id)
         check_lines_quantity(variants, quantities, country)
-
         return variants, quantities
 
     @classmethod
@@ -310,7 +306,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             (
                 cleaned_input["variants"],
                 cleaned_input["quantities"],
-            ) = cls.process_checkout_lines(lines, country, channel.id)
+            ) = cls.clean_checkout_lines(lines, country, cleaned_input["channel"].id)
 
         cleaned_input["shipping_address"] = cls.retrieve_shipping_address(user, data)
         cleaned_input["billing_address"] = cls.retrieve_billing_address(user, data)
@@ -323,53 +319,43 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return cleaned_input
 
     @classmethod
-    def save_addresses(cls, instance: models.Checkout, cleaned_input: dict):
-        shipping_address = cleaned_input.get("shipping_address")
-        billing_address = cleaned_input.get("billing_address")
-
-        updated_fields = ["last_change"]
-
-        if shipping_address and instance.is_shipping_required():
-            shipping_address.save()
-            instance.shipping_address = shipping_address.get_copy()
-            updated_fields.append("shipping_address")
-        if billing_address:
-            billing_address.save()
-            instance.billing_address = billing_address.get_copy()
-            updated_fields.append("billing_address")
-
-        # Note django will simply return if the list is empty
-        instance.save(update_fields=updated_fields)
-
-    @classmethod
     @transaction.atomic()
     def save(cls, info, instance: models.Checkout, cleaned_input):
         # Create the checkout object
         instance.save()
-        country = cleaned_input["country"]
-        instance.set_country(country, commit=True)
 
-        # Retrieve the lines to create
+        # Set checkout country
+        country = cleaned_input["country"]
+        instance.set_country(country)
+
+        # Create checkout lines
         variants = cleaned_input.get("variants")
         quantities = cleaned_input.get("quantities")
-
-        # Create the checkout lines
         if variants and quantities:
-            for variant, quantity in zip(variants, quantities):
-                try:
-                    add_variant_to_checkout(instance, variant, quantity)
-                except InsufficientStock as exc:
-                    raise ValidationError(
-                        f"Insufficient product stock: {exc.item}", code=exc.code
-                    )
-                except ProductNotPublished as exc:
-                    raise ValidationError(
-                        "Can't create checkout with unpublished product.",
-                        code=exc.code,
-                    )
-            info.context.plugins.checkout_quantity_changed(instance)
-        # Save provided addresses and associate them to the checkout
-        cls.save_addresses(instance, cleaned_input)
+            try:
+                add_variants_to_checkout(instance, variants, quantities)
+            except InsufficientStock as exc:
+                raise ValidationError(
+                    f"Insufficient product stock: {exc.item}", code=exc.code
+                )
+            except ProductNotPublished as exc:
+                raise ValidationError(
+                    "Can't create checkout with unpublished product.",
+                    code=exc.code,
+                )
+
+        # Save addresses
+        shipping_address = cleaned_input.get("shipping_address")
+        if shipping_address and instance.is_shipping_required():
+            shipping_address.save()
+            instance.shipping_address = shipping_address.get_copy()
+
+        billing_address = cleaned_input.get("billing_address")
+        if billing_address:
+            billing_address.save()
+            instance.billing_address = billing_address.get_copy()
+
+        instance.save()
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -389,7 +375,6 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 # If user has an active checkout, return it without any
                 # modifications.
                 return CheckoutCreate(checkout=checkout, created=False)
-
             checkout = models.Checkout(user=user)
         else:
             checkout = models.Checkout()
@@ -437,7 +422,7 @@ class CheckoutLinesAdd(BaseMutation):
         if variants and quantities:
             for variant, quantity in zip(variants, quantities):
                 try:
-                    add_variant_to_checkout(
+                    checkout = add_variant_to_checkout(
                         checkout, variant, quantity, replace=replace
                     )
                 except InsufficientStock as exc:
@@ -446,16 +431,18 @@ class CheckoutLinesAdd(BaseMutation):
                     )
                 except ProductNotPublished as exc:
                     raise ValidationError(
-                        "Can't add unpublished product.", code=exc.code,
+                        "Can't add unpublished product.",
+                        code=exc.code,
                     )
             info.context.plugins.checkout_quantity_changed(checkout)
 
-        lines = list(checkout)
-
+        lines = fetch_checkout_lines(checkout)
         update_checkout_shipping_method_if_invalid(
             checkout, lines, info.context.discounts
         )
-        recalculate_checkout_discount(checkout, lines, info.context.discounts)
+        recalculate_checkout_discount(
+            info.context.plugins, checkout, lines, info.context.discounts
+        )
         info.context.plugins.checkout_updated(checkout)
         return CheckoutLinesAdd(checkout=checkout)
 
@@ -498,13 +485,13 @@ class CheckoutLineDelete(BaseMutation):
             line.delete()
             info.context.plugins.checkout_quantity_changed(checkout)
 
-        lines = list(checkout)
-
+        lines = fetch_checkout_lines(checkout)
         update_checkout_shipping_method_if_invalid(
             checkout, lines, info.context.discounts
         )
-        recalculate_checkout_discount(checkout, lines, info.context.discounts)
-
+        recalculate_checkout_discount(
+            info.context.plugins, checkout, lines, info.context.discounts
+        )
         info.context.plugins.checkout_updated(checkout)
         return CheckoutLineDelete(checkout=checkout)
 
@@ -601,15 +588,16 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def process_checkout_lines(cls, lines, country) -> None:
-        variant_ids = [line.variant.id for line in lines]
+    def process_checkout_lines(
+        cls, lines: Iterable["CheckoutLineInfo"], country: str
+    ) -> None:
+        variant_ids = [line_info.variant.id for line_info in lines]
         variants = list(
             product_models.ProductVariant.objects.filter(
                 id__in=variant_ids
             ).prefetch_related("product__product_type")
-        )
-        quantities = [line.quantity for line in lines]
-
+        )  # FIXME: is this prefetch needed?
+        quantities = [line_info.line.quantity for line_info in lines]
         check_lines_quantity(variants, quantities, country)
 
     @classmethod
@@ -644,7 +632,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             shipping_address, instance=checkout.shipping_address, info=info
         )
 
-        lines = list(checkout)
+        lines = fetch_checkout_lines(checkout)
 
         country = info.context.country.code
         # set country to one from shipping address
@@ -664,7 +652,9 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         with transaction.atomic():
             shipping_address.save()
             change_shipping_address_in_checkout(checkout, shipping_address)
-        recalculate_checkout_discount(checkout, lines, info.context.discounts)
+        recalculate_checkout_discount(
+            info.context.plugins, checkout, lines, info.context.discounts
+        )
 
         info.context.plugins.checkout_updated(checkout)
         return CheckoutShippingAddressUpdate(checkout=checkout)
@@ -738,25 +728,11 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, shipping_method_id):
-        pk = from_global_id_strict_type(
-            checkout_id, only_type=Checkout, field="checkout_id"
+        checkout = cls.get_node_or_error(
+            info, checkout_id, only_type=Checkout, field="checkout_id"
         )
-
-        try:
-            checkout = models.Checkout.objects.prefetch_related(
-                "lines__variant__product__collections",
-                "lines__variant__product__product_type",
-            ).get(pk=pk)
-        except ObjectDoesNotExist:
-            raise ValidationError(
-                {
-                    "checkout_id": ValidationError(
-                        f"Couldn't resolve to a node: {checkout_id}",
-                        code=CheckoutErrorCode.NOT_FOUND,
-                    )
-                }
-            )
-        if not checkout.is_shipping_required():
+        lines = fetch_checkout_lines(checkout)
+        if not is_shipping_required(lines):
             raise ValidationError(
                 {
                     "shipping_method": ValidationError(
@@ -776,7 +752,6 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             ),
         )
 
-        lines = list(checkout)
         shipping_method_is_valid = clean_shipping_method(
             checkout=checkout,
             lines=lines,
@@ -795,7 +770,9 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
         checkout.shipping_method = shipping_method
         checkout.save(update_fields=["shipping_method", "last_change"])
-        recalculate_checkout_discount(checkout, lines, info.context.discounts)
+        recalculate_checkout_discount(
+            info.context.plugins, checkout, lines, info.context.discounts
+        )
         info.context.plugins.checkout_updated(checkout)
         return CheckoutShippingMethodUpdate(checkout=checkout)
 
@@ -861,18 +838,6 @@ class CheckoutComplete(BaseMutation):
                     checkout_id,
                     only_type=Checkout,
                     field="checkout_id",
-                    qs=models.Checkout.objects.select_for_update(of=("self",))
-                    .prefetch_related(
-                        "gift_cards",
-                        "lines__variant__product",
-                        Prefetch(
-                            "payments",
-                            queryset=payment_models.Payment.objects.prefetch_related(
-                                "order__lines"
-                            ),
-                        ),
-                    )
-                    .select_related("shipping_method__shipping_zone"),
                 )
             except ValidationError as e:
                 checkout_token = from_global_id_strict_type(
@@ -898,8 +863,11 @@ class CheckoutComplete(BaseMutation):
                     )
                 raise e
 
+            lines = fetch_checkout_lines(checkout)
             order, action_required, action_data = complete_checkout(
+                manager=info.context.plugins,
                 checkout=checkout,
+                lines=lines,
                 payment_data=data.get("payment_data", {}),
                 store_source=store_source,
                 discounts=info.context.discounts,
@@ -937,8 +905,10 @@ class CheckoutAddPromoCode(BaseMutation):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
-        lines = list(checkout)
-        add_promo_code_to_checkout(checkout, lines, promo_code, info.context.discounts)
+        lines = fetch_checkout_lines(checkout)
+        add_promo_code_to_checkout(
+            info.context.plugins, checkout, lines, promo_code, info.context.discounts
+        )
         info.context.plugins.checkout_updated(checkout)
         return CheckoutAddPromoCode(checkout=checkout)
 

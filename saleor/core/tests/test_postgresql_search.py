@@ -23,7 +23,9 @@ def named_products(category, product_type, channel_USD):
             category=category,
         )
         ProductChannelListing.objects.create(
-            product=product, channel=channel_USD, is_published=True,
+            product=product,
+            channel=channel_USD,
+            is_published=True,
         )
         return product
 

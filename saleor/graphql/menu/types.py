@@ -1,12 +1,17 @@
 import graphene
 from graphene import relay
 
+from ...account.utils import requestor_is_staff_member_or_app
 from ...core.permissions import PagePermissions
 from ...menu import models
-from ...product.models import Collection
 from ..channel.dataloaders import ChannelBySlugLoader
-from ..channel.types import ChannelContext, ChannelContextType
+from ..channel.types import (
+    ChannelContext,
+    ChannelContextType,
+    ChannelContextTypeWithMetadata,
+)
 from ..core.connection import CountableDjangoObjectType
+from ..meta.types import ObjectWithMetadata
 from ..page.dataloaders import PageByIdLoader
 from ..product.dataloaders import (
     CategoryByIdLoader,
@@ -24,7 +29,7 @@ from .dataloaders import (
 )
 
 
-class Menu(ChannelContextType, CountableDjangoObjectType):
+class Menu(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     items = graphene.List(lambda: MenuItem)
 
     class Meta:
@@ -33,7 +38,7 @@ class Menu(ChannelContextType, CountableDjangoObjectType):
             "Represents a single menu - an object that is used to help navigate "
             "through the store."
         )
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         only_fields = ["id", "name", "slug"]
         model = models.Menu
 
@@ -48,7 +53,7 @@ class Menu(ChannelContextType, CountableDjangoObjectType):
         )
 
 
-class MenuItem(ChannelContextType, CountableDjangoObjectType):
+class MenuItem(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     children = graphene.List(lambda: MenuItem)
     url = graphene.String(description="URL to the menu item.")
     translation = TranslationField(
@@ -64,7 +69,7 @@ class MenuItem(ChannelContextType, CountableDjangoObjectType):
             "Represents a single item of the related menu. Can store categories, "
             "collection or pages."
         )
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         only_fields = [
             "category",
             "collection",
@@ -99,10 +104,8 @@ class MenuItem(ChannelContextType, CountableDjangoObjectType):
             return None
 
         requestor = get_user_or_app_from_context(info.context)
-        requestor_has_access_to_all = Collection.objects.user_has_access_to_all(
-            requestor
-        )
-        if requestor_has_access_to_all:
+        is_staff = requestor_is_staff_member_or_app(requestor)
+        if is_staff:
             return (
                 CollectionByIdLoader(info.context)
                 .load(root.node.collection_id)
@@ -122,6 +125,8 @@ class MenuItem(ChannelContextType, CountableDjangoObjectType):
 
         def calculate_collection_availability(collection_channel_listing):
             def calculate_collection_availability_with_channel(channel):
+                if not channel:
+                    return None
                 collection_is_visible = (
                     collection_channel_listing.is_visible
                     if collection_channel_listing

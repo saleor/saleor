@@ -6,7 +6,7 @@ from authlib.integrations.requests_client import OAuth2Session
 from django.core import signing
 from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
-from jwt import ExpiredSignature, InvalidTokenError
+from jwt import ExpiredSignatureError, InvalidTokenError
 from requests import PreparedRequest
 
 from ...account.models import User
@@ -276,7 +276,8 @@ class OpenIDConnectPlugin(BasePlugin):
             raise ValidationError(
                 {
                     "refresh_token": ValidationError(
-                        "Unable to refresh the token.", code=error_code,
+                        "Unable to refresh the token.",
+                        code=error_code,
                     )
                 }
             )
@@ -329,7 +330,7 @@ class OpenIDConnectPlugin(BasePlugin):
         try:
             payload = jwt_decode(token)
             user = get_user_from_payload(payload)
-        except (ExpiredSignature, InvalidTokenError) as e:
+        except (ExpiredSignatureError, InvalidTokenError) as e:
             raise ValidationError({"token": e})
         permissions = payload.get(PERMISSIONS_FIELD)
         if permissions is not None:

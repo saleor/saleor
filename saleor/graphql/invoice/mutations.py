@@ -6,7 +6,8 @@ from ...core.permissions import OrderPermissions
 from ...invoice import events, models
 from ...invoice.emails import send_invoice
 from ...invoice.error_codes import InvoiceErrorCode
-from ...order import OrderStatus, events as order_events
+from ...order import OrderStatus
+from ...order import events as order_events
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types.common import InvoiceError
 from ..invoice.types import Invoice
@@ -34,11 +35,11 @@ class InvoiceRequest(ModelMutation):
 
     @staticmethod
     def clean_order(order):
-        if order.status == OrderStatus.DRAFT:
+        if order.status in (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED):
             raise ValidationError(
                 {
                     "orderId": ValidationError(
-                        "Cannot request an invoice for draft order.",
+                        "Cannot request an invoice for draft or unconfirmed order.",
                         code=InvoiceErrorCode.INVALID_STATUS,
                     )
                 }
@@ -62,7 +63,8 @@ class InvoiceRequest(ModelMutation):
         cls.clean_order(order)
 
         shallow_invoice = models.Invoice.objects.create(
-            order=order, number=data.get("number"),
+            order=order,
+            number=data.get("number"),
         )
         invoice = info.context.plugins.invoice_request(
             order=order, invoice=shallow_invoice, number=data.get("number")
@@ -70,7 +72,9 @@ class InvoiceRequest(ModelMutation):
 
         if invoice.status == JobStatus.SUCCESS:
             order_events.invoice_generated_event(
-                order=order, user=info.context.user, invoice_number=invoice.number,
+                order=order,
+                user=info.context.user,
+                invoice_number=invoice.number,
             )
         else:
             order_events.invoice_requested_event(user=info.context.user, order=order)
@@ -108,7 +112,8 @@ class InvoiceCreate(ModelMutation):
         for field in ["url", "number"]:
             if data["input"][field] == "":
                 validation_errors[field] = ValidationError(
-                    f"{field} cannot be empty.", code=InvoiceErrorCode.REQUIRED,
+                    f"{field} cannot be empty.",
+                    code=InvoiceErrorCode.REQUIRED,
                 )
         if validation_errors:
             raise ValidationError(validation_errors)
@@ -116,11 +121,11 @@ class InvoiceCreate(ModelMutation):
 
     @classmethod
     def clean_order(cls, info, order):
-        if order.status == OrderStatus.DRAFT:
+        if order.status in (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED):
             raise ValidationError(
                 {
                     "orderId": ValidationError(
-                        "Cannot request an invoice for draft order.",
+                        "Cannot create an invoice for draft or unconfirmed order.",
                         code=InvoiceErrorCode.INVALID_STATUS,
                     )
                 }
@@ -130,7 +135,7 @@ class InvoiceCreate(ModelMutation):
             raise ValidationError(
                 {
                     "orderId": ValidationError(
-                        "Cannot request an invoice for order without billing address.",
+                        "Cannot create an invoice for order without billing address.",
                         code=InvoiceErrorCode.NOT_READY,
                     )
                 }
@@ -154,7 +159,9 @@ class InvoiceCreate(ModelMutation):
             url=cleaned_input["url"],
         )
         order_events.invoice_generated_event(
-            order=order, user=info.context.user, invoice_number=cleaned_input["number"],
+            order=order,
+            user=info.context.user,
+            invoice_number=cleaned_input["number"],
         )
         return InvoiceCreate(invoice=invoice)
 

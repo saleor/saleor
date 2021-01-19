@@ -1401,7 +1401,10 @@ QUERY_TRANSLATION_PRODUCT = """
 
 
 def test_translation_query_product(
-    staff_api_client, permission_manage_translations, product, product_translation_fr,
+    staff_api_client,
+    permission_manage_translations,
+    product,
+    product_translation_fr,
 ):
 
     product_id = graphene.Node.to_global_id("Product", product.id)
@@ -1682,11 +1685,11 @@ QUERY_TRANSLATION_PAGE = """
 
 
 @pytest.mark.parametrize(
-    "is_published, perm_codenames, return_page",
+    "is_published, perm_codenames",
     [
-        (True, ["manage_translations"], True),
-        (False, ["manage_translations"], False),
-        (False, ["manage_translations", "manage_pages"], True),
+        (True, ["manage_translations"]),
+        (False, ["manage_translations"]),
+        (False, ["manage_translations", "manage_pages"]),
     ],
 )
 def test_translation_query_page(
@@ -1695,7 +1698,6 @@ def test_translation_query_page(
     page_translation_fr,
     is_published,
     perm_codenames,
-    return_page,
 ):
     page.is_published = is_published
     page.save()
@@ -1715,10 +1717,7 @@ def test_translation_query_page(
     data = content["data"]["translation"]
     assert data["title"] == page.title
     assert data["translation"]["title"] == page_translation_fr.title
-    if return_page:
-        assert data["page"]["title"] == page.title
-    else:
-        assert not data["page"]
+    assert data["page"]["title"] == page.title
 
 
 QUERY_TRANSLATION_SHIPPING_METHOD = """

@@ -68,7 +68,11 @@ def test_permission_required_with_limited_permissions(
     ],
 )
 def test_permission_required(
-    permissions_required, user_permissions, access_granted, staff_user, rf,
+    permissions_required,
+    user_permissions,
+    access_granted,
+    staff_user,
+    rf,
 ):
     staff_user.user_permissions.set(
         Permission.objects.filter(codename__in=user_permissions)

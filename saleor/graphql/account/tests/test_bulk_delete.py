@@ -337,8 +337,8 @@ def test_delete_staff_members_superuser_can_delete__out_of_scope_users(
     permission_manage_users,
     permission_manage_orders,
 ):
-    """Ensure superuser can delete users when some users has wider scope of permissions.
-    """
+    """Ensure superuser can delete users when
+    some users has wider scope of permissions."""
     query = STAFF_BULK_DELETE_MUTATION
 
     groups = Group.objects.bulk_create(

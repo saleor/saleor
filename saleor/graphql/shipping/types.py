@@ -103,6 +103,8 @@ class ShippingMethod(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             "id",
             "maximum_order_weight",
             "minimum_order_weight",
+            "maximum_delivery_days",
+            "minimum_delivery_days",
             "name",
         ]
 
@@ -206,6 +208,7 @@ class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     warehouses = graphene.List(
         Warehouse, description="List of warehouses for shipping zone."
     )
+    description = graphene.String(description="Description of a shipping zone.")
 
     class Meta:
         default_resolver = ChannelContextType.resolver_with_context

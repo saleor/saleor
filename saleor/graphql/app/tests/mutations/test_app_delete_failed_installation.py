@@ -38,7 +38,10 @@ def test_drop_failed_installation_mutation(
     }
 
     # when
-    response = staff_api_client.post_graphql(query, variables=variables,)
+    response = staff_api_client.post_graphql(
+        query,
+        variables=variables,
+    )
 
     # then
     get_graphql_content(response)
@@ -47,7 +50,10 @@ def test_drop_failed_installation_mutation(
 
 
 def test_drop_failed_installation_mutation_by_app(
-    permission_manage_apps, permission_manage_orders, app_api_client, app_installation,
+    permission_manage_apps,
+    permission_manage_orders,
+    app_api_client,
+    app_installation,
 ):
     # given
     app_installation.status = JobStatus.FAILED
@@ -64,7 +70,10 @@ def test_drop_failed_installation_mutation_by_app(
     }
 
     # when
-    response = app_api_client.post_graphql(query, variables=variables,)
+    response = app_api_client.post_graphql(
+        query,
+        variables=variables,
+    )
 
     # then
     get_graphql_content(response)
@@ -93,7 +102,10 @@ def test_drop_failed_installation_mutation_app_has_more_permission_than_user_req
     }
 
     # when
-    response = staff_api_client.post_graphql(query, variables=variables,)
+    response = staff_api_client.post_graphql(
+        query,
+        variables=variables,
+    )
 
     # then
     get_graphql_content(response)
@@ -116,7 +128,10 @@ def test_drop_failed_installation_mutation_app_has_more_permission_than_app_requ
     }
 
     # when
-    response = app_api_client.post_graphql(query, variables=variables,)
+    response = app_api_client.post_graphql(
+        query,
+        variables=variables,
+    )
 
     # then
     get_graphql_content(response)
@@ -142,7 +157,10 @@ def test_cannot_drop_installation_if_status_is_different_than_failed(
     }
 
     # when
-    response = staff_api_client.post_graphql(query, variables=variables,)
+    response = staff_api_client.post_graphql(
+        query,
+        variables=variables,
+    )
 
     # then
     content = get_graphql_content(response)
