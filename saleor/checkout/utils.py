@@ -692,7 +692,7 @@ def cancel_active_payments(checkout: Checkout):
 
 def fetch_checkout_lines(checkout: Checkout) -> Iterable[CheckoutLineInfo]:
     """Fetch checkout lines as CheckoutLineInfo objects."""
-    lines = CheckoutLine.objects.filter(checkout=checkout).prefetch_related(
+    lines = checkout.lines.prefetch_related(
         "variant__product__collections",
         "variant__channel_listings__channel",
         "variant__product__product_type",

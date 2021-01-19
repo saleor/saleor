@@ -26,7 +26,7 @@ from prices import Money, TaxedMoney
 from ..account.models import Address, StaffNotificationRecipient, User
 from ..app.models import App, AppInstallation
 from ..app.types import AppType
-from ..attribute import AttributeInputType, AttributeType
+from ..attribute import AttributeEntityType, AttributeInputType, AttributeType
 from ..attribute.models import (
     Attribute,
     AttributeTranslation,
@@ -832,6 +832,50 @@ def file_attribute_with_file_input_type_without_values(db):
         name="Image",
         type=AttributeType.PRODUCT_TYPE,
         input_type=AttributeInputType.FILE,
+    )
+
+
+@pytest.fixture
+def product_type_page_reference_attribute(db):
+    return Attribute.objects.create(
+        slug="page-reference",
+        name="Page reference",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.REFERENCE,
+        entity_type=AttributeEntityType.PAGE,
+    )
+
+
+@pytest.fixture
+def page_type_page_reference_attribute(db):
+    return Attribute.objects.create(
+        slug="page-reference",
+        name="Page reference",
+        type=AttributeType.PAGE_TYPE,
+        input_type=AttributeInputType.REFERENCE,
+        entity_type=AttributeEntityType.PAGE,
+    )
+
+
+@pytest.fixture
+def product_type_product_reference_attribute(db):
+    return Attribute.objects.create(
+        slug="product-reference",
+        name="Product reference",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.REFERENCE,
+        entity_type=AttributeEntityType.PRODUCT,
+    )
+
+
+@pytest.fixture
+def page_type_product_reference_attribute(db):
+    return Attribute.objects.create(
+        slug="product-reference",
+        name="Product reference",
+        type=AttributeType.PAGE_TYPE,
+        input_type=AttributeInputType.REFERENCE,
+        entity_type=AttributeEntityType.PRODUCT,
     )
 
 

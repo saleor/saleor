@@ -1,8 +1,8 @@
 from unittest.mock import patch
 
-from .....attribute.models import Attribute
+from .....attribute.models import Attribute, AttributeValue
 from .....attribute.utils import associate_attribute_values_to_instance
-from .....product.models import Product, ProductImage, VariantImage
+from .....product.models import Product, ProductImage, ProductVariant, VariantImage
 from .....warehouse.models import Warehouse
 from ....utils import ProductExportFields
 from ....utils.products_data import (
@@ -74,13 +74,38 @@ def test_get_products_relations_data_no_relations_fields(
 
 @patch("saleor.csv.utils.products_data.prepare_products_relations_data")
 def test_get_products_relations_data_attribute_ids(
-    prepare_products_data_mocked, product_list, file_attribute
+    prepare_products_data_mocked,
+    product_list,
+    file_attribute,
+    product_type_page_reference_attribute,
+    product_type_product_reference_attribute,
+    page,
 ):
     # given
     product = product_list[0]
-    product.product_type.product_attributes.add(file_attribute)
+    product.product_type.product_attributes.add(
+        file_attribute,
+        product_type_page_reference_attribute,
+        product_type_product_reference_attribute,
+    )
     associate_attribute_values_to_instance(
         product, file_attribute, file_attribute.values.first()
+    )
+    page_ref_value = AttributeValue.objects.create(
+        attribute=product_type_page_reference_attribute,
+        slug=f"{product.pk}_{page.pk}",
+        name=page.title,
+    )
+    associate_attribute_values_to_instance(
+        product, product_type_page_reference_attribute, page_ref_value
+    )
+    product_ref_value = AttributeValue.objects.create(
+        attribute=product_type_product_reference_attribute,
+        slug=f"{product.pk}_{product_list[1].pk}",
+        name=product_list[1].name,
+    )
+    associate_attribute_values_to_instance(
+        product, product_type_product_reference_attribute, product_ref_value
     )
 
     qs = Product.objects.all()
@@ -123,14 +148,30 @@ def test_get_products_relations_data_channel_ids(
 
 
 def test_prepare_products_relations_data(
-    product_with_image, collection_list, channel_USD, channel_PLN, file_attribute
+    product_with_image,
+    collection_list,
+    channel_USD,
+    channel_PLN,
+    file_attribute,
+    product_type_page_reference_attribute,
+    page,
 ):
     # given
     pk = product_with_image.pk
 
-    product_with_image.product_type.product_attributes.add(file_attribute)
+    product_with_image.product_type.product_attributes.add(
+        file_attribute, product_type_page_reference_attribute
+    )
     associate_attribute_values_to_instance(
         product_with_image, file_attribute, file_attribute.values.first()
+    )
+    ref_value = AttributeValue.objects.create(
+        attribute=product_type_page_reference_attribute,
+        slug=f"{product_with_image.pk}_{page.pk}",
+        name=page.title,
+    )
+    associate_attribute_values_to_instance(
+        product_with_image, product_type_page_reference_attribute, ref_value
     )
 
     collection_list[0].products.add(product_with_image)
@@ -302,14 +343,41 @@ def test_get_variants_relations_data_no_relations_fields(
 
 @patch("saleor.csv.utils.products_data.prepare_variants_relations_data")
 def test_get_variants_relations_data_attribute_ids(
-    prepare_variants_data_mocked, product_list, file_attribute
+    prepare_variants_data_mocked,
+    product_list,
+    file_attribute,
+    product_type_page_reference_attribute,
+    product_type_product_reference_attribute,
+    page,
 ):
     # given
     product = product_list[0]
-    product.product_type.variant_attributes.add(file_attribute)
+    product.product_type.variant_attributes.add(
+        file_attribute,
+        product_type_page_reference_attribute,
+        product_type_product_reference_attribute,
+    )
     variant = product.variants.first()
     associate_attribute_values_to_instance(
         variant, file_attribute, file_attribute.values.first()
+    )
+    # add page reference attribute
+    page_ref_value = AttributeValue.objects.create(
+        attribute=product_type_page_reference_attribute,
+        slug=f"{variant.pk}_{page.pk}",
+        name=page.title,
+    )
+    associate_attribute_values_to_instance(
+        variant, product_type_page_reference_attribute, page_ref_value
+    )
+    # add product reference attribute
+    product_ref_value = AttributeValue.objects.create(
+        attribute=product_type_product_reference_attribute,
+        slug=f"{variant.pk}_{product_list[1].pk}",
+        name=product_list[1].name,
+    )
+    associate_attribute_values_to_instance(
+        variant, product_type_product_reference_attribute, product_ref_value
     )
 
     qs = Product.objects.all()
@@ -409,18 +477,44 @@ def test_get_variants_relations_data_attributes_warehouses_and_channels_ids(
 
 def test_prepare_variants_relations_data(
     product_with_variant_with_two_attributes,
+    product,
     image,
     media_root,
     channel_PLN,
     channel_USD,
     file_attribute,
+    product_type_page_reference_attribute,
+    product_type_product_reference_attribute,
+    page,
 ):
     # given
-    product = product_with_variant_with_two_attributes
-    product.product_type.variant_attributes.add(file_attribute)
-    variant = product.variants.first()
+    product_1 = product_with_variant_with_two_attributes
+    product_1.product_type.variant_attributes.add(
+        file_attribute,
+        product_type_page_reference_attribute,
+        product_type_product_reference_attribute,
+    )
+    variant = product_1.variants.first()
     associate_attribute_values_to_instance(
         variant, file_attribute, file_attribute.values.first()
+    )
+    # add page reference attribute
+    page_ref_value = AttributeValue.objects.create(
+        attribute=product_type_page_reference_attribute,
+        slug=f"{variant.pk}_{page.pk}",
+        name=page.title,
+    )
+    associate_attribute_values_to_instance(
+        variant, product_type_page_reference_attribute, page_ref_value
+    )
+    # add prodcut reference attribute
+    product_ref_value = AttributeValue.objects.create(
+        attribute=product_type_product_reference_attribute,
+        slug=f"{variant.pk}_{product.pk}",
+        name=product.name,
+    )
+    associate_attribute_values_to_instance(
+        variant, product_type_product_reference_attribute, product_ref_value
     )
 
     qs = Product.objects.all()
@@ -441,25 +535,26 @@ def test_prepare_variants_relations_data(
     )
 
     # then
-    pk = variant.pk
-    images = ", ".join(
-        [
-            "http://mirumee.com/media/" + image.image.name
-            for image in variant.images.all()
-        ]
-    )
-    expected_result = {pk: {"variants__images__image": images}}
+    expected_result = {}
+    for variant in ProductVariant.objects.all():
+        pk = variant.pk
+        images = ", ".join(
+            [
+                "http://mirumee.com/media/" + image.image.name
+                for image in variant.images.all()
+            ]
+        )
+        expected_result[pk] = {"variants__images__image": images} if images else {}
+        expected_result = add_variant_attribute_data_to_expected_data(
+            expected_result, variant, attribute_ids, pk
+        )
+        expected_result = add_stocks_to_expected_data(
+            expected_result, variant, warehouse_ids, pk
+        )
 
-    expected_result = add_variant_attribute_data_to_expected_data(
-        expected_result, variant, attribute_ids, pk
-    )
-    expected_result = add_stocks_to_expected_data(
-        expected_result, variant, warehouse_ids, pk
-    )
-
-    expected_result = add_channel_to_expected_variant_data(
-        expected_result, variant, channel_ids, pk
-    )
+        expected_result = add_channel_to_expected_variant_data(
+            expected_result, variant, channel_ids, pk
+        )
 
     assert result == expected_result
 
@@ -675,7 +770,7 @@ def test_add_attribute_info_to_data(product):
     slug = "test_attribute_slug"
     value = "test value"
     attribute_data = AttributeData(
-        slug=slug, value=value, file_url=None, input_type="dropdown"
+        slug=slug, value=value, file_url=None, input_type="dropdown", entity_type=None
     )
     input_data = {pk: {}}
 
@@ -697,7 +792,7 @@ def test_add_attribute_info_to_data_update_attribute_data(product):
     expected_header = f"{slug} (variant attribute)"
 
     attribute_data = AttributeData(
-        slug=slug, value=value, file_url=None, input_type="dropdown"
+        slug=slug, value=value, file_url=None, input_type="dropdown", entity_type=None
     )
     input_data = {pk: {expected_header: {"value1"}}}
 
@@ -714,7 +809,7 @@ def test_add_attribute_info_to_data_no_slug(product):
     # given
     pk = product.pk
     attribute_data = AttributeData(
-        slug=None, value=None, file_url=None, input_type="dropdown"
+        slug=None, value=None, file_url=None, input_type="dropdown", entity_type=None
     )
     input_data = {pk: {}}
 
@@ -733,7 +828,7 @@ def test_add_file_attribute_info_to_data(product):
     slug = "testtxt"
     test_url = "test.txt"
     attribute_data = AttributeData(
-        slug=slug, value=None, file_url=test_url, input_type="file"
+        slug=slug, value=None, file_url=test_url, input_type="file", entity_type=None
     )
     input_data = {pk: {}}
 
@@ -745,6 +840,57 @@ def test_add_file_attribute_info_to_data(product):
     # then
     expected_header = f"{slug} (product attribute)"
     assert result[pk][expected_header] == {"http://mirumee.com/media/" + test_url}
+
+
+def test_add_reference_attribute_info_to_data(product, page):
+    # given
+    pk = product.pk
+    slug = "test_attribute_slug"
+    value = f"{product.id}_{page.id}"
+    attribute_data = AttributeData(
+        slug=slug,
+        value=value,
+        file_url=None,
+        input_type="reference",
+        entity_type="Page",
+    )
+    input_data = {pk: {}}
+
+    # when
+    result = add_attribute_info_to_data(
+        product.pk, attribute_data, "product attribute", input_data
+    )
+
+    # then
+    expected_header = f"{slug} (product attribute)"
+    assert result[pk][expected_header] == {f"Page_{page.id}"}
+
+
+def test_add_reference_info_to_data_update_attribute_data(product, page):
+    # given
+    pk = product.pk
+    slug = "test_attribute_slug"
+    value = f"{product.id}_{page.id}"
+    expected_header = f"{slug} (variant attribute)"
+    values = {"Page_989"}
+
+    attribute_data = AttributeData(
+        slug=slug,
+        value=value,
+        file_url=None,
+        input_type="reference",
+        entity_type="Page",
+    )
+    input_data = {pk: {expected_header: values}}
+
+    # when
+    result = add_attribute_info_to_data(
+        product.pk, attribute_data, "variant attribute", input_data
+    )
+
+    # then
+    values.add(f"Page_{page.id}")
+    assert result[pk][expected_header] == values
 
 
 def test_add_warehouse_info_to_data(product):

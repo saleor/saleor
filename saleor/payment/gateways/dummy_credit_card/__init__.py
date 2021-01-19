@@ -47,7 +47,7 @@ def authorize(
         kind=TransactionKind.AUTH,
         amount=payment_information.amount,
         currency=payment_information.currency,
-        transaction_id=payment_information.token,
+        transaction_id=payment_information.token or "",
         error=error,
         payment_method_info=PaymentMethodInfo(
             last_4="1234",
@@ -71,7 +71,7 @@ def void(payment_information: PaymentData, config: GatewayConfig) -> GatewayResp
         kind=TransactionKind.VOID,
         amount=payment_information.amount,
         currency=payment_information.currency,
-        transaction_id=payment_information.token,
+        transaction_id=payment_information.token or "",
         error=error,
     )
 
@@ -87,7 +87,7 @@ def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
         kind=TransactionKind.CAPTURE,
         amount=payment_information.amount,
         currency=payment_information.currency,
-        transaction_id=payment_information.token,
+        transaction_id=payment_information.token or "",
         error=error,
         payment_method_info=PaymentMethodInfo(
             last_4="1234",
@@ -113,7 +113,7 @@ def confirm(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
         kind=TransactionKind.CAPTURE,
         amount=payment_information.amount,
         currency=payment_information.currency,
-        transaction_id=payment_information.token,
+        transaction_id=payment_information.token or "",
         error=error,
     )
 
@@ -129,7 +129,7 @@ def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayRe
         kind=TransactionKind.REFUND,
         amount=payment_information.amount,
         currency=payment_information.currency,
-        transaction_id=payment_information.token,
+        transaction_id=payment_information.token or "",
         error=error,
     )
 
