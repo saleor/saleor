@@ -32,6 +32,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Introduce page reference attributes - #6624 by @IKarbowiak
 - Introduce product reference attributes - #6711 by @IKarbowiak
 - Drop `type` field from `AttributeValue` type - #6710 by @IKarbowiak
+- Drop `apply_taxes_to_shipping_price_range` plugin hook - #6746 by @maarcingebala
 
 # 2.11.1
 
