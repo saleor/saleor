@@ -472,6 +472,7 @@ input AttributeCreateInput {
   name: String!
   slug: String
   type: AttributeTypeEnum!
+  unit: MeasurementUnitsEnum
   values: [AttributeValueCreateInput]
   valueRequired: Boolean
   isVariantOnly: Boolean

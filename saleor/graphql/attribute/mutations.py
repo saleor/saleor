@@ -5,7 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.utils.text import slugify
 
-from ...attribute import AttributeInputType
+from ...attribute import ATTRIBUTE_PROPERTIES_CONFIGURATION, AttributeInputType
 from ...attribute import models as models
 from ...attribute.error_codes import AttributeErrorCode
 from ...core.exceptions import PermissionDenied
@@ -15,6 +15,7 @@ from ...core.permissions import (
     ProductTypePermissions,
 )
 from ..attribute.types import Attribute, AttributeValue
+from ..core.enums import MeasurementUnitsEnum
 from ..core.inputs import ReorderInput
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import AttributeError
@@ -197,6 +198,7 @@ class AttributeCreateInput(graphene.InputObjectType):
     name = graphene.String(required=True, description=AttributeDescriptions.NAME)
     slug = graphene.String(required=False, description=AttributeDescriptions.SLUG)
     type = AttributeTypeEnum(description=AttributeDescriptions.TYPE, required=True)
+    unit = MeasurementUnitsEnum(description=AttributeDescriptions.UNIT, required=False)
     values = graphene.List(
         AttributeValueCreateInput, description=AttributeDescriptions.VALUES
     )
@@ -350,21 +352,20 @@ class AttributeMixin:
         Ensure that any invalid operations will be not performed.
         """
         attribute_input_type = cleaned_input.get("input_type") or instance.input_type
-        if attribute_input_type not in [
-            AttributeInputType.FILE,
-            AttributeInputType.REFERENCE,
-        ]:
-            return
         errors = {}
-        for field in [
-            "filterable_in_storefront",
-            "filterable_in_dashboard",
-            "available_in_grid",
-            "storefront_search_position",
-        ]:
-            if cleaned_input.get(field):
+        if attribute_input_type == AttributeInputType.NUMERIC:
+            if not cleaned_input.get("unit"):
+                errors["unit"] = ValidationError(
+                    "The unit value must be set for numeric attribute.",
+                    code=AttributeErrorCode.REQUIRED.value,
+                )
+        for field in ATTRIBUTE_PROPERTIES_CONFIGURATION.keys():
+            allowed_input_type = ATTRIBUTE_PROPERTIES_CONFIGURATION[field]
+            if attribute_input_type not in allowed_input_type and cleaned_input.get(
+                field
+            ):
                 errors[field] = ValidationError(
-                    f"Cannot set on a {attribute_input_type} attribute.",
+                    f"Cannot set {field} on a {attribute_input_type} attribute.",
                     code=AttributeErrorCode.INVALID.value,
                 )
         if errors:
