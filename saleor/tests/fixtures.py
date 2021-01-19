@@ -773,7 +773,6 @@ def size_attribute(db):  # pylint: disable=W0613
         slug="size",
         name="Size",
         type=AttributeType.PRODUCT_TYPE,
-        unit=MeasurementUnits.CM,
         filterable_in_storefront=True,
         filterable_in_dashboard=True,
         available_in_grid=True,
@@ -797,6 +796,23 @@ def weight_attribute(db):
     AttributeValue.objects.create(
         attribute=attribute, name="Poliester", slug="poliester"
     )
+    return attribute
+
+
+@pytest.fixture
+def numeric_attribute(db):
+    attribute = Attribute.objects.create(
+        slug="product-size",
+        name="Product size",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.NUMERIC,
+        unit=MeasurementUnits.CM,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
+    )
+    AttributeValue.objects.create(attribute=attribute, name="Length", slug="length")
+    AttributeValue.objects.create(attribute=attribute, name="Width", slug="width")
     return attribute
 
 
