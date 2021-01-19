@@ -42,12 +42,9 @@ def test_query_public_meta_for_warehouse_as_anonymous_user(api_client, warehouse
 
     # when
     response = api_client.post_graphql(QUERY_WAREHOUSE_PUBLIC_META, variables)
-    content = get_graphql_content(response)
 
     # then
-    metadata = content["data"]["warehouse"]["metadata"][0]
-    assert metadata["key"] == PUBLIC_KEY
-    assert metadata["value"] == PUBLIC_VALUE
+    assert_no_permission(response)
 
 
 def test_query_public_meta_for_warehouse_as_customer(user_api_client, warehouse):
@@ -60,12 +57,9 @@ def test_query_public_meta_for_warehouse_as_customer(user_api_client, warehouse)
 
     # when
     response = user_api_client.post_graphql(QUERY_WAREHOUSE_PUBLIC_META, variables)
-    content = get_graphql_content(response)
 
     # then
-    metadata = content["data"]["warehouse"]["metadata"][0]
-    assert metadata["key"] == PUBLIC_KEY
-    assert metadata["value"] == PUBLIC_VALUE
+    assert_no_permission(response)
 
 
 def test_query_public_meta_for_warehouse_as_staff(
