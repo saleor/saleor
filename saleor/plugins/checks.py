@@ -41,8 +41,8 @@ def check_single_plugin(plugin_path: str, errors: List[Error]):
         return
     try:
         plugin_class = import_string(plugin_path)
-    except ImportError:
-        errors.append(Error("Plugin with path: %s doesn't exist" % plugin_path))
+    except ImportError as e:
+        errors.append(Error(f"Failed to import plugin {plugin_path}: {e}"))
 
     if not errors:
         check_plugin_fields(["PLUGIN_ID"], plugin_class, errors)
