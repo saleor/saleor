@@ -1,0 +1,57 @@
+interactions:
+- request:
+    body: <?xml version="1.0" encoding="utf-8"?><getCustomerProfileRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd"><merchantAuthentication><name>public</name><transactionKey>secret</transactionKey></merchantAuthentication><clientId>sdk-python-1.1.3</clientId><customerProfileId>1929079648</customerProfileId><unmaskExpirationDate>true</unmaskExpirationDate></getCustomerProfileRequest>
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '399'
+      Content-Type:
+      - application/xml
+      User-Agent:
+      - python-requests/2.24.0
+      encoding:
+      - utf-8
+      version:
+      - '1.0'
+    method: POST
+    uri: https://apitest.authorize.net/xml/v1/request.api
+  response:
+    body:
+      string: "\uFEFF<?xml version=\"1.0\" encoding=\"utf-8\"?><getCustomerProfileResponse\
+        \ xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"\
+        \ xmlns=\"AnetApi/xml/v1/schema/AnetApiSchema.xsd\"><messages><resultCode>Ok</resultCode><message><code>I00001</code><text>Successful.</text></message></messages><profile><merchantCustomerId>21</merchantCustomerId><email>customer@example.com</email><customerProfileId>1929079648</customerProfileId><paymentProfiles><customerType>individual</customerType><billTo><firstName></firstName><lastName>Doe</lastName><address>1470\
+        \  Pinewood Avenue</address><city>MICHIGAN</city><state>MI</state><zip>49855</zip><country>US</country></billTo><customerPaymentProfileId>1841309241</customerPaymentProfileId><payment><creditCard><cardNumber>XXXX1111</cardNumber><expirationDate>2021-02</expirationDate><cardType>Visa</cardType></creditCard></payment></paymentProfiles><profileType>regular</profileType></profile></getCustomerProfileResponse>"
+    headers:
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - x-requested-with,cache-control,content-type,origin,method,SOAPAction
+      Access-Control-Allow-Methods:
+      - PUT,OPTIONS,POST,GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-store
+      Content-Length:
+      - '997'
+      Content-Type:
+      - application/xml; charset=utf-8
+      Date:
+      - Mon, 14 Dec 2020 15:38:38 GMT
+      Pragma:
+      - no-cache
+      Strict-Transport-Security:
+      - max-age=31536000
+      X-Cnection:
+      - close
+      X-OPNET-Transaction-Trace:
+      - a2_0ac565cf-65dd-471f-87e8-1ccb37ba4dc7-21900-10720310
+    status:
+      code: 200
+      message: OK
+version: 1
