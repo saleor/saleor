@@ -225,6 +225,7 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
     file_attribute,
     product_type_page_reference_attribute,
     product_type_product_reference_attribute,
+    numeric_attribute,
     page_list,
 ):
     # given
@@ -233,11 +234,13 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
         file_attribute,
         product_type_page_reference_attribute,
         product_type_product_reference_attribute,
+        numeric_attribute,
     )
     product.product_type.product_attributes.add(
         file_attribute,
         product_type_page_reference_attribute,
         product_type_product_reference_attribute,
+        numeric_attribute,
     )
 
     # add file attribute
@@ -290,6 +293,15 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
     associate_attribute_values_to_instance(
         product, product_type_product_reference_attribute, product_product_ref_value
     )
+
+    # add numeric attribute
+    numeric_value_1 = numeric_attribute.values.first()
+    numeric_value_2 = numeric_attribute.values.last()
+
+    associate_attribute_values_to_instance(
+        variant_with_many_stocks, numeric_attribute, numeric_value_1
+    )
+    associate_attribute_values_to_instance(product, numeric_attribute, numeric_value_2)
 
     products = Product.objects.all()
     export_fields = {"id", "variants__sku"}
