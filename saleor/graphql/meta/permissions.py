@@ -117,6 +117,7 @@ PUBLIC_META_PERMISSION_MAP = {
     "ShippingZone": shipping_permissions,
     "App": app_permissions,
     "User": public_user_permissions,
+    "Warehouse": product_permissions,
 }
 
 
@@ -140,4 +141,5 @@ PRIVATE_META_PERMISSION_MAP = {
     "ShippingZone": shipping_permissions,
     "App": app_permissions,
     "User": private_user_permissions,
+    "Warehouse": product_permissions,
 }
