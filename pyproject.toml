@@ -69,6 +69,7 @@ Adyen = "^3.0.0"
 google-cloud-pubsub = ">=1.7,<3.0"
 uvicorn = {extras = ["standard"], version = "^0.12.2"}
 gunicorn = "^20.0.4"
+authorizenet = "^1.1.3"
 
 [tool.poetry.dev-dependencies]
 black = "19.10b0"
