@@ -6,11 +6,12 @@ from django.template.defaultfilters import pluralize
 
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
-from ....order import FulfillmentStatus
+from ....order import FulfillmentLineData, FulfillmentStatus, OrderLineData
 from ....order import models as order_models
 from ....order.actions import (
     cancel_fulfillment,
     create_fulfillments,
+    create_fulfillments_for_returned_products,
     create_refund_fulfillment,
     fulfillment_tracking_updated,
 )
@@ -361,24 +362,9 @@ class OrderRefundProductsInput(graphene.InputObjectType):
     )
 
 
-class FulfillmentRefundProducts(BaseMutation):
-    fulfillment = graphene.Field(Fulfillment, description="A refunded fulfillment.")
-    order = graphene.Field(Order, description="Order which fulfillment was refunded.")
-
-    class Arguments:
-        order = graphene.ID(
-            description="ID of the order to be refunded.", required=True
-        )
-        input = OrderRefundProductsInput(
-            required=True,
-            description="Fields required to create an refund fulfillment.",
-        )
-
+class FulfillmentRefundAndReturnProductBase(BaseMutation):
     class Meta:
-        description = "Refund products."
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
-        error_type_class = OrderError
-        error_type_field = "order_errors"
+        abstract = True
 
     @classmethod
     def clean_order_payment(cls, payment, cleaned_input):
@@ -410,6 +396,135 @@ class FulfillmentRefundProducts(BaseMutation):
         cleaned_input["amount_to_refund"] = amount_to_refund
 
     @classmethod
+    def _raise_error_for_line(cls, msg, type, line_id, field_name, code=None):
+        line_global_id = graphene.Node.to_global_id(type, line_id)
+        if not code:
+            code = OrderErrorCode.INVALID_QUANTITY.value
+        raise ValidationError(
+            {
+                field_name: ValidationError(
+                    msg,
+                    code=code,
+                    params={field_name: line_global_id},
+                )
+            }
+        )
+
+    @classmethod
+    def clean_fulfillment_lines(
+        cls, fulfillment_lines_data, cleaned_input, whitelisted_statuses
+    ):
+        fulfillment_lines = cls.get_nodes_or_error(
+            [line["fulfillment_line_id"] for line in fulfillment_lines_data],
+            field="fulfillment_lines",
+            only_type=FulfillmentLine,
+            qs=order_models.FulfillmentLine.objects.prefetch_related(
+                "fulfillment", "order_line"
+            ),
+        )
+        fulfillment_lines = list(fulfillment_lines)
+        cleaned_fulfillment_lines = []
+        for line, line_data in zip(fulfillment_lines, fulfillment_lines_data):
+            quantity = line_data["quantity"]
+            if line.quantity < quantity:
+                cls._raise_error_for_line(
+                    "Provided quantity is bigger than quantity from "
+                    "fulfillment line",
+                    "FulfillmentLine",
+                    line.pk,
+                    "fulfillment_line_id",
+                )
+            if line.fulfillment.status not in whitelisted_statuses:
+                allowed_statuses_str = ", ".join(whitelisted_statuses)
+                cls._raise_error_for_line(
+                    f"Unable to process action for fulfillmentLine with different "
+                    f"status than {allowed_statuses_str}.",
+                    "FulfillmentLine",
+                    line.pk,
+                    "fulfillment_line_id",
+                    code=OrderErrorCode.INVALID.value,
+                )
+            replace = line_data.get("replace", False)
+            if replace and not line.order_line.variant_id:
+                cls._raise_error_for_line(
+                    "Unable to replace line as the assigned product doesn't exist.",
+                    "OrderLine",
+                    line.pk,
+                    "order_line_id",
+                )
+            cleaned_fulfillment_lines.append(
+                FulfillmentLineData(
+                    line=line,
+                    quantity=quantity,
+                    replace=replace,
+                )
+            )
+        cleaned_input["fulfillment_lines"] = cleaned_fulfillment_lines
+
+    @classmethod
+    def clean_lines(cls, lines_data, cleaned_input):
+        order_lines = cls.get_nodes_or_error(
+            [line["order_line_id"] for line in lines_data],
+            field="order_lines",
+            only_type=OrderLine,
+            qs=order_models.OrderLine.objects.prefetch_related(
+                "fulfillment_lines__fulfillment", "variant", "allocations"
+            ),
+        )
+        order_lines = list(order_lines)
+        cleaned_order_lines = []
+        for line, line_data in zip(order_lines, lines_data):
+            quantity = line_data["quantity"]
+            if line.quantity < quantity:
+                cls._raise_error_for_line(
+                    "Provided quantity is bigger than quantity from order line.",
+                    "OrderLine",
+                    line.pk,
+                    "order_line_id",
+                )
+            quantity_ready_to_move = line.quantity_unfulfilled
+            if quantity_ready_to_move < quantity:
+                cls._raise_error_for_line(
+                    "Provided quantity is bigger than unfulfilled quantity.",
+                    "OrderLine",
+                    line.pk,
+                    "order_line_id",
+                )
+            replace = line_data.get("replace", False)
+            if replace and not line.variant_id:
+                cls._raise_error_for_line(
+                    "Unable to replace line as the assigned product doesn't exist.",
+                    "OrderLine",
+                    line.pk,
+                    "order_line_id",
+                )
+
+            cleaned_order_lines.append(
+                OrderLineData(line=line, quantity=quantity, replace=replace)
+            )
+        cleaned_input["order_lines"] = cleaned_order_lines
+
+
+class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
+    fulfillment = graphene.Field(Fulfillment, description="A refunded fulfillment.")
+    order = graphene.Field(Order, description="Order which fulfillment was refunded.")
+
+    class Arguments:
+        order = graphene.ID(
+            description="ID of the order to be refunded.", required=True
+        )
+        input = OrderRefundProductsInput(
+            required=True,
+            description="Fields required to create an refund fulfillment.",
+        )
+
+    class Meta:
+        description = "Refund products."
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
+
+    @classmethod
     def clean_input(cls, info, order_id, input):
         cleaned_input = {}
         amount_to_refund = input.get("amount_to_refund")
@@ -427,95 +542,21 @@ class FulfillmentRefundProducts(BaseMutation):
             {"include_shipping_costs": include_shipping_costs, "order": order}
         )
 
-        order_lines_data = input.get("order_lines")
-        fulfillment_lines_data = input.get("fulfillment_lines")
+        order_lines_data = input.get("order_lines", [])
+        fulfillment_lines_data = input.get("fulfillment_lines", [])
 
         if order_lines_data:
             cls.clean_lines(order_lines_data, cleaned_input)
         if fulfillment_lines_data:
-            cls.clean_fulfillment_lines(fulfillment_lines_data, cleaned_input)
+            cls.clean_fulfillment_lines(
+                fulfillment_lines_data,
+                cleaned_input,
+                whitelisted_statuses=[
+                    FulfillmentStatus.FULFILLED,
+                    FulfillmentStatus.RETURNED,
+                ],
+            )
         return cleaned_input
-
-    @classmethod
-    def _raise_error_for_line(cls, msg, type, line_id, field_name, code=None):
-        line_global_id = graphene.Node.to_global_id(type, line_id)
-        if not code:
-            code = OrderErrorCode.INVALID_REFUND_QUANTITY.value
-        raise ValidationError(
-            {
-                field_name: ValidationError(
-                    msg,
-                    code=code,
-                    params={field_name: line_global_id},
-                )
-            }
-        )
-
-    @classmethod
-    def clean_fulfillment_lines(cls, fulfillment_lines_data, cleaned_input):
-        lines_ids = [line["fulfillment_line_id"] for line in fulfillment_lines_data]
-        quantities_to_refund = [line["quantity"] for line in fulfillment_lines_data]
-        lines_to_refund = cls.get_nodes_or_error(
-            lines_ids,
-            field="fulfillment_lines",
-            only_type=FulfillmentLine,
-            qs=order_models.FulfillmentLine.objects.prefetch_related("fulfillment"),
-        )
-        lines_to_refund = list(lines_to_refund)
-        for line, quantity in zip(lines_to_refund, quantities_to_refund):
-            if line.quantity < quantity:
-                cls._raise_error_for_line(
-                    "Quantity provided to refund is bigger than quantity from "
-                    "fulfillment line",
-                    "FulfillmentLine",
-                    line.pk,
-                    "fulfillment_line_id",
-                )
-            if line.fulfillment.status != FulfillmentStatus.FULFILLED:
-                cls._raise_error_for_line(
-                    "Unable to refund fulfillmentLine with different type than "
-                    "FULFILLED.",
-                    "FulfillmentLine",
-                    line.pk,
-                    "fulfillment_line_id",
-                    code=OrderErrorCode.CANNOT_REFUND_FULFILLMENT_LINE.value,
-                )
-        cleaned_input["fulfillment_lines_quantities_to_refund"] = quantities_to_refund
-        cleaned_input["fulfillment_lines_to_refund"] = lines_to_refund
-
-    @classmethod
-    def clean_lines(cls, lines_data, cleaned_input):
-        lines_ids = [line["order_line_id"] for line in lines_data]
-        quantities_to_refund = [line["quantity"] for line in lines_data]
-        lines_to_refund = cls.get_nodes_or_error(
-            lines_ids,
-            field="order_lines",
-            only_type=OrderLine,
-            qs=order_models.OrderLine.objects.prefetch_related(
-                "fulfillment_lines__fulfillment", "variant", "allocations"
-            ),
-        )
-        lines_to_refund = list(lines_to_refund)
-        for line, quantity in zip(lines_to_refund, quantities_to_refund):
-            if line.quantity < quantity:
-                cls._raise_error_for_line(
-                    "Quantity provided to refund is bigger than quantity from order "
-                    "line.",
-                    "OrderLine",
-                    line.pk,
-                    "order_line_id",
-                )
-            quantity_ready_to_refund = line.quantity_unfulfilled
-            if quantity_ready_to_refund < quantity:
-                cls._raise_error_for_line(
-                    "Quantity provided to refund is bigger than unfulfilled quantity.",
-                    "OrderLine",
-                    line.pk,
-                    "order_line_id",
-                )
-
-        cleaned_input["order_lines_quantities_to_refund"] = quantities_to_refund
-        cleaned_input["order_lines_to_refund"] = lines_to_refund
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -525,11 +566,160 @@ class FulfillmentRefundProducts(BaseMutation):
             get_user_or_app_from_context(info.context),
             order,
             cleaned_input["payment"],
-            cleaned_input.get("order_lines_to_refund", []),
-            cleaned_input.get("order_lines_quantities_to_refund", []),
-            cleaned_input.get("fulfillment_lines_to_refund", []),
-            cleaned_input.get("fulfillment_lines_quantities_to_refund", []),
+            cleaned_input.get("order_lines", []),
+            cleaned_input.get("fulfillment_lines", []),
+            info.context.plugins,
             cleaned_input["amount_to_refund"],
             cleaned_input["include_shipping_costs"],
         )
         return cls(order=order, fulfillment=refund_fulfillment)
+
+
+class OrderReturnLineInput(graphene.InputObjectType):
+    order_line_id = graphene.ID(
+        description="The ID of the order line to return.",
+        name="orderLineId",
+        required=True,
+    )
+    quantity = graphene.Int(
+        description="The number of items to be returned.",
+        required=True,
+    )
+    replace = graphene.Boolean(
+        description="Determines, if the line should be added to replace order.",
+        default_value=False,
+    )
+
+
+class OrderReturnFulfillmentLineInput(graphene.InputObjectType):
+    fulfillment_line_id = graphene.ID(
+        description="The ID of the fulfillment line to return.",
+        name="fulfillmentLineId",
+        required=True,
+    )
+    quantity = graphene.Int(
+        description="The number of items to be returned.",
+        required=True,
+    )
+    replace = graphene.Boolean(
+        description="Determines, if the line should be added to replace order.",
+        default_value=False,
+    )
+
+
+class OrderReturnProductsInput(graphene.InputObjectType):
+    order_lines = graphene.List(
+        graphene.NonNull(OrderReturnLineInput),
+        description="List of unfulfilled lines to return.",
+    )
+    fulfillment_lines = graphene.List(
+        graphene.NonNull(OrderReturnFulfillmentLineInput),
+        description="List of fulfilled lines to return.",
+    )
+    amount_to_refund = PositiveDecimal(
+        required=False,
+        description="The total amount of refund when the value is provided manually.",
+    )
+    include_shipping_costs = graphene.Boolean(
+        description=(
+            "If true, Saleor will refund shipping costs. If amountToRefund is provided"
+            "includeShippingCosts will be ignored."
+        ),
+        default_value=False,
+    )
+    refund = graphene.Boolean(
+        description="If true, Saleor will call refund action for all lines.",
+        default_value=False,
+    )
+
+
+class FulfillmentReturnProducts(FulfillmentRefundAndReturnProductBase):
+    return_fulfillment = graphene.Field(
+        Fulfillment, description="A return fulfillment."
+    )
+    replace_fulfillment = graphene.Field(
+        Fulfillment, description="A replace fulfillment."
+    )
+    order = graphene.Field(Order, description="Order which fulfillment was returned.")
+    replace_order = graphene.Field(
+        Order,
+        description="A draft order which was created for products with replace flag.",
+    )
+
+    class Meta:
+        description = "Return products."
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
+
+    class Arguments:
+        order = graphene.ID(
+            description="ID of the order to be returned.", required=True
+        )
+        input = OrderReturnProductsInput(
+            required=True,
+            description="Fields required to return products.",
+        )
+
+    @classmethod
+    def clean_input(cls, info, order_id, input):
+        cleaned_input = {}
+        amount_to_refund = input.get("amount_to_refund")
+        include_shipping_costs = input["include_shipping_costs"]
+        refund = input["refund"]
+
+        qs = order_models.Order.objects.prefetch_related("payments")
+        order = cls.get_node_or_error(
+            info, order_id, field="order", only_type=Order, qs=qs
+        )
+        payment = order.get_last_payment()
+        if refund:
+            cls.clean_order_payment(payment, cleaned_input)
+            cls.clean_amount_to_refund(amount_to_refund, payment, cleaned_input)
+
+        cleaned_input.update(
+            {
+                "include_shipping_costs": include_shipping_costs,
+                "order": order,
+                "refund": refund,
+            }
+        )
+
+        order_lines_data = input.get("order_lines")
+        fulfillment_lines_data = input.get("fulfillment_lines")
+
+        if order_lines_data:
+            cls.clean_lines(order_lines_data, cleaned_input)
+        if fulfillment_lines_data:
+            cls.clean_fulfillment_lines(
+                fulfillment_lines_data,
+                cleaned_input,
+                whitelisted_statuses=[
+                    FulfillmentStatus.FULFILLED,
+                    FulfillmentStatus.REFUNDED,
+                ],
+            )
+        return cleaned_input
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        cleaned_input = cls.clean_input(info, data.get("order"), data.get("input"))
+        order = cleaned_input["order"]
+        response = create_fulfillments_for_returned_products(
+            get_user_or_app_from_context(info.context),
+            order,
+            cleaned_input.get("payment"),
+            cleaned_input.get("order_lines", []),
+            cleaned_input.get("fulfillment_lines", []),
+            info.context.plugins,
+            cleaned_input["refund"],
+            cleaned_input.get("amount_to_refund"),
+            cleaned_input["include_shipping_costs"],
+        )
+        return_fulfillment, replace_fulfillment, replace_order = response
+        return cls(
+            order=order,
+            return_fulfillment=return_fulfillment,
+            replace_fulfillment=replace_fulfillment,
+            replace_order=replace_order,
+        )
