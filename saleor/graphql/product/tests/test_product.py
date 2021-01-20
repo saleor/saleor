@@ -16,8 +16,8 @@ from prices import Money, TaxedMoney
 from ....attribute import AttributeInputType, AttributeType
 from ....attribute.models import Attribute, AttributeValue
 from ....attribute.utils import associate_attribute_values_to_instance
-from ....core import WeightUnits
 from ....core.taxes import TaxType
+from ....core.units import WeightUnits
 from ....order import OrderStatus
 from ....order.models import OrderLine
 from ....plugins.manager import PluginsManager

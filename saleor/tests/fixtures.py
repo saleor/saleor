@@ -36,8 +36,9 @@ from ..attribute.models import (
 from ..attribute.utils import associate_attribute_values_to_instance
 from ..checkout.models import Checkout
 from ..checkout.utils import add_variant_to_checkout
-from ..core import JobStatus, MeasurementUnits
+from ..core import JobStatus
 from ..core.payments import PaymentInterface
+from ..core.units import MeasurementUnits
 from ..csv.events import ExportEvents
 from ..csv.models import ExportEvent, ExportFile
 from ..discount import DiscountInfo, DiscountValueType, VoucherType

@@ -17,10 +17,10 @@ from prices import Money
 
 from ..account.models import Address
 from ..channel.models import Channel
-from ..core import WeightUnits
 from ..core.models import ModelWithMetadata
 from ..core.permissions import OrderPermissions
 from ..core.taxes import zero_money, zero_taxed_money
+from ..core.units import WeightUnits
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.weight import zero_weight
 from ..discount.models import Voucher

@@ -1,7 +1,7 @@
 import pytest
 from measurement.measures import Weight
 
-from .. import WeightUnits
+from ..units import WeightUnits
 from ..weight import (
     convert_weight,
     convert_weight_to_default_weight_unit,

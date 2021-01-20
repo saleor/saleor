@@ -8,8 +8,8 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.validators import MaxLengthValidator, RegexValidator
 from django.db import models
 
-from ..core import WeightUnits
 from ..core.permissions import SitePermissions
+from ..core.units import WeightUnits
 from ..core.utils.translations import TranslationProxy
 from .error_codes import SiteErrorCode
 from .patch_sites import patch_contrib_sites

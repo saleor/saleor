@@ -4,8 +4,8 @@ from django.db import models
 from django.db.models import F, Q
 
 from ...account.utils import requestor_is_staff_member_or_app
-from ...core import MeasurementUnits
 from ...core.models import ModelWithMetadata, SortableModel
+from ...core.units import MeasurementUnits
 from ...core.utils.translations import TranslationProxy
 from ...page.models import PageType
 from ...product.models import ProductType

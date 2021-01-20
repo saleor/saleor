@@ -2,7 +2,7 @@ import graphene
 import pytest
 from measurement.measures import Weight
 
-from ....core import WeightUnits
+from ....core.units import WeightUnits
 from ....shipping.error_codes import ShippingErrorCode
 from ....shipping.utils import get_countries_without_shipping_zone
 from ...core.enums import WeightUnitsEnum

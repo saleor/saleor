@@ -33,11 +33,11 @@ from versatileimagefield.fields import PPOIField, VersatileImageField
 
 from ..account.utils import requestor_is_staff_member_or_app
 from ..channel.models import Channel
-from ..core import WeightUnits
 from ..core.db.fields import SanitizedJSONField
 from ..core.models import ModelWithMetadata, PublishableModel, SortableModel
 from ..core.permissions import ProductPermissions, ProductTypePermissions
 from ..core.sanitizers.editorjs_sanitizer import clean_editor_js
+from ..core.units import WeightUnits
 from ..core.utils import build_absolute_uri
 from ..core.utils.draftjs import json_content_to_raw_text
 from ..core.utils.translations import TranslationProxy
