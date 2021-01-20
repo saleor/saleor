@@ -133,12 +133,10 @@ class AuthorizeNetGatewayPlugin(BasePlugin):
                 raise ValidationError(
                     {
                         "api_login_id": ValidationError(
-                            message,
-                            code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
+                            message, code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
                         ),
                         "transaction_key": ValidationError(
-                            message,
-                            code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
+                            message, code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
                         ),
                     }
                 )

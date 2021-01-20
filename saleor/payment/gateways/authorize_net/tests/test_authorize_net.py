@@ -199,10 +199,7 @@ def test_void(authorize_net_payment, authorize_net_gateway_config):
         customer_email=authorize_net_payment.billing_email,
         token="1",
     )
-    response = void(
-        payment_data,
-        authorize_net_gateway_config,
-    )
+    response = void(payment_data, authorize_net_gateway_config,)
     assert not response.error
     assert response.kind == TransactionKind.VOID
     assert response.is_success
@@ -227,10 +224,7 @@ def test_void_duplicate(authorize_net_payment, authorize_net_gateway_config):
         customer_email=authorize_net_payment.billing_email,
         token="1",
     )
-    response = void(
-        payment_data,
-        authorize_net_gateway_config,
-    )
+    response = void(payment_data, authorize_net_gateway_config,)
     assert not response.error
     assert response.kind == TransactionKind.VOID
     assert response.is_success
@@ -252,10 +246,7 @@ def test_void_failure(authorize_net_payment, authorize_net_gateway_config):
         customer_email=authorize_net_payment.billing_email,
         token="1",
     )
-    response = void(
-        payment_data,
-        authorize_net_gateway_config,
-    )
+    response = void(payment_data, authorize_net_gateway_config,)
     assert response.error
     assert response.kind == TransactionKind.VOID
     assert not response.is_success
