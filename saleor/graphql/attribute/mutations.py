@@ -373,12 +373,6 @@ class AttributeMixin:
         """
         attribute_input_type = cleaned_input.get("input_type") or instance.input_type
         errors = {}
-        if attribute_input_type == AttributeInputType.NUMERIC:
-            if not cleaned_input.get("unit"):
-                errors["unit"] = ValidationError(
-                    "The unit value must be set for numeric attribute.",
-                    code=AttributeErrorCode.REQUIRED.value,
-                )
         for field in ATTRIBUTE_PROPERTIES_CONFIGURATION.keys():
             allowed_input_type = ATTRIBUTE_PROPERTIES_CONFIGURATION[field]
             if attribute_input_type not in allowed_input_type and cleaned_input.get(
