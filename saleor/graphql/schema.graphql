@@ -5582,7 +5582,7 @@ type VoucherUpdate {
   voucher: Voucher
 }
 
-type Warehouse implements Node {
+type Warehouse implements Node & ObjectWithMetadata {
   id: ID!
   name: String!
   slug: String!
@@ -5590,6 +5590,8 @@ type Warehouse implements Node {
   shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection!
   address: Address!
   email: String!
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
 }
 
 input WarehouseAddressInput {
