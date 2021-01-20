@@ -19,7 +19,8 @@ mutation checkoutLanguageCodeUpdate($checkoutId: ID!, $languageCode: LanguageCod
 
 
 def test_checkout_update_language_code(
-    user_api_client, checkout_with_gift_card,
+    user_api_client,
+    checkout_with_gift_card,
 ):
     language_code = "PL"
     checkout = checkout_with_gift_card
