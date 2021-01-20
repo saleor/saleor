@@ -160,8 +160,7 @@ def update_order_prices(order, discounts):
     recalculate_order(order)
 
 
-def update_order_status(order):
-    """Update order status depending on fulfillments."""
+def _calculate_quantity_including_returns(order):
     lines = list(order.lines.all())
     total_quantity = sum([line.quantity for line in lines])
     quantity_fulfilled = sum([line.quantity_fulfilled for line in lines])
@@ -182,6 +181,17 @@ def update_order_status(order):
     # calculating the order status
     total_quantity -= quantity_replaced
     quantity_fulfilled -= quantity_replaced
+    return total_quantity, quantity_fulfilled, quantity_returned
+
+
+def update_order_status(order):
+    """Update order status depending on fulfillments."""
+
+    (
+        total_quantity,
+        quantity_fulfilled,
+        quantity_returned,
+    ) = _calculate_quantity_including_returns(order)
 
     # total_quantity == 0 means that all products have been replaced, we don't change
     # the order status in that case

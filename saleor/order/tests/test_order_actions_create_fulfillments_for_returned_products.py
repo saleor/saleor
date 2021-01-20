@@ -4,6 +4,7 @@ from unittest.mock import patch
 from prices import Money, TaxedMoney
 
 from ...plugins.manager import get_plugins_manager
+from ...tests.utils import flush_post_commit_hooks
 from ...warehouse.models import Allocation, Stock
 from .. import FulfillmentLineData, FulfillmentStatus, OrderEvents, OrderLineData
 from ..actions import create_fulfillments_for_returned_products
@@ -62,6 +63,7 @@ def test_create_return_fulfillment_only_order_lines(
     assert not replace_order
 
     # check if we have correct events
+    flush_post_commit_hooks()
     events = order_with_lines.events.all()
     assert events.count() == 1
     returned_event = events[0]
