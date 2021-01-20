@@ -177,7 +177,7 @@ def update_order_status(order):
 
 
 @transaction.atomic
-def add_variant_to_draft_order(order, variant, quantity, discounts=None):
+def add_variant_to_order(order, variant, quantity, discounts=None):
     """Add total_quantity of variant to order.
 
     Returns an order line the variant was added to.
