@@ -634,10 +634,15 @@ class OrderLinesCreate(BaseMutation):
                 code=OrderErrorCode.TAX_ERROR.value,
             )
 
-        # Create the event
-        events.draft_order_added_products_event(
-            order=order, user=info.context.user, order_lines=lines_to_add
-        )
+        # Create the products added event based on order status
+        if order.status == OrderStatus.DRAFT:
+            events.draft_order_added_products_event(
+                order=order, user=info.context.user, order_lines=lines_to_add
+            )
+        else:
+            events.unconfirmed_order_added_products_event(
+                order=order, user=info.context.user, order_lines=lines_to_add
+            )
 
         recalculate_order(order)
         return OrderLinesCreate(order=order, order_lines=lines)
@@ -676,10 +681,15 @@ class OrderLineDelete(BaseMutation):
         delete_order_line(line)
         line.id = db_id
 
-        # Create the removal event
-        events.draft_order_removed_products_event(
-            order=order, user=info.context.user, order_lines=[(line.quantity, line)]
-        )
+        # Create the removal event based on order status
+        if order.status == OrderStatus.DRAFT:
+            events.draft_order_removed_products_event(
+                order=order, user=info.context.user, order_lines=[(line.quantity, line)]
+            )
+        else:
+            events.unconfirmed_order_removed_products_event(
+                order=order, user=info.context.user, order_lines=[(line.quantity, line)]
+            )
 
         recalculate_order(order)
         return OrderLineDelete(order=order, order_line=line)

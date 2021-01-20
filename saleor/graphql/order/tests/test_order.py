@@ -2387,9 +2387,15 @@ ORDER_LINES_CREATE_MUTATION = """
 """
 
 
-@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
+@pytest.mark.parametrize(
+    "status, event",
+    (
+        (OrderStatus.DRAFT, order_events.OrderEvents.DRAFT_ADDED_PRODUCTS),
+        (OrderStatus.UNCONFIRMED, order_events.OrderEvents.UNCONFIRMED_ADDED_PRODUCTS),
+    ),
+)
 def test_order_lines_create(
-    status, order_with_lines, permission_manage_orders, staff_api_client
+    status, event, order_with_lines, permission_manage_orders, staff_api_client
 ):
     query = ORDER_LINES_CREATE_MUTATION
     order = order_with_lines
@@ -2406,10 +2412,13 @@ def test_order_lines_create(
     # mutation should fail without proper permissions
     response = staff_api_client.post_graphql(query, variables)
     assert_no_permission(response)
+    assert not OrderEvent.objects.exists()
 
     # assign permissions
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(query, variables)
+    assert OrderEvent.objects.count() == 1
+    assert OrderEvent.objects.last().type == event
     content = get_graphql_content(response)
     data = content["data"]["orderLinesCreate"]
     assert data["orderLines"][0]["productSku"] == variant.sku
@@ -2424,7 +2433,7 @@ def test_order_lines_create(
     assert data["orderErrors"][0]["field"] == "quantity"
 
 
-@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
+@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
 def test_order_lines_create_with_product_and_variant_not_assigned_to_channel(
     status, order_with_lines, permission_manage_orders, staff_api_client, variant
 ):
@@ -2450,7 +2459,7 @@ def test_order_lines_create_with_product_and_variant_not_assigned_to_channel(
     assert error["variants"] == [variant_id]
 
 
-@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
+@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
 def test_order_lines_create_with_variant_not_assigned_to_channel(
     status,
     order_with_lines,
@@ -2524,9 +2533,23 @@ ORDER_LINE_UPDATE_MUTATION = """
 """
 
 
-@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
+@pytest.mark.parametrize(
+    "status, event",
+    (
+        (OrderStatus.DRAFT, order_events.OrderEvents.DRAFT_REMOVED_PRODUCTS),
+        (
+            OrderStatus.UNCONFIRMED,
+            order_events.OrderEvents.UNCONFIRMED_REMOVED_PRODUCTS,
+        ),
+    ),
+)
 def test_order_line_update(
-    status, order_with_lines, permission_manage_orders, staff_api_client, staff_user
+    status,
+    event,
+    order_with_lines,
+    permission_manage_orders,
+    staff_api_client,
+    staff_user,
 ):
     query = ORDER_LINE_UPDATE_MUTATION
     order = order_with_lines
@@ -2556,7 +2579,7 @@ def test_order_line_update(
     assert data["orderLine"]["quantity"] == new_quantity
 
     removed_items_event = OrderEvent.objects.last()  # type: OrderEvent
-    assert removed_items_event.type == order_events.OrderEvents.DRAFT_REMOVED_PRODUCTS
+    assert removed_items_event.type == event
     assert removed_items_event.user == staff_user
     assert removed_items_event.parameters == {
         "lines": [{"quantity": removed_quantity, "line_pk": line.pk, "item": str(line)}]
@@ -2695,9 +2718,18 @@ ORDER_LINE_DELETE_MUTATION = """
 """
 
 
-@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
+@pytest.mark.parametrize(
+    "status, event",
+    (
+        (OrderStatus.DRAFT, order_events.OrderEvents.DRAFT_REMOVED_PRODUCTS),
+        (
+            OrderStatus.UNCONFIRMED,
+            order_events.OrderEvents.UNCONFIRMED_REMOVED_PRODUCTS,
+        ),
+    ),
+)
 def test_order_line_remove(
-    status, order_with_lines, permission_manage_orders, staff_api_client
+    status, event, order_with_lines, permission_manage_orders, staff_api_client
 ):
     query = ORDER_LINE_DELETE_MUTATION
     order = order_with_lines
@@ -2712,6 +2744,8 @@ def test_order_line_remove(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderLineDelete"]
+    assert OrderEvent.objects.count() == 1
+    assert OrderEvent.objects.last().type == event
     assert data["orderLine"]["id"] == line_id
     assert line not in order.lines.all()
 
