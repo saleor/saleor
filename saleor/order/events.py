@@ -149,6 +149,27 @@ def draft_order_removed_products_event(
     )
 
 
+def draft_order_created_from_replace_event(
+    *,
+    draft_order: Order,
+    original_order: Order,
+    user: UserType,
+    lines: List[Tuple[int, OrderLine]]
+):
+    if not _user_is_valid(user):
+        user = None
+    parameters = {
+        "related_order_pk": original_order.pk,
+        "lines": _lines_per_quantity_to_line_object_list(lines),
+    }
+    return OrderEvent.objects.create(
+        order=draft_order,
+        type=OrderEvents.DRAFT_CREATED_FROM_REPLACE,
+        user=user,
+        parameters=parameters,
+    )
+
+
 def order_created_event(
     *, order: Order, user: UserType, from_draft=False
 ) -> OrderEvent:
@@ -215,6 +236,20 @@ def order_fully_paid_event(*, order: Order, user: UserType) -> OrderEvent:
         user = None
     return OrderEvent.objects.create(
         order=order, type=OrderEvents.ORDER_FULLY_PAID, user=user
+    )
+
+
+def order_replacement_created(
+    *, original_order: Order, replace_order: Order, user: UserType
+) -> OrderEvent:
+    if not _user_is_valid(user):
+        user = None
+    parameters = {"related_order_pk": replace_order.pk}
+    return OrderEvent.objects.create(
+        order=original_order,
+        type=OrderEvents.ORDER_REPLACEMENT_CREATED,
+        user=user,
+        parameters=parameters,
     )
 
 
@@ -345,6 +380,39 @@ def fulfillment_fulfilled_items_event(
         type=OrderEvents.FULFILLMENT_FULFILLED_ITEMS,
         user=user,
         parameters={"fulfilled_items": [line.pk for line in fulfillment_lines]},
+    )
+
+
+def order_returned_event(
+    *,
+    order: Order,
+    user: UserType,
+    returned_lines: List[Tuple[int, OrderLine]],
+):
+    if not _user_is_valid(user):
+        user = None
+
+    return OrderEvent.objects.create(
+        order=order,
+        type=OrderEvents.FULFILLMENT_RETURNED,
+        user=user,
+        parameters={"lines": _lines_per_quantity_to_line_object_list(returned_lines)},
+    )
+
+
+def fulfillment_replaced_event(
+    *,
+    order: Order,
+    user: UserType,
+    replaced_lines: List[Tuple[int, OrderLine]],
+):
+    if not _user_is_valid(user):
+        user = None
+    return OrderEvent.objects.create(
+        order=order,
+        type=OrderEvents.FULFILLMENT_REPLACED,
+        user=user,
+        parameters={"lines": _lines_per_quantity_to_line_object_list(replaced_lines)},
     )
 
 

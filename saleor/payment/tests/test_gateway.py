@@ -4,7 +4,7 @@ import pytest
 
 import saleor.payment.gateway as gateway
 
-from .. import ChargeStatus, TransactionKind
+from .. import ChargeStatus, CustomPaymentChoices, TransactionKind
 from ..interface import GatewayResponse
 from ..utils import create_payment_information
 
@@ -162,6 +162,18 @@ def test_capture_payment(mock_payment_interface, payment_txn_preauth):
     assert transaction.kind == TransactionKind.CAPTURE
     assert transaction.currency == "usd"
     assert transaction.gateway_response == RAW_RESPONSE
+
+
+def test_refund_for_manual_payment(payment_txn_captured):
+    payment_txn_captured.gateway = CustomPaymentChoices.MANUAL
+    transaction = gateway.refund(
+        payment=payment_txn_captured, amount=PARTIAL_REFUND_AMOUNT
+    )
+    payment_txn_captured.refresh_from_db()
+    assert payment_txn_captured.charge_status == ChargeStatus.PARTIALLY_REFUNDED
+    assert transaction.amount == PARTIAL_REFUND_AMOUNT
+    assert transaction.kind == TransactionKind.REFUND
+    assert transaction.currency == "USD"
 
 
 def test_partial_refund_payment(mock_payment_interface, payment_txn_captured):

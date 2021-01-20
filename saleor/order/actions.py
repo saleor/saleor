@@ -1,10 +1,12 @@
 import logging
+from copy import deepcopy
 from decimal import Decimal
 from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
 from django.contrib.sites.models import Site
 from django.db import transaction
 
+from ..account.models import User
 from ..core import analytics
 from ..core.exceptions import AllocationError, InsufficientStock
 from ..order.emails import send_order_confirmed
@@ -17,21 +19,35 @@ from ..payment import (
 )
 from ..payment.models import Payment, Transaction
 from ..payment.utils import create_payment
-from ..plugins.manager import get_plugins_manager
+from ..plugins.manager import PluginsManager, get_plugins_manager
 from ..warehouse.management import (
     deallocate_stock,
     deallocate_stock_for_order,
     decrease_stock,
 )
-from . import FulfillmentStatus, OrderStatus, emails, events, utils
+from . import (
+    FulfillmentLineData,
+    FulfillmentStatus,
+    OrderLineData,
+    OrderStatus,
+    emails,
+    events,
+    utils,
+)
 from .emails import (
     send_fulfillment_confirmation_to_customer,
     send_order_canceled_confirmation,
     send_order_refunded_confirmation,
     send_payment_confirmation,
 )
-from .events import fulfillment_refunded_event
-from .models import Fulfillment, FulfillmentLine, OrderLine
+from .events import (
+    draft_order_created_from_replace_event,
+    fulfillment_refunded_event,
+    fulfillment_replaced_event,
+    order_replacement_created,
+    order_returned_event,
+)
+from .models import Fulfillment, FulfillmentLine, Order, OrderLine
 from .utils import (
     order_line_needs_automatic_fulfillment,
     recalculate_order,
@@ -40,11 +56,13 @@ from .utils import (
 )
 
 if TYPE_CHECKING:
-    from ..account.models import User
     from ..warehouse.models import Warehouse
-    from .models import Order
 
 logger = logging.getLogger(__name__)
+
+
+OrderLineIDType = int
+QuantityType = int
 
 
 def order_created(order: "Order", user: "User", from_draft: bool = False):
@@ -122,12 +140,18 @@ def cancel_order(order: "Order", user: Optional["User"]):
 
 
 def order_refunded(
-    order: "Order", user: Optional["User"], amount: "Decimal", payment: "Payment"
+    order: "Order",
+    user: Optional["User"],
+    amount: "Decimal",
+    payment: "Payment",
+    manager: Optional["PluginsManager"] = None,
 ):
     events.payment_refunded_event(
         order=order, user=user, amount=amount, payment=payment
     )
-    get_plugins_manager().order_updated(order)
+    if not manager:
+        manager = get_plugins_manager()
+    manager.order_updated(order)
 
     send_order_refunded_confirmation(order, user, amount, payment.currency)
 
@@ -135,6 +159,17 @@ def order_refunded(
 def order_voided(order: "Order", user: "User", payment: "Payment"):
     events.payment_voided_event(order=order, user=user, payment=payment)
     get_plugins_manager().order_updated(order)
+
+
+def order_returned(
+    order: "Order",
+    user: Optional["User"],
+    returned_lines: List[Tuple[QuantityType, OrderLine]],
+    manager: "PluginsManager",
+):
+    order_returned_event(order=order, user=user, returned_lines=returned_lines)
+    update_order_status(order)
+    manager.order_updated(order)
 
 
 def order_fulfilled(
@@ -433,128 +468,110 @@ def _get_fulfillment_line_if_exists(
     return None
 
 
-def _refund_fulfillment_for_order_lines(
-    order_lines_to_refund: List[OrderLine],
-    order_lines_quantities_to_refund: List[int],
-    already_refunded_lines: List[FulfillmentLine],
-    refunded_fulfillment: Fulfillment,
-    all_refunded_lines: Dict[int, Tuple[int, OrderLine]],
+def _get_fulfillment_line(
+    target_fulfillment: Fulfillment,
+    lines_in_target_fulfillment: List[FulfillmentLine],
+    order_line_id: int,
+    stock_id: Optional[int] = None,
+) -> Tuple[FulfillmentLine, bool]:
+    """Get fulfillment line if extists or create new fulfillment line object."""
+    # Check if line for order_line_id and stock_id does not exist in DB.
+    moved_line = _get_fulfillment_line_if_exists(
+        lines_in_target_fulfillment,
+        order_line_id,
+        stock_id,
+    )
+    fulfillment_line_existed = True
+    if not moved_line:
+        # Create new not saved FulfillmentLine object and assign it to target
+        # fulfillment
+        fulfillment_line_existed = False
+        moved_line = FulfillmentLine(
+            fulfillment=target_fulfillment,
+            order_line_id=order_line_id,
+            stock_id=stock_id,
+            quantity=0,
+        )
+    return moved_line, fulfillment_line_existed
+
+
+def _move_order_lines_to_target_fulfillment(
+    order_lines_to_move: List[OrderLineData],
+    lines_in_target_fulfillment: List[FulfillmentLine],
+    target_fulfillment: Fulfillment,
 ):
-    """Proceed the refund for unfulfilled order lines."""
+    """Move order lines with given quantity to the target fulfillment."""
     fulfillment_lines_to_create: List[FulfillmentLine] = []
     fulfillment_lines_to_update: List[FulfillmentLine] = []
     order_lines_to_update: List[OrderLine] = []
-    refund_amount = Decimal(0)
 
-    for line_to_refund, quantity_to_refund in zip(
-        order_lines_to_refund, order_lines_quantities_to_refund
-    ):
-        # Check if refund line for order_line_id and stock_id does not exist in DB.
-        refunded_line = _get_fulfillment_line_if_exists(
-            already_refunded_lines, line_to_refund.id
+    for line_data in order_lines_to_move:
+        line_to_move = line_data.line
+        quantity_to_move = line_data.quantity
+        moved_line, fulfillment_line_existed = _get_fulfillment_line(
+            target_fulfillment=target_fulfillment,
+            lines_in_target_fulfillment=lines_in_target_fulfillment,
+            order_line_id=line_to_move.id,
+            stock_id=None,
         )
-        fulfillment_line_existed = True
-        if not refunded_line:
-            # Create new not saved FulfillmentLine object and assign it to refund
-            # fulfillment
-            fulfillment_line_existed = False
-            refunded_line = FulfillmentLine(
-                fulfillment=refunded_fulfillment,
-                order_line=line_to_refund,
-                quantity=0,
-            )
 
-        # calculate the quantity fulfilled/unfulfilled/to refund
-        unfulfilled_to_refund = min(
-            line_to_refund.quantity_unfulfilled, quantity_to_refund
-        )
-        quantity_to_refund -= unfulfilled_to_refund
-        line_to_refund.quantity_fulfilled += unfulfilled_to_refund
-        refunded_line.quantity += unfulfilled_to_refund
+        # calculate the quantity fulfilled/unfulfilled to move
+        unfulfilled_to_move = min(line_to_move.quantity_unfulfilled, quantity_to_move)
+        quantity_to_move -= unfulfilled_to_move
+        line_to_move.quantity_fulfilled += unfulfilled_to_move
+        moved_line.quantity += unfulfilled_to_move
 
         # update current lines with new value of quantity
-        order_lines_to_update.append(line_to_refund)
+        order_lines_to_update.append(line_to_move)
 
-        refund_amount += line_to_refund.unit_price_gross_amount * unfulfilled_to_refund
-        if refunded_line.quantity > 0 and not fulfillment_line_existed:
-            # If this is new type of (orderl_line, stock) then we create new fulfillment
+        if moved_line.quantity > 0 and not fulfillment_line_existed:
+            # If this is new type of (order_line, stock) then we create new fulfillment
             # line
-            fulfillment_lines_to_create.append(refunded_line)
+            fulfillment_lines_to_create.append(moved_line)
         elif fulfillment_line_existed:
-            # if refund fulfillment already have the same line, we just update the
+            # if target fulfillment already have the same line, we just update the
             # quantity
-            fulfillment_lines_to_update.append(refunded_line)
+            fulfillment_lines_to_update.append(moved_line)
 
-        line_allocations_exists = line_to_refund.allocations.exists()
+        line_allocations_exists = line_to_move.allocations.exists()
         if line_allocations_exists:
             try:
-                deallocate_stock(line_to_refund, unfulfilled_to_refund)
+                deallocate_stock(line_to_move, unfulfilled_to_move)
             except AllocationError:
-                logger.warning(
-                    f"Unable to deallocate stock for line {line_to_refund.id}"
-                )
+                logger.warning(f"Unable to deallocate stock for line {line_to_move.id}")
 
-        # prepare structure which will be used to create new order event.
-        all_refunded_lines[line_to_refund.id] = (
-            unfulfilled_to_refund,
-            line_to_refund,
-        )
-
-    # update the fulfillment lines with new calues
+    # update the fulfillment lines with new values
     FulfillmentLine.objects.bulk_update(fulfillment_lines_to_update, ["quantity"])
     FulfillmentLine.objects.bulk_create(fulfillment_lines_to_create)
     OrderLine.objects.bulk_update(order_lines_to_update, ["quantity_fulfilled"])
-    return refund_amount
 
 
-def _refund_fulfillment_for_fulfillment_lines(
-    fulfillment_lines_to_refund: List[FulfillmentLine],
-    fulfillment_lines_quantities_to_refund: List[int],
-    already_refunded_lines: List[FulfillmentLine],
-    refunded_fulfillment: Fulfillment,
-    all_refunded_lines: Dict[int, Tuple[int, OrderLine]],
+def _move_fulfillment_lines_to_target_fulfillment(
+    fulfillment_lines_to_move: List[FulfillmentLineData],
+    lines_in_target_fulfillment: List[FulfillmentLine],
+    target_fulfillment: Fulfillment,
 ):
-    """Proceed the refund for fulfillment lines."""
+    """Move fulfillment lines with given quantity to the target fulfillment."""
     fulfillment_lines_to_create: List[FulfillmentLine] = []
     fulfillment_lines_to_update: List[FulfillmentLine] = []
     empty_fulfillment_lines_to_delete: List[FulfillmentLine] = []
-    refund_amount = Decimal(0)
 
-    # fetch order lines before for loop to save DB queries
-    order_lines_with_fulfillment = OrderLine.objects.in_bulk(
-        [line.order_line_id for line in fulfillment_lines_to_refund]
-    )
-    for fulfillment_line, quantity_to_refund in zip(
-        fulfillment_lines_to_refund, fulfillment_lines_quantities_to_refund
-    ):
-        # Check if refund line for order_line_id and stock_id does not exist in DB.
-        refunded_line = _get_fulfillment_line_if_exists(
-            already_refunded_lines,
-            fulfillment_line.order_line_id,
-            fulfillment_line.stock_id,
+    for fulfillment_line_data in fulfillment_lines_to_move:
+        fulfillment_line = fulfillment_line_data.line
+        quantity_to_move = fulfillment_line_data.quantity
+
+        moved_line, fulfillment_line_existed = _get_fulfillment_line(
+            target_fulfillment=target_fulfillment,
+            lines_in_target_fulfillment=lines_in_target_fulfillment,
+            order_line_id=fulfillment_line.order_line_id,
+            stock_id=fulfillment_line.stock_id,
         )
-        fulfillment_line_existed = True
-        if not refunded_line:
-            # Create new not saved FulfillmentLine object and assign it to refund
-            # fulfillment
-            fulfillment_line_existed = False
-            refunded_line = FulfillmentLine(
-                fulfillment=refunded_fulfillment,
-                order_line_id=fulfillment_line.order_line_id,
-                stock_id=fulfillment_line.stock_id,
-                quantity=0,
-            )
 
-        # calculate the quantity fulfilled/unfulfilled/to refund
-        fulfilled_to_refund = min(fulfillment_line.quantity, quantity_to_refund)
-        quantity_to_refund -= fulfilled_to_refund
-        refunded_line.quantity += fulfilled_to_refund
-        fulfillment_line.quantity -= fulfilled_to_refund
-
-        order_line: OrderLine = order_lines_with_fulfillment.get(  # type: ignore
-            fulfillment_line.order_line_id
-        )
-        refund_amount += order_line.unit_price_gross_amount * fulfilled_to_refund
+        # calculate the quantity fulfilled/unfulfilled/to move
+        fulfilled_to_move = min(fulfillment_line.quantity, quantity_to_move)
+        quantity_to_move -= fulfilled_to_move
+        moved_line.quantity += fulfilled_to_move
+        fulfillment_line.quantity -= fulfilled_to_move
 
         if fulfillment_line.quantity == 0:
             # the fulfillment line without any items will be deleted
@@ -563,26 +580,16 @@ def _refund_fulfillment_for_fulfillment_lines(
             # update with new quantity value
             fulfillment_lines_to_update.append(fulfillment_line)
 
-        if refunded_line.quantity > 0 and not fulfillment_line_existed:
-            # If this is new type of (orderl_line, stock) then we create new fulfillment
+        if moved_line.quantity > 0 and not fulfillment_line_existed:
+            # If this is new type of (order_line, stock) then we create new fulfillment
             # line
-            fulfillment_lines_to_create.append(refunded_line)
+            fulfillment_lines_to_create.append(moved_line)
         elif fulfillment_line_existed:
-            # if refund fulfillment already have the same line, we  just update the
+            # if target fulfillment already have the same line, we  just update the
             # quantity
-            fulfillment_lines_to_update.append(refunded_line)
+            fulfillment_lines_to_update.append(moved_line)
 
-        # check how many items we already refunded from unfulfilled lines for given
-        # order_line.
-        data_from_all_refunded_lines = all_refunded_lines.get(order_line.id)
-        if data_from_all_refunded_lines:
-            quantity, line = data_from_all_refunded_lines
-            quantity += fulfilled_to_refund
-            all_refunded_lines[order_line.id] = (quantity, line)
-        else:
-            all_refunded_lines[order_line.id] = (fulfilled_to_refund, order_line)
-
-    # update the fulfillment lines with new calues
+    # update the fulfillment lines with new values
     FulfillmentLine.objects.bulk_update(fulfillment_lines_to_update, ["quantity"])
     FulfillmentLine.objects.bulk_create(fulfillment_lines_to_create)
 
@@ -590,17 +597,15 @@ def _refund_fulfillment_for_fulfillment_lines(
     FulfillmentLine.objects.filter(
         id__in=[f.id for f in empty_fulfillment_lines_to_delete]
     ).delete()
-    return refund_amount
 
 
 def create_refund_fulfillment(
     requester: Optional["User"],
     order,
     payment,
-    order_lines_to_refund: List[OrderLine],
-    order_lines_quantities_to_refund: List[int],
-    fulfillment_lines_to_refund: List[FulfillmentLine],
-    fulfillment_lines_quantities_to_refund: List[int],
+    order_lines_to_refund: List[OrderLineData],
+    fulfillment_lines_to_refund: List[FulfillmentLineData],
+    plugin_manager: "PluginsManager",
     amount=None,
     refund_shipping_costs=False,
 ):
@@ -614,32 +619,406 @@ def create_refund_fulfillment(
     refunded line. The refund fulfillment can have assigned lines with the same
     products but with the different stocks.
     """
+
+    _process_refund(
+        requester=requester,
+        order=order,
+        payment=payment,
+        order_lines_to_refund=order_lines_to_refund,
+        fulfillment_lines_to_refund=fulfillment_lines_to_refund,
+        amount=amount,
+        refund_shipping_costs=refund_shipping_costs,
+        manager=plugin_manager,
+    )
+
     with transaction.atomic():
         refunded_fulfillment, _ = Fulfillment.objects.get_or_create(
             status=FulfillmentStatus.REFUNDED, order=order
         )
         already_refunded_lines = list(refunded_fulfillment.lines.all())
-        all_refunded_lines: Dict[int, Tuple[int, OrderLine]] = dict()
-        refund_order_lines = _refund_fulfillment_for_order_lines(
-            order_lines_to_refund=order_lines_to_refund,
-            order_lines_quantities_to_refund=order_lines_quantities_to_refund,
-            already_refunded_lines=already_refunded_lines,
-            refunded_fulfillment=refunded_fulfillment,
-            all_refunded_lines=all_refunded_lines,
+        _move_order_lines_to_target_fulfillment(
+            order_lines_to_move=order_lines_to_refund,
+            lines_in_target_fulfillment=already_refunded_lines,
+            target_fulfillment=refunded_fulfillment,
         )
-        refund_fulfillment_lines = _refund_fulfillment_for_fulfillment_lines(
-            fulfillment_lines_to_refund=fulfillment_lines_to_refund,
-            fulfillment_lines_quantities_to_refund=(
-                fulfillment_lines_quantities_to_refund
-            ),
-            already_refunded_lines=already_refunded_lines,
-            refunded_fulfillment=refunded_fulfillment,
-            all_refunded_lines=all_refunded_lines,
+        _move_fulfillment_lines_to_target_fulfillment(
+            fulfillment_lines_to_move=fulfillment_lines_to_refund,
+            lines_in_target_fulfillment=already_refunded_lines,
+            target_fulfillment=refunded_fulfillment,
         )
-        refund_amount = refund_order_lines + refund_fulfillment_lines
 
         Fulfillment.objects.filter(order=order, lines=None).delete()
 
+    return refunded_fulfillment
+
+
+def _populate_replace_order_fields(original_order: "Order"):
+    replace_order = Order()
+    replace_order.status = OrderStatus.DRAFT
+    replace_order.user_id = original_order.user_id
+    replace_order.language_code = original_order.language_code
+    replace_order.user_email = original_order.user_email
+    replace_order.currency = original_order.currency
+    replace_order.channel = original_order.channel
+    replace_order.display_gross_prices = original_order.display_gross_prices
+    replace_order.redirect_url = original_order.redirect_url
+
+    if original_order.billing_address:
+        original_order.billing_address.pk = None
+        replace_order.billing_address = original_order.billing_address
+        replace_order.billing_address.save()
+    if original_order.shipping_address:
+        original_order.shipping_address.pk = None
+        replace_order.shipping_address = original_order.shipping_address
+        replace_order.shipping_address.save()
+    replace_order.save()
+    original_order.refresh_from_db()
+    return replace_order
+
+
+@transaction.atomic
+def create_replace_order(
+    requester: Optional["User"],
+    original_order: "Order",
+    order_lines_to_replace: List[OrderLineData],
+    fulfillment_lines_to_replace: List[FulfillmentLineData],
+) -> "Order":
+    """Create draft order with lines to replace."""
+
+    replace_order = _populate_replace_order_fields(original_order)
+    order_line_to_create: Dict[OrderLineIDType, OrderLine] = dict()
+
+    # iterate over lines without fulfillment to get the items for replace.
+    # deepcopy to not lose the refence for lines assigned to original order
+    for line_data in deepcopy(order_lines_to_replace):
+        order_line = line_data.line
+        order_line_id = order_line.pk
+        order_line.pk = None
+        order_line.order = replace_order
+        order_line.quantity = line_data.quantity
+        order_line.quantity_fulfilled = 0
+        # we set order_line_id as a key to use it for iterating over fulfillment items
+        order_line_to_create[order_line_id] = order_line
+
+    order_lines_with_fulfillment = OrderLine.objects.in_bulk(
+        [line_data.line.order_line_id for line_data in fulfillment_lines_to_replace]
+    )
+    for fulfillment_line_data in fulfillment_lines_to_replace:
+        fulfillment_line = fulfillment_line_data.line
+        order_line_id = fulfillment_line.order_line_id
+
+        # if order_line_id exists in order_line_to_create, it means that we already have
+        # prepared new order_line for this fulfillment. In that case we need to increase
+        # quantity amount of new order_line by fulfillment_line.quantity
+        if order_line_id in order_line_to_create:
+            order_line_to_create[
+                order_line_id
+            ].quantity += fulfillment_line_data.quantity
+            continue
+
+        order_line_from_fulfillment = order_lines_with_fulfillment.get(order_line_id)
+        order_line = order_line_from_fulfillment  # type: ignore
+        order_line_id = order_line.pk
+        order_line.pk = None
+        order_line.order = replace_order
+        order_line.quantity = fulfillment_line_data.quantity
+        order_line.quantity_fulfilled = 0
+        order_line_to_create[order_line_id] = order_line
+
+    lines_to_create = order_line_to_create.values()
+    OrderLine.objects.bulk_create(lines_to_create)
+
+    recalculate_order(replace_order)
+
+    draft_order_created_from_replace_event(
+        draft_order=replace_order,
+        original_order=original_order,
+        user=requester,
+        lines=[(line.quantity, line) for line in lines_to_create],
+    )
+    return replace_order
+
+
+def _move_lines_to_return_fulfillment(
+    order_lines: List[OrderLineData],
+    fulfillment_lines: List[FulfillmentLineData],
+    fulfillment_status: str,
+    order: "Order",
+) -> Fulfillment:
+    target_fulfillment, _ = Fulfillment.objects.get_or_create(
+        status=fulfillment_status, order=order
+    )
+    lines_in_target_fulfillment = list(target_fulfillment.lines.all())
+    _move_order_lines_to_target_fulfillment(
+        order_lines_to_move=order_lines,
+        lines_in_target_fulfillment=lines_in_target_fulfillment,
+        target_fulfillment=target_fulfillment,
+    )
+
+    fulfillment_lines_already_refunded = FulfillmentLine.objects.filter(
+        fulfillment__order=order, fulfillment__status=FulfillmentStatus.REFUNDED
+    ).values_list("id", flat=True)
+
+    refunded_fulfillment_lines_to_return = []
+    fulfillment_lines_to_return = []
+
+    for line_data in fulfillment_lines:
+        if line_data.line.id in fulfillment_lines_already_refunded:
+            # item already refunded should be moved to fulfillment with status
+            # REFUNDED_AND_RETURNED
+            refunded_fulfillment_lines_to_return.append(line_data)
+        else:
+            # the rest of the items should be moved to target fulfillment
+            fulfillment_lines_to_return.append(line_data)
+
+    _move_fulfillment_lines_to_target_fulfillment(
+        fulfillment_lines_to_move=fulfillment_lines_to_return,
+        lines_in_target_fulfillment=lines_in_target_fulfillment,
+        target_fulfillment=target_fulfillment,
+    )
+
+    if refunded_fulfillment_lines_to_return:
+        refund_and_return_fulfillment, _ = Fulfillment.objects.get_or_create(
+            status=FulfillmentStatus.REFUNDED_AND_RETURNED, order=order
+        )
+        lines_in_target_fulfillment = list(refund_and_return_fulfillment.lines.all())
+        _move_fulfillment_lines_to_target_fulfillment(
+            fulfillment_lines_to_move=refunded_fulfillment_lines_to_return,
+            lines_in_target_fulfillment=lines_in_target_fulfillment,
+            target_fulfillment=refund_and_return_fulfillment,
+        )
+
+    return target_fulfillment
+
+
+def _move_lines_to_replace_fulfillment(
+    order_lines_to_replace: List[OrderLineData],
+    fulfillment_lines_to_replace: List[FulfillmentLineData],
+    order: "Order",
+) -> Fulfillment:
+    target_fulfillment, _ = Fulfillment.objects.get_or_create(
+        status=FulfillmentStatus.REPLACED, order=order
+    )
+    lines_in_target_fulfillment = list(target_fulfillment.lines.all())
+    _move_order_lines_to_target_fulfillment(
+        order_lines_to_move=order_lines_to_replace,
+        lines_in_target_fulfillment=lines_in_target_fulfillment,
+        target_fulfillment=target_fulfillment,
+    )
+    _move_fulfillment_lines_to_target_fulfillment(
+        fulfillment_lines_to_move=fulfillment_lines_to_replace,
+        lines_in_target_fulfillment=lines_in_target_fulfillment,
+        target_fulfillment=target_fulfillment,
+    )
+    return target_fulfillment
+
+
+@transaction.atomic
+def create_return_fulfillment(
+    requester: Optional["User"],
+    order: "Order",
+    order_lines: List[OrderLineData],
+    fulfillment_lines: List[FulfillmentLineData],
+    manager: "PluginsManager",
+    refund: bool = False,
+) -> Fulfillment:
+    status = FulfillmentStatus.RETURNED
+    if refund:
+        status = FulfillmentStatus.REFUNDED_AND_RETURNED
+    with transaction.atomic():
+        return_fulfillment = _move_lines_to_return_fulfillment(
+            order_lines=order_lines,
+            fulfillment_lines=fulfillment_lines,
+            fulfillment_status=status,
+            order=order,
+        )
+        returned_lines: Dict[OrderLineIDType, Tuple[QuantityType, OrderLine]] = dict()
+        order_lines_with_fulfillment = OrderLine.objects.in_bulk(
+            [line_data.line.order_line_id for line_data in fulfillment_lines]
+        )
+        for line_data in order_lines:
+            returned_lines[line_data.line.id] = (line_data.quantity, line_data.line)
+        for line_data in fulfillment_lines:
+            order_line = order_lines_with_fulfillment.get(line_data.line.order_line_id)
+            returned_line = returned_lines.get(order_line.id)  # type: ignore
+            if returned_line:
+                quantity, line = returned_line
+                quantity += line_data.quantity
+                returned_lines[order_line.id] = (quantity, line)  # type: ignore
+            else:
+                returned_lines[order_line.id] = (  # type: ignore
+                    line_data.quantity,
+                    order_line,
+                )
+        returned_lines_list = list(returned_lines.values())
+        transaction.on_commit(
+            lambda: order_returned(
+                order,
+                user=requester,
+                returned_lines=returned_lines_list,
+                manager=manager,
+            )
+        )
+
+    return return_fulfillment
+
+
+@transaction.atomic
+def process_replace(
+    requester: Optional["User"],
+    order: "Order",
+    order_lines: List[OrderLineData],
+    fulfillment_lines: List[FulfillmentLineData],
+) -> Tuple[Fulfillment, Optional["Order"]]:
+    """Create replace fulfillment and new draft order.
+
+    Move all requested lines to fulfillment with status replaced. Based on original
+    order create the draft order with all user details, and requested lines.
+    """
+
+    replace_fulfillment = _move_lines_to_replace_fulfillment(
+        order_lines_to_replace=order_lines,
+        fulfillment_lines_to_replace=fulfillment_lines,
+        order=order,
+    )
+    new_order = create_replace_order(
+        requester=requester,
+        original_order=order,
+        order_lines_to_replace=order_lines,
+        fulfillment_lines_to_replace=fulfillment_lines,
+    )
+    replaced_lines = [(line.quantity, line) for line in new_order.lines.all()]
+    fulfillment_replaced_event(
+        order=order,
+        user=requester,
+        replaced_lines=replaced_lines,
+    )
+    order_replacement_created(
+        original_order=order,
+        replace_order=new_order,
+        user=requester,
+    )
+
+    return replace_fulfillment, new_order
+
+
+def create_fulfillments_for_returned_products(
+    requester: Optional["User"],
+    order: "Order",
+    payment: Optional[Payment],
+    order_lines: List[OrderLineData],
+    fulfillment_lines: List[FulfillmentLineData],
+    plugin_manager: PluginsManager,
+    refund: bool = False,
+    amount: Optional[Decimal] = None,
+    refund_shipping_costs=False,
+) -> Tuple[Fulfillment, Optional[Fulfillment], Optional[Order]]:
+    """Process the request for replacing or returning the products.
+
+    Process the refund when the refund is set to True. The amount of refund will be
+    calculated for all lines with statuses different from refunded.  The lines which
+    are set to replace will not be included in the refund amount.
+
+    If the amount is provided, the refund will be used for this amount.
+
+    If refund_shipping_costs is True, the calculated refund amount will include
+    shipping costs.
+
+    All lines with replace set to True will be used to create a new draft order, with
+    the same order details as the original order.  These lines will be moved to
+    fulfillment with status replaced. The events with relation to new order will be
+    created.
+
+    All lines with replace set to False will be moved to fulfillment with status
+    returned/refunded_and_returned - depends on refund flag and current line status.
+    If the fulfillment line has refunded status it will be moved to
+    returned_and_refunded
+    """
+    return_order_lines = [data for data in order_lines if not data.replace]
+    return_fulfillment_lines = [data for data in fulfillment_lines if not data.replace]
+    if refund and payment:
+        _process_refund(
+            requester=requester,
+            order=order,
+            payment=payment,
+            order_lines_to_refund=return_order_lines,
+            fulfillment_lines_to_refund=return_fulfillment_lines,
+            amount=amount,
+            refund_shipping_costs=refund_shipping_costs,
+            manager=plugin_manager,
+        )
+
+    with transaction.atomic():
+        replace_order_lines = [data for data in order_lines if data.replace]
+        replace_fulfillment_lines = [data for data in fulfillment_lines if data.replace]
+
+        replace_fulfillment, new_order = None, None
+        if replace_order_lines or replace_fulfillment_lines:
+            replace_fulfillment, new_order = process_replace(
+                requester=requester,
+                order=order,
+                order_lines=replace_order_lines,
+                fulfillment_lines=replace_fulfillment_lines,
+            )
+        return_fulfillment = create_return_fulfillment(
+            requester=requester,
+            order=order,
+            order_lines=return_order_lines,
+            fulfillment_lines=return_fulfillment_lines,
+            manager=plugin_manager,
+            refund=refund,
+        )
+        Fulfillment.objects.filter(order=order, lines=None).delete()
+    return return_fulfillment, replace_fulfillment, new_order
+
+
+def _calculate_refund_amount(
+    return_order_lines: List[OrderLineData],
+    return_fulfillment_lines: List[FulfillmentLineData],
+    lines_to_refund: Dict[OrderLineIDType, Tuple[QuantityType, OrderLine]],
+) -> Decimal:
+    refund_amount = Decimal(0)
+    for line_data in return_order_lines:
+        refund_amount += line_data.quantity * line_data.line.unit_price_gross_amount
+        lines_to_refund[line_data.line.id] = (line_data.quantity, line_data.line)
+
+    if not return_fulfillment_lines:
+        return refund_amount
+
+    order_lines_with_fulfillment = OrderLine.objects.in_bulk(
+        [line_data.line.order_line_id for line_data in return_fulfillment_lines]
+    )
+    for line_data in return_fulfillment_lines:
+        # skip lines which were already refunded
+        if line_data.line.fulfillment.status == FulfillmentStatus.REFUNDED:
+            continue
+        order_line = order_lines_with_fulfillment[line_data.line.order_line_id]
+        refund_amount += line_data.quantity * order_line.unit_price_gross_amount
+
+        data_from_all_refunded_lines = lines_to_refund.get(order_line.id)
+        if data_from_all_refunded_lines:
+            quantity, line = data_from_all_refunded_lines
+            quantity += line_data.quantity
+            lines_to_refund[order_line.id] = (quantity, line)
+        else:
+            lines_to_refund[order_line.id] = (line_data.quantity, order_line)
+    return refund_amount
+
+
+def _process_refund(
+    requester: Optional["User"],
+    order: "Order",
+    payment: Payment,
+    order_lines_to_refund: List[OrderLineData],
+    fulfillment_lines_to_refund: List[FulfillmentLineData],
+    amount: Optional[Decimal],
+    refund_shipping_costs: bool,
+    manager: "PluginsManager",
+):
+    lines_to_refund: Dict[OrderLineIDType, Tuple[QuantityType, OrderLine]] = dict()
+    refund_amount = _calculate_refund_amount(
+        order_lines_to_refund, fulfillment_lines_to_refund, lines_to_refund
+    )
     if amount is None:
         amount = refund_amount
         # we take into consideration the shipping costs only when amount is not
@@ -649,13 +1028,12 @@ def create_refund_fulfillment(
     if amount:
         amount = min(payment.captured_amount, amount)
         gateway.refund(payment, amount)
-        order_refunded(order, requester, amount, payment)
+        order_refunded(order, requester, amount, payment, manager=manager)
 
     fulfillment_refunded_event(
         order=order,
         user=requester,
-        refunded_lines=list(all_refunded_lines.values()),
+        refunded_lines=list(lines_to_refund.values()),
         amount=amount,
         shipping_costs_included=refund_shipping_costs,
     )
-    return refunded_fulfillment
