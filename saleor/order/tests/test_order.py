@@ -24,7 +24,7 @@ from ..events import OrderEvent, OrderEventsEmails, email_sent_event
 from ..models import Order
 from ..templatetags.order_lines import display_translated_order_line_name
 from ..utils import (
-    add_variant_to_draft_order,
+    add_variant_to_order,
     change_order_line_quantity,
     delete_order_line,
     get_voucher_discount_for_order,
@@ -57,14 +57,14 @@ def test_order_get_subtotal(order_with_lines):
     assert order_with_lines.get_subtotal() == target_subtotal
 
 
-def test_add_variant_to_draft_order_adds_line_for_new_variant(
+def test_add_variant_to_order_adds_line_for_new_variant(
     order_with_lines, product, product_translation_fr, settings
 ):
     order = order_with_lines
     variant = product.variants.get()
     lines_before = order.lines.count()
     settings.LANGUAGE_CODE = "fr"
-    add_variant_to_draft_order(order, variant, 1)
+    add_variant_to_order(order, variant, 1)
 
     line = order.lines.last()
     assert order.lines.count() == lines_before + 1
@@ -76,7 +76,7 @@ def test_add_variant_to_draft_order_adds_line_for_new_variant(
     assert line.product_name == str(variant.product)
 
 
-def test_add_variant_to_draft_order_adds_line_for_variant_with_price_0(
+def test_add_variant_to_order_adds_line_for_variant_with_price_0(
     order_with_lines, product, product_translation_fr, settings
 ):
     order = order_with_lines
@@ -87,7 +87,7 @@ def test_add_variant_to_draft_order_adds_line_for_variant_with_price_0(
 
     lines_before = order.lines.count()
     settings.LANGUAGE_CODE = "fr"
-    add_variant_to_draft_order(order, variant, 1)
+    add_variant_to_order(order, variant, 1)
 
     line = order.lines.last()
     assert order.lines.count() == lines_before + 1
@@ -98,7 +98,7 @@ def test_add_variant_to_draft_order_adds_line_for_variant_with_price_0(
     assert line.product_name == variant.product.name
 
 
-def test_add_variant_to_draft_order_not_allocates_stock_for_new_variant(
+def test_add_variant_to_order_not_allocates_stock_for_new_variant(
     order_with_lines, product
 ):
     variant = product.variants.get()
@@ -106,19 +106,19 @@ def test_add_variant_to_draft_order_not_allocates_stock_for_new_variant(
 
     stock_before = get_quantity_allocated_for_stock(stock)
 
-    add_variant_to_draft_order(order_with_lines, variant, 1)
+    add_variant_to_order(order_with_lines, variant, 1)
 
     stock.refresh_from_db()
     assert get_quantity_allocated_for_stock(stock) == stock_before
 
 
-def test_add_variant_to_draft_order_edits_line_for_existing_variant(order_with_lines):
+def test_add_variant_to_order_edits_line_for_existing_variant(order_with_lines):
     existing_line = order_with_lines.lines.first()
     variant = existing_line.variant
     lines_before = order_with_lines.lines.count()
     line_quantity_before = existing_line.quantity
 
-    add_variant_to_draft_order(order_with_lines, variant, 1)
+    add_variant_to_order(order_with_lines, variant, 1)
 
     existing_line.refresh_from_db()
     assert order_with_lines.lines.count() == lines_before
@@ -126,7 +126,7 @@ def test_add_variant_to_draft_order_edits_line_for_existing_variant(order_with_l
     assert existing_line.quantity == line_quantity_before + 1
 
 
-def test_add_variant_to_draft_order_not_allocates_stock_for_existing_variant(
+def test_add_variant_to_order_not_allocates_stock_for_existing_variant(
     order_with_lines,
 ):
     existing_line = order_with_lines.lines.first()
@@ -136,7 +136,7 @@ def test_add_variant_to_draft_order_not_allocates_stock_for_existing_variant(
     quantity_before = existing_line.quantity
     quantity_unfulfilled_before = existing_line.quantity_unfulfilled
 
-    add_variant_to_draft_order(order_with_lines, variant, 1)
+    add_variant_to_order(order_with_lines, variant, 1)
 
     stock.refresh_from_db()
     existing_line.refresh_from_db()
@@ -478,7 +478,7 @@ def test_calculate_order_weight(order_with_lines):
 
 def test_order_weight_add_more_variant(order_with_lines):
     variant = order_with_lines.lines.first().variant
-    add_variant_to_draft_order(order_with_lines, variant, 2)
+    add_variant_to_order(order_with_lines, variant, 2)
     order_with_lines.refresh_from_db()
     assert order_with_lines.weight == _calculate_order_weight_from_lines(
         order_with_lines
@@ -487,7 +487,7 @@ def test_order_weight_add_more_variant(order_with_lines):
 
 def test_order_weight_add_new_variant(order_with_lines, product):
     variant = product.variants.first()
-    add_variant_to_draft_order(order_with_lines, variant, 2)
+    add_variant_to_order(order_with_lines, variant, 2)
     order_with_lines.refresh_from_db()
     assert order_with_lines.weight == _calculate_order_weight_from_lines(
         order_with_lines
@@ -516,7 +516,7 @@ def test_get_order_weight_non_existing_product(order_with_lines, product):
     # Removing product should not affect order's weight
     order = order_with_lines
     variant = product.variants.first()
-    add_variant_to_draft_order(order, variant, 1)
+    add_variant_to_order(order, variant, 1)
     old_weight = order.get_total_weight()
 
     product.delete()

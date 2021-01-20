@@ -1196,9 +1196,9 @@ def test_draft_order_create_variant_with_0_price(
     assert created_draft_event.parameters == {}
 
 
-@patch("saleor.graphql.order.mutations.draft_orders.add_variant_to_draft_order")
+@patch("saleor.graphql.order.mutations.draft_orders.add_variant_to_order")
 def test_draft_order_create_tax_error(
-    add_variant_to_draft_order_mock,
+    add_variant_to_order_mock,
     staff_api_client,
     permission_manage_orders,
     staff_user,
@@ -1212,7 +1212,7 @@ def test_draft_order_create_tax_error(
 ):
     variant_0 = variant
     err_msg = "Test error"
-    add_variant_to_draft_order_mock.side_effect = TaxError(err_msg)
+    add_variant_to_order_mock.side_effect = TaxError(err_msg)
     query = DRAFT_ORDER_CREATE_MUTATION
     # Ensure no events were created yet
     assert not OrderEvent.objects.exists()

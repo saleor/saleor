@@ -18,7 +18,7 @@ from ....order.actions import (
 )
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import (
-    add_variant_to_draft_order,
+    add_variant_to_order,
     change_order_line_quantity,
     delete_order_line,
     get_valid_shipping_methods_for_order,
@@ -625,7 +625,7 @@ class OrderLinesCreate(BaseMutation):
         # Add the lines
         try:
             lines = [
-                add_variant_to_draft_order(order, variant, quantity)
+                add_variant_to_order(order, variant, quantity)
                 for quantity, variant in lines_to_add
             ]
         except TaxError as tax_error:

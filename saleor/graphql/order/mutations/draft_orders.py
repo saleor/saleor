@@ -12,7 +12,7 @@ from ....order import OrderStatus, events, models
 from ....order.actions import order_created
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import (
-    add_variant_to_draft_order,
+    add_variant_to_order,
     get_order_country,
     recalculate_order,
     update_order_prices,
@@ -215,7 +215,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             lines = []
             for variant, quantity in zip(variants, quantities):
                 lines.append((quantity, variant))
-                add_variant_to_draft_order(instance, variant, quantity)
+                add_variant_to_order(instance, variant, quantity)
 
             # New event
             events.draft_order_added_products_event(
