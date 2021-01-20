@@ -331,14 +331,10 @@ class AttributeAssignmentMixin:
 
         if attr_with_invalid_references:
             raise ValidationError(
-                {
-                    "attributes": ValidationError(
-                        "Provided references are invalid. Some of the nodes "
-                        "do not exist or are different types than types defined "
-                        "in attribute entity type.",
-                        code=error_class.INVALID.value,  # type: ignore
-                    )
-                }
+                "Provided references are invalid. Some of the nodes "
+                "do not exist or are different types than types defined "
+                "in attribute entity type.",
+                code=error_class.INVALID.value,  # type: ignore
             )
 
         cls._validate_attributes_input(

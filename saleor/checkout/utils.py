@@ -2,9 +2,9 @@
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
 
 from django.core.exceptions import ValidationError
-from django.db.models import Max, Min, Sum
+from django.db.models import Sum
 from django.utils import timezone
-from prices import Money, MoneyRange, TaxedMoneyRange
+from prices import Money
 
 from ..account.models import User
 from ..channel.models import Channel
@@ -584,37 +584,6 @@ def is_valid_shipping_method(
     return True
 
 
-def get_shipping_price_estimate(
-    checkout: Checkout,
-    lines: Iterable["CheckoutLineInfo"],
-    discounts: Iterable[DiscountInfo],
-    country_code: str,
-) -> Optional[TaxedMoneyRange]:
-    """Return the estimated price range for shipping for given order."""
-
-    shipping_methods = get_valid_shipping_methods_for_checkout(
-        checkout, lines, discounts, country_code=country_code
-    )
-
-    if shipping_methods is None:
-        return None
-
-    # TODO: extension manager should be able to have impact on shipping price estimates
-    min_price_amount, max_price_amount = shipping_methods.aggregate(
-        price_amount_min=Min("price_amount"), price_amount_max=Max("price_amount")
-    ).values()
-
-    if min_price_amount is None:
-        return None
-
-    manager = get_plugins_manager()
-    prices = MoneyRange(
-        start=Money(min_price_amount, checkout.currency),
-        stop=Money(max_price_amount, checkout.currency),
-    )
-    return manager.apply_taxes_to_shipping_price_range(prices, country_code)
-
-
 def clear_shipping_method(checkout: Checkout):
     checkout.shipping_method = None
     checkout.save(update_fields=["shipping_method", "last_change"])
@@ -692,7 +661,7 @@ def cancel_active_payments(checkout: Checkout):
 
 def fetch_checkout_lines(checkout: Checkout) -> Iterable[CheckoutLineInfo]:
     """Fetch checkout lines as CheckoutLineInfo objects."""
-    lines = CheckoutLine.objects.filter(checkout=checkout).prefetch_related(
+    lines = checkout.lines.prefetch_related(
         "variant__product__collections",
         "variant__channel_listings__channel",
         "variant__product__product_type",
