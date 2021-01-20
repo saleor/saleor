@@ -35,6 +35,10 @@ def get_attribute_value(assigned_attribute):
     elif attribute.input_type == AttributeInputType.REFERENCE:
         ref_id = value_instance.slug.split("_")[1]
         value = f"{attribute.entity_type}_{ref_id}"
+    elif attribute.input_type == AttributeInputType.NUMERIC:
+        value = f"{value_instance.name}"
+        if attribute.unit:
+            value += f" {attribute.unit}"
     else:
         value = value_instance.slug
     return value
