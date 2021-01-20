@@ -2928,6 +2928,167 @@ def test_create_product_no_values_given(
     assert data["product"]["attributes"][0]["values"] == []
 
 
+@pytest.mark.parametrize(
+    "value, expected_name, expected_slug",
+    [(20.1, "20.1", "20_1"), (20, "20", "20"), ("1", "1", "1")],
+)
+def test_create_product_with_numeric_attribute_new_attribute_value(
+    value,
+    expected_name,
+    expected_slug,
+    staff_api_client,
+    product_type,
+    category,
+    numeric_attribute,
+    permission_manage_products,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_slug = "product-test-slug"
+
+    values_count = numeric_attribute.values.count()
+
+    # Add second attribute
+    product_type.product_attributes.set([numeric_attribute])
+    attr_id = graphene.Node.to_global_id("Attribute", numeric_attribute.id)
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "attributes": [{"id": attr_id, "values": [value]}],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["productErrors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == product_slug
+    assert data["product"]["productType"]["name"] == product_type.name
+    assert data["product"]["category"]["name"] == category.name
+    assert len(data["product"]["attributes"]) == 1
+    assert (
+        data["product"]["attributes"][0]["attribute"]["slug"] == numeric_attribute.slug
+    )
+    values = data["product"]["attributes"][0]["values"]
+    assert len(values) == 1
+    assert values[0]["name"] == expected_name
+    assert values[0]["slug"] == expected_slug
+
+    numeric_attribute.refresh_from_db()
+    assert numeric_attribute.values.count() == values_count + 1
+
+
+def test_create_product_with_numeric_attribute_existing_value(
+    staff_api_client,
+    product_type,
+    category,
+    numeric_attribute,
+    permission_manage_products,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_slug = "product-test-slug"
+
+    values_count = numeric_attribute.values.count()
+
+    # Add second attribute
+    product_type.product_attributes.set([numeric_attribute])
+    attr_id = graphene.Node.to_global_id("Attribute", numeric_attribute.id)
+    existing_value = numeric_attribute.values.first()
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "attributes": [{"id": attr_id, "values": [existing_value.name]}],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["productErrors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == product_slug
+    assert data["product"]["productType"]["name"] == product_type.name
+    assert data["product"]["category"]["name"] == category.name
+    assert len(data["product"]["attributes"]) == 1
+    assert (
+        data["product"]["attributes"][0]["attribute"]["slug"] == numeric_attribute.slug
+    )
+    values = data["product"]["attributes"][0]["values"]
+    assert len(values) == 1
+    assert values[0]["name"] == existing_value.name
+    assert values[0]["slug"] == existing_value.slug
+
+    numeric_attribute.refresh_from_db()
+    assert numeric_attribute.values.count() == values_count
+
+
+def test_create_product_with_numeric_attribute_not_numeric_value_given(
+    staff_api_client,
+    product_type,
+    category,
+    numeric_attribute,
+    permission_manage_products,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_slug = "product-test-slug"
+
+    values_count = numeric_attribute.values.count()
+
+    # Add second attribute
+    product_type.product_attributes.set([numeric_attribute])
+    attr_id = graphene.Node.to_global_id("Attribute", numeric_attribute.id)
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "attributes": [{"id": attr_id, "values": ["abd"]}],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert not data["product"]
+    assert len(data["productErrors"]) == 1
+    assert data["productErrors"][0]["field"] == "attributes"
+    assert data["productErrors"][0]["code"] == AttributeErrorCode.INVALID.name
+
+    numeric_attribute.refresh_from_db()
+    assert numeric_attribute.values.count() == values_count
+
+
 PRODUCT_VARIANT_SET_DEFAULT_MUTATION = """
     mutation Prod($productId: ID!, $variantId: ID!) {
         productVariantSetDefault(productId: $productId, variantId: $variantId) {
@@ -3749,6 +3910,60 @@ def test_update_product_with_file_attribute_value_new_value_is_not_created(
 
     file_attribute.refresh_from_db()
     assert file_attribute.values.count() == values_count
+
+    updated_webhook_mock.assert_called_once_with(product)
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_with_numeric_attribute_value(
+    updated_webhook_mock,
+    staff_api_client,
+    numeric_attribute,
+    product,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    attribute_id = graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
+    product_type.product_attributes.add(numeric_attribute)
+
+    new_value = "45.2"
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "values": [new_value]}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["productErrors"] == []
+
+    attributes = data["product"]["attributes"]
+
+    assert len(attributes) == 2
+    expected_att_data = {
+        "attribute": {"id": attribute_id, "name": numeric_attribute.name},
+        "values": [
+            {
+                "id": ANY,
+                "name": new_value,
+                "slug": slugify(new_value.replace(".", "_")),
+                "reference": None,
+                "file": None,
+            }
+        ],
+    }
+    assert expected_att_data in attributes
 
     updated_webhook_mock.assert_called_once_with(product)
 

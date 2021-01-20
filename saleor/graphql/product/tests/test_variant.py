@@ -641,6 +641,9 @@ def test_create_variant_with_page_reference_attribute_no_references_given(
     product_id = graphene.Node.to_global_id("Product", product.pk)
     sku = "1"
 
+    product_type_page_reference_attribute.value_required = True
+    product_type_page_reference_attribute.save(update_fields=["value_required"])
+
     product_type.variant_attributes.clear()
     product_type.variant_attributes.add(product_type_page_reference_attribute)
     ref_attr_id = graphene.Node.to_global_id(
@@ -695,6 +698,9 @@ def test_create_variant_with_product_reference_attribute(
     query = CREATE_VARIANT_MUTATION
     product_id = graphene.Node.to_global_id("Product", product.pk)
     sku = "1"
+
+    product_type_product_reference_attribute.value_required = True
+    product_type_product_reference_attribute.save(update_fields=["value_required"])
 
     product_type.variant_attributes.clear()
     product_type.variant_attributes.add(product_type_product_reference_attribute)
@@ -776,6 +782,9 @@ def test_create_variant_with_product_reference_attribute_no_references_given(
     product_id = graphene.Node.to_global_id("Product", product.pk)
     sku = "1"
 
+    product_type_product_reference_attribute.value_required = True
+    product_type_product_reference_attribute.save(update_fields=["value_required"])
+
     product_type.variant_attributes.clear()
     product_type.variant_attributes.add(product_type_product_reference_attribute)
     ref_attr_id = graphene.Node.to_global_id(
@@ -812,6 +821,102 @@ def test_create_variant_with_product_reference_attribute_no_references_given(
 
     product_type_product_reference_attribute.refresh_from_db()
     assert product_type_product_reference_attribute.values.count() == values_count
+
+    updated_webhook_mock.assert_not_called()
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_create_variant_with_numeric_attribute(
+    updated_webhook_mock,
+    staff_api_client,
+    product,
+    product_type,
+    permission_manage_products,
+    warehouse,
+    numeric_attribute,
+):
+    query = CREATE_VARIANT_MUTATION
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    sku = "1"
+    weight = 10.22
+    product_type.variant_attributes.set([numeric_attribute])
+    variant_slug = numeric_attribute.slug
+    variant_id = graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
+    variant_value = "22.31"
+    stocks = [
+        {
+            "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
+            "quantity": 20,
+        }
+    ]
+
+    variables = {
+        "productId": product_id,
+        "sku": sku,
+        "stocks": stocks,
+        "weight": weight,
+        "attributes": [{"id": variant_id, "values": [variant_value]}],
+        "trackInventory": True,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)["data"]["productVariantCreate"]
+    assert not content["productErrors"]
+    data = content["productVariant"]
+    assert data["name"] == variant_value
+    assert data["sku"] == sku
+    assert data["attributes"][0]["attribute"]["slug"] == variant_slug
+    assert data["attributes"][0]["values"][0]["slug"] == variant_value.replace(".", "_")
+    assert data["weight"]["unit"] == WeightUnitsEnum.KG.name
+    assert data["weight"]["value"] == weight
+    assert len(data["stocks"]) == 1
+    assert data["stocks"][0]["quantity"] == stocks[0]["quantity"]
+    assert data["stocks"][0]["warehouse"]["slug"] == warehouse.slug
+    updated_webhook_mock.assert_called_once_with(product)
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_create_variant_with_numeric_attribute_not_numeric_value_given(
+    updated_webhook_mock,
+    staff_api_client,
+    product,
+    product_type,
+    permission_manage_products,
+    warehouse,
+    numeric_attribute,
+):
+    query = CREATE_VARIANT_MUTATION
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    sku = "1"
+    weight = 10.22
+    product_type.variant_attributes.set([numeric_attribute])
+    variant_id = graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
+    variant_value = "abd"
+    stocks = [
+        {
+            "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
+            "quantity": 20,
+        }
+    ]
+
+    variables = {
+        "productId": product_id,
+        "sku": sku,
+        "stocks": stocks,
+        "weight": weight,
+        "attributes": [{"id": variant_id, "values": [variant_value]}],
+        "trackInventory": True,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantCreate"]
+    error = data["productErrors"][0]
+    assert not data["productVariant"]
+    assert error["field"] == "attributes"
+    assert error["code"] == ProductErrorCode.INVALID.name
 
     updated_webhook_mock.assert_not_called()
 
@@ -1743,10 +1848,10 @@ def test_update_product_variant_change_attribute_values_ordering(
 @pytest.mark.parametrize(
     "values, message",
     (
-        ([], "Attribute expects a value but none were given"),
-        (["one", "two"], "Attribute must take only one value"),
-        (["   "], "Attribute values cannot be blank"),
-        ([None], "Attribute values cannot be blank"),
+        ([], "Attribute expects a value but none were given."),
+        (["one", "two"], "Attribute must take only one value."),
+        (["   "], "Attribute values cannot be blank."),
+        ([None], "Attribute values cannot be blank."),
     ),
 )
 def test_update_product_variant_requires_values(

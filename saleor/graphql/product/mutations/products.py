@@ -6,7 +6,6 @@ import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.utils.text import slugify
-from graphene.types import InputObjectType
 
 from ....attribute import AttributeInputType, AttributeType
 from ....attribute import models as attribute_models
@@ -28,6 +27,7 @@ from ....product.thumbnails import (
 )
 from ....product.utils import delete_categories, get_products_ids_without_variants
 from ....product.utils.variants import generate_and_set_variant_name
+from ...attribute.types import AttributeValueInput
 from ...attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ...channel import ChannelContext
 from ...core.inputs import ReorderInput
@@ -449,28 +449,6 @@ class CollectionRemoveProducts(BaseMutation):
         return CollectionRemoveProducts(
             collection=ChannelContext(node=collection, channel_slug=None)
         )
-
-
-class AttributeValueInput(InputObjectType):
-    id = graphene.ID(description="ID of the selected attribute.")
-    values = graphene.List(
-        graphene.String,
-        required=False,
-        description=(
-            "The value or slug of an attribute to resolve. "
-            "If the passed value is non-existent, it will be created."
-        ),
-    )
-    file = graphene.String(
-        required=False,
-        description="URL of the file attribute. Every time, a new value is created.",
-    )
-    content_type = graphene.String(required=False, description="File content type.")
-    references = graphene.List(
-        graphene.NonNull(graphene.ID),
-        description="List of entity IDs that will be used as references.",
-        required=False,
-    )
 
 
 class ProductInput(graphene.InputObjectType):
