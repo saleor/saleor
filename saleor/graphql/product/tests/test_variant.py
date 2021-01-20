@@ -641,6 +641,9 @@ def test_create_variant_with_page_reference_attribute_no_references_given(
     product_id = graphene.Node.to_global_id("Product", product.pk)
     sku = "1"
 
+    product_type_page_reference_attribute.value_required = True
+    product_type_page_reference_attribute.save(update_fields=["value_required"])
+
     product_type.variant_attributes.clear()
     product_type.variant_attributes.add(product_type_page_reference_attribute)
     ref_attr_id = graphene.Node.to_global_id(
@@ -695,6 +698,9 @@ def test_create_variant_with_product_reference_attribute(
     query = CREATE_VARIANT_MUTATION
     product_id = graphene.Node.to_global_id("Product", product.pk)
     sku = "1"
+
+    product_type_product_reference_attribute.value_required = True
+    product_type_product_reference_attribute.save(update_fields=["value_required"])
 
     product_type.variant_attributes.clear()
     product_type.variant_attributes.add(product_type_product_reference_attribute)
@@ -775,6 +781,9 @@ def test_create_variant_with_product_reference_attribute_no_references_given(
     query = CREATE_VARIANT_MUTATION
     product_id = graphene.Node.to_global_id("Product", product.pk)
     sku = "1"
+
+    product_type_product_reference_attribute.value_required = True
+    product_type_product_reference_attribute.save(update_fields=["value_required"])
 
     product_type.variant_attributes.clear()
     product_type.variant_attributes.add(product_type_product_reference_attribute)

@@ -491,9 +491,7 @@ def validate_file_attributes_input(
     attribute_id = attr_values.global_id
     value = attr_values.file_url
     if not value:
-        if attribute.value_required or (
-            variant_validation and is_variant_selection_attribute(attribute)
-        ):
+        if is_value_required(attribute, variant_validation):
             attribute_errors[AttributeInputErrors.ERROR_NO_FILE_GIVEN].append(
                 attribute_id
             )
@@ -512,7 +510,7 @@ def validate_reference_attributes_input(
     attribute_id = attr_values.global_id
     references = attr_values.references
     if not references:
-        if attribute.value_required or variant_validation:
+        if is_value_required(attribute, variant_validation):
             attribute_errors[AttributeInputErrors.ERROR_NO_REFERENCE_GIVEN].append(
                 attribute_id
             )
@@ -526,9 +524,7 @@ def validate_standard_attributes_input(
 ):
     attribute_id = attr_values.global_id
     if not attr_values.values:
-        if attribute.value_required or (
-            variant_validation and is_variant_selection_attribute(attribute)
-        ):
+        if is_value_required(attribute, variant_validation):
             attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(
                 attribute_id
             )
@@ -561,6 +557,12 @@ def validate_values(
                 attribute_errors[
                     AttributeInputErrors.ERROR_NUMERIC_VALUE_REQUIRED
                 ].append(attribute_id)
+
+
+def is_value_required(attribute: attribute_models.Attribute, variant_validation: bool):
+    return attribute.value_required or (
+        variant_validation and is_variant_selection_attribute(attribute)
+    )
 
 
 def is_variant_selection_attribute(attribute: attribute_models.Attribute):
