@@ -7,6 +7,7 @@ from django.db.models import F, Sum
 from django.db.models.functions import Coalesce
 
 from ..account.models import Address
+from ..core.models import ModelWithMetadata
 from ..order.models import OrderLine
 from ..product.models import Product, ProductVariant
 from ..shipping.models import ShippingZone
@@ -24,7 +25,7 @@ class WarehouseQueryset(models.QuerySet):
         )
 
 
-class Warehouse(models.Model):
+class Warehouse(ModelWithMetadata):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True)
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
