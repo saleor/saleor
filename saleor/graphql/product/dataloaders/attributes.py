@@ -181,10 +181,7 @@ class AttributeValuesByAssignedProductAttributeIdLoader(DataLoader):
                 assigned_product_map[attribute_value.assignment_id].append(
                     value_map.get(attribute_value.value_id)
                 )
-            return [
-                sorted(assigned_product_map[key], key=lambda v: (v.sort_order, v.id))
-                for key in keys
-            ]
+            return [assigned_product_map[key] for key in keys]
 
         return (
             AttributeValueByIdLoader(self.context)
@@ -209,10 +206,7 @@ class AttributeValuesByAssignedVariantAttributeIdLoader(DataLoader):
                 assigned_variant_map[attribute_value.assignment_id].append(
                     value_map.get(attribute_value.value_id)
                 )
-            return [
-                sorted(assigned_variant_map[key], key=lambda v: (v.sort_order, v.id))
-                for key in keys
-            ]
+            return [assigned_variant_map[key] for key in keys]
 
         return (
             AttributeValueByIdLoader(self.context)

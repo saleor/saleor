@@ -31,7 +31,7 @@ class GatewayResponse:
     kind: str  # use "TransactionKind" class
     amount: Decimal
     currency: str
-    transaction_id: Optional[str]
+    transaction_id: str
     error: Optional[str]
     customer_id: Optional[str] = None
     payment_method_info: Optional[PaymentMethodInfo] = None

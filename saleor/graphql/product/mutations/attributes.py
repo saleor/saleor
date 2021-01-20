@@ -357,7 +357,9 @@ class ProductReorderAttributeValues(BaseReorderAttributeValuesMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         product_id = data["product_id"]
-        product = cls.perform(product_id, "product", data, ProductErrorCode)
+        product = cls.perform(
+            product_id, "product", data, "productvalueassignment", ProductErrorCode
+        )
 
         return ProductReorderAttributeValues(
             product=ChannelContext(node=product, channel_slug=None)
@@ -411,7 +413,9 @@ class ProductVariantReorderAttributeValues(BaseReorderAttributeValuesMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         variant_id = data["variant_id"]
-        variant = cls.perform(variant_id, "variant", data, ProductErrorCode)
+        variant = cls.perform(
+            variant_id, "variant", data, "variantvalueassignment", ProductErrorCode
+        )
 
         return ProductVariantReorderAttributeValues(
             product_variant=ChannelContext(node=variant, channel_slug=None)

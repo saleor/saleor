@@ -160,7 +160,7 @@ def create_transaction(
         gateway_response = GatewayResponse(
             kind=kind,
             action_required=False,
-            transaction_id=payment_information.token,
+            transaction_id=payment_information.token or "",
             is_success=False,
             amount=payment_information.amount,
             currency=payment_information.currency,

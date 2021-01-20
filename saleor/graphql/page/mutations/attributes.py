@@ -229,7 +229,7 @@ class PageReorderAttributeValues(BaseReorderAttributeValuesMutation):
     @classmethod
     def perform_mutation(cls, _root, _info, **data):
         page_id = data["page_id"]
-        page = cls.perform(page_id, "page", data, PageErrorCode)
+        page = cls.perform(page_id, "page", data, "pagevalueassignment", PageErrorCode)
         return PageReorderAttributeValues(page=page)
 
     @staticmethod

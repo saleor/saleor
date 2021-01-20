@@ -8,6 +8,7 @@ from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
 from ....attribute import AttributeInputType
+from ....attribute.models import AttributeValue
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....core.weight import WeightUnits
 from ....order import OrderStatus
@@ -1202,6 +1203,7 @@ QUERY_UPDATE_VARIANT_ATTRIBUTES = """
                             slug
                         }
                         values {
+                            id
                             slug
                             name
                             file {
@@ -1644,6 +1646,98 @@ def test_update_product_variant_with_product_reference_attribute(
         == f"{variant.pk}_{product_ref.pk}"
     )
     assert variant_data["attributes"][0]["values"][0]["reference"] == reference
+
+
+def test_update_product_variant_change_attribute_values_ordering(
+    staff_api_client,
+    variant,
+    product_type_product_reference_attribute,
+    permission_manage_products,
+    product_list,
+):
+    # given
+    product_type = variant.product.product_type
+    product_type.variant_attributes.set([product_type_product_reference_attribute])
+    sku = str(uuid4())[:12]
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    attribute_id = graphene.Node.to_global_id(
+        "Attribute", product_type_product_reference_attribute.pk
+    )
+
+    attr_value_1 = AttributeValue.objects.create(
+        attribute=product_type_product_reference_attribute,
+        name=product_list[0].name,
+        slug=f"{variant.pk}_{product_list[0].pk}",
+    )
+    attr_value_2 = AttributeValue.objects.create(
+        attribute=product_type_product_reference_attribute,
+        name=product_list[1].name,
+        slug=f"{variant.pk}_{product_list[1].pk}",
+    )
+    attr_value_3 = AttributeValue.objects.create(
+        attribute=product_type_product_reference_attribute,
+        name=product_list[2].name,
+        slug=f"{variant.pk}_{product_list[2].pk}",
+    )
+
+    associate_attribute_values_to_instance(
+        variant,
+        product_type_product_reference_attribute,
+        attr_value_3,
+        attr_value_2,
+        attr_value_1,
+    )
+
+    assert list(
+        variant.attributes.first().variantvalueassignment.values_list(
+            "value_id", flat=True
+        )
+    ) == [attr_value_3.pk, attr_value_2.pk, attr_value_1.pk]
+
+    new_ref_order = [product_list[1], product_list[0], product_list[2]]
+    variables = {
+        "id": variant_id,
+        "sku": sku,
+        "attributes": [
+            {
+                "id": attribute_id,
+                "references": [
+                    graphene.Node.to_global_id("Product", ref.pk)
+                    for ref in new_ref_order
+                ],
+            }
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_UPDATE_VARIANT_ATTRIBUTES,
+        variables,
+        permissions=[permission_manage_products],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantUpdate"]
+    assert data["productErrors"] == []
+
+    attributes = data["productVariant"]["attributes"]
+
+    assert len(attributes) == 1
+    values = attributes[0]["values"]
+    assert len(values) == 3
+    assert [value["id"] for value in values] == [
+        graphene.Node.to_global_id("AttributeValue", val.pk)
+        for val in [attr_value_2, attr_value_1, attr_value_3]
+    ]
+    variant.refresh_from_db()
+    assert list(
+        variant.attributes.first().variantvalueassignment.values_list(
+            "value_id", flat=True
+        )
+    ) == [attr_value_2.pk, attr_value_1.pk, attr_value_3.pk]
 
 
 @pytest.mark.parametrize(
