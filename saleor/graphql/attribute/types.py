@@ -4,6 +4,7 @@ import graphene
 
 from ...attribute import AttributeInputType, models
 from ..core.connection import CountableDjangoObjectType
+from ..core.enums import MeasurementUnitsEnum
 from ..core.types import File
 from ..decorators import (
     check_attribute_required_permissions,
@@ -76,6 +77,7 @@ class Attribute(CountableDjangoObjectType):
     name = graphene.String(description=AttributeDescriptions.NAME)
     slug = graphene.String(description=AttributeDescriptions.SLUG)
     type = AttributeTypeEnum(description=AttributeDescriptions.TYPE)
+    unit = MeasurementUnitsEnum(description=AttributeDescriptions.UNIT)
 
     values = graphene.List(AttributeValue, description=AttributeDescriptions.VALUES)
 

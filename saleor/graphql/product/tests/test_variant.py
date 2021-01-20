@@ -10,7 +10,7 @@ from prices import Money, TaxedMoney
 from ....attribute import AttributeInputType
 from ....attribute.models import AttributeValue
 from ....attribute.utils import associate_attribute_values_to_instance
-from ....core.weight import WeightUnits
+from ....core.units import WeightUnits
 from ....order import OrderStatus
 from ....order.models import OrderLine
 from ....product.error_codes import ProductErrorCode
@@ -88,7 +88,7 @@ def test_fetch_variant(
     variant.weight = Weight(kg=10)
     variant.save(update_fields=["weight"])
 
-    site_settings.default_weight_unit = WeightUnits.GRAM
+    site_settings.default_weight_unit = WeightUnits.G
     site_settings.save(update_fields=["default_weight_unit"])
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)

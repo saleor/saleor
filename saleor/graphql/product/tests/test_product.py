@@ -17,7 +17,7 @@ from ....attribute import AttributeInputType, AttributeType
 from ....attribute.models import Attribute, AttributeValue
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....core.taxes import TaxType
-from ....core.weight import WeightUnits
+from ....core.units import WeightUnits
 from ....order import OrderStatus
 from ....order.models import OrderLine
 from ....plugins.manager import PluginsManager
@@ -506,7 +506,7 @@ def test_product_query_by_id_weight_returned_in_default_unit(
     product.weight = Weight(kg=10)
     product.save(update_fields=["weight"])
 
-    site_settings.default_weight_unit = WeightUnits.POUND
+    site_settings.default_weight_unit = WeightUnits.LB
     site_settings.save(update_fields=["default_weight_unit"])
 
     variables = {
@@ -523,7 +523,7 @@ def test_product_query_by_id_weight_returned_in_default_unit(
     assert product_data is not None
     assert product_data["name"] == product.name
     assert product_data["weight"]["value"] == 22.046
-    assert product_data["weight"]["unit"] == WeightUnits.POUND.upper()
+    assert product_data["weight"]["unit"] == WeightUnits.LB.upper()
 
 
 def test_product_query_by_id_weight_is_rounded(
@@ -533,7 +533,7 @@ def test_product_query_by_id_weight_is_rounded(
     product.weight = Weight(kg=1.83456)
     product.save(update_fields=["weight"])
 
-    site_settings.default_weight_unit = WeightUnits.KILOGRAM
+    site_settings.default_weight_unit = WeightUnits.KG
     site_settings.save(update_fields=["default_weight_unit"])
 
     variables = {
@@ -550,7 +550,7 @@ def test_product_query_by_id_weight_is_rounded(
     assert product_data is not None
     assert product_data["name"] == product.name
     assert product_data["weight"]["value"] == 1.835
-    assert product_data["weight"]["unit"] == WeightUnits.KILOGRAM.upper()
+    assert product_data["weight"]["unit"] == WeightUnits.KG.upper()
 
 
 def test_product_query_by_slug(user_api_client, product, channel_USD):
@@ -2163,7 +2163,7 @@ def test_product_type_query_by_id_weight_returned_in_default_unit(
     product_type.weight = Weight(kg=10)
     product_type.save(update_fields=["weight"])
 
-    site_settings.default_weight_unit = WeightUnits.OUNCE
+    site_settings.default_weight_unit = WeightUnits.OZ
     site_settings.save(update_fields=["default_weight_unit"])
 
     variables = {"id": graphene.Node.to_global_id("ProductType", product_type.pk)}
@@ -2177,7 +2177,7 @@ def test_product_type_query_by_id_weight_returned_in_default_unit(
     assert product_data is not None
     assert product_data["name"] == product_type.name
     assert product_data["weight"]["value"] == 352.73999999999995
-    assert product_data["weight"]["unit"] == WeightUnits.OUNCE.upper()
+    assert product_data["weight"]["unit"] == WeightUnits.OZ.upper()
 
 
 CREATE_PRODUCT_MUTATION = """

@@ -16,20 +16,6 @@ from django.contrib.sites.models import Site
 from measurement.measures import Weight
 
 
-class WeightUnits:
-    KILOGRAM = "kg"
-    POUND = "lb"
-    OUNCE = "oz"
-    GRAM = "g"
-
-    CHOICES = [
-        (KILOGRAM, "kg"),
-        (POUND, "lb"),
-        (OUNCE, "oz"),
-        (GRAM, "g"),
-    ]
-
-
 def zero_weight():
     """Represent the zero weight value."""
     return Weight(kg=0)
