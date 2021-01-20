@@ -37,6 +37,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix products visibility - #6704 by @IKarbowiak
 - Introduce page reference attributes - #6624 by @IKarbowiak
 - Introduce product reference attributes - #6711 by @IKarbowiak
+- Add metadata to warehouse - #6727 by @d-wysocki
 
 # 2.11.1
 
