@@ -19,7 +19,7 @@ from ...plugins.manager import get_plugins_manager
 from ...product.models import Collection
 from ...warehouse.models import Stock
 from ...warehouse.tests.utils import get_quantity_allocated_for_stock
-from .. import OrderEvents, OrderStatus, models
+from .. import FulfillmentStatus, OrderEvents, OrderStatus
 from ..events import (
     OrderEventsEmails,
     event_fulfillment_confirmed_notification,
@@ -50,7 +50,7 @@ from ..utils import (
 
 def test_total_setter():
     price = TaxedMoney(net=Money(10, "USD"), gross=Money(15, "USD"))
-    order = models.Order()
+    order = Order()
     order.total = price
     assert order.total_net_amount == Decimal(10)
     assert order.total.net == Money(10, "USD")
@@ -267,7 +267,7 @@ def test_restock_fulfillment_lines(fulfilled_order, warehouse):
     )
 
 
-def test_update_order_status(fulfilled_order):
+def test_update_order_status_partially_fulfilled(fulfilled_order):
     fulfillment = fulfilled_order.fulfillments.first()
     line = fulfillment.lines.first()
     order_line = line.order_line
@@ -279,15 +279,79 @@ def test_update_order_status(fulfilled_order):
 
     assert fulfilled_order.status == OrderStatus.PARTIALLY_FULFILLED
 
-    line = fulfillment.lines.first()
-    order_line = line.order_line
 
-    order_line.quantity_fulfilled -= line.quantity
-    order_line.save()
-    line.delete()
+def test_update_order_status_unfulfilled(order_with_lines):
+    order_with_lines.status = OrderStatus.FULFILLED
+    order_with_lines.save()
+
+    update_order_status(order_with_lines)
+
+    order_with_lines.refresh_from_db()
+    assert order_with_lines.status == OrderStatus.UNFULFILLED
+
+
+def test_update_order_status_fulfilled(fulfilled_order):
+    fulfillment = fulfilled_order.fulfillments.first()
+    fulfillment_line = fulfillment.lines.first()
+    fulfillment_line.quantity -= 3
+    fulfillment_line.save()
+    fulfilled_order.status = OrderStatus.UNFULFILLED
+    fulfilled_order.save()
+    replaced_fulfillment = fulfilled_order.fulfillments.create(
+        status=FulfillmentStatus.REPLACED
+    )
+    replaced_fulfillment.lines.create(
+        quantity=3, order_line=fulfillment_line.order_line
+    )
+
     update_order_status(fulfilled_order)
 
-    assert fulfilled_order.status == OrderStatus.UNFULFILLED
+    fulfilled_order.refresh_from_db()
+    assert fulfilled_order.status == OrderStatus.FULFILLED
+
+
+def test_update_order_status_returned(fulfilled_order):
+    fulfilled_order.fulfillments.all().update(status=FulfillmentStatus.RETURNED)
+    fulfilled_order.status = OrderStatus.UNFULFILLED
+    fulfilled_order.save()
+
+    update_order_status(fulfilled_order)
+
+    fulfilled_order.refresh_from_db()
+    assert fulfilled_order.status == OrderStatus.RETURNED
+
+
+def test_update_order_status_partially_returned(fulfilled_order):
+    fulfillment = fulfilled_order.fulfillments.first()
+    fulfillment_line = fulfillment.lines.first()
+    fulfillment_line.quantity -= 3
+    fulfillment_line.save()
+    returned_fulfillment = fulfilled_order.fulfillments.create(
+        status=FulfillmentStatus.RETURNED
+    )
+    replaced_fulfillment = fulfilled_order.fulfillments.create(
+        status=FulfillmentStatus.REPLACED
+    )
+    refunded_and_returned_fulfillment = fulfilled_order.fulfillments.create(
+        status=FulfillmentStatus.REFUNDED_AND_RETURNED
+    )
+    returned_fulfillment.lines.create(
+        quantity=1, order_line=fulfillment_line.order_line
+    )
+    replaced_fulfillment.lines.create(
+        quantity=1, order_line=fulfillment_line.order_line
+    )
+    refunded_and_returned_fulfillment.lines.create(
+        quantity=1, order_line=fulfillment_line.order_line
+    )
+
+    fulfilled_order.status = OrderStatus.UNFULFILLED
+    fulfilled_order.save()
+
+    update_order_status(fulfilled_order)
+
+    fulfilled_order.refresh_from_db()
+    assert fulfilled_order.status == OrderStatus.PARTIALLY_RETURNED
 
 
 def test_validate_fulfillment_tracking_number_as_url(fulfilled_order):

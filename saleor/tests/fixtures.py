@@ -3109,6 +3109,14 @@ def payment_dummy(db, order_with_lines):
 
 
 @pytest.fixture
+def payment_dummy_fully_charged(payment_dummy):
+    payment_dummy.captured_amount = payment_dummy.total
+    payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_dummy.save()
+    return payment_dummy
+
+
+@pytest.fixture
 def payment_dummy_credit_card(db, order_with_lines):
     return Payment.objects.create(
         gateway="mirumee.payments.dummy_credit_card",

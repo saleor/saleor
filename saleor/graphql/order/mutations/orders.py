@@ -18,7 +18,7 @@ from ....order.actions import (
 )
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import get_valid_shipping_methods_for_order, update_order_prices
-from ....payment import CustomPaymentChoices, PaymentError, TransactionKind, gateway
+from ....payment import PaymentError, TransactionKind, gateway
 from ....shipping import models as shipping_models
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation, ModelMutation
@@ -109,11 +109,11 @@ def clean_void_payment(payment):
 
 def clean_refund_payment(payment):
     clean_payment(payment)
-    if payment.gateway == CustomPaymentChoices.MANUAL:
+    if not payment.can_refund():
         raise ValidationError(
             {
                 "payment": ValidationError(
-                    "Manual payments can not be refunded.",
+                    "Payment cannot be refunded.",
                     code=OrderErrorCode.CANNOT_REFUND,
                 )
             }
@@ -497,7 +497,9 @@ class OrderRefund(BaseMutation):
         # Confirm that we changed the status to refund. Some payment can receive
         # asynchronous webhook with update status
         if transaction.kind == TransactionKind.REFUND:
-            order_refunded(order, info.context.user, amount, payment)
+            order_refunded(
+                order, info.context.user, amount, payment, info.context.plugins
+            )
         return OrderRefund(order=order)
 
 
