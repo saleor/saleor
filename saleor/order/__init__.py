@@ -38,7 +38,9 @@ class OrderEvents:
     CONFIRMED = "confirmed"
     DRAFT_CREATED = "draft_created"
     DRAFT_ADDED_PRODUCTS = "draft_added_products"
+    UNCONFIRMED_ADDED_PRODUCTS = "unconfirmed_added_products"
     DRAFT_REMOVED_PRODUCTS = "draft_removed_products"
+    UNCONFIRMED_REMOVED_PRODUCTS = "unconfirmed_removed_products"
 
     PLACED = "placed"
     PLACED_FROM_DRAFT = "placed_from_draft"

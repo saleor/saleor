@@ -136,6 +136,19 @@ def draft_order_added_products_event(
     )
 
 
+def unconfirmed_order_added_products_event(
+    *, order: Order, user: UserType, order_lines: List[Tuple[int, OrderLine]]
+) -> OrderEvent:
+    if not _user_is_valid(user):
+        user = None
+    return OrderEvent.objects.create(
+        order=order,
+        type=OrderEvents.UNCONFIRMED_ADDED_PRODUCTS,
+        user=user,
+        parameters={"lines": _lines_per_quantity_to_line_object_list(order_lines)},
+    )
+
+
 def draft_order_removed_products_event(
     *, order: Order, user: UserType, order_lines: List[Tuple[int, OrderLine]]
 ) -> OrderEvent:
@@ -144,6 +157,19 @@ def draft_order_removed_products_event(
     return OrderEvent.objects.create(
         order=order,
         type=OrderEvents.DRAFT_REMOVED_PRODUCTS,
+        user=user,
+        parameters={"lines": _lines_per_quantity_to_line_object_list(order_lines)},
+    )
+
+
+def unconfirmed_order_removed_products_event(
+    *, order: Order, user: UserType, order_lines: List[Tuple[int, OrderLine]]
+) -> OrderEvent:
+    if not _user_is_valid(user):
+        user = None
+    return OrderEvent.objects.create(
+        order=order,
+        type=OrderEvents.UNCONFIRMED_REMOVED_PRODUCTS,
         user=user,
         parameters={"lines": _lines_per_quantity_to_line_object_list(order_lines)},
     )

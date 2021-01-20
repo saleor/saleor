@@ -7,10 +7,17 @@ from ..utils import change_order_line_quantity, match_orders_with_new_user
 
 
 @pytest.mark.parametrize(
-    "previous_quantity,new_quantity,added_count,removed_count",
-    ((5, 2, 0, 3), (2, 5, 3, 0), (2, 0, 0, 2), (5, 5, 0, 0)),
+    "status, event, previous_quantity, new_quantity, added_count, removed_count",
+    (
+        (OrderStatus.DRAFT, OrderEvents.DRAFT_REMOVED_PRODUCTS, 5, 2, 0, 3),
+        (OrderStatus.UNCONFIRMED, OrderEvents.UNCONFIRMED_ADDED_PRODUCTS, 2, 5, 3, 0),
+        (OrderStatus.UNCONFIRMED, OrderEvents.UNCONFIRMED_REMOVED_PRODUCTS, 2, 0, 0, 2),
+        (OrderStatus.DRAFT, OrderEvents.DRAFT_ADDED_PRODUCTS, 5, 5, 0, 0),
+    ),
 )
 def test_change_quantity_generates_proper_event(
+    status,
+    event,
     previous_quantity,
     new_quantity,
     added_count,
@@ -18,8 +25,9 @@ def test_change_quantity_generates_proper_event(
     order_with_lines,
     staff_user,
 ):
-
     assert not OrderEvent.objects.exists()
+    order_with_lines.status = status
+    order_with_lines.save(update_fields=["status"])
 
     line = order_with_lines.lines.last()
     line.quantity = previous_quantity
@@ -27,10 +35,10 @@ def test_change_quantity_generates_proper_event(
     change_order_line_quantity(staff_user, line, previous_quantity, new_quantity)
 
     if removed_count:
-        expected_type = OrderEvents.DRAFT_REMOVED_PRODUCTS
+        expected_type = event
         expected_quantity = removed_count
     elif added_count:
-        expected_type = OrderEvents.DRAFT_ADDED_PRODUCTS
+        expected_type = event
         expected_quantity = added_count
     else:
         # No event should have occurred
