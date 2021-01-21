@@ -36,6 +36,10 @@ COMMON_CARRIER_CODE = "FR020100"
 # Common discount code use to apply discount on order
 COMMON_DISCOUNT_VOUCHER_CODE = "OD010000"
 
+# Additional object-level metadata for wholesale excise calculations
+MPL_CODE = 'MPL'
+WST_CODE = 'WST'
+WSC_CODE = 'WSC'
 
 @dataclass
 class AvataxExciseConfiguration:
@@ -66,19 +70,20 @@ class CustomerErrors:
 def get_api_url(use_sandbox=True) -> str:
     """Based on settings return sanbox or production url."""
     if use_sandbox:
-        return "https://exciseua.avalara.net/api/v1/"
-        # TKTK this is not actually the sandbox - fix later
-    return "https://exciseua.avalara.net/api/v1/"
-
+        return "https://exciseua.avalara.net/api/v1/AvaTaxExcise/"
+    return "https://exciseua.avalara.net/api/v1/AvaTaxExcise/"
 
 def api_post_request(
     url: str, data: Dict[str, Any], config: AvataxExciseConfiguration
 ) -> Dict[str, Any]:
     try:
         auth = HTTPBasicAuth(config.username_or_account, config.password_or_license)
+        headers = {'x-company-id': config.company_name, 'Content-Type': 'application/json'}
+        response = requests.post(url, auth=auth, data=json.dumps(
+            data), headers=headers, timeout=TIMEOUT)
     except requests.exceptions.RequestException:
         logger.warning("Fetching taxes failed %s", url)
-        return {}
+        return {'Error': requests.exceptions.RequestException}
     return response.json()
 
 
@@ -94,7 +99,7 @@ def api_get_request(url: str, config: AvataxExciseConfiguration):
     return response.json()
 
 
-def _validate_address_details(
+def _validate_adddress_details(
     shipping_address, is_shipping_required, address, shipping_method
 ):
     if not is_shipping_required and not address:
@@ -181,9 +186,11 @@ def append_line_to_data(
     item_code: str,
     name: str = None,
     tax_included: Optional[bool] = None,
+    custom_flags: Optional[List[str]]=None,
 ):
     if tax_included is None:
         tax_included = Site.objects.get_current().settings.include_taxes_in_prices
+
     data.append(
         {
             "quantity": quantity,
@@ -211,8 +218,7 @@ def append_shipping_to_data(data: List[Dict], shipping_method):
 
 
 def get_checkout_lines_data(
-    checkout: "Checkout", discounts=None
-) -> List[Dict[str, Union[str, int, bool, None]]]:
+    checkout: "Checkout", discounts=None) -> List[Dict[str, Union[str, int, bool, None]]]:
     data: List[Dict[str, Union[str, int, bool, None]]] = []
     lines = checkout.lines.prefetch_related(
         "variant__product__category",
@@ -227,17 +233,39 @@ def get_checkout_lines_data(
         product_type = line.variant.product.product_type
         tax_code = retrieve_tax_code_from_meta(product)
         tax_code = tax_code or retrieve_tax_code_from_meta(product_type)
-        # TKTK this is where we want to factor in discounts to send to the tax api
-        append_line_to_data(
+
+        mpl = obj.get_value_from_private_metadata(MPL_CODE, "0")
+        wst = obj.get_value_from_private_metadata(WST_CODE, "0")
+        wsc = obj.get_value_from_private_metadata(WSC_CODE, "0")
+
+        if mpl != None and wst != None and wsc != None:
             data=data,
-            quantity=line.quantity,
+            quantity=quantity,
             amount=base_calculations.base_checkout_line_total(
                 line, discounts
             ).gross.amount,
             tax_code=tax_code,
             item_code=line.variant.sku,
             name=name,
-        )
+            custom_flags={
+                "CustomString1": MPL_CODE,
+                "CustomString2": WST_CODE,
+                "CustomString3": WSC_CODE,
+                "CustomNumeric1": mpl,
+                "CustomNumeric2": wst,
+                "CustomNumeric3": wsc
+            }
+        else: 
+            append_line_to_data(
+                data=data,
+                quantity=line.quantity,
+                amount=base_calculations.base_checkout_line_total(
+                    line, discounts
+                ).gross.amount,
+                tax_code=tax_code,
+                item_code=line.variant.sku,
+                name=name,
+            )
 
     append_shipping_to_data(data, checkout.shipping_method)
     return data
@@ -395,10 +423,15 @@ def get_cached_response_or_fetch(
 def get_checkout_tax_data(
     checkout: "Checkout", discounts, config: AvataxExciseConfiguration
 ) -> Dict[str, Any]:
+    # data = generate_request_data_from_checkout(checkout, config, discounts=discounts)
+    # return get_cached_response_or_fetch(data, str(checkout.token), config)
+
+    # transaction_url = urljoin(
+    #     get_api_url(config.use_sandbox), "transactions/createoradjust"
+    # )
+    transaction_url = 'ransactions/create'
+    
     data = generate_request_data_from_checkout(checkout, config, discounts=discounts)
-    transaction_url = urljoin(
-        get_api_url(config.use_sandbox), "transactions/createoradjust"
-    )
     response = api_post_request(transaction_url, data, config)
     return response
 
