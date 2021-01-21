@@ -8449,6 +8449,50 @@
     }
   },
   {
+    "model": "attribute.assignedvariantattribute",
+    "pk": 127,
+    "fields": {
+        "variant": 198,
+        "assignment": 9,
+        "values": [
+          97
+        ]
+    }
+  },
+  {
+    "model": "attribute.assignedvariantattribute",
+    "pk": 128,
+    "fields": {
+        "variant": 198,
+        "assignment": 10,
+        "values": [
+          98
+        ]
+    }
+  },
+  {
+    "model": "attribute.assignedvariantattribute",
+    "pk": 129,
+    "fields": {
+        "variant": 197,
+        "assignment": 9,
+        "values": [
+          100
+        ]
+    }
+  },
+  {
+    "model": "attribute.assignedvariantattribute",
+    "pk": 130,
+    "fields": {
+        "variant": 197,
+        "assignment": 10,
+        "values": [
+          99
+        ]
+    }
+  },
+  {
     "model": "attribute.assignedpageattribute",
     "pk": 1,
     "fields": {
@@ -8603,6 +8647,24 @@
       "sort_order": 0,
       "attribute": 19,
       "product_type": 15
+    }
+  },
+  {
+    "model": "attribute.attributevariant",
+    "pk": 9,
+    "fields": {
+        "sort_order": null,
+        "attribute": 32,
+        "product_type": 12
+    }
+  },
+  {
+    "model": "attribute.attributevariant",
+    "pk": 10,
+    "fields": {
+        "sort_order": null,
+        "attribute": 33,
+        "product_type": 12
     }
   },
   {
@@ -8956,6 +9018,48 @@
         "storefront_search_position": 0,
         "available_in_grid": false
     }
+  },
+  {
+    "model": "attribute.attribute",
+    "pk": 32,
+    "fields": {
+        "private_metadata": {},
+        "metadata": {},
+        "slug": "length",
+        "name": "Length",
+        "type": "product-type",
+        "input_type": "numeric",
+        "entity_type": null,
+        "unit": "cm",
+        "value_required": false,
+        "is_variant_only": false,
+        "visible_in_storefront": true,
+        "filterable_in_storefront": true,
+        "filterable_in_dashboard": true,
+        "storefront_search_position": 0,
+        "available_in_grid": true
+    }
+  },
+  {
+      "model": "attribute.attribute",
+      "pk": 33,
+      "fields": {
+          "private_metadata": {},
+          "metadata": {},
+          "slug": "width",
+          "name": "Width",
+          "type": "product-type",
+          "input_type": "numeric",
+          "entity_type": null,
+          "unit": "cm",
+          "value_required": false,
+          "is_variant_only": false,
+          "visible_in_storefront": true,
+          "filterable_in_storefront": true,
+          "filterable_in_dashboard": true,
+          "storefront_search_position": 0,
+          "available_in_grid": true
+      }
   },
   {
     "model": "attribute.attributevalue",
@@ -9611,6 +9715,58 @@
           "content_type": null,
           "attribute": 31
       }
+  },
+  {
+    "model": "attribute.attributevalue",
+    "pk": 97,
+    "fields": {
+        "sort_order": 0,
+        "name": "55",
+        "value": "",
+        "slug": "55",
+        "file_url": null,
+        "content_type": null,
+        "attribute": 32
+    }
+  },
+  {
+    "model": "attribute.attributevalue",
+    "pk": 98,
+    "fields": {
+        "sort_order": 0,
+        "name": "55",
+        "value": "",
+        "slug": "55",
+        "file_url": null,
+        "content_type": null,
+        "attribute": 33
+    }
+  },
+  {
+    "model": "attribute.attributevalue",
+    "pk": 99,
+    "fields": {
+        "sort_order": 1,
+        "name": "45",
+        "value": "",
+        "slug": "45",
+        "file_url": null,
+        "content_type": null,
+        "attribute": 33
+    }
+  },
+  {
+    "model": "attribute.attributevalue",
+    "pk": 100,
+    "fields": {
+        "sort_order": 1,
+        "name": "45",
+        "value": "",
+        "slug": "45",
+        "file_url": null,
+        "content_type": null,
+        "attribute": 32
+    }
   },
   {
     "model": "product.productimage",
