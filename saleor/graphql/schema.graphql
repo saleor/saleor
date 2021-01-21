@@ -2837,7 +2837,7 @@ type Order implements Node & ObjectWithMetadata {
   shippingMethod: ShippingMethod
   shippingMethodName: String
   channel: Channel!
-  shippingPrice: TaxedMoney
+  shippingPrice: TaxedMoney!
   shippingTaxRate: Float!
   token: String!
   voucher: Voucher
@@ -2857,16 +2857,16 @@ type Order implements Node & ObjectWithMetadata {
   availableShippingMethods: [ShippingMethod]
   invoices: [Invoice]
   number: String
-  isPaid: Boolean
-  paymentStatus: PaymentChargeStatusEnum
-  paymentStatusDisplay: String
+  isPaid: Boolean!
+  paymentStatus: PaymentChargeStatusEnum!
+  paymentStatusDisplay: String!
   payments: [Payment]
-  total: TaxedMoney
-  subtotal: TaxedMoney
+  total: TaxedMoney!
+  subtotal: TaxedMoney!
   statusDisplay: String
   canFinalize: Boolean!
-  totalAuthorized: Money
-  totalCaptured: Money
+  totalAuthorized: Money!
+  totalCaptured: Money!
   events: [OrderEvent]
   totalBalance: Money!
   userEmail: String
@@ -3109,8 +3109,8 @@ type OrderLine implements Node {
   taxRate: Float!
   digitalContentUrl: DigitalContentUrl
   thumbnail(size: Int): Image
-  unitPrice: TaxedMoney
-  totalPrice: TaxedMoney
+  unitPrice: TaxedMoney!
+  totalPrice: TaxedMoney!
   variant: ProductVariant
   translatedProductName: String!
   translatedVariantName: String!
