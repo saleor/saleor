@@ -15,6 +15,20 @@ if TYPE_CHECKING:
     from ...product.models import Attribute, ProductVariant
 
 
+def parse_draftjs_content_to_string(definitions: dict):
+    string = ""
+    blocks = definitions.get("blocks")
+    if not blocks or not isinstance(blocks, list):
+        return ""
+    for block in blocks:
+        text = block.get("text")
+        if not text:
+            continue
+        string += "{} ".format(text)
+
+    return string
+
+
 def validate_attributes_input_for_product(
     input_data: List[Tuple["Attribute", List[str]]],
 ):

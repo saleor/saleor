@@ -1494,6 +1494,95 @@ def test_create_product(
     assert color_value_slug in values
 
 
+def test_create_product_description_plaintext(
+    staff_api_client,
+    product_type,
+    category,
+    size_attribute,
+    other_description_json,
+    permission_manage_products,
+    settings,
+    monkeypatch,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    description_json = json.dumps(other_description_json)
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_slug = "product-test-slug"
+    product_is_published = True
+    product_charge_taxes = True
+    visible_in_listings = True
+    product_tax_rate = "STANDARD"
+    product_price = "22.33"
+
+    # Mock tax interface with fake response from tax gateway
+    monkeypatch.setattr(
+        PluginsManager,
+        "get_tax_code_from_object_meta",
+        lambda self, x: TaxType(description="", code=product_tax_rate),
+    )
+
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "descriptionJson": description_json,
+            "isPublished": product_is_published,
+            "chargeTaxes": product_charge_taxes,
+            "taxCode": product_tax_rate,
+            "basePrice": product_price,
+            "visibleInListings": visible_in_listings,
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["productErrors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == product_slug
+    assert data["product"]["descriptionJson"] == description_json
+
+    product = Product.objects.all().first()
+    assert product.description_plaintext == (
+        "A GRAPHQL-FIRST ECOMMERCE PLATFORM FOR PERFECTIONISTS "
+        "Saleor is powered by a GraphQL server running on top "
+        "of Python 3 and a Django 2 framework."
+    )
+
+
+def test_search_product_by_description(user_api_client, product_list, channel_USD):
+    search_query = """
+    query Products($filters: ProductFilterInput, $channel: String) {
+      products(first: 5, filter: $filters, channel: $channel) {
+        edges {
+        node {
+          id
+          name
+        }
+        }
+      }
+    }
+    """
+    variables = {"filters": {"search": "big"}, "channel": channel_USD.slug}
+    response = user_api_client.post_graphql(search_query, variables)
+    content = get_graphql_content(response)
+    assert len(content["data"]["products"]["edges"]) == 2
+
+    variables = {"filters": {"search": "small"}, "channel": channel_USD.slug}
+    response = user_api_client.post_graphql(search_query, variables)
+    content = get_graphql_content(response)
+
+    assert len(content["data"]["products"]["edges"]) == 1
+
+
 QUERY_PRODUCT_IS_PUBLISHED = """
     query Product($id: ID!) {
         product(id: $id) {
@@ -2493,6 +2582,43 @@ def test_update_product(
     assert attributes[0]["values"][0]["slug"] == "rainbow"
 
     updated_webhook_mock.assert_called_once_with(product)
+
+
+def test_update_product_without_description_clear_description_plaintext(
+    staff_api_client,
+    category,
+    non_default_category,
+    product,
+    other_description_json,
+    permission_manage_products,
+    color_attribute,
+):
+    query = MUTATION_UPDATE_PRODUCT
+    description_plaintext = "some desc"
+    product.description_plaintext = description_plaintext
+    product.save()
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    category_id = graphene.Node.to_global_id("Category", non_default_category.pk)
+    product_name = "updated name"
+    product_slug = "updated-product"
+
+    variables = {
+        "productId": product_id,
+        "input": {"category": category_id, "name": product_name, "slug": product_slug},
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert not data["productErrors"]
+    assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == product_slug
+    assert data["product"]["description"] == "{}"
+
+    product.refresh_from_db()
+    assert product.description_plaintext == ""
 
 
 def test_update_product_when_default_currency_changeed(

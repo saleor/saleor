@@ -44,6 +44,7 @@ from ...core.utils import (
 from ...core.utils.reordering import perform_reordering
 from ...core.validators import validate_price_precision
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
+from ...product.utils import parse_draftjs_content_to_string
 from ...warehouse.types import Warehouse
 from ..types import (
     Category,
@@ -841,6 +842,11 @@ class ProductCreate(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
+
+        description = cleaned_input.get("description")
+        cleaned_input["description_plaintext"] = (
+            parse_draftjs_content_to_string(description) if description else ""
+        )
 
         weight = cleaned_input.get("weight")
         if weight and weight.value < 0:
