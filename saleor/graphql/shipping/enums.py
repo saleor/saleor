@@ -1,7 +1,7 @@
 from ...graphql.core.enums import to_enum
-from ...shipping import ShippingMethodType, ZipCodeRuleInclusionType
+from ...shipping import PostalCodeRuleInclusionType, ShippingMethodType
 
 ShippingMethodTypeEnum = to_enum(ShippingMethodType, type_name="ShippingMethodTypeEnum")
-ZipCodeRuleInclusionTypeEnum = to_enum(
-    ZipCodeRuleInclusionType, type_name="ZipCodeRuleInclusionTypeEnum"
+PostalCodeRuleInclusionTypeEnum = to_enum(
+    PostalCodeRuleInclusionType, type_name="PostalCodeRuleInclusionTypeEnum"
 )

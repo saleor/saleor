@@ -5,7 +5,7 @@ from django.db.models import F
 from ...shipping.models import (
     ShippingMethod,
     ShippingMethodChannelListing,
-    ShippingMethodZipCodeRule,
+    ShippingMethodPostalCodeRule,
 )
 from ..core.dataloaders import DataLoader
 
@@ -34,18 +34,20 @@ class ShippingMethodsByShippingZoneIdLoader(DataLoader):
         ]
 
 
-class ZipCodeRulesByShippingMethodIdLoader(DataLoader):
-    context_key = "zip_code_rules_by_shipping_method"
+class PostalCodeRulesByShippingMethodIdLoader(DataLoader):
+    context_key = "postal_code_rules_by_shipping_method"
 
     def batch_load(self, keys):
-        zip_code_rules = ShippingMethodZipCodeRule.objects.filter(
+        postal_code_rules = ShippingMethodPostalCodeRule.objects.filter(
             shipping_method_id__in=keys
         )
 
-        zip_code_rules_map = defaultdict(list)
-        for zip_code in zip_code_rules:
-            zip_code_rules_map[zip_code.shipping_method_id].append(zip_code)
-        return [zip_code_rules_map[shipping_method_id] for shipping_method_id in keys]
+        postal_code_rules_map = defaultdict(list)
+        for postal_code in postal_code_rules:
+            postal_code_rules_map[postal_code.shipping_method_id].append(postal_code)
+        return [
+            postal_code_rules_map[shipping_method_id] for shipping_method_id in keys
+        ]
 
 
 class ShippingMethodsByShippingZoneIdAndChannelSlugLoader(DataLoader):

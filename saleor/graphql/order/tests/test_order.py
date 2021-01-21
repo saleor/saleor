@@ -447,14 +447,14 @@ def test_order_query_without_available_shipping_methods(
     assert len(order_data["availableShippingMethods"]) == 0
 
 
-def test_order_query_shipping_methods_excluded_zip_codes(
+def test_order_query_shipping_methods_excluded_postal_codes(
     staff_api_client,
     permission_manage_orders,
     order_with_lines_channel_PLN,
     channel_PLN,
 ):
     order = order_with_lines_channel_PLN
-    order.shipping_method.zip_code_rules.create(start="HB3", end="HB6")
+    order.shipping_method.postal_code_rules.create(start="HB3", end="HB6")
     order.shipping_address.postal_code = "HB5"
     order.shipping_address.save(update_fields=["postal_code"])
 
@@ -3636,15 +3636,15 @@ def test_order_update_shipping_incorrect_shipping_method(
     )
 
 
-def test_order_update_shipping_excluded_shipping_method_zip_code(
+def test_order_update_shipping_excluded_shipping_method_postal_code(
     staff_api_client,
     permission_manage_orders,
     order,
     staff_user,
-    shipping_method_excluded_by_zip_code,
+    shipping_method_excluded_by_postal_code,
 ):
-    order.shipping_method = shipping_method_excluded_by_zip_code
-    shipping_total = shipping_method_excluded_by_zip_code.channel_listings.get(
+    order.shipping_method = shipping_method_excluded_by_postal_code
+    shipping_total = shipping_method_excluded_by_postal_code.channel_listings.get(
         channel_id=order.channel_id,
     ).get_total()
 
@@ -3656,7 +3656,7 @@ def test_order_update_shipping_excluded_shipping_method_zip_code(
     query = ORDER_UPDATE_SHIPPING_QUERY
     order_id = graphene.Node.to_global_id("Order", order.id)
     method_id = graphene.Node.to_global_id(
-        "ShippingMethod", shipping_method_excluded_by_zip_code.id
+        "ShippingMethod", shipping_method_excluded_by_postal_code.id
     )
     variables = {"order": order_id, "shippingMethod": method_id}
     response = staff_api_client.post_graphql(

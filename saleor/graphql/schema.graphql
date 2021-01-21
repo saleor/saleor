@@ -2607,9 +2607,9 @@ type Mutation {
   shopAddressUpdate(input: AddressInput): ShopAddressUpdate
   orderSettingsUpdate(input: OrderSettingsUpdateInput!): OrderSettingsUpdate
   shippingMethodChannelListingUpdate(id: ID!, input: ShippingMethodChannelListingInput!): ShippingMethodChannelListingUpdate
-  shippingMethodZipCodeRulesCreate(input: ShippingZipCodeRulesCreateInput!, shippingMethodId: ID!): ShippingZipCodeRulesCreate
-  shippingMethodZipCodeRulesDelete(id: ID!): ShippingZipCodeRulesDelete
-  shippingMethodZipCodeRulesUpdateInclusionType(inclusionType: ZipCodeRuleInclusionTypeEnum!, shippingMethodId: ID!): ShippingZipCodeRulesUpdateInclusionType
+  shippingMethodPostalCodeRulesCreate(input: ShippingPostalCodeRulesCreateInput!, shippingMethodId: ID!): ShippingPostalCodeRulesCreate
+  shippingMethodPostalCodeRulesDelete(id: ID!): ShippingPostalCodeRulesDelete
+  shippingMethodPostalCodeRulesUpdateInclusionType(inclusionType: PostalCodeRuleInclusionTypeEnum!, shippingMethodId: ID!): ShippingPostalCodeRulesUpdateInclusionType
   shippingPriceCreate(input: ShippingPriceInput!): ShippingPriceCreate
   shippingPriceDelete(id: ID!): ShippingPriceDelete
   shippingPriceBulkDelete(ids: [ID]!): ShippingPriceBulkDelete
@@ -3825,6 +3825,11 @@ input PluginUpdateInput {
 
 scalar PositiveDecimal
 
+enum PostalCodeRuleInclusionTypeEnum {
+  INCLUDE
+  EXCLUDE
+}
+
 input PriceRangeInput {
   gte: Float
   lte: Float
@@ -4747,7 +4752,7 @@ type ShippingMethod implements Node & ObjectWithMetadata {
   price: Money
   maximumOrderPrice: Money
   minimumOrderPrice: Money
-  zipCodeRules: [ShippingMethodZipCodeRule]
+  postalCodeRules: [ShippingMethodPostalCodeRule]
   excludedProducts(before: String, after: String, first: Int, last: Int): ProductCountableConnection
 }
 
@@ -4777,6 +4782,13 @@ type ShippingMethodChannelListingUpdate {
   shippingErrors: [ShippingError!]!
 }
 
+type ShippingMethodPostalCodeRule implements Node {
+  start: String
+  end: String
+  inclusionType: PostalCodeRuleInclusionTypeEnum
+  id: ID!
+}
+
 type ShippingMethodTranslatableContent implements Node {
   id: ID!
   name: String!
@@ -4795,11 +4807,35 @@ enum ShippingMethodTypeEnum {
   WEIGHT
 }
 
-type ShippingMethodZipCodeRule implements Node {
-  start: String
+type ShippingPostalCodeRulesCreate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  postalCodeRules: [ShippingMethodPostalCodeRule]
+  shippingMethod: ShippingMethod
+  shippingErrors: [ShippingError!]!
+}
+
+input ShippingPostalCodeRulesCreateInput {
+  postalCodeRules: [ShippingPostalCodeRulesCreateInputRange]!
+}
+
+input ShippingPostalCodeRulesCreateInputRange {
+  start: String!
   end: String
-  inclusionType: ZipCodeRuleInclusionTypeEnum
-  id: ID!
+  inclusionType: PostalCodeRuleInclusionTypeEnum
+}
+
+type ShippingPostalCodeRulesDelete {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  shippingMethod: ShippingMethod
+  shippingErrors: [ShippingError!]!
+  shippingMethodPostalCodeRule: ShippingMethodPostalCodeRule
+}
+
+type ShippingPostalCodeRulesUpdateInclusionType {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  postalCodeRules: [ShippingMethodPostalCodeRule]
+  shippingMethod: ShippingMethod
+  shippingErrors: [ShippingError!]!
 }
 
 type ShippingPriceBulkDelete {
@@ -4857,37 +4893,6 @@ type ShippingPriceTranslate {
 type ShippingPriceUpdate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   shippingZone: ShippingZone
-  shippingMethod: ShippingMethod
-  shippingErrors: [ShippingError!]!
-}
-
-type ShippingZipCodeRulesCreate {
-  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  zipCodeRules: [ShippingMethodZipCodeRule]
-  shippingMethod: ShippingMethod
-  shippingErrors: [ShippingError!]!
-}
-
-input ShippingZipCodeRulesCreateInput {
-  zipCodeRules: [ShippingZipCodeRulesCreateInputRange]!
-}
-
-input ShippingZipCodeRulesCreateInputRange {
-  start: String!
-  end: String
-  inclusionType: ZipCodeRuleInclusionTypeEnum
-}
-
-type ShippingZipCodeRulesDelete {
-  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  shippingMethod: ShippingMethod
-  shippingErrors: [ShippingError!]!
-  shippingMethodZipCodeRule: ShippingMethodZipCodeRule
-}
-
-type ShippingZipCodeRulesUpdateInclusionType {
-  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  zipCodeRules: [ShippingMethodZipCodeRule]
   shippingMethod: ShippingMethod
   shippingErrors: [ShippingError!]!
 }
@@ -5897,11 +5902,6 @@ enum WeightUnitsEnum {
   LB
   OZ
   G
-}
-
-enum ZipCodeRuleInclusionTypeEnum {
-  INCLUDE
-  EXCLUDE
 }
 
 scalar _Any

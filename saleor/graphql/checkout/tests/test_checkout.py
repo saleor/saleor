@@ -1196,7 +1196,7 @@ def test_checkout_available_shipping_methods(
     assert data["availableShippingMethods"][0]["name"] == shipping_method.name
 
 
-def test_checkout_available_shipping_methods_excluded_zip_codes(
+def test_checkout_available_shipping_methods_excluded_postal_codes(
     api_client, checkout_with_item, address, shipping_zone
 ):
     address.country = Country("GB")
@@ -1205,7 +1205,7 @@ def test_checkout_available_shipping_methods_excluded_zip_codes(
     checkout_with_item.shipping_address = address
     checkout_with_item.save()
     shipping_method = shipping_zone.shipping_methods.first()
-    shipping_method.zip_code_rules.create(start="BH16 7HA", end="BH16 7HG")
+    shipping_method.postal_code_rules.create(start="BH16 7HA", end="BH16 7HG")
 
     query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
     variables = {"token": checkout_with_item.token}
@@ -2588,8 +2588,8 @@ def test_checkout_shipping_method_update(
         assert checkout.shipping_method is None
 
 
-@patch("saleor.shipping.zip_codes.is_shipping_method_applicable_for_zip_code")
-def test_checkout_shipping_method_update_excluded_zip_code(
+@patch("saleor.shipping.postal_codes.is_shipping_method_applicable_for_postal_code")
+def test_checkout_shipping_method_update_excluded_postal_code(
     mock_is_shipping_method_available,
     staff_api_client,
     shipping_method,

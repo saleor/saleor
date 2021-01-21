@@ -8,14 +8,14 @@ from ....shipping.utils import get_countries_without_shipping_zone
 from ...core.enums import WeightUnitsEnum
 from ...shipping.resolvers import resolve_price_range
 from ...tests.utils import get_graphql_content
-from ..types import ShippingMethodTypeEnum, ZipCodeRuleInclusionTypeEnum
+from ..types import PostalCodeRuleInclusionTypeEnum, ShippingMethodTypeEnum
 
 SHIPPING_ZONE_QUERY = """
     query ShippingQuery($id: ID!, $channel: String,) {
         shippingZone(id: $id, channel:$channel) {
             name
             shippingMethods {
-                zipCodeRules {
+                postalCodeRules {
                     start
                     end
                 }
@@ -59,7 +59,7 @@ def test_shipping_zone_query(
     # given
     shipping = shipping_zone
     method = shipping.shipping_methods.first()
-    code = method.zip_code_rules.create(start="HB2", end="HB6")
+    code = method.postal_code_rules.create(start="HB2", end="HB6")
     query = SHIPPING_ZONE_QUERY
     ID = graphene.Node.to_global_id("ShippingZone", shipping.id)
     variables = {"id": ID, "channel": channel_USD.slug}
@@ -75,7 +75,7 @@ def test_shipping_zone_query(
     assert shipping_data["name"] == shipping.name
     num_of_shipping_methods = shipping_zone.shipping_methods.count()
     assert len(shipping_data["shippingMethods"]) == num_of_shipping_methods
-    assert shipping_data["shippingMethods"][0]["zipCodeRules"] == [
+    assert shipping_data["shippingMethods"][0]["postalCodeRules"] == [
         {"start": code.start, "end": code.end}
     ]
     price_range = resolve_price_range(channel_slug=channel_USD.slug)
@@ -400,17 +400,18 @@ def test_create_duplicated_default_shipping_zone(
     assert data["shippingErrors"][0]["code"] == ShippingErrorCode.ALREADY_EXISTS.name
 
 
-CREATE_SHIPPING_METHOD_ZIP_CODE_MUTATION = """
-    mutation createZipCode(
-        $shippingMethodId: ID!, $zipCodeRules: [ShippingZipCodeRulesCreateInputRange]!
+CREATE_SHIPPING_METHOD_POSTAL_CODE_MUTATION = """
+    mutation createPostalCode(
+        $shippingMethodId: ID!
+        $postalCodeRules: [ShippingPostalCodeRulesCreateInputRange]!
     ){
-        shippingMethodZipCodeRulesCreate(
+        ShippingMethodPostalCodeRulesCreate(
             shippingMethodId: $shippingMethodId
             input: {
-                zipCodeRules: $zipCodeRules
+                postalCodeRules: $postalCodeRules
             }
         ){
-            zipCodeRules {
+            postalCodeRules {
                 start
                 end
                 inclusionType
@@ -428,102 +429,111 @@ CREATE_SHIPPING_METHOD_ZIP_CODE_MUTATION = """
 """
 
 
-def test_create_shipping_method_zip_code(
+def test_create_shipping_method_postal_code(
     staff_api_client, shipping_method, permission_manage_shipping
 ):
     shipping_method_id = graphene.Node.to_global_id(
         "ShippingMethod", shipping_method.pk
     )
-    zip_code_rules = [
+    postal_code_rules = [
         {"start": "HB3", "end": "HB6"},
         {"start": "HB8", "end": None},
     ]
-    variables = {"shippingMethodId": shipping_method_id, "zipCodeRules": zip_code_rules}
+    variables = {
+        "shippingMethodId": shipping_method_id,
+        "postalCodeRules": postal_code_rules,
+    }
     response = staff_api_client.post_graphql(
-        CREATE_SHIPPING_METHOD_ZIP_CODE_MUTATION,
+        CREATE_SHIPPING_METHOD_POSTAL_CODE_MUTATION,
         variables,
         permissions=[permission_manage_shipping],
     )
     content = get_graphql_content(response)
-    assert not content["data"]["shippingMethodZipCodeRulesCreate"]["shippingErrors"]
-    zip_code_rules_data = content["data"]["shippingMethodZipCodeRulesCreate"][
-        "zipCodeRules"
+    assert not content["data"]["shippingMethodPostalCodeRulesCreate"]["shippingErrors"]
+    postal_code_rules_data = content["data"]["shippingMethodPostalCodeRulesCreate"][
+        "postalCodeRules"
     ]
-    shipping_method_data = content["data"]["shippingMethodZipCodeRulesCreate"][
+    shipping_method_data = content["data"]["shippingMethodPostalCodeRulesCreate"][
         "shippingMethod"
     ]
     assert shipping_method_data["id"] == shipping_method_id
     assert shipping_method_data["name"] == shipping_method.name
-    for rule in zip_code_rules:
+    for rule in postal_code_rules:
         rule["inclusionType"] = "EXCLUDE"
-    assert zip_code_rules_data == zip_code_rules
+    assert postal_code_rules_data == postal_code_rules
 
 
-def test_create_shipping_method_zip_code_rule_inclusive(
+def test_create_shipping_method_postal_code_rule_inclusive(
     staff_api_client, shipping_method, permission_manage_shipping
 ):
     shipping_method_id = graphene.Node.to_global_id(
         "ShippingMethod", shipping_method.pk
     )
-    zip_code_rules = [
+    postal_code_rules = [
         {
             "start": "HB3",
             "end": "HB6",
-            "inclusionType": ZipCodeRuleInclusionTypeEnum.INCLUDE.name,
+            "inclusionType": PostalCodeRuleInclusionTypeEnum.INCLUDE.name,
         },
         {
             "start": "HB8",
             "end": None,
-            "inclusionType": ZipCodeRuleInclusionTypeEnum.INCLUDE.name,
+            "inclusionType": PostalCodeRuleInclusionTypeEnum.INCLUDE.name,
         },
     ]
-    variables = {"shippingMethodId": shipping_method_id, "zipCodeRules": zip_code_rules}
+    variables = {
+        "shippingMethodId": shipping_method_id,
+        "postalCodeRules": postal_code_rules,
+    }
     response = staff_api_client.post_graphql(
-        CREATE_SHIPPING_METHOD_ZIP_CODE_MUTATION,
+        CREATE_SHIPPING_METHOD_POSTAL_CODE_MUTATION,
         variables,
         permissions=[permission_manage_shipping],
     )
     content = get_graphql_content(response)
-    assert not content["data"]["shippingMethodZipCodeRulesCreate"]["shippingErrors"]
-    zip_code_rules_data = content["data"]["shippingMethodZipCodeRulesCreate"][
-        "zipCodeRules"
+    assert not content["data"]["shippingMethodPostalCodeRulesCreate"]["shippingErrors"]
+    postal_code_rules_data = content["data"]["shippingMethodPostalCodeRulesCreate"][
+        "postalCodeRules"
     ]
-    shipping_method_data = content["data"]["shippingMethodZipCodeRulesCreate"][
+    shipping_method_data = content["data"]["shippingMethodPostalCodeRulesCreate"][
         "shippingMethod"
     ]
     assert shipping_method_data["id"] == shipping_method_id
     assert shipping_method_data["name"] == shipping_method.name
-    assert zip_code_rules_data == zip_code_rules
+    assert postal_code_rules_data == postal_code_rules
 
 
-def test_create_shipping_method_zip_code_duplicate_entry(
+def test_create_shipping_method_postal_code_duplicate_entry(
     staff_api_client, shipping_method, permission_manage_shipping
 ):
     shipping_method_id = graphene.Node.to_global_id(
         "ShippingMethod", shipping_method.pk
     )
-    zip_code_rules = [
+    postal_code_rules = [
         {"start": "HB3", "end": "HB6"},
         {"start": "HB3", "end": "HB6"},
     ]
-    variables = {"shippingMethodId": shipping_method_id, "zipCodeRules": zip_code_rules}
+    variables = {
+        "shippingMethodId": shipping_method_id,
+        "postalCodeRules": postal_code_rules,
+    }
     response = staff_api_client.post_graphql(
-        CREATE_SHIPPING_METHOD_ZIP_CODE_MUTATION,
+        CREATE_SHIPPING_METHOD_POSTAL_CODE_MUTATION,
         variables,
         permissions=[permission_manage_shipping],
     )
     content = get_graphql_content(response)
-    errors = content["data"]["shippingMethodZipCodeRulesCreate"]["shippingErrors"]
+    errors = content["data"]["shippingMethodPostalCodeRulesCreate"]["shippingErrors"]
     assert len(errors) == 1
     assert errors[0]["code"] == ShippingErrorCode.ALREADY_EXISTS.name
-    assert errors[0]["field"] == "zipCodeRules"
+    assert errors[0]["field"] == "postalCodeRules"
 
 
-DELETE_SHIPPING_METHOD_ZIP_CODE_MUTATION = """
-    mutation deleteZipCode(
+DELETE_SHIPPING_METHOD_POSTAL_CODE_MUTATION = """
+    mutation deletePostalCode(
         $id: ID!
     ){
-        shippingMethodZipCodeRulesDelete(
+        shippingMethodPostalCodeRulesDelete(
             id: $id
         ){
             shippingMethod {
@@ -539,37 +549,41 @@ DELETE_SHIPPING_METHOD_ZIP_CODE_MUTATION = """
 """
 
 
-def test_delete_shipping_method_zip_code(
-    staff_api_client, shipping_method_excluded_by_zip_code, permission_manage_shipping
+def test_delete_shipping_method_postal_code(
+    staff_api_client,
+    shipping_method_excluded_by_postal_code,
+    permission_manage_shipping,
 ):
-    shipping_zip_code_id = graphene.Node.to_global_id(
-        "ShippingMethodZipCodeRule",
-        shipping_method_excluded_by_zip_code.zip_code_rules.first().id,
+    shipping_postal_code_id = graphene.Node.to_global_id(
+        "ShippingMethodPostalCodeRule",
+        shipping_method_excluded_by_postal_code.postal_code_rules.first().id,
     )
     response = staff_api_client.post_graphql(
-        DELETE_SHIPPING_METHOD_ZIP_CODE_MUTATION,
-        {"id": shipping_zip_code_id},
+        DELETE_SHIPPING_METHOD_POSTAL_CODE_MUTATION,
+        {"id": shipping_postal_code_id},
         permissions=[permission_manage_shipping],
     )
     content = get_graphql_content(response)
-    data = content["data"]["shippingMethodZipCodeRulesDelete"]
+    data = content["data"]["shippingMethodPostalCodeRulesDelete"]
     assert data["shippingErrors"] == []
     assert data["shippingMethod"]["id"] == graphene.Node.to_global_id(
-        "ShippingMethod", shipping_method_excluded_by_zip_code.id
+        "ShippingMethod", shipping_method_excluded_by_postal_code.id
     )
-    assert data["shippingMethod"]["name"] == shipping_method_excluded_by_zip_code.name
-    assert not shipping_method_excluded_by_zip_code.zip_code_rules.exists()
+    assert (
+        data["shippingMethod"]["name"] == shipping_method_excluded_by_postal_code.name
+    )
+    assert not shipping_method_excluded_by_postal_code.postal_code_rules.exists()
 
 
-UPDATE_SHIPPING_METHOD_ZIP_CODE_RULES_INCLUSION_MUTATION = """
-    mutation updateZipCodeRulesInclusion(
-        $inclusionType: ZipCodeRuleInclusionTypeEnum!
+UPDATE_SHIPPING_METHOD_POSTAL_CODE_RULES_INCLUSION_MUTATION = """
+    mutation updatePostalCodeRulesInclusion(
+        $inclusionType: PostalCodeRuleInclusionTypeEnum!
         $id: ID!
     ){
-        shippingMethodZipCodeRulesUpdateInclusionType(
+        shippingMethodPostalCodeRulesUpdateInclusionType(
             inclusionType: $inclusionType,
             shippingMethodId: $id){
-                zipCodeRules {
+                postalCodeRules {
                     start
                     end
                     inclusionType
@@ -588,27 +602,29 @@ UPDATE_SHIPPING_METHOD_ZIP_CODE_RULES_INCLUSION_MUTATION = """
 """
 
 
-def test_update_shipping_method_zip_code_rules_inclusion_type(
-    staff_api_client, shipping_method_excluded_by_zip_code, permission_manage_shipping
+def test_update_shipping_method_postal_code_rules_inclusion_type(
+    staff_api_client,
+    shipping_method_excluded_by_postal_code,
+    permission_manage_shipping,
 ):
     shipping_method_id = graphene.Node.to_global_id(
-        "ShippingMethod", shipping_method_excluded_by_zip_code.id
+        "ShippingMethod", shipping_method_excluded_by_postal_code.id
     )
     response = staff_api_client.post_graphql(
-        UPDATE_SHIPPING_METHOD_ZIP_CODE_RULES_INCLUSION_MUTATION,
+        UPDATE_SHIPPING_METHOD_POSTAL_CODE_RULES_INCLUSION_MUTATION,
         {
             "id": shipping_method_id,
-            "inclusionType": ZipCodeRuleInclusionTypeEnum.INCLUDE.name,
+            "inclusionType": PostalCodeRuleInclusionTypeEnum.INCLUDE.name,
         },
         permissions=[permission_manage_shipping],
     )
     content = get_graphql_content(response)
-    data = content["data"]["shippingMethodZipCodeRulesUpdateInclusionType"]
+    data = content["data"]["shippingMethodPostalCodeRulesUpdateInclusionType"]
     assert data["shippingErrors"] == []
     assert data["shippingMethod"]["id"] == shipping_method_id
     assert (
-        shipping_method_excluded_by_zip_code.zip_code_rules.first().inclusion_type
-        == ZipCodeRuleInclusionTypeEnum.INCLUDE.value
+        shipping_method_excluded_by_postal_code.postal_code_rules.first().inclusion_type
+        == PostalCodeRuleInclusionTypeEnum.INCLUDE.value
     )
 
 

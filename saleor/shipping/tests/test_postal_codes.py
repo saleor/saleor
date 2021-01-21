@@ -2,10 +2,10 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from .. import ZipCodeRuleInclusionType
-from ..zip_codes import (
-    check_zip_code_in_range,
-    is_shipping_method_applicable_for_zip_code,
+from .. import PostalCodeRuleInclusionType
+from ..postal_codes import (
+    check_postal_code_in_range,
+    is_shipping_method_applicable_for_postal_code,
 )
 
 
@@ -25,8 +25,8 @@ from ..zip_codes import (
         ["BH16 7HB", "BH16 7HC", None, False],
     ],
 )
-def test_check_zip_code_for_uk(code, start, end, in_range):
-    assert check_zip_code_in_range("GB", code, start, end) is in_range
+def test_check_postal_code_for_uk(code, start, end, in_range):
+    assert check_postal_code_in_range("GB", code, start, end) is in_range
 
 
 @pytest.mark.parametrize(
@@ -40,8 +40,8 @@ def test_check_zip_code_for_uk(code, start, end, in_range):
         ["GG16 7HZ", "GG16 7HA", "GG16 7HG", False],
     ],
 )
-def test_check_zip_code_for_uk_fallbacks(code, start, end, in_range):
-    assert check_zip_code_in_range("GB", code, start, end) is in_range
+def test_check_postal_code_for_uk_fallbacks(code, start, end, in_range):
+    assert check_postal_code_in_range("GB", code, start, end) is in_range
 
 
 @pytest.mark.parametrize(
@@ -52,8 +52,8 @@ def test_check_zip_code_for_uk_fallbacks(code, start, end, in_range):
         ["A65 2F0B", "A65 2F0C", "A65 2F0D", False],
     ],
 )
-def test_check_zip_code_for_ireland(code, start, end, in_range):
-    assert check_zip_code_in_range("IE", code, start, end) is in_range
+def test_check_postal_code_for_ireland(code, start, end, in_range):
+    assert check_postal_code_in_range("IE", code, start, end) is in_range
 
 
 @pytest.mark.parametrize(
@@ -64,8 +64,8 @@ def test_check_zip_code_for_ireland(code, start, end, in_range):
         ["64-620", "63-200", "63-650", False],
     ],
 )
-def test_check_zip_code_for_other_countries(code, start, end, in_range):
-    assert check_zip_code_in_range("PL", code, start, end) is in_range
+def test_check_postal_code_for_other_countries(code, start, end, in_range):
+    assert check_postal_code_in_range("PL", code, start, end) is in_range
 
 
 @pytest.mark.parametrize(
@@ -76,10 +76,10 @@ def test_check_zip_code_for_other_countries(code, start, end, in_range):
         ["JE", "GY16 7HZ", "GY16 7HA", "GY16 7HG"],
     ],
 )
-@patch("saleor.shipping.zip_codes.check_uk_zip_code")
+@patch("saleor.shipping.postal_codes.check_uk_postal_code")
 def test_check_uk_islands_follow_uk_check(check_uk_mock, country, code, start, end):
-    """Check if Isle of Man, Guernsey and Jersey triggers check_uk_zip_code method."""
-    assert check_zip_code_in_range(country, code, start, end)
+    """Check if Isle of Man, Guernsey, Jersey triggers check_uk_postal_code method."""
+    assert check_postal_code_in_range(country, code, start, end)
     check_uk_mock.assert_called_once_with(code, start, end)
 
 
@@ -87,36 +87,38 @@ def test_check_uk_islands_follow_uk_check(check_uk_mock, country, code, start, e
     "rules_result, is_applicable",
     [
         [{}, True],
-        [{Mock(inclusion_type=ZipCodeRuleInclusionType.INCLUDE): True}, True],
-        [{Mock(inclusion_type=ZipCodeRuleInclusionType.INCLUDE): False}, False],
-        [{Mock(inclusion_type=ZipCodeRuleInclusionType.EXCLUDE): True}, False],
-        [{Mock(inclusion_type=ZipCodeRuleInclusionType.EXCLUDE): False}, True],
+        [{Mock(inclusion_type=PostalCodeRuleInclusionType.INCLUDE): True}, True],
+        [{Mock(inclusion_type=PostalCodeRuleInclusionType.INCLUDE): False}, False],
+        [{Mock(inclusion_type=PostalCodeRuleInclusionType.EXCLUDE): True}, False],
+        [{Mock(inclusion_type=PostalCodeRuleInclusionType.EXCLUDE): False}, True],
         [
             {
-                Mock(inclusion_type=ZipCodeRuleInclusionType.INCLUDE): True,
-                Mock(inclusion_type=ZipCodeRuleInclusionType.INCLUDE): False,
+                Mock(inclusion_type=PostalCodeRuleInclusionType.INCLUDE): True,
+                Mock(inclusion_type=PostalCodeRuleInclusionType.INCLUDE): False,
             },
             True,
         ],
         [
             {
-                Mock(inclusion_type=ZipCodeRuleInclusionType.EXCLUDE): True,
-                Mock(inclusion_type=ZipCodeRuleInclusionType.EXCLUDE): False,
+                Mock(inclusion_type=PostalCodeRuleInclusionType.EXCLUDE): True,
+                Mock(inclusion_type=PostalCodeRuleInclusionType.EXCLUDE): False,
             },
             False,
         ],
         [
             {
-                Mock(inclusion_type=ZipCodeRuleInclusionType.EXCLUDE): True,
-                Mock(inclusion_type=ZipCodeRuleInclusionType.INCLUDE): True,
+                Mock(inclusion_type=PostalCodeRuleInclusionType.EXCLUDE): True,
+                Mock(inclusion_type=PostalCodeRuleInclusionType.INCLUDE): True,
             },
             False,
         ],
     ],
 )
-@patch("saleor.shipping.zip_codes.check_shipping_method_for_zip_code")
-def test_is_shipping_method_applicable_for_zip_code(
+@patch("saleor.shipping.postal_codes.check_shipping_method_for_postal_code")
+def test_is_shipping_method_applicable_for_postal_code(
     check_shipping_method_mock, rules_result, is_applicable
 ):
     check_shipping_method_mock.return_value = rules_result
-    assert is_shipping_method_applicable_for_zip_code(Mock(), Mock()) is is_applicable
+    assert (
+        is_shipping_method_applicable_for_postal_code(Mock(), Mock()) is is_applicable
+    )

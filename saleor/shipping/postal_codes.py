@@ -1,6 +1,6 @@
 import re
 
-from . import ZipCodeRuleInclusionType
+from . import PostalCodeRuleInclusionType
 
 
 def group_values(pattern, *values):
@@ -41,10 +41,10 @@ def compare_values(code, start, end):
     return start <= code <= end
 
 
-def check_uk_zip_code(code, start, end):
-    """Check zip code for uk, split the code by regex.
+def check_uk_postal_code(code, start, end):
+    """Check postal code for uk, split the code by regex.
 
-    Example zip codes: BH20 2BC  (UK), IM16 7HF  (Isle of Man).
+    Example postal codes: BH20 2BC  (UK), IM16 7HF  (Isle of Man).
     """
     pattern = r"^([A-Z]{1,2})([0-9]+)([A-Z]?) ?([0-9][A-Z]{2})$"
     code, start, end = group_values(pattern, code, start, end)
@@ -53,17 +53,17 @@ def check_uk_zip_code(code, start, end):
     return compare_values(code, start, end)
 
 
-def check_irish_zip_code(code, start, end):
-    """Check zip code for Ireland, split the code by regex.
+def check_irish_postal_code(code, start, end):
+    """Check postal code for Ireland, split the code by regex.
 
-    Example zip codes: A65 2F0A, A61 2F0G.
+    Example postal codes: A65 2F0A, A61 2F0G.
     """
     pattern = r"([\dA-Z]{3}) ?([\dA-Z]{4})"
     code, start, end = group_values(pattern, code, start, end)
     return compare_values(code, start, end)
 
 
-def check_any_zip_code(code, start, end):
+def check_any_postal_code(code, start, end):
     """Fallback for any country not present in country_func_map.
 
     Perform simple lexicographical comparison without splitting to sections.
@@ -71,44 +71,44 @@ def check_any_zip_code(code, start, end):
     return compare_values(code, start, end)
 
 
-def check_zip_code_in_range(country, code, start, end):
+def check_postal_code_in_range(country, code, start, end):
     country_func_map = {
-        "GB": check_uk_zip_code,  # United Kingdom
-        "IM": check_uk_zip_code,  # Isle of Man
-        "GG": check_uk_zip_code,  # Guernsey
-        "JE": check_uk_zip_code,  # Jersey
-        "IE": check_irish_zip_code,  # Ireland
+        "GB": check_uk_postal_code,  # United Kingdom
+        "IM": check_uk_postal_code,  # Isle of Man
+        "GG": check_uk_postal_code,  # Guernsey
+        "JE": check_uk_postal_code,  # Jersey
+        "IE": check_irish_postal_code,  # Ireland
     }
-    return country_func_map.get(country, check_any_zip_code)(code, start, end)
+    return country_func_map.get(country, check_any_postal_code)(code, start, end)
 
 
-def check_shipping_method_for_zip_code(customer_shipping_address, method):
+def check_shipping_method_for_postal_code(customer_shipping_address, method):
     country = customer_shipping_address.country.code
     postal_code = customer_shipping_address.postal_code
-    zip_code_rules = method.zip_code_rules.all()
+    postal_code_rules = method.postal_code_rules.all()
     return {
-        rule: check_zip_code_in_range(country, postal_code, rule.start, rule.end)
-        for rule in zip_code_rules
+        rule: check_postal_code_in_range(country, postal_code, rule.start, rule.end)
+        for rule in postal_code_rules
     }
 
 
-def is_shipping_method_applicable_for_zip_code(
+def is_shipping_method_applicable_for_postal_code(
     customer_shipping_address, method
 ) -> bool:
-    """Return if shipping method is applicable with the ZIP code rules."""
-    results = check_shipping_method_for_zip_code(customer_shipping_address, method)
+    """Return if shipping method is applicable with the postal code rules."""
+    results = check_shipping_method_for_postal_code(customer_shipping_address, method)
     if not results:
         return True
     if all(
         map(
-            lambda rule: rule.inclusion_type == ZipCodeRuleInclusionType.INCLUDE,
+            lambda rule: rule.inclusion_type == PostalCodeRuleInclusionType.INCLUDE,
             results.keys(),
         )
     ):
         return any(results.values())
     if all(
         map(
-            lambda rule: rule.inclusion_type == ZipCodeRuleInclusionType.EXCLUDE,
+            lambda rule: rule.inclusion_type == PostalCodeRuleInclusionType.EXCLUDE,
             results.keys(),
         )
     ):
@@ -117,13 +117,13 @@ def is_shipping_method_applicable_for_zip_code(
     return False
 
 
-def filter_shipping_methods_by_zip_code_rules(shipping_methods, shipping_address):
-    """Filter shipping methods for given address by ZIP code rules."""
+def filter_shipping_methods_by_postal_code_rules(shipping_methods, shipping_address):
+    """Filter shipping methods for given address by postal code rules."""
 
-    excluded_methods_by_zip_code = []
+    excluded_methods_by_postal_code = []
     for method in shipping_methods:
-        if not is_shipping_method_applicable_for_zip_code(shipping_address, method):
-            excluded_methods_by_zip_code.append(method.pk)
-    if excluded_methods_by_zip_code:
-        return shipping_methods.exclude(pk__in=excluded_methods_by_zip_code)
+        if not is_shipping_method_applicable_for_postal_code(shipping_address, method):
+            excluded_methods_by_postal_code.append(method.pk)
+    if excluded_methods_by_postal_code:
+        return shipping_methods.exclude(pk__in=excluded_methods_by_postal_code)
     return shipping_methods

@@ -5,7 +5,7 @@ from django.db.utils import IntegrityError
 
 from ....core.permissions import ShippingPermissions
 from ....product import models as product_models
-from ....shipping import ZipCodeRuleInclusionType, models
+from ....shipping import PostalCodeRuleInclusionType, models
 from ....shipping.error_codes import ShippingErrorCode
 from ....shipping.utils import (
     default_shipping_zone_exists,
@@ -18,8 +18,8 @@ from ...core.types.common import ShippingError
 from ...core.utils import get_duplicates_ids
 from ...product import types as product_types
 from ...utils import resolve_global_ids_to_primary_keys
-from ..enums import ShippingMethodTypeEnum, ZipCodeRuleInclusionTypeEnum
-from ..types import ShippingMethod, ShippingMethodZipCodeRule, ShippingZone
+from ..enums import PostalCodeRuleInclusionTypeEnum, ShippingMethodTypeEnum
+from ..types import ShippingMethod, ShippingMethodPostalCodeRule, ShippingZone
 
 
 class ShippingPriceInput(graphene.InputObjectType):
@@ -171,26 +171,28 @@ class ShippingZoneUpdate(ShippingZoneMixin, ModelMutation):
         return response
 
 
-class ShippingZipCodeRulesCreateInputRange(graphene.InputObjectType):
-    start = graphene.String(required=True, description="Start range of the zip code.")
-    end = graphene.String(required=False, description="End range of the zip code.")
-    inclusion_type = ZipCodeRuleInclusionTypeEnum(
-        required=False, description="Inclusion type for given zip code rules."
+class ShippingPostalCodeRulesCreateInputRange(graphene.InputObjectType):
+    start = graphene.String(
+        required=True, description="Start range of the postal code."
+    )
+    end = graphene.String(required=False, description="End range of the postal code.")
+    inclusion_type = PostalCodeRuleInclusionTypeEnum(
+        required=False, description="Inclusion type for given postal code rules."
     )
 
 
-class ShippingZipCodeRulesCreateInput(graphene.InputObjectType):
-    zip_code_rules = graphene.List(
-        ShippingZipCodeRulesCreateInputRange,
+class ShippingPostalCodeRulesCreateInput(graphene.InputObjectType):
+    postal_code_rules = graphene.List(
+        ShippingPostalCodeRulesCreateInputRange,
         required=True,
-        description="Zip code rules for shipping method.",
+        description="Postal code rules for shipping method.",
     )
 
 
-class ShippingZipCodeRulesCreate(BaseMutation):
-    zip_code_rules = graphene.List(
-        ShippingMethodZipCodeRule,
-        description="A shipping method zip code range.",
+class ShippingPostalCodeRulesCreate(BaseMutation):
+    postal_code_rules = graphene.List(
+        ShippingMethodPostalCodeRule,
+        description="A shipping method postal code range.",
     )
     shipping_method = graphene.Field(
         ShippingMethod, description="Related shipping method."
@@ -200,12 +202,13 @@ class ShippingZipCodeRulesCreate(BaseMutation):
         shipping_method_id = graphene.ID(
             required=True, description="ID of a shipping method to assign."
         )
-        input = ShippingZipCodeRulesCreateInput(
-            description="Fields required to create a shipping zip codes.", required=True
+        input = ShippingPostalCodeRulesCreateInput(
+            description="Fields required to create a shipping postal codes.",
+            required=True,
         )
 
     class Meta:
-        description = "Create a new zip code exclusion range for shipping method."
+        description = "Create a new postal code exclusion range for shipping method."
         permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"
@@ -217,14 +220,14 @@ class ShippingZipCodeRulesCreate(BaseMutation):
         )
         instances = []
         with transaction.atomic():
-            for zip_range in data["input"]["zip_code_rules"]:
+            for postal_range in data["input"]["postal_code_rules"]:
                 try:
-                    start = zip_range["start"]
-                    end = zip_range.get("end")
-                    inclusion_type = zip_range.get(
-                        "inclusion_type", ZipCodeRuleInclusionType.EXCLUDE
+                    start = postal_range["start"]
+                    end = postal_range.get("end")
+                    inclusion_type = postal_range.get(
+                        "inclusion_type", PostalCodeRuleInclusionType.EXCLUDE
                     )
-                    instance = models.ShippingMethodZipCodeRule.objects.create(
+                    instance = models.ShippingMethodPostalCodeRule.objects.create(
                         shipping_method=shipping_method,
                         start=start,
                         end=end,
@@ -233,32 +236,32 @@ class ShippingZipCodeRulesCreate(BaseMutation):
                 except IntegrityError:
                     raise ValidationError(
                         {
-                            "zipCodeRules": ValidationError(
+                            "postalCodeRules": ValidationError(
                                 f"Entry start: {start}, end: {end} already exists.",
                                 code=ShippingErrorCode.ALREADY_EXISTS.value,
                             )
                         }
                     )
                 instances.append(instance)
-        return ShippingZipCodeRulesCreate(
-            zip_code_rules=instances,
+        return ShippingPostalCodeRulesCreate(
+            postal_code_rules=instances,
             shipping_method=ChannelContext(node=shipping_method, channel_slug=None),
         )
 
 
-class ShippingZipCodeRulesDelete(ModelDeleteMutation):
+class ShippingPostalCodeRulesDelete(ModelDeleteMutation):
     shipping_method = graphene.Field(
-        ShippingMethod, description="Shipping method of deleted zip code rule."
+        ShippingMethod, description="Shipping method of deleted postal code rule."
     )
 
     class Arguments:
         id = graphene.ID(
-            required=True, description="ID of a shipping method zip code to delete."
+            required=True, description="ID of a shipping method postal code to delete."
         )
 
     class Meta:
-        description = "Deletes a shipping method zip code."
-        model = models.ShippingMethodZipCodeRule
+        description = "Deletes a shipping method postal code."
+        model = models.ShippingMethodPostalCodeRule
         permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"
@@ -268,15 +271,15 @@ class ShippingZipCodeRulesDelete(ModelDeleteMutation):
         instance = cls.get_instance(info, **data)
         shipping_method = instance.shipping_method
         super().perform_mutation(_root, info, **data)
-        return ShippingZipCodeRulesDelete(
+        return ShippingPostalCodeRulesDelete(
             shipping_method=ChannelContext(node=shipping_method, channel_slug=None)
         )
 
 
-class ShippingZipCodeRulesUpdateInclusionType(BaseMutation):
-    zip_code_rules = graphene.List(
-        ShippingMethodZipCodeRule,
-        description="A shipping method zip code ranges.",
+class ShippingPostalCodeRulesUpdateInclusionType(BaseMutation):
+    postal_code_rules = graphene.List(
+        ShippingMethodPostalCodeRule,
+        description="A shipping method postal code ranges.",
     )
     shipping_method = graphene.Field(
         ShippingMethod, description="Related shipping method."
@@ -286,13 +289,15 @@ class ShippingZipCodeRulesUpdateInclusionType(BaseMutation):
         shipping_method_id = graphene.ID(
             required=True, description="ID of a shipping method to change."
         )
-        inclusion_type = ZipCodeRuleInclusionTypeEnum(
+        inclusion_type = PostalCodeRuleInclusionTypeEnum(
             required=True,
-            description="Inclusion type for shipping method zip code rules.",
+            description="Inclusion type for shipping method postal code rules.",
         )
 
     class Meta:
-        description = "Set inclusion type for zip code rules of given shipping method."
+        description = (
+            "Set inclusion type for postal code rules of given shipping method."
+        )
         permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"
@@ -304,10 +309,10 @@ class ShippingZipCodeRulesUpdateInclusionType(BaseMutation):
         )
         inclusion_type = data["inclusion_type"]
 
-        shipping_method.zip_code_rules.all().update(inclusion_type=inclusion_type)
+        shipping_method.postal_code_rules.all().update(inclusion_type=inclusion_type)
 
-        return ShippingZipCodeRulesUpdateInclusionType(
-            zip_code_rules=shipping_method.zip_code_rules.all(),
+        return ShippingPostalCodeRulesUpdateInclusionType(
+            postal_code_rules=shipping_method.postal_code_rules.all(),
             shipping_method=ChannelContext(node=shipping_method, channel_slug=None),
         )
 

@@ -8,11 +8,11 @@ class ShippingMethodType:
     ]
 
 
-class ZipCodeRuleInclusionType:
+class PostalCodeRuleInclusionType:
     INCLUDE = "include"
     EXCLUDE = "exclude"
 
     CHOICES = [
-        (INCLUDE, "Shipping method should include ZIP code rule"),
-        (EXCLUDE, "Shipping method should exclude ZIP code rule"),
+        (INCLUDE, "Shipping method should include postal code rule"),
+        (EXCLUDE, "Shipping method should exclude postal code rule"),
     ]
