@@ -11,6 +11,7 @@ from ....product.models import (
     ProductVariant,
     ProductVariantChannelListing,
 )
+from ....tests.utils import dummy_editorjs
 from ...channel.filters import LACK_OF_CHANNEL_IN_FILTERING_MSG
 from ...channel.sorters import LACK_OF_CHANNEL_IN_SORTING_MSG
 from ...tests.utils import assert_graphql_error_with_message, get_graphql_content
@@ -26,7 +27,7 @@ def products_for_sorting_with_channels(category, channel_USD, channel_PLN):
                 slug="prod1",
                 category=category,
                 product_type=product_type,
-                description="desc1",
+                description=dummy_editorjs("Test description 1."),
             ),
             Product(
                 name="ProductProduct1",
@@ -45,14 +46,14 @@ def products_for_sorting_with_channels(category, channel_USD, channel_PLN):
                 slug="prod2",
                 category=category,
                 product_type=product_type,
-                description="desc2",
+                description=dummy_editorjs("Test description 2."),
             ),
             Product(
                 name="Product3",
                 slug="prod3",
                 category=category,
                 product_type=product_type,
-                description="desc3",
+                description=dummy_editorjs("Test description 3."),
             ),
         ]
     )

@@ -53,8 +53,7 @@ class SeoTranslationInput(graphene.InputObjectType):
 
 
 class TranslationInput(NameTranslationInput, SeoTranslationInput):
-    description = graphene.String()
-    description_json = graphene.JSONString()
+    description = graphene.JSONString()
 
 
 class CategoryTranslate(BaseTranslateMutation):
@@ -269,8 +268,7 @@ class MenuItemTranslate(BaseTranslateMutation):
 
 class PageTranslationInput(SeoTranslationInput):
     title = graphene.String()
-    content = graphene.String()
-    content_json = graphene.JSONString()
+    content = graphene.JSONString()
 
 
 class PageTranslate(BaseTranslateMutation):
