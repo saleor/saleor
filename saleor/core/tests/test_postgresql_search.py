@@ -2,8 +2,8 @@ import pytest
 from django.utils.text import slugify
 
 from ...account.models import Address
+from ...graphql.product.filters import product_search
 from ...product.models import Product, ProductChannelListing
-from ...search.backends.postgresql import search_storefront
 from ...tests.utils import dummy_editorjs
 
 PRODUCTS = [
@@ -20,6 +20,7 @@ def named_products(category, product_type, channel_USD):
             name=name,
             slug=slugify(name),
             description=dummy_editorjs(description),
+            description_plaintext=description,
             product_type=product_type,
             category=category,
         )
@@ -35,7 +36,7 @@ def named_products(category, product_type, channel_USD):
 
 def execute_search(phrase):
     """Execute storefront search."""
-    return search_storefront(phrase)
+    return product_search(phrase)
 
 
 @pytest.mark.parametrize(
@@ -45,10 +46,7 @@ def execute_search(phrase):
         ("Aarabica", 0),
         ("Arab", 0),
         ("czicken", 2),
-        # FIXME: Add possibility to search by JSON field,
-        # description field is changed from string to JSON
-        # https://github.com/mirumee/saleor/issues/5679
-        # ("blue", 1),
+        ("blue", 1),
         ("roast", 2),
         ("coool", 1),
     ],

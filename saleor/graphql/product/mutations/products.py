@@ -12,6 +12,7 @@ from ....attribute import AttributeInputType, AttributeType
 from ....attribute import models as attribute_models
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import ProductPermissions, ProductTypePermissions
+from ....core.utils.editorjs import clean_editor_js
 from ....order import OrderStatus
 from ....order import models as order_models
 from ....product import models
@@ -534,6 +535,11 @@ class ProductCreate(ModelMutation):
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
 
+        description = cleaned_input.get("description")
+        cleaned_input["description_plaintext"] = (
+            clean_editor_js(description, to_string=True) if description else ""
+        )
+
         weight = cleaned_input.get("weight")
         if weight and weight.value < 0:
             raise ValidationError(
@@ -606,7 +612,6 @@ class ProductCreate(ModelMutation):
     @transaction.atomic
     def save(cls, info, instance, cleaned_input):
         instance.save()
-
         attributes = cleaned_input.get("attributes")
         if attributes:
             AttributeAssignmentMixin.save(instance, attributes)

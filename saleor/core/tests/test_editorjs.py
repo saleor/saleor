@@ -3,7 +3,7 @@ from unittest import mock
 
 import pytest
 
-from ..sanitizers.editorjs_sanitizer import clean_editor_js
+from ..utils.editorjs import clean_editor_js
 
 
 @pytest.mark.parametrize(
@@ -30,6 +30,12 @@ def test_clean_editor_js(text):
     # then
     assert result == data
 
+    # when
+    result = clean_editor_js(data, to_string=True)
+
+    # then
+    assert result == text
+
 
 def test_clean_editor_js_no_blocks():
     # given
@@ -40,6 +46,12 @@ def test_clean_editor_js_no_blocks():
 
     # then
     assert result == data
+
+    # when
+    result = clean_editor_js(data, to_string=True)
+
+    # then
+    assert result == ""
 
 
 def test_clean_editor_js_no_data():
@@ -52,8 +64,14 @@ def test_clean_editor_js_no_data():
     # then
     assert result == data
 
+    # when
+    result = clean_editor_js(data, to_string=True)
 
-@mock.patch("saleor.core.sanitizers.editorjs_sanitizer.parse_url")
+    # then
+    assert result == ""
+
+
+@mock.patch("saleor.core.utils.editorjs.parse_url")
 def test_clean_editor_js_invalid_url(parse_url_mock):
     # given
     response_mock = mock.Mock()
@@ -115,8 +133,21 @@ def test_clean_editor_js_for_list():
     # then
     assert result == data
 
+    # when
+    result = clean_editor_js(data, to_string=True)
 
-@mock.patch("saleor.core.sanitizers.editorjs_sanitizer.parse_url")
+    # then
+    assert result == (
+        "The Saleor Winter Sale is snowed "
+        '<a href="https://docs.saleor.io/docs/">. Test.'
+        "It is a block-styled editor "
+        '<a href="https://docs.saleor.io/docs/">.'
+        "It returns clean data output in JSON"
+        "Designed to be extendable and pluggable with a simple API"
+    )
+
+
+@mock.patch("saleor.core.utils.editorjs.parse_url")
 def test_clean_editor_js_for_list_invalid_url(parse_url_mock):
     # given
     response_mock = mock.Mock()
