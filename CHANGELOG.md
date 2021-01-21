@@ -4,6 +4,11 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+# 2.11.6
+
+- Add Authorize.Net integration - #6752 by @bufke
+- Remove default id resolver from open tracing - #6719, #6740 by @fowczarek
+
 # 2.11.5
 
 - Fix duplicated products in `Collection.products` query - #6666 by @d-wysocki
