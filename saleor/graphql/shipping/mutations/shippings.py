@@ -276,47 +276,6 @@ class ShippingPostalCodeRulesDelete(ModelDeleteMutation):
         )
 
 
-class ShippingPostalCodeRulesUpdateInclusionType(BaseMutation):
-    postal_code_rules = graphene.List(
-        ShippingMethodPostalCodeRule,
-        description="A shipping method postal code ranges.",
-    )
-    shipping_method = graphene.Field(
-        ShippingMethod, description="Related shipping method."
-    )
-
-    class Arguments:
-        shipping_method_id = graphene.ID(
-            required=True, description="ID of a shipping method to change."
-        )
-        inclusion_type = PostalCodeRuleInclusionTypeEnum(
-            required=True,
-            description="Inclusion type for shipping method postal code rules.",
-        )
-
-    class Meta:
-        description = (
-            "Set inclusion type for postal code rules of given shipping method."
-        )
-        permissions = (ShippingPermissions.MANAGE_SHIPPING,)
-        error_type_class = ShippingError
-        error_type_field = "shipping_errors"
-
-    @classmethod
-    def perform_mutation(cls, root, info, **data):
-        shipping_method = cls.get_node_or_error(
-            info, data["shipping_method_id"], only_type=ShippingMethod
-        )
-        inclusion_type = data["inclusion_type"]
-
-        shipping_method.postal_code_rules.all().update(inclusion_type=inclusion_type)
-
-        return ShippingPostalCodeRulesUpdateInclusionType(
-            postal_code_rules=shipping_method.postal_code_rules.all(),
-            shipping_method=ChannelContext(node=shipping_method, channel_slug=None),
-        )
-
-
 class ShippingZoneDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a shipping zone to delete.")

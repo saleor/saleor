@@ -575,59 +575,6 @@ def test_delete_shipping_method_postal_code(
     assert not shipping_method_excluded_by_postal_code.postal_code_rules.exists()
 
 
-UPDATE_SHIPPING_METHOD_POSTAL_CODE_RULES_INCLUSION_MUTATION = """
-    mutation updatePostalCodeRulesInclusion(
-        $inclusionType: PostalCodeRuleInclusionTypeEnum!
-        $id: ID!
-    ){
-        shippingMethodPostalCodeRulesUpdateInclusionType(
-            inclusionType: $inclusionType,
-            shippingMethodId: $id){
-                postalCodeRules {
-                    start
-                    end
-                    inclusionType
-                }
-                shippingMethod {
-                    id
-                    name
-                }
-                shippingErrors {
-                    field
-                    code
-                }
-            }
-
-    }
-"""
-
-
-def test_update_shipping_method_postal_code_rules_inclusion_type(
-    staff_api_client,
-    shipping_method_excluded_by_postal_code,
-    permission_manage_shipping,
-):
-    shipping_method_id = graphene.Node.to_global_id(
-        "ShippingMethod", shipping_method_excluded_by_postal_code.id
-    )
-    response = staff_api_client.post_graphql(
-        UPDATE_SHIPPING_METHOD_POSTAL_CODE_RULES_INCLUSION_MUTATION,
-        {
-            "id": shipping_method_id,
-            "inclusionType": PostalCodeRuleInclusionTypeEnum.INCLUDE.name,
-        },
-        permissions=[permission_manage_shipping],
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["shippingMethodPostalCodeRulesUpdateInclusionType"]
-    assert data["shippingErrors"] == []
-    assert data["shippingMethod"]["id"] == shipping_method_id
-    assert (
-        shipping_method_excluded_by_postal_code.postal_code_rules.first().inclusion_type
-        == PostalCodeRuleInclusionTypeEnum.INCLUDE.value
-    )
-
-
 UPDATE_SHIPPING_ZONE_QUERY = """
     mutation updateShipping(
         $id: ID!

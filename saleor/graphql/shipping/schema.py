@@ -10,7 +10,6 @@ from .mutations.channels import ShippingMethodChannelListingUpdate
 from .mutations.shippings import (
     ShippingPostalCodeRulesCreate,
     ShippingPostalCodeRulesDelete,
-    ShippingPostalCodeRulesUpdateInclusionType,
     ShippingPriceCreate,
     ShippingPriceDelete,
     ShippingPriceExcludeProducts,
@@ -57,9 +56,6 @@ class ShippingMutations(graphene.ObjectType):
     shipping_method_channel_listing_update = ShippingMethodChannelListingUpdate.Field()
     shipping_method_postal_code_rules_create = ShippingPostalCodeRulesCreate.Field()
     shipping_method_postal_code_rules_delete = ShippingPostalCodeRulesDelete.Field()
-    shipping_method_postal_code_rules_update_inclusion_type = (
-        ShippingPostalCodeRulesUpdateInclusionType.Field()
-    )
     shipping_price_create = ShippingPriceCreate.Field()
     shipping_price_delete = ShippingPriceDelete.Field()
     shipping_price_bulk_delete = ShippingPriceBulkDelete.Field()

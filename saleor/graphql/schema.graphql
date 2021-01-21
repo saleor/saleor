@@ -2609,7 +2609,6 @@ type Mutation {
   shippingMethodChannelListingUpdate(id: ID!, input: ShippingMethodChannelListingInput!): ShippingMethodChannelListingUpdate
   shippingMethodPostalCodeRulesCreate(input: ShippingPostalCodeRulesCreateInput!, shippingMethodId: ID!): ShippingPostalCodeRulesCreate
   shippingMethodPostalCodeRulesDelete(id: ID!): ShippingPostalCodeRulesDelete
-  shippingMethodPostalCodeRulesUpdateInclusionType(inclusionType: PostalCodeRuleInclusionTypeEnum!, shippingMethodId: ID!): ShippingPostalCodeRulesUpdateInclusionType
   shippingPriceCreate(input: ShippingPriceInput!): ShippingPriceCreate
   shippingPriceDelete(id: ID!): ShippingPriceDelete
   shippingPriceBulkDelete(ids: [ID]!): ShippingPriceBulkDelete
@@ -4829,13 +4828,6 @@ type ShippingPostalCodeRulesDelete {
   shippingMethod: ShippingMethod
   shippingErrors: [ShippingError!]!
   shippingMethodPostalCodeRule: ShippingMethodPostalCodeRule
-}
-
-type ShippingPostalCodeRulesUpdateInclusionType {
-  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  postalCodeRules: [ShippingMethodPostalCodeRule]
-  shippingMethod: ShippingMethod
-  shippingErrors: [ShippingError!]!
 }
 
 type ShippingPriceBulkDelete {
