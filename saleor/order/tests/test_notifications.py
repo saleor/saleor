@@ -23,9 +23,13 @@ def test_get_order_line_payload(order_line):
     total_net = order_line.unit_price_net * order_line.quantity
     total_tax = total_gross - total_net
     assert payload == {
+        "translated_product_name": order_line.translated_product_name
+        or order_line.product_name,
+        "translated_variant_name": order_line.translated_variant_name
+        or order_line.variant_name,
         "id": order_line.id,
-        "product_name": order_line.translated_product_name or order_line.product_name,
-        "variant_name": order_line.translated_variant_name or order_line.variant_name,
+        "product_name": order_line.product_name,
+        "variant_name": order_line.variant_name,
         "product_sku": order_line.product_sku,
         "is_shipping_required": order_line.is_shipping_required,
         "quantity": order_line.quantity,
@@ -69,6 +73,7 @@ def test_get_default_order_payload(order_line):
     subtotal = order.get_subtotal()
     tax = order.total_gross_amount - order.total_net_amount
     assert payload == {
+        "channel_slug": order.channel.slug,
         "id": order.id,
         "token": order.token,
         "created": order.created,
