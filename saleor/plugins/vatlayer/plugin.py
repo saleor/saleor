@@ -9,7 +9,7 @@ from django_prices_vatlayer.utils import (
     fetch_rates,
     get_tax_rate_types,
 )
-from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
+from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from ...checkout import calculations
 from ...core.taxes import TaxType
@@ -281,15 +281,6 @@ class VatlayerPlugin(BasePlugin):
         if not self.active:
             return previous_value
         return True
-
-    def apply_taxes_to_shipping_price_range(
-        self, prices: MoneyRange, country: Country, previous_value: TaxedMoneyRange
-    ) -> TaxedMoneyRange:
-        if self._skip_plugin(previous_value):
-            return previous_value
-
-        taxes = self._get_taxes_for_country(country)
-        return get_taxed_shipping_price(prices, taxes)
 
     def apply_taxes_to_shipping(
         self, price: Money, shipping_address: "Address", previous_value: TaxedMoney

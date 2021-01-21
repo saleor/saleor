@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, Iterable, List, Optional, Union
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
 from django_countries.fields import Country
-from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
+from prices import Money, TaxedMoney
 
 from ..payment.interface import (
     CustomerSource,
@@ -234,15 +234,6 @@ class BasePlugin:
 
         It is used only by the old storefront. The returned value determines if
         storefront should append info to the price about "including/excluding X% VAT".
-        """
-        return NotImplemented
-
-    def apply_taxes_to_shipping_price_range(
-        self, prices: MoneyRange, country: Country, previous_value: TaxedMoneyRange
-    ) -> TaxedMoneyRange:
-        """Provide the estimation of shipping costs based on country.
-
-        It is used only by the old storefront in the cart view.
         """
         return NotImplemented
 

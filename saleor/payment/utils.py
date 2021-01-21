@@ -152,6 +152,7 @@ def create_transaction(
     action_required: bool = False,
     gateway_response: GatewayResponse = None,
     error_msg=None,
+    is_success=False,
 ) -> Transaction:
     """Create a transaction based on transaction kind and gateway response."""
     # Default values for token, amount, currency are only used in cases where
@@ -161,7 +162,7 @@ def create_transaction(
             kind=kind,
             action_required=False,
             transaction_id=payment_information.token or "",
-            is_success=False,
+            is_success=is_success,
             amount=payment_information.amount,
             currency=payment_information.currency,
             error=error_msg,

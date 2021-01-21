@@ -4,6 +4,8 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Callable, Dict, Optional
 
 import Adyen
+import opentracing
+import opentracing.tags
 from babel.numbers import get_currency_precision
 from django.conf import settings
 from django_countries.fields import Country
@@ -360,7 +362,13 @@ def call_capture(
         merchant_account=merchant_account,
         token=token,
     )
-    return api_call(request, adyen_client.payment.capture)
+    with opentracing.global_tracer().start_active_span(
+        "adyen.payment.capture"
+    ) as scope:
+        span = scope.span
+        span.set_tag(opentracing.tags.COMPONENT, "payment")
+        span.set_tag("service.name", "adyen")
+        return api_call(request, adyen_client.payment.capture)
 
 
 def request_for_payment_cancel(
