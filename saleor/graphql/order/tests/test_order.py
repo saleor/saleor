@@ -253,6 +253,7 @@ query OrdersQuery {
                 channel {
                     slug
                 }
+                languageCodeEnum
                 statusDisplay
                 paymentStatus
                 paymentStatusDisplay
@@ -336,6 +337,7 @@ def test_order_query(
     assert order_data["paymentStatusDisplay"] == payment_status_display
     assert order_data["isPaid"] == order.is_fully_paid()
     assert order_data["userEmail"] == order.user_email
+    assert order_data["languageCodeEnum"] == order.language_code.upper()
     expected_price = Money(
         amount=str(order_data["shippingPrice"]["gross"]["amount"]), currency="USD"
     )

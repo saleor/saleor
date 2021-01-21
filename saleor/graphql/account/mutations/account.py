@@ -14,6 +14,7 @@ from ....core.utils.url import validate_storefront_url
 from ....settings import JWT_TTL_REQUEST_EMAIL_CHANGE
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
+from ...core.enums import LanguageCodeEnum
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types.common import AccountError
 from ..i18n import I18nMixin
@@ -33,6 +34,9 @@ class AccountRegisterInput(graphene.InputObjectType):
             "Base of frontend URL that will be needed to create confirmation URL."
         ),
         required=False,
+    )
+    language_code = graphene.Argument(
+        LanguageCodeEnum, required=False, description="User language code."
     )
 
 
@@ -88,7 +92,7 @@ class AccountRegister(ModelMutation):
             password_validation.validate_password(password, instance)
         except ValidationError as error:
             raise ValidationError({"password": error})
-
+        data["language_code"] = data.get("language_code") or settings.LANGUAGE_CODE
         return super().clean_input(info, instance, data, input_cls=None)
 
     @classmethod
@@ -115,6 +119,9 @@ class AccountInput(graphene.InputObjectType):
     )
     default_shipping_address = AddressInput(
         description="Shipping address of the customer."
+    )
+    language_code = graphene.Argument(
+        LanguageCodeEnum, required=False, description="User language code."
     )
 
 

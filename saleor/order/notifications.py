@@ -87,6 +87,7 @@ ORDER_MODEL_FIELDS = [
     "metadata",
     "private_metadata",
     "user_id",
+    "language_code",
 ]
 
 

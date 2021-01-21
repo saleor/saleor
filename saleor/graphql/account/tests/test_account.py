@@ -91,6 +91,7 @@ FULL_USER_QUERY = """
             orders {
                 totalCount
             }
+            languageCode
             dateJoined
             lastLogin
             defaultShippingAddress {
@@ -154,7 +155,12 @@ FULL_USER_QUERY = """
 
 
 def test_query_customer_user(
-    staff_api_client, customer_user, address, permission_manage_users, media_root
+    staff_api_client,
+    customer_user,
+    address,
+    permission_manage_users,
+    media_root,
+    settings,
 ):
     user = customer_user
     user.default_shipping_address.country = "US"
@@ -182,6 +188,7 @@ def test_query_customer_user(
     assert data["isActive"] == user.is_active
     assert data["orders"]["totalCount"] == user.orders.count()
     assert data["avatar"]["url"]
+    assert data["languageCode"] == settings.LANGUAGE_CODE.upper()
     assert len(data["editableGroups"]) == 0
 
     assert len(data["addresses"]) == user.addresses.count()
@@ -827,13 +834,15 @@ ACCOUNT_REGISTER_MUTATION = """
     mutation RegisterAccount(
         $password: String!,
         $email: String!,
-        $redirectUrl: String
+        $redirectUrl: String,
+        $languageCode: LanguageCodeEnum
     ) {
         accountRegister(
             input: {
                 password: $password,
                 email: $email,
-                redirectUrl: $redirectUrl
+                redirectUrl: $redirectUrl,
+                languageCode: $languageCode,
             }
         ) {
             accountErrors {
@@ -862,6 +871,7 @@ def test_customer_register(mocked_notify, mocked_generator, api_client):
         "email": email,
         "password": "Password",
         "redirectUrl": redirect_url,
+        "languageCode": "PL",
     }
     query = ACCOUNT_REGISTER_MUTATION
     mutation_name = "accountRegister"
@@ -881,7 +891,7 @@ def test_customer_register(mocked_notify, mocked_generator, api_client):
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
     }
-
+    assert new_user.language_code == "pl"
     assert not data["accountErrors"]
     mocked_notify.assert_called_once_with(
         NotifyEventType.ACCOUNT_CONFIRMATION, payload=expected_payload
@@ -929,15 +939,16 @@ CUSTOMER_CREATE_MUTATION = """
     mutation CreateCustomer(
         $email: String, $firstName: String, $lastName: String,
         $note: String, $billing: AddressInput, $shipping: AddressInput,
-        $redirect_url: String) {
+        $redirect_url: String, $languageCode: LanguageCodeEnum) {
         customerCreate(input: {
             email: $email,
             firstName: $firstName,
             lastName: $lastName,
             note: $note,
             defaultShippingAddress: $shipping,
-            defaultBillingAddress: $billing
-            redirectUrl: $redirect_url
+            defaultBillingAddress: $billing,
+            redirectUrl: $redirect_url,
+            languageCode: $languageCode
         }) {
             errors {
                 field
@@ -955,6 +966,7 @@ CUSTOMER_CREATE_MUTATION = """
                 defaultShippingAddress {
                     id
                 }
+                languageCode
                 email
                 firstName
                 lastName
@@ -987,6 +999,7 @@ def test_customer_create(
         "shipping": address_data,
         "billing": address_data,
         "redirect_url": redirect_url,
+        "languageCode": "PL",
     }
 
     response = staff_api_client.post_graphql(
@@ -1010,6 +1023,7 @@ def test_customer_create(
     assert data["user"]["firstName"] == first_name
     assert data["user"]["lastName"] == last_name
     assert data["user"]["note"] == note
+    assert data["user"]["languageCode"] == "PL"
     assert not data["user"]["isStaff"]
     assert data["user"]["isActive"]
 
@@ -1125,14 +1139,15 @@ def test_customer_update(
     mutation UpdateCustomer(
             $id: ID!, $firstName: String, $lastName: String,
             $isActive: Boolean, $note: String, $billing: AddressInput,
-            $shipping: AddressInput) {
+            $shipping: AddressInput, $languageCode: LanguageCodeEnum) {
         customerUpdate(id: $id, input: {
             isActive: $isActive,
             firstName: $firstName,
             lastName: $lastName,
             note: $note,
             defaultBillingAddress: $billing
-            defaultShippingAddress: $shipping
+            defaultShippingAddress: $shipping,
+            languageCode: $languageCode
         }) {
             errors {
                 field
@@ -1148,6 +1163,7 @@ def test_customer_update(
                 defaultShippingAddress {
                     id
                 }
+                languageCode
                 isActive
                 note
             }
@@ -1179,6 +1195,7 @@ def test_customer_update(
         "note": note,
         "billing": address_data,
         "shipping": address_data,
+        "languageCode": "PL",
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_users]
@@ -1203,6 +1220,7 @@ def test_customer_update(
     assert data["user"]["firstName"] == first_name
     assert data["user"]["lastName"] == last_name
     assert data["user"]["note"] == note
+    assert data["user"]["languageCode"] == "PL"
     assert not data["user"]["isActive"]
 
     # The name was changed, an event should have been triggered
@@ -1296,13 +1314,14 @@ def test_customer_update_without_any_changes_generates_no_event(
 ACCOUNT_UPDATE_QUERY = """
     mutation accountUpdate(
             $billing: AddressInput, $shipping: AddressInput, $firstName: String,
-            $lastName: String) {
+            $lastName: String, $languageCode: LanguageCodeEnum) {
         accountUpdate(
           input: {
             defaultBillingAddress: $billing,
             defaultShippingAddress: $shipping,
             firstName: $firstName,
             lastName: $lastName,
+            languageCode: $languageCode
         }) {
             errors {
                 field
@@ -1318,10 +1337,27 @@ ACCOUNT_UPDATE_QUERY = """
                 defaultShippingAddress {
                     id
                 }
+                languageCode
             }
         }
     }
 """
+
+
+def test_logged_customer_updates_language_code(user_api_client):
+    language_code = "PL"
+    user = user_api_client.user
+    assert user.language_code != language_code
+    variables = {"languageCode": language_code}
+
+    response = user_api_client.post_graphql(ACCOUNT_UPDATE_QUERY, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["accountUpdate"]
+
+    assert not data["errors"]
+    assert data["user"]["languageCode"] == language_code
+    user.refresh_from_db()
+    assert user.language_code == language_code.lower()
 
 
 def test_logged_customer_update_names(user_api_client):

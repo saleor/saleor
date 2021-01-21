@@ -780,6 +780,7 @@ def test_create_order_use_tanslations(
     checkout.shipping_method = shipping_method
     checkout.tracking_code = ""
     checkout.redirect_url = "https://www.example.com"
+    checkout.language_code = "fr"
     checkout.save()
 
     manager = get_plugins_manager()

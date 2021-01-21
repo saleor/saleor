@@ -2,9 +2,9 @@ import graphene
 import pytest
 from django.contrib.auth.models import Permission
 
+from ...core.enums import LanguageCodeEnum
 from ...tests.utils import assert_no_permission, get_graphql_content
 from ..schema import TranslatableKinds
-from ..types import LanguageCodeEnum
 
 
 def test_product_translation(user_api_client, product, channel_USD):

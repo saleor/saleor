@@ -18,6 +18,7 @@ def get_default_user_payload(user: User):
         "is_active": user.is_active,
         "private_metadata": user.private_metadata,
         "metadata": user.metadata,
+        "language_code": user.language_code,
     }
 
 

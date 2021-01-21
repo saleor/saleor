@@ -87,7 +87,9 @@ class Order(ModelWithMetadata):
         related_name="orders",
         on_delete=models.SET_NULL,
     )
-    language_code = models.CharField(max_length=35, default=settings.LANGUAGE_CODE)
+    language_code = models.CharField(
+        max_length=35, choices=settings.LANGUAGES, default=settings.LANGUAGE_CODE
+    )
     tracking_client_id = models.CharField(max_length=36, blank=True, editable=False)
     billing_address = models.ForeignKey(
         Address, related_name="+", editable=False, null=True, on_delete=models.SET_NULL
