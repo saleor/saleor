@@ -1451,6 +1451,149 @@ def test_products_query_with_filter_attributes(
     assert products[0]["node"]["name"] == second_product.name
 
 
+@pytest.mark.parametrize(
+    "gte, lte, expected_products",
+    [
+        (None, 8, [1]),
+        (0, 8, [1]),
+        (7, 8, []),
+        (5, None, [0, 1]),
+        (8, 10, [0]),
+        (12, None, [0]),
+        (20, None, []),
+        (20, 8, []),
+    ],
+)
+def test_products_query_with_filter_numeric_attributes(
+    gte,
+    lte,
+    expected_products,
+    query_products_with_filter,
+    staff_api_client,
+    product,
+    category,
+    numeric_attribute,
+    permission_manage_products,
+):
+    product.product_type.product_attributes.add(numeric_attribute)
+    associate_attribute_values_to_instance(
+        product, numeric_attribute, *numeric_attribute.values.all()
+    )
+
+    product_type = ProductType.objects.create(
+        name="Custom Type",
+        slug="custom-type",
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    numeric_attribute.product_types.add(product_type)
+
+    second_product = Product.objects.create(
+        name="Second product",
+        slug="second-product",
+        product_type=product_type,
+        category=category,
+    )
+    attr_value = AttributeValue.objects.create(
+        attribute=numeric_attribute, name="5.2", slug="5_2"
+    )
+
+    associate_attribute_values_to_instance(
+        second_product, numeric_attribute, attr_value
+    )
+
+    second_product.refresh_from_db()
+    products_instances = [product, second_product]
+    products_ids = [
+        graphene.Node.to_global_id("Product", p.pk) for p in products_instances
+    ]
+    values_range = {}
+    if gte:
+        values_range["gte"] = gte
+    if lte:
+        values_range["lte"] = lte
+    variables = {
+        "filter": {
+            "attributes": [
+                {"slug": numeric_attribute.slug, "valuesRange": values_range}
+            ]
+        }
+    }
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == len(expected_products)
+    assert set(product["node"]["id"] for product in products) == {
+        products_ids[index] for index in expected_products
+    }
+    assert set(product["node"]["name"] for product in products) == {
+        products_instances[index].name for index in expected_products
+    }
+
+
+def test_products_query_with_filter_by_attributes_values_and_range(
+    query_products_with_filter,
+    staff_api_client,
+    product,
+    category,
+    numeric_attribute,
+    permission_manage_products,
+):
+    product_attr = product.attributes.first()
+    attr_value_1 = product_attr.values.first()
+    product.product_type.product_attributes.add(numeric_attribute)
+    associate_attribute_values_to_instance(
+        product, numeric_attribute, *numeric_attribute.values.all()
+    )
+
+    product_type = ProductType.objects.create(
+        name="Custom Type",
+        slug="custom-type",
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    numeric_attribute.product_types.add(product_type)
+
+    second_product = Product.objects.create(
+        name="Second product",
+        slug="second-product",
+        product_type=product_type,
+        category=category,
+    )
+    attr_value_2 = AttributeValue.objects.create(
+        attribute=numeric_attribute, name="5.2", slug="5_2"
+    )
+
+    associate_attribute_values_to_instance(
+        second_product, numeric_attribute, attr_value_2
+    )
+
+    second_product.refresh_from_db()
+
+    variables = {
+        "filter": {
+            "attributes": [
+                {"slug": numeric_attribute.slug, "valuesRange": {"gte": 2}},
+                {"slug": attr_value_1.attribute.slug, "values": [attr_value_1.slug]},
+            ]
+        }
+    }
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", product.pk
+    )
+    assert products[0]["node"]["name"] == product.name
+
+
 def test_products_query_with_filter_product_type(
     query_products_with_filter, staff_api_client, product, permission_manage_products
 ):

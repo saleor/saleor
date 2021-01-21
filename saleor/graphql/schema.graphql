@@ -502,6 +502,7 @@ input AttributeInput {
   slug: String!
   value: String
   values: [String]
+  valuesRange: IntRangeInput
 }
 
 enum AttributeInputTypeEnum {

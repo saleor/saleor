@@ -6,6 +6,7 @@ from ...attribute import AttributeInputType, models
 from ..core.connection import CountableDjangoObjectType
 from ..core.enums import MeasurementUnitsEnum
 from ..core.types import File
+from ..core.types.common import IntRangeInput
 from ..decorators import (
     check_attribute_required_permissions,
     check_attribute_value_required_permissions,
@@ -173,6 +174,11 @@ class AttributeInput(graphene.InputObjectType):
     )  # deprecated
     values = graphene.List(
         graphene.String, required=False, description=AttributeValueDescriptions.SLUG
+    )
+    values_range = graphene.Field(
+        IntRangeInput,
+        required=False,
+        description=AttributeValueDescriptions.VALUES_RANGE,
     )
 
 
