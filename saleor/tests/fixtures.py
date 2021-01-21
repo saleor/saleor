@@ -1597,9 +1597,6 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
             ]
         )
     )
-    for product in products:
-        product.search_vector = SearchVector("description_plaintext")
-        product.save()
     ProductChannelListing.objects.bulk_create(
         [
             ProductChannelListing(

@@ -3,7 +3,6 @@ from collections import defaultdict
 from typing import List, Tuple
 
 import graphene
-from django.contrib.postgres.search import SearchVector
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.utils.text import slugify
@@ -612,13 +611,7 @@ class ProductCreate(ModelMutation):
     @classmethod
     @transaction.atomic
     def save(cls, info, instance, cleaned_input):
-        description_plaintext = cleaned_input.get("description_plaintext")
         instance.save()
-
-        if description_plaintext:
-            instance.search_vector = SearchVector("description_plaintext")
-            # SearchVector works only with update instance
-            instance.save(update_fields=["search_vector"])
         attributes = cleaned_input.get("attributes")
         if attributes:
             AttributeAssignmentMixin.save(instance, attributes)
@@ -662,11 +655,6 @@ class ProductUpdate(ProductCreate):
     @transaction.atomic
     def save(cls, info, instance, cleaned_input):
         instance.save()
-        description_plaintext = cleaned_input.get("description_plaintext")
-        if description_plaintext:
-            instance.search_vector = SearchVector("description_plaintext")
-            # SearchVector works only with update instance
-            instance.save(update_fields=["search_vector"])
         attributes = cleaned_input.get("attributes")
         if attributes:
             AttributeAssignmentMixin.save(instance, attributes)

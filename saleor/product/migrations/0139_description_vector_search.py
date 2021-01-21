@@ -2,7 +2,6 @@
 
 import django.contrib.postgres.indexes
 import django.contrib.postgres.search
-from django.contrib.postgres.search import SearchVector
 from django.db import migrations, models
 
 
@@ -34,8 +33,6 @@ def migrate_description_into_description_plaintext(apps, schema):
         )
         product.save()
 
-    Product.objects.update(search_vector=SearchVector("description_plaintext"))
-
 
 class Migration(migrations.Migration):
 
@@ -61,6 +58,15 @@ class Migration(migrations.Migration):
             index=django.contrib.postgres.indexes.GinIndex(
                 fields=["search_vector"], name="product_pro_search__e78047_gin"
             ),
+        ),
+        migrations.RunSQL(
+            """
+            CREATE TRIGGER title_vector_update BEFORE INSERT OR UPDATE
+            ON product_product FOR EACH ROW EXECUTE PROCEDURE
+            tsvector_update_trigger(
+                'search_vector', 'pg_catalog.english', 'description_plaintext'
+            );
+        """
         ),
         migrations.RunPython(
             migrate_description_into_description_plaintext,
