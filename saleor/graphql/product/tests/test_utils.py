@@ -12,7 +12,7 @@ from ..utils import (
 def test_parse_draftjs_content_to_string():
     data = {"blocks": [{"text": "some."}, {"text": "text"}, {"data": None}]}
 
-    assert parse_draftjs_content_to_string(data) == "some. text"
+    assert parse_draftjs_content_to_string(data) == "some. text "
 
 
 def test_parse_draftjs_content_to_string_invalid_blocks():

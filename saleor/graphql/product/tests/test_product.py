@@ -1554,14 +1554,14 @@ def test_create_product_description_plaintext(
     assert product.description_plaintext == (
         "A GRAPHQL-FIRST ECOMMERCE PLATFORM FOR PERFECTIONISTS "
         "Saleor is powered by a GraphQL server running on top "
-        "of Python 3 and a Django 2 framework."
+        "of Python 3 and a Django 2 framework. "
     )
 
 
-def test_search_product_by_description(user_api_client, product_list, channel_USD):
+def test_search_product_by_description(user_api_client, product_list):
     search_query = """
-    query Products($filters: ProductFilterInput, $channel: String) {
-      products(first: 5, filter: $filters, channel: $channel) {
+    query Products($filters: ProductFilterInput) {
+      products(first: 5, filter: $filters) {
         edges {
         node {
           id
@@ -1571,12 +1571,12 @@ def test_search_product_by_description(user_api_client, product_list, channel_US
       }
     }
     """
-    variables = {"filters": {"search": "big"}, "channel": channel_USD.slug}
+    variables = {"filters": {"search": "big"}}
     response = user_api_client.post_graphql(search_query, variables)
     content = get_graphql_content(response)
     assert len(content["data"]["products"]["edges"]) == 2
 
-    variables = {"filters": {"search": "small"}, "channel": channel_USD.slug}
+    variables = {"filters": {"search": "small"}}
     response = user_api_client.post_graphql(search_query, variables)
     content = get_graphql_content(response)
 
@@ -2604,7 +2604,16 @@ def test_update_product_without_description_clear_description_plaintext(
 
     variables = {
         "productId": product_id,
-        "input": {"category": category_id, "name": product_name, "slug": product_slug},
+        "categoryId": category_id,
+        "name": product_name,
+        "slug": product_slug,
+        "isPublished": True,
+        "visibleInListings": True,
+        "descriptionJson": "{}",
+        "chargeTaxes": False,
+        "taxCode": True,
+        "productTaxRate": "STANDARD",
+        "basePrice": 10.00,
     }
 
     response = staff_api_client.post_graphql(
@@ -2612,10 +2621,10 @@ def test_update_product_without_description_clear_description_plaintext(
     )
     content = get_graphql_content(response)
     data = content["data"]["productUpdate"]
-    assert not data["productErrors"]
+    assert data["errors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
-    assert data["product"]["description"] == "{}"
+    assert data["product"]["descriptionJson"] == "{}"
 
     product.refresh_from_db()
     assert product.description_plaintext == ""
