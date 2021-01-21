@@ -1,6 +1,7 @@
 import pytest
 
 from ...attribute.models import AttributeTranslation, AttributeValueTranslation
+from ...tests.utils import dummy_editorjs
 from ..models import (
     CategoryTranslation,
     CollectionTranslation,
@@ -15,7 +16,7 @@ def product_translation_pl(product):
         language_code="pl",
         product=product,
         name="Polish name",
-        description="Polish description",
+        description=dummy_editorjs("Polish description."),
     )
 
 
@@ -33,7 +34,7 @@ def test_translation(product, settings, product_translation_fr):
 
     settings.LANGUAGE_CODE = "fr"
     assert product.translated.name == "French name"
-    assert product.translated.description == "French description"
+    assert product.translated.description == dummy_editorjs("French description.")
 
 
 def test_translation_str_returns_str_of_instance(
@@ -80,7 +81,7 @@ def test_collection_translation(settings, collection):
 def test_category_translation(settings, category):
     settings.LANGUAGE_CODE = "fr"
     french_name = "French name"
-    french_description = "French description"
+    french_description = dummy_editorjs("French description.")
     CategoryTranslation.objects.create(
         language_code="fr",
         name=french_name,

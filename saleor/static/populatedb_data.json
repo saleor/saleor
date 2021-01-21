@@ -8,8 +8,7 @@
       "seo_description": "",
       "name": "Accessories",
       "slug": "accessories",
-      "description": "",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": ""
@@ -36,8 +35,7 @@
       "seo_description": "",
       "name": "Groceries",
       "slug": "groceries",
-      "description": "",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": ""
@@ -64,8 +62,7 @@
       "seo_description": "",
       "name": "Apparel",
       "slug": "apparel",
-      "description": "",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": ""
@@ -92,8 +89,7 @@
       "seo_description": "",
       "name": "T-shirts",
       "slug": "t-shirts",
-      "description": "",
-      "description_json": {},
+      "description": {},
       "parent": 9,
       "background_image": "category-backgrounds/apparel_aQjIlZr.jpg",
       "background_image_alt": "",
@@ -113,8 +109,7 @@
       "seo_description": "",
       "name": "Polo Shirts",
       "slug": "polo-shirts",
-      "description": "",
-      "description_json": {},
+      "description": {},
       "parent": 9,
       "background_image": "category-backgrounds/apparel_HuImTaR.jpg",
       "background_image_alt": "",
@@ -134,8 +129,7 @@
       "seo_description": "",
       "name": "Hoodies",
       "slug": "hoodies",
-      "description": "",
-      "description_json": {},
+      "description": {},
       "parent": 9,
       "background_image": "category-backgrounds/apparel_6ziH1ON.jpg",
       "background_image_alt": "",
@@ -155,8 +149,7 @@
       "seo_description": "",
       "name": "Footwear",
       "slug": "footwear",
-      "description": "",
-      "description_json": {},
+      "description": {},
       "parent": 9,
       "background_image": "category-backgrounds/apparel_awJisre.jpg",
       "background_image_alt": "",
@@ -176,8 +169,7 @@
       "seo_description": "",
       "name": "Juices",
       "slug": "juices",
-      "description": "",
-      "description_json": {},
+      "description": {},
       "parent": 8,
       "background_image": "category-backgrounds/groceries_k5IaCqp.jpg",
       "background_image_alt": "",
@@ -197,8 +189,7 @@
       "seo_description": "",
       "name": "Alcohol",
       "slug": "alcohol",
-      "description": "",
-      "description_json": {},
+      "description": {},
       "parent": 8,
       "background_image": "category-backgrounds/groceries_f5xedIS.jpg",
       "background_image_alt": "",
@@ -218,8 +209,7 @@
       "seo_description": "",
       "name": "Paints",
       "slug": "paints",
-      "description": "",
-      "description_json": {},
+      "description": {},
       "parent": 7,
       "background_image": "category-backgrounds/accessories_HMorc9P.jpg",
       "background_image_alt": "",
@@ -239,8 +229,7 @@
       "seo_description": "",
       "name": "Homewares",
       "slug": "homewares",
-      "description": "",
-      "description_json": {},
+      "description": {},
       "parent": 7,
       "background_image": "category-backgrounds/accessories_tDJUL1J.jpg",
       "background_image_alt": "",
@@ -260,8 +249,7 @@
       "seo_description": "",
       "name": "Audiobooks",
       "slug": "ebooks",
-      "description": "",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": ""
@@ -446,8 +434,7 @@
       "product_type": 7,
       "name": "Nebula Night Sky Paint",
       "slug": "nebula-night-sky-paint",
-      "description": "Tonight, my love, let us take fat brushes and paint the skies with the shades of nebula tides. Get the dark, moody shades of the ether.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Tonight, my love, let us take fat brushes and paint the skies with the shades of nebula tides. Get the dark, moody shades of the ether."
@@ -475,8 +462,7 @@
       "product_type": 7,
       "name": "Space Dust Navy Paint",
       "slug": "space-dust-navy-paint",
-      "description": "The rich, deep hue of space dust. Vacuum packed and airlocked for long-lasting freshness of color.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "The rich, deep hue of space dust. Vacuum packed and airlocked for long-lasting freshness of color."
@@ -504,8 +490,7 @@
       "product_type": 7,
       "name": "Red Dwarf Red Paint",
       "slug": "red-dwarf-red-paint",
-      "description": "We are all connected to the universe, because every cell in our bodies was cooked in the hearts of dying stars. Red Dwarf Paint: the color of Carl Sagan’s dreams.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "We are all connected to the universe, because every cell in our bodies was cooked in the hearts of dying stars. Red Dwarf Paint: the color of Carl Sagan’s dreams."
@@ -533,8 +518,7 @@
       "product_type": 7,
       "name": "Light Speed Yellow Paint",
       "slug": "light-speed-yellow-paint",
-      "description": "There is life in outer space. This vibrant light speed yellow paint brings life to any surface. Goes on easy and dries at light speed.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "There is life in outer space. This vibrant light speed yellow paint brings life to any surface. Goes on easy and dries at light speed."
@@ -562,8 +546,7 @@
       "product_type": 7,
       "name": "Hyperspace Turquoise Paint",
       "slug": "hyperspace-turquoise-paint",
-      "description": "Turquoise is the new black. No more gloomy night skies, brighten up your evenings with hyperspace paint.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Turquoise is the new black. No more gloomy night skies, brighten up your evenings with hyperspace paint."
@@ -591,8 +574,7 @@
       "product_type": 9,
       "name": "Orange Juice",
       "slug": "orange-juice",
-      "description": "Fell from a tree straight into the bottle. No additives, no preservatives, just the refreshing taste of pure sun-kissed Californian oranges.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Fell from a tree straight into the bottle. No additives, no preservatives, just the refreshing taste of pure sun-kissed Californian oranges."
@@ -620,8 +602,7 @@
       "product_type": 9,
       "name": "Apple Juice",
       "slug": "apple-juice",
-      "description": "Fell straight from the tree, on to Newton’s head, then into the bottle. The autumn taste of English apples. Brought to you by gravity.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Fell straight from the tree, on to Newton’s head, then into the bottle. The autumn taste of English apples. Brought to you by gravity."
@@ -649,8 +630,7 @@
       "product_type": 9,
       "name": "Carrot Juice",
       "slug": "carrot-juice",
-      "description": "Improve your eyesight the natural way with 100% pure, squeezed carrot juice. The sweet, orange nectar of Mother Earth.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Improve your eyesight the natural way with 100% pure, squeezed carrot juice. The sweet, orange nectar of Mother Earth."
@@ -678,8 +658,7 @@
       "product_type": 9,
       "name": "Banana Juice",
       "slug": "banana-juice",
-      "description": "Build your protein the natural way, with exotic banana juice made from ripe fruit and packed with all the goodness of the tropical sun.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Build your protein the natural way, with exotic banana juice made from ripe fruit and packed with all the goodness of the tropical sun."
@@ -707,8 +686,7 @@
       "product_type": 9,
       "name": "Pineapple Juice",
       "slug": "pineapple-juice",
-      "description": "I can’t stand pineapples, so this one is not for me. They have a weird, fluffy, tangy taste. But if it is your kind of thing, then knock yourself out.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "I can’t stand pineapples, so this one is not for me. They have a weird, fluffy, tangy taste. But if it is your kind of thing, then knock yourself out."
@@ -736,8 +714,7 @@
       "product_type": 9,
       "name": "Coconut Juice",
       "slug": "coconut-juice",
-      "description": "Did you know falling coconuts kill 150 people a year? But did you know that coconut juice is the new superfood? You win some, you lose some.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Did you know falling coconuts kill 150 people a year? But did you know that coconut juice is the new superfood? You win some, you lose some."
@@ -765,8 +742,7 @@
       "product_type": 9,
       "name": "Power Juice",
       "slug": "power-juice",
-      "description": "Is it a bird? Is a plane? No! It’s some jacked dude who just sucked down a bottle of our brand new power juice! Look at him go!",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Is it a bird? Is a plane? No! It’s some jacked dude who just sucked down a bottle of our brand new power juice! Look at him go!"
@@ -794,8 +770,7 @@
       "product_type": 9,
       "name": "Green Juice",
       "slug": "green-juice",
-      "description": "Brussel sprouts, spinach, peas, kale, lettuce, cabbage, zucchini, more brussel sprouts. All the greens you’ll ever need in one delicious juice.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Brussel sprouts, spinach, peas, kale, lettuce, cabbage, zucchini, more brussel sprouts. All the greens you’ll ever need in one delicious juice."
@@ -823,8 +798,7 @@
       "product_type": 9,
       "name": "Bean Juice",
       "slug": "bean-juice",
-      "description": "Bean there, drunk that! The energy drink for the health-conscious. Brand new bean juice; from allotment to bottle in under 8 hours.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Bean there, drunk that! The energy drink for the health-conscious. Brand new bean juice; from allotment to bottle in under 8 hours."
@@ -852,8 +826,7 @@
       "product_type": 10,
       "name": "Red Wine",
       "slug": "red-wine",
-      "description": "A fine, mature red with a hint of blackberry, an undertone of the alkaline Burgundy soil, a delicate aftertaste of burnt garlic, and a whole lot of grapes.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "A fine, mature red with a hint of blackberry, an undertone of the alkaline Burgundy soil, a delicate aftertaste of burnt garlic, and a whole lot of grapes."
@@ -881,8 +854,7 @@
       "product_type": 10,
       "name": "White Wine",
       "slug": "white-wine",
-      "description": "Watch the slow setting sun of a wild summer evening sink into the horizon as you sip white wine that tastes like bittersweet memories of halcyon days.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Watch the slow setting sun of a wild summer evening sink into the horizon as you sip white wine that tastes like bittersweet memories of halcyon days."
@@ -910,8 +882,7 @@
       "product_type": 11,
       "name": "Seaman Lager",
       "slug": "seaman-lager",
-      "description": "Find your sea legs and then lose the power to use them with extra strong seaman’s lager. Don’t drink and sail, me hearties!",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Find your sea legs and then lose the power to use them with extra strong seaman’s lager. Don’t drink and sail, me hearties!"
@@ -939,8 +910,7 @@
       "product_type": 11,
       "name": "Seaman Beer",
       "slug": "seaman-beer",
-      "description": "Best beer on the seven seas. A dark ale for when the dark clouds gather overhead. The nutty nautical taste that sailors love.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Best beer on the seven seas. A dark ale for when the dark clouds gather overhead. The nutty nautical taste that sailors love."
@@ -968,8 +938,7 @@
       "product_type": 12,
       "name": "Colored Parrot Cushion",
       "slug": "colored-parrot-cushion",
-      "description": "Add a little color to your life with a Saleor parrot cushion. Turns any old sofa into a rainbow of classy interior design.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Add a little color to your life with a Saleor parrot cushion. Turns any old sofa into a rainbow of classy interior design."
@@ -997,8 +966,7 @@
       "product_type": 12,
       "name": "White Parrot Cushion",
       "slug": "white-parrot-cushion",
-      "description": "Minimalist interiors need simple, sleek soft furnishings. Don’t parrot what others do, set your own monochrome trends with Saleor designs.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Minimalist interiors need simple, sleek soft furnishings. Don’t parrot what others do, set your own monochrome trends with Saleor designs."
@@ -1026,8 +994,7 @@
       "product_type": 13,
       "name": "Yellow Plimsolls",
       "slug": "yellow-plimsolls",
-      "description": "Mellow yellow. Step into summer with Saleor. Every time your head goes down, you see these beauties, and your mood bounces right back up.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Mellow yellow. Step into summer with Saleor. Every time your head goes down, you see these beauties, and your mood bounces right back up."
@@ -1055,8 +1022,7 @@
       "product_type": 13,
       "name": "White Plimsolls",
       "slug": "white-plimsolls",
-      "description": "PE at school wouldn’t have been such a drag with these on your feet. Slip on the style and stride tall with Saleor branded plimsolls. PE now stands for pretty elegant.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "PE at school wouldn’t have been such a drag with these on your feet. Slip on the style and stride tall with Saleor branded plimsolls. PE now stands for pretty elegant."
@@ -1084,8 +1050,7 @@
       "product_type": 14,
       "name": "Code Division T-shirt",
       "slug": "code-division-t-shirt",
-      "description": "Pay homage to the music and art of a Joy Division and Peter Saville, but with a Mirumee twist. Perfect live transmission apparel for dead souls.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Pay homage to the music and art of a Joy Division and Peter Saville, but with a Mirumee twist. Perfect live transmission apparel for dead souls."
@@ -1113,8 +1078,7 @@
       "product_type": 14,
       "name": "Polo Shirt",
       "slug": "polo-shirt",
-      "description": "Ever have those days where you feel a bit geometric? Can't quite shape yourself up right? Show your different sides with a Saleor styles.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Ever have those days where you feel a bit geometric? Can't quite shape yourself up right? Show your different sides with a Saleor styles."
@@ -1142,8 +1106,7 @@
       "product_type": 14,
       "name": "Polo Shirt",
       "slug": "polo-shirt-2",
-      "description": "Polo? Yolo… so don’t waste time on the wrong apparel. Choose a polo shirt that looks as good as you feel.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Polo? Yolo… so don’t waste time on the wrong apparel. Choose a polo shirt that looks as good as you feel."
@@ -1171,8 +1134,7 @@
       "product_type": 14,
       "name": "Polo Shirt",
       "slug": "polo-shirt-3",
-      "description": "Wondering if this will look as good on you as it does on the screen? The answer is yes. A quality polo with smart styling.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Wondering if this will look as good on you as it does on the screen? The answer is yes. A quality polo with smart styling."
@@ -1200,8 +1162,7 @@
       "product_type": 14,
       "name": "Polo Shirt",
       "slug": "polo-shirt-4",
-      "description": "They say polo is the sport of kings. Or was that stamp collecting? Either way, this shirt is fit for a king of Saturday night.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "They say polo is the sport of kings. Or was that stamp collecting? Either way, this shirt is fit for a king of Saturday night."
@@ -1229,8 +1190,7 @@
       "product_type": 14,
       "name": "T-shirt",
       "slug": "t-shirt-2",
-      "description": "One style fits all. Get a look that works even when you are taking it easy. Relaxed wear for the masses.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "One style fits all. Get a look that works even when you are taking it easy. Relaxed wear for the masses."
@@ -1258,8 +1218,7 @@
       "product_type": 14,
       "name": "T-shirt",
       "slug": "t-shirt",
-      "description": "A classic tee for a timeless look, at a great price. Feel like a million bucks without breaking the bank.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "A classic tee for a timeless look, at a great price. Feel like a million bucks without breaking the bank."
@@ -1287,8 +1246,7 @@
       "product_type": 14,
       "name": "T-shirt",
       "slug": "t-shirt-4",
-      "description": "Want to look like you just fell out of bed? Sometimes style can be effortless. Throw it on get on with having a good day.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Want to look like you just fell out of bed? Sometimes style can be effortless. Throw it on get on with having a good day."
@@ -1316,8 +1274,7 @@
       "product_type": 14,
       "name": "T-shirt",
       "slug": "t-shirt-3",
-      "description": "Your t-shirt is your second skin. It’s the version of you that you show to the world. Wear one that flows with your movements and is built to last.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Your t-shirt is your second skin. It’s the version of you that you show to the world. Wear one that flows with your movements and is built to last."
@@ -1345,8 +1302,7 @@
       "product_type": 14,
       "name": "Black Hoodie",
       "slug": "black-hoodie",
-      "description": "Special offer. Buy a hood and get a free jet black sweater attached. Perfect for when you are up to no good.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Special offer. Buy a hood and get a free jet black sweater attached. Perfect for when you are up to no good."
@@ -1374,8 +1330,7 @@
       "product_type": 14,
       "name": "Blue Hoodie",
       "slug": "blue-hoodie",
-      "description": "Special offer. Buy a superhero blue sweater and get a free hood attached. Ideal for when you are out saving the world.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Special offer. Buy a superhero blue sweater and get a free hood attached. Ideal for when you are out saving the world."
@@ -1403,8 +1358,7 @@
       "product_type": 14,
       "name": "Mustard Hoodie",
       "slug": "mustard-hoodie",
-      "description": "Who dunnit? It was Colonel Mustard, in the dining room, with the lead piping, wearing this hot as mustard hoodie.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Who dunnit? It was Colonel Mustard, in the dining room, with the lead piping, wearing this hot as mustard hoodie."
@@ -1432,8 +1386,7 @@
       "product_type": 14,
       "name": "White Hoodie",
       "slug": "white-hoodie",
-      "description": "Get your slouch on and be seen with a whiter than white hoodie straight from the streets. Relaxed stylin’ and profilin’ with flair.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Get your slouch on and be seen with a whiter than white hoodie straight from the streets. Relaxed stylin’ and profilin’ with flair."
@@ -1458,8 +1411,7 @@
       "product_type": 15,
       "name": "Sea Lullabies",
       "slug": "sea-lullabies",
-      "description": "",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Sea Lullabies by Digital Audio."
@@ -1484,8 +1436,7 @@
       "product_type": 15,
       "name": "Lake Tunes",
       "slug": "lake-tunes",
-      "description": "",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Lake Tunes by Digital Audio."
@@ -1510,8 +1461,7 @@
       "product_type": 15,
       "name": "Ocean Poems",
       "slug": "ocean-poems",
-      "description": "",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Ocean Poems by Digital Audio."
@@ -1536,8 +1486,7 @@
       "product_type": 15,
       "name": "Bathroom Songs",
       "slug": "bathroom-songs",
-      "description": "",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Bathroom Songs by Digital Audio."
@@ -1562,8 +1511,7 @@
       "product_type": 15,
       "name": "Lagoon Chants",
       "slug": "lagoon-chants",
-      "description": "",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Lagoon Chants by Digital Audio."
@@ -1588,8 +1536,7 @@
       "product_type": 15,
       "name": "Waterfall Ballads",
       "slug": "waterfall-ballads",
-      "description": "",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Waterfall Ballads by Digital Audio."
@@ -10348,8 +10295,7 @@
       "slug": "summer-collection",
       "background_image": "collection-backgrounds/summer_F5A4bVb.jpg",
       "background_image_alt": "",
-      "description": "The Saleor Summer Collection features a range of products that feel the heat of the market. A demo store for all seasons. Saleor captures the open source, e-commerce sun.",
-      "description_json": {
+      "description": {
         "blocks": [{
             "data": {
                 "text": "The Saleor Summer Collection features a range of products that feel the heat of the market. A demo store for all seasons. Saleor captures the open source, e-commerce sun."
@@ -10371,8 +10317,7 @@
       "slug": "winter-sale",
       "background_image": "collection-backgrounds/clothing_R7nkNxS.jpg",
       "background_image_alt": "",
-      "description": "The Saleor Winter Sale is snowed under with seasonal offers. Unreal products at unreal prices. Literally, they are not real products, but the Saleor demo store is a genuine e-commerce leader.",
-      "description_json": {
+      "description": {
         "blocks": [{
             "data": {
                 "text": "The Saleor Winter Sale is snowed under with seasonal offers. Unreal products at unreal prices. Literally, they are not real products, but the Saleor demo store is a genuine e-commerce leader."
@@ -10394,8 +10339,7 @@
       "slug": "featured-products",
       "background_image": "collection-backgrounds/clothing_R7nkNxS.jpg",
       "background_image_alt": "",
-      "description": "Featured Products. Literally, they are not real products, but the Saleor demo store is a genuine e-commerce leader.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "key": "",
           "data": {},

@@ -36,6 +36,7 @@ from ....product.models import (
 from ....product.tasks import update_variants_names
 from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
 from ....product.utils.costs import get_product_costs_data
+from ....tests.utils import dummy_editorjs
 from ....warehouse.models import Allocation, Stock, Warehouse
 from ...core.enums import AttributeErrorCode, ReportingPeriod
 from ...tests.utils import (
@@ -2191,7 +2192,7 @@ CREATE_PRODUCT_MUTATION = """
                             category {
                                 name
                             }
-                            descriptionJson
+                            description
                             chargeTaxes
                             taxType {
                                 taxCode
@@ -2273,7 +2274,7 @@ def test_create_product(
             "category": category_id,
             "name": product_name,
             "slug": product_slug,
-            "descriptionJson": description_json,
+            "description": description_json,
             "chargeTaxes": product_charge_taxes,
             "taxCode": product_tax_rate,
             "attributes": [
@@ -2291,7 +2292,7 @@ def test_create_product(
     assert data["productErrors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
-    assert data["product"]["descriptionJson"] == description_json
+    assert data["product"]["description"] == description_json
     assert data["product"]["chargeTaxes"] == product_charge_taxes
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert data["product"]["productType"]["name"] == product_type.name
@@ -2302,6 +2303,80 @@ def test_create_product(
     )
     assert slugify(non_existent_attr_value) in values
     assert color_value_slug in values
+
+
+def test_create_product_description_plaintext(
+    staff_api_client,
+    product_type,
+    category,
+    size_attribute,
+    permission_manage_products,
+    monkeypatch,
+):
+    query = CREATE_PRODUCT_MUTATION
+    description = "some test description"
+    description_json = dummy_editorjs(description, json_format=True)
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_slug = "product-test-slug"
+    product_charge_taxes = True
+    product_tax_rate = "STANDARD"
+
+    # Mock tax interface with fake response from tax gateway
+    monkeypatch.setattr(
+        PluginsManager,
+        "get_tax_code_from_object_meta",
+        lambda self, x: TaxType(description="", code=product_tax_rate),
+    )
+
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "description": description_json,
+            "chargeTaxes": product_charge_taxes,
+            "taxCode": product_tax_rate,
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert not data["productErrors"]
+
+    product = Product.objects.all().first()
+    product.description_plaintext = description
+
+
+def test_search_product_by_description(user_api_client, product_list, channel_USD):
+    search_query = """
+    query Products($filters: ProductFilterInput, $channel: String) {
+      products(first: 5, filter: $filters, channel: $channel) {
+        edges {
+        node {
+          id
+          name
+        }
+        }
+      }
+    }
+    """
+    variables = {"filters": {"search": "big"}, "channel": channel_USD.slug}
+    response = user_api_client.post_graphql(search_query, variables)
+    content = get_graphql_content(response)
+    assert len(content["data"]["products"]["edges"]) == 2
+
+    variables = {"filters": {"search": "small"}, "channel": channel_USD.slug}
+    response = user_api_client.post_graphql(search_query, variables)
+    content = get_graphql_content(response)
+
+    assert len(content["data"]["products"]["edges"]) == 1
 
 
 @freeze_time("2020-03-18 12:00:00")
@@ -3319,7 +3394,7 @@ def test_create_product_invalid_product_attributes(
             "category": category_id,
             "name": product_name,
             "slug": product_slug,
-            "descriptionJson": description_json,
+            "description": description_json,
             "chargeTaxes": product_charge_taxes,
             "taxCode": product_tax_rate,
             "attributes": [
@@ -3522,7 +3597,7 @@ MUTATION_UPDATE_PRODUCT = """
                         name
                     }
                     rating
-                    descriptionJson
+                    description
                     chargeTaxes
                     variants {
                         name
@@ -3600,7 +3675,7 @@ def test_update_product(
             "category": category_id,
             "name": product_name,
             "slug": product_slug,
-            "descriptionJson": other_description_json,
+            "description": other_description_json,
             "chargeTaxes": product_charge_taxes,
             "taxCode": product_tax_rate,
             "attributes": [{"id": attribute_id, "values": ["Rainbow"]}],
@@ -3615,7 +3690,7 @@ def test_update_product(
     assert data["productErrors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
-    assert data["product"]["descriptionJson"] == other_description_json
+    assert data["product"]["description"] == other_description_json
     assert data["product"]["chargeTaxes"] == product_charge_taxes
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert not data["product"]["category"]["name"] == category.name
@@ -3630,6 +3705,85 @@ def test_update_product(
     assert attributes[0]["values"][0]["slug"] == "rainbow"
 
     updated_webhook_mock.assert_called_once_with(product)
+
+
+def test_update_and_search_product_by_description(
+    staff_api_client,
+    category,
+    non_default_category,
+    product,
+    other_description_json,
+    permission_manage_products,
+    color_attribute,
+):
+    query = MUTATION_UPDATE_PRODUCT
+    other_description_json = json.dumps(other_description_json)
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    category_id = graphene.Node.to_global_id("Category", non_default_category.pk)
+    product_name = "updated name"
+    product_slug = "updated-product"
+
+    variables = {
+        "productId": product_id,
+        "input": {
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "description": other_description_json,
+        },
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert not data["productErrors"]
+    assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == product_slug
+    assert data["product"]["description"] == other_description_json
+
+
+def test_update_product_without_description_clear_description_plaintext(
+    staff_api_client,
+    category,
+    non_default_category,
+    product,
+    other_description_json,
+    permission_manage_products,
+    color_attribute,
+):
+    query = MUTATION_UPDATE_PRODUCT
+    description_plaintext = "some desc"
+    product.description_plaintext = description_plaintext
+    product.save()
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    category_id = graphene.Node.to_global_id("Category", non_default_category.pk)
+    product_name = "updated name"
+    product_slug = "updated-product"
+
+    variables = {
+        "productId": product_id,
+        "input": {
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+        },
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert not data["productErrors"]
+    assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == product_slug
+    assert data["product"]["description"] == "{}"
+
+    product.refresh_from_db()
+    assert product.description_plaintext == ""
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
@@ -6349,19 +6503,19 @@ def test_collections_query_with_filter(
                 id=1,
                 name="Collection1",
                 slug="collection-published1",
-                description="Test description",
+                description=dummy_editorjs("Test description"),
             ),
             Collection(
                 id=2,
                 name="Collection2",
                 slug="collection-published2",
-                description="Test description",
+                description=dummy_editorjs("Test description"),
             ),
             Collection(
                 id=3,
                 name="Collection3",
                 slug="collection-unpublished",
-                description="Test description",
+                description=dummy_editorjs("Test description"),
             ),
         ]
     )
@@ -6463,17 +6617,24 @@ def test_categories_query_with_filter(
     permission_manage_products,
 ):
     Category.objects.create(
-        id=1, name="Category1", slug="slug_category1", description="Description cat1"
+        id=1,
+        name="Category1",
+        slug="slug_category1",
+        description=dummy_editorjs("Description cat1."),
     )
     Category.objects.create(
-        id=2, name="Category2", slug="slug_category2", description="Description cat2"
+        id=2,
+        name="Category2",
+        slug="slug_category2",
+        description=dummy_editorjs("Description cat2."),
     )
+
     Category.objects.create(
         id=3,
         name="SubCategory",
         slug="slug_subcategory",
         parent=Category.objects.get(name="Category1"),
-        description="Subcategory_description of cat1",
+        description=dummy_editorjs("Subcategory_description of cat1."),
     )
     variables = {"filter": category_filter}
     staff_api_client.user.user_permissions.add(permission_manage_products)
@@ -6532,7 +6693,9 @@ def test_categories_query_with_sort(
     product_type,
 ):
     cat1 = Category.objects.create(
-        name="Cat1", slug="slug_category1", description="Description cat1"
+        name="Cat1",
+        slug="slug_category1",
+        description=dummy_editorjs("Description cat1."),
     )
     Product.objects.create(
         name="Test",
@@ -6541,19 +6704,21 @@ def test_categories_query_with_sort(
         category=cat1,
     )
     Category.objects.create(
-        name="Cat2", slug="slug_category2", description="Description cat2"
+        name="Cat2",
+        slug="slug_category2",
+        description=dummy_editorjs("Description cat2."),
     )
     Category.objects.create(
         name="SubCat",
         slug="slug_subcategory1",
         parent=Category.objects.get(name="Cat1"),
-        description="Subcategory_description of cat1",
+        description=dummy_editorjs("Subcategory_description of cat1."),
     )
     subsubcat = Category.objects.create(
         name="SubSubCat",
         slug="slug_subcategory2",
         parent=Category.objects.get(name="SubCat"),
-        description="Subcategory_description of cat1",
+        description=dummy_editorjs("Subcategory_description of cat1."),
     )
     Product.objects.create(
         name="Test2",

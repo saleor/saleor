@@ -27,10 +27,7 @@ if TYPE_CHECKING:
 class PageInput(graphene.InputObjectType):
     slug = graphene.String(description="Page internal name.")
     title = graphene.String(description="Page title.")
-    content = graphene.String(
-        description=("Page content. May consist of ordinary text, HTML and images.")
-    )
-    content_json = graphene.JSONString(description="Page content in JSON format.")
+    content = graphene.JSONString(description="Page content in JSON format.")
     attributes = graphene.List(
         graphene.NonNull(AttributeValueInput), description="List of attributes."
     )

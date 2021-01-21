@@ -241,7 +241,7 @@ def test_sale_applies_to_correct_products(product_type, category, channel_USD):
     product = Product.objects.create(
         name="Test Product",
         slug="test-product",
-        description="",
+        description={},
         pk=111,
         product_type=product_type,
         category=category,
@@ -256,7 +256,7 @@ def test_sale_applies_to_correct_products(product_type, category, channel_USD):
     product2 = Product.objects.create(
         name="Second product",
         slug="second-product",
-        description="",
+        description={},
         product_type=product_type,
         category=category,
     )
