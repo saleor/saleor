@@ -97,6 +97,7 @@ def test_get_default_order_payload(order_line):
         "lines": [order_line_payload],
         "billing_address": get_address_payload(order.billing_address),
         "shipping_address": get_address_payload(order.shipping_address),
+        "language_code": order.language_code,
     }
 
 
