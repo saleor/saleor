@@ -10,7 +10,7 @@ def get_invoice_payload(invoice):
         "id": invoice.id,
         "number": invoice.number,
         "download_url": invoice.url,
-        "order_id": invoice.order.id,
+        "order_id": invoice.order_id,
     }
 
 
