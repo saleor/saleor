@@ -41,9 +41,8 @@ def filter_attributes(qs, _, value):
         value_range_list = []
         for v in value:
             slug = v["slug"]
-            if "values" in v or "value" in v:
-                values = [v["value"]] if "value" in v else v.get("values", [])
-                value_list.append((slug, values))
+            if "values" in v:
+                value_list.append((slug, v["values"]))
             elif "values_range" in v:
                 value_range_list.append((slug, v["values_range"]))
         qs = filter_products_by_attributes(qs, value_list, value_range_list)

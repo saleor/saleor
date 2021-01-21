@@ -165,13 +165,6 @@ class SelectedAttribute(graphene.ObjectType):
 
 class AttributeInput(graphene.InputObjectType):
     slug = graphene.String(required=True, description=AttributeDescriptions.SLUG)
-    value = graphene.String(
-        required=False,
-        description=(
-            "[Deprecated] Internal representation of a value (unique per attribute). "
-            "This field will be removed after 2020-07-31."
-        ),
-    )  # deprecated
     values = graphene.List(
         graphene.String, required=False, description=AttributeValueDescriptions.SLUG
     )

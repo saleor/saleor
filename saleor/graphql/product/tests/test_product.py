@@ -1437,7 +1437,9 @@ def test_products_query_with_filter_attributes(
     associate_attribute_values_to_instance(second_product, attribute, attr_value)
 
     variables = {
-        "filter": {"attributes": [{"slug": attribute.slug, "value": attr_value.slug}]}
+        "filter": {
+            "attributes": [{"slug": attribute.slug, "values": [attr_value.slug]}]
+        }
     }
 
     staff_api_client.user.user_permissions.add(permission_manage_products)
@@ -2100,13 +2102,11 @@ def test_get_product_with_sorted_attribute_values(
 
 def test_filter_products_by_wrong_attributes(user_api_client, product, channel_USD):
     product_attr = product.product_type.product_attributes.get(slug="color")
-    attr_value = (
-        product.product_type.variant_attributes.get(slug="size").values.first().id
-    )
+    attr_value = product.product_type.variant_attributes.get(slug="size").values.first()
     query = """
-    query ($channel: String){
+    query ($channel: String, $filter: ProductFilterInput){
         products(
-            filter: {attributes: {slug: "%(slug)s", value: "%(value)s"}},
+            filter: $filter,
             first: 1,
             channel: $channel
         ) {
@@ -2117,12 +2117,14 @@ def test_filter_products_by_wrong_attributes(user_api_client, product, channel_U
             }
         }
     }
-    """ % {
-        "slug": product_attr.slug,
-        "value": attr_value,
-    }
+    """
 
-    variables = {"channel": channel_USD.slug}
+    variables = {
+        "channel": channel_USD.slug,
+        "filter": {
+            "attributes": [{"slug": product_attr.slug, "values": [attr_value.slug]}]
+        },
+    }
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     products = content["data"]["products"]["edges"]
