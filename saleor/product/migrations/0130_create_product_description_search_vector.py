@@ -14,7 +14,7 @@ def parse_draftjs_content_to_string(definitions):
         text = block.get("text")
         if not text:
             continue
-        string += "{} ".format(text)
+        string += f"{text} "
 
     return string
 
@@ -24,7 +24,7 @@ def parse_description_json_field(apps, schema):
 
     for product in Product.objects.iterator():
         product.description_plaintext = parse_draftjs_content_to_string(
-            product.description
+            product.description_json
         )
         product.save()
 
@@ -59,8 +59,32 @@ class Migration(migrations.Migration):
             CREATE TRIGGER title_vector_update BEFORE INSERT OR UPDATE
             ON product_product FOR EACH ROW EXECUTE PROCEDURE
             tsvector_update_trigger(
-                'search_vector', 'pg_catalog.english', 'description_plaintext'
-            );
+                'search_vector', 'pg_catalog.english', 'description_plaintext', 'name'
+            )
+
+
         """
         ),
+        migrations.RunSQL(
+            """
+            CREATE FUNCTION messages_trigger() RETURNS trigger AS $$
+            begin
+              new.search_vector :=
+                 setweight(
+                 to_tsvector('pg_catalog.english', coalesce(new.name,'')), 'A'
+                 ) ||
+                 setweight(
+                 to_tsvector(
+                 'pg_catalog.english', coalesce(new.description_plaintext,'')),
+                 'B'
+                 );
+              return new;
+            end
+            $$ LANGUAGE plpgsql;
+
+            CREATE TRIGGER tsvectorupdate BEFORE INSERT OR UPDATE
+                ON product_product FOR EACH ROW EXECUTE FUNCTION messages_trigger();
+            """
+        ),
+        migrations.RunPython(parse_description_json_field, migrations.RunPython.noop,),
     ]

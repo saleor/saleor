@@ -24,7 +24,7 @@ def parse_draftjs_content_to_string(definitions: dict):
         text = block.get("text")
         if not text:
             continue
-        string += "{} ".format(text)
+        string += f"{text} "
 
     return string
 
