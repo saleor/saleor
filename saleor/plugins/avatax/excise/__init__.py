@@ -190,7 +190,7 @@ def append_line_to_data(
     item_code: str,
     name: str = None,
     tax_included: Optional[bool] = None,
-    custom_flags: Optional[List[str]]=None,
+    custom_flags: Optional[Dict[str, Any]]=None,
 ):
     if tax_included is None:
         tax_included = Site.objects.get_current().settings.include_taxes_in_prices
@@ -243,22 +243,25 @@ def get_checkout_lines_data(
         wsc = line.variant.product.get_value_from_private_metadata(WSC_CODE, "0")
 
         if mpl != None and wst != None and wsc != None:
-            data=data,
-            quantity=quantity,
-            amount=base_calculations.base_checkout_line_total(
-                line, discounts
-            ).gross.amount,
-            tax_code=tax_code,
-            item_code=line.variant.sku,
-            name=name,
-            custom_flags={
-                "CustomString1": MPL_CODE,
-                "CustomString2": WST_CODE,
-                "CustomString3": WSC_CODE,
-                "CustomNumeric1": mpl,
-                "CustomNumeric2": wst,
-                "CustomNumeric3": wsc
-            }
+            # Designated special case for wholesale excise
+            append_line_to_data(
+                data=data,
+                quantity=line.quantity,
+                amount=base_calculations.base_checkout_line_total(
+                    line, discounts
+                ).gross.amount,
+                tax_code=tax_code,
+                item_code=line.variant.sku,
+                name=name,
+                custom_flags={
+                    "CustomString1": MPL_CODE,
+                    "CustomString2": WST_CODE,
+                    "CustomString3": WSC_CODE,
+                    "CustomNumeric1": mpl,
+                    "CustomNumeric2": wst,
+                    "CustomNumeric3": wsc
+                }
+            )
         else: 
             append_line_to_data(
                 data=data,
