@@ -12,13 +12,17 @@ from django.contrib.sites.models import Site
 from django.core.cache import cache
 from requests.auth import HTTPBasicAuth
 
-from ...checkout import base_calculations
+from .....checkout import base_calculations
+from .. import (
+    get_order_lines_data,
+    generate_tax_codes_dict
+)
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ...checkout.models import Checkout
-    from ...order.models import Order
-    from ...product.models import Product, ProductVariant, ProductType
+    from .....checkout.models import Checkout
+    from .....order.models import Order
+    from .....product.models import Product, ProductVariant, ProductType
 
 logger = logging.getLogger(__name__)
 
@@ -70,8 +74,8 @@ class CustomerErrors:
 def get_api_url(use_sandbox=True) -> str:
     """Based on settings return sanbox or production url."""
     if use_sandbox:
-        return "https://exciseua.avalara.net/api/v1/AvaTaxExcise/"
-    return "https://exciseua.avalara.net/api/v1/AvaTaxExcise/"
+        return "https://sandbox-rest.avalara.net/api/v1/AvaTaxExcise/"
+    return "https://excise.avalara.net/api/v1/AvaTaxExcise/"
 
 def api_post_request(
     url: str, data: Dict[str, Any], config: AvataxExciseConfiguration
@@ -233,10 +237,10 @@ def get_checkout_lines_data(
         product_type = line.variant.product.product_type
         tax_code = retrieve_tax_code_from_meta(product)
         tax_code = tax_code or retrieve_tax_code_from_meta(product_type)
-
-        mpl = obj.get_value_from_private_metadata(MPL_CODE, "0")
-        wst = obj.get_value_from_private_metadata(WST_CODE, "0")
-        wsc = obj.get_value_from_private_metadata(WSC_CODE, "0")
+        
+        mpl = line.variant.product.get_value_from_private_metadata(MPL_CODE, "0")
+        wst = line.variant.product.get_value_from_private_metadata(WST_CODE, "0")
+        wsc = line.variant.product.get_value_from_private_metadata(WSC_CODE, "0")
 
         if mpl != None and wst != None and wsc != None:
             data=data,
@@ -268,44 +272,6 @@ def get_checkout_lines_data(
             )
 
     append_shipping_to_data(data, checkout.shipping_method)
-    return data
-
-
-def get_order_lines_data(
-    order: "Order",
-) -> List[Dict[str, Union[str, int, bool, None]]]:
-    data: List[Dict[str, Union[str, int, bool, None]]] = []
-    lines = order.lines.prefetch_related(
-        "variant__product__category",
-        "variant__product__collections",
-        "variant__product__product_type",
-    )
-    for line in lines:
-        if not line.variant or not line.variant.product.charge_taxes:
-            continue
-        product = line.variant.product
-        product_type = line.variant.product.product_type
-        tax_code = retrieve_tax_code_from_meta(product)
-        tax_code = tax_code or retrieve_tax_code_from_meta(product_type)
-        append_line_to_data(
-            data=data,
-            quantity=line.quantity,
-            amount=line.unit_price_net_amount * line.quantity,
-            tax_code=tax_code,
-            item_code=line.variant.sku,
-            name=line.variant.product.name,
-        )
-    if order.discount_amount:
-        append_line_to_data(
-            data=data,
-            quantity=1,
-            amount=order.discount_amount * -1,
-            tax_code=COMMON_DISCOUNT_VOUCHER_CODE,
-            item_code="Voucher",
-            name=order.discount_name,
-            tax_included=True,  # Voucher should be always applied as a gross amount
-        )
-    append_shipping_to_data(data, order.shipping_method)
     return data
 
 
@@ -423,13 +389,10 @@ def get_cached_response_or_fetch(
 def get_checkout_tax_data(
     checkout: "Checkout", discounts, config: AvataxExciseConfiguration
 ) -> Dict[str, Any]:
-    # data = generate_request_data_from_checkout(checkout, config, discounts=discounts)
-    # return get_cached_response_or_fetch(data, str(checkout.token), config)
 
-    # transaction_url = urljoin(
-    #     get_api_url(config.use_sandbox), "transactions/createoradjust"
-    # )
-    transaction_url = 'ransactions/create'
+    transaction_url = urljoin(
+        get_api_url(config.use_sandbox), "transactions/create"
+    )
     
     data = generate_request_data_from_checkout(checkout, config, discounts=discounts)
     response = api_post_request(transaction_url, data, config)
@@ -458,14 +421,6 @@ def get_order_tax_data(
         data, "order_%s" % order.token, config, force_refresh
     )
     return response
-
-
-def generate_tax_codes_dict(response: Dict[str, Any]) -> Dict[str, str]:
-    tax_codes = {}
-    for line in response.get("value", []):
-        if line.get("isActive"):
-            tax_codes[line.get("taxCode")] = line.get("description")
-    return tax_codes
 
 
 def get_cached_tax_codes_or_fetch(

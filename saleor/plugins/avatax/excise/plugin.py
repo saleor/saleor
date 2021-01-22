@@ -4,16 +4,16 @@ from dataclasses import asdict
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Union
 from urllib.parse import urljoin
-from ...checkout.models import Checkout, CheckoutLine
+from .....checkout.models import Checkout, CheckoutLine
 
 from django.core.exceptions import ValidationError
 from django.conf import settings
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
-from ...core.taxes import TaxError, TaxType, zero_taxed_money
-from ...discount import DiscountInfo
-from ..base_plugin import BasePlugin, ConfigurationTypeField
-from ..error_codes import PluginErrorCode
+from .....core.taxes import TaxError, TaxType, zero_taxed_money
+from .....discount import DiscountInfo
+from ....base_plugin import BasePlugin, ConfigurationTypeField
+from ....error_codes import PluginErrorCode
 from . import (
     META_CODE_KEY,
     META_DESCRIPTION_KEY,

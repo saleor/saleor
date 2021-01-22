@@ -1,4 +1,4 @@
-from ...celeryconf import app
+from .....celeryconf import app
 from . import AvataxExciseConfiguration, api_post_request
 
 
