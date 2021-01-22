@@ -1,9 +1,6 @@
 import logging
-import json
-from dataclasses import asdict
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Union
-from urllib.parse import urljoin
 from .....checkout.models import Checkout, CheckoutLine
 
 from django.core.exceptions import ValidationError
@@ -18,8 +15,6 @@ from . import (
     META_CODE_KEY,
     META_DESCRIPTION_KEY,
     AvataxExciseConfiguration,
-    CustomerErrors,
-    TransactionType,
     _validate_checkout,
     _validate_order,
     api_post_request,
@@ -134,7 +129,6 @@ class AvataxExcisePlugin(BasePlugin):
         if not tax_response or "Error" in tax_response["Status"]:
             return checkout_total
         
-        currency = previous_value.net.currency
         # store itemized tax information in Checkout metadata for optional display on the frontend
         # if there are no taxes, itemized taxes = []
         
@@ -200,8 +194,6 @@ class AvataxExcisePlugin(BasePlugin):
         if not response or "error" in response:
             return base_subtotal
         
-        currency = settings.DEFAULT_CURRENCY
-
         if len(response["TransactionTaxes"][0]) > 0:
             currency = response["TransactionTaxes"][0]["Currency"]
         else:
@@ -240,8 +232,6 @@ class AvataxExcisePlugin(BasePlugin):
         if not _validate_checkout(checkout):
             return base_shipping_price
 
-        currency = settings.DEFAULT_CURRENCY
-        return self._calculate_checkout_shipping(currency, [], base_shipping_price)
         response = get_checkout_tax_data(checkout, discounts, self.config)
         if not response or "error" in response:
             return base_shipping_price
