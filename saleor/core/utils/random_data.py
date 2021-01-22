@@ -798,7 +798,7 @@ def _create_staff_user(email=None, superuser=False):
 def create_staff_users(how_many=2, superuser=False):
     users = []
     for _ in range(how_many):
-        staff_user = _create_staff_user(superuser)
+        staff_user = _create_staff_user(superuser=superuser)
         users.append(staff_user)
     return users
 
