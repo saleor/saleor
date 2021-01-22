@@ -392,7 +392,9 @@ class AvataxPlugin(BasePlugin):
     ) -> TaxedMoney:
         order = order_line.order
         variant = order_line.variant
-        if not variant or (order_line.variant and not order_line.variant.product.charge_taxes):  # type: ignore
+        if not variant or (
+            order_line.variant and not order_line.variant.product.charge_taxes
+        ):
             return previous_value
         return self._calculate_unit_price(
             order, order_line, variant, previous_value, is_order=True
