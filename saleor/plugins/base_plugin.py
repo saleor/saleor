@@ -168,7 +168,12 @@ class BasePlugin:
         return NotImplemented
 
     def calculate_checkout_line_unit_price(
-        self, total_line_price: TaxedMoney, quantity: int, previous_value: TaxedMoney
+        self,
+        checkout: "Checkout",
+        checkout_line: "CheckoutLine",
+        discounts: Iterable["DiscountInfo"],
+        variant: "ProductVariant",
+        previous_value: TaxedMoney,
     ):
         """Calculate checkout line unit price."""
         return NotImplemented

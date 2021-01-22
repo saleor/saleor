@@ -299,6 +299,7 @@ def get_prices_of_discounted_specific_product(
     line_prices = []
     discounted_lines = get_discounted_lines(lines, voucher)
     address = checkout.shipping_address or checkout.billing_address
+    discounts = discounts or []
 
     for line in discounted_lines:
         line_total = calculations.checkout_line_total(
@@ -311,10 +312,10 @@ def get_prices_of_discounted_specific_product(
             address=address,
             channel=channel,
             channel_listing=line.variant.channel_listings.get(channel=channel),
-            discounts=discounts or [],
+            discounts=discounts,
         ).gross
         line_unit_price = manager.calculate_checkout_line_unit_price(
-            line_total, line.quantity
+            line_total, line.quantity, checkout, line, line.variant, discounts
         )
         line_prices.extend([line_unit_price] * line.quantity)
 

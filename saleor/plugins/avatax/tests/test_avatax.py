@@ -32,6 +32,13 @@ from .. import (
 from ..plugin import AvataxPlugin
 
 
+@pytest.fixture(scope="module")
+def vcr_config():
+    return {
+        "filter_headers": [("Authorization", "Basic Og==")],
+    }
+
+
 @pytest.fixture
 def plugin_configuration(db):
     def set_configuration(username="test", password="test", sandbox=True):
@@ -391,6 +398,60 @@ def test_calculate_order_line_unit(
     assert line_price == TaxedMoney(
         net=Money("8.13", "USD"), gross=Money("10.00", "USD")
     )
+
+
+@pytest.mark.vcr
+@pytest.mark.parametrize("charge_taxes", [True, False])
+def test_calculate_checkout_line_unit_price(
+    charge_taxes,
+    checkout_with_item,
+    shipping_zone,
+    site_settings,
+    address_usa,
+    address,
+    plugin_configuration,
+):
+    plugin_configuration()
+    checkout = checkout_with_item
+    total_price = TaxedMoney(
+        net=Money("10.00", "USD") * 3, gross=Money("10.00", "USD") * 3
+    )
+
+    checkout_line = fetch_checkout_lines(checkout_with_item)[0]
+    product = checkout_line.variant.product
+    product.charge_taxes = charge_taxes
+    product.save(update_fields=["charge_taxes"])
+
+    manager = get_plugins_manager(plugins=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+
+    method = shipping_zone.shipping_methods.get()
+    checkout.shipping_address = address
+    checkout.shipping_method_name = method.name
+    checkout.shipping_method = method
+    checkout.save()
+
+    site_settings.company_address = address_usa
+    site_settings.include_taxes_in_prices = True
+    site_settings.save()
+
+    line_price = manager.calculate_checkout_line_unit_price(
+        total_price,
+        checkout_line.line.quantity,
+        checkout,
+        checkout_line.line,
+        checkout_line.variant,
+        [],
+    )
+    line_price = quantize_price(line_price, line_price.currency)
+
+    if charge_taxes:
+        assert line_price == TaxedMoney(
+            net=Money("8.13", "USD"), gross=Money("10.00", "USD")
+        )
+    else:
+        assert line_price == TaxedMoney(
+            net=Money("10.00", "USD"), gross=Money("10.00", "USD")
+        )
 
 
 @pytest.mark.vcr

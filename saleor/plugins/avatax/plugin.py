@@ -1,7 +1,7 @@
 import logging
 from dataclasses import asdict
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Optional, Union
 from urllib.parse import urljoin
 
 import opentracing
@@ -373,29 +373,58 @@ class AvataxPlugin(BasePlugin):
 
         return base_total
 
-    def _calculate_order_line_unit(self, order_line):
+    def calculate_checkout_line_unit_price(
+        self,
+        checkout: "Checkout",
+        checkout_line: "CheckoutLine",
+        discounts: Iterable[DiscountInfo],
+        variant: "ProductVariant",
+        previous_value: TaxedMoney,
+    ):
+        if not checkout_line.variant.product.charge_taxes:
+            return previous_value
+        return self._calculate_unit_price(
+            checkout, checkout_line, variant, previous_value, discounts, is_order=False
+        )
+
+    def calculate_order_line_unit(
+        self, order_line: "OrderLine", previous_value: TaxedMoney
+    ) -> TaxedMoney:
         order = order_line.order
-        taxes_data = get_order_tax_data(order, self.config)
+        variant = order_line.variant
+        if not variant or (order_line.variant and not order_line.variant.product.charge_taxes):  # type: ignore
+            return previous_value
+        return self._calculate_unit_price(
+            order, order_line, variant, previous_value, is_order=True
+        )
+
+    def _calculate_unit_price(
+        self,
+        instance: Union["Checkout", "Order"],
+        line: Union["CheckoutLine", "OrderLine"],
+        variant: "ProductVariant",
+        base_value: TaxedMoney,
+        discounts: Optional[Iterable[DiscountInfo]] = [],
+        *,
+        is_order: bool,
+    ):
+        lines = [] if is_order else [line]
+        taxes_data = self._get_tax_data(
+            instance, base_value, is_order, discounts, lines  # type: ignore
+        )
+        if taxes_data is None:
+            return base_value
         currency = taxes_data.get("currencyCode")
-        for line in taxes_data.get("lines", []):
-            if line.get("itemCode") == order_line.variant.sku:
-                tax = Decimal(line.get("tax", 0.0)) / order_line.quantity
-                net = Decimal(line.get("lineAmount", 0.0)) / order_line.quantity
+        for line_data in taxes_data.get("lines", []):
+            if line_data.get("itemCode") == variant.sku:
+                tax = Decimal(line_data.get("tax", 0.0)) / line.quantity
+                net = Decimal(line_data.get("lineAmount", 0.0)) / line.quantity
 
                 gross = Money(amount=net + tax, currency=currency)
                 net = Money(amount=net, currency=currency)
                 return TaxedMoney(net=net, gross=gross)
 
-    def calculate_order_line_unit(
-        self, order_line: "OrderLine", previous_value: TaxedMoney
-    ) -> TaxedMoney:
-        if self._skip_plugin(previous_value):
-            return previous_value
-        if order_line.variant and not order_line.variant.product.charge_taxes:  # type: ignore
-            return previous_value
-        if _validate_order(order_line.order):
-            return self._calculate_order_line_unit(order_line)
-        return order_line.unit_price
+        return base_value
 
     def calculate_order_shipping(
         self, order: "Order", previous_value: TaxedMoney
@@ -515,12 +544,12 @@ class AvataxPlugin(BasePlugin):
     def _get_tax_data(
         self,
         instance: Union["Order", "Checkout"],
-        base_rate: Decimal,
+        base_value: Decimal,
         is_order: bool,
         discounts: Optional[Iterable[DiscountInfo]] = None,
         checkout_lines: Iterable["CheckoutLine"] = [],
     ):
-        if self._skip_plugin(base_rate):
+        if self._skip_plugin(base_value):
             return None
 
         valid = (

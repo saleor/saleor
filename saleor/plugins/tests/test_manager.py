@@ -308,9 +308,9 @@ def test_manager_get_order_shipping_tax_rate_no_plugins(
             ["saleor.plugins.tests.sample_plugins.PluginSample"],
             TaxedMoney(
                 net=Money(amount=10, currency="USD"),
-                gross=Money(amount=12, currency="USD"),
+                gross=Money(amount=10, currency="USD"),
             ),
-            2,
+            1,
         ),
         (
             [],
@@ -318,15 +318,16 @@ def test_manager_get_order_shipping_tax_rate_no_plugins(
                 net=Money(amount=15, currency="USD"),
                 gross=Money(amount=15, currency="USD"),
             ),
-            1,
+            2,
         ),
     ],
 )
 def test_manager_calculates_checkout_line_unit_price(
-    plugins, total_line_price, quantity
+    plugins, total_line_price, quantity, checkout_with_item
 ):
+    line = checkout_with_item.lines.first()
     taxed_total = PluginsManager(plugins=plugins).calculate_checkout_line_unit_price(
-        total_line_price, quantity
+        total_line_price, quantity, checkout_with_item, line, line.variant, []
     )
     currency = total_line_price.net.currency
     expected_net = Money(

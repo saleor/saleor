@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from ...checkout.models import Checkout, CheckoutLine
     from ...discount import DiscountInfo
     from ...order.models import Order
-    from ...product.models import Product, ProductType
+    from ...product.models import Product, ProductType, ProductVariant
 
 
 class PluginSample(BasePlugin):
@@ -105,9 +105,16 @@ class PluginSample(BasePlugin):
         return TaxedMoney(price, price)
 
     def calculate_checkout_line_unit_price(
-        self, total_line_price: TaxedMoney, quantity: int, previous_value: TaxedMoney
+        self,
+        checkout: "Checkout",
+        checkout_line: "CheckoutLine",
+        discounts: Iterable["DiscountInfo"],
+        variant: "ProductVariant",
+        previous_value: TaxedMoney,
     ):
-        return total_line_price / quantity
+        currency = checkout.currency
+        price = Money("10.0", currency)
+        return TaxedMoney(price, price)
 
     def calculate_order_line_unit(self, order_line, previous_value):
         currency = order_line.unit_price.currency

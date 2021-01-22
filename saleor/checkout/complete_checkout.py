@@ -178,7 +178,9 @@ def _create_line_for_order(
         channel_listing,
         discounts,
     )
-    unit_price = manager.calculate_checkout_line_unit_price(total_line_price, quantity)
+    unit_price = manager.calculate_checkout_line_unit_price(
+        total_line_price, quantity, checkout, checkout_line, variant, discounts
+    )
     tax_rate = manager.get_checkout_line_tax_rate(
         checkout, checkout_line_info, address, discounts, unit_price
     )
