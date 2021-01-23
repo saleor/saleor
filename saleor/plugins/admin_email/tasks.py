@@ -16,6 +16,7 @@ def send_set_staff_password_email_task(recipient_email, payload, config: dict):
         constants.PLUGIN_ID,
         constants.SET_STAFF_PASSWORD_TEMPLATE_FIELD,
         constants.SET_STAFF_PASSWORD_DEFAULT_TEMPLATE,
+        constants.DEFAULT_EMAIL_TEMPLATES_PATH,
     )
     subject = get_email_subject(
         constants.PLUGIN_ID,
@@ -40,6 +41,7 @@ def send_email_with_link_to_download_file_task(
         constants.PLUGIN_ID,
         constants.CSV_PRODUCT_EXPORT_SUCCESS_TEMPLATE_FIELD,
         constants.CSV_PRODUCT_EXPORT_SUCCESS_DEFAULT_TEMPLATE,
+        constants.DEFAULT_EMAIL_TEMPLATES_PATH,
     )
     subject = get_email_subject(
         constants.PLUGIN_ID,
@@ -65,6 +67,7 @@ def send_export_failed_email_task(recipient_email: str, payload: dict, config: d
         constants.PLUGIN_ID,
         constants.CSV_EXPORT_FAILED_TEMPLATE_FIELD,
         constants.CSV_EXPORT_FAILED_TEMPLATE_DEFAULT_TEMPLATE,
+        constants.DEFAULT_EMAIL_TEMPLATES_PATH,
     )
     subject = get_email_subject(
         constants.PLUGIN_ID,
@@ -92,6 +95,7 @@ def send_staff_order_confirmation_email_task(
         constants.PLUGIN_ID,
         constants.STAFF_ORDER_CONFIRMATION_TEMPLATE_FIELD,
         constants.STAFF_ORDER_CONFIRMATION_DEFAULT_TEMPLATE,
+        constants.DEFAULT_EMAIL_TEMPLATES_PATH,
     )
     subject = get_email_subject(
         constants.PLUGIN_ID,
