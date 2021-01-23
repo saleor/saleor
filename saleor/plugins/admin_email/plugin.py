@@ -10,10 +10,11 @@ from ..email_common import (
     DEFAULT_EMAIL_CONFIG_STRUCTURE,
     DEFAULT_EMAIL_CONFIGURATION,
     DEFAULT_EMAIL_VALUE,
-    DEFAULT_SUBJECT_MESSAGE,
-    DEFAULT_TEMPLATE_MESSAGE,
+    DEFAULT_SUBJECT_HELP_TEXT,
+    DEFAULT_TEMPLATE_HELP_TEXT,
     EmailConfig,
     validate_default_email_configuration,
+    validate_format_of_provided_templates,
 )
 from ..models import PluginConfiguration
 from .constants import (
@@ -30,6 +31,7 @@ from .constants import (
     STAFF_ORDER_CONFIRMATION_DEFAULT_SUBJECT,
     STAFF_ORDER_CONFIRMATION_SUBJECT_FIELD,
     STAFF_ORDER_CONFIRMATION_TEMPLATE_FIELD,
+    TEMPLATE_FIELDS,
 )
 from .notify_events import (
     send_csv_export_failed,
@@ -103,42 +105,42 @@ class AdminEmailPlugin(BasePlugin):
     CONFIG_STRUCTURE = {
         STAFF_ORDER_CONFIRMATION_SUBJECT_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_SUBJECT_MESSAGE,
+            "help_text": DEFAULT_SUBJECT_HELP_TEXT,
             "label": "Staff order confirmation subject",
         },
         STAFF_ORDER_CONFIRMATION_TEMPLATE_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "Staff order confirmation template",
         },
         SET_STAFF_PASSWORD_SUBJECT_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_SUBJECT_MESSAGE,
+            "help_text": DEFAULT_SUBJECT_HELP_TEXT,
             "label": "Set staff password subject",
         },
         SET_STAFF_PASSWORD_TEMPLATE_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "Set staff password email template",
         },
         CSV_PRODUCT_EXPORT_SUCCESS_SUBJECT_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_SUBJECT_MESSAGE,
+            "help_text": DEFAULT_SUBJECT_HELP_TEXT,
             "label": "CSV product export success subject",
         },
         CSV_PRODUCT_EXPORT_SUCCESS_TEMPLATE_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "CSV product export success template",
         },
         CSV_EXPORT_FAILED_SUBJECT_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_SUBJECT_MESSAGE,
+            "help_text": DEFAULT_SUBJECT_HELP_TEXT,
             "label": "CSV export failed template",
         },
         CSV_EXPORT_FAILED_TEMPLATE_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "CSV export failed template",
         },
     }
@@ -187,3 +189,4 @@ class AdminEmailPlugin(BasePlugin):
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
         """Validate if provided configuration is correct."""
         validate_default_email_configuration(plugin_configuration)
+        validate_format_of_provided_templates(plugin_configuration, TEMPLATE_FIELDS)

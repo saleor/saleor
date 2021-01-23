@@ -4,7 +4,7 @@ import re
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 from email.headerregistry import Address
-from typing import Optional
+from typing import List, Optional
 
 import html2text
 import i18naddress
@@ -25,12 +25,12 @@ from .models import PluginConfiguration
 logger = logging.getLogger(__name__)
 
 
-DEFAULT_TEMPLATE_MESSAGE = (
+DEFAULT_TEMPLATE_HELP_TEXT = (
     "An HTML template built with handlebars template language. Leave it "
     "blank if you don't want to send an email for this action. Use the "
     "default Saleor template by providing DEFAULT value."
 )
-DEFAULT_SUBJECT_MESSAGE = "An email subject built with handlebars template language."
+DEFAULT_SUBJECT_HELP_TEXT = "An email subject built with handlebars template language."
 DEFAULT_EMAIL_VALUE = "DEFAULT"
 
 
@@ -271,6 +271,32 @@ def validate_default_email_configuration(plugin_configuration: "PluginConfigurat
                 for c in configuration.keys()
             }
         )
+
+
+def validate_format_of_provided_templates(
+    plugin_configuration: "PluginConfiguration", template_fields: List[str]
+):
+    """Make sure that the templates provided by the user have the correct structure."""
+    configuration = plugin_configuration.configuration
+    configuration = {item["name"]: item["value"] for item in configuration}
+
+    if not plugin_configuration.active:
+        return
+    compiler = pybars.Compiler()
+    errors = {}
+    for field in template_fields:
+        template_str = configuration.get(field)
+        if not template_str or template_str == DEFAULT_EMAIL_VALUE:
+            continue
+        try:
+            compiler.compile(template_str)
+        except pybars.PybarsError:
+            errors[field] = ValidationError(
+                "The provided template has an inccorect structure.",
+                code=PluginErrorCode.INVALID.value,
+            )
+    if errors:
+        raise ValidationError(errors)
 
 
 def get_email_template(
