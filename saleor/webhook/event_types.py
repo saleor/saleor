@@ -32,6 +32,8 @@ class WebhookEventType:
     CHECKOUT_CREATED = "checkout_created"
     CHECKOUT_UPADTED = "checkout_updated"
 
+    NOTIFY = "notify"
+
     DISPLAY_LABELS = {
         ANY: "Any events",
         ORDER_CREATED: "Order created",
@@ -51,6 +53,7 @@ class WebhookEventType:
         CHECKOUT_CREATED: "Checkout created",
         CHECKOUT_UPADTED: "Checkout updated",
         FULFILLMENT_CREATED: "Fulfillment_created",
+        NOTIFY: "Notify user",
     }
 
     CHOICES = [
@@ -72,6 +75,7 @@ class WebhookEventType:
         (CHECKOUT_CREATED, DISPLAY_LABELS[CHECKOUT_CREATED]),
         (CHECKOUT_UPADTED, DISPLAY_LABELS[CHECKOUT_UPADTED]),
         (FULFILLMENT_CREATED, DISPLAY_LABELS[FULFILLMENT_CREATED]),
+        (NOTIFY, DISPLAY_LABELS[NOTIFY]),
     ]
 
     PERMISSIONS = {
@@ -91,4 +95,5 @@ class WebhookEventType:
         CHECKOUT_CREATED: CheckoutPermissions.MANAGE_CHECKOUTS,
         CHECKOUT_UPADTED: CheckoutPermissions.MANAGE_CHECKOUTS,
         FULFILLMENT_CREATED: OrderPermissions.MANAGE_ORDERS,
+        NOTIFY: AccountPermissions.MANAGE_USERS,
     }

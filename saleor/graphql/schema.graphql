@@ -5799,6 +5799,7 @@ enum WebhookEventTypeEnum {
   CHECKOUT_CREATED
   CHECKOUT_UPDATED
   FULFILLMENT_CREATED
+  NOTIFY
 }
 
 enum WebhookSampleEventTypeEnum {
@@ -5818,6 +5819,7 @@ enum WebhookSampleEventTypeEnum {
   CHECKOUT_CREATED
   CHECKOUT_UPDATED
   FULFILLMENT_CREATED
+  NOTIFY
 }
 
 type WebhookUpdate {
