@@ -102,8 +102,8 @@ destination_address_argument = graphene.Argument(
     account_types.AddressInput,
     description=(
         "Destination address used to find warehouses where stock availability "
-        "for this product is checked. If address is empty, use "
-        "`Shop.companyAddress` or fallback to server's "
+        "for this product is checked. If address is empty, uses "
+        "`Shop.companyAddress` or fallbacks to server's "
         "`settings.DEFAULT_COUNTRY` configuration."
     ),
 )

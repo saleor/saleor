@@ -3857,7 +3857,7 @@ type ProductChannelListing implements Node {
   purchaseCost: MoneyRange
   margin: Margin
   isAvailableForPurchase: Boolean
-  pricing(countryCode: CountryCode): ProductPricingInfo
+  pricing(address: AddressInput): ProductPricingInfo
 }
 
 input ProductChannelListingAddInput {

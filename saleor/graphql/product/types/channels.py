@@ -12,11 +12,12 @@ from ....product.utils.costs import (
     get_margin_for_variant_channel_listing,
     get_product_costs_data,
 )
-from ...account.enums import CountryCodeEnum
+from ...account import types as account_types
 from ...channel.dataloaders import ChannelByIdLoader
 from ...core.connection import CountableDjangoObjectType
 from ...decorators import permission_required
 from ...discount.dataloaders import DiscountsByDateTimeLoader
+from ...utils import get_user_country_context
 from ..dataloaders import (
     CollectionsByProductIdLoader,
     ProductVariantsByProductIdLoader,
@@ -41,13 +42,13 @@ class ProductChannelListing(CountableDjangoObjectType):
     )
     pricing = graphene.Field(
         "saleor.graphql.product.types.products.ProductPricingInfo",
-        country_code=graphene.Argument(
-            CountryCodeEnum,
+        address=graphene.Argument(
+            account_types.AddressInput,
             description=(
-                "Two-letter ISO 3166-1 country code. When provided, the exact quantity "
-                "from a warehouse operating in shipping zones that contain this "
-                "country will be returned. Otherwise, it will return the maximum "
-                "quantity from all shipping zones."
+                "Destination address used to find warehouses where stock availability "
+                "for this product is checked. If address is empty, uses "
+                "`Shop.companyAddress` or fallbacks to server's "
+                "`settings.DEFAULT_COUNTRY` configuration."
             ),
         ),
         description=(
@@ -152,8 +153,11 @@ class ProductChannelListing(CountableDjangoObjectType):
         return root.is_available_for_purchase()
 
     @staticmethod
-    def resolve_pricing(root: models.ProductChannelListing, info, country_code=None):
+    def resolve_pricing(root: models.ProductChannelListing, info, address=None):
         context = info.context
+        country_code = get_user_country_context(
+            address, info.context.site.settings.company_address
+        )
 
         def calculate_pricing_info(discounts):
             def calculate_pricing_with_channel(channel):
