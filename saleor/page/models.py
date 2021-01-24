@@ -1,17 +1,11 @@
 from django.db import models
 
 from ..core.db.fields import SanitizedJSONField
-from ..core.models import ModelWithMetadata, PublishableModel, PublishedQuerySet
+from ..core.models import ModelWithMetadata, PublishableModel
 from ..core.permissions import PagePermissions, PageTypePermissions
-from ..core.sanitizers.editorjs_sanitizer import clean_editor_js
+from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.translations import TranslationProxy
 from ..seo.models import SeoModel, SeoModelTranslation
-
-
-class PagePublishedQuerySet(PublishedQuerySet):
-    @staticmethod
-    def user_has_access_to_all(user):
-        return user.is_active and user.has_perm(PagePermissions.MANAGE_PAGES)
 
 
 class Page(ModelWithMetadata, SeoModel, PublishableModel):
@@ -20,13 +14,12 @@ class Page(ModelWithMetadata, SeoModel, PublishableModel):
     page_type = models.ForeignKey(
         "PageType", related_name="pages", on_delete=models.CASCADE
     )
-    content = models.TextField(blank=True)
+    content = SanitizedJSONField(blank=True, default=dict, sanitizer=clean_editor_js)
     content_json = SanitizedJSONField(
         blank=True, default=dict, sanitizer=clean_editor_js
     )
     created = models.DateTimeField(auto_now_add=True)
 
-    objects = PagePublishedQuerySet.as_manager()
     translated = TranslationProxy()
 
     class Meta:
@@ -43,7 +36,7 @@ class PageTranslation(SeoModelTranslation):
         Page, related_name="translations", on_delete=models.CASCADE
     )
     title = models.CharField(max_length=255, blank=True)
-    content = models.TextField(blank=True)
+    content = SanitizedJSONField(blank=True, default=dict, sanitizer=clean_editor_js)
     content_json = SanitizedJSONField(
         blank=True, default=dict, sanitizer=clean_editor_js
     )

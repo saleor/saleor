@@ -1,5 +1,7 @@
 from typing import List
 
+import opentracing
+import opentracing.tags
 import stripe
 
 from ... import TransactionKind
@@ -44,19 +46,31 @@ def authorize(
     )
 
     try:
-        intent = client.PaymentIntent.create(
-            payment_method=payment_information.token,
-            amount=stripe_amount,
-            currency=currency,
-            confirmation_method="manual",
-            confirm=True,
-            capture_method=capture_method,
-            setup_future_usage=future_use,
-            customer=customer_id,
-            shipping=shipping,
-        )
+        with opentracing.global_tracer().start_active_span(
+            "stripe.PaymentIntent.create"
+        ) as scope:
+            span = scope.span
+            span.set_tag(opentracing.tags.COMPONENT, "payment")
+            span.set_tag("service.name", "stripe")
+            intent = client.PaymentIntent.create(
+                payment_method=payment_information.token,
+                amount=stripe_amount,
+                currency=currency,
+                confirmation_method="manual",
+                confirm=True,
+                capture_method=capture_method,
+                setup_future_usage=future_use,
+                customer=customer_id,
+                shipping=shipping,
+            )
         if config.store_customer and not customer_id:
-            customer = client.Customer.create(payment_method=intent.payment_method)
+            with opentracing.global_tracer().start_active_span(
+                "stripe.Customer.create"
+            ) as scope:
+                span = scope.span
+                span.set_tag(opentracing.tags.COMPONENT, "payment")
+                span.set_tag("service.name", "stripe")
+                customer = client.Customer.create(payment_method=intent.payment_method)
             customer_id = customer.id
 
     except stripe.error.StripeError as exc:
@@ -74,7 +88,13 @@ def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
     client = _get_client(**config.connection_params)
     intent = None
     try:
-        intent = client.PaymentIntent.retrieve(id=payment_information.token)
+        with opentracing.global_tracer().start_active_span(
+            "stripe.PaymentIntent.retrieve"
+        ) as scope:
+            span = scope.span
+            span.set_tag(opentracing.tags.COMPONENT, "payment")
+            span.set_tag("service.name", "stripe")
+            intent = client.PaymentIntent.retrieve(id=payment_information.token)
         capture = intent.capture()
     except stripe.error.StripeError as exc:
         action_required = intent.status == "requires_action" if intent else False
@@ -98,7 +118,13 @@ def confirm(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
     client = _get_client(**config.connection_params)
     try:
         intent = client.PaymentIntent(id=payment_information.token)
-        intent.confirm()
+        with opentracing.global_tracer().start_active_span(
+            "stripe.PaymentIntent.confirm"
+        ) as scope:
+            span = scope.span
+            span.set_tag(opentracing.tags.COMPONENT, "payment")
+            span.set_tag("service.name", "stripe")
+            intent.confirm()
     except stripe.error.StripeError as exc:
         response = _error_response(
             kind=TransactionKind.CONFIRM, exc=exc, payment_info=payment_information
@@ -118,7 +144,13 @@ def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayRe
     currency = get_currency_for_stripe(payment_information.currency)
     stripe_amount = get_amount_for_stripe(payment_information.amount, currency)
     try:
-        intent = client.PaymentIntent.retrieve(id=payment_information.token)
+        with opentracing.global_tracer().start_active_span(
+            "stripe.PaymentIntent.retrieve"
+        ) as scope:
+            span = scope.span
+            span.set_tag(opentracing.tags.COMPONENT, "payment")
+            span.set_tag("service.name", "stripe")
+            intent = client.PaymentIntent.retrieve(id=payment_information.token)
         refund = intent["charges"]["data"][0].refund(amount=stripe_amount)
     except stripe.error.StripeError as exc:
         response = _error_response(
@@ -138,7 +170,13 @@ def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayRe
 def void(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
     client = _get_client(**config.connection_params)
     try:
-        intent = client.PaymentIntent.retrieve(id=payment_information.token)
+        with opentracing.global_tracer().start_active_span(
+            "stripe.PaymentIntent.retrieve"
+        ) as scope:
+            span = scope.span
+            span.set_tag(opentracing.tags.COMPONENT, "payment")
+            span.set_tag("service.name", "stripe")
+            intent = client.PaymentIntent.retrieve(id=payment_information.token)
         refund = intent["charges"]["data"][0].refund()
     except stripe.error.StripeError as exc:
         response = _error_response(
@@ -158,7 +196,13 @@ def list_client_sources(
     config: GatewayConfig, customer_id: str
 ) -> List[CustomerSource]:
     client = _get_client(**config.connection_params)
-    cards = client.PaymentMethod.list(customer=customer_id, type="card")["data"]
+    with opentracing.global_tracer().start_active_span(
+        "stripe.PaymentMethod.list"
+    ) as scope:
+        span = scope.span
+        span.set_tag(opentracing.tags.COMPONENT, "payment")
+        span.set_tag("service.name", "stripe")
+        cards = client.PaymentMethod.list(customer=customer_id, type="card")["data"]
     return [
         CustomerSource(
             id=c.id,
@@ -194,7 +238,7 @@ def _error_response(
     return GatewayResponse(
         is_success=False,
         action_required=action_required,
-        transaction_id=payment_info.token,
+        transaction_id=payment_info.token or "",
         amount=payment_info.amount,
         currency=payment_info.currency,
         error=exc.user_message,

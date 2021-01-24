@@ -12,6 +12,7 @@ from .utils import (
     clean_authorize,
     clean_capture,
     create_payment_information,
+    create_transaction,
     gateway_postprocess,
     get_already_processed_transaction_or_create_new_transaction,
     update_payment_method_details,
@@ -21,6 +22,7 @@ from .utils import (
 if TYPE_CHECKING:
     # flake8: noqa
     from ..payment.interface import CustomerSource, PaymentGateway
+    from ..plugins.manager import PluginsManager
 
 
 logger = logging.getLogger(__name__)
@@ -76,8 +78,10 @@ def process_payment(
     token: str,
     store_source: bool = False,
     additional_data: Optional[dict] = None,
+    plugin_manager: Optional["PluginsManager"] = None,
 ) -> Transaction:
-    plugin_manager = get_plugins_manager()
+    if not plugin_manager:
+        plugin_manager = get_plugins_manager()
     payment_data = create_payment_information(
         payment=payment,
         payment_token=token,
@@ -166,10 +170,22 @@ def refund(payment: Payment, amount: Decimal = None) -> Transaction:
     _validate_refund_amount(payment, amount)
     if not payment.can_refund():
         raise PaymentError("This payment cannot be refunded.")
-    token = _get_past_transaction_token(payment, TransactionKind.CAPTURE)
+
+    kind = TransactionKind.EXTERNAL if payment.is_manual() else TransactionKind.CAPTURE
+
+    token = _get_past_transaction_token(payment, kind)
     payment_data = create_payment_information(
         payment=payment, payment_token=token, amount=amount
     )
+    if payment.is_manual():
+        # for manual payment we just need to mark payment as a refunded
+        return create_transaction(
+            payment,
+            TransactionKind.REFUND,
+            payment_information=payment_data,
+            is_success=True,
+        )
+
     response, error = _fetch_gateway_response(
         plugin_manager.refund_payment, payment.gateway, payment_data
     )

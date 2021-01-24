@@ -1,3 +1,4 @@
+import json
 import warnings
 
 from .....channel.utils import DEPRECATION_WARNING_MESSAGE
@@ -37,7 +38,9 @@ def test_collections_query_with_default_channel_slug(
     collection_data = edges[0]["node"]
     assert collection_data["name"] == published_collection.name
     assert collection_data["slug"] == published_collection.slug
-    assert collection_data["description"] == published_collection.description
+    assert collection_data["description"] == json.dumps(
+        published_collection.description
+    )
     assert (
         collection_data["products"]["totalCount"]
         == published_collection.products.count()

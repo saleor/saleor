@@ -51,12 +51,18 @@ QUERY_MENUS_PAGINATION = """
     ],
 )
 def test_menus_pagination_with_sorting(
-    sort_by, menus_order, staff_api_client, menus_for_pagination,
+    sort_by,
+    menus_order,
+    staff_api_client,
+    menus_for_pagination,
 ):
     page_size = 3
 
     variables = {"first": page_size, "after": None, "sortBy": sort_by}
-    response = staff_api_client.post_graphql(QUERY_MENUS_PAGINATION, variables,)
+    response = staff_api_client.post_graphql(
+        QUERY_MENUS_PAGINATION,
+        variables,
+    )
     content = get_graphql_content(response)
     menus_nodes = content["data"]["menus"]["edges"]
     assert menus_order[0] == menus_nodes[0]["node"]["name"]
@@ -73,12 +79,18 @@ def test_menus_pagination_with_sorting(
     ],
 )
 def test_menus_pagination_with_filtering(
-    filter_by, menus_order, staff_api_client, menus_for_pagination,
+    filter_by,
+    menus_order,
+    staff_api_client,
+    menus_for_pagination,
 ):
     page_size = 2
 
     variables = {"first": page_size, "after": None, "filter": filter_by}
-    response = staff_api_client.post_graphql(QUERY_MENUS_PAGINATION, variables,)
+    response = staff_api_client.post_graphql(
+        QUERY_MENUS_PAGINATION,
+        variables,
+    )
     content = get_graphql_content(response)
     menus_nodes = content["data"]["menus"]["edges"]
     assert menus_order[0] == menus_nodes[0]["node"]["name"]
@@ -137,12 +149,18 @@ QUERY_MENU_ITEMS_PAGINATION = """
     ],
 )
 def test_menu_items_pagination_with_sorting(
-    sort_by, menu_items_order, staff_api_client, menu_items_for_pagination,
+    sort_by,
+    menu_items_order,
+    staff_api_client,
+    menu_items_for_pagination,
 ):
     page_size = 3
 
     variables = {"first": page_size, "after": None, "sortBy": sort_by}
-    response = staff_api_client.post_graphql(QUERY_MENU_ITEMS_PAGINATION, variables,)
+    response = staff_api_client.post_graphql(
+        QUERY_MENU_ITEMS_PAGINATION,
+        variables,
+    )
     content = get_graphql_content(response)
     menu_items_nodes = content["data"]["menuItems"]["edges"]
     assert menu_items_order[0] == menu_items_nodes[0]["node"]["name"]
@@ -159,12 +177,18 @@ def test_menu_items_pagination_with_sorting(
     ],
 )
 def test_menu_items_pagination_with_filtering(
-    filter_by, menu_items_order, staff_api_client, menu_items_for_pagination,
+    filter_by,
+    menu_items_order,
+    staff_api_client,
+    menu_items_for_pagination,
 ):
     page_size = 2
 
     variables = {"first": page_size, "after": None, "filter": filter_by}
-    response = staff_api_client.post_graphql(QUERY_MENU_ITEMS_PAGINATION, variables,)
+    response = staff_api_client.post_graphql(
+        QUERY_MENU_ITEMS_PAGINATION,
+        variables,
+    )
     content = get_graphql_content(response)
     menu_items_nodes = content["data"]["menuItems"]["edges"]
     assert menu_items_order[0] == menu_items_nodes[0]["node"]["name"]

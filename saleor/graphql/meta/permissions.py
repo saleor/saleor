@@ -1,13 +1,15 @@
 from typing import Any, List
 
 from ...account import models as account_models
-from ...attribute import AttributeType, models as attribute_models
+from ...attribute import AttributeType
+from ...attribute import models as attribute_models
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import (
     AccountPermissions,
     AppPermission,
     BasePermissionEnum,
     CheckoutPermissions,
+    MenuPermissions,
     OrderPermissions,
     PagePermissions,
     PageTypePermissions,
@@ -63,6 +65,10 @@ def invoice_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
     return [OrderPermissions.MANAGE_ORDERS]
 
 
+def menu_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
+    return [MenuPermissions.MANAGE_MENUS]
+
+
 def app_permissions(_info, _object_pk: int) -> List[BasePermissionEnum]:
     return [AppPermission.MANAGE_APPS]
 
@@ -98,6 +104,8 @@ PUBLIC_META_PERMISSION_MAP = {
     "Collection": product_permissions,
     "DigitalContent": product_permissions,
     "Fulfillment": order_permissions,
+    "Menu": menu_permissions,
+    "MenuItem": menu_permissions,
     "Order": no_permissions,
     "Invoice": invoice_permissions,
     "Page": page_permissions,
@@ -109,6 +117,7 @@ PUBLIC_META_PERMISSION_MAP = {
     "ShippingZone": shipping_permissions,
     "App": app_permissions,
     "User": public_user_permissions,
+    "Warehouse": product_permissions,
 }
 
 
@@ -119,6 +128,8 @@ PRIVATE_META_PERMISSION_MAP = {
     "Collection": product_permissions,
     "DigitalContent": product_permissions,
     "Fulfillment": order_permissions,
+    "Menu": menu_permissions,
+    "MenuItem": menu_permissions,
     "Order": order_permissions,
     "Invoice": invoice_permissions,
     "Page": page_permissions,
@@ -130,4 +141,5 @@ PRIVATE_META_PERMISSION_MAP = {
     "ShippingZone": shipping_permissions,
     "App": app_permissions,
     "User": private_user_permissions,
+    "Warehouse": product_permissions,
 }

@@ -17,11 +17,8 @@ from django.views.generic import View
 from graphene_django.settings import graphene_settings
 from graphene_django.views import instantiate_middleware
 from graphql import GraphQLDocument, get_default_backend
-from graphql.error import (
-    GraphQLError,
-    GraphQLSyntaxError,
-    format_error as format_graphql_error,
-)
+from graphql.error import GraphQLError, GraphQLSyntaxError
+from graphql.error import format_error as format_graphql_error
 from graphql.execution import ExecutionResult
 from jwt.exceptions import PyJWTError
 
@@ -42,6 +39,10 @@ def tracing_wrapper(execute, sql, params, many, context):
         span.set_tag(opentracing.tags.COMPONENT, "db")
         span.set_tag(opentracing.tags.DATABASE_STATEMENT, sql)
         span.set_tag(opentracing.tags.DATABASE_TYPE, conn.display_name)
+        span.set_tag(opentracing.tags.PEER_HOSTNAME, conn.settings_dict.get("HOST"))
+        span.set_tag(opentracing.tags.PEER_PORT, conn.settings_dict.get("PORT"))
+        span.set_tag("service.name", "postgres")
+        span.set_tag("span.type", "sql")
         return execute(sql, params, many, context)
 
 
@@ -137,6 +138,7 @@ class GraphQLView(View):
                 opentracing.tags.HTTP_URL,
                 request.build_absolute_uri(request.get_full_path()),
             )
+            span.set_tag("span.type", "web")
 
             request_ips = request.META.get(settings.REAL_IP_ENVIRON, "")
             for ip in request_ips.split(","):
@@ -204,9 +206,7 @@ class GraphQLView(View):
         # Attempt to parse the query, if it fails, return the error
         try:
             return (
-                self.backend.document_from_string(  # type: ignore
-                    self.schema, query
-                ),
+                self.backend.document_from_string(self.schema, query),  # type: ignore
                 None,
             )
         except (ValueError, GraphQLSyntaxError) as e:
@@ -224,9 +224,7 @@ class GraphQLView(View):
                 return error
 
             if document is not None:
-                raw_query_string = document.document_string[
-                    : settings.OPENTRACING_MAX_QUERY_LENGTH_LOG
-                ]
+                raw_query_string = document.document_string
                 span.set_tag("graphql.query", raw_query_string)
 
             extra_options: Dict[str, Optional[Any]] = {}
@@ -293,7 +291,7 @@ class GraphQLView(View):
             exc = exc.original_error
 
         if isinstance(exc, cls.HANDLED_EXCEPTIONS):
-            handled_errors_logger.error("A query had an error", exc_info=exc)
+            handled_errors_logger.info("A query had an error", exc_info=exc)
         else:
             unhandled_errors_logger.error("A query failed unexpectedly", exc_info=exc)
 

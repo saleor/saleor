@@ -1,4 +1,7 @@
+from django.db.models import Exists, OuterRef
+
 from ...channel.models import Channel
+from ...order.models import Order
 from ..checkout.dataloaders import CheckoutByIdLoader, CheckoutLineByIdLoader
 from ..core.dataloaders import DataLoader
 from ..order.dataloaders import OrderByIdLoader, OrderLineByIdLoader
@@ -62,3 +65,12 @@ class ChannelByOrderLineIdLoader(DataLoader):
             )
 
         return OrderLineByIdLoader(self.context).load_many(keys).then(channel_by_lines)
+
+
+class ChannelWithHasOrdersByIdLoader(DataLoader):
+    context_key = "channel_with_has_orders_by_id"
+
+    def batch_load(self, keys):
+        orders = Order.objects.filter(channel=OuterRef("pk"))
+        channels = Channel.objects.annotate(has_orders=Exists(orders)).in_bulk(keys)
+        return [channels.get(channel_id) for channel_id in keys]

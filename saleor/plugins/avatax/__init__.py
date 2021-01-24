@@ -6,6 +6,8 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 from urllib.parse import urljoin
 
+import opentracing
+import opentracing.tags
 import requests
 from django.conf import settings
 from django.contrib.sites.models import Site
@@ -100,7 +102,9 @@ def api_post_request(
 
 
 def api_get_request(
-    url: str, username_or_account: str, password_or_license: str,
+    url: str,
+    username_or_account: str,
+    password_or_license: str,
 ):
     response = None
     try:
@@ -235,6 +239,8 @@ def get_checkout_lines_data(
     for line in lines:
         name = line.variant.product.name
         product = line.variant.product
+        collections = product.collections.all()
+        channel_listing = line.variant.channel_listings.get(channel=channel)
         product_type = line.variant.product.product_type
         tax_code = retrieve_tax_code_from_meta(product, default=None)
         tax_code = tax_code or retrieve_tax_code_from_meta(product_type)
@@ -242,7 +248,13 @@ def get_checkout_lines_data(
             data=data,
             quantity=line.quantity,
             amount=base_calculations.base_checkout_line_total(
-                line, channel, discounts
+                line,
+                line.variant,
+                product,
+                collections,
+                channel,
+                channel_listing,
+                discounts,
             ).gross.amount,
             tax_code=tax_code,
             item_code=line.variant.sku,
@@ -384,7 +396,13 @@ def _fetch_new_taxes_data(
     transaction_url = urljoin(
         get_api_url(config.use_sandbox), "transactions/createoradjust"
     )
-    response = api_post_request(transaction_url, data, config)
+    with opentracing.global_tracer().start_active_span(
+        "avatax.transactions.crateoradjust"
+    ) as scope:
+        span = scope.span
+        span.set_tag(opentracing.tags.COMPONENT, "tax")
+        span.set_tag("service.name", "avatax")
+        response = api_post_request(transaction_url, data, config)
     if response and "error" not in response:
         cache.set(data_cache_key, (data, response), CACHE_TIME)
     else:
@@ -468,9 +486,15 @@ def get_cached_tax_codes_or_fetch(
     tax_codes = cache.get(TAX_CODES_CACHE_KEY, {})
     if not tax_codes:
         tax_codes_url = urljoin(get_api_url(config.use_sandbox), "definitions/taxcodes")
-        response = api_get_request(
-            tax_codes_url, config.username_or_account, config.password_or_license
-        )
+        with opentracing.global_tracer().start_active_span(
+            "avatax.definitions.taxcodes"
+        ) as scope:
+            span = scope.span
+            span.set_tag(opentracing.tags.COMPONENT, "tax")
+            span.set_tag("service.name", "avatax")
+            response = api_get_request(
+                tax_codes_url, config.username_or_account, config.password_or_license
+            )
         if response and "error" not in response:
             tax_codes = generate_tax_codes_dict(response)
             cache.set(TAX_CODES_CACHE_KEY, tax_codes, cache_time)

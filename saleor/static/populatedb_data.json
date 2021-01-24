@@ -8,8 +8,7 @@
       "seo_description": "",
       "name": "Accessories",
       "slug": "accessories",
-      "description": "",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": ""
@@ -36,8 +35,7 @@
       "seo_description": "",
       "name": "Groceries",
       "slug": "groceries",
-      "description": "",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": ""
@@ -64,8 +62,7 @@
       "seo_description": "",
       "name": "Apparel",
       "slug": "apparel",
-      "description": "",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": ""
@@ -92,8 +89,7 @@
       "seo_description": "",
       "name": "T-shirts",
       "slug": "t-shirts",
-      "description": "",
-      "description_json": {},
+      "description": {},
       "parent": 9,
       "background_image": "category-backgrounds/apparel_aQjIlZr.jpg",
       "background_image_alt": "",
@@ -113,8 +109,7 @@
       "seo_description": "",
       "name": "Polo Shirts",
       "slug": "polo-shirts",
-      "description": "",
-      "description_json": {},
+      "description": {},
       "parent": 9,
       "background_image": "category-backgrounds/apparel_HuImTaR.jpg",
       "background_image_alt": "",
@@ -134,8 +129,7 @@
       "seo_description": "",
       "name": "Hoodies",
       "slug": "hoodies",
-      "description": "",
-      "description_json": {},
+      "description": {},
       "parent": 9,
       "background_image": "category-backgrounds/apparel_6ziH1ON.jpg",
       "background_image_alt": "",
@@ -155,8 +149,7 @@
       "seo_description": "",
       "name": "Footwear",
       "slug": "footwear",
-      "description": "",
-      "description_json": {},
+      "description": {},
       "parent": 9,
       "background_image": "category-backgrounds/apparel_awJisre.jpg",
       "background_image_alt": "",
@@ -176,8 +169,7 @@
       "seo_description": "",
       "name": "Juices",
       "slug": "juices",
-      "description": "",
-      "description_json": {},
+      "description": {},
       "parent": 8,
       "background_image": "category-backgrounds/groceries_k5IaCqp.jpg",
       "background_image_alt": "",
@@ -197,8 +189,7 @@
       "seo_description": "",
       "name": "Alcohol",
       "slug": "alcohol",
-      "description": "",
-      "description_json": {},
+      "description": {},
       "parent": 8,
       "background_image": "category-backgrounds/groceries_f5xedIS.jpg",
       "background_image_alt": "",
@@ -218,8 +209,7 @@
       "seo_description": "",
       "name": "Paints",
       "slug": "paints",
-      "description": "",
-      "description_json": {},
+      "description": {},
       "parent": 7,
       "background_image": "category-backgrounds/accessories_HMorc9P.jpg",
       "background_image_alt": "",
@@ -239,8 +229,7 @@
       "seo_description": "",
       "name": "Homewares",
       "slug": "homewares",
-      "description": "",
-      "description_json": {},
+      "description": {},
       "parent": 7,
       "background_image": "category-backgrounds/accessories_tDJUL1J.jpg",
       "background_image_alt": "",
@@ -260,8 +249,7 @@
       "seo_description": "",
       "name": "Audiobooks",
       "slug": "ebooks",
-      "description": "",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": ""
@@ -446,8 +434,7 @@
       "product_type": 7,
       "name": "Nebula Night Sky Paint",
       "slug": "nebula-night-sky-paint",
-      "description": "Tonight, my love, let us take fat brushes and paint the skies with the shades of nebula tides. Get the dark, moody shades of the ether.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Tonight, my love, let us take fat brushes and paint the skies with the shades of nebula tides. Get the dark, moody shades of the ether."
@@ -475,8 +462,7 @@
       "product_type": 7,
       "name": "Space Dust Navy Paint",
       "slug": "space-dust-navy-paint",
-      "description": "The rich, deep hue of space dust. Vacuum packed and airlocked for long-lasting freshness of color.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "The rich, deep hue of space dust. Vacuum packed and airlocked for long-lasting freshness of color."
@@ -504,8 +490,7 @@
       "product_type": 7,
       "name": "Red Dwarf Red Paint",
       "slug": "red-dwarf-red-paint",
-      "description": "We are all connected to the universe, because every cell in our bodies was cooked in the hearts of dying stars. Red Dwarf Paint: the color of Carl Sagan’s dreams.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "We are all connected to the universe, because every cell in our bodies was cooked in the hearts of dying stars. Red Dwarf Paint: the color of Carl Sagan’s dreams."
@@ -533,8 +518,7 @@
       "product_type": 7,
       "name": "Light Speed Yellow Paint",
       "slug": "light-speed-yellow-paint",
-      "description": "There is life in outer space. This vibrant light speed yellow paint brings life to any surface. Goes on easy and dries at light speed.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "There is life in outer space. This vibrant light speed yellow paint brings life to any surface. Goes on easy and dries at light speed."
@@ -562,8 +546,7 @@
       "product_type": 7,
       "name": "Hyperspace Turquoise Paint",
       "slug": "hyperspace-turquoise-paint",
-      "description": "Turquoise is the new black. No more gloomy night skies, brighten up your evenings with hyperspace paint.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Turquoise is the new black. No more gloomy night skies, brighten up your evenings with hyperspace paint."
@@ -591,8 +574,7 @@
       "product_type": 9,
       "name": "Orange Juice",
       "slug": "orange-juice",
-      "description": "Fell from a tree straight into the bottle. No additives, no preservatives, just the refreshing taste of pure sun-kissed Californian oranges.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Fell from a tree straight into the bottle. No additives, no preservatives, just the refreshing taste of pure sun-kissed Californian oranges."
@@ -620,8 +602,7 @@
       "product_type": 9,
       "name": "Apple Juice",
       "slug": "apple-juice",
-      "description": "Fell straight from the tree, on to Newton’s head, then into the bottle. The autumn taste of English apples. Brought to you by gravity.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Fell straight from the tree, on to Newton’s head, then into the bottle. The autumn taste of English apples. Brought to you by gravity."
@@ -649,8 +630,7 @@
       "product_type": 9,
       "name": "Carrot Juice",
       "slug": "carrot-juice",
-      "description": "Improve your eyesight the natural way with 100% pure, squeezed carrot juice. The sweet, orange nectar of Mother Earth.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Improve your eyesight the natural way with 100% pure, squeezed carrot juice. The sweet, orange nectar of Mother Earth."
@@ -678,8 +658,7 @@
       "product_type": 9,
       "name": "Banana Juice",
       "slug": "banana-juice",
-      "description": "Build your protein the natural way, with exotic banana juice made from ripe fruit and packed with all the goodness of the tropical sun.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Build your protein the natural way, with exotic banana juice made from ripe fruit and packed with all the goodness of the tropical sun."
@@ -707,8 +686,7 @@
       "product_type": 9,
       "name": "Pineapple Juice",
       "slug": "pineapple-juice",
-      "description": "I can’t stand pineapples, so this one is not for me. They have a weird, fluffy, tangy taste. But if it is your kind of thing, then knock yourself out.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "I can’t stand pineapples, so this one is not for me. They have a weird, fluffy, tangy taste. But if it is your kind of thing, then knock yourself out."
@@ -736,8 +714,7 @@
       "product_type": 9,
       "name": "Coconut Juice",
       "slug": "coconut-juice",
-      "description": "Did you know falling coconuts kill 150 people a year? But did you know that coconut juice is the new superfood? You win some, you lose some.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Did you know falling coconuts kill 150 people a year? But did you know that coconut juice is the new superfood? You win some, you lose some."
@@ -765,8 +742,7 @@
       "product_type": 9,
       "name": "Power Juice",
       "slug": "power-juice",
-      "description": "Is it a bird? Is a plane? No! It’s some jacked dude who just sucked down a bottle of our brand new power juice! Look at him go!",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Is it a bird? Is a plane? No! It’s some jacked dude who just sucked down a bottle of our brand new power juice! Look at him go!"
@@ -794,8 +770,7 @@
       "product_type": 9,
       "name": "Green Juice",
       "slug": "green-juice",
-      "description": "Brussel sprouts, spinach, peas, kale, lettuce, cabbage, zucchini, more brussel sprouts. All the greens you’ll ever need in one delicious juice.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Brussel sprouts, spinach, peas, kale, lettuce, cabbage, zucchini, more brussel sprouts. All the greens you’ll ever need in one delicious juice."
@@ -823,8 +798,7 @@
       "product_type": 9,
       "name": "Bean Juice",
       "slug": "bean-juice",
-      "description": "Bean there, drunk that! The energy drink for the health-conscious. Brand new bean juice; from allotment to bottle in under 8 hours.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Bean there, drunk that! The energy drink for the health-conscious. Brand new bean juice; from allotment to bottle in under 8 hours."
@@ -852,8 +826,7 @@
       "product_type": 10,
       "name": "Red Wine",
       "slug": "red-wine",
-      "description": "A fine, mature red with a hint of blackberry, an undertone of the alkaline Burgundy soil, a delicate aftertaste of burnt garlic, and a whole lot of grapes.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "A fine, mature red with a hint of blackberry, an undertone of the alkaline Burgundy soil, a delicate aftertaste of burnt garlic, and a whole lot of grapes."
@@ -881,8 +854,7 @@
       "product_type": 10,
       "name": "White Wine",
       "slug": "white-wine",
-      "description": "Watch the slow setting sun of a wild summer evening sink into the horizon as you sip white wine that tastes like bittersweet memories of halcyon days.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Watch the slow setting sun of a wild summer evening sink into the horizon as you sip white wine that tastes like bittersweet memories of halcyon days."
@@ -910,8 +882,7 @@
       "product_type": 11,
       "name": "Seaman Lager",
       "slug": "seaman-lager",
-      "description": "Find your sea legs and then lose the power to use them with extra strong seaman’s lager. Don’t drink and sail, me hearties!",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Find your sea legs and then lose the power to use them with extra strong seaman’s lager. Don’t drink and sail, me hearties!"
@@ -939,8 +910,7 @@
       "product_type": 11,
       "name": "Seaman Beer",
       "slug": "seaman-beer",
-      "description": "Best beer on the seven seas. A dark ale for when the dark clouds gather overhead. The nutty nautical taste that sailors love.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Best beer on the seven seas. A dark ale for when the dark clouds gather overhead. The nutty nautical taste that sailors love."
@@ -968,8 +938,7 @@
       "product_type": 12,
       "name": "Colored Parrot Cushion",
       "slug": "colored-parrot-cushion",
-      "description": "Add a little color to your life with a Saleor parrot cushion. Turns any old sofa into a rainbow of classy interior design.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Add a little color to your life with a Saleor parrot cushion. Turns any old sofa into a rainbow of classy interior design."
@@ -997,8 +966,7 @@
       "product_type": 12,
       "name": "White Parrot Cushion",
       "slug": "white-parrot-cushion",
-      "description": "Minimalist interiors need simple, sleek soft furnishings. Don’t parrot what others do, set your own monochrome trends with Saleor designs.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Minimalist interiors need simple, sleek soft furnishings. Don’t parrot what others do, set your own monochrome trends with Saleor designs."
@@ -1026,8 +994,7 @@
       "product_type": 13,
       "name": "Yellow Plimsolls",
       "slug": "yellow-plimsolls",
-      "description": "Mellow yellow. Step into summer with Saleor. Every time your head goes down, you see these beauties, and your mood bounces right back up.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Mellow yellow. Step into summer with Saleor. Every time your head goes down, you see these beauties, and your mood bounces right back up."
@@ -1055,8 +1022,7 @@
       "product_type": 13,
       "name": "White Plimsolls",
       "slug": "white-plimsolls",
-      "description": "PE at school wouldn’t have been such a drag with these on your feet. Slip on the style and stride tall with Saleor branded plimsolls. PE now stands for pretty elegant.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "PE at school wouldn’t have been such a drag with these on your feet. Slip on the style and stride tall with Saleor branded plimsolls. PE now stands for pretty elegant."
@@ -1084,8 +1050,7 @@
       "product_type": 14,
       "name": "Code Division T-shirt",
       "slug": "code-division-t-shirt",
-      "description": "Pay homage to the music and art of a Joy Division and Peter Saville, but with a Mirumee twist. Perfect live transmission apparel for dead souls.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Pay homage to the music and art of a Joy Division and Peter Saville, but with a Mirumee twist. Perfect live transmission apparel for dead souls."
@@ -1113,8 +1078,7 @@
       "product_type": 14,
       "name": "Polo Shirt",
       "slug": "polo-shirt",
-      "description": "Ever have those days where you feel a bit geometric? Can't quite shape yourself up right? Show your different sides with a Saleor styles.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Ever have those days where you feel a bit geometric? Can't quite shape yourself up right? Show your different sides with a Saleor styles."
@@ -1142,8 +1106,7 @@
       "product_type": 14,
       "name": "Polo Shirt",
       "slug": "polo-shirt-2",
-      "description": "Polo? Yolo… so don’t waste time on the wrong apparel. Choose a polo shirt that looks as good as you feel.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Polo? Yolo… so don’t waste time on the wrong apparel. Choose a polo shirt that looks as good as you feel."
@@ -1171,8 +1134,7 @@
       "product_type": 14,
       "name": "Polo Shirt",
       "slug": "polo-shirt-3",
-      "description": "Wondering if this will look as good on you as it does on the screen? The answer is yes. A quality polo with smart styling.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Wondering if this will look as good on you as it does on the screen? The answer is yes. A quality polo with smart styling."
@@ -1200,8 +1162,7 @@
       "product_type": 14,
       "name": "Polo Shirt",
       "slug": "polo-shirt-4",
-      "description": "They say polo is the sport of kings. Or was that stamp collecting? Either way, this shirt is fit for a king of Saturday night.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "They say polo is the sport of kings. Or was that stamp collecting? Either way, this shirt is fit for a king of Saturday night."
@@ -1229,8 +1190,7 @@
       "product_type": 14,
       "name": "T-shirt",
       "slug": "t-shirt-2",
-      "description": "One style fits all. Get a look that works even when you are taking it easy. Relaxed wear for the masses.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "One style fits all. Get a look that works even when you are taking it easy. Relaxed wear for the masses."
@@ -1258,8 +1218,7 @@
       "product_type": 14,
       "name": "T-shirt",
       "slug": "t-shirt",
-      "description": "A classic tee for a timeless look, at a great price. Feel like a million bucks without breaking the bank.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "A classic tee for a timeless look, at a great price. Feel like a million bucks without breaking the bank."
@@ -1287,8 +1246,7 @@
       "product_type": 14,
       "name": "T-shirt",
       "slug": "t-shirt-4",
-      "description": "Want to look like you just fell out of bed? Sometimes style can be effortless. Throw it on get on with having a good day.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Want to look like you just fell out of bed? Sometimes style can be effortless. Throw it on get on with having a good day."
@@ -1316,8 +1274,7 @@
       "product_type": 14,
       "name": "T-shirt",
       "slug": "t-shirt-3",
-      "description": "Your t-shirt is your second skin. It’s the version of you that you show to the world. Wear one that flows with your movements and is built to last.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Your t-shirt is your second skin. It’s the version of you that you show to the world. Wear one that flows with your movements and is built to last."
@@ -1345,8 +1302,7 @@
       "product_type": 14,
       "name": "Black Hoodie",
       "slug": "black-hoodie",
-      "description": "Special offer. Buy a hood and get a free jet black sweater attached. Perfect for when you are up to no good.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Special offer. Buy a hood and get a free jet black sweater attached. Perfect for when you are up to no good."
@@ -1374,8 +1330,7 @@
       "product_type": 14,
       "name": "Blue Hoodie",
       "slug": "blue-hoodie",
-      "description": "Special offer. Buy a superhero blue sweater and get a free hood attached. Ideal for when you are out saving the world.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Special offer. Buy a superhero blue sweater and get a free hood attached. Ideal for when you are out saving the world."
@@ -1403,8 +1358,7 @@
       "product_type": 14,
       "name": "Mustard Hoodie",
       "slug": "mustard-hoodie",
-      "description": "Who dunnit? It was Colonel Mustard, in the dining room, with the lead piping, wearing this hot as mustard hoodie.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Who dunnit? It was Colonel Mustard, in the dining room, with the lead piping, wearing this hot as mustard hoodie."
@@ -1432,8 +1386,7 @@
       "product_type": 14,
       "name": "White Hoodie",
       "slug": "white-hoodie",
-      "description": "Get your slouch on and be seen with a whiter than white hoodie straight from the streets. Relaxed stylin’ and profilin’ with flair.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Get your slouch on and be seen with a whiter than white hoodie straight from the streets. Relaxed stylin’ and profilin’ with flair."
@@ -1458,8 +1411,7 @@
       "product_type": 15,
       "name": "Sea Lullabies",
       "slug": "sea-lullabies",
-      "description": "",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Sea Lullabies by Digital Audio."
@@ -1484,8 +1436,7 @@
       "product_type": 15,
       "name": "Lake Tunes",
       "slug": "lake-tunes",
-      "description": "",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Lake Tunes by Digital Audio."
@@ -1510,8 +1461,7 @@
       "product_type": 15,
       "name": "Ocean Poems",
       "slug": "ocean-poems",
-      "description": "",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Ocean Poems by Digital Audio."
@@ -1536,8 +1486,7 @@
       "product_type": 15,
       "name": "Bathroom Songs",
       "slug": "bathroom-songs",
-      "description": "",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Bathroom Songs by Digital Audio."
@@ -1562,8 +1511,7 @@
       "product_type": 15,
       "name": "Lagoon Chants",
       "slug": "lagoon-chants",
-      "description": "",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Lagoon Chants by Digital Audio."
@@ -1588,8 +1536,7 @@
       "product_type": 15,
       "name": "Waterfall Ballads",
       "slug": "waterfall-ballads",
-      "description": "",
-      "description_json": {
+      "description": {
         "blocks": [{
           "data": {
             "text": "Waterfall Ballads by Digital Audio."
@@ -6667,7 +6614,7 @@
     }
   },
   {
-    "model": "product.assignedproductattribute",
+    "model": "attribute.assignedproductattribute",
     "pk": 1,
     "fields": {
       "product": 72,
@@ -6678,7 +6625,7 @@
     }
   },
   {
-    "model": "product.assignedproductattribute",
+    "model": "attribute.assignedproductattribute",
     "pk": 2,
     "fields": {
       "product": 74,
@@ -6689,7 +6636,7 @@
     }
   },
   {
-    "model": "product.assignedproductattribute",
+    "model": "attribute.assignedproductattribute",
     "pk": 3,
     "fields": {
       "product": 79,
@@ -6700,7 +6647,7 @@
     }
   },
   {
-    "model": "product.assignedproductattribute",
+    "model": "attribute.assignedproductattribute",
     "pk": 4,
     "fields": {
       "product": 115,
@@ -6711,7 +6658,7 @@
     }
   },
   {
-    "model": "product.assignedproductattribute",
+    "model": "attribute.assignedproductattribute",
     "pk": 5,
     "fields": {
       "product": 116,
@@ -6722,7 +6669,7 @@
     }
   },
   {
-    "model": "product.assignedproductattribute",
+    "model": "attribute.assignedproductattribute",
     "pk": 6,
     "fields": {
       "product": 73,
@@ -6733,7 +6680,7 @@
     }
   },
   {
-    "model": "product.assignedproductattribute",
+    "model": "attribute.assignedproductattribute",
     "pk": 7,
     "fields": {
       "product": 76,
@@ -6744,7 +6691,7 @@
     }
   },
   {
-    "model": "product.assignedproductattribute",
+    "model": "attribute.assignedproductattribute",
     "pk": 8,
     "fields": {
       "product": 89,
@@ -6755,7 +6702,7 @@
     }
   },
   {
-    "model": "product.assignedproductattribute",
+    "model": "attribute.assignedproductattribute",
     "pk": 9,
     "fields": {
       "product": 85,
@@ -6766,7 +6713,7 @@
     }
   },
   {
-    "model": "product.assignedproductattribute",
+    "model": "attribute.assignedproductattribute",
     "pk": 10,
     "fields": {
       "product": 78,
@@ -6777,7 +6724,7 @@
     }
   },
   {
-    "model": "product.assignedproductattribute",
+    "model": "attribute.assignedproductattribute",
     "pk": 11,
     "fields": {
       "product": 117,
@@ -6788,7 +6735,7 @@
     }
   },
   {
-    "model": "product.assignedproductattribute",
+    "model": "attribute.assignedproductattribute",
     "pk": 12,
     "fields": {
       "product": 71,
@@ -6799,7 +6746,7 @@
     }
   },
   {
-    "model": "product.assignedproductattribute",
+    "model": "attribute.assignedproductattribute",
     "pk": 13,
     "fields": {
       "product": 75,
@@ -6810,7 +6757,7 @@
     }
   },
   {
-    "model": "product.assignedproductattribute",
+    "model": "attribute.assignedproductattribute",
     "pk": 14,
     "fields": {
       "product": 107,
@@ -6821,7 +6768,7 @@
     }
   },
   {
-    "model": "product.assignedproductattribute",
+    "model": "attribute.assignedproductattribute",
     "pk": 15,
     "fields": {
       "product": 110,
@@ -6832,7 +6779,7 @@
     }
   },
   {
-    "model": "product.assignedproductattribute",
+    "model": "attribute.assignedproductattribute",
     "pk": 16,
     "fields": {
       "product": 109,
@@ -6843,7 +6790,7 @@
     }
   },
   {
-    "model": "product.assignedproductattribute",
+    "model": "attribute.assignedproductattribute",
     "pk": 17,
     "fields": {
       "product": 108,
@@ -6854,7 +6801,7 @@
     }
   },
   {
-    "model": "product.assignedproductattribute",
+    "model": "attribute.assignedproductattribute",
     "pk": 18,
     "fields": {
       "product": 77,
@@ -6865,7 +6812,7 @@
     }
   },
   {
-    "model": "product.assignedproductattribute",
+    "model": "attribute.assignedproductattribute",
     "pk": 19,
     "fields": {
       "product": 81,
@@ -6876,7 +6823,7 @@
     }
   },
   {
-    "model": "product.assignedproductattribute",
+    "model": "attribute.assignedproductattribute",
     "pk": 20,
     "fields": {
       "product": 84,
@@ -6887,7 +6834,7 @@
     }
   },
   {
-    "model": "product.assignedproductattribute",
+    "model": "attribute.assignedproductattribute",
     "pk": 21,
     "fields": {
       "product": 83,
@@ -6898,7 +6845,7 @@
     }
   },
   {
-    "model": "product.assignedproductattribute",
+    "model": "attribute.assignedproductattribute",
     "pk": 22,
     "fields": {
       "product": 114,
@@ -6909,7 +6856,7 @@
     }
   },
   {
-    "model": "product.assignedproductattribute",
+    "model": "attribute.assignedproductattribute",
     "pk": 23,
     "fields": {
       "product": 111,
@@ -6920,7 +6867,7 @@
     }
   },
   {
-    "model": "product.assignedproductattribute",
+    "model": "attribute.assignedproductattribute",
     "pk": 24,
     "fields": {
       "product": 112,
@@ -6931,7 +6878,7 @@
     }
   },
   {
-    "model": "product.assignedproductattribute",
+    "model": "attribute.assignedproductattribute",
     "pk": 25,
     "fields": {
       "product": 113,
@@ -6942,7 +6889,7 @@
     }
   },
   {
-    "model": "product.assignedproductattribute",
+    "model": "attribute.assignedproductattribute",
     "pk": 26,
     "fields": {
       "product": 118,
@@ -6953,7 +6900,7 @@
     }
   },
   {
-    "model": "product.assignedproductattribute",
+    "model": "attribute.assignedproductattribute",
     "pk": 27,
     "fields": {
       "product": 86,
@@ -6964,7 +6911,7 @@
     }
   },
   {
-    "model": "product.assignedproductattribute",
+    "model": "attribute.assignedproductattribute",
     "pk": 28,
     "fields": {
       "product": 82,
@@ -6975,7 +6922,7 @@
     }
   },
   {
-    "model": "product.assignedproductattribute",
+    "model": "attribute.assignedproductattribute",
     "pk": 29,
     "fields": {
       "product": 119,
@@ -6986,7 +6933,7 @@
     }
   },
   {
-    "model": "product.assignedproductattribute",
+    "model": "attribute.assignedproductattribute",
     "pk": 30,
     "fields": {
       "product": 120,
@@ -6997,7 +6944,7 @@
     }
   },
   {
-    "model": "product.assignedproductattribute",
+    "model": "attribute.assignedproductattribute",
     "pk": 31,
     "fields": {
       "product": 121,
@@ -7008,7 +6955,7 @@
     }
   },
   {
-    "model": "product.assignedproductattribute",
+    "model": "attribute.assignedproductattribute",
     "pk": 32,
     "fields": {
       "product": 122,
@@ -7019,7 +6966,7 @@
     }
   },
   {
-    "model": "product.assignedproductattribute",
+    "model": "attribute.assignedproductattribute",
     "pk": 33,
     "fields": {
       "product": 123,
@@ -7030,7 +6977,7 @@
     }
   },
   {
-    "model": "product.assignedproductattribute",
+    "model": "attribute.assignedproductattribute",
     "pk": 34,
     "fields": {
       "product": 124,
@@ -7041,7 +6988,29 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedproductattribute",
+    "pk": 35,
+    "fields": {
+      "product": 72,
+      "assignment": 8,
+      "values": [
+          94
+      ]
+    }
+  },
+  {
+    "model": "attribute.assignedproductattribute",
+    "pk": 36,
+    "fields": {
+      "product": 74,
+      "assignment": 9,
+      "values": [
+          95, 96
+      ]
+    }
+  },
+  {
+    "model": "attribute.assignedvariantattribute",
     "pk": 1,
     "fields": {
       "variant": 172,
@@ -7052,7 +7021,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 2,
     "fields": {
       "variant": 173,
@@ -7063,7 +7032,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 3,
     "fields": {
       "variant": 174,
@@ -7074,7 +7043,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 4,
     "fields": {
       "variant": 175,
@@ -7085,7 +7054,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 5,
     "fields": {
       "variant": 176,
@@ -7096,7 +7065,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 6,
     "fields": {
       "variant": 177,
@@ -7107,7 +7076,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 7,
     "fields": {
       "variant": 178,
@@ -7118,7 +7087,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 8,
     "fields": {
       "variant": 179,
@@ -7129,7 +7098,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 9,
     "fields": {
       "variant": 181,
@@ -7140,7 +7109,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 10,
     "fields": {
       "variant": 183,
@@ -7151,7 +7120,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 11,
     "fields": {
       "variant": 184,
@@ -7162,7 +7131,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 12,
     "fields": {
       "variant": 190,
@@ -7173,7 +7142,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 13,
     "fields": {
       "variant": 191,
@@ -7184,7 +7153,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 14,
     "fields": {
       "variant": 192,
@@ -7195,7 +7164,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 15,
     "fields": {
       "variant": 197,
@@ -7206,7 +7175,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 16,
     "fields": {
       "variant": 198,
@@ -7217,7 +7186,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 17,
     "fields": {
       "variant": 199,
@@ -7228,7 +7197,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 18,
     "fields": {
       "variant": 200,
@@ -7239,7 +7208,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 19,
     "fields": {
       "variant": 205,
@@ -7250,7 +7219,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 20,
     "fields": {
       "variant": 206,
@@ -7261,7 +7230,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 21,
     "fields": {
       "variant": 207,
@@ -7272,7 +7241,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 22,
     "fields": {
       "variant": 208,
@@ -7283,7 +7252,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 23,
     "fields": {
       "variant": 209,
@@ -7294,7 +7263,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 24,
     "fields": {
       "variant": 210,
@@ -7305,7 +7274,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 25,
     "fields": {
       "variant": 211,
@@ -7316,7 +7285,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 26,
     "fields": {
       "variant": 213,
@@ -7327,7 +7296,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 27,
     "fields": {
       "variant": 214,
@@ -7338,7 +7307,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 28,
     "fields": {
       "variant": 216,
@@ -7349,7 +7318,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 29,
     "fields": {
       "variant": 217,
@@ -7360,7 +7329,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 30,
     "fields": {
       "variant": 218,
@@ -7371,7 +7340,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 31,
     "fields": {
       "variant": 220,
@@ -7382,7 +7351,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 32,
     "fields": {
       "variant": 221,
@@ -7393,7 +7362,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 33,
     "fields": {
       "variant": 223,
@@ -7404,7 +7373,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 34,
     "fields": {
       "variant": 224,
@@ -7415,7 +7384,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 35,
     "fields": {
       "variant": 225,
@@ -7426,7 +7395,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 36,
     "fields": {
       "variant": 242,
@@ -7437,7 +7406,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 37,
     "fields": {
       "variant": 243,
@@ -7448,7 +7417,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 38,
     "fields": {
       "variant": 248,
@@ -7459,7 +7428,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 39,
     "fields": {
       "variant": 249,
@@ -7470,7 +7439,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 40,
     "fields": {
       "variant": 251,
@@ -7481,7 +7450,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 41,
     "fields": {
       "variant": 252,
@@ -7492,7 +7461,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 42,
     "fields": {
       "variant": 253,
@@ -7503,7 +7472,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 43,
     "fields": {
       "variant": 180,
@@ -7514,7 +7483,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 44,
     "fields": {
       "variant": 202,
@@ -7525,7 +7494,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 45,
     "fields": {
       "variant": 250,
@@ -7536,7 +7505,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 46,
     "fields": {
       "variant": 212,
@@ -7547,7 +7516,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 47,
     "fields": {
       "variant": 244,
@@ -7558,7 +7527,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 48,
     "fields": {
       "variant": 204,
@@ -7569,7 +7538,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 49,
     "fields": {
       "variant": 215,
@@ -7580,7 +7549,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 50,
     "fields": {
       "variant": 171,
@@ -7591,7 +7560,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 51,
     "fields": {
       "variant": 245,
@@ -7602,7 +7571,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 52,
     "fields": {
       "variant": 247,
@@ -7613,7 +7582,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 53,
     "fields": {
       "variant": 203,
@@ -7624,7 +7593,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 54,
     "fields": {
       "variant": 219,
@@ -7635,7 +7604,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 55,
     "fields": {
       "variant": 255,
@@ -7646,7 +7615,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 56,
     "fields": {
       "variant": 256,
@@ -7657,7 +7626,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 57,
     "fields": {
       "variant": 259,
@@ -7668,7 +7637,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 58,
     "fields": {
       "variant": 261,
@@ -7679,7 +7648,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 59,
     "fields": {
       "variant": 263,
@@ -7690,7 +7659,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 60,
     "fields": {
       "variant": 264,
@@ -7701,7 +7670,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 61,
     "fields": {
       "variant": 265,
@@ -7712,7 +7681,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 62,
     "fields": {
       "variant": 266,
@@ -7723,7 +7692,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 63,
     "fields": {
       "variant": 267,
@@ -7734,7 +7703,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 64,
     "fields": {
       "variant": 270,
@@ -7745,7 +7714,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 65,
     "fields": {
       "variant": 271,
@@ -7756,7 +7725,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 66,
     "fields": {
       "variant": 272,
@@ -7767,7 +7736,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 67,
     "fields": {
       "variant": 273,
@@ -7778,7 +7747,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 68,
     "fields": {
       "variant": 275,
@@ -7789,7 +7758,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 69,
     "fields": {
       "variant": 277,
@@ -7800,7 +7769,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 70,
     "fields": {
       "variant": 278,
@@ -7811,7 +7780,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 71,
     "fields": {
       "variant": 280,
@@ -7822,7 +7791,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 72,
     "fields": {
       "variant": 281,
@@ -7833,7 +7802,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 73,
     "fields": {
       "variant": 282,
@@ -7844,7 +7813,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 74,
     "fields": {
       "variant": 283,
@@ -7855,7 +7824,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 75,
     "fields": {
       "variant": 284,
@@ -7866,7 +7835,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 76,
     "fields": {
       "variant": 286,
@@ -7877,7 +7846,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 77,
     "fields": {
       "variant": 287,
@@ -7888,7 +7857,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 78,
     "fields": {
       "variant": 288,
@@ -7899,7 +7868,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 79,
     "fields": {
       "variant": 290,
@@ -7910,7 +7879,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 80,
     "fields": {
       "variant": 291,
@@ -7921,7 +7890,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 81,
     "fields": {
       "variant": 292,
@@ -7932,7 +7901,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 82,
     "fields": {
       "variant": 293,
@@ -7943,7 +7912,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 83,
     "fields": {
       "variant": 296,
@@ -7954,7 +7923,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 84,
     "fields": {
       "variant": 297,
@@ -7965,7 +7934,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 85,
     "fields": {
       "variant": 299,
@@ -7976,7 +7945,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 86,
     "fields": {
       "variant": 302,
@@ -7987,7 +7956,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 87,
     "fields": {
       "variant": 305,
@@ -7998,7 +7967,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 88,
     "fields": {
       "variant": 306,
@@ -8009,7 +7978,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 89,
     "fields": {
       "variant": 308,
@@ -8020,7 +7989,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 90,
     "fields": {
       "variant": 309,
@@ -8031,7 +8000,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 91,
     "fields": {
       "variant": 311,
@@ -8042,7 +8011,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 92,
     "fields": {
       "variant": 312,
@@ -8053,7 +8022,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 93,
     "fields": {
       "variant": 313,
@@ -8064,7 +8033,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 94,
     "fields": {
       "variant": 314,
@@ -8075,7 +8044,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 95,
     "fields": {
       "variant": 315,
@@ -8086,7 +8055,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 96,
     "fields": {
       "variant": 185,
@@ -8097,7 +8066,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 97,
     "fields": {
       "variant": 254,
@@ -8108,7 +8077,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 98,
     "fields": {
       "variant": 260,
@@ -8119,7 +8088,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 99,
     "fields": {
       "variant": 274,
@@ -8130,7 +8099,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 100,
     "fields": {
       "variant": 262,
@@ -8141,7 +8110,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 101,
     "fields": {
       "variant": 310,
@@ -8152,7 +8121,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 102,
     "fields": {
       "variant": 289,
@@ -8163,7 +8132,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 103,
     "fields": {
       "variant": 304,
@@ -8174,7 +8143,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 104,
     "fields": {
       "variant": 268,
@@ -8185,7 +8154,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 105,
     "fields": {
       "variant": 301,
@@ -8196,7 +8165,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 106,
     "fields": {
       "variant": 269,
@@ -8207,7 +8176,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 107,
     "fields": {
       "variant": 303,
@@ -8218,7 +8187,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 108,
     "fields": {
       "variant": 279,
@@ -8229,7 +8198,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 109,
     "fields": {
       "variant": 294,
@@ -8240,7 +8209,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 110,
     "fields": {
       "variant": 300,
@@ -8251,7 +8220,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 111,
     "fields": {
       "variant": 257,
@@ -8262,7 +8231,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 112,
     "fields": {
       "variant": 276,
@@ -8273,7 +8242,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 113,
     "fields": {
       "variant": 298,
@@ -8284,7 +8253,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 114,
     "fields": {
       "variant": 307,
@@ -8295,7 +8264,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 115,
     "fields": {
       "variant": 258,
@@ -8306,7 +8275,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 116,
     "fields": {
       "variant": 285,
@@ -8317,7 +8286,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 117,
     "fields": {
       "variant": 295,
@@ -8328,7 +8297,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 118,
     "fields": {
       "variant": 246,
@@ -8339,7 +8308,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 119,
     "fields": {
       "variant": 222,
@@ -8350,7 +8319,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 120,
     "fields": {
       "variant": 182,
@@ -8361,7 +8330,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 121,
     "fields": {
       "variant": 316,
@@ -8372,7 +8341,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 122,
     "fields": {
       "variant": 317,
@@ -8383,7 +8352,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 123,
     "fields": {
       "variant": 318,
@@ -8394,7 +8363,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 124,
     "fields": {
       "variant": 319,
@@ -8405,7 +8374,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 125,
     "fields": {
       "variant": 320,
@@ -8416,7 +8385,7 @@
     }
   },
   {
-    "model": "product.assignedvariantattribute",
+    "model": "attribute.assignedvariantattribute",
     "pk": 126,
     "fields": {
       "variant": 321,
@@ -8427,7 +8396,7 @@
     }
   },
   {
-    "model": "product.assignedpageattribute",
+    "model": "attribute.assignedpageattribute",
     "pk": 1,
     "fields": {
         "page": 1,
@@ -8438,7 +8407,7 @@
     }
   },
   {
-    "model": "product.assignedpageattribute",
+    "model": "attribute.assignedpageattribute",
     "pk": 2,
     "fields": {
         "page": 1,
@@ -8449,7 +8418,7 @@
     }
   },
   {
-    "model": "product.attributeproduct",
+    "model": "attribute.attributeproduct",
     "pk": 1,
     "fields": {
       "sort_order": null,
@@ -8458,7 +8427,7 @@
     }
   },
   {
-    "model": "product.attributeproduct",
+    "model": "attribute.attributeproduct",
     "pk": 2,
     "fields": {
       "sort_order": null,
@@ -8467,7 +8436,7 @@
     }
   },
   {
-    "model": "product.attributeproduct",
+    "model": "attribute.attributeproduct",
     "pk": 3,
     "fields": {
       "sort_order": null,
@@ -8476,7 +8445,7 @@
     }
   },
   {
-    "model": "product.attributeproduct",
+    "model": "attribute.attributeproduct",
     "pk": 4,
     "fields": {
       "sort_order": null,
@@ -8485,7 +8454,7 @@
     }
   },
   {
-    "model": "product.attributeproduct",
+    "model": "attribute.attributeproduct",
     "pk": 5,
     "fields": {
       "sort_order": null,
@@ -8494,7 +8463,7 @@
     }
   },
   {
-    "model": "product.attributeproduct",
+    "model": "attribute.attributeproduct",
     "pk": 7,
     "fields": {
       "sort_order": 1,
@@ -8503,7 +8472,25 @@
     }
   },
   {
-    "model": "product.attributevariant",
+    "model": "attribute.attributeproduct",
+    "pk": 8,
+    "fields": {
+      "sort_order": null,
+      "attribute": 30,
+      "product_type": 9
+    }
+  },
+  {
+    "model": "attribute.attributeproduct",
+    "pk": 9,
+    "fields": {
+      "sort_order": null,
+      "attribute": 31,
+      "product_type": 9
+    }
+  },
+  {
+    "model": "attribute.attributevariant",
     "pk": 1,
     "fields": {
       "sort_order": null,
@@ -8512,7 +8499,7 @@
     }
   },
   {
-    "model": "product.attributevariant",
+    "model": "attribute.attributevariant",
     "pk": 2,
     "fields": {
       "sort_order": null,
@@ -8521,7 +8508,7 @@
     }
   },
   {
-    "model": "product.attributevariant",
+    "model": "attribute.attributevariant",
     "pk": 3,
     "fields": {
       "sort_order": null,
@@ -8530,7 +8517,7 @@
     }
   },
   {
-    "model": "product.attributevariant",
+    "model": "attribute.attributevariant",
     "pk": 4,
     "fields": {
       "sort_order": null,
@@ -8539,7 +8526,7 @@
     }
   },
   {
-    "model": "product.attributevariant",
+    "model": "attribute.attributevariant",
     "pk": 5,
     "fields": {
       "sort_order": null,
@@ -8548,7 +8535,7 @@
     }
   },
   {
-    "model": "product.attributevariant",
+    "model": "attribute.attributevariant",
     "pk": 6,
     "fields": {
       "sort_order": null,
@@ -8557,7 +8544,7 @@
     }
   },
   {
-    "model": "product.attributevariant",
+    "model": "attribute.attributevariant",
     "pk": 8,
     "fields": {
       "sort_order": 0,
@@ -8566,7 +8553,7 @@
     }
   },
   {
-    "model": "product.attributepage",
+    "model": "attribute.attributepage",
     "pk": 2,
     "fields": {
       "sort_order": null,
@@ -8575,7 +8562,7 @@
     }
 },
 {
-    "model": "product.attributepage",
+    "model": "attribute.attributepage",
     "pk": 3,
     "fields": {
       "sort_order": null,
@@ -8584,7 +8571,7 @@
     }
 },
 {
-    "model": "product.attributepage",
+    "model": "attribute.attributepage",
     "pk": 4,
     "fields": {
       "sort_order": null,
@@ -8593,7 +8580,7 @@
     }
 },
   {
-    "model": "product.attribute",
+    "model": "attribute.attribute",
     "pk": 13,
     "fields": {
       "private_metadata": {},
@@ -8612,7 +8599,7 @@
     }
   },
   {
-    "model": "product.attribute",
+    "model": "attribute.attribute",
     "pk": 14,
     "fields": {
       "private_metadata": {},
@@ -8631,7 +8618,7 @@
     }
   },
   {
-    "model": "product.attribute",
+    "model": "attribute.attribute",
     "pk": 15,
     "fields": {
       "private_metadata": {},
@@ -8650,7 +8637,7 @@
     }
   },
   {
-    "model": "product.attribute",
+    "model": "attribute.attribute",
     "pk": 16,
     "fields": {
       "private_metadata": {},
@@ -8669,7 +8656,7 @@
     }
   },
   {
-    "model": "product.attribute",
+    "model": "attribute.attribute",
     "pk": 18,
     "fields": {
       "private_metadata": {},
@@ -8688,7 +8675,7 @@
     }
   },
   {
-    "model": "product.attribute",
+    "model": "attribute.attribute",
     "pk": 19,
     "fields": {
       "private_metadata": {},
@@ -8707,7 +8694,7 @@
     }
   },
   {
-    "model": "product.attribute",
+    "model": "attribute.attribute",
     "pk": 20,
     "fields": {
       "private_metadata": {},
@@ -8726,7 +8713,7 @@
     }
   },
   {
-    "model": "product.attribute",
+    "model": "attribute.attribute",
     "pk": 21,
     "fields": {
       "private_metadata": {},
@@ -8745,7 +8732,7 @@
     }
   },
   {
-    "model": "product.attribute",
+    "model": "attribute.attribute",
     "pk": 22,
     "fields": {
       "private_metadata": {},
@@ -8764,7 +8751,7 @@
     }
   },
   {
-    "model": "product.attribute",
+    "model": "attribute.attribute",
     "pk": 23,
     "fields": {
       "private_metadata": {},
@@ -8783,7 +8770,7 @@
     }
   },
   {
-    "model": "product.attribute",
+    "model": "attribute.attribute",
     "pk": 24,
     "fields": {
       "private_metadata": {},
@@ -8802,7 +8789,7 @@
     }
   },
   {
-    "model": "product.attribute",
+    "model": "attribute.attribute",
     "pk": 25,
     "fields": {
       "private_metadata": {},
@@ -8821,7 +8808,7 @@
     }
   },
   {
-    "model": "product.attribute",
+    "model": "attribute.attribute",
     "pk": 26,
     "fields": {
       "private_metadata": {},
@@ -8840,7 +8827,7 @@
     }
   },
   {
-    "model": "product.attribute",
+    "model": "attribute.attribute",
     "pk": 27,
     "fields": {
       "private_metadata": {},
@@ -8859,7 +8846,7 @@
     }
   },
   {
-    "model": "product.attribute",
+    "model": "attribute.attribute",
     "pk": 29,
     "fields": {
       "private_metadata": {},
@@ -8878,7 +8865,47 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attribute",
+    "pk": 30,
+    "fields": {
+        "private_metadata": {},
+        "metadata": {},
+        "slug": "details",
+        "name": "Details",
+        "type": "product-type",
+        "input_type": "reference",
+        "entity_type": "Page",
+        "value_required": false,
+        "is_variant_only": false,
+        "visible_in_storefront": true,
+        "filterable_in_storefront": true,
+        "filterable_in_dashboard": true,
+        "storefront_search_position": 0,
+        "available_in_grid": true
+    }
+  },
+  {
+    "model": "attribute.attribute",
+    "pk": 31,
+    "fields": {
+        "private_metadata": {},
+        "metadata": {},
+        "slug": "related-products",
+        "name": "Related products",
+        "type": "product-type",
+        "input_type": "reference",
+        "entity_type": "Product",
+        "value_required": false,
+        "is_variant_only": false,
+        "visible_in_storefront": true,
+        "filterable_in_storefront": false,
+        "filterable_in_dashboard": false,
+        "storefront_search_position": 0,
+        "available_in_grid": false
+    }
+  },
+  {
+    "model": "attribute.attributevalue",
     "pk": 1,
     "fields": {
       "sort_order": 6,
@@ -8889,7 +8916,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 2,
     "fields": {
       "sort_order": 7,
@@ -8900,7 +8927,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 3,
     "fields": {
       "sort_order": 8,
@@ -8911,7 +8938,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 36,
     "fields": {
       "sort_order": 0,
@@ -8922,7 +8949,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 37,
     "fields": {
       "sort_order": 1,
@@ -8933,7 +8960,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 38,
     "fields": {
       "sort_order": 2,
@@ -8944,7 +8971,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 39,
     "fields": {
       "sort_order": 3,
@@ -8955,7 +8982,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 40,
     "fields": {
       "sort_order": 4,
@@ -8966,7 +8993,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 41,
     "fields": {
       "sort_order": 0,
@@ -8977,7 +9004,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 42,
     "fields": {
       "sort_order": 1,
@@ -8988,7 +9015,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 43,
     "fields": {
       "sort_order": 2,
@@ -8999,7 +9026,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 44,
     "fields": {
       "sort_order": 3,
@@ -9010,7 +9037,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 45,
     "fields": {
       "sort_order": 4,
@@ -9021,7 +9048,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 46,
     "fields": {
       "sort_order": 0,
@@ -9032,7 +9059,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 47,
     "fields": {
       "sort_order": 1,
@@ -9043,7 +9070,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 48,
     "fields": {
       "sort_order": 2,
@@ -9054,7 +9081,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 49,
     "fields": {
       "sort_order": 0,
@@ -9065,7 +9092,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 50,
     "fields": {
       "sort_order": 1,
@@ -9076,7 +9103,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 51,
     "fields": {
       "sort_order": 2,
@@ -9087,7 +9114,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 52,
     "fields": {
       "sort_order": 3,
@@ -9098,7 +9125,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 53,
     "fields": {
       "sort_order": 4,
@@ -9109,7 +9136,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 54,
     "fields": {
       "sort_order": 5,
@@ -9120,7 +9147,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 60,
     "fields": {
       "sort_order": 0,
@@ -9131,7 +9158,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 61,
     "fields": {
       "sort_order": 1,
@@ -9142,7 +9169,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 62,
     "fields": {
       "sort_order": 2,
@@ -9153,7 +9180,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 63,
     "fields": {
       "sort_order": 0,
@@ -9164,7 +9191,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 64,
     "fields": {
       "sort_order": 1,
@@ -9175,7 +9202,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 65,
     "fields": {
       "sort_order": 2,
@@ -9186,7 +9213,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 66,
     "fields": {
       "sort_order": 3,
@@ -9197,7 +9224,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 67,
     "fields": {
       "sort_order": 0,
@@ -9208,7 +9235,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 68,
     "fields": {
       "sort_order": 0,
@@ -9219,7 +9246,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 69,
     "fields": {
       "sort_order": 1,
@@ -9230,7 +9257,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 70,
     "fields": {
       "sort_order": 0,
@@ -9241,7 +9268,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 71,
     "fields": {
       "sort_order": 1,
@@ -9252,7 +9279,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 72,
     "fields": {
       "sort_order": 0,
@@ -9263,7 +9290,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 73,
     "fields": {
       "sort_order": 1,
@@ -9274,7 +9301,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 74,
     "fields": {
       "sort_order": 2,
@@ -9285,7 +9312,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 75,
     "fields": {
       "sort_order": 0,
@@ -9296,7 +9323,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 76,
     "fields": {
       "sort_order": 1,
@@ -9307,7 +9334,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 77,
     "fields": {
       "sort_order": 2,
@@ -9318,7 +9345,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 78,
     "fields": {
       "sort_order": 3,
@@ -9329,7 +9356,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 79,
     "fields": {
       "sort_order": 4,
@@ -9340,7 +9367,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 80,
     "fields": {
       "sort_order": 5,
@@ -9351,7 +9378,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 81,
     "fields": {
       "sort_order": 6,
@@ -9362,7 +9389,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 82,
     "fields": {
       "sort_order": 0,
@@ -9373,7 +9400,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 83,
     "fields": {
       "sort_order": 1,
@@ -9384,7 +9411,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 84,
     "fields": {
       "sort_order": 4,
@@ -9395,7 +9422,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 85,
     "fields": {
       "sort_order": 5,
@@ -9406,7 +9433,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 86,
     "fields": {
       "sort_order": 0,
@@ -9417,7 +9444,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 87,
     "fields": {
       "sort_order": 0,
@@ -9428,7 +9455,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 88,
     "fields": {
       "sort_order": 1,
@@ -9439,7 +9466,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 89,
     "fields": {
       "sort_order": 2,
@@ -9450,7 +9477,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 90,
     "fields": {
       "sort_order": 0,
@@ -9461,7 +9488,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 91,
     "fields": {
       "sort_order": 1,
@@ -9472,7 +9499,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 92,
     "fields": {
       "sort_order": 2,
@@ -9483,7 +9510,7 @@
     }
   },
   {
-    "model": "product.attributevalue",
+    "model": "attribute.attributevalue",
     "pk": 93,
     "fields": {
       "sort_order": 3,
@@ -9492,6 +9519,45 @@
       "slug": "general",
       "attribute": 29
     }
+  },
+  {
+    "model": "attribute.attributevalue",
+    "pk": 94,
+    "fields": {
+        "sort_order": 0,
+        "name": "Apple juice details",
+        "value": "",
+        "slug": "72_2",
+        "file_url": null,
+        "content_type": null,
+        "attribute": 30
+    }
+  },
+  {
+    "model": "attribute.attributevalue",
+    "pk": 95,
+    "fields": {
+        "sort_order": 0,
+        "name": "Bean Juice",
+        "value": "",
+        "slug": "74_79",
+        "file_url": null,
+        "content_type": null,
+        "attribute": 31
+    }
+  },
+  {
+      "model": "attribute.attributevalue",
+      "pk": 96,
+      "fields": {
+          "sort_order": 1,
+          "name": "Carrot Juice",
+          "value": "",
+          "slug": "74_73",
+          "file_url": null,
+          "content_type": null,
+          "attribute": 31
+      }
   },
   {
     "model": "product.productimage",
@@ -10229,8 +10295,7 @@
       "slug": "summer-collection",
       "background_image": "collection-backgrounds/summer_F5A4bVb.jpg",
       "background_image_alt": "",
-      "description": "The Saleor Summer Collection features a range of products that feel the heat of the market. A demo store for all seasons. Saleor captures the open source, e-commerce sun.",
-      "description_json": {
+      "description": {
         "blocks": [{
             "data": {
                 "text": "The Saleor Summer Collection features a range of products that feel the heat of the market. A demo store for all seasons. Saleor captures the open source, e-commerce sun."
@@ -10252,8 +10317,7 @@
       "slug": "winter-sale",
       "background_image": "collection-backgrounds/clothing_R7nkNxS.jpg",
       "background_image_alt": "",
-      "description": "The Saleor Winter Sale is snowed under with seasonal offers. Unreal products at unreal prices. Literally, they are not real products, but the Saleor demo store is a genuine e-commerce leader.",
-      "description_json": {
+      "description": {
         "blocks": [{
             "data": {
                 "text": "The Saleor Winter Sale is snowed under with seasonal offers. Unreal products at unreal prices. Literally, they are not real products, but the Saleor demo store is a genuine e-commerce leader."
@@ -10275,8 +10339,7 @@
       "slug": "featured-products",
       "background_image": "collection-backgrounds/clothing_R7nkNxS.jpg",
       "background_image_alt": "",
-      "description": "Featured Products. Literally, they are not real products, but the Saleor demo store is a genuine e-commerce leader.",
-      "description_json": {
+      "description": {
         "blocks": [{
           "key": "",
           "data": {},

@@ -1,9 +1,11 @@
 import json
 import logging
 from decimal import Decimal
-from typing import Any, Callable, Dict, Optional
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional
 
 import Adyen
+import opentracing
+import opentracing.tags
 from babel.numbers import get_currency_precision
 from django.conf import settings
 from django_countries.fields import Country
@@ -14,11 +16,16 @@ from .....checkout.calculations import (
     checkout_total,
 )
 from .....checkout.models import Checkout
+from .....checkout.utils import fetch_checkout_lines
 from .....core.prices import quantize_price
 from .....discount.utils import fetch_active_discounts
 from .....payment.models import Payment
+from .....plugins.manager import get_plugins_manager
 from .... import PaymentError
-from ....interface import PaymentData, PaymentMethodInfo
+from ....interface import PaymentMethodInfo
+
+if TYPE_CHECKING:
+    from ....interface import PaymentData
 
 logger = logging.getLogger(__name__)
 
@@ -140,9 +147,13 @@ def request_data_for_payment(
     return request_data
 
 
-def get_shipping_data(checkout, lines, discounts):
+def get_shipping_data(manager, checkout, lines, address, discounts):
     shipping_total = checkout_shipping_price(
-        checkout=checkout, lines=lines, discounts=discounts
+        manager=manager,
+        checkout=checkout,
+        lines=lines,
+        address=address,
+        discounts=discounts,
     )
     total_gross = shipping_total.gross.amount
     total_net = shipping_total.net.amount
@@ -163,7 +174,9 @@ def get_shipping_data(checkout, lines, discounts):
 
 def append_klarna_data(payment_information: "PaymentData", payment_data: dict):
     checkout = (
-        Checkout.objects.prefetch_related("shipping_method",)
+        Checkout.objects.prefetch_related(
+            "shipping_method",
+        )
         .filter(payments__id=payment_information.payment_id)
         .first()
     )
@@ -171,8 +184,12 @@ def append_klarna_data(payment_information: "PaymentData", payment_data: dict):
     if not checkout:
         raise PaymentError("Unable to calculate products for klarna.")
 
-    lines = checkout.lines.prefetch_related("variant__product").all()
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
     discounts = fetch_active_discounts()
+    address = (
+        checkout.shipping_address or checkout.billing_address
+    )  # FIXME: check which address we need here
     currency = payment_information.currency
     country_code = checkout.get_country()
 
@@ -180,10 +197,18 @@ def append_klarna_data(payment_information: "PaymentData", payment_data: dict):
     payment_data["shopperReference"] = payment_information.customer_email
     payment_data["countryCode"] = country_code
     line_items = []
-
-    for line in lines:
+    for line_info in lines:
         total = checkout_line_total(
-            line=line, discounts=discounts, channel=checkout.channel
+            manager=manager,
+            checkout=checkout,
+            line=line_info.line,
+            variant=line_info.variant,
+            product=line_info.product,
+            collections=line_info.collections,
+            address=address,
+            channel=checkout.channel,
+            channel_listing=line_info.channel_listing,
+            discounts=discounts,
         )
         total_gross = total.gross.amount
         total_net = total.net.amount
@@ -193,18 +218,22 @@ def append_klarna_data(payment_information: "PaymentData", payment_data: dict):
         )
 
         line_data = {
-            "quantity": line.quantity,
+            "quantity": line_info.line.quantity,
             "amountExcludingTax": to_adyen_price(total_net, currency),
             "taxPercentage": tax_percentage_in_adyen_format,
-            "description": f"{line.variant.product.name}, {line.variant.name}",
-            "id": line.variant.sku,
+            "description": (
+                f"{line_info.variant.product.name}, {line_info.variant.name}"
+            ),
+            "id": line_info.variant.sku,
             "taxAmount": to_adyen_price(tax_amount, currency),
             "amountIncludingTax": to_adyen_price(total_gross, currency),
         }
         line_items.append(line_data)
 
     if checkout.shipping_method and checkout.is_shipping_required():
-        line_items.append(get_shipping_data(checkout, lines, discounts))
+        line_items.append(
+            get_shipping_data(manager, checkout, lines, address, discounts)
+        )
 
     payment_data["lineItems"] = line_items
     return payment_data
@@ -238,10 +267,17 @@ def get_shopper_locale_value(country_code: str):
 def request_data_for_gateway_config(
     checkout: "Checkout", merchant_account
 ) -> Dict[str, Any]:
+    manager = get_plugins_manager()
     address = checkout.billing_address or checkout.shipping_address
     discounts = fetch_active_discounts()
-    lines = checkout.lines.prefetch_related("variant").all()
-    total = checkout_total(checkout=checkout, lines=lines, discounts=discounts)
+    lines = fetch_checkout_lines(checkout)
+    total = checkout_total(
+        manager=manager,
+        checkout=checkout,
+        lines=lines,
+        address=address,
+        discounts=discounts,
+    )
 
     country = address.country if address else None
     if country:
@@ -326,11 +362,19 @@ def call_capture(
         merchant_account=merchant_account,
         token=token,
     )
-    return api_call(request, adyen_client.payment.capture)
+    with opentracing.global_tracer().start_active_span(
+        "adyen.payment.capture"
+    ) as scope:
+        span = scope.span
+        span.set_tag(opentracing.tags.COMPONENT, "payment")
+        span.set_tag("service.name", "adyen")
+        return api_call(request, adyen_client.payment.capture)
 
 
 def request_for_payment_cancel(
-    payment_information: "PaymentData", merchant_account: str, token: str,
+    payment_information: "PaymentData",
+    merchant_account: str,
+    token: str,
 ):
     return {
         "merchantAccount": merchant_account,
@@ -349,6 +393,7 @@ def get_payment_method_info(
     if additional_data:
         brand = additional_data.get("paymentMethod")
     payment_method_info = PaymentMethodInfo(
-        brand=brand, type="card" if payment_method == "scheme" else payment_method,
+        brand=brand,
+        type="card" if payment_method == "scheme" else payment_method,
     )
     return payment_method_info

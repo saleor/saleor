@@ -18,7 +18,7 @@ from ...payment.models import Payment
 from ...product.models import Collection
 from ...warehouse.models import Stock
 from ...warehouse.tests.utils import get_quantity_allocated_for_stock
-from .. import OrderEvents, OrderStatus, models
+from .. import FulfillmentStatus, OrderEvents, OrderStatus, models
 from ..emails import send_fulfillment_confirmation_to_customer
 from ..events import OrderEvent, OrderEventsEmails, email_sent_event
 from ..models import Order
@@ -255,7 +255,7 @@ def test_restock_fulfillment_lines(fulfilled_order, warehouse):
     )
 
 
-def test_update_order_status(fulfilled_order):
+def test_update_order_status_partially_fulfilled(fulfilled_order):
     fulfillment = fulfilled_order.fulfillments.first()
     line = fulfillment.lines.first()
     order_line = line.order_line
@@ -267,15 +267,79 @@ def test_update_order_status(fulfilled_order):
 
     assert fulfilled_order.status == OrderStatus.PARTIALLY_FULFILLED
 
-    line = fulfillment.lines.first()
-    order_line = line.order_line
 
-    order_line.quantity_fulfilled -= line.quantity
-    order_line.save()
-    line.delete()
+def test_update_order_status_unfulfilled(order_with_lines):
+    order_with_lines.status = OrderStatus.FULFILLED
+    order_with_lines.save()
+
+    update_order_status(order_with_lines)
+
+    order_with_lines.refresh_from_db()
+    assert order_with_lines.status == OrderStatus.UNFULFILLED
+
+
+def test_update_order_status_fulfilled(fulfilled_order):
+    fulfillment = fulfilled_order.fulfillments.first()
+    fulfillment_line = fulfillment.lines.first()
+    fulfillment_line.quantity -= 3
+    fulfillment_line.save()
+    fulfilled_order.status = OrderStatus.UNFULFILLED
+    fulfilled_order.save()
+    replaced_fulfillment = fulfilled_order.fulfillments.create(
+        status=FulfillmentStatus.REPLACED
+    )
+    replaced_fulfillment.lines.create(
+        quantity=3, order_line=fulfillment_line.order_line
+    )
+
     update_order_status(fulfilled_order)
 
-    assert fulfilled_order.status == OrderStatus.UNFULFILLED
+    fulfilled_order.refresh_from_db()
+    assert fulfilled_order.status == OrderStatus.FULFILLED
+
+
+def test_update_order_status_returned(fulfilled_order):
+    fulfilled_order.fulfillments.all().update(status=FulfillmentStatus.RETURNED)
+    fulfilled_order.status = OrderStatus.UNFULFILLED
+    fulfilled_order.save()
+
+    update_order_status(fulfilled_order)
+
+    fulfilled_order.refresh_from_db()
+    assert fulfilled_order.status == OrderStatus.RETURNED
+
+
+def test_update_order_status_partially_returned(fulfilled_order):
+    fulfillment = fulfilled_order.fulfillments.first()
+    fulfillment_line = fulfillment.lines.first()
+    fulfillment_line.quantity -= 3
+    fulfillment_line.save()
+    returned_fulfillment = fulfilled_order.fulfillments.create(
+        status=FulfillmentStatus.RETURNED
+    )
+    replaced_fulfillment = fulfilled_order.fulfillments.create(
+        status=FulfillmentStatus.REPLACED
+    )
+    refunded_and_returned_fulfillment = fulfilled_order.fulfillments.create(
+        status=FulfillmentStatus.REFUNDED_AND_RETURNED
+    )
+    returned_fulfillment.lines.create(
+        quantity=1, order_line=fulfillment_line.order_line
+    )
+    replaced_fulfillment.lines.create(
+        quantity=1, order_line=fulfillment_line.order_line
+    )
+    refunded_and_returned_fulfillment.lines.create(
+        quantity=1, order_line=fulfillment_line.order_line
+    )
+
+    fulfilled_order.status = OrderStatus.UNFULFILLED
+    fulfilled_order.save()
+
+    update_order_status(fulfilled_order)
+
+    fulfilled_order.refresh_from_db()
+    assert fulfilled_order.status == OrderStatus.PARTIALLY_RETURNED
 
 
 def test_validate_fulfillment_tracking_number_as_url(fulfilled_order):
@@ -385,16 +449,27 @@ def test_queryset_ready_to_capture(channel_USD):
 
 
 def test_update_order_prices(order_with_lines):
-    channel_slug = order_with_lines.channel.slug
+    channel = order_with_lines.channel
     address = order_with_lines.shipping_address
     address.country = "DE"
     address.save()
 
     line_1 = order_with_lines.lines.first()
-    line_2 = order_with_lines.lines.last()
-    price_1 = line_1.variant.get_price(channel_slug)
+    variant_1 = line_1.variant
+    product_1 = variant_1.product
+    variant_channel_listing_1 = variant_1.channel_listings.get(channel=channel)
+    price_1 = variant_1.get_price(
+        product_1, [], channel, variant_channel_listing_1, None
+    )
     price_1 = TaxedMoney(net=price_1, gross=price_1)
-    price_2 = line_2.variant.get_price(channel_slug)
+
+    line_2 = order_with_lines.lines.last()
+    variant_2 = line_2.variant
+    product_2 = variant_2.product
+    variant_channel_listing_2 = variant_2.channel_listings.get(channel=channel)
+    price_2 = variant_2.get_price(
+        product_2, [], channel, variant_channel_listing_2, None
+    )
     price_2 = TaxedMoney(net=price_2, gross=price_2)
 
     shipping_price = order_with_lines.shipping_method.channel_listings.get(
@@ -409,7 +484,46 @@ def test_update_order_prices(order_with_lines):
     assert line_1.unit_price == price_1
     assert line_2.unit_price == price_2
     assert order_with_lines.shipping_price == shipping_price
-    total = line_1.quantity * price_1 + line_2.quantity * price_2 + shipping_price
+    assert order_with_lines.shipping_tax_rate == Decimal("0.0")
+    total = line_1.total_price + line_2.total_price + shipping_price
+    assert order_with_lines.total == total
+
+
+def test_update_order_prices_tax_included(order_with_lines, vatlayer):
+    channel = order_with_lines.channel
+    address = order_with_lines.shipping_address
+    address.country = "DE"
+    address.save()
+
+    line_1 = order_with_lines.lines.first()
+    variant_1 = line_1.variant
+    product_1 = variant_1.product
+    variant_channel_listing_1 = variant_1.channel_listings.get(channel=channel)
+    price_1 = variant_1.get_price(
+        product_1, [], channel, variant_channel_listing_1, None
+    )
+
+    line_2 = order_with_lines.lines.last()
+    variant_2 = line_2.variant
+    product_2 = variant_2.product
+    variant_channel_listing_2 = variant_2.channel_listings.get(channel=channel)
+    price_2 = variant_2.get_price(
+        product_2, [], channel, variant_channel_listing_2, None
+    )
+
+    shipping_price = order_with_lines.shipping_method.channel_listings.get(
+        channel_id=order_with_lines.channel_id
+    ).price
+
+    update_order_prices(order_with_lines, None)
+
+    line_1.refresh_from_db()
+    line_2.refresh_from_db()
+    assert line_1.unit_price.gross == price_1
+    assert line_2.unit_price.gross == price_2
+    assert order_with_lines.shipping_price.gross == shipping_price
+    assert order_with_lines.shipping_tax_rate == Decimal("0.19")
+    total = line_1.total_price + line_2.total_price + order_with_lines.shipping_price
     assert order_with_lines.total == total
 
 
@@ -552,7 +666,9 @@ def test_value_voucher_order_discount(
     channel_USD,
 ):
     voucher = Voucher.objects.create(
-        code="unique", type=VoucherType.ENTIRE_ORDER, discount_value_type=discount_type,
+        code="unique",
+        type=VoucherType.ENTIRE_ORDER,
+        discount_value_type=discount_type,
     )
     VoucherChannelListing.objects.create(
         voucher=voucher,
@@ -577,7 +693,9 @@ def test_shipping_voucher_order_discount(
     shipping_cost, discount_value, discount_type, expected_value, channel_USD
 ):
     voucher = Voucher.objects.create(
-        code="unique", type=VoucherType.SHIPPING, discount_value_type=discount_type,
+        code="unique",
+        type=VoucherType.SHIPPING,
+        discount_value_type=discount_type,
     )
     VoucherChannelListing.objects.create(
         voucher=voucher,
@@ -739,6 +857,17 @@ def test_ordered_item_change_quantity(transactional_db, order_with_lines):
     assert order_with_lines.get_total_quantity() == 0
 
 
+def test_change_order_line_quantity_changes_total_prices(
+    transactional_db, order_with_lines
+):
+    assert not order_with_lines.events.count()
+    line = order_with_lines.lines.all()[0]
+    new_quantity = line.quantity + 1
+    change_order_line_quantity(None, line, line.quantity, new_quantity)
+    line.refresh_from_db()
+    assert line.total_price == line.unit_price * new_quantity
+
+
 @patch("saleor.order.actions.emails.send_fulfillment_confirmation")
 @pytest.mark.parametrize(
     "has_standard,has_digital", ((True, True), (True, False), (False, True))
@@ -770,7 +899,9 @@ def test_send_fulfillment_order_lines_mails(
         line.save()
 
     send_fulfillment_confirmation_to_customer(
-        order=order, fulfillment=fulfillment, user=staff_user,
+        order=order,
+        fulfillment=fulfillment,
+        user=staff_user,
     )
     events = OrderEvent.objects.all()
 

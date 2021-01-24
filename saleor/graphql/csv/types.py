@@ -14,7 +14,8 @@ from .enums import ExportEventEnum
 
 class ExportEvent(CountableDjangoObjectType):
     date = graphene.types.datetime.DateTime(
-        description="Date when event happened at in ISO 8601 format.", required=True,
+        description="Date when event happened at in ISO 8601 format.",
+        required=True,
     )
     type = ExportEventEnum(description="Export event type.", required=True)
     user = graphene.Field(
@@ -23,7 +24,10 @@ class ExportEvent(CountableDjangoObjectType):
     app = graphene.Field(
         App, description="App which performed the action.", required=False
     )
-    message = graphene.String(description="Content of the event.", required=True,)
+    message = graphene.String(
+        description="Content of the event.",
+        required=True,
+    )
 
     class Meta:
         description = "History log of export file."

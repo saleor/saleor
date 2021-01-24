@@ -128,7 +128,10 @@ def test_sale_channel_listing_update_as_staff_user(
 
 
 def test_sale_channel_listing_update_with_negative_discounted_value(
-    staff_api_client, sale, permission_manage_discounts, channel_USD,
+    staff_api_client,
+    sale,
+    permission_manage_discounts,
+    channel_USD,
 ):
     # given
     sale_id = graphene.Node.to_global_id("Sale", sale.pk)
@@ -152,7 +155,8 @@ def test_sale_channel_listing_update_with_negative_discounted_value(
     staff_api_client.user.user_permissions.add(permission_manage_discounts)
 
     response = staff_api_client.post_graphql(
-        SALE_CHANNEL_LISTING_UPDATE_MUTATION, variables=variables,
+        SALE_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
     )
     assert_negative_positive_decimal_value(response)
 

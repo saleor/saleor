@@ -1096,7 +1096,9 @@ def test_permission_group_update_mutation_permissions_in_list_to_add_and_remove(
     the problem.
     """
     staff_user.user_permissions.add(
-        permission_manage_users, permission_manage_apps, permission_manage_orders,
+        permission_manage_users,
+        permission_manage_apps,
+        permission_manage_orders,
     )
     group = permission_group_manage_users
     query = PERMISSION_GROUP_UPDATE_MUTATION
@@ -1142,7 +1144,9 @@ def test_permission_group_update_mutation_permissions_and_users_duplicated(
     """
     staff_user = staff_users[0]
     staff_user.user_permissions.add(
-        permission_manage_users, permission_manage_apps, permission_manage_orders,
+        permission_manage_users,
+        permission_manage_apps,
+        permission_manage_orders,
     )
     group = permission_group_manage_users
     query = PERMISSION_GROUP_UPDATE_MUTATION
@@ -1467,7 +1471,7 @@ def test_permission_group_update_mutation_remove_all_users_manageable_perms(
     staff_api_client,
 ):
     """Ensure that user can remove group users if there is other source of all group
-    permissions. """
+    permissions."""
     staff_user, staff_user1, staff_user2 = staff_users
 
     groups = Group.objects.bulk_create(
@@ -1787,7 +1791,10 @@ def test_permission_group_update_mutation_remove_user_with_manage_staff_add_user
         },
     }
 
-    response = staff_api_client.post_graphql(query, variables,)
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+    )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupUpdate"]
     errors = data["permissionGroupErrors"]
@@ -2164,7 +2171,10 @@ def test_permission_groups_query(
 
 
 def test_permission_groups_app_no_permission(
-    permission_group_manage_users, permission_manage_staff, app_api_client, app,
+    permission_group_manage_users,
+    permission_manage_staff,
+    app_api_client,
+    app,
 ):
     app.permissions.add(permission_manage_staff)
     query = QUERY_PERMISSION_GROUP_WITH_FILTER
@@ -2179,7 +2189,9 @@ def test_permission_groups_app_no_permission(
 
 
 def test_permission_groups_no_permission_to_perform(
-    permission_group_manage_users, permission_manage_staff, staff_api_client,
+    permission_group_manage_users,
+    permission_manage_staff,
+    staff_api_client,
 ):
     query = QUERY_PERMISSION_GROUP_WITH_FILTER
 
@@ -2344,7 +2356,9 @@ def test_permission_group_query_user_cannot_manage(
 
 
 def test_permission_group_no_permission_to_perform(
-    permission_group_manage_users, permission_manage_staff, staff_api_client,
+    permission_group_manage_users,
+    permission_manage_staff,
+    staff_api_client,
 ):
     group = permission_group_manage_users
     query = QUERY_PERMISSION_GROUP

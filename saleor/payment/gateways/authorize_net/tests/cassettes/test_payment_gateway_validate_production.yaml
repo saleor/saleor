@@ -1,0 +1,53 @@
+interactions:
+- request:
+    body: '{"authenticateTestRequest": {"merchantAuthentication": {"name": "public",
+      "transactionKey": "secret"}}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '119'
+      User-Agent:
+      - python-requests/2.25.0
+      content-type:
+      - application/json
+    method: POST
+    uri: https://api2.authorize.net/xml/v1/request.api
+  response:
+    body:
+      string: "\uFEFF{\"messages\":{\"resultCode\":\"Error\",\"message\":[{\"code\"\
+        :\"E00007\",\"text\":\"User authentication failed due to invalid authentication\
+        \ values.\"}]}}"
+    headers:
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - x-requested-with,cache-control,content-type,origin,method,SOAPAction
+      Access-Control-Allow-Methods:
+      - PUT,OPTIONS,POST,GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-store
+      Content-Length:
+      - '142'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Tue, 15 Dec 2020 18:30:45 GMT
+      Pragma:
+      - no-cache
+      Strict-Transport-Security:
+      - max-age=31536000
+      X-Cnection:
+      - close
+      X-OPNET-Transaction-Trace:
+      - a2_bd8a9e88-53fb-4f58-844a-185161afee3c-9716-278767299
+    status:
+      code: 200
+      message: OK
+version: 1

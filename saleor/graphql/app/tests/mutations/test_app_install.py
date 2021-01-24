@@ -48,7 +48,10 @@ def test_install_app_mutation(
         "manifest_url": "http://localhost:3000/manifest",
         "permissions": [PermissionEnum.MANAGE_ORDERS.name],
     }
-    response = staff_api_client.post_graphql(query, variables=variables,)
+    response = staff_api_client.post_graphql(
+        query,
+        variables=variables,
+    )
     content = get_graphql_content(response)
     app_installation = AppInstallation.objects.get()
     app_installation_data = content["data"]["appInstall"]["appInstallation"]
@@ -75,7 +78,10 @@ def test_install_app_mutation_by_app(
         "manifest_url": "http://localhost:3000/manifest",
         "permissions": [PermissionEnum.MANAGE_ORDERS.name],
     }
-    response = app_api_client.post_graphql(query, variables=variables,)
+    response = app_api_client.post_graphql(
+        query,
+        variables=variables,
+    )
     content = get_graphql_content(response)
     app_installation = AppInstallation.objects.get()
     app_installation_data = content["data"]["appInstall"]["appInstallation"]
@@ -96,7 +102,10 @@ def test_app_install_mutation_out_of_scope_permissions(
         "manifest_url": "http://localhost:3000/manifest",
         "permissions": [PermissionEnum.MANAGE_ORDERS.name],
     }
-    response = staff_api_client.post_graphql(query, variables=variables,)
+    response = staff_api_client.post_graphql(
+        query,
+        variables=variables,
+    )
     content = get_graphql_content(response)
     data = content["data"]["appInstall"]
 
@@ -119,7 +128,10 @@ def test_install_app_mutation_by_app_out_of_scope_permissions(
         "manifest_url": "http://localhost:3000/manifest",
         "permissions": [PermissionEnum.MANAGE_ORDERS.name],
     }
-    response = app_api_client.post_graphql(query, variables=variables,)
+    response = app_api_client.post_graphql(
+        query,
+        variables=variables,
+    )
 
     content = get_graphql_content(response)
     data = content["data"]["appInstall"]

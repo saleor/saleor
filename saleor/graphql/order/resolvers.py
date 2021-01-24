@@ -21,6 +21,8 @@ def filter_orders(qs, info, created, status):
             qs = qs.ready_to_fulfill()
         elif status == OrderStatusFilter.READY_TO_CAPTURE:
             qs = qs.ready_to_capture()
+        elif status == OrderStatusFilter.UNCONFIRMED:
+            qs = qs.ready_to_confirm()
 
     # DEPRECATED: Will be removed in Saleor 2.11, use the `filter` field instead.
     # filter orders by creation date
@@ -31,7 +33,7 @@ def filter_orders(qs, info, created, status):
 
 
 def resolve_orders(info, created, status, channel_slug, **_kwargs):
-    qs = models.Order.objects.confirmed()
+    qs = models.Order.objects.non_draft()
     if channel_slug:
         qs = qs.filter(channel__slug=str(channel_slug))
     return filter_orders(qs, info, created, status)
@@ -49,7 +51,7 @@ def resolve_orders_total(_info, period, channel_slug):
     if not channel:
         return None
     qs = (
-        models.Order.objects.confirmed()
+        models.Order.objects.non_draft()
         .exclude(status=OrderStatus.CANCELED)
         .filter(channel__slug=str(channel_slug))
     )

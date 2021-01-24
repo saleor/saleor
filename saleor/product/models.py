@@ -4,8 +4,9 @@ from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.postgres.aggregates import StringAgg
+from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.search import SearchVectorField
 from django.db import models
-from django.db.models import JSONField  # type: ignore
 from django.db.models import (
     BooleanField,
     Case,
@@ -18,6 +19,7 @@ from django.db.models import (
     Q,
     Subquery,
     Sum,
+    TextField,
     Value,
     When,
 )
@@ -31,13 +33,14 @@ from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
+from ..account.utils import requestor_is_staff_member_or_app
 from ..channel.models import Channel
 from ..core.db.fields import SanitizedJSONField
 from ..core.models import ModelWithMetadata, PublishableModel, SortableModel
 from ..core.permissions import ProductPermissions, ProductTypePermissions
-from ..core.sanitizers.editorjs_sanitizer import clean_editor_js
 from ..core.utils import build_absolute_uri
 from ..core.utils.draftjs import json_content_to_raw_text
+from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.translations import TranslationProxy
 from ..core.weight import WeightUnits, zero_weight
 from ..discount import DiscountInfo
@@ -50,12 +53,15 @@ if TYPE_CHECKING:
     from prices import Money
 
     from ..account.models import User
+    from ..app.models import App
 
 
 class Category(MPTTModel, ModelWithMetadata, SeoModel):
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
-    description = models.TextField(blank=True)
+    description = SanitizedJSONField(
+        blank=True, default=dict, sanitizer=clean_editor_js
+    )
     description_json = SanitizedJSONField(
         blank=True, default=dict, sanitizer=clean_editor_js
     )
@@ -81,7 +87,9 @@ class CategoryTranslation(SeoModelTranslation):
         Category, related_name="translations", on_delete=models.CASCADE
     )
     name = models.CharField(max_length=128)
-    description = models.TextField(blank=True)
+    description = SanitizedJSONField(
+        blank=True, default=dict, sanitizer=clean_editor_js
+    )
     description_json = SanitizedJSONField(
         blank=True, default=dict, sanitizer=clean_editor_js
     )
@@ -159,18 +167,14 @@ class ProductsQueryset(models.QuerySet):
         query = ProductVariantChannelListing.objects.filter(
             variant_id=OuterRef("variants__id"), channel__slug=str(channel_slug)
         ).values_list("variant", flat=True)
-        return published.filter(variants__in=query)
+        return published.filter(variants__in=query).distinct()
 
-    def visible_to_user(self, user: "User", channel_slug: str):
-        if self.user_has_access_to_all(user):
+    def visible_to_user(self, requestor: Union["User", "App"], channel_slug: str):
+        if requestor_is_staff_member_or_app(requestor):
             if channel_slug:
                 return self.filter(channel_listings__channel__slug=str(channel_slug))
             return self.all()
         return self.published_with_variants(channel_slug)
-
-    @staticmethod
-    def user_has_access_to_all(user):
-        return user.is_active and user.has_perm(ProductPermissions.MANAGE_PRODUCTS)
 
     def annotate_publication_info(self, channel_slug: str):
         return self.annotate_is_published(channel_slug).annotate_publication_date(
@@ -310,7 +314,12 @@ class Product(SeoModel, ModelWithMetadata):
     )
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
-    description = models.TextField(blank=True)
+    description = SanitizedJSONField(
+        blank=True, default=dict, sanitizer=clean_editor_js
+    )
+    description_plaintext = TextField(blank=True, default="")
+    search_vector = SearchVectorField(null=True, blank=True)
+
     description_json = SanitizedJSONField(
         blank=True, default=dict, sanitizer=clean_editor_js
     )
@@ -344,6 +353,7 @@ class Product(SeoModel, ModelWithMetadata):
         permissions = (
             (ProductPermissions.MANAGE_PRODUCTS.codename, "Manage products."),
         )
+        indexes = [GinIndex(fields=["search_vector"])]
 
     def __iter__(self):
         if not hasattr(self, "__variants"):
@@ -364,7 +374,7 @@ class Product(SeoModel, ModelWithMetadata):
 
     @property
     def plain_text_description(self) -> str:
-        return json_content_to_raw_text(self.description_json)
+        return json_content_to_raw_text(self.description)
 
     def get_first_image(self):
         images = list(self.images.all())
@@ -381,7 +391,9 @@ class ProductTranslation(SeoModelTranslation):
         Product, related_name="translations", on_delete=models.CASCADE
     )
     name = models.CharField(max_length=250)
-    description = models.TextField(blank=True)
+    description = SanitizedJSONField(
+        blank=True, default=dict, sanitizer=clean_editor_js
+    )
     description_json = SanitizedJSONField(
         blank=True, default=dict, sanitizer=clean_editor_js
     )
@@ -475,15 +487,19 @@ class ProductVariant(SortableModel, ModelWithMetadata):
         return self.name or self.sku
 
     def get_price(
-        self, channel_slug: str, discounts: Optional[Iterable[DiscountInfo]] = None
+        self,
+        product: Product,
+        collections: Iterable["Collection"],
+        channel: Channel,
+        channel_listing: "ProductVariantChannelListing",
+        discounts: Optional[Iterable[DiscountInfo]] = None,
     ) -> "Money":
-        channel_listing = self.channel_listings.get(channel__slug=channel_slug)
         return calculate_discounted_price(
-            product=self.product,
+            product=product,
             price=channel_listing.price,
-            collections=self.product.collections.all(),
             discounts=discounts,
-            channel=channel_listing.channel,
+            collections=collections,
+            channel=channel,
         )
 
     def get_weight(self):
@@ -664,10 +680,6 @@ class CollectionProduct(SortableModel):
 
 
 class CollectionsQueryset(models.QuerySet):
-    @staticmethod
-    def user_has_access_to_all(user):
-        return user.is_active and user.has_perm(ProductPermissions.MANAGE_PRODUCTS)
-
     def published(self, channel_slug: str):
         today = datetime.date.today()
         return self.filter(
@@ -678,8 +690,8 @@ class CollectionsQueryset(models.QuerySet):
             channel_listings__is_published=True,
         )
 
-    def visible_to_user(self, user: "User", channel_slug: str):
-        if self.user_has_access_to_all(user):
+    def visible_to_user(self, requestor: Union["User", "App"], channel_slug: str):
+        if requestor_is_staff_member_or_app(requestor):
             if channel_slug:
                 return self.filter(channel_listings__channel__slug=str(channel_slug))
             return self.all()
@@ -700,7 +712,9 @@ class Collection(SeoModel, ModelWithMetadata):
         upload_to="collection-backgrounds", blank=True, null=True
     )
     background_image_alt = models.CharField(max_length=128, blank=True)
-    description = models.TextField(blank=True)
+    description = SanitizedJSONField(
+        blank=True, default=dict, sanitizer=clean_editor_js
+    )
     description_json = SanitizedJSONField(
         blank=True, default=dict, sanitizer=clean_editor_js
     )
@@ -743,7 +757,9 @@ class CollectionTranslation(SeoModelTranslation):
         Collection, related_name="translations", on_delete=models.CASCADE
     )
     name = models.CharField(max_length=128)
-    description = models.TextField(blank=True)
+    description = SanitizedJSONField(
+        blank=True, default=dict, sanitizer=clean_editor_js
+    )
     description_json = SanitizedJSONField(
         blank=True, default=dict, sanitizer=clean_editor_js
     )

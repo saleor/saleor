@@ -1,0 +1,556 @@
+
+    <!doctype html>
+    <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+      <head>
+        <title>
+          
+        </title>
+        <!--[if !mso]><!-- -->
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <!--<![endif]-->
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style type="text/css">
+          #outlook a { padding:0; }
+          body { margin:0;padding:0;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%; }
+          table, td { border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt; }
+          img { border:0;height:auto;line-height:100%; outline:none;text-decoration:none;-ms-interpolation-mode:bicubic; }
+          p { display:block;margin:13px 0; }
+        </style>
+        <!--[if mso]>
+        <xml>
+        <o:OfficeDocumentSettings>
+          <o:AllowPNG/>
+          <o:PixelsPerInch>96</o:PixelsPerInch>
+        </o:OfficeDocumentSettings>
+        </xml>
+        <![endif]-->
+        <!--[if lte mso 11]>
+        <style type="text/css">
+          .mj-outlook-group-fix { width:100% !important; }
+        </style>
+        <![endif]-->
+        
+      <!--[if !mso]><!-->
+        <link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700" rel="stylesheet" type="text/css">
+        <style type="text/css">
+          @import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700);
+        </style>
+      <!--<![endif]-->
+
+    
+        
+    <style type="text/css">
+      @media only screen and (min-width:480px) {
+        .mj-column-per-100 { width:100% !important; max-width: 100%; }
+      }
+    </style>
+    
+  
+        <style type="text/css">
+        
+        
+        </style>
+        <style type="text/css">address {
+    font-style: inherit;
+    font-family: Ubuntu, Helvetica, Arial;
+  }</style>
+        
+      </head>
+      <body>
+        
+        
+      <div style>
+        {% load i18n %}
+      {% load i18n_address_tags %}{% load static %}
+      
+      <!--[if mso | IE]>
+      <table
+         align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600"
+      >
+        <tr>
+          <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">
+      <![endif]-->
+    
+      
+      <div style="margin:0px auto;max-width:600px;">
+        
+        <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
+          <tbody>
+            <tr>
+              <td style="direction: ltr; font-size: 0px; padding: 20px 0; text-align: center;" align="center">
+                <!--[if mso | IE]>
+                  <table role="presentation" border="0" cellpadding="0" cellspacing="0">
+                
+        <tr>
+      
+            <td
+               class="" style="vertical-align:top;width:600px;"
+            >
+          <![endif]-->
+            
+      <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+        
+      <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+        
+            <tr>
+              <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
+                
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:16px;line-height:1;text-align:left;color:#000000;">{% trans "Hi!" context "Standard e-mail greeting" %}</div>
+    
+              </td>
+            </tr>
+          
+            <tr>
+              <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
+                
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{% if order_details_url %}
+            {% blocktrans trimmed context "Order confirmed e-mail text with order details" %}
+              Your order has been confirmed by staff. To see your order details please visit: <a href="{{ order_details_url }}">{{ order_details_url }}</a>
+            {% endblocktrans %}
+          {% else %}
+            {% blocktrans trimmed context "Order confirmed e-mail text" %}
+              Your order has been confirmed by staff. Below is the list of ordered products.
+            {% endblocktrans %}
+          {% endif %}</div>
+    
+              </td>
+            </tr>
+          
+      </table>
+    
+      </div>
+    
+          <!--[if mso | IE]>
+            </td>
+          
+        </tr>
+      
+                  </table>
+                <![endif]-->
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+      </div>
+    
+      
+      <!--[if mso | IE]>
+          </td>
+        </tr>
+      </table>
+      <![endif]-->
+    
+    {% load display_translated_order_line_name from order_lines %}
+  {% load price from taxed_prices %}
+  {% load voucher %}
+      
+      <!--[if mso | IE]>
+      <table
+         align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600"
+      >
+        <tr>
+          <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">
+      <![endif]-->
+    
+      
+      <div style="margin:0px auto;max-width:600px;">
+        
+        <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
+          <tbody>
+            <tr>
+              <td style="direction: ltr; font-size: 0px; padding: 20px 0; text-align: center;" align="center">
+                <!--[if mso | IE]>
+                  <table role="presentation" border="0" cellpadding="0" cellspacing="0">
+                
+        <tr>
+      
+            <td
+               class="" style="vertical-align:top;width:600px;"
+            >
+          <![endif]-->
+            
+      <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+        
+      <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+        
+            <tr>
+              <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
+                
+      <table cellpadding="0" cellspacing="0" width="100%" border="0" style="color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:22px;table-layout:auto;width:100%;border:none;">
+        <tfoot>
+        <tr>
+          <td colspan="3" style="padding: 5px; text-align: right;" align="right">
+            {% trans "Subtotal" context "E-mail order lines summary table" %}
+          </td>
+          <td style="padding: 5px; text-align: right;" align="right">
+            {% price order.get_subtotal display_gross=order.display_gross_prices html=False %}
+          </td>
+        </tr>
+        <tr>
+          <td colspan="3" style="padding: 5px; text-align: right;" align="right">
+            {% trans "Shipping" context "E-mail order lines summary table" %}
+          </td>
+          <td style="padding: 5px; text-align: right;" align="right">
+            {% price order.shipping_price display_gross=order.display_gross_prices html=False %}
+          </td>
+        </tr>
+        <tr>
+          <td colspan="3" style="padding: 5px; text-align: right;" align="right">
+            {% if order.display_gross_prices %}
+              {% trans "Taxes (included)" context "E-mail order lines summary table" %}
+            {% else %}
+              {% trans "Taxes" context "E-mail order lines summary table" %}
+            {% endif %}
+          </td>
+          <td style="padding: 5px; text-align: right;" align="right">
+            {% price order.total.tax html=False %}
+          </td>
+        </tr>
+        {% if order.discount_amount %}
+          <tr>
+            <td colspan="3" style="padding: 5px; text-align: right;" align="right">
+              {% trans "Discount" context "E-mail order lines summary table" %}
+            </td>
+            <td style="padding: 5px; text-align: right;" align="right">
+              {% discount_as_negative order.discount html=True %}
+            </td>
+          </tr>
+        {% endif %}
+        <tr>
+          <td colspan="3" style="padding: 5px; text-align: right;" align="right">
+            <strong>{% trans "Total" context "E-mail order lines summary table" %}</strong>
+          </td>
+          <td style="padding: 5px; text-align: right;" align="right">
+            <strong>{% price order.total display_gross=order.display_gross_prices html=False %}</strong>
+          </td>
+        </tr>
+      </tfoot>
+      <thead class="table-header-row" style="border-bottom: 2px solid #000;">
+        <tr>
+          <th style="padding: 5px;">{% trans "Item" context "Ordered item name" %}</th>
+          <th style="padding: 5px;">{% trans "Quantity" context "Quantity ordered of a product" %}</th>
+          <th style="padding: 5px;">{% trans "Per unit" context "Unit price of a product" %}</th>
+          <th style="padding: 5px;">{% trans "Subtotal" context "Ordered item subtotal (unit price * quantity)" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for line in order %}
+          <tr class="table-item-row" style="border-bottom: 1px solid #D3D1D0;">
+            <td style="padding: 5px;">{% display_translated_order_line_name line %}</td>
+            <td style="padding: 5px; text-align: right;" align="right">{{ line.quantity }}</td>
+            <td style="padding: 5px; text-align: right;" align="right">
+              {% price line.unit_price display_gross=order.display_gross_prices html=False %}
+            </td>
+            <td style="padding: 5px; text-align: right;" align="right">{% price line.total_price display_gross=order.display_gross_prices html=False %}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+      </table>
+    
+              </td>
+            </tr>
+          
+      </table>
+    
+      </div>
+    
+          <!--[if mso | IE]>
+            </td>
+          
+        </tr>
+      
+                  </table>
+                <![endif]-->
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+      </div>
+    
+      
+      <!--[if mso | IE]>
+          </td>
+        </tr>
+      </table>
+      
+      <table
+         align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600"
+      >
+        <tr>
+          <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">
+      <![endif]-->
+    
+      
+      <div style="margin:0px auto;max-width:600px;">
+        
+        <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
+          <tbody>
+            <tr>
+              <td style="direction: ltr; font-size: 0px; padding: 20px 0; text-align: center;" align="center">
+                <!--[if mso | IE]>
+                  <table role="presentation" border="0" cellpadding="0" cellspacing="0">
+                
+        <tr>
+      
+            <td
+               class="" style="vertical-align:top;width:600px;"
+            >
+          <![endif]-->
+            
+      <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+        
+      <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+        
+            <tr>
+              <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
+                
+      <table cellpadding="0" cellspacing="0" width="100%" border="0" style="color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:22px;table-layout:auto;width:100%;border:none;">
+        <thead class="table-header-row" style="border-bottom: 2px solid #000;">
+            <tr>
+              <th style="padding: 5px;">{% trans "Billing address" context "Order confirmed e-mail billing address" %}</th>
+              <th style="padding: 5px;">{% trans "Shipping address" context "Order confirmed e-mail shipping address" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="address" style="padding: 5px;">
+                {% if order.billing_address %}
+                  {% format_address order.billing_address %}
+                {% else %}
+                  {% trans "No billing address" context "Order confirmed e-mail text" %}
+                {% endif %}
+              </td>
+              <td css-class="address" style="padding: 5px;">
+                {% if order.shipping_address %}
+                  {% format_address order.shipping_address %}
+                {% else %}
+                  {% trans "No shipping required" context "Order confirmed e-mail text" %}
+                {% endif %}
+              </td>
+            </tr>
+          </tbody>
+      </table>
+    
+              </td>
+            </tr>
+          
+      </table>
+    
+      </div>
+    
+          <!--[if mso | IE]>
+            </td>
+          
+        </tr>
+      
+                  </table>
+                <![endif]-->
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+      </div>
+    
+      
+      <!--[if mso | IE]>
+          </td>
+        </tr>
+      </table>
+      
+      <table
+         align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600"
+      >
+        <tr>
+          <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">
+      <![endif]-->
+    
+      
+      <div style="margin:0px auto;max-width:600px;">
+        
+        <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
+          <tbody>
+            <tr>
+              <td style="direction: ltr; font-size: 0px; padding: 20px 0; text-align: center;" align="center">
+                <!--[if mso | IE]>
+                  <table role="presentation" border="0" cellpadding="0" cellspacing="0">
+                
+        <tr>
+      
+            <td
+               class="" style="vertical-align:top;width:600px;"
+            >
+          <![endif]-->
+            
+      <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+        
+      <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+        
+            <tr>
+              <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
+                
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{% blocktrans trimmed context "Base email text" %}
+        This is an automatically generated e-mail, please do not reply.
+      {% endblocktrans %}</div>
+    
+              </td>
+            </tr>
+          
+      </table>
+    
+      </div>
+    
+          <!--[if mso | IE]>
+            </td>
+          
+        </tr>
+      
+                  </table>
+                <![endif]-->
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+      </div>
+    
+      
+      <!--[if mso | IE]>
+          </td>
+        </tr>
+      </table>
+      
+      <table
+         align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600"
+      >
+        <tr>
+          <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">
+      <![endif]-->
+    
+      
+      <div style="background:#F2F2F2;background-color:#F2F2F2;margin:0px auto;max-width:600px;">
+        
+        <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#F2F2F2;background-color:#F2F2F2;width:100%;">
+          <tbody>
+            <tr>
+              <td style="direction: ltr; font-size: 0px; padding: 20px 0; text-align: center;" align="center">
+                <!--[if mso | IE]>
+                  <table role="presentation" border="0" cellpadding="0" cellspacing="0">
+                
+        <tr>
+      
+            <td
+               class="" style="vertical-align:top;width:600px;"
+            >
+          <![endif]-->
+            
+      <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+        
+      <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+        
+            <tr>
+              <td align="center" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
+                
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:center;color:#000000;">{% blocktrans trimmed context "Base email footer" %}
+        Sincerely, {{ site_name }}
+      {% endblocktrans %}</div>
+    
+              </td>
+            </tr>
+          
+      </table>
+    
+      </div>
+    
+          <!--[if mso | IE]>
+            </td>
+          
+        </tr>
+      
+                  </table>
+                <![endif]-->
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+      </div>
+    
+      
+      <!--[if mso | IE]>
+          </td>
+        </tr>
+      </table>
+      
+      <table
+         align="center" border="0" cellpadding="0" cellspacing="0" class="no-display-outlook" style="width:600px;" width="600"
+      >
+        <tr>
+          <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">
+      <![endif]-->
+    
+      
+      <div class="no-display" style="display: none; margin: 0px auto; max-width: 600px;">
+        
+        <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
+          <tbody>
+            <tr>
+              <td style="direction: ltr; font-size: 0px; padding: 20px 0; text-align: center;" align="center">
+                <!--[if mso | IE]>
+                  <table role="presentation" border="0" cellpadding="0" cellspacing="0">
+                
+        <tr>
+      
+            <td
+               class="" style="vertical-align:top;width:600px;"
+            >
+          <![endif]-->
+            
+      <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+        
+      <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+        
+            <tr>
+              <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
+                
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{% if schema_markup %}
+        <script type="application/ld+json">{{ schema_markup|safe }}</script>
+      {% endif %}</div>
+    
+              </td>
+            </tr>
+          
+      </table>
+    
+      </div>
+    
+          <!--[if mso | IE]>
+            </td>
+          
+        </tr>
+      
+                  </table>
+                <![endif]-->
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+      </div>
+    
+      
+      <!--[if mso | IE]>
+          </td>
+        </tr>
+      </table>
+      <![endif]-->
+    
+    
+      </div>
+    
+      </body>
+    </html>
+  

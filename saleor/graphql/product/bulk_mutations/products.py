@@ -3,14 +3,16 @@ from collections import defaultdict
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from graphene.types import InputObjectType
 
 from ....core.permissions import ProductPermissions, ProductTypePermissions
-from ....order import OrderStatus, models as order_models
+from ....order import OrderStatus
+from ....order import models as order_models
 from ....product import models
 from ....product.error_codes import ProductErrorCode
 from ....product.tasks import update_product_discounted_price_task
 from ....product.utils import delete_categories
-from ....product.utils.variants import generate_name_for_variant
+from ....product.utils.variants import generate_and_set_variant_name
 from ....warehouse import models as warehouse_models
 from ....warehouse.error_codes import StockErrorCode
 from ...channel import ChannelContext
@@ -29,7 +31,6 @@ from ...warehouse.types import Warehouse
 from ..mutations.channels import ProductVariantChannelListingAddInput
 from ..mutations.products import (
     AttributeAssignmentMixin,
-    AttributeValueInput,
     ProductVariantCreate,
     ProductVariantInput,
     StockInput,
@@ -102,9 +103,21 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
         return response
 
 
+class BulkAttributeValueInput(InputObjectType):
+    id = graphene.ID(description="ID of the selected attribute.")
+    values = graphene.List(
+        graphene.String,
+        required=True,
+        description=(
+            "The value or slug of an attribute to resolve. "
+            "If the passed value is non-existent, it will be created."
+        ),
+    )
+
+
 class ProductVariantBulkCreateInput(ProductVariantInput):
     attributes = graphene.List(
-        AttributeValueInput,
+        BulkAttributeValueInput,
         required=True,
         description="List of attributes specific to this variant.",
     )
@@ -290,8 +303,7 @@ class ProductVariantBulkCreate(BaseMutation):
         attributes = cleaned_input.get("attributes")
         if attributes:
             AttributeAssignmentMixin.save(instance, attributes)
-            instance.name = generate_name_for_variant(instance)
-            instance.save(update_fields=["name"])
+            generate_and_set_variant_name(instance, cleaned_input.get("sku"))
 
     @classmethod
     def create_variants(cls, info, cleaned_inputs, product, errors):
@@ -320,13 +332,27 @@ class ProductVariantBulkCreate(BaseMutation):
         sku_list.append(sku)
 
     @classmethod
+    def validate_duplicated_attribute_values(
+        cls, attributes_data, used_attribute_values, instance=None
+    ):
+        attribute_values = defaultdict(list)
+        for attr in attributes_data:
+            attribute_values[attr.id].extend(attr.values)
+        if attribute_values in used_attribute_values:
+            raise ValidationError(
+                "Duplicated attribute values for product variant.",
+                ProductErrorCode.DUPLICATED_INPUT_ITEM,
+            )
+        used_attribute_values.append(attribute_values)
+
+    @classmethod
     def clean_variants(cls, info, variants, product, errors):
         cleaned_inputs = []
         sku_list = []
         used_attribute_values = get_used_variants_attribute_values(product)
         for index, variant_data in enumerate(variants):
             try:
-                ProductVariantCreate.validate_duplicated_attribute_values(
+                cls.validate_duplicated_attribute_values(
                     variant_data.attributes, used_attribute_values
                 )
             except ValidationError as exc:
@@ -597,7 +623,9 @@ class ProductVariantStocksDelete(BaseMutation):
             required=True,
             description="ID of product variant for which stocks will be deleted.",
         )
-        warehouse_ids = graphene.List(graphene.NonNull(graphene.ID),)
+        warehouse_ids = graphene.List(
+            graphene.NonNull(graphene.ID),
+        )
 
     class Meta:
         description = "Delete stocks from product variant."

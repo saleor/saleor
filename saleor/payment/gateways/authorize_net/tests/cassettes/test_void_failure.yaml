@@ -1,0 +1,61 @@
+interactions:
+- request:
+    body: <?xml version="1.0" encoding="utf-8"?><createTransactionRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd"><merchantAuthentication><name>public</name><transactionKey>secret</transactionKey></merchantAuthentication><clientId>sdk-python-1.1.3</clientId><transactionRequest><transactionType>voidTransaction</transactionType><refTransId>601572</refTransId></transactionRequest></createTransactionRequest>
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '421'
+      Content-Type:
+      - application/xml
+      User-Agent:
+      - python-requests/2.24.0
+      encoding:
+      - utf-8
+      version:
+      - '1.0'
+    method: POST
+    uri: https://apitest.authorize.net/xml/v1/request.api
+  response:
+    body:
+      string: "\uFEFF<?xml version=\"1.0\" encoding=\"utf-8\"?><createTransactionResponse\
+        \ xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"\
+        \ xmlns=\"AnetApi/xml/v1/schema/AnetApiSchema.xsd\"><messages><resultCode>Error</resultCode><message><code>E00027</code><text>The\
+        \ transaction was unsuccessful.</text></message></messages><transactionResponse><responseCode>3</responseCode><authCode\
+        \ /><avsResultCode>P</avsResultCode><cvvResultCode /><cavvResultCode /><transId>0</transId><refTransID>601572</refTransID><transHash\
+        \ /><testRequest>0</testRequest><accountNumber /><accountType /><errors><error><errorCode>16</errorCode><errorText>The\
+        \ transaction cannot be found.</errorText></error></errors><shipTo /><transHashSha2\
+        \ /></transactionResponse></createTransactionResponse>"
+    headers:
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - x-requested-with,cache-control,content-type,origin,method,SOAPAction
+      Access-Control-Allow-Methods:
+      - PUT,OPTIONS,POST,GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-store
+      Content-Length:
+      - '793'
+      Content-Type:
+      - application/xml; charset=utf-8
+      Date:
+      - Mon, 30 Nov 2020 18:42:50 GMT
+      Pragma:
+      - no-cache
+      Strict-Transport-Security:
+      - max-age=31536000
+      X-Cnection:
+      - close
+      X-OPNET-Transaction-Trace:
+      - a2_fcd54fbe-2b11-4415-adab-ba5b7df2b869-17340-27164037
+    status:
+      code: 200
+      message: OK
+version: 1

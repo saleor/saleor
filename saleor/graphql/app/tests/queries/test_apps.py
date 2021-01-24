@@ -110,7 +110,10 @@ QUERY_APPS_WITH_SORT = """
     ],
 )
 def test_query_apps_with_sort(
-    apps_sort, result_order, staff_api_client, permission_manage_apps,
+    apps_sort,
+    result_order,
+    staff_api_client,
+    permission_manage_apps,
 ):
     with freeze_time("2018-05-31 12:00:01"):
         App.objects.create(name="google", is_active=True)

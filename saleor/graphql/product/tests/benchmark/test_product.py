@@ -6,7 +6,7 @@ from ....tests.utils import get_graphql_content
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
-def test_product_details(product, api_client, count_queries, channel_USD):
+def test_product_details(product_with_image, api_client, count_queries, channel_USD):
     query = """
         fragment BasicProductFields on Product {
           id
@@ -64,6 +64,10 @@ def test_product_details(product, api_client, count_queries, channel_USD):
               name
               value: name
             }
+          }
+          images {
+            id
+            url
           }
         }
 
@@ -149,6 +153,10 @@ def test_product_details(product, api_client, count_queries, channel_USD):
           }
         }
     """
+    product = product_with_image
+    variant = product_with_image.variants.first()
+    image = product_with_image.get_first_image()
+    image.variant_images.create(variant=variant)
 
     variables = {
         "id": Node.to_global_id("Product", product.pk),
@@ -263,7 +271,10 @@ def test_retrieve_channel_listings(
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
 def test_retrive_products_with_product_types_and_attributes(
-    product_list, api_client, count_queries, channel_USD,
+    product_list,
+    api_client,
+    count_queries,
+    channel_USD,
 ):
     query = """
         query($channel: String) {

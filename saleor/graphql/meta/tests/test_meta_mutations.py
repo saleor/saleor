@@ -45,7 +45,12 @@ mutation UpdatePublicMetadata($id: ID!, $input: [MetadataInput!]!) {
 
 
 def execute_update_public_metadata_for_item(
-    client, permissions, item_id, item_type, key=PUBLIC_KEY, value=PUBLIC_VALUE,
+    client,
+    permissions,
+    item_id,
+    item_type,
+    key=PUBLIC_KEY,
+    value=PUBLIC_VALUE,
 ):
     variables = {
         "id": item_id,
@@ -86,7 +91,11 @@ def execute_update_public_metadata_for_multiple_items(
 
 
 def item_contains_proper_public_metadata(
-    item_from_response, item, item_id, key=PUBLIC_KEY, value=PUBLIC_VALUE,
+    item_from_response,
+    item,
+    item_id,
+    key=PUBLIC_KEY,
+    value=PUBLIC_VALUE,
 ):
     if item_from_response["id"] != item_id:
         return False
@@ -206,7 +215,8 @@ def test_add_public_metadata_for_staff_as_app_no_permission(
 
 
 @pytest.mark.parametrize(
-    "input", [{"key": " ", "value": "test"}, {"key": "   ", "value": ""}],
+    "input",
+    [{"key": " ", "value": "test"}, {"key": "   ", "value": ""}],
 )
 def test_staff_update_metadata_empty_key(
     input, staff_api_client, permission_manage_staff, admin_user
@@ -503,7 +513,10 @@ def test_add_public_metadata_for_product_variant(
 
     # when
     response = execute_update_public_metadata_for_item(
-        staff_api_client, permission_manage_products, variant_id, "ProductVariant",
+        staff_api_client,
+        permission_manage_products,
+        variant_id,
+        "ProductVariant",
     )
 
     # then
@@ -518,7 +531,10 @@ def test_add_public_metadata_for_app(staff_api_client, permission_manage_apps, a
 
     # when
     response = execute_update_public_metadata_for_item(
-        staff_api_client, permission_manage_apps, app_id, "App",
+        staff_api_client,
+        permission_manage_apps,
+        app_id,
+        "App",
     )
 
     # then
@@ -533,7 +549,10 @@ def test_add_public_metadata_for_page(staff_api_client, permission_manage_pages,
 
     # when
     response = execute_update_public_metadata_for_item(
-        staff_api_client, permission_manage_pages, page_id, "Page",
+        staff_api_client,
+        permission_manage_pages,
+        page_id,
+        "Page",
     )
 
     # then
@@ -560,7 +579,9 @@ def test_add_public_metadata_for_shipping_method(
 
     # then
     assert item_contains_proper_public_metadata(
-        response["data"]["updateMetadata"]["item"], shipping_method, shipping_method_id,
+        response["data"]["updateMetadata"]["item"],
+        shipping_method,
+        shipping_method_id,
     )
 
 
@@ -572,12 +593,59 @@ def test_add_public_metadata_for_shipping_zone(
 
     # when
     response = execute_update_public_metadata_for_item(
-        staff_api_client, permission_manage_shipping, shipping_zone_id, "ShippingZone",
+        staff_api_client,
+        permission_manage_shipping,
+        shipping_zone_id,
+        "ShippingZone",
     )
 
     # then
     assert item_contains_proper_public_metadata(
-        response["data"]["updateMetadata"]["item"], shipping_zone, shipping_zone_id,
+        response["data"]["updateMetadata"]["item"],
+        shipping_zone,
+        shipping_zone_id,
+    )
+
+
+def test_add_public_metadata_for_menu(staff_api_client, permission_manage_menus, menu):
+    # given
+    menu_id = graphene.Node.to_global_id("Menu", menu.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        staff_api_client,
+        permission_manage_menus,
+        menu_id,
+        "Menu",
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"],
+        menu,
+        menu_id,
+    )
+
+
+def test_add_public_metadata_for_menu_item(
+    staff_api_client, permission_manage_menus, menu_item
+):
+    # given
+    menu_item_id = graphene.Node.to_global_id("MenuItem", menu_item.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        staff_api_client,
+        permission_manage_menus,
+        menu_item_id,
+        "MenuItem",
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"],
+        menu_item,
+        menu_item_id,
     )
 
 
@@ -660,7 +728,11 @@ mutation DeletePublicMetadata($id: ID!, $keys: [String!]!) {
 
 
 def execute_clear_public_metadata_for_item(
-    client, permissions, item_id, item_type, key=PUBLIC_KEY,
+    client,
+    permissions,
+    item_id,
+    item_type,
+    key=PUBLIC_KEY,
 ):
     variables = {
         "id": item_id,
@@ -694,7 +766,11 @@ def execute_clear_public_metadata_for_multiple_items(
 
 
 def item_without_public_metadata(
-    item_from_response, item, item_id, key=PUBLIC_KEY, value=PUBLIC_VALUE,
+    item_from_response,
+    item,
+    item_id,
+    key=PUBLIC_KEY,
+    value=PUBLIC_VALUE,
 ):
     if item_from_response["id"] != item_id:
         return False
@@ -1107,7 +1183,10 @@ def test_delete_public_metadata_for_app(staff_api_client, permission_manage_apps
 
     # when
     response = execute_clear_public_metadata_for_item(
-        staff_api_client, permission_manage_apps, app_id, "App",
+        staff_api_client,
+        permission_manage_apps,
+        app_id,
+        "App",
     )
 
     # then
@@ -1126,7 +1205,10 @@ def test_delete_public_metadata_for_page(
 
     # when
     response = execute_clear_public_metadata_for_item(
-        staff_api_client, permission_manage_pages, page_id, "Page",
+        staff_api_client,
+        permission_manage_pages,
+        page_id,
+        "Page",
     )
 
     # then
@@ -1155,7 +1237,9 @@ def test_delete_public_metadata_for_shipping_method(
 
     # then
     assert item_without_public_metadata(
-        response["data"]["deleteMetadata"]["item"], shipping_method, shipping_method_id,
+        response["data"]["deleteMetadata"]["item"],
+        shipping_method,
+        shipping_method_id,
     )
 
 
@@ -1169,12 +1253,65 @@ def test_delete_public_metadata_for_shipping_zone(
 
     # when
     response = execute_clear_public_metadata_for_item(
-        staff_api_client, permission_manage_shipping, shipping_zone_id, "ShippingZone",
+        staff_api_client,
+        permission_manage_shipping,
+        shipping_zone_id,
+        "ShippingZone",
     )
 
     # then
     assert item_without_public_metadata(
-        response["data"]["deleteMetadata"]["item"], shipping_zone, shipping_zone_id,
+        response["data"]["deleteMetadata"]["item"],
+        shipping_zone,
+        shipping_zone_id,
+    )
+
+
+def test_delete_public_metadata_for_menu(
+    staff_api_client, permission_manage_menus, menu
+):
+    # given
+    menu.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    menu.save(update_fields=["metadata"])
+    menu_id = graphene.Node.to_global_id("Menu", menu.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        staff_api_client,
+        permission_manage_menus,
+        menu_id,
+        "Menu",
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["deleteMetadata"]["item"],
+        menu,
+        menu_id,
+    )
+
+
+def test_delete_public_metadata_for_menu_item(
+    staff_api_client, permission_manage_menus, menu_item
+):
+    # given
+    menu_item.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    menu_item.save(update_fields=["metadata"])
+    menu_item_id = graphene.Node.to_global_id("MenuItem", menu_item.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        staff_api_client,
+        permission_manage_menus,
+        menu_item_id,
+        "MenuItem",
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["deleteMetadata"]["item"],
+        menu_item,
+        menu_item_id,
     )
 
 
@@ -1279,7 +1416,12 @@ mutation UpdatePrivateMetadata($id: ID!, $input: [MetadataInput!]!) {
 
 
 def execute_update_private_metadata_for_item(
-    client, permissions, item_id, item_type, key=PRIVATE_KEY, value=PRIVATE_VALUE,
+    client,
+    permissions,
+    item_id,
+    item_type,
+    key=PRIVATE_KEY,
+    value=PRIVATE_VALUE,
 ):
     variables = {
         "id": item_id,
@@ -1320,7 +1462,11 @@ def execute_update_private_metadata_for_multiple_items(
 
 
 def item_contains_proper_private_metadata(
-    item_from_response, item, item_id, key=PRIVATE_KEY, value=PRIVATE_VALUE,
+    item_from_response,
+    item,
+    item_id,
+    key=PRIVATE_KEY,
+    value=PRIVATE_VALUE,
 ):
     if item_from_response["id"] != item_id:
         return False
@@ -1448,7 +1594,9 @@ def test_add_private_metadata_for_myself_as_customer_no_permission(user_api_clie
 
     # when
     response = user_api_client.post_graphql(
-        UPDATE_PRIVATE_METADATA_MUTATION % "User", variables, permissions=[],
+        UPDATE_PRIVATE_METADATA_MUTATION % "User",
+        variables,
+        permissions=[],
     )
 
     # then
@@ -1456,7 +1604,8 @@ def test_add_private_metadata_for_myself_as_customer_no_permission(user_api_clie
 
 
 @pytest.mark.parametrize(
-    "input", [{"key": " ", "value": "test"}, {"key": "   ", "value": ""}],
+    "input",
+    [{"key": " ", "value": "test"}, {"key": "   ", "value": ""}],
 )
 def test_staff_update_private_metadata_empty_key(
     input, staff_api_client, permission_manage_staff, admin_user
@@ -1494,7 +1643,9 @@ def test_add_private_metadata_for_myself_as_staff(staff_api_client):
 
     # when
     response = staff_api_client.post_graphql(
-        UPDATE_PRIVATE_METADATA_MUTATION % "User", variables, permissions=[],
+        UPDATE_PRIVATE_METADATA_MUTATION % "User",
+        variables,
+        permissions=[],
     )
 
     # then
@@ -1717,7 +1868,10 @@ def test_add_private_metadata_for_product_variant(
 
     # when
     response = execute_update_private_metadata_for_item(
-        staff_api_client, permission_manage_products, variant_id, "ProductVariant",
+        staff_api_client,
+        permission_manage_products,
+        variant_id,
+        "ProductVariant",
     )
 
     # then
@@ -1732,12 +1886,17 @@ def test_add_private_metadata_for_app(staff_api_client, permission_manage_apps, 
 
     # when
     response = execute_update_private_metadata_for_item(
-        staff_api_client, permission_manage_apps, app_id, "App",
+        staff_api_client,
+        permission_manage_apps,
+        app_id,
+        "App",
     )
 
     # then
     assert item_contains_proper_private_metadata(
-        response["data"]["updatePrivateMetadata"]["item"], app, app_id,
+        response["data"]["updatePrivateMetadata"]["item"],
+        app,
+        app_id,
     )
 
 
@@ -1747,12 +1906,17 @@ def test_add_private_metadata_for_page(staff_api_client, permission_manage_pages
 
     # when
     response = execute_update_private_metadata_for_item(
-        staff_api_client, permission_manage_pages, page_id, "Page",
+        staff_api_client,
+        permission_manage_pages,
+        page_id,
+        "Page",
     )
 
     # then
     assert item_contains_proper_private_metadata(
-        response["data"]["updatePrivateMetadata"]["item"], page, page_id,
+        response["data"]["updatePrivateMetadata"]["item"],
+        page,
+        page_id,
     )
 
 
@@ -1788,7 +1952,10 @@ def test_add_private_metadata_for_shipping_zone(
 
     # when
     response = execute_update_private_metadata_for_item(
-        staff_api_client, permission_manage_shipping, shipping_zone_id, "ShippingZone",
+        staff_api_client,
+        permission_manage_shipping,
+        shipping_zone_id,
+        "ShippingZone",
     )
 
     # then
@@ -1796,6 +1963,48 @@ def test_add_private_metadata_for_shipping_zone(
         response["data"]["updatePrivateMetadata"]["item"],
         shipping_zone,
         shipping_zone_id,
+    )
+
+
+def test_add_private_metadata_for_menu(staff_api_client, permission_manage_menus, menu):
+    # given
+    menu_id = graphene.Node.to_global_id("Menu", menu.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client,
+        permission_manage_menus,
+        menu_id,
+        "Menu",
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"],
+        menu,
+        menu_id,
+    )
+
+
+def test_add_private_metadata_for_menu_item(
+    staff_api_client, permission_manage_menus, menu_item
+):
+    # given
+    menu_item_id = graphene.Node.to_global_id("MenuItem", menu_item.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client,
+        permission_manage_menus,
+        menu_item_id,
+        "MenuItem",
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"],
+        menu_item,
+        menu_item_id,
     )
 
 
@@ -1886,7 +2095,11 @@ mutation DeletePrivateMetadata($id: ID!, $keys: [String!]!) {
 
 
 def execute_clear_private_metadata_for_item(
-    client, permissions, item_id, item_type, key=PRIVATE_KEY,
+    client,
+    permissions,
+    item_id,
+    item_type,
+    key=PRIVATE_KEY,
 ):
     variables = {
         "id": item_id,
@@ -1920,7 +2133,11 @@ def execute_clear_private_metadata_for_multiple_items(
 
 
 def item_without_private_metadata(
-    item_from_response, item, item_id, key=PRIVATE_KEY, value=PRIVATE_VALUE,
+    item_from_response,
+    item,
+    item_id,
+    key=PRIVATE_KEY,
+    value=PRIVATE_VALUE,
 ):
     if item_from_response["id"] != item_id:
         return False
@@ -2349,12 +2566,17 @@ def test_delete_private_metadata_for_app(staff_api_client, permission_manage_app
 
     # when
     response = execute_clear_private_metadata_for_item(
-        staff_api_client, permission_manage_apps, app_id, "App",
+        staff_api_client,
+        permission_manage_apps,
+        app_id,
+        "App",
     )
 
     # then
     assert item_without_private_metadata(
-        response["data"]["deletePrivateMetadata"]["item"], app, app_id,
+        response["data"]["deletePrivateMetadata"]["item"],
+        app,
+        app_id,
     )
 
 
@@ -2368,12 +2590,17 @@ def test_delete_private_metadata_for_page(
 
     # when
     response = execute_clear_private_metadata_for_item(
-        staff_api_client, permission_manage_pages, page_id, "Page",
+        staff_api_client,
+        permission_manage_pages,
+        page_id,
+        "Page",
     )
 
     # then
     assert item_without_private_metadata(
-        response["data"]["deletePrivateMetadata"]["item"], page, page_id,
+        response["data"]["deletePrivateMetadata"]["item"],
+        page,
+        page_id,
     )
 
 
@@ -2413,7 +2640,10 @@ def test_delete_private_metadata_for_shipping_zone(
 
     # when
     response = execute_clear_private_metadata_for_item(
-        staff_api_client, permission_manage_shipping, shipping_zone_id, "ShippingZone",
+        staff_api_client,
+        permission_manage_shipping,
+        shipping_zone_id,
+        "ShippingZone",
     )
 
     # then
@@ -2421,6 +2651,54 @@ def test_delete_private_metadata_for_shipping_zone(
         response["data"]["deletePrivateMetadata"]["item"],
         shipping_zone,
         shipping_zone_id,
+    )
+
+
+def test_delete_private_metadata_for_menu(
+    staff_api_client, permission_manage_menus, menu
+):
+    # given
+    menu.store_value_in_private_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    menu.save(update_fields=["metadata"])
+    menu_id = graphene.Node.to_global_id("Menu", menu.pk)
+
+    # when
+    response = execute_clear_private_metadata_for_item(
+        staff_api_client,
+        permission_manage_menus,
+        menu_id,
+        "Menu",
+    )
+
+    # then
+    assert item_without_private_metadata(
+        response["data"]["deletePrivateMetadata"]["item"],
+        menu,
+        menu_id,
+    )
+
+
+def test_delete_private_metadata_for_menu_item(
+    staff_api_client, permission_manage_menus, menu_item
+):
+    # given
+    menu_item.store_value_in_private_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    menu_item.save(update_fields=["metadata"])
+    menu_item_id = graphene.Node.to_global_id("MenuItem", menu_item.pk)
+
+    # when
+    response = execute_clear_private_metadata_for_item(
+        staff_api_client,
+        permission_manage_menus,
+        menu_item_id,
+        "MenuItem",
+    )
+
+    # then
+    assert item_without_private_metadata(
+        response["data"]["deletePrivateMetadata"]["item"],
+        menu_item,
+        menu_item_id,
     )
 
 
@@ -2511,4 +2789,76 @@ def test_delete_private_metadata_for_one_key(
         checkout,
         checkout_id,
         key="to_clear",
+    )
+
+
+def test_add_public_metadata_for_warehouse(
+    staff_api_client, permission_manage_products, warehouse
+):
+    # given
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        staff_api_client, permission_manage_products, warehouse_id, "Warehouse"
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"], warehouse, warehouse_id
+    )
+
+
+def test_delete_public_metadata_for_warehouse(
+    staff_api_client, permission_manage_products, warehouse
+):
+    # given
+    warehouse.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    warehouse.save(update_fields=["metadata"])
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        staff_api_client, permission_manage_products, warehouse_id, "Warehouse"
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["deleteMetadata"]["item"], warehouse, warehouse_id
+    )
+
+
+def test_add_private_metadata_for_warehouse(
+    staff_api_client, permission_manage_products, warehouse
+):
+    # given
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client, permission_manage_products, warehouse_id, "Warehouse"
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"], warehouse, warehouse_id
+    )
+
+
+def test_delete_private_metadata_for_warehouse(
+    staff_api_client, permission_manage_products, warehouse
+):
+    # given
+    warehouse.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
+    warehouse.save(update_fields=["private_metadata"])
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+
+    # when
+    response = execute_clear_private_metadata_for_item(
+        staff_api_client, permission_manage_products, warehouse_id, "Warehouse"
+    )
+
+    # then
+    assert item_without_private_metadata(
+        response["data"]["deletePrivateMetadata"]["item"], warehouse, warehouse_id
     )

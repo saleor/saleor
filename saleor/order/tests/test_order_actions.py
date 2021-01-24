@@ -4,8 +4,9 @@ from unittest.mock import patch
 import pytest
 from prices import Money, TaxedMoney
 
-from ...payment import ChargeStatus, PaymentError
+from ...payment import ChargeStatus, PaymentError, TransactionKind
 from ...payment.models import Payment
+from ...plugins.manager import get_plugins_manager
 from ...product.models import DigitalContent
 from ...product.tests.utils import create_image
 from ...warehouse.models import Allocation, Stock
@@ -38,17 +39,22 @@ def order_with_digital_line(order, digital_content, stock, site_settings):
     product_type.save()
 
     quantity = 3
-    net = variant.get_price(order.channel.slug)
+    product = variant.product
+    channel = order.channel
+    variant_channel_listing = variant.channel_listings.get(channel=channel)
+    net = variant.get_price(product, [], channel, variant_channel_listing, None)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    unit_price = TaxedMoney(net=net, gross=gross)
     line = order.lines.create(
-        product_name=str(variant.product),
+        product_name=str(product),
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
         quantity=quantity,
         variant=variant,
-        unit_price=TaxedMoney(net=net, gross=gross),
-        tax_rate=23,
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
+        tax_rate=Decimal("0.23"),
     )
 
     Allocation.objects.create(order_line=line, stock=stock, quantity_allocated=quantity)
@@ -131,6 +137,23 @@ def test_mark_as_paid(admin_user, draft_order):
     assert payment.charge_status == ChargeStatus.FULLY_CHARGED
     assert payment.captured_amount == draft_order.total.gross.amount
     assert draft_order.events.last().type == (OrderEvents.ORDER_MARKED_AS_PAID)
+    transactions = payment.transactions.all()
+    assert transactions.count() == 1
+    assert transactions[0].kind == TransactionKind.EXTERNAL
+
+
+def test_mark_as_paid_with_external_reference(admin_user, draft_order):
+    external_reference = "transaction_id"
+    mark_order_as_paid(draft_order, admin_user, external_reference=external_reference)
+    payment = draft_order.payments.last()
+    assert payment.charge_status == ChargeStatus.FULLY_CHARGED
+    assert payment.captured_amount == draft_order.total.gross.amount
+    assert draft_order.events.last().type == (OrderEvents.ORDER_MARKED_AS_PAID)
+    transactions = payment.transactions.all()
+    assert transactions.count() == 1
+    assert transactions[0].kind == TransactionKind.EXTERNAL
+    assert transactions[0].searchable_key == external_reference
+    assert transactions[0].token == external_reference
 
 
 def test_mark_as_paid_no_billing_address(admin_user, draft_order):
@@ -209,7 +232,9 @@ def test_cancel_order(
 
 @patch("saleor.order.actions.send_order_refunded_confirmation")
 def test_order_refunded(
-    send_order_refunded_confirmation_mock, order, checkout_with_item,
+    send_order_refunded_confirmation_mock,
+    order,
+    checkout_with_item,
 ):
     # given
     payment = Payment.objects.create(
@@ -218,7 +243,7 @@ def test_order_refunded(
     amount = order.total.gross.amount
 
     # when
-    order_refunded(order, order.user, amount, payment)
+    order_refunded(order, order.user, amount, payment, get_plugins_manager())
 
     # then
     order_event = order.events.last()

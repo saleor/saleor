@@ -10,6 +10,7 @@ from ...order import models as order_models
 from ...page import models as page_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
+from ...warehouse import models as warehouse_models
 from ..utils import get_user_or_app_from_context
 from .permissions import PRIVATE_META_PERMISSION_MAP
 
@@ -17,15 +18,18 @@ from .permissions import PRIVATE_META_PERMISSION_MAP
 def resolve_object_with_metadata_type(instance: ModelWithMetadata):
     # Imports inside resolvers to avoid circular imports.
     from ...invoice import models as invoice_models
+    from ...menu import models as menu_models
     from ..account import types as account_types
-    from ..attribute import types as attribute_types
     from ..app import types as app_types
+    from ..attribute import types as attribute_types
     from ..checkout import types as checkout_types
     from ..invoice import types as invoice_types
+    from ..menu import types as menu_types
     from ..order import types as order_types
     from ..page import types as page_types
     from ..product import types as product_types
     from ..shipping import types as shipping_types
+    from ..warehouse import types as warehouse_types
 
     MODEL_TO_TYPE_MAP = {
         attribute_models.Attribute: attribute_types.Attribute,
@@ -41,17 +45,21 @@ def resolve_object_with_metadata_type(instance: ModelWithMetadata):
         product_models.Product: product_types.Product,
         product_models.ProductType: product_types.ProductType,
         product_models.ProductVariant: product_types.ProductVariant,
+        menu_models.Menu: menu_types.Menu,
+        menu_models.MenuItem: menu_types.MenuItem,
         shipping_models.ShippingMethod: shipping_types.ShippingMethod,
         shipping_models.ShippingZone: shipping_types.ShippingZone,
         app_models.App: app_types.App,
         account_models.User: account_types.User,
+        warehouse_models.Warehouse: warehouse_types.Warehouse,
     }
     return MODEL_TO_TYPE_MAP.get(instance.__class__, None)
 
 
 def resolve_metadata(metadata: dict):
     return sorted(
-        [{"key": k, "value": v} for k, v in metadata.items()], key=itemgetter("key"),
+        [{"key": k, "value": v} for k, v in metadata.items()],
+        key=itemgetter("key"),
     )
 
 

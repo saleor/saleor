@@ -7,7 +7,7 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound
 from django.utils.module_loading import import_string
 from django_countries.fields import Country
-from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
+from prices import Money, TaxedMoney
 
 from ..checkout import base_calculations
 from ..core.payments import PaymentInterface
@@ -20,18 +20,25 @@ if TYPE_CHECKING:
     # flake8: noqa
     from ..account.models import Address, User
     from ..channel.models import Channel
+    from ..checkout import CheckoutLineInfo
     from ..checkout.models import Checkout, CheckoutLine
     from ..invoice.models import Invoice
     from ..order.models import Fulfillment, Order, OrderLine
     from ..payment.interface import (
         CustomerSource,
         GatewayResponse,
+        InitializedPaymentResponse,
         PaymentData,
         PaymentGateway,
-        InitializedPaymentResponse,
         TokenConfig,
     )
-    from ..product.models import Product, ProductType
+    from ..product.models import (
+        Collection,
+        Product,
+        ProductType,
+        ProductVariant,
+        ProductVariantChannelListing,
+    )
     from .base_plugin import BasePlugin
 
 
@@ -102,19 +109,29 @@ class PluginsManager(PaymentInterface):
     def calculate_checkout_total(
         self,
         checkout: "Checkout",
-        lines: Iterable["CheckoutLine"],
+        lines: Iterable["CheckoutLineInfo"],
+        address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
     ) -> TaxedMoney:
 
         default_value = base_calculations.base_checkout_total(
-            subtotal=self.calculate_checkout_subtotal(checkout, lines, discounts),
-            shipping_price=self.calculate_checkout_shipping(checkout, lines, discounts),
+            subtotal=self.calculate_checkout_subtotal(
+                checkout, lines, address, discounts
+            ),
+            shipping_price=self.calculate_checkout_shipping(
+                checkout, lines, address, discounts
+            ),
             discount=checkout.discount,
             currency=checkout.currency,
         )
         return quantize_price(
             self.__run_method_on_plugins(
-                "calculate_checkout_total", default_value, checkout, lines, discounts
+                "calculate_checkout_total",
+                default_value,
+                checkout,
+                lines,
+                address,
+                discounts,
             ),
             checkout.currency,
         )
@@ -122,19 +139,35 @@ class PluginsManager(PaymentInterface):
     def calculate_checkout_subtotal(
         self,
         checkout: "Checkout",
-        lines: Iterable["CheckoutLine"],
+        lines: Iterable["CheckoutLineInfo"],
+        address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
     ) -> TaxedMoney:
         line_totals = [
-            self.calculate_checkout_line_total(line, discounts, checkout.channel)
-            for line in lines
+            self.calculate_checkout_line_total(
+                checkout,
+                line_info.line,
+                line_info.variant,
+                line_info.product,
+                line_info.collections,
+                address,
+                line_info.channel_listing.channel,
+                line_info.channel_listing,
+                discounts,
+            )
+            for line_info in lines
         ]
         default_value = base_calculations.base_checkout_subtotal(
             line_totals, checkout.currency
         )
         return quantize_price(
             self.__run_method_on_plugins(
-                "calculate_checkout_subtotal", default_value, checkout, lines, discounts
+                "calculate_checkout_subtotal",
+                default_value,
+                checkout,
+                lines,
+                address,
+                discounts,
             ),
             checkout.currency,
         )
@@ -142,13 +175,19 @@ class PluginsManager(PaymentInterface):
     def calculate_checkout_shipping(
         self,
         checkout: "Checkout",
-        lines: Iterable["CheckoutLine"],
+        lines: Iterable["CheckoutLineInfo"],
+        address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
     ) -> TaxedMoney:
         default_value = base_calculations.base_checkout_shipping_price(checkout, lines)
         return quantize_price(
             self.__run_method_on_plugins(
-                "calculate_checkout_shipping", default_value, checkout, lines, discounts
+                "calculate_checkout_shipping",
+                default_value,
+                checkout,
+                lines,
+                address,
+                discounts,
             ),
             checkout.currency,
         )
@@ -170,24 +209,82 @@ class PluginsManager(PaymentInterface):
             order.currency,
         )
 
+    def get_checkout_shipping_tax_rate(
+        self,
+        checkout: "Checkout",
+        lines: Iterable["CheckoutLineInfo"],
+        address: Optional["Address"],
+        discounts: Iterable[DiscountInfo],
+        shipping_price: TaxedMoney,
+    ):
+        default_value = base_calculations.base_tax_rate(shipping_price)
+        return self.__run_method_on_plugins(
+            "get_checkout_shipping_tax_rate",
+            default_value,
+            checkout,
+            lines,
+            address,
+            discounts,
+        ).quantize(Decimal(".0001"))
+
+    def get_order_shipping_tax_rate(self, order: "Order", shipping_price: TaxedMoney):
+        default_value = base_calculations.base_tax_rate(shipping_price)
+        return self.__run_method_on_plugins(
+            "get_order_shipping_tax_rate", default_value, order
+        ).quantize(Decimal(".0001"))
+
     def calculate_checkout_line_total(
         self,
+        checkout: "Checkout",
         checkout_line: "CheckoutLine",
-        discounts: Iterable[DiscountInfo],
+        variant: "ProductVariant",
+        product: "Product",
+        collections: Iterable["Collection"],
+        address: Optional["Address"],
         channel: "Channel",
+        channel_listing: "ProductVariantChannelListing",
+        discounts: Iterable[DiscountInfo],
     ):
         default_value = base_calculations.base_checkout_line_total(
-            checkout_line, channel, discounts
+            checkout_line,
+            variant,
+            product,
+            collections,
+            channel,
+            channel_listing,
+            discounts,
         )
         return quantize_price(
             self.__run_method_on_plugins(
                 "calculate_checkout_line_total",
                 default_value,
+                checkout,
                 checkout_line,
-                discounts,
+                variant,
+                product,
+                collections,
+                address,
                 channel,
+                channel_listing,
+                discounts,
             ),
-            checkout_line.checkout.currency,
+            checkout.currency,
+        )
+
+    def calculate_checkout_line_unit_price(
+        self, total_line_price: TaxedMoney, quantity: int
+    ):
+        default_value = base_calculations.base_checkout_line_unit_price(
+            total_line_price, quantity
+        )
+        return quantize_price(
+            self.__run_method_on_plugins(
+                "calculate_checkout_line_unit_price",
+                default_value,
+                total_line_price,
+                quantity,
+            ),
+            total_line_price.currency,
         )
 
     def calculate_order_line_unit(self, order_line: "OrderLine") -> TaxedMoney:
@@ -199,6 +296,36 @@ class PluginsManager(PaymentInterface):
             ),
             order_line.currency,
         )
+
+    def get_checkout_line_tax_rate(
+        self,
+        checkout: "Checkout",
+        checkout_line_info: "CheckoutLineInfo",
+        address: Optional["Address"],
+        discounts: Iterable[DiscountInfo],
+        unit_price: TaxedMoney,
+    ) -> Decimal:
+        default_value = base_calculations.base_tax_rate(unit_price)
+        return self.__run_method_on_plugins(
+            "get_checkout_line_tax_rate",
+            default_value,
+            checkout,
+            checkout_line_info,
+            address,
+            discounts,
+        ).quantize(Decimal(".0001"))
+
+    def get_order_line_tax_rate(
+        self,
+        order: "Order",
+        product: "Product",
+        address: Optional["Address"],
+        unit_price: TaxedMoney,
+    ) -> Decimal:
+        default_value = base_calculations.base_tax_rate(unit_price)
+        return self.__run_method_on_plugins(
+            "get_order_line_tax_rate", default_value, order, product, address
+        ).quantize(Decimal(".0001"))
 
     def get_tax_rate_type_choices(self) -> List[TaxType]:
         default_value: list = []
@@ -234,19 +361,6 @@ class PluginsManager(PaymentInterface):
             price.currency,
         )
 
-    def apply_taxes_to_shipping_price_range(self, prices: MoneyRange, country: Country):
-        start = TaxedMoney(net=prices.start, gross=prices.start)
-        stop = TaxedMoney(net=prices.stop, gross=prices.stop)
-        default_value = quantize_price(
-            TaxedMoneyRange(start=start, stop=stop), start.currency
-        )
-        return quantize_price(
-            self.__run_method_on_plugins(
-                "apply_taxes_to_shipping_price_range", default_value, prices, country
-            ),
-            start.currency,
-        )
-
     def preprocess_order_creation(
         self, checkout: "Checkout", discounts: Iterable[DiscountInfo]
     ):
@@ -270,6 +384,10 @@ class PluginsManager(PaymentInterface):
     def order_created(self, order: "Order"):
         default_value = None
         return self.__run_method_on_plugins("order_created", default_value, order)
+
+    def order_confirmed(self, order: "Order"):
+        default_value = None
+        return self.__run_method_on_plugins("order_confirmed", default_value, order)
 
     def invoice_request(
         self, order: "Order", invoice: "Invoice", number: Optional[str]
@@ -336,7 +454,10 @@ class PluginsManager(PaymentInterface):
             return None
 
         return self.__run_method_on_single_plugin(
-            gtw, method_name, previous_value=default_value, payment_data=payment_data,
+            gtw,
+            method_name,
+            previous_value=default_value,
+            payment_data=payment_data,
         )
 
     def authorize_payment(
@@ -381,7 +502,9 @@ class PluginsManager(PaymentInterface):
         gtw = self.get_plugin(gateway)
         if gtw is not None:
             return self.__run_method_on_single_plugin(
-                gtw, method_name, previous_value=default_value,
+                gtw,
+                method_name,
+                previous_value=default_value,
             )
         return default_value
 
@@ -433,7 +556,8 @@ class PluginsManager(PaymentInterface):
         return gateways
 
     def checkout_available_payment_gateways(
-        self, checkout: "Checkout",
+        self,
+        checkout: "Checkout",
     ) -> List["PaymentGateway"]:
         payment_plugins = self.list_payment_plugin(active_only=True)
         gateways = []

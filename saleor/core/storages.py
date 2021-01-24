@@ -13,4 +13,5 @@ class S3MediaStorage(S3Boto3Storage):
 class GCSMediaStorage(GoogleCloudStorage):
     def __init__(self, *args, **kwargs):
         self.bucket_name = settings.GS_MEDIA_BUCKET_NAME
+        self.custom_endpoint = settings.GS_MEDIA_CUSTOM_ENDPOINT
         super().__init__(*args, **kwargs)

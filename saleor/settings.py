@@ -10,6 +10,7 @@ import jaeger_client
 import jaeger_client.config
 import pkg_resources
 import sentry_sdk
+import sentry_sdk.utils
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.utils import get_random_secret_key
 from pytimeparse import parse
@@ -244,7 +245,6 @@ INSTALLED_APPS = [
     "saleor.invoice",
     "saleor.seo",
     "saleor.shipping",
-    "saleor.search",
     "saleor.site",
     "saleor.page",
     "saleor.payment",
@@ -337,7 +337,7 @@ LOGGING = {
         "saleor": {"level": "DEBUG", "propagate": True},
         "saleor.graphql.errors.handled": {
             "handlers": ["default"],
-            "level": "ERROR",
+            "level": "INFO",
             "propagate": False,
         },
         "graphql.execution.utils": {"propagate": False},
@@ -413,6 +413,10 @@ GS_PROJECT_ID = os.environ.get("GS_PROJECT_ID")
 GS_STORAGE_BUCKET_NAME = os.environ.get("GS_STORAGE_BUCKET_NAME")
 GS_MEDIA_BUCKET_NAME = os.environ.get("GS_MEDIA_BUCKET_NAME")
 GS_AUTO_CREATE_BUCKET = get_bool_from_env("GS_AUTO_CREATE_BUCKET", False)
+GS_QUERYSTRING_AUTH = get_bool_from_env("GS_QUERYSTRING_AUTH", False)
+GS_DEFAULT_ACL = os.environ.get("GS_DEFAULT_ACL", None)
+GS_MEDIA_CUSTOM_ENDPOINT = os.environ.get("GS_MEDIA_CUSTOM_ENDPOINT", None)
+GS_EXPIRATION = os.environ.get("GS_EXPIRATION", None)
 
 # If GOOGLE_APPLICATION_CREDENTIALS is set there is no need to load OAuth token
 # See https://django-storages.readthedocs.io/en/latest/backends/gcloud.html
@@ -459,7 +463,6 @@ PLACEHOLDER_IMAGES = {
 
 DEFAULT_PLACEHOLDER = "images/placeholder255x255.png"
 
-SEARCH_BACKEND = "saleor.search.backends.postgresql"
 
 AUTHENTICATION_BACKENDS = [
     "saleor.core.auth_backend.JSONWebTokenBackend",
@@ -480,9 +483,6 @@ CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", None)
 # e.g. HTTP_CF_Connecting_IP for Cloudflare or X_FORWARDED_FOR
 REAL_IP_ENVIRON = os.environ.get("REAL_IP_ENVIRON", "REMOTE_ADDR")
 
-# The maximum length of a graphql query to log in tracings
-OPENTRACING_MAX_QUERY_LENGTH_LOG = 2000
-
 # Slugs for menus precreated in Django migrations
 DEFAULT_MENUS = {"top_menu_name": "navbar", "bottom_menu_name": "footer"}
 
@@ -491,6 +491,7 @@ DEFAULT_CHANNEL_SLUG = os.environ.get("DEFAULT_CHANNEL_SLUG", "default-channel")
 
 
 #  Sentry
+sentry_sdk.utils.MAX_STRING_LENGTH = 4096
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
 if SENTRY_DSN:
     sentry_sdk.init(
@@ -519,6 +520,7 @@ PLUGINS = [
     "saleor.payment.gateways.braintree.plugin.BraintreeGatewayPlugin",
     "saleor.payment.gateways.razorpay.plugin.RazorpayGatewayPlugin",
     "saleor.payment.gateways.adyen.plugin.AdyenGatewayPlugin",
+    "saleor.payment.gateways.authorize_net.plugin.AuthorizeNetGatewayPlugin",
     "saleor.plugins.invoicing.plugin.InvoicingPlugin",
 ]
 
