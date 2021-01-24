@@ -81,14 +81,11 @@ def _process_shipping_data_for_order(
     """Fetch, process and return shipping data from checkout."""
     shipping_address = checkout.shipping_address
 
-    if checkout.user:
+    if checkout.user and shipping_address:
         store_user_address(
             checkout.user, shipping_address, AddressType.SHIPPING, manager=manager
         )
-        if (
-            shipping_address
-            and checkout.user.addresses.filter(pk=shipping_address.pk).exists()
-        ):
+        if checkout.user.addresses.filter(pk=shipping_address.pk).exists():
             shipping_address = shipping_address.get_copy()
 
     return {
