@@ -57,7 +57,11 @@ from ...translations.types import (
     ProductTranslation,
     ProductVariantTranslation,
 )
-from ...utils import get_database_id, get_user_or_app_from_context
+from ...utils import (
+    get_database_id,
+    get_user_country_context,
+    get_user_or_app_from_context,
+)
 from ...utils.filters import reporting_period_to_date
 from ...warehouse.dataloaders import (
     AvailableQuantityByProductVariantIdAndCountryCodeLoader,
@@ -87,7 +91,6 @@ from ..dataloaders import (
 from ..enums import VariantAttributeScope
 from ..filters import ProductFilterInput
 from ..sorters import ProductOrder
-from ..utils import get_country_for_stock_and_tax_calculation
 from .channels import (
     CollectionChannelListing,
     ProductChannelListing,
@@ -231,7 +234,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
     )
     def resolve_stocks(root: ChannelContext[models.ProductVariant], info, address=None):
-        country_code = get_country_for_stock_and_tax_calculation(
+        country_code = get_user_country_context(
             address, info.context.site.settings.company_address
         )
         # todo: custom behavior with aggregation when country is not passed
@@ -243,7 +246,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     def resolve_quantity_available(
         root: ChannelContext[models.ProductVariant], info, address=None
     ):
-        country_code = get_country_for_stock_and_tax_calculation(
+        country_code = get_user_country_context(
             address, info.context.site.settings.company_address
         )
         if not root.node.track_inventory:
@@ -304,7 +307,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         if not root.channel_slug:
             return None
 
-        country_code = get_country_for_stock_and_tax_calculation(
+        country_code = get_user_country_context(
             address, info.context.site.settings.company_address
         )
 
@@ -581,7 +584,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         if not root.channel_slug:
             return None
 
-        country_code = get_country_for_stock_and_tax_calculation(
+        country_code = get_user_country_context(
             address, info.context.site.settings.company_address
         )
 
@@ -650,7 +653,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         channel_slug = str(root.channel_slug)
 
         channel_slug = str(root.channel_slug)
-        country_code = get_country_for_stock_and_tax_calculation(
+        country_code = get_user_country_context(
             address, info.context.site.settings.company_address
         )
 

@@ -38,8 +38,8 @@ from ..core.types.common import CheckoutError
 from ..core.utils import from_global_id_strict_type
 from ..order.types import Order
 from ..product.types import ProductVariant
-from ..product.utils import get_country_for_stock_and_tax_calculation
 from ..shipping.types import ShippingMethod
+from ..utils import get_user_country_context
 from .types import Checkout, CheckoutLine
 
 ERROR_DOES_NOT_SHIP = "This checkout doesn't need shipping"
@@ -295,7 +295,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
         shipping_address = cls.retrieve_shipping_address(user, data)
         billing_address = cls.retrieve_billing_address(user, data)
-        country = get_country_for_stock_and_tax_calculation(
+        country = get_user_country_context(
             destination_address=shipping_address,
             company_address=info.context.site.settings.company_address,
         )
@@ -634,14 +634,13 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
 
         lines = fetch_checkout_lines(checkout)
 
-        country = get_country_for_stock_and_tax_calculation(
+        country = get_user_country_context(
             destination_address=shipping_address,
             company_address=info.context.site.settings.company_address,
         )
         checkout.set_country(country, commit=True)
 
         # Resolve and process the lines, validating variants quantities
-        lines = list(checkout)
         if lines:
             cls.process_checkout_lines(lines, country)
 
