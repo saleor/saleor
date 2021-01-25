@@ -62,9 +62,6 @@ class Category(MPTTModel, ModelWithMetadata, SeoModel):
     description = SanitizedJSONField(
         blank=True, default=dict, sanitizer=clean_editor_js
     )
-    description_json = SanitizedJSONField(
-        blank=True, default=dict, sanitizer=clean_editor_js
-    )
     parent = models.ForeignKey(
         "self", null=True, blank=True, related_name="children", on_delete=models.CASCADE
     )
@@ -88,9 +85,6 @@ class CategoryTranslation(SeoModelTranslation):
     )
     name = models.CharField(max_length=128)
     description = SanitizedJSONField(
-        blank=True, default=dict, sanitizer=clean_editor_js
-    )
-    description_json = SanitizedJSONField(
         blank=True, default=dict, sanitizer=clean_editor_js
     )
 
@@ -320,9 +314,6 @@ class Product(SeoModel, ModelWithMetadata):
     description_plaintext = TextField(blank=True, default="")
     search_vector = SearchVectorField(null=True, blank=True)
 
-    description_json = SanitizedJSONField(
-        blank=True, default=dict, sanitizer=clean_editor_js
-    )
     category = models.ForeignKey(
         Category,
         related_name="products",
@@ -392,9 +383,6 @@ class ProductTranslation(SeoModelTranslation):
     )
     name = models.CharField(max_length=250)
     description = SanitizedJSONField(
-        blank=True, default=dict, sanitizer=clean_editor_js
-    )
-    description_json = SanitizedJSONField(
         blank=True, default=dict, sanitizer=clean_editor_js
     )
 
@@ -715,9 +703,6 @@ class Collection(SeoModel, ModelWithMetadata):
     description = SanitizedJSONField(
         blank=True, default=dict, sanitizer=clean_editor_js
     )
-    description_json = SanitizedJSONField(
-        blank=True, default=dict, sanitizer=clean_editor_js
-    )
 
     objects = CollectionsQueryset.as_manager()
 
@@ -758,9 +743,6 @@ class CollectionTranslation(SeoModelTranslation):
     )
     name = models.CharField(max_length=128)
     description = SanitizedJSONField(
-        blank=True, default=dict, sanitizer=clean_editor_js
-    )
-    description_json = SanitizedJSONField(
         blank=True, default=dict, sanitizer=clean_editor_js
     )
 
