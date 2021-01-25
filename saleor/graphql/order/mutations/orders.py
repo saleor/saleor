@@ -597,6 +597,7 @@ class OrderLinesCreate(BaseMutation):
             )
 
         lines_to_add = []
+        invalid_ids = []
         for input_line in data.get("input"):
             variant_id = input_line["variant_id"]
             variant = cls.get_node_or_error(
@@ -607,14 +608,17 @@ class OrderLinesCreate(BaseMutation):
                 if variant:
                     lines_to_add.append((quantity, variant))
             else:
-                raise ValidationError(
-                    {
-                        "quantity": ValidationError(
-                            f"Variant {variant_id} quantity must be greater than 0.",
-                            code=OrderErrorCode.ZERO_QUANTITY,
-                        )
-                    }
-                )
+                invalid_ids.append(variant_id)
+        if invalid_ids:
+            raise ValidationError(
+                {
+                    "quantity": ValidationError(
+                        "Variants quantity must be greater than 0.",
+                        code=OrderErrorCode.ZERO_QUANTITY,
+                        params={"variants": invalid_ids},
+                    ),
+                }
+            )
         variants = [line[1] for line in lines_to_add]
         try:
             channel = order.channel
@@ -634,7 +638,7 @@ class OrderLinesCreate(BaseMutation):
                 code=OrderErrorCode.TAX_ERROR.value,
             )
 
-        # Create the products added event based on order status
+        # Create the products added event
         events.order_added_products_event(
             order=order, user=info.context.user, order_lines=lines_to_add
         )
