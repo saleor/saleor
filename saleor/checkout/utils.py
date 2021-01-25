@@ -302,20 +302,31 @@ def get_prices_of_discounted_specific_product(
     discounts = discounts or []
 
     for line in discounted_lines:
+        collections = line.variant.product.collections.all()
+        channel_listing = line.variant.channel_listings.get(channel=channel)
         line_total = calculations.checkout_line_total(
             manager=manager,
             checkout=checkout,
             line=line,
             variant=line.variant,
             product=line.variant.product,
-            collections=line.variant.product.collections.all(),
+            collections=collections,
             address=address,
             channel=channel,
-            channel_listing=line.variant.channel_listings.get(channel=channel),
+            channel_listing=channel_listing,
             discounts=discounts,
         ).gross
         line_unit_price = manager.calculate_checkout_line_unit_price(
-            line_total, line.quantity, checkout, line, line.variant, discounts
+            line_total,
+            line.quantity,
+            checkout,
+            line,
+            address,
+            discounts,
+            line.variant,
+            collections,
+            channel,
+            channel_listing,
         )
         line_prices.extend([line_unit_price] * line.quantity)
 

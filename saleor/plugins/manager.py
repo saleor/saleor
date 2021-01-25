@@ -277,8 +277,12 @@ class PluginsManager(PaymentInterface):
         quantity: int,
         checkout: "Checkout",
         checkout_line: "CheckoutLine",
-        variant: "ProductVariant",
+        address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
+        variant: "ProductVariant",
+        collections: List["Collection"],
+        channel: "Channel",
+        channel_listing: "ProductVariantChannelListing",
     ):
         default_value = base_calculations.base_checkout_line_unit_price(
             total_line_price, quantity
@@ -289,8 +293,12 @@ class PluginsManager(PaymentInterface):
                 default_value,
                 checkout,
                 checkout_line,
+                address,
                 discounts,
                 variant,
+                collections,
+                channel,
+                channel_listing,
             ),
             total_line_price.currency,
         )

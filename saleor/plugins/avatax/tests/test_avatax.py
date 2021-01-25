@@ -430,6 +430,9 @@ def test_calculate_checkout_line_unit_price(
     checkout.shipping_method = method
     checkout.save()
 
+    channel = checkout.channel
+    channel_listing = checkout_line.variant.channel_listings.get(channel=channel)
+
     site_settings.company_address = address_usa
     site_settings.include_taxes_in_prices = True
     site_settings.save()
@@ -439,8 +442,12 @@ def test_calculate_checkout_line_unit_price(
         checkout_line.line.quantity,
         checkout,
         checkout_line.line,
+        checkout.shipping_address,
+        [],
         checkout_line.variant,
         [],
+        channel,
+        channel_listing,
     )
     line_price = quantize_price(line_price, line_price.currency)
 

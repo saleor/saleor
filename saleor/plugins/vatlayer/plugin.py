@@ -178,17 +178,63 @@ class VatlayerPlugin(BasePlugin):
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
-        if self._skip_plugin(previous_value):
-            return previous_value
+        unit_price = self.__calculate_checkout_line_unit_price(
+            address,
+            discounts,
+            variant,
+            collections,
+            channel,
+            channel_listing,
+            previous_value,
+        )
+        return (
+            unit_price * checkout_line.quantity
+            if unit_price is not None
+            else previous_value
+        )
 
+    def calculate_checkout_line_unit_price(
+        self,
+        checkout: "Checkout",
+        checkout_line: "CheckoutLine",
+        address: Optional["Address"],
+        discounts: Iterable["DiscountInfo"],
+        variant: "ProductVariant",
+        collections: List["Collection"],
+        channel: "Channel",
+        channel_listing: "ProductVariantChannelListing",
+        previous_value: TaxedMoney,
+    ) -> TaxedMoney:
+        unit_price = self.__calculate_checkout_line_unit_price(
+            address,
+            discounts,
+            variant,
+            collections,
+            channel,
+            channel_listing,
+            previous_value,
+        )
+        return unit_price if unit_price is not None else previous_value
+
+    def __calculate_checkout_line_unit_price(
+        self,
+        address: Optional["Address"],
+        discounts: Iterable["DiscountInfo"],
+        variant: "ProductVariant",
+        collections: List["Collection"],
+        channel: "Channel",
+        channel_listing: "ProductVariantChannelListing",
+        previous_value: TaxedMoney,
+    ):
+        if self._skip_plugin(previous_value):
+            return
+
+        product = variant.product
         price = variant.get_price(
             product, collections, channel, channel_listing, discounts
         )
         country = address.country if address else None
-        return (
-            self.__apply_taxes_to_product(product, price, country)
-            * checkout_line.quantity
-        )
+        return self.__apply_taxes_to_product(product, price, country)
 
     def calculate_order_line_unit(
         self, order_line: "OrderLine", previous_value: TaxedMoney

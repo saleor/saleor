@@ -358,6 +358,90 @@ def test_calculate_order_line_unit(vatlayer, order_line, shipping_zone, site_set
     )
 
 
+def test_calculate_checkout_line_total(
+    vatlayer, checkout_with_item, shipping_zone, address, site_settings
+):
+    manager = get_plugins_manager(
+        plugins=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
+    )
+
+    line = checkout_with_item.lines.first()
+    assert line.quantity > 1
+
+    channel = checkout_with_item.channel
+    channel_listing = line.variant.channel_listings.get(channel=channel)
+
+    method = shipping_zone.shipping_methods.get()
+    checkout_with_item.shipping_address = address
+    checkout_with_item.shipping_method_name = method.name
+    checkout_with_item.shipping_method = method
+    checkout_with_item.save()
+
+    variant = line.variant
+    product = variant.product
+    manager.assign_tax_code_to_object_meta(variant.product, "standard")
+    product.save()
+
+    line_price = manager.calculate_checkout_line_total(
+        checkout_with_item,
+        line,
+        variant,
+        product,
+        [],
+        address,
+        channel,
+        channel_listing,
+        [],
+    )
+
+    assert line_price == TaxedMoney(
+        net=Money("8.13", "USD") * line.quantity,
+        gross=Money("10.00", "USD") * line.quantity,
+    )
+
+
+def test_calculate_checkout_line_unit_price(
+    vatlayer, checkout_with_item, shipping_zone, address, site_settings
+):
+    manager = get_plugins_manager(
+        plugins=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
+    )
+    total_price = TaxedMoney(net=Money("10.00", "USD"), gross=Money("10.00", "USD"))
+
+    line = checkout_with_item.lines.first()
+
+    channel = checkout_with_item.channel
+    channel_listing = line.variant.channel_listings.get(channel=channel)
+
+    method = shipping_zone.shipping_methods.get()
+    checkout_with_item.shipping_address = address
+    checkout_with_item.shipping_method_name = method.name
+    checkout_with_item.shipping_method = method
+    checkout_with_item.save()
+
+    variant = line.variant
+    product = variant.product
+    manager.assign_tax_code_to_object_meta(variant.product, "standard")
+    product.save()
+
+    line_price = manager.calculate_checkout_line_unit_price(
+        total_price,
+        line.quantity,
+        checkout_with_item,
+        line,
+        address,
+        [],
+        variant,
+        [],
+        channel,
+        channel_listing,
+    )
+
+    assert line_price == TaxedMoney(
+        net=Money("8.13", "USD"), gross=Money("10.00", "USD")
+    )
+
+
 def test_get_tax_rate_percentage_value(
     vatlayer, order_line, shipping_zone, site_settings, product
 ):

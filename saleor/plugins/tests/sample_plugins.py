@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING, Iterable, Optional, Union
+from typing import TYPE_CHECKING, Iterable, List, Optional, Union
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
@@ -12,11 +12,18 @@ from ..base_plugin import BasePlugin, ConfigurationTypeField
 if TYPE_CHECKING:
     # flake8: noqa
     from ...account.models import Address
+    from ...channel.models import Channel
     from ...checkout import CheckoutLineInfo
     from ...checkout.models import Checkout, CheckoutLine
     from ...discount import DiscountInfo
     from ...order.models import Order
-    from ...product.models import Product, ProductType, ProductVariant
+    from ...product.models import (
+        Collection,
+        Product,
+        ProductType,
+        ProductVariant,
+        ProductVariantChannelListing,
+    )
 
 
 class PluginSample(BasePlugin):
@@ -108,8 +115,12 @@ class PluginSample(BasePlugin):
         self,
         checkout: "Checkout",
         checkout_line: "CheckoutLine",
+        address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
         variant: "ProductVariant",
+        collections: List["Collection"],
+        channel: "Channel",
+        channel_listing: "ProductVariantChannelListing",
         previous_value: TaxedMoney,
     ):
         currency = checkout.currency

@@ -377,8 +377,12 @@ class AvataxPlugin(BasePlugin):
         self,
         checkout: "Checkout",
         checkout_line: "CheckoutLine",
-        discounts: Iterable[DiscountInfo],
+        address: Optional["Address"],
+        discounts: Iterable["DiscountInfo"],
         variant: "ProductVariant",
+        collections: List["Collection"],
+        channel: "Channel",
+        channel_listing: "ProductVariantChannelListing",
         previous_value: TaxedMoney,
     ):
         if not checkout_line.variant.product.charge_taxes:

@@ -323,11 +323,22 @@ def test_manager_get_order_shipping_tax_rate_no_plugins(
     ],
 )
 def test_manager_calculates_checkout_line_unit_price(
-    plugins, total_line_price, quantity, checkout_with_item
+    plugins, total_line_price, quantity, checkout_with_item, address
 ):
     line = checkout_with_item.lines.first()
+    channel = checkout_with_item.channel
+    channel_listing = line.variant.channel_listings.get(channel=channel)
     taxed_total = PluginsManager(plugins=plugins).calculate_checkout_line_unit_price(
-        total_line_price, quantity, checkout_with_item, line, line.variant, []
+        total_line_price,
+        quantity,
+        checkout_with_item,
+        line,
+        address,
+        [],
+        line.variant,
+        [],
+        channel,
+        channel_listing,
     )
     currency = total_line_price.net.currency
     expected_net = Money(
