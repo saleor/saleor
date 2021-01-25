@@ -60,6 +60,10 @@ class Page(CountableDjangoObjectType):
         return PageTypeByIdLoader(info.context).load(root.page_type_id)
 
     @staticmethod
+    def resolve_content_json(root: models.Page, info):
+        return root.content
+
+    @staticmethod
     def resolve_attributes(root: models.Page, info):
         return SelectedAttributesByPageIdLoader(info.context).load(root.id)
 

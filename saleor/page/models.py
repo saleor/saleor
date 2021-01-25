@@ -15,9 +15,6 @@ class Page(ModelWithMetadata, SeoModel, PublishableModel):
         "PageType", related_name="pages", on_delete=models.CASCADE
     )
     content = SanitizedJSONField(blank=True, default=dict, sanitizer=clean_editor_js)
-    content_json = SanitizedJSONField(
-        blank=True, default=dict, sanitizer=clean_editor_js
-    )
     created = models.DateTimeField(auto_now_add=True)
 
     translated = TranslationProxy()
@@ -37,9 +34,6 @@ class PageTranslation(SeoModelTranslation):
     )
     title = models.CharField(max_length=255, blank=True)
     content = SanitizedJSONField(blank=True, default=dict, sanitizer=clean_editor_js)
-    content_json = SanitizedJSONField(
-        blank=True, default=dict, sanitizer=clean_editor_js
-    )
 
     class Meta:
         ordering = ("language_code", "page", "pk")

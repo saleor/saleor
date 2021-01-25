@@ -430,7 +430,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
 @key(fields="id")
 class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
-    description_json = graphene.String(
+    description_json = graphene.JSONString(
         description="Description of the product (JSON).",
         deprecation_reason=(
             "Will be removed in Saleor 4.0. Use the `description` field instead."
@@ -536,6 +536,10 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         if category_id is None:
             return None
         return CategoryByIdLoader(info.context).load(category_id)
+
+    @staticmethod
+    def resolve_description_json(root: ChannelContext[models.Product], info):
+        return root.node.description
 
     @staticmethod
     def resolve_tax_type(root: ChannelContext[models.Product], info):
@@ -886,7 +890,7 @@ class ProductType(CountableDjangoObjectType):
 
 @key(fields="id")
 class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
-    description_json = graphene.String(
+    description_json = graphene.JSONString(
         description="Description of the collection (JSON).",
         deprecation_reason=(
             "Will be removed in Saleor 4.0. Use the `description` field instead."
@@ -956,10 +960,14 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     def __resolve_reference(root, _info, **_kwargs):
         return graphene.Node.get_node_from_global_id(_info, root.id)
 
+    @staticmethod
+    def resolve_description_json(root: ChannelContext[models.Collection], info):
+        return root.node.description
+
 
 @key(fields="id")
 class Category(CountableDjangoObjectType):
-    description_json = graphene.String(
+    description_json = graphene.JSONString(
         description="Description of the category (JSON).",
         deprecation_reason=(
             "Will be removed in Saleor 4.0. Use the `description` field instead."
@@ -1009,6 +1017,10 @@ class Category(CountableDjangoObjectType):
     @staticmethod
     def resolve_ancestors(root: models.Category, info, **_kwargs):
         return root.get_ancestors()
+
+    @staticmethod
+    def resolve_description_json(root: models.Category, info):
+        return root.description
 
     @staticmethod
     def resolve_background_image(root: models.Category, info, size=None, **_kwargs):
