@@ -65,7 +65,7 @@ services:
   - postgresql
 
 addons:
-  postgresql: 9.6
+  postgresql: 11
 
 after_success:
   - ../queries-ci-tools/handle-event.sh
