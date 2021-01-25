@@ -2,7 +2,7 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ...checkout.calculations import calculate_checkout_total_with_gift_cards
-from ...checkout.checkout_cleaner import clean_checkout_shipping
+from ...checkout.checkout_cleaner import clean_billing_address, clean_checkout_shipping
 from ...checkout.utils import cancel_active_payments, fetch_checkout_lines
 from ...core.permissions import OrderPermissions
 from ...core.utils import get_client_ip
@@ -142,6 +142,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         clean_checkout_shipping(
             checkout, lines, info.context.discounts, PaymentErrorCode
         )
+        clean_billing_address(checkout, PaymentErrorCode)
         cls.clean_payment_amount(info, checkout_total, amount)
         extra_data = {
             "customer_user_agent": info.context.META.get("HTTP_USER_AGENT"),

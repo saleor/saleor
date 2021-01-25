@@ -24,6 +24,7 @@ from ....product.utils.availability import (
 from ....product.utils.variants import get_variant_selection_attributes
 from ....warehouse.availability import is_product_in_stock
 from ...account import types as account_types
+from ...account.enums import CountryCodeEnum
 from ...attribute.filters import AttributeFilterInput
 from ...attribute.resolvers import resolve_attributes
 from ...attribute.types import Attribute, SelectedAttribute
@@ -218,6 +219,17 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         required=True,
         description="Quantity of a product available for sale in one checkout.",
         address=destination_address_argument,
+        country_code=graphene.Argument(
+            CountryCodeEnum,
+            description=(
+                "DEPRECATED: use `address` argument instead. This argument will be "
+                "removed in Saleor 4.0."
+                "Two-letter ISO 3166-1 country code. When provided, the exact quantity "
+                "from a warehouse operating in shipping zones that contain this "
+                "country will be returned. Otherwise, it will return the maximum "
+                "quantity from all shipping zones."
+            ),
+        ),
     )
 
     class Meta:
@@ -244,11 +256,16 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     def resolve_quantity_available(
-        root: ChannelContext[models.ProductVariant], info, address=None
+        root: ChannelContext[models.ProductVariant],
+        info,
+        address=None,
+        country_code=None,
     ):
-        country_code = get_user_country_context(
-            address, info.context.site.settings.company_address
-        )
+        if address is not None:
+            country_code = get_user_country_context(
+                address, info.context.site.settings.company_address
+            )
+
         if not root.node.track_inventory:
             return settings.MAX_CHECKOUT_LINE_QUANTITY
 
