@@ -2387,15 +2387,9 @@ ORDER_LINES_CREATE_MUTATION = """
 """
 
 
-@pytest.mark.parametrize(
-    "status, event",
-    (
-        (OrderStatus.DRAFT, order_events.OrderEvents.DRAFT_ADDED_PRODUCTS),
-        (OrderStatus.UNCONFIRMED, order_events.OrderEvents.UNCONFIRMED_ADDED_PRODUCTS),
-    ),
-)
+@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
 def test_order_lines_create(
-    status, event, order_with_lines, permission_manage_orders, staff_api_client
+    status, order_with_lines, permission_manage_orders, staff_api_client
 ):
     query = ORDER_LINES_CREATE_MUTATION
     order = order_with_lines
@@ -2418,7 +2412,7 @@ def test_order_lines_create(
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(query, variables)
     assert OrderEvent.objects.count() == 1
-    assert OrderEvent.objects.last().type == event
+    assert OrderEvent.objects.last().type == order_events.OrderEvents.ADDED_PRODUCTS
     content = get_graphql_content(response)
     data = content["data"]["orderLinesCreate"]
     assert data["orderLines"][0]["productSku"] == variant.sku
@@ -2533,19 +2527,9 @@ ORDER_LINE_UPDATE_MUTATION = """
 """
 
 
-@pytest.mark.parametrize(
-    "status, event",
-    (
-        (OrderStatus.DRAFT, order_events.OrderEvents.DRAFT_REMOVED_PRODUCTS),
-        (
-            OrderStatus.UNCONFIRMED,
-            order_events.OrderEvents.UNCONFIRMED_REMOVED_PRODUCTS,
-        ),
-    ),
-)
+@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
 def test_order_line_update(
     status,
-    event,
     order_with_lines,
     permission_manage_orders,
     staff_api_client,
@@ -2579,7 +2563,7 @@ def test_order_line_update(
     assert data["orderLine"]["quantity"] == new_quantity
 
     removed_items_event = OrderEvent.objects.last()  # type: OrderEvent
-    assert removed_items_event.type == event
+    assert removed_items_event.type == order_events.OrderEvents.REMOVED_PRODUCTS
     assert removed_items_event.user == staff_user
     assert removed_items_event.parameters == {
         "lines": [{"quantity": removed_quantity, "line_pk": line.pk, "item": str(line)}]
@@ -2641,7 +2625,7 @@ def test_retrieving_event_lines_with_deleted_line(
     quantities_per_lines = [(line.quantity, line) for line in lines]
 
     # Create the test event
-    order_events.draft_order_added_products_event(
+    order_events.order_added_products_event(
         order=order, user=staff_user, order_lines=quantities_per_lines
     )
 
@@ -2680,7 +2664,7 @@ def test_retrieving_event_lines_with_missing_line_pk_in_data(
     quantities_per_lines = [(line.quantity, line)]
 
     # Create the test event
-    event = order_events.draft_order_added_products_event(
+    event = order_events.order_added_products_event(
         order=order, user=staff_user, order_lines=quantities_per_lines
     )
     del event.parameters["lines"][0]["line_pk"]
@@ -2718,18 +2702,9 @@ ORDER_LINE_DELETE_MUTATION = """
 """
 
 
-@pytest.mark.parametrize(
-    "status, event",
-    (
-        (OrderStatus.DRAFT, order_events.OrderEvents.DRAFT_REMOVED_PRODUCTS),
-        (
-            OrderStatus.UNCONFIRMED,
-            order_events.OrderEvents.UNCONFIRMED_REMOVED_PRODUCTS,
-        ),
-    ),
-)
+@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
 def test_order_line_remove(
-    status, event, order_with_lines, permission_manage_orders, staff_api_client
+    status, order_with_lines, permission_manage_orders, staff_api_client
 ):
     query = ORDER_LINE_DELETE_MUTATION
     order = order_with_lines
@@ -2745,7 +2720,7 @@ def test_order_line_remove(
     content = get_graphql_content(response)
     data = content["data"]["orderLineDelete"]
     assert OrderEvent.objects.count() == 1
-    assert OrderEvent.objects.last().type == event
+    assert OrderEvent.objects.last().type == order_events.OrderEvents.REMOVED_PRODUCTS
     assert data["orderLine"]["id"] == line_id
     assert line not in order.lines.all()
 

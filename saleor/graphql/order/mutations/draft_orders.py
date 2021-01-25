@@ -218,7 +218,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                 add_variant_to_order(instance, variant, quantity)
 
             # New event
-            events.draft_order_added_products_event(
+            events.order_added_products_event(
                 order=instance, user=info.context.user, order_lines=lines
             )
 
