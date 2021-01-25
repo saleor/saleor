@@ -17,19 +17,19 @@ from ..email_common import (
 )
 from ..models import PluginConfiguration
 from .constants import (
-    CSV_EXPORT_FAILED_DEFAULT_TITLE,
+    CSV_EXPORT_FAILED_DEFAULT_SUBJECT,
+    CSV_EXPORT_FAILED_SUBJECT_FIELD,
     CSV_EXPORT_FAILED_TEMPLATE_FIELD,
-    CSV_EXPORT_FAILED_TITLE_FIELD,
-    CSV_PRODUCT_EXPORT_SUCCESS_DEFAULT_TITLE,
+    CSV_PRODUCT_EXPORT_SUCCESS_DEFAULT_SUBJECT,
+    CSV_PRODUCT_EXPORT_SUCCESS_SUBJECT_FIELD,
     CSV_PRODUCT_EXPORT_SUCCESS_TEMPLATE_FIELD,
-    CSV_PRODUCT_EXPORT_SUCCESS_TITLE_FIELD,
     PLUGIN_ID,
-    SET_STAFF_PASSWORD_DEFAULT_TITLE,
+    SET_STAFF_PASSWORD_DEFAULT_SUBJECT,
+    SET_STAFF_PASSWORD_SUBJECT_FIELD,
     SET_STAFF_PASSWORD_TEMPLATE_FIELD,
-    SET_STAFF_PASSWORD_TITLE_FIELD,
-    STAFF_ORDER_CONFIRMATION_DEFAULT_TITLE,
+    STAFF_ORDER_CONFIRMATION_DEFAULT_SUBJECT,
+    STAFF_ORDER_CONFIRMATION_SUBJECT_FIELD,
     STAFF_ORDER_CONFIRMATION_TEMPLATE_FIELD,
-    STAFF_ORDER_CONFIRMATION_TITLE_FIELD,
 )
 from .notify_events import (
     send_csv_export_failed,
@@ -76,32 +76,32 @@ class AdminEmailPlugin(BasePlugin):
 
     DEFAULT_CONFIGURATION = [
         {
-            "name": STAFF_ORDER_CONFIRMATION_TITLE_FIELD,
-            "value": STAFF_ORDER_CONFIRMATION_DEFAULT_TITLE,
+            "name": STAFF_ORDER_CONFIRMATION_SUBJECT_FIELD,
+            "value": STAFF_ORDER_CONFIRMATION_DEFAULT_SUBJECT,
         },
         {"name": STAFF_ORDER_CONFIRMATION_TEMPLATE_FIELD, "value": DEFAULT_EMAIL_VALUE},
         {
-            "name": SET_STAFF_PASSWORD_TITLE_FIELD,
-            "value": SET_STAFF_PASSWORD_DEFAULT_TITLE,
+            "name": SET_STAFF_PASSWORD_SUBJECT_FIELD,
+            "value": SET_STAFF_PASSWORD_DEFAULT_SUBJECT,
         },
         {"name": SET_STAFF_PASSWORD_TEMPLATE_FIELD, "value": DEFAULT_EMAIL_VALUE},
         {
-            "name": CSV_PRODUCT_EXPORT_SUCCESS_TITLE_FIELD,
-            "value": CSV_PRODUCT_EXPORT_SUCCESS_DEFAULT_TITLE,
+            "name": CSV_PRODUCT_EXPORT_SUCCESS_SUBJECT_FIELD,
+            "value": CSV_PRODUCT_EXPORT_SUCCESS_DEFAULT_SUBJECT,
         },
         {
             "name": CSV_PRODUCT_EXPORT_SUCCESS_TEMPLATE_FIELD,
             "value": DEFAULT_EMAIL_VALUE,
         },
         {
-            "name": CSV_EXPORT_FAILED_TITLE_FIELD,
-            "value": CSV_EXPORT_FAILED_DEFAULT_TITLE,
+            "name": CSV_EXPORT_FAILED_SUBJECT_FIELD,
+            "value": CSV_EXPORT_FAILED_DEFAULT_SUBJECT,
         },
         {"name": CSV_EXPORT_FAILED_TEMPLATE_FIELD, "value": DEFAULT_EMAIL_VALUE},
     ] + DEFAULT_EMAIL_CONFIGURATION  # type: ignore
 
     CONFIG_STRUCTURE = {
-        STAFF_ORDER_CONFIRMATION_TITLE_FIELD: {
+        STAFF_ORDER_CONFIRMATION_SUBJECT_FIELD: {
             "type": ConfigurationTypeField.STRING,
             "help_text": DEFAULT_SUBJECT_MESSAGE,
             "label": "Staff order confirmation subject",
@@ -111,7 +111,7 @@ class AdminEmailPlugin(BasePlugin):
             "help_text": DEFAULT_TEMPLATE_MESSAGE,
             "label": "Staff order confirmation template",
         },
-        SET_STAFF_PASSWORD_TITLE_FIELD: {
+        SET_STAFF_PASSWORD_SUBJECT_FIELD: {
             "type": ConfigurationTypeField.STRING,
             "help_text": DEFAULT_SUBJECT_MESSAGE,
             "label": "Set staff password subject",
@@ -121,7 +121,7 @@ class AdminEmailPlugin(BasePlugin):
             "help_text": DEFAULT_TEMPLATE_MESSAGE,
             "label": "Set staff password email template",
         },
-        CSV_PRODUCT_EXPORT_SUCCESS_TITLE_FIELD: {
+        CSV_PRODUCT_EXPORT_SUCCESS_SUBJECT_FIELD: {
             "type": ConfigurationTypeField.STRING,
             "help_text": DEFAULT_SUBJECT_MESSAGE,
             "label": "CSV product export success subject",
@@ -131,7 +131,7 @@ class AdminEmailPlugin(BasePlugin):
             "help_text": DEFAULT_TEMPLATE_MESSAGE,
             "label": "CSV product export success template",
         },
-        CSV_EXPORT_FAILED_TITLE_FIELD: {
+        CSV_EXPORT_FAILED_SUBJECT_FIELD: {
             "type": ConfigurationTypeField.STRING,
             "help_text": DEFAULT_SUBJECT_MESSAGE,
             "label": "CSV export failed template",

@@ -5,18 +5,18 @@ import pytest
 from ...email_common import DEFAULT_EMAIL_VALUE
 from ...manager import get_plugins_manager
 from ..constants import (
-    CSV_EXPORT_FAILED_DEFAULT_TITLE,
+    CSV_EXPORT_FAILED_DEFAULT_SUBJECT,
+    CSV_EXPORT_FAILED_SUBJECT_FIELD,
     CSV_EXPORT_FAILED_TEMPLATE_FIELD,
-    CSV_EXPORT_FAILED_TITLE_FIELD,
-    CSV_PRODUCT_EXPORT_SUCCESS_DEFAULT_TITLE,
+    CSV_PRODUCT_EXPORT_SUCCESS_DEFAULT_SUBJECT,
+    CSV_PRODUCT_EXPORT_SUCCESS_SUBJECT_FIELD,
     CSV_PRODUCT_EXPORT_SUCCESS_TEMPLATE_FIELD,
-    CSV_PRODUCT_EXPORT_SUCCESS_TITLE_FIELD,
-    SET_STAFF_PASSWORD_DEFAULT_TITLE,
+    SET_STAFF_PASSWORD_DEFAULT_SUBJECT,
+    SET_STAFF_PASSWORD_SUBJECT_FIELD,
     SET_STAFF_PASSWORD_TEMPLATE_FIELD,
-    SET_STAFF_PASSWORD_TITLE_FIELD,
-    STAFF_ORDER_CONFIRMATION_DEFAULT_TITLE,
+    STAFF_ORDER_CONFIRMATION_DEFAULT_SUBJECT,
+    STAFF_ORDER_CONFIRMATION_SUBJECT_FIELD,
     STAFF_ORDER_CONFIRMATION_TEMPLATE_FIELD,
-    STAFF_ORDER_CONFIRMATION_TITLE_FIELD,
 )
 from ..plugin import AdminEmailPlugin
 
@@ -49,10 +49,10 @@ def admin_email_plugin(settings):
         staff_order_confirmation=DEFAULT_EMAIL_VALUE,
         csv_product_export=DEFAULT_EMAIL_VALUE,
         csv_product_export_failed=DEFAULT_EMAIL_VALUE,
-        set_staff_password_title=STAFF_ORDER_CONFIRMATION_DEFAULT_TITLE,
-        staff_order_confirmation_title=SET_STAFF_PASSWORD_DEFAULT_TITLE,
-        csv_product_export_title=CSV_PRODUCT_EXPORT_SUCCESS_DEFAULT_TITLE,
-        csv_product_export_failed_title=CSV_EXPORT_FAILED_DEFAULT_TITLE,
+        set_staff_password_title=STAFF_ORDER_CONFIRMATION_DEFAULT_SUBJECT,
+        staff_order_confirmation_title=SET_STAFF_PASSWORD_DEFAULT_SUBJECT,
+        csv_product_export_title=CSV_PRODUCT_EXPORT_SUCCESS_DEFAULT_SUBJECT,
+        csv_product_export_failed_title=CSV_EXPORT_FAILED_DEFAULT_SUBJECT,
     ):
         settings.PLUGINS = ["saleor.plugins.admin_email.plugin.AdminEmailPlugin"]
         manager = get_plugins_manager()
@@ -89,19 +89,19 @@ def admin_email_plugin(settings):
                             "value": csv_product_export_failed,
                         },
                         {
-                            "name": STAFF_ORDER_CONFIRMATION_TITLE_FIELD,
+                            "name": STAFF_ORDER_CONFIRMATION_SUBJECT_FIELD,
                             "value": staff_order_confirmation_title,
                         },
                         {
-                            "name": SET_STAFF_PASSWORD_TITLE_FIELD,
+                            "name": SET_STAFF_PASSWORD_SUBJECT_FIELD,
                             "value": set_staff_password_title,
                         },
                         {
-                            "name": CSV_PRODUCT_EXPORT_SUCCESS_TITLE_FIELD,
+                            "name": CSV_PRODUCT_EXPORT_SUCCESS_SUBJECT_FIELD,
                             "value": csv_product_export_title,
                         },
                         {
-                            "name": CSV_EXPORT_FAILED_TITLE_FIELD,
+                            "name": CSV_EXPORT_FAILED_SUBJECT_FIELD,
                             "value": csv_product_export_failed_title,
                         },
                     ],
