@@ -19,8 +19,8 @@ def send_set_staff_password_email_task(recipient_email, payload, config: dict):
     )
     subject = get_email_subject(
         constants.PLUGIN_ID,
-        constants.SET_STAFF_PASSWORD_TITLE_FIELD,
-        constants.SET_STAFF_PASSWORD_DEFAULT_TITLE,
+        constants.SET_STAFF_PASSWORD_SUBJECT_FIELD,
+        constants.SET_STAFF_PASSWORD_DEFAULT_SUBJECT,
     )
     send_email(
         config=email_config,
@@ -43,8 +43,8 @@ def send_email_with_link_to_download_file_task(
     )
     subject = get_email_subject(
         constants.PLUGIN_ID,
-        constants.CSV_PRODUCT_EXPORT_SUCCESS_TITLE_FIELD,
-        constants.CSV_PRODUCT_EXPORT_SUCCESS_DEFAULT_TITLE,
+        constants.CSV_PRODUCT_EXPORT_SUCCESS_SUBJECT_FIELD,
+        constants.CSV_PRODUCT_EXPORT_SUCCESS_DEFAULT_SUBJECT,
     )
     send_email(
         config=email_config,
@@ -68,8 +68,8 @@ def send_export_failed_email_task(recipient_email: str, payload: dict, config: d
     )
     subject = get_email_subject(
         constants.PLUGIN_ID,
-        constants.CSV_EXPORT_FAILED_TITLE_FIELD,
-        constants.CSV_EXPORT_FAILED_DEFAULT_TITLE,
+        constants.CSV_EXPORT_FAILED_SUBJECT_FIELD,
+        constants.CSV_EXPORT_FAILED_DEFAULT_SUBJECT,
     )
     send_email(
         config=email_config,
@@ -95,8 +95,8 @@ def send_staff_order_confirmation_email_task(
     )
     subject = get_email_subject(
         constants.PLUGIN_ID,
-        constants.STAFF_ORDER_CONFIRMATION_TITLE_FIELD,
-        constants.STAFF_ORDER_CONFIRMATION_DEFAULT_TITLE,
+        constants.STAFF_ORDER_CONFIRMATION_SUBJECT_FIELD,
+        constants.STAFF_ORDER_CONFIRMATION_DEFAULT_SUBJECT,
     )
     send_email(
         config=email_config,
