@@ -610,7 +610,7 @@ class OrderLinesCreate(BaseMutation):
                 raise ValidationError(
                     {
                         "quantity": ValidationError(
-                            "Ensure this value is greater than 0.",
+                            f"Variant {variant_id} quantity must be greater than 0.",
                             code=OrderErrorCode.ZERO_QUANTITY,
                         )
                     }
@@ -635,14 +635,9 @@ class OrderLinesCreate(BaseMutation):
             )
 
         # Create the products added event based on order status
-        if order.status == OrderStatus.DRAFT:
-            events.draft_order_added_products_event(
-                order=order, user=info.context.user, order_lines=lines_to_add
-            )
-        else:
-            events.unconfirmed_order_added_products_event(
-                order=order, user=info.context.user, order_lines=lines_to_add
-            )
+        events.order_added_products_event(
+            order=order, user=info.context.user, order_lines=lines_to_add
+        )
 
         recalculate_order(order)
         return OrderLinesCreate(order=order, order_lines=lines)
@@ -681,15 +676,10 @@ class OrderLineDelete(BaseMutation):
         delete_order_line(line)
         line.id = db_id
 
-        # Create the removal event based on order status
-        if order.status == OrderStatus.DRAFT:
-            events.draft_order_removed_products_event(
-                order=order, user=info.context.user, order_lines=[(line.quantity, line)]
-            )
-        else:
-            events.unconfirmed_order_removed_products_event(
-                order=order, user=info.context.user, order_lines=[(line.quantity, line)]
-            )
+        # Create the removal event
+        events.order_removed_products_event(
+            order=order, user=info.context.user, order_lines=[(line.quantity, line)]
+        )
 
         recalculate_order(order)
         return OrderLineDelete(order=order, order_line=line)

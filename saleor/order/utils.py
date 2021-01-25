@@ -275,25 +275,15 @@ def change_order_line_quantity(user, line, old_quantity, new_quantity):
 
     quantity_diff = old_quantity - new_quantity
 
-    # Create the added / removed products event based on order status
+    # Create the added / removed products event
     if quantity_diff > 0:
-        if line.order.status == OrderStatus.DRAFT:
-            events.draft_order_removed_products_event(
-                order=line.order, user=user, order_lines=[(quantity_diff, line)]
-            )
-        else:
-            events.unconfirmed_order_removed_products_event(
-                order=line.order, user=user, order_lines=[(quantity_diff, line)]
-            )
+        events.order_removed_products_event(
+            order=line.order, user=user, order_lines=[(quantity_diff, line)]
+        )
     elif quantity_diff < 0:
-        if line.order.status == OrderStatus.DRAFT:
-            events.draft_order_added_products_event(
-                order=line.order, user=user, order_lines=[(quantity_diff * -1, line)]
-            )
-        else:
-            events.unconfirmed_order_added_products_event(
-                order=line.order, user=user, order_lines=[(quantity_diff * -1, line)]
-            )
+        events.order_added_products_event(
+            order=line.order, user=user, order_lines=[(quantity_diff * -1, line)]
+        )
 
 
 def delete_order_line(line):
