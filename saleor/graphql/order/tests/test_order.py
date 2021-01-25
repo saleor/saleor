@@ -2425,6 +2425,7 @@ def test_order_lines_create(
     data = content["data"]["orderLinesCreate"]
     assert data["orderErrors"]
     assert data["orderErrors"][0]["field"] == "quantity"
+    assert data["orderErrors"][0]["variants"] == [variant_id]
 
 
 @pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
