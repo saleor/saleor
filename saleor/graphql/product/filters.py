@@ -3,7 +3,6 @@ from typing import Dict, Iterable, List, Optional
 
 import django_filters
 import graphene
-from django.contrib.postgres.search import TrigramSimilarity
 from django.db.models import Exists, F, OuterRef, Q, Subquery, Sum
 from django.db.models.functions import Coalesce
 from graphene_django.filter import GlobalIDFilter, GlobalIDMultipleChoiceFilter
@@ -212,21 +211,15 @@ def filter_stock_availability(qs, _, value):
 def product_search(phrase):
     """Return matching products for storefront views.
 
-    Fuzzy storefront search that is resistant to small typing errors made
-    by user. Name is matched using trigram similarity, description uses
-    standard postgres full text search.
+        Name and description is matched using search vector.
 
     Args:
         phrase (str): searched phrase
 
     """
-    name_sim = TrigramSimilarity("name", phrase)
-    ft_in_description = Q(search_vector=phrase)
+    ft_in_description_or_name = Q(search_vector=phrase)
     ft_by_sku = Q(variants__sku__search=phrase)
-    name_similar = Q(name_sim__gt=0.2)
-    return Product.objects.annotate(name_sim=name_sim).filter(
-        (ft_in_description | name_similar | ft_by_sku)
-    )
+    return Product.objects.filter((ft_in_description_or_name | ft_by_sku))
 
 
 def filter_search(qs, _, value):

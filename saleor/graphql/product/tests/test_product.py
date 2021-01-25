@@ -179,6 +179,44 @@ def test_product_query_by_id_available_as_staff_user(
     assert product_data["name"] == product.name
 
 
+def test_product_query_description(
+    staff_api_client, permission_manage_products, product, channel_USD
+):
+    query = """
+        query ($id: ID, $slug: String, $channel:String){
+            product(
+                id: $id,
+                slug: $slug,
+                channel: $channel
+            ) {
+                id
+                name
+                description
+                descriptionJson
+            }
+        }
+        """
+    description = dummy_editorjs("Test description.", json_format=True)
+    product.description = dummy_editorjs("Test description.")
+    product.save()
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.pk),
+        "channel": channel_USD.slug,
+    }
+
+    response = staff_api_client.post_graphql(
+        query,
+        variables=variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+    assert product_data is not None
+    assert product_data["description"] == description
+    assert product_data["descriptionJson"] == description
+
+
 def test_product_query_by_id_not_available_as_staff_user(
     staff_api_client, permission_manage_products, product, channel_USD
 ):
@@ -2351,7 +2389,7 @@ def test_create_product_description_plaintext(
     assert not data["productErrors"]
 
     product = Product.objects.all().first()
-    product.description_plaintext = description
+    assert product.description_plaintext == description
 
 
 def test_search_product_by_description(user_api_client, product_list, channel_USD):

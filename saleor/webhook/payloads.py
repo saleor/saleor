@@ -206,7 +206,7 @@ def generate_product_payload(product: "Product"):
 
     product_fields = (
         "name",
-        "description_json",
+        "description",
         "currency",
         "attributes",
         "updated_at",
