@@ -495,7 +495,7 @@ python-versions = "*"
 
 [[package]]
 name = "django-countries"
-version = "6.1.3"
+version = "7.0"
 description = "Provides a country field for Django models."
 category = "main"
 optional = false
@@ -2512,7 +2512,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "664a547b08fb89459821b43c5d527f812253edaf87bcdd3c9d334963c36678b6"
+content-hash = "16ed8bed800775e6872cee24f7edc6e8abbba59e54fe39c41221ca924812bcb6"
 
 [metadata.files]
 adyen = [
@@ -2758,8 +2758,8 @@ django-cache-url = [
     {file = "django_cache_url-3.1.2-py2.py3-none-any.whl", hash = "sha256:889ac5d56105bdf44c0fd8f82c024119e198baf0bf698fdf49b1d5de92d8d4bb"},
 ]
 django-countries = [
-    {file = "django-countries-6.1.3.tar.gz", hash = "sha256:64015977a5989bcb0e645007299b19fe8ac117466af375161b26bcfa32ae2808"},
-    {file = "django_countries-6.1.3-py3-none-any.whl", hash = "sha256:a0f77154ae08cb38a0d65530a399ead5f5837ebf6c74f7576e71bb7acdacca94"},
+    {file = "django-countries-7.0.tar.gz", hash = "sha256:11191d245256b4e46a4715e391ce0b2fa982e968a6a2b4d263cace95ebe448c1"},
+    {file = "django_countries-7.0-py3-none-any.whl", hash = "sha256:936fd0716cec8388f7c50a8e9e11ba1049d926276fb4e7c8cca61716b78edc91"},
 ]
 django-debug-toolbar = [
     {file = "django-debug-toolbar-3.2.tar.gz", hash = "sha256:84e2607d900dbd571df0a2acf380b47c088efb787dce9805aefeb407341961d2"},
