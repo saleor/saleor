@@ -1,7 +1,7 @@
 import logging
 from dataclasses import asdict
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 from urllib.parse import urljoin
 
 import opentracing
@@ -163,7 +163,6 @@ class AvataxPlugin(BasePlugin):
     ) -> TaxedMoney:
         if self._skip_plugin(previous_value):
             return previous_value
-
         checkout_total = previous_value
 
         if not _validate_checkout(checkout, [line_info.line for line_info in lines]):

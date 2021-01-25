@@ -8,6 +8,7 @@ from django.core.exceptions import ValidationError
 from prices import Money, TaxedMoney
 from requests import RequestException
 
+from ....account.models import Address
 from ....checkout import CheckoutLineInfo
 from ....checkout.utils import add_variant_to_checkout, fetch_checkout_lines
 from ....core.prices import quantize_price
@@ -32,16 +33,9 @@ from .. import (
 from ..plugin import AvataxPlugin
 
 
-@pytest.fixture(scope="module")
-def vcr_config():
-    return {
-        "filter_headers": [("Authorization", "Basic Og==")],
-    }
-
-
 @pytest.fixture
 def plugin_configuration(db):
-    def set_configuration(username="test", password="test", sandbox=True):
+    def set_configuration(username="test", password="test", sandbox=False):
         data = {
             "active": True,
             "name": AvataxPlugin.PLUGIN_NAME,
@@ -59,6 +53,19 @@ def plugin_configuration(db):
         return configuration
 
     return set_configuration
+
+
+@pytest.fixture
+def ship_to_pl_address(db):
+    return Address.objects.create(
+        first_name="Eleanor",
+        last_name="Smith",
+        street_address_1="Oławska 10",
+        city="WROCŁAW",
+        postal_code="53-105",
+        country="PL",
+        phone="+48713988155",
+    )
 
 
 @pytest.mark.vcr()
@@ -79,29 +86,25 @@ def test_calculate_checkout_line_total(
     discount_info,
     checkout_with_item,
     address,
-    address_usa,
+    ship_to_pl_address,
     site_settings,
     monkeypatch,
     shipping_zone,
     plugin_configuration,
 ):
     plugin_configuration()
-    monkeypatch.setattr(
-        "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
-        lambda _: {"PC040156": "desc"},
-    )
     manager = get_plugins_manager(plugins=["saleor.plugins.avatax.plugin.AvataxPlugin"])
 
-    checkout_with_item.shipping_address = address
+    checkout_with_item.shipping_address = ship_to_pl_address
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save()
-    site_settings.company_address = address_usa
+    site_settings.company_address = address
     site_settings.include_taxes_in_prices = taxes_in_prices
     site_settings.save()
     line = checkout_with_item.lines.first()
     product = line.variant.product
     product.metadata = {}
-    manager.assign_tax_code_to_object_meta(product.product_type, "PC040156")
+    product.charge_taxes = True
     product.save()
     product.product_type.save()
     discounts = [discount_info] if with_discount else None
@@ -145,7 +148,7 @@ def test_calculate_checkout_total_uses_default_calculation(
     discount_info,
     shipping_zone,
     address,
-    address_usa,
+    ship_to_pl_address,
     site_settings,
     monkeypatch,
     plugin_configuration,
@@ -157,9 +160,9 @@ def test_calculate_checkout_total_uses_default_calculation(
         lambda _: {"PC040156": "desc"},
     )
     manager = get_plugins_manager(plugins=["saleor.plugins.avatax.plugin.AvataxPlugin"])
-    checkout_with_item.shipping_address = address
+    checkout_with_item.shipping_address = ship_to_pl_address
     checkout_with_item.save()
-    site_settings.company_address = address_usa
+    site_settings.company_address = address
     site_settings.include_taxes_in_prices = taxes_in_prices
     site_settings.save()
 
@@ -212,7 +215,7 @@ def test_calculate_checkout_total(
     discount_info,
     shipping_zone,
     address,
-    address_usa,
+    ship_to_pl_address,
     site_settings,
     monkeypatch,
     plugin_configuration,
@@ -221,15 +224,15 @@ def test_calculate_checkout_total(
     plugin_configuration()
     monkeypatch.setattr(
         "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
-        lambda _: {"PC040156": "desc"},
+        lambda _: {"PS081282": "desc"},
     )
     monkeypatch.setattr(
         "saleor.plugins.avatax.plugin.AvataxPlugin._skip_plugin", lambda *_: False
     )
     manager = get_plugins_manager(plugins=["saleor.plugins.avatax.plugin.AvataxPlugin"])
-    checkout_with_item.shipping_address = address
+    checkout_with_item.shipping_address = ship_to_pl_address
     checkout_with_item.save()
-    site_settings.company_address = address_usa
+    site_settings.company_address = address
     site_settings.include_taxes_in_prices = taxes_in_prices
     site_settings.save()
 
@@ -240,9 +243,10 @@ def test_calculate_checkout_total(
     line = checkout_with_item.lines.first()
     product = line.variant.product
     product.metadata = {}
-    manager.assign_tax_code_to_object_meta(product.product_type, "PC040156")
+    manager.assign_tax_code_to_object_meta(product.product_type, "PS081282")
     product.save()
     product.product_type.save()
+
     product_with_single_variant.charge_taxes = False
     product_with_single_variant.category = non_default_category
     product_with_single_variant.save()
@@ -253,7 +257,7 @@ def test_calculate_checkout_total(
     discounts = [discount_info] if with_discount else None
     lines = fetch_checkout_lines(checkout_with_item)
     total = manager.calculate_checkout_total(
-        checkout_with_item, lines, address, discounts
+        checkout_with_item, lines, ship_to_pl_address, discounts
     )
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
@@ -267,7 +271,7 @@ def test_calculate_checkout_shipping(
     shipping_zone,
     discount_info,
     address,
-    address_usa,
+    ship_to_pl_address,
     site_settings,
     monkeypatch,
     plugin_configuration,
@@ -278,10 +282,10 @@ def test_calculate_checkout_shipping(
         lambda _: {"PC040156": "desc"},
     )
     manager = get_plugins_manager(plugins=["saleor.plugins.avatax.plugin.AvataxPlugin"])
-    site_settings.company_address = address_usa
+    site_settings.company_address = address
     site_settings.save()
 
-    checkout_with_item.shipping_address = address
+    checkout_with_item.shipping_address = ship_to_pl_address
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save()
     lines = fetch_checkout_lines(checkout_with_item)
@@ -314,7 +318,7 @@ def test_calculate_checkout_subtotal(
     stock,
     monkeypatch,
     site_settings,
-    address_usa,
+    ship_to_pl_address,
     shipping_zone,
     address,
     plugin_configuration,
@@ -326,11 +330,11 @@ def test_calculate_checkout_subtotal(
         lambda _: {"PC040156": "desc"},
     )
     manager = get_plugins_manager(plugins=["saleor.plugins.avatax.plugin.AvataxPlugin"])
-    site_settings.company_address = address_usa
+    site_settings.company_address = address
     site_settings.include_taxes_in_prices = taxes_in_prices
     site_settings.save()
 
-    checkout_with_item.shipping_address = address
+    checkout_with_item.shipping_address = ship_to_pl_address
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save()
 
@@ -348,7 +352,7 @@ def test_calculate_checkout_subtotal(
 
 @pytest.mark.vcr
 def test_calculate_order_shipping(
-    order_line, shipping_zone, site_settings, address_usa, plugin_configuration
+    order_line, shipping_zone, site_settings, address, plugin_configuration
 ):
     plugin_configuration()
     manager = get_plugins_manager(plugins=["saleor.plugins.avatax.plugin.AvataxPlugin"])
@@ -359,7 +363,7 @@ def test_calculate_order_shipping(
     order.shipping_method = method
     order.save()
 
-    site_settings.company_address = address_usa
+    site_settings.company_address = address
     site_settings.save()
 
     price = manager.calculate_order_shipping(order)
@@ -466,7 +470,7 @@ def test_preprocess_order_creation(
     checkout_with_item,
     monkeypatch,
     address,
-    address_usa,
+    ship_to_pl_address,
     site_settings,
     shipping_zone,
     discount_info,
@@ -479,10 +483,10 @@ def test_preprocess_order_creation(
         lambda _: {"PC040156": "desc"},
     )
     manager = get_plugins_manager(plugins=["saleor.plugins.avatax.plugin.AvataxPlugin"])
-    site_settings.company_address = address_usa
+    site_settings.company_address = address
     site_settings.save()
 
-    checkout_with_item.shipping_address = address
+    checkout_with_item.shipping_address = ship_to_pl_address
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save()
     discounts = [discount_info]
@@ -517,7 +521,9 @@ def test_preprocess_order_creation_wrong_data(
 @pytest.mark.vcr
 def test_get_cached_tax_codes_or_fetch(monkeypatch, settings):
     monkeypatch.setattr("saleor.plugins.avatax.cache.get", lambda x, y: {})
-    config = AvataxConfiguration(username_or_account="test", password_or_license="test")
+    config = AvataxConfiguration(
+        username_or_account="test", password_or_license="test", use_sandbox=False
+    )
     tax_codes = get_cached_tax_codes_or_fetch(config)
     assert len(tax_codes) > 0
 
@@ -1215,7 +1221,7 @@ def test_order_created(api_post_request_task_mock, order, plugin_configuration):
     }
 
     api_post_request_task_mock.assert_called_once_with(
-        "https://sandbox-rest.avatax.com/api/v2/transactions/createoradjust",
+        "https://rest.avatax.com/api/v2/transactions/createoradjust",
         expected_request_data,
         conf_data,
         order.pk,
@@ -1226,7 +1232,7 @@ def test_order_created(api_post_request_task_mock, order, plugin_configuration):
 def test_plugin_uses_configuration_from_db(
     plugin_configuration,
     monkeypatch,
-    address_usa,
+    ship_to_pl_address,
     site_settings,
     address,
     checkout_with_item,
@@ -1244,10 +1250,10 @@ def test_plugin_uses_configuration_from_db(
         "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
         lambda _: {"PC040156": "desc"},
     )
-    site_settings.company_address = address_usa
+    site_settings.company_address = address
     site_settings.save()
 
-    checkout_with_item.shipping_address = address
+    checkout_with_item.shipping_address = ship_to_pl_address
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save()
     discounts = [discount_info]
@@ -1367,10 +1373,10 @@ def test_api_post_request_handles_json_errors(product, monkeypatch):
 
 
 def test_get_order_request_data_checks_when_taxes_are_included_to_price(
-    order_with_lines, shipping_zone, site_settings, address_usa
+    order_with_lines, shipping_zone, site_settings, address
 ):
     site_settings.include_taxes_in_prices = True
-    site_settings.company_address = address_usa
+    site_settings.company_address = address
     site_settings.save()
     method = shipping_zone.shipping_methods.get()
     line = order_with_lines.lines.first()
