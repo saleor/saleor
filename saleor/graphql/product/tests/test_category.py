@@ -61,6 +61,35 @@ def test_category_query_by_id(user_api_client, product, channel_USD):
     assert len(category_data["children"]["edges"]) == category.get_children().count()
 
 
+def test_category_query_description(user_api_client, product, channel_USD):
+    category = Category.objects.first()
+    description = dummy_editorjs("Test description.", json_format=True)
+    category.description = dummy_editorjs("Test description.")
+    category.save()
+    variables = {
+        "id": graphene.Node.to_global_id("Category", category.pk),
+        "channel": channel_USD.slug,
+    }
+    query = """
+    query ($id: ID, $slug: String){
+        category(
+            id: $id,
+            slug: $slug,
+        ) {
+            id
+            name
+            description
+            descriptionJson
+        }
+    }
+    """
+    response = user_api_client.post_graphql(query, variables=variables)
+    content = get_graphql_content(response)
+    category_data = content["data"]["category"]
+    assert category_data["description"] == description
+    assert category_data["descriptionJson"] == description
+
+
 def test_category_query_by_slug(user_api_client, product, channel_USD):
     category = Category.objects.first()
     variables = {"slug": category.slug, "channel": channel_USD.slug}
