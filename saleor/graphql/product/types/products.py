@@ -683,7 +683,6 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     def resolve_is_available(root: ChannelContext[models.Product], info, address=None):
         if not root.channel_slug:
             return None
-        channel_slug = str(root.channel_slug)
 
         channel_slug = str(root.channel_slug)
         country_code = get_user_country_context(

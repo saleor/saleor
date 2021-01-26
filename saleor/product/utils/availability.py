@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union
 
 import opentracing
-from django.conf import settings
 from prices import MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from ...channel.models import Channel
