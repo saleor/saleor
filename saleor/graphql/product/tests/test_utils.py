@@ -3,9 +3,22 @@ import graphene
 from ....product import AttributeInputType
 from ....product.error_codes import ProductErrorCode
 from ..utils import (
+    parse_draftjs_content_to_string,
     validate_attributes_input_for_product,
     validate_attributes_input_for_variant,
 )
+
+
+def test_parse_draftjs_content_to_string():
+    data = {"blocks": [{"text": "some."}, {"text": "text"}, {"data": None}]}
+
+    assert parse_draftjs_content_to_string(data) == "some. text "
+
+
+def test_parse_draftjs_content_to_string_invalid_blocks():
+    data = {"blocks": {"text": "some text"}}
+
+    assert parse_draftjs_content_to_string(data) == ""
 
 
 def test_validate_attributes_input_for_product(weight_attribute, color_attribute):
