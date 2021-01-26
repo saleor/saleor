@@ -290,7 +290,10 @@ def get_email_template(
 
 
 def get_email_template_or_default(
-    plugin_identifier: str, template_field_name: str, default_template_file_name: str
+    plugin_identifier: str,
+    template_field_name: str,
+    default_template_file_name: str,
+    default_template_path: str,
 ):
     email_template_str = get_email_template(
         plugin_identifier=plugin_identifier,
@@ -298,7 +301,9 @@ def get_email_template_or_default(
         default=DEFAULT_EMAIL_VALUE,
     )
     if email_template_str == DEFAULT_EMAIL_VALUE:
-        email_template_str = get_default_email_template(default_template_file_name)
+        email_template_str = get_default_email_template(
+            default_template_file_name, default_template_path
+        )
     return email_template_str
 
 
@@ -318,11 +323,10 @@ def get_email_subject(
     return default
 
 
-def get_default_email_template(template_file_name: str) -> str:
+def get_default_email_template(
+    template_file_name: str, default_template_path: str
+) -> str:
     """Get default template."""
-    default_template_path = os.path.join(
-        settings.TEMPLATES_DIR, "templated_email/compiled/"
-    )
     default_template_path = os.path.join(default_template_path, template_file_name)
     with open(default_template_path) as f:
         template_str = f.read()

@@ -1,3 +1,11 @@
+import os
+
+from django.conf import settings
+
+DEFAULT_EMAIL_TEMPLATES_PATH = os.path.join(
+    settings.PROJECT_ROOT, "saleor/plugins/admin_email/default_email_templates"
+)
+
 STAFF_ORDER_CONFIRMATION_TEMPLATE_FIELD = "staff_order_confirmation_template"
 SET_STAFF_PASSWORD_TEMPLATE_FIELD = "set_staff_password_template"
 CSV_PRODUCT_EXPORT_SUCCESS_TEMPLATE_FIELD = "csv_product_export_success_template"

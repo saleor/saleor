@@ -19,6 +19,7 @@ def send_account_confirmation_email_task(recipient_email, payload, config):
         constants.PLUGIN_ID,
         constants.ACCOUNT_CONFIRMATION_TEMPLATE_FIELD,
         constants.ACCOUNT_CONFIRMATION_DEFAULT_TEMPLATE,
+        constants.DEFAULT_EMAIL_TEMPLATES_PATH,
     )
     subject = get_email_subject(
         constants.PLUGIN_ID,
@@ -44,6 +45,7 @@ def send_password_reset_email_task(recipient_email, payload, config):
         constants.PLUGIN_ID,
         constants.ACCOUNT_PASSWORD_RESET_TEMPLATE_FIELD,
         constants.ACCOUNT_PASSWORD_RESET_DEFAULT_TEMPLATE,
+        constants.DEFAULT_EMAIL_TEMPLATES_PATH,
     )
 
     subject = get_email_subject(
@@ -70,6 +72,7 @@ def send_request_email_change_email_task(recipient_email, payload, config):
         constants.PLUGIN_ID,
         constants.ACCOUNT_CHANGE_EMAIL_REQUEST_TEMPLATE_FIELD,
         constants.ACCOUNT_CHANGE_EMAIL_REQUEST_DEFAULT_TEMPLATE,
+        constants.DEFAULT_EMAIL_TEMPLATES_PATH,
     )
 
     subject = get_email_subject(
@@ -103,6 +106,7 @@ def send_user_change_email_notification_task(recipient_email, payload, config):
         constants.PLUGIN_ID,
         constants.ACCOUNT_CHANGE_EMAIL_CONFIRM_TEMPLATE_FIELD,
         constants.ACCOUNT_CHANGE_EMAIL_CONFIRM_DEFAULT_TEMPLATE,
+        constants.DEFAULT_EMAIL_TEMPLATES_PATH,
     )
 
     subject = get_email_subject(
@@ -136,6 +140,7 @@ def send_account_delete_confirmation_email_task(recipient_email, payload, config
         constants.PLUGIN_ID,
         constants.ACCOUNT_DELETE_TEMPLATE_FIELD,
         constants.ACCOUNT_DELETE_DEFAULT_TEMPLATE,
+        constants.DEFAULT_EMAIL_TEMPLATES_PATH,
     )
 
     subject = get_email_subject(
@@ -161,6 +166,7 @@ def send_set_user_password_email_task(recipient_email, payload, config):
         constants.PLUGIN_ID,
         constants.ACCOUNT_SET_CUSTOMER_PASSWORD_TEMPLATE_FIELD,
         constants.ACCOUNT_SET_CUSTOMER_PASSWORD_DEFAULT_TEMPLATE,
+        constants.DEFAULT_EMAIL_TEMPLATES_PATH,
     )
 
     subject = get_email_subject(
@@ -187,6 +193,7 @@ def send_invoice_email_task(recipient_email, payload, config):
         constants.PLUGIN_ID,
         constants.INVOICE_READY_TEMPLATE_FIELD,
         constants.INVOICE_READY_DEFAULT_TEMPLATE,
+        constants.DEFAULT_EMAIL_TEMPLATES_PATH,
     )
 
     subject = get_email_subject(
@@ -223,6 +230,7 @@ def send_order_confirmation_email_task(recipient_email, payload, config):
         constants.PLUGIN_ID,
         constants.ORDER_CONFIRMATION_TEMPLATE_FIELD,
         constants.ORDER_CONFIRMATION_DEFAULT_TEMPLATE,
+        constants.DEFAULT_EMAIL_TEMPLATES_PATH,
     )
 
     subject = get_email_subject(
@@ -253,6 +261,7 @@ def send_fulfillment_confirmation_email_task(recipient_email, payload, config):
         constants.PLUGIN_ID,
         constants.ORDER_FULFILLMENT_CONFIRMATION_TEMPLATE_FIELD,
         constants.ORDER_FULFILLMENT_CONFIRMATION_DEFAULT_TEMPLATE,
+        constants.DEFAULT_EMAIL_TEMPLATES_PATH,
     )
 
     subject = get_email_subject(
@@ -289,6 +298,7 @@ def send_fulfillment_update_email_task(recipient_email, payload, config):
         constants.PLUGIN_ID,
         constants.ORDER_FULFILLMENT_UPDATE_TEMPLATE_FIELD,
         constants.ORDER_FULFILLMENT_UPDATE_DEFAULT_TEMPLATE,
+        constants.DEFAULT_EMAIL_TEMPLATES_PATH,
     )
 
     subject = get_email_subject(
@@ -313,6 +323,7 @@ def send_payment_confirmation_email_task(recipient_email, payload, config):
         constants.PLUGIN_ID,
         constants.ORDER_PAYMENT_CONFIRMATION_TEMPLATE_FIELD,
         constants.ORDER_PAYMENT_CONFIRMATION_DEFAULT_TEMPLATE,
+        constants.DEFAULT_EMAIL_TEMPLATES_PATH,
     )
 
     subject = get_email_subject(
@@ -343,6 +354,7 @@ def send_order_canceled_email_task(recipient_email, payload, config):
         constants.PLUGIN_ID,
         constants.ORDER_CANCELED_TEMPLATE_FIELD,
         constants.ORDER_CANCELED_DEFAULT_TEMPLATE,
+        constants.DEFAULT_EMAIL_TEMPLATES_PATH,
     )
 
     subject = get_email_subject(
@@ -373,6 +385,7 @@ def send_order_refund_email_task(recipient_email, payload, config):
         constants.PLUGIN_ID,
         constants.ORDER_REFUND_CONFIRMATION_TEMPLATE_FIELD,
         constants.ORDER_REFUND_CONFIRMATION_DEFAULT_TEMPLATE,
+        constants.DEFAULT_EMAIL_TEMPLATES_PATH,
     )
 
     subject = get_email_subject(
@@ -403,6 +416,7 @@ def send_order_confirmed_email_task(recipient_email, payload, config):
         constants.PLUGIN_ID,
         constants.ORDER_CONFIRMED_TEMPLATE_FIELD,
         constants.ORDER_CONFIRMED_DEFAULT_TEMPLATE,
+        constants.DEFAULT_EMAIL_TEMPLATES_PATH,
     )
 
     subject = get_email_subject(
