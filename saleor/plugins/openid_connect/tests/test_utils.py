@@ -22,7 +22,8 @@ from ..utils import (
     create_tokens_from_oauth_payload,
     fetch_jwks,
     get_or_create_user_from_token,
-    get_saleor_permissions_from_scope,
+    get_saleor_permission_names,
+    get_saleor_permissions_qs_from_scope,
     get_user_from_token,
     validate_refresh_token,
 )
@@ -108,7 +109,8 @@ def test_create_tokens_from_oauth_payload(
         "expires_at": 1600851112,
     }
     user = get_or_create_user_from_token(id_payload)
-    perms = get_saleor_permissions_from_scope(auth_payload.get("scope"))
+    permissions = get_saleor_permissions_qs_from_scope(auth_payload.get("scope"))
+    perms = get_saleor_permission_names(permissions)
     tokens = create_tokens_from_oauth_payload(
         auth_payload, user, id_payload, perms, "PluginID"
     )
@@ -170,5 +172,6 @@ def test_get_saleor_permissions_from_scope():
         ),
     }
     expected_permissions = {"MANAGE_USERS", "MANAGE_ORDERS"}
-    permissions = get_saleor_permissions_from_scope(auth_payload.get("scope"))
-    assert set(permissions) == expected_permissions
+    permissions = get_saleor_permissions_qs_from_scope(auth_payload.get("scope"))
+    permission_names = get_saleor_permission_names(permissions)
+    assert set(permission_names) == expected_permissions

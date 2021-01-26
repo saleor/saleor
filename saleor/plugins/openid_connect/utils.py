@@ -6,9 +6,11 @@ import requests
 from authlib.jose import jwt
 from authlib.jose.errors import DecodeError, JoseError
 from authlib.oidc.core import CodeIDToken
+from django.contrib.auth.models import Permission
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
+from django.db.models import QuerySet
 from django.middleware.csrf import _compare_masked_tokens  # type: ignore
 from django.middleware.csrf import _get_new_csrf_token
 from jwt import PyJWTError
@@ -286,14 +288,16 @@ def get_incorrect_fields(plugin_configuration: "PluginConfiguration"):
         return incorrect_fields
 
 
-def get_saleor_permissions_from_scope(scope: str) -> List[str]:
-    if not scope:
-        return []
+def get_saleor_permissions_qs_from_scope(scope: str) -> QuerySet[Permission]:
     scope_list = scope.lower().strip().split()
     saleor_permissions_str = [s for s in scope_list if s.startswith("saleor:")]
     permission_codenames = list(
         map(lambda perm: perm.replace("saleor:", ""), saleor_permissions_str)
     )
     permissions = get_permissions_from_codenames(permission_codenames)
+    return permissions
+
+
+def get_saleor_permission_names(permissions: QuerySet) -> List[str]:
     permission_names = get_permission_names(permissions)
     return list(permission_names)
