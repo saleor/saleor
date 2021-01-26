@@ -1,5 +1,13 @@
+import os
+
+from django.conf import settings
+
 PLUGIN_ID = "mirumee.notifications.user_email"
 
+
+DEFAULT_EMAIL_TEMPLATES_PATH = os.path.join(
+    settings.PROJECT_ROOT, "saleor/plugins/user_email/default_email_templates"
+)
 
 ACCOUNT_CONFIRMATION_TEMPLATE_FIELD = "account_confirmation"
 ACCOUNT_SET_CUSTOMER_PASSWORD_TEMPLATE_FIELD = "account_set_customer_password"
