@@ -6,6 +6,7 @@ class AttributeInputType:
     FILE = "file"
     REFERENCE = "reference"
     NUMERIC = "numeric"
+    SWATCH = "swatch"
 
     CHOICES = [
         (DROPDOWN, "Dropdown"),
@@ -13,9 +14,10 @@ class AttributeInputType:
         (FILE, "File"),
         (REFERENCE, "Reference"),
         (NUMERIC, "Numeric"),
+        (SWATCH, "Swatch"),
     ]
     # list of the input types that can be used in variant selection
-    ALLOWED_IN_VARIANT_SELECTION = [DROPDOWN, NUMERIC]
+    ALLOWED_IN_VARIANT_SELECTION = [DROPDOWN, NUMERIC, SWATCH]
 
 
 # list of input types that are allowed for given attribute property
