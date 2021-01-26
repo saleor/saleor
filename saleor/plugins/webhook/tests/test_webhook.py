@@ -1,8 +1,18 @@
 from unittest import mock
+from urllib.parse import urlencode
 
 import pytest
+from django.contrib.auth.tokens import default_token_generator
+from freezegun import freeze_time
 
+from ....account.notifications import (
+    get_default_user_payload,
+    send_account_confirmation,
+)
 from ....app.models import App
+from ....core.notifications import get_site_context
+from ....core.notify_events import NotifyEventType
+from ....core.utils.url import prepare_url
 from ....webhook.event_types import WebhookEventType
 from ....webhook.payloads import (
     generate_checkout_payload,
@@ -242,4 +252,34 @@ def test_invoice_sent(mocked_webhook_trigger, settings, fulfilled_order):
     expected_data = generate_invoice_payload(invoice)
     mocked_webhook_trigger.assert_called_once_with(
         WebhookEventType.INVOICE_SENT, expected_data
+    )
+
+
+@freeze_time("2020-03-18 12:00:00")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_notify_user(mocked_webhook_trigger, settings, customer_user):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+
+    redirect_url = "http://redirect.com/"
+    send_account_confirmation(customer_user, redirect_url, manager)
+
+    token = default_token_generator.make_token(customer_user)
+    params = urlencode({"email": customer_user.email, "token": token})
+    confirm_url = prepare_url(params, redirect_url)
+
+    payload = {
+        "user": get_default_user_payload(customer_user),
+        "recipient_email": customer_user.email,
+        "token": token,
+        "confirm_url": confirm_url,
+        **get_site_context(),
+    }
+
+    expected_data = {
+        "notify_event": NotifyEventType.ACCOUNT_CONFIRMATION,
+        "payload": payload,
+    }
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.NOTIFY_USER, expected_data
     )

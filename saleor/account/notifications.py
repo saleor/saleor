@@ -46,7 +46,7 @@ def send_account_confirmation(user, redirect_url, manager):
     payload = {
         "user": get_default_user_payload(user),
         "recipient_email": user.email,
-        "token": default_token_generator.make_token(user),
+        "token": token,
         "confirm_url": confirm_url,
         **get_site_context(),
     }
