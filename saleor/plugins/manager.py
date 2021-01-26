@@ -146,13 +146,9 @@ class PluginsManager(PaymentInterface):
         line_totals = [
             self.calculate_checkout_line_total(
                 checkout,
-                line_info.line,
-                line_info.variant,
-                line_info.product,
-                line_info.collections,
+                line_info,
                 address,
                 line_info.channel_listing.channel,
-                line_info.channel_listing,
                 discounts,
             )
             for line_info in lines
@@ -236,22 +232,14 @@ class PluginsManager(PaymentInterface):
     def calculate_checkout_line_total(
         self,
         checkout: "Checkout",
-        checkout_line: "CheckoutLine",
-        variant: "ProductVariant",
-        product: "Product",
-        collections: Iterable["Collection"],
+        checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         channel: "Channel",
-        channel_listing: "ProductVariantChannelListing",
-        discounts: Iterable[DiscountInfo],
+        discounts: Iterable["DiscountInfo"],
     ):
         default_value = base_calculations.base_checkout_line_total(
-            checkout_line,
-            variant,
-            product,
-            collections,
+            checkout_line_info,
             channel,
-            channel_listing,
             discounts,
         )
         return quantize_price(
@@ -259,13 +247,9 @@ class PluginsManager(PaymentInterface):
                 "calculate_checkout_line_total",
                 default_value,
                 checkout,
-                checkout_line,
-                variant,
-                product,
-                collections,
+                checkout_line_info,
                 address,
                 channel,
-                channel_listing,
                 discounts,
             ),
             checkout.currency,
@@ -276,13 +260,10 @@ class PluginsManager(PaymentInterface):
         total_line_price: TaxedMoney,
         quantity: int,
         checkout: "Checkout",
-        checkout_line: "CheckoutLine",
+        checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
-        discounts: Iterable[DiscountInfo],
-        variant: "ProductVariant",
-        collections: List["Collection"],
+        discounts: Iterable["DiscountInfo"],
         channel: "Channel",
-        channel_listing: "ProductVariantChannelListing",
     ):
         default_value = base_calculations.base_checkout_line_unit_price(
             total_line_price, quantity
@@ -292,13 +273,10 @@ class PluginsManager(PaymentInterface):
                 "calculate_checkout_line_unit_price",
                 default_value,
                 checkout,
-                checkout_line,
+                checkout_line_info,
                 address,
                 discounts,
-                variant,
-                collections,
                 channel,
-                channel_listing,
             ),
             total_line_price.currency,
         )

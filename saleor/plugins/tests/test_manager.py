@@ -111,15 +111,18 @@ def test_manager_calculates_checkout_line_total(
     channel_listing = line.variant.channel_listings.get(channel=channel)
     currency = checkout_with_item.currency
     expected_total = Money(amount, currency)
+    checkout_line_info = CheckoutLineInfo(
+        line=line,
+        variant=line.variant,
+        channel_listing=channel_listing,
+        product=line.variant.product,
+        collections=[],
+    )
     taxed_total = PluginsManager(plugins=plugins).calculate_checkout_line_total(
         checkout_with_item,
-        line,
-        line.variant,
-        line.variant.product,
-        [],
+        checkout_line_info,
         checkout_with_item.shipping_address,
         channel,
-        channel_listing,
         [discount_info],
     )
     assert TaxedMoney(expected_total, expected_total) == taxed_total
@@ -328,17 +331,23 @@ def test_manager_calculates_checkout_line_unit_price(
     line = checkout_with_item.lines.first()
     channel = checkout_with_item.channel
     channel_listing = line.variant.channel_listings.get(channel=channel)
+
+    checkout_line_info = CheckoutLineInfo(
+        line=line,
+        variant=line.variant,
+        channel_listing=channel_listing,
+        product=line.variant.product,
+        collections=[],
+    )
+
     taxed_total = PluginsManager(plugins=plugins).calculate_checkout_line_unit_price(
         total_line_price,
         quantity,
         checkout_with_item,
-        line,
+        checkout_line_info,
         address,
         [],
-        line.variant,
-        [],
         channel,
-        channel_listing,
     )
     currency = total_line_price.net.currency
     expected_net = Money(

@@ -383,15 +383,19 @@ def test_calculate_checkout_line_total(
     manager.assign_tax_code_to_object_meta(variant.product, "standard")
     product.save()
 
+    checkout_line_info = CheckoutLineInfo(
+        line=line,
+        variant=line.variant,
+        channel_listing=channel_listing,
+        product=line.variant.product,
+        collections=[],
+    )
+
     line_price = manager.calculate_checkout_line_total(
         checkout_with_item,
-        line,
-        variant,
-        product,
-        [],
+        checkout_line_info,
         address,
         channel,
-        channel_listing,
         [],
     )
 
@@ -425,17 +429,22 @@ def test_calculate_checkout_line_unit_price(
     manager.assign_tax_code_to_object_meta(variant.product, "standard")
     product.save()
 
+    checkout_line_info = CheckoutLineInfo(
+        line=line,
+        variant=line.variant,
+        channel_listing=channel_listing,
+        product=line.variant.product,
+        collections=[],
+    )
+
     line_price = manager.calculate_checkout_line_unit_price(
         total_price,
         line.quantity,
         checkout_with_item,
-        line,
+        checkout_line_info,
         address,
         [],
-        variant,
-        [],
         channel,
-        channel_listing,
     )
 
     assert line_price == TaxedMoney(

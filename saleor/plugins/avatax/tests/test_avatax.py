@@ -110,15 +110,20 @@ def test_calculate_checkout_line_total(
     discounts = [discount_info] if with_discount else None
     channel = checkout_with_item.channel
     channel_listing = line.variant.channel_listings.get(channel=channel)
+
+    checkout_line_info = CheckoutLineInfo(
+        line=line,
+        variant=line.variant,
+        channel_listing=channel_listing,
+        product=line.variant.product,
+        collections=[],
+    )
+
     total = manager.calculate_checkout_line_total(
         checkout_with_item,
-        line,
-        line.variant,
-        line.variant.product,
-        [],
+        checkout_line_info,
         checkout_with_item.shipping_address,
         channel,
-        channel_listing,
         discounts,
     )
     total = quantize_price(total, total.currency)
@@ -437,7 +442,6 @@ def test_calculate_checkout_line_unit_price(
     checkout.save()
 
     channel = checkout.channel
-    channel_listing = checkout_line.variant.channel_listings.get(channel=channel)
 
     site_settings.company_address = address_usa
     site_settings.include_taxes_in_prices = True
@@ -447,13 +451,10 @@ def test_calculate_checkout_line_unit_price(
         total_price,
         checkout_line.line.quantity,
         checkout,
-        checkout_line.line,
+        checkout_line,
         checkout.shipping_address,
         [],
-        checkout_line.variant,
-        [],
         channel,
-        channel_listing,
     )
     line_price = quantize_price(line_price, line_price.currency)
 

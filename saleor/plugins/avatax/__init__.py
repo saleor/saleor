@@ -14,7 +14,7 @@ from django.contrib.sites.models import Site
 from django.core.cache import cache
 from requests.auth import HTTPBasicAuth
 
-from ...checkout import base_calculations
+from ...checkout import CheckoutLineInfo, base_calculations
 from ...core.taxes import TaxError
 
 if TYPE_CHECKING:
@@ -237,10 +237,16 @@ def get_checkout_lines_data(
     ).filter(variant__product__charge_taxes=True)
     channel = checkout.channel
     for line in lines:
+        variant = line.variant
+        line_info = CheckoutLineInfo(
+            line=line,
+            variant=variant,
+            channel_listing=variant.channel_listings.get(channel=channel),
+            product=variant.product,
+            collections=list(variant.product.collections.all()),
+        )
         name = line.variant.product.name
         product = line.variant.product
-        collections = product.collections.all()
-        channel_listing = line.variant.channel_listings.get(channel=channel)
         product_type = line.variant.product.product_type
         tax_code = retrieve_tax_code_from_meta(product, default=None)
         tax_code = tax_code or retrieve_tax_code_from_meta(product_type)
@@ -248,12 +254,8 @@ def get_checkout_lines_data(
             data=data,
             quantity=line.quantity,
             amount=base_calculations.base_checkout_line_total(
-                line,
-                line.variant,
-                product,
-                collections,
+                line_info,
                 channel,
-                channel_listing,
                 discounts,
             ).gross.amount,
             tax_code=tax_code,

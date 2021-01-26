@@ -97,30 +97,23 @@ class PluginSample(BasePlugin):
 
     def calculate_checkout_line_total(
         self,
-        checkout,
-        checkout_line,
-        variant,
-        product,
-        collections,
-        address,
-        channel,
-        channel_listing,
-        discounts,
-        previous_value,
+        checkout: "Checkout",
+        checkout_line_info: "CheckoutLineInfo",
+        address: Optional["Address"],
+        channel: "Channel",
+        discounts: Iterable["DiscountInfo"],
+        previous_value: TaxedMoney,
     ):
-        price = Money("1.0", currency=checkout_line.checkout.currency)
+        price = Money("1.0", currency=checkout.currency)
         return TaxedMoney(price, price)
 
     def calculate_checkout_line_unit_price(
         self,
         checkout: "Checkout",
-        checkout_line: "CheckoutLine",
+        checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
-        variant: "ProductVariant",
-        collections: List["Collection"],
         channel: "Channel",
-        channel_listing: "ProductVariantChannelListing",
         previous_value: TaxedMoney,
     ):
         currency = checkout.currency

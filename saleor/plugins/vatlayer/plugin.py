@@ -168,27 +168,24 @@ class VatlayerPlugin(BasePlugin):
     def calculate_checkout_line_total(
         self,
         checkout: "Checkout",
-        checkout_line: "CheckoutLine",
-        variant: "ProductVariant",
-        product: "Product",
-        collections: List["Collection"],
+        checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         channel: "Channel",
-        channel_listing: "ProductVariantChannelListing",
-        discounts: List["DiscountInfo"],
+        discounts: Iterable["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
         unit_price = self.__calculate_checkout_line_unit_price(
             address,
             discounts,
-            variant,
-            collections,
+            checkout_line_info.variant,
+            checkout_line_info.product,
+            checkout_line_info.collections,
             channel,
-            channel_listing,
+            checkout_line_info.channel_listing,
             previous_value,
         )
         return (
-            unit_price * checkout_line.quantity
+            unit_price * checkout_line_info.line.quantity
             if unit_price is not None
             else previous_value
         )
@@ -196,22 +193,20 @@ class VatlayerPlugin(BasePlugin):
     def calculate_checkout_line_unit_price(
         self,
         checkout: "Checkout",
-        checkout_line: "CheckoutLine",
+        checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
-        variant: "ProductVariant",
-        collections: List["Collection"],
         channel: "Channel",
-        channel_listing: "ProductVariantChannelListing",
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
         unit_price = self.__calculate_checkout_line_unit_price(
             address,
             discounts,
-            variant,
-            collections,
+            checkout_line_info.variant,
+            checkout_line_info.product,
+            checkout_line_info.collections,
             channel,
-            channel_listing,
+            checkout_line_info.channel_listing,
             previous_value,
         )
         return unit_price if unit_price is not None else previous_value
@@ -221,6 +216,7 @@ class VatlayerPlugin(BasePlugin):
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
         variant: "ProductVariant",
+        product: "Product",
         collections: List["Collection"],
         channel: "Channel",
         channel_listing: "ProductVariantChannelListing",
@@ -229,7 +225,6 @@ class VatlayerPlugin(BasePlugin):
         if self._skip_plugin(previous_value):
             return
 
-        product = variant.product
         price = variant.get_price(
             product, collections, channel, channel_listing, discounts
         )

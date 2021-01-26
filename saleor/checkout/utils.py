@@ -258,7 +258,9 @@ def _get_products_voucher_discount(
     return get_products_voucher_discount(voucher, prices, channel)
 
 
-def get_discounted_lines(lines: Iterable["CheckoutLineInfo"], voucher):
+def get_discounted_lines(
+    lines: Iterable["CheckoutLineInfo"], voucher
+) -> Iterable["CheckoutLineInfo"]:
     discounted_products = voucher.products.all()
     discounted_categories = set(voucher.categories.all())
     discounted_collections = set(voucher.collections.all())
@@ -274,11 +276,11 @@ def get_discounted_lines(lines: Iterable["CheckoutLineInfo"], voucher):
                 or line_category in discounted_categories
                 or line_collections.intersection(discounted_collections)
             ):
-                discounted_lines.append(line_info.line)
+                discounted_lines.append(line_info)
     else:
         # If there's no discounted products, collections or categories,
         # it means that all products are discounted
-        discounted_lines.extend([line_info.line for line_info in lines])
+        discounted_lines.extend(lines)
     return discounted_lines
 
 
@@ -297,36 +299,30 @@ def get_prices_of_discounted_specific_product(
     product to child category won't work.
     """
     line_prices = []
-    discounted_lines = get_discounted_lines(lines, voucher)
+    discounted_lines: Iterable["CheckoutLineInfo"] = get_discounted_lines(
+        lines, voucher
+    )
     address = checkout.shipping_address or checkout.billing_address
     discounts = discounts or []
 
-    for line in discounted_lines:
-        collections = line.variant.product.collections.all()
-        channel_listing = line.variant.channel_listings.get(channel=channel)
+    for line_info in discounted_lines:
+        line = line_info.line
         line_total = calculations.checkout_line_total(
             manager=manager,
             checkout=checkout,
-            line=line,
-            variant=line.variant,
-            product=line.variant.product,
-            collections=collections,
+            checkout_line_info=line_info,
             address=address,
             channel=channel,
-            channel_listing=channel_listing,
             discounts=discounts,
         ).gross
         line_unit_price = manager.calculate_checkout_line_unit_price(
             line_total,
             line.quantity,
             checkout,
-            line,
+            line_info,
             address,
             discounts,
-            line.variant,
-            collections,
             channel,
-            channel_listing,
         )
         line_prices.extend([line_unit_price] * line.quantity)
 
