@@ -237,19 +237,21 @@ class VatlayerPlugin(BasePlugin):
         return self.__apply_taxes_to_product(product, price, country)
 
     def calculate_order_line_unit(
-        self, order_line: "OrderLine", previous_value: TaxedMoney
+        self,
+        order: "Order",
+        order_line: "OrderLine",
+        variant: "ProductVariant",
+        product: "Product",
+        previous_value: TaxedMoney,
     ) -> TaxedMoney:
         if self._skip_plugin(previous_value):
             return previous_value
 
-        address = order_line.order.shipping_address or order_line.order.billing_address
+        address = order.shipping_address or order.billing_address
         country = address.country if address else None
-        variant = order_line.variant
         if not variant:
             return previous_value
-        return self.__apply_taxes_to_product(
-            variant.product, order_line.unit_price, country
-        )
+        return self.__apply_taxes_to_product(product, order_line.unit_price, country)
 
     def get_checkout_line_tax_rate(
         self,

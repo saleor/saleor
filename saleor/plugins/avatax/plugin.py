@@ -391,13 +391,14 @@ class AvataxPlugin(BasePlugin):
         )
 
     def calculate_order_line_unit(
-        self, order_line: "OrderLine", previous_value: TaxedMoney
+        self,
+        order: "Order",
+        order_line: "OrderLine",
+        variant: "ProductVariant",
+        product: "Product",
+        previous_value: TaxedMoney,
     ) -> TaxedMoney:
-        order = order_line.order
-        variant = order_line.variant
-        if not variant or (
-            order_line.variant and not order_line.variant.product.charge_taxes
-        ):
+        if not variant or (variant and not product.charge_taxes):
             return previous_value
         return self._calculate_unit_price(
             order, order_line, variant, previous_value, is_order=True

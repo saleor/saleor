@@ -347,11 +347,12 @@ def test_calculate_order_line_unit(vatlayer, order_line, shipping_zone, site_set
     order.shipping_method = method
     order.save()
 
-    product = order_line.variant.product
+    variant = order_line.variant
+    product = variant.product
     manager.assign_tax_code_to_object_meta(product, "standard")
     product.save()
 
-    line_price = manager.calculate_order_line_unit(order_line)
+    line_price = manager.calculate_order_line_unit(order, order_line, variant, product)
     line_price = quantize_price(line_price, line_price.currency)
     assert line_price == TaxedMoney(
         net=Money("8.13", "USD"), gross=Money("10.00", "USD")

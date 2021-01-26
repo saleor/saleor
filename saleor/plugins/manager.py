@@ -303,12 +303,23 @@ class PluginsManager(PaymentInterface):
             total_line_price.currency,
         )
 
-    def calculate_order_line_unit(self, order_line: "OrderLine") -> TaxedMoney:
+    def calculate_order_line_unit(
+        self,
+        order: "Order",
+        order_line: "OrderLine",
+        variant: "ProductVariant",
+        product: "Product",
+    ) -> TaxedMoney:
         unit_price = order_line.unit_price
         default_value = quantize_price(unit_price, unit_price.currency)
         return quantize_price(
             self.__run_method_on_plugins(
-                "calculate_order_line_unit", default_value, order_line
+                "calculate_order_line_unit",
+                default_value,
+                order,
+                order_line,
+                variant,
+                product,
             ),
             order_line.currency,
         )

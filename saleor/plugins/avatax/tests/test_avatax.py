@@ -396,7 +396,9 @@ def test_calculate_order_line_unit(
     site_settings.company_address = address_usa
     site_settings.save()
 
-    line_price = manager.calculate_order_line_unit(order_line)
+    line_price = manager.calculate_order_line_unit(
+        order, order_line, order_line.variant, order_line.variant.product
+    )
     line_price = quantize_price(line_price, line_price.currency)
 
     assert line_price == TaxedMoney(

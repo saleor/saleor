@@ -355,9 +355,12 @@ def test_manager_calculates_checkout_line_unit_price(
     [(["saleor.plugins.tests.sample_plugins.PluginSample"], "1.0"), ([], "12.30")],
 )
 def test_manager_calculates_order_line(order_line, plugins, amount):
+    variant = order_line.variant
     currency = order_line.unit_price.currency
     expected_price = Money(amount, currency)
-    unit_price = PluginsManager(plugins=plugins).calculate_order_line_unit(order_line)
+    unit_price = PluginsManager(plugins=plugins).calculate_order_line_unit(
+        order_line.order, order_line, variant, variant.product
+    )
     assert expected_price == unit_price.gross
 
 
