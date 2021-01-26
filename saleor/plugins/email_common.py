@@ -30,7 +30,7 @@ DEFAULT_TEMPLATE_HELP_TEXT = (
     "blank if you don't want to send an email for this action. Use the "
     "default Saleor template by providing DEFAULT value."
 )
-DEFAULT_SUBJECT_HELP_TEXT = "An email subject built with handlebars template language."
+DEFAULT_SUBJECT_HELP_TEXT = "An email subject built with Handlebars template language."
 DEFAULT_EMAIL_VALUE = "DEFAULT"
 
 
