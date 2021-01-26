@@ -33,6 +33,7 @@ def resolve_object_with_metadata_type(instance: ModelWithMetadata):
 
     MODEL_TO_TYPE_MAP = {
         attribute_models.Attribute: attribute_types.Attribute,
+        account_models.Address: account_types.Address,
         product_models.Category: product_types.Category,
         checkout_models.Checkout: checkout_types.Checkout,
         product_models.Collection: product_types.Collection,

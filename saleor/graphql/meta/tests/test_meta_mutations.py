@@ -685,16 +685,16 @@ def test_update_public_metadata_for_non_exist_item(api_client):
     assert errors[0]["code"] == MetadataErrorCode.NOT_FOUND.name
 
 
-def test_update_public_metadata_for_item_without_meta(api_client, address):
+def test_update_public_metadata_for_item_without_meta(api_client, voucher):
     # given
-    assert not issubclass(type(address), ModelWithMetadata)
-    address_id = graphene.Node.to_global_id("Address", address.pk)
+    assert not issubclass(type(voucher), ModelWithMetadata)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.pk)
 
     # when
     # We use "User" type inside mutation for valid graphql query with fragment
     # without this we are not able to reuse UPDATE_PUBLIC_METADATA_MUTATION
     response = execute_update_public_metadata_for_item(
-        api_client, None, address_id, "User"
+        api_client, None, voucher_id, "User"
     )
 
     # then
@@ -1331,16 +1331,16 @@ def test_delete_public_metadata_for_non_exist_item(api_client):
     assert errors[0]["code"] == MetadataErrorCode.NOT_FOUND.name
 
 
-def test_delete_public_metadata_for_item_without_meta(api_client, address):
+def test_delete_public_metadata_for_item_without_meta(api_client, voucher):
     # given
-    assert not issubclass(type(address), ModelWithMetadata)
-    address_id = graphene.Node.to_global_id("Address", address.pk)
+    assert not issubclass(type(voucher), ModelWithMetadata)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.pk)
 
     # when
     # We use "User" type inside mutation for valid graphql query with fragment
     # without this we are not able to reuse DELETE_PUBLIC_METADATA_MUTATION
     response = execute_clear_public_metadata_for_item(
-        api_client, None, address_id, "User"
+        api_client, None, voucher_id, "User"
     )
 
     # then
@@ -2052,16 +2052,16 @@ def test_update_private_metadata_for_non_exist_item(
     assert errors[0]["code"] == MetadataErrorCode.NOT_FOUND.name
 
 
-def test_update_private_metadata_for_item_without_meta(api_client, address):
+def test_update_private_metadata_for_item_without_meta(api_client, voucher):
     # given
-    assert not issubclass(type(address), ModelWithMetadata)
-    address_id = graphene.Node.to_global_id("Address", address.pk)
+    assert not issubclass(type(voucher), ModelWithMetadata)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.pk)
 
     # when
     # We use "User" type inside mutation for valid graphql query with fragment
     # without this we are not able to reuse UPDATE_PRIVATE_METADATA_MUTATION
     response = execute_update_private_metadata_for_item(
-        api_client, None, address_id, "User"
+        api_client, None, voucher_id, "User"
     )
 
     # then
@@ -2720,16 +2720,16 @@ def test_delete_private_metadata_for_non_exist_item(
     assert errors[0]["code"] == MetadataErrorCode.NOT_FOUND.name
 
 
-def test_delete_private_metadata_for_item_without_meta(api_client, address):
+def test_delete_private_metadata_for_item_without_meta(api_client, voucher):
     # given
-    assert not issubclass(type(address), ModelWithMetadata)
-    address_id = graphene.Node.to_global_id("Address", address.pk)
+    assert not issubclass(type(voucher), ModelWithMetadata)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.pk)
 
     # when
     # We use "User" type inside mutation for valid graphql query with fragment
     # without this we are not able to reuse DELETE_PRIVATE_METADATA_MUTATION
     response = execute_clear_private_metadata_for_item(
-        api_client, None, address_id, "User"
+        api_client, None, voucher_id, "User"
     )
 
     # then
@@ -2861,4 +2861,99 @@ def test_delete_private_metadata_for_warehouse(
     # then
     assert item_without_private_metadata(
         response["data"]["deletePrivateMetadata"]["item"], warehouse, warehouse_id
+    )
+
+
+def test_add_private_metadata_for_address(
+    user_api_client, permission_manage_users, customer_user
+):
+    # given
+    address = customer_user.addresses.first()
+    address_id = graphene.Node.to_global_id("Address", address.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        user_api_client, permission_manage_users, address_id, "Address"
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"], address, address_id
+    )
+
+
+def test_add_public_metadata_for_address_as_app(
+    app_api_client, permission_manage_users, customer_user
+):
+    # given
+    address = customer_user.addresses.first()
+    address_id = graphene.Node.to_global_id("Address", address.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        app_api_client, permission_manage_users, address_id, "Address"
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"], address, address_id
+    )
+
+
+def test_add_public_metadata_for_address_as_customer_for_itself(
+    user_api_client, customer_user
+):
+    # given
+    address = customer_user.addresses.first()
+    address_id = graphene.Node.to_global_id("Address", address.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        user_api_client, None, address_id, "Address"
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"], address, address_id
+    )
+
+
+def test_delete_private_metadata_for_address(
+    user_api_client, permission_manage_users, customer_user
+):
+
+    # given
+    address = customer_user.addresses.first()
+    address.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    address.save(update_fields=["metadata"])
+    address_id = graphene.Node.to_global_id("Address", address.pk)
+
+    # when
+    response = execute_clear_private_metadata_for_item(
+        user_api_client, permission_manage_users, address_id, "Address"
+    )
+
+    # then
+    assert item_without_private_metadata(
+        response["data"]["deletePrivateMetadata"]["item"], address, address_id
+    )
+
+
+def test_delete_public_metadata_for_address_as_app(
+    app_api_client, permission_manage_users, customer_user
+):
+    # given
+    address = customer_user.addresses.first()
+    address.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    address.save(update_fields=["metadata"])
+    address_id = graphene.Node.to_global_id("Address", address.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        app_api_client, permission_manage_users, address_id, "Address"
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["deleteMetadata"]["item"], address, address_id
     )

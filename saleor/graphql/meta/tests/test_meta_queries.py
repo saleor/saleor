@@ -3003,3 +3003,157 @@ def test_query_private_meta_for_warehouse_as_app(
     metadata = content["data"]["warehouse"]["privateMetadata"][0]
     assert metadata["key"] == PRIVATE_KEY
     assert metadata["value"] == PRIVATE_VALUE
+
+
+QUERY_ADDRESS_PUBLIC_META = """
+    query addressMeta($id: ID!){
+         address(id: $id){
+            metadata{
+                key
+                value
+            }
+        }
+    }
+"""
+
+
+def test_query_public_meta_for_address_as_anonymous_user(api_client, address):
+    # given
+    address.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    address.save(update_fields=["metadata"])
+    variables = {
+        "id": graphene.Node.to_global_id("Address", address.pk),
+    }
+
+    # when
+    response = api_client.post_graphql(QUERY_ADDRESS_PUBLIC_META, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+def test_query_public_meta_for_address_as_app_for_customer(
+    app_api_client, customer_user
+):
+    # given
+    address = customer_user.addresses.first()
+    address.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    address.save(update_fields=["metadata"])
+    variables = {
+        "id": graphene.Node.to_global_id("Address", address.pk),
+    }
+
+    # when
+    response = app_api_client.post_graphql(QUERY_ADDRESS_PUBLIC_META, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+def test_query_public_meta_for_address_as_customer_for_itself(
+    user_api_client, customer_user
+):
+    # given
+    address = customer_user.addresses.first()
+    address.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    address.save(update_fields=["metadata"])
+    variables = {"id": graphene.Node.to_global_id("Address", address.pk)}
+
+    # when
+    response = user_api_client.post_graphql(
+        QUERY_ADDRESS_PUBLIC_META,
+        variables,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    metadata = content["data"]["address"]["metadata"][0]
+    assert metadata["key"] == PUBLIC_KEY
+    assert metadata["value"] == PUBLIC_VALUE
+
+
+def test_query_public_meta_for_address_as_app(
+    app_api_client, permission_manage_users, customer_user
+):
+    # given
+    address = customer_user.addresses.first()
+    address.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    address.save(update_fields=["metadata"])
+    variables = {"id": graphene.Node.to_global_id("Address", address.pk)}
+
+    # when
+    response = app_api_client.post_graphql(
+        QUERY_ADDRESS_PUBLIC_META, variables, [permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    metadata = content["data"]["address"]["metadata"][0]
+    assert metadata["key"] == PUBLIC_KEY
+    assert metadata["value"] == PUBLIC_VALUE
+
+
+QUERY_ADDRESS_PRIVATE_META = """
+    query addressMeta($id: ID!){
+        address(id: $id){
+            privateMetadata{
+                key
+                value
+            }
+        }
+    }
+"""
+
+
+def test_query_private_meta_for_address_as_anonymous_user(api_client, address):
+    # given
+    variables = {
+        "id": graphene.Node.to_global_id("Address", address.pk),
+    }
+
+    # when
+    response = api_client.post_graphql(QUERY_ADDRESS_PRIVATE_META, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+def test_query_private_meta_for_address_as_customer_for_itself(
+    user_api_client, customer_user
+):
+    # given
+    address = customer_user.addresses.first()
+    variables = {
+        "id": graphene.Node.to_global_id("Address", address.pk),
+    }
+
+    # when
+    response = user_api_client.post_graphql(QUERY_ADDRESS_PRIVATE_META, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+def test_query_private_meta_for_address_as_app(
+    app_api_client, permission_manage_users, customer_user
+):
+    # given
+    address = customer_user.addresses.first()
+    address.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
+    address.save(update_fields=["private_metadata"])
+    variables = {
+        "id": graphene.Node.to_global_id("Address", address.pk),
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        QUERY_ADDRESS_PRIVATE_META,
+        variables,
+        [permission_manage_users],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    metadata = content["data"]["address"]["privateMetadata"][0]
+    assert metadata["key"] == PRIVATE_KEY
+    assert metadata["value"] == PRIVATE_VALUE

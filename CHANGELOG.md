@@ -43,6 +43,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add metadata to warehouse - #6727 by @d-wysocki
 - Add page webhooks: `PAGE_CREATED`, `PAGE_UPDATED` and `PAGE_DELETED` - #6787 by @d-wysocki
 - Fix `product_updated` and `product_created` webhooks - #6798 by @d-wysocki
+- Add metadata to address - #6705 by @sagital
 
 # 2.11.1
 

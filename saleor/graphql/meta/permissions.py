@@ -23,6 +23,20 @@ def no_permissions(_info, _object_pk: Any) -> List[None]:
     return []
 
 
+def public_address_permissions(info, address_pk: int) -> List[BasePermissionEnum]:
+    address = account_models.Address.objects.filter(pk=address_pk).first()
+    assert address
+
+    user = address.user_addresses.first()
+    if user and info.context.user.pk == user.pk:
+        return []
+    return [AccountPermissions.MANAGE_USERS]
+
+
+def private_address_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
+    return [AccountPermissions.MANAGE_USERS]
+
+
 def public_user_permissions(info, user_pk: int) -> List[BasePermissionEnum]:
     """Resolve permission for access to public metadata for user.
 
@@ -99,6 +113,7 @@ def shipping_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
 
 PUBLIC_META_PERMISSION_MAP = {
     "Attribute": attribute_permissions,
+    "Address": public_address_permissions,
     "Category": product_permissions,
     "Checkout": no_permissions,
     "Collection": product_permissions,
@@ -123,6 +138,7 @@ PUBLIC_META_PERMISSION_MAP = {
 
 PRIVATE_META_PERMISSION_MAP = {
     "Attribute": attribute_permissions,
+    "Address": private_address_permissions,
     "Category": product_permissions,
     "Checkout": checkout_permissions,
     "Collection": product_permissions,
