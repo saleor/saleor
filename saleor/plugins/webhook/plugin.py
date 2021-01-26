@@ -1,5 +1,7 @@
+import json
 from typing import TYPE_CHECKING, Any, Optional
 
+from ...core.utils.json_serializer import CustomJsonEncoder
 from ...webhook.event_types import WebhookEventType
 from ...webhook.payloads import (
     generate_checkout_payload,
@@ -151,4 +153,6 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         data = {"notify_event": event, "payload": payload}
-        trigger_webhooks_for_event.delay(WebhookEventType.NOTIFY_USER, data)
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.NOTIFY_USER, json.dumps(data, cls=CustomJsonEncoder)
+        )

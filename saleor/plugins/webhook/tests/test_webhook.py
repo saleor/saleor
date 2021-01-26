@@ -1,3 +1,4 @@
+import json
 from unittest import mock
 from urllib.parse import urlencode
 
@@ -12,6 +13,7 @@ from ....account.notifications import (
 from ....app.models import App
 from ....core.notifications import get_site_context
 from ....core.notify_events import NotifyEventType
+from ....core.utils.json_serializer import CustomJsonEncoder
 from ....core.utils.url import prepare_url
 from ....webhook.event_types import WebhookEventType
 from ....webhook.payloads import (
@@ -281,5 +283,5 @@ def test_notify_user(mocked_webhook_trigger, settings, customer_user):
         "payload": payload,
     }
     mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.NOTIFY_USER, expected_data
+        WebhookEventType.NOTIFY_USER, json.dumps(expected_data, cls=CustomJsonEncoder)
     )
