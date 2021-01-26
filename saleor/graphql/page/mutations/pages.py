@@ -108,6 +108,11 @@ class PageCreate(ModelMutation):
         if attributes:
             AttributeAssignmentMixin.save(instance, attributes)
 
+    @classmethod
+    def save(cls, info, instance, cleaned_input):
+        super(PageCreate, cls).save(info, instance, cleaned_input)
+        info.context.plugins.page_created(instance)
+
 
 class PageUpdate(PageCreate):
     class Arguments:
@@ -123,6 +128,11 @@ class PageUpdate(PageCreate):
         error_type_class = PageError
         error_type_field = "page_errors"
 
+    @classmethod
+    def save(cls, info, instance, cleaned_input):
+        super(PageCreate, cls).save(info, instance, cleaned_input)
+        info.context.plugins.page_updated(instance)
+
 
 class PageDelete(ModelDeleteMutation):
     class Arguments:
@@ -134,6 +144,13 @@ class PageDelete(ModelDeleteMutation):
         permissions = (PagePermissions.MANAGE_PAGES,)
         error_type_class = PageError
         error_type_field = "page_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        page = cls.get_instance(info, **data)
+        response = super().perform_mutation(_root, info, **data)
+        info.context.plugins.page_updated(page)
+        return response
 
 
 class PageTypeCreateInput(graphene.InputObjectType):

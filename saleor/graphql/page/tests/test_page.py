@@ -1,3 +1,5 @@
+from unittest import mock
+
 import graphene
 import pytest
 from django.utils import timezone
@@ -262,6 +264,45 @@ def test_page_create_mutation(staff_api_client, permission_manage_pages, page_ty
     )
     assert slugify(non_existent_attr_value) in values
     assert tag_value_slug in values
+
+
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_page_create_trigger_page_webhook(
+    mocked_webhook_trigger,
+    staff_api_client,
+    permission_manage_pages,
+    page_type,
+    settings,
+):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    page_slug = "test-slug"
+    page_content = dummy_editorjs("test content", True)
+    page_title = "test title"
+    page_is_published = True
+    page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
+    # test creating root page
+    variables = {
+        "title": page_title,
+        "content": page_content,
+        "isPublished": page_is_published,
+        "slug": page_slug,
+        "pageType": page_type_id,
+    }
+
+    response = staff_api_client.post_graphql(
+        CREATE_PAGE_MUTATION, variables, permissions=[permission_manage_pages]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["pageCreate"]
+    assert data["pageErrors"] == []
+    assert data["page"]["title"] == page_title
+    assert data["page"]["content"] == page_content
+    assert data["page"]["slug"] == page_slug
+    assert data["page"]["isPublished"] == page_is_published
+    assert data["page"]["pageType"]["id"] == page_type_id
+
+    assert mocked_webhook_trigger.called
 
 
 def test_page_create_required_fields(
@@ -956,31 +997,50 @@ def test_create_page_with_product_reference_attribute_required_no_references_giv
     assert errors[0]["attributes"] == [file_attribute_id]
 
 
-def test_page_delete_mutation(staff_api_client, page, permission_manage_pages):
-    query = """
-        mutation DeletePage($id: ID!) {
-            pageDelete(id: $id) {
-                page {
-                    title
-                    id
-                }
-                pageErrors {
-                    field
-                    code
-                    message
-                }
-              }
+PAGE_DELETE_MUTATION = """
+    mutation DeletePage($id: ID!) {
+        pageDelete(id: $id) {
+            page {
+                title
+                id
             }
-    """
+            pageErrors {
+                field
+                code
+                message
+            }
+          }
+        }
+"""
+
+
+def test_page_delete_mutation(staff_api_client, page, permission_manage_pages):
     variables = {"id": graphene.Node.to_global_id("Page", page.id)}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_pages]
+        PAGE_DELETE_MUTATION, variables, permissions=[permission_manage_pages]
     )
     content = get_graphql_content(response)
     data = content["data"]["pageDelete"]
     assert data["page"]["title"] == page.title
     with pytest.raises(page._meta.model.DoesNotExist):
         page.refresh_from_db()
+
+
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_page_delete_trigger_webhook(
+    mocked_webhook_trigger, staff_api_client, page, permission_manage_pages, settings
+):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    variables = {"id": graphene.Node.to_global_id("Page", page.id)}
+    response = staff_api_client.post_graphql(
+        PAGE_DELETE_MUTATION, variables, permissions=[permission_manage_pages]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["pageDelete"]
+    assert data["page"]["title"] == page.title
+    with pytest.raises(page._meta.model.DoesNotExist):
+        page.refresh_from_db()
+    assert mocked_webhook_trigger.called
 
 
 UPDATE_PAGE_MUTATION = """
@@ -1087,6 +1147,43 @@ def test_update_page(staff_api_client, permission_manage_pages, page):
     assert len(attributes) == len(expected_attributes)
     for attr_data in attributes:
         assert attr_data in expected_attributes
+
+
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_update_page_trigger_webhook(
+    mocked_webhook_trigger, staff_api_client, permission_manage_pages, page, settings
+):
+    query = UPDATE_PAGE_MUTATION
+
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    page_title = page.title
+    new_slug = "new-slug"
+    assert new_slug != page.slug
+
+    page_id = graphene.Node.to_global_id("Page", page.id)
+
+    variables = {
+        "id": page_id,
+        "input": {
+            "slug": new_slug,
+            "isPublished": True,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_pages]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["pageUpdate"]
+
+    assert not data["pageErrors"]
+    assert data["page"]["title"] == page_title
+    assert data["page"]["slug"] == new_slug
+    assert mocked_webhook_trigger.called
 
 
 def test_update_page_with_file_attribute_value(
