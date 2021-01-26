@@ -12,6 +12,7 @@ import pytest
 import pytz
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
+from django.contrib.postgres.search import SearchVector
 from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -95,6 +96,7 @@ from ..warehouse.models import Allocation, Stock, Warehouse
 from ..webhook.event_types import WebhookEventType
 from ..webhook.models import Webhook
 from ..wishlist.models import Wishlist
+from .utils import dummy_editorjs
 
 
 class CaptureQueriesContext(BaseCaptureQueriesContext):
@@ -1590,6 +1592,7 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
                     pk=1486,
                     name="Test product 1",
                     slug="test-product-a",
+                    description_plaintext="big blue product",
                     category=category,
                     product_type=product_type,
                 ),
@@ -1597,6 +1600,7 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
                     pk=1487,
                     name="Test product 2",
                     slug="test-product-b",
+                    description_plaintext="big orange product",
                     category=category,
                     product_type=product_type,
                 ),
@@ -1604,6 +1608,7 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
                     pk=1489,
                     name="Test product 3",
                     slug="test-product-c",
+                    description_plaintext="small red",
                     category=category,
                     product_type=product_type,
                 ),
@@ -2764,7 +2769,7 @@ def collection(db):
     collection = Collection.objects.create(
         name="Collection",
         slug="collection",
-        description="Test description",
+        description=dummy_editorjs("Test description."),
     )
     return collection
 
@@ -2774,7 +2779,7 @@ def published_collection(db, channel_USD):
     collection = Collection.objects.create(
         name="Collection USD",
         slug="collection-usd",
-        description="Test description",
+        description=dummy_editorjs("Test description."),
     )
     CollectionChannelListing.objects.create(
         channel=channel_USD,
@@ -2790,7 +2795,7 @@ def published_collection_PLN(db, channel_PLN):
     collection = Collection.objects.create(
         name="Collection PLN",
         slug="collection-pln",
-        description="Test description",
+        description=dummy_editorjs("Test description."),
     )
     CollectionChannelListing.objects.create(
         channel=channel_PLN,
@@ -2806,7 +2811,7 @@ def unpublished_collection(db, channel_USD):
     collection = Collection.objects.create(
         name="Unpublished Collection",
         slug="unpublished-collection",
-        description="Test description",
+        description=dummy_editorjs("Test description."),
     )
     CollectionChannelListing.objects.create(
         channel=channel_USD, collection=collection, is_published=False
@@ -2819,7 +2824,7 @@ def unpublished_collection_PLN(db, channel_PLN):
     collection = Collection.objects.create(
         name="Collection",
         slug="collection",
-        description="Test description",
+        description=dummy_editorjs("Test description."),
     )
     CollectionChannelListing.objects.create(
         channel=channel_PLN, collection=collection, is_published=False
@@ -2838,7 +2843,7 @@ def collection_with_image(db, image, media_root, channel_USD):
     collection = Collection.objects.create(
         name="Collection",
         slug="collection",
-        description="Test description",
+        description=dummy_editorjs("Test description."),
         background_image=image,
     )
     CollectionChannelListing.objects.create(
@@ -2872,7 +2877,7 @@ def page(db, page_type):
     data = {
         "slug": "test-url",
         "title": "Test page",
-        "content": "test content",
+        "content": dummy_editorjs("Test content."),
         "is_published": True,
         "page_type": page_type,
     }
@@ -2892,14 +2897,14 @@ def page_list(db, page_type):
     data_1 = {
         "slug": "test-url",
         "title": "Test page",
-        "content": "test content",
+        "content": dummy_editorjs("Test content."),
         "is_published": True,
         "page_type": page_type,
     }
     data_2 = {
         "slug": "test-url-2",
         "title": "Test page",
-        "content": "test content",
+        "content": dummy_editorjs("Test content."),
         "is_published": True,
         "page_type": page_type,
     }
@@ -3036,7 +3041,7 @@ def product_translation_fr(product):
         language_code="fr",
         product=product,
         name="French name",
-        description="French description",
+        description=dummy_editorjs("French description."),
     )
 
 
@@ -3053,7 +3058,7 @@ def collection_translation_fr(published_collection):
         language_code="fr",
         collection=published_collection,
         name="French collection name",
-        description="French description",
+        description=dummy_editorjs("French description."),
     )
 
 
@@ -3063,7 +3068,7 @@ def category_translation_fr(category):
         language_code="fr",
         category=category,
         name="French category name",
-        description="French category description",
+        description=dummy_editorjs("French category description."),
     )
 
 
@@ -3073,7 +3078,7 @@ def page_translation_fr(page):
         language_code="fr",
         page=page,
         title="French page title",
-        content="French page content",
+        content=dummy_editorjs("French page content."),
     )
 
 
@@ -3124,6 +3129,14 @@ def payment_dummy(db, order_with_lines):
         billing_country_area=order_with_lines.billing_address.country_area,
         billing_email=order_with_lines.user_email,
     )
+
+
+@pytest.fixture
+def payment_dummy_fully_charged(payment_dummy):
+    payment_dummy.captured_amount = payment_dummy.total
+    payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_dummy.save()
+    return payment_dummy
 
 
 @pytest.fixture
@@ -3215,7 +3228,9 @@ def description_json():
         "blocks": [
             {
                 "key": "",
-                "data": {},
+                "data": {
+                    "text": "E-commerce for the PWA era",
+                },
                 "text": "E-commerce for the PWA era",
                 "type": "header-two",
                 "depth": 0,
@@ -3224,7 +3239,12 @@ def description_json():
             },
             {
                 "key": "",
-                "data": {},
+                "data": {
+                    "text": (
+                        "A modular, high performance e-commerce storefront "
+                        "built with GraphQL, Django, and ReactJS."
+                    )
+                },
                 "text": (
                     "A modular, high performance e-commerce storefront "
                     "built with GraphQL, Django, and ReactJS."
@@ -3245,7 +3265,17 @@ def description_json():
             },
             {
                 "key": "",
-                "data": {},
+                "data": {
+                    "text": (
+                        "Saleor is a rapidly-growing open source e-commerce platform "
+                        "that has served high-volume companies from branches "
+                        "like publishing and apparel since 2012. Based on Python "
+                        "and Django, the latest major update introduces a modular "
+                        "front end with a GraphQL API and storefront and dashboard "
+                        "written in React to make Saleor a full-functionality "
+                        "open source e-commerce."
+                    ),
+                },
                 "text": (
                     "Saleor is a rapidly-growing open source e-commerce platform "
                     "that has served high-volume companies from branches "
@@ -3262,7 +3292,7 @@ def description_json():
             },
             {
                 "key": "",
-                "data": {},
+                "data": {"text": ""},
                 "text": "",
                 "type": "unstyled",
                 "depth": 0,
@@ -3271,7 +3301,9 @@ def description_json():
             },
             {
                 "key": "",
-                "data": {},
+                "data": {
+                    "text": "Get Saleor today!",
+                },
                 "text": "Get Saleor today!",
                 "type": "unstyled",
                 "depth": 0,
@@ -3295,7 +3327,9 @@ def other_description_json():
         "blocks": [
             {
                 "key": "",
-                "data": {},
+                "data": {
+                    "text": "A GRAPHQL-FIRST ECOMMERCE PLATFORM FOR PERFECTIONISTS",
+                },
                 "text": "A GRAPHQL-FIRST ECOMMERCE PLATFORM FOR PERFECTIONISTS",
                 "type": "header-two",
                 "depth": 0,
@@ -3304,7 +3338,12 @@ def other_description_json():
             },
             {
                 "key": "",
-                "data": {},
+                "data": {
+                    "text": (
+                        "Saleor is powered by a GraphQL server running on "
+                        "top of Python 3 and a Django 2 framework."
+                    ),
+                },
                 "text": (
                     "Saleor is powered by a GraphQL server running on "
                     "top of Python 3 and a Django 2 framework."

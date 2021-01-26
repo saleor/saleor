@@ -7,7 +7,7 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound
 from django.utils.module_loading import import_string
 from django_countries.fields import Country
-from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
+from prices import Money, TaxedMoney
 
 from ..checkout import base_calculations
 from ..core.payments import PaymentInterface
@@ -359,19 +359,6 @@ class PluginsManager(PaymentInterface):
                 "apply_taxes_to_shipping", default_value, price, shipping_address
             ),
             price.currency,
-        )
-
-    def apply_taxes_to_shipping_price_range(self, prices: MoneyRange, country: Country):
-        start = TaxedMoney(net=prices.start, gross=prices.start)
-        stop = TaxedMoney(net=prices.stop, gross=prices.stop)
-        default_value = quantize_price(
-            TaxedMoneyRange(start=start, stop=stop), start.currency
-        )
-        return quantize_price(
-            self.__run_method_on_plugins(
-                "apply_taxes_to_shipping_price_range", default_value, prices, country
-            ),
-            start.currency,
         )
 
     def preprocess_order_creation(

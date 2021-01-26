@@ -4,34 +4,41 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Breaking
+- Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
+- Drop deprecated meta mutations - #6422 by @maarcingebala
+- Drop deprecated service accounts and webhooks API - #6431 by @maarcingebala
+- Drop deprecated fields from the `ProductVariant` type: `quantity`, `quantityAllocated`, `stockQuantity`, `isAvailable` - #6436 by @maarcingebala
+- Drop authorization keys API - #6631 by @maarcingebala
+- Drop `type` field from `AttributeValue` type - #6710 by @IKarbowiak
+- Drop `apply_taxes_to_shipping_price_range` plugin hook - #6746 by @maarcingebala
+
+### Other
+
 - Add possibility to provide external payment ID during the conversion draft order to order - #6320 by @korycins
 - Add basic rating for `Products` - #6284 by @korycins
 - Add metadata to shipping zones and shipping methods - #6340 by @maarcingebala
-- Drop deprecated meta mutations - #6422 by @maarcingebala
 - Add Page Types - #6261 by @IKarbowiak
 - Migrate draftjs content to editorjs format - #6430 by @IKarbowiak
-- Drop deprecated service accounts and webhooks API - #6431 by @maarcingebala
 - Add editorjs sanitizer - #6456 by @IKarbowiak
 - Add generic FileUpload mutation - #6470 by @IKarbowiak
 - Order confirmation backend - #6498 by @tomaszszymanski129
-- Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
 - Fix password reset request - #6351 by @Manfred-Madelaine-pro, Ambroise and Pierre
 - Refund products support - #6530 by @korycins
 - Add possibility to exclude products from shipping method - #6506 by @korycins
 - Add availableShippingMethods to the Shop type - #6551 by @IKarbowiak
 - Add delivery time to shipping method - #6564 by @IKarbowiak
-- Drop deprecated fields from the `ProductVariant` type: `quantity`, `quantityAllocated`, `stockQuantity`, `isAvailable` - #6436 by @maarcingebala
 - Introduce file attributes - #6568 by @IKarbowiak
-- Drop authorization keys API - #6631 by @maarcingebala
 - Shipping zone description - #6653 by @tomaszszymanski129
 - Add metadata to menu and menu item - #6648 by @tomaszszymanski129
 - Get tax rate from plugins - #6649 by @IKarbowiak
 - Added support for querying user by email - #6632 @LeOndaz
 - Add order shipping tax rate - #6678 by @IKarbowiak
+- Deprecate field `descriptionJSON` from `Product`, `Category`, `Collection` and field `contentJSON` from `Page` - #6692 by @d-wysocki
 - Fix products visibility - #6704 by @IKarbowiak
 - Introduce page reference attributes - #6624 by @IKarbowiak
 - Introduce product reference attributes - #6711 by @IKarbowiak
-- Drop `type` field from `AttributeValue` type - #6710 by @IKarbowiak
+- Add metadata to warehouse - #6727 by @d-wysocki
 
 # 2.11.1
 

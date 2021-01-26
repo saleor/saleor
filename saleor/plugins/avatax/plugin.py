@@ -4,6 +4,8 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 from urllib.parse import urljoin
 
+import opentracing
+import opentracing.tags
 from django.core.exceptions import ValidationError
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
@@ -299,7 +301,13 @@ class AvataxPlugin(BasePlugin):
         transaction_url = urljoin(
             get_api_url(self.config.use_sandbox), "transactions/createoradjust"
         )
-        response = api_post_request(transaction_url, data, self.config)
+        with opentracing.global_tracer().start_active_span(
+            "avatax.transactions.crateoradjust"
+        ) as scope:
+            span = scope.span
+            span.set_tag(opentracing.tags.COMPONENT, "tax")
+            span.set_tag("service.name", "avatax")
+            response = api_post_request(transaction_url, data, self.config)
         if not response or "error" in response:
             msg = response.get("error", {}).get("message", "")
             error_code = response.get("error", {}).get("code", "")
@@ -596,11 +604,17 @@ class AvataxPlugin(BasePlugin):
             data["name"]: data["value"] for data in plugin_configuration.configuration
         }
         url = urljoin(get_api_url(conf["Use sandbox"]), "utilities/ping")
-        response = api_get_request(
-            url,
-            username_or_account=conf["Username or account"],
-            password_or_license=conf["Password or license"],
-        )
+        with opentracing.global_tracer().start_active_span(
+            "avatax.utilities.ping"
+        ) as scope:
+            span = scope.span
+            span.set_tag(opentracing.tags.COMPONENT, "tax")
+            span.set_tag("service.name", "avatax")
+            response = api_get_request(
+                url,
+                username_or_account=conf["Username or account"],
+                password_or_license=conf["Password or license"],
+            )
 
         if not response.get("authenticated"):
             raise ValidationError(

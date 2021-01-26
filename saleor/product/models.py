@@ -4,8 +4,9 @@ from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.postgres.aggregates import StringAgg
+from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.search import SearchVectorField
 from django.db import models
-from django.db.models import JSONField  # type: ignore
 from django.db.models import (
     BooleanField,
     Case,
@@ -18,6 +19,7 @@ from django.db.models import (
     Q,
     Subquery,
     Sum,
+    TextField,
     Value,
     When,
 )
@@ -36,10 +38,10 @@ from ..channel.models import Channel
 from ..core.db.fields import SanitizedJSONField
 from ..core.models import ModelWithMetadata, PublishableModel, SortableModel
 from ..core.permissions import ProductPermissions, ProductTypePermissions
-from ..core.sanitizers.editorjs_sanitizer import clean_editor_js
 from ..core.units import WeightUnits
 from ..core.utils import build_absolute_uri
 from ..core.utils.draftjs import json_content_to_raw_text
+from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.translations import TranslationProxy
 from ..core.weight import zero_weight
 from ..discount import DiscountInfo
@@ -58,8 +60,7 @@ if TYPE_CHECKING:
 class Category(MPTTModel, ModelWithMetadata, SeoModel):
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
-    description = models.TextField(blank=True)
-    description_json = SanitizedJSONField(
+    description = SanitizedJSONField(
         blank=True, default=dict, sanitizer=clean_editor_js
     )
     parent = models.ForeignKey(
@@ -84,8 +85,7 @@ class CategoryTranslation(SeoModelTranslation):
         Category, related_name="translations", on_delete=models.CASCADE
     )
     name = models.CharField(max_length=128)
-    description = models.TextField(blank=True)
-    description_json = SanitizedJSONField(
+    description = SanitizedJSONField(
         blank=True, default=dict, sanitizer=clean_editor_js
     )
 
@@ -311,10 +311,12 @@ class Product(SeoModel, ModelWithMetadata):
     )
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
-    description = models.TextField(blank=True)
-    description_json = SanitizedJSONField(
+    description = SanitizedJSONField(
         blank=True, default=dict, sanitizer=clean_editor_js
     )
+    description_plaintext = TextField(blank=True, default="")
+    search_vector = SearchVectorField(null=True, blank=True)
+
     category = models.ForeignKey(
         Category,
         related_name="products",
@@ -348,6 +350,7 @@ class Product(SeoModel, ModelWithMetadata):
         permissions = (
             (ProductPermissions.MANAGE_PRODUCTS.codename, "Manage products."),
         )
+        indexes = [GinIndex(fields=["search_vector"])]
 
     def __iter__(self):
         if not hasattr(self, "__variants"):
@@ -368,7 +371,7 @@ class Product(SeoModel, ModelWithMetadata):
 
     @property
     def plain_text_description(self) -> str:
-        return json_content_to_raw_text(self.description_json)
+        return json_content_to_raw_text(self.description)
 
     def get_first_image(self):
         images = list(self.images.all())
@@ -385,8 +388,7 @@ class ProductTranslation(SeoModelTranslation):
         Product, related_name="translations", on_delete=models.CASCADE
     )
     name = models.CharField(max_length=250)
-    description = models.TextField(blank=True)
-    description_json = SanitizedJSONField(
+    description = SanitizedJSONField(
         blank=True, default=dict, sanitizer=clean_editor_js
     )
 
@@ -707,8 +709,7 @@ class Collection(SeoModel, ModelWithMetadata):
         upload_to="collection-backgrounds", blank=True, null=True
     )
     background_image_alt = models.CharField(max_length=128, blank=True)
-    description = models.TextField(blank=True)
-    description_json = SanitizedJSONField(
+    description = SanitizedJSONField(
         blank=True, default=dict, sanitizer=clean_editor_js
     )
 
@@ -750,8 +751,7 @@ class CollectionTranslation(SeoModelTranslation):
         Collection, related_name="translations", on_delete=models.CASCADE
     )
     name = models.CharField(max_length=128)
-    description = models.TextField(blank=True)
-    description_json = SanitizedJSONField(
+    description = SanitizedJSONField(
         blank=True, default=dict, sanitizer=clean_editor_js
     )
 

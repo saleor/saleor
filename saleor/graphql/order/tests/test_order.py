@@ -1,4 +1,5 @@
 import uuid
+from copy import deepcopy
 from datetime import date, timedelta
 from decimal import Decimal
 from unittest.mock import ANY, MagicMock, Mock, call, patch
@@ -15,8 +16,9 @@ from ....core.taxes import TaxError, zero_taxed_money
 from ....order import OrderStatus
 from ....order import events as order_events
 from ....order.error_codes import OrderErrorCode
+from ....order.events import order_replacement_created
 from ....order.models import Order, OrderEvent
-from ....payment import ChargeStatus, CustomPaymentChoices, PaymentError
+from ....payment import ChargeStatus, PaymentError
 from ....payment.models import Payment
 from ....plugins.manager import PluginsManager
 from ....shipping.models import ShippingMethod
@@ -848,6 +850,48 @@ def test_nested_order_events_query(
     assert data["paymentId"] is None
     assert data["paymentGateway"] is None
     assert data["warehouse"]["name"] == warehouse.name
+
+
+def test_related_order_events_query(
+    staff_api_client, permission_manage_orders, order, payment_dummy, staff_user
+):
+    query = """
+        query OrdersQuery {
+            orders(first: 2) {
+                edges {
+                    node {
+                        id
+                        events {
+                            relatedOrder{
+                                id
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    """
+
+    new_order = deepcopy(order)
+    new_order.id = None
+    new_order.token = None
+    new_order.save()
+
+    related_order_id = graphene.Node.to_global_id("Order", new_order.id)
+
+    order_replacement_created(
+        original_order=order, replace_order=new_order, user=staff_user
+    )
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+
+    data = content["data"]["orders"]["edges"]
+    for order_data in data:
+        events_data = order_data["node"]["events"]
+        if order_data["node"]["id"] != related_order_id:
+            assert events_data[0]["relatedOrder"]["id"] == related_order_id
 
 
 def test_payment_information_order_events_query(
@@ -3352,12 +3396,10 @@ def test_try_payment_action_generates_event(order, staff_user, payment_dummy):
 
 def test_clean_order_refund_payment():
     payment = MagicMock(spec=Payment)
-    payment.gateway = CustomPaymentChoices.MANUAL
-    Mock(spec="string")
+    payment.can_refund.return_value = False
     with pytest.raises(ValidationError) as e:
         clean_refund_payment(payment)
-    msg = "Manual payments can not be refunded."
-    assert e.value.error_dict["payment"][0].message == msg
+    assert e.value.error_dict["payment"][0].code == OrderErrorCode.CANNOT_REFUND
 
 
 def test_clean_order_capture():
