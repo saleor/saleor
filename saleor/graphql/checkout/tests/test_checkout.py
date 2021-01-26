@@ -28,6 +28,7 @@ from ....payment.interface import GatewayResponse
 from ....plugins.manager import PluginsManager, get_plugins_manager
 from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
 from ....product.models import ProductChannelListing
+from ....reservation.models import Reservation
 from ....shipping import models as shipping_models
 from ....warehouse.models import Stock
 from ...tests.utils import assert_no_permission, get_graphql_content
@@ -1066,7 +1067,7 @@ def test_checkout_create_check_lines_expired_reservation_for_quantity(
     assert Checkout.objects.exists()
 
 
-def test_checkout_create_check_lines_user_reserved_quantity(
+def test_checkout_create_check_lines_client_reserved_quantity(
     user_api_client, variant_with_reserved_stock, graphql_address_data, channel_USD
 ):
     variant = variant_with_reserved_stock
@@ -1084,11 +1085,14 @@ def test_checkout_create_check_lines_user_reserved_quantity(
             "channel": channel_USD.slug,
         }
     }
+    assert not Checkout.objects.exists()
+    assert Reservation.objects.exists()
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutCreate"]
     assert not data["checkoutErrors"]
     assert Checkout.objects.exists()
+    assert not Reservation.objects.exists()
 
 
 def test_checkout_create_unavailable_for_purchase_product(
