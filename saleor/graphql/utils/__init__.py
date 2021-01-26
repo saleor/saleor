@@ -4,6 +4,7 @@ import graphene
 from django.conf import settings
 from django.db.models import Value
 from django.db.models.functions import Concat
+from django_countries.fields import Country
 from graphene_django.registry import get_global_registry
 from graphql.error import GraphQLError
 from graphql_relay import from_global_id
@@ -154,8 +155,11 @@ def get_user_country_context(
     set, fallback to the `DEFAULT_COUNTRY` setting.
     """
     if destination_address and destination_address.country:
-        return destination_address.country
+        if isinstance(destination_address, Country):
+            return destination_address.country.code
+        else:
+            return destination_address.country
     elif company_address and company_address.country:
-        return company_address.country.code
+        return company_address.country
     else:
         return settings.DEFAULT_COUNTRY

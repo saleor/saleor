@@ -214,6 +214,13 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         graphene.List(Stock),
         description="Stocks for the product variant.",
         address=destination_address_argument,
+        country_code=graphene.Argument(
+            CountryCodeEnum,
+            description=(
+                "DEPRECATED: use `address` argument instead. This argument will be "
+                "removed in Saleor 4.0. Two-letter ISO 3166-1 country code."
+            ),
+        ),
     )
     quantity_available = graphene.Int(
         required=True,
@@ -245,11 +252,17 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     @one_of_permissions_required(
         [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
     )
-    def resolve_stocks(root: ChannelContext[models.ProductVariant], info, address=None):
-        country_code = get_user_country_context(
-            address, info.context.site.settings.company_address
-        )
-        # todo: custom behavior with aggregation when country is not passed
+    def resolve_stocks(
+        root: ChannelContext[models.ProductVariant],
+        info,
+        address=None,
+        country_code=None,
+    ):
+        if address is not None:
+            country_code = get_user_country_context(
+                address, info.context.site.settings.company_address
+            )
+
         if not country_code:
             return root.node.stocks.annotate_available_quantity()
         return root.node.stocks.for_country(country_code).annotate_available_quantity()
@@ -608,7 +621,6 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         country_code = get_user_country_context(
             address, info.context.site.settings.company_address
         )
-
         context = info.context
         channel_slug = str(root.channel_slug)
         product_channel_listing = ProductChannelListingByProductIdAndChannelSlugLoader(
