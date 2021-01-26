@@ -151,4 +151,4 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         data = {"notify_event": event, "payload": payload}
-        trigger_webhooks_for_event.delay(WebhookEventType.NOTIFY, data)
+        trigger_webhooks_for_event.delay(WebhookEventType.NOTIFY_USER, data)

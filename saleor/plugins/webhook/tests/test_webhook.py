@@ -257,7 +257,7 @@ def test_invoice_sent(mocked_webhook_trigger, settings, fulfilled_order):
 
 @freeze_time("2020-03-18 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
-def test_notify(mocked_webhook_trigger, settings, customer_user):
+def test_notify_user(mocked_webhook_trigger, settings, customer_user):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
 
@@ -281,5 +281,5 @@ def test_notify(mocked_webhook_trigger, settings, customer_user):
         "payload": payload,
     }
     mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.NOTIFY, expected_data
+        WebhookEventType.NOTIFY_USER, expected_data
     )
