@@ -36,7 +36,11 @@ from ..product.types import ProductVariant
 from ..shipping.dataloaders import ShippingMethodByIdLoader
 from ..shipping.types import ShippingMethod
 from ..warehouse.types import Allocation, Warehouse
-from .dataloaders import AllocationsByOrderLineIdLoader, OrderLinesByOrderIdLoader
+from .dataloaders import (
+    AllocationsByOrderLineIdLoader,
+    OrderByIdLoader,
+    OrderLinesByOrderIdLoader,
+)
 from .enums import OrderEventsEmailsEnum, OrderEventsEnum
 from .utils import validate_draft_order
 
@@ -82,6 +86,9 @@ class OrderEvent(CountableDjangoObjectType):
     )
     shipping_costs_included = graphene.Boolean(
         description="Define if shipping costs were included to the refund."
+    )
+    related_order = graphene.Field(
+        lambda: Order, description="The order which is related to this order."
     )
 
     class Meta:
@@ -194,6 +201,13 @@ class OrderEvent(CountableDjangoObjectType):
     def resolve_shipping_costs_included(root: models.OrderEvent, _info):
         return root.parameters.get("shipping_costs_included")
 
+    @staticmethod
+    def resolve_related_order(root: models.OrderEvent, info):
+        order_pk = root.parameters.get("related_order_pk")
+        if not order_pk:
+            return None
+        return OrderByIdLoader(info.context).load(order_pk)
+
 
 class FulfillmentLine(CountableDjangoObjectType):
     order_line = graphene.Field(lambda: OrderLine)
@@ -253,11 +267,12 @@ class OrderLine(CountableDjangoObjectType):
         size=graphene.Argument(graphene.Int, description="Size of thumbnail."),
     )
     unit_price = graphene.Field(
-        TaxedMoney, description="Price of the single item in the order line."
+        TaxedMoney,
+        description="Price of the single item in the order line.",
+        required=True,
     )
     total_price = graphene.Field(
-        TaxedMoney,
-        description="Price of the order line.",
+        TaxedMoney, description="Price of the order line.", required=True
     )
     variant = graphene.Field(
         ProductVariant,
@@ -382,16 +397,26 @@ class Order(CountableDjangoObjectType):
         Invoice, required=False, description="List of order invoices."
     )
     number = graphene.String(description="User-friendly number of an order.")
-    is_paid = graphene.Boolean(description="Informs if an order is fully paid.")
-    payment_status = PaymentChargeStatusEnum(description="Internal payment status.")
+    is_paid = graphene.Boolean(
+        description="Informs if an order is fully paid.", required=True
+    )
+    payment_status = PaymentChargeStatusEnum(
+        description="Internal payment status.", required=True
+    )
     payment_status_display = graphene.String(
-        description="User-friendly payment status."
+        description="User-friendly payment status.", required=True
     )
     payments = graphene.List(Payment, description="List of payments for the order.")
-    total = graphene.Field(TaxedMoney, description="Total amount of the order.")
-    shipping_price = graphene.Field(TaxedMoney, description="Total price of shipping.")
+    total = graphene.Field(
+        TaxedMoney, description="Total amount of the order.", required=True
+    )
+    shipping_price = graphene.Field(
+        TaxedMoney, description="Total price of shipping.", required=True
+    )
     subtotal = graphene.Field(
-        TaxedMoney, description="The sum of line prices not including shipping."
+        TaxedMoney,
+        description="The sum of line prices not including shipping.",
+        required=True,
     )
     gift_cards = graphene.List(GiftCard, description="List of user gift cards.")
     status_display = graphene.String(description="User-friendly order status.")
@@ -403,9 +428,11 @@ class Order(CountableDjangoObjectType):
         required=True,
     )
     total_authorized = graphene.Field(
-        Money, description="Amount authorized for the order."
+        Money, description="Amount authorized for the order.", required=True
     )
-    total_captured = graphene.Field(Money, description="Amount captured by payment.")
+    total_captured = graphene.Field(
+        Money, description="Amount captured by payment.", required=True
+    )
     events = graphene.List(
         OrderEvent, description="List of events associated with the order."
     )

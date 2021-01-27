@@ -1,0 +1,698 @@
+from decimal import Decimal
+from unittest.mock import patch
+
+import graphene
+from prices import Money, TaxedMoney
+
+from ....core.prices import quantize_price
+from ....order import OrderStatus
+from ....order.error_codes import OrderErrorCode
+from ....order.models import FulfillmentStatus, Order
+from ....payment import ChargeStatus
+from ....warehouse.models import Stock
+from ...tests.utils import get_graphql_content
+
+ORDER_FULFILL_RETURN_MUTATION = """
+mutation OrderFulfillmentReturnProducts(
+    $order: ID!, $input: OrderReturnProductsInput!
+) {
+    orderFulfillmentReturnProducts(
+        order: $order,
+        input: $input
+    ) {
+        returnFulfillment{
+            id
+            status
+            lines{
+                id
+                quantity
+                orderLine{
+                    id
+                }
+            }
+        }
+        replaceFulfillment{
+            id
+            status
+            lines{
+                id
+                quantity
+                orderLine{
+                    id
+                }
+            }
+        }
+        order{
+            id
+            status
+        }
+        replaceOrder{
+            id
+            status
+        }
+        orderErrors {
+            field
+            code
+            message
+            warehouse
+            orderLine
+        }
+    }
+}
+"""
+
+
+def test_fulfillment_return_products_order_without_payment(
+    staff_api_client, permission_manage_orders, fulfilled_order
+):
+    order_id = graphene.Node.to_global_id("Order", fulfilled_order.pk)
+    variables = {
+        "order": order_id,
+        "input": {"refund": True, "amountToRefund": "11.00"},
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDER_FULFILL_RETURN_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfillmentReturnProducts"]
+    fulfillment = data["returnFulfillment"]
+    errors = data["orderErrors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "order"
+    assert errors[0]["code"] == OrderErrorCode.CANNOT_REFUND.name
+    assert fulfillment is None
+
+
+@patch("saleor.order.actions.gateway.refund")
+def test_fulfillment_return_products_amount_and_shipping_costs(
+    mocked_refund,
+    staff_api_client,
+    permission_manage_orders,
+    fulfilled_order,
+    payment_dummy,
+):
+    payment_dummy.captured_amount = payment_dummy.total
+    payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_dummy.save()
+    fulfilled_order.payments.add(payment_dummy)
+    order_id = graphene.Node.to_global_id("Order", fulfilled_order.pk)
+    amount_to_refund = Decimal("11.00")
+    variables = {
+        "order": order_id,
+        "input": {
+            "refund": True,
+            "amountToRefund": amount_to_refund,
+            "includeShippingCosts": True,
+        },
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.post_graphql(ORDER_FULFILL_RETURN_MUTATION, variables)
+
+    mocked_refund.assert_called_with(
+        payment_dummy, quantize_price(amount_to_refund, fulfilled_order.currency)
+    )
+
+
+@patch("saleor.order.actions.gateway.refund")
+def test_fulfillment_return_products_order_lines(
+    mocked_refund,
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
+    payment_dummy,
+):
+    payment_dummy.total = order_with_lines.total_gross_amount
+    payment_dummy.captured_amount = payment_dummy.total
+    payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_dummy.save()
+    order_with_lines.payments.add(payment_dummy)
+    line_to_return = order_with_lines.lines.first()
+    line_unfulfilled_quantity = line_to_return.quantity_unfulfilled
+    line_quantity_to_return = 2
+
+    line_to_replace = order_with_lines.lines.last()
+    line_quantity_to_replace = 1
+
+    order_id = graphene.Node.to_global_id("Order", order_with_lines.pk)
+    line_id = graphene.Node.to_global_id("OrderLine", line_to_return.pk)
+    replace_line_id = graphene.Node.to_global_id("OrderLine", line_to_replace.pk)
+
+    variables = {
+        "order": order_id,
+        "input": {
+            "refund": True,
+            "includeShippingCosts": True,
+            "orderLines": [
+                {
+                    "orderLineId": line_id,
+                    "quantity": line_quantity_to_return,
+                    "replace": False,
+                },
+                {
+                    "orderLineId": replace_line_id,
+                    "quantity": line_quantity_to_replace,
+                    "replace": True,
+                },
+            ],
+        },
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDER_FULFILL_RETURN_MUTATION, variables)
+
+    order_with_lines.refresh_from_db()
+    order_return_fulfillment = order_with_lines.fulfillments.get(
+        status=FulfillmentStatus.REFUNDED_AND_RETURNED
+    )
+    return_fulfillment_line = order_return_fulfillment.lines.filter(
+        order_line_id=line_to_return.pk
+    ).first()
+    assert return_fulfillment_line
+    assert return_fulfillment_line.quantity == line_quantity_to_return
+
+    order_replace_fulfillment = order_with_lines.fulfillments.get(
+        status=FulfillmentStatus.REPLACED
+    )
+    replace_fulfillment_line = order_replace_fulfillment.lines.filter(
+        order_line_id=line_to_replace.pk
+    ).first()
+    assert replace_fulfillment_line
+    assert replace_fulfillment_line.quantity == line_quantity_to_replace
+
+    line_to_return.refresh_from_db()
+    assert (
+        line_to_return.quantity_unfulfilled
+        == line_unfulfilled_quantity - line_quantity_to_return
+    )
+
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfillmentReturnProducts"]
+    return_fulfillment = data["returnFulfillment"]
+    replace_fulfillment = data["replaceFulfillment"]
+    replace_order = data["replaceOrder"]
+    errors = data["orderErrors"]
+
+    assert not errors
+    assert (
+        return_fulfillment["status"] == FulfillmentStatus.REFUNDED_AND_RETURNED.upper()
+    )
+    assert len(return_fulfillment["lines"]) == 1
+    assert return_fulfillment["lines"][0]["orderLine"]["id"] == line_id
+    assert return_fulfillment["lines"][0]["quantity"] == line_quantity_to_return
+
+    assert replace_fulfillment["status"] == FulfillmentStatus.REPLACED.upper()
+    assert len(replace_fulfillment["lines"]) == 1
+    assert replace_fulfillment["lines"][0]["orderLine"]["id"] == replace_line_id
+    assert replace_fulfillment["lines"][0]["quantity"] == line_quantity_to_replace
+
+    assert replace_order["status"] == OrderStatus.DRAFT.upper()
+    replace_order = Order.objects.get(status=OrderStatus.DRAFT)
+    assert replace_order.lines.count() == 1
+    replaced_line = replace_order.lines.get()
+    assert replaced_line.variant_id == line_to_replace.variant_id
+    assert (
+        replaced_line.unit_price_gross_amount == line_to_replace.unit_price_gross_amount
+    )
+    assert replaced_line.quantity == line_quantity_to_replace
+
+    amount = line_to_return.unit_price_gross_amount * line_quantity_to_return
+    amount += order_with_lines.shipping_price_gross_amount
+    mocked_refund.assert_called_with(payment_dummy, amount)
+
+
+def test_fulfillment_return_products_order_lines_quantity_bigger_than_total(
+    staff_api_client, permission_manage_orders, order_with_lines, payment_dummy
+):
+    payment_dummy.total = order_with_lines.total_gross_amount
+    payment_dummy.captured_amount = payment_dummy.total
+    payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_dummy.save()
+    order_with_lines.payments.add(payment_dummy)
+    line_to_refund = order_with_lines.lines.first()
+    order_id = graphene.Node.to_global_id("Order", order_with_lines.pk)
+    line_id = graphene.Node.to_global_id("OrderLine", line_to_refund.pk)
+    variables = {
+        "order": order_id,
+        "input": {
+            "orderLines": [{"orderLineId": line_id, "quantity": 200, "replace": False}]
+        },
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDER_FULFILL_RETURN_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfillmentReturnProducts"]
+    return_fulfillment = data["returnFulfillment"]
+    errors = data["orderErrors"]
+
+    assert len(errors) == 1
+    assert errors[0]["field"] == "orderLineId"
+    assert errors[0]["code"] == OrderErrorCode.INVALID_QUANTITY.name
+    assert return_fulfillment is None
+
+
+def test_fulfillment_return_products_order_lines_quantity_bigger_than_unfulfilled(
+    staff_api_client, permission_manage_orders, order_with_lines, payment_dummy
+):
+    payment_dummy.total = order_with_lines.total_gross_amount
+    payment_dummy.captured_amount = payment_dummy.total
+    payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_dummy.save()
+    order_with_lines.payments.add(payment_dummy)
+    line_to_return = order_with_lines.lines.first()
+    line_to_return.quantity = 3
+    line_to_return.quantity_fulfilled = 3
+    line_to_return.save()
+    order_id = graphene.Node.to_global_id("Order", order_with_lines.pk)
+    line_id = graphene.Node.to_global_id("OrderLine", line_to_return.pk)
+    variables = {
+        "order": order_id,
+        "input": {"orderLines": [{"orderLineId": line_id, "quantity": 1}]},
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDER_FULFILL_RETURN_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfillmentReturnProducts"]
+    return_fulfillment = data["returnFulfillment"]
+    errors = data["orderErrors"]
+
+    assert len(errors) == 1
+    assert errors[0]["field"] == "orderLineId"
+    assert errors[0]["code"] == OrderErrorCode.INVALID_QUANTITY.name
+    assert return_fulfillment is None
+
+
+@patch("saleor.order.actions.gateway.refund")
+def test_fulfillment_return_products_order_lines_custom_amount(
+    mocked_refund,
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
+    payment_dummy,
+):
+    payment_dummy.total = order_with_lines.total_gross_amount
+    payment_dummy.captured_amount = payment_dummy.total
+    payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_dummy.save()
+    order_with_lines.payments.add(payment_dummy)
+    amount_to_refund = Decimal("10.99")
+    line_to_return = order_with_lines.lines.first()
+    order_id = graphene.Node.to_global_id("Order", order_with_lines.pk)
+    line_id = graphene.Node.to_global_id("OrderLine", line_to_return.pk)
+    variables = {
+        "order": order_id,
+        "input": {
+            "refund": True,
+            "amountToRefund": amount_to_refund,
+            "orderLines": [{"orderLineId": line_id, "quantity": 2, "replace": False}],
+        },
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDER_FULFILL_RETURN_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfillmentReturnProducts"]
+    return_fulfillment = data["returnFulfillment"]
+    errors = data["orderErrors"]
+    assert not errors
+    assert (
+        return_fulfillment["status"] == FulfillmentStatus.REFUNDED_AND_RETURNED.upper()
+    )
+    assert len(return_fulfillment["lines"]) == 1
+    assert return_fulfillment["lines"][0]["orderLine"]["id"] == line_id
+    assert return_fulfillment["lines"][0]["quantity"] == 2
+    mocked_refund.assert_called_with(payment_dummy, amount_to_refund)
+
+
+@patch("saleor.order.actions.gateway.refund")
+def test_fulfillment_return_products_fulfillment_lines(
+    mocked_refund,
+    staff_api_client,
+    permission_manage_orders,
+    fulfilled_order,
+    payment_dummy,
+):
+    payment_dummy.total = fulfilled_order.total_gross_amount
+    payment_dummy.captured_amount = payment_dummy.total
+    payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_dummy.save()
+    fulfilled_order.payments.add(payment_dummy)
+    order_fulfillment = fulfilled_order.fulfillments.first()
+    fulfillment_line_to_return = order_fulfillment.lines.first()
+    original_fulfillment_line_quantity = fulfillment_line_to_return.quantity
+    quantity_to_return = 2
+
+    fulfillment_line_to_replace = order_fulfillment.lines.last()
+    quantity_to_replace = 1
+
+    order_id = graphene.Node.to_global_id("Order", fulfilled_order.pk)
+    fulfillment_line_id = graphene.Node.to_global_id(
+        "FulfillmentLine", fulfillment_line_to_return.pk
+    )
+    fulfillment_line_to_replace_id = graphene.Node.to_global_id(
+        "FulfillmentLine", fulfillment_line_to_replace.pk
+    )
+    order_line_id = graphene.Node.to_global_id(
+        "OrderLine", fulfillment_line_to_return.order_line.pk
+    )
+
+    variables = {
+        "order": order_id,
+        "input": {
+            "refund": True,
+            "includeShippingCosts": True,
+            "fulfillmentLines": [
+                {
+                    "fulfillmentLineId": fulfillment_line_id,
+                    "quantity": quantity_to_return,
+                    "replace": False,
+                },
+                {
+                    "fulfillmentLineId": fulfillment_line_to_replace_id,
+                    "quantity": quantity_to_replace,
+                    "replace": True,
+                },
+            ],
+        },
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDER_FULFILL_RETURN_MUTATION, variables)
+
+    fulfilled_order.refresh_from_db()
+    order_return_fulfillment = fulfilled_order.fulfillments.get(
+        status=FulfillmentStatus.REFUNDED_AND_RETURNED
+    )
+    return_fulfillment_line = order_return_fulfillment.lines.filter(
+        order_line_id=fulfillment_line_to_return.order_line_id
+    ).first()
+    assert return_fulfillment_line
+    assert return_fulfillment_line.quantity == quantity_to_return
+
+    order_replace_fulfillment = fulfilled_order.fulfillments.get(
+        status=FulfillmentStatus.REPLACED
+    )
+    replace_fulfillment_line = order_replace_fulfillment.lines.filter(
+        order_line_id=fulfillment_line_to_replace.order_line_id
+    ).first()
+    assert replace_fulfillment_line
+    assert replace_fulfillment_line.quantity == quantity_to_replace
+
+    fulfillment_line_to_return.refresh_from_db()
+    assert (
+        fulfillment_line_to_return.quantity
+        == original_fulfillment_line_quantity - quantity_to_return
+    )
+
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfillmentReturnProducts"]
+    errors = data["orderErrors"]
+    return_fulfillment = data["returnFulfillment"]
+    replace_fulfillment = data["replaceFulfillment"]
+    replace_order = data["replaceOrder"]
+
+    assert not errors
+    assert (
+        return_fulfillment["status"] == FulfillmentStatus.REFUNDED_AND_RETURNED.upper()
+    )
+    assert len(return_fulfillment["lines"]) == 1
+    assert return_fulfillment["lines"][0]["orderLine"]["id"] == order_line_id
+    assert return_fulfillment["lines"][0]["quantity"] == 2
+
+    assert replace_fulfillment["status"] == FulfillmentStatus.REPLACED.upper()
+    assert len(replace_fulfillment["lines"]) == 1
+    assert replace_fulfillment["lines"][0]["quantity"] == quantity_to_replace
+
+    assert replace_order["status"] == OrderStatus.DRAFT.upper()
+    replace_order = Order.objects.get(status=OrderStatus.DRAFT)
+    assert replace_order.lines.count() == 1
+    replaced_line = replace_order.lines.get()
+    assert replaced_line.variant_id == fulfillment_line_to_replace.order_line.variant_id
+    assert (
+        replaced_line.unit_price_gross_amount
+        == fulfillment_line_to_replace.order_line.unit_price_gross_amount
+    )
+    assert replaced_line.quantity == quantity_to_replace
+
+    amount = (
+        fulfillment_line_to_return.order_line.unit_price_gross_amount
+        * quantity_to_return
+    )
+    amount += fulfilled_order.shipping_price_gross_amount
+    mocked_refund.assert_called_with(payment_dummy, amount)
+
+
+def test_fulfillment_return_products_fulfillment_lines_quantity_bigger_than_total(
+    staff_api_client, permission_manage_orders, fulfilled_order, payment_dummy
+):
+    payment_dummy.total = fulfilled_order.total_gross_amount
+    payment_dummy.captured_amount = payment_dummy.total
+    payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_dummy.save()
+    fulfilled_order.payments.add(payment_dummy)
+    fulfillment_line_to_return = fulfilled_order.fulfillments.first().lines.first()
+    order_id = graphene.Node.to_global_id("Order", fulfilled_order.pk)
+    fulfillment_line_id = graphene.Node.to_global_id(
+        "FulfillmentLine", fulfillment_line_to_return.pk
+    )
+    variables = {
+        "order": order_id,
+        "input": {
+            "refund": True,
+            "fulfillmentLines": [
+                {"fulfillmentLineId": fulfillment_line_id, "quantity": 200}
+            ],
+        },
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDER_FULFILL_RETURN_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfillmentReturnProducts"]
+    return_fulfillment = data["returnFulfillment"]
+
+    errors = data["orderErrors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "fulfillmentLineId"
+    assert errors[0]["code"] == OrderErrorCode.INVALID_QUANTITY.name
+    assert return_fulfillment is None
+
+
+def test_fulfillment_return_products_amount_bigger_than_captured_amount(
+    staff_api_client, permission_manage_orders, fulfilled_order, payment_dummy
+):
+    payment_dummy.total = fulfilled_order.total_gross_amount
+    payment_dummy.captured_amount = payment_dummy.total
+    payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_dummy.save()
+    fulfilled_order.payments.add(payment_dummy)
+    fulfillment_line_to_return = fulfilled_order.fulfillments.first().lines.first()
+    order_id = graphene.Node.to_global_id("Order", fulfilled_order.pk)
+    fulfillment_line_id = graphene.Node.to_global_id(
+        "FulfillmentLine", fulfillment_line_to_return.pk
+    )
+    variables = {
+        "order": order_id,
+        "input": {
+            "refund": True,
+            "amountToRefund": "1000.00",
+            "fulfillmentLines": [
+                {"fulfillmentLineId": fulfillment_line_id, "quantity": 2}
+            ],
+        },
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDER_FULFILL_RETURN_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfillmentReturnProducts"]
+    return_fulfillment = data["returnFulfillment"]
+
+    errors = data["orderErrors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "amountToRefund"
+    assert errors[0]["code"] == OrderErrorCode.CANNOT_REFUND.name
+    assert return_fulfillment is None
+
+
+def test_fulfillment_return_products_lines_with_incorrect_status(
+    staff_api_client, permission_manage_orders, fulfilled_order, payment_dummy
+):
+    payment_dummy.total = fulfilled_order.total_gross_amount
+    payment_dummy.captured_amount = payment_dummy.total
+    payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_dummy.save()
+    fulfilled_order.payments.add(payment_dummy)
+    fulfillment = fulfilled_order.fulfillments.first()
+    fulfillment.status = FulfillmentStatus.RETURNED
+    fulfillment.save()
+    fulfillment_line_to_return = fulfilled_order.fulfillments.first().lines.first()
+    order_id = graphene.Node.to_global_id("Order", fulfilled_order.pk)
+    fulfillment_line_id = graphene.Node.to_global_id(
+        "FulfillmentLine", fulfillment_line_to_return.pk
+    )
+    variables = {
+        "order": order_id,
+        "input": {
+            "refund": True,
+            "amountToRefund": "1000.00",
+            "fulfillmentLines": [
+                {"fulfillmentLineId": fulfillment_line_id, "quantity": 2}
+            ],
+        },
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDER_FULFILL_RETURN_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfillmentReturnProducts"]
+    return_fulfillment = data["returnFulfillment"]
+
+    errors = data["orderErrors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "amountToRefund"
+    assert errors[0]["code"] == OrderErrorCode.CANNOT_REFUND.name
+    assert return_fulfillment is None
+
+
+@patch("saleor.order.actions.gateway.refund")
+def test_fulfillment_return_products_fulfillment_lines_include_shipping_costs(
+    mocked_refund,
+    staff_api_client,
+    permission_manage_orders,
+    fulfilled_order,
+    payment_dummy,
+):
+    payment_dummy.total = fulfilled_order.total_gross_amount
+    payment_dummy.captured_amount = payment_dummy.total
+    payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_dummy.save()
+    fulfilled_order.payments.add(payment_dummy)
+    fulfillment_line_to_return = fulfilled_order.fulfillments.first().lines.first()
+    order_id = graphene.Node.to_global_id("Order", fulfilled_order.pk)
+    fulfillment_line_id = graphene.Node.to_global_id(
+        "FulfillmentLine", fulfillment_line_to_return.pk
+    )
+    order_line_id = graphene.Node.to_global_id(
+        "OrderLine", fulfillment_line_to_return.order_line.pk
+    )
+    variables = {
+        "order": order_id,
+        "input": {
+            "refund": True,
+            "includeShippingCosts": True,
+            "fulfillmentLines": [
+                {"fulfillmentLineId": fulfillment_line_id, "quantity": 2}
+            ],
+        },
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDER_FULFILL_RETURN_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfillmentReturnProducts"]
+    return_fulfillment = data["returnFulfillment"]
+    errors = data["orderErrors"]
+
+    assert not errors
+    assert (
+        return_fulfillment["status"] == FulfillmentStatus.REFUNDED_AND_RETURNED.upper()
+    )
+    assert len(return_fulfillment["lines"]) == 1
+    assert return_fulfillment["lines"][0]["orderLine"]["id"] == order_line_id
+    assert return_fulfillment["lines"][0]["quantity"] == 2
+    amount = fulfillment_line_to_return.order_line.unit_price_gross_amount * 2
+    amount += fulfilled_order.shipping_price_gross_amount
+    mocked_refund.assert_called_with(payment_dummy, amount)
+
+
+@patch("saleor.order.actions.gateway.refund")
+def test_fulfillment_return_products_fulfillment_lines_and_order_lines(
+    mocked_refund,
+    warehouse,
+    variant,
+    channel_USD,
+    staff_api_client,
+    permission_manage_orders,
+    fulfilled_order,
+    payment_dummy,
+):
+    payment_dummy.total = fulfilled_order.total_gross_amount
+    payment_dummy.captured_amount = payment_dummy.total
+    payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_dummy.save()
+    fulfilled_order.payments.add(payment_dummy)
+    stock = Stock.objects.create(
+        warehouse=warehouse, product_variant=variant, quantity=5
+    )
+    channel_listing = variant.channel_listings.get()
+    net = variant.get_price(variant.product, [], channel_USD, channel_listing)
+    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    variant.track_inventory = False
+    variant.save()
+    unit_price = TaxedMoney(net=net, gross=gross)
+    quantity = 5
+    order_line = fulfilled_order.lines.create(
+        product_name=str(variant.product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        quantity=quantity,
+        quantity_fulfilled=2,
+        variant=variant,
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
+        tax_rate=Decimal("0.23"),
+    )
+    fulfillment = fulfilled_order.fulfillments.get()
+    fulfillment.lines.create(order_line=order_line, quantity=2, stock=stock)
+    fulfillment_line_to_replace = fulfilled_order.fulfillments.first().lines.first()
+    order_id = graphene.Node.to_global_id("Order", fulfilled_order.pk)
+    fulfillment_line_id = graphene.Node.to_global_id(
+        "FulfillmentLine", fulfillment_line_to_replace.pk
+    )
+    order_line_id = graphene.Node.to_global_id("OrderLine", order_line.pk)
+    variables = {
+        "order": order_id,
+        "input": {
+            "refund": True,
+            "orderLines": [
+                {"orderLineId": order_line_id, "quantity": 2, "replace": False}
+            ],
+            "fulfillmentLines": [
+                {
+                    "fulfillmentLineId": fulfillment_line_id,
+                    "quantity": 1,
+                    "replace": True,
+                }
+            ],
+        },
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    response = staff_api_client.post_graphql(ORDER_FULFILL_RETURN_MUTATION, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfillmentReturnProducts"]
+    errors = data["orderErrors"]
+    return_fulfillment = data["returnFulfillment"]
+    replace_fulfillment = data["replaceFulfillment"]
+    replace_order = data["replaceOrder"]
+
+    assert not errors
+    assert (
+        return_fulfillment["status"] == FulfillmentStatus.REFUNDED_AND_RETURNED.upper()
+    )
+    assert len(return_fulfillment["lines"]) == 1
+    assert return_fulfillment["lines"][0]["orderLine"]["id"] == order_line_id
+    assert return_fulfillment["lines"][0]["quantity"] == 2
+
+    assert replace_fulfillment["status"] == FulfillmentStatus.REPLACED.upper()
+    assert len(replace_fulfillment["lines"]) == 1
+    assert replace_fulfillment["lines"][0]["quantity"] == 1
+
+    assert replace_order["status"] == OrderStatus.DRAFT.upper()
+    replace_order = Order.objects.get(status=OrderStatus.DRAFT)
+    assert replace_order.lines.count() == 1
+    replaced_line = replace_order.lines.get()
+    assert replaced_line.variant_id == fulfillment_line_to_replace.order_line.variant_id
+    assert (
+        replaced_line.unit_price_gross_amount
+        == fulfillment_line_to_replace.order_line.unit_price_gross_amount
+    )
+    assert replaced_line.quantity == 1
+
+    amount = order_line.unit_price_gross_amount * 2
+    amount = quantize_price(amount, fulfilled_order.currency)
+    mocked_refund.assert_called_with(payment_dummy, amount)

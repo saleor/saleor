@@ -5,6 +5,7 @@ from graphene.utils.str_converters import to_camel_case
 
 from .....attribute.models import Attribute
 from .....product.models import Category, Collection, Product, ProductType
+from .....tests.utils import dummy_editorjs
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 
@@ -471,7 +472,7 @@ def test_attributes_in_collection_query(
     other_collection = Collection.objects.create(
         name="Other Collection",
         slug="other-collection",
-        description="Description",
+        description=dummy_editorjs("Test description"),
     )
     other_collection.products.add(other_product)
 
