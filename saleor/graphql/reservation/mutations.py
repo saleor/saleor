@@ -81,7 +81,18 @@ def reserve_stock_for_user(
 
     shipping_zone = ShippingZone.objects.filter(
         countries__contains=country_code
-    ).values("pk")
+    ).first()
+
+    if not shipping_zone:
+        raise ValidationError(
+            {
+                "country_code": ValidationError(
+                    "Cannot reserve stock for %d country code."
+                    "" % country_code,
+                    code=ReservationErrorCode.INVALID_COUNTRY_CODE,
+                )
+            }
+        )
 
     if reservation:
         reservation.shipping_zone = shipping_zone
@@ -100,18 +111,22 @@ def reserve_stock_for_user(
     return reservation
 
 
-class ReserveStock(BaseMutation):
+class ReservationCreateInput(graphene.InputObjectType):
+    country_code = CountryCodeEnum(description="Country code.", required=True)
+    quantity = graphene.Int(
+        required=True, description="The number of items to reserve."
+    )
+    variant_id = graphene.ID(required=True, description="ID of the product variant.")
+
+
+class ReservationCreate(BaseMutation):
     reservation = graphene.Field(
         Reservation, description="An reservation instance that was created or updated."
     )
 
     class Arguments:
-        country_code = CountryCodeEnum(description="Country code.", required=True)
-        quantity = graphene.Int(
-            required=True, description="The number of items to reserve."
-        )
-        variant_id = graphene.ID(
-            required=True, description="ID of the product variant."
+        input = ReservationCreateInput(
+            required=True, description="Fields required to create reservation."
         )
 
     class Meta:
@@ -125,15 +140,22 @@ class ReserveStock(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
+        input_data = data["input"]
         product_variant = cls.get_node_or_error(
-            info, data["variant_id"], ProductVariant
+            info, input_data["variant_id"], ProductVariant
         )
         check_reservation_quantity(
-            info.context.user, product_variant, data["country_code"], data["quantity"]
+            info.context.user,
+            product_variant,
+            input_data["country_code"],
+            input_data["quantity"],
         )
 
         reservation = reserve_stock_for_user(
-            info.context.user, data["country_code"], data["quantity"], product_variant
+            info.context.user,
+            input_data["country_code"],
+            input_data["quantity"],
+            product_variant,
         )
 
-        return ReserveStock(reservation=reservation)
+        return ReservationCreate(reservation=reservation)
