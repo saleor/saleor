@@ -3,8 +3,10 @@ from typing import Optional
 
 
 @dataclass
-class SengridConfiguration:
+class SendgridConfiguration:
     api_key: Optional[str]
+    sender_name: Optional[str]
+    sender_address: Optional[str]
     account_confirmation_template_id: Optional[str]
     account_set_customer_password_template_id: Optional[str]
     account_delete_template_id: Optional[str]
