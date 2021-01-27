@@ -2607,8 +2607,6 @@ type Mutation {
   shopAddressUpdate(input: AddressInput): ShopAddressUpdate
   orderSettingsUpdate(input: OrderSettingsUpdateInput!): OrderSettingsUpdate
   shippingMethodChannelListingUpdate(id: ID!, input: ShippingMethodChannelListingInput!): ShippingMethodChannelListingUpdate
-  shippingMethodPostalCodeRulesCreate(input: ShippingPostalCodeRulesCreateInput!, shippingMethodId: ID!): ShippingPostalCodeRulesCreate
-  shippingMethodPostalCodeRulesDelete(id: ID!): ShippingPostalCodeRulesDelete
   shippingPriceCreate(input: ShippingPriceInput!): ShippingPriceCreate
   shippingPriceDelete(id: ID!): ShippingPriceDelete
   shippingPriceBulkDelete(ids: [ID]!): ShippingPriceBulkDelete
@@ -4806,28 +4804,9 @@ enum ShippingMethodTypeEnum {
   WEIGHT
 }
 
-type ShippingPostalCodeRulesCreate {
-  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  postalCodeRules: [ShippingMethodPostalCodeRule]
-  shippingMethod: ShippingMethod
-  shippingErrors: [ShippingError!]!
-}
-
-input ShippingPostalCodeRulesCreateInput {
-  postalCodeRules: [ShippingPostalCodeRulesCreateInputRange]!
-}
-
 input ShippingPostalCodeRulesCreateInputRange {
   start: String!
   end: String
-  inclusionType: PostalCodeRuleInclusionTypeEnum
-}
-
-type ShippingPostalCodeRulesDelete {
-  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  shippingMethod: ShippingMethod
-  shippingErrors: [ShippingError!]!
-  shippingMethodPostalCodeRule: ShippingMethodPostalCodeRule
 }
 
 type ShippingPriceBulkDelete {
@@ -4868,6 +4847,9 @@ input ShippingPriceInput {
   minimumDeliveryDays: Int
   type: ShippingMethodTypeEnum
   shippingZone: ID
+  addPostalCodeRules: [ShippingPostalCodeRulesCreateInputRange!]!
+  deletePostalCodeRules: [ID!]!
+  inclusionType: PostalCodeRuleInclusionTypeEnum!
 }
 
 type ShippingPriceRemoveProductFromExclude {

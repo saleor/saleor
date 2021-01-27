@@ -5,7 +5,7 @@ from django.db.utils import IntegrityError
 
 from ....core.permissions import ShippingPermissions
 from ....product import models as product_models
-from ....shipping import PostalCodeRuleInclusionType, models
+from ....shipping import models
 from ....shipping.error_codes import ShippingErrorCode
 from ....shipping.utils import (
     default_shipping_zone_exists,
@@ -20,6 +20,13 @@ from ...product import types as product_types
 from ...utils import resolve_global_ids_to_primary_keys
 from ..enums import PostalCodeRuleInclusionTypeEnum, ShippingMethodTypeEnum
 from ..types import ShippingMethod, ShippingMethodPostalCodeRule, ShippingZone
+
+
+class ShippingPostalCodeRulesCreateInputRange(graphene.InputObjectType):
+    start = graphene.String(
+        required=True, description="Start range of the postal code."
+    )
+    end = graphene.String(required=False, description="End range of the postal code.")
 
 
 class ShippingPriceInput(graphene.InputObjectType):
@@ -39,6 +46,20 @@ class ShippingPriceInput(graphene.InputObjectType):
     type = ShippingMethodTypeEnum(description="Shipping type: price or weight based.")
     shipping_zone = graphene.ID(
         description="Shipping zone this method belongs to.", name="shippingZone"
+    )
+    add_postal_code_rules = graphene.List(
+        graphene.NonNull(ShippingPostalCodeRulesCreateInputRange),
+        required=True,
+        description="Postal code rules to add.",
+    )
+    delete_postal_code_rules = graphene.List(
+        graphene.NonNull(graphene.ID),
+        required=True,
+        description="Postal code rules to delete.",
+    )
+    inclusion_type = PostalCodeRuleInclusionTypeEnum(
+        required=True,
+        description="Inclusion type for currently assigned postal code rules.",
     )
 
 
@@ -171,111 +192,6 @@ class ShippingZoneUpdate(ShippingZoneMixin, ModelMutation):
         return response
 
 
-class ShippingPostalCodeRulesCreateInputRange(graphene.InputObjectType):
-    start = graphene.String(
-        required=True, description="Start range of the postal code."
-    )
-    end = graphene.String(required=False, description="End range of the postal code.")
-    inclusion_type = PostalCodeRuleInclusionTypeEnum(
-        required=False, description="Inclusion type for given postal code rules."
-    )
-
-
-class ShippingPostalCodeRulesCreateInput(graphene.InputObjectType):
-    postal_code_rules = graphene.List(
-        ShippingPostalCodeRulesCreateInputRange,
-        required=True,
-        description="Postal code rules for shipping method.",
-    )
-
-
-class ShippingPostalCodeRulesCreate(BaseMutation):
-    postal_code_rules = graphene.List(
-        ShippingMethodPostalCodeRule,
-        description="A shipping method postal code range.",
-    )
-    shipping_method = graphene.Field(
-        ShippingMethod, description="Related shipping method."
-    )
-
-    class Arguments:
-        shipping_method_id = graphene.ID(
-            required=True, description="ID of a shipping method to assign."
-        )
-        input = ShippingPostalCodeRulesCreateInput(
-            description="Fields required to create a shipping postal codes.",
-            required=True,
-        )
-
-    class Meta:
-        description = "Create a new postal code exclusion range for shipping method."
-        permissions = (ShippingPermissions.MANAGE_SHIPPING,)
-        error_type_class = ShippingError
-        error_type_field = "shipping_errors"
-
-    @classmethod
-    def perform_mutation(cls, root, info, **data):
-        shipping_method = cls.get_node_or_error(
-            info, data["shipping_method_id"], only_type=ShippingMethod
-        )
-        instances = []
-        with transaction.atomic():
-            for postal_range in data["input"]["postal_code_rules"]:
-                try:
-                    start = postal_range["start"]
-                    end = postal_range.get("end")
-                    inclusion_type = postal_range.get(
-                        "inclusion_type", PostalCodeRuleInclusionType.EXCLUDE
-                    )
-                    instance = models.ShippingMethodPostalCodeRule.objects.create(
-                        shipping_method=shipping_method,
-                        start=start,
-                        end=end,
-                        inclusion_type=inclusion_type,
-                    )
-                except IntegrityError:
-                    raise ValidationError(
-                        {
-                            "postalCodeRules": ValidationError(
-                                f"Entry start: {start}, end: {end} already exists.",
-                                code=ShippingErrorCode.ALREADY_EXISTS.value,
-                            )
-                        }
-                    )
-                instances.append(instance)
-        return ShippingPostalCodeRulesCreate(
-            postal_code_rules=instances,
-            shipping_method=ChannelContext(node=shipping_method, channel_slug=None),
-        )
-
-
-class ShippingPostalCodeRulesDelete(ModelDeleteMutation):
-    shipping_method = graphene.Field(
-        ShippingMethod, description="Shipping method of deleted postal code rule."
-    )
-
-    class Arguments:
-        id = graphene.ID(
-            required=True, description="ID of a shipping method postal code to delete."
-        )
-
-    class Meta:
-        description = "Deletes a shipping method postal code."
-        model = models.ShippingMethodPostalCodeRule
-        permissions = (ShippingPermissions.MANAGE_SHIPPING,)
-        error_type_class = ShippingError
-        error_type_field = "shipping_errors"
-
-    @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        instance = cls.get_instance(info, **data)
-        shipping_method = instance.shipping_method
-        super().perform_mutation(_root, info, **data)
-        return ShippingPostalCodeRulesDelete(
-            shipping_method=ChannelContext(node=shipping_method, channel_slug=None)
-        )
-
-
 class ShippingZoneDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a shipping zone to delete.")
@@ -308,6 +224,12 @@ class ShippingPriceMixin:
             cls.clean_delivery_time(instance, cleaned_input, errors)
         if errors:
             raise ValidationError(errors)
+
+        _, postal_code_rules_db_ids = resolve_global_ids_to_primary_keys(
+            data["delete_postal_code_rules"], ShippingMethodPostalCodeRule
+        )
+        cleaned_input["delete_postal_code_rules"] = postal_code_rules_db_ids
+
         return cleaned_input
 
     @classmethod
@@ -400,6 +322,33 @@ class ShippingPriceMixin:
             errors[field] = ValidationError(
                 error_msg, code=ShippingErrorCode.INVALID.value
             )
+
+    @classmethod
+    @transaction.atomic
+    def save(cls, info, instance, cleaned_input):
+        super().save(info, instance, cleaned_input)
+
+        inclusion_type = cleaned_input["inclusion_type"]
+        for postal_code_rule in cleaned_input["add_postal_code_rules"]:
+            start = postal_code_rule["start"]
+            end = postal_code_rule.get("end")
+            try:
+                instance.postal_code_rules.create(
+                    start=start, end=end, inclusion_type=inclusion_type
+                )
+            except IntegrityError:
+                raise ValidationError(
+                    {
+                        "addPostalCodeRules": ValidationError(
+                            f"Entry start: {start}, end: {end} already exists.",
+                            code=ShippingErrorCode.ALREADY_EXISTS.value,
+                        )
+                    }
+                )
+
+        delete_postal_code_rules = cleaned_input.get("delete_postal_code_rules")
+        if delete_postal_code_rules:
+            instance.postal_code_rules.filter(id__in=delete_postal_code_rules).delete()
 
 
 class ShippingPriceCreate(ShippingPriceMixin, ModelMutation):
