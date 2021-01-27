@@ -175,6 +175,14 @@ class OpenIDConnectPlugin(BasePlugin):
             scope=scope,
         )
 
+    def _use_scope_permissions(self, user, scope):
+        user_permissions = None
+        if scope:
+            permissions = get_saleor_permissions_qs_from_scope(scope)
+            user_permissions = get_saleor_permission_names(permissions)
+            user.effective_permissions = permissions
+        return user_permissions
+
     def external_obtain_access_tokens(
         self, data: dict, request: WSGIRequest, previous_value
     ) -> ExternalAccessTokens:
@@ -214,11 +222,9 @@ class OpenIDConnectPlugin(BasePlugin):
 
         user_permissions = None
         if self.config.use_scope_permissions:
-            scope = token_data.get("scope")
-            if scope:
-                permissions = get_saleor_permissions_qs_from_scope(scope)
-                user_permissions = get_saleor_permission_names(permissions)
-                user.effective_permissions = permissions
+            user_permissions = self._use_scope_permissions(
+                user, token_data.get("scope")
+            )
 
         tokens = create_tokens_from_oauth_payload(
             token_data, user, parsed_id_token, user_permissions, owner=self.PLUGIN_ID
@@ -294,11 +300,9 @@ class OpenIDConnectPlugin(BasePlugin):
 
             user_permissions = None
             if self.config.use_scope_permissions:
-                scope = token_data.get("scope")
-                if scope:
-                    permissions = get_saleor_permissions_qs_from_scope(scope)
-                    user_permissions = get_saleor_permission_names(permissions)
-                    user.effective_permissions = permissions
+                user_permissions = self._use_scope_permissions(
+                    user, token_data.get("scope")
+                )
 
             tokens = create_tokens_from_oauth_payload(
                 token_data,
