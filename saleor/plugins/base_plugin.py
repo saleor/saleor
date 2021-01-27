@@ -150,14 +150,10 @@ class BasePlugin:
     def calculate_checkout_line_total(
         self,
         checkout: "Checkout",
-        checkout_line: "CheckoutLine",
-        variant: "ProductVariant",
-        product: "Product",
-        collections: List["Collection"],
+        checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         channel: "Channel",
-        channel_listing: "ProductVariantChannelListing",
-        discounts: List["DiscountInfo"],
+        discounts: Iterable["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
         """Calculate checkout line total.
@@ -168,13 +164,24 @@ class BasePlugin:
         return NotImplemented
 
     def calculate_checkout_line_unit_price(
-        self, total_line_price: TaxedMoney, quantity: int, previous_value: TaxedMoney
+        self,
+        checkout: "Checkout",
+        checkout_line_info: "CheckoutLineInfo",
+        address: Optional["Address"],
+        discounts: Iterable["DiscountInfo"],
+        channel: "Channel",
+        previous_value: TaxedMoney,
     ):
         """Calculate checkout line unit price."""
         return NotImplemented
 
     def calculate_order_line_unit(
-        self, order_line: "OrderLine", previous_value: TaxedMoney
+        self,
+        order: "Order",
+        order_line: "OrderLine",
+        variant: "ProductVariant",
+        product: "Product",
+        previous_value: TaxedMoney,
     ) -> TaxedMoney:
         """Calculate order line unit price.
 
