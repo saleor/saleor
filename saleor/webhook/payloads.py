@@ -14,6 +14,7 @@ from ..invoice.models import Invoice
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..order.utils import get_order_country
+from ..page.models import Page
 from ..payment import ChargeStatus
 from ..product.models import Product
 from ..warehouse.models import Warehouse
@@ -288,6 +289,24 @@ def generate_fulfillment_payload(fulfillment: Fulfillment):
     return fulfillment_data
 
 
+def generate_page_payload(page: Page):
+    serializer = PayloadSerializer()
+    page_fields = [
+        "private_metadata",
+        "metadata",
+        "title",
+        "content",
+        "publication_date",
+        "is_published",
+        "updated_at",
+    ]
+    page_payload = serializer.serialize(
+        [page],
+        fields=page_fields,
+    )
+    return page_payload
+
+
 def _get_sample_object(qs: QuerySet):
     """Return random object from query."""
     random_object = qs.order_by("?").first()
@@ -330,6 +349,11 @@ def generate_sample_payload(event_name: str) -> Optional[dict]:
         WebhookEventType.CHECKOUT_UPADTED,
         WebhookEventType.CHECKOUT_CREATED,
     ]
+    pages_events = [
+        WebhookEventType.PAGE_CREATED,
+        WebhookEventType.PAGE_DELETED,
+        WebhookEventType.PAGE_UPDATED,
+    ]
     if event_name == WebhookEventType.CUSTOMER_CREATED:
         user = generate_fake_user()
         payload = generate_customer_payload(user)
@@ -345,6 +369,10 @@ def generate_sample_payload(event_name: str) -> Optional[dict]:
         if checkout:
             anonymized_checkout = anonymize_checkout(checkout)
             payload = generate_checkout_payload(anonymized_checkout)
+    elif event_name in pages_events:
+        page = _get_sample_object(Page.objects.all())
+        if page:
+            payload = generate_page_payload(page)
     elif event_name == WebhookEventType.FULFILLMENT_CREATED:
         fulfillment = _get_sample_object(
             Fulfillment.objects.prefetch_related("lines__order_line__variant")
