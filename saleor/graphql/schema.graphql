@@ -606,6 +606,9 @@ type AttributeValueCreate {
 
 input AttributeValueCreateInput {
   name: String!
+  value: String
+  fileUrl: String
+  contentType: String
 }
 
 type AttributeValueDelete {

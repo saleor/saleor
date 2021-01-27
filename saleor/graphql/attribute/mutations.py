@@ -190,6 +190,14 @@ class BaseReorderAttributeValuesMutation(BaseMutation):
 
 class AttributeValueCreateInput(graphene.InputObjectType):
     name = graphene.String(required=True, description=AttributeValueDescriptions.NAME)
+    value = graphene.String(
+        required=False, description=AttributeValueDescriptions.VALUE
+    )
+    file_url = graphene.String(
+        required=False,
+        description="URL of the file attribute. Every time, a new value is created.",
+    )
+    content_type = graphene.String(required=False, description="File content type.")
 
 
 class AttributeCreateInput(graphene.InputObjectType):
@@ -258,38 +266,8 @@ class AttributeUpdateInput(graphene.InputObjectType):
 
 
 class AttributeMixin:
-    @classmethod
-    def check_values_are_unique(cls, values_input, attribute):
-        # Check values uniqueness in case of creating new attribute.
-        existing_values = attribute.values.values_list("slug", flat=True)
-        for value_data in values_input:
-            slug = slugify(value_data["name"], allow_unicode=True)
-            if slug in existing_values:
-                msg = (
-                    "Value %s already exists within this attribute."
-                    % value_data["name"]
-                )
-                raise ValidationError(
-                    {
-                        cls.ATTRIBUTE_VALUES_FIELD: ValidationError(
-                            msg, code=AttributeErrorCode.ALREADY_EXISTS
-                        )
-                    }
-                )
-
-        new_slugs = [
-            slugify(value_data["name"], allow_unicode=True)
-            for value_data in values_input
-        ]
-        if len(set(new_slugs)) != len(new_slugs):
-            raise ValidationError(
-                {
-                    cls.ATTRIBUTE_VALUES_FIELD: ValidationError(
-                        "Provided values are not unique.",
-                        code=AttributeErrorCode.UNIQUE,
-                    )
-                }
-            )
+    # must be redefined by inheriting classes
+    ATTRIBUTE_VALUES_FIELD = None
 
     @classmethod
     def clean_values(cls, cleaned_input, attribute):
@@ -321,22 +299,52 @@ class AttributeMixin:
             )
 
         is_numeric_attr = attribute_input_type == AttributeInputType.NUMERIC
+        is_swatch_attr = attribute_input_type == AttributeInputType.SWATCH
         for value_data in values_input:
-            value = value_data["name"]
-            if is_numeric_attr:
-                cls.validate_numeric_value(value)
-            slug_value = value if not is_numeric_attr else value.replace(".", "_")
-            value_data["slug"] = slugify(slug_value, allow_unicode=True)
+            cls.validate_value(attribute, value_data, is_numeric_attr, is_swatch_attr)
 
-            attribute_value = models.AttributeValue(**value_data, attribute=attribute)
-            try:
-                attribute_value.full_clean()
-            except ValidationError as validation_errors:
-                for field, err in validation_errors.error_dict.items():
-                    if field == "attribute":
-                        continue
-                    raise ValidationError({cls.ATTRIBUTE_VALUES_FIELD: err})
         cls.check_values_are_unique(values_input, attribute)
+
+    @classmethod
+    def validate_value(
+        cls,
+        attribute: models.Attribute,
+        value_data: dict,
+        is_numeric_attr: bool,
+        is_swatch_attr: bool,
+    ):
+        value = value_data["name"]
+        if not is_swatch_attr and (
+            value_data.get("file_url")
+            or value_data.get("value")
+            or value_data.get("content_type")
+        ):
+            raise ValidationError(
+                {
+                    cls.ATTRIBUTE_VALUES_FIELD: ValidationError(
+                        "Cannot define value, file and contentType fields "
+                        "for not swatch attribute.",
+                        code=AttributeErrorCode.INVALID.value,
+                    )
+                }
+            )
+
+        if is_numeric_attr:
+            cls.validate_numeric_value(value)
+        elif is_swatch_attr:
+            cls.validate_swatch_attr_value(value_data)
+
+        slug_value = value if not is_numeric_attr else value.replace(".", "_")
+        value_data["slug"] = slugify(slug_value, allow_unicode=True)
+
+        attribute_value = models.AttributeValue(**value_data, attribute=attribute)
+        try:
+            attribute_value.full_clean()
+        except ValidationError as validation_errors:
+            for field, err in validation_errors.error_dict.items():
+                if field == "attribute":
+                    continue
+                raise ValidationError({cls.ATTRIBUTE_VALUES_FIELD: err})
 
     @classmethod
     def validate_numeric_value(cls, value):
@@ -347,7 +355,52 @@ class AttributeMixin:
                 {
                     cls.ATTRIBUTE_VALUES_FIELD: ValidationError(
                         "Value of numeric attribute must be numeric.",
-                        code=AttributeErrorCode.INVALID,
+                        code=AttributeErrorCode.INVALID.value,
+                    )
+                }
+            )
+
+    @classmethod
+    def validate_swatch_attr_value(cls, value_data: dict):
+        if value_data.get("value") and value_data.get("file_url"):
+            raise ValidationError(
+                {
+                    cls.ATTRIBUTE_VALUES_FIELD: ValidationError(
+                        "Cannot specify both value and file for swatch attribute.",
+                        code=AttributeErrorCode.INVALID.value,
+                    )
+                }
+            )
+
+    @classmethod
+    def check_values_are_unique(cls, values_input: dict, attribute: models.Attribute):
+        # Check values uniqueness in case of creating new attribute.
+        existing_values = attribute.values.values_list("slug", flat=True)
+        for value_data in values_input:
+            slug = slugify(value_data["name"], allow_unicode=True)
+            if slug in existing_values:
+                msg = (
+                    "Value %s already exists within this attribute."
+                    % value_data["name"]
+                )
+                raise ValidationError(
+                    {
+                        cls.ATTRIBUTE_VALUES_FIELD: ValidationError(
+                            msg, code=AttributeErrorCode.ALREADY_EXISTS.value
+                        )
+                    }
+                )
+
+        new_slugs = [
+            slugify(value_data["name"], allow_unicode=True)
+            for value_data in values_input
+        ]
+        if len(set(new_slugs)) != len(new_slugs):
+            raise ValidationError(
+                {
+                    cls.ATTRIBUTE_VALUES_FIELD: ValidationError(
+                        "Provided values are not unique.",
+                        code=AttributeErrorCode.UNIQUE.value,
                     )
                 }
             )

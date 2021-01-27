@@ -26,16 +26,19 @@ ATTRIBUTE_PROPERTIES_CONFIGURATION = {
         AttributeInputType.DROPDOWN,
         AttributeInputType.MULTISELECT,
         AttributeInputType.NUMERIC,
+        AttributeInputType.SWATCH,
     ],
     "filterable_in_dashboard": [
         AttributeInputType.DROPDOWN,
         AttributeInputType.MULTISELECT,
         AttributeInputType.NUMERIC,
+        AttributeInputType.SWATCH,
     ],
     "available_in_grid": [
         AttributeInputType.DROPDOWN,
         AttributeInputType.MULTISELECT,
         AttributeInputType.NUMERIC,
+        AttributeInputType.SWATCH,
     ],
     "storefront_search_position": [
         AttributeInputType.DROPDOWN,
