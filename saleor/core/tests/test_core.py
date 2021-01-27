@@ -88,7 +88,7 @@ def test_get_client_ip(ip_address, expected_ip):
     [(Country("PL"), "PLN"), (Country("US"), "USD"), (Country("GB"), "GBP")],
 )
 def test_get_currency_for_country(country, expected_currency, monkeypatch):
-    currency = get_currency_for_country(country)
+    currency = get_currency_for_country(country.code)
     assert currency == expected_currency
 
 

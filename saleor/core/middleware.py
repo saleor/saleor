@@ -58,16 +58,6 @@ def discounts(get_response):
     return _discounts_middleware
 
 
-def currency(get_response):
-    """Take a country and assign a matching currency to `request.currency`."""
-
-    def _currency_middleware(request):
-        request.currency = settings.DEFAULT_CURRENCY
-        return get_response(request)
-
-    return _currency_middleware
-
-
 def site(get_response):
     """Clear the Sites cache and assign the current site to `request.site`.
 

@@ -90,8 +90,8 @@ def get_country_by_ip(ip_address):
     return None
 
 
-def get_currency_for_country(country):
-    currencies = get_territory_currencies(country.code)
+def get_currency_for_country(country_code: str):
+    currencies = get_territory_currencies(country_code)
     if currencies:
         return currencies[0]
     return os.environ.get("DEFAULT_CURRENCY", "USD")

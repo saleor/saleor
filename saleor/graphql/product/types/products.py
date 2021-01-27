@@ -10,6 +10,7 @@ from graphql.error import GraphQLError
 from ....account.utils import requestor_is_staff_member_or_app
 from ....attribute import models as attribute_models
 from ....core.permissions import OrderPermissions, ProductPermissions
+from ....core.utils import get_currency_for_country
 from ....core.weight import convert_weight_to_default_weight_unit
 from ....product import models
 from ....product.templatetags.product_images import (
@@ -378,7 +379,9 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                                     discounts=discounts,
                                     channel=channel,
                                     country=country_code,
-                                    local_currency=context.currency,
+                                    local_currency=get_currency_for_country(
+                                        country_code
+                                    ),
                                     plugins=context.plugins,
                                 )
                                 return VariantPricingInfo(**asdict(availability))
@@ -654,7 +657,9 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                                     discounts=discounts,
                                     channel=channel,
                                     country=country_code,
-                                    local_currency=context.currency,
+                                    local_currency=get_currency_for_country(
+                                        country_code
+                                    ),
                                     plugins=context.plugins,
                                 )
                                 return ProductPricingInfo(**asdict(availability))

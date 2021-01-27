@@ -5,6 +5,7 @@ import graphene
 from saleor.graphql.product.dataloaders.products import ProductByIdLoader
 
 from ....core.permissions import ProductPermissions
+from ....core.utils import get_currency_for_country
 from ....graphql.core.types import Money, MoneyRange
 from ....product import models
 from ....product.utils.availability import get_product_availability
@@ -178,7 +179,9 @@ class ProductChannelListing(CountableDjangoObjectType):
                                     discounts=discounts,
                                     channel=channel,
                                     country=country_code,
-                                    local_currency=context.currency,
+                                    local_currency=get_currency_for_country(
+                                        country_code
+                                    ),
                                     plugins=context.plugins,
                                 )
                                 from .products import ProductPricingInfo
