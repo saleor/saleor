@@ -24,6 +24,7 @@ if TYPE_CHECKING:
     from ..checkout.models import Checkout, CheckoutLine
     from ..invoice.models import Invoice
     from ..order.models import Fulfillment, Order, OrderLine
+    from ..page.models import Page
     from ..payment.interface import (
         CustomerSource,
         GatewayResponse,
@@ -448,6 +449,18 @@ class PluginsManager(PaymentInterface):
     def checkout_updated(self, checkout: "Checkout"):
         default_value = None
         return self.__run_method_on_plugins("checkout_updated", default_value, checkout)
+
+    def page_created(self, page: "Page"):
+        default_value = None
+        return self.__run_method_on_plugins("page_created", default_value, page)
+
+    def page_updated(self, page: "Page"):
+        default_value = None
+        return self.__run_method_on_plugins("page_updated", default_value, page)
+
+    def page_deleted(self, page: "Page"):
+        default_value = None
+        return self.__run_method_on_plugins("page_deleted", default_value, page)
 
     def initialize_payment(
         self, gateway, payment_data: dict
