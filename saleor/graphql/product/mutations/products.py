@@ -12,6 +12,7 @@ from ....attribute import AttributeInputType, AttributeType
 from ....attribute import models as attribute_models
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import ProductPermissions, ProductTypePermissions
+from ....core.utils.editorjs import clean_editor_js
 from ....order import OrderStatus
 from ....order import models as order_models
 from ....product import models
@@ -60,8 +61,7 @@ from ..utils import (
 
 
 class CategoryInput(graphene.InputObjectType):
-    description = graphene.String(description="Category description (HTML/text).")
-    description_json = graphene.JSONString(description="Category description (JSON).")
+    description = graphene.JSONString(description="Category description (JSON).")
     name = graphene.String(description="Category name.")
     slug = graphene.String(description="Category slug.")
     seo = SeoInput(description="Search engine optimization fields.")
@@ -171,10 +171,7 @@ class CollectionInput(graphene.InputObjectType):
     )
     name = graphene.String(description="Name of the collection.")
     slug = graphene.String(description="Slug of the collection.")
-    description = graphene.String(
-        description="Description of the collection (HTML/text)."
-    )
-    description_json = graphene.JSONString(
+    description = graphene.JSONString(
         description="Description of the collection (JSON)."
     )
     background_image = Upload(description="Background image file.")
@@ -484,8 +481,7 @@ class ProductInput(graphene.InputObjectType):
         description="List of IDs of collections that the product belongs to.",
         name="collections",
     )
-    description = graphene.String(description="Product description (HTML/text).")
-    description_json = graphene.JSONString(description="Product description (JSON).")
+    description = graphene.JSONString(description="Product description (JSON).")
     name = graphene.String(description="Product name.")
     slug = graphene.String(description="Product slug.")
     tax_code = graphene.String(description="Tax rate for enabled tax gateway.")
@@ -538,6 +534,11 @@ class ProductCreate(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
+
+        description = cleaned_input.get("description")
+        cleaned_input["description_plaintext"] = (
+            clean_editor_js(description, to_string=True) if description else ""
+        )
 
         weight = cleaned_input.get("weight")
         if weight and weight.value < 0:
@@ -611,7 +612,6 @@ class ProductCreate(ModelMutation):
     @transaction.atomic
     def save(cls, info, instance, cleaned_input):
         instance.save()
-
         attributes = cleaned_input.get("attributes")
         if attributes:
             AttributeAssignmentMixin.save(instance, attributes)

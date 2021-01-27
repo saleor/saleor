@@ -177,14 +177,13 @@ class Payment(models.Model):
             ChargeStatus.FULLY_CHARGED,
             ChargeStatus.PARTIALLY_REFUNDED,
         )
-        return (
-            self.is_active
-            and self.charge_status in can_refund_charge_status
-            and self.gateway != CustomPaymentChoices.MANUAL
-        )
+        return self.is_active and self.charge_status in can_refund_charge_status
 
     def can_confirm(self):
         return self.is_active and self.not_charged
+
+    def is_manual(self):
+        return self.gateway == CustomPaymentChoices.MANUAL
 
 
 class Transaction(models.Model):
