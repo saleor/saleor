@@ -726,25 +726,15 @@ PRICE_BASED_SHIPPING_QUERY = """
 
 
 @pytest.mark.parametrize(
-    "min_price, max_price, expected_min_price, expected_max_price, postal_code_rules",
-    (
-        (
-            10.32,
-            15.43,
-            {"amount": 10.32},
-            {"amount": 15.43},
-            [{"start": "HB3", "end": "HB6"}],
-        ),
-        (10.33, None, {"amount": 10.33}, None, []),
-    ),
+    "postal_code_rules",
+    [
+        [{"start": "HB3", "end": "HB6"}],
+        [],
+    ],
 )
 def test_create_shipping_method(
     staff_api_client,
     shipping_zone,
-    min_price,
-    max_price,
-    expected_min_price,
-    expected_max_price,
     postal_code_rules,
     permission_manage_shipping,
 ):
