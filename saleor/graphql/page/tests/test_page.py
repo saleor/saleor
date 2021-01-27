@@ -1,3 +1,4 @@
+import datetime
 from unittest import mock
 
 import graphene
@@ -11,6 +12,8 @@ from ....attribute.utils import associate_attribute_values_to_instance
 from ....page.error_codes import PageErrorCode
 from ....page.models import Page, PageType
 from ....tests.utils import dummy_editorjs
+from ....webhook.event_types import WebhookEventType
+from ....webhook.payloads import generate_page_payload
 from ...tests.utils import get_graphql_content
 
 PAGE_QUERY = """
@@ -301,8 +304,12 @@ def test_page_create_trigger_page_webhook(
     assert data["page"]["slug"] == page_slug
     assert data["page"]["isPublished"] == page_is_published
     assert data["page"]["pageType"]["id"] == page_type_id
+    page = Page.objects.first()
+    expected_data = generate_page_payload(page)
 
-    assert mocked_webhook_trigger.called
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.PAGE_CREATED, expected_data
+    )
 
 
 def test_page_create_required_fields(
@@ -1009,8 +1016,8 @@ PAGE_DELETE_MUTATION = """
                 code
                 message
             }
-          }
         }
+    }
 """
 
 
@@ -1040,7 +1047,12 @@ def test_page_delete_trigger_webhook(
     assert data["page"]["title"] == page.title
     with pytest.raises(page._meta.model.DoesNotExist):
         page.refresh_from_db()
-    assert mocked_webhook_trigger.called
+
+    expected_data = generate_page_payload(page)
+
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.PAGE_DELETED, expected_data
+    )
 
 
 UPDATE_PAGE_MUTATION = """
@@ -1149,6 +1161,7 @@ def test_update_page(staff_api_client, permission_manage_pages, page):
         assert attr_data in expected_attributes
 
 
+@freeze_time("2020-03-18 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_update_page_trigger_webhook(
     mocked_webhook_trigger, staff_api_client, permission_manage_pages, page, settings
@@ -1183,7 +1196,12 @@ def test_update_page_trigger_webhook(
     assert not data["pageErrors"]
     assert data["page"]["title"] == page_title
     assert data["page"]["slug"] == new_slug
-    assert mocked_webhook_trigger.called
+    page.publication_date = datetime.date(2020, 3, 18)
+    expected_data = generate_page_payload(page)
+
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.PAGE_UPDATED, expected_data
+    )
 
 
 def test_update_page_with_file_attribute_value(

@@ -238,9 +238,13 @@ def test_page_updated(mocked_webhook_trigger, settings, page):
 def test_page_deleted(mocked_webhook_trigger, settings, page):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
+    page_id = page.id
+    page.delete()
+    page.id = page_id
     manager.page_deleted(page)
 
     expected_data = generate_page_payload(page)
+
     mocked_webhook_trigger.assert_called_once_with(
         WebhookEventType.PAGE_DELETED, expected_data
     )

@@ -110,7 +110,7 @@ class PageCreate(ModelMutation):
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
-        super(PageCreate, cls).save(info, instance, cleaned_input)
+        super().save(info, instance, cleaned_input)
         info.context.plugins.page_created(instance)
 
 
@@ -149,7 +149,7 @@ class PageDelete(ModelDeleteMutation):
     def perform_mutation(cls, _root, info, **data):
         page = cls.get_instance(info, **data)
         response = super().perform_mutation(_root, info, **data)
-        info.context.plugins.page_updated(page)
+        info.context.plugins.page_deleted(page)
         return response
 
 

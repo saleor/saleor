@@ -207,7 +207,7 @@ def generate_product_payload(product: "Product"):
 
     product_fields = (
         "name",
-        "description_json",
+        "description",
         "currency",
         "attributes",
         "updated_at",
@@ -289,6 +289,24 @@ def generate_fulfillment_payload(fulfillment: Fulfillment):
     return fulfillment_data
 
 
+def generate_page_payload(page: Page):
+    serializer = PayloadSerializer()
+    page_fields = [
+        "private_metadata",
+        "metadata",
+        "title",
+        "content",
+        "publication_date",
+        "is_published",
+        "updated_at",
+    ]
+    page_payload = serializer.serialize(
+        [page],
+        fields=page_fields,
+    )
+    return page_payload
+
+
 def _get_sample_object(qs: QuerySet):
     """Return random object from query."""
     random_object = qs.order_by("?").first()
@@ -364,21 +382,3 @@ def generate_sample_payload(event_name: str) -> Optional[dict]:
     else:
         payload = _generate_sample_order_payload(event_name)
     return json.loads(payload) if payload else None
-
-
-def generate_page_payload(page: Page):
-    serializer = PayloadSerializer()
-    page_fields = [
-        "private_metadata",
-        "metadata",
-        "title",
-        "content",
-        "publication_date",
-        "is_published",
-        "updated_at",
-    ]
-    page_payload = serializer.serialize(
-        [page],
-        fields=page_fields,
-    )
-    return page_payload
