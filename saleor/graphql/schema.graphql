@@ -1943,6 +1943,49 @@ enum ExportScope {
   FILTER
 }
 
+type ExternalAuthentication {
+  id: String!
+  name: String
+}
+
+type ExternalAuthenticationUrl {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  authenticationData: JSONString
+  accountErrors: [AccountError!]!
+}
+
+type ExternalLogout {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  logoutData: JSONString
+  accountErrors: [AccountError!]!
+}
+
+type ExternalObtainAccessTokens {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  token: String
+  refreshToken: String
+  csrfToken: String
+  user: User
+  accountErrors: [AccountError!]!
+}
+
+type ExternalRefresh {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  token: String
+  refreshToken: String
+  csrfToken: String
+  user: User
+  accountErrors: [AccountError!]!
+}
+
+type ExternalVerify {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  user: User
+  isValid: Boolean!
+  verifyData: JSONString
+  accountErrors: [AccountError!]!
+}
+
 type File {
   url: String!
   contentType: String
@@ -2765,6 +2808,11 @@ type Mutation {
   tokenRefresh(csrfToken: String, refreshToken: String): RefreshToken
   tokenVerify(token: String!): VerifyToken
   tokensDeactivateAll: DeactivateAllUserTokens
+  externalAuthenticationUrl(input: JSONString!, pluginId: String!): ExternalAuthenticationUrl
+  externalObtainAccessTokens(input: JSONString!, pluginId: String!): ExternalObtainAccessTokens
+  externalRefresh(input: JSONString!, pluginId: String!): ExternalRefresh
+  externalLogout(input: JSONString!, pluginId: String!): ExternalLogout
+  externalVerify(input: JSONString!, pluginId: String!): ExternalVerify
   requestPasswordReset(email: String!, redirectUrl: String!): RequestPasswordReset
   confirmAccount(email: String!, token: String!): ConfirmAccount
   setPassword(email: String!, password: String!, token: String!): SetPassword
@@ -4906,6 +4954,7 @@ input ShippingZoneUpdateInput {
 
 type Shop {
   availablePaymentGateways(currency: String): [PaymentGateway!]!
+  availableExternalAuthentications: [ExternalAuthentication!]!
   availableShippingMethods(channel: String!, address: AddressInput): [ShippingMethod]
   geolocalization: Geolocalization
   countries(languageCode: LanguageCodeEnum): [CountryDisplay!]!

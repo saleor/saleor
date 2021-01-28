@@ -1,19 +1,20 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING, Iterable, Optional, Union
+from typing import TYPE_CHECKING, Iterable, Optional, Tuple, Union
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
+from ...account.models import User
 from ...core.taxes import TaxType
-from ..base_plugin import BasePlugin, ConfigurationTypeField
+from ..base_plugin import BasePlugin, ConfigurationTypeField, ExternalAccessTokens
 
 if TYPE_CHECKING:
     # flake8: noqa
     from ...account.models import Address
     from ...checkout import CheckoutLineInfo
-    from ...checkout.models import Checkout, CheckoutLine
+    from ...checkout.models import Checkout
     from ...discount import DiscountInfo
     from ...order.models import Order
     from ...product.models import Product, ProductType
@@ -135,6 +136,39 @@ class PluginSample(BasePlugin):
     ) -> Decimal:
         return Decimal("15.0").quantize(Decimal("1."))
 
+    def external_authentication_url(
+        self, data: dict, request: WSGIRequest, previous_value
+    ) -> dict:
+        return {"authorizeUrl": "http://www.auth.provider.com/authorize/"}
+
+    def external_obtain_access_tokens(
+        self, data: dict, request: WSGIRequest, previous_value
+    ) -> ExternalAccessTokens:
+        return ExternalAccessTokens(
+            token="token1", refresh_token="refresh2", csrf_token="csrf3"
+        )
+
+    def external_refresh(
+        self, data: dict, request: WSGIRequest, previous_value
+    ) -> ExternalAccessTokens:
+        return ExternalAccessTokens(
+            token="token4", refresh_token="refresh5", csrf_token="csrf6"
+        )
+
+    def external_verify(
+        self, data: dict, request: WSGIRequest, previous_value
+    ) -> Tuple[Optional[User], dict]:
+        user = User.objects.get()
+        return user, {"some_data": "data"}
+
+    def authenticate_user(
+        self, request: WSGIRequest, previous_value
+    ) -> Optional["User"]:
+        return User.objects.filter().first()
+
+    def external_logout(self, data: dict, request: WSGIRequest, previous_value) -> dict:
+        return {"logoutUrl": "http://www.auth.provider.com/logout/"}
+
     def get_checkout_line_tax_rate(
         self,
         checkout: "Checkout",
@@ -172,6 +206,13 @@ class PluginInactive(BasePlugin):
     PLUGIN_ID = "plugin.inactive"
     PLUGIN_NAME = "PluginInactive"
     PLUGIN_DESCRIPTION = "Test plugin description_2"
+
+    def external_obtain_access_tokens(
+        self, data: dict, request: WSGIRequest, previous_value
+    ) -> ExternalAccessTokens:
+        return ExternalAccessTokens(
+            token="token1", refresh_token="refresh2", csrf_token="csrf3"
+        )
 
 
 class ActivePlugin(BasePlugin):

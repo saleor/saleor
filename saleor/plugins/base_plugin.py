@@ -1,6 +1,7 @@
 from copy import copy
+from dataclasses import dataclass
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Iterable, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Iterable, List, Optional, Tuple, Union
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
@@ -26,6 +27,7 @@ if TYPE_CHECKING:
     from ..discount import DiscountInfo
     from ..invoice.models import Invoice
     from ..order.models import Fulfillment, Order, OrderLine
+    from ..page.models import Page
     from ..product.models import (
         Collection,
         Product,
@@ -53,6 +55,14 @@ class ConfigurationTypeField:
     ]
 
 
+@dataclass
+class ExternalAccessTokens:
+    token: Optional[str] = None
+    refresh_token: Optional[str] = None
+    csrf_token: Optional[str] = None
+    user: Optional["User"] = None
+
+
 class BasePlugin:
     """Abstract class for storing all methods available for any plugin.
 
@@ -74,6 +84,59 @@ class BasePlugin:
 
     def __str__(self):
         return self.PLUGIN_NAME
+
+    def external_authentication_url(
+        self, data: dict, request: WSGIRequest, previous_value
+    ) -> dict:
+        """Handle authentication request.
+
+        Overwrite this method if the plugin handles authentication flow.
+        """
+        return NotImplemented
+
+    def external_obtain_access_tokens(
+        self, data: dict, request: WSGIRequest, previous_value
+    ) -> ExternalAccessTokens:
+        """Handle authentication request responsible for obtaining access tokens.
+
+        Overwrite this method if the plugin handles authentication flow.
+        """
+        return NotImplemented
+
+    def external_refresh(
+        self, data: dict, request: WSGIRequest, previous_value
+    ) -> ExternalAccessTokens:
+        """Handle authentication refresh request.
+
+        Overwrite this method if the plugin handles authentication flow and supports
+        refreshing the access.
+        """
+        return NotImplemented
+
+    def external_logout(self, data: dict, request: WSGIRequest, previous_value):
+        """Handle logout request.
+
+        Overwrite this method if the plugin handles logout flow.
+        """
+        return NotImplemented
+
+    def external_verify(
+        self, data: dict, request: WSGIRequest, previous_value
+    ) -> Tuple[Optional["User"], dict]:
+        """Verify the provided authentication data.
+
+        Overwrite this method if the plugin should validate the authentication data.
+        """
+        return NotImplemented
+
+    def authenticate_user(
+        self, request: WSGIRequest, previous_value
+    ) -> Optional["User"]:
+        """Authenticate user which should be assigned to the request.
+
+        Overwrite this method if the plugin handles authentication flow.
+        """
+        return NotImplemented
 
     def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:
         """Handle received http request.
