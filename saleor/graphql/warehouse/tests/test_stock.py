@@ -163,3 +163,39 @@ def test_query_stocks_with_filters_product_variant__product(
         total_count
         == Stock.objects.filter(product_variant__product__name=product.name).count()
     )
+
+
+def test_stock_quantities_in_different_warehouses(
+    api_client, channel_USD, variant_with_many_stocks_different_shipping_zones
+):
+    query = """
+    query ProductVariant(
+        $id: ID!, $channel: String!, $country1: CountryCode, $country2: CountryCode
+    ) {
+        productVariant(id: $id, channel: $channel) {
+            quantityPL: quantityAvailable(address: { country: $country1 })
+            quantityUS: quantityAvailable(address: { country: $country2 })
+        }
+    }
+    """
+
+    variant = variant_with_many_stocks_different_shipping_zones
+    stock_map = {}
+    for stock in variant.stocks.all():
+        country = stock.warehouse.shipping_zones.get().countries[0]
+        stock_map[country.code] = stock.quantity
+
+    variables = {
+        "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
+        "channel": channel_USD.slug,
+        "country1": "PL",
+        "country2": "US",
+    }
+    response = api_client.post_graphql(
+        query,
+        variables,
+    )
+    content = get_graphql_content(response)
+
+    assert content["data"]["productVariant"]["quantityPL"] == stock_map["PL"]
+    assert content["data"]["productVariant"]["quantityUS"] == stock_map["US"]
