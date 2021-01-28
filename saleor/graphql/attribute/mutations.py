@@ -342,10 +342,9 @@ class AttributeMixin:
 
     @classmethod
     def clean_value_input_data(cls, value_data: dict, is_swatch_attr: bool):
-        if not is_swatch_attr and (
-            value_data.get("file_url")
-            or value_data.get("value")
-            or value_data.get("content_type")
+        swatch_fields = ["file_url", "content_type", "value"]
+        if not is_swatch_attr and any(
+            [value_data.get(field) for field in swatch_fields]
         ):
             raise ValidationError(
                 {
