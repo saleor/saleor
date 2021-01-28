@@ -53,7 +53,10 @@ def authorize(
             span.set_tag(opentracing.tags.COMPONENT, "payment")
             span.set_tag("service.name", "stripe")
             intent = client.PaymentIntent.create(
-                payment_method=payment_information.token,
+                payment_method_data={
+                    "type": "card",
+                    "card": {"token": payment_information.token},
+                },
                 amount=stripe_amount,
                 currency=currency,
                 confirmation_method="manual",
