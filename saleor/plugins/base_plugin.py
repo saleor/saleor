@@ -26,6 +26,7 @@ if TYPE_CHECKING:
     from ..discount import DiscountInfo
     from ..invoice.models import Invoice
     from ..order.models import Fulfillment, Order, OrderLine
+    from ..page.models import Page
     from ..product.models import (
         Collection,
         Product,
@@ -150,14 +151,10 @@ class BasePlugin:
     def calculate_checkout_line_total(
         self,
         checkout: "Checkout",
-        checkout_line: "CheckoutLine",
-        variant: "ProductVariant",
-        product: "Product",
-        collections: List["Collection"],
+        checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         channel: "Channel",
-        channel_listing: "ProductVariantChannelListing",
-        discounts: List["DiscountInfo"],
+        discounts: Iterable["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
         """Calculate checkout line total.
@@ -168,13 +165,24 @@ class BasePlugin:
         return NotImplemented
 
     def calculate_checkout_line_unit_price(
-        self, total_line_price: TaxedMoney, quantity: int, previous_value: TaxedMoney
+        self,
+        checkout: "Checkout",
+        checkout_line_info: "CheckoutLineInfo",
+        address: Optional["Address"],
+        discounts: Iterable["DiscountInfo"],
+        channel: "Channel",
+        previous_value: TaxedMoney,
     ):
         """Calculate checkout line unit price."""
         return NotImplemented
 
     def calculate_order_line_unit(
-        self, order_line: "OrderLine", previous_value: TaxedMoney
+        self,
+        order: "Order",
+        order_line: "OrderLine",
+        variant: "ProductVariant",
+        product: "Product",
+        previous_value: TaxedMoney,
     ) -> TaxedMoney:
         """Calculate order line unit price.
 
@@ -430,6 +438,30 @@ class BasePlugin:
 
         Overwrite this method if you need to trigger specific logic when a checkout is
         updated.
+        """
+        return NotImplemented
+
+    def page_updated(self, page: "Page", previous_value: Any) -> Any:
+        """Trigger when page is updated.
+
+        Overwrite this method if you need to trigger specific logic when a page is
+        updated.
+        """
+        return NotImplemented
+
+    def page_created(self, page: "Page", previous_value: Any) -> Any:
+        """Trigger when page is created.
+
+        Overwrite this method if you need to trigger specific logic when a page is
+        created.
+        """
+        return NotImplemented
+
+    def page_deleted(self, page: "Page", previous_value: Any) -> Any:
+        """Trigger when page is deleted.
+
+        Overwrite this method if you need to trigger specific logic when a page is
+        deleted.
         """
         return NotImplemented
 

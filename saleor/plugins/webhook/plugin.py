@@ -7,6 +7,7 @@ from ...webhook.payloads import (
     generate_fulfillment_payload,
     generate_invoice_payload,
     generate_order_payload,
+    generate_page_payload,
     generate_product_deleted_payload,
     generate_product_payload,
 )
@@ -18,6 +19,7 @@ if TYPE_CHECKING:
     from ...checkout.models import Checkout
     from ...invoice.models import Invoice
     from ...order.models import Fulfillment, Order
+    from ...page.models import Page
     from ...product.models import Product
 
 
@@ -154,3 +156,21 @@ class WebhookPlugin(BasePlugin):
         trigger_webhooks_for_event.delay(
             WebhookEventType.CHECKOUT_UPADTED, checkout_data
         )
+
+    def page_created(self, page: "Page", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        page_data = generate_page_payload(page)
+        trigger_webhooks_for_event.delay(WebhookEventType.PAGE_CREATED, page_data)
+
+    def page_updated(self, page: "Page", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        page_data = generate_page_payload(page)
+        trigger_webhooks_for_event.delay(WebhookEventType.PAGE_UPDATED, page_data)
+
+    def page_deleted(self, page: "Page", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        page_data = generate_page_payload(page)
+        trigger_webhooks_for_event.delay(WebhookEventType.PAGE_DELETED, page_data)

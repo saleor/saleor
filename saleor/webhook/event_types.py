@@ -2,6 +2,7 @@ from ..core.permissions import (
     AccountPermissions,
     CheckoutPermissions,
     OrderPermissions,
+    PagePermissions,
     ProductPermissions,
 )
 
@@ -33,6 +34,10 @@ class WebhookEventType:
     CHECKOUT_CREATED = "checkout_created"
     CHECKOUT_UPADTED = "checkout_updated"
 
+    PAGE_CREATED = "page_created"
+    PAGE_UPDATED = "page_updated"
+    PAGE_DELETED = "page_deleted"
+
     DISPLAY_LABELS = {
         ANY: "Any events",
         ORDER_CREATED: "Order created",
@@ -53,6 +58,9 @@ class WebhookEventType:
         CHECKOUT_CREATED: "Checkout created",
         CHECKOUT_UPADTED: "Checkout updated",
         FULFILLMENT_CREATED: "Fulfillment_created",
+        PAGE_CREATED: "Page Created",
+        PAGE_UPDATED: "Page Updated",
+        PAGE_DELETED: "Page Deleted",
     }
 
     CHOICES = [
@@ -75,6 +83,9 @@ class WebhookEventType:
         (CHECKOUT_CREATED, DISPLAY_LABELS[CHECKOUT_CREATED]),
         (CHECKOUT_UPADTED, DISPLAY_LABELS[CHECKOUT_UPADTED]),
         (FULFILLMENT_CREATED, DISPLAY_LABELS[FULFILLMENT_CREATED]),
+        (PAGE_CREATED, DISPLAY_LABELS[PAGE_CREATED]),
+        (PAGE_UPDATED, DISPLAY_LABELS[PAGE_UPDATED]),
+        (PAGE_DELETED, DISPLAY_LABELS[PAGE_DELETED]),
     ]
 
     PERMISSIONS = {
@@ -95,4 +106,7 @@ class WebhookEventType:
         CHECKOUT_CREATED: CheckoutPermissions.MANAGE_CHECKOUTS,
         CHECKOUT_UPADTED: CheckoutPermissions.MANAGE_CHECKOUTS,
         FULFILLMENT_CREATED: OrderPermissions.MANAGE_ORDERS,
+        PAGE_CREATED: PagePermissions.MANAGE_PAGES,
+        PAGE_UPDATED: PagePermissions.MANAGE_PAGES,
+        PAGE_DELETED: PagePermissions.MANAGE_PAGES,
     }
