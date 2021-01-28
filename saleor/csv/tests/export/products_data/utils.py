@@ -39,6 +39,10 @@ def get_attribute_value(assigned_attribute):
         value = f"{value_instance.name}"
         if attribute.unit:
             value += f" {attribute.unit}"
+    elif attribute.input_type == AttributeInputType.SWATCH:
+        value = (
+            value_instance.file_url if value_instance.file_url else value_instance.value
+        )
     else:
         value = value_instance.slug
     return value

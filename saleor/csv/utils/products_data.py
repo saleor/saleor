@@ -289,7 +289,8 @@ def add_image_uris_to_data(
 
 
 AttributeData = namedtuple(
-    "AttributeData", ["slug", "file_url", "value", "input_type", "entity_type", "unit"]
+    "AttributeData",
+    ["slug", "input_type", "entity_type", "unit", "value_slug", "value", "file_url"],
 )
 
 
@@ -306,6 +307,7 @@ def handle_attribute_data(
         slug=data.pop(attribute_fields["slug"], None),
         input_type=data.pop(attribute_fields["input_type"], None),
         file_url=data.pop(attribute_fields["file_url"], None),
+        value_slug=data.pop(attribute_fields["value_slug"], None),
         value=data.pop(attribute_fields["value"], None),
         entity_type=data.pop(attribute_fields["entity_type"], None),
         unit=data.pop(attribute_fields["unit"], None),
@@ -381,27 +383,43 @@ def add_attribute_info_to_data(
     """
     slug = attribute_data.slug
     header = None
-    if slug:
-        header = f"{slug} ({attribute_owner})"
-        input_type = attribute_data.input_type
-        if input_type == AttributeInputType.FILE:
+
+    if not slug:
+        return result_data
+
+    header = f"{slug} ({attribute_owner})"
+    value = prepare_attribute_value(attribute_data)
+
+    if header in result_data[pk]:
+        result_data[pk][header].add(value)  # type: ignore
+    else:
+        result_data[pk][header] = {value}
+
+    return result_data
+
+
+def prepare_attribute_value(attribute_data: AttributeData):
+    """Prepare value of attribute value depending on the attribute input type."""
+    input_type = attribute_data.input_type
+    if input_type == AttributeInputType.FILE:
+        value = build_absolute_uri(urljoin(settings.MEDIA_URL, attribute_data.file_url))
+    elif input_type == AttributeInputType.REFERENCE:
+        reference_id = attribute_data.value_slug.split("_")[1]
+        value = f"{attribute_data.entity_type}_{reference_id}"
+    elif input_type == AttributeInputType.NUMERIC:
+        value = f"{attribute_data.value_slug}"
+        if attribute_data.unit:
+            value += f" {attribute_data.unit}"
+    elif input_type == AttributeInputType.SWATCH:
+        if attribute_data.file_url:
             value = build_absolute_uri(
                 urljoin(settings.MEDIA_URL, attribute_data.file_url)
             )
-        elif input_type == AttributeInputType.REFERENCE:
-            reference_id = attribute_data.value.split("_")[1]
-            value = f"{attribute_data.entity_type}_{reference_id}"
-        elif input_type == AttributeInputType.NUMERIC:
-            value = f"{attribute_data.value}"
-            if attribute_data.unit:
-                value += f" {attribute_data.unit}"
         else:
             value = attribute_data.value
-        if header in result_data[pk]:
-            result_data[pk][header].add(value)  # type: ignore
-        else:
-            result_data[pk][header] = {value}
-    return result_data
+    else:
+        value = attribute_data.value_slug
+    return value
 
 
 def add_warehouse_info_to_data(
