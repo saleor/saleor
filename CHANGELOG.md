@@ -39,6 +39,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Introduce page reference attributes - #6624 by @IKarbowiak
 - Introduce product reference attributes - #6711 by @IKarbowiak
 - Add metadata to warehouse - #6727 by @d-wysocki
+- Add page webhooks: `PAGE_CREATED`, `PAGE_UPDATED` and `PAGE_DELETED` - #6787 by @d-wysocki
 - Introduce numeric attributes - #6790 by @IKarbowiak
 
 # 2.11.1
