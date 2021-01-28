@@ -681,18 +681,17 @@ class ProductDelete(ModelDeleteMutation):
     def perform_mutation(cls, _root, info, **data):
         node_id = data.get("id")
         instance = cls.get_node_or_error(info, node_id, only_type=Product)
-
+        variants_id = instance.variants.all().values_list("id", flat=True)
         # get draft order lines for variant
         line_pks = list(
             order_models.OrderLine.objects.filter(
-                variant__in=instance.variants.all(), order__status=OrderStatus.DRAFT
+                variant_id__in=variants_id, order__status=OrderStatus.DRAFT
             ).values_list("pk", flat=True)
         )
-
         response = super().perform_mutation(_root, info, **data)
-
         # delete order lines for deleted variant
         order_models.OrderLine.objects.filter(pk__in=line_pks).delete()
+        info.context.plugins.product_deleted(instance, variants_id)
 
         return response
 
