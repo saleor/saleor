@@ -2268,7 +2268,11 @@ CREATE_PRODUCT_MUTATION = """
 """
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_created")
 def test_create_product(
+    created_webhook_mock,
+    updated_webhook_mock,
     staff_api_client,
     product_type,
     category,
@@ -2341,6 +2345,11 @@ def test_create_product(
     )
     assert slugify(non_existent_attr_value) in values
     assert color_value_slug in values
+
+    product = Product.objects.first()
+    created_webhook_mock.assert_called_once_with(product)
+
+    updated_webhook_mock.assert_not_called()
 
 
 def test_create_product_description_plaintext(
@@ -3677,7 +3686,9 @@ MUTATION_UPDATE_PRODUCT = """
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_created")
 def test_update_product(
+    created_webhook_mock,
     updated_webhook_mock,
     staff_api_client,
     category,
@@ -3743,6 +3754,7 @@ def test_update_product(
     assert attributes[0]["values"][0]["slug"] == "rainbow"
 
     updated_webhook_mock.assert_called_once_with(product)
+    created_webhook_mock.assert_not_called()
 
 
 def test_update_and_search_product_by_description(
