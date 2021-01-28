@@ -72,7 +72,8 @@ def test_create_token(api_client, customer_user, settings):
 def test_create_token_sets_cookie(api_client, customer_user, settings, monkeypatch):
     csrf_token = _get_new_csrf_token()
     monkeypatch.setattr(
-        "saleor.graphql.account.mutations.jwt._get_new_csrf_token", lambda: csrf_token
+        "saleor.graphql.account.mutations.authentication._get_new_csrf_token",
+        lambda: csrf_token,
     )
     variables = {"email": customer_user.email, "password": customer_user._password}
     response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
