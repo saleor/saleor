@@ -605,10 +605,10 @@ type AttributeValueCreate {
 }
 
 input AttributeValueCreateInput {
-  name: String!
   value: String
   fileUrl: String
   contentType: String
+  name: String!
 }
 
 type AttributeValueDelete {
@@ -650,6 +650,13 @@ type AttributeValueUpdate {
   attribute: Attribute
   attributeErrors: [AttributeError!]!
   attributeValue: AttributeValue
+}
+
+input AttributeValueUpdateInput {
+  value: String
+  fileUrl: String
+  contentType: String
+  name: String
 }
 
 input BulkAttributeValueInput {
@@ -2804,7 +2811,7 @@ type Mutation {
   attributeValueBulkDelete(ids: [ID]!): AttributeValueBulkDelete
   attributeValueCreate(attribute: ID!, input: AttributeValueCreateInput!): AttributeValueCreate
   attributeValueDelete(id: ID!): AttributeValueDelete
-  attributeValueUpdate(id: ID!, input: AttributeValueCreateInput!): AttributeValueUpdate
+  attributeValueUpdate(id: ID!, input: AttributeValueUpdateInput!): AttributeValueUpdate
   attributeValueTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): AttributeValueTranslate
   attributeReorderValues(attributeId: ID!, moves: [ReorderInput]!): AttributeReorderValues
   appCreate(input: AppInput!): AppCreate

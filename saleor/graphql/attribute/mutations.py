@@ -188,8 +188,7 @@ class BaseReorderAttributeValuesMutation(BaseMutation):
         return operations
 
 
-class AttributeValueCreateInput(graphene.InputObjectType):
-    name = graphene.String(required=True, description=AttributeValueDescriptions.NAME)
+class AttributeValueInput(graphene.InputObjectType):
     value = graphene.String(
         required=False, description=AttributeValueDescriptions.VALUE
     )
@@ -198,6 +197,14 @@ class AttributeValueCreateInput(graphene.InputObjectType):
         description="URL of the file attribute. Every time, a new value is created.",
     )
     content_type = graphene.String(required=False, description="File content type.")
+
+
+class AttributeValueCreateInput(AttributeValueInput):
+    name = graphene.String(required=True, description=AttributeValueDescriptions.NAME)
+
+
+class AttributeValueUpdateInput(AttributeValueInput):
+    name = graphene.String(required=False, description=AttributeValueDescriptions.NAME)
 
 
 class AttributeCreateInput(graphene.InputObjectType):
@@ -629,7 +636,8 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
-        cleaned_input["slug"] = slugify(cleaned_input["name"], allow_unicode=True)
+        if "name" in cleaned_input:
+            cleaned_input["slug"] = slugify(cleaned_input["name"], allow_unicode=True)
         input_type = instance.attribute.input_type
 
         is_swatch_attr = input_type == AttributeInputType.SWATCH
@@ -671,14 +679,14 @@ class AttributeValueCreate(AttributeMixin, ModelMutation):
         return AttributeValueCreate(attribute=attribute, attributeValue=instance)
 
 
-class AttributeValueUpdate(ModelMutation):
+class AttributeValueUpdate(AttributeValueCreate):
     attribute = graphene.Field(Attribute, description="The updated attribute.")
 
     class Arguments:
         id = graphene.ID(
             required=True, description="ID of an AttributeValue to update."
         )
-        input = AttributeValueCreateInput(
+        input = AttributeValueUpdateInput(
             required=True, description="Fields required to update an AttributeValue."
         )
 
@@ -692,14 +700,16 @@ class AttributeValueUpdate(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
-        if "name" in cleaned_input:
-            cleaned_input["slug"] = slugify(cleaned_input["name"], allow_unicode=True)
+        if cleaned_input.get("value"):
+            cleaned_input["file_url"] = ""
+            cleaned_input["content_type"] = ""
+        elif cleaned_input.get("file_url"):
+            cleaned_input["value"] = ""
         return cleaned_input
 
     @classmethod
-    def clean_instance(cls, info, instance):
-        validate_value_is_unique(instance.attribute, instance)
-        super().clean_instance(info, instance)
+    def perform_mutation(cls, _root, info, **data):
+        return super(AttributeValueCreate, cls).perform_mutation(_root, info, **data)
 
     @classmethod
     def success_response(cls, instance):
