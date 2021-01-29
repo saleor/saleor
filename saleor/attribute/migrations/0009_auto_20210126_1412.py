@@ -26,4 +26,9 @@ class Migration(migrations.Migration):
                 max_length=50,
             ),
         ),
+        migrations.AlterField(
+            model_name="attributevalue",
+            name="value",
+            field=models.CharField(blank=True, default="", max_length=9),
+        ),
     ]
