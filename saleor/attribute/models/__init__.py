@@ -4,6 +4,11 @@ from .base import (
     AttributeValue,
     AttributeValueTranslation,
 )
+from .category import (
+    AssignedCategoryAttribute,
+    AssignedCategoryAttributeValue,
+    AttributeCategory,
+)
 from .page import AssignedPageAttribute, AssignedPageAttributeValue, AttributePage
 from .product import (
     AssignedProductAttribute,
@@ -21,6 +26,9 @@ __all__ = [
     "AttributeTranslation",
     "AttributeValue",
     "AttributeValueTranslation",
+    "AssignedCategoryAttribute",
+    "AssignedCategoryAttributeValue",
+    "AttributeCategory",
     "AssignedPageAttribute",
     "AssignedPageAttributeValue",
     "AttributePage",
