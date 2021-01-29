@@ -4,6 +4,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Deprecate `taxRate` field from `ProductType` - #6803 by @d-wysocki
+
 # 2.11.6
 
 - Add Authorize.Net integration - #6752 by @bufke

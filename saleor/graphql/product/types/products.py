@@ -677,7 +677,12 @@ class ProductType(CountableDjangoObjectType):
     products = PrefetchingConnectionField(
         Product, description="List of products of this type."
     )
-    tax_rate = TaxRateType(description="A type of tax rate.")
+    tax_rate = TaxRateType(
+        description="A type of tax rate.",
+        deprecation_reason=(
+            "Use the TaxType instead. It will be removed in Saleor 3.0."
+        ),
+    )
     tax_type = graphene.Field(
         TaxType, description="A type of tax. Assigned by enabled tax gateway"
     )
