@@ -5008,7 +5008,6 @@ PRODUCT_TYPE_QUERY = """
                     }
                 }
             }
-            taxRate
             taxType {
                 taxCode
                 description
@@ -5168,7 +5167,6 @@ PRODUCT_TYPE_CREATE_MUTATION = """
             productType {
                 name
                 slug
-                taxRate
                 isShippingRequired
                 hasVariants
                 variantAttributes {
