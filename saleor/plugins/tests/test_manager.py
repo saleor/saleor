@@ -112,15 +112,18 @@ def test_manager_calculates_checkout_line_total(
     channel_listing = line.variant.channel_listings.get(channel=channel)
     currency = checkout_with_item.currency
     expected_total = Money(amount, currency)
+    checkout_line_info = CheckoutLineInfo(
+        line=line,
+        variant=line.variant,
+        channel_listing=channel_listing,
+        product=line.variant.product,
+        collections=[],
+    )
     taxed_total = PluginsManager(plugins=plugins).calculate_checkout_line_total(
         checkout_with_item,
-        line,
-        line.variant,
-        line.variant.product,
-        [],
+        checkout_line_info,
         checkout_with_item.shipping_address,
         channel,
-        channel_listing,
         [discount_info],
     )
     assert TaxedMoney(expected_total, expected_total) == taxed_total
@@ -309,9 +312,9 @@ def test_manager_get_order_shipping_tax_rate_no_plugins(
             ["saleor.plugins.tests.sample_plugins.PluginSample"],
             TaxedMoney(
                 net=Money(amount=10, currency="USD"),
-                gross=Money(amount=12, currency="USD"),
+                gross=Money(amount=10, currency="USD"),
             ),
-            2,
+            1,
         ),
         (
             [],
@@ -319,15 +322,33 @@ def test_manager_get_order_shipping_tax_rate_no_plugins(
                 net=Money(amount=15, currency="USD"),
                 gross=Money(amount=15, currency="USD"),
             ),
-            1,
+            2,
         ),
     ],
 )
 def test_manager_calculates_checkout_line_unit_price(
-    plugins, total_line_price, quantity
+    plugins, total_line_price, quantity, checkout_with_item, address
 ):
+    line = checkout_with_item.lines.first()
+    channel = checkout_with_item.channel
+    channel_listing = line.variant.channel_listings.get(channel=channel)
+
+    checkout_line_info = CheckoutLineInfo(
+        line=line,
+        variant=line.variant,
+        channel_listing=channel_listing,
+        product=line.variant.product,
+        collections=[],
+    )
+
     taxed_total = PluginsManager(plugins=plugins).calculate_checkout_line_unit_price(
-        total_line_price, quantity
+        total_line_price,
+        quantity,
+        checkout_with_item,
+        checkout_line_info,
+        address,
+        [],
+        channel,
     )
     currency = total_line_price.net.currency
     expected_net = Money(
@@ -344,9 +365,12 @@ def test_manager_calculates_checkout_line_unit_price(
     [(["saleor.plugins.tests.sample_plugins.PluginSample"], "1.0"), ([], "12.30")],
 )
 def test_manager_calculates_order_line(order_line, plugins, amount):
+    variant = order_line.variant
     currency = order_line.unit_price.currency
     expected_price = Money(amount, currency)
-    unit_price = PluginsManager(plugins=plugins).calculate_order_line_unit(order_line)
+    unit_price = PluginsManager(plugins=plugins).calculate_order_line_unit(
+        order_line.order, order_line, variant, variant.product
+    )
     assert expected_price == unit_price.gross
 
 

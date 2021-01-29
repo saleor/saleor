@@ -607,7 +607,10 @@ def create_order_lines(order, discounts, how_many=10):
     ).order_by("?")
     warehouse_iter = itertools.cycle(warehouses)
     for line in lines:
-        unit_price = manager.calculate_order_line_unit(line)
+        variant = line.variant
+        unit_price = manager.calculate_order_line_unit(
+            order, line, variant, variant.product
+        )
         line.unit_price = unit_price
         line.tax_rate = unit_price.tax / unit_price.net
         warehouse = next(warehouse_iter)
