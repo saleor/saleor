@@ -680,8 +680,9 @@ class ProductDelete(ModelDeleteMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         node_id = data.get("id")
+
         instance = cls.get_node_or_error(info, node_id, only_type=Product)
-        variants_id = instance.variants.all().values_list("id", flat=True)
+        variants_id = list(instance.variants.all().values_list("id", flat=True))
         # get draft order lines for variant
         line_pks = list(
             order_models.OrderLine.objects.filter(

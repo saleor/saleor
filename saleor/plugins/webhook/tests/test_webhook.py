@@ -1,5 +1,7 @@
+import json
 from unittest import mock
 
+import graphene
 import pytest
 
 from ....app.models import App
@@ -155,14 +157,22 @@ def test_product_deleted(mocked_webhook_trigger, settings, product):
     manager = get_plugins_manager()
 
     product = product
-    variants_id = product.variants.all().values_list("id", flat=True)
+    variants_id = list(product.variants.all().values_list("id", flat=True))
     product_id = product.id
     product.delete()
     product.id = product_id
-
-    manager.product_deleted(product, product.variants.all())
+    variant_global_ids = [
+        graphene.Node.to_global_id("ProductVariant", pk) for pk in variants_id
+    ]
+    manager.product_deleted(product, variants_id)
 
     expected_data = generate_product_deleted_payload(product, variants_id)
+
+    expected_data_dict = json.loads(expected_data)[0]
+    assert expected_data_dict["id"] is not None
+    assert expected_data_dict["variants"] is not None
+    assert variant_global_ids == expected_data_dict["variants"]
+
     mocked_webhook_trigger.assert_called_once_with(
         WebhookEventType.PRODUCT_DELETED, expected_data
     )

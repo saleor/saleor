@@ -4908,7 +4908,7 @@ def test_delete_product_trigger_webhook(
 
     query = DELETE_PRODUCT_MUTATION
     node_id = graphene.Node.to_global_id("Product", product.id)
-    variants_id = product.variants.all().values_list("id", flat=True)
+    variants_id = list(product.variants.all().values_list("id", flat=True))
     variables = {"id": node_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]

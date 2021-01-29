@@ -1,6 +1,7 @@
 import json
 from typing import Iterable, Optional
 
+import graphene
 from django.db.models import QuerySet
 
 from ..account.models import User
@@ -247,11 +248,13 @@ def generate_product_payload(product: "Product"):
 def generate_product_deleted_payload(product: "Product", variants_id):
     serializer = PayloadSerializer()
     product_fields = PRODUCT_FIELDS
-
+    variant_global_ids = [
+        graphene.Node.to_global_id("ProductVariant", pk) for pk in variants_id
+    ]
     product_payload = serializer.serialize(
         [product],
         fields=product_fields,
-        extra_dict_data={"variants": list(variants_id)},
+        extra_dict_data={"variants": list(variant_global_ids)},
     )
     return product_payload
 
