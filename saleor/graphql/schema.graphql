@@ -514,6 +514,7 @@ enum AttributeInputTypeEnum {
   REFERENCE
   NUMERIC
   RICH_TEXT
+  SWATCH
 }
 
 type AttributeReorderValues {
@@ -574,7 +575,7 @@ input AttributeUpdateInput {
   slug: String
   unit: MeasurementUnitsEnum
   removeValues: [ID]
-  addValues: [AttributeValueCreateInput]
+  addValues: [AttributeValueUpdateInput]
   valueRequired: Boolean
   isVariantOnly: Boolean
   visibleInStorefront: Boolean
@@ -610,9 +611,11 @@ type AttributeValueCreate {
 }
 
 input AttributeValueCreateInput {
-  name: String!
   value: String
   richText: JSONString
+  fileUrl: String
+  contentType: String
+  name: String!
 }
 
 type AttributeValueDelete {
@@ -661,6 +664,14 @@ type AttributeValueUpdate {
   attributeErrors: [AttributeError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
   errors: [AttributeError!]!
   attributeValue: AttributeValue
+}
+
+input AttributeValueUpdateInput {
+  value: String
+  richText: JSONString
+  fileUrl: String
+  contentType: String
+  name: String
 }
 
 input BulkAttributeValueInput {
@@ -2865,7 +2876,7 @@ type Mutation {
   attributeValueBulkDelete(ids: [ID]!): AttributeValueBulkDelete
   attributeValueCreate(attribute: ID!, input: AttributeValueCreateInput!): AttributeValueCreate
   attributeValueDelete(id: ID!): AttributeValueDelete
-  attributeValueUpdate(id: ID!, input: AttributeValueCreateInput!): AttributeValueUpdate
+  attributeValueUpdate(id: ID!, input: AttributeValueUpdateInput!): AttributeValueUpdate
   attributeValueTranslate(id: ID!, input: AttributeValueTranslationInput!, languageCode: LanguageCodeEnum!): AttributeValueTranslate
   attributeReorderValues(attributeId: ID!, moves: [ReorderInput]!): AttributeReorderValues
   appCreate(input: AppInput!): AppCreate
