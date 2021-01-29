@@ -28,7 +28,7 @@ from ...interface import (
     PaymentGateway,
 )
 from ...models import Payment, Transaction
-from ..utils import get_supported_currencies
+from ..utils import get_supported_currencies, require_active_plugin
 from .utils.apple_pay import initialize_apple_pay, make_request_to_initialize_apple_pay
 from .utils.common import (
     AUTH_STATUS,
@@ -48,16 +48,6 @@ from .webhooks import handle_additional_actions, handle_webhook
 GATEWAY_NAME = "Adyen"
 WEBHOOK_PATH = "/webhooks"
 ADDITIONAL_ACTION_PATH = "/additional-actions"
-
-
-def require_active_plugin(fn):
-    def wrapped(self, *args, **kwargs):
-        previous = kwargs.get("previous_value", None)
-        if not self.active:
-            return previous
-        return fn(self, *args, **kwargs)
-
-    return wrapped
 
 
 class AdyenGatewayPlugin(BasePlugin):
