@@ -30,6 +30,11 @@ CREATE_ATTRIBUTE_MUTATION = """
                 values {
                     name
                     slug
+                    value
+                    file {
+                        url
+                        contentType
+                    }
                 }
                 productTypes(first: 10) {
                     edges {
@@ -191,6 +196,284 @@ def test_create_numeric_attribute_and_attribute_values_not_numeric_value_provide
     data = content["data"]["attributeCreate"]
     errors = content["data"]["attributeCreate"]["attributeErrors"]
 
+    assert not data["attribute"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "values"
+    assert errors[0]["code"] == AttributeErrorCode.INVALID.name
+
+
+def test_create_swatch_attribute_and_attribute_values_only_name_provided(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    permission_manage_products,
+):
+    # given
+    query = CREATE_ATTRIBUTE_MUTATION
+
+    attribute_name = "Example numeric attribute name"
+    name = "Pink"
+    variables = {
+        "input": {
+            "name": attribute_name,
+            "values": [{"name": name}],
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+            "inputType": AttributeInputTypeEnum.SWATCH.name,
+            "filterableInStorefront": True,
+            "filterableInDashboard": True,
+            "availableInGrid": True,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["attributeCreate"]["attributeErrors"]
+    data = content["data"]["attributeCreate"]
+
+    # Check if the attribute was correctly created
+    assert data["attribute"]["name"] == attribute_name
+    assert data["attribute"]["slug"] == slugify(
+        attribute_name
+    ), "The default slug should be the slugified name"
+    assert (
+        data["attribute"]["productTypes"]["edges"] == []
+    ), "The attribute should not have been assigned to a product type"
+
+    # Check if the attribute values were correctly created
+    assert len(data["attribute"]["values"]) == 1
+    assert data["attribute"]["type"] == AttributeTypeEnum.PRODUCT_TYPE.name
+    assert data["attribute"]["unit"] is None
+    assert data["attribute"]["inputType"] == AttributeInputTypeEnum.SWATCH.name
+    assert data["attribute"]["filterableInStorefront"] is True
+    assert data["attribute"]["filterableInDashboard"] is True
+    assert data["attribute"]["availableInGrid"] is True
+    assert data["attribute"]["storefrontSearchPosition"] == 0
+    assert data["attribute"]["values"][0]["name"] == name
+    assert data["attribute"]["values"][0]["slug"] == slugify(name)
+
+
+def test_create_swatch_attribute_and_attribute_values_with_file(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    permission_manage_products,
+):
+    # given
+    query = CREATE_ATTRIBUTE_MUTATION
+
+    attribute_name = "Example numeric attribute name"
+    name = "Logo"
+    file_url = "http://mirumee.com/test_media/test_logo.png"
+    content_type = "image/png"
+    variables = {
+        "input": {
+            "name": attribute_name,
+            "values": [
+                {"name": name, "fileUrl": file_url, "contentType": content_type}
+            ],
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+            "inputType": AttributeInputTypeEnum.SWATCH.name,
+            "filterableInStorefront": True,
+            "filterableInDashboard": True,
+            "availableInGrid": True,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["attributeCreate"]["attributeErrors"]
+    data = content["data"]["attributeCreate"]
+
+    # Check if the attribute was correctly created
+    assert data["attribute"]["name"] == attribute_name
+    assert data["attribute"]["slug"] == slugify(
+        attribute_name
+    ), "The default slug should be the slugified name"
+    assert (
+        data["attribute"]["productTypes"]["edges"] == []
+    ), "The attribute should not have been assigned to a product type"
+
+    # Check if the attribute values were correctly created
+    assert len(data["attribute"]["values"]) == 1
+    assert data["attribute"]["type"] == AttributeTypeEnum.PRODUCT_TYPE.name
+    assert data["attribute"]["unit"] is None
+    assert data["attribute"]["inputType"] == AttributeInputTypeEnum.SWATCH.name
+    assert data["attribute"]["filterableInStorefront"] is True
+    assert data["attribute"]["filterableInDashboard"] is True
+    assert data["attribute"]["availableInGrid"] is True
+    assert data["attribute"]["storefrontSearchPosition"] == 0
+    assert data["attribute"]["values"][0]["name"] == name
+    assert data["attribute"]["values"][0]["slug"] == slugify(name)
+    assert data["attribute"]["values"][0]["file"] == {
+        "url": file_url,
+        "contentType": content_type,
+    }
+
+
+def test_create_swatch_attribute_and_attribute_values_with_value(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    permission_manage_products,
+):
+    # given
+    query = CREATE_ATTRIBUTE_MUTATION
+
+    attribute_name = "Example numeric attribute name"
+    name = "Pink"
+    value = "#ffc0cb"
+    variables = {
+        "input": {
+            "name": attribute_name,
+            "values": [{"name": name, "value": value}],
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+            "inputType": AttributeInputTypeEnum.SWATCH.name,
+            "filterableInStorefront": True,
+            "filterableInDashboard": True,
+            "availableInGrid": True,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["attributeCreate"]["attributeErrors"]
+    data = content["data"]["attributeCreate"]
+
+    # Check if the attribute was correctly created
+    assert data["attribute"]["name"] == attribute_name
+    assert data["attribute"]["slug"] == slugify(
+        attribute_name
+    ), "The default slug should be the slugified name"
+    assert (
+        data["attribute"]["productTypes"]["edges"] == []
+    ), "The attribute should not have been assigned to a product type"
+
+    # Check if the attribute values were correctly created
+    assert len(data["attribute"]["values"]) == 1
+    assert data["attribute"]["type"] == AttributeTypeEnum.PRODUCT_TYPE.name
+    assert data["attribute"]["unit"] is None
+    assert data["attribute"]["inputType"] == AttributeInputTypeEnum.SWATCH.name
+    assert data["attribute"]["filterableInStorefront"] is True
+    assert data["attribute"]["filterableInDashboard"] is True
+    assert data["attribute"]["availableInGrid"] is True
+    assert data["attribute"]["storefrontSearchPosition"] == 0
+    assert data["attribute"]["values"][0]["name"] == name
+    assert data["attribute"]["values"][0]["slug"] == slugify(name)
+    assert data["attribute"]["values"][0]["file"] is None
+    assert data["attribute"]["values"][0]["value"] == value
+
+
+def test_create_swatch_attribute_and_attribute_values_file_and_value_provided(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    permission_manage_products,
+):
+    # given
+    query = CREATE_ATTRIBUTE_MUTATION
+
+    attribute_name = "Example numeric attribute name"
+    name = "Pink"
+    file_url = "http://mirumee.com/test_media/test_file.jpeg"
+    variables = {
+        "input": {
+            "name": attribute_name,
+            "values": [{"name": name, "value": "#A8A8A8", "fileUrl": file_url}],
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+            "inputType": AttributeInputTypeEnum.SWATCH.name,
+            "filterableInStorefront": True,
+            "filterableInDashboard": True,
+            "availableInGrid": True,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeCreate"]
+    errors = data["attributeErrors"]
+    assert not data["attribute"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "values"
+    assert errors[0]["code"] == AttributeErrorCode.INVALID.name
+
+
+@pytest.mark.parametrize(
+    "field, value", [("fileUrl", "test.jpg"), ("value", "blue"), ("contentType", "jpg")]
+)
+def test_create_not_swatch_attribute_provide_not_valid_data(
+    field,
+    value,
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    permission_manage_products,
+):
+    # given
+    query = CREATE_ATTRIBUTE_MUTATION
+
+    attribute_name = "Example numeric attribute name"
+    name = "Test"
+    variables = {
+        "input": {
+            "name": attribute_name,
+            "values": [{"name": name, field: value}],
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+            "inputType": AttributeInputTypeEnum.DROPDOWN.name,
+            "filterableInStorefront": True,
+            "filterableInDashboard": True,
+            "availableInGrid": True,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeCreate"]
+    errors = data["attributeErrors"]
     assert not data["attribute"]
     assert len(errors) == 1
     assert errors[0]["field"] == "values"

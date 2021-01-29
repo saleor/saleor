@@ -855,6 +855,33 @@ def file_attribute_with_file_input_type_without_values(db):
 
 
 @pytest.fixture
+def swatch_attribute(db):
+    attribute = Attribute.objects.create(
+        slug="T-shirt color",
+        name="t-shirt-color",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.SWATCH,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
+    )
+    AttributeValue.objects.create(
+        attribute=attribute, name="Red", slug="red", value="#ff0000"
+    )
+    AttributeValue.objects.create(
+        attribute=attribute, name="White", slug="whit", value="#fffff"
+    )
+    AttributeValue.objects.create(
+        attribute=attribute,
+        name="Logo",
+        slug="logo",
+        file_url="http://mirumee.com/test_media/test_file.jpeg",
+        content_type="image/jpeg",
+    )
+    return attribute
+
+
+@pytest.fixture
 def product_type_page_reference_attribute(db):
     return Attribute.objects.create(
         slug="page-reference",

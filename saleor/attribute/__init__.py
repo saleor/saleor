@@ -6,6 +6,7 @@ class AttributeInputType:
     FILE = "file"
     REFERENCE = "reference"
     NUMERIC = "numeric"
+    SWATCH = "swatch"
 
     CHOICES = [
         (DROPDOWN, "Dropdown"),
@@ -13,9 +14,10 @@ class AttributeInputType:
         (FILE, "File"),
         (REFERENCE, "Reference"),
         (NUMERIC, "Numeric"),
+        (SWATCH, "Swatch"),
     ]
     # list of the input types that can be used in variant selection
-    ALLOWED_IN_VARIANT_SELECTION = [DROPDOWN, NUMERIC]
+    ALLOWED_IN_VARIANT_SELECTION = [DROPDOWN, NUMERIC, SWATCH]
 
 
 # list of input types that are allowed for given attribute property
@@ -24,16 +26,19 @@ ATTRIBUTE_PROPERTIES_CONFIGURATION = {
         AttributeInputType.DROPDOWN,
         AttributeInputType.MULTISELECT,
         AttributeInputType.NUMERIC,
+        AttributeInputType.SWATCH,
     ],
     "filterable_in_dashboard": [
         AttributeInputType.DROPDOWN,
         AttributeInputType.MULTISELECT,
         AttributeInputType.NUMERIC,
+        AttributeInputType.SWATCH,
     ],
     "available_in_grid": [
         AttributeInputType.DROPDOWN,
         AttributeInputType.MULTISELECT,
         AttributeInputType.NUMERIC,
+        AttributeInputType.SWATCH,
     ],
     "storefront_search_position": [
         AttributeInputType.DROPDOWN,
