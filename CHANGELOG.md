@@ -12,6 +12,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop authorization keys API - #6631 by @maarcingebala
 - Drop `type` field from `AttributeValue` type - #6710 by @IKarbowiak
 - Drop `apply_taxes_to_shipping_price_range` plugin hook - #6746 by @maarcingebala
+- Drop `CHECKOUT_QUANTITY_CHANGED` webhook - #6797 by @d-wysocki
 
 ### Other
 
