@@ -15,6 +15,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other
 
+- Fix creating translations with app - #6804 by @krzysztofwolski
 - Add possibility to provide external payment ID during the conversion draft order to order - #6320 by @korycins
 - Add basic rating for `Products` - #6284 by @korycins
 - Add metadata to shipping zones and shipping methods - #6340 by @maarcingebala
