@@ -623,10 +623,13 @@ class ProductCreate(ModelMutation):
             instance.collections.set(collections)
 
     @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.product_created(instance)
+
+    @classmethod
     def perform_mutation(cls, _root, info, **data):
         response = super().perform_mutation(_root, info, **data)
         product = getattr(response, cls._meta.return_field_name)
-        info.context.plugins.product_created(product)
 
         # Wrap product instance with ChannelContext in response
         setattr(
@@ -658,6 +661,9 @@ class ProductUpdate(ProductCreate):
         attributes = cleaned_input.get("attributes")
         if attributes:
             AttributeAssignmentMixin.save(instance, attributes)
+
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
         info.context.plugins.product_updated(instance)
 
 
