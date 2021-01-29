@@ -1635,6 +1635,60 @@ def test_products_query_with_filter_by_attributes_values_and_range(
     assert products[0]["node"]["name"] == product.name
 
 
+def test_products_query_with_filter_swatch_attributes(
+    query_products_with_filter,
+    staff_api_client,
+    product,
+    category,
+    swatch_attribute,
+    permission_manage_products,
+):
+    product.product_type.product_attributes.add(swatch_attribute)
+    associate_attribute_values_to_instance(
+        product, swatch_attribute, *swatch_attribute.values.all()
+    )
+
+    product_type = ProductType.objects.create(
+        name="Custom Type",
+        slug="custom-type",
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    swatch_attribute.product_types.add(product_type)
+
+    second_product = Product.objects.create(
+        name="Second product",
+        slug="second-product",
+        product_type=product_type,
+        category=category,
+    )
+    attr_value = AttributeValue.objects.create(
+        attribute=swatch_attribute, name="Dark", slug="dark"
+    )
+
+    associate_attribute_values_to_instance(second_product, swatch_attribute, attr_value)
+
+    second_product.refresh_from_db()
+
+    variables = {
+        "filter": {
+            "attributes": [
+                {"slug": swatch_attribute.slug, "values": [attr_value.slug]},
+            ]
+        }
+    }
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    second_product_id = graphene.Node.to_global_id("Product", second_product.id)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == second_product_id
+    assert products[0]["node"]["name"] == second_product.name
+
+
 def test_products_query_with_filter_product_type(
     query_products_with_filter, staff_api_client, product, permission_manage_products
 ):
