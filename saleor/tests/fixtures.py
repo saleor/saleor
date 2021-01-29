@@ -30,6 +30,7 @@ from ..app.types import AppType
 from ..attribute import AttributeEntityType, AttributeInputType, AttributeType
 from ..attribute.models import (
     Attribute,
+    AttributeCategory,
     AttributeTranslation,
     AttributeValue,
     AttributeValueTranslation,
@@ -839,8 +840,8 @@ def file_attribute_with_file_input_type_without_values(db):
 @pytest.fixture
 def product_type_page_reference_attribute(db):
     return Attribute.objects.create(
-        slug="page-reference",
-        name="Page reference",
+        slug="product-page-reference",
+        name="Product page reference",
         type=AttributeType.PRODUCT_TYPE,
         input_type=AttributeInputType.REFERENCE,
         entity_type=AttributeEntityType.PAGE,
@@ -850,8 +851,8 @@ def product_type_page_reference_attribute(db):
 @pytest.fixture
 def page_type_page_reference_attribute(db):
     return Attribute.objects.create(
-        slug="page-reference",
-        name="Page reference",
+        slug="page-page-reference",
+        name="Page page reference",
         type=AttributeType.PAGE_TYPE,
         input_type=AttributeInputType.REFERENCE,
         entity_type=AttributeEntityType.PAGE,
@@ -861,8 +862,8 @@ def page_type_page_reference_attribute(db):
 @pytest.fixture
 def product_type_product_reference_attribute(db):
     return Attribute.objects.create(
-        slug="product-reference",
-        name="Product reference",
+        slug="product-product-reference",
+        name="Product product reference",
         type=AttributeType.PRODUCT_TYPE,
         input_type=AttributeInputType.REFERENCE,
         entity_type=AttributeEntityType.PRODUCT,
@@ -872,8 +873,8 @@ def product_type_product_reference_attribute(db):
 @pytest.fixture
 def page_type_product_reference_attribute(db):
     return Attribute.objects.create(
-        slug="product-reference",
-        name="Product reference",
+        slug="page-product-reference",
+        name="Page product reference",
         type=AttributeType.PAGE_TYPE,
         input_type=AttributeInputType.REFERENCE,
         entity_type=AttributeEntityType.PRODUCT,

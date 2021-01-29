@@ -5,6 +5,7 @@ import pytest
 from django_countries import countries
 
 from ....account.models import Address
+from ....attribute.models import AttributeCategory
 from ....core.error_codes import ShopErrorCode
 from ....core.permissions import get_permissions_codename
 from ....shipping.models import ShippingMethod
@@ -270,6 +271,28 @@ def test_query_default_mail_sender_settings_not_set(
     data = content["data"]["shop"]
     assert data["defaultMailSenderName"] == ""
     assert data["defaultMailSenderAddress"] is None
+
+
+def test_query_category_attributes(
+    site_settings, user_api_client, page_type_product_reference_attribute
+):
+    query = """
+    query {
+        shop {
+            categoryAttributes {
+                name
+            }
+        }
+    }
+    """
+    AttributeCategory.objects.create(
+        attribute=page_type_product_reference_attribute,
+        site_settings=site_settings,
+    )
+    response = user_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    data = content["data"]["shop"]
+    assert len(data["categoryAttributes"]) == site_settings.category_attributes.count()
 
 
 def test_shop_digital_content_settings_mutation(

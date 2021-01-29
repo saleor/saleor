@@ -4932,6 +4932,7 @@ type Shop {
   companyAddress: Address
   customerSetPasswordUrl: String
   staffNotificationRecipients: [StaffNotificationRecipient]
+  categoryAttributes: [Attribute!]
 }
 
 type ShopAddressUpdate {
