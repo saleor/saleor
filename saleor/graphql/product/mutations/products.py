@@ -569,11 +569,6 @@ class ProductCreate(ModelMutation):
             error.code = ProductErrorCode.REQUIRED.value
             raise ValidationError({"slug": error})
 
-        # FIXME  tax_rate logic should be dropped after we remove tax_rate from input
-        tax_rate = cleaned_input.pop("tax_rate", "")
-        if tax_rate:
-            info.context.plugins.assign_tax_code_to_object_meta(instance, tax_rate)
-
         if "tax_code" in cleaned_input:
             info.context.plugins.assign_tax_code_to_object_meta(
                 instance, cleaned_input["tax_code"]
@@ -1069,14 +1064,6 @@ class ProductTypeCreate(ModelMutation):
         except ValidationError as error:
             error.code = ProductErrorCode.REQUIRED.value
             raise ValidationError({"slug": error})
-
-        # FIXME  tax_rate logic should be dropped after we remove tax_rate from input
-        tax_rate = cleaned_input.pop("tax_rate", "")
-        if tax_rate:
-            instance.store_value_in_metadata(
-                {"vatlayer.code": tax_rate, "description": tax_rate}
-            )
-            info.context.plugins.assign_tax_code_to_object_meta(instance, tax_rate)
 
         tax_code = cleaned_input.pop("tax_code", "")
         if tax_code:
