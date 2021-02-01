@@ -74,13 +74,13 @@ from ..product.models import (
     DigitalContentUrl,
     Product,
     ProductChannelListing,
-    ProductImage,
+    ProductMedia,
     ProductTranslation,
     ProductType,
     ProductVariant,
     ProductVariantChannelListing,
     ProductVariantTranslation,
-    VariantImage,
+    VariantMedia,
 )
 from ..product.tests.utils import create_image
 from ..shipping.models import (
@@ -1850,7 +1850,15 @@ def order_list(customer_user, channel_USD):
 
 @pytest.fixture
 def product_with_image(product, image, media_root):
-    ProductImage.objects.create(product=product, image=image)
+    ProductMedia.objects.create(product=product, image=image)
+    return product
+
+
+@pytest.fixture
+def product_with_video_url(product, image, media_root):
+    ProductMedia.objects.create(
+        product=product, video_url="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+    )
     return product
 
 
@@ -1924,8 +1932,8 @@ def product_with_images(product_type, category, media_root, channel_USD):
     file_mock_0.name = "image0.jpg"
     file_mock_1 = MagicMock(spec=File, name="FileMock1")
     file_mock_1.name = "image1.jpg"
-    product.images.create(image=file_mock_0)
-    product.images.create(image=file_mock_1)
+    product.media.create(image=file_mock_0)
+    product.media.create(image=file_mock_1)
     return product
 
 

@@ -4,7 +4,7 @@ from .products import (
     Category,
     Collection,
     Product,
-    ProductImage,
+    ProductMedia,
     ProductType,
     ProductVariant,
 )

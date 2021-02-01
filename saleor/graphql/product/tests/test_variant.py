@@ -61,7 +61,7 @@ def test_fetch_variant(
                 currency
                 amount
             }
-            images {
+            media {
                 id
             }
             name

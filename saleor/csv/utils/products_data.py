@@ -134,9 +134,9 @@ def prepare_products_relations_data(
     for data in relations_data.iterator():
         pk = data.get("pk")
         collection = data.get("collections__slug")
-        image = data.pop("images__image", None)
+        image = data.pop("media__image", None)
 
-        result_data = add_image_uris_to_data(pk, image, "images__image", result_data)
+        result_data = add_image_uris_to_data(pk, image, "media__image", result_data)
         result_data = add_collection_info_to_data(pk, collection, result_data)
 
         result_data, data = handle_attribute_data(
@@ -219,10 +219,10 @@ def prepare_variants_relations_data(
 
     for data in relations_data.iterator():
         pk = data.get("variants__pk")
-        image = data.pop("variants__images__image", None)
+        image = data.pop("variants__media__image", None)
 
         result_data = add_image_uris_to_data(
-            pk, image, "variants__images__image", result_data
+            pk, image, "variants__media__image", result_data
         )
         result_data, data = handle_attribute_data(
             pk, data, attribute_ids, result_data, attribute_fields, "variant attribute"

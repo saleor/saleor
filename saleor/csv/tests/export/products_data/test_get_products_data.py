@@ -3,7 +3,7 @@ from measurement.measures import Weight
 from .....attribute.models import Attribute, AttributeValue
 from .....attribute.utils import associate_attribute_values_to_instance
 from .....channel.models import Channel
-from .....product.models import Product, ProductVariant, VariantImage
+from .....product.models import Product, ProductVariant, VariantMedia
 from .....warehouse.models import Warehouse
 from ....utils import ProductExportFields
 from ....utils.products_data import get_products_data
@@ -24,7 +24,7 @@ def test_get_products_data(product, product_with_image, collection, image, chann
     collection.products.add(product)
 
     variant = product.variants.first()
-    VariantImage.objects.create(variant=variant, image=product.images.first())
+    VariantMedia.objects.create(variant=variant, media=product.media.first())
 
     products = Product.objects.all()
     export_fields = set(
@@ -76,10 +76,10 @@ def test_get_products_data(product, product_with_image, collection, image, chann
                 if product.weight
                 else ""
             ),
-            "images__image": (
+            "media__image": (
                 ""
-                if not product.images.all()
-                else "http://mirumee.com{}".format(product.images.first().image.url)
+                if not product.media.all()
+                else "http://mirumee.com{}".format(product.media.first().image.url)
             ),
         }
 
@@ -93,10 +93,10 @@ def test_get_products_data(product, product_with_image, collection, image, chann
         for variant in product.variants.all():
             data = {
                 "variants__sku": variant.sku,
-                "variants__images__image": (
+                "variants__media__image": (
                     ""
-                    if not variant.images.all()
-                    else "http://mirumee.com{}".format(variant.images.first().image.url)
+                    if not variant.media.all()
+                    else "http://mirumee.com{}".format(variant.media.first().image.url)
                 ),
                 "variant_weight": (
                     "{} g".foramt(int(variant.weight.value * 1000))

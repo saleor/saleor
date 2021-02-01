@@ -15,9 +15,9 @@ class ProductExportFields:
         },
         "product_many_to_many": {
             "collections": "collections__slug",
-            "product images": "images__image",
+            "product media": "media__image",
         },
-        "variant_many_to_many": {"variant images": "variants__images__image"},
+        "variant_many_to_many": {"variant media": "variants__media__image"},
     }
 
     PRODUCT_ATTRIBUTE_FIELDS = {

@@ -44,7 +44,7 @@ def collect_data_for_email(
     order_pk: int, template: str, redirect_url: str = ""
 ) -> dict:
     """Collect the required data for sending emails."""
-    order = Order.objects.prefetch_related("lines__variant__product__images").get(
+    order = Order.objects.prefetch_related("lines__variant__product__media").get(
         pk=order_pk
     )
     recipient_email = order.get_customer_email()

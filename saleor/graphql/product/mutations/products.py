@@ -15,6 +15,7 @@ from ....core.permissions import ProductPermissions, ProductTypePermissions
 from ....core.utils.editorjs import clean_editor_js
 from ....order import OrderStatus
 from ....order import models as order_models
+from ....product import ProductMediaTypes
 from ....product import models
 from ....product.error_codes import CollectionErrorCode, ProductErrorCode
 from ....product.tasks import (
@@ -41,6 +42,7 @@ from ...core.utils import (
     from_global_id_strict_type,
     get_duplicated_values,
     validate_image_file,
+    validate_youtube_url,
     validate_slug_and_generate_if_needed,
 )
 from ...core.utils.reordering import perform_reordering
@@ -49,7 +51,7 @@ from ..types import (
     Category,
     Collection,
     Product,
-    ProductImage,
+    ProductMedia,
     ProductType,
     ProductVariant,
 )
@@ -1162,29 +1164,31 @@ class ProductTypeDelete(ModelDeleteMutation):
         return response
 
 
-class ProductImageCreateInput(graphene.InputObjectType):
+class ProductMediaCreateInput(graphene.InputObjectType):
     alt = graphene.String(description="Alt text for an image.")
     image = Upload(
-        required=True, description="Represents an image file in a multipart request."
+        required=False, description="Represents an image file in a multipart request."
     )
     product = graphene.ID(
         required=True, description="ID of an product.", name="product"
     )
+    video_url = graphene.String(required=False, description="Represents a video URL.")
 
 
-class ProductImageCreate(BaseMutation):
+class ProductMediaCreate(BaseMutation):
     product = graphene.Field(Product)
-    image = graphene.Field(ProductImage)
+    media = graphene.Field(ProductMedia)
 
     class Arguments:
-        input = ProductImageCreateInput(
-            required=True, description="Fields required to create a product image."
+        input = ProductMediaCreateInput(
+            required=True, description="Fields required to create a product media."
         )
 
     class Meta:
         description = (
-            "Create a product image. This mutation must be sent as a `multipart` "
-            "request. More detailed specs of the upload format can be found here: "
+            "Create a media object (image or video URL) associated with product. "
+            "For image, this mutation must be sent as a `multipart` request. "
+            "More detailed specs of the upload format can be found here: "
             "https://github.com/jaydenseric/graphql-multipart-request-spec"
         )
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
@@ -1198,106 +1202,122 @@ class ProductImageCreate(BaseMutation):
             info, data["product"], field="product", only_type=Product
         )
 
-        image_data = info.context.FILES.get(data["image"])
-        validate_image_file(image_data, "image")
+        image = data.get("image")
+        video_url = data.get("video_url")
+        if not image and not video_url:
+            raise ValidationError("Image or video is required.")
+        if image and video_url:
+            raise ValidationError("Only one is required.")
 
-        image = product.images.create(image=image_data, alt=data.get("alt", ""))
-        create_product_thumbnails.delay(image.pk)
+        if image and not video_url:
+            image_data = info.context.FILES.get(image)
+            validate_image_file(image_data, "image")
+            media = product.media.create(
+                image=image_data, alt=data.get("alt", ""), type=ProductMediaTypes.IMAGE
+            )
+            create_product_thumbnails.delay(media.pk)
+
+        if video_url and not image:
+            video_url = validate_youtube_url(video_url, "video_url")
+            media = product.media.create(
+                video_url=video_url, type=ProductMediaTypes.VIDEO_YOUTUBE
+            )
+
         product = ChannelContext(node=product, channel_slug=None)
-        return ProductImageCreate(product=product, image=image)
+        return ProductMediaCreate(product=product, media=media)
 
 
-class ProductImageUpdateInput(graphene.InputObjectType):
-    alt = graphene.String(description="Alt text for an image.")
+class ProductMediaUpdateInput(graphene.InputObjectType):
+    alt = graphene.String(description="Alt text for a product media.")
 
 
-class ProductImageUpdate(BaseMutation):
+class ProductMediaUpdate(BaseMutation):
     product = graphene.Field(Product)
-    image = graphene.Field(ProductImage)
+    media = graphene.Field(ProductMedia)
 
     class Arguments:
-        id = graphene.ID(required=True, description="ID of a product image to update.")
-        input = ProductImageUpdateInput(
-            required=True, description="Fields required to update a product image."
+        id = graphene.ID(required=True, description="ID of a product media to update.")
+        input = ProductMediaUpdateInput(
+            required=True, description="Fields required to update a product media."
         )
 
     class Meta:
-        description = "Updates a product image."
+        description = "Updates a product media."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        image = cls.get_node_or_error(info, data.get("id"), only_type=ProductImage)
-        product = image.product
+        media = cls.get_node_or_error(info, data.get("id"), only_type=ProductMedia)
+        product = media.product
         alt = data.get("input").get("alt")
         if alt is not None:
-            image.alt = alt
-            image.save(update_fields=["alt"])
+            media.alt = alt
+            media.save(update_fields=["alt"])
         product = ChannelContext(node=product, channel_slug=None)
-        return ProductImageUpdate(product=product, image=image)
+        return ProductMediaUpdate(product=product, media=media)
 
 
-class ProductImageReorder(BaseMutation):
+class ProductMediaReorder(BaseMutation):
     product = graphene.Field(Product)
-    images = graphene.List(ProductImage)
+    media = graphene.List(ProductMedia)
 
     class Arguments:
         product_id = graphene.ID(
             required=True,
-            description="Id of product that images order will be altered.",
+            description="ID of product that media order will be altered.",
         )
-        images_ids = graphene.List(
+        media_ids = graphene.List(
             graphene.ID,
             required=True,
-            description="IDs of a product images in the desired order.",
+            description="IDs of a product media in the desired order.",
         )
 
     class Meta:
-        description = "Changes ordering of the product image."
+        description = "Changes ordering of the product media."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, product_id, images_ids):
+    def perform_mutation(cls, _root, info, product_id, media_ids):
         product = cls.get_node_or_error(
             info, product_id, field="product_id", only_type=Product
         )
-        if len(images_ids) != product.images.count():
+        if len(media_ids) != product.media.count():
             raise ValidationError(
                 {
                     "order": ValidationError(
-                        "Incorrect number of image IDs provided.",
+                        "Incorrect number of media IDs provided.",
                         code=ProductErrorCode.INVALID,
                     )
                 }
             )
 
-        images = []
-        for image_id in images_ids:
-            image = cls.get_node_or_error(
-                info, image_id, field="order", only_type=ProductImage
+        ordered_media = []
+        for media_id in media_ids:
+            media = cls.get_node_or_error(
+                info, media_id, field="order", only_type=ProductMedia
             )
-            if image and image.product != product:
+            if media and media.product != product:
                 raise ValidationError(
                     {
                         "order": ValidationError(
-                            "Image %(image_id)s does not belong to this product.",
+                            "Media %(media_id)s does not belong to this product.",
                             code=ProductErrorCode.NOT_PRODUCTS_IMAGE,
-                            params={"image_id": image_id},
+                            params={"media_id": media_id},
                         )
                     }
                 )
-            images.append(image)
+            ordered_media.append(media)
 
-        for order, image in enumerate(images):
-            image.sort_order = order
-            image.save(update_fields=["sort_order"])
+        for order, media in enumerate(ordered_media):
+            media.sort_order = order
+            media.save(update_fields=["sort_order"])
 
         product = ChannelContext(node=product, channel_slug=None)
-        return ProductImageReorder(product=product, images=images)
+        return ProductMediaReorder(product=product, media=ordered_media)
 
 
 class ProductVariantSetDefault(BaseMutation):
@@ -1420,114 +1440,112 @@ class ProductVariantReorder(BaseMutation):
         return ProductVariantReorder(product=product)
 
 
-class ProductImageDelete(BaseMutation):
+class ProductMediaDelete(BaseMutation):
     product = graphene.Field(Product)
-    image = graphene.Field(ProductImage)
+    media = graphene.Field(ProductMedia)
 
     class Arguments:
-        id = graphene.ID(required=True, description="ID of a product image to delete.")
+        id = graphene.ID(required=True, description="ID of a product media to delete.")
 
     class Meta:
-        description = "Deletes a product image."
+        description = "Deletes a product media."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        image = cls.get_node_or_error(info, data.get("id"), only_type=ProductImage)
-        image_id = image.id
-        image.delete()
-        image.id = image_id
-        product = ChannelContext(node=image.product, channel_slug=None)
-        return ProductImageDelete(product=product, image=image)
+        media_obj = cls.get_node_or_error(info, data.get("id"), only_type=ProductMedia)
+        media_id = media_obj.id
+        media_obj.delete()
+        media_obj.id = media_id
+        product = ChannelContext(node=media_obj.product, channel_slug=None)
+        return ProductMediaDelete(product=product, media=media_obj)
 
 
-class VariantImageAssign(BaseMutation):
+class VariantMediaAssign(BaseMutation):
     product_variant = graphene.Field(ProductVariant)
-    image = graphene.Field(ProductImage)
+    media = graphene.Field(ProductMedia)
 
     class Arguments:
-        image_id = graphene.ID(
-            required=True, description="ID of a product image to assign to a variant."
+        media_id = graphene.ID(
+            required=True, description="ID of a product media to assign to a variant."
         )
         variant_id = graphene.ID(required=True, description="ID of a product variant.")
 
     class Meta:
-        description = "Assign an image to a product variant."
+        description = "Assign an media to a product variant."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, image_id, variant_id):
-        image = cls.get_node_or_error(
-            info, image_id, field="image_id", only_type=ProductImage
+    def perform_mutation(cls, _root, info, media_id, variant_id):
+        media = cls.get_node_or_error(
+            info, media_id, field="media_id", only_type=ProductMedia
         )
         variant = cls.get_node_or_error(
             info, variant_id, field="variant_id", only_type=ProductVariant
         )
-        if image and variant:
+        if media and variant:
             # check if the given image and variant can be matched together
-            image_belongs_to_product = variant.product.images.filter(
-                pk=image.pk
-            ).first()
-            if image_belongs_to_product:
-                image.variant_images.create(variant=variant)
+            media_belongs_to_product = variant.product.media.filter(pk=media.pk).first()
+            if media_belongs_to_product:
+                media.variant_media.create(variant=variant)
             else:
                 raise ValidationError(
                     {
-                        "image_id": ValidationError(
-                            "This image doesn't belong to that product.",
+                        "media_id": ValidationError(
+                            "This media doesn't belong to that product.",
                             code=ProductErrorCode.NOT_PRODUCTS_IMAGE,
                         )
                     }
                 )
         variant = ChannelContext(node=variant, channel_slug=None)
-        return VariantImageAssign(product_variant=variant, image=image)
+        return VariantMediaAssign(product_variant=variant, media=media)
 
 
-class VariantImageUnassign(BaseMutation):
+class VariantMediaUnassign(BaseMutation):
     product_variant = graphene.Field(ProductVariant)
-    image = graphene.Field(ProductImage)
+    media = graphene.Field(ProductMedia)
 
     class Arguments:
-        image_id = graphene.ID(
+        media_id = graphene.ID(
             required=True,
-            description="ID of a product image to unassign from a variant.",
+            description="ID of a product media to unassign from a variant.",
         )
         variant_id = graphene.ID(required=True, description="ID of a product variant.")
 
     class Meta:
-        description = "Unassign an image from a product variant."
+        description = "Unassign an media from a product variant."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, image_id, variant_id):
-        image = cls.get_node_or_error(
-            info, image_id, field="image_id", only_type=ProductImage
+    def perform_mutation(cls, _root, info, media_id, variant_id):
+        media = cls.get_node_or_error(
+            info, media_id, field="image_id", only_type=ProductMedia
         )
         variant = cls.get_node_or_error(
             info, variant_id, field="variant_id", only_type=ProductVariant
         )
 
         try:
-            variant_image = models.VariantImage.objects.get(
-                image=image, variant=variant
+            variant_media = models.VariantMedia.objects.get(
+                media=media, variant=variant
             )
-        except models.VariantImage.DoesNotExist:
+        except models.VariantMedia.DoesNotExist:
             raise ValidationError(
                 {
-                    "image_id": ValidationError(
-                        "Image is not assigned to this variant.",
+                    "media_id": ValidationError(
+                        "Media is not assigned to this variant.",
                         code=ProductErrorCode.NOT_PRODUCTS_IMAGE,
                     )
                 }
             )
         else:
-            variant_image.delete()
+            variant_media.delete()
 
         variant = ChannelContext(node=variant, channel_slug=None)
-        return VariantImageUnassign(product_variant=variant, image=image)
+        return VariantMediaUnassign(product_variant=variant, media=media)

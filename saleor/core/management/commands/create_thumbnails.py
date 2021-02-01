@@ -3,7 +3,7 @@ import logging
 from django.core.management.base import BaseCommand
 from versatileimagefield.image_warmer import VersatileImageFieldWarmer
 
-from ....product.models import ProductImage
+from ....product.models import ProductMedia
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ class Command(BaseCommand):
     def warm_products(self):
         self.stdout.write("Products thumbnails generation:")
         warmer = VersatileImageFieldWarmer(
-            instance_or_queryset=ProductImage.objects.all(),
+            instance_or_queryset=ProductMedia.objects.all(),
             rendition_key_set="products",
             image_attr="image",
             verbose=True,

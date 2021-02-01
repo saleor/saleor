@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 
 from django.contrib.sites.models import Site
 
+from ...product import ProductMediaTypes
 from ...core.utils import build_absolute_uri
 from ...core.utils.json_serializer import HTMLSafeJSON
 
@@ -37,7 +38,7 @@ def get_product_data(line: "OrderLine", organization: dict) -> dict:
         return {}
 
     product = line.variant.product
-    product_image = product.get_first_image()
+    product_image = product.media.filter(type=ProductMediaTypes.IMAGE).first()
     if product_image:
         image = product_image.image
         product_data["itemOffered"]["image"] = build_absolute_uri(location=image.url)

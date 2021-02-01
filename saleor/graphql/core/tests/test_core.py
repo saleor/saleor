@@ -22,6 +22,7 @@ from ..utils import (
     get_duplicated_values,
     snake_to_camel_case,
     validate_slug_and_generate_if_needed,
+    validate_youtube_url,
 )
 
 
@@ -279,3 +280,26 @@ def test_requestor_is_superuser_for_anonymous_user():
     user = AnonymousUser()
     result = requestor_is_superuser(user)
     assert result is False
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "youtu.be/dQw4w9WgXcQ",
+        "youtube.com/watch?v=dQw4w9WgXcQ",
+        "www.youtube.com/watch?v=dQw4w9WgXcQ",
+        "http://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        "https://www.youtube.com/watch?v=dQw4w9WgXcQ&feature=share",
+        "https://www.youtube.com/embed/watch?feature=player_embedded&v=dQw4w9WgXcQ",
+        "https://www.youtube.com/embed/watch?v=dQw4w9WgXcQ",
+        "https://www.youtube.com/embed/v=dQw4w9WgXcQ",
+        "https://www.youtube.com/watch/dQw4w9WgXcQ",
+        "http://www.youtube.com/attribution_link?u=/watch?v=dQw4w9WgXcQ&feature=share",
+        "https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=TestingChannel",
+    ],
+)
+def test_validate_youtube_url(url):
+    proper_url = validate_youtube_url(url, "video_url")
+
+    assert proper_url == "https://www.youtube.com/watch?v=dQw4w9WgXcQ"

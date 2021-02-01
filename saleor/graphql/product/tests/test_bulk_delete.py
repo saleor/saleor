@@ -12,7 +12,7 @@ from ....product.models import (
     Collection,
     Product,
     ProductChannelListing,
-    ProductImage,
+    ProductMedia,
     ProductType,
     ProductVariant,
     ProductVariantChannelListing,
@@ -306,14 +306,14 @@ def test_delete_products_variants_in_draft_order(
     ).exists()
 
 
-def test_delete_product_images(
+def test_delete_product_media(
     staff_api_client, product_with_images, permission_manage_products
 ):
-    images = product_with_images.images.all()
+    media = product_with_images.media.all()
 
     query = """
-    mutation productImageBulkDelete($ids: [ID]!) {
-        productImageBulkDelete(ids: $ids) {
+    mutation productMediaBulkDelete($ids: [ID]!) {
+        productMediaBulkDelete(ids: $ids) {
             count
         }
     }
@@ -321,7 +321,8 @@ def test_delete_product_images(
 
     variables = {
         "ids": [
-            graphene.Node.to_global_id("ProductImage", image.id) for image in images
+            graphene.Node.to_global_id("ProductMedia", media_obj.id)
+            for media_obj in media
         ]
     }
     response = staff_api_client.post_graphql(
@@ -329,9 +330,9 @@ def test_delete_product_images(
     )
     content = get_graphql_content(response)
 
-    assert content["data"]["productImageBulkDelete"]["count"] == 2
-    assert not ProductImage.objects.filter(
-        id__in=[image.id for image in images]
+    assert content["data"]["productMediaBulkDelete"]["count"] == 2
+    assert not ProductMedia.objects.filter(
+        id__in=[media_obj.id for media_obj in media]
     ).exists()
 
 

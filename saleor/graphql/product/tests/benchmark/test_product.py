@@ -65,7 +65,7 @@ def test_product_details(product_with_image, api_client, count_queries, channel_
               value: name
             }
           }
-          images {
+          media {
             id
             url
           }
@@ -140,7 +140,7 @@ def test_product_details(product_with_image, api_client, count_queries, channel_
                 }
               }
             }
-            images {
+            media {
               id
               url
             }
@@ -155,8 +155,8 @@ def test_product_details(product_with_image, api_client, count_queries, channel_
     """
     product = product_with_image
     variant = product_with_image.variants.first()
-    image = product_with_image.get_first_image()
-    image.variant_images.create(variant=variant)
+    media = product_with_image.get_first_image()
+    media.variant_media.create(variant=variant)
 
     variables = {
         "id": Node.to_global_id("Product", product.pk),

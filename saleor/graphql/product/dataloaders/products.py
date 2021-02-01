@@ -10,11 +10,11 @@ from ....product.models import (
     CollectionProduct,
     Product,
     ProductChannelListing,
-    ProductImage,
+    ProductMedia,
     ProductType,
     ProductVariant,
     ProductVariantChannelListing,
-    VariantImage,
+    VariantMedia,
 )
 from ...core.dataloaders import DataLoader
 
@@ -134,15 +134,15 @@ class ProductTypeByIdLoader(DataLoader):
         return [product_types.get(product_type_id) for product_type_id in keys]
 
 
-class ImagesByProductIdLoader(DataLoader):
-    context_key = "images_by_product"
+class MediaByProductIdLoader(DataLoader):
+    context_key = "media_by_product"
 
     def batch_load(self, keys):
-        images = ProductImage.objects.filter(product_id__in=keys)
-        image_map = defaultdict(list)
-        for image in images:
-            image_map[image.product_id].append(image)
-        return [image_map[product_id] for product_id in keys]
+        media = ProductMedia.objects.filter(product_id__in=keys)
+        media_map = defaultdict(list)
+        for media_obj in media:
+            media_map[media_obj.product_id].append(media_obj)
+        return [media_map[product_id] for product_id in keys]
 
 
 class ProductVariantByIdLoader(DataLoader):
@@ -294,37 +294,37 @@ class VariantsChannelListingByProductIdAndChanneSlugLoader(
         ]
 
 
-class ProductImageByIdLoader(DataLoader):
-    context_key = "product_image_by_id"
+class ProductMediaByIdLoader(DataLoader):
+    context_key = "product_media_by_id"
 
     def batch_load(self, keys):
-        product_images = ProductImage.objects.in_bulk(keys)
-        return [product_images.get(product_image_id) for product_image_id in keys]
+        product_media = ProductMedia.objects.in_bulk(keys)
+        return [product_media.get(product_media_id) for product_media_id in keys]
 
 
-class ImagesByProductVariantIdLoader(DataLoader):
-    context_key = "images_by_product_variant"
+class MediaByProductVariantIdLoader(DataLoader):
+    context_key = "media_by_product_variant"
 
     def batch_load(self, keys):
-        variant_images = VariantImage.objects.filter(variant_id__in=keys).values_list(
-            "variant_id", "image_id"
+        variant_media = VariantMedia.objects.filter(variant_id__in=keys).values_list(
+            "variant_id", "media_id"
         )
 
-        variant_image_pairs = defaultdict(list)
-        for variant_id, image_id in variant_images:
-            variant_image_pairs[variant_id].append(image_id)
+        variant_media_pairs = defaultdict(list)
+        for variant_id, media_id in variant_media:
+            variant_media_pairs[variant_id].append(media_id)
 
-        def map_variant_images(images):
-            images_map = {image.id: image for image in images}
+        def map_variant_media(variant_media):
+            media_map = {media.id: media for media in variant_media}
             return [
-                [images_map[image_id] for image_id in variant_image_pairs[variant_id]]
+                [media_map[media_id] for media_id in variant_media_pairs[variant_id]]
                 for variant_id in keys
             ]
 
         return (
-            ProductImageByIdLoader(self.context)
-            .load_many(set(image_id for variant_id, image_id in variant_images))
-            .then(map_variant_images)
+            ProductMediaByIdLoader(self.context)
+            .load_many(set(media_id for variant_id, media_id in variant_media))
+            .then(map_variant_media)
         )
 
 

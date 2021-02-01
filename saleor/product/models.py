@@ -33,6 +33,7 @@ from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
+from . import ProductMediaTypes
 from ..account.utils import requestor_is_staff_member_or_app
 from ..channel.models import Channel
 from ..core.db.fields import SanitizedJSONField
@@ -368,8 +369,7 @@ class Product(SeoModel, ModelWithMetadata):
         return json_content_to_raw_text(self.description)
 
     def get_first_image(self):
-        images = list(self.images.all())
-        return images[0] if images else None
+        return self.media.filter(type=ProductMediaTypes.IMAGE).first() or None
 
     @staticmethod
     def sort_by_attribute_fields() -> list:
@@ -457,7 +457,7 @@ class ProductVariant(SortableModel, ModelWithMetadata):
     product = models.ForeignKey(
         Product, related_name="variants", on_delete=models.CASCADE
     )
-    images = models.ManyToManyField("ProductImage", through="VariantImage")
+    media = models.ManyToManyField("ProductMedia", through="VariantMedia")
     track_inventory = models.BooleanField(default=True)
 
     weight = MeasurementField(
@@ -512,9 +512,9 @@ class ProductVariant(SortableModel, ModelWithMetadata):
         )
         return smart_text(product_display)
 
-    def get_first_image(self) -> "ProductImage":
-        images = list(self.images.all())
-        return images[0] if images else self.product.get_first_image()
+    def get_first_image(self) -> "ProductMedia":
+        media = list(self.media.all())
+        return media[0] if media else self.product.get_first_image()
 
     def get_ordering_queryset(self):
         return self.product.variants.all()
@@ -624,32 +624,38 @@ class DigitalContentUrl(models.Model):
         return build_absolute_uri(url)
 
 
-class ProductImage(SortableModel):
-    product = models.ForeignKey(
-        Product, related_name="images", on_delete=models.CASCADE
+class ProductMedia(SortableModel):
+    product = models.ForeignKey(Product, related_name="media", on_delete=models.CASCADE)
+    image = VersatileImageField(
+        upload_to="products", ppoi_field="ppoi", blank=True, null=True
     )
-    image = VersatileImageField(upload_to="products", ppoi_field="ppoi", blank=False)
     ppoi = PPOIField()
+    video_url = models.CharField(max_length=256, blank=True, null=True)
     alt = models.CharField(max_length=128, blank=True)
+    type = models.CharField(
+        max_length=32,
+        choices=ProductMediaTypes.CHOICES,
+        default=ProductMediaTypes.IMAGE,
+    )
 
     class Meta:
         ordering = ("sort_order", "pk")
         app_label = "product"
 
     def get_ordering_queryset(self):
-        return self.product.images.all()
+        return self.product.media.all()
 
 
-class VariantImage(models.Model):
+class VariantMedia(models.Model):
     variant = models.ForeignKey(
-        "ProductVariant", related_name="variant_images", on_delete=models.CASCADE
+        "ProductVariant", related_name="variant_media", on_delete=models.CASCADE
     )
-    image = models.ForeignKey(
-        ProductImage, related_name="variant_images", on_delete=models.CASCADE
+    media = models.ForeignKey(
+        ProductMedia, related_name="variant_media", on_delete=models.CASCADE
     )
 
     class Meta:
-        unique_together = ("variant", "image")
+        unique_together = ("variant", "media")
 
 
 class CollectionProduct(SortableModel):

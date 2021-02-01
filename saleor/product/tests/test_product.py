@@ -256,12 +256,12 @@ def test_costs_get_margin_for_variant_channel_listing(
 
 @patch("saleor.product.thumbnails.create_thumbnails")
 def test_create_product_thumbnails(mock_create_thumbnails, product_with_image):
-    product_image = product_with_image.images.first()
+    product_image = product_with_image.media.first()
     create_product_thumbnails(product_image.pk)
     assert mock_create_thumbnails.call_count == 1
     args, kwargs = mock_create_thumbnails.call_args
     assert kwargs == {
-        "model": models.ProductImage,
+        "model": models.ProductMedia,
         "pk": product_image.pk,
         "size_set": "products",
     }
