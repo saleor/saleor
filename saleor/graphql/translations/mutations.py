@@ -312,7 +312,6 @@ class ShopSettingsTranslate(BaseMutation):
 
     class Meta:
         description = "Creates/Updates translations for Shop Settings."
-        permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
         error_type_class = TranslationError
         error_type_field = "translation_errors"
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
