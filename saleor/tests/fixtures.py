@@ -877,8 +877,8 @@ def numeric_attribute(db):
         filterable_in_dashboard=True,
         available_in_grid=True,
     )
-    AttributeValue.objects.create(attribute=attribute, name="10", slug="10")
-    AttributeValue.objects.create(attribute=attribute, name="15", slug="15")
+    AttributeValue.objects.create(attribute=attribute, name="9.5", slug="10_5")
+    AttributeValue.objects.create(attribute=attribute, name="15.2", slug="15_2")
     return attribute
 
 

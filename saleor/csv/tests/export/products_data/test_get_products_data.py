@@ -241,6 +241,7 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
     rich_text_attribute,
     color_attribute,
     variant_with_many_stocks,
+    swatch_attribute,
 ):
     # given
     product.variants.add(variant_with_many_stocks)
@@ -250,6 +251,7 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
         product_type_product_reference_attribute,
         numeric_attribute,
         rich_text_attribute,
+        swatch_attribute,
     )
     product.product_type.product_attributes.add(
         file_attribute,
@@ -257,6 +259,7 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
         product_type_product_reference_attribute,
         numeric_attribute,
         rich_text_attribute,
+        swatch_attribute,
     )
 
     # add rich text attribute
@@ -327,6 +330,15 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
     )
     assigned_product = product.attributes.get(assignment__attribute=color_attribute)
     assigned_product.values.clear()
+
+    # add swatch attribute
+    swatch_value_1 = swatch_attribute.values.first()
+    swatch_value_2 = swatch_attribute.values.last()
+
+    associate_attribute_values_to_instance(
+        variant_with_many_stocks, swatch_attribute, swatch_value_1
+    )
+    associate_attribute_values_to_instance(product, swatch_attribute, swatch_value_2)
 
     products = Product.objects.all()
     export_fields = {"id", "variants__sku"}
