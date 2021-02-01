@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any, List, Optional
 
 from ...webhook.event_types import WebhookEventType
 from ...webhook.payloads import (
@@ -8,6 +8,7 @@ from ...webhook.payloads import (
     generate_invoice_payload,
     generate_order_payload,
     generate_page_payload,
+    generate_product_deleted_payload,
     generate_product_payload,
 )
 from ..base_plugin import BasePlugin
@@ -120,6 +121,14 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         product_data = generate_product_payload(product)
         trigger_webhooks_for_event.delay(WebhookEventType.PRODUCT_UPDATED, product_data)
+
+    def product_deleted(
+        self, product: "Product", variants: List[int], previous_value: Any
+    ) -> Any:
+        if not self.active:
+            return previous_value
+        product_data = generate_product_deleted_payload(product, variants)
+        trigger_webhooks_for_event.delay(WebhookEventType.PRODUCT_DELETED, product_data)
 
     def checkout_created(self, checkout: "Checkout", previous_value: Any) -> Any:
         if not self.active:
