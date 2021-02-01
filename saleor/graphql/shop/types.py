@@ -61,6 +61,25 @@ class Geolocalization(graphene.ObjectType):
         description = "Represents customers's geolocalization data."
 
 
+class CategorySettings(graphene.ObjectType):
+    attributes = graphene.List(
+        graphene.NonNull(Attribute),
+        description="List of available category attributes.",
+        required=True,
+    )
+
+    class Meta:
+        description = "Represents available category attributes."
+
+    @staticmethod
+    def resolve_attributes(_, info):
+        site_settings = info.context.site.settings
+        attribute_ids = site_settings.category_attributes.values_list(
+            "attribute_id", flat=True
+        )
+        return AttributesByAttributeId(info.context).load_many(attribute_ids)
+
+
 class OrderSettings(CountableDjangoObjectType):
     class Meta:
         only_fields = ["automatically_confirm_all_new_orders"]

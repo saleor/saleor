@@ -2,15 +2,19 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ...account import models as account_models
+from ...attribute import AttributeType
+from ...attribute import models as attribute_models
 from ...core.error_codes import ShopErrorCode
 from ...core.permissions import OrderPermissions, SitePermissions
 from ...core.utils.url import validate_storefront_url
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
+from ..attribute.types import Attribute
 from ..core.enums import WeightUnitsEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import OrderSettingsError, ShopError
-from .types import OrderSettings, Shop
+from ..core.utils import get_duplicates_ids
+from .types import CategorySettings, OrderSettings, Shop
 
 
 class ShopSettingsInput(graphene.InputObjectType):
@@ -154,6 +158,123 @@ class ShopDomainUpdate(BaseMutation):
         cls.clean_instance(info, site)
         site.save()
         return ShopDomainUpdate(shop=Shop())
+
+
+class CategorySettingsInput(graphene.InputObjectType):
+    add_attributes = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description=(
+            "List of attribute IDs that should be added to available "
+            "category attributes."
+        ),
+        required=False,
+    )
+    remove_attributes = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description=(
+            "List of attribute IDs that should be remove from available "
+            "category attributes."
+        ),
+        required=False,
+    )
+
+
+class CategorySettingsUpdate(BaseMutation):
+    category_settings = graphene.Field(
+        CategorySettings, description="Updated category settings."
+    )
+
+    class Arguments:
+        input = CategorySettingsInput(
+            required=True, description="Fields required to update category settings."
+        )
+
+    class Meta:
+        description = "Updates category settings."
+        permissions = (SitePermissions.MANAGE_SETTINGS,)
+        error_type_class = ShopError
+        error_type_field = "shop_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        site = info.context.site
+        input = data["input"]
+        cleaned_input = cls.clean_input(info, input)
+        cls.update_category_settings(site, cleaned_input)
+        return cls(category_settings=CategorySettings())
+
+    @classmethod
+    def clean_input(cls, _info, input_data):
+        cls.validate_duplicates(input_data)
+
+        for field in ["add_attributes", "remove_attributes"]:
+            attr_ids = input_data.get(field)
+            if attr_ids:
+                input_data[field] = cls.get_nodes_or_error(attr_ids, "id", Attribute)
+
+        cls.validate_attributes(input_data.get("add_attributes", []))
+
+        return input_data
+
+    @classmethod
+    def validate_duplicates(cls, input_data):
+        duplicated_ids = get_duplicates_ids(
+            input_data.get("add_attributes"), input_data.get("remove_attributes")
+        )
+        if duplicated_ids:
+            error_msg = (
+                "The same object cannot be in both list"
+                "for adding and removing items."
+            )
+            raise ValidationError(
+                {
+                    "input": ValidationError(
+                        error_msg,
+                        code=ShopErrorCode.DUPLICATED_INPUT_ITEM.value,
+                        params={"attributes": list(duplicated_ids)},
+                    )
+                }
+            )
+
+    @classmethod
+    def validate_attributes(cls, attributes):
+        # only page attributes can be set as category attributes
+        invalid_attrs = [
+            attr for attr in attributes if attr.type != AttributeType.PAGE_TYPE
+        ]
+        if invalid_attrs:
+            attr_ids = [
+                graphene.Node.to_global_id("Attribute", attr.pk)
+                for attr in invalid_attrs
+            ]
+            raise ValidationError(
+                {
+                    "input": ValidationError(
+                        "Only Page attributes can be set as category attributes.",
+                        code=ShopErrorCode.INVALID.value,
+                        params={"attributes": attr_ids},
+                    )
+                }
+            )
+
+    @classmethod
+    def update_category_settings(cls, site, cleaned_input):
+        site_settings = site.settings
+        remove_attr = cleaned_input.get("remove_attributes")
+        add_attr = cleaned_input.get("add_attributes")
+        if remove_attr:
+            site_settings.category_attributes.filter(
+                attribute_id__in=remove_attr
+            ).delete()
+        if add_attr:
+            attribute_models.AttributeCategory.objects.bulk_create(
+                [
+                    attribute_models.AttributeCategory(
+                        site_settings=site_settings, attribute=attr
+                    )
+                    for attr in add_attr
+                ]
+            )
 
 
 class ShopFetchTaxRates(BaseMutation):

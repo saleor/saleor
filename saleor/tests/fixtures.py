@@ -244,6 +244,17 @@ def site_settings(db, settings) -> SiteSettings:
 
 
 @pytest.fixture
+def site_settings_with_category_attributes(
+    site_settings, page_type_product_reference_attribute
+):
+    AttributeCategory.objects.create(
+        attribute=page_type_product_reference_attribute,
+        site_settings=site_settings,
+    )
+    return site_settings
+
+
+@pytest.fixture
 def checkout(db, channel_USD):
     checkout = Checkout.objects.create(
         currency=channel_USD.currency_code, channel=channel_USD
@@ -500,7 +511,7 @@ def graphql_address_data():
 def customer_user(address):  # pylint: disable=W0613
     default_address = address.get_copy()
     user = User.objects.create_user(
-        "test@example.com",
+        "test_user@example.com",
         "password",
         default_billing_address=default_address,
         default_shipping_address=default_address,

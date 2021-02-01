@@ -729,6 +729,21 @@ input CategoryInput {
   backgroundImageAlt: String
 }
 
+type CategorySettings {
+  attributes: [Attribute!]!
+}
+
+input CategorySettingsInput {
+  addAttributes: [ID!]
+  removeAttributes: [ID!]
+}
+
+type CategorySettingsUpdate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  categorySettings: CategorySettings
+  shopErrors: [ShopError!]!
+}
+
 enum CategorySortField {
   NAME
   PRODUCT_COUNT
@@ -2567,6 +2582,7 @@ type Mutation {
   shopSettingsTranslate(input: ShopSettingsTranslationInput!, languageCode: LanguageCodeEnum!): ShopSettingsTranslate
   shopAddressUpdate(input: AddressInput): ShopAddressUpdate
   orderSettingsUpdate(input: OrderSettingsUpdateInput!): OrderSettingsUpdate
+  categorySettingsUpdate(input: CategorySettingsInput!): CategorySettingsUpdate
   shippingMethodChannelListingUpdate(id: ID!, input: ShippingMethodChannelListingInput!): ShippingMethodChannelListingUpdate
   shippingMethodZipCodeRulesCreate(input: ShippingZipCodeRulesCreateInput!, shippingMethodId: ID!): ShippingZipCodeRulesCreate
   shippingMethodZipCodeRulesDelete(id: ID!): ShippingZipCodeRulesDelete
@@ -4951,6 +4967,7 @@ type ShopError {
   field: String
   message: String
   code: ShopErrorCode!
+  attributes: [ID!]
 }
 
 enum ShopErrorCode {
@@ -4961,6 +4978,7 @@ enum ShopErrorCode {
   NOT_FOUND
   REQUIRED
   UNIQUE
+  DUPLICATED_INPUT_ITEM
 }
 
 type ShopFetchTaxRates {
