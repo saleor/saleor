@@ -40,6 +40,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Introduce product reference attributes - #6711 by @IKarbowiak
 - Add metadata to warehouse - #6727 by @d-wysocki
 - Add page webhooks: `PAGE_CREATED`, `PAGE_UPDATED` and `PAGE_DELETED` - #6787 by @d-wysocki
+- Add interface for integrating the auth plugins - #6799 by @korycins
 
 # 2.11.1
 
