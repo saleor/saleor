@@ -34,7 +34,7 @@ from ...channel.dataloaders import ChannelBySlugLoader
 from ...channel.types import ChannelContextType, ChannelContextTypeWithMetadata
 from ...channel.utils import get_default_channel_slug_or_graphql_error
 from ...core.connection import CountableDjangoObjectType
-from ...core.enums import ReportingPeriod, TaxRateType
+from ...core.enums import ReportingPeriod
 from ...core.fields import (
     ChannelContextFilterConnectionField,
     FilterInputConnectionField,
@@ -848,7 +848,6 @@ class ProductType(CountableDjangoObjectType):
             "Use the top-level `products` query with the `productTypes` filter."
         ),
     )
-    tax_rate = TaxRateType(description="A type of tax rate.")
     tax_type = graphene.Field(
         TaxType, description="A type of tax. Assigned by enabled tax gateway"
     )
@@ -889,13 +888,6 @@ class ProductType(CountableDjangoObjectType):
     def resolve_tax_type(root: models.ProductType, info):
         tax_data = info.context.plugins.get_tax_code_from_object_meta(root)
         return TaxType(tax_code=tax_data.code, description=tax_data.description)
-
-    @staticmethod
-    def resolve_tax_rate(root: models.ProductType, _info, **_kwargs):
-        # FIXME this resolver should be dropped after we drop tax_rate from API
-        if not hasattr(root, "meta"):
-            return None
-        return root.get_value_from_metadata("vatlayer.code")
 
     @staticmethod
     def resolve_product_attributes(root: models.ProductType, info):

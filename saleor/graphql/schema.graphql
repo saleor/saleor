@@ -4128,7 +4128,6 @@ type ProductType implements Node & ObjectWithMetadata {
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   products(channel: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection @deprecated(reason: "Use the top-level `products` query with the `productTypes` filter.")
-  taxRate: TaxRateType
   taxType: TaxType
   variantAttributes(variantSelection: VariantAttributeScope): [Attribute]
   productAttributes: [Attribute]
@@ -5785,10 +5784,13 @@ enum WebhookEventTypeEnum {
   CUSTOMER_CREATED
   PRODUCT_CREATED
   PRODUCT_UPDATED
-  CHECKOUT_QUANTITY_CHANGED
+  PRODUCT_DELETED
   CHECKOUT_CREATED
   CHECKOUT_UPDATED
   FULFILLMENT_CREATED
+  PAGE_CREATED
+  PAGE_UPDATED
+  PAGE_DELETED
 }
 
 enum WebhookSampleEventTypeEnum {
@@ -5804,10 +5806,13 @@ enum WebhookSampleEventTypeEnum {
   CUSTOMER_CREATED
   PRODUCT_CREATED
   PRODUCT_UPDATED
-  CHECKOUT_QUANTITY_CHANGED
+  PRODUCT_DELETED
   CHECKOUT_CREATED
   CHECKOUT_UPDATED
   FULFILLMENT_CREATED
+  PAGE_CREATED
+  PAGE_UPDATED
+  PAGE_DELETED
 }
 
 type WebhookUpdate {

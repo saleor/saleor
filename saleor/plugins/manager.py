@@ -24,6 +24,7 @@ if TYPE_CHECKING:
     from ..checkout.models import Checkout, CheckoutLine
     from ..invoice.models import Invoice
     from ..order.models import Fulfillment, Order, OrderLine
+    from ..page.models import Page
     from ..payment.interface import (
         CustomerSource,
         GatewayResponse,
@@ -146,13 +147,9 @@ class PluginsManager(PaymentInterface):
         line_totals = [
             self.calculate_checkout_line_total(
                 checkout,
-                line_info.line,
-                line_info.variant,
-                line_info.product,
-                line_info.collections,
+                line_info,
                 address,
                 line_info.channel_listing.channel,
-                line_info.channel_listing,
                 discounts,
             )
             for line_info in lines
@@ -236,22 +233,14 @@ class PluginsManager(PaymentInterface):
     def calculate_checkout_line_total(
         self,
         checkout: "Checkout",
-        checkout_line: "CheckoutLine",
-        variant: "ProductVariant",
-        product: "Product",
-        collections: Iterable["Collection"],
+        checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         channel: "Channel",
-        channel_listing: "ProductVariantChannelListing",
-        discounts: Iterable[DiscountInfo],
+        discounts: Iterable["DiscountInfo"],
     ):
         default_value = base_calculations.base_checkout_line_total(
-            checkout_line,
-            variant,
-            product,
-            collections,
+            checkout_line_info,
             channel,
-            channel_listing,
             discounts,
         )
         return quantize_price(
@@ -259,20 +248,23 @@ class PluginsManager(PaymentInterface):
                 "calculate_checkout_line_total",
                 default_value,
                 checkout,
-                checkout_line,
-                variant,
-                product,
-                collections,
+                checkout_line_info,
                 address,
                 channel,
-                channel_listing,
                 discounts,
             ),
             checkout.currency,
         )
 
     def calculate_checkout_line_unit_price(
-        self, total_line_price: TaxedMoney, quantity: int
+        self,
+        total_line_price: TaxedMoney,
+        quantity: int,
+        checkout: "Checkout",
+        checkout_line_info: "CheckoutLineInfo",
+        address: Optional["Address"],
+        discounts: Iterable["DiscountInfo"],
+        channel: "Channel",
     ):
         default_value = base_calculations.base_checkout_line_unit_price(
             total_line_price, quantity
@@ -281,18 +273,32 @@ class PluginsManager(PaymentInterface):
             self.__run_method_on_plugins(
                 "calculate_checkout_line_unit_price",
                 default_value,
-                total_line_price,
-                quantity,
+                checkout,
+                checkout_line_info,
+                address,
+                discounts,
+                channel,
             ),
             total_line_price.currency,
         )
 
-    def calculate_order_line_unit(self, order_line: "OrderLine") -> TaxedMoney:
+    def calculate_order_line_unit(
+        self,
+        order: "Order",
+        order_line: "OrderLine",
+        variant: "ProductVariant",
+        product: "Product",
+    ) -> TaxedMoney:
         unit_price = order_line.unit_price
         default_value = quantize_price(unit_price, unit_price.currency)
         return quantize_price(
             self.__run_method_on_plugins(
-                "calculate_order_line_unit", default_value, order_line
+                "calculate_order_line_unit",
+                default_value,
+                order,
+                order_line,
+                variant,
+                product,
             ),
             order_line.currency,
         )
@@ -381,6 +387,12 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins("product_updated", default_value, product)
 
+    def product_deleted(self, product: "Product", variants: List[int]):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "product_deleted", default_value, product, variants
+        )
+
     def order_created(self, order: "Order"):
         default_value = None
         return self.__run_method_on_plugins("order_created", default_value, order)
@@ -429,13 +441,6 @@ class PluginsManager(PaymentInterface):
             "fulfillment_created", default_value, fulfillment
         )
 
-    # Deprecated. This method will be removed in Saleor 3.0
-    def checkout_quantity_changed(self, checkout: "Checkout"):
-        default_value = None
-        return self.__run_method_on_plugins(
-            "checkout_quantity_changed", default_value, checkout
-        )
-
     def checkout_created(self, checkout: "Checkout"):
         default_value = None
         return self.__run_method_on_plugins("checkout_created", default_value, checkout)
@@ -443,6 +448,18 @@ class PluginsManager(PaymentInterface):
     def checkout_updated(self, checkout: "Checkout"):
         default_value = None
         return self.__run_method_on_plugins("checkout_updated", default_value, checkout)
+
+    def page_created(self, page: "Page"):
+        default_value = None
+        return self.__run_method_on_plugins("page_created", default_value, page)
+
+    def page_updated(self, page: "Page"):
+        default_value = None
+        return self.__run_method_on_plugins("page_updated", default_value, page)
+
+    def page_deleted(self, page: "Page"):
+        default_value = None
+        return self.__run_method_on_plugins("page_deleted", default_value, page)
 
     def initialize_payment(
         self, gateway, payment_data: dict
