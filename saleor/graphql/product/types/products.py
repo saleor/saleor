@@ -23,7 +23,7 @@ from ....product.utils.availability import (
 )
 from ....product.utils.variants import get_variant_selection_attributes
 from ....warehouse.availability import is_product_in_stock
-from ...account.enums import CountryCodeEnum
+from ...account.enums import CountryCode
 from ...attribute.filters import AttributeFilterInput
 from ...attribute.resolvers import resolve_attributes
 from ...attribute.types import Attribute, SelectedAttribute
@@ -86,7 +86,7 @@ from ..dataloaders import (
 )
 from ..enums import VariantAttributeScope
 from ..filters import ProductFilterInput
-from ..sorters import ProductOrder
+from ..sorters import ProductSortingInput
 from .channels import (
     CollectionChannelListing,
     ProductChannelListing,
@@ -198,7 +198,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         graphene.List(Stock),
         description="Stocks for the product variant.",
         country_code=graphene.Argument(
-            CountryCodeEnum,
+            CountryCode,
             description="Two-letter ISO 3166-1 country code.",
             required=False,
         ),
@@ -207,7 +207,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         required=True,
         description="Quantity of a product available for sale in one checkout.",
         country_code=graphene.Argument(
-            CountryCodeEnum,
+            CountryCode,
             description=(
                 "Two-letter ISO 3166-1 country code. When provided, the exact quantity "
                 "from a warehouse operating in shipping zones that contain this "
@@ -891,7 +891,7 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     products = ChannelContextFilterConnectionField(
         Product,
         filter=ProductFilterInput(description="Filtering options for products."),
-        sort_by=ProductOrder(description="Sort products."),
+        sort_by=ProductSortingInput(description="Sort products."),
         description="List of products in this collection.",
     )
     background_image = graphene.Field(

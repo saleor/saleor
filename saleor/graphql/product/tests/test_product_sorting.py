@@ -131,7 +131,7 @@ def test_sort_products_within_collection(
 
 
 GET_SORTED_PRODUCTS_QUERY = """
-query Products($sortBy: ProductOrder, $channel: String) {
+query Products($sortBy: ProductSortingInput, $channel: String) {
     products(first: 10, sortBy: $sortBy, channel: $channel) {
       edges {
         node {

@@ -403,7 +403,7 @@ type Attribute implements Node & ObjectWithMetadata {
   filterableInStorefront: Boolean!
   filterableInDashboard: Boolean!
   availableInGrid: Boolean!
-  translation(languageCode: LanguageCodeEnum!): AttributeTranslation
+  translation(languageCode: LanguageCode!): AttributeTranslation
   storefrontSearchPosition: Int!
 }
 
@@ -526,7 +526,7 @@ input AttributeSortingInput {
 type AttributeTranslatableContent implements Node {
   id: ID!
   name: String!
-  translation(languageCode: LanguageCodeEnum!): AttributeTranslation
+  translation(languageCode: LanguageCode!): AttributeTranslation
   attribute: Attribute
 }
 
@@ -571,7 +571,7 @@ type AttributeValue implements Node {
   id: ID!
   name: String
   slug: String
-  translation(languageCode: LanguageCodeEnum!): AttributeValueTranslation
+  translation(languageCode: LanguageCode!): AttributeValueTranslation
   inputType: AttributeInputTypeEnum
   reference: ID
   file: File
@@ -612,7 +612,7 @@ input AttributeValueInput {
 type AttributeValueTranslatableContent implements Node {
   id: ID!
   name: String!
-  translation(languageCode: LanguageCodeEnum!): AttributeValueTranslation
+  translation(languageCode: LanguageCode!): AttributeValueTranslation
   attributeValue: AttributeValue
 }
 
@@ -683,7 +683,7 @@ type Category implements Node & ObjectWithMetadata {
   url: String @deprecated(reason: "This field will be removed after 2020-07-31.")
   children(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   backgroundImage(size: Int): Image
-  translation(languageCode: LanguageCodeEnum!): CategoryTranslation
+  translation(languageCode: LanguageCode!): CategoryTranslation
 }
 
 type CategoryBulkDelete {
@@ -748,7 +748,7 @@ type CategoryTranslatableContent implements Node {
   name: String!
   description: JSONString!
   descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
-  translation(languageCode: LanguageCodeEnum!): CategoryTranslation
+  translation(languageCode: LanguageCode!): CategoryTranslation
   category: Category
 }
 
@@ -1055,9 +1055,9 @@ type Collection implements Node & ObjectWithMetadata {
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
-  products(filter: ProductFilterInput, sortBy: ProductOrder, before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  products(filter: ProductFilterInput, sortBy: ProductSortingInput, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   backgroundImage(size: Int): Image
-  translation(languageCode: LanguageCodeEnum!): CollectionTranslation
+  translation(languageCode: LanguageCode!): CollectionTranslation
   channelListings: [CollectionChannelListing!]
 }
 
@@ -1207,7 +1207,7 @@ type CollectionTranslatableContent implements Node {
   name: String!
   description: JSONString!
   descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
-  translation(languageCode: LanguageCodeEnum!): CollectionTranslation
+  translation(languageCode: LanguageCode!): CollectionTranslation
   collection: Collection
 }
 
@@ -1738,7 +1738,7 @@ enum DiscountErrorCode {
   DUPLICATED_INPUT_ITEM
 }
 
-enum DiscountStatusEnum {
+enum DiscountStatus {
   ACTIVE
   EXPIRED
   SCHEDULED
@@ -1920,7 +1920,7 @@ input ExportInfoInput {
   attributes: [ID!]
   warehouses: [ID!]
   channels: [ID!]
-  fields: [ProductFieldEnum!]
+  fields: [ProductField!]
 }
 
 type ExportProducts {
@@ -2232,7 +2232,7 @@ enum JobStatusEnum {
   DELETED
 }
 
-enum LanguageCodeEnum {
+enum LanguageCode {
   AR
   AZ
   BG
@@ -2285,7 +2285,7 @@ enum LanguageCodeEnum {
 }
 
 type LanguageDisplay {
-  code: LanguageCodeEnum!
+  code: LanguageCode!
   language: String!
 }
 
@@ -2394,7 +2394,7 @@ type MenuItem implements Node & ObjectWithMetadata {
   metadata: [MetadataItem]!
   children: [MenuItem]
   url: String
-  translation(languageCode: LanguageCodeEnum!): MenuItemTranslation
+  translation(languageCode: LanguageCode!): MenuItemTranslation
 }
 
 type MenuItemBulkDelete {
@@ -2460,15 +2460,19 @@ input MenuItemMoveInput {
   sortOrder: Int
 }
 
+enum MenuItemSortField {
+  NAME
+}
+
 input MenuItemSortingInput {
   direction: OrderDirection!
-  field: MenuItemsSortField!
+  field: MenuItemSortField!
 }
 
 type MenuItemTranslatableContent implements Node {
   id: ID!
   name: String!
-  translation(languageCode: LanguageCodeEnum!): MenuItemTranslation
+  translation(languageCode: LanguageCode!): MenuItemTranslation
   menuItem: MenuItem
 }
 
@@ -2488,10 +2492,6 @@ type MenuItemUpdate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   menuErrors: [MenuError!]!
   menuItem: MenuItem
-}
-
-enum MenuItemsSortField {
-  NAME
 }
 
 enum MenuSortField {
@@ -2564,7 +2564,7 @@ type Mutation {
   shopDomainUpdate(input: SiteDomainInput): ShopDomainUpdate
   shopSettingsUpdate(input: ShopSettingsInput!): ShopSettingsUpdate
   shopFetchTaxRates: ShopFetchTaxRates
-  shopSettingsTranslate(input: ShopSettingsTranslationInput!, languageCode: LanguageCodeEnum!): ShopSettingsTranslate
+  shopSettingsTranslate(input: ShopSettingsTranslationInput!, languageCode: LanguageCode!): ShopSettingsTranslate
   shopAddressUpdate(input: AddressInput): ShopAddressUpdate
   orderSettingsUpdate(input: OrderSettingsUpdateInput!): OrderSettingsUpdate
   shippingMethodChannelListingUpdate(id: ID!, input: ShippingMethodChannelListingInput!): ShippingMethodChannelListingUpdate
@@ -2574,7 +2574,7 @@ type Mutation {
   shippingPriceDelete(id: ID!): ShippingPriceDelete
   shippingPriceBulkDelete(ids: [ID]!): ShippingPriceBulkDelete
   shippingPriceUpdate(id: ID!, input: ShippingPriceInput!): ShippingPriceUpdate
-  shippingPriceTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): ShippingPriceTranslate
+  shippingPriceTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCode!): ShippingPriceTranslate
   shippingPriceExcludeProducts(id: ID!, input: ShippingPriceExcludeProductsInput!): ShippingPriceExcludeProducts
   shippingPriceRemoveProductFromExclude(id: ID!, products: [ID]!): ShippingPriceRemoveProductFromExclude
   shippingZoneCreate(input: ShippingZoneCreateInput!): ShippingZoneCreate
@@ -2587,7 +2587,7 @@ type Mutation {
   categoryDelete(id: ID!): CategoryDelete
   categoryBulkDelete(ids: [ID]!): CategoryBulkDelete
   categoryUpdate(id: ID!, input: CategoryInput!): CategoryUpdate
-  categoryTranslate(id: ID!, input: TranslationInput!, languageCode: LanguageCodeEnum!): CategoryTranslate
+  categoryTranslate(id: ID!, input: TranslationInput!, languageCode: LanguageCode!): CategoryTranslate
   collectionAddProducts(collectionId: ID!, products: [ID]!): CollectionAddProducts
   collectionCreate(input: CollectionCreateInput!): CollectionCreate
   collectionDelete(id: ID!): CollectionDelete
@@ -2595,13 +2595,13 @@ type Mutation {
   collectionBulkDelete(ids: [ID]!): CollectionBulkDelete
   collectionRemoveProducts(collectionId: ID!, products: [ID]!): CollectionRemoveProducts
   collectionUpdate(id: ID!, input: CollectionInput!): CollectionUpdate
-  collectionTranslate(id: ID!, input: TranslationInput!, languageCode: LanguageCodeEnum!): CollectionTranslate
+  collectionTranslate(id: ID!, input: TranslationInput!, languageCode: LanguageCode!): CollectionTranslate
   collectionChannelListingUpdate(id: ID!, input: CollectionChannelListingUpdateInput!): CollectionChannelListingUpdate
   productCreate(input: ProductCreateInput!): ProductCreate
   productDelete(id: ID!): ProductDelete
   productBulkDelete(ids: [ID]!): ProductBulkDelete
   productUpdate(id: ID!, input: ProductInput!): ProductUpdate
-  productTranslate(id: ID!, input: TranslationInput!, languageCode: LanguageCodeEnum!): ProductTranslate
+  productTranslate(id: ID!, input: TranslationInput!, languageCode: LanguageCode!): ProductTranslate
   productChannelListingUpdate(id: ID!, input: ProductChannelListingUpdateInput!): ProductChannelListingUpdate
   productImageCreate(input: ProductImageCreateInput!): ProductImageCreate
   productVariantReorder(moves: [ReorderInput]!, productId: ID!): ProductVariantReorder
@@ -2628,7 +2628,7 @@ type Mutation {
   productVariantStocksUpdate(stocks: [StockInput!]!, variantId: ID!): ProductVariantStocksUpdate
   productVariantUpdate(id: ID!, input: ProductVariantInput!): ProductVariantUpdate
   productVariantSetDefault(productId: ID!, variantId: ID!): ProductVariantSetDefault
-  productVariantTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): ProductVariantTranslate
+  productVariantTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCode!): ProductVariantTranslate
   productVariantChannelListingUpdate(id: ID!, input: [ProductVariantChannelListingAddInput!]!): ProductVariantChannelListingUpdate
   productVariantReorderAttributeValues(attributeId: ID!, moves: [ReorderInput]!, variantId: ID!): ProductVariantReorderAttributeValues
   variantImageAssign(imageId: ID!, variantId: ID!): VariantImageAssign
@@ -2642,7 +2642,7 @@ type Mutation {
   pageBulkDelete(ids: [ID]!): PageBulkDelete
   pageBulkPublish(ids: [ID]!, isPublished: Boolean!): PageBulkPublish
   pageUpdate(id: ID!, input: PageInput!): PageUpdate
-  pageTranslate(id: ID!, input: PageTranslationInput!, languageCode: LanguageCodeEnum!): PageTranslate
+  pageTranslate(id: ID!, input: PageTranslationInput!, languageCode: LanguageCode!): PageTranslate
   pageTypeCreate(input: PageTypeCreateInput!): PageTypeCreate
   pageTypeUpdate(id: ID, input: PageTypeUpdateInput!): PageTypeUpdate
   pageTypeDelete(id: ID!): PageTypeDelete
@@ -2688,7 +2688,7 @@ type Mutation {
   menuItemDelete(id: ID!): MenuItemDelete
   menuItemBulkDelete(ids: [ID]!): MenuItemBulkDelete
   menuItemUpdate(id: ID!, input: MenuItemInput!): MenuItemUpdate
-  menuItemTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): MenuItemTranslate
+  menuItemTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCode!): MenuItemTranslate
   menuItemMove(menu: ID!, moves: [MenuItemMoveInput]!): MenuItemMove
   invoiceRequest(number: String, orderId: ID!): InvoiceRequest
   invoiceRequestDelete(id: ID!): InvoiceRequestDelete
@@ -2707,7 +2707,7 @@ type Mutation {
   saleUpdate(id: ID!, input: SaleInput!): SaleUpdate
   saleCataloguesAdd(id: ID!, input: CatalogueInput!): SaleAddCatalogues
   saleCataloguesRemove(id: ID!, input: CatalogueInput!): SaleRemoveCatalogues
-  saleTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): SaleTranslate
+  saleTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCode!): SaleTranslate
   saleChannelListingUpdate(id: ID!, input: SaleChannelListingInput!): SaleChannelListingUpdate
   voucherCreate(input: VoucherInput!): VoucherCreate
   voucherDelete(id: ID!): VoucherDelete
@@ -2715,7 +2715,7 @@ type Mutation {
   voucherUpdate(id: ID!, input: VoucherInput!): VoucherUpdate
   voucherCataloguesAdd(id: ID!, input: CatalogueInput!): VoucherAddCatalogues
   voucherCataloguesRemove(id: ID!, input: CatalogueInput!): VoucherRemoveCatalogues
-  voucherTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): VoucherTranslate
+  voucherTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCode!): VoucherTranslate
   voucherChannelListingUpdate(id: ID!, input: VoucherChannelListingInput!): VoucherChannelListingUpdate
   exportProducts(input: ExportProductsInput!): ExportProducts
   fileUpload(file: Upload!): FileUpload
@@ -2741,13 +2741,13 @@ type Mutation {
   attributeCreate(input: AttributeCreateInput!): AttributeCreate
   attributeDelete(id: ID!): AttributeDelete
   attributeUpdate(id: ID!, input: AttributeUpdateInput!): AttributeUpdate
-  attributeTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): AttributeTranslate
+  attributeTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCode!): AttributeTranslate
   attributeBulkDelete(ids: [ID]!): AttributeBulkDelete
   attributeValueBulkDelete(ids: [ID]!): AttributeValueBulkDelete
   attributeValueCreate(attribute: ID!, input: AttributeValueCreateInput!): AttributeValueCreate
   attributeValueDelete(id: ID!): AttributeValueDelete
   attributeValueUpdate(id: ID!, input: AttributeValueCreateInput!): AttributeValueUpdate
-  attributeValueTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): AttributeValueTranslate
+  attributeValueTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCode!): AttributeValueTranslate
   attributeReorderValues(attributeId: ID!, moves: [ReorderInput]!): AttributeReorderValues
   appCreate(input: AppInput!): AppCreate
   appUpdate(id: ID!, input: AppInput!): AppUpdate
@@ -2855,7 +2855,7 @@ type Order implements Node & ObjectWithMetadata {
   invoices: [Invoice]
   number: String
   isPaid: Boolean!
-  paymentStatus: PaymentChargeStatusEnum!
+  paymentStatus: PaymentChargeStatus!
   paymentStatusDisplay: String!
   payments: [Payment]
   total: TaxedMoney!
@@ -3065,7 +3065,7 @@ enum OrderEventsEnum {
 }
 
 input OrderFilterInput {
-  paymentStatus: [PaymentChargeStatusEnum]
+  paymentStatus: [PaymentChargeStatus]
   status: [OrderStatusFilter]
   customer: String
   created: DateRangeInput
@@ -3272,7 +3272,7 @@ type Page implements Node & ObjectWithMetadata {
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   contentJson: String! @deprecated(reason: "Will be removed in Saleor 4.0. Use the `content` field instead.")
-  translation(languageCode: LanguageCodeEnum!): PageTranslation
+  translation(languageCode: LanguageCode!): PageTranslation
   attributes: [SelectedAttribute!]!
 }
 
@@ -3399,7 +3399,7 @@ type PageTranslatableContent implements Node {
   title: String!
   content: JSONString!
   contentJson: String @deprecated(reason: "Will be removed in Saleor 4.0. Use the `content` field instead.")
-  translation(languageCode: LanguageCodeEnum!): PageTranslation
+  translation(languageCode: LanguageCode!): PageTranslation
   page: Page
 }
 
@@ -3527,7 +3527,7 @@ type Payment implements Node {
   checkout: Checkout
   order: Order
   customerIpAddress: String
-  chargeStatus: PaymentChargeStatusEnum!
+  chargeStatus: PaymentChargeStatus!
   actions: [OrderAction]!
   total: Money
   capturedAmount: Money
@@ -3543,7 +3543,7 @@ type PaymentCapture {
   paymentErrors: [PaymentError!]!
 }
 
-enum PaymentChargeStatusEnum {
+enum PaymentChargeStatus {
   NOT_CHARGED
   PENDING
   PARTIALLY_CHARGED
@@ -3814,7 +3814,7 @@ type Product implements Node & ObjectWithMetadata {
   variants: [ProductVariant]
   images: [ProductImage]
   collections: [Collection]
-  translation(languageCode: LanguageCodeEnum!): ProductTranslation
+  translation(languageCode: LanguageCode!): ProductTranslation
   availableForPurchase: Date
   isAvailableForPurchase: Boolean
 }
@@ -3955,7 +3955,7 @@ enum ProductErrorCode {
   PRODUCT_NOT_ASSIGNED_TO_CHANNEL
 }
 
-enum ProductFieldEnum {
+enum ProductField {
   NAME
   DESCRIPTION
   PRODUCT_TYPE
@@ -4052,25 +4052,6 @@ input ProductInput {
   rating: Float
 }
 
-input ProductOrder {
-  direction: OrderDirection!
-  channel: String
-  attributeId: ID
-  field: ProductOrderField
-}
-
-enum ProductOrderField {
-  NAME
-  PRICE
-  MINIMAL_PRICE
-  DATE
-  TYPE
-  PUBLISHED
-  PUBLICATION_DATE
-  COLLECTION
-  RATING
-}
-
 type ProductPricingInfo {
   onSale: Boolean
   discount: TaxedMoney
@@ -4086,6 +4067,25 @@ type ProductReorderAttributeValues {
   productErrors: [ProductError!]!
 }
 
+enum ProductSortField {
+  NAME
+  PRICE
+  MINIMAL_PRICE
+  DATE
+  TYPE
+  PUBLISHED
+  PUBLICATION_DATE
+  COLLECTION
+  RATING
+}
+
+input ProductSortingInput {
+  direction: OrderDirection!
+  channel: String
+  attributeId: ID
+  field: ProductSortField
+}
+
 input ProductStockFilterInput {
   warehouseIds: [ID!]
   quantity: IntRangeInput
@@ -4098,7 +4098,7 @@ type ProductTranslatableContent implements Node {
   name: String!
   description: JSONString!
   descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
-  translation(languageCode: LanguageCodeEnum!): ProductTranslation
+  translation(languageCode: LanguageCode!): ProductTranslation
   product: Product
 }
 
@@ -4239,7 +4239,7 @@ type ProductVariant implements Node & ObjectWithMetadata {
   quantityOrdered: Int
   revenue(period: ReportingPeriod): TaxedMoney
   images: [ProductImage]
-  translation(languageCode: LanguageCodeEnum!): ProductVariantTranslation
+  translation(languageCode: LanguageCode!): ProductVariantTranslation
   digitalContent: DigitalContent
   stocks(countryCode: CountryCode): [Stock]
   quantityAvailable(countryCode: CountryCode): Int!
@@ -4370,7 +4370,7 @@ type ProductVariantStocksUpdate {
 type ProductVariantTranslatableContent implements Node {
   id: ID!
   name: String!
-  translation(languageCode: LanguageCodeEnum!): ProductVariantTranslation
+  translation(languageCode: LanguageCode!): ProductVariantTranslation
   productVariant: ProductVariant
 }
 
@@ -4419,7 +4419,7 @@ type Query {
   collection(id: ID, slug: String, channel: String): Collection
   collections(filter: CollectionFilterInput, sortBy: CollectionSortingInput, channel: String, before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   product(id: ID, slug: String, channel: String): Product
-  products(filter: ProductFilterInput, sortBy: ProductOrder, stockAvailability: StockAvailability, channel: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  products(filter: ProductFilterInput, sortBy: ProductSortingInput, stockAvailability: StockAvailability, channel: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   productType(id: ID!): ProductType
   productTypes(filter: ProductTypeFilterInput, sortBy: ProductTypeSortingInput, before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
   productVariant(id: ID, sku: String, channel: String): ProductVariant
@@ -4517,7 +4517,7 @@ type Sale implements Node {
   categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
-  translation(languageCode: LanguageCodeEnum!): SaleTranslation
+  translation(languageCode: LanguageCode!): SaleTranslation
   channelListings: [SaleChannelListing!]
   discountValue: Float
   currency: String
@@ -4582,7 +4582,7 @@ type SaleDelete {
 }
 
 input SaleFilterInput {
-  status: [DiscountStatusEnum]
+  status: [DiscountStatus]
   saleType: DiscountValueTypeEnum
   started: DateTimeRangeInput
   search: String
@@ -4622,7 +4622,7 @@ input SaleSortingInput {
 type SaleTranslatableContent implements Node {
   id: ID!
   name: String!
-  translation(languageCode: LanguageCodeEnum!): SaleTranslation
+  translation(languageCode: LanguageCode!): SaleTranslation
   sale: Sale
 }
 
@@ -4697,7 +4697,7 @@ type ShippingMethod implements Node & ObjectWithMetadata {
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   type: ShippingMethodTypeEnum
-  translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
+  translation(languageCode: LanguageCode!): ShippingMethodTranslation
   channelListings: [ShippingMethodChannelListing!]
   price: Money
   maximumOrderPrice: Money
@@ -4735,7 +4735,7 @@ type ShippingMethodChannelListingUpdate {
 type ShippingMethodTranslatableContent implements Node {
   id: ID!
   name: String!
-  translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
+  translation(languageCode: LanguageCode!): ShippingMethodTranslation
   shippingMethod: ShippingMethod
 }
 
@@ -4907,7 +4907,7 @@ type Shop {
   availablePaymentGateways(currency: String): [PaymentGateway!]!
   availableShippingMethods(channel: String!, address: AddressInput): [ShippingMethod]
   geolocalization: Geolocalization
-  countries(languageCode: LanguageCodeEnum): [CountryDisplay!]!
+  countries(languageCode: LanguageCode): [CountryDisplay!]!
   defaultCountry: CountryDisplay
   defaultMailSenderName: String
   defaultMailSenderAddress: String
@@ -4924,7 +4924,7 @@ type Shop {
   chargeTaxesOnShipping: Boolean!
   trackInventoryByDefault: Boolean
   defaultWeightUnit: WeightUnitsEnum
-  translation(languageCode: LanguageCodeEnum!): ShopTranslation
+  translation(languageCode: LanguageCode!): ShopTranslation
   automaticFulfillmentDigitalProducts: Boolean
   defaultDigitalMaxDownloads: Int
   defaultDigitalUrlValidDays: Int
@@ -5460,7 +5460,7 @@ type Voucher implements Node {
   collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
   countries: [CountryDisplay]
-  translation(languageCode: LanguageCodeEnum!): VoucherTranslation
+  translation(languageCode: LanguageCode!): VoucherTranslation
   discountValue: Float
   currency: String
   minSpent: Money
@@ -5534,7 +5534,7 @@ enum VoucherDiscountType {
 }
 
 input VoucherFilterInput {
-  status: [DiscountStatusEnum]
+  status: [DiscountStatus]
   timesUsed: IntRangeInput
   discountType: [VoucherDiscountType]
   started: DateTimeRangeInput
@@ -5583,7 +5583,7 @@ input VoucherSortingInput {
 type VoucherTranslatableContent implements Node {
   id: ID!
   name: String
-  translation(languageCode: LanguageCodeEnum!): VoucherTranslation
+  translation(languageCode: LanguageCode!): VoucherTranslation
   voucher: Voucher
 }
 

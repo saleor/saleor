@@ -6,7 +6,7 @@ from ..core.types import FilterInputObjectType
 from ..core.validators import validate_one_of_args_is_in_query
 from ..decorators import one_of_permissions_required, permission_required
 from .bulk_mutations import CustomerBulkDelete, StaffBulkDelete, UserBulkSetActive
-from .enums import CountryCodeEnum
+from .enums import CountryCode
 from .filters import CustomerFilter, PermissionGroupFilter, StaffUserFilter
 from .mutations.account import (
     AccountAddressCreate,
@@ -83,7 +83,7 @@ class AccountQueries(graphene.ObjectType):
         AddressValidationData,
         description="Returns address validation rules.",
         country_code=graphene.Argument(
-            CountryCodeEnum,
+            CountryCode,
             description="Two-letter ISO 3166-1 country code.",
             required=True,
         ),

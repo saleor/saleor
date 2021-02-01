@@ -23,7 +23,7 @@ from ....payment.models import ChargeStatus, Payment, TransactionKind
 from ....payment.utils import fetch_customer_id, store_customer_id
 from ....plugins.manager import PluginsManager, get_plugins_manager
 from ...tests.utils import assert_no_permission, get_graphql_content
-from ..enums import OrderAction, PaymentChargeStatusEnum
+from ..enums import OrderAction, PaymentChargeStatus
 
 DUMMY_GATEWAY = "mirumee.payments.dummy"
 
@@ -710,7 +710,7 @@ def test_payments_query(
     total = str(data["total"]["amount"])
     assert Decimal(total) == pay.total
     assert data["total"]["currency"] == pay.currency
-    assert data["chargeStatus"] == PaymentChargeStatusEnum.FULLY_CHARGED.name
+    assert data["chargeStatus"] == PaymentChargeStatus.FULLY_CHARGED.name
     assert data["actions"] == [OrderAction.REFUND.name]
     txn = pay.transactions.get()
     assert data["transactions"] == [

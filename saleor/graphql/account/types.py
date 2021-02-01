@@ -20,7 +20,7 @@ from ..decorators import one_of_permissions_required, permission_required
 from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display
 from ..wishlist.resolvers import resolve_wishlist_items_from_user
-from .enums import CountryCodeEnum, CustomerEventsEnum
+from .enums import CountryCode, CustomerEventsEnum
 from .utils import can_user_manage_group, get_groups_which_user_can_manage
 
 
@@ -33,7 +33,7 @@ class AddressInput(graphene.InputObjectType):
     city = graphene.String(description="City.")
     city_area = graphene.String(description="District.")
     postal_code = graphene.String(description="Postal code.")
-    country = CountryCodeEnum(description="Country.")
+    country = CountryCode(description="Country.")
     country_area = graphene.String(description="State or province.")
     phone = graphene.String(description="Phone number.")
 

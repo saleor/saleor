@@ -14,7 +14,7 @@ HERE = os.path.realpath(os.path.dirname(__file__))
 
 QUERY_SORT_PRODUCTS_BY_ATTRIBUTE = """
 query products(
-  $field: ProductOrderField
+  $field: ProductSortField
   $attributeId: ID
   $direction: OrderDirection!
   $channel: String

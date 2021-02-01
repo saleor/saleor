@@ -14,7 +14,7 @@ from ..core.connection import CountableDjangoObjectType
 from ..core.types import LanguageDisplay
 from ..core.utils import str_to_enum
 from ..decorators import permission_required
-from .enums import LanguageCodeEnum
+from .enums import LanguageCode
 from .fields import TranslationField
 
 BASIC_TRANSLATABLE_FIELDS = ["id", "name"]
@@ -46,7 +46,7 @@ class BaseTranslationType(CountableDjangoObjectType):
         except StopIteration:
             return None
         return LanguageDisplay(
-            code=LanguageCodeEnum[str_to_enum(root.language_code)], language=language
+            code=LanguageCode[str_to_enum(root.language_code)], language=language
         )
 
 

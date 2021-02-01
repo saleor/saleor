@@ -16,7 +16,7 @@ from ..product.filters import ProductFilterInput
 from ..product.types import Product
 from ..utils import resolve_global_ids_to_primary_keys
 from ..warehouse.types import Warehouse
-from .enums import ExportScope, FileTypeEnum, ProductFieldEnum
+from .enums import ExportScope, FileTypeEnum, ProductField
 from .types import ExportFile
 
 
@@ -34,7 +34,7 @@ class ExportInfoInput(graphene.InputObjectType):
         description="List of channels ids which should be exported.",
     )
     fields = graphene.List(
-        graphene.NonNull(ProductFieldEnum),
+        graphene.NonNull(ProductField),
         description="List of product fields witch should be exported.",
     )
 

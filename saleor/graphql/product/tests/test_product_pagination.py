@@ -443,7 +443,7 @@ def products_for_pagination(
 QUERY_PRODUCTS_PAGINATION = """
     query (
         $first: Int, $last: Int, $after: String, $before: String,
-        $sortBy: ProductOrder, $filter: ProductFilterInput
+        $sortBy: ProductSortingInput, $filter: ProductFilterInput
     ){
         products (
             first: $first, last: $last, after: $after, before: $before,

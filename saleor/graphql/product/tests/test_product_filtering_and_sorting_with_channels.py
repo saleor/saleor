@@ -204,7 +204,7 @@ def products_for_sorting_with_channels(category, channel_USD, channel_PLN):
 
 
 QUERY_PRODUCTS_WITH_SORTING_AND_FILTERING = """
-    query ($sortBy: ProductOrder, $filter: ProductFilterInput){
+    query ($sortBy: ProductSortingInput, $filter: ProductFilterInput){
         products (
             first: 10, sortBy: $sortBy, filter: $filter
         ) {

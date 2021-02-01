@@ -1,6 +1,6 @@
 from .....attribute.models import Attribute
 from .....channel.models import Channel
-from .....graphql.csv.enums import ProductFieldEnum
+from .....graphql.csv.enums import ProductField
 from ....utils.product_headers import (
     get_attributes_headers,
     get_channels_headers,
@@ -14,9 +14,9 @@ def test_get_export_fields_and_headers_fields_without_price():
     # given
     export_info = {
         "fields": [
-            ProductFieldEnum.COLLECTIONS.value,
-            ProductFieldEnum.DESCRIPTION.value,
-            ProductFieldEnum.VARIANT_SKU.value,
+            ProductField.COLLECTIONS.value,
+            ProductField.DESCRIPTION.value,
+            ProductField.VARIANT_SKU.value,
         ],
         "warehoses": [],
     }
@@ -146,8 +146,8 @@ def test_get_export_fields_and_headers_info(
     channel_ids = [channel_PLN.pk, channel_USD.pk]
     export_info = {
         "fields": [
-            ProductFieldEnum.COLLECTIONS.value,
-            ProductFieldEnum.DESCRIPTION.value,
+            ProductField.COLLECTIONS.value,
+            ProductField.DESCRIPTION.value,
         ],
         "warehouses": warehouse_ids,
         "attributes": attribute_ids,

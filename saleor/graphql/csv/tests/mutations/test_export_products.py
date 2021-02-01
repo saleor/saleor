@@ -9,7 +9,7 @@ from .....csv import ExportEvents
 from .....csv.models import ExportEvent
 from .....warehouse.models import Warehouse
 from ....tests.utils import get_graphql_content
-from ...enums import ExportScope, FileTypeEnum, ProductFieldEnum
+from ...enums import ExportScope, FileTypeEnum, ProductField
 
 EXPORT_PRODUCTS_MUTATION = """
     mutation ExportProducts($input: ExportProductsInput!){
@@ -166,7 +166,7 @@ def test_export_products_mutation_ids_scope(
             "scope": ExportScope.IDS.name,
             "ids": ids,
             "exportInfo": {
-                "fields": [ProductFieldEnum.NAME.name],
+                "fields": [ProductField.NAME.name],
                 "warehouses": [],
                 "attributes": [],
             },
@@ -190,7 +190,7 @@ def test_export_products_mutation_ids_scope(
     ) = export_products_mock.call_args
 
     assert set(call_args[1]["ids"]) == pks
-    assert call_args[2] == {"fields": [ProductFieldEnum.NAME.value]}
+    assert call_args[2] == {"fields": [ProductField.NAME.value]}
     assert call_args[3] == FileTypeEnum.XLSX.value
 
     assert not data["exportErrors"]
@@ -241,7 +241,7 @@ def test_export_products_mutation_with_warehouse_and_attribute_ids(
             "scope": ExportScope.IDS.name,
             "ids": ids,
             "exportInfo": {
-                "fields": [ProductFieldEnum.NAME.name],
+                "fields": [ProductField.NAME.name],
                 "warehouses": warehouse_ids,
                 "attributes": attribute_ids,
                 "channels": channel_ids,
@@ -267,7 +267,7 @@ def test_export_products_mutation_with_warehouse_and_attribute_ids(
 
     assert set(call_args[1]["ids"]) == pks
     assert call_args[2] == {
-        "fields": [ProductFieldEnum.NAME.value],
+        "fields": [ProductField.NAME.value],
         "warehouses": warehouse_pks,
         "attributes": attribute_pks,
         "channels": channel_pks,

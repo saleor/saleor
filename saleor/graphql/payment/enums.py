@@ -3,7 +3,7 @@ import graphene
 from ...graphql.core.enums import to_enum
 from ...payment import ChargeStatus
 
-PaymentChargeStatusEnum = to_enum(ChargeStatus, type_name="PaymentChargeStatusEnum")
+PaymentChargeStatus = to_enum(ChargeStatus, type_name="PaymentChargeStatus")
 
 
 class OrderAction(graphene.Enum):

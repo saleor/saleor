@@ -1053,7 +1053,7 @@ def test_fetch_unpublished_collection_anonymous_user(
 
 
 GET_SORTED_PRODUCTS_COLLECTION_QUERY = """
-query CollectionProducts($id: ID!, $channel: String, $sortBy: ProductOrder) {
+query CollectionProducts($id: ID!, $channel: String, $sortBy: ProductSortingInput) {
   collection(id: $id, channel: $channel) {
     products(first: 10, sortBy: $sortBy) {
       edges {

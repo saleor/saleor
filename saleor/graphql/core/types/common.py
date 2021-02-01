@@ -4,7 +4,7 @@ import graphene
 from django.conf import settings
 
 from ....product.templatetags.product_images import get_thumbnail
-from ...translations.enums import LanguageCodeEnum
+from ...translations.enums import LanguageCode
 from ..enums import (
     AccountErrorCode,
     AppErrorCode,
@@ -47,7 +47,7 @@ class CountryDisplay(graphene.ObjectType):
 
 
 class LanguageDisplay(graphene.ObjectType):
-    code = LanguageCodeEnum(
+    code = LanguageCode(
         description="ISO 639 representation of the language name.", required=True
     )
     language = graphene.String(description="Full name of the language.", required=True)

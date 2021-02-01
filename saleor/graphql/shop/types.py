@@ -23,7 +23,7 @@ from ..decorators import permission_required
 from ..menu.dataloaders import MenuByIdLoader
 from ..menu.types import Menu
 from ..shipping.types import ShippingMethod
-from ..translations.enums import LanguageCodeEnum
+from ..translations.enums import LanguageCode
 from ..translations.fields import TranslationField
 from ..translations.resolvers import resolve_translation
 from ..translations.types import ShopTranslation
@@ -100,7 +100,7 @@ class Shop(graphene.ObjectType):
     countries = graphene.List(
         graphene.NonNull(CountryDisplay),
         language_code=graphene.Argument(
-            LanguageCodeEnum,
+            LanguageCode,
             description="A language code to return the translation for.",
         ),
         description="List of countries available in the shop.",
@@ -223,7 +223,7 @@ class Shop(graphene.ObjectType):
     def resolve_languages(_, _info):
         return [
             LanguageDisplay(
-                code=LanguageCodeEnum[str_to_enum(language[0])], language=language[1]
+                code=LanguageCode[str_to_enum(language[0])], language=language[1]
             )
             for language in settings.LANGUAGES
         ]

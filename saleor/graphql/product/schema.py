@@ -104,7 +104,7 @@ from .resolvers import (
 from .sorters import (
     CategorySortingInput,
     CollectionSortingInput,
-    ProductOrder,
+    ProductSortingInput,
     ProductTypeSortingInput,
 )
 from .types import (
@@ -180,7 +180,7 @@ class ProductQueries(graphene.ObjectType):
     products = ChannelContextFilterConnectionField(
         Product,
         filter=ProductFilterInput(description="Filtering options for products."),
-        sort_by=ProductOrder(description="Sort products."),
+        sort_by=ProductSortingInput(description="Sort products."),
         stock_availability=graphene.Argument(
             StockAvailability,
             description=(

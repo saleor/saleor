@@ -1,7 +1,7 @@
 import graphene
 
 from .descriptions import TranslationDescriptions
-from .enums import LanguageCodeEnum
+from .enums import LanguageCode
 from .resolvers import resolve_translation
 
 
@@ -10,7 +10,7 @@ class TranslationField(graphene.Field):
         super().__init__(
             model,
             language_code=graphene.Argument(
-                LanguageCodeEnum,
+                LanguageCode,
                 description=TranslationDescriptions.LANGUAGE_CODE.format(
                     type_name=type_name
                 ),

@@ -5,7 +5,7 @@ import graphene
 from ...plugins import manager, models
 from ...plugins.base_plugin import ConfigurationTypeField
 from ..core.connection import CountableDjangoObjectType
-from .enums import ConfigurationTypeFieldEnum
+from .enums import ConfigurationType
 
 if TYPE_CHECKING:
     # flake8: noqa
@@ -37,7 +37,7 @@ def hide_private_configuration_fields(configuration, config_structure):
 class ConfigurationItem(graphene.ObjectType):
     name = graphene.String(required=True, description="Name of the field.")
     value = graphene.String(required=False, description="Current value of the field.")
-    type = graphene.Field(ConfigurationTypeFieldEnum, description="Type of the field.")
+    type = graphene.Field(ConfigurationType, description="Type of the field.")
     help_text = graphene.String(required=False, description="Help text for the field.")
     label = graphene.String(required=False, description="Label for the field.")
 

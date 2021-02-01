@@ -4,7 +4,7 @@ from django.contrib.auth.models import Permission
 
 from ...tests.utils import assert_no_permission, get_graphql_content
 from ..schema import TranslatableKinds
-from ..types import LanguageCodeEnum
+from ..types import LanguageCode
 
 
 def test_product_translation(user_api_client, product, channel_USD):
@@ -1380,7 +1380,7 @@ def test_translations_query_inline_fragment(
 
 QUERY_TRANSLATION_PRODUCT = """
     query translation(
-        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCodeEnum!
+        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCode!
     ){
         translation(kind: $kind, id: $id){
             __typename
@@ -1412,7 +1412,7 @@ def test_translation_query_product(
     variables = {
         "id": product_id,
         "kind": TranslatableKinds.PRODUCT.name,
-        "languageCode": LanguageCodeEnum.FR.name,
+        "languageCode": LanguageCode.FR.name,
     }
     response = staff_api_client.post_graphql(
         QUERY_TRANSLATION_PRODUCT,
@@ -1428,7 +1428,7 @@ def test_translation_query_product(
 
 QUERY_TRANSLATION_COLLECTION = """
     query translation(
-        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCodeEnum!
+        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCode!
     ){
         translation(kind: $kind, id: $id){
             __typename
@@ -1463,7 +1463,7 @@ def test_translation_query_collection(
     variables = {
         "id": collection_id,
         "kind": TranslatableKinds.COLLECTION.name,
-        "languageCode": LanguageCodeEnum.FR.name,
+        "languageCode": LanguageCode.FR.name,
     }
     response = staff_api_client.post_graphql(
         QUERY_TRANSLATION_COLLECTION,
@@ -1479,7 +1479,7 @@ def test_translation_query_collection(
 
 QUERY_TRANSLATION_CATEGORY = """
     query translation(
-        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCodeEnum!
+        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCode!
     ){
         translation(kind: $kind, id: $id){
             __typename
@@ -1507,7 +1507,7 @@ def test_translation_query_category(
     variables = {
         "id": category_id,
         "kind": TranslatableKinds.CATEGORY.name,
-        "languageCode": LanguageCodeEnum.FR.name,
+        "languageCode": LanguageCode.FR.name,
     }
     response = staff_api_client.post_graphql(
         QUERY_TRANSLATION_CATEGORY,
@@ -1523,7 +1523,7 @@ def test_translation_query_category(
 
 QUERY_TRANSLATION_ATTRIBUTE = """
     query translation(
-        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCodeEnum!
+        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCode!
     ){
         translation(kind: $kind, id: $id){
             __typename
@@ -1552,7 +1552,7 @@ def test_translation_query_attribute(
     variables = {
         "id": attribute_id,
         "kind": TranslatableKinds.ATTRIBUTE.name,
-        "languageCode": LanguageCodeEnum.FR.name,
+        "languageCode": LanguageCode.FR.name,
     }
     response = staff_api_client.post_graphql(
         QUERY_TRANSLATION_ATTRIBUTE,
@@ -1568,7 +1568,7 @@ def test_translation_query_attribute(
 
 QUERY_TRANSLATION_ATTRIBUTE_VALUE = """
     query translation(
-        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCodeEnum!
+        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCode!
     ){
         translation(kind: $kind, id: $id){
             __typename
@@ -1601,7 +1601,7 @@ def test_translation_query_attribute_value(
     variables = {
         "id": attribute_value_id,
         "kind": TranslatableKinds.ATTRIBUTE_VALUE.name,
-        "languageCode": LanguageCodeEnum.FR.name,
+        "languageCode": LanguageCode.FR.name,
     }
     response = staff_api_client.post_graphql(
         QUERY_TRANSLATION_ATTRIBUTE_VALUE,
@@ -1617,7 +1617,7 @@ def test_translation_query_attribute_value(
 
 QUERY_TRANSLATION_VARIANT = """
     query translation(
-        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCodeEnum!
+        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCode!
     ){
         translation(kind: $kind, id: $id){
             __typename
@@ -1648,7 +1648,7 @@ def test_translation_query_variant(
     variables = {
         "id": variant_id,
         "kind": TranslatableKinds.VARIANT.name,
-        "languageCode": LanguageCodeEnum.FR.name,
+        "languageCode": LanguageCode.FR.name,
     }
     response = staff_api_client.post_graphql(
         QUERY_TRANSLATION_VARIANT,
@@ -1664,7 +1664,7 @@ def test_translation_query_variant(
 
 QUERY_TRANSLATION_PAGE = """
     query translation(
-        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCodeEnum!
+        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCode!
     ){
         translation(kind: $kind, id: $id){
             __typename
@@ -1708,7 +1708,7 @@ def test_translation_query_page(
     variables = {
         "id": page_id,
         "kind": TranslatableKinds.PAGE.name,
-        "languageCode": LanguageCodeEnum.FR.name,
+        "languageCode": LanguageCode.FR.name,
     }
     response = staff_api_client.post_graphql(
         QUERY_TRANSLATION_PAGE, variables, permissions=perms
@@ -1722,7 +1722,7 @@ def test_translation_query_page(
 
 QUERY_TRANSLATION_SHIPPING_METHOD = """
     query translation(
-        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCodeEnum!
+        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCode!
     ){
         translation(kind: $kind, id: $id){
             __typename
@@ -1764,7 +1764,7 @@ def test_translation_query_shipping_method(
     variables = {
         "id": shipping_method_id,
         "kind": TranslatableKinds.SHIPPING_METHOD.name,
-        "languageCode": LanguageCodeEnum.FR.name,
+        "languageCode": LanguageCode.FR.name,
     }
     response = staff_api_client.post_graphql(
         QUERY_TRANSLATION_SHIPPING_METHOD, variables, permissions=perms
@@ -1781,7 +1781,7 @@ def test_translation_query_shipping_method(
 
 QUERY_TRANSLATION_SALE = """
     query translation(
-        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCodeEnum!
+        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCode!
     ){
         translation(kind: $kind, id: $id){
             __typename
@@ -1817,7 +1817,7 @@ def test_translation_query_sale(
     variables = {
         "id": sale_id,
         "kind": TranslatableKinds.SALE.name,
-        "languageCode": LanguageCodeEnum.FR.name,
+        "languageCode": LanguageCode.FR.name,
     }
     response = staff_api_client.post_graphql(
         QUERY_TRANSLATION_SALE, variables, permissions=perms
@@ -1834,7 +1834,7 @@ def test_translation_query_sale(
 
 QUERY_TRANSLATION_VOUCHER = """
     query translation(
-        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCodeEnum!
+        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCode!
     ){
         translation(kind: $kind, id: $id){
             __typename
@@ -1870,7 +1870,7 @@ def test_translation_query_voucher(
     variables = {
         "id": voucher_id,
         "kind": TranslatableKinds.VOUCHER.name,
-        "languageCode": LanguageCodeEnum.FR.name,
+        "languageCode": LanguageCode.FR.name,
     }
     response = staff_api_client.post_graphql(
         QUERY_TRANSLATION_VOUCHER, variables, permissions=perms
@@ -1887,7 +1887,7 @@ def test_translation_query_voucher(
 
 QUERY_TRANSLATION_MENU_ITEM = """
     query translation(
-        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCodeEnum!
+        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCode!
     ){
         translation(kind: $kind, id: $id){
             __typename
@@ -1918,7 +1918,7 @@ def test_translation_query_menu_item(
     variables = {
         "id": menu_item_id,
         "kind": TranslatableKinds.MENU_ITEM.name,
-        "languageCode": LanguageCodeEnum.FR.name,
+        "languageCode": LanguageCode.FR.name,
     }
     response = staff_api_client.post_graphql(
         QUERY_TRANSLATION_MENU_ITEM,
@@ -1940,7 +1940,7 @@ def test_translation_query_incorrect_kind(
     variables = {
         "id": menu_item_id,
         "kind": TranslatableKinds.PRODUCT.name,
-        "languageCode": LanguageCodeEnum.FR.name,
+        "languageCode": LanguageCode.FR.name,
     }
     response = staff_api_client.post_graphql(
         QUERY_TRANSLATION_MENU_ITEM,
@@ -1957,7 +1957,7 @@ def test_translation_query_no_permission(staff_api_client, menu_item):
     variables = {
         "id": menu_item_id,
         "kind": TranslatableKinds.MENU_ITEM.name,
-        "languageCode": LanguageCodeEnum.FR.name,
+        "languageCode": LanguageCode.FR.name,
     }
     response = staff_api_client.post_graphql(QUERY_TRANSLATION_MENU_ITEM, variables)
     assert_no_permission(response)

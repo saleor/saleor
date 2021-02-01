@@ -9,21 +9,21 @@ from ...discount.models import Sale, Voucher, VoucherQueryset
 from ..core.filters import ListObjectTypeFilter, ObjectTypeFilter
 from ..core.types.common import DateTimeRangeInput, IntRangeInput
 from ..utils.filters import filter_by_query_param, filter_range_field
-from .enums import DiscountStatusEnum, DiscountValueTypeEnum, VoucherDiscountType
+from .enums import DiscountStatus, DiscountValueTypeEnum, VoucherDiscountType
 
 
 def filter_status(
-    qs: VoucherQueryset, _, value: List[DiscountStatusEnum]
+    qs: VoucherQueryset, _, value: List[DiscountStatus]
 ) -> VoucherQueryset:
     if not value:
         return qs
     query_objects = qs.none()
     now = timezone.now()
-    if DiscountStatusEnum.ACTIVE in value:
+    if DiscountStatus.ACTIVE in value:
         query_objects |= qs.active(now)
-    if DiscountStatusEnum.EXPIRED in value:
+    if DiscountStatus.EXPIRED in value:
         query_objects |= qs.expired(now)
-    if DiscountStatusEnum.SCHEDULED in value:
+    if DiscountStatus.SCHEDULED in value:
         query_objects |= qs.filter(start_date__gt=now)
     return qs & query_objects
 
@@ -76,7 +76,7 @@ def filter_voucher_search(qs, _, value):
 
 
 class VoucherFilter(django_filters.FilterSet):
-    status = ListObjectTypeFilter(input_class=DiscountStatusEnum, method=filter_status)
+    status = ListObjectTypeFilter(input_class=DiscountStatus, method=filter_status)
     times_used = ObjectTypeFilter(input_class=IntRangeInput, method=filter_times_used)
 
     discount_type = ListObjectTypeFilter(
@@ -91,7 +91,7 @@ class VoucherFilter(django_filters.FilterSet):
 
 
 class SaleFilter(django_filters.FilterSet):
-    status = ListObjectTypeFilter(input_class=DiscountStatusEnum, method=filter_status)
+    status = ListObjectTypeFilter(input_class=DiscountStatus, method=filter_status)
     sale_type = ObjectTypeFilter(
         input_class=DiscountValueTypeEnum, method=filter_sale_type
     )

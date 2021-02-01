@@ -1,4 +1,4 @@
-from ...app.types import AppType
+from ...app.types import AppType as App
 from ..core.enums import to_enum
 
-AppTypeEnum = to_enum(AppType)
+AppTypeEnum = to_enum(App)

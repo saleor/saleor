@@ -4,7 +4,7 @@ from django.db.models.functions import Coalesce
 
 from ...core.permissions import OrderPermissions, ProductPermissions
 from ...warehouse import models
-from ..account.enums import CountryCodeEnum
+from ..account.enums import CountryCode
 from ..channel import ChannelContext
 from ..core.connection import CountableDjangoObjectType
 from ..decorators import one_of_permissions_required
@@ -17,7 +17,7 @@ class WarehouseAddressInput(graphene.InputObjectType):
     city = graphene.String(description="City.", required=True)
     city_area = graphene.String(description="District.")
     postal_code = graphene.String(description="Postal code.")
-    country = CountryCodeEnum(description="Country.", required=True)
+    country = CountryCode(description="Country.", required=True)
     country_area = graphene.String(description="State or province.")
     phone = graphene.String(description="Phone number.")
 

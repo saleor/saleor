@@ -26,12 +26,12 @@ class MenuSortingInput(SortInputObjectType):
         type_name = "menus"
 
 
-class MenuItemsSortField(graphene.Enum):
+class MenuItemSortField(graphene.Enum):
     NAME = ["name", "sort_order"]
 
     @property
     def description(self):
-        if self.name in MenuItemsSortField.__enum__._member_names_:
+        if self.name in MenuItemSortField.__enum__._member_names_:
             sort_name = self.name.lower().replace("_", " ")
             return f"Sort menu items by {sort_name}."
         raise ValueError("Unsupported enum value: %s" % self.value)
@@ -39,5 +39,5 @@ class MenuItemsSortField(graphene.Enum):
 
 class MenuItemSortingInput(SortInputObjectType):
     class Meta:
-        sort_enum = MenuItemsSortField
+        sort_enum = MenuItemSortField
         type_name = "menu items"

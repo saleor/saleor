@@ -10,7 +10,7 @@ from django.core.files import File
 from freezegun import freeze_time
 
 from ....core import JobStatus
-from ....graphql.csv.enums import ProductFieldEnum
+from ....graphql.csv.enums import ProductField
 from ....product.models import Product, ProductChannelListing
 from ... import FileTypes
 from ...utils.export import (
@@ -43,7 +43,7 @@ def test_export_products(
 ):
     # given
     export_info = {
-        "fields": [ProductFieldEnum.NAME.value],
+        "fields": [ProductField.NAME.value],
         "warehouses": [],
         "attributes": [],
         "channels": [],
@@ -250,7 +250,7 @@ def test_export_products_by_app(
 ):
     # given
     export_info = {
-        "fields": [ProductFieldEnum.NAME.value],
+        "fields": [ProductField.NAME.value],
         "warehouses": [],
         "attributes": [],
         "channels": [],
@@ -467,7 +467,7 @@ def test_export_products_in_batches_for_csv(
     # given
     qs = Product.objects.all()
     export_info = {
-        "fields": [ProductFieldEnum.NAME.value, ProductFieldEnum.VARIANT_SKU.value],
+        "fields": [ProductField.NAME.value, ProductField.VARIANT_SKU.value],
         "warehouses": [],
         "attributes": [],
         "channels": [],
@@ -524,7 +524,7 @@ def test_export_products_in_batches_for_xlsx(
     # given
     qs = Product.objects.all()
     export_info = {
-        "fields": [ProductFieldEnum.NAME.value, ProductFieldEnum.VARIANT_SKU.value],
+        "fields": [ProductField.NAME.value, ProductField.VARIANT_SKU.value],
         "warehouses": [],
         "attributes": [],
         "channels": [],

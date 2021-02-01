@@ -9,7 +9,7 @@ from ....core.error_codes import ShopErrorCode
 from ....core.permissions import get_permissions_codename
 from ....shipping.models import ShippingMethod
 from ....site.models import Site
-from ...account.enums import CountryCodeEnum
+from ...account.enums import CountryCode
 from ...core.utils import str_to_enum
 from ...tests.utils import assert_no_permission, get_graphql_content
 
@@ -688,7 +688,7 @@ def test_query_available_shipping_methods_for_given_address(
     shipping_method_count = ShippingMethod.objects.count()
     variables = {
         "channel": channel_USD.slug,
-        "address": {"country": CountryCodeEnum.US.name},
+        "address": {"country": CountryCode.US.name},
     }
 
     # when
@@ -740,7 +740,7 @@ def test_query_available_shipping_methods_for_given_address_vatlayer_set(
     shipping_method_count = ShippingMethod.objects.count()
     variables = {
         "channel": channel_USD.slug,
-        "address": {"country": CountryCodeEnum.US.name},
+        "address": {"country": CountryCode.US.name},
     }
 
     # when

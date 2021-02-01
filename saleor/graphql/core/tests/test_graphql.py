@@ -78,7 +78,7 @@ def test_real_query(user_api_client, product, channel_USD):
     category = product.category
     attr_value = product_attr.values.first()
     query = """
-    query Root($categoryId: ID!, $sortBy: ProductOrder, $first: Int,
+    query Root($categoryId: ID!, $sortBy: ProductSortingInput, $first: Int,
             $attributesFilter: [AttributeInput], $channel: String) {
 
         category(id: $categoryId) {

@@ -27,7 +27,7 @@ from ..discount.dataloaders import VoucherByIdLoader
 from ..giftcard.types import GiftCard
 from ..invoice.types import Invoice
 from ..meta.types import ObjectWithMetadata
-from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
+from ..payment.types import OrderAction, Payment, PaymentChargeStatus
 from ..product.dataloaders import (
     ProductChannelListingByProductIdAndChannelSlugLoader,
     ProductVariantByIdLoader,
@@ -400,7 +400,7 @@ class Order(CountableDjangoObjectType):
     is_paid = graphene.Boolean(
         description="Informs if an order is fully paid.", required=True
     )
-    payment_status = PaymentChargeStatusEnum(
+    payment_status = PaymentChargeStatus(
         description="Internal payment status.", required=True
     )
     payment_status_display = graphene.String(

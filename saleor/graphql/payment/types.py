@@ -4,7 +4,7 @@ from graphene import relay
 from ...payment import models
 from ..core.connection import CountableDjangoObjectType
 from ..core.types import Money
-from .enums import OrderAction, PaymentChargeStatusEnum
+from .enums import OrderAction, PaymentChargeStatus
 
 
 class Transaction(CountableDjangoObjectType):
@@ -62,7 +62,7 @@ class PaymentSource(graphene.ObjectType):
 
 
 class Payment(CountableDjangoObjectType):
-    charge_status = PaymentChargeStatusEnum(
+    charge_status = PaymentChargeStatus(
         description="Internal payment status.", required=True
     )
     actions = graphene.List(

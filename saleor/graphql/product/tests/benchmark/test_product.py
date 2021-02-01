@@ -171,7 +171,7 @@ def test_retrieve_product_attributes(
     product_list, api_client, count_queries, channel_USD
 ):
     query = """
-        query($sortBy: ProductOrder, $channel: String) {
+        query($sortBy: ProductSortingInput, $channel: String) {
           products(first: 10, sortBy: $sortBy, channel: $channel) {
             edges {
               node {

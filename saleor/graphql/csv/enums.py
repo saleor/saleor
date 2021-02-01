@@ -25,7 +25,7 @@ class ExportScope(graphene.Enum):
         raise ValueError("Unsupported enum value: %s" % self.value)
 
 
-class ProductFieldEnum(graphene.Enum):
+class ProductField(graphene.Enum):
     NAME = "name"
     DESCRIPTION = "description"
     PRODUCT_TYPE = "product type"

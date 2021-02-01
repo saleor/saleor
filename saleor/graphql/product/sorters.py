@@ -123,7 +123,7 @@ class CollectionSortingInput(ChannelSortInputObjectType):
         type_name = "collections"
 
 
-class ProductOrderField(graphene.Enum):
+class ProductSortField(graphene.Enum):
     NAME = ["name", "slug"]
     PRICE = ["min_variants_price_amount", "name", "slug"]
     MINIMAL_PRICE = ["discounted_price_amount", "name", "slug"]
@@ -138,20 +138,20 @@ class ProductOrderField(graphene.Enum):
     def description(self):
         # pylint: disable=no-member
         descriptions = {
-            ProductOrderField.COLLECTION.name: (
+            ProductSortField.COLLECTION.name: (
                 "collection. Note: "
                 "This option is available only for the `Collection.products` query."
             ),
-            ProductOrderField.NAME.name: "name.",
-            ProductOrderField.PRICE.name: "price.",
-            ProductOrderField.TYPE.name: "type.",
-            ProductOrderField.MINIMAL_PRICE.name: (
+            ProductSortField.NAME.name: "name.",
+            ProductSortField.PRICE.name: "price.",
+            ProductSortField.TYPE.name: "type.",
+            ProductSortField.MINIMAL_PRICE.name: (
                 "a minimal price of a product's variant."
             ),
-            ProductOrderField.DATE.name: "update date.",
-            ProductOrderField.PUBLISHED.name: "publication status.",
-            ProductOrderField.PUBLICATION_DATE.name: "publication date.",
-            ProductOrderField.RATING.name: "rating.",
+            ProductSortField.DATE.name: "update date.",
+            ProductSortField.PUBLISHED.name: "publication status.",
+            ProductSortField.PUBLICATION_DATE.name: "publication date.",
+            ProductSortField.RATING.name: "rating.",
         }
         if self.name in descriptions:
             return f"Sort products by {descriptions[self.name]}"
@@ -214,7 +214,7 @@ class ProductOrderField(graphene.Enum):
         )
 
 
-class ProductOrder(ChannelSortInputObjectType):
+class ProductSortingInput(ChannelSortInputObjectType):
     attribute_id = graphene.Argument(
         graphene.ID,
         description=(
@@ -223,11 +223,11 @@ class ProductOrder(ChannelSortInputObjectType):
         ),
     )
     field = graphene.Argument(
-        ProductOrderField, description="Sort products by the selected field."
+        ProductSortField, description="Sort products by the selected field."
     )
 
     class Meta:
-        sort_enum = ProductOrderField
+        sort_enum = ProductSortField
 
 
 class ProductTypeSortField(graphene.Enum):

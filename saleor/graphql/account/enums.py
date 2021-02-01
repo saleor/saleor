@@ -10,7 +10,7 @@ AddressTypeEnum = to_enum(AddressType, type_name="AddressTypeEnum")
 CustomerEventsEnum = to_enum(CustomerEvents)
 
 
-CountryCodeEnum = graphene.Enum(
+CountryCode = graphene.Enum(
     "CountryCode", [(str_to_enum(country[0]), country[0]) for country in countries]
 )
 

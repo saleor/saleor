@@ -7,7 +7,7 @@ from ..channel.types import Channel
 from ..core.filters import ListObjectTypeFilter, ObjectTypeFilter
 from ..core.types.common import DateRangeInput
 from ..core.utils import from_global_id_strict_type
-from ..payment.enums import PaymentChargeStatusEnum
+from ..payment.enums import PaymentChargeStatus
 from ..utils import resolve_global_ids_to_primary_keys
 from ..utils.filters import filter_by_query_param, filter_range_field
 from .enums import OrderStatusFilter
@@ -105,7 +105,7 @@ class DraftOrderFilter(django_filters.FilterSet):
 
 class OrderFilter(DraftOrderFilter):
     payment_status = ListObjectTypeFilter(
-        input_class=PaymentChargeStatusEnum, method=filter_payment_status
+        input_class=PaymentChargeStatus, method=filter_payment_status
     )
     status = ListObjectTypeFilter(input_class=OrderStatusFilter, method=filter_status)
     customer = django_filters.CharFilter(method=filter_customer)
