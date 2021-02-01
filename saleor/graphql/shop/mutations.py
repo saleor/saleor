@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING, List
+
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -15,6 +17,9 @@ from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import OrderSettingsError, ShopError
 from ..core.utils import get_duplicates_ids
 from .types import CategorySettings, OrderSettings, Shop
+
+if TYPE_CHECKING:
+    from django.contrib.sites.models import Site
 
 
 class ShopSettingsInput(graphene.InputObjectType):
@@ -204,7 +209,7 @@ class CategorySettingsUpdate(BaseMutation):
         return cls(category_settings=CategorySettings())
 
     @classmethod
-    def clean_input(cls, _info, input_data):
+    def clean_input(cls, _info, input_data: dict):
         cls.validate_duplicates(input_data)
 
         for field in ["add_attributes", "remove_attributes"]:
@@ -217,7 +222,7 @@ class CategorySettingsUpdate(BaseMutation):
         return input_data
 
     @classmethod
-    def validate_duplicates(cls, input_data):
+    def validate_duplicates(cls, input_data: dict):
         duplicated_ids = get_duplicates_ids(
             input_data.get("add_attributes"), input_data.get("remove_attributes")
         )
@@ -237,7 +242,7 @@ class CategorySettingsUpdate(BaseMutation):
             )
 
     @classmethod
-    def validate_attributes(cls, attributes):
+    def validate_attributes(cls, attributes: List[attribute_models.Attribute]):
         # only page attributes can be set as category attributes
         invalid_attrs = [
             attr for attr in attributes if attr.type != AttributeType.PAGE_TYPE
@@ -258,7 +263,7 @@ class CategorySettingsUpdate(BaseMutation):
             )
 
     @classmethod
-    def update_category_settings(cls, site, cleaned_input):
+    def update_category_settings(cls, site: "Site", cleaned_input: dict):
         site_settings = site.settings
         remove_attr = cleaned_input.get("remove_attributes")
         add_attr = cleaned_input.get("add_attributes")
