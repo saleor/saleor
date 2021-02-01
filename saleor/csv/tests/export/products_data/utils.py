@@ -44,8 +44,12 @@ def get_attribute_value(assigned_attribute):
             value += f" {attribute.unit}"
     elif attribute.input_type == AttributeInputType.RICH_TEXT:
         value = clean_editor_js(value_instance.rich_text, to_string=True)
+    elif attribute.input_type == AttributeInputType.SWATCH:
+        value = (
+            value_instance.file_url if value_instance.file_url else value_instance.value
+        )
     else:
-        value = value_instance.slug
+        value = value_instance.name or value_instance.slug
     return value
 
 
