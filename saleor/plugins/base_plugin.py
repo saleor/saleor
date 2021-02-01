@@ -429,6 +429,16 @@ class BasePlugin:
         """
         return NotImplemented
 
+    def product_deleted(
+        self, product: "Product", variants: List[int], previous_value: Any
+    ) -> Any:
+        """Trigger when product is deleted.
+
+        Overwrite this method if you need to trigger specific logic after a product is
+        deleted.
+        """
+        return NotImplemented
+
     def order_fully_paid(self, order: "Order", previous_value: Any) -> Any:
         """Trigger when order is fully paid.
 
@@ -469,12 +479,6 @@ class BasePlugin:
         Overwrite this method if you need to trigger specific logic when a fulfillment is
          created.
         """
-        return NotImplemented
-
-    # Deprecated. This method will be removed in Saleor 3.0
-    def checkout_quantity_changed(
-        self, checkout: "Checkout", previous_value: Any
-    ) -> Any:
         return NotImplemented
 
     def checkout_created(self, checkout: "Checkout", previous_value: Any) -> Any:

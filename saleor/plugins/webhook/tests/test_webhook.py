@@ -1,5 +1,7 @@
+import json
 from unittest import mock
 
+import graphene
 import pytest
 
 from ....app.models import App
@@ -10,6 +12,7 @@ from ....webhook.payloads import (
     generate_invoice_payload,
     generate_order_payload,
     generate_page_payload,
+    generate_product_deleted_payload,
     generate_product_payload,
 )
 from ...manager import get_plugins_manager
@@ -149,6 +152,33 @@ def test_product_updated(mocked_webhook_trigger, settings, product):
 
 
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_product_deleted(mocked_webhook_trigger, settings, product):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+
+    product = product
+    variants_id = list(product.variants.all().values_list("id", flat=True))
+    product_id = product.id
+    product.delete()
+    product.id = product_id
+    variant_global_ids = [
+        graphene.Node.to_global_id("ProductVariant", pk) for pk in variants_id
+    ]
+    manager.product_deleted(product, variants_id)
+
+    expected_data = generate_product_deleted_payload(product, variants_id)
+
+    expected_data_dict = json.loads(expected_data)[0]
+    assert expected_data_dict["id"] is not None
+    assert expected_data_dict["variants"] is not None
+    assert variant_global_ids == expected_data_dict["variants"]
+
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.PRODUCT_DELETED, expected_data
+    )
+
+
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_order_updated(mocked_webhook_trigger, settings, order_with_lines):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
@@ -169,20 +199,6 @@ def test_order_cancelled(mocked_webhook_trigger, settings, order_with_lines):
     expected_data = generate_order_payload(order_with_lines)
     mocked_webhook_trigger.assert_called_once_with(
         WebhookEventType.ORDER_CANCELLED, expected_data
-    )
-
-
-@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
-def test_checkout_quantity_changed(
-    mocked_webhook_trigger, settings, checkout_with_items
-):
-    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
-    manager = get_plugins_manager()
-    manager.checkout_quantity_changed(checkout_with_items)
-
-    expected_data = generate_checkout_payload(checkout_with_items)
-    mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.CHECKOUT_QUANTITY_CHANGED, expected_data
     )
 
 

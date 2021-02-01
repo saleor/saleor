@@ -388,6 +388,12 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins("product_updated", default_value, product)
 
+    def product_deleted(self, product: "Product", variants: List[int]):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "product_deleted", default_value, product, variants
+        )
+
     def order_created(self, order: "Order"):
         default_value = None
         return self.__run_method_on_plugins("order_created", default_value, order)
@@ -434,13 +440,6 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins(
             "fulfillment_created", default_value, fulfillment
-        )
-
-    # Deprecated. This method will be removed in Saleor 3.0
-    def checkout_quantity_changed(self, checkout: "Checkout"):
-        default_value = None
-        return self.__run_method_on_plugins(
-            "checkout_quantity_changed", default_value, checkout
         )
 
     def checkout_created(self, checkout: "Checkout"):
