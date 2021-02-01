@@ -12,6 +12,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop authorization keys API - #6631 by @maarcingebala
 - Drop `type` field from `AttributeValue` type - #6710 by @IKarbowiak
 - Drop `apply_taxes_to_shipping_price_range` plugin hook - #6746 by @maarcingebala
+- Drop `CHECKOUT_QUANTITY_CHANGED` webhook - #6797 by @d-wysocki
+- Drop deprecated `taxRate` field from `ProductType` - #6795 by @d-wysocki
 
 ### Other
 
@@ -41,6 +43,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add metadata to warehouse - #6727 by @d-wysocki
 - Add page webhooks: `PAGE_CREATED`, `PAGE_UPDATED` and `PAGE_DELETED` - #6787 by @d-wysocki
 - Add `PRODUCT_DELETED` webhook - #6794 by @d-wysocki
+- Fix `product_updated` and `product_created` webhooks - #6798 by @d-wysocki
 
 # 2.11.1
 

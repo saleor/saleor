@@ -419,12 +419,6 @@ class BasePlugin:
         """
         return NotImplemented
 
-    # Deprecated. This method will be removed in Saleor 3.0
-    def checkout_quantity_changed(
-        self, checkout: "Checkout", previous_value: Any
-    ) -> Any:
-        return NotImplemented
-
     def checkout_created(self, checkout: "Checkout", previous_value: Any) -> Any:
         """Trigger when checkout is created.
 

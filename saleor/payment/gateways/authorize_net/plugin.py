@@ -8,7 +8,7 @@ from saleor.plugins.error_codes import PluginErrorCode
 
 from ... import PaymentError
 from ...models import Payment
-from ..utils import get_supported_currencies
+from ..utils import get_supported_currencies, require_active_plugin
 from . import (
     GatewayConfig,
     authenticate_test,
@@ -27,16 +27,6 @@ if TYPE_CHECKING:
     from ...interface import CustomerSource
     from ..models import PluginConfiguration
     from . import GatewayResponse, PaymentData
-
-
-def require_active_plugin(fn):
-    def wrapped(self, *args, **kwargs):
-        previous = kwargs.get("previous_value", None)
-        if not self.active:
-            return previous
-        return fn(self, *args, **kwargs)
-
-    return wrapped
 
 
 class AuthorizeNetGatewayPlugin(BasePlugin):
