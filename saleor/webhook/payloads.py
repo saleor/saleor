@@ -1,6 +1,7 @@
 import json
 from typing import Iterable, Optional
 
+import graphene
 from django.db.models import QuerySet
 
 from ..account.models import User
@@ -200,23 +201,24 @@ def generate_customer_payload(customer: "User"):
     return data
 
 
+PRODUCT_FIELDS = (
+    "name",
+    "description",
+    "currency",
+    "attributes",
+    "updated_at",
+    "charge_taxes",
+    "weight",
+    "publication_date",
+    "is_published",
+    "private_metadata",
+    "metadata",
+)
+
+
 def generate_product_payload(product: "Product"):
     serializer = PayloadSerializer(
         extra_model_fields={"ProductVariant": ("quantity", "quantity_allocated")}
-    )
-
-    product_fields = (
-        "name",
-        "description",
-        "currency",
-        "attributes",
-        "updated_at",
-        "charge_taxes",
-        "weight",
-        "publication_date",
-        "is_published",
-        "private_metadata",
-        "metadata",
     )
     product_variant_fields = (
         "sku",
@@ -230,7 +232,7 @@ def generate_product_payload(product: "Product"):
     )
     product_payload = serializer.serialize(
         [product],
-        fields=product_fields,
+        fields=PRODUCT_FIELDS,
         additional_fields={
             "category": (lambda p: p.category, ("name", "slug")),
             "collections": (lambda p: p.collections.all(), ("name", "slug")),
@@ -239,6 +241,20 @@ def generate_product_payload(product: "Product"):
                 product_variant_fields,
             ),
         },
+    )
+    return product_payload
+
+
+def generate_product_deleted_payload(product: "Product", variants_id):
+    serializer = PayloadSerializer()
+    product_fields = PRODUCT_FIELDS
+    variant_global_ids = [
+        graphene.Node.to_global_id("ProductVariant", pk) for pk in variants_id
+    ]
+    product_payload = serializer.serialize(
+        [product],
+        fields=product_fields,
+        extra_dict_data={"variants": list(variant_global_ids)},
     )
     return product_payload
 
@@ -345,7 +361,6 @@ def _generate_sample_order_payload(event_name):
 
 def generate_sample_payload(event_name: str) -> Optional[dict]:
     checkout_events = [
-        WebhookEventType.CHECKOUT_QUANTITY_CHANGED,
         WebhookEventType.CHECKOUT_UPADTED,
         WebhookEventType.CHECKOUT_CREATED,
     ]

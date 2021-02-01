@@ -26,9 +26,7 @@ class WebhookEventType:
 
     PRODUCT_CREATED = "product_created"
     PRODUCT_UPDATED = "product_updated"
-
-    # This event is deprecated. It will be removed in Saleor 3.0
-    CHECKOUT_QUANTITY_CHANGED = "checkout_quantity_changed"
+    PRODUCT_DELETED = "product_deleted"
 
     CHECKOUT_CREATED = "checkout_created"
     CHECKOUT_UPADTED = "checkout_updated"
@@ -51,8 +49,7 @@ class WebhookEventType:
         CUSTOMER_CREATED: "Customer created",
         PRODUCT_CREATED: "Product created",
         PRODUCT_UPDATED: "Product updated",
-        # CHECKOUT_QUANTITY_CHANGED is deprecated. It will be removed in Saleor 3.0
-        CHECKOUT_QUANTITY_CHANGED: "Checkout quantity changed",
+        PRODUCT_DELETED: "Product deleted",
         CHECKOUT_CREATED: "Checkout created",
         CHECKOUT_UPADTED: "Checkout updated",
         FULFILLMENT_CREATED: "Fulfillment_created",
@@ -75,8 +72,7 @@ class WebhookEventType:
         (CUSTOMER_CREATED, DISPLAY_LABELS[CUSTOMER_CREATED]),
         (PRODUCT_CREATED, DISPLAY_LABELS[PRODUCT_CREATED]),
         (PRODUCT_UPDATED, DISPLAY_LABELS[PRODUCT_UPDATED]),
-        # CHECKOUT_QUANTITY_CHANGED is deprecated. It will be removed in Saleor 3.0
-        (CHECKOUT_QUANTITY_CHANGED, DISPLAY_LABELS[CHECKOUT_QUANTITY_CHANGED]),
+        (PRODUCT_DELETED, DISPLAY_LABELS[PRODUCT_DELETED]),
         (CHECKOUT_CREATED, DISPLAY_LABELS[CHECKOUT_CREATED]),
         (CHECKOUT_UPADTED, DISPLAY_LABELS[CHECKOUT_UPADTED]),
         (FULFILLMENT_CREATED, DISPLAY_LABELS[FULFILLMENT_CREATED]),
@@ -98,7 +94,7 @@ class WebhookEventType:
         CUSTOMER_CREATED: AccountPermissions.MANAGE_USERS,
         PRODUCT_CREATED: ProductPermissions.MANAGE_PRODUCTS,
         PRODUCT_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
-        CHECKOUT_QUANTITY_CHANGED: CheckoutPermissions.MANAGE_CHECKOUTS,
+        PRODUCT_DELETED: ProductPermissions.MANAGE_PRODUCTS,
         CHECKOUT_CREATED: CheckoutPermissions.MANAGE_CHECKOUTS,
         CHECKOUT_UPADTED: CheckoutPermissions.MANAGE_CHECKOUTS,
         FULFILLMENT_CREATED: OrderPermissions.MANAGE_ORDERS,
