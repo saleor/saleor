@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple, Union
 
 import opentracing
 from django.conf import settings
@@ -14,6 +14,7 @@ from ..core.payments import PaymentInterface
 from ..core.prices import quantize_price
 from ..core.taxes import TaxType, zero_taxed_money
 from ..discount import DiscountInfo
+from .base_plugin import ExternalAccessTokens
 from .models import PluginConfiguration
 
 if TYPE_CHECKING:
@@ -572,6 +573,17 @@ class PluginsManager(PaymentInterface):
                 gateways.append(gateway)
         return gateways
 
+    def list_external_authentications(self, active_only: bool = True) -> List[dict]:
+        plugins = self.plugins
+        auth_basic_method = "external_obtain_access_tokens"
+        if active_only:
+            plugins = self.get_active_plugins()
+        return [
+            {"id": plugin.PLUGIN_ID, "name": plugin.PLUGIN_NAME}
+            for plugin in plugins
+            if auth_basic_method in type(plugin).__dict__
+        ]
+
     def checkout_available_payment_gateways(
         self,
         checkout: "Checkout",
@@ -680,6 +692,61 @@ class PluginsManager(PaymentInterface):
             return default_value
         return self.__run_method_on_single_plugin(
             plugin, "webhook", default_value, request, path
+        )
+
+    def external_obtain_access_tokens(
+        self, plugin_id: str, data: dict, request: WSGIRequest
+    ) -> Optional["ExternalAccessTokens"]:
+        """Obtain access tokens from authentication plugin."""
+        default_value = ExternalAccessTokens()
+        plugin = self.get_plugin(plugin_id)
+        return self.__run_method_on_single_plugin(
+            plugin, "external_obtain_access_tokens", default_value, data, request
+        )
+
+    def external_authentication_url(
+        self, plugin_id: str, data: dict, request: WSGIRequest
+    ) -> dict:
+        """Handle authentication request."""
+        default_value = {}  # type: ignore
+        plugin = self.get_plugin(plugin_id)
+        return self.__run_method_on_single_plugin(
+            plugin, "external_authentication_url", default_value, data, request
+        )
+
+    def external_refresh(
+        self, plugin_id: str, data: dict, request: WSGIRequest
+    ) -> Optional["ExternalAccessTokens"]:
+        """Handle authentication refresh request."""
+        default_value = ExternalAccessTokens()
+        plugin = self.get_plugin(plugin_id)
+        return self.__run_method_on_single_plugin(
+            plugin, "external_refresh", default_value, data, request
+        )
+
+    def authenticate_user(self, request: WSGIRequest) -> Optional["User"]:
+        """Authenticate user which should be assigned to the request."""
+        default_value = None
+        return self.__run_method_on_plugins("authenticate_user", default_value, request)
+
+    def external_logout(self, plugin_id: str, data: dict, request: WSGIRequest) -> dict:
+        """Logout the user."""
+        default_value: Dict[str, str] = {}
+        plugin = self.get_plugin(plugin_id)
+        return self.__run_method_on_single_plugin(
+            plugin, "external_logout", default_value, data, request
+        )
+
+    def external_verify(
+        self, plugin_id: str, data: dict, request: WSGIRequest
+    ) -> Tuple[Optional["User"], dict]:
+        """Verify the provided authentication data."""
+        default_data: Dict[str, str] = dict()
+        default_user: Optional["User"] = None
+        default_value = default_user, default_data
+        plugin = self.get_plugin(plugin_id)
+        return self.__run_method_on_single_plugin(
+            plugin, "external_verify", default_value, data, request
         )
 
 

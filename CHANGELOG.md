@@ -45,6 +45,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add page webhooks: `PAGE_CREATED`, `PAGE_UPDATED` and `PAGE_DELETED` - #6787 by @d-wysocki
 - Add `PRODUCT_DELETED` webhook - #6794 by @d-wysocki
 - Fix `product_updated` and `product_created` webhooks - #6798 by @d-wysocki
+- Add interface for integrating the auth plugins - #6799 by @korycins
 
 # 2.11.1
 
