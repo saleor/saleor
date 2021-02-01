@@ -69,7 +69,14 @@ class AvailableQuantityByProductVariantIdAndCountryCodeLoader(
             variant_id,
             quantity_by_shipping_zone,
         ) in quantity_by_shipping_zone_by_product_variant.items():
-            quantity_map[variant_id] = max(quantity_by_shipping_zone.values())
+            quantity_values = quantity_by_shipping_zone.values()
+            if country_code:
+                # When country code is known, return the sum of quantities from all
+                # shipping zones supporting given country.
+                quantity_map[variant_id] = sum(quantity_values)
+            else:
+                # When country code is unknown, return the highest known quantity.
+                quantity_map[variant_id] = max(quantity_values)
 
         # Return the quantities after capping them at the maximum quantity allowed in
         # checkout. This prevent users from tracking the store's precise stock levels.
