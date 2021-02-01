@@ -487,7 +487,7 @@ django = "*"
 
 [[package]]
 name = "django-cache-url"
-version = "3.1.2"
+version = "3.2.2"
 description = "Use Cache URLs in your Django application."
 category = "main"
 optional = false
@@ -2754,8 +2754,8 @@ django-appconf = [
     {file = "django_appconf-1.0.4-py2.py3-none-any.whl", hash = "sha256:1b1d0e1069c843ebe8ae5aa48ec52403b1440402b320c3e3a206a0907e97bb06"},
 ]
 django-cache-url = [
-    {file = "django-cache-url-3.1.2.tar.gz", hash = "sha256:d0ee0d6c5daab92787bff47a4a6f5a6cf97c3c80d81a990820b2af16e12ad65a"},
-    {file = "django_cache_url-3.1.2-py2.py3-none-any.whl", hash = "sha256:889ac5d56105bdf44c0fd8f82c024119e198baf0bf698fdf49b1d5de92d8d4bb"},
+    {file = "django-cache-url-3.2.2.tar.gz", hash = "sha256:419b1667fe654a1b032073371b67d3fcfbe2a6392337c0e5e6c4ec741a6342a5"},
+    {file = "django_cache_url-3.2.2-py2.py3-none-any.whl", hash = "sha256:f75a2e234c6541c5507cdb7c6c1b9f072643be4f3cadbb363dc34487fd6257a6"},
 ]
 django-countries = [
     {file = "django-countries-6.1.3.tar.gz", hash = "sha256:64015977a5989bcb0e645007299b19fe8ac117466af375161b26bcfa32ae2808"},
