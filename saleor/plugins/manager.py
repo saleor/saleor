@@ -387,6 +387,12 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins("product_updated", default_value, product)
 
+    def product_deleted(self, product: "Product", variants: List[int]):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "product_deleted", default_value, product, variants
+        )
+
     def order_created(self, order: "Order"):
         default_value = None
         return self.__run_method_on_plugins("order_created", default_value, order)

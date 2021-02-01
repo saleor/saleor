@@ -367,6 +367,16 @@ class BasePlugin:
         """
         return NotImplemented
 
+    def product_deleted(
+        self, product: "Product", variants: List[int], previous_value: Any
+    ) -> Any:
+        """Trigger when product is deleted.
+
+        Overwrite this method if you need to trigger specific logic after a product is
+        deleted.
+        """
+        return NotImplemented
+
     def order_fully_paid(self, order: "Order", previous_value: Any) -> Any:
         """Trigger when order is fully paid.
 
