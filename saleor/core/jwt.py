@@ -68,6 +68,15 @@ def jwt_encode(payload: Dict[str, Any]) -> str:
     )
 
 
+def jwt_decode_with_exception_handler(
+    token: str, verify_expiration=settings.JWT_EXPIRE
+) -> Optional[Dict[str, Any]]:
+    try:
+        return jwt_decode(token, verify_expiration=verify_expiration)
+    except jwt.PyJWTError:
+        return None
+
+
 def jwt_decode(token: str, verify_expiration=settings.JWT_EXPIRE) -> Dict[str, Any]:
     return jwt.decode(
         token,
