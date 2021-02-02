@@ -11,11 +11,9 @@ from django.db.models import Model
 from django.utils.encoding import iri_to_uri
 from django.utils.text import slugify
 from django_prices_openexchangerates import exchange_currency
-from geolite2 import geolite2
 from prices import MoneyRange
 from versatileimagefield.image_warmer import VersatileImageFieldWarmer
 
-georeader = geolite2.reader()
 logger = logging.getLogger(__name__)
 
 
@@ -70,13 +68,6 @@ def is_valid_ipv6(ip: str) -> bool:
     except socket.error:
         return False
     return True
-
-
-def _get_geo_data_by_ip(ip_address):
-    # This function is here to make it easier to mock the GeoIP
-    # as the georeader object below can be a native platform library
-    # that does not support monkeypatching.
-    return georeader.get(ip_address)
 
 
 def get_currency_for_country(country_code: str):

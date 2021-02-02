@@ -105,7 +105,6 @@ libcst==0.3.16; python_version >= "3.6"
 lxml==4.6.2; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0"
 markdown==3.3.3; python_version >= "3.6"
 markupsafe==1.1.1; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0"
-maxminddb-geolite2==2018.703
 maxminddb==2.0.3; python_version >= "3.6"
 mccabe==0.6.1; python_version >= "3.5" and python_full_version < "3.0.0" or python_full_version >= "3.4.0" and python_version >= "3.5"
 measurement==3.2.0

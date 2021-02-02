@@ -8,6 +8,7 @@ from django.core.management import CommandError, call_command
 from django.db.utils import DataError
 from django.templatetags.static import static
 from django.test import RequestFactory, override_settings
+from django_countries.fields import Country
 
 from ...account.models import Address, User
 from ...account.utils import create_superuser
@@ -20,7 +21,6 @@ from ...shipping.models import ShippingZone
 from ..storages import S3MediaStorage
 from ..templatetags.placeholder import placeholder
 from ..utils import (
-    Country,
     build_absolute_uri,
     create_thumbnails,
     generate_unique_slug,
