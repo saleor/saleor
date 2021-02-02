@@ -12,6 +12,7 @@ def test_category_settings_update_by_staff(
     page_type_page_reference_attribute,
     page_type_product_reference_attribute,
     size_page_attribute,
+    tag_page_attribute,
     permission_manage_settings,
     count_queries,
 ):
@@ -34,7 +35,7 @@ def test_category_settings_update_by_staff(
 
     add_attrs = [
         graphene.Node.to_global_id("Attribute", attr.pk)
-        for attr in [page_type_page_reference_attribute, size_page_attribute]
+        for attr in [page_type_page_reference_attribute, tag_page_attribute]
     ]
     variables = {
         "input": {

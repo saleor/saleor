@@ -151,7 +151,7 @@ def test_get_page_with_sorted_attribute_values(
 
     attr_values = [attr_value_2, attr_value_1, attr_value_3]
     associate_attribute_values_to_instance(
-        page, page_type_product_reference_attribute, *attr_values
+        page, page_type_product_reference_attribute, attr_values
     )
 
     page_id = graphene.Node.to_global_id("Page", page.id)
@@ -1264,7 +1264,7 @@ def test_update_page_with_file_attribute_new_value_is_not_created(
         "Attribute", page_file_attribute.pk
     )
     existing_value = page_file_attribute.values.first()
-    associate_attribute_values_to_instance(page, page_file_attribute, existing_value)
+    associate_attribute_values_to_instance(page, page_file_attribute, [existing_value])
 
     page_id = graphene.Node.to_global_id("Page", page.id)
 
@@ -1380,7 +1380,7 @@ def test_update_page_with_page_reference_attribute_existing_value(
         slug=f"{page.pk}_{ref_page.pk}",
     )
     associate_attribute_values_to_instance(
-        page, page_type_page_reference_attribute, attr_value
+        page, page_type_page_reference_attribute, [attr_value]
     )
 
     values_count = page_type_page_reference_attribute.values.count()
@@ -1497,7 +1497,7 @@ def test_update_page_with_product_reference_attribute_existing_value(
         slug=f"{page.pk}_{product.pk}",
     )
     associate_attribute_values_to_instance(
-        page, page_type_product_reference_attribute, attr_value
+        page, page_type_product_reference_attribute, [attr_value]
     )
 
     values_count = page_type_product_reference_attribute.values.count()
@@ -1687,9 +1687,7 @@ def test_update_page_change_attribute_values_ordering(
     associate_attribute_values_to_instance(
         page,
         page_type_product_reference_attribute,
-        attr_value_3,
-        attr_value_2,
-        attr_value_1,
+        [attr_value_3, attr_value_2, attr_value_1],
     )
 
     assert list(

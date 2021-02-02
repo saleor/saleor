@@ -382,7 +382,7 @@ class AttributeAssignmentMixin:
             else:
                 attribute_values = cls._pre_save_values(attribute, attr_values)
             associate_attribute_values_to_instance(
-                instance, attribute, *attribute_values
+                instance, attribute, attribute_values
             )
 
 

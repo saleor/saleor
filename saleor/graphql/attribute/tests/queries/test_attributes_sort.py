@@ -120,7 +120,7 @@ def test_attributes_of_products_are_sorted(
     node = variant if is_variant else product  # type: Union[Product, ProductVariant]
     node.attributesrelated.clear()
     associate_attribute_values_to_instance(
-        node, color_attribute, color_attribute.values.first()
+        node, color_attribute, [color_attribute.values.first()]
     )
 
     # Sort the database attributes by their sort order and ID (when None)

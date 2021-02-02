@@ -459,7 +459,7 @@ def test_get_variant_with_sorted_attribute_values(
 
     attr_values = [attr_value_2, attr_value_1, attr_value_3]
     associate_attribute_values_to_instance(
-        variant, product_type_product_reference_attribute, *attr_values
+        variant, product_type_product_reference_attribute, attr_values
     )
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)

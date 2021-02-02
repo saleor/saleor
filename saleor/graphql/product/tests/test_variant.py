@@ -1362,10 +1362,10 @@ def test_update_product_variant_with_duplicated_attribute(
     variant2.sku = str(uuid4())[:12]
     variant2.save()
     associate_attribute_values_to_instance(
-        variant2, color_attribute, color_attribute.values.last()
+        variant2, color_attribute, [color_attribute.values.last()]
     )
     associate_attribute_values_to_instance(
-        variant2, size_attribute, size_attribute.values.last()
+        variant2, size_attribute, [size_attribute.values.last()]
     )
 
     assert variant.attributes.first().values.first().slug == "red"
@@ -1459,7 +1459,7 @@ def test_update_product_variant_with_duplicated_file_attribute(
     variant2.sku = str(uuid4())[:12]
     variant2.save()
     file_attr_value = file_attribute.values.last()
-    associate_attribute_values_to_instance(variant2, file_attribute, file_attr_value)
+    associate_attribute_values_to_instance(variant2, file_attribute, [file_attr_value])
 
     sku = str(uuid4())[:12]
     assert not variant.sku == sku
@@ -1685,9 +1685,7 @@ def test_update_product_variant_change_attribute_values_ordering(
     associate_attribute_values_to_instance(
         variant,
         product_type_product_reference_attribute,
-        attr_value_3,
-        attr_value_2,
-        attr_value_1,
+        [attr_value_3, attr_value_2, attr_value_1],
     )
 
     assert list(

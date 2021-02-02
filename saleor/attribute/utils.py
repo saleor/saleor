@@ -1,8 +1,10 @@
-from typing import TYPE_CHECKING, Iterable, Set, Union
+from typing import TYPE_CHECKING, Iterable, Optional, Set, Union
 
 from ..page.models import Page
-from ..product.models import Product, ProductVariant
+from ..product.models import Category, Product, ProductVariant
 from .models import (
+    AssignedCategoryAttribute,
+    AssignedCategoryAttributeValue,
     AssignedPageAttribute,
     AssignedPageAttributeValue,
     AssignedProductAttribute,
@@ -20,13 +22,15 @@ T_INSTANCE = Union[Product, ProductVariant, Page]
 
 
 if TYPE_CHECKING:
+    from ..site.models import SiteSettings
     from .models import AttributePage, AttributeProduct, AttributeVariant
 
 
 def associate_attribute_values_to_instance(
     instance: T_INSTANCE,
     attribute: Attribute,
-    *values: AttributeValue,
+    values: Iterable[AttributeValue],
+    site_settings: Optional["SiteSettings"] = None,
 ) -> AttributeAssignmentType:
     """Assign given attribute values to a product or variant.
 
@@ -40,7 +44,7 @@ def associate_attribute_values_to_instance(
     validate_attribute_owns_values(attribute, values_ids)
 
     # Associate the attribute and the passed values
-    assignment = _associate_attribute_to_instance(instance, attribute.pk)
+    assignment = _associate_attribute_to_instance(instance, attribute.pk, site_settings)
     assignment.values.set(values)
     sort_assigned_attribute_values(instance, assignment, values)
 
@@ -59,7 +63,9 @@ def validate_attribute_owns_values(attribute: Attribute, value_ids: Set[int]) ->
 
 
 def _associate_attribute_to_instance(
-    instance: T_INSTANCE, attribute_pk: int
+    instance: T_INSTANCE,
+    attribute_pk: int,
+    site_settings: Optional["SiteSettings"] = None,
 ) -> AttributeAssignmentType:
     """Associate a given attribute to an instance."""
     assignment: AttributeAssignmentType
@@ -84,6 +90,11 @@ def _associate_attribute_to_instance(
         assignment, _ = AssignedPageAttribute.objects.get_or_create(
             page=instance, assignment=attribute_rel
         )
+    elif isinstance(instance, Category):
+        attribute_rel = site_settings.category_attributes.get(attribute_id=attribute_pk)
+        assignment, _ = AssignedCategoryAttribute.objects.get_or_create(
+            category=instance, assignment=attribute_rel
+        )
     else:
         raise AssertionError(f"{instance.__class__.__name__} is unsupported")
 
@@ -101,6 +112,7 @@ def sort_assigned_attribute_values(
         "Product": ("productvalueassignment", AssignedProductAttributeValue),
         "ProductVariant": ("variantvalueassignment", AssignedVariantAttributeValue),
         "Page": ("pagevalueassignment", AssignedPageAttributeValue),
+        "Category": ("categoryvalueassignment", AssignedCategoryAttributeValue),
     }
     assignment_lookup, assignment_model = instance_to_value_assignment_mapping[
         instance.__class__.__name__

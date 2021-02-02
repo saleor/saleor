@@ -246,10 +246,10 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
 
     # add file attribute
     associate_attribute_values_to_instance(
-        variant_with_many_stocks, file_attribute, file_attribute.values.first()
+        variant_with_many_stocks, file_attribute, [file_attribute.values.first()]
     )
     associate_attribute_values_to_instance(
-        product, file_attribute, file_attribute.values.first()
+        product, file_attribute, [file_attribute.values.first()]
     )
 
     # add page reference attribute
@@ -266,10 +266,10 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
     associate_attribute_values_to_instance(
         variant_with_many_stocks,
         product_type_page_reference_attribute,
-        variant_page_ref_value,
+        [variant_page_ref_value],
     )
     associate_attribute_values_to_instance(
-        product, product_type_page_reference_attribute, product_page_ref_value
+        product, product_type_page_reference_attribute, [product_page_ref_value]
     )
 
     # add product reference attribute
@@ -289,10 +289,10 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
     associate_attribute_values_to_instance(
         variant_with_many_stocks,
         product_type_product_reference_attribute,
-        variant_product_ref_value,
+        [variant_product_ref_value],
     )
     associate_attribute_values_to_instance(
-        product, product_type_product_reference_attribute, product_product_ref_value
+        product, product_type_product_reference_attribute, [product_product_ref_value]
     )
 
     products = Product.objects.all()

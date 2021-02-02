@@ -10,7 +10,7 @@ def test_associate_attribute_to_non_product_instance(color_attribute):
     value = color_attribute.values.first()
 
     with pytest.raises(AssertionError) as exc:
-        associate_attribute_values_to_instance(instance, attribute, value)  # noqa
+        associate_attribute_values_to_instance(instance, attribute, [value])  # noqa
 
     assert exc.value.args == ("ProductType is unsupported",)
 
@@ -26,7 +26,7 @@ def test_associate_attribute_to_product_instance_from_different_attribute(
     value = size_attribute.values.first()
 
     with pytest.raises(AssertionError) as exc:
-        associate_attribute_values_to_instance(instance, attribute, value)
+        associate_attribute_values_to_instance(instance, attribute, [value])
 
     assert exc.value.args == ("Some values are not from the provided attribute.",)
 
@@ -40,7 +40,7 @@ def test_associate_attribute_to_product_instance_without_values(product):
     attribute = old_assignment.attribute
 
     # Clear the values
-    new_assignment = associate_attribute_values_to_instance(product, attribute)
+    new_assignment = associate_attribute_values_to_instance(product, attribute, [])
 
     # Ensure the values were cleared and no new assignment entry was created
     assert new_assignment.pk == old_assignment.pk
@@ -58,7 +58,7 @@ def test_associate_attribute_to_product_instance_multiply_values(product):
 
     # Assign new values
     new_assignment = associate_attribute_values_to_instance(
-        product, attribute, values[1], values[0]
+        product, attribute, [values[1], values[0]]
     )
 
     # Ensure the new assignment was created and ordered correctly
@@ -80,7 +80,7 @@ def test_associate_attribute_to_page_instance_multiply_values(page):
 
     # Clear the values
     new_assignment = associate_attribute_values_to_instance(
-        page, attribute, values[1], values[0]
+        page, attribute, [values[1], values[0]]
     )
 
     # Ensure the new assignment was created and ordered correctly
@@ -98,7 +98,7 @@ def test_associate_attribute_to_variant_instance_multiply_values(variant):
     values = attribute.values.all()
 
     new_assignment = associate_attribute_values_to_instance(
-        variant, attribute, values[0], values[1]
+        variant, attribute, [values[0], values[1]]
     )
 
     # Ensure the new assignment was created and ordered correctly
@@ -106,3 +106,29 @@ def test_associate_attribute_to_variant_instance_multiply_values(variant):
     assert list(
         new_assignment.variantvalueassignment.values_list("value__pk", "sort_order")
     ) == [(values[0].pk, 0), (values[1].pk, 1)]
+
+
+def test_associate_attribute_to_category_instance_multiply_values(
+    category_with_attribute, site_settings_with_category_attributes
+):
+    """Ensure multiply values in proper order are assigned."""
+    site_settings = site_settings_with_category_attributes
+    category = category_with_attribute
+    old_assignment = category.attributes.first()
+    assert old_assignment is not None, "The category doesn't have attribute-values"
+    assert old_assignment.values.count() == 1
+
+    attribute = old_assignment.attribute
+    values = attribute.values.all()
+
+    # Clear the values
+    new_assignment = associate_attribute_values_to_instance(
+        category, attribute, [values[1], values[0]], site_settings
+    )
+
+    # Ensure the new assignment was created and ordered correctly
+    assert new_assignment.pk == old_assignment.pk
+    assert new_assignment.values.count() == 2
+    assert list(
+        new_assignment.categoryvalueassignment.values_list("value__pk", "sort_order")
+    ) == [(values[1].pk, 0), (values[0].pk, 1)]
