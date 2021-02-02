@@ -8,6 +8,10 @@ from django.core.mail.backends.smtp import EmailBackend
 
 from ....core.notify_events import NotifyEventType
 from ...models import PluginConfiguration
+from ..constants import (
+    ORDER_CONFIRMATION_TEMPLATE_FIELD,
+    ORDER_CONFIRMED_TEMPLATE_FIELD,
+)
 from ..notify_events import (
     send_account_change_email_confirm,
     send_account_change_email_request,
@@ -174,3 +178,33 @@ def test_save_plugin_configuration_incorrect_email_backend_configuration(
 
     with pytest.raises(ValidationError):
         plugin.save_plugin_configuration(configuration, data_to_save)
+    mocked_open.assert_called_with()
+
+
+@patch.object(EmailBackend, "open")
+def test_save_plugin_configuration_incorrect_template(mocked_open, user_email_plugin):
+    incorrect_template_str = """
+    {{#if order.order_details_url}}
+      Thank you for your order. Below is the list of fulfilled products. To see your
+      order details please visit:
+      <a href="{{ order.order_details_url }}">{{ order.order_details_url }}</a>
+    {{else}}
+      Thank you for your order. Below is the list of fulfilled products.
+    {{/if}
+    """  # missing } at the end of the if condition
+
+    plugin = user_email_plugin()
+    configuration = PluginConfiguration.objects.get()
+    data_to_save = {
+        "configuration": [
+            {
+                "name": ORDER_CONFIRMATION_TEMPLATE_FIELD,
+                "value": incorrect_template_str,
+            },
+            {"name": ORDER_CONFIRMED_TEMPLATE_FIELD, "value": incorrect_template_str},
+        ]
+    }
+
+    with pytest.raises(ValidationError):
+        plugin.save_plugin_configuration(configuration, data_to_save)
+    mocked_open.assert_called_with()

@@ -8,13 +8,15 @@ from ..email_common import (
     DEFAULT_EMAIL_CONFIG_STRUCTURE,
     DEFAULT_EMAIL_CONFIGURATION,
     DEFAULT_EMAIL_VALUE,
-    DEFAULT_SUBJECT_MESSAGE,
-    DEFAULT_TEMPLATE_MESSAGE,
+    DEFAULT_SUBJECT_HELP_TEXT,
+    DEFAULT_TEMPLATE_HELP_TEXT,
     EmailConfig,
     validate_default_email_configuration,
+    validate_format_of_provided_templates,
 )
 from ..models import PluginConfiguration
 from . import constants
+from .constants import TEMPLATE_FIELDS
 from .notify_events import (
     send_account_change_email_confirm,
     send_account_change_email_request,
@@ -217,142 +219,142 @@ class UserEmailPlugin(BasePlugin):
     CONFIG_STRUCTURE = {
         constants.ACCOUNT_CONFIRMATION_SUBJECT_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_SUBJECT_MESSAGE,
+            "help_text": DEFAULT_SUBJECT_HELP_TEXT,
             "label": "Account confirmation - subject",
         },
         constants.ACCOUNT_CONFIRMATION_TEMPLATE_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "Account confirmation - template",
         },
         constants.ACCOUNT_SET_CUSTOMER_PASSWORD_SUBJECT_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_SUBJECT_MESSAGE,
+            "help_text": DEFAULT_SUBJECT_HELP_TEXT,
             "label": "Set customer password - subject",
         },
         constants.ACCOUNT_SET_CUSTOMER_PASSWORD_TEMPLATE_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "Set customer password - template",
         },
         constants.ACCOUNT_DELETE_SUBJECT_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_SUBJECT_MESSAGE,
+            "help_text": DEFAULT_SUBJECT_HELP_TEXT,
             "label": "Account delete - subject",
         },
         constants.ACCOUNT_DELETE_TEMPLATE_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "Account delete - template",
         },
         constants.ACCOUNT_CHANGE_EMAIL_CONFIRM_SUBJECT_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_SUBJECT_MESSAGE,
+            "help_text": DEFAULT_SUBJECT_HELP_TEXT,
             "label": "Account change email confirm - subject",
         },
         constants.ACCOUNT_CHANGE_EMAIL_CONFIRM_TEMPLATE_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "Account change email confirm - template",
         },
         constants.ACCOUNT_CHANGE_EMAIL_REQUEST_SUBJECT_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_SUBJECT_MESSAGE,
+            "help_text": DEFAULT_SUBJECT_HELP_TEXT,
             "label": "Account change email request - subject",
         },
         constants.ACCOUNT_CHANGE_EMAIL_REQUEST_TEMPLATE_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "Account change email request - template",
         },
         constants.ACCOUNT_PASSWORD_RESET_SUBJECT_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_SUBJECT_MESSAGE,
+            "help_text": DEFAULT_SUBJECT_HELP_TEXT,
             "label": "Account password reset - subject",
         },
         constants.ACCOUNT_PASSWORD_RESET_TEMPLATE_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "Account password reset - template",
         },
         constants.INVOICE_READY_SUBJECT_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_SUBJECT_MESSAGE,
+            "help_text": DEFAULT_SUBJECT_HELP_TEXT,
             "label": "Invoice ready - subject",
         },
         constants.INVOICE_READY_TEMPLATE_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "Invoice ready - template",
         },
         constants.ORDER_CONFIRMATION_SUBJECT_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_SUBJECT_MESSAGE,
+            "help_text": DEFAULT_SUBJECT_HELP_TEXT,
             "label": "Order confirmation - subject",
         },
         constants.ORDER_CONFIRMATION_TEMPLATE_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "Order confirmation - template",
         },
         constants.ORDER_CONFIRMED_SUBJECT_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_SUBJECT_MESSAGE,
+            "help_text": DEFAULT_SUBJECT_HELP_TEXT,
             "label": "Order confirmed - subject",
         },
         constants.ORDER_CONFIRMED_TEMPLATE_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "Order confirmed - template",
         },
         constants.ORDER_FULFILLMENT_CONFIRMATION_SUBJECT_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_SUBJECT_MESSAGE,
+            "help_text": DEFAULT_SUBJECT_HELP_TEXT,
             "label": "Order fulfillment confirmation - subject",
         },
         constants.ORDER_FULFILLMENT_CONFIRMATION_TEMPLATE_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "Order fulfillment confirmation - template",
         },
         constants.ORDER_FULFILLMENT_UPDATE_SUBJECT_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_SUBJECT_MESSAGE,
+            "help_text": DEFAULT_SUBJECT_HELP_TEXT,
             "label": "Order fulfillment update - subject",
         },
         constants.ORDER_FULFILLMENT_UPDATE_TEMPLATE_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "Order fulfillment update - template",
         },
         constants.ORDER_PAYMENT_CONFIRMATION_SUBJECT_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_SUBJECT_MESSAGE,
+            "help_text": DEFAULT_SUBJECT_HELP_TEXT,
             "label": "Payment confirmation - subject",
         },
         constants.ORDER_PAYMENT_CONFIRMATION_TEMPLATE_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "Payment confirmation - template",
         },
         constants.ORDER_CANCELED_SUBJECT_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_SUBJECT_MESSAGE,
+            "help_text": DEFAULT_SUBJECT_HELP_TEXT,
             "label": "Order canceled - subject",
         },
         constants.ORDER_CANCELED_TEMPLATE_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "Order canceled - template",
         },
         constants.ORDER_REFUND_CONFIRMATION_SUBJECT_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_SUBJECT_MESSAGE,
+            "help_text": DEFAULT_SUBJECT_HELP_TEXT,
             "label": "Order refund - subject",
         },
         constants.ORDER_REFUND_CONFIRMATION_TEMPLATE_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "Order refund - template",
         },
     }
@@ -426,3 +428,4 @@ class UserEmailPlugin(BasePlugin):
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
         """Validate if provided configuration is correct."""
         validate_default_email_configuration(plugin_configuration)
+        validate_format_of_provided_templates(plugin_configuration, TEMPLATE_FIELDS)
