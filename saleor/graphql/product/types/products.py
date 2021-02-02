@@ -77,6 +77,7 @@ from ..dataloaders import (
     ProductTypeByIdLoader,
     ProductVariantByIdLoader,
     ProductVariantsByProductIdLoader,
+    SelectedAttributesByCategoryIdLoader,
     SelectedAttributesByProductIdLoader,
     SelectedAttributesByProductVariantIdLoader,
     VariantAttributesByProductTypeIdLoader,
@@ -975,6 +976,10 @@ class Category(CountableDjangoObjectType):
         ),
         description="List of products in the category.",
     )
+    attributes = graphene.List(
+        graphene.NonNull(SelectedAttribute),
+        description="List of attributes assigned to this category.",
+    )
     url = graphene.String(
         description="The storefront's URL for the category.",
         deprecation_reason="This field will be removed after 2020-07-31.",
@@ -1053,6 +1058,10 @@ class Category(CountableDjangoObjectType):
             qs = qs.filter(channel_listings__channel__slug=channel)
         qs = qs.filter(category__in=tree)
         return ChannelQsContext(qs=qs, channel_slug=channel)
+
+    @staticmethod
+    def resolve_attributes(root: models.Category, info):
+        return SelectedAttributesByCategoryIdLoader(info.context).load(root.id)
 
     @staticmethod
     def __resolve_reference(root, _info, **_kwargs):

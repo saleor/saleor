@@ -1,5 +1,6 @@
 from .attributes import (
     ProductAttributesByProductTypeIdLoader,
+    SelectedAttributesByCategoryIdLoader,
     SelectedAttributesByProductIdLoader,
     SelectedAttributesByProductVariantIdLoader,
     VariantAttributesByProductTypeIdLoader,
@@ -54,6 +55,7 @@ __all__ = [
     "ProductVariantsByProductIdLoader",
     "ProductImageByIdLoader",
     "ImagesByProductVariantIdLoader",
+    "SelectedAttributesByCategoryIdLoader",
     "SelectedAttributesByProductIdLoader",
     "SelectedAttributesByProductVariantIdLoader",
     "VariantAttributesByProductTypeIdLoader",

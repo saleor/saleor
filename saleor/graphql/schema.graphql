@@ -680,6 +680,7 @@ type Category implements Node & ObjectWithMetadata {
   descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
   ancestors(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   products(channel: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  attributes: [SelectedAttribute!]
   url: String @deprecated(reason: "This field will be removed after 2020-07-31.")
   children(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   backgroundImage(size: Int): Image

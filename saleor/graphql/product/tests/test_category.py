@@ -40,6 +40,15 @@ QUERY_CATEGORY = """
                     }
                 }
             }
+            attributes {
+                attribute {
+                    id
+                    slug
+                }
+                values {
+                    slug
+                }
+            }
         }
     }
     """
@@ -244,20 +253,34 @@ def test_query_category_product_only_visible_in_listings_as_app_with_perm(
     assert len(content["data"]["category"]["products"]["edges"]) == product_count
 
 
+def test_category_attributes_query(
+    user_api_client, category_with_attribute, channel_USD
+):
+    # given
+    category = category_with_attribute
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    variables = {
+        "id": category_id,
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(QUERY_CATEGORY, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["category"]
+    assert len(data["attributes"]) == category.attributes.count()
+    assert {attr["attribute"]["slug"] for attr in data["attributes"]} == {
+        cat_attr.attribute.slug for cat_attr in category.attributes.all()
+    }
+
+
 CATEGORY_CREATE_MUTATION = """
-        mutation(
-                $name: String, $slug: String,
-                $description: JSONString, $backgroundImage: Upload,
-                $backgroundImageAlt: String, $parentId: ID) {
+        mutation($input: CategoryInput!, $parentId: ID) {
             categoryCreate(
-                input: {
-                    name: $name
-                    slug: $slug
-                    description: $description
-                    backgroundImage: $backgroundImage
-                    backgroundImageAlt: $backgroundImageAlt
-                },
-                parent: $parentId
+                input: $input,
+                parent: $parentId,
             ) {
                 category {
                     id
@@ -304,11 +327,13 @@ def test_category_create_mutation(
 
     # test creating root category
     variables = {
-        "name": category_name,
-        "description": category_description,
-        "backgroundImage": image_name,
-        "backgroundImageAlt": image_alt,
-        "slug": category_slug,
+        "input": {
+            "name": category_name,
+            "description": category_description,
+            "backgroundImage": image_name,
+            "backgroundImageAlt": image_alt,
+            "slug": category_slug,
+        }
     }
     body = get_multipart_request_body(query, variables, image_file, image_name)
     response = staff_api_client.post_multipart(
@@ -328,10 +353,12 @@ def test_category_create_mutation(
     # test creating subcategory
     parent_id = data["category"]["id"]
     variables = {
-        "name": category_name,
-        "description": category_description,
+        "input": {
+            "name": category_name,
+            "slug": f"{category_slug}-2",
+            "description": category_description,
+        },
         "parentId": parent_id,
-        "slug": f"{category_slug}-2",
     }
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -354,7 +381,7 @@ def test_create_category_with_given_slug(
 ):
     query = CATEGORY_CREATE_MUTATION
     name = "Test category"
-    variables = {"name": name, "slug": input_slug}
+    variables = {"input": {"name": name, "slug": input_slug}}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
@@ -369,7 +396,7 @@ def test_create_category_name_with_unicode(
 ):
     query = CATEGORY_CREATE_MUTATION
     name = "わたし-わ にっぽん です"
-    variables = {"name": name}
+    variables = {"input": {"name": name}}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
@@ -398,9 +425,11 @@ def test_category_create_mutation_without_background_image(
     # test creating root category
     category_name = "Test category"
     variables = {
-        "name": category_name,
-        "description": description,
-        "slug": slugify(category_name),
+        "input": {
+            "name": category_name,
+            "description": description,
+            "slug": slugify(category_name),
+        }
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
