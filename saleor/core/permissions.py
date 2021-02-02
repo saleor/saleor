@@ -143,8 +143,12 @@ def get_permissions(permissions=None):
         codenames = get_permissions_codename()
     else:
         codenames = split_permission_codename(permissions)
+    return get_permissions_from_codenames(codenames)
+
+
+def get_permissions_from_codenames(permission_codenames: List[str]):
     return (
-        Permission.objects.filter(codename__in=codenames)
+        Permission.objects.filter(codename__in=permission_codenames)
         .prefetch_related("content_type")
         .order_by("codename")
     )

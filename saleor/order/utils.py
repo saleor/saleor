@@ -117,7 +117,8 @@ def update_order_prices(order, discounts):
     channel = order.channel
     for line in order:  # type: OrderLine
         if line.variant:
-            product = line.variant.product
+            variant = line.variant
+            product = variant.product
             channel_listing = line.variant.channel_listings.get(channel=channel)
             collections = product.collections.all()
             unit_price = line.variant.get_price(
@@ -133,7 +134,7 @@ def update_order_prices(order, discounts):
                 ]
             )
 
-            price = manager.calculate_order_line_unit(line)
+            price = manager.calculate_order_line_unit(order, line, variant, product)
             if price != line.unit_price:
                 line.unit_price = price
                 if price.tax and price.net:
@@ -254,7 +255,7 @@ def add_variant_to_order(order, variant, quantity, discounts=None):
             variant=variant,
         )
         manager = get_plugins_manager()
-        unit_price = manager.calculate_order_line_unit(line)
+        unit_price = manager.calculate_order_line_unit(order, line, variant, product)
         line.unit_price = unit_price
         line.tax_rate = manager.get_order_line_tax_rate(
             order, product, None, unit_price

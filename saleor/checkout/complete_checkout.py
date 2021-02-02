@@ -145,9 +145,7 @@ def _create_line_for_order(
     checkout_line = checkout_line_info.line
     quantity = checkout_line.quantity
     variant = checkout_line_info.variant
-    channel_listing = checkout_line_info.channel_listing
     product = checkout_line_info.product
-    collections = checkout_line_info.collections
     address = (
         checkout.shipping_address or checkout.billing_address
     )  # FIXME: check which address we need here
@@ -166,16 +164,20 @@ def _create_line_for_order(
 
     total_line_price = manager.calculate_checkout_line_total(
         checkout,
-        checkout_line,
-        variant,
-        product,
-        collections,
+        checkout_line_info,
         address,
         channel,
-        channel_listing,
         discounts,
     )
-    unit_price = manager.calculate_checkout_line_unit_price(total_line_price, quantity)
+    unit_price = manager.calculate_checkout_line_unit_price(
+        total_line_price,
+        quantity,
+        checkout,
+        checkout_line_info,
+        address,
+        discounts,
+        channel,
+    )
     tax_rate = manager.get_checkout_line_tax_rate(
         checkout, checkout_line_info, address, discounts, unit_price
     )
