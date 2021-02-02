@@ -6,13 +6,16 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 from urllib.parse import urljoin
 
+import opentracing
+import opentracing.tags
 import requests
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.cache import cache
 from requests.auth import HTTPBasicAuth
 
-from ...checkout import base_calculations
+from ...checkout import CheckoutLineInfo, base_calculations
+from ...checkout.utils import fetch_checkout_lines
 from ...core.taxes import TaxError
 
 if TYPE_CHECKING:
@@ -228,34 +231,24 @@ def get_checkout_lines_data(
     checkout: "Checkout", discounts=None
 ) -> List[Dict[str, Union[str, int, bool, None]]]:
     data: List[Dict[str, Union[str, int, bool, None]]] = []
-    lines = checkout.lines.prefetch_related(
-        "variant__product__category",
-        "variant__product__collections",
-        "variant__product__product_type",
-    ).filter(variant__product__charge_taxes=True)
+    lines_info = fetch_checkout_lines(checkout)
     channel = checkout.channel
-    for line in lines:
-        name = line.variant.product.name
-        product = line.variant.product
-        collections = product.collections.all()
-        channel_listing = line.variant.channel_listings.get(channel=channel)
-        product_type = line.variant.product.product_type
+    for line_info in lines_info:
+        product = line_info.product
+        name = product.name
+        product_type = product.product_type
         tax_code = retrieve_tax_code_from_meta(product, default=None)
         tax_code = tax_code or retrieve_tax_code_from_meta(product_type)
         append_line_to_data(
             data=data,
-            quantity=line.quantity,
+            quantity=line_info.line.quantity,
             amount=base_calculations.base_checkout_line_total(
-                line,
-                line.variant,
-                product,
-                collections,
+                line_info,
                 channel,
-                channel_listing,
                 discounts,
             ).gross.amount,
             tax_code=tax_code,
-            item_code=line.variant.sku,
+            item_code=line_info.variant.sku,
             name=name,
         )
 
@@ -394,7 +387,13 @@ def _fetch_new_taxes_data(
     transaction_url = urljoin(
         get_api_url(config.use_sandbox), "transactions/createoradjust"
     )
-    response = api_post_request(transaction_url, data, config)
+    with opentracing.global_tracer().start_active_span(
+        "avatax.transactions.crateoradjust"
+    ) as scope:
+        span = scope.span
+        span.set_tag(opentracing.tags.COMPONENT, "tax")
+        span.set_tag("service.name", "avatax")
+        response = api_post_request(transaction_url, data, config)
     if response and "error" not in response:
         cache.set(data_cache_key, (data, response), CACHE_TIME)
     else:
@@ -478,9 +477,15 @@ def get_cached_tax_codes_or_fetch(
     tax_codes = cache.get(TAX_CODES_CACHE_KEY, {})
     if not tax_codes:
         tax_codes_url = urljoin(get_api_url(config.use_sandbox), "definitions/taxcodes")
-        response = api_get_request(
-            tax_codes_url, config.username_or_account, config.password_or_license
-        )
+        with opentracing.global_tracer().start_active_span(
+            "avatax.definitions.taxcodes"
+        ) as scope:
+            span = scope.span
+            span.set_tag(opentracing.tags.COMPONENT, "tax")
+            span.set_tag("service.name", "avatax")
+            response = api_get_request(
+                tax_codes_url, config.username_or_account, config.password_or_license
+            )
         if response and "error" not in response:
             tax_codes = generate_tax_codes_dict(response)
             cache.set(TAX_CODES_CACHE_KEY, tax_codes, cache_time)

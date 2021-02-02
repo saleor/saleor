@@ -1,4 +1,5 @@
-import json
+import datetime
+from unittest import mock
 
 import graphene
 import pytest
@@ -10,6 +11,9 @@ from ....attribute.models import AttributeValue
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....page.error_codes import PageErrorCode
 from ....page.models import Page, PageType
+from ....tests.utils import dummy_editorjs
+from ....webhook.event_types import WebhookEventType
+from ....webhook.payloads import generate_page_payload
 from ...tests.utils import get_graphql_content
 
 PAGE_QUERY = """
@@ -170,19 +174,18 @@ def test_get_page_with_sorted_attribute_values(
 
 CREATE_PAGE_MUTATION = """
     mutation CreatePage(
-            $slug: String, $title: String, $content: String, $pageType: ID!
-            $contentJson: JSONString, $isPublished: Boolean,
+            $slug: String, $title: String, $content: JSONString, $pageType: ID!
+            $isPublished: Boolean,
             $attributes: [AttributeValueInput!]) {
         pageCreate(
                 input: {
                     slug: $slug, title: $title, pageType: $pageType
-                    content: $content, contentJson: $contentJson
+                    content: $content
                     isPublished: $isPublished, attributes: $attributes}) {
             page {
                 id
                 title
                 content
-                contentJson
                 slug
                 isPublished
                 publicationDate
@@ -218,8 +221,7 @@ CREATE_PAGE_MUTATION = """
 @freeze_time("2020-03-18 12:00:00")
 def test_page_create_mutation(staff_api_client, permission_manage_pages, page_type):
     page_slug = "test-slug"
-    page_content = "test content"
-    page_content_json = json.dumps({"content": "test content"})
+    page_content = dummy_editorjs("test content", True)
     page_title = "test title"
     page_is_published = True
     page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
@@ -238,7 +240,6 @@ def test_page_create_mutation(staff_api_client, permission_manage_pages, page_ty
     variables = {
         "title": page_title,
         "content": page_content,
-        "contentJson": page_content_json,
         "isPublished": page_is_published,
         "slug": page_slug,
         "pageType": page_type_id,
@@ -256,7 +257,6 @@ def test_page_create_mutation(staff_api_client, permission_manage_pages, page_ty
     assert data["pageErrors"] == []
     assert data["page"]["title"] == page_title
     assert data["page"]["content"] == page_content
-    assert data["page"]["contentJson"] == page_content_json
     assert data["page"]["slug"] == page_slug
     assert data["page"]["isPublished"] == page_is_published
     assert data["page"]["publicationDate"] == "2020-03-18"
@@ -267,6 +267,49 @@ def test_page_create_mutation(staff_api_client, permission_manage_pages, page_ty
     )
     assert slugify(non_existent_attr_value) in values
     assert tag_value_slug in values
+
+
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_page_create_trigger_page_webhook(
+    mocked_webhook_trigger,
+    staff_api_client,
+    permission_manage_pages,
+    page_type,
+    settings,
+):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    page_slug = "test-slug"
+    page_content = dummy_editorjs("test content", True)
+    page_title = "test title"
+    page_is_published = True
+    page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
+    # test creating root page
+    variables = {
+        "title": page_title,
+        "content": page_content,
+        "isPublished": page_is_published,
+        "slug": page_slug,
+        "pageType": page_type_id,
+    }
+
+    response = staff_api_client.post_graphql(
+        CREATE_PAGE_MUTATION, variables, permissions=[permission_manage_pages]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["pageCreate"]
+    assert data["pageErrors"] == []
+    assert data["page"]["title"] == page_title
+    assert data["page"]["content"] == page_content
+    assert data["page"]["slug"] == page_slug
+    assert data["page"]["isPublished"] == page_is_published
+    assert data["page"]["pageType"]["id"] == page_type_id
+    page = Page.objects.first()
+    expected_data = generate_page_payload(page)
+
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.PAGE_CREATED, expected_data
+    )
 
 
 def test_page_create_required_fields(
@@ -306,8 +349,7 @@ def test_page_create_mutation_missing_required_attributes(
 ):
     # given
     page_slug = "test-slug"
-    page_content = "test content"
-    page_content_json = json.dumps({"content": "test content"})
+    page_content = dummy_editorjs("test content", True)
     page_title = "test title"
     page_is_published = True
     page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
@@ -326,7 +368,6 @@ def test_page_create_mutation_missing_required_attributes(
     variables = {
         "title": page_title,
         "content": page_content,
-        "contentJson": page_content_json,
         "isPublished": page_is_published,
         "slug": page_slug,
         "pageType": page_type_id,
@@ -357,8 +398,7 @@ def test_page_create_mutation_empty_attribute_value(
 ):
     # given
     page_slug = "test-slug"
-    page_content = "test content"
-    page_content_json = json.dumps({"content": "test content"})
+    page_content = dummy_editorjs("test content", True)
     page_title = "test title"
     page_is_published = True
     page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
@@ -371,7 +411,6 @@ def test_page_create_mutation_empty_attribute_value(
     variables = {
         "title": page_title,
         "content": page_content,
-        "contentJson": page_content_json,
         "isPublished": page_is_published,
         "slug": page_slug,
         "pageType": page_type_id,
@@ -402,8 +441,7 @@ def test_create_page_with_file_attribute(
 ):
     # given
     page_slug = "test-slug"
-    page_content = "test content"
-    page_content_json = json.dumps({"content": "test content"})
+    page_content = dummy_editorjs("test content", True)
     page_title = "test title"
     page_is_published = True
     page_type = PageType.objects.create(
@@ -421,7 +459,6 @@ def test_create_page_with_file_attribute(
     variables = {
         "title": page_title,
         "content": page_content,
-        "contentJson": page_content_json,
         "isPublished": page_is_published,
         "slug": page_slug,
         "pageType": page_type_id,
@@ -441,7 +478,6 @@ def test_create_page_with_file_attribute(
     assert not errors
     assert data["page"]["title"] == page_title
     assert data["page"]["content"] == page_content
-    assert data["page"]["contentJson"] == page_content_json
     assert data["page"]["slug"] == page_slug
     assert data["page"]["isPublished"] == page_is_published
     assert data["page"]["pageType"]["id"] == page_type_id
@@ -468,8 +504,7 @@ def test_create_page_with_file_attribute_new_attribute_value(
 ):
     # given
     page_slug = "test-slug"
-    page_content = "test content"
-    page_content_json = json.dumps({"content": "test content"})
+    page_content = dummy_editorjs("test content", True)
     page_title = "test title"
     page_is_published = True
     page_type = PageType.objects.create(
@@ -488,7 +523,6 @@ def test_create_page_with_file_attribute_new_attribute_value(
     variables = {
         "title": page_title,
         "content": page_content,
-        "contentJson": page_content_json,
         "isPublished": page_is_published,
         "slug": page_slug,
         "pageType": page_type_id,
@@ -514,7 +548,6 @@ def test_create_page_with_file_attribute_new_attribute_value(
     assert not errors
     assert data["page"]["title"] == page_title
     assert data["page"]["content"] == page_content
-    assert data["page"]["contentJson"] == page_content_json
     assert data["page"]["slug"] == page_slug
     assert data["page"]["isPublished"] == page_is_published
     assert data["page"]["pageType"]["id"] == page_type_id
@@ -544,8 +577,7 @@ def test_create_page_with_file_attribute_not_required_no_file_url_given(
 ):
     # given
     page_slug = "test-slug"
-    page_content = "test content"
-    page_content_json = json.dumps({"content": "test content"})
+    page_content = dummy_editorjs("test content", True)
     page_title = "test title"
     page_is_published = True
     page_type = PageType.objects.create(
@@ -563,7 +595,6 @@ def test_create_page_with_file_attribute_not_required_no_file_url_given(
     variables = {
         "title": page_title,
         "content": page_content,
-        "contentJson": page_content_json,
         "isPublished": page_is_published,
         "slug": page_slug,
         "pageType": page_type_id,
@@ -580,7 +611,6 @@ def test_create_page_with_file_attribute_not_required_no_file_url_given(
     assert data["pageErrors"] == []
     assert data["page"]["title"] == page_title
     assert data["page"]["content"] == page_content
-    assert data["page"]["contentJson"] == page_content_json
     assert data["page"]["slug"] == page_slug
     assert data["page"]["isPublished"] == page_is_published
     assert data["page"]["pageType"]["id"] == page_type_id
@@ -593,8 +623,7 @@ def test_create_page_with_file_attribute_required_no_file_url_given(
 ):
     # given
     page_slug = "test-slug"
-    page_content = "test content"
-    page_content_json = json.dumps({"content": "test content"})
+    page_content = dummy_editorjs("test content", True)
     page_title = "test title"
     page_is_published = True
     page_type = PageType.objects.create(
@@ -612,7 +641,6 @@ def test_create_page_with_file_attribute_required_no_file_url_given(
     variables = {
         "title": page_title,
         "content": page_content,
-        "contentJson": page_content_json,
         "isPublished": page_is_published,
         "slug": page_slug,
         "pageType": page_type_id,
@@ -643,8 +671,7 @@ def test_create_page_with_page_reference_attribute(
 ):
     # given
     page_slug = "test-slug"
-    page_content = "test content"
-    page_content_json = json.dumps({"content": "test content"})
+    page_content = dummy_editorjs("test content", True)
     page_title = "test title"
     page_is_published = True
     page_type = PageType.objects.create(
@@ -664,7 +691,6 @@ def test_create_page_with_page_reference_attribute(
     variables = {
         "title": page_title,
         "content": page_content,
-        "contentJson": page_content_json,
         "isPublished": page_is_published,
         "slug": page_slug,
         "pageType": page_type_id,
@@ -684,7 +710,6 @@ def test_create_page_with_page_reference_attribute(
     assert not errors
     assert data["page"]["title"] == page_title
     assert data["page"]["content"] == page_content
-    assert data["page"]["contentJson"] == page_content_json
     assert data["page"]["slug"] == page_slug
     assert data["page"]["isPublished"] == page_is_published
     assert data["page"]["pageType"]["id"] == page_type_id
@@ -716,8 +741,7 @@ def test_create_page_with_page_reference_attribute_not_required_no_references_gi
 ):
     # given
     page_slug = "test-slug"
-    page_content = "test content"
-    page_content_json = json.dumps({"content": "test content"})
+    page_content = dummy_editorjs("test content", True)
     page_title = "test title"
     page_is_published = True
     page_type = PageType.objects.create(
@@ -737,7 +761,6 @@ def test_create_page_with_page_reference_attribute_not_required_no_references_gi
     variables = {
         "title": page_title,
         "content": page_content,
-        "contentJson": page_content_json,
         "isPublished": page_is_published,
         "slug": page_slug,
         "pageType": page_type_id,
@@ -754,7 +777,6 @@ def test_create_page_with_page_reference_attribute_not_required_no_references_gi
     assert data["pageErrors"] == []
     assert data["page"]["title"] == page_title
     assert data["page"]["content"] == page_content
-    assert data["page"]["contentJson"] == page_content_json
     assert data["page"]["slug"] == page_slug
     assert data["page"]["isPublished"] == page_is_published
     assert data["page"]["pageType"]["id"] == page_type_id
@@ -770,8 +792,7 @@ def test_create_page_with_page_reference_attribute_required_no_references_given(
 ):
     # given
     page_slug = "test-slug"
-    page_content = "test content"
-    page_content_json = json.dumps({"content": "test content"})
+    page_content = dummy_editorjs("test content", True)
     page_title = "test title"
     page_is_published = True
     page_type = PageType.objects.create(
@@ -791,7 +812,6 @@ def test_create_page_with_page_reference_attribute_required_no_references_given(
     variables = {
         "title": page_title,
         "content": page_content,
-        "contentJson": page_content_json,
         "isPublished": page_is_published,
         "slug": page_slug,
         "pageType": page_type_id,
@@ -822,8 +842,7 @@ def test_create_page_with_product_reference_attribute(
 ):
     # given
     page_slug = "test-slug"
-    page_content = "test content"
-    page_content_json = json.dumps({"content": "test content"})
+    page_content = dummy_editorjs("test content", True)
     page_title = "test title"
     page_is_published = True
     page_type = PageType.objects.create(
@@ -843,7 +862,6 @@ def test_create_page_with_product_reference_attribute(
     variables = {
         "title": page_title,
         "content": page_content,
-        "contentJson": page_content_json,
         "isPublished": page_is_published,
         "slug": page_slug,
         "pageType": page_type_id,
@@ -863,7 +881,6 @@ def test_create_page_with_product_reference_attribute(
     assert not errors
     assert data["page"]["title"] == page_title
     assert data["page"]["content"] == page_content
-    assert data["page"]["contentJson"] == page_content_json
     assert data["page"]["slug"] == page_slug
     assert data["page"]["isPublished"] == page_is_published
     assert data["page"]["pageType"]["id"] == page_type_id
@@ -895,8 +912,7 @@ def test_create_page_with_product_reference_attribute_not_required_no_references
 ):
     # given
     page_slug = "test-slug"
-    page_content = "test content"
-    page_content_json = json.dumps({"content": "test content"})
+    page_content = dummy_editorjs("test content", True)
     page_title = "test title"
     page_is_published = True
     page_type = PageType.objects.create(
@@ -916,7 +932,6 @@ def test_create_page_with_product_reference_attribute_not_required_no_references
     variables = {
         "title": page_title,
         "content": page_content,
-        "contentJson": page_content_json,
         "isPublished": page_is_published,
         "slug": page_slug,
         "pageType": page_type_id,
@@ -933,7 +948,6 @@ def test_create_page_with_product_reference_attribute_not_required_no_references
     assert data["pageErrors"] == []
     assert data["page"]["title"] == page_title
     assert data["page"]["content"] == page_content
-    assert data["page"]["contentJson"] == page_content_json
     assert data["page"]["slug"] == page_slug
     assert data["page"]["isPublished"] == page_is_published
     assert data["page"]["pageType"]["id"] == page_type_id
@@ -949,8 +963,7 @@ def test_create_page_with_product_reference_attribute_required_no_references_giv
 ):
     # given
     page_slug = "test-slug"
-    page_content = "test content"
-    page_content_json = json.dumps({"content": "test content"})
+    page_content = dummy_editorjs("test content", True)
     page_title = "test title"
     page_is_published = True
     page_type = PageType.objects.create(
@@ -970,7 +983,6 @@ def test_create_page_with_product_reference_attribute_required_no_references_giv
     variables = {
         "title": page_title,
         "content": page_content,
-        "contentJson": page_content_json,
         "isPublished": page_is_published,
         "slug": page_slug,
         "pageType": page_type_id,
@@ -992,31 +1004,55 @@ def test_create_page_with_product_reference_attribute_required_no_references_giv
     assert errors[0]["attributes"] == [file_attribute_id]
 
 
-def test_page_delete_mutation(staff_api_client, page, permission_manage_pages):
-    query = """
-        mutation DeletePage($id: ID!) {
-            pageDelete(id: $id) {
-                page {
-                    title
-                    id
-                }
-                pageErrors {
-                    field
-                    code
-                    message
-                }
-              }
+PAGE_DELETE_MUTATION = """
+    mutation DeletePage($id: ID!) {
+        pageDelete(id: $id) {
+            page {
+                title
+                id
             }
-    """
+            pageErrors {
+                field
+                code
+                message
+            }
+        }
+    }
+"""
+
+
+def test_page_delete_mutation(staff_api_client, page, permission_manage_pages):
     variables = {"id": graphene.Node.to_global_id("Page", page.id)}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_pages]
+        PAGE_DELETE_MUTATION, variables, permissions=[permission_manage_pages]
     )
     content = get_graphql_content(response)
     data = content["data"]["pageDelete"]
     assert data["page"]["title"] == page.title
     with pytest.raises(page._meta.model.DoesNotExist):
         page.refresh_from_db()
+
+
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_page_delete_trigger_webhook(
+    mocked_webhook_trigger, staff_api_client, page, permission_manage_pages, settings
+):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    variables = {"id": graphene.Node.to_global_id("Page", page.id)}
+    response = staff_api_client.post_graphql(
+        PAGE_DELETE_MUTATION, variables, permissions=[permission_manage_pages]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["pageDelete"]
+    assert data["page"]["title"] == page.title
+    with pytest.raises(page._meta.model.DoesNotExist):
+        page.refresh_from_db()
+
+    expected_data = generate_page_payload(page)
+
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.PAGE_DELETED, expected_data
+    )
 
 
 UPDATE_PAGE_MUTATION = """
@@ -1123,6 +1159,49 @@ def test_update_page(staff_api_client, permission_manage_pages, page):
     assert len(attributes) == len(expected_attributes)
     for attr_data in attributes:
         assert attr_data in expected_attributes
+
+
+@freeze_time("2020-03-18 12:00:00")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_update_page_trigger_webhook(
+    mocked_webhook_trigger, staff_api_client, permission_manage_pages, page, settings
+):
+    query = UPDATE_PAGE_MUTATION
+
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    page_title = page.title
+    new_slug = "new-slug"
+    assert new_slug != page.slug
+
+    page_id = graphene.Node.to_global_id("Page", page.id)
+
+    variables = {
+        "id": page_id,
+        "input": {
+            "slug": new_slug,
+            "isPublished": True,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_pages]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["pageUpdate"]
+
+    assert not data["pageErrors"]
+    assert data["page"]["title"] == page_title
+    assert data["page"]["slug"] == new_slug
+    page.publication_date = datetime.date(2020, 3, 18)
+    expected_data = generate_page_payload(page)
+
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.PAGE_UPDATED, expected_data
+    )
 
 
 def test_update_page_with_file_attribute_value(
@@ -1469,7 +1548,7 @@ def test_public_page_sets_publication_date(
     data = {
         "slug": "test-url",
         "title": "Test page",
-        "content": "test content",
+        "content": dummy_editorjs("Content for page 1"),
         "is_published": False,
         "page_type": page_type,
     }
@@ -1665,14 +1744,14 @@ def test_paginate_pages(user_api_client, page, page_type):
     data_02 = {
         "slug": "test02-url",
         "title": "Test page",
-        "content": "test content",
+        "content": dummy_editorjs("Content for page 1"),
         "is_published": True,
         "page_type": page_type,
     }
     data_03 = {
         "slug": "test03-url",
         "title": "Test page",
-        "content": "test content",
+        "content": dummy_editorjs("Content for page 1"),
         "is_published": True,
         "page_type": page_type,
     }
@@ -1768,19 +1847,19 @@ def test_pages_query_with_filter(
     Page.objects.create(
         title="Page1",
         slug="slug_page_1",
-        content="Content for page 1",
+        content=dummy_editorjs("Content for page 1"),
         page_type=page_type,
     )
     Page.objects.create(
         title="Page2",
         slug="slug_page_2",
-        content="Content for page 2",
+        content=dummy_editorjs("Content for page 2"),
         page_type=page_type,
     )
     Page.objects.create(
         title="About",
         slug="slug_about",
-        content="About test content",
+        content=dummy_editorjs("About test content"),
         page_type=page_type,
     )
     variables = {"filter": page_filter}
@@ -1831,7 +1910,7 @@ def test_query_pages_with_sort(
         Page.objects.create(
             title="Page1",
             slug="slug_page_1",
-            content="p1",
+            content=dummy_editorjs("p1."),
             is_published=True,
             publication_date=timezone.now().replace(year=2018, month=12, day=5),
             page_type=page_type,
@@ -1840,7 +1919,7 @@ def test_query_pages_with_sort(
         Page.objects.create(
             title="Page2",
             slug="page_2",
-            content="p2",
+            content=dummy_editorjs("p2."),
             is_published=False,
             publication_date=timezone.now().replace(year=2019, month=12, day=5),
             page_type=page_type,
@@ -1849,7 +1928,7 @@ def test_query_pages_with_sort(
         Page.objects.create(
             title="About",
             slug="about",
-            content="Ab",
+            content=dummy_editorjs("Ab."),
             is_published=True,
             page_type=page_type,
         )

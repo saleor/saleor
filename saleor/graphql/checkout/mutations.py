@@ -441,7 +441,6 @@ class CheckoutLinesAdd(BaseMutation):
                         "Can't add unpublished product.",
                         code=exc.code,
                     )
-            info.context.plugins.checkout_quantity_changed(checkout)
 
         lines = fetch_checkout_lines(checkout)
         update_checkout_shipping_method_if_invalid(
@@ -490,7 +489,6 @@ class CheckoutLineDelete(BaseMutation):
 
         if line and line in checkout.lines.all():
             line.delete()
-            info.context.plugins.checkout_quantity_changed(checkout)
 
         lines = fetch_checkout_lines(checkout)
         update_checkout_shipping_method_if_invalid(

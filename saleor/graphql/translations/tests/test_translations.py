@@ -33,6 +33,32 @@ def test_product_translation(user_api_client, product, channel_USD):
     assert data["product"]["translation"]["language"]["code"] == "PL"
 
 
+def test_product_translation_with_app(app_api_client, product, channel_USD):
+    product.translations.create(language_code="pl", name="Produkt")
+
+    query = """
+    query productById($productId: ID!, $channel: String) {
+        product(id: $productId, channel: $channel) {
+            translation(languageCode: PL) {
+                name
+                language {
+                    code
+                }
+            }
+        }
+    }
+    """
+
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    response = app_api_client.post_graphql(
+        query, {"productId": product_id, "channel": channel_USD.slug}
+    )
+    data = get_graphql_content(response)["data"]
+
+    assert data["product"]["translation"]["name"] == "Produkt"
+    assert data["product"]["translation"]["language"]["code"] == "PL"
+
+
 def test_product_variant_translation(user_api_client, variant, channel_USD):
     variant.translations.create(language_code="pl", name="Wariant")
 
@@ -614,6 +640,36 @@ def test_product_create_translation(
 
     product_id = graphene.Node.to_global_id("Product", product.id)
     response = staff_api_client.post_graphql(
+        query, {"productId": product_id}, permissions=[permission_manage_translations]
+    )
+    data = get_graphql_content(response)["data"]["productTranslate"]
+
+    assert data["product"]["translation"]["name"] == "Produkt PL"
+    assert data["product"]["translation"]["language"]["code"] == "PL"
+
+
+def test_product_create_translation_with_app(
+    app_api_client, product, permission_manage_translations
+):
+    query = """
+    mutation productTranslate($productId: ID!) {
+        productTranslate(
+                id: $productId, languageCode: PL,
+                input: {name: "Produkt PL"}) {
+            product {
+                translation(languageCode: PL) {
+                    name
+                    language {
+                        code
+                    }
+                }
+            }
+        }
+    }
+    """
+
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    response = app_api_client.post_graphql(
         query, {"productId": product_id}, permissions=[permission_manage_translations]
     )
     data = get_graphql_content(response)["data"]["productTranslate"]

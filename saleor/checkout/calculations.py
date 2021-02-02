@@ -10,14 +10,8 @@ if TYPE_CHECKING:
     from ..account.models import Address
     from ..channel.models import Channel
     from ..plugins.manager import PluginsManager
-    from ..product.models import (
-        Collection,
-        Product,
-        ProductVariant,
-        ProductVariantChannelListing,
-    )
     from . import CheckoutLineInfo
-    from .models import Checkout, CheckoutLine
+    from .models import Checkout
 
 
 def checkout_shipping_price(
@@ -102,14 +96,10 @@ def checkout_line_total(
     *,
     manager: "PluginsManager",
     checkout: "Checkout",
-    line: "CheckoutLine",  # FIXME: convert to CheckoutLineInfo
-    variant: "ProductVariant",
-    product: "Product",
-    collections: Iterable["Collection"],
+    checkout_line_info: "CheckoutLineInfo",
     address: Optional["Address"],
     channel: "Channel",
-    channel_listing: "ProductVariantChannelListing",
-    discounts: Optional[Iterable[DiscountInfo]] = None,
+    discounts: Iterable[DiscountInfo] = [],
 ) -> "TaxedMoney":
     """Return the total price of provided line, taxes included.
 
@@ -117,13 +107,9 @@ def checkout_line_total(
     """
     calculated_line_total = manager.calculate_checkout_line_total(
         checkout,
-        line,
-        variant,
-        product,
-        collections,
+        checkout_line_info,
         address,
         channel,
-        channel_listing,
         discounts or [],
     )
-    return quantize_price(calculated_line_total, line.checkout.currency)
+    return quantize_price(calculated_line_total, checkout.currency)

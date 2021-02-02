@@ -673,13 +673,13 @@ type Category implements Node & ObjectWithMetadata {
   seoDescription: String
   id: ID!
   name: String!
-  description: String!
-  descriptionJson: JSONString!
+  description: JSONString!
   slug: String!
   parent: Category
   level: Int!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
+  descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
   ancestors(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   products(channel: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   url: String @deprecated(reason: "This field will be removed after 2020-07-31.")
@@ -723,8 +723,7 @@ input CategoryFilterInput {
 }
 
 input CategoryInput {
-  description: String
-  descriptionJson: JSONString
+  description: JSONString
   name: String
   slug: String
   seo: SeoInput
@@ -749,8 +748,8 @@ type CategoryTranslatableContent implements Node {
   seoDescription: String
   id: ID!
   name: String!
-  description: String!
-  descriptionJson: JSONString!
+  description: JSONString!
+  descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
   translation(languageCode: LanguageCodeEnum!): CategoryTranslation
   category: Category
 }
@@ -766,9 +765,9 @@ type CategoryTranslation implements Node {
   seoDescription: String
   id: ID!
   name: String!
-  description: String!
-  descriptionJson: JSONString!
+  description: JSONString!
   language: LanguageDisplay!
+  descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
 }
 
 type CategoryUpdate {
@@ -1061,11 +1060,11 @@ type Collection implements Node & ObjectWithMetadata {
   seoDescription: String
   id: ID!
   name: String!
-  description: String!
-  descriptionJson: JSONString!
+  description: JSONString!
   slug: String!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
+  descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
   products(filter: ProductFilterInput, sortBy: ProductOrder, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   backgroundImage(size: Int): Image
   translation(languageCode: LanguageCodeEnum!): CollectionTranslation
@@ -1132,8 +1131,7 @@ input CollectionCreateInput {
   isPublished: Boolean
   name: String
   slug: String
-  description: String
-  descriptionJson: JSONString
+  description: JSONString
   backgroundImage: Upload
   backgroundImageAlt: String
   seo: SeoInput
@@ -1175,8 +1173,7 @@ input CollectionInput {
   isPublished: Boolean
   name: String
   slug: String
-  description: String
-  descriptionJson: JSONString
+  description: JSONString
   backgroundImage: Upload
   backgroundImageAlt: String
   seo: SeoInput
@@ -1218,8 +1215,8 @@ type CollectionTranslatableContent implements Node {
   seoDescription: String
   id: ID!
   name: String!
-  description: String!
-  descriptionJson: JSONString!
+  description: JSONString!
+  descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
   translation(languageCode: LanguageCodeEnum!): CollectionTranslation
   collection: Collection
 }
@@ -1235,9 +1232,9 @@ type CollectionTranslation implements Node {
   seoDescription: String
   id: ID!
   name: String!
-  description: String!
-  descriptionJson: JSONString!
+  description: JSONString!
   language: LanguageDisplay!
+  descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
 }
 
 type CollectionUpdate {
@@ -1955,6 +1952,49 @@ enum ExportScope {
   ALL
   IDS
   FILTER
+}
+
+type ExternalAuthentication {
+  id: String!
+  name: String
+}
+
+type ExternalAuthenticationUrl {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  authenticationData: JSONString
+  accountErrors: [AccountError!]!
+}
+
+type ExternalLogout {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  logoutData: JSONString
+  accountErrors: [AccountError!]!
+}
+
+type ExternalObtainAccessTokens {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  token: String
+  refreshToken: String
+  csrfToken: String
+  user: User
+  accountErrors: [AccountError!]!
+}
+
+type ExternalRefresh {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  token: String
+  refreshToken: String
+  csrfToken: String
+  user: User
+  accountErrors: [AccountError!]!
+}
+
+type ExternalVerify {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  user: User
+  isValid: Boolean!
+  verifyData: JSONString
+  accountErrors: [AccountError!]!
 }
 
 type File {
@@ -2780,6 +2820,11 @@ type Mutation {
   tokenRefresh(csrfToken: String, refreshToken: String): RefreshToken
   tokenVerify(token: String!): VerifyToken
   tokensDeactivateAll: DeactivateAllUserTokens
+  externalAuthenticationUrl(input: JSONString!, pluginId: String!): ExternalAuthenticationUrl
+  externalObtainAccessTokens(input: JSONString!, pluginId: String!): ExternalObtainAccessTokens
+  externalRefresh(input: JSONString!, pluginId: String!): ExternalRefresh
+  externalLogout(input: JSONString!, pluginId: String!): ExternalLogout
+  externalVerify(input: JSONString!, pluginId: String!): ExternalVerify
   requestPasswordReset(email: String!, redirectUrl: String!): RequestPasswordReset
   confirmAccount(email: String!, token: String!): ConfirmAccount
   setPassword(email: String!, password: String!, token: String!): SetPassword
@@ -2848,7 +2893,7 @@ type Order implements Node & ObjectWithMetadata {
   shippingMethod: ShippingMethod
   shippingMethodName: String
   channel: Channel!
-  shippingPrice: TaxedMoney
+  shippingPrice: TaxedMoney!
   shippingTaxRate: Float!
   token: String!
   voucher: Voucher
@@ -2868,16 +2913,16 @@ type Order implements Node & ObjectWithMetadata {
   availableShippingMethods: [ShippingMethod]
   invoices: [Invoice]
   number: String
-  isPaid: Boolean
-  paymentStatus: PaymentChargeStatusEnum
-  paymentStatusDisplay: String
+  isPaid: Boolean!
+  paymentStatus: PaymentChargeStatusEnum!
+  paymentStatusDisplay: String!
   payments: [Payment]
-  total: TaxedMoney
-  subtotal: TaxedMoney
+  total: TaxedMoney!
+  subtotal: TaxedMoney!
   statusDisplay: String
   canFinalize: Boolean!
-  totalAuthorized: Money
-  totalCaptured: Money
+  totalAuthorized: Money!
+  totalCaptured: Money!
   events: [OrderEvent]
   totalBalance: Money!
   userEmail: String
@@ -3122,8 +3167,8 @@ type OrderLine implements Node {
   taxRate: Float!
   digitalContentUrl: DigitalContentUrl
   thumbnail(size: Int): Image
-  unitPrice: TaxedMoney
-  totalPrice: TaxedMoney
+  unitPrice: TaxedMoney!
+  totalPrice: TaxedMoney!
   variant: ProductVariant
   translatedProductName: String!
   translatedVariantName: String!
@@ -3279,8 +3324,7 @@ type Page implements Node & ObjectWithMetadata {
   seoDescription: String
   id: ID!
   title: String!
-  content: String!
-  contentJson: JSONString!
+  content: JSONString!
   publicationDate: Date
   isPublished: Boolean!
   slug: String!
@@ -3288,6 +3332,7 @@ type Page implements Node & ObjectWithMetadata {
   created: DateTime!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
+  contentJson: String! @deprecated(reason: "Will be removed in Saleor 4.0. Use the `content` field instead.")
   translation(languageCode: LanguageCodeEnum!): PageTranslation
   attributes: [SelectedAttribute!]!
 }
@@ -3336,8 +3381,7 @@ type PageCreate {
 input PageCreateInput {
   slug: String
   title: String
-  content: String
-  contentJson: JSONString
+  content: JSONString
   attributes: [AttributeValueInput!]
   isPublished: Boolean
   publicationDate: String
@@ -3383,8 +3427,7 @@ type PageInfo {
 input PageInput {
   slug: String
   title: String
-  content: String
-  contentJson: JSONString
+  content: JSONString
   attributes: [AttributeValueInput!]
   isPublished: Boolean
   publicationDate: String
@@ -3415,8 +3458,8 @@ type PageTranslatableContent implements Node {
   seoDescription: String
   id: ID!
   title: String!
-  content: String!
-  contentJson: JSONString!
+  content: JSONString!
+  contentJson: String @deprecated(reason: "Will be removed in Saleor 4.0. Use the `content` field instead.")
   translation(languageCode: LanguageCodeEnum!): PageTranslation
   page: Page
 }
@@ -3432,17 +3475,16 @@ type PageTranslation implements Node {
   seoDescription: String
   id: ID!
   title: String!
-  content: String!
-  contentJson: JSONString!
+  content: JSONString!
   language: LanguageDisplay!
+  contentJson: String @deprecated(reason: "Will be removed in Saleor 4.0. Use the `content` field instead.")
 }
 
 input PageTranslationInput {
   seoTitle: String
   seoDescription: String
   title: String
-  content: String
-  contentJson: JSONString
+  content: JSONString
 }
 
 type PageType implements Node & ObjectWithMetadata {
@@ -3810,8 +3852,7 @@ type Product implements Node & ObjectWithMetadata {
   seoTitle: String
   seoDescription: String
   name: String!
-  description: String!
-  descriptionJson: JSONString!
+  description: JSONString!
   productType: ProductType!
   slug: String!
   category: Category
@@ -3822,6 +3863,7 @@ type Product implements Node & ObjectWithMetadata {
   rating: Float
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
+  descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
   url: String! @deprecated(reason: "This field will be removed after 2020-07-31.")
   thumbnail(size: Int): Image
   pricing: ProductPricingInfo
@@ -3931,8 +3973,7 @@ input ProductCreateInput {
   category: ID
   chargeTaxes: Boolean
   collections: [ID]
-  description: String
-  descriptionJson: JSONString
+  description: JSONString
   name: String
   slug: String
   taxCode: String
@@ -4063,8 +4104,7 @@ input ProductInput {
   category: ID
   chargeTaxes: Boolean
   collections: [ID]
-  description: String
-  descriptionJson: JSONString
+  description: JSONString
   name: String
   slug: String
   taxCode: String
@@ -4117,8 +4157,8 @@ type ProductTranslatableContent implements Node {
   seoTitle: String
   seoDescription: String
   name: String!
-  description: String!
-  descriptionJson: JSONString!
+  description: JSONString!
+  descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
   translation(languageCode: LanguageCodeEnum!): ProductTranslation
   product: Product
 }
@@ -4134,9 +4174,9 @@ type ProductTranslation implements Node {
   seoTitle: String
   seoDescription: String
   name: String!
-  description: String!
-  descriptionJson: JSONString!
+  description: JSONString!
   language: LanguageDisplay!
+  descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
 }
 
 type ProductType implements Node & ObjectWithMetadata {
@@ -4150,7 +4190,6 @@ type ProductType implements Node & ObjectWithMetadata {
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   products(channel: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection @deprecated(reason: "Use the top-level `products` query with the `productTypes` filter.")
-  taxRate: TaxRateType
   taxType: TaxType
   variantAttributes(variantSelection: VariantAttributeScope): [Attribute]
   productAttributes: [Attribute]
@@ -4927,6 +4966,7 @@ input ShippingZoneUpdateInput {
 
 type Shop {
   availablePaymentGateways(currency: String): [PaymentGateway!]!
+  availableExternalAuthentications: [ExternalAuthentication!]!
   availableShippingMethods(channel: String!, address: AddressInput): [ShippingMethod]
   geolocalization: Geolocalization
   countries(languageCode: LanguageCodeEnum): [CountryDisplay!]!
@@ -5302,8 +5342,7 @@ input TranslationInput {
   seoTitle: String
   seoDescription: String
   name: String
-  description: String
-  descriptionJson: JSONString
+  description: JSONString
 }
 
 scalar UUID
@@ -5810,11 +5849,14 @@ enum WebhookEventTypeEnum {
   CUSTOMER_CREATED
   PRODUCT_CREATED
   PRODUCT_UPDATED
-  CHECKOUT_QUANTITY_CHANGED
+  PRODUCT_DELETED
   CHECKOUT_CREATED
   CHECKOUT_UPDATED
   FULFILLMENT_CREATED
   NOTIFY_USER
+  PAGE_CREATED
+  PAGE_UPDATED
+  PAGE_DELETED
 }
 
 enum WebhookSampleEventTypeEnum {
@@ -5830,11 +5872,14 @@ enum WebhookSampleEventTypeEnum {
   CUSTOMER_CREATED
   PRODUCT_CREATED
   PRODUCT_UPDATED
-  CHECKOUT_QUANTITY_CHANGED
+  PRODUCT_DELETED
   CHECKOUT_CREATED
   CHECKOUT_UPDATED
   FULFILLMENT_CREATED
   NOTIFY_USER
+  PAGE_CREATED
+  PAGE_UPDATED
+  PAGE_DELETED
 }
 
 type WebhookUpdate {
