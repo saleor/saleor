@@ -36,7 +36,7 @@ def test_external_obtain_access_tokens_plugin_not_active(api_client, customer_us
     assert data["user"] is None
 
 
-@patch("saleor.core.middleware.jwt_decode")
+@patch("saleor.core.middleware.jwt_decode_with_exception_handler")
 def test_external_obtain_access_tokens(
     mock_refresh_token_middleware, api_client, customer_user, monkeypatch, rf
 ):
