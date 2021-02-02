@@ -24,7 +24,7 @@ from ...core.mutations import (
     validation_error_to_error_type,
 )
 from ...core.types.common import AccountError
-from .jwt import CreateToken
+from .authentication import CreateToken
 
 BILLING_ADDRESS_FIELD = "default_billing_address"
 SHIPPING_ADDRESS_FIELD = "default_shipping_address"

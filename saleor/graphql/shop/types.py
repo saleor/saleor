@@ -66,6 +66,13 @@ class OrderSettings(CountableDjangoObjectType):
         model = site_models.SiteSettings
 
 
+class ExternalAuthentication(graphene.ObjectType):
+    id = graphene.String(
+        description="ID of external authentication plugin.", required=True
+    )
+    name = graphene.String(description="Name of external authentication plugin.")
+
+
 class Shop(graphene.ObjectType):
     available_payment_gateways = graphene.List(
         graphene.NonNull(PaymentGateway),
@@ -75,6 +82,11 @@ class Shop(graphene.ObjectType):
             required=False,
         ),
         description="List of available payment gateways.",
+        required=True,
+    )
+    available_external_authentications = graphene.List(
+        graphene.NonNull(ExternalAuthentication),
+        description="List of available external authentications.",
         required=True,
     )
     available_shipping_methods = graphene.List(
@@ -180,6 +192,10 @@ class Shop(graphene.ObjectType):
     @staticmethod
     def resolve_available_payment_gateways(_, _info, currency: Optional[str] = None):
         return get_plugins_manager().list_payment_gateways(currency=currency)
+
+    @staticmethod
+    def resolve_available_external_authentications(_, info):
+        return info.context.plugins.list_external_authentications(active_only=True)
 
     @staticmethod
     def resolve_available_shipping_methods(_, info, channel, address=None):
