@@ -9,7 +9,6 @@ from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 
 from ...account import models as account_models
 from ...core.permissions import SitePermissions, get_permissions
-from ...core.utils import get_client_ip, get_country_by_ip
 from ...plugins.manager import get_plugins_manager
 from ...site import models as site_models
 from ..account.types import Address, AddressInput, StaffNotificationRecipient
@@ -50,15 +49,6 @@ class Domain(graphene.ObjectType):
         description = "Represents shop's domain."
 
 
-class Geolocalization(graphene.ObjectType):
-    country = graphene.Field(
-        CountryDisplay, description="Country of the user acquired by his IP address."
-    )
-
-    class Meta:
-        description = "Represents customers's geolocalization data."
-
-
 class OrderSettings(CountableDjangoObjectType):
     class Meta:
         only_fields = ["automatically_confirm_all_new_orders"]
@@ -93,9 +83,6 @@ class Shop(graphene.ObjectType):
         ),
         required=False,
         description="Shipping methods that are available for the shop.",
-    )
-    geolocalization = graphene.Field(
-        Geolocalization, description="Customer's geolocalization data."
     )
     countries = graphene.List(
         graphene.NonNull(CountryDisplay),
@@ -204,16 +191,6 @@ class Shop(graphene.ObjectType):
             ssl_enabled=settings.ENABLE_SSL,
             url=info.context.build_absolute_uri("/"),
         )
-
-    @staticmethod
-    def resolve_geolocalization(_, info):
-        client_ip = get_client_ip(info.context)
-        country = get_country_by_ip(client_ip)
-        if country:
-            return Geolocalization(
-                country=CountryDisplay(code=country.code, country=country.name)
-            )
-        return Geolocalization(country=None)
 
     @staticmethod
     def resolve_description(_, info):

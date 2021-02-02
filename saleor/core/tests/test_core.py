@@ -25,7 +25,6 @@ from ..utils import (
     create_thumbnails,
     generate_unique_slug,
     get_client_ip,
-    get_country_by_ip,
     get_currency_for_country,
     random_data,
 )
@@ -42,24 +41,6 @@ type_schema = {
         "is_shipping_required": True,
     }
 }
-
-
-@pytest.mark.parametrize(
-    "ip_data, expected_country",
-    [
-        ({"country": {"iso_code": "PL"}}, Country("PL")),
-        ({"country": {"iso_code": "UNKNOWN"}}, None),
-        (None, None),
-        ({}, None),
-        ({"country": {}}, None),
-    ],
-)
-def test_get_country_by_ip(ip_data, expected_country, monkeypatch):
-    monkeypatch.setattr(
-        "saleor.core.utils._get_geo_data_by_ip", Mock(return_value=ip_data)
-    )
-    country = get_country_by_ip("127.0.0.1")
-    assert country == expected_country
 
 
 @pytest.mark.parametrize(

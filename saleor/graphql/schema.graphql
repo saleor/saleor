@@ -2033,10 +2033,6 @@ type GatewayConfigLine {
 
 scalar GenericScalar
 
-type Geolocalization {
-  country: CountryDisplay
-}
-
 type GiftCard implements Node {
   code: String
   user: User
@@ -4905,7 +4901,6 @@ input ShippingZoneUpdateInput {
 type Shop {
   availablePaymentGateways(currency: String): [PaymentGateway!]!
   availableShippingMethods(channel: String!, address: AddressInput): [ShippingMethod]
-  geolocalization: Geolocalization
   countries(languageCode: LanguageCodeEnum): [CountryDisplay!]!
   defaultCountry: CountryDisplay
   defaultMailSenderName: String
