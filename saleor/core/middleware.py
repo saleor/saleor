@@ -11,7 +11,7 @@ from django.utils.translation import get_language
 from ..discount.utils import fetch_discounts
 from ..plugins.manager import get_plugins_manager
 from . import analytics
-from .jwt import JWT_REFRESH_TOKEN_COOKIE_NAME, jwt_decode
+from .jwt import JWT_REFRESH_TOKEN_COOKIE_NAME, jwt_decode_with_exception_handler
 
 logger = logging.getLogger(__name__)
 
@@ -99,8 +99,13 @@ def jwt_refresh_token_middleware(get_response):
         if jwt_refresh_token:
             expires = None
             if settings.JWT_EXPIRE:
-                refresh_token_payload = jwt_decode(jwt_refresh_token)
-                expires = datetime.utcfromtimestamp(refresh_token_payload["exp"])
+                refresh_token_payload = jwt_decode_with_exception_handler(
+                    jwt_refresh_token
+                )
+                if refresh_token_payload and refresh_token_payload.get("exp"):
+                    expires = datetime.utcfromtimestamp(
+                        refresh_token_payload.get("exp")
+                    )
             response.set_cookie(
                 JWT_REFRESH_TOKEN_COOKIE_NAME,
                 jwt_refresh_token,

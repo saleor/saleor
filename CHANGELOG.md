@@ -18,6 +18,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other
 
+- Fix creating translations with app - #6804 by @krzysztofwolski
 - Add possibility to provide external payment ID during the conversion draft order to order - #6320 by @korycins
 - Add basic rating for `Products` - #6284 by @korycins
 - Add metadata to shipping zones and shipping methods - #6340 by @maarcingebala
@@ -45,6 +46,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add page webhooks: `PAGE_CREATED`, `PAGE_UPDATED` and `PAGE_DELETED` - #6787 by @d-wysocki
 - Add `PRODUCT_DELETED` webhook - #6794 by @d-wysocki
 - Fix `product_updated` and `product_created` webhooks - #6798 by @d-wysocki
+- Add interface for integrating the auth plugins - #6799 by @korycins
 
 # 2.11.1
 
