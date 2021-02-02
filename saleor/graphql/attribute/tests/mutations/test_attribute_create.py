@@ -642,7 +642,7 @@ def test_create_attribute_with_given_slug(
     )
     query = """
         mutation createAttribute(
-            $name: String!, $slug: String, $type: AttributeTypeEnum!) {
+            $name: String!, $slug: String, $type: AttributeType!) {
         attributeCreate(input: {name: $name, slug: $slug, type: $type}) {
             attributeErrors {
                 field

@@ -14,6 +14,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop `apply_taxes_to_shipping_price_range` plugin hook - #6746 by @maarcingebala
 - Drop `CHECKOUT_QUANTITY_CHANGED` webhook - #6797 by @d-wysocki
 - Drop deprecated `taxRate` field from `ProductType` - #6795 by @d-wysocki
+- Change enum names to keep consistency [description](https://github.com/mirumee/saleor/pull/6822)  - #6822 by @d-wysocki
 
 ### Other
 

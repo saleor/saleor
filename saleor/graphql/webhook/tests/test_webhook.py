@@ -11,7 +11,7 @@ from ..enums import WebhookEventTypeEnum, WebhookSampleEventTypeEnum
 
 WEBHOOK_CREATE_BY_APP = """
     mutation webhookCreate($name: String, $target_url: String,
-            $events: [WebhookEventTypeEnum]){
+            $events: [WebhookEventType]){
       webhookCreate(input:{name: $name, targetUrl:$target_url, events:$events}){
         errors{
           field
@@ -94,7 +94,7 @@ def test_webhook_create_app_doesnt_exist(app_api_client, app):
 
 WEBHOOK_CREATE_BY_STAFF = """
     mutation webhookCreate(
-        $target_url: String, $events: [WebhookEventTypeEnum], $app: ID){
+        $target_url: String, $events: [WebhookEventType], $app: ID){
       webhookCreate(input:{
             targetUrl:$target_url, events:$events, app: $app}){
         errors{
@@ -235,7 +235,7 @@ def test_webhook_delete_when_app_doesnt_exist(app_api_client, app):
 
 WEBHOOK_UPDATE = """
     mutation webhookUpdate(
-        $id: ID!, $events: [WebhookEventTypeEnum], $is_active: Boolean){
+        $id: ID!, $events: [WebhookEventType], $is_active: Boolean){
       webhookUpdate(id: $id, input:{events: $events, isActive: $is_active}){
         errors{
           field
@@ -402,7 +402,7 @@ def test_query_webhook_events_without_permissions(staff_api_client):
 
 
 SAMPLE_PAYLOAD_QUERY = """
-  query webhookSamplePayload($event_type: WebhookSampleEventTypeEnum!){
+  query webhookSamplePayload($event_type: WebhookSampleEventType!){
     webhookSamplePayload(eventType: $event_type)
   }
 """

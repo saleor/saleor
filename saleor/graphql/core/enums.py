@@ -57,7 +57,7 @@ def to_enum(enum_cls, *, type_name=None, **options) -> graphene.Enum:
     :param enum_cls:
         The class to build the enum from.
     :param type_name:
-        The name of the type. Default is the class name + 'Enum'.
+        The name of the type. Default is the class name.
     :param options:
         - description:
             Contains the type description (default is the class's docstring)
@@ -73,7 +73,7 @@ def to_enum(enum_cls, *, type_name=None, **options) -> graphene.Enum:
     if deprecation_reason:
         options.setdefault("deprecation_reason", deprecation_reason)
 
-    type_name = type_name or (enum_cls.__name__ + "Enum")
+    type_name = type_name or enum_cls.__name__
     enum_data = [(str_to_enum(code.upper()), code) for code, name in enum_cls.CHOICES]
     return graphene.Enum(type_name, enum_data, **options)
 
@@ -85,7 +85,7 @@ TaxRateType = graphene.Enum(
 JobStatusEnum = to_enum(JobStatus)
 PermissionEnum = graphene.Enum("PermissionEnum", get_permissions_enum_list())
 WeightUnitsEnum = graphene.Enum(
-    "WeightUnitsEnum", [(str_to_enum(unit[0]), unit[0]) for unit in WeightUnits.CHOICES]
+    "WeightUnits", [(str_to_enum(unit[0]), unit[0]) for unit in WeightUnits.CHOICES]
 )
 
 

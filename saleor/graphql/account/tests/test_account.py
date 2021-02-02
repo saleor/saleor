@@ -2922,7 +2922,7 @@ def test_customer_delete_address_for_other(
 
 
 SET_DEFAULT_ADDRESS_MUTATION = """
-mutation($address_id: ID!, $user_id: ID!, $type: AddressTypeEnum!) {
+mutation($address_id: ID!, $user_id: ID!, $type: AddressType!) {
   addressSetDefault(addressId: $address_id, userId: $user_id, type: $type) {
     errors {
       field
@@ -3280,7 +3280,7 @@ def test_account_reset_password_subdomain(
 
 
 ACCOUNT_ADDRESS_CREATE_MUTATION = """
-mutation($addressInput: AddressInput!, $addressType: AddressTypeEnum) {
+mutation($addressInput: AddressInput!, $addressType: AddressType) {
   accountAddressCreate(input: $addressInput, type: $addressType) {
     address {
         id,
@@ -3381,7 +3381,7 @@ def test_address_not_created_after_validation_fails(
 
 
 ACCOUNT_SET_DEFAULT_ADDRESS_MUTATION = """
-mutation($id: ID!, $type: AddressTypeEnum!) {
+mutation($id: ID!, $type: AddressType!) {
   accountSetDefaultAddress(id: $id, type: $type) {
     errors {
       field,

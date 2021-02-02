@@ -157,7 +157,7 @@ type AddressSetDefault {
   accountErrors: [AccountError!]!
 }
 
-enum AddressTypeEnum {
+enum AddressType {
   BILLING
   SHIPPING
 }
@@ -204,7 +204,7 @@ type App implements Node & ObjectWithMetadata {
   tokens: [AppToken]
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
-  type: AppTypeEnum
+  type: AppType
   webhooks: [Webhook]
   aboutApp: String
   dataPrivacy: String
@@ -291,7 +291,7 @@ type AppFetchManifest {
 input AppFilterInput {
   search: String
   isActive: Boolean
-  type: AppTypeEnum
+  type: AppType
 }
 
 input AppInput {
@@ -317,7 +317,7 @@ type AppInstallation implements Node & Job {
   appName: String!
   manifestUrl: String!
   id: ID!
-  status: JobStatusEnum!
+  status: JobStatus!
   createdAt: DateTime!
   updatedAt: DateTime!
   message: String
@@ -369,7 +369,7 @@ type AppTokenVerify {
   appErrors: [AppError!]!
 }
 
-enum AppTypeEnum {
+enum AppType {
   LOCAL
   THIRDPARTY
 }
@@ -392,11 +392,11 @@ type Attribute implements Node & ObjectWithMetadata {
   productVariantTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
-  inputType: AttributeInputTypeEnum
-  entityType: AttributeEntityTypeEnum
+  inputType: AttributeInputType
+  entityType: AttributeEntityType
   name: String
   slug: String
-  type: AttributeTypeEnum
+  type: AttributeType
   values: [AttributeValue]
   valueRequired: Boolean!
   visibleInStorefront: Boolean!
@@ -431,11 +431,11 @@ type AttributeCreate {
 }
 
 input AttributeCreateInput {
-  inputType: AttributeInputTypeEnum
-  entityType: AttributeEntityTypeEnum
+  inputType: AttributeInputType
+  entityType: AttributeEntityType
   name: String!
   slug: String
-  type: AttributeTypeEnum!
+  type: AttributeType!
   values: [AttributeValueCreateInput]
   valueRequired: Boolean
   isVariantOnly: Boolean
@@ -452,7 +452,7 @@ type AttributeDelete {
   attribute: Attribute
 }
 
-enum AttributeEntityTypeEnum {
+enum AttributeEntityType {
   PAGE
   PRODUCT
 }
@@ -481,7 +481,7 @@ input AttributeFilterInput {
   availableInGrid: Boolean
   search: String
   ids: [ID]
-  type: AttributeTypeEnum
+  type: AttributeType
   inCollection: ID
   inCategory: ID
   channel: String
@@ -493,7 +493,7 @@ input AttributeInput {
   values: [String]
 }
 
-enum AttributeInputTypeEnum {
+enum AttributeInputType {
   DROPDOWN
   MULTISELECT
   FILE
@@ -542,7 +542,7 @@ type AttributeTranslation implements Node {
   language: LanguageDisplay!
 }
 
-enum AttributeTypeEnum {
+enum AttributeType {
   PRODUCT_TYPE
   PAGE_TYPE
 }
@@ -572,7 +572,7 @@ type AttributeValue implements Node {
   name: String
   slug: String
   translation(languageCode: LanguageCode!): AttributeValueTranslation
-  inputType: AttributeInputTypeEnum
+  inputType: AttributeInputType
   reference: ID
   file: File
 }
@@ -1236,7 +1236,7 @@ type CollectionUpdate {
 type ConfigurationItem {
   name: String!
   value: String
-  type: ConfigurationTypeFieldEnum
+  type: ConfigurationTypeField
   helpText: String
   label: String
 }
@@ -1246,7 +1246,7 @@ input ConfigurationItemInput {
   value: String
 }
 
-enum ConfigurationTypeFieldEnum {
+enum ConfigurationTypeField {
   STRING
   BOOLEAN
   SECRET
@@ -1563,7 +1563,7 @@ type CustomerDelete {
 type CustomerEvent implements Node {
   id: ID!
   date: DateTime
-  type: CustomerEventsEnum
+  type: CustomerEvents
   user: User
   message: String
   count: Int
@@ -1571,7 +1571,7 @@ type CustomerEvent implements Node {
   orderLine: OrderLine
 }
 
-enum CustomerEventsEnum {
+enum CustomerEvents {
   ACCOUNT_CREATED
   PASSWORD_RESET_LINK_SENT
   PASSWORD_RESET
@@ -1859,13 +1859,13 @@ enum ExportErrorCode {
 type ExportEvent implements Node {
   id: ID!
   date: DateTime!
-  type: ExportEventsEnum!
+  type: ExportEvents!
   user: User
   app: App
   message: String!
 }
 
-enum ExportEventsEnum {
+enum ExportEvents {
   EXPORT_PENDING
   EXPORT_SUCCESS
   EXPORT_FAILED
@@ -1878,7 +1878,7 @@ type ExportFile implements Node & Job {
   id: ID!
   user: User
   app: App
-  status: JobStatusEnum!
+  status: JobStatus!
   createdAt: DateTime!
   updatedAt: DateTime!
   message: String
@@ -1900,7 +1900,7 @@ type ExportFileCountableEdge {
 input ExportFileFilterInput {
   createdAt: DateTimeRangeInput
   updatedAt: DateTimeRangeInput
-  status: JobStatusEnum
+  status: JobStatus
   user: String
   app: String
 }
@@ -1934,7 +1934,7 @@ input ExportProductsInput {
   filter: ProductFilterInput
   ids: [ID!]
   exportInfo: ExportInfoInput
-  fileType: FileTypesEnum!
+  fileType: FileTypes!
 }
 
 enum ExportScope {
@@ -1948,7 +1948,7 @@ type File {
   contentType: String
 }
 
-enum FileTypesEnum {
+enum FileTypes {
   CSV
   XLSX
 }
@@ -2148,7 +2148,7 @@ input IntRangeInput {
 type Invoice implements ObjectWithMetadata & Job & Node {
   id: ID!
   metadata: [MetadataItem]!
-  status: JobStatusEnum!
+  status: JobStatus!
   number: String
   externalUrl: String
   privateMetadata: [MetadataItem]!
@@ -2219,13 +2219,13 @@ type InvoiceUpdate {
 scalar JSONString
 
 interface Job {
-  status: JobStatusEnum!
+  status: JobStatus!
   createdAt: DateTime!
   updatedAt: DateTime!
   message: String
 }
 
-enum JobStatusEnum {
+enum JobStatus {
   PENDING
   SUCCESS
   FAILED
@@ -2771,10 +2771,10 @@ type Mutation {
   passwordChange(newPassword: String!, oldPassword: String!): PasswordChange
   requestEmailChange(newEmail: String!, password: String!, redirectUrl: String!): RequestEmailChange
   confirmEmailChange(token: String!): ConfirmEmailChange
-  accountAddressCreate(input: AddressInput!, type: AddressTypeEnum): AccountAddressCreate
+  accountAddressCreate(input: AddressInput!, type: AddressType): AccountAddressCreate
   accountAddressUpdate(id: ID!, input: AddressInput!): AccountAddressUpdate
   accountAddressDelete(id: ID!): AccountAddressDelete
-  accountSetDefaultAddress(id: ID!, type: AddressTypeEnum!): AccountSetDefaultAddress
+  accountSetDefaultAddress(id: ID!, type: AddressType!): AccountSetDefaultAddress
   accountRegister(input: AccountRegisterInput!): AccountRegister
   accountUpdate(input: AccountInput!): AccountUpdate
   accountRequestDeletion(redirectUrl: String!): AccountRequestDeletion
@@ -2782,7 +2782,7 @@ type Mutation {
   addressCreate(input: AddressInput!, userId: ID!): AddressCreate
   addressUpdate(id: ID!, input: AddressInput!): AddressUpdate
   addressDelete(id: ID!): AddressDelete
-  addressSetDefault(addressId: ID!, type: AddressTypeEnum!, userId: ID!): AddressSetDefault
+  addressSetDefault(addressId: ID!, type: AddressType!, userId: ID!): AddressSetDefault
   customerCreate(input: UserCreateInput!): CustomerCreate
   customerUpdate(id: ID!, input: CustomerInput!): CustomerUpdate
   customerDelete(id: ID!): CustomerDelete
@@ -2978,11 +2978,11 @@ enum OrderErrorCode {
 type OrderEvent implements Node {
   id: ID!
   date: DateTime
-  type: OrderEventsEnum
+  type: OrderEvents
   user: User
   message: String
   email: String
-  emailType: OrderEventsEmailsEnum
+  emailType: OrderEventsEmails
   amount: Float
   paymentId: String
   paymentGateway: String
@@ -3016,19 +3016,7 @@ type OrderEventOrderLineObject {
   itemName: String
 }
 
-enum OrderEventsEmailsEnum {
-  PAYMENT_CONFIRMATION
-  CONFIRMED
-  SHIPPING_CONFIRMATION
-  TRACKING_UPDATED
-  ORDER_CONFIRMATION
-  ORDER_CANCEL
-  ORDER_REFUND
-  FULFILLMENT_CONFIRMATION
-  DIGITAL_LINKS
-}
-
-enum OrderEventsEnum {
+enum OrderEvents {
   DRAFT_CREATED
   DRAFT_CREATED_FROM_REPLACE
   DRAFT_ADDED_PRODUCTS
@@ -3062,6 +3050,18 @@ enum OrderEventsEnum {
   TRACKING_UPDATED
   NOTE_ADDED
   OTHER
+}
+
+enum OrderEventsEmails {
+  PAYMENT_CONFIRMATION
+  CONFIRMED
+  SHIPPING_CONFIRMATION
+  TRACKING_UPDATED
+  ORDER_CONFIRMATION
+  ORDER_CANCEL
+  ORDER_REFUND
+  FULFILLMENT_CONFIRMATION
+  DIGITAL_LINKS
 }
 
 input OrderFilterInput {
@@ -4401,7 +4401,7 @@ input PublishableChannelListingInput {
 type Query {
   webhook(id: ID!): Webhook
   webhookEvents: [WebhookEvent]
-  webhookSamplePayload(eventType: WebhookSampleEventTypeEnum!): JSONString
+  webhookSamplePayload(eventType: WebhookSampleEventType!): JSONString
   warehouse(id: ID!): Warehouse
   warehouses(filter: WarehouseFilterInput, sortBy: WarehouseSortingInput, before: String, after: String, first: Int, last: Int): WarehouseCountableConnection
   translations(kind: TranslatableKinds!, before: String, after: String, first: Int, last: Int): TranslatableItemConnection
@@ -4696,7 +4696,7 @@ type ShippingMethod implements Node & ObjectWithMetadata {
   minimumDeliveryDays: Int
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
-  type: ShippingMethodTypeEnum
+  type: ShippingMethodType
   translation(languageCode: LanguageCode!): ShippingMethodTranslation
   channelListings: [ShippingMethodChannelListing!]
   price: Money
@@ -4745,7 +4745,7 @@ type ShippingMethodTranslation implements Node {
   language: LanguageDisplay!
 }
 
-enum ShippingMethodTypeEnum {
+enum ShippingMethodType {
   PRICE
   WEIGHT
 }
@@ -4792,7 +4792,7 @@ input ShippingPriceInput {
   maximumOrderWeight: WeightScalar
   maximumDeliveryDays: Int
   minimumDeliveryDays: Int
-  type: ShippingMethodTypeEnum
+  type: ShippingMethodType
   shippingZone: ID
 }
 
@@ -4923,7 +4923,7 @@ type Shop {
   displayGrossPrices: Boolean!
   chargeTaxesOnShipping: Boolean!
   trackInventoryByDefault: Boolean
-  defaultWeightUnit: WeightUnitsEnum
+  defaultWeightUnit: WeightUnits
   translation(languageCode: LanguageCode!): ShopTranslation
   automaticFulfillmentDigitalProducts: Boolean
   defaultDigitalMaxDownloads: Int
@@ -4974,7 +4974,7 @@ input ShopSettingsInput {
   displayGrossPrices: Boolean
   chargeTaxesOnShipping: Boolean
   trackInventoryByDefault: Boolean
-  defaultWeightUnit: WeightUnitsEnum
+  defaultWeightUnit: WeightUnits
   automaticFulfillmentDigitalProducts: Boolean
   defaultDigitalMaxDownloads: Int
   defaultDigitalUrlValidDays: Int
@@ -5740,7 +5740,7 @@ type WebhookCreate {
 input WebhookCreateInput {
   name: String
   targetUrl: String
-  events: [WebhookEventTypeEnum]
+  events: [WebhookEventType]
   app: ID
   isActive: Boolean
   secretKey: String
@@ -5767,11 +5767,11 @@ enum WebhookErrorCode {
 }
 
 type WebhookEvent {
-  eventType: WebhookEventTypeEnum!
+  eventType: WebhookEventType!
   name: String!
 }
 
-enum WebhookEventTypeEnum {
+enum WebhookEventType {
   ANY_EVENTS
   ORDER_CREATED
   ORDER_CONFIRMED
@@ -5794,7 +5794,7 @@ enum WebhookEventTypeEnum {
   PAGE_DELETED
 }
 
-enum WebhookSampleEventTypeEnum {
+enum WebhookSampleEventType {
   ORDER_CREATED
   ORDER_CONFIRMED
   ORDER_FULLY_PAID
@@ -5825,20 +5825,20 @@ type WebhookUpdate {
 input WebhookUpdateInput {
   name: String
   targetUrl: String
-  events: [WebhookEventTypeEnum]
+  events: [WebhookEventType]
   app: ID
   isActive: Boolean
   secretKey: String
 }
 
 type Weight {
-  unit: WeightUnitsEnum!
+  unit: WeightUnits!
   value: Float!
 }
 
 scalar WeightScalar
 
-enum WeightUnitsEnum {
+enum WeightUnits {
   KG
   LB
   OZ

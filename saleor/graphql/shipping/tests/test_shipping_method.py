@@ -794,7 +794,7 @@ def test_delete_shipping_zone(
 
 PRICE_BASED_SHIPPING_QUERY = """
     mutation createShippingPrice(
-        $type: ShippingMethodTypeEnum,
+        $type: ShippingMethodType,
         $name: String!,
         $shippingZone: ID!,
         $maximumDeliveryDays: Int,
@@ -963,7 +963,7 @@ def test_create_shipping_method_maximum_delivery_days_below_0(
 
 WEIGHT_BASED_SHIPPING_QUERY = """
     mutation createShippingPrice(
-        $type: ShippingMethodTypeEnum, $name: String!,
+        $type: ShippingMethodType, $name: String!,
         $shippingZone: ID!, $maximumOrderWeight: WeightScalar,
         $minimumOrderWeight: WeightScalar) {
         shippingPriceCreate(
@@ -1095,7 +1095,7 @@ UPDATE_SHIPPING_PRICE_MUTATION = """
     mutation updateShippingPrice(
         $id: ID!,
         $shippingZone: ID!,
-        $type: ShippingMethodTypeEnum!,
+        $type: ShippingMethodType!,
         $maximumDeliveryDays: Int,
         $minimumDeliveryDays: Int,
         $maximumOrderWeight: WeightScalar,
