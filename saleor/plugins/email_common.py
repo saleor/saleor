@@ -15,7 +15,6 @@ from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.core.mail.backends.smtp import EmailBackend
-from django.utils.translation import pgettext
 from django_prices.utils.locale import get_locale_data
 
 from .base_plugin import ConfigurationTypeField
@@ -126,11 +125,11 @@ DEFAULT_EMAIL_CONFIG_STRUCTURE = {
 
 
 def format_address(this, address, include_phone=True, inline=False, latin=False):
-    address["name"] = pgettext("Address data", "%(first_name)s %(last_name)s") % address
+    address["name"] = f"{address.get('first_name', '')} {address.get('last_name', '')}"
     address["country_code"] = address["country"]
-    address["street_address"] = pgettext(
-        "Address data", "%(street_address_1)s\n" "%(street_address_2)s" % address
-    )
+    address[
+        "street_address"
+    ] = f"{address.get('street_address_1','')}\n {address.get('street_address_2','')}"
     address_lines = i18naddress.format_address(address, latin).split("\n")
     phone = address.get("phone")
     if include_phone and phone:
