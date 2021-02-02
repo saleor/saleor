@@ -7,15 +7,19 @@ BLACKLISTED_URL_SCHEMES = ("javascript",)
 HYPERLINK_TAG_WITH_URL_PATTERN = r"(.*?<a\s+href=\\?\")(\w+://\S+[^\\])(\\?\">)"
 
 
-def clean_editor_js(definitions: dict):
+def clean_editor_js(definitions: dict, *, to_string: bool = False):
     """Sanitize a given EditorJS JSON definitions.
 
     Look for not allowed URLs, replaced them with `invalid` value, and clean valid ones.
+
+    `to_string` flag is used for returning concatenated string from all blocks
+     instead of returning json object.
     """
+    string = ""
     blocks = definitions.get("blocks")
 
     if not blocks or not isinstance(blocks, list):
-        return definitions
+        return string if to_string else definitions
 
     for index, block in enumerate(blocks):
         block_type = block["type"]
@@ -28,16 +32,21 @@ def clean_editor_js(definitions: dict):
                 if not item:
                     continue
                 new_text = clean_text_data(item)
-                blocks[index]["data"]["items"][item_index] = new_text
+                if to_string:
+                    string += new_text
+                else:
+                    blocks[index]["data"]["items"][item_index] = new_text
         else:
             text = block["data"]["text"]
             if not text:
                 continue
             new_text = clean_text_data(text)
+            if to_string:
+                string += new_text
+            else:
+                blocks[index]["data"]["text"] = new_text
 
-            blocks[index]["data"]["text"] = new_text
-
-    return definitions
+    return string if to_string else definitions
 
 
 def clean_text_data(text: str):

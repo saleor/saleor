@@ -607,7 +607,10 @@ def create_order_lines(order, discounts, how_many=10):
     ).order_by("?")
     warehouse_iter = itertools.cycle(warehouses)
     for line in lines:
-        unit_price = manager.calculate_order_line_unit(line)
+        variant = line.variant
+        unit_price = manager.calculate_order_line_unit(
+            order, line, variant, variant.product
+        )
         line.unit_price = unit_price
         line.tax_rate = unit_price.tax / unit_price.net
         warehouse = next(warehouse_iter)
@@ -798,7 +801,7 @@ def _create_staff_user(email=None, superuser=False):
 def create_staff_users(how_many=2, superuser=False):
     users = []
     for _ in range(how_many):
-        staff_user = _create_staff_user(superuser)
+        staff_user = _create_staff_user(superuser=superuser)
         users.append(staff_user)
     return users
 
@@ -1319,19 +1322,7 @@ def create_pages():
             "title": "About",
             "slug": "about",
             "page_type_id": 1,
-            "content": """
-                <h2>E-commerce for the PWA era</h2>
-                <h3>A modular, high performance e-commerce storefront built
-                with GraphQL, Django, and ReactJS.</h3>
-                <p>Saleor is a rapidly-growing open source e-commerce platform that
-                has served high-volume companies from branches like publishing
-                and apparel since 2012. Based on Python and Django, the latest major
-                update introduces a modular front end with a GraphQL API and storefront
-                and dashboard written in React to make Saleor a full-functionality
-                open source e-commerce.</p>
-                <p><a href="https://github.com/mirumee/saleor">Get Saleor today!</a></p>
-                """,
-            "content_json": {
+            "content": {
                 "blocks": [
                     {
                         "data": {"text": "E-commerce for the PWA era", "level": 2},
@@ -1380,11 +1371,7 @@ def create_pages():
             "title": "Apple juice details",
             "slug": "apple-juice-details",
             "page_type_id": 3,
-            "content": (
-                "\n<h2>Apple juice details</h2>\n"
-                "<p>This is example product details page.</p>\n"
-            ),
-            "content_json": {
+            "content": {
                 "blocks": [
                     {
                         "data": {"text": "Apple juice details", "level": 2},
@@ -1403,7 +1390,6 @@ def create_pages():
         data = data_pages[pk]
         page_data = {
             "content": data["content"],
-            "content_json": data["content_json"],
             "title": data["title"],
             "is_published": True,
             "page_type_id": data["page_type_id"],

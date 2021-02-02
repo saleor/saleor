@@ -4,6 +4,8 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Callable, Dict, Optional
 
 import Adyen
+import opentracing
+import opentracing.tags
 from babel.numbers import get_currency_precision
 from django.conf import settings
 from django_countries.fields import Country
@@ -199,13 +201,9 @@ def append_klarna_data(payment_information: "PaymentData", payment_data: dict):
         total = checkout_line_total(
             manager=manager,
             checkout=checkout,
-            line=line_info.line,
-            variant=line_info.variant,
-            product=line_info.product,
-            collections=line_info.collections,
+            checkout_line_info=line_info,
             address=address,
             channel=checkout.channel,
-            channel_listing=line_info.channel_listing,
             discounts=discounts,
         )
         total_gross = total.gross.amount
@@ -360,7 +358,13 @@ def call_capture(
         merchant_account=merchant_account,
         token=token,
     )
-    return api_call(request, adyen_client.payment.capture)
+    with opentracing.global_tracer().start_active_span(
+        "adyen.payment.capture"
+    ) as scope:
+        span = scope.span
+        span.set_tag(opentracing.tags.COMPONENT, "payment")
+        span.set_tag("service.name", "adyen")
+        return api_call(request, adyen_client.payment.capture)
 
 
 def request_for_payment_cancel(

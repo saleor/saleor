@@ -1,6 +1,7 @@
 import json
 from typing import Iterable, Optional
 
+import graphene
 from django.db.models import QuerySet
 
 from ..account.models import User
@@ -14,6 +15,7 @@ from ..invoice.models import Invoice
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..order.utils import get_order_country
+from ..page.models import Page
 from ..payment import ChargeStatus
 from ..product.models import Product
 from ..warehouse.models import Warehouse
@@ -199,23 +201,24 @@ def generate_customer_payload(customer: "User"):
     return data
 
 
+PRODUCT_FIELDS = (
+    "name",
+    "description",
+    "currency",
+    "attributes",
+    "updated_at",
+    "charge_taxes",
+    "weight",
+    "publication_date",
+    "is_published",
+    "private_metadata",
+    "metadata",
+)
+
+
 def generate_product_payload(product: "Product"):
     serializer = PayloadSerializer(
         extra_model_fields={"ProductVariant": ("quantity", "quantity_allocated")}
-    )
-
-    product_fields = (
-        "name",
-        "description_json",
-        "currency",
-        "attributes",
-        "updated_at",
-        "charge_taxes",
-        "weight",
-        "publication_date",
-        "is_published",
-        "private_metadata",
-        "metadata",
     )
     product_variant_fields = (
         "sku",
@@ -229,7 +232,7 @@ def generate_product_payload(product: "Product"):
     )
     product_payload = serializer.serialize(
         [product],
-        fields=product_fields,
+        fields=PRODUCT_FIELDS,
         additional_fields={
             "category": (lambda p: p.category, ("name", "slug")),
             "collections": (lambda p: p.collections.all(), ("name", "slug")),
@@ -238,6 +241,20 @@ def generate_product_payload(product: "Product"):
                 product_variant_fields,
             ),
         },
+    )
+    return product_payload
+
+
+def generate_product_deleted_payload(product: "Product", variants_id):
+    serializer = PayloadSerializer()
+    product_fields = PRODUCT_FIELDS
+    variant_global_ids = [
+        graphene.Node.to_global_id("ProductVariant", pk) for pk in variants_id
+    ]
+    product_payload = serializer.serialize(
+        [product],
+        fields=product_fields,
+        extra_dict_data={"variants": list(variant_global_ids)},
     )
     return product_payload
 
@@ -288,6 +305,24 @@ def generate_fulfillment_payload(fulfillment: Fulfillment):
     return fulfillment_data
 
 
+def generate_page_payload(page: Page):
+    serializer = PayloadSerializer()
+    page_fields = [
+        "private_metadata",
+        "metadata",
+        "title",
+        "content",
+        "publication_date",
+        "is_published",
+        "updated_at",
+    ]
+    page_payload = serializer.serialize(
+        [page],
+        fields=page_fields,
+    )
+    return page_payload
+
+
 def _get_sample_object(qs: QuerySet):
     """Return random object from query."""
     random_object = qs.order_by("?").first()
@@ -326,9 +361,13 @@ def _generate_sample_order_payload(event_name):
 
 def generate_sample_payload(event_name: str) -> Optional[dict]:
     checkout_events = [
-        WebhookEventType.CHECKOUT_QUANTITY_CHANGED,
         WebhookEventType.CHECKOUT_UPADTED,
         WebhookEventType.CHECKOUT_CREATED,
+    ]
+    pages_events = [
+        WebhookEventType.PAGE_CREATED,
+        WebhookEventType.PAGE_DELETED,
+        WebhookEventType.PAGE_UPDATED,
     ]
     if event_name == WebhookEventType.CUSTOMER_CREATED:
         user = generate_fake_user()
@@ -345,6 +384,10 @@ def generate_sample_payload(event_name: str) -> Optional[dict]:
         if checkout:
             anonymized_checkout = anonymize_checkout(checkout)
             payload = generate_checkout_payload(anonymized_checkout)
+    elif event_name in pages_events:
+        page = _get_sample_object(Page.objects.all())
+        if page:
+            payload = generate_page_payload(page)
     elif event_name == WebhookEventType.FULFILLMENT_CREATED:
         fulfillment = _get_sample_object(
             Fulfillment.objects.prefetch_related("lines__order_line__variant")

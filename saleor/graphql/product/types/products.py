@@ -32,7 +32,7 @@ from ...channel.dataloaders import ChannelBySlugLoader
 from ...channel.types import ChannelContextType, ChannelContextTypeWithMetadata
 from ...channel.utils import get_default_channel_slug_or_graphql_error
 from ...core.connection import CountableDjangoObjectType
-from ...core.enums import ReportingPeriod, TaxRateType
+from ...core.enums import ReportingPeriod
 from ...core.fields import (
     ChannelContextFilterConnectionField,
     FilterInputConnectionField,
@@ -430,6 +430,12 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
 @key(fields="id")
 class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
+    description_json = graphene.JSONString(
+        description="Description of the product (JSON).",
+        deprecation_reason=(
+            "Will be removed in Saleor 4.0. Use the `description` field instead."
+        ),
+    )
     url = graphene.String(
         description="The storefront URL for the product.",
         required=True,
@@ -497,7 +503,6 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             "category",
             "charge_taxes",
             "description",
-            "description_json",
             "id",
             "name",
             "slug",
@@ -531,6 +536,10 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         if category_id is None:
             return None
         return CategoryByIdLoader(info.context).load(category_id)
+
+    @staticmethod
+    def resolve_description_json(root: ChannelContext[models.Product], info):
+        return root.node.description
 
     @staticmethod
     def resolve_tax_type(root: ChannelContext[models.Product], info):
@@ -781,7 +790,6 @@ class ProductType(CountableDjangoObjectType):
             "Use the top-level `products` query with the `productTypes` filter."
         ),
     )
-    tax_rate = TaxRateType(description="A type of tax rate.")
     tax_type = graphene.Field(
         TaxType, description="A type of tax. Assigned by enabled tax gateway"
     )
@@ -822,13 +830,6 @@ class ProductType(CountableDjangoObjectType):
     def resolve_tax_type(root: models.ProductType, info):
         tax_data = info.context.plugins.get_tax_code_from_object_meta(root)
         return TaxType(tax_code=tax_data.code, description=tax_data.description)
-
-    @staticmethod
-    def resolve_tax_rate(root: models.ProductType, _info, **_kwargs):
-        # FIXME this resolver should be dropped after we drop tax_rate from API
-        if not hasattr(root, "meta"):
-            return None
-        return root.get_value_from_metadata("vatlayer.code")
 
     @staticmethod
     def resolve_product_attributes(root: models.ProductType, info):
@@ -881,6 +882,12 @@ class ProductType(CountableDjangoObjectType):
 
 @key(fields="id")
 class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
+    description_json = graphene.JSONString(
+        description="Description of the collection (JSON).",
+        deprecation_reason=(
+            "Will be removed in Saleor 4.0. Use the `description` field instead."
+        ),
+    )
     products = ChannelContextFilterConnectionField(
         Product,
         filter=ProductFilterInput(description="Filtering options for products."),
@@ -905,7 +912,6 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         description = "Represents a collection of products."
         only_fields = [
             "description",
-            "description_json",
             "id",
             "name",
             "seo_description",
@@ -946,9 +952,19 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     def __resolve_reference(root, _info, **_kwargs):
         return graphene.Node.get_node_from_global_id(_info, root.id)
 
+    @staticmethod
+    def resolve_description_json(root: ChannelContext[models.Collection], info):
+        return root.node.description
+
 
 @key(fields="id")
 class Category(CountableDjangoObjectType):
+    description_json = graphene.JSONString(
+        description="Description of the category (JSON).",
+        deprecation_reason=(
+            "Will be removed in Saleor 4.0. Use the `description` field instead."
+        ),
+    )
     ancestors = PrefetchingConnectionField(
         lambda: Category, description="List of ancestors of the category."
     )
@@ -979,7 +995,6 @@ class Category(CountableDjangoObjectType):
         )
         only_fields = [
             "description",
-            "description_json",
             "id",
             "level",
             "name",
@@ -994,6 +1009,10 @@ class Category(CountableDjangoObjectType):
     @staticmethod
     def resolve_ancestors(root: models.Category, info, **_kwargs):
         return root.get_ancestors()
+
+    @staticmethod
+    def resolve_description_json(root: models.Category, info):
+        return root.description
 
     @staticmethod
     def resolve_background_image(root: models.Category, info, size=None, **_kwargs):

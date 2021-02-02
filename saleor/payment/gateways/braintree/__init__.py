@@ -1,6 +1,8 @@
 from typing import Dict, List, Optional
 
 import braintree as braintree_sdk
+import opentracing
+import opentracing.tags
 from django.core.exceptions import ImproperlyConfigured
 
 from ... import TransactionKind
@@ -107,10 +109,16 @@ def get_client_token(
     config: GatewayConfig, token_config: Optional[TokenConfig] = None
 ) -> str:
     gateway = get_braintree_gateway(**config.connection_params)
-    if not token_config:
-        return gateway.client_token.generate()
-    parameters = create_token_params(config, token_config)
-    return gateway.client_token.generate(parameters)
+    with opentracing.global_tracer().start_active_span(
+        "braintree.client_token.generate"
+    ) as scope:
+        span = scope.span
+        span.set_tag(opentracing.tags.COMPONENT, "payment")
+        span.set_tag("service.name", "braintree")
+        if not token_config:
+            return gateway.client_token.generate()
+        parameters = create_token_params(config, token_config)
+        return gateway.client_token.generate(parameters)
 
 
 def create_token_params(config: GatewayConfig, token_config: TokenConfig) -> dict:
@@ -163,42 +171,61 @@ def transaction_for_new_customer(
     payment_information: PaymentData, config: GatewayConfig
 ):
     gateway = get_braintree_gateway(**config.connection_params)
-    return gateway.transaction.sale(
-        {
-            "amount": str(payment_information.amount),
-            "payment_method_nonce": payment_information.token,
-            "options": {
-                "submit_for_settlement": config.auto_capture,
-                "store_in_vault_on_success": payment_information.reuse_source,
-                "three_d_secure": {"required": config.require_3d_secure},
-            },
-            **get_customer_data(payment_information),
-        }
-    )
+
+    with opentracing.global_tracer().start_active_span(
+        "braintree.transaction.sale"
+    ) as scope:
+        span = scope.span
+        span.set_tag(opentracing.tags.COMPONENT, "payment")
+        span.set_tag("service.name", "braintree")
+        return gateway.transaction.sale(
+            {
+                "amount": str(payment_information.amount),
+                "payment_method_nonce": payment_information.token,
+                "options": {
+                    "submit_for_settlement": config.auto_capture,
+                    "store_in_vault_on_success": payment_information.reuse_source,
+                    "three_d_secure": {"required": config.require_3d_secure},
+                },
+                **get_customer_data(payment_information),
+            }
+        )
 
 
 def transaction_for_existing_customer(
     payment_information: PaymentData, config: GatewayConfig
 ):
     gateway = get_braintree_gateway(**config.connection_params)
-    return gateway.transaction.sale(
-        {
-            "amount": str(payment_information.amount),
-            "customer_id": payment_information.customer_id,
-            "options": {"submit_for_settlement": config.auto_capture},
-            **get_customer_data(payment_information),
-        }
-    )
+    with opentracing.global_tracer().start_active_span(
+        "braintree.transaction.sale"
+    ) as scope:
+        span = scope.span
+        span.set_tag(opentracing.tags.COMPONENT, "payment")
+        span.set_tag("service.name", "braintree")
+        return gateway.transaction.sale(
+            {
+                "amount": str(payment_information.amount),
+                "customer_id": payment_information.customer_id,
+                "options": {"submit_for_settlement": config.auto_capture},
+                **get_customer_data(payment_information),
+            }
+        )
 
 
 def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
     gateway = get_braintree_gateway(**config.connection_params)
 
     try:
-        result = gateway.transaction.submit_for_settlement(
-            transaction_id=payment_information.token,
-            amount=str(payment_information.amount),
-        )
+        with opentracing.global_tracer().start_active_span(
+            "braintree.transaction.submit_for_settlement"
+        ) as scope:
+            span = scope.span
+            span.set_tag(opentracing.tags.COMPONENT, "payment")
+            span.set_tag("service.name", "braintree")
+            result = gateway.transaction.submit_for_settlement(
+                transaction_id=payment_information.token,
+                amount=str(payment_information.amount),
+            )
     except braintree_sdk.exceptions.NotFoundError:
         raise BraintreeException(DEFAULT_ERROR_MESSAGE)
 
@@ -223,7 +250,13 @@ def void(payment_information: PaymentData, config: GatewayConfig) -> GatewayResp
     gateway = get_braintree_gateway(**config.connection_params)
 
     try:
-        result = gateway.transaction.void(transaction_id=payment_information.token)
+        with opentracing.global_tracer().start_active_span(
+            "braintree.transaction.void"
+        ) as scope:
+            span = scope.span
+            span.set_tag(opentracing.tags.COMPONENT, "payment")
+            span.set_tag("service.name", "braintree")
+            result = gateway.transaction.void(transaction_id=payment_information.token)
     except braintree_sdk.exceptions.NotFoundError:
         raise BraintreeException(DEFAULT_ERROR_MESSAGE)
 
@@ -248,10 +281,16 @@ def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayRe
     gateway = get_braintree_gateway(**config.connection_params)
 
     try:
-        result = gateway.transaction.refund(
-            transaction_id=payment_information.token,
-            amount_or_options=str(payment_information.amount),
-        )
+        with opentracing.global_tracer().start_active_span(
+            "braintree.transaction.refund"
+        ) as scope:
+            span = scope.span
+            span.set_tag(opentracing.tags.COMPONENT, "payment")
+            span.set_tag("service.name", "braintree")
+            result = gateway.transaction.refund(
+                transaction_id=payment_information.token,
+                amount_or_options=str(payment_information.amount),
+            )
     except braintree_sdk.exceptions.NotFoundError:
         raise BraintreeException(DEFAULT_ERROR_MESSAGE)
 
@@ -283,7 +322,13 @@ def list_client_sources(
     config: GatewayConfig, customer_id: str
 ) -> List[CustomerSource]:
     gateway = get_braintree_gateway(**config.connection_params)
-    customer = gateway.customer.find(customer_id)
+    with opentracing.global_tracer().start_active_span(
+        "braintree.customer.find"
+    ) as scope:
+        span = scope.span
+        span.set_tag(opentracing.tags.COMPONENT, "payment")
+        span.set_tag("service.name", "braintree")
+        customer = gateway.customer.find(customer_id)
     if not customer:
         return []
     return [

@@ -13,7 +13,6 @@ from ...attribute.models import (
     Attribute,
 )
 from ...product.models import Category, Collection, Product, ProductType, ProductVariant
-from ...search.backends import picker
 from ...warehouse.models import Stock
 from ..channel.filters import get_channel_slug_from_filter_data
 from ..core.filters import EnumFilter, ListObjectTypeFilter, ObjectTypeFilter
@@ -209,10 +208,23 @@ def filter_stock_availability(qs, _, value):
     return qs
 
 
+def product_search(phrase):
+    """Return matching products for storefront views.
+
+        Name and description is matched using search vector.
+
+    Args:
+        phrase (str): searched phrase
+
+    """
+    ft_in_description_or_name = Q(search_vector=phrase)
+    ft_by_sku = Q(variants__sku__search=phrase)
+    return Product.objects.filter((ft_in_description_or_name | ft_by_sku))
+
+
 def filter_search(qs, _, value):
     if value:
-        search = picker.pick_backend()
-        qs = qs.distinct() & search(value).distinct()
+        qs = qs.distinct() & product_search(value).distinct()
     return qs
 
 

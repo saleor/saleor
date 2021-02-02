@@ -21,6 +21,13 @@ from .dataloaders import (
 
 
 class Page(CountableDjangoObjectType):
+    content_json = graphene.String(
+        description="Content of the page (JSON).",
+        deprecation_reason=(
+            "Will be removed in Saleor 4.0. Use the `content` field instead."
+        ),
+        required=True,
+    )
     translation = TranslationField(PageTranslation, type_name="page")
     attributes = graphene.List(
         graphene.NonNull(SelectedAttribute),
@@ -35,7 +42,6 @@ class Page(CountableDjangoObjectType):
         )
         only_fields = [
             "content",
-            "content_json",
             "created",
             "id",
             "is_published",
@@ -52,6 +58,10 @@ class Page(CountableDjangoObjectType):
     @staticmethod
     def resolve_page_type(root: models.Page, info):
         return PageTypeByIdLoader(info.context).load(root.page_type_id)
+
+    @staticmethod
+    def resolve_content_json(root: models.Page, info):
+        return root.content
 
     @staticmethod
     def resolve_attributes(root: models.Page, info):
