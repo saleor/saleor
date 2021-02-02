@@ -309,3 +309,24 @@ def test_example_query(api_client, product):
     response = api_client.post_graphql(EXAMPLE_QUERY)
     content = get_graphql_content(response)
     assert content["data"]["products"]["edges"][0]["node"]["name"] == product.name
+
+
+def test_query_contains_not_only_schema_raise_error(api_client, graphql_log_handler):
+    response = api_client.post_graphql(
+        """
+        query IntrospectionQuery {
+            me {
+                email
+            }
+            __schema {
+                queryType {
+                    name
+                }
+            }
+        }
+        """
+    )
+    assert response.status_code == 400
+    assert graphql_log_handler.messages == [
+        "saleor.graphql.errors.handled[INFO].GraphQLError"
+    ]
