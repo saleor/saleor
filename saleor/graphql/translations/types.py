@@ -243,7 +243,7 @@ class CategoryTranslatableContent(CountableDjangoObjectType):
 
 
 class PageTranslation(BaseTranslationType):
-    content_json = graphene.String(
+    content_json = graphene.JSONString(
         description="Translated description of the page (JSON).",
         deprecation_reason=(
             "Will be removed in Saleor 4.0. Use the `content` field instead."
@@ -263,7 +263,7 @@ class PageTranslation(BaseTranslationType):
 
 
 class PageTranslatableContent(CountableDjangoObjectType):
-    content_json = graphene.String(
+    content_json = graphene.JSONString(
         description="Content of the page (JSON).",
         deprecation_reason=(
             "Will be removed in Saleor 4.0. Use the `content` field instead."
