@@ -30,6 +30,7 @@ from ..app.types import AppType
 from ..attribute import AttributeEntityType, AttributeInputType, AttributeType
 from ..attribute.models import (
     Attribute,
+    AttributeCategory,
     AttributeTranslation,
     AttributeValue,
     AttributeValueTranslation,
@@ -240,6 +241,17 @@ def site_settings(db, settings) -> SiteSettings:
     obj.bottom_menu = secondary_menu
     obj.save()
     return obj
+
+
+@pytest.fixture
+def site_settings_with_category_attributes(
+    site_settings, page_type_product_reference_attribute
+):
+    AttributeCategory.objects.create(
+        attribute=page_type_product_reference_attribute,
+        site_settings=site_settings,
+    )
+    return site_settings
 
 
 @pytest.fixture
@@ -499,7 +511,7 @@ def graphql_address_data():
 def customer_user(address):  # pylint: disable=W0613
     default_address = address.get_copy()
     user = User.objects.create_user(
-        "test@example.com",
+        "test_user@example.com",
         "password",
         default_billing_address=default_address,
         default_shipping_address=default_address,
@@ -839,8 +851,8 @@ def file_attribute_with_file_input_type_without_values(db):
 @pytest.fixture
 def product_type_page_reference_attribute(db):
     return Attribute.objects.create(
-        slug="page-reference",
-        name="Page reference",
+        slug="product-page-reference",
+        name="Product page reference",
         type=AttributeType.PRODUCT_TYPE,
         input_type=AttributeInputType.REFERENCE,
         entity_type=AttributeEntityType.PAGE,
@@ -850,8 +862,8 @@ def product_type_page_reference_attribute(db):
 @pytest.fixture
 def page_type_page_reference_attribute(db):
     return Attribute.objects.create(
-        slug="page-reference",
-        name="Page reference",
+        slug="page-page-reference",
+        name="Page page reference",
         type=AttributeType.PAGE_TYPE,
         input_type=AttributeInputType.REFERENCE,
         entity_type=AttributeEntityType.PAGE,
@@ -861,8 +873,8 @@ def page_type_page_reference_attribute(db):
 @pytest.fixture
 def product_type_product_reference_attribute(db):
     return Attribute.objects.create(
-        slug="product-reference",
-        name="Product reference",
+        slug="product-product-reference",
+        name="Product product reference",
         type=AttributeType.PRODUCT_TYPE,
         input_type=AttributeInputType.REFERENCE,
         entity_type=AttributeEntityType.PRODUCT,
@@ -872,8 +884,8 @@ def product_type_product_reference_attribute(db):
 @pytest.fixture
 def page_type_product_reference_attribute(db):
     return Attribute.objects.create(
-        slug="product-reference",
-        name="Product reference",
+        slug="page-product-reference",
+        name="Page product reference",
         type=AttributeType.PAGE_TYPE,
         input_type=AttributeInputType.REFERENCE,
         entity_type=AttributeEntityType.PRODUCT,

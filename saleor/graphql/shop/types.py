@@ -13,6 +13,8 @@ from ...core.utils import get_client_ip, get_country_by_ip
 from ...plugins.manager import get_plugins_manager
 from ...site import models as site_models
 from ..account.types import Address, AddressInput, StaffNotificationRecipient
+from ..attribute.dataloaders import AttributesByAttributeId
+from ..attribute.types import Attribute
 from ..channel import ChannelContext
 from ..checkout.types import PaymentGateway
 from ..core.connection import CountableDjangoObjectType
@@ -57,6 +59,25 @@ class Geolocalization(graphene.ObjectType):
 
     class Meta:
         description = "Represents customers's geolocalization data."
+
+
+class CategorySettings(graphene.ObjectType):
+    attributes = graphene.List(
+        graphene.NonNull(Attribute),
+        description="List of available category attributes.",
+        required=True,
+    )
+
+    class Meta:
+        description = "Represents available category attributes."
+
+    @staticmethod
+    def resolve_attributes(_, info):
+        site_settings = info.context.site.settings
+        attribute_ids = site_settings.category_attributes.values_list(
+            "attribute_id", flat=True
+        )
+        return AttributesByAttributeId(info.context).load_many(attribute_ids)
 
 
 class OrderSettings(CountableDjangoObjectType):
@@ -170,6 +191,10 @@ class Shop(graphene.ObjectType):
         StaffNotificationRecipient,
         description="List of staff notification recipients.",
         required=False,
+    )
+    category_attributes = graphene.List(
+        graphene.NonNull(Attribute),
+        description="List of available category attributes.",
     )
 
     class Meta:
@@ -340,3 +365,11 @@ class Shop(graphene.ObjectType):
     @permission_required(SitePermissions.MANAGE_SETTINGS)
     def resolve_staff_notification_recipients(_, info):
         return account_models.StaffNotificationRecipient.objects.all()
+
+    @staticmethod
+    def resolve_category_attributes(_, info):
+        site_settings = info.context.site.settings
+        attribute_ids = site_settings.category_attributes.values_list(
+            "attribute_id", flat=True
+        )
+        return AttributesByAttributeId(info.context).load_many(attribute_ids)
