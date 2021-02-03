@@ -10,6 +10,7 @@ from django_countries.fields import Country
 from ...core.exceptions import InsufficientStock
 from ...reservation.error_codes import ReservationErrorCode
 from ...reservation import models
+from ...reservation.stock import remove_user_reservations
 from ...warehouse.availability import check_stock_quantity
 from ...shipping.models import ShippingZone
 from ..account.enums import CountryCodeEnum
@@ -20,6 +21,7 @@ from .types import Reservation
 
 RESERVATION_LENGTH = timedelta(minutes=10)
 RESERVATION_SIZE_LIMIT = settings.MAX_CHECKOUT_LINE_QUANTITY
+RESERVATIONS_TO_REMOVE_LIMIT = 50
 
 
 def _get_reservation_expiration() -> "datetime":
@@ -87,8 +89,7 @@ def reserve_stock_for_user(
         raise ValidationError(
             {
                 "country_code": ValidationError(
-                    "Cannot reserve stock for %d country code."
-                    "" % country_code,
+                    "Cannot reserve stock for %d country code." "" % country_code,
                     code=ReservationErrorCode.INVALID_COUNTRY_CODE,
                 )
             }
@@ -159,3 +160,44 @@ class ReservationCreate(BaseMutation):
         )
 
         return ReservationCreate(reservation=reservation)
+
+
+class ReservationsRemoveInput(graphene.InputObjectType):
+    country_code = CountryCodeEnum(description="Country code.", required=True)
+    variants_ids = graphene.List(
+        graphene.ID,
+        description="A list of IDs of products variants reservations to remove.",
+        required=True,
+    )
+
+
+class ReservationsRemove(BaseMutation):
+    class Arguments:
+        input = ReservationsRemoveInput(
+            required=True, description="Fields required to remove reservations."
+        )
+
+    class Meta:
+        description = "Remove stock reservations made for the user."
+        error_type_class = ReservationError
+        error_type_field = "reservations_errors"
+
+    @classmethod
+    def check_permissions(cls, context):
+        return context.user.is_authenticated
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        input_data = data["input"]
+
+        products_variants = cls.get_nodes_or_error(
+            input_data["variants_ids"], ProductVariant
+        )
+
+        remove_user_reservations(
+            info.context.user,
+            input_data["country_code"],
+            products_variants,
+        )
+
+        return ReservationsRemove()

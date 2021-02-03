@@ -9,13 +9,17 @@ if TYPE_CHECKING:
 
 
 def remove_user_reservations(
-    user: "User", product_variants: Iterable["ProductVariant"]
+    user: "User", country_code: str, product_variants: Iterable["ProductVariant"]
 ):
     """Remove reservation of products for given user
 
     Function removes reservations of user and product variant combinations.
     """
-    Reservation.objects.filter(user=user, product_variant__in=product_variants).delete()
+    (
+        Reservation.objects.filter(user=user, product_variant__in=product_variants)
+        .for_country(country_code)
+        .delete()
+    )
 
 
 def get_reserved_quantity_bulk(

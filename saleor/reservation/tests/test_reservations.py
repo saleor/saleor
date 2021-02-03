@@ -61,7 +61,7 @@ def test_bulk_reservations_retrieval_excludes_expired_reservations(
 
 
 def test_user_reservations_are_removed(variant_with_reserved_stock, customer_user):
-    remove_user_reservations(customer_user, [variant_with_reserved_stock])
+    remove_user_reservations(customer_user, COUNTRY_CODE, [variant_with_reserved_stock])
     reservations = get_reserved_quantity_bulk(
         [variant_with_reserved_stock], COUNTRY_CODE, customer_user
     )
