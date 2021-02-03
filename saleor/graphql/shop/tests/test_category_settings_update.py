@@ -119,6 +119,52 @@ def test_category_settings_update_by_staff_only_remove_attrs(
     )
 
 
+def test_category_settings_update_add_existing_attr(
+    staff_api_client,
+    site_settings_with_category_attributes,
+    page_type_page_reference_attribute,
+    page_type_product_reference_attribute,
+    size_page_attribute,
+    permission_manage_settings,
+):
+    # given
+    query = CATEGORY_SETTINGS_UPDATE_MUTATION
+    site_settings = site_settings_with_category_attributes
+
+    assert (
+        page_type_product_reference_attribute.pk
+        in site_settings.category_attributes.values_list("attribute_id", flat=True)
+    )
+
+    add_attrs = [
+        graphene.Node.to_global_id("Attribute", attr.pk)
+        for attr in [
+            page_type_page_reference_attribute,
+            page_type_product_reference_attribute,
+        ]
+    ]
+    variables = {
+        "input": {
+            "addAttributes": add_attrs,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_settings]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["categorySettingsUpdate"]
+    attr_data = data["categorySettings"]["attributes"]
+    errors = data["shopErrors"]
+
+    assert not errors
+    assert len(attr_data) == len(add_attrs)
+    assert {attr["id"] for attr in attr_data} == set(add_attrs)
+
+
 def test_category_settings_update_by_staff_no_perm(
     staff_api_client,
     site_settings_with_category_attributes,

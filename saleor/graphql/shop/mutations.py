@@ -16,10 +16,11 @@ from ..core.enums import WeightUnitsEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import OrderSettingsError, ShopError
 from ..core.utils import get_duplicates_ids
+from ..utils import resolve_global_ids_to_primary_keys
 from .types import CategorySettings, OrderSettings, Shop
 
 if TYPE_CHECKING:
-    from django.contrib.sites.models import Site
+    from ...site.models import SiteSettings
 
 
 class ShopSettingsInput(graphene.InputObjectType):
@@ -202,27 +203,35 @@ class CategorySettingsUpdate(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        site = info.context.site
+        site_settings = info.context.site.settings
         input = data["input"]
-        cleaned_input = cls.clean_input(info, input)
-        cls.update_category_settings(site, cleaned_input)
+        cleaned_input = cls.clean_input(site_settings, input)
+        cls.update_category_settings(site_settings, cleaned_input)
         return cls(category_settings=CategorySettings())
 
     @classmethod
-    def clean_input(cls, _info, input_data: dict):
+    def clean_input(cls, site_settings: "SiteSettings", input_data: dict):
         cls.validate_duplicates(input_data)
 
-        for field in ["add_attributes", "remove_attributes"]:
-            attr_ids = input_data.get(field)
-            if attr_ids:
-                input_data[field] = cls.get_nodes_or_error(attr_ids, "id", Attribute)
+        remove_attrs = input_data.get("remove_attributes")
+        if remove_attrs:
+            input_data["remove_attributes"] = cls.get_nodes_or_error(
+                remove_attrs, "id", Attribute
+            )
 
-        cls.validate_attributes(input_data.get("add_attributes", []))
+        add_attrs = input_data.get("add_attributes")
+        if add_attrs:
+            _, pks = resolve_global_ids_to_primary_keys(add_attrs, Attribute)
+            pks = cls.clean_add_attributes(pks, site_settings)
+            input_data["add_attributes"] = attribute_models.Attribute.objects.filter(
+                pk__in=pks
+            )
 
+        cls.validate_attribute_types(input_data.get("add_attributes", []))
         return input_data
 
-    @classmethod
-    def validate_duplicates(cls, input_data: dict):
+    @staticmethod
+    def validate_duplicates(input_data: dict):
         duplicated_ids = get_duplicates_ids(
             input_data.get("add_attributes"), input_data.get("remove_attributes")
         )
@@ -241,8 +250,17 @@ class CategorySettingsUpdate(BaseMutation):
                 }
             )
 
-    @classmethod
-    def validate_attributes(cls, attributes: List[attribute_models.Attribute]):
+    @staticmethod
+    def clean_add_attributes(attr_ids: List[int], site_settings: "SiteSettings"):
+        # drop attributes that are already assigned
+        attr_ids = {int(id) for id in attr_ids}
+        assigned_attr_ids = attribute_models.AttributeCategory.objects.filter(
+            site_settings=site_settings, attribute_id__in=attr_ids
+        ).values_list("attribute_id", flat=True)
+        return set(attr_ids) - set(assigned_attr_ids)
+
+    @staticmethod
+    def validate_attribute_types(attributes: List[attribute_models.Attribute]):
         # only page attributes can be set as category attributes
         invalid_attrs = [
             attr for attr in attributes if attr.type != AttributeType.PAGE_TYPE
@@ -262,9 +280,8 @@ class CategorySettingsUpdate(BaseMutation):
                 }
             )
 
-    @classmethod
-    def update_category_settings(cls, site: "Site", cleaned_input: dict):
-        site_settings = site.settings
+    @staticmethod
+    def update_category_settings(site_settings: "SiteSettings", cleaned_input: dict):
         remove_attr = cleaned_input.get("remove_attributes")
         add_attr = cleaned_input.get("add_attributes")
         if remove_attr:
