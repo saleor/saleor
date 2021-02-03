@@ -40,7 +40,7 @@ def validate_price_precision(value: Optional["Decimal"], currency: str = None):
 
     currency_fraction = get_currency_fraction(currency or settings.DEFAULT_CURRENCY)
     value = value.normalize()
-    if abs(value.as_tuple().exponent) > currency_fraction:
+    if value.as_tuple().exponent < -currency_fraction:
         raise ValidationError(
             f"Value cannot have more than {currency_fraction} decimal places."
         )
