@@ -3,7 +3,6 @@
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
 ## [Unreleased]
-- Unconfirmed order manipulation - #6829 by @tomaszszymanski129
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -15,6 +14,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop `apply_taxes_to_shipping_price_range` plugin hook - #6746 by @maarcingebala
 - Drop `CHECKOUT_QUANTITY_CHANGED` webhook - #6797 by @d-wysocki
 - Drop deprecated `taxRate` field from `ProductType` - #6795 by @d-wysocki
+- Unconfirmed order manipulation - #6829 by @tomaszszymanski129
 
 ### Other
 
