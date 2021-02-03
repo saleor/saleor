@@ -547,6 +547,15 @@ class OrderConfirm(ModelMutation):
                     )
                 }
             )
+        if not instance.lines.count():
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Provided order id belongs to an order without products.",
+                        code=OrderErrorCode.INVALID,
+                    )
+                }
+            )
         return instance
 
     @classmethod
