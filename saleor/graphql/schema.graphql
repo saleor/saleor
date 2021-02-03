@@ -728,6 +728,7 @@ input CategoryInput {
   seo: SeoInput
   backgroundImage: Upload
   backgroundImageAlt: String
+  attributes: [AttributeValueInput]
 }
 
 type CategorySettings {

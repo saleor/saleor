@@ -23,6 +23,7 @@ if TYPE_CHECKING:
     from django.db.models import QuerySet
 
     from ...attribute.models import Attribute
+    from ...site.models import SiteSettings
 
 
 @dataclass
@@ -362,7 +363,12 @@ class AttributeAssignmentMixin:
         return values
 
     @classmethod
-    def save(cls, instance: T_INSTANCE, cleaned_input: T_INPUT_MAP):
+    def save(
+        cls,
+        instance: T_INSTANCE,
+        cleaned_input: T_INPUT_MAP,
+        site_settings: Optional["SiteSettings"] = None,
+    ):
         """Save the cleaned input into the database against the given instance.
 
         Note: this should always be ran inside a transaction.
@@ -382,7 +388,7 @@ class AttributeAssignmentMixin:
             else:
                 attribute_values = cls._pre_save_values(attribute, attr_values)
             associate_attribute_values_to_instance(
-                instance, attribute, attribute_values
+                instance, attribute, attribute_values, site_settings
             )
 
 
