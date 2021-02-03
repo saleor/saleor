@@ -212,6 +212,16 @@ class GraphQLView(View):
         except (ValueError, GraphQLSyntaxError) as e:
             return None, ExecutionResult(errors=[e], invalid=True)
 
+    def check_if_query_contains_only_schema(self, document: GraphQLDocument):
+        for definition in document.document_ast.definitions:
+            selections = definition.selection_set.selections
+            if len(selections) > 1:
+                for selection in selections:
+                    selection_name = str(selection.name.value)
+                    if selection_name == "__schema":
+                        msg = "`__schema` must be fetched in separete query"
+                        raise GraphQLError(msg)
+
     def execute_graphql_request(self, request: HttpRequest, data: dict):
         with opentracing.global_tracer().start_active_span("graphql_query") as scope:
             span = scope.span
@@ -226,6 +236,10 @@ class GraphQLView(View):
             if document is not None:
                 raw_query_string = document.document_string
                 span.set_tag("graphql.query", raw_query_string)
+                try:
+                    self.check_if_query_contains_only_schema(document)
+                except GraphQLError as e:
+                    return ExecutionResult(errors=[e], invalid=True)
 
             extra_options: Dict[str, Optional[Any]] = {}
 
