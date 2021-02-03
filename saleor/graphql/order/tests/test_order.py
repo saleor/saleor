@@ -662,6 +662,26 @@ def test_order_confirm_unfulfilled(staff_api_client, order, permission_manage_or
     assert errors[0]["code"] == OrderErrorCode.INVALID.name
 
 
+def test_order_confirm_no_products_in_order(
+    staff_api_client, order_unconfirmed, permission_manage_orders
+):
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    order_unconfirmed.lines.set([])
+    response = staff_api_client.post_graphql(
+        ORDER_CONFIRM_MUTATION,
+        {"id": graphene.Node.to_global_id("Order", order_unconfirmed.id)},
+    )
+    content = get_graphql_content(response)["data"]["orderConfirm"]
+    errors = content["orderErrors"]
+
+    order_unconfirmed.refresh_from_db()
+    assert order_unconfirmed.status == OrderStatus.UNCONFIRMED
+    assert content["order"] is None
+    assert len(errors) == 1
+    assert errors[0]["field"] == "id"
+    assert errors[0]["code"] == OrderErrorCode.INVALID.name
+
+
 @patch("saleor.payment.gateway.capture")
 def test_order_confirm_wont_call_capture_for_non_active_payment(
     capture_mock,
