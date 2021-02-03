@@ -309,3 +309,27 @@ def test_example_query(api_client, product):
     response = api_client.post_graphql(EXAMPLE_QUERY)
     content = get_graphql_content(response)
     assert content["data"]["products"]["edges"][0]["node"]["name"] == product.name
+
+
+@pytest.mark.parametrize(
+    "other_query",
+    ["me{email}", 'products(first:5,channel:"channel"){edges{node{name}}}'],
+)
+def test_query_contains_not_only_schema_raise_error(
+    other_query, api_client, graphql_log_handler
+):
+    query = """
+        query IntrospectionQuery {
+            %(other_query)s
+            __schema {
+                queryType {
+                    name
+                }
+            }
+        }
+        """
+    response = api_client.post_graphql(query % {"other_query": other_query})
+    assert response.status_code == 400
+    assert graphql_log_handler.messages == [
+        "saleor.graphql.errors.handled[INFO].GraphQLError"
+    ]
