@@ -177,7 +177,7 @@ class CategorySettingsInput(graphene.InputObjectType):
     remove_attributes = graphene.List(
         graphene.NonNull(graphene.ID),
         description=(
-            "List of attribute IDs that should be remove from available "
+            "List of attribute IDs that should be removed from available "
             "category attributes."
         ),
         required=False,
