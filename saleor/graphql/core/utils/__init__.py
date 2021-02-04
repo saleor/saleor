@@ -1,12 +1,13 @@
 import binascii
 import re
-from typing import TYPE_CHECKING, Type, Union
+from typing import TYPE_CHECKING, Tuple, Type, Union
 
 import graphene
 from django.core.exceptions import ValidationError
 from graphene import ObjectType
 
 from ....core.utils import generate_unique_slug
+from ....product import ProductMediaTypes
 from ....product.error_codes import ProductErrorCode
 
 if TYPE_CHECKING:
@@ -47,25 +48,19 @@ def validate_image_file(file, field_name):
         )
 
 
-def validate_youtube_url(url: str, field_name: str):
-    """
-    Validate if provided video URL is valid and return the formatted URL.
-    Otherwise throw a ValidationError.
-    """
+def check_video_url(url: str, field_name: str) -> Tuple[str, str]:
+    """Check the video URL and return the proper ProductMediaType."""
     youtube_pattern = re.compile("(?:youtube.com|youtu.be).*(?:v=|watch\/|\/)([\w]*)")
-    search = re.search(youtube_pattern, url)
+    is_youtube = re.search(youtube_pattern, url)
 
-    if not search:
-        raise ValidationError(
-            {
-                field_name: ValidationError(
-                    "Invalid video URL", code=ProductErrorCode.INVALID.value
-                )
-            }
+    if is_youtube:
+        video_id = is_youtube.group(1)
+        return (
+            f"https://www.youtube.com/watch?v={video_id}",
+            ProductMediaTypes.VIDEO_YOUTUBE,
         )
-
-    video_id = search.group(1)
-    return f"https://www.youtube.com/watch?v={video_id}"
+    else:
+        return url, ProductMediaTypes.VIDEO_UNKNOWN
 
 
 def from_global_id_strict_type(

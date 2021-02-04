@@ -1855,14 +1855,6 @@ def product_with_image(product, image, media_root):
 
 
 @pytest.fixture
-def product_with_video_url(product, image, media_root):
-    ProductMedia.objects.create(
-        product=product, video_url="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-    )
-    return product
-
-
-@pytest.fixture
 def unavailable_product(product_type, category, channel_USD):
     product = Product.objects.create(
         name="Test product",

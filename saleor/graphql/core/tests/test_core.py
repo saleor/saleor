@@ -8,6 +8,7 @@ from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.utils import timezone
 from graphene import InputField
 
+from ....product import ProductMediaTypes
 from ....product.models import Category, Product, ProductChannelListing
 from ...product import types as product_types
 from ...tests.utils import get_graphql_content, get_graphql_content_from_response
@@ -18,11 +19,11 @@ from ..filters import EnumFilter
 from ..mutations import BaseMutation
 from ..types import FilterInputObjectType
 from ..utils import (
+    check_video_url,
     clean_seo_fields,
     get_duplicated_values,
     snake_to_camel_case,
     validate_slug_and_generate_if_needed,
-    validate_youtube_url,
 )
 
 
@@ -299,7 +300,23 @@ def test_requestor_is_superuser_for_anonymous_user():
         "https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=TestingChannel",
     ],
 )
-def test_validate_youtube_url(url):
-    proper_url = validate_youtube_url(url, "video_url")
+def test_check_video_url_youtube_link(url):
+    video_url, video_type = check_video_url(url, "video_url")
 
-    assert proper_url == "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+    assert video_url == "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+    assert video_type == ProductMediaTypes.VIDEO_YOUTUBE
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://streamable.com/8vnouo",
+        "https://vimeo.com/148751763",
+        "https://some-external-hosting.com/video/148751763",
+    ],
+)
+def test_check_video_url_unknown_provider(url):
+    video_url, video_type = check_video_url(url, "video_url")
+
+    assert video_url == url
+    assert video_type == ProductMediaTypes.VIDEO_UNKNOWN

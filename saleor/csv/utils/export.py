@@ -114,7 +114,7 @@ def export_products_in_batches(
             "attributes",
             "variants",
             "collections",
-            "images",
+            "media",
             "product_type",
             "category",
         )

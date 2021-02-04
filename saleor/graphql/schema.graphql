@@ -4089,6 +4089,7 @@ type ProductMediaReorder {
 enum ProductMediaType {
   IMAGE
   VIDEO_YOUTUBE
+  VIDEO_UNKNOWN
 }
 
 type ProductMediaUpdate {

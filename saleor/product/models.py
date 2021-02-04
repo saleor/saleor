@@ -33,7 +33,6 @@ from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
-from . import ProductMediaTypes
 from ..account.utils import requestor_is_staff_member_or_app
 from ..channel.models import Channel
 from ..core.db.fields import SanitizedJSONField
@@ -47,6 +46,7 @@ from ..core.weight import WeightUnits, zero_weight
 from ..discount import DiscountInfo
 from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel, SeoModelTranslation
+from . import ProductMediaTypes
 
 if TYPE_CHECKING:
     # flake8: noqa
@@ -513,8 +513,8 @@ class ProductVariant(SortableModel, ModelWithMetadata):
         return smart_text(product_display)
 
     def get_first_image(self) -> "ProductMedia":
-        media = list(self.media.all())
-        return media[0] if media else self.product.get_first_image()
+        image = self.media.filter(type=ProductMediaTypes.IMAGE).first()
+        return image or self.product.get_first_image()
 
     def get_ordering_queryset(self):
         return self.product.variants.all()

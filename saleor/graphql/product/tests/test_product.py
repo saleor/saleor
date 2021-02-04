@@ -5888,7 +5888,7 @@ def test_product_type_delete_mutation_variants_in_draft_order(
     assert OrderLine.objects.filter(pk=order_line_not_in_draft.pk).exists()
 
 
-def test_product_image_create_mutation(
+def test_product_media_create_mutation(
     monkeypatch, staff_api_client, product, permission_manage_products, media_root
 ):
     query = """
@@ -5927,7 +5927,7 @@ def test_product_image_create_mutation(
     mock_create_thumbnails.assert_called_once_with(product_image.pk)
 
 
-def test_product_image_create_mutation_without_file(
+def test_product_media_create_mutation_without_file(
     monkeypatch, staff_api_client, product, permission_manage_products, media_root
 ):
     query = """
@@ -5955,7 +5955,99 @@ def test_product_image_create_mutation_without_file(
     assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
 
 
-def test_invalid_product_image_create_mutation(
+def test_product_media_create_mutation_with_youtube_url(
+    monkeypatch, staff_api_client, product, permission_manage_products, media_root
+):
+    query = """
+    mutation createProductMedia(
+        $product: ID!,
+        $image: Upload,
+        $videoUrl: String,
+        $alt: String
+    ) {
+        productMediaCreate(input: {
+            product: $product,
+            videoUrl: $videoUrl,
+            alt: $alt,
+            image: $image
+        }) {
+            product {
+                media {
+                    url
+                    alt
+                    type
+                }
+            }
+            productErrors {
+                code
+                field
+            }
+        }
+    }
+    """
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product.id),
+        "videoUrl": "https://www.youtube.com/watch?v=SomeVideoID&ab_channel=Test",
+        "alt": "Test Alt Text",
+    }
+    body = get_multipart_request_body(query, variables, file="", file_name="name")
+    response = staff_api_client.post_multipart(
+        body, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+
+    media = content["data"]["productMediaCreate"]["product"]["media"]
+    assert len(media) == 1
+    assert media[0]["url"] == "https://www.youtube.com/watch?v=SomeVideoID"
+    assert media[0]["alt"] == "Test Alt Text"
+    assert media[0]["type"] == "VIDEO_YOUTUBE"
+
+
+def test_product_media_create_mutation_with_unknown_url(
+    monkeypatch, staff_api_client, product, permission_manage_products, media_root
+):
+    query = """
+    mutation createProductMedia(
+        $product: ID!,
+        $image: Upload,
+        $videoUrl: String,
+        $alt: String
+    ) {
+        productMediaCreate(input: {
+            product: $product,
+            videoUrl: $videoUrl,
+            alt: $alt,
+            image: $image
+        }) {
+            product {
+                media {
+                    url
+                    alt
+                    type
+                }
+            }
+        }
+    }
+    """
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product.id),
+        "videoUrl": "https://www.videohosting.com/SomeVideoID",
+        "alt": "Test Alt Text",
+    }
+    body = get_multipart_request_body(query, variables, file="", file_name="name")
+    response = staff_api_client.post_multipart(
+        body, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+
+    media = content["data"]["productMediaCreate"]["product"]["media"]
+    assert len(media) == 1
+    assert media[0]["url"] == "https://www.videohosting.com/SomeVideoID"
+    assert media[0]["alt"] == "Test Alt Text"
+    assert media[0]["type"] == "VIDEO_UNKNOWN"
+
+
+def test_invalid_product_media_create_mutation(
     staff_api_client, product, permission_manage_products
 ):
     query = """
@@ -6029,7 +6121,7 @@ def test_product_image_update_mutation(
     assert mock_create_thumbnails.call_count == 0
 
 
-def test_product_image_delete(
+def test_product_media_delete(
     staff_api_client, product_with_image, permission_manage_products
 ):
     product = product_with_image

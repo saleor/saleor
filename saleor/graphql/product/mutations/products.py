@@ -15,8 +15,7 @@ from ....core.permissions import ProductPermissions, ProductTypePermissions
 from ....core.utils.editorjs import clean_editor_js
 from ....order import OrderStatus
 from ....order import models as order_models
-from ....product import ProductMediaTypes
-from ....product import models
+from ....product import ProductMediaTypes, models
 from ....product.error_codes import CollectionErrorCode, ProductErrorCode
 from ....product.tasks import (
     update_product_discounted_price_task,
@@ -38,11 +37,11 @@ from ...core.scalars import WeightScalar
 from ...core.types import SeoInput, Upload
 from ...core.types.common import CollectionError, ProductError
 from ...core.utils import (
+    check_video_url,
     clean_seo_fields,
     from_global_id_strict_type,
     get_duplicated_values,
     validate_image_file,
-    validate_youtube_url,
     validate_slug_and_generate_if_needed,
 )
 from ...core.utils.reordering import perform_reordering
@@ -1196,32 +1195,36 @@ class ProductMediaCreate(BaseMutation):
         error_type_field = "product_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        data = data.get("input")
-        product = cls.get_node_or_error(
-            info, data["product"], field="product", only_type=Product
-        )
-
+    def validate_input(cls, info, data):
         image = data.get("image")
         video_url = data.get("video_url")
+
         if not image and not video_url:
             raise ValidationError("Image or video is required.")
         if image and video_url:
             raise ValidationError("Only one is required.")
 
-        if image and not video_url:
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        data = data.get("input")
+        cls.validate_input(info, data)
+        product = cls.get_node_or_error(
+            info, data["product"], field="product", only_type=Product
+        )
+
+        alt = data.get("alt", "")
+        image = data.get("image")
+        video_url = data.get("video_url")
+        if image:
             image_data = info.context.FILES.get(image)
             validate_image_file(image_data, "image")
             media = product.media.create(
-                image=image_data, alt=data.get("alt", ""), type=ProductMediaTypes.IMAGE
+                image=image_data, alt=alt, type=ProductMediaTypes.IMAGE
             )
             create_product_thumbnails.delay(media.pk)
-
-        if video_url and not image:
-            video_url = validate_youtube_url(video_url, "video_url")
-            media = product.media.create(
-                video_url=video_url, type=ProductMediaTypes.VIDEO_YOUTUBE
-            )
+        elif video_url:
+            video_url, video_type = check_video_url(video_url, "video_url")
+            media = product.media.create(video_url=video_url, alt=alt, type=video_type)
 
         product = ChannelContext(node=product, channel_slug=None)
         return ProductMediaCreate(product=product, media=media)
