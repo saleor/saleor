@@ -59,6 +59,30 @@ from ..utils import (
     get_used_variants_attribute_values,
 )
 
+T_INPUT_MAP = List[Tuple[attribute_models.Attribute, AttrValuesInput]]
+
+
+class AttributeValueInput(InputObjectType):
+    id = graphene.ID(description="ID of the selected attribute.")
+    values = graphene.List(
+        graphene.String,
+        required=False,
+        description=(
+            "The value or slug of an attribute to resolve. "
+            "If the passed value is non-existent, it will be created."
+        ),
+    )
+    file = graphene.String(
+        required=False,
+        description="URL of the file attribute. Every time, a new value is created.",
+    )
+    content_type = graphene.String(required=False, description="File content type.")
+    references = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of entity IDs that will be used as references.",
+        required=False,
+    )
+
 
 class CategoryInput(graphene.InputObjectType):
     description = graphene.JSONString(description="Category description (JSON).")
@@ -67,6 +91,7 @@ class CategoryInput(graphene.InputObjectType):
     seo = SeoInput(description="Search engine optimization fields.")
     background_image = Upload(description="Background image file.")
     background_image_alt = graphene.String(description="Alt text for an image.")
+    attributes = graphene.List(AttributeValueInput, description="List of attributes.")
 
 
 class CategoryCreate(ModelMutation):
@@ -108,8 +133,24 @@ class CategoryCreate(ModelMutation):
         if data.get("background_image"):
             image_data = info.context.FILES.get(data["background_image"])
             validate_image_file(image_data, "background_image")
+        attributes = data.get("attributes")
+        if attributes:
+            try:
+                cleaned_input["attributes"] = cls.clean_attributes(
+                    attributes, info.context.site.settings
+                )
+            except ValidationError as exc:
+                raise ValidationError({"attributes": exc})
         clean_seo_fields(cleaned_input)
         return cleaned_input
+
+    @classmethod
+    def clean_attributes(cls, attributes: dict, site_settings) -> T_INPUT_MAP:
+        attributes_qs = attribute_models.Attribute.objects.filter(
+            category_attributes__site_settings=site_settings
+        )
+        attributes = AttributeAssignmentMixin.clean_input(attributes, attributes_qs)
+        return attributes
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
@@ -122,6 +163,11 @@ class CategoryCreate(ModelMutation):
         instance.save()
         if cleaned_input.get("background_image"):
             create_category_background_image_thumbnails.delay(instance.pk)
+        attributes = cleaned_input.get("attributes")
+        if attributes:
+            AttributeAssignmentMixin.save(
+                instance, attributes, info.context.site.settings
+            )
 
 
 class CategoryUpdate(CategoryCreate):
@@ -448,28 +494,6 @@ class CollectionRemoveProducts(BaseMutation):
         )
 
 
-class AttributeValueInput(InputObjectType):
-    id = graphene.ID(description="ID of the selected attribute.")
-    values = graphene.List(
-        graphene.String,
-        required=False,
-        description=(
-            "The value or slug of an attribute to resolve. "
-            "If the passed value is non-existent, it will be created."
-        ),
-    )
-    file = graphene.String(
-        required=False,
-        description="URL of the file attribute. Every time, a new value is created.",
-    )
-    content_type = graphene.String(required=False, description="File content type.")
-    references = graphene.List(
-        graphene.NonNull(graphene.ID),
-        description="List of entity IDs that will be used as references.",
-        required=False,
-    )
-
-
 class ProductInput(graphene.InputObjectType):
     attributes = graphene.List(AttributeValueInput, description="List of attributes.")
     category = graphene.ID(description="ID of the product's category.", name="category")
@@ -503,9 +527,6 @@ class ProductCreateInput(ProductInput):
         name="productType",
         required=True,
     )
-
-
-T_INPUT_MAP = List[Tuple[attribute_models.Attribute, AttrValuesInput]]
 
 
 class ProductCreate(ModelMutation):

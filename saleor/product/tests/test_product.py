@@ -59,8 +59,8 @@ def test_filtering_by_attribute(
     color_2 = color_attribute.values.last()
 
     # Associate color to a product and a variant
-    associate_attribute_values_to_instance(product_a, color_attribute, color)
-    associate_attribute_values_to_instance(variant_b, color_attribute, color)
+    associate_attribute_values_to_instance(product_a, color_attribute, [color])
+    associate_attribute_values_to_instance(variant_b, color_attribute, [color])
 
     product_qs = models.Product.objects.all().values_list("pk", flat=True)
 
@@ -69,7 +69,7 @@ def test_filtering_by_attribute(
     assert product_a.pk in list(filtered)
     assert product_b.pk in list(filtered)
 
-    associate_attribute_values_to_instance(product_a, color_attribute, color_2)
+    associate_attribute_values_to_instance(product_a, color_attribute, [color_2])
 
     filters = {color_attribute.pk: [color.pk]}
     filtered = filter_products_by_attributes_values(product_qs, filters)
@@ -91,7 +91,7 @@ def test_filtering_by_attribute(
     # Associate additional attribute to a product
     size = size_attribute.values.first()
     product_type_a.product_attributes.add(size_attribute)
-    associate_attribute_values_to_instance(product_a, size_attribute, size)
+    associate_attribute_values_to_instance(product_a, size_attribute, [size])
 
     # Filter by multiple attributes
     filters = {color_attribute.pk: [color_2.pk], size_attribute.pk: [size.pk]}

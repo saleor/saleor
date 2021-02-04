@@ -89,7 +89,7 @@ def test_get_products_relations_data_attribute_ids(
         product_type_product_reference_attribute,
     )
     associate_attribute_values_to_instance(
-        product, file_attribute, file_attribute.values.first()
+        product, file_attribute, [file_attribute.values.first()]
     )
     page_ref_value = AttributeValue.objects.create(
         attribute=product_type_page_reference_attribute,
@@ -97,7 +97,7 @@ def test_get_products_relations_data_attribute_ids(
         name=page.title,
     )
     associate_attribute_values_to_instance(
-        product, product_type_page_reference_attribute, page_ref_value
+        product, product_type_page_reference_attribute, [page_ref_value]
     )
     product_ref_value = AttributeValue.objects.create(
         attribute=product_type_product_reference_attribute,
@@ -105,7 +105,7 @@ def test_get_products_relations_data_attribute_ids(
         name=product_list[1].name,
     )
     associate_attribute_values_to_instance(
-        product, product_type_product_reference_attribute, product_ref_value
+        product, product_type_product_reference_attribute, [product_ref_value]
     )
 
     qs = Product.objects.all()
@@ -163,7 +163,7 @@ def test_prepare_products_relations_data(
         file_attribute, product_type_page_reference_attribute
     )
     associate_attribute_values_to_instance(
-        product_with_image, file_attribute, file_attribute.values.first()
+        product_with_image, file_attribute, [file_attribute.values.first()]
     )
     ref_value = AttributeValue.objects.create(
         attribute=product_type_page_reference_attribute,
@@ -171,7 +171,7 @@ def test_prepare_products_relations_data(
         name=page.title,
     )
     associate_attribute_values_to_instance(
-        product_with_image, product_type_page_reference_attribute, ref_value
+        product_with_image, product_type_page_reference_attribute, [ref_value]
     )
 
     collection_list[0].products.add(product_with_image)
@@ -359,7 +359,7 @@ def test_get_variants_relations_data_attribute_ids(
     )
     variant = product.variants.first()
     associate_attribute_values_to_instance(
-        variant, file_attribute, file_attribute.values.first()
+        variant, file_attribute, [file_attribute.values.first()]
     )
     # add page reference attribute
     page_ref_value = AttributeValue.objects.create(
@@ -368,7 +368,7 @@ def test_get_variants_relations_data_attribute_ids(
         name=page.title,
     )
     associate_attribute_values_to_instance(
-        variant, product_type_page_reference_attribute, page_ref_value
+        variant, product_type_page_reference_attribute, [page_ref_value]
     )
     # add product reference attribute
     product_ref_value = AttributeValue.objects.create(
@@ -377,7 +377,7 @@ def test_get_variants_relations_data_attribute_ids(
         name=product_list[1].name,
     )
     associate_attribute_values_to_instance(
-        variant, product_type_product_reference_attribute, product_ref_value
+        variant, product_type_product_reference_attribute, [product_ref_value]
     )
 
     qs = Product.objects.all()
@@ -496,7 +496,7 @@ def test_prepare_variants_relations_data(
     )
     variant = product_1.variants.first()
     associate_attribute_values_to_instance(
-        variant, file_attribute, file_attribute.values.first()
+        variant, file_attribute, [file_attribute.values.first()]
     )
     # add page reference attribute
     page_ref_value = AttributeValue.objects.create(
@@ -505,7 +505,7 @@ def test_prepare_variants_relations_data(
         name=page.title,
     )
     associate_attribute_values_to_instance(
-        variant, product_type_page_reference_attribute, page_ref_value
+        variant, product_type_page_reference_attribute, [page_ref_value]
     )
     # add prodcut reference attribute
     product_ref_value = AttributeValue.objects.create(
@@ -514,7 +514,7 @@ def test_prepare_variants_relations_data(
         name=product.name,
     )
     associate_attribute_values_to_instance(
-        variant, product_type_product_reference_attribute, product_ref_value
+        variant, product_type_product_reference_attribute, [product_ref_value]
     )
 
     qs = Product.objects.all()

@@ -244,11 +244,9 @@ def site_settings(db, settings) -> SiteSettings:
 
 
 @pytest.fixture
-def site_settings_with_category_attributes(
-    site_settings, page_type_product_reference_attribute
-):
+def site_settings_with_category_attributes(site_settings, size_page_attribute):
     AttributeCategory.objects.create(
-        attribute=page_type_product_reference_attribute,
+        attribute=size_page_attribute,
         site_settings=site_settings,
     )
     return site_settings
@@ -1007,6 +1005,16 @@ def category(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
+def category_with_attribute(category, site_settings_with_category_attributes):
+    attr = site_settings_with_category_attributes.category_attributes.first().attribute
+    value = attr.values.first()
+    associate_attribute_values_to_instance(
+        category, attr, [value], site_settings_with_category_attributes
+    )
+    return category
+
+
+@pytest.fixture
 def category_with_image(db, image, media_root):  # pylint: disable=W0613
     return Category.objects.create(
         name="Default", slug="default", background_image=image
@@ -1035,7 +1043,7 @@ def categories_tree(db, product_type, channel_USD):  # pylint: disable=W0613
         visible_in_listings=True,
     )
 
-    associate_attribute_values_to_instance(product, product_attr, attr_value)
+    associate_attribute_values_to_instance(product, product_attr, [attr_value])
     return parent
 
 
@@ -1153,7 +1161,7 @@ def product(product_type, category, warehouse, channel_USD):
         available_for_purchase=datetime.date(1999, 1, 1),
     )
 
-    associate_attribute_values_to_instance(product, product_attr, product_attr_value)
+    associate_attribute_values_to_instance(product, product_attr, [product_attr_value])
 
     variant_attr = product_type.variant_attributes.first()
     variant_attr_value = variant_attr.values.first()
@@ -1168,7 +1176,7 @@ def product(product_type, category, warehouse, channel_USD):
     )
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=10)
 
-    associate_attribute_values_to_instance(variant, variant_attr, variant_attr_value)
+    associate_attribute_values_to_instance(variant, variant_attr, [variant_attr_value])
     return product
 
 
@@ -1313,10 +1321,10 @@ def product_with_variant_with_two_attributes(
     )
 
     associate_attribute_values_to_instance(
-        variant, color_attribute, color_attribute.values.first()
+        variant, color_attribute, [color_attribute.values.first()]
     )
     associate_attribute_values_to_instance(
-        variant, size_attribute, size_attribute.values.first()
+        variant, size_attribute, [size_attribute.values.first()]
     )
 
     return product
@@ -1362,7 +1370,7 @@ def product_with_variant_with_file_attribute(
     )
 
     associate_attribute_values_to_instance(
-        variant, file_attribute, file_attribute.values.first()
+        variant, file_attribute, [file_attribute.values.first()]
     )
 
     return product
@@ -1388,7 +1396,7 @@ def product_with_multiple_values_attributes(product, product_type, category) -> 
     product_type.product_attributes.clear()
     product_type.product_attributes.add(attribute)
 
-    associate_attribute_values_to_instance(product, attribute, attr_val_1, attr_val_2)
+    associate_attribute_values_to_instance(product, attribute, [attr_val_1, attr_val_2])
     return product
 
 
@@ -1689,7 +1697,7 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
     Stock.objects.bulk_create(stocks)
 
     for product in products:
-        associate_attribute_values_to_instance(product, product_attr, attr_value)
+        associate_attribute_values_to_instance(product, product_attr, [attr_value])
 
     return products
 
@@ -1914,7 +1922,7 @@ def unavailable_product_with_variant(product_type, category, warehouse, channel_
     )
     Stock.objects.create(product_variant=variant, warehouse=warehouse, quantity=10)
 
-    associate_attribute_values_to_instance(variant, variant_attr, variant_attr_value)
+    associate_attribute_values_to_instance(variant, variant_attr, [variant_attr_value])
     return product
 
 
@@ -2881,7 +2889,7 @@ def page(db, page_type):
     page_attr = page_type.page_attributes.first()
     page_attr_value = page_attr.values.first()
 
-    associate_attribute_values_to_instance(page, page_attr, page_attr_value)
+    associate_attribute_values_to_instance(page, page_attr, [page_attr_value])
 
     return page
 

@@ -77,7 +77,7 @@ def test_sort_page_attribute_values(
         ]
     )
     associate_attribute_values_to_instance(
-        page, page_type_page_reference_attribute, *attr_values
+        page, page_type_page_reference_attribute, attr_values
     )
 
     variables = {
@@ -142,7 +142,7 @@ def test_sort_page_attribute_values_invalid_attribute_id(
         ]
     )
     associate_attribute_values_to_instance(
-        page, page_type_page_reference_attribute, *attr_values
+        page, page_type_page_reference_attribute, attr_values
     )
 
     variables = {
@@ -203,7 +203,7 @@ def test_sort_page_attribute_values_invalid_value_id(
         ]
     )
     associate_attribute_values_to_instance(
-        page, page_type_page_reference_attribute, *attr_values
+        page, page_type_page_reference_attribute, attr_values
     )
 
     invalid_value_id = graphene.Node.to_global_id(
