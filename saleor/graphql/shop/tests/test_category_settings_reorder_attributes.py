@@ -28,7 +28,7 @@ def test_category_settings_reorder_attrs_by_staff(
     tag_page_attribute,
     page_type_product_reference_attribute,
     page_type_page_reference_attribute,
-    permission_manage_settings,
+    permission_manage_page_types_and_attributes,
 ):
     # given
     query = CATEGORY_SETTINGS_REORDER_ATTRIBUTES_MUTATION
@@ -60,7 +60,7 @@ def test_category_settings_reorder_attrs_by_staff(
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=(permission_manage_settings,)
+        query, variables, permissions=(permission_manage_page_types_and_attributes,)
     )
     content = get_graphql_content(response)
 
@@ -85,7 +85,7 @@ def test_category_settings_reorder_attrs_by_app(
     tag_page_attribute,
     page_type_product_reference_attribute,
     page_type_page_reference_attribute,
-    permission_manage_settings,
+    permission_manage_page_types_and_attributes,
 ):
     # given
     query = CATEGORY_SETTINGS_REORDER_ATTRIBUTES_MUTATION
@@ -117,7 +117,7 @@ def test_category_settings_reorder_attrs_by_app(
 
     # when
     response = app_api_client.post_graphql(
-        query, variables, permissions=(permission_manage_settings,)
+        query, variables, permissions=(permission_manage_page_types_and_attributes,)
     )
     content = get_graphql_content(response)
 

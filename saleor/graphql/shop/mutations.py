@@ -8,7 +8,7 @@ from ...account import models as account_models
 from ...attribute import AttributeType
 from ...attribute import models as attribute_models
 from ...core.error_codes import ShopErrorCode
-from ...core.permissions import OrderPermissions, SitePermissions
+from ...core.permissions import OrderPermissions, PageTypePermissions, SitePermissions
 from ...core.utils.url import validate_storefront_url
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
@@ -201,7 +201,7 @@ class CategorySettingsUpdate(BaseMutation):
 
     class Meta:
         description = "Updates category settings."
-        permissions = (SitePermissions.MANAGE_SETTINGS,)
+        permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
         error_type_class = ShopError
         error_type_field = "shop_errors"
 
@@ -310,7 +310,7 @@ class CategorySettingsReorderAttributes(BaseReorderAttributesMutation):
 
     class Meta:
         description = "Reorder the category settings attributes."
-        permissions = (SitePermissions.MANAGE_SETTINGS,)
+        permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
         error_type_class = ShopError
         error_type_field = "shop_errors"
 

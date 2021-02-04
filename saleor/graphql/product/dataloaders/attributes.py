@@ -13,7 +13,7 @@ from ....attribute.models import (
     AttributeProduct,
     AttributeVariant,
 )
-from ....core.permissions import ProductPermissions, SitePermissions
+from ....core.permissions import PageTypePermissions, ProductPermissions
 from ...attribute.dataloaders import AttributesByAttributeId, AttributeValueByIdLoader
 from ...core.dataloaders import DataLoader
 from ...utils import get_user_or_app_from_context
@@ -129,7 +129,9 @@ class AttributeCategoriesBySiteSettingsIdLoader(DataLoader):
 
     def batch_load(self, keys):
         requestor = get_user_or_app_from_context(self.context)
-        if requestor.is_active and requestor.has_perm(SitePermissions.MANAGE_SETTINGS):
+        if requestor.is_active and requestor.has_perm(
+            PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES
+        ):
             qs = AttributeCategory.objects.all()
         else:
             qs = AttributeCategory.objects.filter(attribute__visible_in_storefront=True)
