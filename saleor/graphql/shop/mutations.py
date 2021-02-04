@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, List
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from ...account import models as account_models
 from ...attribute import AttributeType
@@ -11,11 +12,14 @@ from ...core.permissions import OrderPermissions, SitePermissions
 from ...core.utils.url import validate_storefront_url
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
+from ..attribute.mutations import BaseReorderAttributesMutation
 from ..attribute.types import Attribute
 from ..core.enums import WeightUnitsEnum
+from ..core.inputs import ReorderInput
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import OrderSettingsError, ShopError
 from ..core.utils import get_duplicates_ids
+from ..core.utils.reordering import perform_reordering
 from ..utils import resolve_global_ids_to_primary_keys
 from .types import CategorySettings, OrderSettings, Shop
 
@@ -297,6 +301,44 @@ class CategorySettingsUpdate(BaseMutation):
                     for attr in add_attr
                 ]
             )
+
+
+class CategorySettingsReorderAttributes(BaseReorderAttributesMutation):
+    category_settings = graphene.Field(
+        CategorySettings, description="Reordered category settings."
+    )
+
+    class Meta:
+        description = "Reorder the category settings attributes."
+        permissions = (SitePermissions.MANAGE_SETTINGS,)
+        error_type_class = ShopError
+        error_type_field = "shop_errors"
+
+    class Arguments:
+        moves = graphene.List(
+            ReorderInput,
+            required=True,
+            description="The list of attribute reordering operations.",
+        )
+
+    @classmethod
+    def perform_mutation(cls, _root, info, moves):
+        site_settings = info.context.site.settings
+
+        attributes_m2m = attribute_models.AttributeCategory.objects.filter(
+            site_settings=site_settings
+        )
+
+        try:
+            operations = cls.prepare_operations(moves, attributes_m2m)
+        except ValidationError as error:
+            error.code = ShopErrorCode.NOT_FOUND.value
+            raise ValidationError({"moves": error})
+
+        with transaction.atomic():
+            perform_reordering(attributes_m2m, operations)
+
+        return cls(category_settings=CategorySettings())
 
 
 class ShopFetchTaxRates(BaseMutation):
