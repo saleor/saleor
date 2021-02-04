@@ -4847,9 +4847,9 @@ input ShippingPriceInput {
   minimumDeliveryDays: Int
   type: ShippingMethodTypeEnum
   shippingZone: ID
-  addPostalCodeRules: [ShippingPostalCodeRulesCreateInputRange!]!
-  deletePostalCodeRules: [ID!]!
-  inclusionType: PostalCodeRuleInclusionTypeEnum!
+  addPostalCodeRules: [ShippingPostalCodeRulesCreateInputRange!]
+  deletePostalCodeRules: [ID!]
+  inclusionType: PostalCodeRuleInclusionTypeEnum
 }
 
 type ShippingPriceRemoveProductFromExclude {

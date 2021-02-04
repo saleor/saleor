@@ -49,16 +49,13 @@ class ShippingPriceInput(graphene.InputObjectType):
     )
     add_postal_code_rules = graphene.List(
         graphene.NonNull(ShippingPostalCodeRulesCreateInputRange),
-        required=True,
         description="Postal code rules to add.",
     )
     delete_postal_code_rules = graphene.List(
         graphene.NonNull(graphene.ID),
-        required=True,
         description="Postal code rules to delete.",
     )
     inclusion_type = PostalCodeRuleInclusionTypeEnum(
-        required=True,
         description="Inclusion type for currently assigned postal code rules.",
     )
 
@@ -225,10 +222,22 @@ class ShippingPriceMixin:
         if errors:
             raise ValidationError(errors)
 
-        _, postal_code_rules_db_ids = resolve_global_ids_to_primary_keys(
-            data["delete_postal_code_rules"], ShippingMethodPostalCodeRule
-        )
-        cleaned_input["delete_postal_code_rules"] = postal_code_rules_db_ids
+        if cleaned_input.get("delete_postal_code_rules"):
+            _, postal_code_rules_db_ids = resolve_global_ids_to_primary_keys(
+                data["delete_postal_code_rules"], ShippingMethodPostalCodeRule
+            )
+            cleaned_input["delete_postal_code_rules"] = postal_code_rules_db_ids
+        if cleaned_input.get("add_postal_code_rules") and not cleaned_input.get(
+            "inclusion_type"
+        ):
+            raise ValidationError(
+                {
+                    "inclusion_type": ValidationError(
+                        "This field is required.",
+                        code=ShippingErrorCode.REQUIRED,
+                    )
+                }
+            )
 
         return cleaned_input
 
@@ -328,23 +337,24 @@ class ShippingPriceMixin:
     def save(cls, info, instance, cleaned_input):
         super().save(info, instance, cleaned_input)
 
-        inclusion_type = cleaned_input["inclusion_type"]
-        for postal_code_rule in cleaned_input["add_postal_code_rules"]:
-            start = postal_code_rule["start"]
-            end = postal_code_rule.get("end")
-            try:
-                instance.postal_code_rules.create(
-                    start=start, end=end, inclusion_type=inclusion_type
-                )
-            except IntegrityError:
-                raise ValidationError(
-                    {
-                        "addPostalCodeRules": ValidationError(
-                            f"Entry start: {start}, end: {end} already exists.",
-                            code=ShippingErrorCode.ALREADY_EXISTS.value,
-                        )
-                    }
-                )
+        if cleaned_input.get("add_postal_code_rules"):
+            inclusion_type = cleaned_input["inclusion_type"]
+            for postal_code_rule in cleaned_input["add_postal_code_rules"]:
+                start = postal_code_rule["start"]
+                end = postal_code_rule.get("end")
+                try:
+                    instance.postal_code_rules.create(
+                        start=start, end=end, inclusion_type=inclusion_type
+                    )
+                except IntegrityError:
+                    raise ValidationError(
+                        {
+                            "addPostalCodeRules": ValidationError(
+                                f"Entry start: {start}, end: {end} already exists.",
+                                code=ShippingErrorCode.ALREADY_EXISTS.value,
+                            )
+                        }
+                    )
 
         delete_postal_code_rules = cleaned_input.get("delete_postal_code_rules")
         if delete_postal_code_rules:

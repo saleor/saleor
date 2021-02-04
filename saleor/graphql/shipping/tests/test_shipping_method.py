@@ -678,9 +678,9 @@ PRICE_BASED_SHIPPING_QUERY = """
         $shippingZone: ID!,
         $maximumDeliveryDays: Int,
         $minimumDeliveryDays: Int,
-        $addPostalCodeRules: [ShippingPostalCodeRulesCreateInputRange!]!
-        $deletePostalCodeRules: [ID!]!
-        $inclusionType: PostalCodeRuleInclusionTypeEnum!
+        $addPostalCodeRules: [ShippingPostalCodeRulesCreateInputRange!]
+        $deletePostalCodeRules: [ID!]
+        $inclusionType: PostalCodeRuleInclusionTypeEnum
     ) {
     shippingPriceCreate(
         input: {
@@ -782,9 +782,6 @@ def test_create_shipping_method_minimum_delivery_days_higher_than_maximum(
         "type": ShippingMethodTypeEnum.PRICE.name,
         "maximumDeliveryDays": max_del_days,
         "minimumDeliveryDays": min_del_days,
-        "addPostalCodeRules": [],
-        "deletePostalCodeRules": [],
-        "inclusionType": PostalCodeRuleInclusionTypeEnum.EXCLUDE.name,
     }
     response = staff_api_client.post_graphql(
         PRICE_BASED_SHIPPING_QUERY, variables, permissions=[permission_manage_shipping]
@@ -813,9 +810,6 @@ def test_create_shipping_method_minimum_delivery_days_below_0(
         "type": ShippingMethodTypeEnum.PRICE.name,
         "maximumDeliveryDays": max_del_days,
         "minimumDeliveryDays": min_del_days,
-        "addPostalCodeRules": [],
-        "deletePostalCodeRules": [],
-        "inclusionType": PostalCodeRuleInclusionTypeEnum.EXCLUDE.name,
     }
     response = staff_api_client.post_graphql(
         PRICE_BASED_SHIPPING_QUERY, variables, permissions=[permission_manage_shipping]
@@ -844,9 +838,6 @@ def test_create_shipping_method_maximum_delivery_days_below_0(
         "type": ShippingMethodTypeEnum.PRICE.name,
         "maximumDeliveryDays": max_del_days,
         "minimumDeliveryDays": min_del_days,
-        "addPostalCodeRules": [],
-        "deletePostalCodeRules": [],
-        "inclusionType": PostalCodeRuleInclusionTypeEnum.EXCLUDE.name,
     }
     response = staff_api_client.post_graphql(
         PRICE_BASED_SHIPPING_QUERY, variables, permissions=[permission_manage_shipping]
@@ -880,7 +871,6 @@ def test_create_shipping_method_postal_code_duplicate_entry(
         "maximumDeliveryDays": max_del_days,
         "minimumDeliveryDays": min_del_days,
         "addPostalCodeRules": postal_code_rules,
-        "deletePostalCodeRules": [],
         "inclusionType": PostalCodeRuleInclusionTypeEnum.EXCLUDE.name,
     }
     response = staff_api_client.post_graphql(
@@ -895,6 +885,38 @@ def test_create_shipping_method_postal_code_duplicate_entry(
     assert errors[0]["field"] == "addPostalCodeRules"
 
 
+def test_create_shipping_method_postal_code_missing_inclusion_type(
+    staff_api_client,
+    shipping_zone,
+    permission_manage_shipping,
+):
+    name = "DHL"
+    shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+    max_del_days = 10
+    min_del_days = 3
+    postal_code_rules = [
+        {"start": "HB3", "end": "HB6"},
+    ]
+    variables = {
+        "shippingZone": shipping_zone_id,
+        "name": name,
+        "type": ShippingMethodTypeEnum.PRICE.name,
+        "maximumDeliveryDays": max_del_days,
+        "minimumDeliveryDays": min_del_days,
+        "addPostalCodeRules": postal_code_rules,
+    }
+    response = staff_api_client.post_graphql(
+        PRICE_BASED_SHIPPING_QUERY, variables, permissions=[permission_manage_shipping]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["shippingPriceCreate"]
+    errors = data["shippingErrors"]
+    assert not data["shippingMethod"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ShippingErrorCode.REQUIRED.name
+    assert errors[0]["field"] == "inclusionType"
+
+
 WEIGHT_BASED_SHIPPING_QUERY = """
     mutation createShippingPrice(
         $type: ShippingMethodTypeEnum
@@ -902,18 +924,12 @@ WEIGHT_BASED_SHIPPING_QUERY = """
         $shippingZone: ID!
         $maximumOrderWeight: WeightScalar
         $minimumOrderWeight: WeightScalar
-        $addPostalCodeRules: [ShippingPostalCodeRulesCreateInputRange!]!
-        $deletePostalCodeRules: [ID!]!
-        $inclusionType: PostalCodeRuleInclusionTypeEnum!
         ) {
         shippingPriceCreate(
             input: {
                 name: $name,shippingZone: $shippingZone,
                 minimumOrderWeight:$minimumOrderWeight,
                 maximumOrderWeight: $maximumOrderWeight,
-                addPostalCodeRules: $addPostalCodeRules,
-                deletePostalCodeRules: $deletePostalCodeRules,
-                inclusionType: $inclusionType,
                 type: $type
             }) {
             shippingErrors {
@@ -966,9 +982,6 @@ def test_create_weight_based_shipping_method(
         "minimumOrderWeight": min_weight,
         "maximumOrderWeight": max_weight,
         "type": ShippingMethodTypeEnum.WEIGHT.name,
-        "addPostalCodeRules": [],
-        "deletePostalCodeRules": [],
-        "inclusionType": PostalCodeRuleInclusionTypeEnum.EXCLUDE.name,
     }
     response = staff_api_client.post_graphql(
         WEIGHT_BASED_SHIPPING_QUERY, variables, permissions=[permission_manage_shipping]
@@ -990,9 +1003,6 @@ def test_create_weight_shipping_method_errors(
         "minimumOrderWeight": 20,
         "maximumOrderWeight": 15,
         "type": ShippingMethodTypeEnum.WEIGHT.name,
-        "addPostalCodeRules": [],
-        "deletePostalCodeRules": [],
-        "inclusionType": PostalCodeRuleInclusionTypeEnum.EXCLUDE.name,
     }
     response = staff_api_client.post_graphql(
         WEIGHT_BASED_SHIPPING_QUERY, variables, permissions=[permission_manage_shipping]
@@ -1011,9 +1021,6 @@ def test_create_shipping_method_with_negative_min_weight(
         "name": "DHL",
         "minimumOrderWeight": -20,
         "type": ShippingMethodTypeEnum.WEIGHT.name,
-        "addPostalCodeRules": [],
-        "deletePostalCodeRules": [],
-        "inclusionType": PostalCodeRuleInclusionTypeEnum.EXCLUDE.name,
     }
     response = staff_api_client.post_graphql(
         WEIGHT_BASED_SHIPPING_QUERY, variables, permissions=[permission_manage_shipping]
@@ -1034,9 +1041,6 @@ def test_create_shipping_method_with_negative_max_weight(
         "name": "DHL",
         "maximumOrderWeight": -15,
         "type": ShippingMethodTypeEnum.WEIGHT.name,
-        "addPostalCodeRules": [],
-        "deletePostalCodeRules": [],
-        "inclusionType": PostalCodeRuleInclusionTypeEnum.EXCLUDE.name,
     }
     response = staff_api_client.post_graphql(
         WEIGHT_BASED_SHIPPING_QUERY, variables, permissions=[permission_manage_shipping]
@@ -1057,9 +1061,9 @@ UPDATE_SHIPPING_PRICE_MUTATION = """
         $minimumDeliveryDays: Int,
         $maximumOrderWeight: WeightScalar,
         $minimumOrderWeight: WeightScalar,
-        $addPostalCodeRules: [ShippingPostalCodeRulesCreateInputRange!]!,
-        $deletePostalCodeRules: [ID!]!,
-        $inclusionType: PostalCodeRuleInclusionTypeEnum!,
+        $addPostalCodeRules: [ShippingPostalCodeRulesCreateInputRange!],
+        $deletePostalCodeRules: [ID!],
+        $inclusionType: PostalCodeRuleInclusionTypeEnum,
     ) {
         shippingPriceUpdate(
             id: $id, input: {
@@ -1111,9 +1115,6 @@ def test_update_shipping_method(
         "type": ShippingMethodTypeEnum.PRICE.name,
         "maximumDeliveryDays": max_del_days,
         "minimumDeliveryDays": min_del_days,
-        "addPostalCodeRules": [],
-        "deletePostalCodeRules": [],
-        "inclusionType": PostalCodeRuleInclusionTypeEnum.EXCLUDE.name,
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_shipping]
@@ -1152,9 +1153,7 @@ def test_update_shipping_method_postal_codes(
         "type": ShippingMethodTypeEnum.PRICE.name,
         "maximumDeliveryDays": max_del_days,
         "minimumDeliveryDays": min_del_days,
-        "addPostalCodeRules": [],
         "deletePostalCodeRules": [postal_code_rule_id],
-        "inclusionType": PostalCodeRuleInclusionTypeEnum.EXCLUDE.name,
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_shipping]
