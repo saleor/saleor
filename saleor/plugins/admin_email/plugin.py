@@ -103,7 +103,7 @@ class AdminEmailPlugin(BasePlugin):
             "label": "Staff order confirmation subject",
         },
         constants.STAFF_ORDER_CONFIRMATION_TEMPLATE_FIELD: {
-            "type": ConfigurationTypeField.STRING,
+            "type": ConfigurationTypeField.MULTILINE,
             "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "Staff order confirmation template",
         },
@@ -113,7 +113,7 @@ class AdminEmailPlugin(BasePlugin):
             "label": "Set staff password subject",
         },
         constants.SET_STAFF_PASSWORD_TEMPLATE_FIELD: {
-            "type": ConfigurationTypeField.STRING,
+            "type": ConfigurationTypeField.MULTILINE,
             "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "Set staff password email template",
         },
@@ -123,7 +123,7 @@ class AdminEmailPlugin(BasePlugin):
             "label": "CSV product export success subject",
         },
         constants.CSV_PRODUCT_EXPORT_SUCCESS_TEMPLATE_FIELD: {
-            "type": ConfigurationTypeField.STRING,
+            "type": ConfigurationTypeField.MULTILINE,
             "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "CSV product export success template",
         },
@@ -133,7 +133,7 @@ class AdminEmailPlugin(BasePlugin):
             "label": "CSV export failed template",
         },
         constants.CSV_EXPORT_FAILED_TEMPLATE_FIELD: {
-            "type": ConfigurationTypeField.STRING,
+            "type": ConfigurationTypeField.MULTILINE,
             "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "CSV export failed template",
         },
