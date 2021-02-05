@@ -16,7 +16,7 @@ from ..checkout.error_codes import CheckoutErrorCode
 from ..core.exceptions import InsufficientStock
 from ..core.taxes import TaxError, zero_taxed_money
 from ..core.utils.url import validate_storefront_url
-from ..discount import DiscountInfo
+from ..discount import DiscountInfo, DiscountValueType, OrderDiscountType
 from ..discount.models import NotApplicable
 from ..discount.utils import (
     add_voucher_usage_by_customer,
@@ -66,9 +66,6 @@ def _get_voucher_data_for_order(checkout: Checkout) -> dict:
         add_voucher_usage_by_customer(voucher, checkout.get_customer_email())
     return {
         "voucher": voucher,
-        "discount": checkout.discount,
-        "discount_name": checkout.discount_name,
-        "translated_discount_name": checkout.translated_discount_name,
     }
 
 
@@ -282,6 +279,7 @@ def _prepare_order_data(
     taxed_total.net -= cards_total
 
     taxed_total = max(taxed_total, zero_taxed_money(checkout.currency))
+    undiscounted_total = taxed_total + checkout.discount
 
     shipping_total = manager.calculate_checkout_shipping(
         checkout, lines, address, discounts
@@ -298,6 +296,7 @@ def _prepare_order_data(
             "language_code": get_language(),
             "tracking_client_id": checkout.tracking_code or "",
             "total": taxed_total,
+            "undiscounted_total": undiscounted_total,
             "shipping_tax_rate": shipping_tax_rate,
         }
     )
@@ -363,6 +362,15 @@ def _create_order(
         status=status,
         channel=checkout.channel,
     )
+    if checkout.discount:
+        order.discounts.create(
+            type=OrderDiscountType.VOUCHER,
+            value_type=DiscountValueType.FIXED,
+            value=checkout.discount.amount,
+            name=checkout.discount_name,
+            translated_name=checkout.translated_discount_name,
+        )
+
     order_lines = []
     for line_info in order_lines_info:
         line = line_info.line

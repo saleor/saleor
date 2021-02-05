@@ -2883,9 +2883,6 @@ type Order implements Node & ObjectWithMetadata {
   token: String!
   voucher: Voucher
   giftCards: [GiftCard]
-  discount: Money
-  discountName: String
-  translatedDiscountName: String
   displayGrossPrices: Boolean!
   customerNote: String!
   weight: Weight
@@ -2912,6 +2909,9 @@ type Order implements Node & ObjectWithMetadata {
   totalBalance: Money!
   userEmail: String
   isShippingRequired: Boolean!
+  discount: Money
+  discountName: String
+  translatedDiscountName: String
 }
 
 enum OrderAction {
