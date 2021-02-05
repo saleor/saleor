@@ -4,7 +4,7 @@ from ....attribute import AttributeInputType
 from ....page.error_codes import PageErrorCode
 from ....product.error_codes import ProductErrorCode
 from ...product.mutations.products import AttrValuesInput
-from ..utils import validate_attributes_input
+from ..utils.validators import validate_attributes_input
 
 
 def test_validate_attributes_input_for_product(

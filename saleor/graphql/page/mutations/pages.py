@@ -10,7 +10,7 @@ from ....attribute import AttributeType
 from ....core.permissions import PagePermissions, PageTypePermissions
 from ....page import models
 from ....page.error_codes import PageErrorCode
-from ...attribute.utils import AttributeAssignmentMixin
+from ...attribute.utils.mixins import AttributeAssignmentMixin
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types.common import PageError, SeoInput
 from ...core.utils import (
