@@ -4,7 +4,7 @@ from ....core.error_codes import ShopErrorCode
 from ...tests.utils import assert_no_permission, get_graphql_content
 
 CATEGORY_SETTINGS_UPDATE_MUTATION = """
-    mutation CategoryAttributeSettingsUpdate($input: CategoryAttributeSettingsInput!) {
+    mutation CategoryAttributeSettingsUpdate($input: AttributeSettingsInput!) {
         categoryAttributeSettingsUpdate(input: $input) {
             categoryAttributeSettings {
                 attributes {

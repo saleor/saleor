@@ -18,7 +18,7 @@ def test_category_settings_update_by_staff(
 ):
     query = """
         mutation CategoryAttributeSettingsUpdate(
-            $input: CategoryAttributeSettingsInput!
+            $input: AttributeSettingsInput!
         ) {
             categoryAttributeSettingsUpdate(input: $input) {
                 categoryAttributeSettings {

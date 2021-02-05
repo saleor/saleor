@@ -506,6 +506,11 @@ type AttributeReorderValues {
   attributeErrors: [AttributeError!]!
 }
 
+input AttributeSettingsInput {
+  addAttributes: [ID!]
+  removeAttributes: [ID!]
+}
+
 enum AttributeSortField {
   NAME
   SLUG
@@ -689,11 +694,6 @@ type Category implements Node & ObjectWithMetadata {
 
 type CategoryAttributeSettings {
   attributes: [Attribute!]!
-}
-
-input CategoryAttributeSettingsInput {
-  addAttributes: [ID!]
-  removeAttributes: [ID!]
 }
 
 type CategoryAttributeSettingsUpdate {
@@ -2590,7 +2590,7 @@ type Mutation {
   shopSettingsTranslate(input: ShopSettingsTranslationInput!, languageCode: LanguageCodeEnum!): ShopSettingsTranslate
   shopAddressUpdate(input: AddressInput): ShopAddressUpdate
   orderSettingsUpdate(input: OrderSettingsUpdateInput!): OrderSettingsUpdate
-  categoryAttributeSettingsUpdate(input: CategoryAttributeSettingsInput!): CategoryAttributeSettingsUpdate
+  categoryAttributeSettingsUpdate(input: AttributeSettingsInput!): CategoryAttributeSettingsUpdate
   categorySettingsReorderAttributes(moves: [ReorderInput]!): CategorySettingsReorderAttributes
   shippingMethodChannelListingUpdate(id: ID!, input: ShippingMethodChannelListingInput!): ShippingMethodChannelListingUpdate
   shippingMethodZipCodeRulesCreate(input: ShippingZipCodeRulesCreateInput!, shippingMethodId: ID!): ShippingZipCodeRulesCreate
