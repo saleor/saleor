@@ -22,6 +22,7 @@ from ..core.permissions import OrderPermissions
 from ..core.taxes import zero_money, zero_taxed_money
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.weight import WeightUnits, zero_weight
+from ..discount import DiscountValueType
 from ..discount.models import Voucher
 from ..giftcard.models import GiftCard
 from ..payment import ChargeStatus, TransactionKind
@@ -154,15 +155,33 @@ class Order(ModelWithMetadata):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=0,
     )
+    undiscounted_total_net_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=0,
+    )
+
     total_net = MoneyField(amount_field="total_net_amount", currency_field="currency")
+    undiscounted_total_net = MoneyField(
+        amount_field="undiscounted_total_net_amount", currency_field="currency"
+    )
 
     total_gross_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=0,
     )
+    undiscounted_total_gross_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=0,
+    )
+
     total_gross = MoneyField(
         amount_field="total_gross_amount", currency_field="currency"
+    )
+    undiscounted_total_gross = MoneyField(
+        amount_field="undiscounted_total_gross_amount", currency_field="currency"
     )
 
     total = TaxedMoneyField(
@@ -170,19 +189,17 @@ class Order(ModelWithMetadata):
         gross_amount_field="total_gross_amount",
         currency_field="currency",
     )
+    undiscounted_total = TaxedMoneyField(
+        net_amount_field="undiscounted_total_net_amount",
+        gross_amount_field="undiscounted_total_gross_amount",
+        currency_field="currency",
+    )
 
     voucher = models.ForeignKey(
         Voucher, blank=True, null=True, related_name="+", on_delete=models.SET_NULL
     )
     gift_cards = models.ManyToManyField(GiftCard, blank=True, related_name="orders")
-    discount_amount = models.DecimalField(
-        max_digits=settings.DEFAULT_MAX_DIGITS,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
-    )
-    discount = MoneyField(amount_field="discount_amount", currency_field="currency")
-    discount_name = models.CharField(max_length=255, blank=True, null=True)
-    translated_discount_name = models.CharField(max_length=255, blank=True, null=True)
+
     display_gross_prices = models.BooleanField(default=True)
     customer_note = models.TextField(blank=True, default="")
     weight = MeasurementField(
@@ -390,6 +407,21 @@ class OrderLine(models.Model):
     currency = models.CharField(
         max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
     )
+
+    unit_discount_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=0,
+    )
+    unit_discount = MoneyField(
+        amount_field="unit_discount_amount", currency_field="currency"
+    )
+    unit_discount_type = models.CharField(
+        max_length=10,
+        choices=DiscountValueType.CHOICES,
+        default=DiscountValueType.FIXED,
+    )
+    unit_discount_reason = models.TextField(blank=True)
 
     unit_price_net_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
