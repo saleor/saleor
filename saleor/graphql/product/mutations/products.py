@@ -67,7 +67,7 @@ class CategoryInput(graphene.InputObjectType):
     slug = graphene.String(description="Category slug.")
     seo = SeoInput(description="Search engine optimization fields.")
     background_image = Upload(description="Background image file.")
-    background_image_alt = graphene.String(description="Alt text for an image.")
+    background_image_alt = graphene.String(description="Alt text for a product media.")
 
 
 class CategoryCreate(ModelMutation):
@@ -1164,7 +1164,7 @@ class ProductTypeDelete(ModelDeleteMutation):
 
 
 class ProductMediaCreateInput(graphene.InputObjectType):
-    alt = graphene.String(description="Alt text for an image.")
+    alt = graphene.String(description="Alt text for a product media.")
     image = Upload(
         required=False, description="Represents an image file in a multipart request."
     )
