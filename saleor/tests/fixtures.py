@@ -31,6 +31,7 @@ from ..attribute import AttributeEntityType, AttributeInputType, AttributeType
 from ..attribute.models import (
     Attribute,
     AttributeCategory,
+    AttributeCollection,
     AttributeTranslation,
     AttributeValue,
     AttributeValueTranslation,
@@ -247,6 +248,15 @@ def site_settings(db, settings) -> SiteSettings:
 def site_settings_with_category_attributes(site_settings, size_page_attribute):
     AttributeCategory.objects.create(
         attribute=size_page_attribute,
+        site_settings=site_settings,
+    )
+    return site_settings
+
+
+@pytest.fixture
+def site_settings_with_collection_attributes(site_settings, tag_page_attribute):
+    AttributeCollection.objects.create(
+        attribute=tag_page_attribute,
         site_settings=site_settings,
     )
     return site_settings

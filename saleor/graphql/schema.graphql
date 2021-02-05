@@ -4957,6 +4957,7 @@ type Shop {
   customerSetPasswordUrl: String
   staffNotificationRecipients: [StaffNotificationRecipient]
   categoryAttributes: [Attribute!]
+  collectionAttributes: [Attribute!]
 }
 
 type ShopAddressUpdate {
