@@ -369,7 +369,9 @@ class Product(SeoModel, ModelWithMetadata):
         return json_content_to_raw_text(self.description)
 
     def get_first_image(self):
-        return self.media.filter(type=ProductMediaTypes.IMAGE).first() or None
+        all_media = self.media.all()
+        images = [media for media in all_media if media.type == ProductMediaTypes.IMAGE]
+        return images[0] if images else None
 
     @staticmethod
     def sort_by_attribute_fields() -> list:
@@ -513,8 +515,9 @@ class ProductVariant(SortableModel, ModelWithMetadata):
         return smart_text(product_display)
 
     def get_first_image(self) -> "ProductMedia":
-        image = self.media.filter(type=ProductMediaTypes.IMAGE).first()
-        return image or self.product.get_first_image()
+        all_media = self.media.all()
+        images = [media for media in all_media if media.type == ProductMediaTypes.IMAGE]
+        return images[0] if images else self.product.get_first_image()
 
     def get_ordering_queryset(self):
         return self.product.variants.all()

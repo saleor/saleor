@@ -475,7 +475,7 @@ def create_product_image(product, placeholder_dir, image_name):
     # We don't want to create duplicated product images
     if product.media.count() >= len(IMAGES_MAPPING.get(product.pk, [])):
         return None
-    product_image = ProductMedia(product=product, media=image)
+    product_image = ProductMedia(product=product, image=image)
     product_image.save()
     create_product_thumbnails.delay(product_image.pk)
     return product_image

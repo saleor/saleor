@@ -19,11 +19,11 @@ from ..filters import EnumFilter
 from ..mutations import BaseMutation
 from ..types import FilterInputObjectType
 from ..utils import (
-    check_video_url,
     clean_seo_fields,
     get_duplicated_values,
     snake_to_camel_case,
     validate_slug_and_generate_if_needed,
+    validate_video_url,
 )
 
 
@@ -284,39 +284,96 @@ def test_requestor_is_superuser_for_anonymous_user():
 
 
 @pytest.mark.parametrize(
-    "url",
+    "url, expected_video_type, expected_video_url",
     [
-        "youtu.be/dQw4w9WgXcQ",
-        "youtube.com/watch?v=dQw4w9WgXcQ",
-        "www.youtube.com/watch?v=dQw4w9WgXcQ",
-        "http://www.youtube.com/watch?v=dQw4w9WgXcQ",
-        "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-        "https://www.youtube.com/watch?v=dQw4w9WgXcQ&feature=share",
-        "https://www.youtube.com/embed/watch?feature=player_embedded&v=dQw4w9WgXcQ",
-        "https://www.youtube.com/embed/watch?v=dQw4w9WgXcQ",
-        "https://www.youtube.com/embed/v=dQw4w9WgXcQ",
-        "https://www.youtube.com/watch/dQw4w9WgXcQ",
-        "http://www.youtube.com/attribution_link?u=/watch?v=dQw4w9WgXcQ&feature=share",
-        "https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=TestingChannel",
+        (
+            "youtu.be/dQw4w9WgXcQ",
+            ProductMediaTypes.VIDEO_YOUTUBE,
+            "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        ),
+        (
+            "youtube.com/watch?v=dQw4w9WgXcQ",
+            ProductMediaTypes.VIDEO_YOUTUBE,
+            "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        ),
+        (
+            "www.youtube.com/watch?v=dQw4w9WgXcQ",
+            ProductMediaTypes.VIDEO_YOUTUBE,
+            "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        ),
+        (
+            "http://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            ProductMediaTypes.VIDEO_YOUTUBE,
+            "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        ),
+        (
+            "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            ProductMediaTypes.VIDEO_YOUTUBE,
+            "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        ),
+        (
+            "https://www.youtube.com/watch?v=dQw4w9WgXcQ&feature=share",
+            ProductMediaTypes.VIDEO_YOUTUBE,
+            "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        ),
+        (
+            "https://www.youtube.com/embed/watch?feature=player_embedded&v=dQw4w9WgXcQ",
+            ProductMediaTypes.VIDEO_YOUTUBE,
+            "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        ),
+        (
+            "https://www.youtube.com/embed/watch?v=dQw4w9WgXcQ",
+            ProductMediaTypes.VIDEO_YOUTUBE,
+            "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        ),
+        (
+            "https://www.youtube.com/embed/v=dQw4w9WgXcQ",
+            ProductMediaTypes.VIDEO_YOUTUBE,
+            "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        ),
+        (
+            "https://www.youtube.com/watch/dQw4w9WgXcQ",
+            ProductMediaTypes.VIDEO_YOUTUBE,
+            "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        ),
+        (
+            "http://www.youtube.com/atribuon_link?u=/watch?v=dQw4w9WgXcQ&feature=share",
+            ProductMediaTypes.VIDEO_YOUTUBE,
+            "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        ),
+        (
+            "https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=TestingChannel",
+            ProductMediaTypes.VIDEO_YOUTUBE,
+            "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        ),
+        (
+            "https://streamable.com/8vnouo",
+            ProductMediaTypes.VIDEO_STREAMABLE,
+            "https://www.streamable.com/e/8vnouo",
+        ),
+        (
+            "https://vimeo.com/testId",
+            ProductMediaTypes.VIDEO_VIMEO,
+            "https://player.vimeo.com/video/testId",
+        ),
     ],
 )
-def test_check_video_url_youtube_link(url):
-    video_url, video_type = check_video_url(url, "video_url")
+def test_validate_video_url(url, expected_video_type, expected_video_url):
+    video_url, video_type = validate_video_url(url, "video_url")
 
-    assert video_url == "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-    assert video_type == ProductMediaTypes.VIDEO_YOUTUBE
+    assert video_url == expected_video_url
+    assert video_type == expected_video_type
 
 
-@pytest.mark.parametrize(
-    "url",
-    [
-        "https://streamable.com/8vnouo",
-        "https://vimeo.com/148751763",
-        "https://some-external-hosting.com/video/148751763",
-    ],
-)
-def test_check_video_url_unknown_provider(url):
-    video_url, video_type = check_video_url(url, "video_url")
+def test_validate_video_url_unknown_provider():
+    video_url, video_type = validate_video_url(
+        "https://some-external-hosting.com/video/148751763", "video_url"
+    )
 
-    assert video_url == url
+    assert video_url == "https://some-external-hosting.com/video/148751763"
     assert video_type == ProductMediaTypes.VIDEO_UNKNOWN
+
+
+def test_validate_video_url_invalid_url():
+    with pytest.raises(ValidationError, match="Enter a valid URL."):
+        validate_video_url("test-invalid-url", "video_url")

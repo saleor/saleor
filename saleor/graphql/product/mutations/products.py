@@ -37,12 +37,12 @@ from ...core.scalars import WeightScalar
 from ...core.types import SeoInput, Upload
 from ...core.types.common import CollectionError, ProductError
 from ...core.utils import (
-    check_video_url,
     clean_seo_fields,
     from_global_id_strict_type,
     get_duplicated_values,
     validate_image_file,
     validate_slug_and_generate_if_needed,
+    validate_video_url,
 )
 from ...core.utils.reordering import perform_reordering
 from ...warehouse.types import Warehouse
@@ -1195,19 +1195,23 @@ class ProductMediaCreate(BaseMutation):
         error_type_field = "product_errors"
 
     @classmethod
-    def validate_input(cls, info, data):
+    def validate_input(cls, data):
         image = data.get("image")
         video_url = data.get("video_url")
 
         if not image and not video_url:
-            raise ValidationError("Image or video is required.")
+            raise ValidationError(
+                {"input": ValidationError("Image or video URL is required.")}
+            )
         if image and video_url:
-            raise ValidationError("Only one is required.")
+            raise ValidationError(
+                {"input": ValidationError("Either image or video URL is required.")}
+            )
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         data = data.get("input")
-        cls.validate_input(info, data)
+        cls.validate_input(data)
         product = cls.get_node_or_error(
             info, data["product"], field="product", only_type=Product
         )
@@ -1222,8 +1226,8 @@ class ProductMediaCreate(BaseMutation):
                 image=image_data, alt=alt, type=ProductMediaTypes.IMAGE
             )
             create_product_thumbnails.delay(media.pk)
-        elif video_url:
-            video_url, video_type = check_video_url(video_url, "video_url")
+        else:
+            video_url, video_type = validate_video_url(video_url, "video_url")
             media = product.media.create(video_url=video_url, alt=alt, type=video_type)
 
         product = ChannelContext(node=product, channel_slug=None)

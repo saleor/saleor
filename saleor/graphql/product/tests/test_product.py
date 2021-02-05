@@ -5888,18 +5888,38 @@ def test_product_type_delete_mutation_variants_in_draft_order(
     assert OrderLine.objects.filter(pk=order_line_not_in_draft.pk).exists()
 
 
-def test_product_media_create_mutation(
-    monkeypatch, staff_api_client, product, permission_manage_products, media_root
-):
-    query = """
-    mutation createProductMedia($image: Upload!, $product: ID!) {
-        productMediaCreate(input: {image: $image, product: $product}) {
-            media {
-                id
+PRODUCT_MEDIA_CREATE_QUERY = """
+    mutation createProductMedia(
+        $product: ID!,
+        $image: Upload,
+        $videoUrl: String,
+        $alt: String
+    ) {
+        productMediaCreate(input: {
+            product: $product,
+            videoUrl: $videoUrl,
+            alt: $alt,
+            image: $image
+        }) {
+            product {
+                media {
+                    url
+                    alt
+                    type
+                }
+            }
+            productErrors {
+                code
+                field
             }
         }
     }
     """
+
+
+def test_product_media_create_mutation(
+    monkeypatch, staff_api_client, product, permission_manage_products, media_root
+):
     mock_create_thumbnails = Mock(return_value=None)
     monkeypatch.setattr(
         (
@@ -5912,9 +5932,12 @@ def test_product_media_create_mutation(
     image_file, image_name = create_image()
     variables = {
         "product": graphene.Node.to_global_id("Product", product.id),
+        "alt": "",
         "image": image_name,
     }
-    body = get_multipart_request_body(query, variables, image_file, image_name)
+    body = get_multipart_request_body(
+        PRODUCT_MEDIA_CREATE_QUERY, variables, image_file, image_name
+    )
     response = staff_api_client.post_multipart(
         body, permissions=[permission_manage_products]
     )
@@ -5930,21 +5953,13 @@ def test_product_media_create_mutation(
 def test_product_media_create_mutation_without_file(
     monkeypatch, staff_api_client, product, permission_manage_products, media_root
 ):
-    query = """
-    mutation createProductMedia($image: Upload!, $product: ID!) {
-        productMediaCreate(input: {image: $image, product: $product}) {
-            productErrors {
-                code
-                field
-            }
-        }
-    }
-    """
     variables = {
         "product": graphene.Node.to_global_id("Product", product.id),
         "image": "image name",
     }
-    body = get_multipart_request_body(query, variables, file="", file_name="name")
+    body = get_multipart_request_body(
+        PRODUCT_MEDIA_CREATE_QUERY, variables, file="", file_name="name"
+    )
     response = staff_api_client.post_multipart(
         body, permissions=[permission_manage_products]
     )
@@ -5955,42 +5970,17 @@ def test_product_media_create_mutation_without_file(
     assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
 
 
-def test_product_media_create_mutation_with_youtube_url(
+def test_product_media_create_mutation_with_video_url(
     monkeypatch, staff_api_client, product, permission_manage_products, media_root
 ):
-    query = """
-    mutation createProductMedia(
-        $product: ID!,
-        $image: Upload,
-        $videoUrl: String,
-        $alt: String
-    ) {
-        productMediaCreate(input: {
-            product: $product,
-            videoUrl: $videoUrl,
-            alt: $alt,
-            image: $image
-        }) {
-            product {
-                media {
-                    url
-                    alt
-                    type
-                }
-            }
-            productErrors {
-                code
-                field
-            }
-        }
-    }
-    """
     variables = {
         "product": graphene.Node.to_global_id("Product", product.id),
         "videoUrl": "https://www.youtube.com/watch?v=SomeVideoID&ab_channel=Test",
         "alt": "Test Alt Text",
     }
-    body = get_multipart_request_body(query, variables, file="", file_name="name")
+    body = get_multipart_request_body(
+        PRODUCT_MEDIA_CREATE_QUERY, variables, file="", file_name="name"
+    )
     response = staff_api_client.post_multipart(
         body, permissions=[permission_manage_products]
     )
@@ -5998,48 +5988,75 @@ def test_product_media_create_mutation_with_youtube_url(
 
     media = content["data"]["productMediaCreate"]["product"]["media"]
     assert len(media) == 1
-    assert media[0]["url"] == "https://www.youtube.com/watch?v=SomeVideoID"
+    assert media[0]["url"] == "https://www.youtube.com/embed/SomeVideoID"
     assert media[0]["alt"] == "Test Alt Text"
     assert media[0]["type"] == "VIDEO_YOUTUBE"
+
+
+def test_product_media_create_mutation_without_url_or_image(
+    monkeypatch, staff_api_client, product, permission_manage_products, media_root
+):
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product.id),
+        "alt": "Test Alt Text",
+    }
+    body = get_multipart_request_body(
+        PRODUCT_MEDIA_CREATE_QUERY, variables, file="", file_name="name"
+    )
+
+    response = staff_api_client.post_multipart(
+        body, permissions=[permission_manage_products]
+    )
+
+    content = get_graphql_content(response)
+    errors = content["data"]["productMediaCreate"]["productErrors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductErrorCode.INVALID.name
+    assert errors[0]["field"] == "input"
+
+
+def test_product_media_create_mutation_with_both_url_and_image(
+    monkeypatch, staff_api_client, product, permission_manage_products, media_root
+):
+    image_file, image_name = create_image()
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product.id),
+        "videoUrl": "https://www.youtube.com/watch?v=SomeVideoID&ab_channel=Test",
+        "image": image_name,
+        "alt": "Test Alt Text",
+    }
+    body = get_multipart_request_body(
+        PRODUCT_MEDIA_CREATE_QUERY, variables, image_file, image_name
+    )
+
+    response = staff_api_client.post_multipart(
+        body, permissions=[permission_manage_products]
+    )
+
+    content = get_graphql_content(response)
+    errors = content["data"]["productMediaCreate"]["productErrors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductErrorCode.INVALID.name
+    assert errors[0]["field"] == "input"
 
 
 def test_product_media_create_mutation_with_unknown_url(
     monkeypatch, staff_api_client, product, permission_manage_products, media_root
 ):
-    query = """
-    mutation createProductMedia(
-        $product: ID!,
-        $image: Upload,
-        $videoUrl: String,
-        $alt: String
-    ) {
-        productMediaCreate(input: {
-            product: $product,
-            videoUrl: $videoUrl,
-            alt: $alt,
-            image: $image
-        }) {
-            product {
-                media {
-                    url
-                    alt
-                    type
-                }
-            }
-        }
-    }
-    """
     variables = {
         "product": graphene.Node.to_global_id("Product", product.id),
         "videoUrl": "https://www.videohosting.com/SomeVideoID",
         "alt": "Test Alt Text",
     }
-    body = get_multipart_request_body(query, variables, file="", file_name="name")
+    body = get_multipart_request_body(
+        PRODUCT_MEDIA_CREATE_QUERY, variables, file="", file_name="name"
+    )
+
     response = staff_api_client.post_multipart(
         body, permissions=[permission_manage_products]
     )
-    content = get_graphql_content(response)
 
+    content = get_graphql_content(response)
     media = content["data"]["productMediaCreate"]["product"]["media"]
     assert len(media) == 1
     assert media[0]["url"] == "https://www.videohosting.com/SomeVideoID"
@@ -6071,9 +6088,11 @@ def test_invalid_product_media_create_mutation(
         "image": image_name,
     }
     body = get_multipart_request_body(query, variables, image_file, image_name)
+
     response = staff_api_client.post_multipart(
         body, permissions=[permission_manage_products]
     )
+
     content = get_graphql_content(response)
     assert content["data"]["productMediaCreate"]["errors"] == [
         {"field": "image", "message": "Invalid file type"}

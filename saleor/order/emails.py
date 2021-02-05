@@ -45,9 +45,7 @@ def collect_data_for_email(
 ) -> dict:
     """Collect the required data for sending emails."""
     order = Order.objects.prefetch_related(
-        "lines",
-        "lines__variant",
-        "lines__variant__product",
+        "lines__variant__product__media",
     ).get(pk=order_pk)
     recipient_email = order.get_customer_email()
     send_kwargs, email_context = get_email_context()
