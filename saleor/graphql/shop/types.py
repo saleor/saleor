@@ -61,7 +61,7 @@ class Geolocalization(graphene.ObjectType):
         description = "Represents customers's geolocalization data."
 
 
-class CategorySettings(graphene.ObjectType):
+class CategoryAttributeSettings(graphene.ObjectType):
     attributes = graphene.List(
         graphene.NonNull(Attribute),
         description="List of available category attributes.",

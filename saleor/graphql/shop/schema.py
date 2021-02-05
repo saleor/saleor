@@ -4,8 +4,8 @@ from ...core.permissions import OrderPermissions
 from ..decorators import permission_required
 from ..translations.mutations import ShopSettingsTranslate
 from .mutations import (
+    CategoryAttributeSettingsUpdate,
     CategorySettingsReorderAttributes,
-    CategorySettingsUpdate,
     OrderSettingsUpdate,
     ShopAddressUpdate,
     ShopDomainUpdate,
@@ -49,5 +49,5 @@ class ShopMutations(graphene.ObjectType):
 
     order_settings_update = OrderSettingsUpdate.Field()
 
-    category_settings_update = CategorySettingsUpdate.Field()
+    category_attribute_settings_update = CategoryAttributeSettingsUpdate.Field()
     category_settings_reorder_attributes = CategorySettingsReorderAttributes.Field()

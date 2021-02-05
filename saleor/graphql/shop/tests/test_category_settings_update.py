@@ -4,9 +4,9 @@ from ....core.error_codes import ShopErrorCode
 from ...tests.utils import assert_no_permission, get_graphql_content
 
 CATEGORY_SETTINGS_UPDATE_MUTATION = """
-    mutation CategorySettingsUpdate($input: CategorySettingsInput!) {
-        categorySettingsUpdate(input: $input) {
-            categorySettings {
+    mutation CategoryAttributeSettingsUpdate($input: CategoryAttributeSettingsInput!) {
+        categoryAttributeSettingsUpdate(input: $input) {
+            categoryAttributeSettings {
                 attributes {
                     id
                 }
@@ -58,8 +58,8 @@ def test_category_settings_update_by_staff(
     content = get_graphql_content(response)
 
     # then
-    data = content["data"]["categorySettingsUpdate"]
-    attr_data = data["categorySettings"]["attributes"]
+    data = content["data"]["categoryAttributeSettingsUpdate"]
+    attr_data = data["categoryAttributeSettings"]["attributes"]
     errors = data["shopErrors"]
 
     assert not errors
@@ -102,8 +102,8 @@ def test_category_settings_update_by_staff_only_remove_attrs(
     content = get_graphql_content(response)
 
     # then
-    data = content["data"]["categorySettingsUpdate"]
-    attr_data = data["categorySettings"]["attributes"]
+    data = content["data"]["categoryAttributeSettingsUpdate"]
+    attr_data = data["categoryAttributeSettings"]["attributes"]
     errors = data["shopErrors"]
 
     assert not errors
@@ -150,8 +150,8 @@ def test_category_settings_update_add_existing_attr(
     content = get_graphql_content(response)
 
     # then
-    data = content["data"]["categorySettingsUpdate"]
-    attr_data = data["categorySettings"]["attributes"]
+    data = content["data"]["categoryAttributeSettingsUpdate"]
+    attr_data = data["categoryAttributeSettings"]["attributes"]
     errors = data["shopErrors"]
 
     assert not errors
@@ -227,8 +227,8 @@ def test_category_settings_update_by_app(
     content = get_graphql_content(response)
 
     # then
-    data = content["data"]["categorySettingsUpdate"]
-    attr_data = data["categorySettings"]["attributes"]
+    data = content["data"]["categoryAttributeSettingsUpdate"]
+    attr_data = data["categoryAttributeSettings"]["attributes"]
     errors = data["shopErrors"]
 
     assert not errors
@@ -312,8 +312,8 @@ def test_category_settings_update_duplicated_attrs(
     content = get_graphql_content(response)
 
     # then
-    data = content["data"]["categorySettingsUpdate"]
-    attr_data = data["categorySettings"]
+    data = content["data"]["categoryAttributeSettingsUpdate"]
+    attr_data = data["categoryAttributeSettings"]
     errors = data["shopErrors"]
 
     assert not attr_data
@@ -356,8 +356,8 @@ def test_category_settings_update_assign_product_attribute(
     content = get_graphql_content(response)
 
     # then
-    data = content["data"]["categorySettingsUpdate"]
-    attr_data = data["categorySettings"]
+    data = content["data"]["categoryAttributeSettingsUpdate"]
+    attr_data = data["categoryAttributeSettings"]
     errors = data["shopErrors"]
 
     assert not attr_data

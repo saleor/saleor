@@ -21,7 +21,7 @@ from ..core.types.common import OrderSettingsError, ShopError
 from ..core.utils import get_duplicates_ids
 from ..core.utils.reordering import perform_reordering
 from ..utils import resolve_global_ids_to_primary_keys
-from .types import CategorySettings, OrderSettings, Shop
+from .types import CategoryAttributeSettings, OrderSettings, Shop
 
 if TYPE_CHECKING:
     from ...site.models import SiteSettings
@@ -170,7 +170,7 @@ class ShopDomainUpdate(BaseMutation):
         return ShopDomainUpdate(shop=Shop())
 
 
-class CategorySettingsInput(graphene.InputObjectType):
+class CategoryAttributeSettingsInput(graphene.InputObjectType):
     add_attributes = graphene.List(
         graphene.NonNull(graphene.ID),
         description=(
@@ -189,18 +189,18 @@ class CategorySettingsInput(graphene.InputObjectType):
     )
 
 
-class CategorySettingsUpdate(BaseMutation):
-    category_settings = graphene.Field(
-        CategorySettings, description="Updated category settings."
+class CategoryAttributeSettingsUpdate(BaseMutation):
+    category_attribute_settings = graphene.Field(
+        CategoryAttributeSettings, description="Updated category settings."
     )
 
     class Arguments:
-        input = CategorySettingsInput(
+        input = CategoryAttributeSettingsInput(
             required=True, description="Fields required to update category settings."
         )
 
     class Meta:
-        description = "Updates category settings."
+        description = "Assign page type attributes to category settings."
         permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
         error_type_class = ShopError
         error_type_field = "shop_errors"
@@ -211,7 +211,7 @@ class CategorySettingsUpdate(BaseMutation):
         input = data["input"]
         cleaned_input = cls.clean_input(site_settings, input)
         cls.update_category_settings(site_settings, cleaned_input)
-        return cls(category_settings=CategorySettings())
+        return cls(category_attribute_settings=CategoryAttributeSettings())
 
     @classmethod
     def clean_input(cls, site_settings: "SiteSettings", input_data: dict):
@@ -304,8 +304,8 @@ class CategorySettingsUpdate(BaseMutation):
 
 
 class CategorySettingsReorderAttributes(BaseReorderAttributesMutation):
-    category_settings = graphene.Field(
-        CategorySettings, description="Reordered category settings."
+    category_attribute_settings = graphene.Field(
+        CategoryAttributeSettings, description="Reordered category settings."
     )
 
     class Meta:
@@ -338,7 +338,7 @@ class CategorySettingsReorderAttributes(BaseReorderAttributesMutation):
         with transaction.atomic():
             perform_reordering(attributes_m2m, operations)
 
-        return cls(category_settings=CategorySettings())
+        return cls(category_attribute_settings=CategoryAttributeSettings())
 
 
 class ShopFetchTaxRates(BaseMutation):

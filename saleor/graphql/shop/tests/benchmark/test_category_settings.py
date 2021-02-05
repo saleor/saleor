@@ -17,9 +17,11 @@ def test_category_settings_update_by_staff(
     count_queries,
 ):
     query = """
-        mutation CategorySettingsUpdate($input: CategorySettingsInput!) {
-            categorySettingsUpdate(input: $input) {
-                categorySettings {
+        mutation CategoryAttributeSettingsUpdate(
+            $input: CategoryAttributeSettingsInput!
+        ) {
+            categoryAttributeSettingsUpdate(input: $input) {
+                categoryAttributeSettings {
                     attributes {
                         id
                     }

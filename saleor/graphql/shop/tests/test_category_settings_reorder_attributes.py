@@ -6,7 +6,7 @@ from ...tests.utils import assert_no_permission, get_graphql_content
 CATEGORY_SETTINGS_REORDER_ATTRIBUTES_MUTATION = """
     mutation CategorySettingsReorderAttributes($moves: [ReorderInput]!) {
         categorySettingsReorderAttributes(moves: $moves) {
-            categorySettings {
+            categoryAttributeSettings {
                 attributes {
                     id
                     slug
@@ -72,7 +72,7 @@ def test_category_settings_reorder_attrs_by_staff(
         page_type_product_reference_attribute.slug,
     ]
     data = content["data"]["categorySettingsReorderAttributes"]
-    category_settings = data["categorySettings"]
+    category_settings = data["categoryAttributeSettings"]
 
     assert not data["shopErrors"]
     assert [attr["slug"] for attr in category_settings["attributes"]] == expected_order
@@ -129,7 +129,7 @@ def test_category_settings_reorder_attrs_by_app(
         page_type_page_reference_attribute.slug,
     ]
     data = content["data"]["categorySettingsReorderAttributes"]
-    category_settings = data["categorySettings"]
+    category_settings = data["categoryAttributeSettings"]
 
     assert not data["shopErrors"]
     assert [attr["slug"] for attr in category_settings["attributes"]] == expected_order
