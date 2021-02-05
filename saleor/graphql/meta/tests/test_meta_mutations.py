@@ -250,7 +250,10 @@ def test_add_public_metadata_for_myself_as_customer(user_api_client):
     )
 
 
-def test_add_private_metadata_for_invoice(staff_api_client, permission_manage_orders):
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+def test_add_private_metadata_for_invoice(
+    mock_order_updated, staff_api_client, permission_manage_orders
+):
     # given
     invoice = Invoice.objects.create(number="1/7/2020")
     invoice_id = graphene.Node.to_global_id("Invoice", invoice.pk)
@@ -313,7 +316,8 @@ def test_add_public_metadata_for_checkout(api_client, checkout):
     )
 
 
-def test_add_public_metadata_for_order(api_client, order):
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+def test_add_public_metadata_for_order(mocked_order_updated, api_client, order):
     # given
     order_id = graphene.Node.to_global_id("Order", order.pk)
 
@@ -326,9 +330,13 @@ def test_add_public_metadata_for_order(api_client, order):
     assert item_contains_proper_public_metadata(
         response["data"]["updateMetadata"]["item"], order, order_id
     )
+    assert mocked_order_updated.called
 
 
-def test_add_public_metadata_for_draft_order(api_client, draft_order):
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+def test_add_public_metadata_for_draft_order(
+    mocked_order_updated, api_client, draft_order
+):
     # given
     draft_order_id = graphene.Node.to_global_id("Order", draft_order.pk)
 
@@ -341,6 +349,7 @@ def test_add_public_metadata_for_draft_order(api_client, draft_order):
     assert item_contains_proper_public_metadata(
         response["data"]["updateMetadata"]["item"], draft_order, draft_order_id
     )
+    mocked_order_updated.called
 
 
 def test_add_public_metadata_for_attribute(
@@ -818,7 +827,8 @@ def test_delete_public_metadata_for_checkout(api_client, checkout):
     )
 
 
-def test_delete_public_metadata_for_order(api_client, order):
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+def test_delete_public_metadata_for_order(mocked_order_updated, api_client, order):
     # given
     order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     order.save(update_fields=["metadata"])
@@ -833,9 +843,13 @@ def test_delete_public_metadata_for_order(api_client, order):
     assert item_without_public_metadata(
         response["data"]["deleteMetadata"]["item"], order, order_id
     )
+    assert mocked_order_updated.called
 
 
-def test_delete_public_metadata_for_draft_order(api_client, draft_order):
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+def test_delete_public_metadata_for_draft_order(
+    mocked_order_updated, api_client, draft_order
+):
     # given
     draft_order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     draft_order.save(update_fields=["metadata"])
@@ -850,6 +864,7 @@ def test_delete_public_metadata_for_draft_order(api_client, draft_order):
     assert item_without_public_metadata(
         response["data"]["deleteMetadata"]["item"], draft_order, draft_order_id
     )
+    assert mocked_order_updated.called
 
 
 def test_delete_public_metadata_for_attribute(
@@ -1389,8 +1404,9 @@ def test_add_private_metadata_for_checkout(
     )
 
 
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
 def test_add_private_metadata_for_order(
-    staff_api_client, order, permission_manage_orders
+    mocked_order_updated, staff_api_client, order, permission_manage_orders
 ):
     # given
     order_id = graphene.Node.to_global_id("Order", order.pk)
@@ -1404,10 +1420,12 @@ def test_add_private_metadata_for_order(
     assert item_contains_proper_private_metadata(
         response["data"]["updatePrivateMetadata"]["item"], order, order_id
     )
+    assert mocked_order_updated.called
 
 
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
 def test_add_private_metadata_for_draft_order(
-    staff_api_client, draft_order, permission_manage_orders
+    mocked_order_updated, staff_api_client, draft_order, permission_manage_orders
 ):
     # given
     draft_order_id = graphene.Node.to_global_id("Order", draft_order.pk)
@@ -1421,6 +1439,7 @@ def test_add_private_metadata_for_draft_order(
     assert item_contains_proper_private_metadata(
         response["data"]["updatePrivateMetadata"]["item"], draft_order, draft_order_id
     )
+    assert mocked_order_updated.called
 
 
 def test_add_private_metadata_for_attribute(
@@ -1916,8 +1935,9 @@ def test_delete_private_metadata_for_checkout(
     )
 
 
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
 def test_delete_private_metadata_for_order(
-    staff_api_client, order, permission_manage_orders
+    mocked_order_updated, staff_api_client, order, permission_manage_orders
 ):
     # given
     order.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
@@ -1933,10 +1953,12 @@ def test_delete_private_metadata_for_order(
     assert item_without_private_metadata(
         response["data"]["deletePrivateMetadata"]["item"], order, order_id
     )
+    assert mocked_order_updated.called
 
 
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
 def test_delete_private_metadata_for_draft_order(
-    staff_api_client, draft_order, permission_manage_orders
+    mocked_order_updated, staff_api_client, draft_order, permission_manage_orders
 ):
     # given
     draft_order.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
@@ -1952,6 +1974,7 @@ def test_delete_private_metadata_for_draft_order(
     assert item_without_private_metadata(
         response["data"]["deletePrivateMetadata"]["item"], draft_order, draft_order_id
     )
+    assert mocked_order_updated.called
 
 
 def test_delete_private_metadata_for_attribute(
