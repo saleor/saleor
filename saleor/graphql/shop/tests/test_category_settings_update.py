@@ -4,9 +4,9 @@ from ....core.error_codes import ShopErrorCode
 from ...tests.utils import assert_no_permission, get_graphql_content
 
 CATEGORY_SETTINGS_UPDATE_MUTATION = """
-    mutation CategorySettingsUpdate($input: CategorySettingsInput!) {
-        categorySettingsUpdate(input: $input) {
-            categorySettings {
+    mutation CategoryAttributeSettingsUpdate($input: CategoryAttributeSettingsInput!) {
+        categoryAttributeSettingsUpdate(input: $input) {
+            categoryAttributeSettings {
                 attributes {
                     id
                 }
@@ -27,7 +27,7 @@ def test_category_settings_update_by_staff(
     page_type_page_reference_attribute,
     tag_page_attribute,
     size_page_attribute,
-    permission_manage_settings,
+    permission_manage_page_types_and_attributes,
 ):
     # given
     query = CATEGORY_SETTINGS_UPDATE_MUTATION
@@ -53,13 +53,13 @@ def test_category_settings_update_by_staff(
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_settings]
+        query, variables, permissions=[permission_manage_page_types_and_attributes]
     )
     content = get_graphql_content(response)
 
     # then
-    data = content["data"]["categorySettingsUpdate"]
-    attr_data = data["categorySettings"]["attributes"]
+    data = content["data"]["categoryAttributeSettingsUpdate"]
+    attr_data = data["categoryAttributeSettings"]["attributes"]
     errors = data["shopErrors"]
 
     assert not errors
@@ -76,7 +76,7 @@ def test_category_settings_update_by_staff_only_remove_attrs(
     staff_api_client,
     site_settings_with_category_attributes,
     size_page_attribute,
-    permission_manage_settings,
+    permission_manage_page_types_and_attributes,
 ):
     # given
     query = CATEGORY_SETTINGS_UPDATE_MUTATION
@@ -97,13 +97,13 @@ def test_category_settings_update_by_staff_only_remove_attrs(
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_settings]
+        query, variables, permissions=[permission_manage_page_types_and_attributes]
     )
     content = get_graphql_content(response)
 
     # then
-    data = content["data"]["categorySettingsUpdate"]
-    attr_data = data["categorySettings"]["attributes"]
+    data = content["data"]["categoryAttributeSettingsUpdate"]
+    attr_data = data["categoryAttributeSettings"]["attributes"]
     errors = data["shopErrors"]
 
     assert not errors
@@ -120,7 +120,7 @@ def test_category_settings_update_add_existing_attr(
     site_settings_with_category_attributes,
     page_type_page_reference_attribute,
     size_page_attribute,
-    permission_manage_settings,
+    permission_manage_page_types_and_attributes,
 ):
     # given
     query = CATEGORY_SETTINGS_UPDATE_MUTATION
@@ -145,13 +145,13 @@ def test_category_settings_update_add_existing_attr(
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_settings]
+        query, variables, permissions=[permission_manage_page_types_and_attributes]
     )
     content = get_graphql_content(response)
 
     # then
-    data = content["data"]["categorySettingsUpdate"]
-    attr_data = data["categorySettings"]["attributes"]
+    data = content["data"]["categoryAttributeSettingsUpdate"]
+    attr_data = data["categoryAttributeSettings"]["attributes"]
     errors = data["shopErrors"]
 
     assert not errors
@@ -201,12 +201,12 @@ def test_category_settings_update_by_app(
     page_type_page_reference_attribute,
     size_page_attribute,
     tag_page_attribute,
-    permission_manage_settings,
+    permission_manage_page_types_and_attributes,
 ):
     # given
     query = CATEGORY_SETTINGS_UPDATE_MUTATION
     site_settings = site_settings_with_category_attributes
-    app_api_client.app.permissions.add(permission_manage_settings)
+    app_api_client.app.permissions.add(permission_manage_page_types_and_attributes)
 
     assert size_page_attribute.pk in site_settings.category_attributes.values_list(
         "attribute_id", flat=True
@@ -227,8 +227,8 @@ def test_category_settings_update_by_app(
     content = get_graphql_content(response)
 
     # then
-    data = content["data"]["categorySettingsUpdate"]
-    attr_data = data["categorySettings"]["attributes"]
+    data = content["data"]["categoryAttributeSettingsUpdate"]
+    attr_data = data["categoryAttributeSettings"]["attributes"]
     errors = data["shopErrors"]
 
     assert not errors
@@ -280,7 +280,7 @@ def test_category_settings_update_duplicated_attrs(
     site_settings_with_category_attributes,
     page_type_product_reference_attribute,
     size_page_attribute,
-    permission_manage_settings,
+    permission_manage_page_types_and_attributes,
 ):
     # given
     query = CATEGORY_SETTINGS_UPDATE_MUTATION
@@ -307,13 +307,13 @@ def test_category_settings_update_duplicated_attrs(
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_settings]
+        query, variables, permissions=[permission_manage_page_types_and_attributes]
     )
     content = get_graphql_content(response)
 
     # then
-    data = content["data"]["categorySettingsUpdate"]
-    attr_data = data["categorySettings"]
+    data = content["data"]["categoryAttributeSettingsUpdate"]
+    attr_data = data["categoryAttributeSettings"]
     errors = data["shopErrors"]
 
     assert not attr_data
@@ -329,7 +329,7 @@ def test_category_settings_update_assign_product_attribute(
     page_type_product_reference_attribute,
     size_page_attribute,
     weight_attribute,
-    permission_manage_settings,
+    permission_manage_page_types_and_attributes,
 ):
     # given
     query = CATEGORY_SETTINGS_UPDATE_MUTATION
@@ -351,13 +351,13 @@ def test_category_settings_update_assign_product_attribute(
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_settings]
+        query, variables, permissions=[permission_manage_page_types_and_attributes]
     )
     content = get_graphql_content(response)
 
     # then
-    data = content["data"]["categorySettingsUpdate"]
-    attr_data = data["categorySettings"]
+    data = content["data"]["categoryAttributeSettingsUpdate"]
+    attr_data = data["categoryAttributeSettings"]
     errors = data["shopErrors"]
 
     assert not attr_data

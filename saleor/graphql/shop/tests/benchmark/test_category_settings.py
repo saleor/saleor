@@ -13,13 +13,15 @@ def test_category_settings_update_by_staff(
     page_type_product_reference_attribute,
     size_page_attribute,
     tag_page_attribute,
-    permission_manage_settings,
+    permission_manage_page_types_and_attributes,
     count_queries,
 ):
     query = """
-        mutation CategorySettingsUpdate($input: CategorySettingsInput!) {
-            categorySettingsUpdate(input: $input) {
-                categorySettings {
+        mutation CategoryAttributeSettingsUpdate(
+            $input: CategoryAttributeSettingsInput!
+        ) {
+            categoryAttributeSettingsUpdate(input: $input) {
+                categoryAttributeSettings {
                     attributes {
                         id
                     }
@@ -48,6 +50,6 @@ def test_category_settings_update_by_staff(
     }
 
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_settings]
+        query, variables, permissions=[permission_manage_page_types_and_attributes]
     )
     get_graphql_content(response)
