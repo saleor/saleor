@@ -671,7 +671,7 @@ type Category implements Node & ObjectWithMetadata {
   seoDescription: String
   id: ID!
   name: String!
-  description: JSONString!
+  description: JSONString
   slug: String!
   parent: Category
   level: Int!
@@ -746,7 +746,7 @@ type CategoryTranslatableContent implements Node {
   seoDescription: String
   id: ID!
   name: String!
-  description: JSONString!
+  description: JSONString
   descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
   translation(languageCode: LanguageCodeEnum!): CategoryTranslation
   category: Category
@@ -763,7 +763,7 @@ type CategoryTranslation implements Node {
   seoDescription: String
   id: ID!
   name: String!
-  description: JSONString!
+  description: JSONString
   language: LanguageDisplay!
   descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
 }
@@ -1050,7 +1050,7 @@ type Collection implements Node & ObjectWithMetadata {
   seoDescription: String
   id: ID!
   name: String!
-  description: JSONString!
+  description: JSONString
   slug: String!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
@@ -1205,7 +1205,7 @@ type CollectionTranslatableContent implements Node {
   seoDescription: String
   id: ID!
   name: String!
-  description: JSONString!
+  description: JSONString
   descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
   translation(languageCode: LanguageCodeEnum!): CollectionTranslation
   collection: Collection
@@ -1222,7 +1222,7 @@ type CollectionTranslation implements Node {
   seoDescription: String
   id: ID!
   name: String!
-  description: JSONString!
+  description: JSONString
   language: LanguageDisplay!
   descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
 }
@@ -3311,7 +3311,7 @@ type Page implements Node & ObjectWithMetadata {
   seoDescription: String
   id: ID!
   title: String!
-  content: JSONString!
+  content: JSONString
   publicationDate: Date
   isPublished: Boolean!
   slug: String!
@@ -3445,7 +3445,7 @@ type PageTranslatableContent implements Node {
   seoDescription: String
   id: ID!
   title: String!
-  content: JSONString!
+  content: JSONString
   contentJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `content` field instead.")
   translation(languageCode: LanguageCodeEnum!): PageTranslation
   page: Page
@@ -3462,7 +3462,7 @@ type PageTranslation implements Node {
   seoDescription: String
   id: ID!
   title: String!
-  content: JSONString!
+  content: JSONString
   language: LanguageDisplay!
   contentJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `content` field instead.")
 }
@@ -3839,7 +3839,7 @@ type Product implements Node & ObjectWithMetadata {
   seoTitle: String
   seoDescription: String
   name: String!
-  description: JSONString!
+  description: JSONString
   productType: ProductType!
   slug: String!
   category: Category
@@ -4144,7 +4144,7 @@ type ProductTranslatableContent implements Node {
   seoTitle: String
   seoDescription: String
   name: String!
-  description: JSONString!
+  description: JSONString
   descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
   translation(languageCode: LanguageCodeEnum!): ProductTranslation
   product: Product
@@ -4161,7 +4161,7 @@ type ProductTranslation implements Node {
   seoTitle: String
   seoDescription: String
   name: String!
-  description: JSONString!
+  description: JSONString
   language: LanguageDisplay!
   descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
 }

@@ -59,9 +59,7 @@ if TYPE_CHECKING:
 class Category(MPTTModel, ModelWithMetadata, SeoModel):
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
-    description = SanitizedJSONField(
-        blank=True, default=dict, sanitizer=clean_editor_js
-    )
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
     parent = models.ForeignKey(
         "self", null=True, blank=True, related_name="children", on_delete=models.CASCADE
     )
@@ -84,9 +82,7 @@ class CategoryTranslation(SeoModelTranslation):
         Category, related_name="translations", on_delete=models.CASCADE
     )
     name = models.CharField(max_length=128)
-    description = SanitizedJSONField(
-        blank=True, default=dict, sanitizer=clean_editor_js
-    )
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
     class Meta:
         unique_together = (("language_code", "category"),)
@@ -308,9 +304,7 @@ class Product(SeoModel, ModelWithMetadata):
     )
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
-    description = SanitizedJSONField(
-        blank=True, default=dict, sanitizer=clean_editor_js
-    )
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
     description_plaintext = TextField(blank=True, default="")
     search_vector = SearchVectorField(null=True, blank=True)
 
@@ -382,9 +376,7 @@ class ProductTranslation(SeoModelTranslation):
         Product, related_name="translations", on_delete=models.CASCADE
     )
     name = models.CharField(max_length=250)
-    description = SanitizedJSONField(
-        blank=True, default=dict, sanitizer=clean_editor_js
-    )
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
     class Meta:
         unique_together = (("language_code", "product"),)
@@ -700,9 +692,7 @@ class Collection(SeoModel, ModelWithMetadata):
         upload_to="collection-backgrounds", blank=True, null=True
     )
     background_image_alt = models.CharField(max_length=128, blank=True)
-    description = SanitizedJSONField(
-        blank=True, default=dict, sanitizer=clean_editor_js
-    )
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
     objects = CollectionsQueryset.as_manager()
 
@@ -742,9 +732,7 @@ class CollectionTranslation(SeoModelTranslation):
         Collection, related_name="translations", on_delete=models.CASCADE
     )
     name = models.CharField(max_length=128)
-    description = SanitizedJSONField(
-        blank=True, default=dict, sanitizer=clean_editor_js
-    )
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
     class Meta:
         unique_together = (("language_code", "collection"),)

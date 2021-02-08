@@ -539,7 +539,8 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     def resolve_description_json(root: ChannelContext[models.Product], info):
-        return root.node.description
+        description = root.node.description
+        return description if description is not None else {}
 
     @staticmethod
     def resolve_tax_type(root: ChannelContext[models.Product], info):
@@ -954,7 +955,8 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     def resolve_description_json(root: ChannelContext[models.Collection], info):
-        return root.node.description
+        description = root.node.description
+        return description if description is not None else {}
 
 
 @key(fields="id")
@@ -1012,7 +1014,8 @@ class Category(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_description_json(root: models.Category, info):
-        return root.description
+        description = root.description
+        return description if description is not None else {}
 
     @staticmethod
     def resolve_background_image(root: models.Category, info, size=None, **_kwargs):

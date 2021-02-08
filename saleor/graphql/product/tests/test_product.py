@@ -219,6 +219,41 @@ def test_product_query_description(
     assert product_data["descriptionJson"] == description
 
 
+def test_product_query_with_no_description(
+    staff_api_client, permission_manage_products, product, channel_USD
+):
+    query = """
+        query ($id: ID, $slug: String, $channel:String){
+            product(
+                id: $id,
+                slug: $slug,
+                channel: $channel
+            ) {
+                id
+                name
+                description
+                descriptionJson
+            }
+        }
+        """
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.pk),
+        "channel": channel_USD.slug,
+    }
+
+    response = staff_api_client.post_graphql(
+        query,
+        variables=variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+    assert product_data is not None
+    assert product_data["description"] is None
+    assert product_data["descriptionJson"] == "{}"
+
+
 def test_product_query_by_id_not_available_as_staff_user(
     staff_api_client, permission_manage_products, product, channel_USD
 ):
@@ -3832,7 +3867,7 @@ def test_update_product_without_description_clear_description_plaintext(
     assert not data["productErrors"]
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
-    assert data["product"]["description"] == "{}"
+    assert data["product"]["description"] is None
 
     product.refresh_from_db()
     assert product.description_plaintext == ""
