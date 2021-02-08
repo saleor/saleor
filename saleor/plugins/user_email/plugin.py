@@ -223,7 +223,7 @@ class UserEmailPlugin(BasePlugin):
             "label": "Account confirmation - subject",
         },
         constants.ACCOUNT_CONFIRMATION_TEMPLATE_FIELD: {
-            "type": ConfigurationTypeField.STRING,
+            "type": ConfigurationTypeField.MULTILINE,
             "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "Account confirmation - template",
         },
@@ -233,7 +233,7 @@ class UserEmailPlugin(BasePlugin):
             "label": "Set customer password - subject",
         },
         constants.ACCOUNT_SET_CUSTOMER_PASSWORD_TEMPLATE_FIELD: {
-            "type": ConfigurationTypeField.STRING,
+            "type": ConfigurationTypeField.MULTILINE,
             "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "Set customer password - template",
         },
@@ -243,7 +243,7 @@ class UserEmailPlugin(BasePlugin):
             "label": "Account delete - subject",
         },
         constants.ACCOUNT_DELETE_TEMPLATE_FIELD: {
-            "type": ConfigurationTypeField.STRING,
+            "type": ConfigurationTypeField.MULTILINE,
             "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "Account delete - template",
         },
@@ -253,7 +253,7 @@ class UserEmailPlugin(BasePlugin):
             "label": "Account change email confirm - subject",
         },
         constants.ACCOUNT_CHANGE_EMAIL_CONFIRM_TEMPLATE_FIELD: {
-            "type": ConfigurationTypeField.STRING,
+            "type": ConfigurationTypeField.MULTILINE,
             "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "Account change email confirm - template",
         },
@@ -263,7 +263,7 @@ class UserEmailPlugin(BasePlugin):
             "label": "Account change email request - subject",
         },
         constants.ACCOUNT_CHANGE_EMAIL_REQUEST_TEMPLATE_FIELD: {
-            "type": ConfigurationTypeField.STRING,
+            "type": ConfigurationTypeField.MULTILINE,
             "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "Account change email request - template",
         },
@@ -273,7 +273,7 @@ class UserEmailPlugin(BasePlugin):
             "label": "Account password reset - subject",
         },
         constants.ACCOUNT_PASSWORD_RESET_TEMPLATE_FIELD: {
-            "type": ConfigurationTypeField.STRING,
+            "type": ConfigurationTypeField.MULTILINE,
             "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "Account password reset - template",
         },
@@ -283,7 +283,7 @@ class UserEmailPlugin(BasePlugin):
             "label": "Invoice ready - subject",
         },
         constants.INVOICE_READY_TEMPLATE_FIELD: {
-            "type": ConfigurationTypeField.STRING,
+            "type": ConfigurationTypeField.MULTILINE,
             "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "Invoice ready - template",
         },
@@ -293,7 +293,7 @@ class UserEmailPlugin(BasePlugin):
             "label": "Order confirmation - subject",
         },
         constants.ORDER_CONFIRMATION_TEMPLATE_FIELD: {
-            "type": ConfigurationTypeField.STRING,
+            "type": ConfigurationTypeField.MULTILINE,
             "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "Order confirmation - template",
         },
@@ -303,7 +303,7 @@ class UserEmailPlugin(BasePlugin):
             "label": "Order confirmed - subject",
         },
         constants.ORDER_CONFIRMED_TEMPLATE_FIELD: {
-            "type": ConfigurationTypeField.STRING,
+            "type": ConfigurationTypeField.MULTILINE,
             "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "Order confirmed - template",
         },
@@ -313,7 +313,7 @@ class UserEmailPlugin(BasePlugin):
             "label": "Order fulfillment confirmation - subject",
         },
         constants.ORDER_FULFILLMENT_CONFIRMATION_TEMPLATE_FIELD: {
-            "type": ConfigurationTypeField.STRING,
+            "type": ConfigurationTypeField.MULTILINE,
             "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "Order fulfillment confirmation - template",
         },
@@ -323,7 +323,7 @@ class UserEmailPlugin(BasePlugin):
             "label": "Order fulfillment update - subject",
         },
         constants.ORDER_FULFILLMENT_UPDATE_TEMPLATE_FIELD: {
-            "type": ConfigurationTypeField.STRING,
+            "type": ConfigurationTypeField.MULTILINE,
             "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "Order fulfillment update - template",
         },
@@ -333,7 +333,7 @@ class UserEmailPlugin(BasePlugin):
             "label": "Payment confirmation - subject",
         },
         constants.ORDER_PAYMENT_CONFIRMATION_TEMPLATE_FIELD: {
-            "type": ConfigurationTypeField.STRING,
+            "type": ConfigurationTypeField.MULTILINE,
             "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "Payment confirmation - template",
         },
@@ -343,7 +343,7 @@ class UserEmailPlugin(BasePlugin):
             "label": "Order canceled - subject",
         },
         constants.ORDER_CANCELED_TEMPLATE_FIELD: {
-            "type": ConfigurationTypeField.STRING,
+            "type": ConfigurationTypeField.MULTILINE,
             "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "Order canceled - template",
         },
@@ -353,7 +353,7 @@ class UserEmailPlugin(BasePlugin):
             "label": "Order refund - subject",
         },
         constants.ORDER_REFUND_CONFIRMATION_TEMPLATE_FIELD: {
-            "type": ConfigurationTypeField.STRING,
+            "type": ConfigurationTypeField.MULTILINE,
             "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
             "label": "Order refund - template",
         },
