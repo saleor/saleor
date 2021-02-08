@@ -29,7 +29,7 @@ from ....product.thumbnails import (
 )
 from ....product.utils import delete_categories, get_products_ids_without_variants
 from ....product.utils.variants import generate_and_set_variant_name
-from ...attribute.utils import AttributeAssignmentMixin, AttrValuesInput
+from ...attribute.utils.mixins import AttributeAssignmentMixin, AttrValuesInput
 from ...channel import ChannelContext
 from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
