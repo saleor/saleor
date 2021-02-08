@@ -2181,7 +2181,7 @@ python-versions = ">=3.5"
 
 [[package]]
 name = "stripe"
-version = "2.55.1"
+version = "2.55.2"
 description = "Python bindings for the Stripe API"
 category = "main"
 optional = false
@@ -3673,8 +3673,8 @@ sqlparse = [
     {file = "sqlparse-0.4.1.tar.gz", hash = "sha256:0f91fd2e829c44362cbcfab3e9ae12e22badaa8a29ad5ff599f9ec109f0454e8"},
 ]
 stripe = [
-    {file = "stripe-2.55.1-py2.py3-none-any.whl", hash = "sha256:fd98ae43b105e75cb4f1d23ba3d0c16b45e3957d432002398a2f75d083d606ce"},
-    {file = "stripe-2.55.1.tar.gz", hash = "sha256:6b70e2cf87cfbe0cb891b725b690495bc3d34ab0d82545a5989ecd3b5fa83e2a"},
+    {file = "stripe-2.55.2-py2.py3-none-any.whl", hash = "sha256:97431dbc6d25b94816816a3606f75045d79f101db4cf27e79ac4e039e4971d73"},
+    {file = "stripe-2.55.2.tar.gz", hash = "sha256:e32c68194a47522a10945eb893218e5cb5ee65e3a3c2c4df7efca117a6bf1902"},
 ]
 sympy = [
     {file = "sympy-1.7.1-py3-none-any.whl", hash = "sha256:c986df98babfb9f5ddea49ba7b69398f6d1cfada5ae0dc0431691cddaff851f6"},
