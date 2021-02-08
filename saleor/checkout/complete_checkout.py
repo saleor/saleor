@@ -369,6 +369,8 @@ def _create_order(
             value=checkout.discount.amount,
             name=checkout.discount_name,
             translated_name=checkout.translated_discount_name,
+            currency=checkout.currency,
+            amount_value=checkout.discount_amount,
         )
 
     order_lines = []
