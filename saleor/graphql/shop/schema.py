@@ -6,6 +6,7 @@ from ..translations.mutations import ShopSettingsTranslate
 from .mutations import (
     CategoryAttributeSettingsUpdate,
     CategorySettingsReorderAttributes,
+    CollectionAttributeSettingsUpdate,
     OrderSettingsUpdate,
     ShopAddressUpdate,
     ShopDomainUpdate,
@@ -51,3 +52,4 @@ class ShopMutations(graphene.ObjectType):
 
     category_attribute_settings_update = CategoryAttributeSettingsUpdate.Field()
     category_settings_reorder_attributes = CategorySettingsReorderAttributes.Field()
+    collection_attribute_settings_update = CollectionAttributeSettingsUpdate.Field()

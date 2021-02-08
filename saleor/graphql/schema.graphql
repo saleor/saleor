@@ -1090,6 +1090,16 @@ type CollectionAddProducts {
   collectionErrors: [CollectionError!]!
 }
 
+type CollectionAttributeSettings {
+  attributes: [Attribute!]!
+}
+
+type CollectionAttributeSettingsUpdate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  collectionAttributeSettings: CollectionAttributeSettings
+  shopErrors: [ShopError!]!
+}
+
 type CollectionBulkDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   count: Int!
@@ -2592,6 +2602,7 @@ type Mutation {
   orderSettingsUpdate(input: OrderSettingsUpdateInput!): OrderSettingsUpdate
   categoryAttributeSettingsUpdate(input: AttributeSettingsInput!): CategoryAttributeSettingsUpdate
   categorySettingsReorderAttributes(moves: [ReorderInput]!): CategorySettingsReorderAttributes
+  collectionAttributeSettingsUpdate(input: AttributeSettingsInput!): CollectionAttributeSettingsUpdate
   shippingMethodChannelListingUpdate(id: ID!, input: ShippingMethodChannelListingInput!): ShippingMethodChannelListingUpdate
   shippingMethodZipCodeRulesCreate(input: ShippingZipCodeRulesCreateInput!, shippingMethodId: ID!): ShippingZipCodeRulesCreate
   shippingMethodZipCodeRulesDelete(id: ID!): ShippingZipCodeRulesDelete

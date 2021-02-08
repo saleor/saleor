@@ -82,6 +82,24 @@ class CategoryAttributeSettings(graphene.ObjectType):
         )
 
 
+class CollectionAttributeSettings(graphene.ObjectType):
+    attributes = graphene.List(
+        graphene.NonNull(Attribute),
+        description="List of available collection attributes.",
+        required=True,
+    )
+
+    class Meta:
+        description = "Represents available collection attributes."
+
+    @staticmethod
+    def resolve_attributes(_, info):
+        site_settings = info.context.site.settings
+        return CollectionAttributeBySiteSettingsIdLoader(info.context).load(
+            site_settings.pk
+        )
+
+
 class OrderSettings(CountableDjangoObjectType):
     class Meta:
         only_fields = ["automatically_confirm_all_new_orders"]

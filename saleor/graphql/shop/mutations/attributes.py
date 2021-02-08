@@ -16,7 +16,7 @@ from ...core.types.common import ShopError
 from ...core.utils import get_duplicates_ids
 from ...core.utils.reordering import perform_reordering
 from ...utils import resolve_global_ids_to_primary_keys
-from ..types import CategoryAttributeSettings
+from ..types import CategoryAttributeSettings, CollectionAttributeSettings
 
 if TYPE_CHECKING:
     from ....site.models import SiteSettings
@@ -26,16 +26,14 @@ class AttributeSettingsInput(graphene.InputObjectType):
     add_attributes = graphene.List(
         graphene.NonNull(graphene.ID),
         description=(
-            "List of attribute IDs that should be added to available "
-            "category attributes."
+            "List of attribute IDs that should be added to available attributes."
         ),
         required=False,
     )
     remove_attributes = graphene.List(
         graphene.NonNull(graphene.ID),
         description=(
-            "List of attribute IDs that should be removed from available "
-            "category attributes."
+            "List of attribute IDs that should be removed from available attributes."
         ),
         required=False,
     )
@@ -161,7 +159,7 @@ class CategoryAttributeSettingsUpdate(BaseAttributeSettingsUpdateMutation):
         )
 
     class Meta:
-        description = "Updates category settings."
+        description = "Assign page type attributes to category settings."
         permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
         error_type_class = ShopError
         error_type_field = "shop_errors"
@@ -173,6 +171,31 @@ class CategoryAttributeSettingsUpdate(BaseAttributeSettingsUpdateMutation):
     @staticmethod
     def get_attribute_model_and_lookup():
         return attribute_models.AttributeCategory, "category_attributes"
+
+
+class CollectionAttributeSettingsUpdate(BaseAttributeSettingsUpdateMutation):
+    collection_attribute_settings = graphene.Field(
+        CollectionAttributeSettings, description="Updated collection settings."
+    )
+
+    class Arguments:
+        input = AttributeSettingsInput(
+            required=True, description="Fields required to update collection settings."
+        )
+
+    class Meta:
+        description = "Assign page type attributes to collection settings."
+        permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
+        error_type_class = ShopError
+        error_type_field = "shop_errors"
+
+    @classmethod
+    def success_response(cls):
+        return cls(collection_attribute_settings=CollectionAttributeSettings())
+
+    @staticmethod
+    def get_attribute_model_and_lookup():
+        return attribute_models.AttributeCollection, "collection_attributes"
 
 
 class CategorySettingsReorderAttributes(BaseReorderAttributesMutation):
