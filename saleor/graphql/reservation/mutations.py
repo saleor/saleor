@@ -1,4 +1,5 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
+from typing import TYPE_CHECKING
 
 import graphene
 from django.conf import settings
@@ -18,6 +19,10 @@ from ..core.mutations import BaseMutation
 from ..core.types.common import ReservationError
 from ..product.types import ProductVariant
 from .types import Reservation
+
+if TYPE_CHECKING:
+    from ...account.models import User
+    from ..product.models import ProductVariant
 
 RESERVATION_LENGTH = timedelta(minutes=10)
 RESERVATION_SIZE_LIMIT = settings.MAX_CHECKOUT_LINE_QUANTITY

@@ -1,4 +1,4 @@
-from typing import Iterable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
 
 import graphene
 from django.conf import settings
@@ -43,6 +43,10 @@ from ..shipping.types import ShippingMethod
 from ..utils import get_user_country_context
 from .types import Checkout, CheckoutLine
 from .utils import prepare_insufficient_stock_checkout_validation_error
+
+if TYPE_CHECKING:
+    from ...account.models import User
+
 
 ERROR_DOES_NOT_SHIP = "This checkout doesn't need shipping"
 

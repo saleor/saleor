@@ -1,4 +1,3 @@
-from ..models import Reservation
 from ..stock import (
     get_reserved_quantity,
     get_reserved_quantity_bulk,
