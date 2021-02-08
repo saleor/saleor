@@ -32,7 +32,7 @@ django-storages = { version = "^1.11", extras = [ "google" ] }
 django-templated-email = "^2.3.0"
 django-versatileimagefield = "^2.0"
 draftjs-sanitizer = "^1.0.0"
-faker = ">=4.1,<6.0"
+faker = ">=4.1,<7.0"
 freezegun = "^0"
 google-cloud-storage = "^1.29.0"
 google-i18n-address = "^2.3.5"
