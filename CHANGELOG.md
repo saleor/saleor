@@ -6,6 +6,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Deprecate `Shop.geolocalization` query - #6828 by @maarcingebala
 - Price precision validation fix - #6833 by @IKarbowiakg
+- Call webhook event - order_updated when the Order's meta has been changed - #6843 by @korycins
 
 # 2.11.7
 
