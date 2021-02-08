@@ -364,6 +364,8 @@ def _create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
             value=checkout.discount.amount,
             name=checkout.discount_name,
             translated_name=checkout.translated_discount_name,
+            currency=checkout.currency,
+            amount_value=checkout.discount_amount,
         )
 
     for line in order_lines:

@@ -114,8 +114,9 @@ def recalculate_order(order: Order, **kwargs):
     )
     if voucher_discount:
         assigned_order_discount = get_voucher_discount_assigned_to_order(order)
+        assigned_order_discount.amount_value = voucher_discount.amount
         assigned_order_discount.value = voucher_discount.amount
-        assigned_order_discount.save(update_fields=["value"])
+        assigned_order_discount.save(update_fields=["value", "amount_value"])
     recalculate_order_weight(order)
 
 

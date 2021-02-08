@@ -41,6 +41,8 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("value", models.DecimalField(decimal_places=3, max_digits=12)),
+                ("amount_value", models.DecimalField(decimal_places=3, max_digits=12)),
+                ("currency", models.CharField(max_length=3)),
                 ("name", models.CharField(blank=True, max_length=255, null=True)),
                 (
                     "translated_name",
