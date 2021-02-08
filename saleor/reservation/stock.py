@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING, Iterable, Optional
+from typing import TYPE_CHECKING, Dict, Iterable, Optional
 
 from .models import Reservation
 
@@ -22,7 +22,7 @@ def get_reserved_quantity_bulk(
     variants: Iterable["ProductVariant"],
     country_code: str,
     exclude_user: Optional["User"] = None,
-):
+) -> Dict[int, int]:
     reservations = (
         Reservation.objects.filter(product_variant__in=variants)
         .for_country(country_code)
@@ -60,3 +60,27 @@ def get_reserved_quantity(
         return 0
 
     return reservations[0]["total_quantity"]
+
+
+def get_user_reserved_quantity_bulk(
+    user: "User",
+    country_code: str,
+    variants: Iterable["ProductVariant"],
+) -> Dict[int, int]:
+    reservations = (
+        Reservation.objects.filter(product_variant__in=variants)
+        .for_country(country_code)
+        .filter(user=user)
+        .active()
+        .order_by("product_variant_id")
+        .values("product_variant_id")
+        .annotate_total_quantity()
+    )
+
+    variant_reservations = defaultdict(int)
+    for reservation in reservations:
+        variant_reservations[reservation["product_variant_id"]] = reservation[
+            "total_quantity"
+        ]
+
+    return variant_reservations

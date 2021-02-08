@@ -1,28 +1,29 @@
 from datetime import datetime, timedelta
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List, TypedDict
 
 import graphene
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
-from django_countries.fields import Country
 
 from ...core.exceptions import InsufficientStock
 from ...reservation.error_codes import ReservationErrorCode
 from ...reservation import models
-from ...reservation.stock import remove_user_reservations
+from ...reservation.stock import (
+    get_user_reserved_quantity_bulk,
+    remove_user_reservations,
+)
 from ...warehouse.availability import check_stock_quantity
 from ...shipping.models import ShippingZone
 from ..account.enums import CountryCodeEnum
 from ..core.mutations import BaseMutation
 from ..core.types.common import ReservationError
 from ..product.types import ProductVariant
-from .types import Reservation
+from .types import RemovedReservation, Reservation
 
 if TYPE_CHECKING:
     from ...account.models import User
-    from ..product.models import ProductVariant
 
 RESERVATION_LENGTH = timedelta(minutes=10)
 RESERVATION_SIZE_LIMIT = settings.MAX_CHECKOUT_LINE_QUANTITY
@@ -33,7 +34,12 @@ def _get_reservation_expiration() -> "datetime":
     return timezone.now() + RESERVATION_LENGTH
 
 
-def check_reservation_quantity(user, product_variant, country_code, quantity):
+def check_reservation_quantity(
+    user: "User",
+    product_variant: "ProductVariant",
+    country_code: str,
+    quantity: int,
+):
     """Check if reservation for given quantity is allowed."""
     if quantity < 1:
         raise ValidationError(
@@ -167,6 +173,34 @@ class ReservationCreate(BaseMutation):
         return ReservationCreate(reservation=reservation)
 
 
+class RemovedReservationDict(TypedDict):
+    product_variant: ProductVariant
+    quantity: int
+
+
+@transaction.atomic()
+def remove_reservations(
+    user: "User",
+    country_code: str,
+    products_variants: List[ProductVariant],
+) -> List[RemovedReservationDict]:
+    reservations = get_user_reserved_quantity_bulk(
+        user, country_code, products_variants
+    )
+    remove_user_reservations(user, country_code, products_variants)
+
+    removed_reservations = []
+    for variant in products_variants:
+        removed_reservations.append(
+            {
+                "product_variant": variant,
+                "quantity": reservations[variant.id],
+            }
+        )
+
+    return removed_reservations
+
+
 class ReservationsRemoveInput(graphene.InputObjectType):
     country_code = CountryCodeEnum(description="Country code.", required=True)
     variants_ids = graphene.List(
@@ -177,6 +211,10 @@ class ReservationsRemoveInput(graphene.InputObjectType):
 
 
 class ReservationsRemove(BaseMutation):
+    removed_reservations = graphene.List(
+        RemovedReservation, description="List of removed reservations."
+    )
+
     class Arguments:
         input = ReservationsRemoveInput(
             required=True, description="Fields required to remove reservations."
@@ -199,10 +237,8 @@ class ReservationsRemove(BaseMutation):
             input_data["variants_ids"], ProductVariant
         )
 
-        remove_user_reservations(
-            info.context.user,
-            input_data["country_code"],
-            products_variants,
+        removed_reservations = remove_reservations(
+            info.context.user, input_data["country_code"], products_variants
         )
 
-        return ReservationsRemove()
+        return ReservationsRemove(removed_reservations=removed_reservations)
