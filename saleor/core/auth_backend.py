@@ -45,3 +45,10 @@ class JSONWebTokenBackend(ModelBackend):
                 user_obj, perm_cache_name, {"%s.%s" % (ct, name) for ct, name in perms}
             )
         return getattr(user_obj, perm_cache_name)
+
+
+class PluginBackend(JSONWebTokenBackend):
+    def authenticate(self, request=None, **kwargs):
+        if request is None:
+            return None
+        return request.plugins.authenticate_user(request)
