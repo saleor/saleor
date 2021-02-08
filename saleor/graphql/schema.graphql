@@ -1160,6 +1160,7 @@ input CollectionCreateInput {
   backgroundImageAlt: String
   seo: SeoInput
   publicationDate: Date
+  attributes: [AttributeValueInput]
   products: [ID]
 }
 
@@ -1202,6 +1203,7 @@ input CollectionInput {
   backgroundImageAlt: String
   seo: SeoInput
   publicationDate: Date
+  attributes: [AttributeValueInput]
 }
 
 enum CollectionPublished {
