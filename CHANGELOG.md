@@ -4,9 +4,12 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+# 2.11.8
+
 - Deprecate `Shop.geolocalization` query - #6828 by @maarcingebala
-- Price precision validation fix - #6833 by @IKarbowiakg
+- Price precision validation fix - #6833 by @IKarbowiak
 - Call webhook event - order_updated when the Order's meta has been changed - #6843 by @korycins
+- Update ts_vector on existing products - #6846 by @d-wysocki
 
 # 2.11.7
 
