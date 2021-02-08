@@ -2787,6 +2787,18 @@ def collection(db):
 
 
 @pytest.fixture
+def collection_with_attribute(collection, site_settings_with_collection_attributes):
+    attr = (
+        site_settings_with_collection_attributes.collection_attributes.first().attribute
+    )
+    value = attr.values.first()
+    associate_attribute_values_to_instance(
+        collection, attr, [value], site_settings_with_collection_attributes
+    )
+    return collection
+
+
+@pytest.fixture
 def published_collection(db, channel_USD):
     collection = Collection.objects.create(
         name="Collection USD",
