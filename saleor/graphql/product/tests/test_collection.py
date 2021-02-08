@@ -921,6 +921,15 @@ FETCH_COLLECTION_QUERY = """
                url
                alt
             }
+            attributes {
+                attribute {
+                    id
+                    slug
+                }
+                values {
+                    slug
+                }
+            }
         }
     }
 """
@@ -960,6 +969,29 @@ def test_collection_image_query_without_associated_file(
     data = content["data"]["collection"]
     assert data["name"] == published_collection.name
     assert data["backgroundImage"] is None
+
+
+def test_collection_with_attributes(
+    user_api_client, collection_with_attribute, channel_USD
+):
+    # given
+    collection = collection_with_attribute
+    collection_id = graphene.Node.to_global_id("Collection", collection.pk)
+    variables = {
+        "id": collection_id,
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(FETCH_COLLECTION_QUERY, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["collection"]
+    assert len(data["attributes"]) == collection.attributes.count()
+    assert {attr["attribute"]["slug"] for attr in data["attributes"]} == {
+        cat_attr.attribute.slug for cat_attr in collection.attributes.all()
+    }
 
 
 def test_update_collection_mutation_remove_background_image(

@@ -5,6 +5,8 @@ from promise import Promise
 from ....attribute.models import (
     AssignedCategoryAttribute,
     AssignedCategoryAttributeValue,
+    AssignedCollectionAttribute,
+    AssignedCollectionAttributeValue,
     AssignedProductAttribute,
     AssignedProductAttributeValue,
     AssignedVariantAttribute,
@@ -239,6 +241,31 @@ class AssignedCategoryAttributesByCategoryIdLoader(DataLoader):
         ]
 
 
+class AssignedCollectionAttributesByCollectionIdLoader(DataLoader):
+    context_key = "assignedcollectionattributes_by_collection"
+
+    def batch_load(self, keys):
+        requestor = get_user_or_app_from_context(self.context)
+        if requestor.is_active and requestor.has_perm(
+            ProductPermissions.MANAGE_PRODUCTS
+        ):
+            qs = AssignedCollectionAttribute.objects.all()
+        else:
+            qs = AssignedCollectionAttribute.objects.filter(
+                assignment__attribute__visible_in_storefront=True
+            )
+        assigned_collection_attributes = qs.filter(collection_id__in=keys)
+        collection_to_assignedcollectionattributes = defaultdict(list)
+        for assigned_collection_attribute in assigned_collection_attributes:
+            collection_to_assignedcollectionattributes[
+                assigned_collection_attribute.collection_id
+            ].append(assigned_collection_attribute)
+        return [
+            collection_to_assignedcollectionattributes[collection_id]
+            for collection_id in keys
+        ]
+
+
 class AttributeValuesByAssignedProductAttributeIdLoader(DataLoader):
     context_key = "attributevalues_by_assignedproductattribute"
 
@@ -306,6 +333,31 @@ class AttributeValuesByAssignedCategoryAttributeIdLoader(DataLoader):
                     value_map.get(attribute_value.value_id)
                 )
             return [assigned_category_map[key] for key in keys]
+
+        return (
+            AttributeValueByIdLoader(self.context)
+            .load_many(value_ids)
+            .then(map_assignment_to_values)
+        )
+
+
+class AttributeValuesByAssignedCollectionAttributeIdLoader(DataLoader):
+    context_key = "attributevalues_by_assignedcollectionattribute"
+
+    def batch_load(self, keys):
+        attribute_values = AssignedCollectionAttributeValue.objects.filter(
+            assignment_id__in=keys
+        )
+        value_ids = [a.value_id for a in attribute_values]
+
+        def map_assignment_to_values(values):
+            value_map = dict(zip(value_ids, values))
+            assigned_collection_map = defaultdict(list)
+            for attribute_value in attribute_values:
+                assigned_collection_map[attribute_value.assignment_id].append(
+                    value_map.get(attribute_value.value_id)
+                )
+            return [assigned_collection_map[key] for key in keys]
 
         return (
             AttributeValueByIdLoader(self.context)
@@ -552,4 +604,75 @@ class SelectedAttributesByCategoryIdLoader(DataLoader):
             AssignedCategoryAttributesByCategoryIdLoader(self.context)
             .load_many(keys)
             .then(with_categories_and_assigned_attributes)
+        )
+
+
+class SelectedAttributesByCollectionIdLoader(DataLoader):
+    context_key = "selectedattributes_by_collection"
+
+    def batch_load(self, keys):
+        def with_collections_and_assigned_attributes(collection_attributes):
+            assigned_collection_attribute_ids = [
+                a.id for attrs in collection_attributes for a in attrs
+            ]
+            site_settings_id = self.context.site.settings.id
+            collection_attributes = dict(zip(keys, collection_attributes))
+
+            def with_attributecollections_and_values(result):
+                attribute_collections, attribute_values = result
+                attribute_ids = list({ap.attribute_id for ap in attribute_collections})
+                attribute_values = dict(
+                    zip(assigned_collection_attribute_ids, attribute_values)
+                )
+
+                def with_attributes(attributes):
+                    id_to_attribute = dict(zip(attribute_ids, attributes))
+                    selected_attributes_map = defaultdict(list)
+                    assigned_sitesettings_attributes = attribute_collections
+                    for key in keys:
+                        assigned_collection_attributes = collection_attributes[key]
+                        for (
+                            assigned_sitesetting_attribute
+                        ) in assigned_sitesettings_attributes:
+                            collection_assignment = next(
+                                (
+                                    apa
+                                    for apa in assigned_collection_attributes
+                                    if apa.assignment_id
+                                    == assigned_sitesetting_attribute.id
+                                ),
+                                None,
+                            )
+                            attribute = id_to_attribute[
+                                assigned_sitesetting_attribute.attribute_id
+                            ]
+                            if collection_assignment:
+                                values = attribute_values[collection_assignment.id]
+                            else:
+                                values = []
+                            selected_attributes_map[key].append(
+                                {"values": values, "attribute": attribute}
+                            )
+                    return [selected_attributes_map[key] for key in keys]
+
+                return (
+                    AttributesByAttributeId(self.context)
+                    .load_many(attribute_ids)
+                    .then(with_attributes)
+                )
+
+            attribute_collections = AttributeCollectionsBySiteSettingsIdLoader(
+                self.context
+            ).load(site_settings_id)
+            attribute_values = AttributeValuesByAssignedCollectionAttributeIdLoader(
+                self.context
+            ).load_many(assigned_collection_attribute_ids)
+            return Promise.all([attribute_collections, attribute_values]).then(
+                with_attributecollections_and_values
+            )
+
+        return (
+            AssignedCollectionAttributesByCollectionIdLoader(self.context)
+            .load_many(keys)
+            .then(with_collections_and_assigned_attributes)
         )
