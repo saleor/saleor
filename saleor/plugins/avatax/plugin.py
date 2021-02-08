@@ -119,15 +119,6 @@ class AvataxPlugin(BasePlugin):
         if not self.active:
             return True
 
-        # The previous plugin already calculated taxes so we can skip our logic
-        if isinstance(previous_value, TaxedMoneyRange):
-            start = previous_value.start
-            stop = previous_value.stop
-
-            return start.net != start.gross and stop.net != stop.gross
-
-        if isinstance(previous_value, TaxedMoney):
-            return previous_value.net != previous_value.gross
         return False
 
     def _append_prices_of_not_taxed_lines(
@@ -450,6 +441,28 @@ class AvataxPlugin(BasePlugin):
             # Ignore typing checks because it is checked in _validate_order
             net=order.shipping_method.price,  # type: ignore
             gross=order.shipping_method.price,  # type: ignore
+        )
+
+    def order_line_deleted(
+        self, order: "Order", order_line: "OrderLine", previous_value: Any
+    ) -> Any:
+        if self._skip_plugin(previous_value):
+            return previous_value
+
+        return get_order_tax_data(order, self.config, True)
+
+    def order_line_updated(
+        self, order: "Order", order_line: "OrderLine", previous_value: Any
+    ) -> Any:
+        if self._skip_plugin(previous_value):
+            return previous_value
+
+        return self.calculate_order_line_unit(
+            order,
+            order_line,
+            order_line.variant,  # type: ignore
+            order_line.variant.product,  # type: ignore
+            previous_value,
         )
 
     def get_tax_rate_type_choices(self, previous_value: Any) -> List[TaxType]:
