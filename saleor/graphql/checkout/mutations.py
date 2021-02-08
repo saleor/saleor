@@ -355,7 +355,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         # If authenticated, remove any stock reservations made by the user
         user = info.context.user
         if user.is_authenticated:
-            remove_user_reservations(user, variants)
+            remove_user_reservations(user, country, variants)
 
         # Save addresses
         shipping_address = cleaned_input.get("shipping_address")
