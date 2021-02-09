@@ -48,7 +48,7 @@ class Migration(migrations.Migration):
                     "translated_name",
                     models.CharField(blank=True, max_length=255, null=True),
                 ),
-                ("reason", models.TextField(blank=True)),
+                ("reason", models.TextField(blank=True, null=True)),
                 (
                     "order",
                     models.ForeignKey(

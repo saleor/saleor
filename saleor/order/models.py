@@ -421,11 +421,17 @@ class OrderLine(models.Model):
         choices=DiscountValueType.CHOICES,
         default=DiscountValueType.FIXED,
     )
-    unit_discount_reason = models.TextField(blank=True)
+    unit_discount_reason = models.TextField(blank=True, null=True)
 
     unit_price_net_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+    )
+    # stores the value of the applied discount. Like 20 of %
+    unit_discount_value = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=0,
     )
     unit_price_net = MoneyField(
         amount_field="unit_price_net_amount", currency_field="currency"
