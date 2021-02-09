@@ -129,7 +129,7 @@ class ProductVariantTranslatableContent(CountableDjangoObjectType):
 
 
 class ProductTranslation(BaseTranslationType):
-    description_json = graphene.String(
+    description_json = graphene.JSONString(
         description="Translated description of the product (JSON).",
         deprecation_reason=(
             "Will be removed in Saleor 4.0. Use the `description` field instead."
@@ -143,7 +143,7 @@ class ProductTranslation(BaseTranslationType):
 
 
 class ProductTranslatableContent(CountableDjangoObjectType):
-    description_json = graphene.String(
+    description_json = graphene.JSONString(
         description="Description of the product (JSON).",
         deprecation_reason=(
             "Will be removed in Saleor 4.0. Use the `description` field instead."
@@ -166,7 +166,7 @@ class ProductTranslatableContent(CountableDjangoObjectType):
 
 
 class CollectionTranslation(BaseTranslationType):
-    description_json = graphene.String(
+    description_json = graphene.JSONString(
         description="Translated description of the product (JSON).",
         deprecation_reason=(
             "Will be removed in Saleor 4.0. Use the `description` field instead."
@@ -180,7 +180,7 @@ class CollectionTranslation(BaseTranslationType):
 
 
 class CollectionTranslatableContent(CountableDjangoObjectType):
-    description_json = graphene.String(
+    description_json = graphene.JSONString(
         description="Description of the collection (JSON).",
         deprecation_reason=(
             "Will be removed in Saleor 4.0. Use the `description` field instead."
@@ -206,7 +206,7 @@ class CollectionTranslatableContent(CountableDjangoObjectType):
 
 
 class CategoryTranslation(BaseTranslationType):
-    description_json = graphene.String(
+    description_json = graphene.JSONString(
         description="Translated description of the product (JSON).",
         deprecation_reason=(
             "Will be removed in Saleor 4.0. Use the `description` field instead."
@@ -220,7 +220,7 @@ class CategoryTranslation(BaseTranslationType):
 
 
 class CategoryTranslatableContent(CountableDjangoObjectType):
-    description_json = graphene.String(
+    description_json = graphene.JSONString(
         description="Description of the category (JSON).",
         deprecation_reason=(
             "Will be removed in Saleor 4.0. Use the `description` field instead."

@@ -1,4 +1,3 @@
-import json
 from unittest.mock import Mock
 
 import graphene
@@ -154,6 +153,7 @@ def test_collections_query(
                         name
                         slug
                         description
+                        descriptionJson
                         products {
                             totalCount
                         }
@@ -165,6 +165,7 @@ def test_collections_query(
 
     # query public collections only as regular user
     variables = {"channel": channel_USD.slug}
+    description = dummy_editorjs("Test description.", json_format=True)
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     edges = content["data"]["collections"]["edges"]
@@ -172,9 +173,8 @@ def test_collections_query(
     collection_data = edges[0]["node"]
     assert collection_data["name"] == published_collection.name
     assert collection_data["slug"] == published_collection.slug
-    assert collection_data["description"] == json.dumps(
-        published_collection.description
-    )
+    assert collection_data["description"] == description
+    assert collection_data["descriptionJson"] == description
     assert (
         collection_data["products"]["totalCount"]
         == published_collection.products.count()

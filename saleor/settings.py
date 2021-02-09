@@ -513,6 +513,7 @@ PLUGINS_MANAGER = "saleor.plugins.manager.PluginsManager"
 
 PLUGINS = [
     "saleor.plugins.avatax.plugin.AvataxPlugin",
+    "saleor.plugins.avatax.excise.plugin.AvataxExcisePlugin",
     "saleor.plugins.vatlayer.plugin.VatlayerPlugin",
     "saleor.plugins.webhook.plugin.WebhookPlugin",
     "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin",

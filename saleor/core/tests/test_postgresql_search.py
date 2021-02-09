@@ -41,15 +41,7 @@ def execute_search(phrase):
 
 @pytest.mark.parametrize(
     "phrase,product_num",
-    [
-        ("Arabika", 0),
-        ("Aarabica", 0),
-        ("Arab", 0),
-        ("czicken", 2),
-        ("blue", 1),
-        ("roast", 2),
-        ("coool", 1),
-    ],
+    [("Arabica", 0), ("chicken", 2), ("blue", 1), ("roast", 2), ("cool", 1)],
 )
 @pytest.mark.integration
 @pytest.mark.django_db
