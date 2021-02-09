@@ -2,19 +2,25 @@ import graphene
 import pytest
 from django.contrib.auth.models import Permission
 
+from ....tests.utils import dummy_editorjs
 from ...core.enums import LanguageCodeEnum
 from ...tests.utils import assert_no_permission, get_graphql_content
 from ..schema import TranslatableKinds
 
 
 def test_product_translation(user_api_client, product, channel_USD):
-    product.translations.create(language_code="pl", name="Produkt")
+    description = dummy_editorjs("test desription")
+    product.translations.create(
+        language_code="pl", name="Produkt", description=description
+    )
 
     query = """
     query productById($productId: ID!, $channel: String) {
         product(id: $productId, channel: $channel) {
             translation(languageCode: PL) {
                 name
+                description
+                descriptionJson
                 language {
                     code
                 }
@@ -29,8 +35,14 @@ def test_product_translation(user_api_client, product, channel_USD):
     )
     data = get_graphql_content(response)["data"]
 
-    assert data["product"]["translation"]["name"] == "Produkt"
-    assert data["product"]["translation"]["language"]["code"] == "PL"
+    translation_data = data["product"]["translation"]
+    assert translation_data["name"] == "Produkt"
+    assert translation_data["language"]["code"] == "PL"
+    assert (
+        translation_data["description"]
+        == translation_data["descriptionJson"]
+        == dummy_editorjs("test desription", json_format=True)
+    )
 
 
 def test_product_translation_with_app(app_api_client, product, channel_USD):
@@ -86,13 +98,18 @@ def test_product_variant_translation(user_api_client, variant, channel_USD):
 
 
 def test_collection_translation(user_api_client, published_collection, channel_USD):
-    published_collection.translations.create(language_code="pl", name="Kolekcja")
+    description = dummy_editorjs("test desription")
+    published_collection.translations.create(
+        language_code="pl", name="Kolekcja", description=description
+    )
 
     query = """
     query collectionById($collectionId: ID!, $channel: String) {
         collection(id: $collectionId, channel: $channel) {
             translation(languageCode: PL) {
                 name
+                description
+                descriptionJson
                 language {
                     code
                 }
@@ -106,8 +123,14 @@ def test_collection_translation(user_api_client, published_collection, channel_U
     response = user_api_client.post_graphql(query, variables)
     data = get_graphql_content(response)["data"]
 
-    assert data["collection"]["translation"]["name"] == "Kolekcja"
-    assert data["collection"]["translation"]["language"]["code"] == "PL"
+    translation_data = data["collection"]["translation"]
+    assert translation_data["name"] == "Kolekcja"
+    assert translation_data["language"]["code"] == "PL"
+    assert (
+        translation_data["description"]
+        == translation_data["descriptionJson"]
+        == dummy_editorjs("test desription", json_format=True)
+    )
 
 
 def test_category_translation(user_api_client, category):
@@ -187,13 +210,16 @@ def test_sale_translation(staff_api_client, sale, permission_manage_discounts):
 
 
 def test_page_translation(user_api_client, page):
-    page.translations.create(language_code="pl", title="Strona")
+    content = dummy_editorjs("test content")
+    page.translations.create(language_code="pl", title="Strona", content=content)
 
     query = """
     query pageById($pageId: ID!) {
         page(id: $pageId) {
             translation(languageCode: PL) {
                 title
+                content
+                contentJson
                 language {
                     code
                 }
@@ -206,8 +232,14 @@ def test_page_translation(user_api_client, page):
     response = user_api_client.post_graphql(query, {"pageId": page_id})
     data = get_graphql_content(response)["data"]
 
-    assert data["page"]["translation"]["title"] == "Strona"
-    assert data["page"]["translation"]["language"]["code"] == "PL"
+    translation_data = data["page"]["translation"]
+    assert translation_data["title"] == "Strona"
+    assert translation_data["language"]["code"] == "PL"
+    assert (
+        translation_data["content"]
+        == translation_data["contentJson"]
+        == dummy_editorjs("test content", json_format=True)
+    )
 
 
 def test_attribute_translation(user_api_client, color_attribute):
