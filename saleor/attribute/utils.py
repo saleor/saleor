@@ -1,10 +1,12 @@
 from typing import TYPE_CHECKING, Iterable, Optional, Set, Union
 
 from ..page.models import Page
-from ..product.models import Category, Product, ProductVariant
+from ..product.models import Category, Collection, Product, ProductVariant
 from .models import (
     AssignedCategoryAttribute,
     AssignedCategoryAttributeValue,
+    AssignedCollectionAttribute,
+    AssignedCollectionAttributeValue,
     AssignedPageAttribute,
     AssignedPageAttributeValue,
     AssignedProductAttribute,
@@ -16,9 +18,12 @@ from .models import (
 )
 
 AttributeAssignmentType = Union[
-    AssignedProductAttribute, AssignedVariantAttribute, AssignedPageAttribute
+    AssignedProductAttribute,
+    AssignedVariantAttribute,
+    AssignedPageAttribute,
+    AssignedCategoryAttribute,
 ]
-T_INSTANCE = Union[Product, ProductVariant, Page]
+T_INSTANCE = Union[Product, ProductVariant, Page, Collection]
 
 
 if TYPE_CHECKING:
@@ -90,14 +95,34 @@ def _associate_attribute_to_instance(
         assignment, _ = AssignedPageAttribute.objects.get_or_create(
             page=instance, assignment=attribute_rel
         )
-    elif isinstance(instance, Category):
-        attribute_rel = site_settings.category_attributes.get(attribute_id=attribute_pk)
-        assignment, _ = AssignedCategoryAttribute.objects.get_or_create(
-            category=instance, assignment=attribute_rel
+    elif isinstance(instance, Category) or isinstance(instance, Collection):
+        assignment = _get_associate_category_or_collection_attribute(
+            instance, attribute_pk, site_settings
         )
     else:
         raise AssertionError(f"{instance.__class__.__name__} is unsupported")
 
+    return assignment
+
+
+def _get_associate_category_or_collection_attribute(
+    instance: Union[Category, Collection],
+    attribute_pk: int,
+    site_settings: Optional["SiteSettings"] = None,
+):
+    instance_to_assignment_mapping = {
+        "Category": ("category_attributes", AssignedCategoryAttribute),
+        "Collection": ("collection_attributes", AssignedCollectionAttribute),
+    }
+    model_name = instance.__class__.__name__
+    assignment_lookup, assignment_model = instance_to_assignment_mapping[model_name]
+
+    attribute_rel = getattr(site_settings, assignment_lookup).get(
+        attribute_id=attribute_pk
+    )
+    assignment, _ = assignment_model.objects.get_or_create(
+        assignment=attribute_rel, **{model_name.lower(): instance}  # type: ignore
+    )
     return assignment
 
 
@@ -113,6 +138,7 @@ def sort_assigned_attribute_values(
         "ProductVariant": ("variantvalueassignment", AssignedVariantAttributeValue),
         "Page": ("pagevalueassignment", AssignedPageAttributeValue),
         "Category": ("categoryvalueassignment", AssignedCategoryAttributeValue),
+        "Collection": ("collectionvalueassignment", AssignedCollectionAttributeValue),
     }
     assignment_lookup, assignment_model = instance_to_value_assignment_mapping[
         instance.__class__.__name__

@@ -1,5 +1,6 @@
 from .attributes import (
     AttributeCategoriesBySiteSettingsIdLoader,
+    AttributeCollectionsBySiteSettingsIdLoader,
     ProductAttributesByProductTypeIdLoader,
     SelectedAttributesByCategoryIdLoader,
     SelectedAttributesByProductIdLoader,
@@ -35,6 +36,7 @@ from .products import (
 
 __all__ = [
     "AttributeCategoriesBySiteSettingsIdLoader",
+    "AttributeCollectionsBySiteSettingsIdLoader",
     "CategoryByIdLoader",
     "CollectionByIdLoader",
     "CollectionChannelListingByCollectionIdAndChannelSlugLoader",
