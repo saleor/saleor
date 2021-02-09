@@ -132,3 +132,29 @@ def test_associate_attribute_to_category_instance_multiply_values(
     assert list(
         new_assignment.categoryvalueassignment.values_list("value__pk", "sort_order")
     ) == [(values[1].pk, 0), (values[0].pk, 1)]
+
+
+def test_associate_attribute_to_collection_instance_multiply_values(
+    collection_with_attribute, site_settings_with_category_attributes
+):
+    """Ensure multiply values in proper order are assigned."""
+    site_settings = site_settings_with_category_attributes
+    collection = collection_with_attribute
+    old_assignment = collection.attributes.first()
+    assert old_assignment is not None, "The collection doesn't have attribute-values"
+    assert old_assignment.values.count() == 1
+
+    attribute = old_assignment.attribute
+    values = attribute.values.all()
+
+    # Clear the values
+    new_assignment = associate_attribute_values_to_instance(
+        collection, attribute, [values[1], values[0]], site_settings
+    )
+
+    # Ensure the new assignment was created and ordered correctly
+    assert new_assignment.pk == old_assignment.pk
+    assert new_assignment.values.count() == 2
+    assert list(
+        new_assignment.collectionvalueassignment.values_list("value__pk", "sort_order")
+    ) == [(values[1].pk, 0), (values[0].pk, 1)]

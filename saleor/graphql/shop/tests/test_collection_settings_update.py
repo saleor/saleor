@@ -4,9 +4,9 @@ from ....core.error_codes import ShopErrorCode
 from ...tests.utils import assert_no_permission, get_graphql_content
 
 CATEGORY_SETTINGS_UPDATE_MUTATION = """
-    mutation CategoryAttributeSettingsUpdate($input: AttributeSettingsInput!) {
-        categoryAttributeSettingsUpdate(input: $input) {
-            categoryAttributeSettings {
+    mutation CollectionSettingsUpdate($input: AttributeSettingsInput!) {
+        collectionAttributeSettingsUpdate(input: $input) {
+            collectionAttributeSettings {
                 attributes {
                     id
                 }
@@ -21,9 +21,9 @@ CATEGORY_SETTINGS_UPDATE_MUTATION = """
 """
 
 
-def test_category_settings_update_by_staff(
+def test_collection_settings_update_by_staff(
     staff_api_client,
-    site_settings_with_category_attributes,
+    site_settings_with_collection_attributes,
     page_type_page_reference_attribute,
     tag_page_attribute,
     size_page_attribute,
@@ -31,22 +31,22 @@ def test_category_settings_update_by_staff(
 ):
     # given
     query = CATEGORY_SETTINGS_UPDATE_MUTATION
-    site_settings = site_settings_with_category_attributes
+    site_settings = site_settings_with_collection_attributes
 
-    assert size_page_attribute.pk in site_settings.category_attributes.values_list(
+    assert tag_page_attribute.pk in site_settings.collection_attributes.values_list(
         "attribute_id", flat=True
     )
 
     add_attrs = [
         graphene.Node.to_global_id("Attribute", attr.pk)
-        for attr in [page_type_page_reference_attribute, tag_page_attribute]
+        for attr in [page_type_page_reference_attribute, size_page_attribute]
     ]
     variables = {
         "input": {
             "addAttributes": add_attrs,
             "removeAttributes": [
                 graphene.Node.to_global_id("Attribute", attr.pk)
-                for attr in [size_page_attribute]
+                for attr in [tag_page_attribute]
             ],
         }
     }
@@ -58,8 +58,8 @@ def test_category_settings_update_by_staff(
     content = get_graphql_content(response)
 
     # then
-    data = content["data"]["categoryAttributeSettingsUpdate"]
-    attr_data = data["categoryAttributeSettings"]["attributes"]
+    data = content["data"]["collectionAttributeSettingsUpdate"]
+    attr_data = data["collectionAttributeSettings"]["attributes"]
     errors = data["shopErrors"]
 
     assert not errors
@@ -67,22 +67,22 @@ def test_category_settings_update_by_staff(
     assert {attr["id"] for attr in attr_data} == set(add_attrs)
 
     site_settings.refresh_from_db()
-    assert size_page_attribute.pk not in site_settings.category_attributes.values_list(
+    assert tag_page_attribute.pk not in site_settings.collection_attributes.values_list(
         "attribute_id", flat=True
     )
 
 
-def test_category_settings_update_by_staff_only_remove_attrs(
+def test_collection_settings_update_by_staff_only_remove_attrs(
     staff_api_client,
-    site_settings_with_category_attributes,
-    size_page_attribute,
+    site_settings_with_collection_attributes,
+    tag_page_attribute,
     permission_manage_page_types_and_attributes,
 ):
     # given
     query = CATEGORY_SETTINGS_UPDATE_MUTATION
-    site_settings = site_settings_with_category_attributes
+    site_settings = site_settings_with_collection_attributes
 
-    assert size_page_attribute.pk in site_settings.category_attributes.values_list(
+    assert tag_page_attribute.pk in site_settings.collection_attributes.values_list(
         "attribute_id", flat=True
     )
 
@@ -90,7 +90,7 @@ def test_category_settings_update_by_staff_only_remove_attrs(
         "input": {
             "removeAttributes": [
                 graphene.Node.to_global_id("Attribute", attr.pk)
-                for attr in [size_page_attribute]
+                for attr in [tag_page_attribute]
             ],
         }
     }
@@ -102,31 +102,31 @@ def test_category_settings_update_by_staff_only_remove_attrs(
     content = get_graphql_content(response)
 
     # then
-    data = content["data"]["categoryAttributeSettingsUpdate"]
-    attr_data = data["categoryAttributeSettings"]["attributes"]
+    data = content["data"]["collectionAttributeSettingsUpdate"]
+    attr_data = data["collectionAttributeSettings"]["attributes"]
     errors = data["shopErrors"]
 
     assert not errors
     assert len(attr_data) == 0
 
     site_settings.refresh_from_db()
-    assert size_page_attribute.pk not in site_settings.category_attributes.values_list(
+    assert tag_page_attribute.pk not in site_settings.collection_attributes.values_list(
         "attribute_id", flat=True
     )
 
 
-def test_category_settings_update_add_existing_attr(
+def test_collection_settings_update_add_existing_attr(
     staff_api_client,
-    site_settings_with_category_attributes,
+    site_settings_with_collection_attributes,
     page_type_page_reference_attribute,
-    size_page_attribute,
+    tag_page_attribute,
     permission_manage_page_types_and_attributes,
 ):
     # given
     query = CATEGORY_SETTINGS_UPDATE_MUTATION
-    site_settings = site_settings_with_category_attributes
+    site_settings = site_settings_with_collection_attributes
 
-    assert size_page_attribute.pk in site_settings.category_attributes.values_list(
+    assert tag_page_attribute.pk in site_settings.collection_attributes.values_list(
         "attribute_id", flat=True
     )
 
@@ -134,7 +134,7 @@ def test_category_settings_update_add_existing_attr(
         graphene.Node.to_global_id("Attribute", attr.pk)
         for attr in [
             page_type_page_reference_attribute,
-            size_page_attribute,
+            tag_page_attribute,
         ]
     ]
     variables = {
@@ -150,8 +150,8 @@ def test_category_settings_update_add_existing_attr(
     content = get_graphql_content(response)
 
     # then
-    data = content["data"]["categoryAttributeSettingsUpdate"]
-    attr_data = data["categoryAttributeSettings"]["attributes"]
+    data = content["data"]["collectionAttributeSettingsUpdate"]
+    attr_data = data["collectionAttributeSettings"]["attributes"]
     errors = data["shopErrors"]
 
     assert not errors
@@ -159,31 +159,31 @@ def test_category_settings_update_add_existing_attr(
     assert {attr["id"] for attr in attr_data} == set(add_attrs)
 
 
-def test_category_settings_update_by_staff_no_perm(
+def test_collection_settings_update_by_staff_no_perm(
     staff_api_client,
-    site_settings_with_category_attributes,
+    site_settings_with_collection_attributes,
     page_type_page_reference_attribute,
     tag_page_attribute,
     size_page_attribute,
 ):
     # given
     query = CATEGORY_SETTINGS_UPDATE_MUTATION
-    site_settings = site_settings_with_category_attributes
+    site_settings = site_settings_with_collection_attributes
 
-    assert size_page_attribute.pk in site_settings.category_attributes.values_list(
+    assert tag_page_attribute.pk in site_settings.collection_attributes.values_list(
         "attribute_id", flat=True
     )
 
     add_attrs = [
         graphene.Node.to_global_id("Attribute", attr.pk)
-        for attr in [page_type_page_reference_attribute, tag_page_attribute]
+        for attr in [page_type_page_reference_attribute, size_page_attribute]
     ]
     variables = {
         "input": {
             "addAttributes": add_attrs,
             "removeAttributes": [
                 graphene.Node.to_global_id("Attribute", attr.pk)
-                for attr in [size_page_attribute]
+                for attr in [tag_page_attribute]
             ],
         }
     }
@@ -195,9 +195,9 @@ def test_category_settings_update_by_staff_no_perm(
     assert_no_permission(response)
 
 
-def test_category_settings_update_by_app(
+def test_collection_settings_update_by_app(
     app_api_client,
-    site_settings_with_category_attributes,
+    site_settings_with_collection_attributes,
     page_type_page_reference_attribute,
     size_page_attribute,
     tag_page_attribute,
@@ -205,16 +205,16 @@ def test_category_settings_update_by_app(
 ):
     # given
     query = CATEGORY_SETTINGS_UPDATE_MUTATION
-    site_settings = site_settings_with_category_attributes
+    site_settings = site_settings_with_collection_attributes
     app_api_client.app.permissions.add(permission_manage_page_types_and_attributes)
 
-    assert size_page_attribute.pk in site_settings.category_attributes.values_list(
+    assert tag_page_attribute.pk in site_settings.collection_attributes.values_list(
         "attribute_id", flat=True
     )
 
     add_attrs = [
         graphene.Node.to_global_id("Attribute", attr.pk)
-        for attr in [page_type_page_reference_attribute, tag_page_attribute]
+        for attr in [page_type_page_reference_attribute, size_page_attribute]
     ]
     variables = {
         "input": {
@@ -227,20 +227,20 @@ def test_category_settings_update_by_app(
     content = get_graphql_content(response)
 
     # then
-    data = content["data"]["categoryAttributeSettingsUpdate"]
-    attr_data = data["categoryAttributeSettings"]["attributes"]
+    data = content["data"]["collectionAttributeSettingsUpdate"]
+    attr_data = data["collectionAttributeSettings"]["attributes"]
     errors = data["shopErrors"]
 
     assert not errors
     assert len(attr_data) == len(add_attrs) + 1
     add_attrs = set(add_attrs)
-    add_attrs.add(graphene.Node.to_global_id("Attribute", size_page_attribute.pk))
+    add_attrs.add(graphene.Node.to_global_id("Attribute", tag_page_attribute.pk))
     assert {attr["id"] for attr in attr_data} == add_attrs
 
 
-def test_category_settings_update_by_customer(
+def test_collection_settings_update_by_customer(
     user_api_client,
-    site_settings_with_category_attributes,
+    site_settings_with_collection_attributes,
     page_type_page_reference_attribute,
     page_type_product_reference_attribute,
     size_page_attribute,
@@ -248,15 +248,15 @@ def test_category_settings_update_by_customer(
 ):
     # given
     query = CATEGORY_SETTINGS_UPDATE_MUTATION
-    site_settings = site_settings_with_category_attributes
+    site_settings = site_settings_with_collection_attributes
 
-    assert size_page_attribute.pk in site_settings.category_attributes.values_list(
+    assert tag_page_attribute.pk in site_settings.collection_attributes.values_list(
         "attribute_id", flat=True
     )
 
     add_attrs = [
         graphene.Node.to_global_id("Attribute", attr.pk)
-        for attr in [page_type_page_reference_attribute, tag_page_attribute]
+        for attr in [page_type_page_reference_attribute, size_page_attribute]
     ]
     variables = {
         "input": {
@@ -275,28 +275,28 @@ def test_category_settings_update_by_customer(
     assert_no_permission(response)
 
 
-def test_category_settings_update_duplicated_attrs(
+def test_collection_settings_update_duplicated_attrs(
     staff_api_client,
-    site_settings_with_category_attributes,
+    site_settings_with_collection_attributes,
     page_type_product_reference_attribute,
-    size_page_attribute,
+    tag_page_attribute,
     permission_manage_page_types_and_attributes,
 ):
     # given
     query = CATEGORY_SETTINGS_UPDATE_MUTATION
-    site_settings = site_settings_with_category_attributes
+    site_settings = site_settings_with_collection_attributes
 
-    assert size_page_attribute.pk in site_settings.category_attributes.values_list(
+    assert tag_page_attribute.pk in site_settings.collection_attributes.values_list(
         "attribute_id", flat=True
     )
 
     add_attrs = [
         graphene.Node.to_global_id("Attribute", attr.pk)
-        for attr in [page_type_product_reference_attribute, size_page_attribute]
+        for attr in [page_type_product_reference_attribute, tag_page_attribute]
     ]
     remove_attributes = [
         graphene.Node.to_global_id("Attribute", attr.pk)
-        for attr in [size_page_attribute]
+        for attr in [tag_page_attribute]
     ]
     variables = {
         "input": {
@@ -312,8 +312,8 @@ def test_category_settings_update_duplicated_attrs(
     content = get_graphql_content(response)
 
     # then
-    data = content["data"]["categoryAttributeSettingsUpdate"]
-    attr_data = data["categoryAttributeSettings"]
+    data = content["data"]["collectionAttributeSettingsUpdate"]
+    attr_data = data["collectionAttributeSettings"]
     errors = data["shopErrors"]
 
     assert not attr_data
@@ -323,19 +323,19 @@ def test_category_settings_update_duplicated_attrs(
     assert errors[0]["attributes"] == remove_attributes
 
 
-def test_category_settings_update_assign_product_attribute(
+def test_collection_settings_update_assign_product_attribute(
     staff_api_client,
-    site_settings_with_category_attributes,
+    site_settings_with_collection_attributes,
     page_type_product_reference_attribute,
-    size_page_attribute,
+    tag_page_attribute,
     weight_attribute,
     permission_manage_page_types_and_attributes,
 ):
     # given
     query = CATEGORY_SETTINGS_UPDATE_MUTATION
-    site_settings = site_settings_with_category_attributes
+    site_settings = site_settings_with_collection_attributes
 
-    assert size_page_attribute.pk in site_settings.category_attributes.values_list(
+    assert tag_page_attribute.pk in site_settings.collection_attributes.values_list(
         "attribute_id", flat=True
     )
 
@@ -356,8 +356,8 @@ def test_category_settings_update_assign_product_attribute(
     content = get_graphql_content(response)
 
     # then
-    data = content["data"]["categoryAttributeSettingsUpdate"]
-    attr_data = data["categoryAttributeSettings"]
+    data = content["data"]["collectionAttributeSettingsUpdate"]
+    attr_data = data["collectionAttributeSettings"]
     errors = data["shopErrors"]
 
     assert not attr_data

@@ -9,6 +9,11 @@ from .category import (
     AssignedCategoryAttributeValue,
     AttributeCategory,
 )
+from .collection import (
+    AssignedCollectionAttribute,
+    AssignedCollectionAttributeValue,
+    AttributeCollection,
+)
 from .page import AssignedPageAttribute, AssignedPageAttributeValue, AttributePage
 from .product import (
     AssignedProductAttribute,
@@ -29,6 +34,9 @@ __all__ = [
     "AssignedCategoryAttribute",
     "AssignedCategoryAttributeValue",
     "AttributeCategory",
+    "AssignedCollectionAttribute",
+    "AssignedCollectionAttributeValue",
+    "AttributeCollection",
     "AssignedPageAttribute",
     "AssignedPageAttributeValue",
     "AttributePage",

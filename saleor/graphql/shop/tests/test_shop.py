@@ -275,7 +275,6 @@ def test_query_default_mail_sender_settings_not_set(
 def test_query_category_attributes(
     site_settings_with_category_attributes,
     user_api_client,
-    page_type_product_reference_attribute,
 ):
     query = """
     query {
@@ -290,7 +289,33 @@ def test_query_category_attributes(
     response = user_api_client.post_graphql(query)
     content = get_graphql_content(response)
     data = content["data"]["shop"]
-    assert len(data["categoryAttributes"]) == site_settings.category_attributes.count()
+    assert len(data["categoryAttributes"]) == 1
+    assert data["categoryAttributes"][0]["name"] == (
+        site_settings.category_attributes.first().attribute.name
+    )
+
+
+def test_query_collection_attributes(
+    site_settings_with_collection_attributes,
+    user_api_client,
+):
+    query = """
+    query {
+        shop {
+            collectionAttributes {
+                name
+            }
+        }
+    }
+    """
+    site_settings = site_settings_with_collection_attributes
+    response = user_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    data = content["data"]["shop"]
+    assert len(data["collectionAttributes"]) == 1
+    assert data["collectionAttributes"][0]["name"] == (
+        site_settings.collection_attributes.first().attribute.name
+    )
 
 
 def test_shop_digital_content_settings_mutation(

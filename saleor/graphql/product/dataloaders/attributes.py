@@ -10,6 +10,7 @@ from ....attribute.models import (
     AssignedVariantAttribute,
     AssignedVariantAttributeValue,
     AttributeCategory,
+    AttributeCollection,
     AttributeProduct,
     AttributeVariant,
 )
@@ -142,6 +143,30 @@ class AttributeCategoriesBySiteSettingsIdLoader(DataLoader):
                 attribute_category.site_settings_id
             ].append(attribute_category)
         return [sitesettings_to_attributecategories[key] for key in keys]
+
+
+class AttributeCollectionsBySiteSettingsIdLoader(DataLoader):
+    """Loads AttributeCollection objects by site settings type ID."""
+
+    context_key = "attributecollections_by_site_settings"
+
+    def batch_load(self, keys):
+        requestor = get_user_or_app_from_context(self.context)
+        if requestor.is_active and requestor.has_perm(
+            PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES
+        ):
+            qs = AttributeCollection.objects.all()
+        else:
+            qs = AttributeCollection.objects.filter(
+                attribute__visible_in_storefront=True
+            )
+        attribute_collections = qs.filter(site_settings_id__in=keys)
+        sitesettings_to_attributecollections = defaultdict(list)
+        for attribute_collection in attribute_collections:
+            sitesettings_to_attributecollections[
+                attribute_collection.site_settings_id
+            ].append(attribute_collection)
+        return [sitesettings_to_attributecollections[key] for key in keys]
 
 
 class AssignedProductAttributesByProductIdLoader(DataLoader):

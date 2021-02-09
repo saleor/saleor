@@ -29,7 +29,10 @@ from ..translations.fields import TranslationField
 from ..translations.resolvers import resolve_translation
 from ..translations.types import ShopTranslation
 from ..utils import format_permissions_for_display
-from .dataloaders import CategoryAttributeBySiteSettingsIdLoader
+from .dataloaders import (
+    CategoryAttributeBySiteSettingsIdLoader,
+    CollectionAttributeBySiteSettingsIdLoader,
+)
 from .resolvers import resolve_available_shipping_methods
 
 
@@ -75,6 +78,24 @@ class CategoryAttributeSettings(graphene.ObjectType):
     def resolve_attributes(_, info):
         site_settings = info.context.site.settings
         return CategoryAttributeBySiteSettingsIdLoader(info.context).load(
+            site_settings.pk
+        )
+
+
+class CollectionAttributeSettings(graphene.ObjectType):
+    attributes = graphene.List(
+        graphene.NonNull(Attribute),
+        description="List of available collection attributes.",
+        required=True,
+    )
+
+    class Meta:
+        description = "Represents available collection attributes."
+
+    @staticmethod
+    def resolve_attributes(_, info):
+        site_settings = info.context.site.settings
+        return CollectionAttributeBySiteSettingsIdLoader(info.context).load(
             site_settings.pk
         )
 
@@ -194,6 +215,10 @@ class Shop(graphene.ObjectType):
     category_attributes = graphene.List(
         graphene.NonNull(Attribute),
         description="List of available category attributes.",
+    )
+    collection_attributes = graphene.List(
+        graphene.NonNull(Attribute),
+        description="List of available collection attributes.",
     )
 
     class Meta:
@@ -369,5 +394,12 @@ class Shop(graphene.ObjectType):
     def resolve_category_attributes(_, info):
         site_settings = info.context.site.settings
         return CategoryAttributeBySiteSettingsIdLoader(info.context).load(
+            site_settings.pk
+        )
+
+    @staticmethod
+    def resolve_collection_attributes(_, info):
+        site_settings = info.context.site.settings
+        return CollectionAttributeBySiteSettingsIdLoader(info.context).load(
             site_settings.pk
         )
