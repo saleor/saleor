@@ -1,17 +1,17 @@
 from decimal import Decimal
-from functools import wraps
-from typing import Iterable, List
+from functools import partial, wraps
+from typing import Iterable, List, Optional, Union
 
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
-from prices import Money, TaxedMoney
+from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 
 from ..account.models import User
 from ..core.taxes import zero_money
 from ..core.weight import zero_weight
-from ..discount import OrderDiscountType
-from ..discount.models import NotApplicable, Voucher, VoucherType
+from ..discount import DiscountValueType, OrderDiscountType
+from ..discount.models import NotApplicable, OrderDiscount, Voucher, VoucherType
 from ..discount.utils import get_products_voucher_discount, validate_voucher_in_order
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import Order, OrderLine
@@ -493,3 +493,98 @@ def get_total_order_discount(order: Order) -> Money:
     )
     total_order_discount = min(total_order_discount, order.undiscounted_total_gross)
     return total_order_discount
+
+
+def get_order_discounts(order: Order) -> List[OrderDiscount]:
+    """Return all discounts applied to the order by staff user."""
+    return list(order.discounts.filter(type=OrderDiscountType.MANUAL))
+
+
+def calculate_order_discount_value(
+    value: Decimal,
+    value_type: str,
+    currency: str,
+    price_to_discount: Union[Money, TaxedMoney],
+):
+    """Calculate the price based on the provided values."""
+    if value_type == DiscountValueType.FIXED:
+        discount_method = fixed_discount
+        discount_kwargs = {"discount": Money(value, currency)}
+    else:
+        discount_method = percentage_discount
+        discount_kwargs = {"percentage": value}
+    discount = partial(
+        discount_method,
+        **discount_kwargs,
+    )
+    return discount(price_to_discount)
+
+
+def create_order_discount_for_order(
+    order: Order, reason: str, value_type: str, value: Decimal
+):
+    """Add new order discount and update the prices."""
+    if value_type == DiscountValueType.FIXED:
+        discount_method = fixed_discount
+        discount_kwargs = {"discount": Money(value, order.currency)}
+    else:
+        discount_method = percentage_discount
+        discount_kwargs = {"percentage": value}
+    discount = partial(
+        discount_method,
+        **discount_kwargs,
+    )
+    new_total = discount(order.total)
+    order.discounts.create(
+        value_type=value_type,
+        value=value,
+        reason=reason,
+        amount=(order.total - new_total).gross,  # type: ignore
+    )
+    order.total = new_total
+    order.save(update_fields=["total_net_amount", "total_gross_amount"])
+
+
+def update_order_discount_for_order(
+    order: Order,
+    order_discount_to_update: OrderDiscount,
+    reason: Optional[str],
+    value_type: Optional[str],
+    value: Optional[Decimal],
+):
+    """Update the order_discount for an order and recalculate the order's prices."""
+    current_value = order_discount_to_update.value
+    current_value_type = order_discount_to_update.value_type
+    value = value if value is not None else current_value
+    value_type = value_type or order_discount_to_update.value_type
+    currency = order_discount_to_update.currency
+    fields_to_update = []
+    if reason:
+        fields_to_update.append("reason")
+
+    if current_value != value or current_value_type != value_type:
+        # Add to total current amount of discount.
+        current_total = order.total + order_discount_to_update.amount
+        new_total = calculate_order_discount_value(
+            value, value_type, currency, current_total
+        )
+        new_amount = (current_total - new_total).gross
+
+        order_discount_to_update.amount = new_amount
+        order_discount_to_update.value = value
+        order_discount_to_update.value_type = value_type
+        fields_to_update.extend(["value_type", "value", "amount_value"])
+
+        order.total = new_total
+        order.save(update_fields=["total_net_amount", "total_gross_amount"])
+    order_discount_to_update.save(update_fields=fields_to_update)
+
+
+def remove_order_discount_from_order(order: Order, order_discount: OrderDiscount):
+    """Remove the order discount from order and update the prices."""
+
+    discount_amount = order_discount.amount
+    order_discount.delete()
+
+    order.total += discount_amount
+    order.save(update_fields=["total_net_amount", "total_gross_amount"])

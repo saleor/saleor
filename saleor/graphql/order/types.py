@@ -8,6 +8,7 @@ from ...core.anonymize import obfuscate_address, obfuscate_email
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions, OrderPermissions, ProductPermissions
 from ...core.taxes import display_gross_prices
+from ...discount import OrderDiscountType
 from ...graphql.utils import get_user_or_app_from_context
 from ...order import OrderStatus, models
 from ...order.models import FulfillmentStatus
@@ -20,10 +21,12 @@ from ..account.utils import requestor_has_access
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader, ChannelByOrderLineIdLoader
 from ..core.connection import CountableDjangoObjectType
+from ..core.scalars import PositiveDecimal
 from ..core.types.common import Image
 from ..core.types.money import Money, TaxedMoney
 from ..decorators import one_of_permissions_required, permission_required
 from ..discount.dataloaders import VoucherByIdLoader
+from ..discount.enums import DiscountValueTypeEnum
 from ..giftcard.types import GiftCard
 from ..invoice.types import Invoice
 from ..meta.types import ObjectWithMetadata
@@ -374,6 +377,22 @@ class OrderLine(CountableDjangoObjectType):
         return AllocationsByOrderLineIdLoader(info.context).load(root.id)
 
 
+class OrderDiscount(graphene.ObjectType):
+    value_type = graphene.Field(
+        DiscountValueTypeEnum,
+        required=True,
+        description="Type of the discount: fixed or percent",
+    )
+    value = PositiveDecimal(
+        required=True,
+        description="Value of the discount. Can store fixed value or percent value",
+    )
+    reason = graphene.String(
+        required=False, description="Explanation for the applied discount."
+    )
+    amount = graphene.Field(Money, description="Returns amount of discount.")
+
+
 class Order(CountableDjangoObjectType):
     fulfillments = graphene.List(
         Fulfillment, required=True, description="List of shipments for the order."
@@ -409,6 +428,9 @@ class Order(CountableDjangoObjectType):
     payments = graphene.List(Payment, description="List of payments for the order.")
     total = graphene.Field(
         TaxedMoney, description="Total amount of the order.", required=True
+    )
+    undiscounted_total = graphene.Field(
+        TaxedMoney, description="Undiscounted total amount of the order.", required=True
     )
     shipping_price = graphene.Field(
         TaxedMoney, description="Total price of shipping.", required=True
@@ -468,6 +490,12 @@ class Order(CountableDjangoObjectType):
         ),
     )
 
+    discounts = graphene.List(
+        graphene.NonNull("saleor.graphql.discount.types.OrderDiscount"),
+        description="List of all discounts assigned to the order.",
+        required=False,
+    )
+
     class Meta:
         description = "Represents an order in the shop."
         interfaces = [relay.Node, ObjectWithMetadata]
@@ -499,20 +527,25 @@ class Order(CountableDjangoObjectType):
         ]
 
     @staticmethod
-    def resolve_discount(root: models.Order, _info):
-        discount = root.discounts.first()
+    def resolve_discounts(root: models.Order, info):
+        # FIXME The discount should be visible to user without the reason field
+        return root.discounts.all()
+
+    @staticmethod
+    def resolve_discount(root: models.Order, info):
+        discount = root.discounts.filter(type=OrderDiscountType.VOUCHER).first()
         return (
             Money(amount=discount.value, currency=root.currency) if discount else None
         )
 
     @staticmethod
-    def resolve_discount_name(root: models.Order, _info):
-        discount = root.discounts.first()
+    def resolve_discount_name(root: models.Order, info):
+        discount = root.discounts.filter(type=OrderDiscountType.VOUCHER).first()
         return discount.name if discount else None
 
     @staticmethod
-    def resolve_translated_discount_name(root: models.Order, _info):
-        discount = root.discounts.first()
+    def resolve_translated_discount_name(root: models.Order, info):
+        discount = root.discounts.filter(type=OrderDiscountType.VOUCHER).first()
         return discount.translated_name if discount else None
 
     @staticmethod
@@ -554,6 +587,10 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     def resolve_total(root: models.Order, _info):
         return root.total
+
+    @staticmethod
+    def resolve_undiscounted_total(root: models.Order, _info):
+        return root.undiscounted_total
 
     @staticmethod
     def resolve_total_authorized(root: models.Order, _info):

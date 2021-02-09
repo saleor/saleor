@@ -2712,6 +2712,9 @@ type Mutation {
   orderFulfillmentUpdateTracking(id: ID!, input: FulfillmentUpdateTrackingInput!): FulfillmentUpdateTracking
   orderFulfillmentRefundProducts(input: OrderRefundProductsInput!, order: ID!): FulfillmentRefundProducts
   orderFulfillmentReturnProducts(input: OrderReturnProductsInput!, order: ID!): FulfillmentReturnProducts
+  orderDiscountAdd(input: OrderDiscountCommonInput!, orderId: ID!): OrderDiscountAdd
+  orderDiscountUpdate(discountId: ID!, input: OrderDiscountCommonInput!): OrderDiscountUpdate
+  orderDiscountDelete(discountId: ID!): OrderDiscountDelete
   orderMarkAsPaid(id: ID!, transactionReference: String): OrderMarkAsPaid
   orderRefund(amount: PositiveDecimal!, id: ID!): OrderRefund
   orderUpdate(id: ID!, input: OrderUpdateInput!): OrderUpdate
@@ -2904,6 +2907,7 @@ type Order implements Node & ObjectWithMetadata {
   paymentStatusDisplay: String!
   payments: [Payment]
   total: TaxedMoney!
+  undiscountedTotal: TaxedMoney!
   subtotal: TaxedMoney!
   statusDisplay: String
   canFinalize: Boolean!
@@ -2916,6 +2920,7 @@ type Order implements Node & ObjectWithMetadata {
   discount: Money @deprecated(reason: "Use discounts field. This field will be removed after 2021-08-01")
   discountName: String @deprecated(reason: "Use discounts field. This field will be removed after 2021-08-01")
   translatedDiscountName: String @deprecated(reason: "Use discounts field. This field will be removed after 2021-08-01")
+  discounts: [OrderDiscount!]
 }
 
 enum OrderAction {
@@ -2976,6 +2981,46 @@ enum OrderDirection {
   DESC
 }
 
+type OrderDiscount implements Node {
+  id: ID!
+  type: OrderDiscountType!
+  valueType: DiscountValueTypeEnum!
+  value: PositiveDecimal!
+  name: String
+  translatedName: String
+  reason: String
+  amount: Money!
+}
+
+type OrderDiscountAdd {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  order: Order
+  orderErrors: [OrderError!]!
+}
+
+input OrderDiscountCommonInput {
+  valueType: DiscountValueTypeEnum!
+  value: PositiveDecimal!
+  reason: String
+}
+
+type OrderDiscountDelete {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  order: Order
+  orderErrors: [OrderError!]!
+}
+
+enum OrderDiscountType {
+  VOUCHER
+  MANUAL
+}
+
+type OrderDiscountUpdate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  order: Order
+  orderErrors: [OrderError!]!
+}
+
 input OrderDraftFilterInput {
   customer: String
   created: DateRangeInput
@@ -2997,6 +3042,7 @@ enum OrderErrorCode {
   CANNOT_CANCEL_FULFILLMENT
   CANNOT_CANCEL_ORDER
   CANNOT_DELETE
+  CANNOT_DISCOUNT
   CANNOT_REFUND
   CAPTURE_INACTIVE_PAYMENT
   NOT_EDITABLE

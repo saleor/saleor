@@ -12,6 +12,7 @@ from ..core.fields import (
     ChannelQsContext,
     PrefetchingConnectionField,
 )
+from ..core.scalars import PositiveDecimal
 from ..core.types import Money
 from ..decorators import permission_required
 from ..product.types import Category, Collection, Product
@@ -266,3 +267,37 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_channel_listings(root: ChannelContext[models.Voucher], info, **_kwargs):
         return VoucherChannelListingByVoucherIdLoader(info.context).load(root.node.id)
+
+
+class OrderDiscount(CountableDjangoObjectType):
+    value_type = graphene.Field(
+        DiscountValueTypeEnum,
+        required=True,
+        description="Type of the discount: fixed or percent",
+    )
+    value = PositiveDecimal(
+        required=True,
+        description="Value of the discount. Can store fixed value or percent value",
+    )
+    reason = graphene.String(
+        required=False, description="Explanation for the applied discount."
+    )
+    amount = graphene.Field(
+        Money, description="Returns amount of discount.", required=True
+    )
+
+    class Meta:
+        description = (
+            "Contains all details related to the applied discount to the order."
+        )
+        only_fields = [
+            "id",
+            "type",
+            "value",
+            "value_type",
+            "reason",
+            "name",
+            "translated_name",
+        ]
+        interfaces = [relay.Node]
+        model = models.OrderDiscount
