@@ -234,3 +234,41 @@ class CategorySettingsReorderAttributes(BaseReorderAttributesMutation):
             perform_reordering(attributes_m2m, operations)
 
         return cls(category_attribute_settings=CategoryAttributeSettings())
+
+
+class CollectionSettingsReorderAttributes(BaseReorderAttributesMutation):
+    collection_attribute_settings = graphene.Field(
+        CollectionAttributeSettings, description="Reordered collection settings."
+    )
+
+    class Meta:
+        description = "Reorder the collection settings attributes."
+        permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
+        error_type_class = ShopError
+        error_type_field = "shop_errors"
+
+    class Arguments:
+        moves = graphene.List(
+            ReorderInput,
+            required=True,
+            description="The list of attribute reordering operations.",
+        )
+
+    @classmethod
+    def perform_mutation(cls, _root, info, moves):
+        site_settings = info.context.site.settings
+
+        attributes_m2m = attribute_models.AttributeCollection.objects.filter(
+            site_settings=site_settings
+        )
+
+        try:
+            operations = cls.prepare_operations(moves, attributes_m2m)
+        except ValidationError as error:
+            error.code = ShopErrorCode.NOT_FOUND.value
+            raise ValidationError({"moves": error})
+
+        with transaction.atomic():
+            perform_reordering(attributes_m2m, operations)
+
+        return cls(collection_attribute_settings=CollectionAttributeSettings())

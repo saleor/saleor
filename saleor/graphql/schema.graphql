@@ -1220,6 +1220,12 @@ type CollectionReorderProducts {
   collectionErrors: [CollectionError!]!
 }
 
+type CollectionSettingsReorderAttributes {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  collectionAttributeSettings: CollectionAttributeSettings
+  shopErrors: [ShopError!]!
+}
+
 enum CollectionSortField {
   NAME
   AVAILABILITY
@@ -2603,6 +2609,7 @@ type Mutation {
   categoryAttributeSettingsUpdate(input: AttributeSettingsInput!): CategoryAttributeSettingsUpdate
   categorySettingsReorderAttributes(moves: [ReorderInput]!): CategorySettingsReorderAttributes
   collectionAttributeSettingsUpdate(input: AttributeSettingsInput!): CollectionAttributeSettingsUpdate
+  collectionSettingsReorderAttributes(moves: [ReorderInput]!): CollectionSettingsReorderAttributes
   shippingMethodChannelListingUpdate(id: ID!, input: ShippingMethodChannelListingInput!): ShippingMethodChannelListingUpdate
   shippingMethodZipCodeRulesCreate(input: ShippingZipCodeRulesCreateInput!, shippingMethodId: ID!): ShippingZipCodeRulesCreate
   shippingMethodZipCodeRulesDelete(id: ID!): ShippingZipCodeRulesDelete
