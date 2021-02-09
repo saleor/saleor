@@ -8,7 +8,9 @@ class Migration(migrations.Migration):
     dependencies = [
         ("product", "0141_update_product_ts_vector"),
     ]
-
+    replaces = [
+        ("product", "0131_update_ts_vector_existing_product_name"),
+    ]
     operations = [
         migrations.RunSQL(
             """
