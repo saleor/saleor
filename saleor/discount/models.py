@@ -343,4 +343,4 @@ class OrderDiscount(models.Model):
 
     name = models.CharField(max_length=255, null=True, blank=True)
     translated_name = models.CharField(max_length=255, null=True, blank=True)
-    reason = models.TextField(blank=True)
+    reason = models.TextField(blank=True, null=True)

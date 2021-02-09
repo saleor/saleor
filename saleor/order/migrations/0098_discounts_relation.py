@@ -49,8 +49,13 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name="orderline",
+            name="unit_discount_value",
+            field=models.DecimalField(decimal_places=3, default=0, max_digits=12),
+        ),
+        migrations.AddField(
+            model_name="orderline",
             name="unit_discount_reason",
-            field=models.TextField(blank=True),
+            field=models.TextField(blank=True, null=True),
         ),
         migrations.AddField(
             model_name="orderline",
@@ -63,16 +68,4 @@ class Migration(migrations.Migration):
         ),
         migrations.RunPython(calculate_undiscounted_total_values),
         migrations.RunPython(create_order_discount_relations),
-        migrations.RemoveField(
-            model_name="order",
-            name="discount_amount",
-        ),
-        migrations.RemoveField(
-            model_name="order",
-            name="discount_name",
-        ),
-        migrations.RemoveField(
-            model_name="order",
-            name="translated_discount_name",
-        ),
     ]
