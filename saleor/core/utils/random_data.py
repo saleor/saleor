@@ -26,11 +26,13 @@ from ...account.models import Address, User
 from ...account.utils import store_user_address
 from ...attribute.models import (
     AssignedCategoryAttribute,
+    AssignedCollectionAttribute,
     AssignedPageAttribute,
     AssignedProductAttribute,
     AssignedVariantAttribute,
     Attribute,
     AttributeCategory,
+    AttributeCollection,
     AttributePage,
     AttributeProduct,
     AttributeValue,
@@ -342,65 +344,35 @@ def assign_attributes_to_page_types(
         AttributePage.objects.update_or_create(pk=pk, defaults=defaults)
 
 
-def assign_attributes_to_category_settings(attributes: list):
+def assign_attributes_to_settings(
+    association_model: Union[AttributeCategory, AttributeCollection], attributes: list
+):
     for value in attributes:
         pk = value["pk"]
         defaults = value["fields"]
         defaults["attribute_id"] = defaults.pop("attribute")
         defaults["site_settings_id"] = defaults.pop("site_settings")
-        AttributeCategory.objects.update_or_create(pk=pk, defaults=defaults)
+        association_model.objects.update_or_create(pk=pk, defaults=defaults)
 
 
-def assign_attributes_to_products(product_attributes):
-    for value in product_attributes:
+def assign_attributes_to_instances(
+    attributes: list,
+    instance_model_name: str,
+    assignment_model: Union[
+        AssignedProductAttribute,
+        AssignedVariantAttribute,
+        AssignedPageAttribute,
+        AssignedCategoryAttribute,
+        AssignedCollectionAttribute,
+    ],
+):
+    for value in attributes:
         pk = value["pk"]
         defaults = value["fields"]
-        defaults["product_id"] = defaults.pop("product")
+        defaults[f"{instance_model_name}_id"] = defaults.pop(instance_model_name)
         defaults["assignment_id"] = defaults.pop("assignment")
         assigned_values = defaults.pop("values")
-        assoc, created = AssignedProductAttribute.objects.update_or_create(
-            pk=pk, defaults=defaults
-        )
-        if created:
-            assoc.values.set(AttributeValue.objects.filter(pk__in=assigned_values))
-
-
-def assign_attributes_to_variants(variant_attributes):
-    for value in variant_attributes:
-        pk = value["pk"]
-        defaults = value["fields"]
-        defaults["variant_id"] = defaults.pop("variant")
-        defaults["assignment_id"] = defaults.pop("assignment")
-        assigned_values = defaults.pop("values")
-        assoc, created = AssignedVariantAttribute.objects.update_or_create(
-            pk=pk, defaults=defaults
-        )
-        if created:
-            assoc.values.set(AttributeValue.objects.filter(pk__in=assigned_values))
-
-
-def assign_attributes_to_pages(page_attributes):
-    for value in page_attributes:
-        pk = value["pk"]
-        defaults = value["fields"]
-        defaults["page_id"] = defaults.pop("page")
-        defaults["assignment_id"] = defaults.pop("assignment")
-        assigned_values = defaults.pop("values")
-        assoc, created = AssignedPageAttribute.objects.update_or_create(
-            pk=pk, defaults=defaults
-        )
-        if created:
-            assoc.values.set(AttributeValue.objects.filter(pk__in=assigned_values))
-
-
-def assign_attributes_to_categories(category_attributes):
-    for value in category_attributes:
-        pk = value["pk"]
-        defaults = value["fields"]
-        defaults["category_id"] = defaults.pop("category")
-        defaults["assignment_id"] = defaults.pop("assignment")
-        assigned_values = defaults.pop("values")
-        assoc, created = AssignedCategoryAttribute.objects.update_or_create(
+        assoc, created = assignment_model.objects.update_or_create(
             pk=pk, defaults=defaults
         )
         if created:
@@ -447,6 +419,9 @@ def create_products_by_schema(placeholder_dir, create_images):
             "product.productvariantchannellisting"
         ],
     )
+    create_collections(
+        data=types["product.collection"], placeholder_dir=placeholder_dir
+    )
     assign_attributes_to_product_types(
         AttributeProduct, attributes=types["attribute.attributeproduct"]
     )
@@ -454,21 +429,36 @@ def create_products_by_schema(placeholder_dir, create_images):
         AttributeVariant, attributes=types["attribute.attributevariant"]
     )
     assign_attributes_to_page_types(attributes=types["attribute.attributepage"])
-    assign_attributes_to_category_settings(
-        attributes=types["attribute.attributecategory"]
+    assign_attributes_to_settings(
+        AttributeCategory, attributes=types["attribute.attributecategory"]
     )
-    assign_attributes_to_products(
-        product_attributes=types["attribute.assignedproductattribute"]
+    assign_attributes_to_settings(
+        AttributeCollection, attributes=types["attribute.attributecollection"]
     )
-    assign_attributes_to_variants(
-        variant_attributes=types["attribute.assignedvariantattribute"]
+    assign_attributes_to_instances(
+        attributes=types["attribute.assignedproductattribute"],
+        instance_model_name="product",
+        assignment_model=AssignedProductAttribute,
     )
-    assign_attributes_to_pages(page_attributes=types["attribute.assignedpageattribute"])
-    assign_attributes_to_categories(
-        category_attributes=types["attribute.assignedcategoryattribute"]
+    assign_attributes_to_instances(
+        attributes=types["attribute.assignedvariantattribute"],
+        instance_model_name="variant",
+        assignment_model=AssignedVariantAttribute,
     )
-    create_collections(
-        data=types["product.collection"], placeholder_dir=placeholder_dir
+    assign_attributes_to_instances(
+        attributes=types["attribute.assignedpageattribute"],
+        instance_model_name="page",
+        assignment_model=AssignedPageAttribute,
+    )
+    assign_attributes_to_instances(
+        attributes=types["attribute.assignedcategoryattribute"],
+        instance_model_name="category",
+        assignment_model=AssignedCategoryAttribute,
+    )
+    assign_attributes_to_instances(
+        attributes=types["attribute.assignedcollectionattribute"],
+        instance_model_name="collection",
+        assignment_model=AssignedCollectionAttribute,
     )
     create_collection_channel_listings(
         collection_channel_listings_data=types["product.collectionchannellisting"],

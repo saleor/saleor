@@ -8429,6 +8429,28 @@
     }
   },
   {
+    "model": "attribute.assignedcollectionattribute",
+    "pk": 1,
+    "fields": {
+        "collection": 2,
+        "assignment": 1,
+        "values": [
+          99
+        ]
+    }
+  },
+  {
+    "model": "attribute.assignedcollectionattribute",
+    "pk": 2,
+    "fields": {
+        "collection": 1,
+        "assignment": 1,
+        "values": [
+          99
+        ]
+    }
+  },
+  {
     "model": "attribute.attributeproduct",
     "pk": 1,
     "fields": {
@@ -8571,8 +8593,8 @@
       "attribute": 29,
       "page_type": 1
     }
-},
-{
+  },
+  {
     "model": "attribute.attributepage",
     "pk": 3,
     "fields": {
@@ -8580,8 +8602,8 @@
       "attribute": 27,
       "page_type": 1
     }
-},
-{
+  },
+  {
     "model": "attribute.attributepage",
     "pk": 4,
     "fields": {
@@ -8589,8 +8611,8 @@
       "attribute": 29,
       "page_type": 2
     }
-},
-{
+  },
+  {
     "model": "attribute.attributecategory",
     "pk": 1,
     "fields": {
@@ -8598,8 +8620,17 @@
         "attribute": 32,
         "site_settings": 1
     }
-},
-{
+  },
+  {
+    "model": "attribute.attributecollection",
+    "pk": 1,
+    "fields": {
+      "sort_order": 0,
+      "attribute": 27,
+      "site_settings": 1
+    }
+  },
+  {
     "model": "attribute.attribute",
     "pk": 13,
     "fields": {
@@ -9623,6 +9654,19 @@
         "file_url": null,
         "content_type": null,
         "attribute": 32
+    }
+  },
+  {
+    "model": "attribute.attributevalue",
+    "pk": 99,
+    "fields": {
+        "sort_order": 3,
+        "name": "Angela Robinson",
+        "value": "",
+        "slug": "angela-robinson",
+        "file_url": null,
+        "content_type": null,
+        "attribute": 27
     }
   },
   {
