@@ -330,7 +330,9 @@ def _prepare_order_data(
 
 
 @transaction.atomic
-def _create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
+def _create_order(
+    *, checkout: Checkout, order_data: dict, user: User, site_settings=None
+) -> Order:
     """Create an order from the checkout.
 
     Each order will get a private copy of both the billing and the shipping
@@ -351,8 +353,9 @@ def _create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
     total_price_left = order_data.pop("total_price_left")
     order_lines_info = order_data.pop("lines")
 
-    # TODO: refactor to use request.site / info.context site
-    site_settings = Site.objects.get_current().settings
+    if site_settings is None:
+        site_settings = Site.objects.get_current().settings
+
     status = (
         OrderStatus.UNFULFILLED
         if site_settings.automatically_confirm_all_new_orders
@@ -525,6 +528,7 @@ def complete_checkout(
     store_source,
     discounts,
     user,
+    site_settings=None,
     tracking_code=None,
     redirect_url=None,
 ) -> Tuple[Optional[Order], bool, dict]:
@@ -572,6 +576,7 @@ def complete_checkout(
                 checkout=checkout,
                 order_data=order_data,
                 user=user,  # type: ignore
+                site_settings=site_settings,
             )
             # remove checkout after order is successfully created
             checkout.delete()

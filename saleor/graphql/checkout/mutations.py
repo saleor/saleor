@@ -869,6 +869,7 @@ class CheckoutComplete(BaseMutation):
                 store_source=store_source,
                 discounts=info.context.discounts,
                 user=info.context.user,
+                site_settings=info.context.site.settings,
                 tracking_code=tracking_code,
                 redirect_url=data.get("redirect_url"),
             )
