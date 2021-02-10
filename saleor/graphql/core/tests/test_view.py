@@ -5,6 +5,7 @@ import pytest
 from django.test import override_settings
 from graphql.execution.base import ExecutionResult
 
+from .... import __version__ as saleor_version
 from ....demo.views import EXAMPLE_QUERY
 from ...tests.fixtures import (
     ACCESS_CONTROL_ALLOW_CREDENTIALS,
@@ -360,7 +361,9 @@ def test_introspection_query_is_cached(cache_get_mock, cache_set_mock, api_clien
     content = get_graphql_content(response)
     assert content["data"] == INTROSPECTION_RESULT
     cache_get_mock.assert_called_once_with(cache_key)
-    cache_set_mock.assert_called_once_with(cache_key, mock.ANY)
+    cache_set_mock.assert_called_once_with(
+        cache_key, ExecutionResult(data=INTROSPECTION_RESULT)
+    )
 
 
 @mock.patch("saleor.graphql.views.cache.set")
@@ -389,3 +392,8 @@ def test_introspection_query_is_not_cached_in_debug_mode(
     assert content["data"] == INTROSPECTION_RESULT
     cache_get_mock.assert_not_called()
     cache_set_mock.assert_not_called()
+
+
+def test_generate_cache_key_use_saleor_version():
+    cache_key = generate_cache_key(INTROSPECTION_QUERY)
+    assert saleor_version in cache_key

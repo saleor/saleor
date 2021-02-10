@@ -24,6 +24,7 @@ from graphql.error import format_error as format_graphql_error
 from graphql.execution import ExecutionResult
 from jwt.exceptions import PyJWTError
 
+from .. import __version__ as saleor_version
 from ..core.exceptions import PermissionDenied, ReadOnlyException
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
 
@@ -258,8 +259,10 @@ class GraphQLView(View):
             try:
                 with connection.execute_wrapper(tracing_wrapper):
                     response = None
-                    should_use_cache = query_contains_schema & (not settings.DEBUG)
-                    if should_use_cache:
+                    should_use_cache_for_scheme = query_contains_schema & (
+                        not settings.DEBUG
+                    )
+                    if should_use_cache_for_scheme:
                         key = generate_cache_key(raw_query_string)
                         response = cache.get(key)
 
@@ -272,7 +275,7 @@ class GraphQLView(View):
                             middleware=self.middleware,
                             **extra_options,
                         )
-                        if should_use_cache:
+                        if should_use_cache_for_scheme:
                             cache.set(key, response)
                     return response
             except Exception as e:
@@ -386,4 +389,5 @@ def obj_set(obj, path, value, do_not_replace):
 
 
 def generate_cache_key(raw_query: str) -> str:
-    return hashlib.sha256(str(raw_query).encode("utf-8")).hexdigest()
+    hashed_query = hashlib.sha256(str(raw_query).encode("utf-8")).hexdigest()
+    return f"{saleor_version}-{hashed_query}"
