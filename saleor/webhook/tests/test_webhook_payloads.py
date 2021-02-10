@@ -3,14 +3,28 @@ from decimal import Decimal
 
 import graphene
 
+from ...discount import DiscountValueType, OrderDiscountType
 from ..payloads import ORDER_FIELDS, generate_order_payload
 
 
 def test_generate_order_payload(
     order_with_lines, fulfilled_order, payment_txn_captured
 ):
-    order_with_lines.discount_name = "Test discount"
-    order_with_lines.translated_discount_name = "Translated discount"
+    order_with_lines.discounts.create(
+        type=OrderDiscountType.MANUAL,
+        value_type=DiscountValueType.PERCENTAGE,
+        value=Decimal("20"),
+        amount_value=Decimal("33.0"),
+        reason="Discount from staff",
+    )
+    order_with_lines.discounts.create(
+        type=OrderDiscountType.VOUCHER,
+        value_type=DiscountValueType.PERCENTAGE,
+        value=Decimal("10"),
+        amount_value=Decimal("16.5"),
+        name="Voucher",
+    )
+
     order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
     payload = json.loads(generate_order_payload(order_with_lines))[0]
 
@@ -26,11 +40,16 @@ def test_generate_order_payload(
     assert payload.get("shipping_address")
     assert payload.get("billing_address")
     assert payload.get("fulfillments")
+    assert payload.get("discounts")
 
 
 def test_order_lines_have_all_required_fields(order, order_line_with_one_allocation):
     order.lines.add(order_line_with_one_allocation)
     line = order_line_with_one_allocation
+    line.unit_discount_amount = Decimal("10.0")
+    line.unit_discount_type = DiscountValueType.FIXED
+    line.save()
+
     payload = json.loads(generate_order_payload(order))[0]
     lines_payload = payload.get("lines")
 
@@ -39,6 +58,8 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
     line_payload = lines_payload[0]
     unit_net_amount = line.unit_price_net_amount.quantize(Decimal("0.001"))
     unit_gross_amount = line.unit_price_gross_amount.quantize(Decimal("0.001"))
+    unit_discount_amount = line.unit_discount_amount.quantize(Decimal("0.001"))
+
     total_line = line.total_price
     assert line_payload == {
         "id": line_id,
@@ -50,6 +71,9 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
         "product_sku": line.product_sku,
         "quantity": line.quantity,
         "currency": line.currency,
+        "unit_discount_amount": str(unit_discount_amount),
+        "unit_discount_type": line.unit_discount_type,
+        "unit_discount_reason": line.unit_discount_reason,
         "unit_price_net_amount": str(unit_net_amount),
         "unit_price_gross_amount": str(unit_gross_amount),
         "total_price_net_amount": str(total_line.net.amount.quantize(Decimal("0.001"))),
