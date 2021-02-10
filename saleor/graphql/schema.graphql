@@ -3315,7 +3315,7 @@ type Page implements Node & ObjectWithMetadata {
   created: DateTime!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
-  contentJson: String! @deprecated(reason: "Will be removed in Saleor 4.0. Use the `content` field instead.")
+  contentJson: JSONString! @deprecated(reason: "Will be removed in Saleor 4.0. Use the `content` field instead.")
   translation(languageCode: LanguageCodeEnum!): PageTranslation
   attributes: [SelectedAttribute!]!
 }
@@ -3442,7 +3442,7 @@ type PageTranslatableContent implements Node {
   id: ID!
   title: String!
   content: JSONString!
-  contentJson: String @deprecated(reason: "Will be removed in Saleor 4.0. Use the `content` field instead.")
+  contentJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `content` field instead.")
   translation(languageCode: LanguageCodeEnum!): PageTranslation
   page: Page
 }
@@ -3460,7 +3460,7 @@ type PageTranslation implements Node {
   title: String!
   content: JSONString!
   language: LanguageDisplay!
-  contentJson: String @deprecated(reason: "Will be removed in Saleor 4.0. Use the `content` field instead.")
+  contentJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `content` field instead.")
 }
 
 input PageTranslationInput {
