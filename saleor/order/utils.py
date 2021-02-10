@@ -485,9 +485,11 @@ def match_orders_with_new_user(user: User) -> None:
 
 
 def get_total_order_discount(order: Order) -> Money:
+    """Return total order discount assigned to the order."""
     all_discounts = order.discounts.all()
     total_order_discount = Money(
-        sum([discount.value for discount in all_discounts]), currency=order.currency
+        sum([discount.amount_value for discount in all_discounts]),
+        currency=order.currency,
     )
     total_order_discount = min(total_order_discount, order.undiscounted_total_gross)
     return total_order_discount

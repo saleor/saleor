@@ -17,7 +17,9 @@ def create_order_discount_relations(apps, *_args, **_kwargs):
     orders_with_discount = Order.objects.exclude(discount_amount=0.0)
     for order in orders_with_discount.iterator():
         order.discounts.create(
+            value_type="fixed",
             value=order.discount_amount,
+            amount_value=order.discount_amount,
             name=order.discount_name,
             type="voucher",
             translated_name=order.translated_discount_name,

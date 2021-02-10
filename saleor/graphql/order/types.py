@@ -447,10 +447,26 @@ class Order(CountableDjangoObjectType):
     is_shipping_required = graphene.Boolean(
         description="Returns True, if order requires shipping.", required=True
     )
-    discount = graphene.Field(Money, description="Returns applied discount.")
-    discount_name = graphene.String(description="Discount name.")
+    discount = graphene.Field(
+        Money,
+        description="Returns applied discount.",
+        deprecation_reason=(
+            "Use discounts field. This field will be removed after 2021-08-01"
+        ),
+    )
+    discount_name = graphene.String(
+        description="Discount name.",
+        deprecation_reason=(
+            "Use discounts field. This field will be removed after 2021-08-01"
+        ),
+    )
 
-    translated_discount_name = graphene.String(description="Translated discount name.")
+    translated_discount_name = graphene.String(
+        description="Translated discount name.",
+        deprecation_reason=(
+            "Use discounts field. This field will be removed after 2021-08-01"
+        ),
+    )
 
     class Meta:
         description = "Represents an order in the shop."
@@ -482,21 +498,20 @@ class Order(CountableDjangoObjectType):
             "redirect_url",
         ]
 
-    # FIXME TMP
     @staticmethod
-    def resolve_discount(root: models.Order, info):
+    def resolve_discount(root: models.Order, _info):
         discount = root.discounts.first()
         return (
             Money(amount=discount.value, currency=root.currency) if discount else None
         )
 
     @staticmethod
-    def resolve_discount_name(root: models.Order, info):
+    def resolve_discount_name(root: models.Order, _info):
         discount = root.discounts.first()
         return discount.name if discount else None
 
     @staticmethod
-    def resolve_translated_discount_name(root: models.Order, info):
+    def resolve_translated_discount_name(root: models.Order, _info):
         discount = root.discounts.first()
         return discount.translated_name if discount else None
 
