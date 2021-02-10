@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union
 
 import opentracing
-from django.conf import settings
 from prices import MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from ...channel.models import Channel
@@ -256,9 +255,6 @@ def get_variant_availability(
         )
 
         discount = _get_total_discount(undiscounted, discounted)
-
-        if country is None:
-            country = settings.DEFAULT_COUNTRY
 
         if local_currency:
             price_local_currency = to_local_currency(discounted, local_currency)

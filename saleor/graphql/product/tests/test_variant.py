@@ -29,10 +29,15 @@ def test_fetch_variant(
     channel_USD,
 ):
     query = """
-    query ProductVariantDetails($id: ID!, $countyCode: CountryCode, $channel: String) {
+    query ProductVariantDetails(
+        $id: ID!, $address: AddressInput, $countryCode: CountryCode, $channel: String
+    ) {
         productVariant(id: $id, channel: $channel) {
             id
-            stocks(countryCode: $countyCode) {
+            deprecatedStocksByCountry: stocks(countryCode: $countryCode) {
+                id
+            }
+            stocksByAddress: stocks(address: $address) {
                 id
             }
             attributes {
@@ -92,7 +97,7 @@ def test_fetch_variant(
     site_settings.save(update_fields=["default_weight_unit"])
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
-    variables = {"id": variant_id, "countyCode": "EU", "channel": channel_USD.slug}
+    variables = {"id": variant_id, "countryCode": "EU", "channel": channel_USD.slug}
     staff_api_client.user.user_permissions.add(permission_manage_products)
 
     # when
@@ -102,7 +107,11 @@ def test_fetch_variant(
     content = get_graphql_content(response)
     data = content["data"]["productVariant"]
     assert data["name"] == variant.name
-    assert len(data["stocks"]) == variant.stocks.count()
+
+    stocks_count = variant.stocks.count()
+    assert len(data["deprecatedStocksByCountry"]) == stocks_count
+    assert len(data["stocksByAddress"]) == stocks_count
+
     assert data["weight"]["value"] == 10000
     assert data["weight"]["unit"] == WeightUnitsEnum.G.name
     channel_listing_data = data["channelListings"][0]

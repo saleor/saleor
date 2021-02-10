@@ -53,7 +53,7 @@ def check_stock_quantity_bulk(variants, country_code, quantities):
         variant_stocks[stock.product_variant_id].append(stock)
 
     for variant, quantity in zip(variants, quantities):
-        stocks = variant_stocks.get(variant.pk)
+        stocks = variant_stocks.get(variant.pk, [])
         available_quantity = sum([stock.available_quantity for stock in stocks])
 
         if not stocks:
