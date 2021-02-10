@@ -8418,6 +8418,17 @@
     }
   },
   {
+    "model": "attribute.assignedcategoryattribute",
+    "pk": 1,
+    "fields": {
+        "category": 10,
+        "assignment": 1,
+        "values": [
+          97, 98
+        ]
+    }
+  },
+  {
     "model": "attribute.attributeproduct",
     "pk": 1,
     "fields": {
@@ -8579,7 +8590,16 @@
       "page_type": 2
     }
 },
-  {
+{
+    "model": "attribute.attributecategory",
+    "pk": 1,
+    "fields": {
+        "sort_order": 0,
+        "attribute": 32,
+        "site_settings": 1
+    }
+},
+{
     "model": "attribute.attribute",
     "pk": 13,
     "fields": {
@@ -8893,6 +8913,26 @@
         "slug": "related-products",
         "name": "Related products",
         "type": "product-type",
+        "input_type": "reference",
+        "entity_type": "Product",
+        "value_required": false,
+        "is_variant_only": false,
+        "visible_in_storefront": true,
+        "filterable_in_storefront": false,
+        "filterable_in_dashboard": false,
+        "storefront_search_position": 0,
+        "available_in_grid": false
+    }
+  },
+  {
+    "model": "attribute.attribute",
+    "pk": 32,
+    "fields": {
+        "private_metadata": {},
+        "metadata": {},
+        "slug": "recommended-products",
+        "name": "Recommended products",
+        "type": "page-type",
         "input_type": "reference",
         "entity_type": "Product",
         "value_required": false,
@@ -9558,6 +9598,32 @@
           "content_type": null,
           "attribute": 31
       }
+  },
+  {
+    "model": "attribute.attributevalue",
+    "pk": 97,
+    "fields": {
+        "sort_order": 0,
+        "name": "Code Division T-shirt",
+        "value": "",
+        "slug": "10_89",
+        "file_url": null,
+        "content_type": null,
+        "attribute": 32
+    }
+  },
+  {
+    "model": "attribute.attributevalue",
+    "pk": 98,
+    "fields": {
+        "sort_order": 1,
+        "name": "T-shirt",
+        "value": "",
+        "slug": "10_112",
+        "file_url": null,
+        "content_type": null,
+        "attribute": 32
+    }
   },
   {
     "model": "product.productimage",
