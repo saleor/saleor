@@ -2,6 +2,7 @@ from .attributes import (
     CategoryAttributeSettingsUpdate,
     CategorySettingsReorderAttributes,
     CollectionAttributeSettingsUpdate,
+    CollectionSettingsReorderAttributes,
 )
 from .notifications import (
     StaffNotificationRecipientCreate,
@@ -20,6 +21,7 @@ __all__ = [
     "CategoryAttributeSettingsUpdate",
     "CategorySettingsReorderAttributes",
     "CollectionAttributeSettingsUpdate",
+    "CollectionSettingsReorderAttributes",
     "OrderSettingsUpdate",
     "ShopAddressUpdate",
     "ShopDomainUpdate",
