@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from ..product.models import ProductVariant
     from .models import FulfillmentLine, OrderLine
 
 
@@ -170,6 +171,14 @@ class OrderLineData:
     line: "OrderLine"
     quantity: int
     replace: bool = False
+
+
+@dataclass
+class OrderLineInfo:
+    line: "OrderLine"
+    quantity: int
+    variant: "ProductVariant"
+    country_code: str
 
 
 @dataclass

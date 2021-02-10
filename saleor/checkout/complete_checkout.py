@@ -24,7 +24,7 @@ from ..discount.utils import (
     increase_voucher_usage,
     remove_voucher_usage_by_customer,
 )
-from ..order import OrderStatus
+from ..order import OrderLineInfo, OrderStatus
 from ..order.actions import order_created
 from ..order.emails import send_order_confirmation, send_staff_order_confirmation
 from ..order.models import Order, OrderLine
@@ -135,9 +135,10 @@ def _create_line_for_order(
     checkout_line_info: "CheckoutLineInfo",
     discounts: Iterable[DiscountInfo],
     channel: "Channel",
+    country_code: str,
     products_translation: Dict[int, Optional[str]],
     variants_translation: Dict[int, Optional[str]],
-) -> OrderLine:
+) -> OrderLineInfo:
     """Create a line for the given order.
 
     :raises InsufficientStock: when there is not enough items in stock for this variant.
@@ -196,7 +197,11 @@ def _create_line_for_order(
         tax_rate=tax_rate,
     )
 
-    return line
+    line_info = OrderLineInfo(
+        line=line, quantity=quantity, variant=variant, country_code=country_code
+    )
+
+    return line_info
 
 
 def _create_lines_for_order(
@@ -205,7 +210,7 @@ def _create_lines_for_order(
     lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable[DiscountInfo],
     channel: "Channel",
-) -> Iterable[OrderLine]:
+) -> Iterable[OrderLineInfo]:
     """Create a lines for the given order.
 
     :raises InsufficientStock: when there is not enough items in stock for this variant.
@@ -245,6 +250,7 @@ def _create_lines_for_order(
             checkout_line_info,
             discounts,
             channel,
+            country_code,
             product_translations,
             variants_translation,
         )
@@ -343,7 +349,7 @@ def _create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
         return order
 
     total_price_left = order_data.pop("total_price_left")
-    order_lines = order_data.pop("lines")
+    order_lines_info = order_data.pop("lines")
 
     # TODO: refactor to use request.site / info.context site
     site_settings = Site.objects.get_current().settings
@@ -358,15 +364,19 @@ def _create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
         status=status,
         channel=checkout.channel,
     )
-    for line in order_lines:
+    order_lines = []
+    for line_info in order_lines_info:
+        line = line_info.line
         line.order_id = order.pk
-    order_lines = OrderLine.objects.bulk_create(order_lines)
+        order_lines.append(line)
+
+    OrderLine.objects.bulk_create(order_lines)
 
     # allocate stocks from the lines
-    for line in order_lines:  # type: OrderLine
-        variant = line.variant
+    for line_info in order_lines_info:  # type: OrderLineInfo
+        variant = line_info.variant
         if variant and variant.track_inventory:
-            allocate_stock(line, checkout.get_country(), line.quantity)
+            allocate_stock(line_info.line, line_info.country_code, line_info.quantity)
 
     # Add gift cards to the order
     for gift_card in checkout.gift_cards.select_for_update():
