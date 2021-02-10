@@ -8,14 +8,17 @@ from ....order.error_codes import OrderErrorCode
 from ....order.utils import (
     create_order_discount_for_order,
     get_order_discounts,
+    recalculate_order,
+    remove_discount_from_order_line,
     remove_order_discount_from_order,
+    update_discount_for_order_line,
     update_order_discount_for_order,
 )
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
 from ...discount.enums import DiscountValueTypeEnum
-from ..types import Order
+from ..types import Order, OrderLine
 
 
 class OrderDiscountCommonInput(graphene.InputObjectType):
@@ -164,3 +167,78 @@ class OrderDiscountDelete(OrderDiscountCommon):
         order.refresh_from_db()
         return OrderDiscountDelete(order=order)
         # FIXME call order event here. Update webhook payload
+
+
+class OrderLineDiscountUpdate(BaseMutation):
+    order_line = graphene.Field(
+        OrderLine, description="Order line which has been discounted."
+    )
+
+    class Arguments:
+        order_line_id = graphene.ID(
+            description="ID of a order_line to update price", required=True
+        )
+        input = OrderDiscountCommonInput(
+            required=True,
+            description="Fields required to update price for the order line.",
+        )
+
+    class Meta:
+        description = "Update discount for the order line."
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
+
+    # FIXME add value validation when value type is percentage - value <= 100
+    # FIXME add value validation when value type is fixed order.total <= value
+    @classmethod
+    @transaction.atomic
+    def perform_mutation(cls, root, info, **data):
+        order_line = cls.get_node_or_error(
+            info, data.get("order_line_id"), only_type=OrderLine
+        )
+        input = data.get("input")
+        reason = input.get("reason")
+        value_type = input.get("value_type")
+        value = input.get("value")
+
+        order = order_line.order
+        update_discount_for_order_line(
+            order_line,
+            order=order,
+            reason=reason,
+            value_type=value_type,
+            value=value,
+            manager=info.context.plugins,
+        )
+        recalculate_order(order)
+        return OrderLineDiscountUpdate(order_line=order_line)
+
+
+# FIXME is it proper name?
+class OrderLineDiscountRemove(BaseMutation):
+    order_line = graphene.Field(
+        OrderLine, description="Order line which has removed discount."
+    )
+
+    class Arguments:
+        order_line_id = graphene.ID(
+            description="ID of a order_line to remove its discount", required=True
+        )
+
+    class Meta:
+        description = "Remove discount applied to the order line."
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
+
+    @classmethod
+    @transaction.atomic
+    def perform_mutation(cls, root, info, **data):
+        order_line = cls.get_node_or_error(
+            info, data.get("order_line_id"), only_type=OrderLine
+        )
+        order = order_line.order
+        remove_discount_from_order_line(order_line, order, manager=info.context.plugins)
+        recalculate_order(order)
+        return OrderLineDiscountRemove(order_line=order_line)

@@ -274,6 +274,19 @@ class OrderLine(CountableDjangoObjectType):
         description="Price of the single item in the order line.",
         required=True,
     )
+    undiscounted_unit_price = graphene.Field(
+        TaxedMoney,
+        description=(
+            "Price of the single item in the order line without applied an order line "
+            "discount."
+        ),
+        required=True,
+    )
+    unit_discount = graphene.Field(
+        Money,
+        description=("The discount applied to the single order line."),
+        required=True,
+    )
     total_price = graphene.Field(
         TaxedMoney, description="Price of the order line.", required=True
     )
@@ -326,6 +339,14 @@ class OrderLine(CountableDjangoObjectType):
     @staticmethod
     def resolve_unit_price(root: models.OrderLine, _info):
         return root.unit_price
+
+    @staticmethod
+    def resolve_undiscounted_unit_price(root: models.OrderLine, _info):
+        return root.undiscounted_unit_price
+
+    @staticmethod
+    def resolve_unit_discount(root: models.OrderLine, _info):
+        return root.unit_discount
 
     @staticmethod
     def resolve_total_price(root: models.OrderLine, _info):
