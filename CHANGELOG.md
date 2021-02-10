@@ -15,6 +15,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop `apply_taxes_to_shipping_price_range` plugin hook - #6746 by @maarcingebala
 - Drop `CHECKOUT_QUANTITY_CHANGED` webhook - #6797 by @d-wysocki
 - Drop deprecated `taxRate` field from `ProductType` - #6795 by @d-wysocki
+- Remove resolving user's location from GeoIP; drop `PaymentInput.billingAddress` input field - #6784 by @maarcingebala
 
 ### Other
 
