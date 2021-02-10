@@ -25,10 +25,12 @@ from prices import Money, TaxedMoney
 from ...account.models import Address, User
 from ...account.utils import store_user_address
 from ...attribute.models import (
+    AssignedCategoryAttribute,
     AssignedPageAttribute,
     AssignedProductAttribute,
     AssignedVariantAttribute,
     Attribute,
+    AttributeCategory,
     AttributePage,
     AttributeProduct,
     AttributeValue,
@@ -330,7 +332,6 @@ def assign_attributes_to_product_types(
 
 
 def assign_attributes_to_page_types(
-    association_model: AttributePage,
     attributes: list,
 ):
     for value in attributes:
@@ -338,7 +339,16 @@ def assign_attributes_to_page_types(
         defaults = value["fields"]
         defaults["attribute_id"] = defaults.pop("attribute")
         defaults["page_type_id"] = defaults.pop("page_type")
-        association_model.objects.update_or_create(pk=pk, defaults=defaults)
+        AttributePage.objects.update_or_create(pk=pk, defaults=defaults)
+
+
+def assign_attributes_to_category_settings(attributes: list):
+    for value in attributes:
+        pk = value["pk"]
+        defaults = value["fields"]
+        defaults["attribute_id"] = defaults.pop("attribute")
+        defaults["site_settings_id"] = defaults.pop("site_settings")
+        AttributeCategory.objects.update_or_create(pk=pk, defaults=defaults)
 
 
 def assign_attributes_to_products(product_attributes):
@@ -377,6 +387,20 @@ def assign_attributes_to_pages(page_attributes):
         defaults["assignment_id"] = defaults.pop("assignment")
         assigned_values = defaults.pop("values")
         assoc, created = AssignedPageAttribute.objects.update_or_create(
+            pk=pk, defaults=defaults
+        )
+        if created:
+            assoc.values.set(AttributeValue.objects.filter(pk__in=assigned_values))
+
+
+def assign_attributes_to_categories(category_attributes):
+    for value in category_attributes:
+        pk = value["pk"]
+        defaults = value["fields"]
+        defaults["category_id"] = defaults.pop("category")
+        defaults["assignment_id"] = defaults.pop("assignment")
+        assigned_values = defaults.pop("values")
+        assoc, created = AssignedCategoryAttribute.objects.update_or_create(
             pk=pk, defaults=defaults
         )
         if created:
@@ -429,8 +453,9 @@ def create_products_by_schema(placeholder_dir, create_images):
     assign_attributes_to_product_types(
         AttributeVariant, attributes=types["attribute.attributevariant"]
     )
-    assign_attributes_to_page_types(
-        AttributePage, attributes=types["attribute.attributepage"]
+    assign_attributes_to_page_types(attributes=types["attribute.attributepage"])
+    assign_attributes_to_category_settings(
+        attributes=types["attribute.attributecategory"]
     )
     assign_attributes_to_products(
         product_attributes=types["attribute.assignedproductattribute"]
@@ -439,6 +464,9 @@ def create_products_by_schema(placeholder_dir, create_images):
         variant_attributes=types["attribute.assignedvariantattribute"]
     )
     assign_attributes_to_pages(page_attributes=types["attribute.assignedpageattribute"])
+    assign_attributes_to_categories(
+        category_attributes=types["attribute.assignedcategoryattribute"]
+    )
     create_collections(
         data=types["product.collection"], placeholder_dir=placeholder_dir
     )
