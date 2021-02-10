@@ -293,7 +293,6 @@ def get_order_lines_data(
             tax_included=tax_included,
         )
 
-    # FIXME make sure the values are correct on the avatax side
     discount_amount = get_total_order_discount(order)
     if discount_amount:
         append_line_to_data(

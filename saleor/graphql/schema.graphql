@@ -2909,9 +2909,9 @@ type Order implements Node & ObjectWithMetadata {
   totalBalance: Money!
   userEmail: String
   isShippingRequired: Boolean!
-  discount: Money
-  discountName: String
-  translatedDiscountName: String
+  discount: Money @deprecated(reason: "Use discounts field. This field will be removed after 2021-08-01")
+  discountName: String @deprecated(reason: "Use discounts field. This field will be removed after 2021-08-01")
+  translatedDiscountName: String @deprecated(reason: "Use discounts field. This field will be removed after 2021-08-01")
 }
 
 enum OrderAction {
