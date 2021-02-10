@@ -2416,6 +2416,9 @@ def test_search_product_by_description(user_api_client, product_list, channel_US
       }
     }
     """
+    product = product_list[0]
+    product.name = "Test red product 1"
+    product.save()
     variables = {"filters": {"search": "big"}, "channel": channel_USD.slug}
     response = user_api_client.post_graphql(search_query, variables)
     content = get_graphql_content(response)
@@ -2426,6 +2429,15 @@ def test_search_product_by_description(user_api_client, product_list, channel_US
     content = get_graphql_content(response)
 
     assert len(content["data"]["products"]["edges"]) == 1
+
+    variables = {"filters": {"search": "red"}, "channel": channel_USD.slug}
+    response = user_api_client.post_graphql(search_query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["products"]["edges"]
+    # product with name red
+    assert data[0]["node"]["name"] == product_list[0].name
+    # product description contains word red
+    assert data[1]["node"]["name"] == product_list[2].name
 
 
 @freeze_time("2020-03-18 12:00:00")
