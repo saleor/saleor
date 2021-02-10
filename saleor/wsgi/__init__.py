@@ -24,6 +24,8 @@ application = get_wsgi_application()
 application = health_check(application, "/health/")
 
 # Warm-up the django application instead of letting it lazy-load
+# It might hit a not host allowed error but will still 
+# cause the Django application to warm-up
 application(
     {
         "REQUEST_METHOD": "GET",
