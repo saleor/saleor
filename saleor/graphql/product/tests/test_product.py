@@ -1357,9 +1357,9 @@ def test_fetch_product_from_category_query(
     category = Category.objects.first()
     product = category.products.first()
     query = """
-    query {
-        category(id: "%(category_id)s") {
-            products(first: 20, channel: "%(channel_slug)s") {
+    query CategoryProducts($id: ID, $channel: String, $address: AddressInput) {
+        category(id: $id) {
+            products(first: 20, channel: $channel) {
                 edges {
                     node {
                         id
@@ -1395,8 +1395,8 @@ def test_fetch_product_from_category_query(
                                 stop
                             }
                         }
-                        isAvailable
-                        pricing {
+                        isAvailable(address: $address)
+                        pricing(address: $address) {
                             priceRange {
                                 start {
                                     gross {
@@ -1418,12 +1418,14 @@ def test_fetch_product_from_category_query(
             }
         }
     }
-    """ % {
-        "category_id": graphene.Node.to_global_id("Category", category.id),
-        "channel_slug": channel_USD.slug,
-    }
+    """
     staff_api_client.user.user_permissions.add(permission_manage_products)
-    response = staff_api_client.post_graphql(query)
+    variables = {
+        "id": graphene.Node.to_global_id("Category", category.id),
+        "channel": channel_USD.slug,
+        "address": {"country": "US"},
+    }
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert content["data"]["category"] is not None
     product_edges_data = content["data"]["category"]["products"]["edges"]
@@ -6355,10 +6357,10 @@ def test_product_variant_price(
     ).update(price_amount=variant_price_amount)
 
     query = """
-        query getProductVariants($id: ID!, $channel: String) {
+        query getProductVariants($id: ID!, $channel: String, $address: AddressInput) {
             product(id: $id, channel: $channel) {
                 variants {
-                    pricing {
+                    pricing(address: $address) {
                         priceUndiscounted {
                             gross {
                                 amount
@@ -6370,7 +6372,11 @@ def test_product_variant_price(
         }
         """
     product_id = graphene.Node.to_global_id("Product", variant.product.id)
-    variables = {"id": product_id, "channel": channel_USD.slug}
+    variables = {
+        "id": product_id,
+        "channel": channel_USD.slug,
+        "address": {"country": "US"},
+    }
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["product"]

@@ -27,9 +27,12 @@ def test_variant_quantity_available_without_country_code(
 
 
 QUERY_VARIANT_AVAILABILITY = """
-    query variantAvailability($id: ID!, $country: CountryCode, $channel: String) {
+    query variantAvailability(
+        $id: ID!, $country: CountryCode, $address: AddressInput, $channel: String
+    ) {
         productVariant(id: $id, channel: $channel) {
-            quantityAvailable(countryCode: $country)
+            deprecatedByCountry: quantityAvailable(countryCode: $country)
+            byAddress: quantityAvailable(address: $address)
         }
     }
 """
@@ -40,13 +43,14 @@ def test_variant_quantity_available_with_country_code(
 ):
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant_with_many_stocks.pk),
-        "country": COUNTRY_CODE,
+        "address": {"country": COUNTRY_CODE},
         "channel": channel_USD.slug,
     }
     response = api_client.post_graphql(QUERY_VARIANT_AVAILABILITY, variables)
     content = get_graphql_content(response)
     variant_data = content["data"]["productVariant"]
-    assert variant_data["quantityAvailable"] == 7
+    assert variant_data["deprecatedByCountry"] == 7
+    assert variant_data["byAddress"] == 7
 
 
 def test_variant_quantity_available_with_null_as_country_code(
@@ -60,7 +64,8 @@ def test_variant_quantity_available_with_null_as_country_code(
     response = api_client.post_graphql(QUERY_VARIANT_AVAILABILITY, variables)
     content = get_graphql_content(response)
     variant_data = content["data"]["productVariant"]
-    assert variant_data["quantityAvailable"] == 7
+    assert variant_data["deprecatedByCountry"] == 7
+    assert variant_data["byAddress"] == 7
 
 
 @override_settings(MAX_CHECKOUT_LINE_QUANTITY=15)
@@ -78,7 +83,8 @@ def test_variant_quantity_available_with_max(
     response = api_client.post_graphql(QUERY_VARIANT_AVAILABILITY, variables)
     content = get_graphql_content(response)
     variant_data = content["data"]["productVariant"]
-    assert variant_data["quantityAvailable"] == settings.MAX_CHECKOUT_LINE_QUANTITY
+    assert variant_data["deprecatedByCountry"] == settings.MAX_CHECKOUT_LINE_QUANTITY
+    assert variant_data["byAddress"] == settings.MAX_CHECKOUT_LINE_QUANTITY
 
 
 def test_variant_quantity_available_without_stocks(
@@ -93,7 +99,8 @@ def test_variant_quantity_available_without_stocks(
     response = api_client.post_graphql(QUERY_VARIANT_AVAILABILITY, variables)
     content = get_graphql_content(response)
     variant_data = content["data"]["productVariant"]
-    assert variant_data["quantityAvailable"] == 0
+    assert variant_data["deprecatedByCountry"] == 0
+    assert variant_data["byAddress"] == 0
 
 
 def test_variant_quantity_available_with_allocations(
@@ -111,7 +118,8 @@ def test_variant_quantity_available_with_allocations(
     response = api_client.post_graphql(QUERY_VARIANT_AVAILABILITY, variables)
     content = get_graphql_content(response)
     variant_data = content["data"]["productVariant"]
-    assert variant_data["quantityAvailable"] == 3
+    assert variant_data["deprecatedByCountry"] == 3
+    assert variant_data["byAddress"] == 3
 
 
 @override_settings(MAX_CHECKOUT_LINE_QUANTITY=15)
@@ -128,7 +136,8 @@ def test_variant_quantity_available_without_inventory_tracking(
     response = api_client.post_graphql(QUERY_VARIANT_AVAILABILITY, variables)
     content = get_graphql_content(response)
     variant_data = content["data"]["productVariant"]
-    assert variant_data["quantityAvailable"] == settings.MAX_CHECKOUT_LINE_QUANTITY
+    assert variant_data["deprecatedByCountry"] == settings.MAX_CHECKOUT_LINE_QUANTITY
+    assert variant_data["byAddress"] == settings.MAX_CHECKOUT_LINE_QUANTITY
 
 
 @override_settings(MAX_CHECKOUT_LINE_QUANTITY=15)
@@ -145,4 +154,5 @@ def test_variant_quantity_available_without_inventory_tracking_and_stocks(
     response = api_client.post_graphql(QUERY_VARIANT_AVAILABILITY, variables)
     content = get_graphql_content(response)
     variant_data = content["data"]["productVariant"]
-    assert variant_data["quantityAvailable"] == settings.MAX_CHECKOUT_LINE_QUANTITY
+    assert variant_data["deprecatedByCountry"] == settings.MAX_CHECKOUT_LINE_QUANTITY
+    assert variant_data["byAddress"] == settings.MAX_CHECKOUT_LINE_QUANTITY

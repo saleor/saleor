@@ -26,8 +26,6 @@ SECRET_KEY = "NOTREALLY"
 
 ALLOWED_CLIENT_HOSTS = ["www.example.com"]
 
-DEFAULT_CURRENCY = "USD"
-
 TIME_ZONE = "America/Chicago"
 LANGUAGE_CODE = "en"
 
