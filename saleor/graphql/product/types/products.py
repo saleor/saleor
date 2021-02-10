@@ -78,6 +78,7 @@ from ..dataloaders import (
     ProductVariantByIdLoader,
     ProductVariantsByProductIdLoader,
     SelectedAttributesByCategoryIdLoader,
+    SelectedAttributesByCollectionIdLoader,
     SelectedAttributesByProductIdLoader,
     SelectedAttributesByProductVariantIdLoader,
     VariantAttributesByProductTypeIdLoader,
@@ -895,6 +896,10 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         sort_by=ProductOrder(description="Sort products."),
         description="List of products in this collection.",
     )
+    attributes = graphene.List(
+        graphene.NonNull(SelectedAttribute),
+        description="List of attributes assigned to this collection.",
+    )
     background_image = graphene.Field(
         Image, size=graphene.Int(description="Size of the image.")
     )
@@ -941,6 +946,10 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         requestor = get_user_or_app_from_context(info.context)
         qs = root.node.products.visible_to_user(requestor, root.channel_slug)
         return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+
+    @staticmethod
+    def resolve_attributes(root: ChannelContext[models.Collection], info):
+        return SelectedAttributesByCollectionIdLoader(info.context).load(root.node.id)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)

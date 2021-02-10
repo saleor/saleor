@@ -224,6 +224,7 @@ class CollectionInput(graphene.InputObjectType):
     background_image_alt = graphene.String(description="Alt text for an image.")
     seo = SeoInput(description="Search engine optimization fields.")
     publication_date = graphene.Date(description="Publication date. ISO 8601 standard.")
+    attributes = graphene.List(AttributeValueInput, description="List of attributes.")
 
 
 class CollectionCreateInput(CollectionInput):
@@ -264,14 +265,39 @@ class CollectionCreate(ModelMutation):
         publication_date = cleaned_input.get("publication_date")
         if is_published and not publication_date:
             cleaned_input["publication_date"] = datetime.date.today()
+        attributes = data.get("attributes")
+        if attributes:
+            try:
+                cleaned_input["attributes"] = cls.clean_attributes(
+                    attributes, info.context.site.settings
+                )
+            except ValidationError as exc:
+                raise ValidationError({"attributes": exc})
         clean_seo_fields(cleaned_input)
         return cleaned_input
+
+    @classmethod
+    def clean_attributes(cls, attributes: dict, site_settings) -> T_INPUT_MAP:
+        attributes_qs = attribute_models.Attribute.objects.filter(
+            collection_attributes__site_settings=site_settings
+        )
+        attributes = AttributeAssignmentMixin.clean_input(attributes, attributes_qs)
+        return attributes
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
         instance.save()
         if cleaned_input.get("background_image"):
             create_collection_background_image_thumbnails.delay(instance.pk)
+
+    @classmethod
+    def _save_m2m(cls, info, instance, cleaned_data):
+        super()._save_m2m(info, instance, cleaned_data)
+        attributes = cleaned_data.get("attributes")
+        if attributes:
+            AttributeAssignmentMixin.save(
+                instance, attributes, info.context.site.settings
+            )
 
     @classmethod
     def perform_mutation(cls, _root, info, **kwargs):

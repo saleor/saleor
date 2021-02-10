@@ -2787,18 +2787,6 @@ def collection(db):
 
 
 @pytest.fixture
-def collection_with_attribute(collection, site_settings_with_collection_attributes):
-    attr = (
-        site_settings_with_collection_attributes.collection_attributes.first().attribute
-    )
-    value = attr.values.first()
-    associate_attribute_values_to_instance(
-        collection, attr, [value], site_settings_with_collection_attributes
-    )
-    return collection
-
-
-@pytest.fixture
 def published_collection(db, channel_USD):
     collection = Collection.objects.create(
         name="Collection USD",
@@ -2874,6 +2862,19 @@ def collection_with_image(db, image, media_root, channel_USD):
         channel=channel_USD, collection=collection, is_published=False
     )
     return collection
+
+
+@pytest.fixture
+def collection_with_attribute(
+    published_collection, site_settings_with_collection_attributes
+):
+    site_settings = site_settings_with_collection_attributes
+    attr = site_settings.collection_attributes.first().attribute
+    value = attr.values.first()
+    associate_attribute_values_to_instance(
+        published_collection, attr, [value], site_settings
+    )
+    return published_collection
 
 
 @pytest.fixture

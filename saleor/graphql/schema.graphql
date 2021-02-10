@@ -1079,6 +1079,7 @@ type Collection implements Node & ObjectWithMetadata {
   metadata: [MetadataItem]!
   descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
   products(filter: ProductFilterInput, sortBy: ProductOrder, before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  attributes: [SelectedAttribute!]
   backgroundImage(size: Int): Image
   translation(languageCode: LanguageCodeEnum!): CollectionTranslation
   channelListings: [CollectionChannelListing!]
@@ -1159,6 +1160,7 @@ input CollectionCreateInput {
   backgroundImageAlt: String
   seo: SeoInput
   publicationDate: Date
+  attributes: [AttributeValueInput]
   products: [ID]
 }
 
@@ -1201,6 +1203,7 @@ input CollectionInput {
   backgroundImageAlt: String
   seo: SeoInput
   publicationDate: Date
+  attributes: [AttributeValueInput]
 }
 
 enum CollectionPublished {

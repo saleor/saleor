@@ -5,6 +5,8 @@ from promise import Promise
 from ....attribute.models import (
     AssignedCategoryAttribute,
     AssignedCategoryAttributeValue,
+    AssignedCollectionAttribute,
+    AssignedCollectionAttributeValue,
     AssignedProductAttribute,
     AssignedProductAttributeValue,
     AssignedVariantAttribute,
@@ -81,237 +83,179 @@ class VariantAttributesByProductTypeIdLoader(
     model_name = AttributeVariant
 
 
-class AttributeProductsByProductTypeIdLoader(DataLoader):
+class BaseAttributeByProductTypeIdLoader(DataLoader):
+    context_key = "attribute_by_producttype"
+    model = None
+
+    def batch_load(self, keys):
+        requestor = get_user_or_app_from_context(self.context)
+        if requestor.is_active and requestor.has_perm(
+            ProductPermissions.MANAGE_PRODUCTS
+        ):
+            qs = self.model.objects.all()
+        else:
+            qs = self.model.objects.filter(attribute__visible_in_storefront=True)
+        attributes = qs.filter(product_type_id__in=keys)
+        producttype_to_attributes = defaultdict(list)
+        for attribute in attributes:
+            producttype_to_attributes[attribute.product_type_id].append(attribute)
+        return [producttype_to_attributes[key] for key in keys]
+
+
+class AttributeProductsByProductTypeIdLoader(BaseAttributeByProductTypeIdLoader):
     """Loads AttributeProduct objects by product type ID."""
 
     context_key = "attributeproducts_by_producttype"
-
-    def batch_load(self, keys):
-        requestor = get_user_or_app_from_context(self.context)
-        if requestor.is_active and requestor.has_perm(
-            ProductPermissions.MANAGE_PRODUCTS
-        ):
-            qs = AttributeProduct.objects.all()
-        else:
-            qs = AttributeProduct.objects.filter(attribute__visible_in_storefront=True)
-        attribute_products = qs.filter(product_type_id__in=keys)
-        producttype_to_attributeproducts = defaultdict(list)
-        for attribute_product in attribute_products:
-            producttype_to_attributeproducts[attribute_product.product_type_id].append(
-                attribute_product
-            )
-        return [producttype_to_attributeproducts[key] for key in keys]
+    model = AttributeProduct
 
 
-class AttributeVariantsByProductTypeIdLoader(DataLoader):
+class AttributeVariantsByProductTypeIdLoader(BaseAttributeByProductTypeIdLoader):
     context_key = "attributevariants_by_producttype"
+    model = AttributeVariant
+
+
+class BaseAttributeBySiteSettingsIdLoader(DataLoader):
+    context_key = "attribute_by_sitesettings"
+    model = None
 
     def batch_load(self, keys):
         requestor = get_user_or_app_from_context(self.context)
         if requestor.is_active and requestor.has_perm(
-            ProductPermissions.MANAGE_PRODUCTS
+            PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES
         ):
-            qs = AttributeVariant.objects.all()
+            qs = self.model.objects.all()
         else:
-            qs = AttributeVariant.objects.filter(attribute__visible_in_storefront=True)
-        attribute_variants = qs.filter(product_type_id__in=keys)
-        producttype_to_attributevariants = defaultdict(list)
-        for attribute_variant in attribute_variants:
-            producttype_to_attributevariants[attribute_variant.product_type_id].append(
-                attribute_variant
-            )
-        return [producttype_to_attributevariants[key] for key in keys]
+            qs = self.model.objects.filter(attribute__visible_in_storefront=True)
+        attributes = qs.filter(site_settings_id__in=keys)
+        sitesettings_to_attributes = defaultdict(list)
+        for attribute in attributes:
+            sitesettings_to_attributes[attribute.site_settings_id].append(attribute)
+        return [sitesettings_to_attributes[key] for key in keys]
 
 
-class AttributeCategoriesBySiteSettingsIdLoader(DataLoader):
+class AttributeCategoriesBySiteSettingsIdLoader(BaseAttributeBySiteSettingsIdLoader):
     """Loads AttributeCategory objects by site settings type ID."""
 
     context_key = "attributecategories_by_site_settings"
-
-    def batch_load(self, keys):
-        requestor = get_user_or_app_from_context(self.context)
-        if requestor.is_active and requestor.has_perm(
-            PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES
-        ):
-            qs = AttributeCategory.objects.all()
-        else:
-            qs = AttributeCategory.objects.filter(attribute__visible_in_storefront=True)
-        attribute_categories = qs.filter(site_settings_id__in=keys)
-        sitesettings_to_attributecategories = defaultdict(list)
-        for attribute_category in attribute_categories:
-            sitesettings_to_attributecategories[
-                attribute_category.site_settings_id
-            ].append(attribute_category)
-        return [sitesettings_to_attributecategories[key] for key in keys]
+    model = AttributeCategory
 
 
-class AttributeCollectionsBySiteSettingsIdLoader(DataLoader):
+class AttributeCollectionsBySiteSettingsIdLoader(BaseAttributeBySiteSettingsIdLoader):
     """Loads AttributeCollection objects by site settings type ID."""
 
     context_key = "attributecollections_by_site_settings"
+    model = AttributeCollection
+
+
+class BaseAssignedAttributesByInstanceIdLoader(DataLoader):
+    context_key = "assignedattributes_by_id"
+    assigned_attr_model = None
+    model_name = None
 
     def batch_load(self, keys):
         requestor = get_user_or_app_from_context(self.context)
         if requestor.is_active and requestor.has_perm(
-            PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES
+            ProductPermissions.MANAGE_PRODUCTS
         ):
-            qs = AttributeCollection.objects.all()
+            qs = self.assigned_attr_model.objects.all()
         else:
-            qs = AttributeCollection.objects.filter(
-                attribute__visible_in_storefront=True
+            qs = self.assigned_attr_model.objects.filter(
+                assignment__attribute__visible_in_storefront=True
             )
-        attribute_collections = qs.filter(site_settings_id__in=keys)
-        sitesettings_to_attributecollections = defaultdict(list)
-        for attribute_collection in attribute_collections:
-            sitesettings_to_attributecollections[
-                attribute_collection.site_settings_id
-            ].append(attribute_collection)
-        return [sitesettings_to_attributecollections[key] for key in keys]
+        filter = {f"{self.model_name}_id__in": keys}
+        assigned_attributes = qs.filter(**filter)
+        instance_to_assignedattributes = defaultdict(list)
+        for assigned_attribute in assigned_attributes:
+            instance_to_assignedattributes[
+                getattr(assigned_attribute, f"{self.model_name}_id")
+            ].append(assigned_attribute)
+        return [instance_to_assignedattributes[id] for id in keys]
 
 
-class AssignedProductAttributesByProductIdLoader(DataLoader):
+class AssignedProductAttributesByProductIdLoader(
+    BaseAssignedAttributesByInstanceIdLoader
+):
     context_key = "assignedproductattributes_by_product"
-
-    def batch_load(self, keys):
-        requestor = get_user_or_app_from_context(self.context)
-        if requestor.is_active and requestor.has_perm(
-            ProductPermissions.MANAGE_PRODUCTS
-        ):
-            qs = AssignedProductAttribute.objects.all()
-        else:
-            qs = AssignedProductAttribute.objects.filter(
-                assignment__attribute__visible_in_storefront=True
-            )
-        assigned_product_attributes = qs.filter(product_id__in=keys)
-        product_to_assignedproductattributes = defaultdict(list)
-        for assigned_product_attribute in assigned_product_attributes:
-            product_to_assignedproductattributes[
-                assigned_product_attribute.product_id
-            ].append(assigned_product_attribute)
-        return [product_to_assignedproductattributes[product_id] for product_id in keys]
+    assigned_attr_model = AssignedProductAttribute
+    model_name = "product"
 
 
-class AssignedVariantAttributesByProductVariantId(DataLoader):
+class AssignedVariantAttributesByProductVariantId(
+    BaseAssignedAttributesByInstanceIdLoader
+):
     context_key = "assignedvariantattributes_by_productvariant"
-
-    def batch_load(self, keys):
-        requestor = get_user_or_app_from_context(self.context)
-        if requestor.is_active and requestor.has_perm(
-            ProductPermissions.MANAGE_PRODUCTS
-        ):
-            qs = AssignedVariantAttribute.objects.all()
-        else:
-            qs = AssignedVariantAttribute.objects.filter(
-                assignment__attribute__visible_in_storefront=True
-            )
-        assigned_variant_attributes = qs.filter(variant_id__in=keys).select_related(
-            "assignment__attribute"
-        )
-        variant_attributes = defaultdict(list)
-        for assigned_variant_attribute in assigned_variant_attributes:
-            variant_attributes[assigned_variant_attribute.variant_id].append(
-                assigned_variant_attribute
-            )
-        return [variant_attributes[variant_id] for variant_id in keys]
+    assigned_attr_model = AssignedVariantAttribute
+    model_name = "variant"
 
 
-class AssignedCategoryAttributesByCategoryIdLoader(DataLoader):
+class AssignedCategoryAttributesByCategoryIdLoader(
+    BaseAssignedAttributesByInstanceIdLoader
+):
     context_key = "assignedcategoryattributes_by_category"
+    assigned_attr_model = AssignedCategoryAttribute
+    model_name = "category"
+
+
+class AssignedCollectionAttributesByCollectionIdLoader(
+    BaseAssignedAttributesByInstanceIdLoader
+):
+    context_key = "assignedcollectionattributes_by_collection"
+    assigned_attr_model = AssignedCollectionAttribute
+    model_name = "collection"
+
+
+class AttributeValuesByAssignedAttributeIdLoader(DataLoader):
+    context_key = "attributevalues_by_assignedattribute"
+    assigned_attr_model = None
 
     def batch_load(self, keys):
-        requestor = get_user_or_app_from_context(self.context)
-        if requestor.is_active and requestor.has_perm(
-            ProductPermissions.MANAGE_PRODUCTS
-        ):
-            qs = AssignedCategoryAttribute.objects.all()
-        else:
-            qs = AssignedCategoryAttribute.objects.filter(
-                assignment__attribute__visible_in_storefront=True
-            )
-        assigned_category_attributes = qs.filter(category_id__in=keys)
-        category_to_assignedcategoryattributes = defaultdict(list)
-        for assigned_category_attribute in assigned_category_attributes:
-            category_to_assignedcategoryattributes[
-                assigned_category_attribute.category_id
-            ].append(assigned_category_attribute)
-        return [
-            category_to_assignedcategoryattributes[category_id] for category_id in keys
-        ]
+        attribute_values = self.assigned_attr_model.objects.filter(
+            assignment_id__in=keys
+        )
+        value_ids = [a.value_id for a in attribute_values]
+
+        def map_assignment_to_values(values):
+            value_map = dict(zip(value_ids, values))
+            assigned_map = defaultdict(list)
+            for attribute_value in attribute_values:
+                assigned_map[attribute_value.assignment_id].append(
+                    value_map.get(attribute_value.value_id)
+                )
+            return [assigned_map[key] for key in keys]
+
+        return (
+            AttributeValueByIdLoader(self.context)
+            .load_many(value_ids)
+            .then(map_assignment_to_values)
+        )
 
 
-class AttributeValuesByAssignedProductAttributeIdLoader(DataLoader):
+class AttributeValuesByAssignedProductAttributeIdLoader(
+    AttributeValuesByAssignedAttributeIdLoader
+):
     context_key = "attributevalues_by_assignedproductattribute"
-
-    def batch_load(self, keys):
-        attribute_values = AssignedProductAttributeValue.objects.filter(
-            assignment_id__in=keys
-        )
-        value_ids = [a.value_id for a in attribute_values]
-
-        def map_assignment_to_values(values):
-            value_map = dict(zip(value_ids, values))
-            assigned_product_map = defaultdict(list)
-            for attribute_value in attribute_values:
-                assigned_product_map[attribute_value.assignment_id].append(
-                    value_map.get(attribute_value.value_id)
-                )
-            return [assigned_product_map[key] for key in keys]
-
-        return (
-            AttributeValueByIdLoader(self.context)
-            .load_many(value_ids)
-            .then(map_assignment_to_values)
-        )
+    assigned_attr_model = AssignedProductAttributeValue
 
 
-class AttributeValuesByAssignedVariantAttributeIdLoader(DataLoader):
+class AttributeValuesByAssignedVariantAttributeIdLoader(
+    AttributeValuesByAssignedAttributeIdLoader
+):
     context_key = "attributevalues_by_assignedvariantattribute"
-
-    def batch_load(self, keys):
-        attribute_values = AssignedVariantAttributeValue.objects.filter(
-            assignment_id__in=keys
-        )
-        value_ids = [a.value_id for a in attribute_values]
-
-        def map_assignment_to_values(values):
-            value_map = dict(zip(value_ids, values))
-            assigned_variant_map = defaultdict(list)
-            for attribute_value in attribute_values:
-                assigned_variant_map[attribute_value.assignment_id].append(
-                    value_map.get(attribute_value.value_id)
-                )
-            return [assigned_variant_map[key] for key in keys]
-
-        return (
-            AttributeValueByIdLoader(self.context)
-            .load_many(value_ids)
-            .then(map_assignment_to_values)
-        )
+    assigned_attr_model = AssignedVariantAttributeValue
 
 
-class AttributeValuesByAssignedCategoryAttributeIdLoader(DataLoader):
+class AttributeValuesByAssignedCategoryAttributeIdLoader(
+    AttributeValuesByAssignedAttributeIdLoader
+):
     context_key = "attributevalues_by_assignedcategoryattribute"
+    assigned_attr_model = AssignedCategoryAttributeValue
 
-    def batch_load(self, keys):
-        attribute_values = AssignedCategoryAttributeValue.objects.filter(
-            assignment_id__in=keys
-        )
-        value_ids = [a.value_id for a in attribute_values]
 
-        def map_assignment_to_values(values):
-            value_map = dict(zip(value_ids, values))
-            assigned_category_map = defaultdict(list)
-            for attribute_value in attribute_values:
-                assigned_category_map[attribute_value.assignment_id].append(
-                    value_map.get(attribute_value.value_id)
-                )
-            return [assigned_category_map[key] for key in keys]
-
-        return (
-            AttributeValueByIdLoader(self.context)
-            .load_many(value_ids)
-            .then(map_assignment_to_values)
-        )
+class AttributeValuesByAssignedCollectionAttributeIdLoader(
+    AttributeValuesByAssignedAttributeIdLoader
+):
+    context_key = "attributevalues_by_assignedcollectionattribute"
+    assigned_attr_model = AssignedCollectionAttributeValue
 
 
 class SelectedAttributesByProductIdLoader(DataLoader):
@@ -552,4 +496,75 @@ class SelectedAttributesByCategoryIdLoader(DataLoader):
             AssignedCategoryAttributesByCategoryIdLoader(self.context)
             .load_many(keys)
             .then(with_categories_and_assigned_attributes)
+        )
+
+
+class SelectedAttributesByCollectionIdLoader(DataLoader):
+    context_key = "selectedattributes_by_collection"
+
+    def batch_load(self, keys):
+        def with_collections_and_assigned_attributes(collection_attributes):
+            assigned_collection_attribute_ids = [
+                a.id for attrs in collection_attributes for a in attrs
+            ]
+            site_settings_id = self.context.site.settings.id
+            collection_attributes = dict(zip(keys, collection_attributes))
+
+            def with_attributecollections_and_values(result):
+                attribute_collections, attribute_values = result
+                attribute_ids = list({ap.attribute_id for ap in attribute_collections})
+                attribute_values = dict(
+                    zip(assigned_collection_attribute_ids, attribute_values)
+                )
+
+                def with_attributes(attributes):
+                    id_to_attribute = dict(zip(attribute_ids, attributes))
+                    selected_attributes_map = defaultdict(list)
+                    assigned_sitesettings_attributes = attribute_collections
+                    for key in keys:
+                        assigned_collection_attributes = collection_attributes[key]
+                        for (
+                            assigned_sitesetting_attribute
+                        ) in assigned_sitesettings_attributes:
+                            collection_assignment = next(
+                                (
+                                    apa
+                                    for apa in assigned_collection_attributes
+                                    if apa.assignment_id
+                                    == assigned_sitesetting_attribute.id
+                                ),
+                                None,
+                            )
+                            attribute = id_to_attribute[
+                                assigned_sitesetting_attribute.attribute_id
+                            ]
+                            if collection_assignment:
+                                values = attribute_values[collection_assignment.id]
+                            else:
+                                values = []
+                            selected_attributes_map[key].append(
+                                {"values": values, "attribute": attribute}
+                            )
+                    return [selected_attributes_map[key] for key in keys]
+
+                return (
+                    AttributesByAttributeId(self.context)
+                    .load_many(attribute_ids)
+                    .then(with_attributes)
+                )
+
+            attribute_collections = AttributeCollectionsBySiteSettingsIdLoader(
+                self.context
+            ).load(site_settings_id)
+            attribute_values = AttributeValuesByAssignedCollectionAttributeIdLoader(
+                self.context
+            ).load_many(assigned_collection_attribute_ids)
+            return Promise.all([attribute_collections, attribute_values]).then(
+                with_attributecollections_and_values
+            )
+
+        return (
+            AssignedCollectionAttributesByCollectionIdLoader(self.context)
+            .load_many(keys)
+            .then(with_collections_and_assigned_attributes)
         )

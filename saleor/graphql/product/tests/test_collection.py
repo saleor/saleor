@@ -340,7 +340,9 @@ CREATE_COLLECTION_MUTATION = """
         mutation createCollection(
                 $name: String!, $slug: String,
                 $description: JSONString, $products: [ID],
-                $backgroundImage: Upload, $backgroundImageAlt: String) {
+                $backgroundImage: Upload, $backgroundImageAlt: String,
+                $attributes: [AttributeValueInput],
+            ) {
             collectionCreate(
                 input: {
                     name: $name,
@@ -348,7 +350,9 @@ CREATE_COLLECTION_MUTATION = """
                     description: $description,
                     products: $products,
                     backgroundImage: $backgroundImage,
-                    backgroundImageAlt: $backgroundImageAlt}) {
+                    backgroundImageAlt: $backgroundImageAlt,
+                    attributes: $attributes,
+                }) {
                 collection {
                     name
                     slug
@@ -358,6 +362,15 @@ CREATE_COLLECTION_MUTATION = """
                     }
                     backgroundImage{
                         alt
+                    }
+                    attributes {
+                        attribute {
+                            id
+                            slug
+                        }
+                        values {
+                            slug
+                        }
                     }
                 }
                 collectionErrors {
@@ -474,6 +487,44 @@ def test_create_collection_name_with_unicode(
     assert not data["collectionErrors"]
     assert data["collection"]["name"] == name
     assert data["collection"]["slug"] == "わたし-わ-にっぽん-です"
+
+
+def test_collection_create_mutation_with_attribute(
+    staff_api_client,
+    permission_manage_products,
+    site_settings_with_collection_attributes,
+):
+    # given
+    query = CREATE_COLLECTION_MUTATION
+
+    site_settings = site_settings_with_collection_attributes
+    name = "new-name"
+    slug = "new-slug"
+    attr = site_settings.collection_attributes.first().attribute
+    attr_id = graphene.Node.to_global_id("Attribute", attr.pk)
+    value = attr.values.first()
+
+    variables = {
+        "name": name,
+        "slug": slug,
+        "attributes": [{"id": attr_id, "values": [value.slug]}],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["collectionCreate"]
+    assert not data["collectionErrors"]
+    assert data["collection"]["name"] == name
+    attr_data = data["collection"]["attributes"]
+    assert len(attr_data) == 1
+    assert attr_data[0]["attribute"]["slug"] == attr.slug
+    assert len(attr_data[0]["values"]) == 1
+    assert attr_data[0]["values"][0]["slug"] == value.slug
 
 
 def test_update_collection(
@@ -769,6 +820,66 @@ def test_update_collection_slug_and_name(
         assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
 
 
+def test_collection_update_attributes(
+    staff_api_client, permission_manage_products, collection_with_attribute
+):
+    # given
+    query = """
+        mutation($id: ID!, $attributes: [AttributeValueInput]) {
+            collectionUpdate(
+                id: $id
+                input: {
+                    attributes: $attributes
+                }
+            ) {
+                collection{
+                    name
+                    slug
+                    attributes {
+                        attribute {
+                            id
+                            slug
+                        }
+                        values {
+                            slug
+                        }
+                    }
+                }
+                collectionErrors {
+                    field
+                    message
+                    code
+                }
+            }
+        }
+    """
+
+    attr = collection_with_attribute.attributes.first().attribute
+    attr_id = graphene.Node.to_global_id("Attribute", attr.pk)
+    value = attr.values.last()
+
+    variables = {
+        "id": graphene.Node.to_global_id("Collection", collection_with_attribute.id),
+        "attributes": [{"id": attr_id, "values": [value.slug]}],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["collectionUpdate"]
+    assert data["collectionErrors"] == []
+    assert data["collection"]["name"] == collection_with_attribute.name
+    attr_data = data["collection"]["attributes"]
+    assert len(attr_data) == 1
+    assert attr_data[0]["attribute"]["slug"] == attr.slug
+    assert len(attr_data[0]["values"]) == 1
+    assert attr_data[0]["values"][0]["slug"] == value.slug
+
+
 def test_delete_collection(staff_api_client, collection, permission_manage_products):
     query = """
         mutation deleteCollection($id: ID!) {
@@ -921,6 +1032,15 @@ FETCH_COLLECTION_QUERY = """
                url
                alt
             }
+            attributes {
+                attribute {
+                    id
+                    slug
+                }
+                values {
+                    slug
+                }
+            }
         }
     }
 """
@@ -960,6 +1080,29 @@ def test_collection_image_query_without_associated_file(
     data = content["data"]["collection"]
     assert data["name"] == published_collection.name
     assert data["backgroundImage"] is None
+
+
+def test_collection_with_attributes(
+    user_api_client, collection_with_attribute, channel_USD
+):
+    # given
+    collection = collection_with_attribute
+    collection_id = graphene.Node.to_global_id("Collection", collection.pk)
+    variables = {
+        "id": collection_id,
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(FETCH_COLLECTION_QUERY, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["collection"]
+    assert len(data["attributes"]) == collection.attributes.count()
+    assert {attr["attribute"]["slug"] for attr in data["attributes"]} == {
+        cat_attr.attribute.slug for cat_attr in collection.attributes.all()
+    }
 
 
 def test_update_collection_mutation_remove_background_image(
