@@ -73,7 +73,7 @@ def update_voucher_discount(func):
 
 
 def get_voucher_discount_assigned_to_order(order: Order):
-    voucher_discount = order.discounts.get(type=OrderDiscountType.VOUCHER)
+    voucher_discount = order.discounts.filter(type=OrderDiscountType.VOUCHER).first()
     return voucher_discount
 
 
@@ -114,9 +114,10 @@ def recalculate_order(order: Order, **kwargs):
     )
     if voucher_discount:
         assigned_order_discount = get_voucher_discount_assigned_to_order(order)
-        assigned_order_discount.amount_value = voucher_discount.amount
-        assigned_order_discount.value = voucher_discount.amount
-        assigned_order_discount.save(update_fields=["value", "amount_value"])
+        if assigned_order_discount:
+            assigned_order_discount.amount_value = voucher_discount.amount
+            assigned_order_discount.value = voucher_discount.amount
+            assigned_order_discount.save(update_fields=["value", "amount_value"])
     recalculate_order_weight(order)
 
 

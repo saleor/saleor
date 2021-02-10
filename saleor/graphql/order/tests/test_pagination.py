@@ -442,12 +442,14 @@ def test_orders_query_pagination_with_filter_search(
                 order=orders[0],
                 name="test_discount1",
                 value=Decimal("1"),
+                amount_value=Decimal("1"),
                 translated_name="translated_discount1_name",
             ),
             OrderDiscount(
                 order=orders[2],
                 name="test_discount2",
                 value=Decimal("10"),
+                amount_value=Decimal("10"),
                 translated_name="translated_discount2_name",
             ),
         ]
@@ -501,14 +503,12 @@ def test_draft_orders_query_pagination_with_filter_search(
     draft_orders_for_pagination,
     channel_USD,
 ):
-    Order.objects.bulk_create(
+    orders = Order.objects.bulk_create(
         [
             Order(
                 user=customer_user,
                 token=str(uuid.uuid4()),
-                discount_name="test_discount1",
                 user_email="test@example.com",
-                translated_discount_name="translated_discount1_name",
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
             ),
@@ -521,10 +521,26 @@ def test_draft_orders_query_pagination_with_filter_search(
             Order(
                 token=str(uuid.uuid4()),
                 user_email="user2@example.com",
-                discount_name="test_discount2",
-                translated_discount_name="translated_discount2_name",
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
+            ),
+        ]
+    )
+    OrderDiscount.objects.bulk_create(
+        [
+            OrderDiscount(
+                order=orders[0],
+                name="test_discount1",
+                value=Decimal("1"),
+                amount_value=Decimal("1"),
+                translated_name="translated_discount1_name",
+            ),
+            OrderDiscount(
+                order=orders[2],
+                name="test_discount2",
+                value=Decimal("10"),
+                amount_value=Decimal("10"),
+                translated_name="translated_discount2_name",
             ),
         ]
     )

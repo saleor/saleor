@@ -13,6 +13,7 @@ from prices import Money, TaxedMoney
 
 from ....account.models import CustomerEvent
 from ....core.taxes import TaxError, zero_taxed_money
+from ....discount.models import OrderDiscount
 from ....order import OrderStatus
 from ....order import events as order_events
 from ....order.error_codes import OrderErrorCode
@@ -4726,9 +4727,7 @@ def test_orders_query_with_filter_search(
             Order(
                 user=customer_user,
                 token=str(uuid.uuid4()),
-                discount_name="test_discount1",
                 user_email="test@example.com",
-                translated_discount_name="translated_discount1_name",
                 channel=channel_USD,
             ),
             Order(
@@ -4739,9 +4738,26 @@ def test_orders_query_with_filter_search(
             Order(
                 token=str(uuid.uuid4()),
                 user_email="user2@example.com",
-                discount_name="test_discount2",
-                translated_discount_name="translated_discount2_name",
                 channel=channel_USD,
+            ),
+        ]
+    )
+
+    OrderDiscount.objects.bulk_create(
+        [
+            OrderDiscount(
+                order=orders[0],
+                name="test_discount1",
+                value=Decimal("1"),
+                amount_value=Decimal("1"),
+                translated_name="translated_discount1_name",
+            ),
+            OrderDiscount(
+                order=orders[2],
+                name="test_discount2",
+                value=Decimal("10"),
+                amount_value=Decimal("10"),
+                translated_name="translated_discount2_name",
             ),
         ]
     )
@@ -4771,9 +4787,7 @@ def test_orders_query_with_filter_search_by_global_payment_id(
                 user=customer_user,
                 token=str(uuid.uuid4()),
                 channel=channel_USD,
-                discount_name="test_discount1",
                 user_email="test@example.com",
-                translated_discount_name="translated_discount1_name",
             ),
             Order(
                 token=str(uuid.uuid4()),
@@ -4782,6 +4796,14 @@ def test_orders_query_with_filter_search_by_global_payment_id(
             ),
         ]
     )
+    OrderDiscount.objects.create(
+        order=orders[0],
+        name="test_discount1",
+        value=Decimal("1"),
+        amount_value=Decimal("1"),
+        translated_name="translated_discount1_name",
+    ),
+
     order_with_payment = orders[0]
     payment = Payment.objects.create(order=order_with_payment)
     global_id = graphene.Node.to_global_id("Payment", payment.pk)
@@ -4826,14 +4848,12 @@ def test_draft_orders_query_with_filter_search(
     customer_user,
     channel_USD,
 ):
-    Order.objects.bulk_create(
+    orders = Order.objects.bulk_create(
         [
             Order(
                 user=customer_user,
                 token=str(uuid.uuid4()),
-                discount_name="test_discount1",
                 user_email="test@example.com",
-                translated_discount_name="translated_discount1_name",
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
             ),
@@ -4846,10 +4866,26 @@ def test_draft_orders_query_with_filter_search(
             Order(
                 token=str(uuid.uuid4()),
                 user_email="user2@example.com",
-                discount_name="test_discount2",
-                translated_discount_name="translated_discount2_name",
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
+            ),
+        ]
+    )
+    OrderDiscount.objects.bulk_create(
+        [
+            OrderDiscount(
+                order=orders[0],
+                name="test_discount1",
+                value=Decimal("1"),
+                amount_value=Decimal("1"),
+                translated_name="translated_discount1_name",
+            ),
+            OrderDiscount(
+                order=orders[2],
+                name="test_discount2",
+                value=Decimal("10"),
+                amount_value=Decimal("10"),
+                translated_name="translated_discount2_name",
             ),
         ]
     )

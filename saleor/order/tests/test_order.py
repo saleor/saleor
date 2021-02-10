@@ -5,6 +5,7 @@ import pytest
 from prices import Money, TaxedMoney
 
 from ...core.weight import zero_weight
+from ...discount import OrderDiscountType
 from ...discount.models import (
     DiscountValueType,
     NotApplicable,
@@ -48,12 +49,17 @@ def test_total_setter():
 
 
 def test_order_get_subtotal(order_with_lines):
-    order_with_lines.discount_name = "Test discount"
-    order_with_lines.discount = order_with_lines.total.gross * Decimal("0.5")
+    order_with_lines.discounts.create(
+        type=OrderDiscountType.VOUCHER,
+        value_type=DiscountValueType.FIXED,
+        value=order_with_lines.total.gross.amount * Decimal("0.5"),
+        amount_value=order_with_lines.total.gross.amount * Decimal("0.5"),
+        name="Test discount",
+    )
+
     recalculate_order(order_with_lines)
 
     target_subtotal = order_with_lines.total - order_with_lines.shipping_price
-    target_subtotal += order_with_lines.discount
     assert order_with_lines.get_subtotal() == target_subtotal
 
 
