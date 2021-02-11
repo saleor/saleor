@@ -3199,7 +3199,6 @@ type OrderLine implements Node {
   isShippingRequired: Boolean!
   quantity: Int!
   quantityFulfilled: Int!
-  unitDiscountType: OrderLineUnitDiscountType!
   unitDiscountReason: String
   taxRate: Float!
   digitalContentUrl: DigitalContentUrl
@@ -3213,6 +3212,7 @@ type OrderLine implements Node {
   translatedProductName: String!
   translatedVariantName: String!
   allocations: [Allocation!]
+  unitDiscountType: DiscountValueTypeEnum
 }
 
 input OrderLineCreateInput {
@@ -3234,11 +3234,6 @@ type OrderLineDiscountUpdate {
 
 input OrderLineInput {
   quantity: Int!
-}
-
-enum OrderLineUnitDiscountType {
-  FIXED
-  PERCENTAGE
 }
 
 type OrderMarkAsPaid {

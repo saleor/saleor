@@ -313,6 +313,10 @@ class OrderLine(CountableDjangoObjectType):
         graphene.NonNull(Allocation),
         description="List of allocations across warehouses.",
     )
+    unit_discount_type = graphene.Field(
+        DiscountValueTypeEnum,
+        description="Type of the discount: fixed or percent",
+    )
 
     class Meta:
         description = "Represents order line of particular order."
@@ -329,7 +333,6 @@ class OrderLine(CountableDjangoObjectType):
             "quantity_fulfilled",
             "tax_rate",
             "unit_discount_reason",
-            "unit_discount_type",
         ]
 
     @staticmethod
@@ -350,6 +353,10 @@ class OrderLine(CountableDjangoObjectType):
     @staticmethod
     def resolve_undiscounted_unit_price(root: models.OrderLine, _info):
         return root.undiscounted_unit_price
+
+    @staticmethod
+    def resolve_unit_discount_type(root: models.OrderLine, _info):
+        return root.unit_discount_type
 
     @staticmethod
     def resolve_unit_discount_value(root: models.OrderLine, _info):
