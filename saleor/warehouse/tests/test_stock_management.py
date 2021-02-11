@@ -3,8 +3,11 @@ from django.db.models import Sum
 from django.db.models.functions import Coalesce
 
 from ...core.exceptions import InsufficientStock
+from ...order import OrderLineData
+from ...order.models import OrderLine
+from ...warehouse.models import Stock
 from ..management import (
-    allocate_stock,
+    allocate_stocks,
     deallocate_stock,
     deallocate_stock_for_order,
     decrease_stock,
@@ -15,11 +18,13 @@ from ..models import Allocation
 COUNTRY_CODE = "US"
 
 
-def test_allocate_stock(order_line, stock):
+def test_allocate_stocks(order_line, stock):
     stock.quantity = 100
     stock.save(update_fields=["quantity"])
 
-    allocate_stock(order_line, COUNTRY_CODE, 50)
+    line_data = OrderLineData(line=order_line, variant=order_line.variant, quantity=50)
+
+    allocate_stocks([line_data], COUNTRY_CODE)
 
     stock.refresh_from_db()
     assert stock.quantity == 100
@@ -27,11 +32,48 @@ def test_allocate_stock(order_line, stock):
     assert allocation.quantity_allocated == 50
 
 
+def test_allocate_stocks_multiply_lines(order_line, order, product, stock):
+    stock.quantity = 100
+    stock.save(update_fields=["quantity"])
+
+    variant_2 = product.variants.first()
+    stock_2 = Stock.objects.get(product_variant=variant_2)
+
+    order_line_2 = OrderLine.objects.get(pk=order_line.pk)
+    order_line_2.pk = None
+    order_line_2.product_name = product.name
+    order_line_2.variant_name = variant_2.name
+    order_line_2.product_sku = variant_2.sku
+    order_line_2.variant = variant_2
+    order_line_2.save()
+
+    quantity_1 = 50
+    quantity_2 = 5
+    line_data_1 = OrderLineData(
+        line=order_line, variant=order_line.variant, quantity=quantity_1
+    )
+    line_data_2 = OrderLineData(
+        line=order_line_2, variant=variant_2, quantity=quantity_2
+    )
+
+    allocate_stocks([line_data_1, line_data_2], COUNTRY_CODE)
+
+    stock.refresh_from_db()
+    assert stock.quantity == 100
+    allocation = Allocation.objects.get(order_line=order_line, stock=stock)
+    assert allocation.quantity_allocated == quantity_1
+
+    stock_2.refresh_from_db()
+    allocation = Allocation.objects.get(order_line=order_line_2, stock=stock_2)
+    assert allocation.quantity_allocated == quantity_2
+
+
 def test_allocate_stock_many_stocks(order_line, variant_with_many_stocks):
     variant = variant_with_many_stocks
     stocks = variant.stocks.all()
 
-    allocate_stock(order_line, COUNTRY_CODE, 5)
+    line_data = OrderLineData(line=order_line, variant=order_line.variant, quantity=5)
+    allocate_stocks([line_data], COUNTRY_CODE)
 
     allocations = Allocation.objects.filter(order_line=order_line, stock__in=stocks)
     assert allocations[0].quantity_allocated == 4
@@ -47,7 +89,8 @@ def test_allocate_stock_many_stocks_partially_allocated(
     variant = allocated_line.variant
     stocks = variant.stocks.all()
 
-    allocate_stock(order_line, COUNTRY_CODE, 3)
+    line_data = OrderLineData(line=order_line, variant=order_line.variant, quantity=3)
+    allocate_stocks([line_data], COUNTRY_CODE)
 
     allocations = Allocation.objects.filter(order_line=order_line, stock__in=stocks)
     assert allocations[0].quantity_allocated == 1
@@ -61,8 +104,9 @@ def test_allocate_stock_partially_allocated_insufficient_stocks(
     variant = allocated_line.variant
     stocks = variant.stocks.all()
 
+    line_data = OrderLineData(line=order_line, variant=order_line.variant, quantity=6)
     with pytest.raises(InsufficientStock):
-        allocate_stock(order_line, COUNTRY_CODE, 6)
+        allocate_stocks([line_data], COUNTRY_CODE)
 
     assert not Allocation.objects.filter(
         order_line=order_line, stock__in=stocks
@@ -73,8 +117,9 @@ def test_allocate_stock_insufficient_stocks(order_line, variant_with_many_stocks
     variant = variant_with_many_stocks
     stocks = variant.stocks.all()
 
+    line_data = OrderLineData(line=order_line, variant=order_line.variant, quantity=10)
     with pytest.raises(InsufficientStock):
-        allocate_stock(order_line, COUNTRY_CODE, 10)
+        allocate_stocks([line_data], COUNTRY_CODE)
 
     assert not Allocation.objects.filter(
         order_line=order_line, stock__in=stocks
