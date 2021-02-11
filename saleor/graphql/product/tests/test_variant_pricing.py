@@ -8,12 +8,12 @@ from ....product.utils.availability import get_variant_availability
 from ...tests.utils import get_graphql_content
 
 QUERY_GET_VARIANT_PRICING = """
-query ($channel: String) {
+query ($channel: String, $address: AddressInput) {
   products(first: 1, channel: $channel) {
     edges {
       node {
         variants {
-          pricing {
+          pricing(address: $address) {
             onSale
             discount {
               currency
@@ -47,9 +47,8 @@ def test_get_variant_pricing_on_sale(api_client, sale, product, channel_USD):
     sale_discounted_value = sale.channel_listings.get().discount_value
     discounted_price = price.amount - sale_discounted_value
 
-    response = api_client.post_graphql(
-        QUERY_GET_VARIANT_PRICING, {"channel": channel_USD.slug}
-    )
+    variables = {"channel": channel_USD.slug, "address": {"country": "US"}}
+    response = api_client.post_graphql(QUERY_GET_VARIANT_PRICING, variables)
     content = get_graphql_content(response)
 
     pricing = content["data"]["products"]["edges"][0]["node"]["variants"][0]["pricing"]
@@ -76,9 +75,8 @@ def test_get_variant_pricing_on_sale(api_client, sale, product, channel_USD):
 def test_get_variant_pricing_not_on_sale(api_client, product, channel_USD):
     price = product.variants.first().channel_listings.get().price
 
-    response = api_client.post_graphql(
-        QUERY_GET_VARIANT_PRICING, {"channel": channel_USD.slug}
-    )
+    variables = {"channel": channel_USD.slug, "address": {"country": "US"}}
+    response = api_client.post_graphql(QUERY_GET_VARIANT_PRICING, variables)
     content = get_graphql_content(response)
 
     pricing = content["data"]["products"]["edges"][0]["node"]["variants"][0]["pricing"]
