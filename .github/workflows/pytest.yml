@@ -16,7 +16,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: python:3.9
+    container: python:3.8
 
     services:
       postgres:
@@ -33,10 +33,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Setup Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: "3.9"
 
       - name: Install system dependencies
         run: apt-get install -y libpq-dev
