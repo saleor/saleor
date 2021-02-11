@@ -3199,12 +3199,15 @@ type OrderLine implements Node {
   isShippingRequired: Boolean!
   quantity: Int!
   quantityFulfilled: Int!
+  unitDiscountType: OrderLineUnitDiscountType!
+  unitDiscountReason: String
   taxRate: Float!
   digitalContentUrl: DigitalContentUrl
   thumbnail(size: Int): Image
   unitPrice: TaxedMoney!
   undiscountedUnitPrice: TaxedMoney!
   unitDiscount: Money!
+  unitDiscountValue: PositiveDecimal!
   totalPrice: TaxedMoney!
   variant: ProductVariant
   translatedProductName: String!
@@ -3231,6 +3234,11 @@ type OrderLineDiscountUpdate {
 
 input OrderLineInput {
   quantity: Int!
+}
+
+enum OrderLineUnitDiscountType {
+  FIXED
+  PERCENTAGE
 }
 
 type OrderMarkAsPaid {

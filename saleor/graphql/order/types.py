@@ -287,6 +287,11 @@ class OrderLine(CountableDjangoObjectType):
         description=("The discount applied to the single order line."),
         required=True,
     )
+    unit_discount_value = graphene.Field(
+        PositiveDecimal,
+        description="Value of the discount. Can store fixed value or percent value",
+        required=True,
+    )
     total_price = graphene.Field(
         TaxedMoney, description="Price of the order line.", required=True
     )
@@ -323,6 +328,8 @@ class OrderLine(CountableDjangoObjectType):
             "quantity",
             "quantity_fulfilled",
             "tax_rate",
+            "unit_discount_reason",
+            "unit_discount_type",
         ]
 
     @staticmethod
