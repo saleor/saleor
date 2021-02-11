@@ -745,7 +745,7 @@ class OrderLineUpdate(ModelMutation):
     @classmethod
     def save(cls, info, instance, cleaned_input):
         change_order_line_quantity(
-            info.context.user, instance, instance.old_quantity, instance.quantity
+            info.context, instance, instance.old_quantity, instance.quantity
         )
         recalculate_order(instance.order)
 

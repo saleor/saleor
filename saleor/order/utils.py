@@ -293,18 +293,17 @@ def add_gift_card_to_order(order, gift_card, total_price_left):
     return total_price_left
 
 
-def change_order_line_quantity(user, line, old_quantity, new_quantity):
+def change_order_line_quantity(context, line, old_quantity, new_quantity):
     """Change the quantity of ordered items in a order line."""
     if new_quantity:
         line.quantity = new_quantity
-        manager = get_plugins_manager()
-        unit_price = manager.order_line_updated(line.order, line)
-        if unit_price:
-            manager.get_order_line_tax_rate(
-                line.order, line.variant.product, None, unit_price
-            )
-        total_price_net_amount = line.quantity * line.unit_price_net_amount
-        total_price_gross_amount = line.quantity * line.unit_price_gross_amount
+        line.save(update_fields=["quantity"])
+        net = line.unit_price.net.amount
+        unit_price = context.plugins.order_line_updated(line.order, line)
+        if unit_price is not None:
+            net = unit_price.net.amount
+        total_price_net_amount = net * line.quantity
+        total_price_gross_amount = line.unit_price.gross.amount * line.quantity
         line.total_price_net_amount = total_price_net_amount.quantize(Decimal("0.001"))
         line.total_price_gross_amount = total_price_gross_amount.quantize(
             Decimal("0.001")
@@ -325,11 +324,13 @@ def change_order_line_quantity(user, line, old_quantity, new_quantity):
     # Create the added / removed products event
     if quantity_diff > 0:
         events.order_removed_products_event(
-            order=line.order, user=user, order_lines=[(quantity_diff, line)]
+            order=line.order, user=context.user, order_lines=[(quantity_diff, line)]
         )
     elif quantity_diff < 0:
         events.order_added_products_event(
-            order=line.order, user=user, order_lines=[(quantity_diff * -1, line)]
+            order=line.order,
+            user=context.user,
+            order_lines=[(quantity_diff * -1, line)],
         )
 
 
