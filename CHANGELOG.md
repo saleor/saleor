@@ -3,6 +3,7 @@
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
 ## [Unreleased]
+- Add query contains only schema validation - #6827 by @fowczarek
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -15,6 +16,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop `CHECKOUT_QUANTITY_CHANGED` webhook - #6797 by @d-wysocki
 - Drop deprecated `taxRate` field from `ProductType` - #6795 by @d-wysocki
 - Unconfirmed order manipulation - #6829 by @tomaszszymanski129
+- Remove resolving user's location from GeoIP; drop `PaymentInput.billingAddress` input field - #6784 by @maarcingebala
 
 ### Other
 
@@ -47,6 +49,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `PRODUCT_DELETED` webhook - #6794 by @d-wysocki
 - Fix `product_updated` and `product_created` webhooks - #6798 by @d-wysocki
 - Add interface for integrating the auth plugins - #6799 by @korycins
+- Fix page `contentJson` field to return JSON - #6832 by @d-wysocki
 
 # 2.11.1
 

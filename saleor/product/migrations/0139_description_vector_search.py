@@ -39,7 +39,10 @@ class Migration(migrations.Migration):
     dependencies = [
         ("product", "0138_migrate_description_json_into_description"),
     ]
-
+    replaces = [
+        ("product", "0130_create_product_description_search_vector"),
+        ("product", "0131_update_ts_vector_existing_product_name"),
+    ]
     operations = [
         migrations.AddField(
             model_name="product",
