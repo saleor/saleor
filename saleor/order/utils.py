@@ -296,16 +296,10 @@ def change_order_line_quantity(user, line, old_quantity, new_quantity):
         line.quantity = new_quantity
         manager = get_plugins_manager()
         unit_price = manager.order_line_updated(line.order, line)
-        tax_rate = (
+        if unit_price:
             manager.get_order_line_tax_rate(
                 line.order, line.variant.product, None, unit_price
             )
-            if unit_price
-            else None
-        )
-        if unit_price and tax_rate:
-            line.unit_price = unit_price or line.unit_price
-            line.tax_rate = tax_rate or line.tax_rate
         total_price_net_amount = line.quantity * line.unit_price_net_amount
         total_price_gross_amount = line.quantity * line.unit_price_gross_amount
         line.total_price_net_amount = total_price_net_amount.quantize(Decimal("0.001"))
@@ -315,8 +309,6 @@ def change_order_line_quantity(user, line, old_quantity, new_quantity):
         line.save(
             update_fields=[
                 "quantity",
-                "unit_price_net_amount",
-                "unit_price_gross_amount",
                 "tax_rate",
                 "total_price_net_amount",
                 "total_price_gross_amount",
