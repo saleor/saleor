@@ -260,11 +260,14 @@ def add_variant_to_order(order, variant, quantity, discounts=None):
         line.tax_rate = manager.get_order_line_tax_rate(
             order, product, None, unit_price
         )
+        line.total_price = unit_price * quantity
         line.save(
             update_fields=[
                 "currency",
                 "unit_price_net_amount",
                 "unit_price_gross_amount",
+                "total_price_net_amount",
+                "total_price_gross_amount",
                 "tax_rate",
             ]
         )
