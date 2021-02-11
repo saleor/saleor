@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from prices import Money
 
 from ....core.permissions import OrderPermissions
 from ....order import OrderStatus
@@ -54,8 +55,26 @@ class OrderDiscountCommon(BaseMutation):
                 }
             )
 
-    # FIXME add value validation when value type is percentage - value <= 100
-    # FIXME add value validation when value type is fixed order.total <= value
+    @classmethod
+    def _validation_error_for_input_value(
+        cls, error_msg, code=OrderErrorCode.INVALID.value
+    ):
+        return ValidationError({"value": ValidationError(error_msg, code=code)})
+
+    @classmethod
+    def validate_order_discount_input(cls, _info, max_total: Money, input: dict):
+        value_type = input["value_type"]
+        value = input["value"]
+        if value_type == DiscountValueTypeEnum.FIXED:
+            if value > max_total.amount:
+                error_msg = (
+                    f"The value ({value}) cannot be higher than {max_total.amount} "
+                    f"{max_total.currency}"
+                )
+                raise cls._validation_error_for_input_value(error_msg)
+        elif value > 100:
+            error_msg = f"The percentage value ({value}) cannot be higher than 100."
+            raise cls._validation_error_for_input_value(error_msg)
 
 
 class OrderDiscountAdd(OrderDiscountCommon):
@@ -90,11 +109,18 @@ class OrderDiscountAdd(OrderDiscountCommon):
             )
 
     @classmethod
+    def validate(cls, info, order, input):
+        cls.validate_order(info, order)
+        # FIXME use sitesetings to check if the price should be calcualted for gross or
+        # net
+        cls.validate_order_discount_input(info, order.undiscounted_total.gross, input)
+
+    @classmethod
     @transaction.atomic
     def perform_mutation(cls, root, info, **data):
         order = cls.get_node_or_error(info, data.get("order_id"), only_type=Order)
-        cls.validate_order(info, order)
         input = data.get("input", {})
+        cls.validate(info, order, input)
 
         reason = input.get("reason")
         value_type = input.get("value_type")
@@ -123,14 +149,23 @@ class OrderDiscountUpdate(OrderDiscountCommon):
         error_type_field = "order_errors"
 
     @classmethod
+    def validate(cls, info, order, order_discount, input):
+        cls.validate_order(info, order)
+        input["value"] = input.get("value") or order_discount.value
+        input["value_type"] = input.get("value_type") or order_discount.value_type
+        # FIXME use sitesetings to check if the price should be calcualted for gross or
+        # net
+        cls.validate_order_discount_input(info, order.undiscounted_total.gross, input)
+
+    @classmethod
     @transaction.atomic
     def perform_mutation(cls, root, info, **data):
         order_discount = cls.get_node_or_error(
             info, data.get("discount_id"), only_type="OrderDiscount"
         )
         order = order_discount.order
-        cls.validate_order(info, order)
         input = data.get("input")
+        cls.validate(info, order, order_discount, input)
 
         reason = input.get("reason")
         value_type = input.get("value_type")
@@ -169,7 +204,7 @@ class OrderDiscountDelete(OrderDiscountCommon):
         # FIXME call order event here. Update webhook payload
 
 
-class OrderLineDiscountUpdate(BaseMutation):
+class OrderLineDiscountUpdate(OrderDiscountCommon):
     order_line = graphene.Field(
         OrderLine, description="Order line which has been discounted."
     )
@@ -189,8 +224,18 @@ class OrderLineDiscountUpdate(BaseMutation):
         error_type_class = OrderError
         error_type_field = "order_errors"
 
-    # FIXME add value validation when value type is percentage - value <= 100
-    # FIXME add value validation when value type is fixed order.total <= value
+    @classmethod
+    def validate(cls, info, order, order_line, input):
+        cls.validate_order(info, order)
+        input["value"] = input.get("value") or order_line.unit_discount_value
+        input["value_type"] = input.get("value_type") or order_line.unit_discount_type
+
+        # FIXME use sitesetings to check if the price should be calcualted for gross or
+        # net
+        cls.validate_order_discount_input(
+            info, order_line.undiscounted_unit_price.gross, input
+        )
+
     @classmethod
     @transaction.atomic
     def perform_mutation(cls, root, info, **data):
@@ -198,11 +243,12 @@ class OrderLineDiscountUpdate(BaseMutation):
             info, data.get("order_line_id"), only_type=OrderLine
         )
         input = data.get("input")
+        order = order_line.order
+        cls.validate(info, order, order_line, input)
         reason = input.get("reason")
         value_type = input.get("value_type")
         value = input.get("value")
 
-        order = order_line.order
         update_discount_for_order_line(
             order_line,
             order=order,
@@ -215,8 +261,7 @@ class OrderLineDiscountUpdate(BaseMutation):
         return OrderLineDiscountUpdate(order_line=order_line)
 
 
-# FIXME is it proper name?
-class OrderLineDiscountRemove(BaseMutation):
+class OrderLineDiscountRemove(OrderDiscountCommon):
     order_line = graphene.Field(
         OrderLine, description="Order line which has removed discount."
     )
@@ -233,12 +278,18 @@ class OrderLineDiscountRemove(BaseMutation):
         error_type_field = "order_errors"
 
     @classmethod
+    def validate(cls, info, order):
+        cls.validate_order(info, order)
+
+    @classmethod
     @transaction.atomic
     def perform_mutation(cls, root, info, **data):
         order_line = cls.get_node_or_error(
             info, data.get("order_line_id"), only_type=OrderLine
         )
         order = order_line.order
+        cls.validate(info, order)
+
         remove_discount_from_order_line(order_line, order, manager=info.context.plugins)
         recalculate_order(order)
         return OrderLineDiscountRemove(order_line=order_line)
