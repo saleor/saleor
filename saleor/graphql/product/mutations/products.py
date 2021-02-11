@@ -13,6 +13,7 @@ from ....attribute import models as attribute_models
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import ProductPermissions, ProductTypePermissions
 from ....core.utils.editorjs import clean_editor_js
+from ....core.utils.validators import validate_video_url
 from ....order import OrderStatus
 from ....order import models as order_models
 from ....product import ProductMediaTypes, models
@@ -42,7 +43,6 @@ from ...core.utils import (
     get_duplicated_values,
     validate_image_file,
     validate_slug_and_generate_if_needed,
-    validate_video_url,
 )
 from ...core.utils.reordering import perform_reordering
 from ...warehouse.types import Warehouse
@@ -1201,11 +1201,21 @@ class ProductMediaCreate(BaseMutation):
 
         if not image and not video_url:
             raise ValidationError(
-                {"input": ValidationError("Image or video URL is required.")}
+                {
+                    "input": ValidationError(
+                        "Image or video URL is required.",
+                        code=ProductErrorCode.REQUIRED,
+                    )
+                }
             )
         if image and video_url:
             raise ValidationError(
-                {"input": ValidationError("Either image or video URL is required.")}
+                {
+                    "input": ValidationError(
+                        "Either image or video URL is required.",
+                        code=ProductErrorCode.DUPLICATED_INPUT_ITEM,
+                    )
+                }
             )
 
     @classmethod

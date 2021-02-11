@@ -3854,8 +3854,10 @@ type Product implements Node & ObjectWithMetadata {
   attributes: [SelectedAttribute!]!
   channelListings: [ProductChannelListing!]
   mediaById(id: ID): ProductMedia
+  imageById(id: ID): ProductMedia @deprecated(reason: "Will be removed in Saleor 4.0. Use the `mediaById` field instead.")
   variants: [ProductVariant]
   media: [ProductMedia]
+  images: [ProductMedia] @deprecated(reason: "Will be removed in Saleor 4.0. Use the `media` field instead.")
   collections: [Collection]
   translation(languageCode: LanguageCodeEnum!): ProductTranslation
   availableForPurchase: Date
@@ -4028,6 +4030,13 @@ input ProductFilterInput {
   productTypes: [ID]
   ids: [ID]
   channel: String
+}
+
+type ProductImage implements Node {
+  id: ID!
+  sortOrder: Int
+  alt: String!
+  url(size: Int): String!
 }
 
 input ProductInput {
@@ -4292,6 +4301,7 @@ type ProductVariant implements Node & ObjectWithMetadata {
   margin: Int
   quantityOrdered: Int
   revenue(period: ReportingPeriod): TaxedMoney
+  images: [ProductMedia] @deprecated(reason: "Will be removed in Saleor 4.0. Use the `media` instead.")
   media: [ProductMedia]
   translation(languageCode: LanguageCodeEnum!): ProductVariantTranslation
   digitalContent: DigitalContent
@@ -5901,7 +5911,7 @@ enum WeightUnitsEnum {
 
 scalar _Any
 
-union _Entity = Address | User | Group | App | ProductVariant | Product | ProductType | Collection | Category | ProductMedia | PageType
+union _Entity = Address | User | Group | App | ProductVariant | Product | ProductType | Collection | Category | ProductMedia | ProductImage | PageType
 
 type _Service {
   sdl: String

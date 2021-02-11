@@ -74,6 +74,8 @@ from ..dataloaders import (
     CollectionChannelListingByCollectionIdAndChannelSlugLoader,
     CollectionChannelListingByCollectionIdLoader,
     CollectionsByProductIdLoader,
+    ImagesByProductIdLoader,
+    ImagesByProductVariantIdLoader,
     MediaByProductIdLoader,
     MediaByProductVariantIdLoader,
     ProductAttributesByProductTypeIdLoader,
@@ -199,6 +201,11 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             "field should be queried using `reportProductSales` query as it uses "
             "optimizations suitable for such calculations."
         ),
+    )
+    images = graphene.List(
+        lambda: ProductMedia,
+        description="List of images for the product variant.",
+        deprecation_reason="Will be removed in Saleor 4.0. Use the `media` instead.",
     )
     media = graphene.List(
         lambda: ProductMedia, description="List of media for the product variant."
@@ -466,6 +473,10 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return MediaByProductVariantIdLoader(info.context).load(root.node.id)
 
     @staticmethod
+    def resolve_images(root: ChannelContext[models.ProductVariant], info, *_args):
+        return ImagesByProductVariantIdLoader(info.context).load(root.node.id)
+
+    @staticmethod
     def __resolve_reference(
         root: ChannelContext[models.ProductVariant], _info, **_kwargs
     ):
@@ -520,14 +531,29 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     )
     media_by_id = graphene.Field(
         lambda: ProductMedia,
+        id=graphene.Argument(graphene.ID, description="ID of a product media."),
+        description="Get a single product media by ID.",
+    )
+    image_by_id = graphene.Field(
+        lambda: ProductMedia,
         id=graphene.Argument(graphene.ID, description="ID of a product image."),
         description="Get a single product image by ID.",
+        deprecation_reason=(
+            "Will be removed in Saleor 4.0. Use the `mediaById` field instead."
+        ),
     )
     variants = graphene.List(
         ProductVariant, description="List of variants for the product."
     )
     media = graphene.List(
         lambda: ProductMedia, description="List of media for the product."
+    )
+    images = graphene.List(
+        lambda: ProductMedia,
+        description="List of images for the product.",
+        deprecation_reason=(
+            "Will be removed in Saleor 4.0. Use the `media` field instead."
+        ),
     )
     collections = graphene.List(
         lambda: Collection, description="List of collections for the product."
@@ -723,8 +749,20 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             raise GraphQLError("Product media not found.")
 
     @staticmethod
+    def resolve_image_by_id(root: ChannelContext[models.Product], info, id):
+        pk = get_database_id(info, id, ProductMedia)
+        try:
+            return root.node.media.get(pk=pk)
+        except models.ProductMedia.DoesNotExist:
+            raise GraphQLError("Product media not found.")
+
+    @staticmethod
     def resolve_media(root: ChannelContext[models.Product], info, **_kwargs):
         return MediaByProductIdLoader(info.context).load(root.node.id)
+
+    @staticmethod
+    def resolve_images(root: ChannelContext[models.Product], info, **_kwargs):
+        return ImagesByProductIdLoader(info.context).load(root.node.id)
 
     @staticmethod
     def resolve_variants(root: ChannelContext[models.Product], info, **_kwargs):
@@ -1139,6 +1177,34 @@ class ProductMedia(CountableDjangoObjectType):
         if root.video_url:
             return root.video_url
 
+        if size:
+            url = get_thumbnail(root.image, size, method="thumbnail")
+        else:
+            url = root.image.url
+        return info.context.build_absolute_uri(url)
+
+    @staticmethod
+    def __resolve_reference(root, _info, **_kwargs):
+        return graphene.Node.get_node_from_global_id(_info, root.id)
+
+
+@key(fields="id")
+class ProductImage(CountableDjangoObjectType):
+    url = graphene.String(
+        required=True,
+        description="The URL of the image.",
+        size=graphene.Int(description="Size of the image."),
+    )
+
+    class Meta:
+        description = "Represents a product image."
+        only_fields = ["alt", "id", "sort_order"]
+        interfaces = [relay.Node]
+        skip_registry = True
+        model = models.ProductMedia
+
+    @staticmethod
+    def resolve_url(root: models.ProductMedia, info, *, size=None):
         if size:
             url = get_thumbnail(root.image, size, method="thumbnail")
         else:

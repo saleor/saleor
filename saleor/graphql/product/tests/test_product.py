@@ -6011,7 +6011,7 @@ def test_product_media_create_mutation_without_url_or_image(
     content = get_graphql_content(response)
     errors = content["data"]["productMediaCreate"]["productErrors"]
     assert len(errors) == 1
-    assert errors[0]["code"] == ProductErrorCode.INVALID.name
+    assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
     assert errors[0]["field"] == "input"
 
 
@@ -6036,7 +6036,7 @@ def test_product_media_create_mutation_with_both_url_and_image(
     content = get_graphql_content(response)
     errors = content["data"]["productMediaCreate"]["productErrors"]
     assert len(errors) == 1
-    assert errors[0]["code"] == ProductErrorCode.INVALID.name
+    assert errors[0]["code"] == ProductErrorCode.DUPLICATED_INPUT_ITEM.name
     assert errors[0]["field"] == "input"
 
 

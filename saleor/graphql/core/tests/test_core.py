@@ -8,6 +8,7 @@ from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.utils import timezone
 from graphene import InputField
 
+from ....core.utils.validators import validate_video_url
 from ....product import ProductMediaTypes
 from ....product.models import Category, Product, ProductChannelListing
 from ...product import types as product_types
@@ -23,7 +24,6 @@ from ..utils import (
     get_duplicated_values,
     snake_to_camel_case,
     validate_slug_and_generate_if_needed,
-    validate_video_url,
 )
 
 

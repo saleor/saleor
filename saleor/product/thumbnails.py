@@ -5,7 +5,7 @@ from .models import Category, Collection, ProductMedia
 
 @app.task
 def create_product_thumbnails(image_id: str):
-    """Take a ProductImage model and create thumbnails for it."""
+    """Take a ProductMedia model and create thumbnails for it."""
     create_thumbnails(pk=image_id, model=ProductMedia, size_set="products")
 
 

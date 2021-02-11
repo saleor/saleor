@@ -68,6 +68,13 @@ def test_product_details(product_with_image, api_client, count_queries, channel_
           media {
             id
             url
+            type
+            alt
+          }
+          images {
+            id
+            url
+            alt
           }
         }
 
@@ -143,6 +150,13 @@ def test_product_details(product_with_image, api_client, count_queries, channel_
             media {
               id
               url
+              type
+              alt
+            }
+            images {
+              id
+              url
+              alt
             }
             variants {
               ...ProductVariantFields
@@ -180,6 +194,28 @@ def test_retrieve_product_attributes(
                   attribute {
                     id
                   }
+                }
+              }
+            }
+          }
+        }
+    """
+
+    variables = {"channel": channel_USD.slug}
+    get_graphql_content(api_client.post_graphql(query, variables))
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_retrieve_product_images(product_list, api_client, count_queries, channel_USD):
+    query = """
+        query($sortBy: ProductOrder, $channel: String) {
+          products(first: 10, sortBy: $sortBy, channel: $channel) {
+            edges {
+              node {
+                id
+                images {
+                  id
                 }
               }
             }
