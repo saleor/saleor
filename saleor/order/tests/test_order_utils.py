@@ -1,3 +1,5 @@
+from unittest.mock import Mock
+
 import pytest
 
 from .. import OrderStatus
@@ -24,6 +26,9 @@ def test_change_quantity_generates_proper_event(
     order_with_lines,
     staff_user,
 ):
+    context_mock = Mock(user=staff_user)
+    context_mock.plugins.order_line_updated.return_value = None
+
     assert not OrderEvent.objects.exists()
     order_with_lines.status = status
     order_with_lines.save(update_fields=["status"])
@@ -31,7 +36,7 @@ def test_change_quantity_generates_proper_event(
     line = order_with_lines.lines.last()
     line.quantity = previous_quantity
 
-    change_order_line_quantity(staff_user, line, previous_quantity, new_quantity)
+    change_order_line_quantity(context_mock, line, previous_quantity, new_quantity)
 
     if removed_count:
         expected_type = OrderEvents.REMOVED_PRODUCTS
