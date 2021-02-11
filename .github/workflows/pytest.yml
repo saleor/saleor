@@ -15,8 +15,8 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-18.04
-    container: python:3.8
+    runs-on: ubuntu-latest
+    container: python:3.9
 
     services:
       postgres:
@@ -36,7 +36,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: "3.8"
+          python-version: "3.9"
 
       - name: Install system dependencies
         run: apt-get install -y libpq-dev
