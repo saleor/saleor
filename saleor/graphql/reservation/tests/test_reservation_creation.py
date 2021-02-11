@@ -173,7 +173,7 @@ def test_mutation_fails_when_reserved_quantity_exceeds_available_quantity(
     content = get_graphql_content(response)
     data = content["data"]["reservationCreate"]
     assert data["reservationErrors"][0]["message"] == (
-        "Could not reserve item Test product (SKU_A). Only 7 remaining in stock."
+        "Could not reserve item Test product (SKU_A). Only 7 remain in stock."
     )
     assert not Reservation.objects.exists()
 
