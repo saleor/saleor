@@ -632,6 +632,7 @@ def update_discount_for_order_line(
         ).gross
         order_line.unit_price = unit_price_with_discount
         order_line.unit_discount_type = value_type
+        order_line.unit_discount_value = value
         order_line.total_price = order_line.unit_price * order_line.quantity
         update_order_line_prices(order_line, order, manager)
         fields_to_update.extend(

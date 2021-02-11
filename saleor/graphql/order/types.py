@@ -352,6 +352,10 @@ class OrderLine(CountableDjangoObjectType):
         return root.undiscounted_unit_price
 
     @staticmethod
+    def resolve_unit_discount_value(root: models.OrderLine, _info):
+        return root.unit_discount_value
+
+    @staticmethod
     def resolve_unit_discount(root: models.OrderLine, _info):
         return root.unit_discount
 
