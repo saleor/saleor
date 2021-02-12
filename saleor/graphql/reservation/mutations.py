@@ -6,6 +6,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
+from graphql.error import GraphQLError
 
 from ...core.exceptions import InsufficientStock
 from ...reservation.error_codes import ReservationErrorCode
@@ -228,7 +229,24 @@ class ReservationsRemove(BaseMutation):
                 }
             )
 
-        return cls.get_nodes_or_error(clean_variants_ids, ProductVariant)
+        # get_nodes_or_error has logic for raising GraphQL error, the
+        # underlying `get_nodes` utility raises AssertionError when only some
+        # of requested IDs aren't found.
+        # Likewise get_nodes_or_error can raise ValidationError with code being
+        # "graphql_error" which is not something we want.
+        # TODO: cleanup after get_nodes_or_error is fixed
+        try:
+            return cls.get_nodes_or_error(
+                clean_variants_ids, "variants_ids", ProductVariant
+            )
+        except (AssertionError, GraphQLError) as e:
+            raise ValidationError(
+                {
+                    "variants_ids": ValidationError(
+                        str(e), code=ReservationErrorCode.NOT_FOUND
+                    )
+                }
+            )
 
     @classmethod
     def clean_input(cls, data):
