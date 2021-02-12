@@ -522,6 +522,8 @@ PLUGINS = [
     "saleor.payment.gateways.adyen.plugin.AdyenGatewayPlugin",
     "saleor.payment.gateways.authorize_net.plugin.AuthorizeNetGatewayPlugin",
     "saleor.plugins.invoicing.plugin.InvoicingPlugin",
+    "saleor.plugins.user_email.plugin.UserEmailPlugin",
+    "saleor.plugins.admin_email.plugin.AdminEmailPlugin",
 ]
 
 # Plugin discovery
