@@ -572,7 +572,24 @@ class OrderConfirm(ModelMutation):
         return OrderConfirm(order=order)
 
 
-class OrderLinesCreate(BaseMutation):
+class EditableOrderValidationMixin:
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def validate_order(cls, order):
+        if order.status not in ORDER_EDITABLE_STATUS:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Only draft and unconfirmed orders can be edited.",
+                        code=OrderErrorCode.NOT_EDITABLE,
+                    )
+                }
+            )
+
+
+class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
     order = graphene.Field(Order, description="Related order.")
     order_lines = graphene.List(
         graphene.NonNull(OrderLine), description="List of added order lines."
@@ -595,18 +612,7 @@ class OrderLinesCreate(BaseMutation):
         error_type_field = "order_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
-        if order.status not in ORDER_EDITABLE_STATUS:
-            raise ValidationError(
-                {
-                    "id": ValidationError(
-                        "Only draft and unconfirmed orders can be edited.",
-                        code=OrderErrorCode.NOT_EDITABLE,
-                    )
-                }
-            )
-
+    def validate_lines(cls, info, data):
         lines_to_add = []
         invalid_ids = []
         for input_line in data.get("input"):
@@ -630,16 +636,21 @@ class OrderLinesCreate(BaseMutation):
                     ),
                 }
             )
-        variants = [line[1] for line in lines_to_add]
+        return lines_to_add
+
+    @staticmethod
+    def validate_variants(order, variants):
         try:
             channel = order.channel
             validate_product_is_published_in_channel(variants, channel)
             validate_variant_channel_listings(variants, channel)
         except ValidationError as error:
             raise ValidationError({"input": error})
-        # Add the lines
+
+    @staticmethod
+    def add_lines_to_order(order, lines_to_add):
         try:
-            lines = [
+            return [
                 add_variant_to_order(order, variant, quantity)
                 for quantity, variant in lines_to_add
             ]
@@ -648,6 +659,16 @@ class OrderLinesCreate(BaseMutation):
                 "Unable to calculate taxes - %s" % str(tax_error),
                 code=OrderErrorCode.TAX_ERROR.value,
             )
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
+        cls.validate_order(order)
+        lines_to_add = cls.validate_lines(info, data)
+        variants = [line[1] for line in lines_to_add]
+        cls.validate_variants(order, variants)
+
+        lines = cls.add_lines_to_order(order, lines_to_add)
 
         # Create the products added event
         events.order_added_products_event(
@@ -658,7 +679,7 @@ class OrderLinesCreate(BaseMutation):
         return OrderLinesCreate(order=order, order_lines=lines)
 
 
-class OrderLineDelete(BaseMutation):
+class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
     order = graphene.Field(Order, description="A related order.")
     order_line = graphene.Field(
         OrderLine, description="An order line that was deleted."
@@ -677,15 +698,7 @@ class OrderLineDelete(BaseMutation):
     def perform_mutation(cls, _root, info, id):
         line = cls.get_node_or_error(info, id, only_type=OrderLine)
         order = line.order
-        if order.status not in ORDER_EDITABLE_STATUS:
-            raise ValidationError(
-                {
-                    "id": ValidationError(
-                        "Only draft and unconfirmed orders can be edited.",
-                        code=OrderErrorCode.NOT_EDITABLE,
-                    )
-                }
-            )
+        cls.validate_order(line.order)
 
         db_id = line.id
         delete_order_line(line)
@@ -700,7 +713,7 @@ class OrderLineDelete(BaseMutation):
         return OrderLineDelete(order=order, order_line=line)
 
 
-class OrderLineUpdate(ModelMutation):
+class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
     order = graphene.Field(Order, description="Related order.")
 
     class Arguments:
@@ -720,15 +733,7 @@ class OrderLineUpdate(ModelMutation):
     def clean_input(cls, info, instance, data):
         instance.old_quantity = instance.quantity
         cleaned_input = super().clean_input(info, instance, data)
-        if instance.order.status not in ORDER_EDITABLE_STATUS:
-            raise ValidationError(
-                {
-                    "id": ValidationError(
-                        "Only draft and unconfirmed orders can be edited.",
-                        code=OrderErrorCode.NOT_EDITABLE,
-                    )
-                }
-            )
+        cls.validate_order(instance.order)
 
         quantity = data["quantity"]
         if quantity <= 0:
