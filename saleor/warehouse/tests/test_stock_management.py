@@ -126,6 +126,41 @@ def test_allocate_stock_insufficient_stocks(order_line, variant_with_many_stocks
     ).exists()
 
 
+def test_allocate_stock_insufficient_stocks_for_multiply_lines(
+    order_line, variant_with_many_stocks, product
+):
+    variant = variant_with_many_stocks
+    stocks = variant.stocks.all()
+
+    variant_2 = product.variants.first()
+
+    order_line_2 = OrderLine.objects.get(pk=order_line.pk)
+    order_line_2.pk = None
+    order_line_2.product_name = product.name
+    order_line_2.variant_name = variant_2.name
+    order_line_2.product_sku = variant_2.sku
+    order_line_2.variant = variant_2
+    order_line_2.save()
+
+    quantity_1 = 100
+    quantity_2 = 100
+    line_data_1 = OrderLineData(
+        line=order_line, variant=order_line.variant, quantity=quantity_1
+    )
+    line_data_2 = OrderLineData(
+        line=order_line_2, variant=variant_2, quantity=quantity_2
+    )
+
+    with pytest.raises(InsufficientStock) as exc:
+        allocate_stocks([line_data_1, line_data_2], COUNTRY_CODE)
+
+    assert set(exc._excinfo[1].items) == {str(variant), str(variant_2)}
+
+    assert not Allocation.objects.filter(
+        order_line=order_line, stock__in=stocks
+    ).exists()
+
+
 def test_deallocate_stock(allocation):
     stock = allocation.stock
     stock.quantity = 100

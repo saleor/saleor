@@ -372,7 +372,7 @@ class DraftOrderComplete(BaseMutation):
                     raise ValidationError(
                         {
                             "lines": ValidationError(
-                                f"Insufficient product stock: {exc.item}",
+                                f"Insufficient product stock: {', '.join(exc.items)}",
                                 code=OrderErrorCode.INSUFFICIENT_STOCK,
                             )
                         }

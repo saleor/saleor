@@ -471,7 +471,9 @@ def _get_order_data(
             discounts=discounts,
         )
     except InsufficientStock as e:
-        raise ValidationError(f"Insufficient product stock: {e.item}", code=e.code)
+        raise ValidationError(
+            f"Insufficient product stock: {', '.join(e.items)}", code=e.code
+        )
     except NotApplicable:
         raise ValidationError(
             "Voucher not applicable",
@@ -576,6 +578,8 @@ def complete_checkout(
         except InsufficientStock as e:
             release_voucher_usage(order_data)
             gateway.payment_refund_or_void(payment)
-            raise ValidationError(f"Insufficient product stock: {e.item}", code=e.code)
+            raise ValidationError(
+                f"Insufficient product stock: {', '.join(e.items)}", code=e.code
+            )
 
     return order, action_required, action_data

@@ -11,6 +11,7 @@ from .models import Allocation, Stock, Warehouse
 if TYPE_CHECKING:
     from ..order import OrderLineData
     from ..order.models import Order, OrderLine
+    from ..product.models import ProductVariant
 
 
 StockData = namedtuple("StockData", ["pk", "quantity"])
@@ -62,12 +63,17 @@ def allocate_stocks(order_lines_info: Iterable["OrderLineData"], country_code: s
         variant = stock_data.pop("product_variant")
         variant_to_stocks[variant].append(StockData(**stock_data))
 
+    insufficient_stock: List["ProductVariant"] = []
     allocations: List[Allocation] = []
     for line_info in order_lines_info:
         stocks = variant_to_stocks[line_info.variant.pk]  # type: ignore
-        allocations.extend(
-            _create_allocations(line_info, stocks, quantity_allocation_for_stocks)
+        insufficient_stock, allocation_items = _create_allocations(
+            line_info, stocks, quantity_allocation_for_stocks, insufficient_stock
         )
+        allocations.extend(allocation_items)
+
+    if insufficient_stock:
+        raise InsufficientStock(insufficient_stock)
 
     if allocations:
         Allocation.objects.bulk_create(allocations)
@@ -77,6 +83,7 @@ def _create_allocations(
     line_info: "OrderLineData",
     stocks: List[StockData],
     quantity_allocation_for_stocks: dict,
+    insufficient_stock: List["ProductVariant"],
 ):
     quantity = line_info.quantity
     quantity_allocated = 0
@@ -102,9 +109,11 @@ def _create_allocations(
 
             quantity_allocated += quantity_to_allocate
             if quantity_allocated == quantity:
-                return allocations
+                return insufficient_stock, allocations
+
     if not quantity_allocated == quantity:
-        raise InsufficientStock(line_info.variant)
+        insufficient_stock.append(line_info.variant)  # type: ignore
+        return insufficient_stock, []
 
 
 @transaction.atomic
@@ -206,7 +215,7 @@ def decrease_stock(order_line: "OrderLine", quantity: int, warehouse_pk: str):
         )
     except Stock.DoesNotExist:
         error_context = {"order_line": order_line, "warehouse_pk": warehouse_pk}
-        raise InsufficientStock(order_line.variant, error_context)
+        raise InsufficientStock([order_line.variant], error_context)
 
     quantity_allocated = stock.allocations.aggregate(
         quantity_allocated=Coalesce(Sum("quantity_allocated"), 0)
@@ -214,7 +223,7 @@ def decrease_stock(order_line: "OrderLine", quantity: int, warehouse_pk: str):
 
     if stock.quantity - quantity_allocated < quantity:
         error_context = {"order_line": order_line, "warehouse_pk": warehouse_pk}
-        raise InsufficientStock(order_line.variant, error_context)
+        raise InsufficientStock([order_line.variant], error_context)
 
     stock.quantity = F("quantity") - quantity
     stock.save(update_fields=["quantity"])
