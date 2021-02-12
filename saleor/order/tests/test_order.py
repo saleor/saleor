@@ -571,8 +571,10 @@ def test_order_weight_change_line_quantity(staff_user, order_with_lines):
 
 
 def test_order_weight_delete_line(order_with_lines):
+    context_mock = Mock()
+    context_mock.plugins.order_line_updated.return_value = None
     line = order_with_lines.lines.first()
-    delete_order_line(line)
+    delete_order_line(context_mock, line)
     assert order_with_lines.weight == _calculate_order_weight_from_lines(
         order_with_lines
     )

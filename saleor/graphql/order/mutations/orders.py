@@ -701,7 +701,7 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
         cls.validate_order(line.order)
 
         db_id = line.id
-        delete_order_line(line)
+        delete_order_line(info.context.plugins, line)
         line.id = db_id
 
         # Create the removal event
