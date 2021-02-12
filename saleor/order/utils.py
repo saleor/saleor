@@ -570,7 +570,7 @@ def update_order_discount_for_order(
     value_type = value_type or order_discount_to_update.value_type
     currency = order_discount_to_update.currency
     fields_to_update = []
-    if reason:
+    if reason is not None:
         order_discount_to_update.reason = reason
         fields_to_update.append("reason")
 
@@ -618,7 +618,7 @@ def update_discount_for_order_line(
     value = value or current_value
     value_type = value_type or current_value_type
     fields_to_update = []
-    if reason:
+    if reason is not None:
         order_line.unit_discount_reason = reason
         fields_to_update.append("unit_discount_reason")
     if current_value != value or current_value_type != value_type:
@@ -667,7 +667,6 @@ def remove_discount_from_order_line(order_line: OrderLine, order: "Order", manag
             "unit_discount_reason",
             "unit_price_gross_amount",
             "unit_price_net_amount",
-            "unit_discount_reason",
             "total_price_net_amount",
             "total_price_gross_amount",
         ]
