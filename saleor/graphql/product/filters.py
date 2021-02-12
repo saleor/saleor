@@ -223,7 +223,6 @@ def product_search(phrase):
     ft_in_description_or_name = Q(search_vector=query)
 
     ft_by_sku = Q(variants__sku__search=phrase)
-
     return (
         Product.objects.annotate(rank=SearchRank(vector, query))
         .filter((ft_in_description_or_name | ft_by_sku))
@@ -233,7 +232,7 @@ def product_search(phrase):
 
 def filter_search(qs, _, value):
     if value:
-        qs = qs.distinct() & product_search(value).distinct()
+        qs = product_search(value).distinct() & qs.distinct()
     return qs
 
 
