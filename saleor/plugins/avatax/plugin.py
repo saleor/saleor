@@ -449,7 +449,7 @@ class AvataxPlugin(BasePlugin):
         if self._skip_plugin(previous_value):
             return previous_value
 
-        return get_order_tax_data(order, self.config, True)
+        get_order_tax_data(order, self.config, True)
 
     def order_line_updated(
         self, order: "Order", order_line: "OrderLine", previous_value: Any

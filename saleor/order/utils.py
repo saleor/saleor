@@ -317,7 +317,7 @@ def change_order_line_quantity(context, line, old_quantity, new_quantity):
             ]
         )
     else:
-        delete_order_line(line)
+        delete_order_line(context.plugins, line)
 
     quantity_diff = old_quantity - new_quantity
 
@@ -334,10 +334,9 @@ def change_order_line_quantity(context, line, old_quantity, new_quantity):
         )
 
 
-def delete_order_line(line):
+def delete_order_line(manager, line):
     """Delete an order line from an order."""
     line.delete()
-    manager = get_plugins_manager()
     manager.order_line_deleted(line.order, line)
 
 
