@@ -11,13 +11,12 @@ class InsufficientStock(Exception):
 
 
 class AllocationError(Exception):
-    def __init__(self, order_line, quantity):
+    def __init__(self, order_lines):
+        order_lines = [str(line) for line in order_lines]
         super().__init__(
-            f"Can't deallocate {quantity} for variant: {order_line.variant}"
-            f" in order: {order_line.order}"
+            f"Unable to deallocate stock for lines {', '.join(order_lines)}."
         )
-        self.order_line = order_line
-        self.quantity = quantity
+        self.order_lines = order_lines
 
 
 class ReadOnlyException(Exception):

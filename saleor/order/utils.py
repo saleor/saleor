@@ -335,10 +335,11 @@ def restock_order_lines(order):
         shipping_zones__countries__contains=country
     ).first()
 
+    dellocating_stock_lines = []
     for line in order:
         if line.variant and line.variant.track_inventory:
             if line.quantity_unfulfilled > 0:
-                deallocate_stock(line, line.quantity_unfulfilled)
+                dellocating_stock_lines.append((line, line.quantity_unfulfilled))
             if line.quantity_fulfilled > 0:
                 allocation = line.allocations.first()
                 warehouse = (
@@ -349,6 +350,9 @@ def restock_order_lines(order):
         if line.quantity_fulfilled > 0:
             line.quantity_fulfilled = 0
             line.save(update_fields=["quantity_fulfilled"])
+
+    if dellocating_stock_lines:
+        deallocate_stock(dellocating_stock_lines)
 
 
 def restock_fulfillment_lines(fulfillment, warehouse):

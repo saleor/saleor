@@ -505,6 +505,7 @@ def _move_order_lines_to_target_fulfillment(
     fulfillment_lines_to_update: List[FulfillmentLine] = []
     order_lines_to_update: List[OrderLine] = []
 
+    lines_to_dellocate: List[Tuple["OrderLine", int]] = []
     for line_data in order_lines_to_move:
         line_to_move = line_data.line
         quantity_to_move = line_data.quantity
@@ -535,10 +536,15 @@ def _move_order_lines_to_target_fulfillment(
 
         line_allocations_exists = line_to_move.allocations.exists()
         if line_allocations_exists:
-            try:
-                deallocate_stock(line_to_move, unfulfilled_to_move)
-            except AllocationError:
-                logger.warning(f"Unable to deallocate stock for line {line_to_move.id}")
+            lines_to_dellocate.append((line_to_move, unfulfilled_to_move))
+
+    if lines_to_dellocate:
+        try:
+            deallocate_stock(lines_to_dellocate)
+        except AllocationError as e:
+            logger.warning(
+                f"Unable to deallocate stock for line {', '.join(e.order_lines)}."
+            )
 
     # update the fulfillment lines with new values
     FulfillmentLine.objects.bulk_update(fulfillment_lines_to_update, ["quantity"])

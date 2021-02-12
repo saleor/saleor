@@ -168,7 +168,7 @@ def test_deallocate_stock(allocation):
     allocation.quantity_allocated = 80
     allocation.save(update_fields=["quantity_allocated"])
 
-    deallocate_stock(allocation.order_line, 80)
+    deallocate_stock([(allocation.order_line, 80)])
 
     stock.refresh_from_db()
     assert stock.quantity == 100
@@ -183,7 +183,7 @@ def test_deallocate_stock_partially(allocation):
     allocation.quantity_allocated = 80
     allocation.save(update_fields=["quantity_allocated"])
 
-    deallocate_stock(allocation.order_line, 50)
+    deallocate_stock([(allocation.order_line, 50)])
 
     stock.refresh_from_db()
     assert stock.quantity == 100
@@ -196,7 +196,7 @@ def test_deallocate_stock_many_allocations(
 ):
     order_line = order_line_with_allocation_in_many_stocks
 
-    deallocate_stock(order_line, 3)
+    deallocate_stock([(order_line, 3)])
 
     allocations = order_line.allocations.all()
     assert allocations[0].quantity_allocated == 0
@@ -208,7 +208,7 @@ def test_deallocate_stock_many_allocations_partially(
 ):
     order_line = order_line_with_allocation_in_many_stocks
 
-    deallocate_stock(order_line, 1)
+    deallocate_stock([(order_line, 1)])
 
     allocations = order_line.allocations.all()
     assert allocations[0].quantity_allocated == 1

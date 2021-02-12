@@ -1,5 +1,5 @@
 from collections import defaultdict, namedtuple
-from typing import TYPE_CHECKING, Dict, Iterable, List
+from typing import TYPE_CHECKING, Dict, Iterable, List, Tuple
 
 from django.db import transaction
 from django.db.models import F, Sum
@@ -117,17 +117,19 @@ def _create_allocations(
 
 
 @transaction.atomic
-def deallocate_stock(order_line: "OrderLine", quantity: int):
-    """Deallocate stocks for given `order_line`.
+def deallocate_stock(order_lines_with_quantities: List[Tuple["OrderLine", int]]):
+    """Deallocate stocks for given `order_lines`.
 
-    Function lock for update stocks and allocations related to given `order_line`.
+    Function lock for update stocks and allocations related to given `order_lines`.
     Iterate over allocations sorted by `stock.pk` and deallocate as many items
     as needed of available in stock for order line, until deallocated all required
     quantity for the order line. If there is less quantity in stocks then
     raise an exception.
     """
-    allocations = (
-        order_line.allocations.select_related("stock")
+    lines = [line for line, _ in order_lines_with_quantities]
+    lines_allocations = (
+        Allocation.objects.filter(order_line__in=lines)
+        .select_related("stock")
         .select_for_update(
             of=(
                 "self",
@@ -136,21 +138,35 @@ def deallocate_stock(order_line: "OrderLine", quantity: int):
         )
         .order_by("stock__pk")
     )
-    quantity_dealocated = 0
-    for allocation in allocations:
-        quantity_to_deallocate = min(
-            (quantity - quantity_dealocated), allocation.quantity_allocated
-        )
-        if quantity_to_deallocate > 0:
-            allocation.quantity_allocated = (
-                F("quantity_allocated") - quantity_to_deallocate
+
+    line_to_allocations: Dict[int, List[Allocation]] = defaultdict(list)
+    for allocation in lines_allocations:
+        line_to_allocations[allocation.order_line_id].append(allocation)
+
+    allocations_to_update = []
+    not_dellocated_lines = []
+    for order_line, quantity in order_lines_with_quantities:
+        quantity_dealocated = 0
+        allocations = line_to_allocations[order_line.pk]
+        for allocation in allocations:
+            quantity_to_deallocate = min(
+                (quantity - quantity_dealocated), allocation.quantity_allocated
             )
-            quantity_dealocated += quantity_to_deallocate
-            if quantity_dealocated == quantity:
-                Allocation.objects.bulk_update(allocations, ["quantity_allocated"])
-                break
-    if not quantity_dealocated == quantity:
-        raise AllocationError(order_line, quantity)
+            if quantity_to_deallocate > 0:
+                allocation.quantity_allocated = (
+                    F("quantity_allocated") - quantity_to_deallocate
+                )
+                quantity_dealocated += quantity_to_deallocate
+                allocations_to_update.append(allocation)
+                if quantity_dealocated == quantity:
+                    break
+        if not quantity_dealocated == quantity:
+            not_dellocated_lines.append(order_line)
+
+    if not_dellocated_lines:
+        raise AllocationError(not_dellocated_lines)
+
+    Allocation.objects.bulk_update(allocations_to_update, ["quantity_allocated"])
 
 
 @transaction.atomic
@@ -203,7 +219,7 @@ def decrease_stock(order_line: "OrderLine", quantity: int, warehouse_pk: str):
     function decrease it by given value.
     """
     try:
-        deallocate_stock(order_line, quantity)
+        deallocate_stock([(order_line, quantity)])
     except AllocationError:
         order_line.allocations.update(quantity_allocated=0)
 
