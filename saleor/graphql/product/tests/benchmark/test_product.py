@@ -150,6 +150,9 @@ def test_product_details(product_with_image, api_client, count_queries, channel_
             media {
               id
             }
+            images {
+              id
+            }
             variants {
               ...ProductVariantFields
             }

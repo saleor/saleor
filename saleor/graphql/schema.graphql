@@ -3854,10 +3854,10 @@ type Product implements Node & ObjectWithMetadata {
   attributes: [SelectedAttribute!]!
   channelListings: [ProductChannelListing!]
   mediaById(id: ID): ProductMedia
-  imageById(id: ID): ProductMedia @deprecated(reason: "Will be removed in Saleor 4.0. Use the `mediaById` field instead.")
+  imageById(id: ID): ProductImage @deprecated(reason: "Will be removed in Saleor 4.0. Use the `mediaById` field instead.")
   variants: [ProductVariant]
   media: [ProductMedia]
-  images: [ProductMedia] @deprecated(reason: "Will be removed in Saleor 4.0. Use the `media` field instead.")
+  images: [ProductImage] @deprecated(reason: "Will be removed in Saleor 4.0. Use the `media` field instead.")
   collections: [Collection]
   translation(languageCode: LanguageCodeEnum!): ProductTranslation
   availableForPurchase: Date
@@ -4032,10 +4032,10 @@ input ProductFilterInput {
   channel: String
 }
 
-type ProductImage implements Node {
+type ProductImage {
   id: ID!
+  alt: String
   sortOrder: Int
-  alt: String!
   url(size: Int): String!
 }
 
@@ -4301,7 +4301,7 @@ type ProductVariant implements Node & ObjectWithMetadata {
   margin: Int
   quantityOrdered: Int
   revenue(period: ReportingPeriod): TaxedMoney
-  images: [ProductMedia] @deprecated(reason: "Will be removed in Saleor 4.0. Use the `media` instead.")
+  images: [ProductImage] @deprecated(reason: "Will be removed in Saleor 4.0. Use the `media` instead.")
   media: [ProductMedia]
   translation(languageCode: LanguageCodeEnum!): ProductVariantTranslation
   digitalContent: DigitalContent

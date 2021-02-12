@@ -352,7 +352,37 @@ def test_requestor_is_superuser_for_anonymous_user():
             "https://www.streamable.com/e/8vnouo",
         ),
         (
+            "http://www.streamable.com/8vnouo",
+            ProductMediaTypes.VIDEO_STREAMABLE,
+            "https://www.streamable.com/e/8vnouo",
+        ),
+        (
+            "https://www.streamable.com/8vnouo",
+            ProductMediaTypes.VIDEO_STREAMABLE,
+            "https://www.streamable.com/e/8vnouo",
+        ),
+        (
+            "streamable.com/8vnouo",
+            ProductMediaTypes.VIDEO_STREAMABLE,
+            "https://www.streamable.com/e/8vnouo",
+        ),
+        (
             "https://vimeo.com/testId",
+            ProductMediaTypes.VIDEO_VIMEO,
+            "https://player.vimeo.com/video/testId",
+        ),
+        (
+            "http://vimeo.com/testId",
+            ProductMediaTypes.VIDEO_VIMEO,
+            "https://player.vimeo.com/video/testId",
+        ),
+        (
+            "https://www.vimeo.com/testId",
+            ProductMediaTypes.VIDEO_VIMEO,
+            "https://player.vimeo.com/video/testId",
+        ),
+        (
+            "http://vimeo.com/testId",
             ProductMediaTypes.VIDEO_VIMEO,
             "https://player.vimeo.com/video/testId",
         ),

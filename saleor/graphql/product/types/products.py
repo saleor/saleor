@@ -203,7 +203,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         ),
     )
     images = graphene.List(
-        lambda: ProductMedia,
+        lambda: ProductImage,
         description="List of images for the product variant.",
         deprecation_reason="Will be removed in Saleor 4.0. Use the `media` instead.",
     )
@@ -535,7 +535,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         description="Get a single product media by ID.",
     )
     image_by_id = graphene.Field(
-        lambda: ProductMedia,
+        lambda: ProductImage,
         id=graphene.Argument(graphene.ID, description="ID of a product image."),
         description="Get a single product image by ID.",
         deprecation_reason=(
@@ -549,7 +549,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         lambda: ProductMedia, description="List of media for the product."
     )
     images = graphene.List(
-        lambda: ProductMedia,
+        lambda: ProductImage,
         description="List of images for the product.",
         deprecation_reason=(
             "Will be removed in Saleor 4.0. Use the `media` field instead."
@@ -1168,7 +1168,7 @@ class ProductMedia(CountableDjangoObjectType):
 
     class Meta:
         description = "Represents a product media."
-        only_fields = ["alt", "id", "sort_order", "type"]
+        fields = ["alt", "id", "sort_order", "type"]
         interfaces = [relay.Node]
         model = models.ProductMedia
 
@@ -1189,7 +1189,17 @@ class ProductMedia(CountableDjangoObjectType):
 
 
 @key(fields="id")
-class ProductImage(CountableDjangoObjectType):
+class ProductImage(graphene.ObjectType):
+    id = graphene.ID(required=True, description="The ID of the image.")
+    alt = graphene.String(required=False, description="The alt text of the image.")
+    sort_order = graphene.Int(
+        required=False,
+        description=(
+            "The new relative sorting position of the item (from -inf to +inf). "
+            "1 moves the item one position forward, -1 moves the item one position "
+            "backward, 0 leaves the item unchanged."
+        ),
+    )
     url = graphene.String(
         required=True,
         description="The URL of the image.",
@@ -1198,10 +1208,6 @@ class ProductImage(CountableDjangoObjectType):
 
     class Meta:
         description = "Represents a product image."
-        only_fields = ["alt", "id", "sort_order"]
-        interfaces = [relay.Node]
-        skip_registry = True
-        model = models.ProductMedia
 
     @staticmethod
     def resolve_url(root: models.ProductMedia, info, *, size=None):
@@ -1210,7 +1216,3 @@ class ProductImage(CountableDjangoObjectType):
         else:
             url = root.image.url
         return info.context.build_absolute_uri(url)
-
-    @staticmethod
-    def __resolve_reference(root, _info, **_kwargs):
-        return graphene.Node.get_node_from_global_id(_info, root.id)

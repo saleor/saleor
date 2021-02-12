@@ -11,7 +11,12 @@ from ...product.error_codes import ProductErrorCode
 def validate_video_url(url: str, field_name: str) -> Tuple[str, str]:
     """Check the video URL and return the proper ProductMediaType."""
     youtube_pattern = re.compile(r"(?:youtube.com|youtu.be).*(?:v=|watch\/|\/)([\w]*)")
+    streamable_pattern = re.compile(r"^(?:http[s]?://)?(?:www.)?streamable.com/([\w]*)")
+    vimeo_pattern = re.compile(r"^(?:http[s]?://)?(?:www.)?vimeo.com/([\w]*)")
+
     is_youtube = re.search(youtube_pattern, url)
+    is_streamable = re.search(streamable_pattern, url)
+    is_vimeo = re.search(vimeo_pattern, url)
 
     if is_youtube:
         video_id = is_youtube.group(1)
@@ -19,18 +24,14 @@ def validate_video_url(url: str, field_name: str) -> Tuple[str, str]:
             f"https://www.youtube.com/embed/{video_id}",
             ProductMediaTypes.VIDEO_YOUTUBE,
         )
-    elif "streamable.com" in url:
-        pattern = re.compile(r"streamable\.com/([\w]*)")
-        match = re.search(pattern, url)
-        video_id = match.group(1)  # type: ignore
+    elif is_streamable:
+        video_id = is_streamable.group(1)  # type: ignore
         return (
             f"https://www.streamable.com/e/{video_id}",
             ProductMediaTypes.VIDEO_STREAMABLE,
         )
-    elif "vimeo.com" in url:
-        pattern = re.compile(r"vimeo\.com/([\w]*)")
-        match = re.search(pattern, url)
-        video_id = match.group(1)  # type: ignore
+    elif is_vimeo:
+        video_id = is_vimeo.group(1)  # type: ignore
         return (
             f"https://player.vimeo.com/video/{video_id}",
             ProductMediaTypes.VIDEO_VIMEO,

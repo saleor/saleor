@@ -150,13 +150,13 @@ class ImagesByProductIdLoader(DataLoader):
     context_key = "images_by_product"
 
     def batch_load(self, keys):
-        media = ProductMedia.objects.filter(
+        images = ProductMedia.objects.filter(
             product_id__in=keys, type=ProductMediaTypes.IMAGE
         )
-        media_map = defaultdict(list)
-        for media_obj in media:
-            media_map[media_obj.product_id].append(media_obj)
-        return [media_map[product_id] for product_id in keys]
+        images_map = defaultdict(list)
+        for image in images:
+            images_map[image.product_id].append(image)
+        return [images_map[product_id] for product_id in keys]
 
 
 class ProductVariantByIdLoader(DataLoader):
@@ -320,10 +320,8 @@ class ProductImageByIdLoader(DataLoader):
     context_key = "product_image_by_id"
 
     def batch_load(self, keys):
-        product_media = ProductMedia.objects.filter(
-            type=ProductMediaTypes.IMAGE
-        ).in_bulk(keys)
-        return [product_media.get(product_media_id) for product_media_id in keys]
+        images = ProductMedia.objects.filter(type=ProductMediaTypes.IMAGE).in_bulk(keys)
+        return [images.get(product_image_id) for product_image_id in keys]
 
 
 class MediaByProductVariantIdLoader(DataLoader):
