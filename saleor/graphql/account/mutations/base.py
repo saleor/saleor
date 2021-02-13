@@ -8,8 +8,8 @@ from ....account import events as account_events
 from ....account import models
 from ....account.error_codes import AccountErrorCode
 from ....account.notifications import (
+    send_password_reset_notification,
     send_set_password_notification,
-    send_user_password_reset_notification,
 )
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions
@@ -149,7 +149,9 @@ class RequestPasswordReset(BaseMutation):
                     )
                 }
             )
-        send_user_password_reset_notification(redirect_url, user, info.context.plugins)
+        send_password_reset_notification(
+            redirect_url, user, info.context.plugins, staff=user.is_staff
+        )
         return RequestPasswordReset()
 
 

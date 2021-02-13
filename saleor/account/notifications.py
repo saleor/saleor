@@ -22,8 +22,8 @@ def get_default_user_payload(user: User):
     }
 
 
-def send_user_password_reset_notification(redirect_url, user, manager):
-    """Trigger sending a password reset notification for the given user."""
+def send_password_reset_notification(redirect_url, user, manager, staff=False):
+    """Trigger sending a password reset notification for the given customer/staff."""
     token = default_token_generator.make_token(user)
     params = urlencode({"email": user.email, "token": token})
     reset_url = prepare_url(params, redirect_url)
@@ -35,7 +35,12 @@ def send_user_password_reset_notification(redirect_url, user, manager):
         "reset_url": reset_url,
         **get_site_context(),
     }
-    manager.notify(NotifyEventType.ACCOUNT_PASSWORD_RESET, payload=user_payload)
+    if staff:
+        manager.notify(
+            NotifyEventType.ACCOUNT_STAFF_RESET_PASSWORD, payload=user_payload
+        )
+    else:
+        manager.notify(NotifyEventType.ACCOUNT_PASSWORD_RESET, payload=user_payload)
 
 
 def send_account_confirmation(user, redirect_url, manager):
