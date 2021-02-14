@@ -1,8 +1,12 @@
 import logging
 from dataclasses import asdict
 
+from django.core.exceptions import ValidationError
+
 from ...core.notify_events import NotifyEventType, UserNotifyEvent
 from ..base_plugin import BasePlugin, ConfigurationTypeField
+from ..error_codes import PluginErrorCode
+from ..models import PluginConfiguration
 from . import SendgridConfiguration
 from .tasks import (
     send_account_confirmation_email_task,
@@ -229,3 +233,23 @@ class SendgridEmailPlugin(BasePlugin):
             return previous_value
 
         event_to_task_map[event].delay(payload, asdict(self.config))
+
+    @classmethod
+    def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
+        """Validate if provided configuration is correct."""
+        if not plugin_configuration.active:
+            return
+
+        configuration = plugin_configuration.configuration
+        configuration = {item["name"]: item["value"] for item in configuration}
+        api_key = configuration.get("api_key")
+        if not api_key:
+            error_msg = "Missing SendGrid API Key"
+            raise ValidationError(
+                {
+                    "api_key": ValidationError(
+                        error_msg,
+                        code=PluginErrorCode.NOT_FOUND.value,
+                    ),
+                }
+            )

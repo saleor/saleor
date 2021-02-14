@@ -1,6 +1,10 @@
 from unittest.mock import MagicMock, patch
 
+import pytest
+from django.core.exceptions import ValidationError
+
 from ....core.notify_events import AdminNotifyEvent, UserNotifyEvent
+from ...models import PluginConfiguration
 from .. import tasks
 from ..plugin import get_event_to_task_map
 
@@ -55,7 +59,7 @@ def test_notify_when_plugin_disabled(
 def test_notify_not_valid_event_type(
     mocked_get_event_to_task_map, sendgrid_email_plugin
 ):
-    plugin = sendgrid_email_plugin(active=True)
+    plugin = sendgrid_email_plugin(api_key="AB12", active=True)
 
     plugin.notify(AdminNotifyEvent.CSV_EXPORT_FAILED, {}, None)
 
@@ -69,7 +73,7 @@ def test_notify_missing_handler(mocked_get_event_to_task_map, sendgrid_email_plu
     event_map = MagicMock()
     mocked_get_event_to_task_map.return_value = event_map
 
-    plugin = sendgrid_email_plugin(active=True)
+    plugin = sendgrid_email_plugin(api_key="AB12", active=True)
 
     plugin.notify(UserNotifyEvent.ACCOUNT_PASSWORD_RESET, sample_payload, None)
 
@@ -87,7 +91,9 @@ def test_notify_missing_template_id(
     event_map.__contains__.return_value = True
     mocked_get_event_to_task_map.return_value = event_map
 
-    plugin = sendgrid_email_plugin(active=True, account_password_reset_template_id=None)
+    plugin = sendgrid_email_plugin(
+        active=True, api_key="AB12", account_password_reset_template_id=None
+    )
 
     plugin.notify(UserNotifyEvent.ACCOUNT_PASSWORD_RESET, sample_payload, None)
 
@@ -104,9 +110,20 @@ def test_notify(mocked_get_event_to_task_map, sendgrid_email_plugin):
     mocked_get_event_to_task_map.return_value = event_map
 
     plugin = sendgrid_email_plugin(
-        active=True, account_password_reset_template_id="123"
+        active=True, api_key="AB12", account_password_reset_template_id="123"
     )
 
     plugin.notify(UserNotifyEvent.ACCOUNT_PASSWORD_RESET, sample_payload, None)
 
     event_map.__getitem__.assert_called_once_with("account_password_reset")
+
+
+def test_save_plugin_configuration_missing_api_key(
+    sendgrid_email_plugin,
+):
+    plugin = sendgrid_email_plugin(active=False)
+    configuration = PluginConfiguration.objects.get()
+
+    data_to_save = {"active": True, "configuration": []}
+    with pytest.raises(ValidationError):
+        plugin.save_plugin_configuration(configuration, data_to_save)
