@@ -229,5 +229,3 @@ class SendgridEmailPlugin(BasePlugin):
             return previous_value
 
         event_to_task_map[event].delay(payload, asdict(self.config))
-
-    # FIXME validation of the provided plugin data

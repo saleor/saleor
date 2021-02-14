@@ -28,7 +28,6 @@ def send_email(configuration: SendgridConfiguration, template_id, payload):
     retry_kwargs={"max_retries": 5},
 )
 def send_account_confirmation_email_task(payload: dict, configuration: dict):
-    print(configuration)
     configuration = SendgridConfiguration(**configuration)
     send_email(
         configuration=configuration,
