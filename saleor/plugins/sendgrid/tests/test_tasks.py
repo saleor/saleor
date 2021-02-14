@@ -93,7 +93,9 @@ def test_send_account_confirmation_email_task(
         "site_name": "Saleor",
     }
 
-    plugin = sendgrid_email_plugin(account_confirmation_template_id=template_id)
+    plugin = sendgrid_email_plugin(
+        api_key="AB12", account_confirmation_template_id=template_id
+    )
 
     send_account_confirmation_email_task(payload, asdict(plugin.config))
 
