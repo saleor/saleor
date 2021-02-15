@@ -10,8 +10,8 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ("product", "0137_drop_attribute_models"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+        ("product", "0137_drop_attribute_models"),
         ("shipping", "0026_shippingzone_description"),
     ]
 
@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
-                ("expires", models.DateTimeField()),
+                ("expires", models.DateTimeField(db_index=True)),
                 ("quantity", models.PositiveIntegerField(default=0)),
                 (
                     "product_variant",
