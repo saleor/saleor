@@ -12,9 +12,13 @@ from .models import OrderEvent
 UserType = Optional[User]
 
 
+def _line_per_quantity_to_line_object(quantity, line):
+    return {"quantity": quantity, "line_pk": line.pk, "item": str(line)}
+
+
 def _lines_per_quantity_to_line_object_list(quantities_per_order_line):
     return [
-        {"quantity": quantity, "line_pk": line.pk, "item": str(line)}
+        _line_per_quantity_to_line_object(quantity, line)
         for quantity, line in quantities_per_order_line
     ]
 
@@ -472,16 +476,10 @@ def order_note_added_event(*, order: Order, user: UserType, message: str) -> Ord
     )
 
 
-def order_discount_event(
-    *,
-    event_type: str,
-    order: Order,
-    user: UserType,
+def _prepare_discount_object(
     order_discount: "OrderDiscount",
-    old_order_discount: Optional["OrderDiscount"] = None
-) -> OrderEvent:
-    if not _user_is_valid(user):
-        user = None
+    old_order_discount: Optional["OrderDiscount"] = None,
+):
     discount_parameters = {
         "value": order_discount.value,
         "amount_value": order_discount.amount_value,
@@ -493,6 +491,20 @@ def order_discount_event(
         discount_parameters["old_value"] = old_order_discount.value
         discount_parameters["old_value_type"] = old_order_discount.value_type
         discount_parameters["old_amount_value"] = old_order_discount.amount_value
+    return discount_parameters
+
+
+def order_discount_event(
+    *,
+    event_type: str,
+    order: Order,
+    user: UserType,
+    order_discount: "OrderDiscount",
+    old_order_discount: Optional["OrderDiscount"] = None
+) -> OrderEvent:
+    if not _user_is_valid(user):
+        user = None
+    discount_parameters = _prepare_discount_object(order_discount, old_order_discount)
 
     return OrderEvent.objects.create(
         order=order,
@@ -538,4 +550,66 @@ def order_discount_deleted_event(
         order=order,
         user=user,
         order_discount=order_discount,
+    )
+
+
+def order_line_discount_event(
+    *,
+    event_type: str,
+    order: Order,
+    user: UserType,
+    line: OrderLine,
+    line_before_update: Optional["OrderLine"] = None
+) -> OrderEvent:
+    if not _user_is_valid(user):
+        user = None
+    discount_parameters = {
+        "value": line.unit_discount_value,
+        "amount_value": line.unit_discount_amount,
+        "currency": line.currency,
+        "value_type": line.unit_discount_type,
+        "reason": line.unit_discount_reason,
+    }
+    if line_before_update:
+        discount_parameters["old_value"] = line_before_update.unit_discount_value
+        discount_parameters["old_value_type"] = line_before_update.unit_discount_type
+        discount_parameters[
+            "old_amount_value"
+        ] = line_before_update.unit_discount_amount
+
+    line_data = _line_per_quantity_to_line_object(line.quantity, line)
+    line_data["discount"] = discount_parameters
+    return OrderEvent.objects.create(
+        order=order,
+        type=event_type,
+        user=user,
+        parameters={"lines": [line_data]},
+    )
+
+
+def order_line_discount_updated_event(
+    order: Order,
+    user: UserType,
+    line: OrderLine,
+    line_before_update: Optional["OrderLine"] = None,
+) -> OrderEvent:
+    return order_line_discount_event(
+        event_type=OrderEvents.ORDER_LINE_DISCOUNT_UPDATED,
+        order=order,
+        line=line,
+        line_before_update=line_before_update,
+        user=user,
+    )
+
+
+def order_line_discount_removed_event(
+    order: Order,
+    user: UserType,
+    line: OrderLine,
+) -> OrderEvent:
+    return order_line_discount_event(
+        event_type=OrderEvents.ORDER_LINE_DISCOUNT_REMOVED,
+        order=order,
+        line=line,
+        user=user,
     )

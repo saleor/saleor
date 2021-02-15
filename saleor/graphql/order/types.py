@@ -51,6 +51,27 @@ from .enums import OrderEventsEmailsEnum, OrderEventsEnum
 from .utils import validate_draft_order
 
 
+def get_order_discount_event(discount_obj: dict):
+    currency = discount_obj["currency"]
+
+    amount = prices.Money(Decimal(discount_obj["amount_value"]), currency)
+
+    old_amount = None
+    old_amount_value = discount_obj.get("old_amount_value")
+    if old_amount_value:
+        old_amount = prices.Money(Decimal(old_amount_value), currency)
+
+    return OrderEventDiscountObject(
+        value=discount_obj.get("value"),
+        amount=amount,
+        value_type=discount_obj.get("value_type"),
+        reason=discount_obj.get("reason"),
+        old_value_type=discount_obj.get("old_value_type"),
+        old_value=discount_obj.get("old_value"),
+        old_amount=old_amount,
+    )
+
+
 class OrderDiscount(graphene.ObjectType):
     value_type = graphene.Field(
         DiscountValueTypeEnum,
@@ -216,11 +237,16 @@ class OrderEvent(CountableDjangoObjectType):
                 if line.pk == line_pk:
                     line_object = line
                     break
+
+            discount = raw_line.get("discount")
+            if discount:
+                discount = get_order_discount_event(discount)
             results.append(
                 OrderEventOrderLineObject(
                     quantity=raw_line["quantity"],
                     order_line=line_object,
                     item_name=raw_line["item"],
+                    discount=discount,
                 )
             )
 
@@ -256,24 +282,7 @@ class OrderEvent(CountableDjangoObjectType):
         discount_obj = root.parameters.get("discount")
         if not discount_obj:
             return None
-        currency = discount_obj["currency"]
-
-        amount = prices.Money(Decimal(discount_obj["amount_value"]), currency)
-
-        old_amount = None
-        old_amount_value = discount_obj.get("old_amount_value")
-        if old_amount_value:
-            old_amount = prices.Money(Decimal(old_amount_value), currency)
-
-        return OrderEventDiscountObject(
-            value=discount_obj.get("value"),
-            amount=amount,
-            value_type=discount_obj.get("value_type"),
-            reason=discount_obj.get("reason"),
-            old_value_type=discount_obj.get("old_value_type"),
-            old_value=discount_obj.get("old_value"),
-            old_amount=old_amount,
-        )
+        return get_order_discount_event(discount_obj)
 
 
 class FulfillmentLine(CountableDjangoObjectType):

@@ -638,6 +638,7 @@ def update_discount_for_order_line(
     value_type: Optional[str],
     value: Optional[Decimal],
     manager,
+    requester: Optional["User"],
 ):
     """Update discount fields for order line. Apply discount to the price."""
     current_value = order_line.unit_discount_value
@@ -649,6 +650,7 @@ def update_discount_for_order_line(
         order_line.unit_discount_reason = reason
         fields_to_update.append("unit_discount_reason")
     if current_value != value or current_value_type != value_type:
+        order_line_before_update = copy.deepcopy(order_line)
         undiscounted_unit_price = order_line.undiscounted_unit_price
         currency = undiscounted_unit_price.currency
         unit_price_with_discount = apply_discount_to_value(
@@ -675,10 +677,18 @@ def update_discount_for_order_line(
                 "total_price_gross_amount",
             ]
         )
+        events.order_line_discount_updated_event(
+            order=order,
+            user=requester,
+            line=order_line,
+            line_before_update=order_line_before_update,
+        )
     order_line.save(update_fields=fields_to_update)
 
 
-def remove_discount_from_order_line(order_line: OrderLine, order: "Order", manager):
+def remove_discount_from_order_line(
+    order_line: OrderLine, order: "Order", manager, requester: Optional["User"]
+):
     """Drop discount applied to order line. Restore undiscounted price."""
     order_line.unit_price = order_line.undiscounted_unit_price
     order_line.unit_discount_amount = Decimal(0)
@@ -697,4 +707,9 @@ def remove_discount_from_order_line(order_line: OrderLine, order: "Order", manag
             "total_price_net_amount",
             "total_price_gross_amount",
         ]
+    )
+    events.order_line_discount_removed_event(
+        order=order,
+        user=requester,
+        line=order_line,
     )

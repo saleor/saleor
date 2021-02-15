@@ -253,6 +253,7 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
     @classmethod
     @transaction.atomic
     def perform_mutation(cls, root, info, **data):
+        requester = get_user_or_app_from_context(info.context)
         order_line = cls.get_node_or_error(
             info, data.get("order_line_id"), only_type=OrderLine
         )
@@ -270,6 +271,7 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
             value_type=value_type,
             value=value,
             manager=info.context.plugins,
+            requester=requester,
         )
         recalculate_order(order)
         return OrderLineDiscountUpdate(order_line=order_line, order=order)
@@ -301,12 +303,15 @@ class OrderLineDiscountRemove(OrderDiscountCommon):
     @classmethod
     @transaction.atomic
     def perform_mutation(cls, root, info, **data):
+        requester = get_user_or_app_from_context(info.context)
         order_line = cls.get_node_or_error(
             info, data.get("order_line_id"), only_type=OrderLine
         )
         order = order_line.order
         cls.validate(info, order)
 
-        remove_discount_from_order_line(order_line, order, manager=info.context.plugins)
+        remove_discount_from_order_line(
+            order_line, order, manager=info.context.plugins, requester=requester
+        )
         recalculate_order(order)
         return OrderLineDiscountRemove(order_line=order_line, order=order)
