@@ -754,13 +754,9 @@ class PluginsManager(PaymentInterface):
         )
 
 
-def get_plugins_manager(
-    manager_path: str = None, plugins: List[str] = None
-) -> PluginsManager:
+def get_plugins_manager(plugins: List[str] = None) -> PluginsManager:
     with opentracing.global_tracer().start_active_span("get_plugins_manager"):
-        if not manager_path:
-            manager_path = settings.PLUGINS_MANAGER
         if plugins is None:
             plugins = settings.PLUGINS
-        manager = import_string(manager_path)
+        manager = import_string(settings.PLUGINS_MANAGER)
         return manager(plugins)

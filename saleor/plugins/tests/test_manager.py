@@ -24,9 +24,8 @@ from ..tests.sample_plugins import (
 
 
 def test_get_plugins_manager():
-    manager_path = "saleor.plugins.manager.PluginsManager"
     plugin_path = "saleor.plugins.tests.sample_plugins.PluginSample"
-    manager = get_plugins_manager(manager_path=manager_path, plugins=[plugin_path])
+    manager = get_plugins_manager(plugins=[plugin_path])
     assert isinstance(manager, PluginsManager)
     assert len(manager.plugins) == 1
 
