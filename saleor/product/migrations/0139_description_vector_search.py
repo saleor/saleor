@@ -6,6 +6,6 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("product", "0131_update_ts_vector_existing_product_name"),
+        ("product", "0138_migrate_description_json_into_description"),
     ]
     operations = []
