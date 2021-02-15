@@ -1,7 +1,8 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
+    from ..product.models import ProductVariant
     from .models import FulfillmentLine, OrderLine
 
 
@@ -169,6 +170,7 @@ class OrderEventsEmails:
 class OrderLineData:
     line: "OrderLine"
     quantity: int
+    variant: Optional["ProductVariant"] = None
     replace: bool = False
 
 

@@ -227,7 +227,7 @@ class OrderFulfill(BaseMutation):
             raise ValidationError(
                 {
                     "stocks": ValidationError(
-                        f"Insufficient product stock: {exc.item}",
+                        f"Insufficient product stock: {', '.join(exc.items)}",
                         code=OrderErrorCode.INSUFFICIENT_STOCK,
                         params={
                             "order_line": order_line_global_id,

@@ -2,9 +2,10 @@ from ..checkout.error_codes import CheckoutErrorCode
 
 
 class InsufficientStock(Exception):
-    def __init__(self, item, context=None):
-        super().__init__("Insufficient stock for %r" % (item,))
-        self.item = item
+    def __init__(self, items, context=None):
+        items = [str(item) for item in items]
+        super().__init__(f"Insufficient stock for {', '.join(items)}")
+        self.items = items
         self.context = context
         self.code = CheckoutErrorCode.INSUFFICIENT_STOCK
 

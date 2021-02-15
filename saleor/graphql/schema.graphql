@@ -4118,6 +4118,7 @@ input ProductOrder {
 
 enum ProductOrderField {
   NAME
+  RANK
   PRICE
   MINIMAL_PRICE
   DATE

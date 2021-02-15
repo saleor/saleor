@@ -403,7 +403,7 @@ def test_order_fulfill_warehouse_with_insufficient_stock_exception(
         "warehouse_pk": str(warehouse_no_shipping_zone.pk),
     }
     mock_create_fulfillments.side_effect = InsufficientStock(
-        order_line.variant, error_context
+        [order_line.variant], error_context
     )
 
     response = staff_api_client.post_graphql(
