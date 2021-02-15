@@ -48,6 +48,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix `product_updated` and `product_created` webhooks - #6798 by @d-wysocki
 - Add interface for integrating the auth plugins - #6799 by @korycins
 - Fix page `contentJson` field to return JSON - #6832 by @d-wysocki
+- Add SearchRank to search product by name and description. New enum added to `ProductOrderField` - `RANK` - which returns results sorted by search rank - #6872 by @d-wysocki
 
 # 2.11.1
 
