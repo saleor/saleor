@@ -1,4 +1,3 @@
-import copy
 from decimal import Decimal
 from functools import partial, wraps
 from typing import Iterable, List, Optional, Union
@@ -543,7 +542,6 @@ def create_order_discount_for_order(
     reason: str,
     value_type: str,
     value: Decimal,
-    requester: Optional["User"],
 ):
     """Add new order discount and update the prices."""
 
@@ -556,11 +554,7 @@ def create_order_discount_for_order(
     )
     order.total = new_total
     order.save(update_fields=["total_net_amount", "total_gross_amount"])
-    events.order_discount_added_event(
-        order=order,
-        user=requester,
-        order_discount=order_discount,
-    )
+    return order_discount
 
 
 def update_order_discount_for_order(
@@ -572,10 +566,8 @@ def update_order_discount_for_order(
     force_update: bool = False,
     discount_amount: Optional[Money] = None,
     save_order: bool = True,
-    requester: Optional["User"] = None,
 ):
     """Update the order_discount for an order and recalculate the order's prices."""
-    old_order_discount = copy.deepcopy(order_discount_to_update)
     current_value = order_discount_to_update.value
     current_value_type = order_discount_to_update.value_type
     value = value if value is not None else current_value
@@ -604,19 +596,10 @@ def update_order_discount_for_order(
         if save_order:
             order.save(update_fields=["total_net_amount", "total_gross_amount"])
 
-        events.order_discount_updated_event(
-            order=order,
-            user=requester,
-            order_discount=order_discount_to_update,
-            old_order_discount=old_order_discount,
-        )
-
     order_discount_to_update.save(update_fields=fields_to_update)
 
 
-def remove_order_discount_from_order(
-    order: Order, order_discount: OrderDiscount, requester: Optional["User"]
-):
+def remove_order_discount_from_order(order: Order, order_discount: OrderDiscount):
     """Remove the order discount from order and update the prices."""
 
     discount_amount = order_discount.amount
@@ -624,11 +607,6 @@ def remove_order_discount_from_order(
 
     order.total += discount_amount
     order.save(update_fields=["total_net_amount", "total_gross_amount"])
-    events.order_discount_deleted_event(
-        order=order,
-        user=requester,
-        order_discount=order_discount,
-    )
 
 
 def update_discount_for_order_line(
@@ -638,7 +616,6 @@ def update_discount_for_order_line(
     value_type: Optional[str],
     value: Optional[Decimal],
     manager,
-    requester: Optional["User"],
 ):
     """Update discount fields for order line. Apply discount to the price."""
     current_value = order_line.unit_discount_value
@@ -650,7 +627,6 @@ def update_discount_for_order_line(
         order_line.unit_discount_reason = reason
         fields_to_update.append("unit_discount_reason")
     if current_value != value or current_value_type != value_type:
-        order_line_before_update = copy.deepcopy(order_line)
         undiscounted_unit_price = order_line.undiscounted_unit_price
         currency = undiscounted_unit_price.currency
         unit_price_with_discount = apply_discount_to_value(
@@ -677,18 +653,10 @@ def update_discount_for_order_line(
                 "total_price_gross_amount",
             ]
         )
-        events.order_line_discount_updated_event(
-            order=order,
-            user=requester,
-            line=order_line,
-            line_before_update=order_line_before_update,
-        )
     order_line.save(update_fields=fields_to_update)
 
 
-def remove_discount_from_order_line(
-    order_line: OrderLine, order: "Order", manager, requester: Optional["User"]
-):
+def remove_discount_from_order_line(order_line: OrderLine, order: "Order", manager):
     """Drop discount applied to order line. Restore undiscounted price."""
     order_line.unit_price = order_line.undiscounted_unit_price
     order_line.unit_discount_amount = Decimal(0)
@@ -707,9 +675,4 @@ def remove_discount_from_order_line(
             "total_price_net_amount",
             "total_price_gross_amount",
         ]
-    )
-    events.order_line_discount_removed_event(
-        order=order,
-        user=requester,
-        line=order_line,
     )
