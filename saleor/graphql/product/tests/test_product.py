@@ -2430,6 +2430,50 @@ def test_search_product_by_description(user_api_client, product_list, channel_US
     assert len(content["data"]["products"]["edges"]) == 1
 
 
+def test_search_product_by_description_and_name(
+    user_api_client, product_list, product, channel_USD, category, product_type
+):
+    search_query = """
+    query Products(
+      $filters: ProductFilterInput, $sortBy: ProductOrder,$channel: String
+    ) {
+      products(first: 10, filter: $filters, sortBy: $sortBy,channel: $channel) {
+        edges {
+        node {
+          id
+          name
+          slug
+        }
+        }
+      }
+    }
+    """
+    product.description_plaintext = "red big red product"
+    product.save()
+
+    product_2 = product_list[1]
+    product_2.name = "red product"
+    product_2.save()
+    product_1 = product_list[0]
+    product_1.description_plaintext = "some red product"
+    product_1.save()
+
+    variables = {
+        "filters": {
+            "search": "red",
+        },
+        "sortBy": {"field": "RANK", "direction": "DESC"},
+        "channel": channel_USD.slug,
+    }
+    response = user_api_client.post_graphql(search_query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["products"]["edges"]
+
+    assert data[0]["node"]["name"] == product_2.name
+    assert data[1]["node"]["name"] == product.name
+    assert data[2]["node"]["name"] == product_1.name
+
+
 @freeze_time("2020-03-18 12:00:00")
 def test_create_product_with_rating(
     staff_api_client,
