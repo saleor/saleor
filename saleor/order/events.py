@@ -3,6 +3,7 @@ from typing import Dict, List, Optional, Tuple, Union
 
 from ..account import events as account_events
 from ..account.models import User
+from ..discount.models import OrderDiscount
 from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..payment.models import Payment
 from . import OrderEvents, OrderEventsEmails
@@ -468,4 +469,35 @@ def order_note_added_event(*, order: Order, user: UserType, message: str) -> Ord
         type=OrderEvents.NOTE_ADDED,
         parameters={"message": message},
         **kwargs,
+    )
+
+
+def order_discount_event(
+    *,
+    order: Order,
+    user: UserType,
+    discount_event: str,
+    order_discount: "OrderDiscount",
+    old_order_discount: Optional["OrderDiscount"] = None
+) -> OrderEvent:
+    if not _user_is_valid(user):
+        user = None
+    discount_parameters = {
+        "event_type": discount_event,
+        "value": order_discount.value,
+        "amount_value": order_discount.amount_value,
+        "currency": order_discount.currency,
+        "value_type": order_discount.value_type,
+        "reason": order_discount.reason,
+    }
+    if old_order_discount:
+        discount_parameters["old_value"] = old_order_discount.value
+        discount_parameters["old_value_type"] = old_order_discount.value_type
+        discount_parameters["old_amount_value"] = old_order_discount.amount_value
+
+    return OrderEvent.objects.create(
+        order=order,
+        type=OrderEvents.ORDER_DISCOUNT,
+        user=user,
+        parameters={"discount": discount_parameters},
     )

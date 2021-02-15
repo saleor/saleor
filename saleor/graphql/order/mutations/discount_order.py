@@ -19,6 +19,7 @@ from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
 from ...discount.enums import DiscountValueTypeEnum
+from ...utils import get_user_or_app_from_context
 from ..types import Order, OrderLine
 
 
@@ -118,6 +119,7 @@ class OrderDiscountAdd(OrderDiscountCommon):
     @classmethod
     @transaction.atomic
     def perform_mutation(cls, root, info, **data):
+        requester = get_user_or_app_from_context(info.context)
         order = cls.get_node_or_error(info, data.get("order_id"), only_type=Order)
         input = data.get("input", {})
         cls.validate(info, order, input)
@@ -125,7 +127,7 @@ class OrderDiscountAdd(OrderDiscountCommon):
         reason = input.get("reason")
         value_type = input.get("value_type")
         value = input.get("value")
-        create_order_discount_for_order(order, reason, value_type, value)
+        create_order_discount_for_order(order, reason, value_type, value, requester)
         # FIXME call tax plugins here
         return OrderDiscountAdd(order=order)
 
@@ -160,6 +162,7 @@ class OrderDiscountUpdate(OrderDiscountCommon):
     @classmethod
     @transaction.atomic
     def perform_mutation(cls, root, info, **data):
+        requester = get_user_or_app_from_context(info.context)
         order_discount = cls.get_node_or_error(
             info, data.get("discount_id"), only_type="OrderDiscount"
         )
@@ -172,7 +175,12 @@ class OrderDiscountUpdate(OrderDiscountCommon):
         value = input.get("value")
 
         update_order_discount_for_order(
-            order, order_discount, reason=reason, value_type=value_type, value=value
+            order,
+            order_discount,
+            reason=reason,
+            value_type=value_type,
+            value=value,
+            requester=requester,
         )
         return OrderDiscountUpdate(order=order)
 
@@ -194,13 +202,14 @@ class OrderDiscountDelete(OrderDiscountCommon):
     @classmethod
     @transaction.atomic
     def perform_mutation(cls, root, info, **data):
+        requester = get_user_or_app_from_context(info.context)
         order_discount = cls.get_node_or_error(
             info, data.get("discount_id"), only_type="OrderDiscount"
         )
         order = order_discount.order
         cls.validate_order(info, order)
 
-        remove_order_discount_from_order(order, order_discount)
+        remove_order_discount_from_order(order, order_discount, requester)
         order.refresh_from_db()
         return OrderDiscountDelete(order=order)
         # FIXME call order event here. Update webhook payload

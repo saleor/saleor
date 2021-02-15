@@ -75,6 +75,9 @@ class OrderEvents:
     ORDER_FULLY_PAID = "order_fully_paid"
     ORDER_REPLACEMENT_CREATED = "order_replacement_created"
 
+    ORDER_DISCOUNT = "order_discount"
+    ORDER_LINE_DISCOUNT = "order_line_discount"
+
     UPDATED_ADDRESS = "updated_address"
 
     EMAIL_SENT = "email_sent"
@@ -115,6 +118,8 @@ class OrderEvents:
         (ORDER_MARKED_AS_PAID, "The order was manually marked as fully paid"),
         (ORDER_FULLY_PAID, "The order was fully paid"),
         (ORDER_REPLACEMENT_CREATED, "The draft order was created based on this order."),
+        (ORDER_DISCOUNT, "The event related to the order discount."),
+        (ORDER_LINE_DISCOUNT, "The event related to the order line discount."),
         (UPDATED_ADDRESS, "The address from the placed order was updated"),
         (EMAIL_SENT, "The email was sent"),
         (CONFIRMED, "Order was confirmed"),
@@ -163,6 +168,18 @@ class OrderEventsEmails:
         (ORDER_REFUND, "The order refund confirmation email was sent"),
         (FULFILLMENT, "The fulfillment confirmation email was sent"),
         (DIGITAL_LINKS, "The email containing the digital links was sent"),
+    ]
+
+
+class OrderEventsDiscount:
+    CREATED = "created"
+    UPDATED = "updated"
+    REMOVED = "removed"
+
+    CHOICES = [
+        (CREATED, "The discount was created"),
+        (UPDATED, "The discount was updated"),
+        (REMOVED, "The discount was removed"),
     ]
 
 

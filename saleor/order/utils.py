@@ -1,3 +1,4 @@
+import copy
 from decimal import Decimal
 from functools import partial, wraps
 from typing import Iterable, List, Optional, Union
@@ -538,12 +539,16 @@ def apply_discount_to_value(
 
 
 def create_order_discount_for_order(
-    order: Order, reason: str, value_type: str, value: Decimal
+    order: Order,
+    reason: str,
+    value_type: str,
+    value: Decimal,
+    requester: Optional["User"],
 ):
     """Add new order discount and update the prices."""
 
     new_total = apply_discount_to_value(value, value_type, order.currency, order.total)
-    order.discounts.create(
+    order_discount = order.discounts.create(
         value_type=value_type,
         value=value,
         reason=reason,
@@ -551,6 +556,12 @@ def create_order_discount_for_order(
     )
     order.total = new_total
     order.save(update_fields=["total_net_amount", "total_gross_amount"])
+    events.order_discount_event(
+        order=order,
+        user=requester,
+        discount_event="created",
+        order_discount=order_discount,
+    )
 
 
 def update_order_discount_for_order(
@@ -562,8 +573,10 @@ def update_order_discount_for_order(
     force_update: bool = False,
     discount_amount: Optional[Money] = None,
     save_order: bool = True,
+    requester: Optional["User"] = None,
 ):
     """Update the order_discount for an order and recalculate the order's prices."""
+    old_order_discount = copy.deepcopy(order_discount_to_update)
     current_value = order_discount_to_update.value
     current_value_type = order_discount_to_update.value_type
     value = value if value is not None else current_value
@@ -591,10 +604,21 @@ def update_order_discount_for_order(
         order.total = new_total
         if save_order:
             order.save(update_fields=["total_net_amount", "total_gross_amount"])
+
+        events.order_discount_event(
+            order=order,
+            user=requester,
+            discount_event="updated",
+            order_discount=order_discount_to_update,
+            old_order_discount=old_order_discount,
+        )
+
     order_discount_to_update.save(update_fields=fields_to_update)
 
 
-def remove_order_discount_from_order(order: Order, order_discount: OrderDiscount):
+def remove_order_discount_from_order(
+    order: Order, order_discount: OrderDiscount, requester: Optional["User"]
+):
     """Remove the order discount from order and update the prices."""
 
     discount_amount = order_discount.amount
@@ -602,6 +626,12 @@ def remove_order_discount_from_order(order: Order, order_discount: OrderDiscount
 
     order.total += discount_amount
     order.save(update_fields=["total_net_amount", "total_gross_amount"])
+    events.order_discount_event(
+        order=order,
+        user=requester,
+        discount_event="removed",
+        order_discount=order_discount,
+    )
 
 
 def update_discount_for_order_line(
