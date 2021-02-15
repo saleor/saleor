@@ -122,9 +122,9 @@ def check_lines_quantity(variants, quantities, country):
         check_stock_quantity_bulk(variants, country, quantities)
     except InsufficientStock as e:
         remaining = e.context["available_quantity"]
-        item_name = e.item.display_product()
         message = (
-            f"Could not add item {item_name}. Only {remaining} remaining in stock."
+            f"Could not add items {', '.join(e.items)}. "
+            f"Only {remaining} remaining in stock."
         )
         raise ValidationError({"quantity": ValidationError(message, code=e.code)})
 
@@ -336,7 +336,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 add_variants_to_checkout(instance, variants, quantities)
             except InsufficientStock as exc:
                 raise ValidationError(
-                    f"Insufficient product stock: {exc.item}", code=exc.code
+                    f"Insufficient product stock: {', '.join(exc.items)}", code=exc.code
                 )
             except ProductNotPublished as exc:
                 raise ValidationError(
@@ -427,7 +427,8 @@ class CheckoutLinesAdd(BaseMutation):
                     )
                 except InsufficientStock as exc:
                     raise ValidationError(
-                        f"Insufficient product stock: {exc.item}", code=exc.code
+                        f"Insufficient product stock: {', '.join(exc.items)}",
+                        code=exc.code,
                     )
                 except ProductNotPublished as exc:
                     raise ValidationError(
@@ -869,6 +870,7 @@ class CheckoutComplete(BaseMutation):
                 store_source=store_source,
                 discounts=info.context.discounts,
                 user=info.context.user,
+                site_settings=info.context.site.settings,
                 tracking_code=tracking_code,
                 redirect_url=data.get("redirect_url"),
             )
