@@ -3,6 +3,7 @@ from graphene_federation import key
 
 from ...app import models
 from ...core.permissions import AppPermission
+from ...core.tracing import no_trace
 from ..core.connection import CountableDjangoObjectType
 from ..core.types import Permission
 from ..core.types.common import Job
@@ -43,6 +44,7 @@ class AppToken(CountableDjangoObjectType):
         only_fields = ["name", "auth_token"]
 
     @staticmethod
+    @no_trace
     def resolve_auth_token(root: models.AppToken, _info, **_kwargs):
         return root.auth_token[-4:]
 

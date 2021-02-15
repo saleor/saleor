@@ -2,6 +2,7 @@ import graphene
 
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions, AppPermission
+from ...core.tracing import no_trace
 from ...csv import models
 from ..account.types import User
 from ..account.utils import requestor_has_access
@@ -50,6 +51,7 @@ class ExportEvent(CountableDjangoObjectType):
         raise PermissionDenied()
 
     @staticmethod
+    @no_trace
     def resolve_message(root: models.ExportEvent, _info):
         return root.parameters.get("message", None)
 

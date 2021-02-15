@@ -8,6 +8,7 @@ from ...core.anonymize import obfuscate_address, obfuscate_email
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions, OrderPermissions, ProductPermissions
 from ...core.taxes import display_gross_prices
+from ...core.tracing import no_trace
 from ...graphql.utils import get_user_or_app_from_context
 from ...order import OrderStatus, models
 from ...order.models import FulfillmentStatus
@@ -109,10 +110,12 @@ class OrderEvent(CountableDjangoObjectType):
         raise PermissionDenied()
 
     @staticmethod
+    @no_trace
     def resolve_email(root: models.OrderEvent, _info):
         return root.parameters.get("email", None)
 
     @staticmethod
+    @no_trace
     def resolve_email_type(root: models.OrderEvent, _info):
         return root.parameters.get("email_type", None)
 
@@ -122,35 +125,43 @@ class OrderEvent(CountableDjangoObjectType):
         return float(amount) if amount else None
 
     @staticmethod
+    @no_trace
     def resolve_payment_id(root: models.OrderEvent, _info):
         return root.parameters.get("payment_id", None)
 
     @staticmethod
+    @no_trace
     def resolve_payment_gateway(root: models.OrderEvent, _info):
         return root.parameters.get("payment_gateway", None)
 
     @staticmethod
+    @no_trace
     def resolve_quantity(root: models.OrderEvent, _info):
         quantity = root.parameters.get("quantity", None)
         return int(quantity) if quantity else None
 
     @staticmethod
+    @no_trace
     def resolve_message(root: models.OrderEvent, _info):
         return root.parameters.get("message", None)
 
     @staticmethod
+    @no_trace
     def resolve_composed_id(root: models.OrderEvent, _info):
         return root.parameters.get("composed_id", None)
 
     @staticmethod
+    @no_trace
     def resolve_oversold_items(root: models.OrderEvent, _info):
         return root.parameters.get("oversold_items", None)
 
     @staticmethod
+    @no_trace
     def resolve_order_number(root: models.OrderEvent, _info):
         return root.order_id
 
     @staticmethod
+    @no_trace
     def resolve_invoice_number(root: models.OrderEvent, _info):
         return root.parameters.get("invoice_number")
 
@@ -194,10 +205,12 @@ class OrderEvent(CountableDjangoObjectType):
         return warehouse_models.Warehouse.objects.filter(pk=warehouse).first()
 
     @staticmethod
+    @no_trace
     def resolve_transaction_reference(root: models.OrderEvent, _info):
         return root.parameters.get("transaction_reference")
 
     @staticmethod
+    @no_trace
     def resolve_shipping_costs_included(root: models.OrderEvent, _info):
         return root.parameters.get("shipping_costs_included")
 
@@ -321,18 +334,22 @@ class OrderLine(CountableDjangoObjectType):
         return None
 
     @staticmethod
+    @no_trace
     def resolve_unit_price(root: models.OrderLine, _info):
         return root.unit_price
 
     @staticmethod
+    @no_trace
     def resolve_total_price(root: models.OrderLine, _info):
         return root.total_price
 
     @staticmethod
+    @no_trace
     def resolve_translated_product_name(root: models.OrderLine, _info):
         return root.translated_product_name
 
     @staticmethod
+    @no_trace
     def resolve_translated_variant_name(root: models.OrderLine, _info):
         return root.translated_variant_name
 
@@ -493,6 +510,7 @@ class Order(CountableDjangoObjectType):
         return obfuscate_address(root.shipping_address)
 
     @staticmethod
+    @no_trace
     def resolve_shipping_price(root: models.Order, _info):
         return root.shipping_price
 
@@ -515,6 +533,7 @@ class Order(CountableDjangoObjectType):
         return root.get_subtotal()
 
     @staticmethod
+    @no_trace
     def resolve_total(root: models.Order, _info):
         return root.total
 
@@ -555,6 +574,7 @@ class Order(CountableDjangoObjectType):
         return root.is_fully_paid()
 
     @staticmethod
+    @no_trace
     def resolve_number(root: models.Order, _info):
         return str(root.pk)
 

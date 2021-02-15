@@ -2,6 +2,7 @@ import graphene
 
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions, GiftcardPermissions
+from ...core.tracing import no_trace
 from ...giftcard import models
 from ..account.utils import requestor_has_access
 from ..core.connection import CountableDjangoObjectType
@@ -38,6 +39,7 @@ class GiftCard(CountableDjangoObjectType):
         model = models.GiftCard
 
     @staticmethod
+    @no_trace
     def resolve_display_code(root: models.GiftCard, *_args, **_kwargs):
         return root.display_code
 

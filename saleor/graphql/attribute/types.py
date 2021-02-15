@@ -3,6 +3,7 @@ import re
 import graphene
 
 from ...attribute import AttributeInputType, models
+from ...core.tracing import no_trace
 from ..core.connection import CountableDjangoObjectType
 from ..core.types import File
 from ..decorators import (
@@ -40,6 +41,7 @@ class AttributeValue(CountableDjangoObjectType):
 
     @staticmethod
     @check_attribute_value_required_permissions()
+    @no_trace
     def resolve_input_type(root: models.AttributeValue, *_args):
         return root.input_type
 
@@ -116,31 +118,37 @@ class Attribute(CountableDjangoObjectType):
 
     @staticmethod
     @check_attribute_required_permissions()
+    @no_trace
     def resolve_value_required(root: models.Attribute, *_args):
         return root.value_required
 
     @staticmethod
     @check_attribute_required_permissions()
+    @no_trace
     def resolve_visible_in_storefront(root: models.Attribute, *_args):
         return root.visible_in_storefront
 
     @staticmethod
     @check_attribute_required_permissions()
+    @no_trace
     def resolve_filterable_in_storefront(root: models.Attribute, *_args):
         return root.filterable_in_storefront
 
     @staticmethod
     @check_attribute_required_permissions()
+    @no_trace
     def resolve_filterable_in_dashboard(root: models.Attribute, *_args):
         return root.filterable_in_dashboard
 
     @staticmethod
     @check_attribute_required_permissions()
+    @no_trace
     def resolve_storefront_search_position(root: models.Attribute, *_args):
         return root.storefront_search_position
 
     @staticmethod
     @check_attribute_required_permissions()
+    @no_trace
     def resolve_available_in_grid(root: models.Attribute, *_args):
         return root.available_in_grid
 

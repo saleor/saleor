@@ -2,6 +2,7 @@ import graphene
 from django_prices.templatetags import prices
 
 from ....core.prices import quantize_price
+from ....core.tracing import no_trace
 from ..enums import TaxRateType
 
 
@@ -75,6 +76,7 @@ class VAT(graphene.ObjectType):
         description = "Represents a VAT rate for a country."
 
     @staticmethod
+    @no_trace
     def resolve_standard_rate(root, _info):
         return root.data.get("standard_rate")
 

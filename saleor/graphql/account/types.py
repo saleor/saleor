@@ -8,6 +8,7 @@ from ...account import models
 from ...checkout.utils import get_user_checkout
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions, OrderPermissions
+from ...core.tracing import no_trace
 from ...order import models as order_models
 from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUserLoader
 from ..checkout.types import Checkout
@@ -149,10 +150,12 @@ class CustomerEvent(CountableDjangoObjectType):
         raise PermissionDenied()
 
     @staticmethod
+    @no_trace
     def resolve_message(root: models.CustomerEvent, _info):
         return root.parameters.get("message", None)
 
     @staticmethod
+    @no_trace
     def resolve_count(root: models.CustomerEvent, _info):
         return root.parameters.get("count", None)
 
@@ -319,6 +322,7 @@ class User(CountableDjangoObjectType):
     @one_of_permissions_required(
         [AccountPermissions.MANAGE_USERS, AccountPermissions.MANAGE_STAFF]
     )
+    @no_trace
     def resolve_note(root: models.User, info):
         return root.note
 

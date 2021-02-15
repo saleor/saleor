@@ -4,8 +4,7 @@ from ..utils import get_user_or_app_from_context
 
 
 def resolve_checkout_lines():
-    queryset = models.CheckoutLine.objects.all()
-    return queryset
+    return models.CheckoutLine.objects.all()
 
 
 def resolve_checkouts(channel_slug):
