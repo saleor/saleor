@@ -264,8 +264,14 @@ def test_fulfill_order_line(order_with_lines):
     stock_quantity_after = stock.quantity - line.quantity
 
     fulfill_order_line(
-        [OrderLineData(line=line, quantity=line.quantity, variant=variant)],
-        [stock.warehouse.pk],
+        [
+            OrderLineData(
+                line=line,
+                quantity=line.quantity,
+                variant=variant,
+                warehouse_pk=stock.warehouse.pk,
+            )
+        ],
     )
 
     stock.refresh_from_db()
@@ -279,9 +285,7 @@ def test_fulfill_order_line_with_variant_deleted(order_with_lines):
 
     line.refresh_from_db()
 
-    fulfill_order_line(
-        [OrderLineData(line=line, quantity=line.quantity)], ["warehouse_pk"]
-    )
+    fulfill_order_line([OrderLineData(line=line, quantity=line.quantity)])
 
 
 def test_fulfill_order_line_without_inventory_tracking(order_with_lines):
@@ -297,8 +301,14 @@ def test_fulfill_order_line_without_inventory_tracking(order_with_lines):
     stock_quantity_after = stock.quantity
 
     fulfill_order_line(
-        [OrderLineData(line=line, quantity=line.quantity, variant=variant)],
-        [stock.warehouse.pk],
+        [
+            OrderLineData(
+                line=line,
+                quantity=line.quantity,
+                variant=variant,
+                warehouse_pk=stock.warehouse.pk,
+            )
+        ]
     )
 
     stock.refresh_from_db()

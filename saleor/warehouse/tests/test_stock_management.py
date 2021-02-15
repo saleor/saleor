@@ -269,10 +269,12 @@ def test_decrease_stock(allocation):
     decrease_stock(
         [
             OrderLineData(
-                line=allocation.order_line, quantity=50, variant=stock.product_variant
+                line=allocation.order_line,
+                quantity=50,
+                variant=stock.product_variant,
+                warehouse_pk=warehouse_pk,
             )
         ],
-        [warehouse_pk],
     )
 
     stock.refresh_from_db()
@@ -292,10 +294,12 @@ def test_decrease_stock_partially(allocation):
     decrease_stock(
         [
             OrderLineData(
-                line=allocation.order_line, quantity=80, variant=stock.product_variant
+                line=allocation.order_line,
+                quantity=80,
+                variant=stock.product_variant,
+                warehouse_pk=warehouse_pk,
             )
         ],
-        [warehouse_pk],
     )
 
     stock.refresh_from_db()
@@ -312,8 +316,14 @@ def test_decrease_stock_many_allocations(
     warehouse_pk = allocations[1].stock.warehouse.pk
 
     decrease_stock(
-        [OrderLineData(line=order_line, quantity=3, variant=order_line.variant)],
-        [warehouse_pk],
+        [
+            OrderLineData(
+                line=order_line,
+                quantity=3,
+                variant=order_line.variant,
+                warehouse_pk=warehouse_pk,
+            )
+        ],
     )
 
     assert allocations[0].quantity_allocated == 0
@@ -330,8 +340,14 @@ def test_decrease_stock_many_allocations_partially(
     warehouse_pk = allocations[0].stock.warehouse.pk
 
     decrease_stock(
-        [OrderLineData(line=order_line, quantity=2, variant=order_line.variant)],
-        [warehouse_pk],
+        [
+            OrderLineData(
+                line=order_line,
+                quantity=2,
+                variant=order_line.variant,
+                warehouse_pk=warehouse_pk,
+            )
+        ],
     )
 
     assert allocations[0].quantity_allocated == 0
@@ -352,8 +368,14 @@ def test_decrease_stock_more_then_allocated(
     assert quantity_allocated < 4
 
     decrease_stock(
-        [OrderLineData(line=order_line, quantity=4, variant=order_line.variant)],
-        [warehouse_pk],
+        [
+            OrderLineData(
+                line=order_line,
+                quantity=4,
+                variant=order_line.variant,
+                warehouse_pk=warehouse_pk,
+            )
+        ],
     )
 
     allocations = order_line.allocations.all()

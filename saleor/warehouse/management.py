@@ -213,9 +213,7 @@ def increase_stock(
 
 
 @transaction.atomic
-def decrease_stock(
-    order_lines_info: Iterable["OrderLineData"], warehouse_pks: List[str]
-):
+def decrease_stock(order_lines_info: Iterable["OrderLineData"]):
     """Decrease stocks quantities for given `order_lines` in given warehouses.
 
     Function deallocate as many quantities as requested if order_line has less quantity
@@ -225,6 +223,7 @@ def decrease_stock(
     function decrease it by given value.
     """
     variants = [line_info.variant for line_info in order_lines_info]
+    warehouse_pks = [line_info.warehouse_pk for line_info in order_lines_info]
     try:
         deallocate_stock(order_lines_info)
     except AllocationError as exc:
@@ -263,8 +262,9 @@ def decrease_stock(
 
     insufficient_stocks: List[InsufficientStockData] = []
     stocks_to_update = []
-    for line_info, warehouse_pk in zip(order_lines_info, warehouse_pks):
+    for line_info in order_lines_info:
         variant = line_info.variant
+        warehouse_pk = line_info.warehouse_pk
         stock = variant_and_warehouse_to_stock.get(variant.pk, {}).get(  # type: ignore
             warehouse_pk
         )

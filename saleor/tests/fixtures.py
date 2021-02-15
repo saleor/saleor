@@ -2448,10 +2448,13 @@ def fulfilled_order(order_with_lines):
     fulfillment.lines.create(order_line=line_2, quantity=line_2.quantity, stock=stock_2)
     fulfill_order_line(
         [
-            OrderLineData(line=line_1, quantity=line_1.quantity),
-            OrderLineData(line=line_2, quantity=line_2.quantity),
+            OrderLineData(
+                line=line_1, quantity=line_1.quantity, warehouse_pk=warehouse_1_pk
+            ),
+            OrderLineData(
+                line=line_2, quantity=line_2.quantity, warehouse_pk=warehouse_2_pk
+            ),
         ],
-        [warehouse_1_pk, warehouse_2_pk],
     )
     order.status = OrderStatus.FULFILLED
     order.save(update_fields=["status"])
@@ -2469,7 +2472,7 @@ def fulfilled_order_without_inventory_tracking(
     warehouse_pk = stock.warehouse.pk
     fulfillment.lines.create(order_line=line, quantity=line.quantity, stock=stock)
     fulfill_order_line(
-        [OrderLineData(line=line, quantity=line.quantity)], [warehouse_pk]
+        [OrderLineData(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)]
     )
     order.status = OrderStatus.FULFILLED
     order.save(update_fields=["status"])
