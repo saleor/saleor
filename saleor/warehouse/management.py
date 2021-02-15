@@ -1,5 +1,5 @@
-from collections import defaultdict
-from typing import TYPE_CHECKING, Dict
+from collections import defaultdict, namedtuple
+from typing import TYPE_CHECKING, Dict, Iterable, List
 
 from django.db import transaction
 from django.db.models import F, Sum
@@ -9,27 +9,38 @@ from ..core.exceptions import AllocationError, InsufficientStock
 from .models import Allocation, Stock, Warehouse
 
 if TYPE_CHECKING:
+    from ..order import OrderLineData
     from ..order.models import Order, OrderLine
+    from ..product.models import ProductVariant
+
+
+StockData = namedtuple("StockData", ["pk", "quantity"])
 
 
 @transaction.atomic
-def allocate_stock(
-    order_line: "OrderLine",
-    country_code: str,
-    quantity: int,
-):
-    """Allocate stocks for given `order_line` in given country.
+def allocate_stocks(order_lines_info: Iterable["OrderLineData"], country_code: str):
+    """Allocate stocks for given `order_lines` in given country.
 
-    Function lock for update all stocks and allocations for variant in
+    Function lock for update all stocks and allocations for variants in
     given country and order by pk. Next, generate the dictionary
     ({"stock_pk": "quantity_allocated"}) with actual allocated quantity for stocks.
     Iterate by stocks and allocate as many items as needed or available in stock
     for order line, until allocated all required quantity for the order line.
     If there is less quantity in stocks then rise InsufficientStock exception.
     """
+    # allocation only applied to order lines with variants with track inventory
+    # set to True
+    order_lines_info = [
+        line_info
+        for line_info in order_lines_info
+        if line_info.variant and line_info.variant.track_inventory
+    ]
+    variants = [line_info.variant for line_info in order_lines_info]
+
     stocks = (
         Stock.objects.select_for_update(of=("self",))
-        .get_variant_stocks_for_country(country_code, order_line.variant)
+        .for_country(country_code)
+        .filter(product_variant__in=variants)
         .order_by("pk")
     )
 
@@ -47,13 +58,42 @@ def allocate_stock(
             "quantity_allocated__sum"
         ]
 
+    variant_to_stocks: Dict[str, List[StockData]] = defaultdict(list)
+    for stock_data in stocks.values("product_variant", "pk", "quantity"):
+        variant = stock_data.pop("product_variant")
+        variant_to_stocks[variant].append(StockData(**stock_data))
+
+    insufficient_stock: List["ProductVariant"] = []
+    allocations: List[Allocation] = []
+    for line_info in order_lines_info:
+        stocks = variant_to_stocks[line_info.variant.pk]  # type: ignore
+        insufficient_stock, allocation_items = _create_allocations(
+            line_info, stocks, quantity_allocation_for_stocks, insufficient_stock
+        )
+        allocations.extend(allocation_items)
+
+    if insufficient_stock:
+        raise InsufficientStock(insufficient_stock)
+
+    if allocations:
+        Allocation.objects.bulk_create(allocations)
+
+
+def _create_allocations(
+    line_info: "OrderLineData",
+    stocks: List[StockData],
+    quantity_allocation_for_stocks: dict,
+    insufficient_stock: List["ProductVariant"],
+):
+    quantity = line_info.quantity
     quantity_allocated = 0
     allocations = []
+    for stock_data in stocks:
+        quantity_allocated_in_stock = quantity_allocation_for_stocks.get(
+            stock_data.pk, 0
+        )
 
-    for stock in stocks:
-        quantity_allocated_in_stock = quantity_allocation_for_stocks.get(stock.pk, 0)
-
-        quantity_available_in_stock = stock.quantity - quantity_allocated_in_stock
+        quantity_available_in_stock = stock_data.quantity - quantity_allocated_in_stock
 
         quantity_to_allocate = min(
             (quantity - quantity_allocated), quantity_available_in_stock
@@ -61,18 +101,19 @@ def allocate_stock(
         if quantity_to_allocate > 0:
             allocations.append(
                 Allocation(
-                    order_line=order_line,
-                    stock=stock,
+                    order_line=line_info.line,
+                    stock_id=stock_data.pk,
                     quantity_allocated=quantity_to_allocate,
                 )
             )
 
             quantity_allocated += quantity_to_allocate
             if quantity_allocated == quantity:
-                Allocation.objects.bulk_create(allocations)
-                break
+                return insufficient_stock, allocations
+
     if not quantity_allocated == quantity:
-        raise InsufficientStock(order_line.variant)
+        insufficient_stock.append(line_info.variant)  # type: ignore
+        return insufficient_stock, []
 
 
 @transaction.atomic
@@ -174,7 +215,7 @@ def decrease_stock(order_line: "OrderLine", quantity: int, warehouse_pk: str):
         )
     except Stock.DoesNotExist:
         error_context = {"order_line": order_line, "warehouse_pk": warehouse_pk}
-        raise InsufficientStock(order_line.variant, error_context)
+        raise InsufficientStock([order_line.variant], error_context)
 
     quantity_allocated = stock.allocations.aggregate(
         quantity_allocated=Coalesce(Sum("quantity_allocated"), 0)
@@ -182,7 +223,7 @@ def decrease_stock(order_line: "OrderLine", quantity: int, warehouse_pk: str):
 
     if stock.quantity - quantity_allocated < quantity:
         error_context = {"order_line": order_line, "warehouse_pk": warehouse_pk}
-        raise InsufficientStock(order_line.variant, error_context)
+        raise InsufficientStock([order_line.variant], error_context)
 
     stock.quantity = F("quantity") - quantity
     stock.save(update_fields=["quantity"])

@@ -327,7 +327,7 @@ def test_create_fulfillments_warehouse_with_out_of_stock(
     with pytest.raises(InsufficientStock) as exc:
         create_fulfillments(staff_user, order, fulfillment_lines_for_warehouses, True)
 
-    assert exc.value.item == order_line1.variant
+    assert exc.value.items == [str(order_line1.variant)]
     assert exc.value.context == {
         "order_line": order_line1,
         "warehouse_pk": str(warehouse.pk),
@@ -372,7 +372,7 @@ def test_create_fulfillments_warehouse_without_stock(
     with pytest.raises(InsufficientStock) as exc:
         create_fulfillments(staff_user, order, fulfillment_lines_for_warehouses, True)
 
-    assert exc.value.item == order_line1.variant
+    assert exc.value.items == [str(order_line1.variant)]
     assert exc.value.context == {
         "order_line": order_line1,
         "warehouse_pk": str(warehouse_no_shipping_zone.pk),
@@ -414,7 +414,7 @@ def test_create_fulfillments_with_variant_without_inventory_tracking_and_without
     with pytest.raises(InsufficientStock) as exc:
         create_fulfillments(staff_user, order, fulfillment_lines_for_warehouses, True)
 
-    assert exc.value.item == order_line.variant
+    assert exc.value.items == [str(order_line.variant)]
     assert exc.value.context == {
         "order_line": order_line,
         "warehouse_pk": str(warehouse_no_shipping_zone.pk),
