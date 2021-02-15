@@ -57,7 +57,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 "ordering": ("pk",),
-                "unique_together": {("user", "product_variant")},
+                "unique_together": {("user", "shipping_zone", "product_variant")},
             },
         ),
     ]

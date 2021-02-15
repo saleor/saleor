@@ -49,7 +49,7 @@ class Reservation(models.Model):
         on_delete=models.CASCADE,
         related_name="reservations",
     )
-    expires = models.DateTimeField(null=False)
+    expires = models.DateTimeField(null=False, db_index=True)
     product_variant = models.ForeignKey(
         "product.ProductVariant",
         null=False,
@@ -61,5 +61,5 @@ class Reservation(models.Model):
     objects = ReservationQuerySet.as_manager()
 
     class Meta:
-        unique_together = [["user", "product_variant"]]
+        unique_together = [["user", "shipping_zone", "product_variant"]]
         ordering = ("pk",)

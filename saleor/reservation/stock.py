@@ -8,6 +8,10 @@ if TYPE_CHECKING:
     from ..product.models import ProductVariant
 
 
+def remove_expired_reservations():
+    Reservation.objects.expired().delete()
+
+
 def remove_user_reservations(
     user: "User", country_code: str, product_variants: Iterable["ProductVariant"]
 ):

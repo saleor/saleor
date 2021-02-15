@@ -1,6 +1,8 @@
 from ..stock import (
     get_reserved_quantity,
     get_reserved_quantity_bulk,
+    get_user_reserved_quantity_bulk,
+    remove_expired_reservations,
     remove_user_reservations,
 )
 
@@ -55,6 +57,33 @@ def test_bulk_reservations_retrieval_excludes_expired_reservations(
 ):
     reservations = get_reserved_quantity_bulk(
         [variant_with_expired_stock_reservation], COUNTRY_CODE
+    )
+    assert reservations[variant_with_expired_stock_reservation.id] == 0
+
+
+def test_user_reservations_can_be_retrieved_in_bulk(
+    variant_with_reserved_stock, customer_user
+):
+    reservations = get_user_reserved_quantity_bulk(
+        customer_user, COUNTRY_CODE, [variant_with_reserved_stock]
+    )
+    assert reservations[variant_with_reserved_stock.id] == 3
+
+
+def test_user_reservations_exclude_other_users_reservations(
+    variant_with_reserved_stock, staff_user
+):
+    reservations = get_user_reserved_quantity_bulk(
+        staff_user, COUNTRY_CODE, [variant_with_reserved_stock]
+    )
+    assert reservations[variant_with_reserved_stock.id] == 0
+
+
+def test_user_reservations_exclude_expired_reservations(
+    variant_with_expired_stock_reservation, customer_user
+):
+    reservations = get_user_reserved_quantity_bulk(
+        customer_user, COUNTRY_CODE, [variant_with_expired_stock_reservation]
     )
     assert reservations[variant_with_expired_stock_reservation.id] == 0
 
