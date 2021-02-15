@@ -10,6 +10,7 @@ from graphql.error import GraphQLError
 from ....account.utils import requestor_is_staff_member_or_app
 from ....attribute import models as attribute_models
 from ....core.permissions import OrderPermissions, ProductPermissions
+from ....core.tracing import no_trace
 from ....core.weight import convert_weight_to_default_weight_unit
 from ....product import models
 from ....product.templatetags.product_images import (
@@ -538,6 +539,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return CategoryByIdLoader(info.context).load(category_id)
 
     @staticmethod
+    @no_trace
     def resolve_description_json(root: ChannelContext[models.Product], info):
         return root.node.description
 
@@ -563,6 +565,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         )
 
     @staticmethod
+    @no_trace
     def resolve_url(*_args):
         return ""
 
@@ -961,6 +964,7 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return graphene.Node.get_node_from_global_id(_info, root.id)
 
     @staticmethod
+    @no_trace
     def resolve_description_json(root: ChannelContext[models.Collection], info):
         return root.node.description
 
@@ -1019,6 +1023,7 @@ class Category(CountableDjangoObjectType):
         return root.get_ancestors()
 
     @staticmethod
+    @no_trace
     def resolve_description_json(root: models.Category, info):
         return root.description
 
@@ -1038,6 +1043,7 @@ class Category(CountableDjangoObjectType):
         return root.children.all()
 
     @staticmethod
+    @no_trace
     def resolve_url(root: models.Category, _info):
         return ""
 

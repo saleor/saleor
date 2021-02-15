@@ -3,6 +3,7 @@ from graphene_federation import key
 
 from ...attribute import models as attribute_models
 from ...core.permissions import PagePermissions
+from ...core.tracing import no_trace
 from ...page import models
 from ..attribute.filters import AttributeFilterInput
 from ..attribute.types import Attribute, SelectedAttribute
@@ -60,6 +61,7 @@ class Page(CountableDjangoObjectType):
         return PageTypeByIdLoader(info.context).load(root.page_type_id)
 
     @staticmethod
+    @no_trace
     def resolve_content_json(root: models.Page, info):
         return root.content
 

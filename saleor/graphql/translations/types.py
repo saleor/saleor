@@ -3,6 +3,7 @@ from django.conf import settings
 
 from ...attribute import models as attribute_models
 from ...core.permissions import DiscountPermissions, ShippingPermissions
+from ...core.tracing import no_trace
 from ...discount import models as discount_models
 from ...menu import models as menu_models
 from ...page import models as page_models
@@ -72,6 +73,7 @@ class AttributeValueTranslatableContent(CountableDjangoObjectType):
         only_fields = BASIC_TRANSLATABLE_FIELDS
 
     @staticmethod
+    @no_trace
     def resolve_attribute_value(root: attribute_models.AttributeValue, _info):
         return root
 
@@ -96,6 +98,7 @@ class AttributeTranslatableContent(CountableDjangoObjectType):
         only_fields = BASIC_TRANSLATABLE_FIELDS
 
     @staticmethod
+    @no_trace
     def resolve_attribute(root: attribute_models.Attribute, _info):
         return root
 
@@ -238,6 +241,7 @@ class CategoryTranslatableContent(CountableDjangoObjectType):
         only_fields = EXTENDED_TRANSLATABLE_FIELDS
 
     @staticmethod
+    @no_trace
     def resolve_category(root: product_models.Category, _info):
         return root
 

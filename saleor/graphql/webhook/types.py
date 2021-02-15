@@ -1,5 +1,6 @@
 import graphene
 
+from ...core.tracing import no_trace
 from ...webhook import models
 from ...webhook.event_types import WebhookEventType
 from ..core.connection import CountableDjangoObjectType
@@ -18,6 +19,7 @@ class WebhookEvent(CountableDjangoObjectType):
         only_fields = ["event_type"]
 
     @staticmethod
+    @no_trace
     def resolve_name(root: models.WebhookEvent, *_args, **_kwargs):
         return WebhookEventType.DISPLAY_LABELS.get(root.event_type) or root.event_type
 

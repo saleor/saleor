@@ -1,6 +1,7 @@
 import graphene
 
 from ...core.permissions import OrderPermissions
+from ...core.tracing import no_trace
 from ..decorators import permission_required
 from ..translations.mutations import ShopSettingsTranslate
 from .mutations import (
@@ -26,6 +27,7 @@ class ShopQueries(graphene.ObjectType):
         OrderSettings, description="Order related settings from site settings."
     )
 
+    @no_trace
     def resolve_shop(self, _info):
         return Shop()
 

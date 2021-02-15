@@ -3,6 +3,7 @@ from django.db.models import Sum
 from django.db.models.functions import Coalesce
 
 from ...core.permissions import OrderPermissions, ProductPermissions
+from ...core.tracing import no_trace
 from ...warehouse import models
 from ..account.enums import CountryCodeEnum
 from ..channel import ChannelContext
@@ -90,6 +91,7 @@ class Stock(CountableDjangoObjectType):
     @one_of_permissions_required(
         [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
     )
+    @no_trace
     def resolve_quantity(root, *_args):
         return root.quantity
 
@@ -130,5 +132,6 @@ class Allocation(CountableDjangoObjectType):
     @one_of_permissions_required(
         [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
     )
+    @no_trace
     def resolve_quantity(root, *_args):
         return root.quantity_allocated
