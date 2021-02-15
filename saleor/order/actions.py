@@ -383,7 +383,7 @@ def _create_fulfillment_lines(
             stock = order_line.variant.stocks.filter(warehouse=warehouse_pk).first()
             if stock is None:
                 error_context = {"order_line": order_line, "warehouse_pk": warehouse_pk}
-                raise InsufficientStock(order_line.variant, error_context)
+                raise InsufficientStock([order_line.variant], error_context)
             fulfill_order_line(order_line, quantity, warehouse_pk)
             if order_line.is_digital:
                 order_line.variant.digital_content.urls.create(line=order_line)
