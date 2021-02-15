@@ -31,10 +31,10 @@ def check_stock_quantity(variant: "ProductVariant", country_code: str, quantity:
     if variant.track_inventory:
         stocks = Stock.objects.get_variant_stocks_for_country(country_code, variant)
         if not stocks:
-            raise InsufficientStock(variant)
+            raise InsufficientStock([variant])
 
         if quantity > _get_available_quantity(stocks):
-            raise InsufficientStock(variant)
+            raise InsufficientStock([variant])
 
 
 def check_stock_quantity_bulk(variants, country_code, quantities):
@@ -53,18 +53,18 @@ def check_stock_quantity_bulk(variants, country_code, quantities):
         variant_stocks[stock.product_variant_id].append(stock)
 
     for variant, quantity in zip(variants, quantities):
-        stocks = variant_stocks.get(variant.pk)
+        stocks = variant_stocks.get(variant.pk, [])
         available_quantity = sum([stock.available_quantity for stock in stocks])
 
         if not stocks:
             raise InsufficientStock(
-                variant, context={"available_quantity": available_quantity}
+                [variant], context={"available_quantity": available_quantity}
             )
 
         if variant.track_inventory:
             if quantity > available_quantity:
                 raise InsufficientStock(
-                    variant, context={"available_quantity": available_quantity}
+                    [variant], context={"available_quantity": available_quantity}
                 )
 
 

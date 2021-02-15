@@ -8,7 +8,7 @@ from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError, zero_taxed_money
 from ....core.utils.url import validate_storefront_url
-from ....order import OrderStatus, events, models
+from ....order import OrderLineData, OrderStatus, events, models
 from ....order.actions import order_created
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import (
@@ -19,7 +19,7 @@ from ....order.utils import (
     recalculate_order,
     update_order_prices,
 )
-from ....warehouse.management import allocate_stock
+from ....warehouse.management import allocate_stocks
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...channel.types import Channel
@@ -363,13 +363,16 @@ class DraftOrderComplete(BaseMutation):
 
         for line in order:
             if line.variant.track_inventory:
+                line_data = OrderLineData(
+                    line=line, quantity=line.quantity, variant=line.variant
+                )
                 try:
-                    allocate_stock(line, country, line.quantity)
+                    allocate_stocks([line_data], country)
                 except InsufficientStock as exc:
                     raise ValidationError(
                         {
                             "lines": ValidationError(
-                                f"Insufficient product stock: {exc.item}",
+                                f"Insufficient product stock: {', '.join(exc.items)}",
                                 code=OrderErrorCode.INSUFFICIENT_STOCK,
                             )
                         }
