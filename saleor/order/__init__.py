@@ -75,8 +75,11 @@ class OrderEvents:
     ORDER_FULLY_PAID = "order_fully_paid"
     ORDER_REPLACEMENT_CREATED = "order_replacement_created"
 
-    ORDER_DISCOUNT = "order_discount"
-    ORDER_LINE_DISCOUNT = "order_line_discount"
+    ORDER_DISCOUNT_ADDED = "order_discount_added"
+    ORDER_DISCOUNT_UPDATED = "order_discount_updated"
+    ORDER_DISCOUNT_DELETED = "order_discount_deleted"
+    ORDER_LINE_DISCOUNT_UPDATED = "order_line_discount_updated"
+    ORDER_LINE_DISCOUNT_REMOVED = "order_line_discount_removed"
 
     UPDATED_ADDRESS = "updated_address"
 
@@ -118,8 +121,11 @@ class OrderEvents:
         (ORDER_MARKED_AS_PAID, "The order was manually marked as fully paid"),
         (ORDER_FULLY_PAID, "The order was fully paid"),
         (ORDER_REPLACEMENT_CREATED, "The draft order was created based on this order."),
-        (ORDER_DISCOUNT, "The event related to the order discount."),
-        (ORDER_LINE_DISCOUNT, "The event related to the order line discount."),
+        (ORDER_DISCOUNT_ADDED, "New order discount applied to this order."),
+        (ORDER_DISCOUNT_UPDATED, "Order discount was updated for this order."),
+        (ORDER_DISCOUNT_DELETED, "Order discount was deleted for this order."),
+        (ORDER_LINE_DISCOUNT_UPDATED, "Order line was discounted."),
+        (ORDER_LINE_DISCOUNT_REMOVED, "The discount for order line was removed."),
         (UPDATED_ADDRESS, "The address from the placed order was updated"),
         (EMAIL_SENT, "The email was sent"),
         (CONFIRMED, "Order was confirmed"),
@@ -168,18 +174,6 @@ class OrderEventsEmails:
         (ORDER_REFUND, "The order refund confirmation email was sent"),
         (FULFILLMENT, "The fulfillment confirmation email was sent"),
         (DIGITAL_LINKS, "The email containing the digital links was sent"),
-    ]
-
-
-class OrderEventsDiscount:
-    CREATED = "created"
-    UPDATED = "updated"
-    REMOVED = "removed"
-
-    CHOICES = [
-        (CREATED, "The discount was created"),
-        (UPDATED, "The discount was updated"),
-        (REMOVED, "The discount was removed"),
     ]
 
 

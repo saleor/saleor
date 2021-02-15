@@ -556,10 +556,9 @@ def create_order_discount_for_order(
     )
     order.total = new_total
     order.save(update_fields=["total_net_amount", "total_gross_amount"])
-    events.order_discount_event(
+    events.order_discount_added_event(
         order=order,
         user=requester,
-        discount_event="created",
         order_discount=order_discount,
     )
 
@@ -605,10 +604,9 @@ def update_order_discount_for_order(
         if save_order:
             order.save(update_fields=["total_net_amount", "total_gross_amount"])
 
-        events.order_discount_event(
+        events.order_discount_updated_event(
             order=order,
             user=requester,
-            discount_event="updated",
             order_discount=order_discount_to_update,
             old_order_discount=old_order_discount,
         )
@@ -626,10 +624,9 @@ def remove_order_discount_from_order(
 
     order.total += discount_amount
     order.save(update_fields=["total_net_amount", "total_gross_amount"])
-    events.order_discount_event(
+    events.order_discount_deleted_event(
         order=order,
         user=requester,
-        discount_event="removed",
         order_discount=order_discount,
     )
 

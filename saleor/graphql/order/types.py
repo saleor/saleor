@@ -47,7 +47,7 @@ from .dataloaders import (
     OrderByIdLoader,
     OrderLinesByOrderIdLoader,
 )
-from .enums import OrderEventsDiscount, OrderEventsEmailsEnum, OrderEventsEnum
+from .enums import OrderEventsEmailsEnum, OrderEventsEnum
 from .utils import validate_draft_order
 
 
@@ -68,12 +68,6 @@ class OrderDiscount(graphene.ObjectType):
 
 
 class OrderEventDiscountObject(OrderDiscount):
-    type = graphene.Field(
-        OrderEventsDiscount,
-        required=True,
-        description="Type of the order discount event.",
-    )
-
     old_value_type = graphene.Field(
         DiscountValueTypeEnum,
         required=False,
@@ -272,7 +266,6 @@ class OrderEvent(CountableDjangoObjectType):
             old_amount = prices.Money(Decimal(old_amount_value), currency)
 
         return OrderEventDiscountObject(
-            type=discount_obj.get("event_type"),
             value=discount_obj.get("value"),
             amount=amount,
             value_type=discount_obj.get("value_type"),

@@ -3108,7 +3108,6 @@ type OrderEventDiscountObject {
   value: PositiveDecimal!
   reason: String
   amount: Money
-  type: OrderEventsDiscountEnum!
   oldValueType: DiscountValueTypeEnum
   oldValue: PositiveDecimal
   oldAmount: Money
@@ -3119,12 +3118,6 @@ type OrderEventOrderLineObject {
   orderLine: OrderLine
   itemName: String
   discount: OrderEventDiscountObject
-}
-
-enum OrderEventsDiscountEnum {
-  CREATED
-  UPDATED
-  REMOVED
 }
 
 enum OrderEventsEmailsEnum {
@@ -3151,8 +3144,11 @@ enum OrderEventsEnum {
   ORDER_MARKED_AS_PAID
   ORDER_FULLY_PAID
   ORDER_REPLACEMENT_CREATED
-  ORDER_DISCOUNT
-  ORDER_LINE_DISCOUNT
+  ORDER_DISCOUNT_ADDED
+  ORDER_DISCOUNT_UPDATED
+  ORDER_DISCOUNT_DELETED
+  ORDER_LINE_DISCOUNT_UPDATED
+  ORDER_LINE_DISCOUNT_REMOVED
   UPDATED_ADDRESS
   EMAIL_SENT
   CONFIRMED

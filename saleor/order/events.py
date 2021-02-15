@@ -474,16 +474,15 @@ def order_note_added_event(*, order: Order, user: UserType, message: str) -> Ord
 
 def order_discount_event(
     *,
+    event_type: str,
     order: Order,
     user: UserType,
-    discount_event: str,
     order_discount: "OrderDiscount",
     old_order_discount: Optional["OrderDiscount"] = None
 ) -> OrderEvent:
     if not _user_is_valid(user):
         user = None
     discount_parameters = {
-        "event_type": discount_event,
         "value": order_discount.value,
         "amount_value": order_discount.amount_value,
         "currency": order_discount.currency,
@@ -497,7 +496,46 @@ def order_discount_event(
 
     return OrderEvent.objects.create(
         order=order,
-        type=OrderEvents.ORDER_DISCOUNT,
+        type=event_type,
         user=user,
         parameters={"discount": discount_parameters},
+    )
+
+
+def order_discount_added_event(
+    order: Order, user: UserType, order_discount: "OrderDiscount"
+) -> OrderEvent:
+    return order_discount_event(
+        event_type=OrderEvents.ORDER_DISCOUNT_ADDED,
+        order=order,
+        user=user,
+        order_discount=order_discount,
+    )
+
+
+def order_discount_updated_event(
+    order: Order,
+    user: UserType,
+    order_discount: "OrderDiscount",
+    old_order_discount: Optional["OrderDiscount"] = None,
+) -> OrderEvent:
+    return order_discount_event(
+        event_type=OrderEvents.ORDER_DISCOUNT_UPDATED,
+        order=order,
+        user=user,
+        order_discount=order_discount,
+        old_order_discount=old_order_discount,
+    )
+
+
+def order_discount_deleted_event(
+    order: Order,
+    user: UserType,
+    order_discount: "OrderDiscount",
+) -> OrderEvent:
+    return order_discount_event(
+        event_type=OrderEvents.ORDER_DISCOUNT_DELETED,
+        order=order,
+        user=user,
+        order_discount=order_discount,
     )
