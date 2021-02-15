@@ -4,6 +4,7 @@ from unittest.mock import patch
 import pytest
 from prices import Money, TaxedMoney
 
+from ...order import OrderLineData
 from ...payment import ChargeStatus, PaymentError, TransactionKind
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
@@ -262,7 +263,10 @@ def test_fulfill_order_line(order_with_lines):
     stock = Stock.objects.get(product_variant=variant)
     stock_quantity_after = stock.quantity - line.quantity
 
-    fulfill_order_line(line, line.quantity, stock.warehouse.pk)
+    fulfill_order_line(
+        [OrderLineData(line=line, quantity=line.quantity, variant=variant)],
+        [stock.warehouse.pk],
+    )
 
     stock.refresh_from_db()
     assert stock.quantity == stock_quantity_after
@@ -275,7 +279,9 @@ def test_fulfill_order_line_with_variant_deleted(order_with_lines):
 
     line.refresh_from_db()
 
-    fulfill_order_line(line, line.quantity, "warehouse_pk")
+    fulfill_order_line(
+        [OrderLineData(line=line, quantity=line.quantity)], ["warehouse_pk"]
+    )
 
 
 def test_fulfill_order_line_without_inventory_tracking(order_with_lines):
@@ -290,7 +296,10 @@ def test_fulfill_order_line_without_inventory_tracking(order_with_lines):
     # stock should not change
     stock_quantity_after = stock.quantity
 
-    fulfill_order_line(line, line.quantity, stock.warehouse.pk)
+    fulfill_order_line(
+        [OrderLineData(line=line, quantity=line.quantity, variant=variant)],
+        [stock.warehouse.pk],
+    )
 
     stock.refresh_from_db()
     assert stock.quantity == stock_quantity_after

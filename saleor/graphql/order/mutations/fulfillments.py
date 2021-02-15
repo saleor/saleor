@@ -218,24 +218,25 @@ class OrderFulfill(BaseMutation):
                 user, order, dict(lines_for_warehouses), notify_customer
             )
         except InsufficientStock as exc:
-            order_line_global_id = graphene.Node.to_global_id(
-                "OrderLine", exc.context["order_line"].pk
-            )
-            warehouse_global_id = graphene.Node.to_global_id(
-                "Warehouse", exc.context["warehouse_pk"]
-            )
-            raise ValidationError(
-                {
-                    "stocks": ValidationError(
-                        f"Insufficient product stock: {', '.join(exc.items)}",
+            errors = []
+            for item in exc.items:
+                order_line_global_id = graphene.Node.to_global_id(
+                    "OrderLine", item.order_line.pk
+                )
+                warehouse_global_id = graphene.Node.to_global_id(
+                    "Warehouse", item.warehouse_pk
+                )
+                errors.append(
+                    ValidationError(
+                        f"Insufficient product stock: {item.variant}",
                         code=OrderErrorCode.INSUFFICIENT_STOCK,
                         params={
                             "order_line": order_line_global_id,
                             "warehouse": warehouse_global_id,
                         },
                     )
-                }
-            )
+                )
+            raise ValidationError({"stocks": errors})
 
         return OrderFulfill(fulfillments=fulfillments, order=order)
 

@@ -369,10 +369,11 @@ class DraftOrderComplete(BaseMutation):
                 try:
                     allocate_stocks([line_data], country)
                 except InsufficientStock as exc:
+                    variants = [str(item.variant) for item in exc.items]
                     raise ValidationError(
                         {
                             "lines": ValidationError(
-                                f"Insufficient product stock: {', '.join(exc.items)}",
+                                f"Insufficient product stock: {', '.join(variants)}",
                                 code=OrderErrorCode.INSUFFICIENT_STOCK,
                             )
                         }

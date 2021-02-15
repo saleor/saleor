@@ -154,7 +154,7 @@ def test_allocate_stock_insufficient_stocks_for_multiply_lines(
     with pytest.raises(InsufficientStock) as exc:
         allocate_stocks([line_data_1, line_data_2], COUNTRY_CODE)
 
-    assert set(exc._excinfo[1].items) == {str(variant), str(variant_2)}
+    assert set(item.variant for item in exc._excinfo[1].items) == {variant, variant_2}
 
     assert not Allocation.objects.filter(
         order_line=order_line, stock__in=stocks
@@ -168,7 +168,7 @@ def test_deallocate_stock(allocation):
     allocation.quantity_allocated = 80
     allocation.save(update_fields=["quantity_allocated"])
 
-    deallocate_stock([(allocation.order_line, 80)])
+    deallocate_stock([OrderLineData(line=allocation.order_line, quantity=80)])
 
     stock.refresh_from_db()
     assert stock.quantity == 100
@@ -183,7 +183,7 @@ def test_deallocate_stock_partially(allocation):
     allocation.quantity_allocated = 80
     allocation.save(update_fields=["quantity_allocated"])
 
-    deallocate_stock([(allocation.order_line, 50)])
+    deallocate_stock([OrderLineData(line=allocation.order_line, quantity=50)])
 
     stock.refresh_from_db()
     assert stock.quantity == 100
@@ -196,7 +196,7 @@ def test_deallocate_stock_many_allocations(
 ):
     order_line = order_line_with_allocation_in_many_stocks
 
-    deallocate_stock([(order_line, 3)])
+    deallocate_stock([OrderLineData(line=order_line, quantity=3)])
 
     allocations = order_line.allocations.all()
     assert allocations[0].quantity_allocated == 0
@@ -208,7 +208,7 @@ def test_deallocate_stock_many_allocations_partially(
 ):
     order_line = order_line_with_allocation_in_many_stocks
 
-    deallocate_stock([(order_line, 1)])
+    deallocate_stock([OrderLineData(line=order_line, quantity=1)])
 
     allocations = order_line.allocations.all()
     assert allocations[0].quantity_allocated == 1
@@ -266,7 +266,14 @@ def test_decrease_stock(allocation):
     allocation.save(update_fields=["quantity_allocated"])
     warehouse_pk = allocation.stock.warehouse.pk
 
-    decrease_stock(allocation.order_line, 50, warehouse_pk)
+    decrease_stock(
+        [
+            OrderLineData(
+                line=allocation.order_line, quantity=50, variant=stock.product_variant
+            )
+        ],
+        [warehouse_pk],
+    )
 
     stock.refresh_from_db()
     assert stock.quantity == 50
@@ -282,7 +289,14 @@ def test_decrease_stock_partially(allocation):
     allocation.save(update_fields=["quantity_allocated"])
     warehouse_pk = allocation.stock.warehouse.pk
 
-    decrease_stock(allocation.order_line, 80, warehouse_pk)
+    decrease_stock(
+        [
+            OrderLineData(
+                line=allocation.order_line, quantity=80, variant=stock.product_variant
+            )
+        ],
+        [warehouse_pk],
+    )
 
     stock.refresh_from_db()
     assert stock.quantity == 20
@@ -297,7 +311,10 @@ def test_decrease_stock_many_allocations(
     allocations = order_line.allocations.all()
     warehouse_pk = allocations[1].stock.warehouse.pk
 
-    decrease_stock(order_line, 3, warehouse_pk)
+    decrease_stock(
+        [OrderLineData(line=order_line, quantity=3, variant=order_line.variant)],
+        [warehouse_pk],
+    )
 
     assert allocations[0].quantity_allocated == 0
     assert allocations[1].quantity_allocated == 0
@@ -312,7 +329,10 @@ def test_decrease_stock_many_allocations_partially(
     allocations = order_line.allocations.all()
     warehouse_pk = allocations[0].stock.warehouse.pk
 
-    decrease_stock(order_line, 2, warehouse_pk)
+    decrease_stock(
+        [OrderLineData(line=order_line, quantity=2, variant=order_line.variant)],
+        [warehouse_pk],
+    )
 
     assert allocations[0].quantity_allocated == 0
     assert allocations[1].quantity_allocated == 1
@@ -331,8 +351,12 @@ def test_decrease_stock_more_then_allocated(
     )["quantity_allocated"]
     assert quantity_allocated < 4
 
-    decrease_stock(order_line, 4, warehouse_pk)
+    decrease_stock(
+        [OrderLineData(line=order_line, quantity=4, variant=order_line.variant)],
+        [warehouse_pk],
+    )
 
+    allocations = order_line.allocations.all()
     assert allocations[0].quantity_allocated == 0
     assert allocations[1].quantity_allocated == 0
     assert allocations[0].stock.quantity == 0

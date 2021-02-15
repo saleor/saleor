@@ -1,14 +1,14 @@
 import logging
 from copy import deepcopy
 from decimal import Decimal
-from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple
 
 from django.contrib.sites.models import Site
 from django.db import transaction
 
 from ..account.models import User
 from ..core import analytics
-from ..core.exceptions import AllocationError, InsufficientStock
+from ..core.exceptions import AllocationError, InsufficientStock, InsufficientStockData
 from ..order.emails import send_order_confirmed
 from ..payment import (
     ChargeStatus,
@@ -308,12 +308,24 @@ def clean_mark_order_as_paid(order: "Order"):
         )
 
 
-def fulfill_order_line(order_line, quantity, warehouse_pk):
+def fulfill_order_line(
+    order_lines_info: Iterable["OrderLineData"], warehouse_pks: List[str]
+):
     """Fulfill order line with given quantity."""
-    if order_line.variant and order_line.variant.track_inventory:
-        decrease_stock(order_line, quantity, warehouse_pk)
-    order_line.quantity_fulfilled += quantity
-    order_line.save(update_fields=["quantity_fulfilled"])
+    lines_to_decrease_stock = [
+        line_info
+        for line_info in order_lines_info
+        if line_info.variant and line_info.variant.track_inventory
+    ]
+    if lines_to_decrease_stock:
+        decrease_stock(order_lines_info, warehouse_pks)
+    order_lines = []
+    for line_info in order_lines_info:
+        line = line_info.line
+        line.quantity_fulfilled += line_info.quantity
+        order_lines.append(line)
+
+    OrderLine.objects.bulk_update(order_lines, ["quantity_fulfilled"])
 
 
 def automatically_fulfill_digital_lines(order: "Order"):
@@ -329,20 +341,30 @@ def automatically_fulfill_digital_lines(order: "Order"):
     if not digital_lines:
         return
     fulfillment, _ = Fulfillment.objects.get_or_create(order=order)
+
+    fulfillments = []
+    warehouse_pks = []
+    lines_info = []
     for line in digital_lines:
         if not order_line_needs_automatic_fulfillment(line):
             continue
-        if line.variant:
-            digital_content = line.variant.digital_content
+        variant = line.variant
+        if variant:
+            digital_content = variant.digital_content
             digital_content.urls.create(line=line)
         quantity = line.quantity
-        FulfillmentLine.objects.create(
-            fulfillment=fulfillment, order_line=line, quantity=quantity
+        fulfillments.append(
+            FulfillmentLine(fulfillment=fulfillment, order_line=line, quantity=quantity)
+        )
+        lines_info.append(
+            OrderLineData(line=line, quantity=quantity, variant=line.variant)
         )
         warehouse_pk = line.allocations.first().stock.warehouse.pk  # type: ignore
-        fulfill_order_line(
-            order_line=line, quantity=quantity, warehouse_pk=warehouse_pk
-        )
+        warehouse_pks.append(warehouse_pk)
+
+    FulfillmentLine.objects.bulk_create(fulfillments)
+    fulfill_order_line(lines_info, warehouse_pks)
+
     emails.send_fulfillment_confirmation_to_customer(
         order, fulfillment, user=order.user
     )
@@ -376,15 +398,26 @@ def _create_fulfillment_lines(
 
     """
     fulfillment_lines = []
+    lines_info = []
+    warehouse_pks = []
     for line in lines:
         quantity = line["quantity"]
         order_line = line["order_line"]
         if quantity > 0:
             stock = order_line.variant.stocks.filter(warehouse=warehouse_pk).first()
             if stock is None:
-                error_context = {"order_line": order_line, "warehouse_pk": warehouse_pk}
-                raise InsufficientStock([order_line.variant], error_context)
-            fulfill_order_line(order_line, quantity, warehouse_pk)
+                error_data = InsufficientStockData(
+                    variant=order_line.variant,
+                    order_line=order_line,
+                    warehouse_pk=warehouse_pk,
+                )
+                raise InsufficientStock([error_data])
+            lines_info.append(
+                OrderLineData(
+                    line=order_line, quantity=quantity, variant=order_line.variant
+                )
+            )
+            warehouse_pks.append(warehouse_pk)
             if order_line.is_digital:
                 order_line.variant.digital_content.urls.create(line=order_line)
             fulfillment_lines.append(
@@ -395,6 +428,9 @@ def _create_fulfillment_lines(
                     stock=stock,
                 )
             )
+    if lines_info:
+        fulfill_order_line(lines_info, warehouse_pks)
+
     return fulfillment_lines
 
 
@@ -505,7 +541,7 @@ def _move_order_lines_to_target_fulfillment(
     fulfillment_lines_to_update: List[FulfillmentLine] = []
     order_lines_to_update: List[OrderLine] = []
 
-    lines_to_dellocate: List[Tuple["OrderLine", int]] = []
+    lines_to_dellocate: List[OrderLineData] = []
     for line_data in order_lines_to_move:
         line_to_move = line_data.line
         quantity_to_move = line_data.quantity
@@ -536,7 +572,9 @@ def _move_order_lines_to_target_fulfillment(
 
         line_allocations_exists = line_to_move.allocations.exists()
         if line_allocations_exists:
-            lines_to_dellocate.append((line_to_move, unfulfilled_to_move))
+            lines_to_dellocate.append(
+                OrderLineData(line=line_to_move, quantity=unfulfilled_to_move)
+            )
 
     if lines_to_dellocate:
         try:

@@ -12,7 +12,7 @@ from ..core.taxes import zero_money
 from ..core.weight import zero_weight
 from ..discount.models import NotApplicable, Voucher, VoucherType
 from ..discount.utils import get_products_voucher_discount, validate_voucher_in_order
-from ..order import FulfillmentStatus, OrderStatus
+from ..order import FulfillmentStatus, OrderLineData, OrderStatus
 from ..order.models import Order, OrderLine
 from ..plugins.manager import get_plugins_manager
 from ..product.utils.digital_products import get_default_digital_content_settings
@@ -335,11 +335,13 @@ def restock_order_lines(order):
         shipping_zones__countries__contains=country
     ).first()
 
-    dellocating_stock_lines = []
+    dellocating_stock_lines: List[OrderLineData] = []
     for line in order:
         if line.variant and line.variant.track_inventory:
             if line.quantity_unfulfilled > 0:
-                dellocating_stock_lines.append((line, line.quantity_unfulfilled))
+                dellocating_stock_lines.append(
+                    OrderLineData(line=line, quantity=line.quantity_unfulfilled)
+                )
             if line.quantity_fulfilled > 0:
                 allocation = line.allocations.first()
                 warehouse = (

@@ -82,10 +82,11 @@ def validate_order_lines(order, country):
             try:
                 check_stock_quantity(line.variant, country, line.quantity)
             except InsufficientStock as exc:
+                variants = [str(item.variant) for item in exc.items]
                 raise ValidationError(
                     {
                         "lines": ValidationError(
-                            f"Insufficient product stock: {', '.join(exc.items)}",
+                            f"Insufficient product stock: {', '.join(variants)}",
                             code=OrderErrorCode.INSUFFICIENT_STOCK,
                         )
                     }

@@ -53,7 +53,7 @@ from ..discount.models import (
 )
 from ..giftcard.models import GiftCard
 from ..menu.models import Menu, MenuItem, MenuItemTranslation
-from ..order import OrderStatus
+from ..order import OrderLineData, OrderStatus
 from ..order.actions import cancel_fulfillment, fulfill_order_line
 from ..order.events import OrderEvents
 from ..order.models import FulfillmentStatus, Order, OrderEvent, OrderLine
@@ -2445,9 +2445,14 @@ def fulfilled_order(order_with_lines):
     stock_2 = line_2.allocations.get().stock
     warehouse_2_pk = stock_2.warehouse.pk
     fulfillment.lines.create(order_line=line_1, quantity=line_1.quantity, stock=stock_1)
-    fulfill_order_line(line_1, line_1.quantity, warehouse_1_pk)
     fulfillment.lines.create(order_line=line_2, quantity=line_2.quantity, stock=stock_2)
-    fulfill_order_line(line_2, line_2.quantity, warehouse_2_pk)
+    fulfill_order_line(
+        [
+            OrderLineData(line=line_1, quantity=line_1.quantity),
+            OrderLineData(line=line_2, quantity=line_2.quantity),
+        ],
+        [warehouse_1_pk, warehouse_2_pk],
+    )
     order.status = OrderStatus.FULFILLED
     order.save(update_fields=["status"])
     return order
@@ -2463,7 +2468,9 @@ def fulfilled_order_without_inventory_tracking(
     stock = line.variant.stocks.get()
     warehouse_pk = stock.warehouse.pk
     fulfillment.lines.create(order_line=line, quantity=line.quantity, stock=stock)
-    fulfill_order_line(line, line.quantity, warehouse_pk)
+    fulfill_order_line(
+        [OrderLineData(line=line, quantity=line.quantity)], [warehouse_pk]
+    )
     order.status = OrderStatus.FULFILLED
     order.save(update_fields=["status"])
     return order

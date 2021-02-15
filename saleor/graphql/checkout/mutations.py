@@ -121,12 +121,15 @@ def check_lines_quantity(variants, quantities, country):
     try:
         check_stock_quantity_bulk(variants, country, quantities)
     except InsufficientStock as e:
-        remaining = e.context["available_quantity"]
-        message = (
-            f"Could not add items {', '.join(e.items)}. "
-            f"Only {remaining} remaining in stock."
-        )
-        raise ValidationError({"quantity": ValidationError(message, code=e.code)})
+        errors = [
+            ValidationError(
+                f"Could not add items {item.variant}. "
+                f"Only {item.available_quantity} remaining in stock.",
+                code=e.code,
+            )
+            for item in e.items
+        ]
+        raise ValidationError({"quantity": errors})
 
 
 def validate_variants_available_for_purchase(variants, channel_id):
@@ -335,8 +338,10 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             try:
                 add_variants_to_checkout(instance, variants, quantities)
             except InsufficientStock as exc:
+                variants = [str(item.variant) for item in exc.items]
                 raise ValidationError(
-                    f"Insufficient product stock: {', '.join(exc.items)}", code=exc.code
+                    f"Insufficient product stock: {', '.join(variants)}",
+                    code=exc.code.value,
                 )
             except ProductNotPublished as exc:
                 raise ValidationError(
@@ -426,8 +431,9 @@ class CheckoutLinesAdd(BaseMutation):
                         checkout, variant, quantity, replace=replace
                     )
                 except InsufficientStock as exc:
+                    variants = [str(item.variant) for item in exc.items]
                     raise ValidationError(
-                        f"Insufficient product stock: {', '.join(exc.items)}",
+                        f"Insufficient product stock: {', '.join(variants)}",
                         code=exc.code,
                     )
                 except ProductNotPublished as exc:

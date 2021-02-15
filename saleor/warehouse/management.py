@@ -1,17 +1,15 @@
 from collections import defaultdict, namedtuple
-from typing import TYPE_CHECKING, Dict, Iterable, List, Tuple
+from typing import TYPE_CHECKING, Dict, Iterable, List
 
 from django.db import transaction
 from django.db.models import F, Sum
-from django.db.models.functions import Coalesce
 
-from ..core.exceptions import AllocationError, InsufficientStock
+from ..core.exceptions import AllocationError, InsufficientStock, InsufficientStockData
 from .models import Allocation, Stock, Warehouse
 
 if TYPE_CHECKING:
     from ..order import OrderLineData
     from ..order.models import Order, OrderLine
-    from ..product.models import ProductVariant
 
 
 StockData = namedtuple("StockData", ["pk", "quantity"])
@@ -63,7 +61,7 @@ def allocate_stocks(order_lines_info: Iterable["OrderLineData"], country_code: s
         variant = stock_data.pop("product_variant")
         variant_to_stocks[variant].append(StockData(**stock_data))
 
-    insufficient_stock: List["ProductVariant"] = []
+    insufficient_stock: List[InsufficientStockData] = []
     allocations: List[Allocation] = []
     for line_info in order_lines_info:
         stocks = variant_to_stocks[line_info.variant.pk]  # type: ignore
@@ -83,7 +81,7 @@ def _create_allocations(
     line_info: "OrderLineData",
     stocks: List[StockData],
     quantity_allocation_for_stocks: dict,
-    insufficient_stock: List["ProductVariant"],
+    insufficient_stock: List[InsufficientStockData],
 ):
     quantity = line_info.quantity
     quantity_allocated = 0
@@ -112,12 +110,16 @@ def _create_allocations(
                 return insufficient_stock, allocations
 
     if not quantity_allocated == quantity:
-        insufficient_stock.append(line_info.variant)  # type: ignore
+        insufficient_stock.append(
+            InsufficientStockData(
+                variant=line_info.variant, order_line=line_info.line  # type: ignore
+            )
+        )
         return insufficient_stock, []
 
 
 @transaction.atomic
-def deallocate_stock(order_lines_with_quantities: List[Tuple["OrderLine", int]]):
+def deallocate_stock(order_lines_data: Iterable["OrderLineData"]):
     """Deallocate stocks for given `order_lines`.
 
     Function lock for update stocks and allocations related to given `order_lines`.
@@ -126,7 +128,7 @@ def deallocate_stock(order_lines_with_quantities: List[Tuple["OrderLine", int]])
     quantity for the order line. If there is less quantity in stocks then
     raise an exception.
     """
-    lines = [line for line, _ in order_lines_with_quantities]
+    lines = [line_info.line for line_info in order_lines_data]
     lines_allocations = (
         Allocation.objects.filter(order_line__in=lines)
         .select_related("stock")
@@ -145,9 +147,11 @@ def deallocate_stock(order_lines_with_quantities: List[Tuple["OrderLine", int]])
 
     allocations_to_update = []
     not_dellocated_lines = []
-    for order_line, quantity in order_lines_with_quantities:
-        quantity_dealocated = 0
+    for line_info in order_lines_data:
+        order_line = line_info.line
+        quantity = line_info.quantity
         allocations = line_to_allocations[order_line.pk]
+        quantity_dealocated = 0
         for allocation in allocations:
             quantity_to_deallocate = min(
                 (quantity - quantity_dealocated), allocation.quantity_allocated
@@ -209,8 +213,10 @@ def increase_stock(
 
 
 @transaction.atomic
-def decrease_stock(order_line: "OrderLine", quantity: int, warehouse_pk: str):
-    """Decrease stock quantity for given `order_line` in given warehouse.
+def decrease_stock(
+    order_lines_info: Iterable["OrderLineData"], warehouse_pks: List[str]
+):
+    """Decrease stocks quantities for given `order_lines` in given warehouses.
 
     Function deallocate as many quantities as requested if order_line has less quantity
     from requested function deallocate whole quantity. Next function try to find the
@@ -218,31 +224,74 @@ def decrease_stock(order_line: "OrderLine", quantity: int, warehouse_pk: str):
     the function raise InsufficientStock exception. When the stock has enough quantity
     function decrease it by given value.
     """
+    variants = [line_info.variant for line_info in order_lines_info]
     try:
-        deallocate_stock([(order_line, quantity)])
-    except AllocationError:
-        order_line.allocations.update(quantity_allocated=0)
-
-    try:
-        stock = (
-            order_line.variant.stocks.select_for_update()  # type: ignore
-            .prefetch_related("allocations")
-            .get(warehouse__pk=warehouse_pk)
+        deallocate_stock(order_lines_info)
+    except AllocationError as exc:
+        Allocation.objects.filter(order_line__in=exc.order_lines).update(
+            quantity_allocated=0
         )
-    except Stock.DoesNotExist:
-        error_context = {"order_line": order_line, "warehouse_pk": warehouse_pk}
-        raise InsufficientStock([order_line.variant], error_context)
 
-    quantity_allocated = stock.allocations.aggregate(
-        quantity_allocated=Coalesce(Sum("quantity_allocated"), 0)
-    )["quantity_allocated"]
+    stocks = (
+        Stock.objects.select_for_update(of=("self",))
+        .filter(product_variant__in=variants)
+        .filter(warehouse_id__in=warehouse_pks)
+        .select_related("product_variant", "warehouse")
+        .order_by("pk")
+    )
 
-    if stock.quantity - quantity_allocated < quantity:
-        error_context = {"order_line": order_line, "warehouse_pk": warehouse_pk}
-        raise InsufficientStock([order_line.variant], error_context)
+    variant_and_warehouse_to_stock: Dict[int, Dict[int, Stock]] = defaultdict(dict)
+    for stock in stocks:
+        variant_and_warehouse_to_stock[stock.product_variant_id][
+            stock.warehouse_id
+        ] = stock
 
-    stock.quantity = F("quantity") - quantity
-    stock.save(update_fields=["quantity"])
+    quantity_allocation_list = list(
+        Allocation.objects.filter(
+            stock__in=stocks,
+            quantity_allocated__gt=0,
+        )
+        .values("stock")
+        .annotate(Sum("quantity_allocated"))
+    )
+
+    quantity_allocation_for_stocks: Dict = defaultdict(int)
+    for allocation in quantity_allocation_list:
+        quantity_allocation_for_stocks[allocation["stock"]] += allocation[
+            "quantity_allocated__sum"
+        ]
+
+    insufficient_stocks: List[InsufficientStockData] = []
+    stocks_to_update = []
+    for line_info, warehouse_pk in zip(order_lines_info, warehouse_pks):
+        variant = line_info.variant
+        stock = variant_and_warehouse_to_stock.get(variant.pk, {}).get(  # type: ignore
+            warehouse_pk
+        )
+        if stock is None:
+            insufficient_stocks.append(
+                InsufficientStockData(
+                    variant, line_info.line, warehouse_pk  # type: ignore
+                )
+            )
+            continue
+
+        quantity_allocated = quantity_allocation_for_stocks.get(stock.pk, 0)
+
+        if stock.quantity - quantity_allocated < line_info.quantity:
+            insufficient_stocks.append(
+                InsufficientStockData(
+                    variant=variant,  # type: ignore
+                    order_line=line_info.line,
+                    warehouse_pk=warehouse_pk,
+                )
+            )
+            continue
+
+        stock.quantity = F("quantity") - line_info.quantity
+        stocks_to_update.append(stock)
+
+    Stock.objects.bulk_update(stocks_to_update, ["quantity"])
 
 
 @transaction.atomic
