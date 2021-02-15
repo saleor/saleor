@@ -35,12 +35,13 @@ def send_password_reset_notification(redirect_url, user, manager, staff=False):
         "reset_url": reset_url,
         **get_site_context(),
     }
-    if staff:
-        manager.notify(
-            NotifyEventType.ACCOUNT_STAFF_RESET_PASSWORD, payload=user_payload
-        )
-    else:
-        manager.notify(NotifyEventType.ACCOUNT_PASSWORD_RESET, payload=user_payload)
+
+    event = (
+        NotifyEventType.ACCOUNT_STAFF_RESET_PASSWORD
+        if staff
+        else NotifyEventType.ACCOUNT_PASSWORD_RESET
+    )
+    manager.notify(event, payload=user_payload)
 
 
 def send_account_confirmation(user, redirect_url, manager):
