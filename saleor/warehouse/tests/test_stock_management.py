@@ -351,7 +351,7 @@ def test_decrease_stock_partially(allocation):
                 line=allocation.order_line,
                 quantity=80,
                 variant=stock.product_variant,
-                warehouse_pk=warehouse_pk,
+                warehouse_pk=str(warehouse_pk),
             )
         ],
     )
@@ -375,7 +375,7 @@ def test_decrease_stock_many_allocations(
                 line=order_line,
                 quantity=3,
                 variant=order_line.variant,
-                warehouse_pk=warehouse_pk,
+                warehouse_pk=str(warehouse_pk),
             )
         ],
     )
@@ -399,7 +399,7 @@ def test_decrease_stock_many_allocations_partially(
                 line=order_line,
                 quantity=2,
                 variant=order_line.variant,
-                warehouse_pk=warehouse_pk,
+                warehouse_pk=str(warehouse_pk),
             )
         ],
     )
@@ -437,6 +437,32 @@ def test_decrease_stock_more_then_allocated(
     assert allocations[1].quantity_allocated == 0
     assert allocations[0].stock.quantity == 0
     assert allocations[1].stock.quantity == 3
+
+
+def test_decrease_stock_insufficient_stock(allocation):
+    stock = allocation.stock
+    stock.quantity = 20
+    stock.save(update_fields=["quantity"])
+    allocation.quantity_allocated = 80
+    allocation.save(update_fields=["quantity_allocated"])
+    warehouse_pk = allocation.stock.warehouse.pk
+
+    with pytest.raises(InsufficientStock):
+        decrease_stock(
+            [
+                OrderLineData(
+                    line=allocation.order_line,
+                    quantity=50,
+                    variant=stock.product_variant,
+                    warehouse_pk=warehouse_pk,
+                )
+            ],
+        )
+
+    stock.refresh_from_db()
+    assert stock.quantity == 20
+    allocation.refresh_from_db()
+    assert allocation.quantity_allocated == 80
 
 
 def test_deallocate_stock_for_order(

@@ -238,10 +238,10 @@ def decrease_stock(order_lines_info: Iterable["OrderLineData"]):
         .order_by("pk")
     )
 
-    variant_and_warehouse_to_stock: Dict[int, Dict[int, Stock]] = defaultdict(dict)
+    variant_and_warehouse_to_stock: Dict[int, Dict[str, Stock]] = defaultdict(dict)
     for stock in stocks:
         variant_and_warehouse_to_stock[stock.product_variant_id][
-            stock.warehouse_id
+            str(stock.warehouse_id)
         ] = stock
 
     quantity_allocation_list = list(
@@ -253,17 +253,27 @@ def decrease_stock(order_lines_info: Iterable["OrderLineData"]):
         .annotate(Sum("quantity_allocated"))
     )
 
-    quantity_allocation_for_stocks: Dict = defaultdict(int)
+    quantity_allocation_for_stocks: Dict[int, int] = defaultdict(int)
     for allocation in quantity_allocation_list:
         quantity_allocation_for_stocks[allocation["stock"]] += allocation[
             "quantity_allocated__sum"
         ]
 
+    _decrease_stocks_quantity(
+        order_lines_info, variant_and_warehouse_to_stock, quantity_allocation_for_stocks
+    )
+
+
+def _decrease_stocks_quantity(
+    order_lines_info: Iterable["OrderLineData"],
+    variant_and_warehouse_to_stock: Dict[int, Dict[str, Stock]],
+    quantity_allocation_for_stocks: Dict[int, int],
+):
     insufficient_stocks: List[InsufficientStockData] = []
     stocks_to_update = []
     for line_info in order_lines_info:
         variant = line_info.variant
-        warehouse_pk = line_info.warehouse_pk
+        warehouse_pk = str(line_info.warehouse_pk)
         stock = variant_and_warehouse_to_stock.get(variant.pk, {}).get(  # type: ignore
             warehouse_pk
         )
@@ -289,6 +299,9 @@ def decrease_stock(order_lines_info: Iterable["OrderLineData"]):
 
         stock.quantity = stock.quantity - line_info.quantity
         stocks_to_update.append(stock)
+
+    if insufficient_stocks:
+        raise InsufficientStock(insufficient_stocks)
 
     Stock.objects.bulk_update(stocks_to_update, ["quantity"])
 
