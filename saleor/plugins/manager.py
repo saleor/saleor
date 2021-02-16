@@ -383,6 +383,10 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins("customer_created", default_value, customer)
 
+    def customer_updated(self, customer: "User"):
+        default_value = None
+        return self.__run_method_on_plugins("customer_updated", default_value, customer)
+
     def product_created(self, product: "Product"):
         default_value = None
         return self.__run_method_on_plugins("product_created", default_value, product)
