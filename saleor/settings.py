@@ -507,8 +507,6 @@ GRAPHENE = {
     ],
 }
 
-PLUGINS_MANAGER = "saleor.plugins.manager.PluginsManager"
-
 PLUGINS = [
     "saleor.plugins.avatax.plugin.AvataxPlugin",
     "saleor.plugins.vatlayer.plugin.VatlayerPlugin",

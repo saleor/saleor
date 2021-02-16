@@ -14,26 +14,6 @@ class PluginConfig(AppConfig):
     verbose_name = "Plugins"
 
     def ready(self):
-        self.load_and_check_plugins_manager()
-        self.load_and_check_plugins()
-        plugins = settings.PLUGINS
-        for plugin_path in plugins:
-            import_string(plugin_path)
-
-    def load_and_check_plugins_manager(self):
-        plugins_manager_path = getattr(settings, "PLUGINS_MANAGER", None)
-        if not plugins_manager_path:
-            raise ImproperlyConfigured("Settings should contain PLUGINS_MANAGER env")
-        try:
-            import_string(plugins_manager_path)
-        except ImportError:
-            raise (
-                ImportError(
-                    "Plugins Manager path: %s doesn't exist" % plugins_manager_path
-                )
-            )
-
-    def load_and_check_plugins(self):
         plugins = getattr(settings, "PLUGINS", [])
 
         for plugin_path in plugins:

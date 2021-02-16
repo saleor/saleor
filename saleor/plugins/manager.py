@@ -756,5 +756,4 @@ class PluginsManager(PaymentInterface):
 
 def get_plugins_manager() -> PluginsManager:
     with opentracing.global_tracer().start_active_span("get_plugins_manager"):
-        manager = import_string(settings.PLUGINS_MANAGER)
-        return manager(settings.PLUGINS)
+        return PluginsManager(settings.PLUGINS)
