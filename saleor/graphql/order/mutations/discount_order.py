@@ -230,7 +230,7 @@ class OrderDiscountDelete(OrderDiscountCommon):
         order = order_discount.order
         cls.validate_order(info, order)
 
-        remove_order_discount_from_order(order, order_discount, requester)
+        remove_order_discount_from_order(order, order_discount)
         events.order_discount_deleted_event(
             order=order,
             user=requester,
