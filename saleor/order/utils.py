@@ -517,7 +517,7 @@ def get_order_discounts(order: Order) -> List[OrderDiscount]:
     return list(order.discounts.filter(type=OrderDiscountType.MANUAL))
 
 
-def calculate_discount_value(
+def apply_discount_to_value(
     value: Decimal,
     value_type: str,
     currency: str,
@@ -542,7 +542,7 @@ def create_order_discount_for_order(
 ):
     """Add new order discount and update the prices."""
 
-    new_total = calculate_discount_value(value, value_type, order.currency, order.total)
+    new_total = apply_discount_to_value(value, value_type, order.currency, order.total)
     order.discounts.create(
         value_type=value_type,
         value=value,
@@ -580,7 +580,7 @@ def update_order_discount_for_order(
     if force_update or current_value != value or current_value_type != value_type:
         # Add to total current amount of discount.
         current_total = order.total + discount_amount
-        new_total = calculate_discount_value(value, value_type, currency, current_total)
+        new_total = apply_discount_to_value(value, value_type, currency, current_total)
         new_amount = (current_total - new_total).gross
 
         order_discount_to_update.amount = new_amount
@@ -624,7 +624,7 @@ def update_discount_for_order_line(
     if current_value != value or current_value_type != value_type:
         undiscounted_unit_price = order_line.undiscounted_unit_price
         currency = undiscounted_unit_price.currency
-        unit_price_with_discount = calculate_discount_value(
+        unit_price_with_discount = apply_discount_to_value(
             value, value_type, currency, undiscounted_unit_price
         )
         order_line.unit_discount = (
