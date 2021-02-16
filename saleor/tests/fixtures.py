@@ -22,7 +22,7 @@ from django.test.utils import CaptureQueriesContext as BaseCaptureQueriesContext
 from django.utils import timezone
 from django_countries import countries
 from PIL import Image
-from prices import Money, TaxedMoney
+from prices import Money, TaxedMoney, fixed_discount
 
 from ..account.models import Address, StaffNotificationRecipient, User
 from ..app.models import App, AppInstallation
@@ -2501,6 +2501,22 @@ def draft_order(order_with_lines):
     order_with_lines.status = OrderStatus.DRAFT
     order_with_lines.save(update_fields=["status"])
     return order_with_lines
+
+
+@pytest.fixture
+def draft_order_with_fixed_discount_order(draft_order):
+    value = Decimal("20")
+    discount = partial(fixed_discount, discount=Money(value, draft_order.currency))
+    draft_order.undiscounted_total = draft_order.total
+    draft_order.total = discount(draft_order.total)
+    draft_order.discounts.create(
+        value_type=DiscountValueType.FIXED,
+        value=value,
+        reason="Discount reason",
+        amount=(draft_order.undiscounted_total - draft_order.total).gross,  # type: ignore
+    )
+    draft_order.save()
+    return draft_order
 
 
 @pytest.fixture
