@@ -17,7 +17,7 @@ from ..actions import (
     cancel_fulfillment,
     cancel_order,
     clean_mark_order_as_paid,
-    fulfill_order_line,
+    fulfill_order_lines,
     handle_fully_paid_order,
     mark_order_as_paid,
     order_refunded,
@@ -255,7 +255,7 @@ def test_order_refunded(
     )
 
 
-def test_fulfill_order_line(order_with_lines):
+def test_fulfill_order_lines(order_with_lines):
     order = order_with_lines
     line = order.lines.first()
     quantity_fulfilled_before = line.quantity_fulfilled
@@ -263,7 +263,7 @@ def test_fulfill_order_line(order_with_lines):
     stock = Stock.objects.get(product_variant=variant)
     stock_quantity_after = stock.quantity - line.quantity
 
-    fulfill_order_line(
+    fulfill_order_lines(
         [
             OrderLineData(
                 line=line,
@@ -279,16 +279,16 @@ def test_fulfill_order_line(order_with_lines):
     assert line.quantity_fulfilled == quantity_fulfilled_before + line.quantity
 
 
-def test_fulfill_order_line_with_variant_deleted(order_with_lines):
+def test_fulfill_order_lines_with_variant_deleted(order_with_lines):
     line = order_with_lines.lines.first()
     line.variant.delete()
 
     line.refresh_from_db()
 
-    fulfill_order_line([OrderLineData(line=line, quantity=line.quantity)])
+    fulfill_order_lines([OrderLineData(line=line, quantity=line.quantity)])
 
 
-def test_fulfill_order_line_without_inventory_tracking(order_with_lines):
+def test_fulfill_order_lines_without_inventory_tracking(order_with_lines):
     order = order_with_lines
     line = order.lines.first()
     quantity_fulfilled_before = line.quantity_fulfilled
@@ -300,7 +300,7 @@ def test_fulfill_order_line_without_inventory_tracking(order_with_lines):
     # stock should not change
     stock_quantity_after = stock.quantity
 
-    fulfill_order_line(
+    fulfill_order_lines(
         [
             OrderLineData(
                 line=line,

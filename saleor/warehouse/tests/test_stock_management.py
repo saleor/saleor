@@ -168,7 +168,13 @@ def test_deallocate_stock(allocation):
     allocation.quantity_allocated = 80
     allocation.save(update_fields=["quantity_allocated"])
 
-    deallocate_stock([OrderLineData(line=allocation.order_line, quantity=80)])
+    deallocate_stock(
+        [
+            OrderLineData(
+                line=allocation.order_line, quantity=80, variant=stock.product_variant
+            )
+        ]
+    )
 
     stock.refresh_from_db()
     assert stock.quantity == 100
@@ -183,7 +189,13 @@ def test_deallocate_stock_partially(allocation):
     allocation.quantity_allocated = 80
     allocation.save(update_fields=["quantity_allocated"])
 
-    deallocate_stock([OrderLineData(line=allocation.order_line, quantity=50)])
+    deallocate_stock(
+        [
+            OrderLineData(
+                line=allocation.order_line, quantity=50, variant=stock.product_variant
+            )
+        ]
+    )
 
     stock.refresh_from_db()
     assert stock.quantity == 100
@@ -196,7 +208,9 @@ def test_deallocate_stock_many_allocations(
 ):
     order_line = order_line_with_allocation_in_many_stocks
 
-    deallocate_stock([OrderLineData(line=order_line, quantity=3)])
+    deallocate_stock(
+        [OrderLineData(line=order_line, quantity=3, variant=order_line.variant)]
+    )
 
     allocations = order_line.allocations.all()
     assert allocations[0].quantity_allocated == 0
@@ -208,7 +222,9 @@ def test_deallocate_stock_many_allocations_partially(
 ):
     order_line = order_line_with_allocation_in_many_stocks
 
-    deallocate_stock([OrderLineData(line=order_line, quantity=1)])
+    deallocate_stock(
+        [OrderLineData(line=order_line, quantity=1, variant=order_line.variant)]
+    )
 
     allocations = order_line.allocations.all()
     assert allocations[0].quantity_allocated == 1

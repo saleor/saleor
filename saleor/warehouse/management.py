@@ -28,11 +28,10 @@ def allocate_stocks(order_lines_info: Iterable["OrderLineData"], country_code: s
     """
     # allocation only applied to order lines with variants with track inventory
     # set to True
-    order_lines_info = [
-        line_info
-        for line_info in order_lines_info
-        if line_info.variant and line_info.variant.track_inventory
-    ]
+    order_lines_info = get_order_lines_with_track_inventory(order_lines_info)
+    if not order_lines_info:
+        return
+
     variants = [line_info.variant for line_info in order_lines_info]
 
     stocks = (
@@ -292,6 +291,17 @@ def decrease_stock(order_lines_info: Iterable["OrderLineData"]):
         stocks_to_update.append(stock)
 
     Stock.objects.bulk_update(stocks_to_update, ["quantity"])
+
+
+def get_order_lines_with_track_inventory(
+    order_lines_info: Iterable["OrderLineData"],
+) -> Iterable["OrderLineData"]:
+    """Return order lines with variants with track inventory set to True."""
+    return [
+        line_info
+        for line_info in order_lines_info
+        if line_info.variant and line_info.variant.track_inventory
+    ]
 
 
 @transaction.atomic

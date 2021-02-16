@@ -24,6 +24,7 @@ from ..warehouse.management import (
     deallocate_stock,
     deallocate_stock_for_order,
     decrease_stock,
+    get_order_lines_with_track_inventory,
 )
 from . import (
     FulfillmentLineData,
@@ -308,15 +309,11 @@ def clean_mark_order_as_paid(order: "Order"):
         )
 
 
-def fulfill_order_line(order_lines_info: Iterable["OrderLineData"]):
+def fulfill_order_lines(order_lines_info: Iterable["OrderLineData"]):
     """Fulfill order line with given quantity."""
-    lines_to_decrease_stock = [
-        line_info
-        for line_info in order_lines_info
-        if line_info.variant and line_info.variant.track_inventory
-    ]
+    lines_to_decrease_stock = get_order_lines_with_track_inventory(order_lines_info)
     if lines_to_decrease_stock:
-        decrease_stock(order_lines_info)
+        decrease_stock(lines_to_decrease_stock)
     order_lines = []
     for line_info in order_lines_info:
         line = line_info.line
@@ -364,7 +361,7 @@ def automatically_fulfill_digital_lines(order: "Order"):
         )
 
     FulfillmentLine.objects.bulk_create(fulfillments)
-    fulfill_order_line(lines_info)
+    fulfill_order_lines(lines_info)
 
     emails.send_fulfillment_confirmation_to_customer(
         order, fulfillment, user=order.user
@@ -431,7 +428,7 @@ def _create_fulfillment_lines(
                 )
             )
     if lines_info:
-        fulfill_order_line(lines_info)
+        fulfill_order_lines(lines_info)
 
     return fulfillment_lines
 
