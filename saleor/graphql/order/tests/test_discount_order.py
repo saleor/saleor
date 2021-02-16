@@ -6,7 +6,7 @@ import pytest
 from prices import Money, fixed_discount, percentage_discount
 
 from ....discount import DiscountValueType
-from ....order import OrderStatus
+from ....order import OrderEvents, OrderStatus
 from ....order.error_codes import OrderErrorCode
 from ...discount.enums import DiscountValueTypeEnum
 from ...tests.utils import get_graphql_content
@@ -118,6 +118,15 @@ def test_add_fixed_order_discount_to_order(
     assert order_discount.amount.amount == value
     assert order_discount.reason is None
 
+    event = draft_order.events.get()
+    assert event.type == OrderEvents.ORDER_DISCOUNT_ADDED
+    parameters = event.parameters
+    discount_data = parameters.get("discount")
+
+    assert discount_data["value"] == str(value)
+    assert discount_data["value_type"] == DiscountValueTypeEnum.FIXED.value
+    assert discount_data["amount_value"] == str(order_discount.amount.amount)
+
 
 def test_add_percentage_order_discount_to_order(
     draft_order, staff_api_client, permission_manage_orders
@@ -156,6 +165,15 @@ def test_add_percentage_order_discount_to_order(
     assert order_discount.value_type == DiscountValueType.PERCENTAGE
     assert order_discount.amount == (total_before_order_discount - expected_total).gross
     assert order_discount.reason == reason
+
+    event = draft_order.events.get()
+    assert event.type == OrderEvents.ORDER_DISCOUNT_ADDED
+    parameters = event.parameters
+    discount_data = parameters.get("discount")
+
+    assert discount_data["value"] == str(value)
+    assert discount_data["value_type"] == DiscountValueTypeEnum.PERCENTAGE.value
+    assert discount_data["amount_value"] == str(order_discount.amount.amount)
 
 
 ORDER_DISCOUNT_UPDATE = """
@@ -225,6 +243,15 @@ def test_update_percentage_order_discount_to_order(
     assert order_discount.amount == (current_undiscounted_total - expected_total).gross
     assert order_discount.reason == reason
 
+    event = draft_order.events.get()
+    assert event.type == OrderEvents.ORDER_DISCOUNT_UPDATED
+    parameters = event.parameters
+    discount_data = parameters.get("discount")
+
+    assert discount_data["value"] == str(value)
+    assert discount_data["value_type"] == DiscountValueTypeEnum.PERCENTAGE.value
+    assert discount_data["amount_value"] == str(order_discount.amount.amount)
+
 
 def test_update_fixed_order_discount_to_order(
     draft_order_with_fixed_discount_order, staff_api_client, permission_manage_orders
@@ -265,6 +292,15 @@ def test_update_fixed_order_discount_to_order(
     assert order_discount.value == value
     assert order_discount.value_type == DiscountValueType.FIXED
     assert order_discount.amount == (current_undiscounted_total - expected_total).gross
+
+    event = draft_order.events.get()
+    assert event.type == OrderEvents.ORDER_DISCOUNT_UPDATED
+    parameters = event.parameters
+    discount_data = parameters.get("discount")
+
+    assert discount_data["value"] == str(value)
+    assert discount_data["value_type"] == DiscountValueTypeEnum.FIXED.value
+    assert discount_data["amount_value"] == str(order_discount.amount.amount)
 
 
 def test_update_order_discount_order_is_not_draft(
@@ -371,6 +407,9 @@ def test_delete_order_discount_from_order(
     assert draft_order.undiscounted_total == current_undiscounted_total
     assert draft_order.total == current_undiscounted_total
 
+    event = draft_order.events.get()
+    assert event.type == OrderEvents.ORDER_DISCOUNT_DELETED
+
 
 def test_delete_order_discount_order_is_not_draft(
     draft_order_with_fixed_discount_order, staff_api_client, permission_manage_orders
@@ -455,16 +494,33 @@ def test_update_order_line_discount(
     unit_discount = line_to_discount.unit_discount
     assert unit_discount == (line_price_before_discount - expected_line_price).gross
 
+    event = draft_order_with_fixed_discount_order.events.get()
+    assert event.type == OrderEvents.ORDER_LINE_DISCOUNT_UPDATED
+    parameters = event.parameters
+    lines = parameters.get("lines", {})
+    assert len(lines) == 1
+
+    line_data = lines[0]
+    assert line_data.get("line_pk") == line_to_discount.pk
+    discount_data = line_data.get("discount")
+
+    assert discount_data["value"] == str(value)
+    assert discount_data["value_type"] == DiscountValueTypeEnum.FIXED.value
+    assert discount_data["amount_value"] == str(unit_discount.amount)
+
 
 def test_update_order_line_discount_line_with_discount(
     draft_order_with_fixed_discount_order, staff_api_client, permission_manage_orders
 ):
     line_to_discount = draft_order_with_fixed_discount_order.lines.first()
 
-    line_to_discount.unit_discount_amount = Decimal("2.5")
+    line_to_discount.unit_discount_amount = Decimal("2.500")
     line_to_discount.unit_discount_type = DiscountValueType.FIXED
-    line_to_discount.unit_discount_value = Decimal("2.5")
+    line_to_discount.unit_discount_value = Decimal("2.500")
     line_to_discount.save()
+
+    line_discount_amount_before_update = line_to_discount.unit_discount_amount
+    line_discount_value_before_update = line_to_discount.unit_discount_value
 
     line_undiscounted_price = line_to_discount.undiscounted_unit_price
 
@@ -498,6 +554,24 @@ def test_update_order_line_discount_line_with_discount(
     assert line_to_discount.unit_price == expected_line_price
     unit_discount = line_to_discount.unit_discount
     assert unit_discount == (line_undiscounted_price - expected_line_price).gross
+
+    event = draft_order_with_fixed_discount_order.events.get()
+    assert event.type == OrderEvents.ORDER_LINE_DISCOUNT_UPDATED
+    parameters = event.parameters
+    lines = parameters.get("lines", {})
+    assert len(lines) == 1
+
+    line_data = lines[0]
+    assert line_data.get("line_pk") == line_to_discount.pk
+    discount_data = line_data.get("discount")
+
+    assert discount_data["value"] == str(value)
+    assert discount_data["value_type"] == DiscountValueTypeEnum.PERCENTAGE.value
+    assert discount_data["amount_value"] == str(unit_discount.amount)
+
+    assert discount_data["old_value"] == str(line_discount_value_before_update)
+    assert discount_data["old_value_type"] == DiscountValueTypeEnum.FIXED.value
+    assert discount_data["old_amount_value"] == str(line_discount_amount_before_update)
 
 
 def test_update_order_line_discount_order_is_not_draft(
@@ -578,6 +652,15 @@ def test_delete_discount_from_order_line(
     unit_discount = line.unit_discount
     currency = draft_order_with_fixed_discount_order.currency
     assert unit_discount == Money(Decimal(0), currency=currency)
+
+    event = draft_order_with_fixed_discount_order.events.get()
+    assert event.type == OrderEvents.ORDER_LINE_DISCOUNT_REMOVED
+    parameters = event.parameters
+    lines = parameters.get("lines", {})
+    assert len(lines) == 1
+
+    line_data = lines[0]
+    assert line_data.get("line_pk") == line.pk
 
 
 def test_delete_order_line_discount_order_is_not_draft(
