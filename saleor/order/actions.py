@@ -1,4 +1,5 @@
 import logging
+from collections import defaultdict
 from copy import deepcopy
 from decimal import Decimal
 from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple
@@ -26,6 +27,7 @@ from ..warehouse.management import (
     decrease_stock,
     get_order_lines_with_track_inventory,
 )
+from ..warehouse.models import Stock
 from . import (
     FulfillmentLineData,
     FulfillmentStatus,
@@ -370,14 +372,14 @@ def automatically_fulfill_digital_lines(order: "Order"):
 
 
 def _create_fulfillment_lines(
-    fulfillment: Fulfillment, warehouse_pk: str, lines: List[Dict]
+    fulfillment: Fulfillment, warehouse_pk: str, lines_data: List[Dict]
 ) -> List[FulfillmentLine]:
     """Modify stocks and allocations. Return list of unsaved FulfillmentLines.
 
     Args:
         fulfillment (Fulfillment): Fulfillment to create lines
         warehouse_pk (str): Warehouse to fulfill order.
-        lines (List[Dict]): List with information from which system
+        lines_data (List[Dict]): List with information from which system
             create FulfillmentLines. Example:
                 [
                     {
@@ -395,20 +397,31 @@ def _create_fulfillment_lines(
         InsufficientStock: If system hasn't containt enough item in stock for any line.
 
     """
+    lines = [line_data["order_line"] for line_data in lines_data]
+    variants = [line.variant for line in lines]
+    stocks = Stock.objects.filter(
+        warehouse_id=warehouse_pk, product_variant__in=variants
+    ).select_related("product_variant")
+
+    variant_to_stock: Dict[str, List[Stock]] = defaultdict(list)
+    for stock in stocks:
+        variant_to_stock[stock.product_variant_id].append(stock)
+
     fulfillment_lines = []
     lines_info = []
-    for line in lines:
+    for line in lines_data:
         quantity = line["quantity"]
         order_line = line["order_line"]
         if quantity > 0:
-            stock = order_line.variant.stocks.filter(warehouse=warehouse_pk).first()
-            if stock is None:
+            line_stocks = variant_to_stock.get(order_line.variant_id)
+            if line_stocks is None:
                 error_data = InsufficientStockData(
                     variant=order_line.variant,
                     order_line=order_line,
                     warehouse_pk=warehouse_pk,
                 )
                 raise InsufficientStock([error_data])
+            stock = line_stocks[0]
             lines_info.append(
                 OrderLineData(
                     line=order_line,
