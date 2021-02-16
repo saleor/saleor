@@ -514,6 +514,17 @@ def order_discount_event(
     )
 
 
+def order_discount_automatically_updated_event(
+    order: Order, order_discount: "OrderDiscount"
+):
+    return order_discount_event(
+        event_type=OrderEvents.ORDER_DISCOUNT_AUTOMATICALLY_UPDATED,
+        order=order,
+        user=None,
+        order_discount=order_discount,
+    )
+
+
 def order_discount_added_event(
     order: Order, user: UserType, order_discount: "OrderDiscount"
 ) -> OrderEvent:
