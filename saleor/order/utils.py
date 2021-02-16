@@ -1,3 +1,4 @@
+import copy
 from decimal import Decimal
 from functools import partial, wraps
 from typing import Iterable, List, Optional, Union
@@ -82,6 +83,7 @@ def recalculate_order_discounts(order: Order):
 
     order_discounts = order.discounts.filter(type=OrderDiscountType.MANUAL)
     for order_discount in order_discounts:
+        current_order_discount = copy.deepcopy(order_discount)
         current_total = order.total.gross.amount
         update_order_discount_for_order(
             order,
@@ -93,13 +95,16 @@ def recalculate_order_discounts(order: Order):
             save_order=False,
         )
         discount_value = order_discount.value
-        discount_type = order_discount.type
+        discount_type = order_discount.value_type
+
         if (
             discount_type == DiscountValueType.PERCENTAGE
             or current_total < discount_value
         ):
             events.order_discount_automatically_updated_event(
-                order=order, order_discount=order_discount
+                order=order,
+                order_discount=order_discount,
+                old_order_discount=current_order_discount,
             )
 
 
