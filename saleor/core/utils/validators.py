@@ -11,8 +11,10 @@ from ...product.error_codes import ProductErrorCode
 def validate_video_url(url: str, field_name: str) -> Tuple[str, str]:
     """Check the video URL and return the proper ProductMediaType."""
     youtube_pattern = re.compile(r"(?:youtube.com|youtu.be).*(?:v=|watch\/|\/)([\w]*)")
-    streamable_pattern = re.compile(r"^(?:http[s]?://)?(?:www.)?streamable.com/([\w]*)")
-    vimeo_pattern = re.compile(r"^(?:http[s]?://)?(?:www.)?vimeo.com/([\w]*)")
+    streamable_pattern = re.compile(
+        r"^(?:http[s]?://)?(?:www\.)?streamable.com/([\w]*)"
+    )
+    vimeo_pattern = re.compile(r"^(?:http[s]?://)?(?:www\.)?vimeo.com/([\w]*)")
 
     is_youtube = re.search(youtube_pattern, url)
     is_streamable = re.search(streamable_pattern, url)
@@ -37,8 +39,8 @@ def validate_video_url(url: str, field_name: str) -> Tuple[str, str]:
             ProductMediaTypes.VIDEO_VIMEO,
         )
 
+    url_validator = URLValidator()
     try:
-        url_validator = URLValidator()
         url_validator(url)
     except ValidationError:
         raise ValidationError(

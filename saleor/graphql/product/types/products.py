@@ -1191,7 +1191,7 @@ class ProductMedia(CountableDjangoObjectType):
 @key(fields="id")
 class ProductImage(graphene.ObjectType):
     id = graphene.ID(required=True, description="The ID of the image.")
-    alt = graphene.String(required=False, description="The alt text of the image.")
+    alt = graphene.String(description="The alt text of the image.")
     sort_order = graphene.Int(
         required=False,
         description=(
@@ -1208,6 +1208,10 @@ class ProductImage(graphene.ObjectType):
 
     class Meta:
         description = "Represents a product image."
+
+    @staticmethod
+    def resolve_id(root: models.ProductMedia, info):
+        return graphene.Node.to_global_id("ProductMedia", root.id)
 
     @staticmethod
     def resolve_url(root: models.ProductMedia, info, *, size=None):
