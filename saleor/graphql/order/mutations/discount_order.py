@@ -210,6 +210,9 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
     order_line = graphene.Field(
         OrderLine, description="Order line which has been discounted."
     )
+    order = graphene.Field(
+        Order, description="Order which is related to the discounted line."
+    )
 
     class Arguments:
         order_line_id = graphene.ID(
@@ -260,12 +263,15 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
             manager=info.context.plugins,
         )
         recalculate_order(order)
-        return OrderLineDiscountUpdate(order_line=order_line)
+        return OrderLineDiscountUpdate(order_line=order_line, order=order)
 
 
 class OrderLineDiscountRemove(OrderDiscountCommon):
     order_line = graphene.Field(
         OrderLine, description="Order line which has removed discount."
+    )
+    order = graphene.Field(
+        Order, description="Order which is related to line which has removed discount."
     )
 
     class Arguments:
@@ -294,4 +300,4 @@ class OrderLineDiscountRemove(OrderDiscountCommon):
 
         remove_discount_from_order_line(order_line, order, manager=info.context.plugins)
         recalculate_order(order)
-        return OrderLineDiscountRemove(order_line=order_line)
+        return OrderLineDiscountRemove(order_line=order_line, order=order)

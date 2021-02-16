@@ -3219,12 +3219,14 @@ input OrderLineCreateInput {
 type OrderLineDiscountRemove {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   orderLine: OrderLine
+  order: Order
   orderErrors: [OrderError!]!
 }
 
 type OrderLineDiscountUpdate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   orderLine: OrderLine
+  order: Order
   orderErrors: [OrderError!]!
 }
 
