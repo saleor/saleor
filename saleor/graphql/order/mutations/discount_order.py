@@ -198,6 +198,8 @@ class OrderDiscountDelete(OrderDiscountCommon):
             info, data.get("discount_id"), only_type="OrderDiscount"
         )
         order = order_discount.order
+        cls.validate_order(info, order)
+
         remove_order_discount_from_order(order, order_discount)
         order.refresh_from_db()
         return OrderDiscountDelete(order=order)
