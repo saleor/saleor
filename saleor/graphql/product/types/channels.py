@@ -1,8 +1,7 @@
 from dataclasses import asdict
 
 import graphene
-
-from saleor.graphql.product.dataloaders.products import ProductByIdLoader
+from django_countries.fields import Country
 
 from ....core.permissions import ProductPermissions
 from ....core.utils import get_currency_for_country
@@ -21,6 +20,7 @@ from ...discount.dataloaders import DiscountsByDateTimeLoader
 from ...utils import get_user_country_context
 from ..dataloaders import (
     CollectionsByProductIdLoader,
+    ProductByIdLoader,
     ProductVariantsByProductIdLoader,
     VariantChannelListingByVariantIdAndChannelSlugLoader,
     VariantsChannelListingByProductIdAndChanneSlugLoader,
@@ -178,7 +178,7 @@ class ProductChannelListing(CountableDjangoObjectType):
                                     collections=collections,
                                     discounts=discounts,
                                     channel=channel,
-                                    country=country_code,
+                                    country=Country(country_code),
                                     local_currency=get_currency_for_country(
                                         country_code
                                     ),
