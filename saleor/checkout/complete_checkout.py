@@ -1,6 +1,7 @@
 from datetime import date
 from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple
 
+import graphene
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -472,8 +473,14 @@ def _get_order_data(
         )
     except InsufficientStock as e:
         variants = [str(item.variant) for item in e.items]
+        variant_ids = [
+            graphene.Node.to_global_id("ProductVariant", item.variant.pk)
+            for item in e.items
+        ]
         raise ValidationError(
-            f"Insufficient product stock: {', '.join(variants)}", code=e.code.value
+            f"Insufficient product stock: {', '.join(variants)}",
+            code=e.code.value,
+            params={"variants": variant_ids},
         )
     except NotApplicable:
         raise ValidationError(
@@ -580,8 +587,13 @@ def complete_checkout(
             release_voucher_usage(order_data)
             gateway.payment_refund_or_void(payment)
             variants = [str(item.variant) for item in e.items]
+            variant_ids = [
+                graphene.Node.to_global_id("ProductVariant", item.variant.pk)
+                for item in e.items
+            ]
             raise ValidationError(
-                f"Insufficient product stock: {', '.join(variants)}", code=e.code.value
+                f"Insufficient product stock: {', '.join(variants)}",
+                code=e.code.value,
+                params={"variants": variant_ids},
             )
-
     return order, action_required, action_data

@@ -338,10 +338,19 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             try:
                 add_variants_to_checkout(instance, variants, quantities)
             except InsufficientStock as exc:
-                variants = [str(item.variant) for item in exc.items]
+                variant_names = [str(item.variant) for item in exc.items]
+                variant_ids = [
+                    graphene.Node.to_global_id("ProductVariant", item.variant.pk)
+                    for item in exc.items
+                ]
                 raise ValidationError(
-                    f"Insufficient product stock: {', '.join(variants)}",
-                    code=exc.code.value,
+                    {
+                        "lines": ValidationError(
+                            f"Insufficient product stock: {', '.join(variant_names)}",
+                            code=exc.code.value,
+                            params={"variants": variant_ids},
+                        )
+                    }
                 )
             except ProductNotPublished as exc:
                 raise ValidationError(
@@ -432,9 +441,18 @@ class CheckoutLinesAdd(BaseMutation):
                     )
                 except InsufficientStock as exc:
                     variants = [str(item.variant) for item in exc.items]
+                    variant_ids = [
+                        graphene.Node.to_global_id("ProductVariant", item.variant.pk)
+                        for item in exc.items
+                    ]
                     raise ValidationError(
-                        f"Insufficient product stock: {', '.join(variants)}",
-                        code=exc.code,
+                        {
+                            "lines": ValidationError(
+                                f"Insufficient product stock: {', '.join(variants)}",
+                                code=exc.code,
+                                params={"variants": variant_ids},
+                            )
+                        }
                     )
                 except ProductNotPublished as exc:
                     raise ValidationError(
