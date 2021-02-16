@@ -407,6 +407,7 @@ def _create_fulfillment_lines(
     for stock in stocks:
         variant_to_stock[stock.product_variant_id].append(stock)
 
+    insufficient_stocks = []
     fulfillment_lines = []
     lines_info = []
     for line in lines_data:
@@ -420,7 +421,8 @@ def _create_fulfillment_lines(
                     order_line=order_line,
                     warehouse_pk=warehouse_pk,
                 )
-                raise InsufficientStock([error_data])
+                insufficient_stocks.append(error_data)
+                continue
             stock = line_stocks[0]
             lines_info.append(
                 OrderLineData(
@@ -440,6 +442,10 @@ def _create_fulfillment_lines(
                     stock=stock,
                 )
             )
+
+    if insufficient_stocks:
+        raise InsufficientStock(insufficient_stocks)
+
     if lines_info:
         fulfill_order_lines(lines_info)
 

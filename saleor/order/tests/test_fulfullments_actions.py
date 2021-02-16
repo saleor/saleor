@@ -314,10 +314,15 @@ def test_create_fulfillments_warehouse_without_stock(
     with pytest.raises(InsufficientStock) as exc:
         create_fulfillments(staff_user, order, fulfillment_lines_for_warehouses, True)
 
-    assert len(exc.value.items) == 1
-    assert exc.value.items[0].variant == order_line1.variant
-    assert exc.value.items[0].order_line == order_line1
-    assert exc.value.items[0].warehouse_pk == str(warehouse_no_shipping_zone.pk)
+    assert len(exc.value.items) == 2
+    assert {item.variant for item in exc.value.items} == {
+        order_line1.variant,
+        order_line2.variant,
+    }
+    assert {item.order_line for item in exc.value.items} == {order_line1, order_line2}
+    assert {item.warehouse_pk for item in exc.value.items} == {
+        str(warehouse_no_shipping_zone.pk)
+    }
 
     order.refresh_from_db()
     assert FulfillmentLine.objects.filter(fulfillment__order=order).count() == 0
