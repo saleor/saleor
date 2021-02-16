@@ -299,6 +299,44 @@ def test_decrease_stock(allocation):
     assert allocation.quantity_allocated == 30
 
 
+def test_decrease_stock_multiply_lines(allocations):
+    allocation_1 = allocations[0]
+    allocation_2 = allocations[0]
+
+    stock = allocation_1.stock
+    stock.quantity = 100
+    stock.save(update_fields=["quantity"])
+    allocation_1.quantity_allocated = 80
+    allocation_1.save(update_fields=["quantity_allocated"])
+    warehouse_pk_1 = allocation_1.stock.warehouse.pk
+
+    allocation_2.quantity_allocated = 80
+    allocation_2.save(update_fields=["quantity_allocated"])
+    warehouse_pk_2 = allocation_2.stock.warehouse.pk
+
+    decrease_stock(
+        [
+            OrderLineData(
+                line=allocation_1.order_line,
+                quantity=50,
+                variant=allocation_1.order_line.variant,
+                warehouse_pk=warehouse_pk_1,
+            ),
+            OrderLineData(
+                line=allocation_2.order_line,
+                quantity=20,
+                variant=allocation_2.order_line.variant,
+                warehouse_pk=warehouse_pk_2,
+            ),
+        ],
+    )
+
+    stock.refresh_from_db()
+    assert stock.quantity == 30
+    allocation_1.refresh_from_db()
+    assert allocation_1.quantity_allocated == 10
+
+
 def test_decrease_stock_partially(allocation):
     stock = allocation.stock
     stock.quantity = 100

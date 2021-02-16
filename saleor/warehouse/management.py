@@ -157,7 +157,7 @@ def deallocate_stock(order_lines_data: Iterable["OrderLineData"]):
             )
             if quantity_to_deallocate > 0:
                 allocation.quantity_allocated = (
-                    F("quantity_allocated") - quantity_to_deallocate
+                    allocation.quantity_allocated - quantity_to_deallocate
                 )
                 quantity_dealocated += quantity_to_deallocate
                 allocations_to_update.append(allocation)
@@ -287,7 +287,7 @@ def decrease_stock(order_lines_info: Iterable["OrderLineData"]):
             )
             continue
 
-        stock.quantity = F("quantity") - line_info.quantity
+        stock.quantity = stock.quantity - line_info.quantity
         stocks_to_update.append(stock)
 
     Stock.objects.bulk_update(stocks_to_update, ["quantity"])
