@@ -66,7 +66,6 @@ def update_voucher_discount(func):
                 discount = get_voucher_discount_for_order(order)
             except NotApplicable:
                 discount = zero_money(order.currency)
-            discount = discount
         return func(*args, **kwargs, discount=discount)
 
     return decorator
