@@ -25,7 +25,7 @@ from ..core.scalars import PositiveDecimal
 from ..core.types.common import Image
 from ..core.types.money import Money, TaxedMoney
 from ..decorators import one_of_permissions_required, permission_required
-from ..discount.dataloaders import VoucherByIdLoader
+from ..discount.dataloaders import OrderDiscountsByOrderIDLoader, VoucherByIdLoader
 from ..discount.enums import DiscountValueTypeEnum
 from ..giftcard.types import GiftCard
 from ..invoice.types import Invoice
@@ -416,22 +416,6 @@ class OrderLine(CountableDjangoObjectType):
         return AllocationsByOrderLineIdLoader(info.context).load(root.id)
 
 
-class OrderDiscount(graphene.ObjectType):
-    value_type = graphene.Field(
-        DiscountValueTypeEnum,
-        required=True,
-        description="Type of the discount: fixed or percent",
-    )
-    value = PositiveDecimal(
-        required=True,
-        description="Value of the discount. Can store fixed value or percent value",
-    )
-    reason = graphene.String(
-        required=False, description="Explanation for the applied discount."
-    )
-    amount = graphene.Field(Money, description="Returns amount of discount.")
-
-
 class Order(CountableDjangoObjectType):
     fulfillments = graphene.List(
         Fulfillment, required=True, description="List of shipments for the order."
@@ -567,8 +551,7 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_discounts(root: models.Order, info):
-        # FIXME The discount should be visible to user without the reason field
-        return root.discounts.all()
+        return OrderDiscountsByOrderIDLoader(info.context).load(root.id)
 
     @staticmethod
     def resolve_discount(root: models.Order, info):
