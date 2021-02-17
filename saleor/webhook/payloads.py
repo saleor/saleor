@@ -196,6 +196,10 @@ def generate_customer_payload(customer: "User"):
                 lambda c: c.default_shipping_address,
                 ADDRESS_FIELDS,
             ),
+            "addresses": (
+                lambda c: c.addresses.all(),
+                ADDRESS_FIELDS,
+            )
         },
     )
     return data

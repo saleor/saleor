@@ -284,10 +284,6 @@ class AccountAddressUpdate(BaseAddressUpdate):
         error_type_class = AccountError
         error_type_field = "account_errors"
 
-    @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.customer_updated(instance)
-
 
 class AccountAddressDelete(BaseAddressDelete):
     class Meta:
@@ -295,10 +291,6 @@ class AccountAddressDelete(BaseAddressDelete):
         model = models.Address
         error_type_class = AccountError
         error_type_field = "account_errors"
-
-    @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.customer_updated(instance)
 
 
 class AccountSetDefaultAddress(BaseMutation):
