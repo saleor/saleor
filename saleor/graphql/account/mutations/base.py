@@ -436,6 +436,8 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
         if is_creation:
             info.context.plugins.customer_created(customer=instance)
             account_events.customer_account_created_event(user=instance)
+        else:
+            info.context.plugins.customer_updated(instance)
 
         if cleaned_input.get("redirect_url"):
             send_set_password_email_with_url(

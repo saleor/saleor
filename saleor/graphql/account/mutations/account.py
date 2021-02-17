@@ -141,9 +141,6 @@ class AccountUpdate(BaseCustomerCreate):
         data["id"] = graphene.Node.to_global_id("User", user.id)
         return super().perform_mutation(root, info, **data)
 
-    @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.customer_updated(customer=instance)
 
 class AccountRequestDeletion(BaseMutation):
     class Arguments:
@@ -277,7 +274,7 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
         super().save(info, instance, cleaned_input)
         user = info.context.user
         instance.user_addresses.add(user)
-        info.context.plugins.customer_updated(customer=user)
+        info.context.plugins.customer_updated(user)
 
 
 class AccountAddressUpdate(BaseAddressUpdate):
@@ -289,7 +286,7 @@ class AccountAddressUpdate(BaseAddressUpdate):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.customer_updated(customer=instance)
+        info.context.plugins.customer_updated(instance)
 
 
 class AccountAddressDelete(BaseAddressDelete):
@@ -301,7 +298,7 @@ class AccountAddressDelete(BaseAddressDelete):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.customer_updated(customer=instance)
+        info.context.plugins.customer_updated(instance)
 
 
 class AccountSetDefaultAddress(BaseMutation):
@@ -343,7 +340,7 @@ class AccountSetDefaultAddress(BaseMutation):
             address_type = AddressType.SHIPPING
 
         utils.change_user_default_address(user, address, address_type)
-        info.context.plugins.customer_updated(customer=user)
+        info.context.plugins.customer_updated(user)
         return cls(user=user)
 
 
@@ -468,5 +465,5 @@ class ConfirmEmailChange(BaseMutation):
         account_events.customer_email_changed_event(
             user=user, parameters=event_parameters
         )
-        info.context.plugins.customer_updated(customer=user)
+        info.context.plugins.customer_updated(user)
         return ConfirmEmailChange(user=user)
