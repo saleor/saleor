@@ -54,6 +54,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add SearchRank to search product by name and description. New enum added to `ProductOrderField` - `RANK` - which returns results sorted by search rank - #6872 by @d-wysocki
 - Allocate stocks for order lines in a bulk way - #6877 by @IKarbowiak
 - Add product description_plaintext to populatedb - #6894 by @d-wysocki
+- Deallocate stocks for order lines in a bulk way - #6896 by @IKarbowiak
 
 # 2.11.1
 
