@@ -39,6 +39,7 @@ from ..core.utils import from_global_id_strict_type
 from ..order.types import Order
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
+from ..utils import get_user_country_context
 from .types import Checkout, CheckoutLine
 
 ERROR_DOES_NOT_SHIP = "This checkout doesn't need shipping"
@@ -121,9 +122,9 @@ def check_lines_quantity(variants, quantities, country):
         check_stock_quantity_bulk(variants, country, quantities)
     except InsufficientStock as e:
         remaining = e.context["available_quantity"]
-        item_name = e.item.display_product()
         message = (
-            f"Could not add item {item_name}. Only {remaining} remaining in stock."
+            f"Could not add items {', '.join(e.items)}. "
+            f"Only {remaining} remaining in stock."
         )
         raise ValidationError({"quantity": ValidationError(message, code=e.code)})
 
@@ -286,19 +287,18 @@ class CheckoutCreate(ModelMutation, I18nMixin):
     @classmethod
     def clean_input(cls, info, instance: models.Checkout, data, input_cls=None):
         user = info.context.user
-        country = info.context.country.code
         channel = data.pop("channel")
         cleaned_input = super().clean_input(info, instance, data)
 
         cleaned_input["channel"] = channel
         cleaned_input["currency"] = channel.currency_code
 
-        # set country to one from shipping address
-        shipping_address = cleaned_input.get("shipping_address")
-        if shipping_address and shipping_address.country:
-            if shipping_address.country != country:
-                country = shipping_address.country
-        cleaned_input["country"] = country
+        shipping_address = cls.retrieve_shipping_address(user, data)
+        billing_address = cls.retrieve_billing_address(user, data)
+        country = get_user_country_context(
+            destination_address=shipping_address,
+            company_address=info.context.site.settings.company_address,
+        )
 
         # Resolve and process the lines, retrieving the variants and quantities
         lines = data.pop("lines", None)
@@ -308,14 +308,14 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 cleaned_input["quantities"],
             ) = cls.clean_checkout_lines(lines, country, cleaned_input["channel"].id)
 
-        cleaned_input["shipping_address"] = cls.retrieve_shipping_address(user, data)
-        cleaned_input["billing_address"] = cls.retrieve_billing_address(user, data)
-
         # Use authenticated user's email as default email
         if user.is_authenticated:
             email = data.pop("email", None)
             cleaned_input["email"] = email or user.email
 
+        cleaned_input["shipping_address"] = shipping_address
+        cleaned_input["billing_address"] = billing_address
+        cleaned_input["country"] = country
         return cleaned_input
 
     @classmethod
@@ -336,7 +336,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 add_variants_to_checkout(instance, variants, quantities)
             except InsufficientStock as exc:
                 raise ValidationError(
-                    f"Insufficient product stock: {exc.item}", code=exc.code
+                    f"Insufficient product stock: {', '.join(exc.items)}", code=exc.code
                 )
             except ProductNotPublished as exc:
                 raise ValidationError(
@@ -427,7 +427,8 @@ class CheckoutLinesAdd(BaseMutation):
                     )
                 except InsufficientStock as exc:
                     raise ValidationError(
-                        f"Insufficient product stock: {exc.item}", code=exc.code
+                        f"Insufficient product stock: {', '.join(exc.items)}",
+                        code=exc.code,
                     )
                 except ProductNotPublished as exc:
                     raise ValidationError(
@@ -632,11 +633,10 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
 
         lines = fetch_checkout_lines(checkout)
 
-        country = info.context.country.code
-        # set country to one from shipping address
-        if shipping_address and shipping_address.country:
-            if shipping_address.country != country:
-                country = shipping_address.country
+        country = get_user_country_context(
+            destination_address=shipping_address,
+            company_address=info.context.site.settings.company_address,
+        )
         checkout.set_country(country, commit=True)
 
         # Resolve and process the lines, validating variants quantities
@@ -870,6 +870,7 @@ class CheckoutComplete(BaseMutation):
                 store_source=store_source,
                 discounts=info.context.discounts,
                 user=info.context.user,
+                site_settings=info.context.site.settings,
                 tracking_code=tracking_code,
                 redirect_url=data.get("redirect_url"),
             )

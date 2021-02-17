@@ -910,7 +910,7 @@ def test_checkout_create_check_lines_quantity_multiple_warehouse(
     content = get_graphql_content(response)
     data = content["data"]["checkoutCreate"]
     assert data["checkoutErrors"][0]["message"] == (
-        "Could not add item Test product (SKU_A). Only 7 remaining in stock."
+        "Could not add items SKU_A. Only 7 remaining in stock."
     )
     assert data["checkoutErrors"][0]["field"] == "quantity"
 
@@ -1004,7 +1004,7 @@ def test_checkout_create_check_lines_quantity(
     content = get_graphql_content(response)
     data = content["data"]["checkoutCreate"]
     assert data["checkoutErrors"][0]["message"] == (
-        "Could not add item Test product (SKU_A). Only 15 remaining in stock."
+        "Could not add items SKU_A. Only 15 remaining in stock."
     )
     assert data["checkoutErrors"][0]["field"] == "quantity"
 
@@ -1493,7 +1493,7 @@ def test_checkout_lines_add_check_lines_quantity(user_api_client, checkout, stoc
     content = get_graphql_content(response)
     data = content["data"]["checkoutLinesAdd"]
     assert data["checkoutErrors"][0]["message"] == (
-        "Could not add item Test product (SKU_A). Only 15 remaining in stock."
+        "Could not add items SKU_A. Only 15 remaining in stock."
     )
     assert data["checkoutErrors"][0]["field"] == "quantity"
 
@@ -1664,7 +1664,7 @@ def test_checkout_lines_update_check_lines_quantity(
 
     data = content["data"]["checkoutLinesUpdate"]
     assert data["checkoutErrors"][0]["message"] == (
-        "Could not add item Test product (123). Only 10 remaining in stock."
+        "Could not add items 123. Only 10 remaining in stock."
     )
     assert data["checkoutErrors"][0]["field"] == "quantity"
 

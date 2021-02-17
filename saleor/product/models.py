@@ -305,7 +305,7 @@ class Product(SeoModel, ModelWithMetadata):
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
-    description_plaintext = TextField(blank=True, default="")
+    description_plaintext = TextField(blank=True)
     search_vector = SearchVectorField(null=True, blank=True)
 
     category = models.ForeignKey(

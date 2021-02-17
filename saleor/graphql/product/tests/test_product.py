@@ -1392,9 +1392,9 @@ def test_fetch_product_from_category_query(
     category = Category.objects.first()
     product = category.products.first()
     query = """
-    query {
-        category(id: "%(category_id)s") {
-            products(first: 20, channel: "%(channel_slug)s") {
+    query CategoryProducts($id: ID, $channel: String, $address: AddressInput) {
+        category(id: $id) {
+            products(first: 20, channel: $channel) {
                 edges {
                     node {
                         id
@@ -1430,8 +1430,8 @@ def test_fetch_product_from_category_query(
                                 stop
                             }
                         }
-                        isAvailable
-                        pricing {
+                        isAvailable(address: $address)
+                        pricing(address: $address) {
                             priceRange {
                                 start {
                                     gross {
@@ -1453,12 +1453,14 @@ def test_fetch_product_from_category_query(
             }
         }
     }
-    """ % {
-        "category_id": graphene.Node.to_global_id("Category", category.id),
-        "channel_slug": channel_USD.slug,
-    }
+    """
     staff_api_client.user.user_permissions.add(permission_manage_products)
-    response = staff_api_client.post_graphql(query)
+    variables = {
+        "id": graphene.Node.to_global_id("Category", category.id),
+        "channel": channel_USD.slug,
+        "address": {"country": "US"},
+    }
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert content["data"]["category"] is not None
     product_edges_data = content["data"]["category"]["products"]["edges"]
@@ -2461,6 +2463,50 @@ def test_search_product_by_description(user_api_client, product_list, channel_US
     content = get_graphql_content(response)
 
     assert len(content["data"]["products"]["edges"]) == 1
+
+
+def test_search_product_by_description_and_name(
+    user_api_client, product_list, product, channel_USD, category, product_type
+):
+    search_query = """
+    query Products(
+      $filters: ProductFilterInput, $sortBy: ProductOrder,$channel: String
+    ) {
+      products(first: 10, filter: $filters, sortBy: $sortBy,channel: $channel) {
+        edges {
+        node {
+          id
+          name
+          slug
+        }
+        }
+      }
+    }
+    """
+    product.description_plaintext = "red big red product"
+    product.save()
+
+    product_2 = product_list[1]
+    product_2.name = "red product"
+    product_2.save()
+    product_1 = product_list[0]
+    product_1.description_plaintext = "some red product"
+    product_1.save()
+
+    variables = {
+        "filters": {
+            "search": "red",
+        },
+        "sortBy": {"field": "RANK", "direction": "DESC"},
+        "channel": channel_USD.slug,
+    }
+    response = user_api_client.post_graphql(search_query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["products"]["edges"]
+
+    assert data[0]["node"]["name"] == product_2.name
+    assert data[1]["node"]["name"] == product.name
+    assert data[2]["node"]["name"] == product_1.name
 
 
 @freeze_time("2020-03-18 12:00:00")
@@ -6390,10 +6436,10 @@ def test_product_variant_price(
     ).update(price_amount=variant_price_amount)
 
     query = """
-        query getProductVariants($id: ID!, $channel: String) {
+        query getProductVariants($id: ID!, $channel: String, $address: AddressInput) {
             product(id: $id, channel: $channel) {
                 variants {
-                    pricing {
+                    pricing(address: $address) {
                         priceUndiscounted {
                             gross {
                                 amount
@@ -6405,7 +6451,11 @@ def test_product_variant_price(
         }
         """
     product_id = graphene.Node.to_global_id("Product", variant.product.id)
-    variables = {"id": product_id, "channel": channel_USD.slug}
+    variables = {
+        "id": product_id,
+        "channel": channel_USD.slug,
+        "address": {"country": "US"},
+    }
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["product"]
