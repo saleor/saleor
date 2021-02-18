@@ -14,14 +14,18 @@ from prices import Money, TaxedMoney
 
 from ....account.models import User
 from ....channel.utils import DEPRECATION_WARNING_MESSAGE
-from ....checkout import calculations
+from ....checkout import CheckoutInfo, calculations
 from ....checkout.checkout_cleaner import (
     clean_checkout_payment,
     clean_checkout_shipping,
 )
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.models import Checkout
-from ....checkout.utils import add_variant_to_checkout, fetch_checkout_lines
+from ....checkout.utils import (
+    add_variant_to_checkout,
+    fetch_checkout_info,
+    fetch_checkout_lines,
+)
 from ....core.payments import PaymentInterface
 from ....payment import TransactionKind
 from ....payment.interface import GatewayResponse
@@ -82,7 +86,8 @@ def test_update_checkout_shipping_method_if_invalid(
     shipping_method.save(update_fields=["shipping_zone"])
 
     lines = fetch_checkout_lines(checkout)
-    update_checkout_shipping_method_if_invalid(checkout, lines, None)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
+    update_checkout_shipping_method_if_invalid(checkout_info, lines, None)
 
     assert checkout.shipping_method == other_shipping_method
 
@@ -1332,7 +1337,10 @@ def test_checkout_lines_add(
     assert line.quantity == 1
 
     lines = fetch_checkout_lines(checkout)
-    mocked_update_shipping_method.assert_called_once_with(checkout, lines, mock.ANY)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
+    mocked_update_shipping_method.assert_called_once_with(
+        checkout_info, lines, mock.ANY
+    )
 
 
 def test_checkout_lines_add_with_unpublished_product(
@@ -1574,7 +1582,10 @@ def test_checkout_lines_update(
     assert line.quantity == 1
 
     lines = fetch_checkout_lines(checkout)
-    mocked_update_shipping_method.assert_called_once_with(checkout, lines, mock.ANY)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
+    mocked_update_shipping_method.assert_called_once_with(
+        checkout_info, lines, mock.ANY
+    )
 
 
 def test_create_checkout_with_unpublished_product(
@@ -1738,7 +1749,10 @@ def test_checkout_line_delete(
     checkout.refresh_from_db()
     assert checkout.lines.count() == 0
     lines = fetch_checkout_lines(checkout)
-    mocked_update_shipping_method.assert_called_once_with(checkout, lines, mock.ANY)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
+    mocked_update_shipping_method.assert_called_once_with(
+        checkout_info, lines, mock.ANY
+    )
 
 
 @mock.patch(
@@ -1769,7 +1783,10 @@ def test_checkout_line_delete_by_zero_quantity(
     checkout.refresh_from_db()
     assert checkout.lines.count() == 0
     lines = fetch_checkout_lines(checkout)
-    mocked_update_shipping_method.assert_called_once_with(checkout, lines, mock.ANY)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
+    mocked_update_shipping_method.assert_called_once_with(
+        checkout_info, lines, mock.ANY
+    )
 
 
 def test_checkout_customer_attach(
@@ -1917,7 +1934,23 @@ def test_checkout_shipping_address_update(
     assert checkout.shipping_address.country == shipping_address["country"]
     assert checkout.shipping_address.city == shipping_address["city"].upper()
     lines = fetch_checkout_lines(checkout)
-    mocked_update_shipping_method.assert_called_once_with(checkout, lines, mock.ANY)
+    checkout_info = CheckoutInfo(
+        checkout=checkout,
+        shipping_address=None,
+        billing_address=checkout.billing_address,
+        shipping_method=checkout.shipping_method,
+        user=checkout.user,
+        valid_shipping_methods=[],
+        shipping_method_channel_listings=(
+            shipping_models.ShippingMethodChannelListing.objects.filter(
+                shipping_method=checkout.shipping_method, channel=checkout.channel
+            ).first()
+        ),
+        channel=checkout.channel,
+    )
+    mocked_update_shipping_method.assert_called_once_with(
+        checkout_info, lines, mock.ANY
+    )
 
 
 @mock.patch(
@@ -1965,7 +1998,23 @@ def test_checkout_shipping_address_update_changes_checkout_country(
     assert checkout.shipping_address.country == shipping_address["country"]
     assert checkout.shipping_address.city == shipping_address["city"].upper()
     lines = fetch_checkout_lines(checkout)
-    mocked_update_shipping_method.assert_called_once_with(checkout, lines, mock.ANY)
+    checkout_info = CheckoutInfo(
+        checkout=checkout,
+        shipping_address=None,
+        billing_address=checkout.billing_address,
+        shipping_method=checkout.shipping_method,
+        user=checkout.user,
+        valid_shipping_methods=[],
+        shipping_method_channel_listings=(
+            shipping_models.ShippingMethodChannelListing.objects.filter(
+                shipping_method=checkout.shipping_method, channel=checkout.channel
+            ).first()
+        ),
+        channel=checkout.channel,
+    )
+    mocked_update_shipping_method.assert_called_once_with(
+        checkout_info, lines, mock.ANY
+    )
     assert checkout.country == shipping_address["country"]
 
 
