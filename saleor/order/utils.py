@@ -159,9 +159,8 @@ def update_order_line_prices(line: "OrderLine", order: "Order", manager):
             line.tax_rate = manager.get_order_line_tax_rate(order, product, None, price)
 
 
-def update_order_prices(order):
+def update_order_prices(order, manager):
     """Update prices in order with given discounts and proper taxes."""
-    manager = get_plugins_manager()
 
     lines_to_update = []
     for line in order.lines.all():  # type: OrderLine

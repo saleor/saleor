@@ -468,9 +468,12 @@ class ModelMutation(BaseMutation):
         The expected graphene type can be lazy (str).
         """
         object_id = data.get("id")
+        qs = data.get("qs")
         if object_id:
             model_type = cls.get_type_for_model()
-            instance = cls.get_node_or_error(info, object_id, only_type=model_type)
+            instance = cls.get_node_or_error(
+                info, object_id, only_type=model_type, qs=qs
+            )
         else:
             instance = cls._meta.model()
         return instance

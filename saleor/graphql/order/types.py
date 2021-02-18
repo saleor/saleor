@@ -1,3 +1,5 @@
+from typing import Optional
+
 import graphene
 from django.core.exceptions import ValidationError
 from graphene import relay
@@ -555,20 +557,51 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_discount(root: models.Order, info):
-        discount = root.discounts.filter(type=OrderDiscountType.VOUCHER).first()
+        def return_voucher_discount(discounts) -> Optional[Money]:
+            if not discounts:
+                return None
+            for discount in discounts:
+                if discount.type == OrderDiscountType.VOUCHER:
+                    return Money(amount=discount.value, currency=discount.currency)
+            return None
+
         return (
-            Money(amount=discount.value, currency=root.currency) if discount else None
+            OrderDiscountsByOrderIDLoader(info.context)
+            .load(root.id)
+            .then(return_voucher_discount)
         )
 
     @staticmethod
     def resolve_discount_name(root: models.Order, info):
-        discount = root.discounts.filter(type=OrderDiscountType.VOUCHER).first()
-        return discount.name if discount else None
+        def return_voucher_name(discounts) -> Optional[Money]:
+            if not discounts:
+                return None
+            for discount in discounts:
+                if discount.type == OrderDiscountType.VOUCHER:
+                    return discount.name
+            return None
+
+        return (
+            OrderDiscountsByOrderIDLoader(info.context)
+            .load(root.id)
+            .then(return_voucher_name)
+        )
 
     @staticmethod
     def resolve_translated_discount_name(root: models.Order, info):
-        discount = root.discounts.filter(type=OrderDiscountType.VOUCHER).first()
-        return discount.translated_name if discount else None
+        def return_voucher_translated_name(discounts) -> Optional[Money]:
+            if not discounts:
+                return None
+            for discount in discounts:
+                if discount.type == OrderDiscountType.VOUCHER:
+                    return discount.translated_name
+            return None
+
+        return (
+            OrderDiscountsByOrderIDLoader(info.context)
+            .load(root.id)
+            .then(return_voucher_translated_name)
+        )
 
     @staticmethod
     def resolve_billing_address(root: models.Order, info):

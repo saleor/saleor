@@ -16,6 +16,7 @@ from ...discount.models import (
 from ...discount.utils import validate_voucher_in_order
 from ...payment import ChargeStatus
 from ...payment.models import Payment
+from ...plugins.manager import get_plugins_manager
 from ...product.models import Collection
 from ...warehouse.models import Stock
 from ...warehouse.tests.utils import get_quantity_allocated_for_stock
@@ -456,6 +457,7 @@ def test_queryset_ready_to_capture(channel_USD):
 
 @patch("saleor.plugins.manager.PluginsManager.calculate_order_line_unit")
 def test_update_order_prices(mocked_calculate_order_line_unit, order_with_lines):
+    manager = get_plugins_manager()
     channel = order_with_lines.channel
     address = order_with_lines.shipping_address
     address.country = "DE"
@@ -486,7 +488,7 @@ def test_update_order_prices(mocked_calculate_order_line_unit, order_with_lines)
     ).price
     shipping_price = TaxedMoney(net=shipping_price, gross=shipping_price)
 
-    update_order_prices(order_with_lines)
+    update_order_prices(order_with_lines, manager)
 
     line_1.refresh_from_db()
     line_2.refresh_from_db()
@@ -499,6 +501,8 @@ def test_update_order_prices(mocked_calculate_order_line_unit, order_with_lines)
 
 
 def test_update_order_prices_tax_included(order_with_lines, vatlayer):
+    manager = get_plugins_manager()
+
     channel = order_with_lines.channel
     address = order_with_lines.shipping_address
     address.country = "DE"
@@ -528,7 +532,7 @@ def test_update_order_prices_tax_included(order_with_lines, vatlayer):
         channel_id=order_with_lines.channel_id
     ).price
 
-    update_order_prices(order_with_lines)
+    update_order_prices(order_with_lines, manager)
 
     line_1.refresh_from_db()
     line_2.refresh_from_db()
