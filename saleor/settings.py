@@ -16,6 +16,7 @@ from django.core.management.utils import get_random_secret_key
 from pytimeparse import parse
 from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
+from sentry_sdk.integrations.logging import ignore_logger
 
 
 def get_list(text):
@@ -325,6 +326,9 @@ LOGGING = {
             "class": "logging.StreamHandler",
             "formatter": "django.server" if DEBUG else "json",
         },
+        "null": {
+            "class": "logging.NullHandler",
+        },
     },
     "loggers": {
         "django": {"level": "INFO", "propagate": True},
@@ -339,7 +343,7 @@ LOGGING = {
             "level": "INFO",
             "propagate": False,
         },
-        "graphql.execution.utils": {"propagate": False},
+        "graphql.execution.utils": {"propagate": False, "handlers": ["null"]},
     },
 }
 
@@ -496,6 +500,7 @@ if SENTRY_DSN:
     sentry_sdk.init(
         dsn=SENTRY_DSN, integrations=[CeleryIntegration(), DjangoIntegration()]
     )
+    ignore_logger("graphql.execution.utils")
 
 GRAPHENE = {
     "RELAY_CONNECTION_ENFORCE_FIRST_OR_LAST": True,

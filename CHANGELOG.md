@@ -8,6 +8,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Refactor plugins manager(add missing tracing, optimize imports, drop plugins manager from settings) - #6890 by @fowczarek
 - Add CUSTOMER_UPDATED webhook, add addresses field to customer CUSTOMER_CREATED webhook - #6898 by @piotrgrundas
 - Add missing span in PluginManager - #6900 by @fowczarek
+- Fix Sentry reporting - #6902 by @fowczarek
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
