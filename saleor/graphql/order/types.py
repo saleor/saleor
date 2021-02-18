@@ -496,20 +496,20 @@ class Order(CountableDjangoObjectType):
         Money,
         description="Returns applied discount.",
         deprecation_reason=(
-            "Use discounts field. This field will be removed after 2021-08-01"
+            "Use discounts field. This field will be removed in Saleor 4.0."
         ),
     )
     discount_name = graphene.String(
         description="Discount name.",
         deprecation_reason=(
-            "Use discounts field. This field will be removed after 2021-08-01"
+            "Use discounts field. This field will be removed in Saleor 4.0."
         ),
     )
 
     translated_discount_name = graphene.String(
         description="Translated discount name.",
         deprecation_reason=(
-            "Use discounts field. This field will be removed after 2021-08-01"
+            "Use discounts field. This field will be removed in Saleor 4.0."
         ),
     )
 

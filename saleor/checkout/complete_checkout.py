@@ -363,6 +363,9 @@ def _create_order(
         channel=checkout.channel,
     )
     if checkout.discount:
+        # store voucher as a fixed value as it this the simplest solution for now.
+        # This will be solved when we refactor the voucher logic to use .discounts
+        # relations
         order.discounts.create(
             type=OrderDiscountType.VOUCHER,
             value_type=DiscountValueType.FIXED,
