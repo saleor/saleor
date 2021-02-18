@@ -3,7 +3,7 @@ import uuid
 import warnings
 from decimal import Decimal
 from unittest import mock
-from unittest.mock import ANY, patch
+from unittest.mock import patch
 
 import graphene
 import pytest
@@ -53,7 +53,8 @@ def test_clean_shipping_method_after_shipping_address_changes_stay_the_same(
     checkout.shipping_address = address
 
     lines = fetch_checkout_lines(checkout)
-    is_valid_method = clean_shipping_method(checkout, lines, shipping_method, [])
+    checkout_info = fetch_checkout_info(checkout, lines, [])
+    is_valid_method = clean_shipping_method(checkout_info, lines, shipping_method)
     assert is_valid_method is True
 
 
@@ -65,7 +66,8 @@ def test_clean_shipping_method_does_nothing_if_no_shipping_method(
     checkout = checkout_with_single_item
     checkout.shipping_address = address
     lines = fetch_checkout_lines(checkout)
-    is_valid_method = clean_shipping_method(checkout, lines, None, [])
+    checkout_info = fetch_checkout_info(checkout, lines, [])
+    is_valid_method = clean_shipping_method(checkout_info, lines, None)
     assert is_valid_method is True
 
 
@@ -2605,6 +2607,7 @@ def test_checkout_shipping_method_update(
     is_valid_shipping_method,
 ):
     checkout = checkout_with_item
+    old_shipping_method = checkout.shipping_method
     query = MUTATION_UPDATE_SHIPPING_METHOD
     mock_clean_shipping.return_value = is_valid_shipping_method
 
@@ -2619,8 +2622,11 @@ def test_checkout_shipping_method_update(
     checkout.refresh_from_db()
 
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
+    checkout_info.shipping_method = old_shipping_method
+    checkout_info.shipping_method_channel_listings = None
     mock_clean_shipping.assert_called_once_with(
-        checkout=checkout, lines=lines, method=shipping_method, discounts=ANY
+        checkout_info=checkout_info, lines=lines, method=shipping_method
     )
 
     if is_valid_shipping_method:
