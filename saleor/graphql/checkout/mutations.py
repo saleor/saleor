@@ -52,10 +52,9 @@ if TYPE_CHECKING:
 
 
 def clean_shipping_method(
-    checkout: models.Checkout,
+    checkout_info: "CheckoutInfo",
     lines: Iterable[CheckoutLineInfo],
     method: Optional[models.ShippingMethod],
-    discounts,
 ) -> bool:
     """Check if current shipping method is valid."""
 
@@ -68,14 +67,14 @@ def clean_shipping_method(
             ERROR_DOES_NOT_SHIP, code=CheckoutErrorCode.SHIPPING_NOT_REQUIRED.value
         )
 
-    if not checkout.shipping_address:
+    if not checkout_info.shipping_address:
         raise ValidationError(
             "Cannot choose a shipping method for a checkout without the "
             "shipping address.",
             code=CheckoutErrorCode.SHIPPING_ADDRESS_NOT_SET.value,
         )
 
-    valid_methods = get_valid_shipping_methods_for_checkout(checkout, lines, discounts)
+    valid_methods = checkout_info.valid_shipping_methods
     return method in valid_methods
 
 
@@ -90,10 +89,9 @@ def update_checkout_shipping_method_if_invalid(
         checkout.save(update_fields=["shipping_method", "last_change"])
 
     is_valid = clean_shipping_method(
-        checkout=checkout,
+        checkout_info=checkout_info,
         lines=lines,
         method=checkout_info.shipping_method,
-        discounts=discounts,
     )
 
     if not is_valid:
@@ -742,6 +740,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
         lines = fetch_checkout_lines(checkout)
+        checkout_info = fetch_checkout_info(checkout, lines, info.context.discounts)
         if not is_shipping_required(lines):
             raise ValidationError(
                 {
@@ -763,10 +762,9 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         )
 
         shipping_method_is_valid = clean_shipping_method(
-            checkout=checkout,
+            checkout_info=checkout_info,
             lines=lines,
             method=shipping_method,
-            discounts=info.context.discounts,
         )
         if not shipping_method_is_valid:
             raise ValidationError(
