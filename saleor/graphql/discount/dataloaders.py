@@ -129,8 +129,8 @@ class OrderDiscountsByOrderIDLoader(DataLoader):
     context_key = "orderdiscounts_by_order_id"
 
     def batch_load(self, keys):
-        discounts = OrderDiscount.objects.filter(order_id__in=keys).order_by("pk")
+        discounts = OrderDiscount.objects.filter(order_id__in=keys)
         discount_map = defaultdict(list)
-        for discount in discounts.iterator():
+        for discount in discounts:
             discount_map[discount.order_id].append(discount)
         return [discount_map.get(order_id, []) for order_id in keys]
