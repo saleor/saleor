@@ -89,7 +89,7 @@ def test_update_checkout_shipping_method_if_invalid(
 
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [])
-    update_checkout_shipping_method_if_invalid(checkout_info, lines, None)
+    update_checkout_shipping_method_if_invalid(checkout_info, lines)
 
     assert checkout.shipping_method == other_shipping_method
 
@@ -1340,9 +1340,7 @@ def test_checkout_lines_add(
 
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [])
-    mocked_update_shipping_method.assert_called_once_with(
-        checkout_info, lines, mock.ANY
-    )
+    mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
 
 
 def test_checkout_lines_add_with_unpublished_product(
@@ -1585,9 +1583,7 @@ def test_checkout_lines_update(
 
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [])
-    mocked_update_shipping_method.assert_called_once_with(
-        checkout_info, lines, mock.ANY
-    )
+    mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
 
 
 def test_create_checkout_with_unpublished_product(
@@ -1752,9 +1748,7 @@ def test_checkout_line_delete(
     assert checkout.lines.count() == 0
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [])
-    mocked_update_shipping_method.assert_called_once_with(
-        checkout_info, lines, mock.ANY
-    )
+    mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
 
 
 @mock.patch(
@@ -1786,9 +1780,7 @@ def test_checkout_line_delete_by_zero_quantity(
     assert checkout.lines.count() == 0
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [])
-    mocked_update_shipping_method.assert_called_once_with(
-        checkout_info, lines, mock.ANY
-    )
+    mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
 
 
 def test_checkout_customer_attach(
@@ -1950,9 +1942,7 @@ def test_checkout_shipping_address_update(
         ),
         channel=checkout.channel,
     )
-    mocked_update_shipping_method.assert_called_once_with(
-        checkout_info, lines, mock.ANY
-    )
+    mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
 
 
 @mock.patch(
@@ -2014,9 +2004,7 @@ def test_checkout_shipping_address_update_changes_checkout_country(
         ),
         channel=checkout.channel,
     )
-    mocked_update_shipping_method.assert_called_once_with(
-        checkout_info, lines, mock.ANY
-    )
+    mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.country == shipping_address["country"]
 
 

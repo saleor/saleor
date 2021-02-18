@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Iterable, List, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 if TYPE_CHECKING:
     from ..account.models import Address, User
@@ -44,7 +44,7 @@ class CheckoutInfo:
     billing_address: Optional["Address"]
     shipping_address: Optional["Address"]
     shipping_method: Optional["ShippingMethod"]
-    valid_shipping_methods: Iterable["ShippingMethod"]
+    valid_shipping_methods: List["ShippingMethod"]
     shipping_method_channel_listings: Optional["ShippingMethodChannelListing"]
 
     def get_country(self) -> str:
