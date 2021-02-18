@@ -4100,7 +4100,6 @@ enum ProductMediaType {
   VIDEO_YOUTUBE
   VIDEO_STREAMABLE
   VIDEO_VIMEO
-  VIDEO_UNKNOWN
 }
 
 type ProductMediaUpdate {

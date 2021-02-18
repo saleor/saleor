@@ -2,14 +2,13 @@ import re
 from typing import Tuple
 
 from django.core.exceptions import ValidationError
-from django.core.validators import URLValidator
 
 from ...product import ProductMediaTypes
 from ...product.error_codes import ProductErrorCode
 
 
 def validate_video_url(url: str, field_name: str) -> Tuple[str, str]:
-    """Check the video URL and return the proper ProductMediaType."""
+    """Validate the video URL and return the proper ProductMediaType."""
     youtube_pattern = re.compile(r"(?:youtube.com|youtu.be).*(?:v=|watch\/|\/)([\w]*)")
     streamable_pattern = re.compile(
         r"^(?:http[s]?://)?(?:www\.)?streamable.com/([\w]*)"
@@ -39,16 +38,10 @@ def validate_video_url(url: str, field_name: str) -> Tuple[str, str]:
             ProductMediaTypes.VIDEO_VIMEO,
         )
 
-    url_validator = URLValidator()
-    try:
-        url_validator(url)
-    except ValidationError:
-        raise ValidationError(
-            {
-                field_name: ValidationError(
-                    "Enter a valid URL.", code=ProductErrorCode.INVALID.value
-                )
-            }
-        )
-
-    return url, ProductMediaTypes.VIDEO_UNKNOWN
+    raise ValidationError(
+        {
+            field_name: ValidationError(
+                "Enter a valid URL.", code=ProductErrorCode.INVALID.value
+            )
+        }
+    )

@@ -1889,13 +1889,65 @@ def test_query_products_with_filter_ids(
     assert [node["node"]["id"] for node in products_data] == product_ids
 
 
+def test_query_product_media_by_id(user_api_client, product_with_image, channel_USD):
+    query = """
+    query productMediaById($mediaId: ID!, $productId: ID!, $channel: String) {
+        product(id: $productId, channel: $channel) {
+            mediaById(id: $mediaId) {
+                id
+                url(size: 200)
+            }
+        }
+    }
+    """
+    media = product_with_image.media.first()
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
+        "mediaId": graphene.Node.to_global_id("ProductMedia", media.pk),
+        "channel": channel_USD.slug,
+    }
+
+    response = user_api_client.post_graphql(query, variables)
+
+    content = get_graphql_content(response)
+    assert content["data"]["product"]["mediaById"]["id"]
+    assert content["data"]["product"]["mediaById"]["url"]
+
+
+def test_query_product_media_by_id_missing_id(
+    user_api_client, product_with_image, channel_USD
+):
+    query = """
+    query productMediaById($mediaId: ID!, $productId: ID!, $channel: String) {
+        product(id: $productId, channel: $channel) {
+            mediaById(id: $mediaId) {
+                id
+                url
+            }
+        }
+    }
+    """
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
+        "mediaId": graphene.Node.to_global_id("ProductMedia", 9999),
+        "channel": channel_USD.slug,
+    }
+
+    response = user_api_client.post_graphql(query, variables)
+
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == "Product media not found."
+    assert content["data"]["product"]["mediaById"] is None
+
+
 def test_query_product_image_by_id(user_api_client, product_with_image, channel_USD):
     query = """
     query productMediaById($imageId: ID!, $productId: ID!, $channel: String) {
         product(id: $productId, channel: $channel) {
-            mediaById(id: $imageId) {
+            imageById(id: $imageId) {
                 id
-                url
+                url(size: 200)
             }
         }
     }
@@ -1906,10 +1958,39 @@ def test_query_product_image_by_id(user_api_client, product_with_image, channel_
         "imageId": graphene.Node.to_global_id("ProductMedia", media.pk),
         "channel": channel_USD.slug,
     }
+
     response = user_api_client.post_graphql(query, variables)
-    data = get_graphql_content(response)
-    assert data["data"]["product"]["mediaById"]["id"]
-    assert data["data"]["product"]["mediaById"]["url"]
+
+    content = get_graphql_content(response)
+    assert content["data"]["product"]["imageById"]["id"]
+    assert content["data"]["product"]["imageById"]["url"]
+
+
+def test_query_product_image_by_id_missing_id(
+    user_api_client, product_with_image, channel_USD
+):
+    query = """
+    query productImageById($imageId: ID!, $productId: ID!, $channel: String) {
+        product(id: $productId, channel: $channel) {
+            imageById(id: $imageId) {
+                id
+                url
+            }
+        }
+    }
+    """
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
+        "imageId": graphene.Node.to_global_id("ProductMedia", 9999),
+        "channel": channel_USD.slug,
+    }
+
+    response = user_api_client.post_graphql(query, variables)
+
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == "Product image not found."
+    assert content["data"]["product"]["imageById"] is None
 
 
 def test_product_with_collections(
@@ -6057,11 +6138,10 @@ def test_product_media_create_mutation_with_unknown_url(
     )
 
     content = get_graphql_content(response)
-    media = content["data"]["productMediaCreate"]["product"]["media"]
-    assert len(media) == 1
-    assert media[0]["url"] == "https://www.videohosting.com/SomeVideoID"
-    assert media[0]["alt"] == "Test Alt Text"
-    assert media[0]["type"] == "VIDEO_UNKNOWN"
+    errors = content["data"]["productMediaCreate"]["productErrors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductErrorCode.INVALID.name
+    assert errors[0]["field"] == "videoUrl"
 
 
 def test_invalid_product_media_create_mutation(

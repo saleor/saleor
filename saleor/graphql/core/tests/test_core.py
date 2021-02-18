@@ -395,15 +395,6 @@ def test_validate_video_url(url, expected_video_type, expected_video_url):
     assert video_type == expected_video_type
 
 
-def test_validate_video_url_unknown_provider():
-    video_url, video_type = validate_video_url(
-        "https://some-external-hosting.com/video/148751763", "video_url"
-    )
-
-    assert video_url == "https://some-external-hosting.com/video/148751763"
-    assert video_type == ProductMediaTypes.VIDEO_UNKNOWN
-
-
 def test_validate_video_url_invalid_url():
     with pytest.raises(ValidationError, match="Enter a valid URL."):
         validate_video_url("test-invalid-url", "video_url")

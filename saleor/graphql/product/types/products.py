@@ -754,7 +754,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         try:
             return root.node.media.get(pk=pk)
         except models.ProductMedia.DoesNotExist:
-            raise GraphQLError("Product media not found.")
+            raise GraphQLError("Product image not found.")
 
     @staticmethod
     def resolve_media(root: ChannelContext[models.Product], info, **_kwargs):
