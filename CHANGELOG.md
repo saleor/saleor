@@ -6,7 +6,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add query contains only schema validation - #6827 by @fowczarek
 - Add introspection caching - #6871 by @fowczarek
 - Refactor plugins manager(add missing tracing, optimize imports, drop plugins manager from settings) - #6890 by @fowczarek
-- Add CUSTOMER_UPDATED webhook - #6898 by @piotrgrundas
+- Add CUSTOMER_UPDATED webhook, add addresses field to customer CUSTOMER_CREATED webhook - #6898 by @piotrgrundas
 - Add missing span in PluginManager - #6900 by @fowczarek
 
 ### Breaking
