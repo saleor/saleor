@@ -29,9 +29,9 @@ from ..giftcard.utils import (
 )
 from ..plugins.manager import PluginsManager, get_plugins_manager
 from ..product import models as product_models
-from ..shipping.models import ShippingMethod
+from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ..warehouse.availability import check_stock_quantity, check_stock_quantity_bulk
-from . import AddressType, CheckoutLineInfo
+from . import AddressType, CheckoutInfo, CheckoutLineInfo
 from .models import Checkout, CheckoutLine
 
 if TYPE_CHECKING:
@@ -701,6 +701,38 @@ def fetch_checkout_lines(checkout: Checkout) -> Iterable[CheckoutLineInfo]:
             )
         )
     return lines_info
+
+
+def fetch_checkout_info(
+    checkout: Checkout,
+    lines: Iterable[CheckoutLineInfo],
+    discounts: Iterable[DiscountInfo],
+) -> CheckoutInfo:
+    """Fetch checkout as CheckoutInfo object."""
+    channel = checkout.channel
+    shipping_address = checkout.shipping_address
+    shipping_method = checkout.shipping_method
+    shipping_channel_listings = ShippingMethodChannelListing.objects.filter(
+        shipping_method=shipping_method, channel=channel
+    ).first()
+    country_code = shipping_address.country.code if shipping_address else None
+    valid_shipping_method = get_valid_shipping_methods_for_checkout(
+        checkout, lines, discounts, country_code=country_code
+    )
+    valid_shipping_method = (
+        list(valid_shipping_method) if valid_shipping_method is not None else []
+    )
+
+    return CheckoutInfo(
+        checkout=checkout,
+        user=checkout.user,
+        channel=channel,
+        billing_address=checkout.billing_address,
+        shipping_address=shipping_address,
+        shipping_method=shipping_method,
+        shipping_method_channel_listings=shipping_channel_listings,
+        valid_shipping_methods=valid_shipping_method,
+    )
 
 
 def is_shipping_required(lines: Iterable[CheckoutLineInfo]):
