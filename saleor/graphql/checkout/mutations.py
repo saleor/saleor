@@ -29,7 +29,6 @@ from ...core.exceptions import InsufficientStock, PermissionDenied, ProductNotPu
 from ...core.transactions import transaction_with_commit_on_errors
 from ...order import models as order_models
 from ...product import models as product_models
-from ...reservation.stock import remove_user_reservations
 from ...shipping import models as shipping_models
 from ...warehouse.availability import check_stock_quantity_bulk
 from ..account.i18n import I18nMixin
@@ -356,11 +355,6 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                     code=exc.code,
                 )
 
-        # If authenticated, remove any stock reservations made by the user
-        user = info.context.user
-        if user.is_authenticated:
-            remove_user_reservations(user, country, variants)
-
         # Save addresses
         shipping_address = cleaned_input.get("shipping_address")
         if shipping_address and instance.is_shipping_required():
@@ -442,7 +436,11 @@ class CheckoutLinesAdd(BaseMutation):
             for variant, quantity in zip(variants, quantities):
                 try:
                     checkout = add_variant_to_checkout(
-                        checkout, variant, quantity, replace=replace
+                        checkout,
+                        variant,
+                        quantity,
+                        replace=replace,
+                        user=info.context.user,
                     )
                 except InsufficientStock as exc:
                     error = prepare_insufficient_stock_checkout_validation_error(exc)

@@ -48,7 +48,7 @@ def get_user_checkout(
 
 
 def check_variant_in_stock(
-    checkout, variant, quantity=1, replace=False, check_quantity=True
+    checkout, variant, quantity=1, replace=False, check_quantity=True, user=None
 ) -> Tuple[int, Optional[CheckoutLine]]:
     """Check if a given variant is in stock and return the new quantity + line."""
     line = checkout.lines.filter(variant=variant).first()
@@ -62,13 +62,13 @@ def check_variant_in_stock(
         )
 
     if new_quantity > 0 and check_quantity:
-        check_stock_quantity(variant, checkout.get_country(), new_quantity)
+        check_stock_quantity(variant, checkout.get_country(), new_quantity, user=user)
 
     return new_quantity, line
 
 
 def add_variant_to_checkout(
-    checkout, variant, quantity=1, replace=False, check_quantity=True
+    checkout, variant, quantity=1, replace=False, check_quantity=True, user=None
 ):
     """Add a product variant to checkout.
 
@@ -87,6 +87,7 @@ def add_variant_to_checkout(
         quantity=quantity,
         replace=replace,
         check_quantity=check_quantity,
+        user=user,
     )
 
     if line is None:

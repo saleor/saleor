@@ -35,6 +35,7 @@ from ..payment import PaymentError, gateway
 from ..payment.models import Payment, Transaction
 from ..payment.utils import store_customer_id
 from ..product.models import ProductTranslation, ProductVariantTranslation
+from ..reservation.stock import remove_user_reservations
 from ..warehouse.availability import check_stock_quantity_bulk
 from ..warehouse.management import allocate_stocks
 from . import AddressType, models
@@ -241,7 +242,7 @@ def _create_lines_for_order(
         for variant_translation in variants_translation
     }
 
-    check_stock_quantity_bulk(variants, country_code, quantities)
+    check_stock_quantity_bulk(variants, country_code, quantities, checkout.user)
 
     return [
         _create_line_for_order(
@@ -577,6 +578,11 @@ def complete_checkout(
             )
             # remove checkout after order is successfully created
             checkout.delete()
+            # remove stock reservations if user is authenticated
+            if user.is_authenticated:
+                remove_user_reservations(
+                    user, checkout.get_country(), [l.variant for l in lines]
+                )
         except InsufficientStock as e:
             release_voucher_usage(order_data)
             gateway.payment_refund_or_void(payment)

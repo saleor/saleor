@@ -1092,7 +1092,6 @@ def test_checkout_create_check_lines_client_reserved_quantity(
     data = content["data"]["checkoutCreate"]
     assert not data["checkoutErrors"]
     assert Checkout.objects.exists()
-    assert not Reservation.objects.exists()
 
 
 def test_checkout_create_unavailable_for_purchase_product(
@@ -1524,6 +1523,112 @@ def test_checkout_lines_add_too_many(user_api_client, checkout_with_item, stock)
             "variants": None,
         }
     ]
+
+
+@mock.patch(
+    "saleor.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
+    wraps=update_checkout_shipping_method_if_invalid,
+)
+def test_checkout_lines_add_product_reserved_by_user(
+    mocked_update_shipping_method,
+    user_api_client,
+    checkout_with_item,
+    variant_with_reserved_stock,
+):
+    variant = variant_with_reserved_stock
+    checkout = checkout_with_item
+    checkout.lines.all().delete()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    variables = {
+        "checkoutId": checkout_id,
+        "lines": [{"variantId": variant_id, "quantity": 4}],
+        "channelSlug": checkout.channel.slug,
+    }
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesAdd"]
+    assert not data["checkoutErrors"]
+    checkout.refresh_from_db()
+    line = checkout.lines.latest("pk")
+    assert line.variant == variant
+    assert line.quantity == 4
+
+    lines = fetch_checkout_lines(checkout)
+    mocked_update_shipping_method.assert_called_once_with(checkout, lines, mock.ANY)
+
+
+@mock.patch(
+    "saleor.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
+    wraps=update_checkout_shipping_method_if_invalid,
+)
+def test_checkout_lines_add_product_reserved_by_other_user(
+    mocked_update_shipping_method,
+    api_client,
+    checkout_with_item,
+    variant_with_reserved_stock,
+):
+    variant = variant_with_reserved_stock
+    checkout = checkout_with_item
+    checkout.lines.all().delete()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    variables = {
+        "checkoutId": checkout_id,
+        "lines": [{"variantId": variant_id, "quantity": 1}],
+        "channelSlug": checkout.channel.slug,
+    }
+    response = api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesAdd"]
+    assert not data["checkoutErrors"]
+    checkout.refresh_from_db()
+    line = checkout.lines.latest("pk")
+    assert line.variant == variant
+    assert line.quantity == 4
+
+    lines = fetch_checkout_lines(checkout)
+    mocked_update_shipping_method.assert_called_once_with(checkout, lines, mock.ANY)
+
+
+@mock.patch(
+    "saleor.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
+    wraps=update_checkout_shipping_method_if_invalid,
+)
+def test_checkout_lines_add_product_over_quantity_reserved_by_other_user_fails(
+    mocked_update_shipping_method,
+    api_client,
+    checkout_with_item,
+    variant_with_reserved_stock,
+):
+    variant = variant_with_reserved_stock
+    checkout = checkout_with_item
+    checkout.lines.all().delete()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    variables = {
+        "checkoutId": checkout_id,
+        "lines": [{"variantId": variant_id, "quantity": 2}],
+        "channelSlug": checkout.channel.slug,
+    }
+    response = api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesAdd"]
+    assert data["checkoutErrors"] == [
+        {
+            "code": "INSUFFICIENT_STOCK",
+            "field": "quantity",
+            "message": (
+                "Could not add item Test product (SKU_A). Only 1 remaining in stock."
+            ),
+            "variants": None,
+        }
+    ]
+    checkout.refresh_from_db()
+    assert not checkout.lines.exists()
 
 
 def test_checkout_lines_add_empty_checkout(user_api_client, checkout, stock):
