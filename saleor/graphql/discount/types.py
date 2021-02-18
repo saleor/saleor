@@ -1,7 +1,7 @@
 import graphene
 from graphene import relay
 
-from ...core.permissions import DiscountPermissions
+from ...core.permissions import DiscountPermissions, OrderPermissions
 from ...discount import models
 from ..channel.dataloaders import ChannelByIdLoader
 from ..channel.types import ChannelContext, ChannelContextType
@@ -301,3 +301,8 @@ class OrderDiscount(CountableDjangoObjectType):
         ]
         interfaces = [relay.Node]
         model = models.OrderDiscount
+
+    @staticmethod
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
+    def resolve_reason(root: models.OrderDiscount, _info):
+        return root.reason

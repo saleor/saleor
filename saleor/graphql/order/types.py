@@ -28,7 +28,7 @@ from ..core.scalars import PositiveDecimal
 from ..core.types.common import Image
 from ..core.types.money import Money, TaxedMoney
 from ..decorators import one_of_permissions_required, permission_required
-from ..discount.dataloaders import VoucherByIdLoader
+from ..discount.dataloaders import OrderDiscountsByOrderIDLoader, VoucherByIdLoader
 from ..discount.enums import DiscountValueTypeEnum
 from ..giftcard.types import GiftCard
 from ..invoice.types import Invoice
@@ -569,20 +569,20 @@ class Order(CountableDjangoObjectType):
         Money,
         description="Returns applied discount.",
         deprecation_reason=(
-            "Use discounts field. This field will be removed after 2021-08-01"
+            "Use discounts field. This field will be removed in Saleor 4.0."
         ),
     )
     discount_name = graphene.String(
         description="Discount name.",
         deprecation_reason=(
-            "Use discounts field. This field will be removed after 2021-08-01"
+            "Use discounts field. This field will be removed in Saleor 4.0."
         ),
     )
 
     translated_discount_name = graphene.String(
         description="Translated discount name.",
         deprecation_reason=(
-            "Use discounts field. This field will be removed after 2021-08-01"
+            "Use discounts field. This field will be removed in Saleor 4.0."
         ),
     )
 
@@ -624,8 +624,7 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_discounts(root: models.Order, info):
-        # FIXME The discount should be visible to user without the reason field
-        return root.discounts.all()
+        return OrderDiscountsByOrderIDLoader(info.context).load(root.id)
 
     @staticmethod
     def resolve_discount(root: models.Order, info):
