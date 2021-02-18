@@ -5,7 +5,11 @@ import pytest
 from ....account.models import Address
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.models import Checkout
-from ....checkout.utils import add_variant_to_checkout, fetch_checkout_lines
+from ....checkout.utils import (
+    add_variant_to_checkout,
+    fetch_checkout_info,
+    fetch_checkout_lines,
+)
 from ...checkout.mutations import update_checkout_shipping_method_if_invalid
 from ...tests.utils import get_graphql_content
 from .test_checkout import (
@@ -160,7 +164,8 @@ def test_remove_shipping_method_if_only_digital_in_checkout(
 
     assert checkout.shipping_method
     lines = fetch_checkout_lines(checkout)
-    update_checkout_shipping_method_if_invalid(checkout, lines, None)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
+    update_checkout_shipping_method_if_invalid(checkout_info, lines, None)
 
     checkout.refresh_from_db()
     assert not checkout.shipping_method
