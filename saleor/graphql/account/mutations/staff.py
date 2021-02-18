@@ -511,6 +511,7 @@ class AddressSetDefault(BaseMutation):
             address_type = AddressType.SHIPPING
 
         utils.change_user_default_address(user, address, address_type)
+        info.context.plugins.customer_updated(user)
         return cls(user=user)
 
 
