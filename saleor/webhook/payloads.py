@@ -199,7 +199,7 @@ def generate_customer_payload(customer: "User"):
             "addresses": (
                 lambda c: c.addresses.all(),
                 ADDRESS_FIELDS,
-            )
+            ),
         },
     )
     return data
@@ -373,10 +373,7 @@ def generate_sample_payload(event_name: str) -> Optional[dict]:
         WebhookEventType.PAGE_DELETED,
         WebhookEventType.PAGE_UPDATED,
     ]
-    user_events = [
-        WebhookEventType.CUSTOMER_CREATED,
-        WebhookEventType.CUSTOMER_UPDATED
-    ]
+    user_events = [WebhookEventType.CUSTOMER_CREATED, WebhookEventType.CUSTOMER_UPDATED]
 
     if event_name in user_events:
         user = generate_fake_user()
