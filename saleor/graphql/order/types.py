@@ -77,11 +77,11 @@ class OrderDiscount(graphene.ObjectType):
     value_type = graphene.Field(
         DiscountValueTypeEnum,
         required=True,
-        description="Type of the discount: fixed or percent",
+        description="Type of the discount: fixed or percent.",
     )
     value = PositiveDecimal(
         required=True,
-        description="Value of the discount. Can store fixed value or percent value",
+        description="Value of the discount. Can store fixed value or percent value.",
     )
     reason = graphene.String(
         required=False, description="Explanation for the applied discount."
@@ -93,11 +93,11 @@ class OrderEventDiscountObject(OrderDiscount):
     old_value_type = graphene.Field(
         DiscountValueTypeEnum,
         required=False,
-        description="Type of the discount: fixed or percent",
+        description="Type of the discount: fixed or percent.",
     )
     old_value = PositiveDecimal(
         required=False,
-        description="Value of the discount. Can store fixed value or percent value",
+        description="Value of the discount. Can store fixed value or percent value.",
     )
     old_amount = graphene.Field(
         Money, required=False, description="Returns amount of discount."
