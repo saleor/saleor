@@ -7,6 +7,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add introspection caching - #6871 by @fowczarek
 - Refactor plugins manager(add missing tracing, optimize imports, drop plugins manager from settings) - #6890 by @fowczarek
 - Add missing span in PluginManager - #6900 by @fowczarek
+- Fix Sentry reporting - #6902 by @fowczarek
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
