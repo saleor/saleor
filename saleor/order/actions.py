@@ -311,6 +311,7 @@ def clean_mark_order_as_paid(order: "Order"):
         )
 
 
+@transaction.atomic
 def fulfill_order_lines(order_lines_info: Iterable["OrderLineData"]):
     """Fulfill order line with given quantity."""
     lines_to_decrease_stock = get_order_lines_with_track_inventory(order_lines_info)
@@ -325,6 +326,7 @@ def fulfill_order_lines(order_lines_info: Iterable["OrderLineData"]):
     OrderLine.objects.bulk_update(order_lines, ["quantity_fulfilled"])
 
 
+@transaction.atomic
 def automatically_fulfill_digital_lines(order: "Order"):
     """Fulfill all digital lines which have enabled automatic fulfillment setting.
 
@@ -549,6 +551,7 @@ def _get_fulfillment_line(
     return moved_line, fulfillment_line_existed
 
 
+@transaction.atomic()
 def _move_order_lines_to_target_fulfillment(
     order_lines_to_move: List[OrderLineData],
     lines_in_target_fulfillment: List[FulfillmentLine],
@@ -608,6 +611,7 @@ def _move_order_lines_to_target_fulfillment(
     OrderLine.objects.bulk_update(order_lines_to_update, ["quantity_fulfilled"])
 
 
+@transaction.atomic()
 def _move_fulfillment_lines_to_target_fulfillment(
     fulfillment_lines_to_move: List[FulfillmentLineData],
     lines_in_target_fulfillment: List[FulfillmentLine],
