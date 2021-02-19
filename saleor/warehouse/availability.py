@@ -46,13 +46,7 @@ def check_stock_quantity(
         reserved_quantity = get_reserved_quantity(variant, country_code, user)
         available_quantity = max(_get_available_quantity(stocks) - reserved_quantity, 0)
         if quantity > available_quantity:
-<<<<<<< HEAD
             raise InsufficientStock([InsufficientStockData(variant=variant)])
-=======
-            raise InsufficientStock(
-                variant, context={"available_quantity": available_quantity}
-            )
->>>>>>> c6a5fa99f... Format code with black
 
 
 def check_stock_quantity_bulk(

@@ -16,6 +16,7 @@ from ....payment import ChargeStatus, PaymentError, TransactionKind
 from ....payment.gateways.dummy_credit_card import TOKEN_VALIDATION_MAPPING
 from ....payment.interface import GatewayResponse
 from ....plugins.manager import PluginsManager, get_plugins_manager
+from ....reservation.models import Reservation
 from ....warehouse.models import Stock
 from ....warehouse.tests.utils import get_available_quantity_for_stock
 from ...tests.utils import get_graphql_content
@@ -1119,3 +1120,215 @@ def test_checkout_complete_0_total_value(
     assert not Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
+
+
+@pytest.mark.integration
+@patch("saleor.plugins.manager.PluginsManager.order_confirmed")
+def test_checkout_complete_removes_reservations(
+    order_confirmed_mock,
+    site_settings,
+    user_api_client,
+    customer_user,
+    checkout_with_gift_card,
+    gift_card,
+    payment_dummy,
+    address,
+    shipping_method,
+    variant_with_reserved_stock,
+):
+
+    assert not gift_card.last_used_on
+
+    checkout = checkout_with_gift_card
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.user = customer_user
+    checkout.store_value_in_metadata(items={"accepted": "true"})
+    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.save()
+
+    checkout_line = checkout.lines.first()
+    checkout_line.variant = variant_with_reserved_stock
+    checkout_line.quantity = 3
+    checkout_line.save()
+
+    checkout_line_quantity = checkout_line.quantity
+    checkout_line_variant = checkout_line.variant
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout, lines, address
+    )
+    site_settings.automatically_confirm_all_new_orders = True
+    site_settings.save()
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    orders_count = Order.objects.count()
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    redirect_url = "https://www.example.com"
+    variables = {"checkoutId": checkout_id, "redirectUrl": redirect_url}
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["checkoutErrors"]
+
+    order_token = data["order"]["token"]
+    assert Order.objects.count() == orders_count + 1
+    order = Order.objects.first()
+    assert order.token == order_token
+
+    assert not Checkout.objects.filter(
+        pk=checkout.pk
+    ).exists(), "Checkout should have been deleted"
+    order_confirmed_mock.assert_called_once_with(order)
+
+    assert not Reservation.objects.exists()
+
+
+@pytest.mark.integration
+@patch("saleor.plugins.manager.PluginsManager.order_confirmed")
+def test_checkout_complete_ships_other_users_reservations(
+    order_confirmed_mock,
+    site_settings,
+    api_client,
+    checkout_with_gift_card,
+    gift_card,
+    payment_dummy,
+    address,
+    shipping_method,
+    variant_with_reserved_stock,
+):
+
+    assert not gift_card.last_used_on
+
+    checkout = checkout_with_gift_card
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.store_value_in_metadata(items={"accepted": "true"})
+    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.save()
+
+    checkout_line = checkout.lines.first()
+    checkout_line.variant = variant_with_reserved_stock
+    checkout_line.quantity = 1
+    checkout_line.save()
+
+    checkout_line_quantity = checkout_line.quantity
+    checkout_line_variant = checkout_line.variant
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout, lines, address
+    )
+    site_settings.automatically_confirm_all_new_orders = True
+    site_settings.save()
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    orders_count = Order.objects.count()
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    redirect_url = "https://www.example.com"
+    variables = {"checkoutId": checkout_id, "redirectUrl": redirect_url}
+    response = api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["checkoutErrors"]
+
+    order_token = data["order"]["token"]
+    assert Order.objects.count() == orders_count + 1
+    order = Order.objects.first()
+    assert order.token == order_token
+
+    assert not Checkout.objects.filter(
+        pk=checkout.pk
+    ).exists(), "Checkout should have been deleted"
+    order_confirmed_mock.assert_called_once_with(order)
+
+    assert Reservation.objects.exists()
+
+
+@pytest.mark.integration
+@patch("saleor.plugins.manager.PluginsManager.order_confirmed")
+def test_checkout_complete_fails_if_theres_not_enough_non_reserved_stock(
+    order_confirmed_mock,
+    site_settings,
+    api_client,
+    checkout_with_gift_card,
+    gift_card,
+    payment_dummy,
+    address,
+    shipping_method,
+    variant_with_reserved_stock,
+):
+
+    assert not gift_card.last_used_on
+
+    checkout = checkout_with_gift_card
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.store_value_in_metadata(items={"accepted": "true"})
+    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.save()
+
+    checkout_line = checkout.lines.first()
+    checkout_line.variant = variant_with_reserved_stock
+    checkout_line.quantity = 2
+    checkout_line.save()
+
+    checkout_line_quantity = checkout_line.quantity
+    checkout_line_variant = checkout_line.variant
+
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout, lines, address
+    )
+    site_settings.automatically_confirm_all_new_orders = True
+    site_settings.save()
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    orders_count = Order.objects.count()
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    redirect_url = "https://www.example.com"
+    variables = {"checkoutId": checkout_id, "redirectUrl": redirect_url}
+    response = api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert data["checkoutErrors"] == [
+        {
+            "code": "INSUFFICIENT_STOCK",
+            "field": None,
+            "message": "Insufficient product stock: SKU_A",
+        }
+    ]
+
+    assert Order.objects.count() == orders_count
+    order_confirmed_mock.assert_not_called()
