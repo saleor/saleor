@@ -29,7 +29,7 @@ from ...core.types.common import OrderError
 from ...product.types import ProductVariant
 from ..types import Order, OrderLine
 from ..utils import (
-    prepare_insufficient_stock_validation_errors,
+    prepare_insufficient_stock_order_validation_errors,
     validate_draft_order,
     validate_product_is_published_in_channel,
     validate_variant_channel_listings,
@@ -370,7 +370,7 @@ class DraftOrderComplete(BaseMutation):
                 try:
                     allocate_stocks([line_data], country)
                 except InsufficientStock as exc:
-                    errors = prepare_insufficient_stock_validation_errors(exc)
+                    errors = prepare_insufficient_stock_order_validation_errors(exc)
                     raise ValidationError({"lines": errors})
         order_created(order, user=info.context.user, from_draft=True)
 

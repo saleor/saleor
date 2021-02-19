@@ -41,6 +41,7 @@ from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
 from ..utils import get_user_country_context
 from .types import Checkout, CheckoutLine
+from .utils import prepare_insufficient_stock_checkout_validation_error
 
 ERROR_DOES_NOT_SHIP = "This checkout doesn't need shipping"
 
@@ -338,20 +339,8 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             try:
                 add_variants_to_checkout(instance, variants, quantities)
             except InsufficientStock as exc:
-                variant_names = [str(item.variant) for item in exc.items]
-                variant_ids = [
-                    graphene.Node.to_global_id("ProductVariant", item.variant.pk)
-                    for item in exc.items
-                ]
-                raise ValidationError(
-                    {
-                        "lines": ValidationError(
-                            f"Insufficient product stock: {', '.join(variant_names)}",
-                            code=exc.code.value,
-                            params={"variants": variant_ids},
-                        )
-                    }
-                )
+                error = prepare_insufficient_stock_checkout_validation_error(exc)
+                raise ValidationError({"lines": error})
             except ProductNotPublished as exc:
                 raise ValidationError(
                     "Can't create checkout with unpublished product.",
@@ -440,20 +429,8 @@ class CheckoutLinesAdd(BaseMutation):
                         checkout, variant, quantity, replace=replace
                     )
                 except InsufficientStock as exc:
-                    variants = [str(item.variant) for item in exc.items]
-                    variant_ids = [
-                        graphene.Node.to_global_id("ProductVariant", item.variant.pk)
-                        for item in exc.items
-                    ]
-                    raise ValidationError(
-                        {
-                            "lines": ValidationError(
-                                f"Insufficient product stock: {', '.join(variants)}",
-                                code=exc.code,
-                                params={"variants": variant_ids},
-                            )
-                        }
-                    )
+                    error = prepare_insufficient_stock_checkout_validation_error(exc)
+                    raise ValidationError({"lines": error})
                 except ProductNotPublished as exc:
                     raise ValidationError(
                         "Can't add unpublished product.",

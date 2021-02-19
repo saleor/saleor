@@ -24,7 +24,7 @@ from ...core.utils import from_global_id_strict_type, get_duplicated_values
 from ...utils import get_user_or_app_from_context
 from ...warehouse.types import Warehouse
 from ..types import Fulfillment, FulfillmentLine, Order, OrderLine
-from ..utils import prepare_insufficient_stock_validation_errors
+from ..utils import prepare_insufficient_stock_order_validation_errors
 
 
 class OrderFulfillStockInput(graphene.InputObjectType):
@@ -218,7 +218,7 @@ class OrderFulfill(BaseMutation):
                 user, order, dict(lines_for_warehouses), notify_customer
             )
         except InsufficientStock as exc:
-            errors = prepare_insufficient_stock_validation_errors(exc)
+            errors = prepare_insufficient_stock_order_validation_errors(exc)
             raise ValidationError({"stocks": errors})
 
         return OrderFulfill(fulfillments=fulfillments, order=order)

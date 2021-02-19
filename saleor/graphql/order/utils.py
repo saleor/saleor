@@ -82,7 +82,7 @@ def validate_order_lines(order, country):
             try:
                 check_stock_quantity(line.variant, country, line.quantity)
             except InsufficientStock as exc:
-                errors = prepare_insufficient_stock_validation_errors(exc)
+                errors = prepare_insufficient_stock_order_validation_errors(exc)
                 raise ValidationError({"lines": errors})
 
 
@@ -213,7 +213,7 @@ def validate_draft_order(order, country):
     validate_channel_is_active(order.channel)
 
 
-def prepare_insufficient_stock_validation_errors(exc):
+def prepare_insufficient_stock_order_validation_errors(exc):
     errors = []
     for item in exc.items:
         order_line_global_id = (

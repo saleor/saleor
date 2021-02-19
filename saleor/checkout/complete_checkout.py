@@ -1,7 +1,6 @@
 from datetime import date
 from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple
 
-import graphene
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -24,6 +23,9 @@ from ..discount.utils import (
     decrease_voucher_usage,
     increase_voucher_usage,
     remove_voucher_usage_by_customer,
+)
+from ..graphql.checkout.utils import (
+    prepare_insufficient_stock_checkout_validation_error,
 )
 from ..order import OrderLineData, OrderStatus
 from ..order.actions import order_created
@@ -472,16 +474,8 @@ def _get_order_data(
             discounts=discounts,
         )
     except InsufficientStock as e:
-        variants = [str(item.variant) for item in e.items]
-        variant_ids = [
-            graphene.Node.to_global_id("ProductVariant", item.variant.pk)
-            for item in e.items
-        ]
-        raise ValidationError(
-            f"Insufficient product stock: {', '.join(variants)}",
-            code=e.code.value,
-            params={"variants": variant_ids},
-        )
+        error = prepare_insufficient_stock_checkout_validation_error(e)
+        raise error
     except NotApplicable:
         raise ValidationError(
             "Voucher not applicable",
@@ -554,9 +548,9 @@ def complete_checkout(
 
     try:
         order_data = _get_order_data(manager, checkout, lines, discounts)
-    except ValidationError as error:
+    except ValidationError as exc:
         gateway.payment_refund_or_void(payment)
-        raise error
+        raise exc
 
     txn = _process_payment(
         payment=payment,  # type: ignore
@@ -586,14 +580,6 @@ def complete_checkout(
         except InsufficientStock as e:
             release_voucher_usage(order_data)
             gateway.payment_refund_or_void(payment)
-            variants = [str(item.variant) for item in e.items]
-            variant_ids = [
-                graphene.Node.to_global_id("ProductVariant", item.variant.pk)
-                for item in e.items
-            ]
-            raise ValidationError(
-                f"Insufficient product stock: {', '.join(variants)}",
-                code=e.code.value,
-                params={"variants": variant_ids},
-            )
+            error = prepare_insufficient_stock_checkout_validation_error(e)
+            raise error
     return order, action_required, action_data
