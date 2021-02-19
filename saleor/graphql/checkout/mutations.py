@@ -1,4 +1,4 @@
-from typing import Iterable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
 
 import graphene
 from django.conf import settings
@@ -17,9 +17,9 @@ from ...checkout.utils import (
     add_variants_to_checkout,
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
+    fetch_checkout_info,
     fetch_checkout_lines,
     get_user_checkout,
-    get_valid_shipping_methods_for_checkout,
     is_shipping_required,
     recalculate_checkout_discount,
     remove_promo_code_from_checkout,
@@ -45,11 +45,14 @@ from .types import Checkout, CheckoutLine
 ERROR_DOES_NOT_SHIP = "This checkout doesn't need shipping"
 
 
+if TYPE_CHECKING:
+    from ...checkout import CheckoutInfo
+
+
 def clean_shipping_method(
-    checkout: models.Checkout,
+    checkout_info: "CheckoutInfo",
     lines: Iterable[CheckoutLineInfo],
     method: Optional[models.ShippingMethod],
-    discounts,
 ) -> bool:
     """Check if current shipping method is valid."""
 
@@ -62,37 +65,38 @@ def clean_shipping_method(
             ERROR_DOES_NOT_SHIP, code=CheckoutErrorCode.SHIPPING_NOT_REQUIRED.value
         )
 
-    if not checkout.shipping_address:
+    if not checkout_info.shipping_address:
         raise ValidationError(
             "Cannot choose a shipping method for a checkout without the "
             "shipping address.",
             code=CheckoutErrorCode.SHIPPING_ADDRESS_NOT_SET.value,
         )
 
-    valid_methods = get_valid_shipping_methods_for_checkout(checkout, lines, discounts)
+    valid_methods = checkout_info.valid_shipping_methods
     return method in valid_methods
 
 
 def update_checkout_shipping_method_if_invalid(
-    checkout: models.Checkout, lines: Iterable[CheckoutLineInfo], discounts
+    checkout_info: "CheckoutInfo", lines: Iterable[CheckoutLineInfo]
 ):
+    checkout = checkout_info.checkout
     # remove shipping method when empty checkout
     if checkout.quantity == 0 or not is_shipping_required(lines):
         checkout.shipping_method = None
+        checkout_info.shipping_method = None
         checkout.save(update_fields=["shipping_method", "last_change"])
 
     is_valid = clean_shipping_method(
-        checkout=checkout,
+        checkout_info=checkout_info,
         lines=lines,
-        method=checkout.shipping_method,
-        discounts=discounts,
+        method=checkout_info.shipping_method,
     )
 
     if not is_valid:
-        cheapest_alternative = get_valid_shipping_methods_for_checkout(
-            checkout, lines, discounts
-        ).first()
-        checkout.shipping_method = cheapest_alternative
+        cheapest_alternative = checkout_info.valid_shipping_methods
+        checkout.shipping_method = (
+            cheapest_alternative[0] if cheapest_alternative else None
+        )
         checkout.save(update_fields=["shipping_method", "last_change"])
 
 
@@ -437,9 +441,9 @@ class CheckoutLinesAdd(BaseMutation):
                     )
 
         lines = fetch_checkout_lines(checkout)
-        update_checkout_shipping_method_if_invalid(
-            checkout, lines, info.context.discounts
-        )
+        checkout_info = fetch_checkout_info(checkout, lines, info.context.discounts)
+
+        update_checkout_shipping_method_if_invalid(checkout_info, lines)
         recalculate_checkout_discount(
             info.context.plugins, checkout, lines, info.context.discounts
         )
@@ -485,9 +489,8 @@ class CheckoutLineDelete(BaseMutation):
             line.delete()
 
         lines = fetch_checkout_lines(checkout)
-        update_checkout_shipping_method_if_invalid(
-            checkout, lines, info.context.discounts
-        )
+        checkout_info = fetch_checkout_info(checkout, lines, info.context.discounts)
+        update_checkout_shipping_method_if_invalid(checkout_info, lines)
         recalculate_checkout_discount(
             info.context.plugins, checkout, lines, info.context.discounts
         )
@@ -632,6 +635,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         )
 
         lines = fetch_checkout_lines(checkout)
+        checkout_info = fetch_checkout_info(checkout, lines, info.context.discounts)
 
         country = get_user_country_context(
             destination_address=shipping_address,
@@ -643,9 +647,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         if lines:
             cls.process_checkout_lines(lines, country)
 
-        update_checkout_shipping_method_if_invalid(
-            checkout, lines, info.context.discounts
-        )
+        update_checkout_shipping_method_if_invalid(checkout_info, lines)
 
         with transaction.atomic():
             shipping_address.save()
@@ -730,6 +732,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
         lines = fetch_checkout_lines(checkout)
+        checkout_info = fetch_checkout_info(checkout, lines, info.context.discounts)
         if not is_shipping_required(lines):
             raise ValidationError(
                 {
@@ -751,10 +754,9 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         )
 
         shipping_method_is_valid = clean_shipping_method(
-            checkout=checkout,
+            checkout_info=checkout_info,
             lines=lines,
             method=shipping_method,
-            discounts=info.context.discounts,
         )
         if not shipping_method_is_valid:
             raise ValidationError(
