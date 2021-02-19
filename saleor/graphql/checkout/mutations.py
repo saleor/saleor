@@ -15,6 +15,7 @@ from ...checkout.fetch import (
     CheckoutLineInfo,
     fetch_checkout_info,
     fetch_checkout_lines,
+    update_checkout_info_shipping_method,
 )
 from ...checkout.utils import (
     add_promo_code_to_checkout,
@@ -87,6 +88,7 @@ def update_checkout_shipping_method_if_invalid(
     if checkout.quantity == 0 or not is_shipping_required(lines):
         checkout.shipping_method = None
         checkout_info.shipping_method = None
+        checkout_info.shipping_method_channel_listings = None
         checkout.save(update_fields=["shipping_method", "last_change"])
 
     is_valid = clean_shipping_method(
@@ -97,9 +99,9 @@ def update_checkout_shipping_method_if_invalid(
 
     if not is_valid:
         cheapest_alternative = checkout_info.valid_shipping_methods
-        checkout.shipping_method = (
-            cheapest_alternative[0] if cheapest_alternative else None
-        )
+        new_shipping_method = cheapest_alternative[0] if cheapest_alternative else None
+        checkout.shipping_method = new_shipping_method
+        update_checkout_info_shipping_method(checkout_info, new_shipping_method)
         checkout.save(update_fields=["shipping_method", "last_change"])
 
 
@@ -448,7 +450,7 @@ class CheckoutLinesAdd(BaseMutation):
 
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
         recalculate_checkout_discount(
-            info.context.plugins, checkout, lines, info.context.discounts
+            info.context.plugins, checkout_info, lines, info.context.discounts
         )
         info.context.plugins.checkout_updated(checkout)
         return CheckoutLinesAdd(checkout=checkout)
@@ -495,7 +497,7 @@ class CheckoutLineDelete(BaseMutation):
         checkout_info = fetch_checkout_info(checkout, lines, info.context.discounts)
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
         recalculate_checkout_discount(
-            info.context.plugins, checkout, lines, info.context.discounts
+            info.context.plugins, checkout_info, lines, info.context.discounts
         )
         info.context.plugins.checkout_updated(checkout)
         return CheckoutLineDelete(checkout=checkout)
@@ -656,7 +658,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             shipping_address.save()
             change_shipping_address_in_checkout(checkout, shipping_address)
         recalculate_checkout_discount(
-            info.context.plugins, checkout, lines, info.context.discounts
+            info.context.plugins, checkout_info, lines, info.context.discounts
         )
 
         info.context.plugins.checkout_updated(checkout)
@@ -774,7 +776,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         checkout.shipping_method = shipping_method
         checkout.save(update_fields=["shipping_method", "last_change"])
         recalculate_checkout_discount(
-            info.context.plugins, checkout, lines, info.context.discounts
+            info.context.plugins, checkout_info, lines, info.context.discounts
         )
         info.context.plugins.checkout_updated(checkout)
         return CheckoutShippingMethodUpdate(checkout=checkout)

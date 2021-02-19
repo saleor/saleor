@@ -31,7 +31,6 @@ from ..product import models as product_models
 from ..shipping.models import ShippingMethod
 from ..warehouse.availability import check_stock_quantity, check_stock_quantity_bulk
 from . import AddressType
-from .fetch import CheckoutLineInfo
 from .models import Checkout, CheckoutLine
 
 if TYPE_CHECKING:
@@ -40,6 +39,7 @@ if TYPE_CHECKING:
 
     from ..account.models import Address
     from ..channel.models import Channel
+    from .fetch import CheckoutLineInfo, CheckoutInfo
 
 
 def get_user_checkout(
@@ -210,7 +210,7 @@ def _get_shipping_voucher_discount_for_checkout(
     manager: PluginsManager,
     voucher: Voucher,
     checkout: Checkout,
-    lines: Iterable[CheckoutLineInfo],
+    lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ):
@@ -384,7 +384,7 @@ def get_voucher_for_checkout(
 
 def recalculate_checkout_discount(
     manager: PluginsManager,
-    checkout: Checkout,
+    checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable[DiscountInfo],
 ):
@@ -393,9 +393,10 @@ def recalculate_checkout_discount(
     Will clear both voucher and discount if the discount is no longer
     applicable.
     """
+    checkout = checkout_info.checkout
     voucher = get_voucher_for_checkout(checkout)
     if voucher is not None:
-        address = checkout.shipping_address or checkout.billing_address
+        address = checkout_info.shipping_address or checkout_info.billing_address
         try:
             discount = get_voucher_discount_for_checkout(
                 manager, voucher, checkout, lines, address, discounts
@@ -668,7 +669,7 @@ def cancel_active_payments(checkout: Checkout):
     checkout.payments.filter(is_active=True).update(is_active=False)
 
 
-def is_shipping_required(lines: Iterable[CheckoutLineInfo]):
+def is_shipping_required(lines: Iterable["CheckoutLineInfo"]):
     """Check if shipping is required for given checkout lines."""
     return any(
         line_info.product.product_type.is_shipping_required for line_info in lines

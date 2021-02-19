@@ -112,3 +112,14 @@ def fetch_checkout_info(
         shipping_method_channel_listings=shipping_channel_listings,
         valid_shipping_methods=valid_shipping_method,
     )
+
+
+def update_checkout_info_shipping_method(
+    checkout_info: CheckoutInfo, shipping_method: Optional["ShippingMethod"]
+):
+    checkout_info.shipping_method = shipping_method
+    checkout_info.shipping_method_channel_listings = (
+        ShippingMethodChannelListing.objects.filter(
+            shipping_method=shipping_method, channel=checkout_info.channel
+        ).first()
+    )
