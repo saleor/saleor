@@ -23,6 +23,7 @@ class WebhookEventType:
     FULFILLMENT_CREATED = "fulfillment_created"
 
     CUSTOMER_CREATED = "customer_created"
+    CUSTOMER_UPDATED = "customer_updated"
 
     PRODUCT_CREATED = "product_created"
     PRODUCT_UPDATED = "product_updated"
@@ -47,6 +48,7 @@ class WebhookEventType:
         INVOICE_DELETED: "Invoice deleted",
         INVOICE_SENT: "Invoice sent",
         CUSTOMER_CREATED: "Customer created",
+        CUSTOMER_UPDATED: "Customer updated",
         PRODUCT_CREATED: "Product created",
         PRODUCT_UPDATED: "Product updated",
         PRODUCT_DELETED: "Product deleted",
@@ -70,6 +72,7 @@ class WebhookEventType:
         (INVOICE_DELETED, DISPLAY_LABELS[INVOICE_DELETED]),
         (INVOICE_SENT, DISPLAY_LABELS[INVOICE_SENT]),
         (CUSTOMER_CREATED, DISPLAY_LABELS[CUSTOMER_CREATED]),
+        (CUSTOMER_UPDATED, DISPLAY_LABELS[CUSTOMER_UPDATED]),
         (PRODUCT_CREATED, DISPLAY_LABELS[PRODUCT_CREATED]),
         (PRODUCT_UPDATED, DISPLAY_LABELS[PRODUCT_UPDATED]),
         (PRODUCT_DELETED, DISPLAY_LABELS[PRODUCT_DELETED]),
@@ -92,6 +95,7 @@ class WebhookEventType:
         INVOICE_DELETED: OrderPermissions.MANAGE_ORDERS,
         INVOICE_SENT: OrderPermissions.MANAGE_ORDERS,
         CUSTOMER_CREATED: AccountPermissions.MANAGE_USERS,
+        CUSTOMER_UPDATED: AccountPermissions.MANAGE_USERS,
         PRODUCT_CREATED: ProductPermissions.MANAGE_PRODUCTS,
         PRODUCT_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
         PRODUCT_DELETED: ProductPermissions.MANAGE_PRODUCTS,

@@ -413,6 +413,14 @@ class BasePlugin:
         """
         return NotImplemented
 
+    def customer_updated(self, customer: "User", previous_value: Any) -> Any:
+        """Trigger when user is updated.
+
+        Overwrite this method if you need to trigger specific logic after a user is
+        updated.
+        """
+        return NotImplemented
+
     def product_created(self, product: "Product", previous_value: Any) -> Any:
         """Trigger when product is created.
 
