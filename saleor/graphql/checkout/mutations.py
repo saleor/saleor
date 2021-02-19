@@ -8,17 +8,20 @@ from django.db import transaction
 from ...channel.exceptions import ChannelNotDefined
 from ...channel.models import Channel
 from ...channel.utils import get_default_channel
-from ...checkout import CheckoutLineInfo, models
+from ...checkout import models
 from ...checkout.complete_checkout import complete_checkout
 from ...checkout.error_codes import CheckoutErrorCode
+from ...checkout.fetch import (
+    CheckoutLineInfo,
+    fetch_checkout_info,
+    fetch_checkout_lines,
+)
 from ...checkout.utils import (
     add_promo_code_to_checkout,
     add_variant_to_checkout,
     add_variants_to_checkout,
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
-    fetch_checkout_info,
-    fetch_checkout_lines,
     get_user_checkout,
     is_shipping_required,
     recalculate_checkout_discount,
@@ -46,7 +49,7 @@ ERROR_DOES_NOT_SHIP = "This checkout doesn't need shipping"
 
 
 if TYPE_CHECKING:
-    from ...checkout import CheckoutInfo
+    from ...checkout.fetch import CheckoutInfo
 
 
 def clean_shipping_method(

@@ -40,9 +40,9 @@ from .models import Checkout
 from .utils import get_voucher_for_checkout
 
 if TYPE_CHECKING:
-    from ..channel.models import Channel
-    from ..checkout import CheckoutLineInfo
     from ..plugins.manager import PluginsManager
+    from .fetch import CheckoutLineInfo
+    from .models import Channel
 
 
 def _get_voucher_data_for_order(checkout: Checkout) -> dict:

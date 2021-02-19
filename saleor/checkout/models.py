@@ -25,9 +25,9 @@ if TYPE_CHECKING:
     # flake8: noqa
     from django_measurement import Weight
 
-    from ..checkout.utils import CheckoutLineInfo
     from ..payment.models import Payment
     from ..product.models import ProductVariant
+    from .fetch import CheckoutLineInfo
 
 
 def get_default_country():

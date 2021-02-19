@@ -10,8 +10,8 @@ from prices import Money, TaxedMoney
 from requests import RequestException
 
 from ....account.models import Address
-from ....checkout import CheckoutLineInfo
-from ....checkout.utils import add_variant_to_checkout, fetch_checkout_lines
+from ....checkout.fetch import CheckoutLineInfo, fetch_checkout_lines
+from ....checkout.utils import add_variant_to_checkout
 from ....core.prices import quantize_price
 from ....core.taxes import TaxError, TaxType
 from ....product.models import Product

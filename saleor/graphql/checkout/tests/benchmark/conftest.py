@@ -1,11 +1,8 @@
 import pytest
 
 from .....checkout import calculations
-from .....checkout.utils import (
-    add_variant_to_checkout,
-    add_voucher_to_checkout,
-    fetch_checkout_lines,
-)
+from .....checkout.fetch import fetch_checkout_lines
+from .....checkout.utils import add_variant_to_checkout, add_voucher_to_checkout
 from .....payment import ChargeStatus, TransactionKind
 from .....payment.models import Payment
 from .....plugins.manager import get_plugins_manager

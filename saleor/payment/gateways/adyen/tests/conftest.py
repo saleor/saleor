@@ -3,7 +3,7 @@ from unittest import mock
 import pytest
 
 from .....checkout import calculations
-from .....checkout.utils import fetch_checkout_lines
+from .....checkout.fetch import fetch_checkout_lines
 from .....plugins.manager import get_plugins_manager
 from .... import TransactionKind
 from ....models import Transaction
