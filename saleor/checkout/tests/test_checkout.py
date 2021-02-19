@@ -17,7 +17,7 @@ from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...shipping.models import ShippingZone
 from .. import AddressType, calculations
-from ..fetch import fetch_checkout_lines, fetch_checkout_info
+from ..fetch import fetch_checkout_lines, fetch_checkout_info, CheckoutInfo
 from ..models import Checkout
 from ..utils import (
     add_voucher_to_checkout,
@@ -124,9 +124,19 @@ def test_get_discount_for_checkout_value_voucher(
         "saleor.discount.utils.calculations.checkout_subtotal",
         lambda manager, checkout, lines, address, discounts: subtotal,
     )
+    checkout_info = CheckoutInfo(
+        checkout=checkout,
+        shipping_method=None,
+        shipping_address=None,
+        billing_address=None,
+        channel=channel_USD,
+        user=None,
+        shipping_method_channel_listings=None,
+        valid_shipping_methods=[],
+    )
     manager = get_plugins_manager()
     discount = get_voucher_discount_for_checkout(
-        manager, voucher, checkout, [], None, []
+        manager, voucher, checkout_info, [], None, []
     )
     assert discount == Money(expected_value, "USD")
 
@@ -136,11 +146,10 @@ def test_get_voucher_discount_for_checkout_voucher_validation(
     mock_validate_voucher, voucher, checkout_with_voucher
 ):
     lines = fetch_checkout_lines(checkout_with_voucher)
+    checkout_info = fetch_checkout_info(checkout_with_voucher, lines, [])
     manager = get_plugins_manager()
     address = checkout_with_voucher.shipping_address
-    get_voucher_discount_for_checkout(
-        manager, voucher, checkout_with_voucher, lines, address
-    )
+    get_voucher_discount_for_checkout(manager, voucher, checkout_info, lines, address)
     subtotal = manager.calculate_checkout_subtotal(
         checkout_with_voucher, lines, address, []
     )
@@ -194,9 +203,19 @@ def test_get_discount_for_checkout_entire_order_voucher_not_applicable(
         "saleor.discount.utils.calculations.checkout_subtotal",
         lambda manager, checkout, lines, address, discounts: subtotal,
     )
+    checkout_info = CheckoutInfo(
+        checkout=checkout,
+        shipping_method=None,
+        shipping_address=None,
+        billing_address=None,
+        channel=channel_USD,
+        user=None,
+        shipping_method_channel_listings=None,
+        valid_shipping_methods=[],
+    )
     manager = get_plugins_manager()
     with pytest.raises(NotApplicable):
-        get_voucher_discount_for_checkout(manager, voucher, checkout, [], None, [])
+        get_voucher_discount_for_checkout(manager, voucher, checkout_info, [], None, [])
 
 
 @pytest.mark.parametrize(
@@ -233,8 +252,9 @@ def test_get_discount_for_checkout_specific_products_voucher(
         voucher.products.add(product)
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_items)
+    checkout_info = fetch_checkout_info(checkout_with_items, lines, [])
     discount = get_voucher_discount_for_checkout(
-        manager, voucher, checkout_with_items, lines, None, []
+        manager, voucher, checkout_info, lines, None, []
     )
     assert discount == Money(discount_amount, "USD")
 
@@ -296,9 +316,19 @@ def test_get_discount_for_checkout_specific_products_voucher_not_applicable(
         min_spent_amount=(min_spent_amount if min_spent_amount is not None else None),
     )
     checkout = Mock(quantity=total_quantity, spec=Checkout, channel=channel_USD)
+    checkout_info = CheckoutInfo(
+        checkout=checkout,
+        shipping_method=None,
+        shipping_address=None,
+        billing_address=None,
+        channel=channel_USD,
+        user=None,
+        shipping_method_channel_listings=None,
+        valid_shipping_methods=[],
+    )
     with pytest.raises(NotApplicable):
         get_voucher_discount_for_checkout(
-            manager, voucher, checkout, [], None, discounts
+            manager, voucher, checkout_info, [], None, discounts
         )
 
 
@@ -357,8 +387,18 @@ def test_get_discount_for_checkout_shipping_voucher(
         channel=channel_USD,
         discount=Money(discount_value, channel_USD.currency_code),
     )
+    checkout_info = CheckoutInfo(
+        checkout=checkout,
+        shipping_method=shipping_method,
+        shipping_address=Mock(spec=Address, country=Mock(code="PL")),
+        billing_address=None,
+        channel=channel_USD,
+        user=None,
+        shipping_method_channel_listings=None,
+        valid_shipping_methods=[],
+    )
     discount = get_voucher_discount_for_checkout(
-        manager, voucher, checkout, [], None, None
+        manager, voucher, checkout_info, [], None, None
     )
     assert discount == Money(expected_value, "USD")
 
@@ -405,8 +445,18 @@ def test_get_discount_for_checkout_shipping_voucher_all_countries(
     )
 
     manager = get_plugins_manager()
+    checkout_info = CheckoutInfo(
+        checkout=checkout,
+        shipping_method=shipping_method,
+        shipping_address=Mock(spec=Address, country=Mock(code="PL")),
+        billing_address=None,
+        channel=channel_USD,
+        user=None,
+        shipping_method_channel_listings=None,
+        valid_shipping_methods=[],
+    )
     discount = get_voucher_discount_for_checkout(
-        manager, voucher, checkout, [], None, None
+        manager, voucher, checkout_info, [], None, None
     )
 
     assert discount == Money(5, "USD")
@@ -440,9 +490,19 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
         discount=Money(50, channel_USD.currency_code),
     )
 
+    checkout_info = CheckoutInfo(
+        checkout=checkout,
+        shipping_method=None,
+        shipping_address=Mock(spec=Address, country=Mock(code="PL")),
+        billing_address=None,
+        channel=channel_USD,
+        user=None,
+        shipping_method_channel_listings=None,
+        valid_shipping_methods=[],
+    )
     manager = get_plugins_manager()
     with pytest.raises(NotApplicable):
-        get_voucher_discount_for_checkout(manager, voucher, checkout, [], None, [])
+        get_voucher_discount_for_checkout(manager, voucher, checkout_info, [], None, [])
 
 
 @pytest.mark.parametrize(
@@ -575,9 +635,19 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
         discount=Money(discount_value, channel_USD.currency_code),
         min_spent_amount=(min_spent_amount if min_spent_amount is not None else None),
     )
+    checkout_info = CheckoutInfo(
+        checkout=checkout,
+        shipping_method=shipping_method,
+        shipping_address=Mock(spec=Address, country=Mock(code="PL")),
+        billing_address=None,
+        channel=channel_USD,
+        user=None,
+        shipping_method_channel_listings=None,
+        valid_shipping_methods=[],
+    )
     with pytest.raises(NotApplicable) as e:
         get_voucher_discount_for_checkout(
-            manager, voucher, checkout, [], checkout.shipping_address, None
+            manager, voucher, checkout_info, [], checkout.shipping_address, None
         )
     assert str(e.value) == error_msg
 

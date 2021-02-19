@@ -43,6 +43,9 @@ class CheckoutInfo:
             return self.checkout.country.code
         return address.country.code
 
+    def get_customer_email(self) -> str:
+        return self.user.email if self.user else self.checkout.email
+
 
 def fetch_checkout_lines(checkout: "Checkout") -> Iterable[CheckoutLineInfo]:
     """Fetch checkout lines as CheckoutLineInfo objects."""
