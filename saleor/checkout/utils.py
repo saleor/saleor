@@ -436,7 +436,7 @@ def recalculate_checkout_discount(
 
 def add_promo_code_to_checkout(
     manager: PluginsManager,
-    checkout: Checkout,
+    checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     promo_code: str,
     discounts: Optional[Iterable[DiscountInfo]] = None,
@@ -446,16 +446,18 @@ def add_promo_code_to_checkout(
     Raise InvalidPromoCode if promo code does not match to any voucher or gift card.
     """
     if promo_code_is_voucher(promo_code):
-        add_voucher_code_to_checkout(manager, checkout, lines, promo_code, discounts)
+        add_voucher_code_to_checkout(
+            manager, checkout_info, lines, promo_code, discounts
+        )
     elif promo_code_is_gift_card(promo_code):
-        add_gift_card_code_to_checkout(checkout, promo_code)
+        add_gift_card_code_to_checkout(checkout_info.checkout, promo_code)
     else:
         raise InvalidPromoCode()
 
 
 def add_voucher_code_to_checkout(
     manager: PluginsManager,
-    checkout: Checkout,
+    checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     voucher_code: str,
     discounts: Optional[Iterable[DiscountInfo]] = None,
@@ -466,12 +468,12 @@ def add_voucher_code_to_checkout(
     """
     try:
         voucher = Voucher.objects.active_in_channel(
-            date=timezone.now(), channel_slug=checkout.channel.slug
+            date=timezone.now(), channel_slug=checkout_info.channel.slug
         ).get(code=voucher_code)
     except Voucher.DoesNotExist:
         raise InvalidPromoCode()
     try:
-        add_voucher_to_checkout(manager, checkout, lines, voucher, discounts)
+        add_voucher_to_checkout(manager, checkout_info, lines, voucher, discounts)
     except NotApplicable:
         raise ValidationError(
             {
@@ -485,7 +487,7 @@ def add_voucher_code_to_checkout(
 
 def add_voucher_to_checkout(
     manager: PluginsManager,
-    checkout: Checkout,
+    checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     voucher: Voucher,
     discounts: Optional[Iterable[DiscountInfo]] = None,
@@ -494,9 +496,10 @@ def add_voucher_to_checkout(
 
     Raise NotApplicable if voucher of given type cannot be applied.
     """
-    address = checkout.shipping_address or checkout.billing_address
+    checkout = checkout_info.checkout
+    address = checkout_info.shipping_address or checkout_info.billing_address
     discount = get_voucher_discount_for_checkout(
-        manager, voucher, checkout, lines, address, discounts
+        manager, voucher, checkout_info.checkout, lines, address, discounts
     )
     checkout.voucher_code = voucher.code
     checkout.discount_name = voucher.name

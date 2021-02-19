@@ -853,7 +853,8 @@ def test_add_voucher_to_checkout(checkout_with_item, voucher):
     assert checkout_with_item.voucher_code is None
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_item)
-    add_voucher_to_checkout(manager, checkout_with_item, lines, voucher)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [])
+    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
     assert checkout_with_item.voucher_code == voucher.code
 
 
@@ -862,10 +863,11 @@ def test_add_voucher_to_checkout_fail(
 ):
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [])
     with pytest.raises(NotApplicable):
         add_voucher_to_checkout(
             manager,
-            checkout_with_item,
+            checkout_info,
             lines,
             voucher_with_high_min_spent_amount,
         )

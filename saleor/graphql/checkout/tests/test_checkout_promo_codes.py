@@ -5,7 +5,7 @@ import graphene
 from prices import Money
 
 from ....checkout import calculations
-from ....checkout.fetch import CheckoutLineInfo, fetch_checkout_lines
+from ....checkout.fetch import CheckoutLineInfo, fetch_checkout_lines, fetch_checkout_info
 from ....checkout.utils import add_voucher_to_checkout
 from ....discount import DiscountInfo, VoucherType
 from ....plugins.manager import get_plugins_manager
@@ -30,8 +30,9 @@ def test_checkout_lines_delete_with_not_applicable_voucher(
     voucher.channel_listings.filter(channel=channel_USD).update(
         min_spent_amount=subtotal.gross.amount
     )
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [])
 
-    add_voucher_to_checkout(manager, checkout_with_item, lines, voucher)
+    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
     assert checkout_with_item.voucher_code == voucher.code
 
     line = checkout_with_item.lines.first()
@@ -70,7 +71,8 @@ def test_checkout_shipping_address_update_with_not_applicable_voucher(
 
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_item)
-    add_voucher_to_checkout(manager, checkout_with_item, lines, voucher)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [])
+    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
     assert checkout_with_item.voucher_code == voucher.code
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
