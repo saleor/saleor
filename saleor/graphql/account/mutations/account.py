@@ -274,6 +274,7 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
         super().save(info, instance, cleaned_input)
         user = info.context.user
         instance.user_addresses.add(user)
+        info.context.plugins.customer_updated(user)
 
 
 class AccountAddressUpdate(BaseAddressUpdate):
@@ -331,6 +332,7 @@ class AccountSetDefaultAddress(BaseMutation):
             address_type = AddressType.SHIPPING
 
         utils.change_user_default_address(user, address, address_type)
+        info.context.plugins.customer_updated(user)
         return cls(user=user)
 
 
@@ -455,4 +457,5 @@ class ConfirmEmailChange(BaseMutation):
         account_events.customer_email_changed_event(
             user=user, parameters=event_parameters
         )
+        info.context.plugins.customer_updated(user)
         return ConfirmEmailChange(user=user)

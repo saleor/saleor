@@ -41,7 +41,6 @@ MAX_CHECKOUT_LINE_QUANTITY = 50
 AUTH_PASSWORD_VALIDATORS = []
 
 PASSWORD_HASHERS = ["saleor.tests.dummy_password_hasher.DummyHasher"]
-PLUGINS_MANAGER = "saleor.plugins.manager.PluginsManager"
 
 PLUGINS = []
 

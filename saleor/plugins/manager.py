@@ -50,25 +50,28 @@ class PluginsManager(PaymentInterface):
     plugins: List["BasePlugin"] = []
 
     def __init__(self, plugins: List[str]):
-        self.plugins = []
-        all_configs = self._get_all_plugin_configs()
-        for plugin_path in plugins:
-            PluginClass = import_string(plugin_path)
-            if PluginClass.PLUGIN_ID in all_configs:
-                existing_config = all_configs[PluginClass.PLUGIN_ID]
-                plugin_config = existing_config.configuration
-                active = existing_config.active
-            else:
-                plugin_config = PluginClass.DEFAULT_CONFIGURATION
-                active = PluginClass.get_default_active()
-            self.plugins.append(PluginClass(configuration=plugin_config, active=active))
+        with opentracing.global_tracer().start_active_span("PluginsManager.__init__"):
+            self.plugins = []
+            all_configs = self._get_all_plugin_configs()
+            for plugin_path in plugins:
+                with opentracing.global_tracer().start_active_span(f"{plugin_path}"):
+                    PluginClass = import_string(plugin_path)
+                    if PluginClass.PLUGIN_ID in all_configs:
+                        existing_config = all_configs[PluginClass.PLUGIN_ID]
+                        plugin_config = existing_config.configuration
+                        active = existing_config.active
+                    else:
+                        plugin_config = PluginClass.DEFAULT_CONFIGURATION
+                        active = PluginClass.get_default_active()
+                    plugin = PluginClass(configuration=plugin_config, active=active)
+                self.plugins.append(plugin)
 
     def __run_method_on_plugins(
         self, method_name: str, default_value: Any, *args, **kwargs
     ):
         """Try to run a method with the given name on each declared plugin."""
         with opentracing.global_tracer().start_active_span(
-            f"ExtensionsManager.{method_name}"
+            f"PluginsManager.{method_name}"
         ):
             value = default_value
             for plugin in self.plugins:
@@ -91,14 +94,20 @@ class PluginsManager(PaymentInterface):
         method. If plugin doesn't have own implementation of expected method_name, it
         will return previous_value.
         """
-        plugin_method = getattr(plugin, method_name, NotImplemented)
-        if plugin_method == NotImplemented:
-            return previous_value
+        plugin_id = getattr(plugin, "PLUGIN_ID", "")
+        with opentracing.global_tracer().start_active_span(
+            f"{plugin_id}.{method_name}"
+        ):
+            plugin_method = getattr(plugin, method_name, NotImplemented)
+            if plugin_method == NotImplemented:
+                return previous_value
 
-        returned_value = plugin_method(*args, **kwargs, previous_value=previous_value)
-        if returned_value == NotImplemented:
-            return previous_value
-        return returned_value
+            returned_value = plugin_method(
+                *args, **kwargs, previous_value=previous_value
+            )
+            if returned_value == NotImplemented:
+                return previous_value
+            return returned_value
 
     def change_user_address(
         self, address: "Address", address_type: Optional[str], user: Optional["User"]
@@ -380,6 +389,10 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins("customer_created", default_value, customer)
 
+    def customer_updated(self, customer: "User"):
+        default_value = None
+        return self.__run_method_on_plugins("customer_updated", default_value, customer)
+
     def product_created(self, product: "Product"):
         default_value = None
         return self.__run_method_on_plugins("product_created", default_value, product)
@@ -636,11 +649,12 @@ class PluginsManager(PaymentInterface):
         )
 
     def _get_all_plugin_configs(self):
-        if not hasattr(self, "_plugin_configs"):
-            self._plugin_configs = {
-                pc.identifier: pc for pc in PluginConfiguration.objects.all()
-            }
-        return self._plugin_configs
+        with opentracing.global_tracer().start_active_span("_get_all_plugin_configs"):
+            if not hasattr(self, "_plugin_configs"):
+                self._plugin_configs = {
+                    pc.identifier: pc for pc in PluginConfiguration.objects.all()
+                }
+            return self._plugin_configs
 
     # FIXME these methods should be more generic
 
@@ -762,12 +776,6 @@ class PluginsManager(PaymentInterface):
         )
 
 
-def get_plugins_manager(
-    manager_path: str = None, plugins: List[str] = None
-) -> PluginsManager:
-    if not manager_path:
-        manager_path = settings.PLUGINS_MANAGER
-    if plugins is None:
-        plugins = settings.PLUGINS
-    manager = import_string(manager_path)
-    return manager(plugins)
+def get_plugins_manager() -> PluginsManager:
+    with opentracing.global_tracer().start_active_span("get_plugins_manager"):
+        return PluginsManager(settings.PLUGINS)

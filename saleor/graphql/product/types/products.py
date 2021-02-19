@@ -3,6 +3,7 @@ from typing import Optional
 
 import graphene
 from django.conf import settings
+from django_countries.fields import Country
 from graphene import relay
 from graphene_federation import key
 from graphql.error import GraphQLError
@@ -378,7 +379,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                                     collections=collections,
                                     discounts=discounts,
                                     channel=channel,
-                                    country=country_code,
+                                    country=Country(country_code),
                                     local_currency=get_currency_for_country(
                                         country_code
                                     ),
@@ -656,7 +657,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                                     collections=collections,
                                     discounts=discounts,
                                     channel=channel,
-                                    country=country_code,
+                                    country=Country(country_code),
                                     local_currency=get_currency_for_country(
                                         country_code
                                     ),

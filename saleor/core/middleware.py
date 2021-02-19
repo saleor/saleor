@@ -82,7 +82,7 @@ def plugins(get_response):
     """Assign plugins manager."""
 
     def _get_manager():
-        return get_plugins_manager(plugins=settings.PLUGINS)
+        return get_plugins_manager()
 
     def _plugins_middleware(request):
         request.plugins = SimpleLazyObject(lambda: _get_manager())
