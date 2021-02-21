@@ -44,8 +44,7 @@
     "postdeploy": "python manage.py migrate && python manage.py populatedb --createsuperuser --withoutimages"
   },
   "addons": [
-    "heroku-postgresql:hobby-dev",
-    "scheduler:standard"
+    "heroku-postgresql:hobby-dev"
   ],
   "buildpacks": [
     {
