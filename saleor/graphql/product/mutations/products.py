@@ -13,7 +13,7 @@ from ....attribute import models as attribute_models
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import ProductPermissions, ProductTypePermissions
 from ....core.utils.editorjs import clean_editor_js
-from ....core.utils.validators import validate_video_url
+from ....core.utils.validators import get_oembed_data
 from ....order import OrderStatus
 from ....order import models as order_models
 from ....product import ProductMediaTypes, models
@@ -1171,7 +1171,9 @@ class ProductMediaCreateInput(graphene.InputObjectType):
     product = graphene.ID(
         required=True, description="ID of an product.", name="product"
     )
-    video_url = graphene.String(required=False, description="Represents a video URL.")
+    media_url = graphene.String(
+        required=False, description="Represents an URL to an external media."
+    )
 
 
 class ProductMediaCreate(BaseMutation):
@@ -1197,22 +1199,22 @@ class ProductMediaCreate(BaseMutation):
     @classmethod
     def validate_input(cls, data):
         image = data.get("image")
-        video_url = data.get("video_url")
+        media_url = data.get("media_url")
 
-        if not image and not video_url:
+        if not image and not media_url:
             raise ValidationError(
                 {
                     "input": ValidationError(
-                        "Image or video URL is required.",
+                        "Image or external URL is required.",
                         code=ProductErrorCode.REQUIRED,
                     )
                 }
             )
-        if image and video_url:
+        if image and media_url:
             raise ValidationError(
                 {
                     "input": ValidationError(
-                        "Either image or video URL is required.",
+                        "Either image or external URL is required.",
                         code=ProductErrorCode.DUPLICATED_INPUT_ITEM,
                     )
                 }
@@ -1228,7 +1230,7 @@ class ProductMediaCreate(BaseMutation):
 
         alt = data.get("alt", "")
         image = data.get("image")
-        video_url = data.get("video_url")
+        media_url = data.get("media_url")
         if image:
             image_data = info.context.FILES.get(image)
             validate_image_file(image_data, "image")
@@ -1237,8 +1239,13 @@ class ProductMediaCreate(BaseMutation):
             )
             create_product_thumbnails.delay(media.pk)
         else:
-            video_url, video_type = validate_video_url(video_url, "video_url")
-            media = product.media.create(video_url=video_url, alt=alt, type=video_type)
+            oembed_data, media_type = get_oembed_data(media_url, "media_url")
+            media = product.media.create(
+                external_url=oembed_data["url"],
+                alt=oembed_data.get("title", alt),
+                type=media_type,
+                oembed_data=oembed_data,
+            )
 
         product = ChannelContext(node=product, channel_slug=None)
         return ProductMediaCreate(product=product, media=media)

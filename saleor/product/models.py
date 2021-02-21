@@ -7,6 +7,7 @@ from django.contrib.postgres.aggregates import StringAgg
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVectorField
 from django.db import models
+from django.db.models import JSONField  # type: ignore
 from django.db.models import (
     BooleanField,
     Case,
@@ -633,13 +634,14 @@ class ProductMedia(SortableModel):
         upload_to="products", ppoi_field="ppoi", blank=True, null=True
     )
     ppoi = PPOIField()
-    video_url = models.CharField(max_length=256, blank=True, null=True)
     alt = models.CharField(max_length=128, blank=True)
     type = models.CharField(
         max_length=32,
         choices=ProductMediaTypes.CHOICES,
         default=ProductMediaTypes.IMAGE,
     )
+    external_url = models.CharField(max_length=256, blank=True, null=True)
+    oembed_data = JSONField(blank=True, default=dict)
 
     class Meta:
         ordering = ("sort_order", "pk")

@@ -65,21 +65,23 @@ class Migration(migrations.Migration):
                         default="0.5x0.5", editable=False, max_length=20
                     ),
                 ),
-                ("video_url", models.CharField(blank=True, max_length=256, null=True)),
                 ("alt", models.CharField(blank=True, max_length=128)),
                 (
                     "type",
                     models.CharField(
                         choices=[
-                            ("image", "An uploaded image"),
-                            ("video/youtube", "A URL to a YouTube video"),
-                            ("video/streamable", "A URL to a Streamable video"),
-                            ("video/vimeo", "A URL to a Vimeo video"),
+                            ("image", "An uploaded image or an URL to an image"),
+                            ("video", "A URL to an external video"),
                         ],
                         default="image",
                         max_length=32,
                     ),
                 ),
+                (
+                    "external_url",
+                    models.CharField(blank=True, max_length=256, null=True),
+                ),
+                ("oembed_data", models.JSONField(blank=True, default=dict)),
                 (
                     "product",
                     models.ForeignKey(

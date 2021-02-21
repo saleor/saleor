@@ -1,47 +1,37 @@
-import re
-from typing import Tuple
+from typing import Any, Dict, Tuple
 
+import micawber
 from django.core.exceptions import ValidationError
 
 from ...product import ProductMediaTypes
 from ...product.error_codes import ProductErrorCode
 
+SUPPORTED_MEDIA_TYPES = {
+    "photo": ProductMediaTypes.IMAGE,
+    "video": ProductMediaTypes.VIDEO,
+}
 
-def validate_video_url(url: str, field_name: str) -> Tuple[str, str]:
-    """Validate the video URL and return the proper ProductMediaType."""
-    youtube_pattern = re.compile(r"(?:youtube.com|youtu.be).*(?:v=|watch\/|\/)([\w]*)")
-    streamable_pattern = re.compile(
-        r"^(?:http[s]?://)?(?:www\.)?streamable.com/([\w]*)"
-    )
-    vimeo_pattern = re.compile(r"^(?:http[s]?://)?(?:www\.)?vimeo.com/([\w]*)")
 
-    is_youtube = re.search(youtube_pattern, url)
-    is_streamable = re.search(streamable_pattern, url)
-    is_vimeo = re.search(vimeo_pattern, url)
+def get_oembed_data(url: str, field_name: str) -> Tuple[Dict[str, Any], str]:
+    """Get the oembed data from URL or raise an ValidationError."""
+    providers = micawber.bootstrap_basic()
 
-    if is_youtube:
-        video_id = is_youtube.group(1)
-        return (
-            f"https://www.youtube.com/embed/{video_id}",
-            ProductMediaTypes.VIDEO_YOUTUBE,
+    try:
+        oembed_data = providers.request(url, maxwidth=800, maxheight=600)
+        return oembed_data, SUPPORTED_MEDIA_TYPES[oembed_data["type"]]
+    except micawber.exceptions.ProviderException:
+        raise ValidationError(
+            {
+                field_name: ValidationError(
+                    "Unsupported media provider.", code=ProductErrorCode.INVALID.value
+                )
+            }
         )
-    elif is_streamable:
-        video_id = is_streamable.group(1)  # type: ignore
-        return (
-            f"https://www.streamable.com/e/{video_id}",
-            ProductMediaTypes.VIDEO_STREAMABLE,
+    except KeyError:
+        raise ValidationError(
+            {
+                field_name: ValidationError(
+                    "Unsupported media type.", code=ProductErrorCode.INVALID.value
+                )
+            }
         )
-    elif is_vimeo:
-        video_id = is_vimeo.group(1)  # type: ignore
-        return (
-            f"https://player.vimeo.com/video/{video_id}",
-            ProductMediaTypes.VIDEO_VIMEO,
-        )
-
-    raise ValidationError(
-        {
-            field_name: ValidationError(
-                "Enter a valid URL.", code=ProductErrorCode.INVALID.value
-            )
-        }
-    )

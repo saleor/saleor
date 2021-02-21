@@ -12,7 +12,7 @@ from ....attribute import models as attribute_models
 from ....core.permissions import OrderPermissions, ProductPermissions
 from ....core.utils import get_currency_for_country
 from ....core.weight import convert_weight_to_default_weight_unit
-from ....product import ProductMediaTypes, models
+from ....product import models
 from ....product.templatetags.product_images import (
     get_product_image_thumbnail,
     get_thumbnail,
@@ -624,12 +624,16 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     def resolve_thumbnail(root: ChannelContext[models.Product], info, *, size=255):
-        def return_first_thumbnail(images):
-            product_images = [
-                image for image in images if image.type == ProductMediaTypes.IMAGE
-            ]
-            if product_images:
-                image = product_images[0]
+        def return_first_thumbnail(product_media):
+            if product_media:
+                image = product_media[0]
+                oembed_data = image.oembed_data
+
+                if oembed_data.get("thumbnail_url"):
+                    return Image(
+                        alt=oembed_data["title"], url=oembed_data["thumbnail_url"]
+                    )
+
                 url = get_product_image_thumbnail(image, size, method="thumbnail")
                 alt = image.alt
                 return Image(alt=alt, url=info.context.build_absolute_uri(url))
@@ -1168,14 +1172,14 @@ class ProductMedia(CountableDjangoObjectType):
 
     class Meta:
         description = "Represents a product media."
-        fields = ["alt", "id", "sort_order", "type"]
+        fields = ["alt", "id", "sort_order", "type", "oembed_data"]
         interfaces = [relay.Node]
         model = models.ProductMedia
 
     @staticmethod
     def resolve_url(root: models.ProductMedia, info, *, size=None):
-        if root.video_url:
-            return root.video_url
+        if root.external_url:
+            return root.external_url
 
         if size:
             url = get_thumbnail(root.image, size, method="thumbnail")

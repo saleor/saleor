@@ -8,7 +8,7 @@ from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.utils import timezone
 from graphene import InputField
 
-from ....core.utils.validators import validate_video_url
+from ....core.utils.validators import get_oembed_data
 from ....product import ProductMediaTypes
 from ....product.models import Category, Product, ProductChannelListing
 from ...product import types as product_types
@@ -288,113 +288,118 @@ def test_requestor_is_superuser_for_anonymous_user():
     [
         (
             "youtu.be/dQw4w9WgXcQ",
-            ProductMediaTypes.VIDEO_YOUTUBE,
+            ProductMediaTypes.VIDEO,
             "https://www.youtube.com/embed/dQw4w9WgXcQ",
         ),
         (
             "youtube.com/watch?v=dQw4w9WgXcQ",
-            ProductMediaTypes.VIDEO_YOUTUBE,
+            ProductMediaTypes.VIDEO,
             "https://www.youtube.com/embed/dQw4w9WgXcQ",
         ),
         (
             "www.youtube.com/watch?v=dQw4w9WgXcQ",
-            ProductMediaTypes.VIDEO_YOUTUBE,
+            ProductMediaTypes.VIDEO,
             "https://www.youtube.com/embed/dQw4w9WgXcQ",
         ),
         (
             "http://www.youtube.com/watch?v=dQw4w9WgXcQ",
-            ProductMediaTypes.VIDEO_YOUTUBE,
+            ProductMediaTypes.VIDEO,
             "https://www.youtube.com/embed/dQw4w9WgXcQ",
         ),
         (
             "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-            ProductMediaTypes.VIDEO_YOUTUBE,
+            ProductMediaTypes.VIDEO,
             "https://www.youtube.com/embed/dQw4w9WgXcQ",
         ),
         (
             "https://www.youtube.com/watch?v=dQw4w9WgXcQ&feature=share",
-            ProductMediaTypes.VIDEO_YOUTUBE,
+            ProductMediaTypes.VIDEO,
             "https://www.youtube.com/embed/dQw4w9WgXcQ",
         ),
         (
             "https://www.youtube.com/embed/watch?feature=player_embedded&v=dQw4w9WgXcQ",
-            ProductMediaTypes.VIDEO_YOUTUBE,
+            ProductMediaTypes.VIDEO,
             "https://www.youtube.com/embed/dQw4w9WgXcQ",
         ),
         (
             "https://www.youtube.com/embed/watch?v=dQw4w9WgXcQ",
-            ProductMediaTypes.VIDEO_YOUTUBE,
+            ProductMediaTypes.VIDEO,
             "https://www.youtube.com/embed/dQw4w9WgXcQ",
         ),
         (
             "https://www.youtube.com/embed/v=dQw4w9WgXcQ",
-            ProductMediaTypes.VIDEO_YOUTUBE,
+            ProductMediaTypes.VIDEO,
             "https://www.youtube.com/embed/dQw4w9WgXcQ",
         ),
         (
             "https://www.youtube.com/watch/dQw4w9WgXcQ",
-            ProductMediaTypes.VIDEO_YOUTUBE,
+            ProductMediaTypes.VIDEO,
             "https://www.youtube.com/embed/dQw4w9WgXcQ",
         ),
         (
             "http://www.youtube.com/atribuon_link?u=/watch?v=dQw4w9WgXcQ&feature=share",
-            ProductMediaTypes.VIDEO_YOUTUBE,
+            ProductMediaTypes.VIDEO,
             "https://www.youtube.com/embed/dQw4w9WgXcQ",
         ),
         (
             "https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=TestingChannel",
-            ProductMediaTypes.VIDEO_YOUTUBE,
+            ProductMediaTypes.VIDEO,
             "https://www.youtube.com/embed/dQw4w9WgXcQ",
         ),
         (
             "https://streamable.com/8vnouo",
-            ProductMediaTypes.VIDEO_STREAMABLE,
+            ProductMediaTypes.VIDEO,
             "https://www.streamable.com/e/8vnouo",
         ),
         (
             "http://www.streamable.com/8vnouo",
-            ProductMediaTypes.VIDEO_STREAMABLE,
+            ProductMediaTypes.VIDEO,
             "https://www.streamable.com/e/8vnouo",
         ),
         (
             "https://www.streamable.com/8vnouo",
-            ProductMediaTypes.VIDEO_STREAMABLE,
+            ProductMediaTypes.VIDEO,
             "https://www.streamable.com/e/8vnouo",
         ),
         (
             "streamable.com/8vnouo",
-            ProductMediaTypes.VIDEO_STREAMABLE,
+            ProductMediaTypes.VIDEO,
             "https://www.streamable.com/e/8vnouo",
         ),
         (
             "https://vimeo.com/testId",
-            ProductMediaTypes.VIDEO_VIMEO,
+            ProductMediaTypes.VIDEO,
             "https://player.vimeo.com/video/testId",
         ),
         (
             "http://vimeo.com/testId",
-            ProductMediaTypes.VIDEO_VIMEO,
+            ProductMediaTypes.VIDEO,
             "https://player.vimeo.com/video/testId",
         ),
         (
             "https://www.vimeo.com/testId",
-            ProductMediaTypes.VIDEO_VIMEO,
+            ProductMediaTypes.VIDEO,
             "https://player.vimeo.com/video/testId",
         ),
         (
             "http://vimeo.com/testId",
-            ProductMediaTypes.VIDEO_VIMEO,
+            ProductMediaTypes.VIDEO,
             "https://player.vimeo.com/video/testId",
         ),
     ],
 )
 def test_validate_video_url(url, expected_video_type, expected_video_url):
-    video_url, video_type = validate_video_url(url, "video_url")
+    video_url, video_type = get_oembed_data(url, "video_url")
 
     assert video_url == expected_video_url
     assert video_type == expected_video_type
 
 
-def test_validate_video_url_invalid_url():
-    with pytest.raises(ValidationError, match="Enter a valid URL."):
-        validate_video_url("test-invalid-url", "video_url")
+def test_get_oembed_data_unsupported_media_provider():
+    with pytest.raises(ValidationError, match="Unsupported media provider."):
+        get_oembed_data("https://onet.pl", "media_url")
+
+
+def test_get_oembed_data_unsupported_media_type():
+    with pytest.raises(ValidationError, match="Unsupported media type."):
+        get_oembed_data("https://soundcloud.com/username/title", "media_url")

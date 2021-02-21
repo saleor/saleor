@@ -4058,6 +4058,7 @@ type ProductMedia implements Node {
   sortOrder: Int
   alt: String!
   type: ProductMediaType!
+  oembedData: JSONString!
   url(size: Int): String!
 }
 
@@ -4078,7 +4079,7 @@ input ProductMediaCreateInput {
   alt: String
   image: Upload
   product: ID!
-  videoUrl: String
+  mediaUrl: String
 }
 
 type ProductMediaDelete {
@@ -4097,9 +4098,7 @@ type ProductMediaReorder {
 
 enum ProductMediaType {
   IMAGE
-  VIDEO_YOUTUBE
-  VIDEO_STREAMABLE
-  VIDEO_VIMEO
+  VIDEO
 }
 
 type ProductMediaUpdate {
