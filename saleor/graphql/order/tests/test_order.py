@@ -187,7 +187,11 @@ def test_orderline_query(staff_api_client, permission_manage_orders, fulfilled_o
         "Warehouse", allocation.stock.warehouse.pk
     )
     assert first_order_data_line["allocations"] == [
-        {"id": allocation_id, "quantity": 0, "warehouse": {"id": warehouse_id}}
+        {
+            "id": allocation_id,
+            "quantity": allocation.quantity_allocated,
+            "warehouse": {"id": warehouse_id},
+        }
     ]
 
 

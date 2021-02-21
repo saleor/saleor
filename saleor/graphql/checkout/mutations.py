@@ -41,6 +41,7 @@ from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
 from ..utils import get_user_country_context
 from .types import Checkout, CheckoutLine
+from .utils import prepare_insufficient_stock_checkout_validation_error
 
 ERROR_DOES_NOT_SHIP = "This checkout doesn't need shipping"
 
@@ -121,12 +122,15 @@ def check_lines_quantity(variants, quantities, country):
     try:
         check_stock_quantity_bulk(variants, country, quantities)
     except InsufficientStock as e:
-        remaining = e.context["available_quantity"]
-        message = (
-            f"Could not add items {', '.join(e.items)}. "
-            f"Only {remaining} remaining in stock."
-        )
-        raise ValidationError({"quantity": ValidationError(message, code=e.code)})
+        errors = [
+            ValidationError(
+                f"Could not add items {item.variant}. "
+                f"Only {item.available_quantity} remaining in stock.",
+                code=e.code,
+            )
+            for item in e.items
+        ]
+        raise ValidationError({"quantity": errors})
 
 
 def validate_variants_available_for_purchase(variants, channel_id):
@@ -335,9 +339,8 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             try:
                 add_variants_to_checkout(instance, variants, quantities)
             except InsufficientStock as exc:
-                raise ValidationError(
-                    f"Insufficient product stock: {', '.join(exc.items)}", code=exc.code
-                )
+                error = prepare_insufficient_stock_checkout_validation_error(exc)
+                raise ValidationError({"lines": error})
             except ProductNotPublished as exc:
                 raise ValidationError(
                     "Can't create checkout with unpublished product.",
@@ -426,10 +429,8 @@ class CheckoutLinesAdd(BaseMutation):
                         checkout, variant, quantity, replace=replace
                     )
                 except InsufficientStock as exc:
-                    raise ValidationError(
-                        f"Insufficient product stock: {', '.join(exc.items)}",
-                        code=exc.code,
-                    )
+                    error = prepare_insufficient_stock_checkout_validation_error(exc)
+                    raise ValidationError({"lines": error})
                 except ProductNotPublished as exc:
                     raise ValidationError(
                         "Can't add unpublished product.",

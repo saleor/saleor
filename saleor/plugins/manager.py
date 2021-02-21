@@ -94,14 +94,20 @@ class PluginsManager(PaymentInterface):
         method. If plugin doesn't have own implementation of expected method_name, it
         will return previous_value.
         """
-        plugin_method = getattr(plugin, method_name, NotImplemented)
-        if plugin_method == NotImplemented:
-            return previous_value
+        plugin_id = getattr(plugin, "PLUGIN_ID", "")
+        with opentracing.global_tracer().start_active_span(
+            f"{plugin_id}.{method_name}"
+        ):
+            plugin_method = getattr(plugin, method_name, NotImplemented)
+            if plugin_method == NotImplemented:
+                return previous_value
 
-        returned_value = plugin_method(*args, **kwargs, previous_value=previous_value)
-        if returned_value == NotImplemented:
-            return previous_value
-        return returned_value
+            returned_value = plugin_method(
+                *args, **kwargs, previous_value=previous_value
+            )
+            if returned_value == NotImplemented:
+                return previous_value
+            return returned_value
 
     def change_user_address(
         self, address: "Address", address_type: Optional[str], user: Optional["User"]
@@ -382,6 +388,10 @@ class PluginsManager(PaymentInterface):
     def customer_created(self, customer: "User"):
         default_value = None
         return self.__run_method_on_plugins("customer_created", default_value, customer)
+
+    def customer_updated(self, customer: "User"):
+        default_value = None
+        return self.__run_method_on_plugins("customer_updated", default_value, customer)
 
     def product_created(self, product: "Product"):
         default_value = None

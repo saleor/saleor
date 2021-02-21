@@ -513,6 +513,7 @@ def create_fake_user(save=True):
         pass
 
     user = User(
+        id=fake.numerify(),
         first_name=address.first_name,
         last_name=address.last_name,
         email=email,
