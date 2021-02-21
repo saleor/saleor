@@ -21,6 +21,7 @@ from ....core.weight import WeightUnits
 from ....order import OrderStatus
 from ....order.models import OrderLine
 from ....plugins.manager import PluginsManager
+from ....product import ProductMediaTypes
 from ....product.error_codes import ProductErrorCode
 from ....product.models import (
     Category,
@@ -5973,12 +5974,12 @@ PRODUCT_MEDIA_CREATE_QUERY = """
     mutation createProductMedia(
         $product: ID!,
         $image: Upload,
-        $videoUrl: String,
+        $mediaUrl: String,
         $alt: String
     ) {
         productMediaCreate(input: {
             product: $product,
-            videoUrl: $videoUrl,
+            mediaUrl: $mediaUrl,
             alt: $alt,
             image: $image
         }) {
@@ -5987,6 +5988,7 @@ PRODUCT_MEDIA_CREATE_QUERY = """
                     url
                     alt
                     type
+                    oembedData
                 }
             }
             productErrors {
@@ -6051,13 +6053,13 @@ def test_product_media_create_mutation_without_file(
     assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
 
 
-def test_product_media_create_mutation_with_video_url(
+def test_product_media_create_mutation_with_media_url(
     monkeypatch, staff_api_client, product, permission_manage_products, media_root
 ):
     variables = {
         "product": graphene.Node.to_global_id("Product", product.id),
-        "videoUrl": "https://www.youtube.com/watch?v=SomeVideoID&ab_channel=Test",
-        "alt": "Test Alt Text",
+        "mediaUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        "alt": "",
     }
     body = get_multipart_request_body(
         PRODUCT_MEDIA_CREATE_QUERY, variables, file="", file_name="name"
@@ -6069,9 +6071,17 @@ def test_product_media_create_mutation_with_video_url(
 
     media = content["data"]["productMediaCreate"]["product"]["media"]
     assert len(media) == 1
-    assert media[0]["url"] == "https://www.youtube.com/embed/SomeVideoID"
-    assert media[0]["alt"] == "Test Alt Text"
-    assert media[0]["type"] == "VIDEO_YOUTUBE"
+    assert media[0]["url"] == "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+    assert media[0]["alt"] == "Rick Astley - Never Gonna Give You Up (Video)"
+    assert media[0]["type"] == ProductMediaTypes.VIDEO
+
+    oembed_data = json.loads(media[0]["oembedData"])
+    assert oembed_data["url"] == ("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+    assert oembed_data["type"] == "video"
+    assert oembed_data["html"] is not None
+    assert oembed_data["thumbnail_url"] == (
+        "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg"
+    )
 
 
 def test_product_media_create_mutation_without_url_or_image(
@@ -6102,7 +6112,7 @@ def test_product_media_create_mutation_with_both_url_and_image(
     image_file, image_name = create_image()
     variables = {
         "product": graphene.Node.to_global_id("Product", product.id),
-        "videoUrl": "https://www.youtube.com/watch?v=SomeVideoID&ab_channel=Test",
+        "mediaUrl": "https://www.youtube.com/watch?v=SomeVideoID&ab_channel=Test",
         "image": image_name,
         "alt": "Test Alt Text",
     }
@@ -6126,7 +6136,7 @@ def test_product_media_create_mutation_with_unknown_url(
 ):
     variables = {
         "product": graphene.Node.to_global_id("Product", product.id),
-        "videoUrl": "https://www.videohosting.com/SomeVideoID",
+        "mediaUrl": "https://www.videohosting.com/SomeVideoID",
         "alt": "Test Alt Text",
     }
     body = get_multipart_request_body(
@@ -6141,7 +6151,7 @@ def test_product_media_create_mutation_with_unknown_url(
     errors = content["data"]["productMediaCreate"]["productErrors"]
     assert len(errors) == 1
     assert errors[0]["code"] == ProductErrorCode.INVALID.name
-    assert errors[0]["field"] == "videoUrl"
+    assert errors[0]["field"] == "mediaUrl"
 
 
 def test_invalid_product_media_create_mutation(

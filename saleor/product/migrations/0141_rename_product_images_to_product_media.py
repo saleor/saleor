@@ -70,8 +70,8 @@ class Migration(migrations.Migration):
                     "type",
                     models.CharField(
                         choices=[
-                            ("image", "An uploaded image or an URL to an image"),
-                            ("video", "A URL to an external video"),
+                            ("IMAGE", "An uploaded image or an URL to an image"),
+                            ("VIDEO", "A URL to an external video"),
                         ],
                         default="image",
                         max_length=32,

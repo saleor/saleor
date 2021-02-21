@@ -1,6 +1,6 @@
 class ProductMediaTypes:
-    IMAGE = "image"
-    VIDEO = "video"
+    IMAGE = "IMAGE"
+    VIDEO = "VIDEO"
 
     CHOICES = [
         (IMAGE, "An uploaded image or an URL to an image"),

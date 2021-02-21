@@ -23,7 +23,8 @@ def get_oembed_data(url: str, field_name: str) -> Tuple[Dict[str, Any], str]:
         raise ValidationError(
             {
                 field_name: ValidationError(
-                    "Unsupported media provider.", code=ProductErrorCode.INVALID.value
+                    "Incorrect URL or unsupported media provider.",
+                    code=ProductErrorCode.INVALID.value,
                 )
             }
         )

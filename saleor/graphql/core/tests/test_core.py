@@ -284,122 +284,57 @@ def test_requestor_is_superuser_for_anonymous_user():
 
 
 @pytest.mark.parametrize(
-    "url, expected_video_type, expected_video_url",
+    "url, expected_media_type",
     [
-        (
-            "youtu.be/dQw4w9WgXcQ",
-            ProductMediaTypes.VIDEO,
-            "https://www.youtube.com/embed/dQw4w9WgXcQ",
-        ),
-        (
-            "youtube.com/watch?v=dQw4w9WgXcQ",
-            ProductMediaTypes.VIDEO,
-            "https://www.youtube.com/embed/dQw4w9WgXcQ",
-        ),
-        (
-            "www.youtube.com/watch?v=dQw4w9WgXcQ",
-            ProductMediaTypes.VIDEO,
-            "https://www.youtube.com/embed/dQw4w9WgXcQ",
-        ),
         (
             "http://www.youtube.com/watch?v=dQw4w9WgXcQ",
             ProductMediaTypes.VIDEO,
-            "https://www.youtube.com/embed/dQw4w9WgXcQ",
         ),
         (
             "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
             ProductMediaTypes.VIDEO,
-            "https://www.youtube.com/embed/dQw4w9WgXcQ",
-        ),
-        (
-            "https://www.youtube.com/watch?v=dQw4w9WgXcQ&feature=share",
-            ProductMediaTypes.VIDEO,
-            "https://www.youtube.com/embed/dQw4w9WgXcQ",
-        ),
-        (
-            "https://www.youtube.com/embed/watch?feature=player_embedded&v=dQw4w9WgXcQ",
-            ProductMediaTypes.VIDEO,
-            "https://www.youtube.com/embed/dQw4w9WgXcQ",
-        ),
-        (
-            "https://www.youtube.com/embed/watch?v=dQw4w9WgXcQ",
-            ProductMediaTypes.VIDEO,
-            "https://www.youtube.com/embed/dQw4w9WgXcQ",
-        ),
-        (
-            "https://www.youtube.com/embed/v=dQw4w9WgXcQ",
-            ProductMediaTypes.VIDEO,
-            "https://www.youtube.com/embed/dQw4w9WgXcQ",
-        ),
-        (
-            "https://www.youtube.com/watch/dQw4w9WgXcQ",
-            ProductMediaTypes.VIDEO,
-            "https://www.youtube.com/embed/dQw4w9WgXcQ",
-        ),
-        (
-            "http://www.youtube.com/atribuon_link?u=/watch?v=dQw4w9WgXcQ&feature=share",
-            ProductMediaTypes.VIDEO,
-            "https://www.youtube.com/embed/dQw4w9WgXcQ",
         ),
         (
             "https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=TestingChannel",
             ProductMediaTypes.VIDEO,
-            "https://www.youtube.com/embed/dQw4w9WgXcQ",
         ),
         (
-            "https://streamable.com/8vnouo",
+            "https://vimeo.com/148751763",
             ProductMediaTypes.VIDEO,
-            "https://www.streamable.com/e/8vnouo",
         ),
         (
-            "http://www.streamable.com/8vnouo",
-            ProductMediaTypes.VIDEO,
-            "https://www.streamable.com/e/8vnouo",
-        ),
-        (
-            "https://www.streamable.com/8vnouo",
-            ProductMediaTypes.VIDEO,
-            "https://www.streamable.com/e/8vnouo",
-        ),
-        (
-            "streamable.com/8vnouo",
-            ProductMediaTypes.VIDEO,
-            "https://www.streamable.com/e/8vnouo",
-        ),
-        (
-            "https://vimeo.com/testId",
-            ProductMediaTypes.VIDEO,
-            "https://player.vimeo.com/video/testId",
-        ),
-        (
-            "http://vimeo.com/testId",
-            ProductMediaTypes.VIDEO,
-            "https://player.vimeo.com/video/testId",
-        ),
-        (
-            "https://www.vimeo.com/testId",
-            ProductMediaTypes.VIDEO,
-            "https://player.vimeo.com/video/testId",
-        ),
-        (
-            "http://vimeo.com/testId",
-            ProductMediaTypes.VIDEO,
-            "https://player.vimeo.com/video/testId",
+            "https://www.flickr.com/photos/megane_wakui/31740618232/",
+            ProductMediaTypes.IMAGE,
         ),
     ],
 )
-def test_validate_video_url(url, expected_video_type, expected_video_url):
-    video_url, video_type = get_oembed_data(url, "video_url")
+def test_get_oembed_data(url, expected_media_type):
+    oembed_data, media_type = get_oembed_data(url, "media_url")
 
-    assert video_url == expected_video_url
-    assert video_type == expected_video_type
+    assert oembed_data is not {}
+    assert media_type == expected_media_type
 
 
-def test_get_oembed_data_unsupported_media_provider():
-    with pytest.raises(ValidationError, match="Unsupported media provider."):
-        get_oembed_data("https://onet.pl", "media_url")
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://www.streamable.com/8vnouo",
+        "https://www.flickr.com/photos/test/test/",
+        "https://www.youtube.com/embed/v=dQw4w9WgXcQ",
+        "https://vimeo.com/test",
+        "http://onet.pl/",
+    ],
+)
+def test_get_oembed_data_unsupported_media_provider(url):
+    with pytest.raises(
+        ValidationError, match="Incorrect URL or unsupported media provider."
+    ):
+        get_oembed_data(url, "media_url")
 
 
 def test_get_oembed_data_unsupported_media_type():
     with pytest.raises(ValidationError, match="Unsupported media type."):
-        get_oembed_data("https://soundcloud.com/username/title", "media_url")
+        get_oembed_data(
+            "https://soundcloud.com/andreasedstr-m/rick-astley-never-gonna-give",
+            "media_url",
+        )
