@@ -45,6 +45,37 @@ def test_product_translation(user_api_client, product, channel_USD):
     )
 
 
+def test_product_translation_without_description(user_api_client, product, channel_USD):
+    product.translations.create(language_code="pl", name="Produkt")
+
+    query = """
+    query productById($productId: ID!, $channel: String) {
+        product(id: $productId, channel: $channel) {
+            translation(languageCode: PL) {
+                name
+                description
+                descriptionJson
+                language {
+                    code
+                }
+            }
+        }
+    }
+    """
+
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    response = user_api_client.post_graphql(
+        query, {"productId": product_id, "channel": channel_USD.slug}
+    )
+    data = get_graphql_content(response)["data"]
+
+    translation_data = data["product"]["translation"]
+    assert translation_data["name"] == "Produkt"
+    assert translation_data["language"]["code"] == "PL"
+    assert translation_data["description"] is None
+    assert translation_data["descriptionJson"] == "{}"
+
+
 def test_product_translation_with_app(app_api_client, product, channel_USD):
     product.translations.create(language_code="pl", name="Produkt")
 
@@ -133,14 +164,51 @@ def test_collection_translation(user_api_client, published_collection, channel_U
     )
 
 
+def test_collection_translation_without_description(
+    user_api_client, published_collection, channel_USD
+):
+    published_collection.translations.create(language_code="pl", name="Kolekcja")
+
+    query = """
+    query collectionById($collectionId: ID!, $channel: String) {
+        collection(id: $collectionId, channel: $channel) {
+            translation(languageCode: PL) {
+                name
+                description
+                descriptionJson
+                language {
+                    code
+                }
+            }
+        }
+    }
+    """
+
+    collection_id = graphene.Node.to_global_id("Collection", published_collection.id)
+    variables = {"collectionId": collection_id, "channel": channel_USD.slug}
+    response = user_api_client.post_graphql(query, variables)
+    data = get_graphql_content(response)["data"]
+
+    translation_data = data["collection"]["translation"]
+    assert translation_data["name"] == "Kolekcja"
+    assert translation_data["language"]["code"] == "PL"
+    assert translation_data["description"] is None
+    assert translation_data["descriptionJson"] == "{}"
+
+
 def test_category_translation(user_api_client, category):
-    category.translations.create(language_code="pl", name="Kategoria")
+    description = dummy_editorjs("test description")
+    category.translations.create(
+        language_code="pl", name="Kategoria", description=description
+    )
 
     query = """
     query categoryById($categoryId: ID!) {
         category(id: $categoryId) {
             translation(languageCode: PL) {
                 name
+                description
+                descriptionJson
                 language {
                     code
                 }
@@ -153,8 +221,43 @@ def test_category_translation(user_api_client, category):
     response = user_api_client.post_graphql(query, {"categoryId": category_id})
     data = get_graphql_content(response)["data"]
 
-    assert data["category"]["translation"]["name"] == "Kategoria"
-    assert data["category"]["translation"]["language"]["code"] == "PL"
+    translation_data = data["category"]["translation"]
+    assert translation_data["name"] == "Kategoria"
+    assert translation_data["language"]["code"] == "PL"
+    assert (
+        translation_data["description"]
+        == translation_data["descriptionJson"]
+        == dummy_editorjs("test description", json_format=True)
+    )
+
+
+def test_category_translation_without_description(user_api_client, category):
+    category.translations.create(language_code="pl", name="Kategoria")
+
+    query = """
+    query categoryById($categoryId: ID!) {
+        category(id: $categoryId) {
+            translation(languageCode: PL) {
+                name
+                description
+                descriptionJson
+                language {
+                    code
+                }
+            }
+        }
+    }
+    """
+
+    category_id = graphene.Node.to_global_id("Category", category.id)
+    response = user_api_client.post_graphql(query, {"categoryId": category_id})
+    data = get_graphql_content(response)["data"]
+
+    translation_data = data["category"]["translation"]
+    assert translation_data["name"] == "Kategoria"
+    assert translation_data["language"]["code"] == "PL"
+    assert translation_data["description"] is None
+    assert translation_data["descriptionJson"] == "{}"
 
 
 def test_voucher_translation(staff_api_client, voucher, permission_manage_discounts):
@@ -240,6 +343,35 @@ def test_page_translation(user_api_client, page):
         == translation_data["contentJson"]
         == dummy_editorjs("test content", json_format=True)
     )
+
+
+def test_page_translation_without_content(user_api_client, page):
+    page.translations.create(language_code="pl", title="Strona")
+
+    query = """
+    query pageById($pageId: ID!) {
+        page(id: $pageId) {
+            translation(languageCode: PL) {
+                title
+                content
+                contentJson
+                language {
+                    code
+                }
+            }
+        }
+    }
+    """
+
+    page_id = graphene.Node.to_global_id("Page", page.id)
+    response = user_api_client.post_graphql(query, {"pageId": page_id})
+    data = get_graphql_content(response)["data"]
+
+    translation_data = data["page"]["translation"]
+    assert translation_data["title"] == "Strona"
+    assert translation_data["language"]["code"] == "PL"
+    assert translation_data["content"] is None
+    assert translation_data["contentJson"] == "{}"
 
 
 def test_attribute_translation(user_api_client, color_attribute):
