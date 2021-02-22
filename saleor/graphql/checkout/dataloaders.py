@@ -3,7 +3,7 @@ from collections import defaultdict
 from django.db.models import F
 from promise import Promise
 
-from ...checkout import CheckoutLineInfo
+from ...checkout.fetch import CheckoutLineInfo
 from ...checkout.models import Checkout, CheckoutLine
 from ..core.dataloaders import DataLoader
 from ..product.dataloaders import (

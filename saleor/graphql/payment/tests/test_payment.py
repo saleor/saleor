@@ -6,7 +6,7 @@ import graphene
 import pytest
 
 from ....checkout import calculations
-from ....checkout.utils import fetch_checkout_lines
+from ....checkout.fetch import fetch_checkout_lines
 from ....payment import PaymentError
 from ....payment.error_codes import PaymentErrorCode
 from ....payment.gateways.dummy_credit_card import (

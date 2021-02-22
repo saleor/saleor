@@ -17,6 +17,7 @@ from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...shipping.models import ShippingZone
 from .. import AddressType, calculations
+from ..fetch import fetch_checkout_lines
 from ..models import Checkout
 from ..utils import (
     add_voucher_to_checkout,
@@ -24,7 +25,6 @@ from ..utils import (
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
     clear_shipping_method,
-    fetch_checkout_lines,
     get_voucher_discount_for_checkout,
     get_voucher_for_checkout,
     is_fully_paid,

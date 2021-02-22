@@ -6,7 +6,7 @@ import graphene
 import pytest
 
 from ......checkout import calculations
-from ......checkout.utils import fetch_checkout_lines
+from ......checkout.fetch import fetch_checkout_lines
 from ......order import OrderEvents, OrderStatus
 from ......plugins.manager import get_plugins_manager
 from ..... import ChargeStatus, TransactionKind

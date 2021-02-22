@@ -15,8 +15,8 @@ from .....checkout.calculations import (
     checkout_shipping_price,
     checkout_total,
 )
+from .....checkout.fetch import fetch_checkout_lines
 from .....checkout.models import Checkout
-from .....checkout.utils import fetch_checkout_lines
 from .....core.prices import quantize_price
 from .....discount.utils import fetch_active_discounts
 from .....payment.models import Payment

@@ -7,7 +7,6 @@ from django.utils import timezone
 from prices import Money
 
 from ..account.models import User
-from ..channel.models import Channel
 from ..checkout import calculations
 from ..checkout.error_codes import CheckoutErrorCode
 from ..core.exceptions import ProductNotPublished
@@ -29,9 +28,10 @@ from ..giftcard.utils import (
 )
 from ..plugins.manager import PluginsManager, get_plugins_manager
 from ..product import models as product_models
-from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
+from ..shipping.models import ShippingMethod
 from ..warehouse.availability import check_stock_quantity, check_stock_quantity_bulk
-from . import AddressType, CheckoutInfo, CheckoutLineInfo
+from . import AddressType
+from .fetch import CheckoutLineInfo
 from .models import Checkout, CheckoutLine
 
 if TYPE_CHECKING:
@@ -39,6 +39,7 @@ if TYPE_CHECKING:
     from prices import TaxedMoney
 
     from ..account.models import Address
+    from ..channel.models import Channel
 
 
 def get_user_checkout(
@@ -289,7 +290,7 @@ def get_prices_of_discounted_specific_product(
     checkout: "Checkout",
     lines: Iterable["CheckoutLineInfo"],
     voucher: Voucher,
-    channel: Channel,
+    channel: "Channel",
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> List[Money]:
     """Get prices of variants belonging to the discounted specific products.
@@ -665,74 +666,6 @@ def clean_checkout(
 
 def cancel_active_payments(checkout: Checkout):
     checkout.payments.filter(is_active=True).update(is_active=False)
-
-
-def fetch_checkout_lines(checkout: Checkout) -> Iterable[CheckoutLineInfo]:
-    """Fetch checkout lines as CheckoutLineInfo objects."""
-    lines = checkout.lines.prefetch_related(
-        "variant__product__collections",
-        "variant__channel_listings__channel",
-        "variant__product__product_type",
-    )
-    lines_info = []
-
-    for line in lines:
-        variant = line.variant
-        product = variant.product
-        collections = list(product.collections.all())
-
-        variant_channel_listing = None
-        for channel_listing in line.variant.channel_listings.all():
-            if channel_listing.channel_id == checkout.channel_id:
-                variant_channel_listing = channel_listing
-
-        # FIXME: Temporary solution to pass type checks. Figure out how to handle case
-        # when variant channel listing is not defined for a checkout line.
-        if not variant_channel_listing:
-            continue
-
-        lines_info.append(
-            CheckoutLineInfo(
-                line=line,
-                variant=variant,
-                channel_listing=variant_channel_listing,
-                product=product,
-                collections=collections,
-            )
-        )
-    return lines_info
-
-
-def fetch_checkout_info(
-    checkout: Checkout,
-    lines: Iterable[CheckoutLineInfo],
-    discounts: Iterable[DiscountInfo],
-) -> CheckoutInfo:
-    """Fetch checkout as CheckoutInfo object."""
-    channel = checkout.channel
-    shipping_address = checkout.shipping_address
-    shipping_method = checkout.shipping_method
-    shipping_channel_listings = ShippingMethodChannelListing.objects.filter(
-        shipping_method=shipping_method, channel=channel
-    ).first()
-    country_code = shipping_address.country.code if shipping_address else None
-    valid_shipping_method = get_valid_shipping_methods_for_checkout(
-        checkout, lines, discounts, country_code=country_code
-    )
-    valid_shipping_method = (
-        list(valid_shipping_method) if valid_shipping_method is not None else []
-    )
-
-    return CheckoutInfo(
-        checkout=checkout,
-        user=checkout.user,
-        channel=channel,
-        billing_address=checkout.billing_address,
-        shipping_address=shipping_address,
-        shipping_method=shipping_method,
-        shipping_method_channel_listings=shipping_channel_listings,
-        valid_shipping_methods=valid_shipping_method,
-    )
 
 
 def is_shipping_required(lines: Iterable[CheckoutLineInfo]):

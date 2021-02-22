@@ -4,8 +4,9 @@ from decimal import Decimal
 import graphene
 from prices import Money
 
-from ....checkout import CheckoutLineInfo, calculations
-from ....checkout.utils import add_voucher_to_checkout, fetch_checkout_lines
+from ....checkout import calculations
+from ....checkout.fetch import CheckoutLineInfo, fetch_checkout_lines
+from ....checkout.utils import add_voucher_to_checkout
 from ....discount import DiscountInfo, VoucherType
 from ....plugins.manager import get_plugins_manager
 from ...tests.utils import get_graphql_content

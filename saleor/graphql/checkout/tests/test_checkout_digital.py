@@ -4,12 +4,9 @@ import pytest
 
 from ....account.models import Address
 from ....checkout.error_codes import CheckoutErrorCode
+from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
-from ....checkout.utils import (
-    add_variant_to_checkout,
-    fetch_checkout_info,
-    fetch_checkout_lines,
-)
+from ....checkout.utils import add_variant_to_checkout
 from ...checkout.mutations import update_checkout_shipping_method_if_invalid
 from ...tests.utils import get_graphql_content
 from .test_checkout import (

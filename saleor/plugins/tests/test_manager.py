@@ -6,8 +6,7 @@ from django.http import HttpResponseNotFound, JsonResponse
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
-from ...checkout import CheckoutLineInfo
-from ...checkout.utils import fetch_checkout_lines
+from ...checkout.fetch import CheckoutLineInfo, fetch_checkout_lines
 from ...core.taxes import TaxType
 from ...payment.interface import PaymentGateway
 from ...product.models import Product

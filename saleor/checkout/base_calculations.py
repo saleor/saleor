@@ -9,10 +9,10 @@ from typing import TYPE_CHECKING, Iterable, List, Optional
 
 from prices import TaxedMoney
 
-from ..checkout import CheckoutLineInfo
 from ..core.prices import quantize_price
 from ..core.taxes import zero_taxed_money
 from ..discount import DiscountInfo
+from .fetch import CheckoutLineInfo
 
 if TYPE_CHECKING:
     # flake8: noqa

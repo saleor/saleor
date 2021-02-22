@@ -14,7 +14,7 @@ from .models import NotApplicable, Sale, SaleChannelListing, VoucherCustomer
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ..checkout import CheckoutLineInfo
+    from ..checkout.fetch import CheckoutLineInfo
     from ..checkout.models import Checkout
     from ..order.models import Order
     from ..plugins.manager import PluginsManager

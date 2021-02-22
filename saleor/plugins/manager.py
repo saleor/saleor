@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     # flake8: noqa
     from ..account.models import Address, User
     from ..channel.models import Channel
-    from ..checkout import CheckoutLineInfo
+    from ..checkout.fetch import CheckoutLineInfo
     from ..checkout.models import Checkout, CheckoutLine
     from ..invoice.models import Invoice
     from ..order.models import Fulfillment, Order, OrderLine

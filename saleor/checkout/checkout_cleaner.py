@@ -7,8 +7,8 @@ from ..payment import gateway
 from ..payment import models as payment_models
 from ..payment.error_codes import PaymentErrorCode
 from ..plugins.manager import PluginsManager
-from . import CheckoutLineInfo
 from .error_codes import CheckoutErrorCode
+from .fetch import CheckoutLineInfo
 from .models import Checkout
 from .utils import is_fully_paid, is_shipping_required, is_valid_shipping_method
 
