@@ -30,7 +30,7 @@ from ..shipping.models import ShippingMethod
 from ..warehouse.availability import check_stock_quantity, check_stock_quantity_bulk
 from . import AddressType, calculations
 from .error_codes import CheckoutErrorCode
-from .fetch import update_checkout_info_shipping_address
+from .fetch import update_checkout_info_shipping_address, update_checkout_info_shipping_method
 from .models import Checkout, CheckoutLine
 
 if TYPE_CHECKING:
@@ -577,29 +577,24 @@ def get_valid_shipping_methods_for_checkout(
     )
 
 
-def is_valid_shipping_method(
-    checkout: Checkout,
-    lines: Iterable["CheckoutLineInfo"],
-    discounts: Iterable[DiscountInfo],
-    subtotal: Optional["TaxedMoney"] = None,
-):
+def is_valid_shipping_method(checkout_info: "CheckoutInfo"):
     """Check if shipping method is valid and remove (if not)."""
-    if not checkout.shipping_method:
+    if not checkout_info.shipping_method:
         return False
-    if not checkout.shipping_address:
+    if not checkout_info.shipping_address:
         return False
 
-    valid_methods = get_valid_shipping_methods_for_checkout(
-        checkout, lines, discounts, subtotal=subtotal
-    )
-    if valid_methods is None or checkout.shipping_method not in valid_methods:
-        clear_shipping_method(checkout)
+    valid_methods = checkout_info.valid_shipping_methods
+    if valid_methods is None or checkout_info.shipping_method not in valid_methods:
+        clear_shipping_method(checkout_info)
         return False
     return True
 
 
-def clear_shipping_method(checkout: Checkout):
+def clear_shipping_method(checkout_info: "CheckoutInfo"):
+    checkout = checkout_info.checkout
     checkout.shipping_method = None
+    update_checkout_info_shipping_method(checkout_info, None)
     checkout.save(update_fields=["shipping_method", "last_change"])
 
 
@@ -634,11 +629,12 @@ def is_fully_paid(
 
 def clean_checkout(
     manager: PluginsManager,
-    checkout: Checkout,
+    checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable[DiscountInfo],
 ):
     """Check if checkout can be completed."""
+    checkout = checkout_info.checkout
     if is_shipping_required(lines):
         if not checkout.shipping_method:
             raise ValidationError(
@@ -650,7 +646,7 @@ def clean_checkout(
                 "Shipping address is not set",
                 code=CheckoutErrorCode.SHIPPING_ADDRESS_NOT_SET.value,
             )
-        if not is_valid_shipping_method(checkout, lines, discounts):
+        if not is_valid_shipping_method(checkout_info):
             raise ValidationError(
                 "Shipping method is not valid for your shipping address",
                 code=CheckoutErrorCode.INVALID_SHIPPING_METHOD.value,

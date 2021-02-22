@@ -411,10 +411,7 @@ def _prepare_checkout(
 ):
     """Prepare checkout object to complete the checkout process."""
     checkout = checkout_info.checkout
-    subtotal = manager.calculate_checkout_subtotal(
-        checkout, lines, checkout_info.shipping_address, discounts
-    )
-    clean_checkout_shipping(checkout, lines, discounts, CheckoutErrorCode, subtotal)
+    clean_checkout_shipping(checkout_info, lines, CheckoutErrorCode)
     clean_checkout_payment(
         manager, checkout, lines, discounts, CheckoutErrorCode, last_payment=payment
     )

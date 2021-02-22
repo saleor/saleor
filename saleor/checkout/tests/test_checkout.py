@@ -39,26 +39,33 @@ def test_is_valid_shipping_method(checkout_with_item, address, shipping_zone):
     checkout.shipping_address = address
     checkout.save()
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
     # no shipping method assigned
-    assert not is_valid_shipping_method(checkout, lines, None)
+    assert not is_valid_shipping_method(checkout_info)
     shipping_method = shipping_zone.shipping_methods.first()
     checkout.shipping_method = shipping_method
     checkout.save()
+    checkout_info = fetch_checkout_info(checkout, lines, [])
 
-    assert is_valid_shipping_method(checkout, lines, None)
+    assert is_valid_shipping_method(checkout_info)
 
     zone = ShippingZone.objects.create(name="DE", countries=["DE"])
     shipping_method.shipping_zone = zone
     shipping_method.save()
-    assert not is_valid_shipping_method(checkout, lines, None)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
+
+    assert not is_valid_shipping_method(checkout_info)
 
 
 def test_clear_shipping_method(checkout, shipping_method):
     checkout.shipping_method = shipping_method
     checkout.save()
-    clear_shipping_method(checkout)
+    checkout_info = fetch_checkout_info(checkout, [], [])
+    clear_shipping_method(checkout_info)
     checkout.refresh_from_db()
     assert not checkout.shipping_method
+    assert not checkout_info.shipping_method
+    assert not checkout_info.shipping_method_channel_listings
 
 
 def test_last_change_update(checkout):

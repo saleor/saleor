@@ -8,23 +8,20 @@ from ..payment import models as payment_models
 from ..payment.error_codes import PaymentErrorCode
 from ..plugins.manager import PluginsManager
 from .error_codes import CheckoutErrorCode
-from .fetch import CheckoutLineInfo
 from .models import Checkout
 from .utils import is_fully_paid, is_shipping_required, is_valid_shipping_method
 
 if TYPE_CHECKING:
-    from prices import TaxedMoney
+    from .fetch import CheckoutInfo, CheckoutLineInfo
 
 
 def clean_checkout_shipping(
-    checkout: Checkout,
-    lines: Iterable[CheckoutLineInfo],
-    discounts: Iterable[DiscountInfo],
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
     error_code: Union[Type[CheckoutErrorCode], Type[PaymentErrorCode]],
-    subtotal: Optional["TaxedMoney"] = None,
 ):
     if is_shipping_required(lines):
-        if not checkout.shipping_method_id:
+        if not checkout_info.shipping_method:
             raise ValidationError(
                 {
                     "shipping_method": ValidationError(
@@ -33,7 +30,7 @@ def clean_checkout_shipping(
                     )
                 }
             )
-        if not checkout.shipping_address_id:
+        if not checkout_info.shipping_address:
             raise ValidationError(
                 {
                     "shipping_address": ValidationError(
@@ -42,7 +39,7 @@ def clean_checkout_shipping(
                     )
                 }
             )
-        if not is_valid_shipping_method(checkout, lines, discounts, subtotal):
+        if not is_valid_shipping_method(checkout_info):
             raise ValidationError(
                 {
                     "shipping_method": ValidationError(
@@ -71,7 +68,7 @@ def clean_billing_address(
 def clean_checkout_payment(
     manager: PluginsManager,
     checkout: Checkout,
-    lines: Iterable[CheckoutLineInfo],
+    lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable[DiscountInfo],
     error_code: Type[CheckoutErrorCode],
     last_payment: Optional[payment_models.Payment],
