@@ -1,17 +1,19 @@
 from collections import defaultdict, namedtuple
-from typing import TYPE_CHECKING, Dict, Iterable, List
+from typing import TYPE_CHECKING, Dict, Iterable, List, cast
 
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import F, Sum
 from django.db.models.functions import Coalesce
 
 from ..core.exceptions import AllocationError, InsufficientStock
+from ..product.models import ProductVariant
+from .error_codes import StockErrorCode
 from .models import Allocation, Stock, Warehouse
 
 if TYPE_CHECKING:
     from ..order import OrderLineData
     from ..order.models import Order, OrderLine
-    from ..product.models import ProductVariant
 
 
 StockData = namedtuple("StockData", ["pk", "quantity"])
@@ -36,39 +38,54 @@ def allocate_stocks(order_lines_info: Iterable["OrderLineData"], country_code: s
         if line_info.variant and line_info.variant.track_inventory
     ]
     variants = [line_info.variant for line_info in order_lines_info]
+    if None in variants:
+        raise ValidationError(
+            {
+                "variant": ValidationError(
+                    "Missing variant in order line. Cannot allocate the stock",
+                    code=StockErrorCode.INVALID.value,
+                )
+            }
+        )
 
-    stocks = (
+    stocks = list(
         Stock.objects.select_for_update(of=("self",))
         .for_country(country_code)
         .filter(product_variant__in=variants)
         .order_by("pk")
+        .values("id", "product_variant", "pk", "quantity")
     )
+    stocks_id = (stock.pop("id") for stock in stocks)
 
     quantity_allocation_list = list(
         Allocation.objects.filter(
-            stock__in=stocks,
+            stock_id__in=stocks_id,
             quantity_allocated__gt=0,
         )
         .values("stock")
-        .annotate(Sum("quantity_allocated"))
+        .annotate(quantity_allocated_sum=Sum("quantity_allocated"))
     )
     quantity_allocation_for_stocks: Dict = defaultdict(int)
     for allocation in quantity_allocation_list:
         quantity_allocation_for_stocks[allocation["stock"]] += allocation[
-            "quantity_allocated__sum"
+            "quantity_allocated_sum"
         ]
 
     variant_to_stocks: Dict[str, List[StockData]] = defaultdict(list)
-    for stock_data in stocks.values("product_variant", "pk", "quantity"):
+    for stock_data in stocks:
         variant = stock_data.pop("product_variant")
         variant_to_stocks[variant].append(StockData(**stock_data))
 
     insufficient_stock: List["ProductVariant"] = []
     allocations: List[Allocation] = []
     for line_info in order_lines_info:
-        stocks = variant_to_stocks[line_info.variant.pk]  # type: ignore
+        line_info.variant = cast(ProductVariant, line_info.variant)
+        stock_allocations = variant_to_stocks[line_info.variant.pk]
         insufficient_stock, allocation_items = _create_allocations(
-            line_info, stocks, quantity_allocation_for_stocks, insufficient_stock
+            line_info,
+            stock_allocations,
+            quantity_allocation_for_stocks,
+            insufficient_stock,
         )
         allocations.extend(allocation_items)
 

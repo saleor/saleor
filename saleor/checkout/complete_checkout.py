@@ -34,7 +34,6 @@ from ..payment.utils import store_customer_id
 from ..product.models import ProductTranslation, ProductVariantTranslation
 from ..warehouse.availability import check_stock_quantity_bulk
 from ..warehouse.management import allocate_stocks
-from ..warehouse.models import Allocation
 from . import AddressType, models
 from .checkout_cleaner import clean_checkout_payment, clean_checkout_shipping
 from .models import Checkout
@@ -342,8 +341,6 @@ def _create_order(
     which language to use when sending email.
     """
     from ..order.utils import add_gift_card_to_order
-
-    Allocation.objects.select_for_update(of=("self",))
 
     order = Order.objects.filter(checkout_token=checkout.token).first()
     if order is not None:
