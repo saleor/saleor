@@ -43,6 +43,9 @@ class CheckoutInfo:
             return self.checkout.country.code
         return address.country.code
 
+    def get_customer_email(self) -> str:
+        return self.user.email if self.user else self.checkout.email
+
 
 def fetch_checkout_lines(checkout: "Checkout") -> Iterable[CheckoutLineInfo]:
     """Fetch checkout lines as CheckoutLineInfo objects."""
@@ -111,4 +114,15 @@ def fetch_checkout_info(
         shipping_method=shipping_method,
         shipping_method_channel_listings=shipping_channel_listings,
         valid_shipping_methods=valid_shipping_method,
+    )
+
+
+def update_checkout_info_shipping_method(
+    checkout_info: CheckoutInfo, shipping_method: Optional["ShippingMethod"]
+):
+    checkout_info.shipping_method = shipping_method
+    checkout_info.shipping_method_channel_listings = (
+        ShippingMethodChannelListing.objects.filter(
+            shipping_method=shipping_method, channel=checkout_info.channel
+        ).first()
     )

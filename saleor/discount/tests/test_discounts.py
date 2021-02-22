@@ -5,7 +5,7 @@ import pytest
 from django.utils import timezone
 from prices import Money
 
-from ...checkout.fetch import fetch_checkout_lines
+from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...checkout.utils import get_voucher_discount_for_checkout
 from ...plugins.manager import get_plugins_manager
 from ...product.models import Product, ProductVariant, ProductVariantChannelListing
@@ -214,7 +214,7 @@ def test_specific_products_voucher_checkout_discount(
     discounts = []
     monkeypatch.setattr(
         "saleor.checkout.utils.get_prices_of_discounted_specific_product",
-        lambda manager, checkout, lines, voucher, channel, discounts: (
+        lambda manager, checkout_info, lines, voucher, channel: (
             Money(price, "USD") for price in prices
         ),
     )
@@ -231,9 +231,10 @@ def test_specific_products_voucher_checkout_discount(
     )
     checkout = checkout_with_item
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, discounts)
     manager = get_plugins_manager()
     discount = get_voucher_discount_for_checkout(
-        manager, voucher, checkout, lines, checkout.shipping_address, discounts
+        manager, voucher, checkout_info, lines, checkout.shipping_address, discounts
     )
     assert discount == Money(expected_value, "USD")
 
