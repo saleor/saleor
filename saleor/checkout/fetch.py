@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Iterable, List, Optional
 
-from ..discount import DiscountInfo
 from ..shipping.models import ShippingMethodChannelListing
 
 if TYPE_CHECKING:
     from ..account.models import Address, User
     from ..channel.models import Channel
+    from ..discount import DiscountInfo
     from ..product.models import (
         Collection,
         Product,
@@ -89,7 +89,6 @@ def fetch_checkout_info(
     discounts: Iterable["DiscountInfo"],
 ) -> CheckoutInfo:
     """Fetch checkout as CheckoutInfo object."""
-    from .utils import get_valid_shipping_methods_for_checkout
 
     channel = checkout.channel
     shipping_address = checkout.shipping_address
@@ -97,12 +96,8 @@ def fetch_checkout_info(
     shipping_channel_listings = ShippingMethodChannelListing.objects.filter(
         shipping_method=shipping_method, channel=channel
     ).first()
-    country_code = shipping_address.country.code if shipping_address else None
-    valid_shipping_method = get_valid_shipping_methods_for_checkout(
-        checkout, lines, discounts, country_code=country_code
-    )
-    valid_shipping_method = (
-        list(valid_shipping_method) if valid_shipping_method is not None else []
+    valid_shipping_method = get_valid_shipping_method_list_for_checkout_info(
+        checkout, shipping_address, lines, discounts
     )
 
     return CheckoutInfo(
@@ -115,6 +110,37 @@ def fetch_checkout_info(
         shipping_method_channel_listings=shipping_channel_listings,
         valid_shipping_methods=valid_shipping_method,
     )
+
+
+def update_checkout_info_shipping_address(
+    checkout_info: CheckoutInfo,
+    address: "Address",
+    lines: Iterable[CheckoutLineInfo],
+    discounts: Iterable["DiscountInfo"],
+):
+    checkout_info.shipping_address = address
+    valid_methods = get_valid_shipping_method_list_for_checkout_info(
+        checkout_info.checkout, address, lines, discounts
+    )
+    checkout_info.valid_shipping_methods = valid_methods
+
+
+def get_valid_shipping_method_list_for_checkout_info(
+    checkout: "Checkout",
+    shipping_address: Optional["Address"],
+    lines: Iterable[CheckoutLineInfo],
+    discounts: Iterable["DiscountInfo"],
+):
+    from .utils import get_valid_shipping_methods_for_checkout
+
+    country_code = shipping_address.country.code if shipping_address else None
+    valid_shipping_method = get_valid_shipping_methods_for_checkout(
+        checkout, lines, discounts, country_code=country_code
+    )
+    valid_shipping_method = (
+        list(valid_shipping_method) if valid_shipping_method is not None else []
+    )
+    return valid_shipping_method
 
 
 def update_checkout_info_shipping_method(

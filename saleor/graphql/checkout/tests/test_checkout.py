@@ -20,7 +20,7 @@ from ....checkout.checkout_cleaner import (
     clean_checkout_shipping,
 )
 from ....checkout.error_codes import CheckoutErrorCode
-from ....checkout.fetch import CheckoutInfo, fetch_checkout_info, fetch_checkout_lines
+from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
 from ....checkout.utils import add_variant_to_checkout
 from ....core.payments import PaymentInterface
@@ -1932,20 +1932,7 @@ def test_checkout_shipping_address_update(
     assert checkout.shipping_address.country == shipping_address["country"]
     assert checkout.shipping_address.city == shipping_address["city"].upper()
     lines = fetch_checkout_lines(checkout)
-    checkout_info = CheckoutInfo(
-        checkout=checkout,
-        shipping_address=None,
-        billing_address=checkout.billing_address,
-        shipping_method=checkout.shipping_method,
-        user=checkout.user,
-        valid_shipping_methods=[],
-        shipping_method_channel_listings=(
-            shipping_models.ShippingMethodChannelListing.objects.filter(
-                shipping_method=checkout.shipping_method, channel=checkout.channel
-            ).first()
-        ),
-        channel=checkout.channel,
-    )
+    checkout_info = fetch_checkout_info(checkout, lines, [])
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
 
 
@@ -1962,7 +1949,7 @@ def test_checkout_shipping_address_update_changes_checkout_country(
     graphql_address_data,
 ):
     variant = variant_with_many_stocks_different_shipping_zones
-    checkout = Checkout.objects.create(channel=channel_USD)
+    checkout = Checkout.objects.create(channel=channel_USD, currency="USD")
     checkout.set_country("PL", commit=True)
     add_variant_to_checkout(checkout, variant, 1)
     assert checkout.shipping_address is None
@@ -1994,20 +1981,7 @@ def test_checkout_shipping_address_update_changes_checkout_country(
     assert checkout.shipping_address.country == shipping_address["country"]
     assert checkout.shipping_address.city == shipping_address["city"].upper()
     lines = fetch_checkout_lines(checkout)
-    checkout_info = CheckoutInfo(
-        checkout=checkout,
-        shipping_address=None,
-        billing_address=checkout.billing_address,
-        shipping_method=checkout.shipping_method,
-        user=checkout.user,
-        valid_shipping_methods=[],
-        shipping_method_channel_listings=(
-            shipping_models.ShippingMethodChannelListing.objects.filter(
-                shipping_method=checkout.shipping_method, channel=checkout.channel
-            ).first()
-        ),
-        channel=checkout.channel,
-    )
+    checkout_info = fetch_checkout_info(checkout, lines, [])
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.country == shipping_address["country"]
 
