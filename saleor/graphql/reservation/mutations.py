@@ -98,13 +98,19 @@ class ReservationCreate(BaseMutation):
                 quantity,
                 user,
             )
-        except InsufficientStock as e:
-            remaining = e.context["available_quantity"]
-            item_name = e.item.display_product()
-            message = (
-                f"Could not reserve item {item_name}. Only {remaining} remain in stock."
+        except InsufficientStock as exc:
+            variant_global_id = graphene.Node.to_global_id(
+                "ProductVariant", product_variant.pk
             )
-            raise ValidationError({"quantity": ValidationError(message, code=e.code)})
+            raise ValidationError(
+                {
+                    "quantity": ValidationError(
+                        f"Insufficient product stock: {product_variant}",
+                        code=exc.code.value,
+                        params={"variant": [variant_global_id]},
+                    )
+                }
+            )
 
     @classmethod
     def retrieve_shipping_zone(cls, country_code: str) -> ShippingZone:

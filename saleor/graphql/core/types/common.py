@@ -121,7 +121,7 @@ class CheckoutError(Error):
     code = CheckoutErrorCode(description="The error code.", required=True)
     variants = graphene.List(
         graphene.NonNull(graphene.ID),
-        description="List of varint IDs which causes the error.",
+        description="List of variant IDs which causes the error.",
         required=False,
     )
 
@@ -293,6 +293,10 @@ class StockError(Error):
 
 class ReservationError(Error):
     code = ReservationErrorCode(description="The error code.", required=True)
+    variant = graphene.ID(
+        description="Variant ID which causes the error.",
+        required=False,
+    )
 
 
 class BulkStockError(ProductError):

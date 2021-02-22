@@ -1033,7 +1033,7 @@ def test_checkout_create_check_lines_reserved_quantity(
     content = get_graphql_content(response)
     data = content["data"]["checkoutCreate"]
     assert data["checkoutErrors"][0]["message"] == (
-        "Could not add item Test product (SKU_A). Only 1 remaining in stock."
+        "Could not add items SKU_A. Only 1 remaining in stock."
     )
     assert data["checkoutErrors"][0]["field"] == "quantity"
 
@@ -1587,7 +1587,7 @@ def test_checkout_lines_add_product_reserved_by_other_user(
     checkout.refresh_from_db()
     line = checkout.lines.latest("pk")
     assert line.variant == variant
-    assert line.quantity == 4
+    assert line.quantity == 1
 
     lines = fetch_checkout_lines(checkout)
     mocked_update_shipping_method.assert_called_once_with(checkout, lines, mock.ANY)
@@ -1621,9 +1621,7 @@ def test_checkout_lines_add_product_over_quantity_reserved_by_other_user_fails(
         {
             "code": "INSUFFICIENT_STOCK",
             "field": "quantity",
-            "message": (
-                "Could not add item Test product (SKU_A). Only 1 remaining in stock."
-            ),
+            "message": ("Could not add items SKU_A. Only 1 remaining in stock."),
             "variants": None,
         }
     ]

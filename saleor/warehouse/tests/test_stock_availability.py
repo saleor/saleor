@@ -46,6 +46,23 @@ def test_check_stock_quantity_without_one_stock(variant_with_many_stocks):
     assert check_stock_quantity(variant_with_many_stocks, COUNTRY_CODE, 4) is None
 
 
+def test_check_stock_quantity_with_other_user_reservation(variant_with_reserved_stock):
+    with pytest.raises(InsufficientStock):
+        check_stock_quantity(variant_with_reserved_stock, COUNTRY_CODE, 4)
+
+
+def test_check_stock_quantity_for_given_user_with_reservation(
+    variant_with_reserved_stock, customer_user
+):
+    check_stock_quantity(variant_with_reserved_stock, COUNTRY_CODE, 4, customer_user)
+
+
+def test_check_stock_quantity_with_expired_reservation(
+    variant_with_expired_stock_reservation,
+):
+    check_stock_quantity(variant_with_expired_stock_reservation, COUNTRY_CODE, 4)
+
+
 def test_get_available_quantity_without_allocation(order_line, stock):
     assert not Allocation.objects.filter(order_line=order_line, stock=stock).exists()
     available_quantity = get_available_quantity(order_line.variant, COUNTRY_CODE)
