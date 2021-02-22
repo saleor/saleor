@@ -1,13 +1,11 @@
 from collections import defaultdict, namedtuple
 from typing import TYPE_CHECKING, Dict, Iterable, List, cast
 
-from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import F, Sum
 
 from ..core.exceptions import AllocationError, InsufficientStock, InsufficientStockData
 from ..product.models import ProductVariant
-from .error_codes import StockErrorCode
 from .models import Allocation, Stock, Warehouse
 
 if TYPE_CHECKING:
@@ -36,15 +34,6 @@ def allocate_stocks(order_lines_info: Iterable["OrderLineData"], country_code: s
         return
 
     variants = [line_info.variant for line_info in order_lines_info]
-    if None in variants:
-        raise ValidationError(
-            {
-                "variant": ValidationError(
-                    "Missing variant in order line. Cannot allocate the stock",
-                    code=StockErrorCode.INVALID.value,
-                )
-            }
-        )
 
     stocks = list(
         Stock.objects.select_for_update(of=("self",))
