@@ -30,7 +30,10 @@ from ..shipping.models import ShippingMethod
 from ..warehouse.availability import check_stock_quantity, check_stock_quantity_bulk
 from . import AddressType, calculations
 from .error_codes import CheckoutErrorCode
-from .fetch import update_checkout_info_shipping_address, update_checkout_info_shipping_method
+from .fetch import (
+    update_checkout_info_shipping_address,
+    update_checkout_info_shipping_method,
+)
 from .models import Checkout, CheckoutLine
 
 if TYPE_CHECKING:
