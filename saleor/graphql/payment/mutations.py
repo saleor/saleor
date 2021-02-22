@@ -142,7 +142,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         )
         amount = data.get("amount", checkout_total.gross.amount)
         clean_checkout_shipping(checkout_info, lines, PaymentErrorCode)
-        clean_billing_address(checkout, PaymentErrorCode)
+        clean_billing_address(checkout_info, PaymentErrorCode)
         cls.clean_payment_amount(info, checkout_total, amount)
         extra_data = {
             "customer_user_agent": info.context.META.get("HTTP_USER_AGENT"),

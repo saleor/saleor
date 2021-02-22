@@ -603,7 +603,7 @@ def clear_shipping_method(checkout_info: "CheckoutInfo"):
 
 def is_fully_paid(
     manager: PluginsManager,
-    checkout: Checkout,
+    checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable[DiscountInfo],
 ):
@@ -611,9 +611,10 @@ def is_fully_paid(
 
     Note that these payments may not be captured or charged at all.
     """
+    checkout = checkout_info.checkout
     payments = [payment for payment in checkout.payments.all() if payment.is_active]
     total_paid = sum([p.total for p in payments])
-    address = checkout.shipping_address or checkout.billing_address
+    address = checkout_info.shipping_address or checkout_info.billing_address
     checkout_total = (
         calculations.checkout_total(
             manager=manager,
@@ -661,7 +662,7 @@ def clean_checkout(
             code=CheckoutErrorCode.BILLING_ADDRESS_NOT_SET.value,
         )
 
-    if not is_fully_paid(manager, checkout, lines, discounts):
+    if not is_fully_paid(manager, checkout_info, lines, discounts):
         raise ValidationError(
             "Provided payment methods can not cover the checkout's total amount",
             code=CheckoutErrorCode.CHECKOUT_NOT_FULLY_PAID.value,

@@ -413,7 +413,12 @@ def _prepare_checkout(
     checkout = checkout_info.checkout
     clean_checkout_shipping(checkout_info, lines, CheckoutErrorCode)
     clean_checkout_payment(
-        manager, checkout, lines, discounts, CheckoutErrorCode, last_payment=payment
+        manager,
+        checkout_info,
+        lines,
+        discounts,
+        CheckoutErrorCode,
+        last_payment=payment,
     )
     if not checkout.channel.is_active:
         raise ValidationError(
