@@ -5,6 +5,10 @@ All notable, unreleased changes to this project will be documented in this file.
 ## [Unreleased]
 - Add query contains only schema validation - #6827 by @fowczarek
 - Add introspection caching - #6871 by @fowczarek
+- Refactor plugins manager(add missing tracing, optimize imports, drop plugins manager from settings) - #6890 by @fowczarek
+- Add CUSTOMER_UPDATED webhook, add addresses field to customer CUSTOMER_CREATED webhook - #6898 by @piotrgrundas
+- Add missing span in PluginManager - #6900 by @fowczarek
+- Fix Sentry reporting - #6902 by @fowczarek
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -52,6 +56,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix page `contentJson` field to return JSON - #6832 by @d-wysocki
 - Add SearchRank to search product by name and description. New enum added to `ProductOrderField` - `RANK` - which returns results sorted by search rank - #6872 by @d-wysocki
 - Allocate stocks for order lines in a bulk way - #6877 by @IKarbowiak
+- Add product description_plaintext to populatedb - #6894 by @d-wysocki
+- Deallocate stocks for order lines in a bulk way - #6896 by @IKarbowiak
 
 # 2.11.1
 

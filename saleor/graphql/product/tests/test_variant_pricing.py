@@ -1,5 +1,6 @@
 from unittest.mock import Mock
 
+from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
 from ....plugins.manager import PluginsManager
@@ -140,7 +141,7 @@ def test_variant_pricing(
         discounts=[],
         channel=channel_USD,
         local_currency="PLN",
-        country="US",
+        country=Country("US"),
     )
     assert pricing.price_local_currency.currency == "PLN"  # type: ignore
 
