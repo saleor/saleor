@@ -8,8 +8,9 @@ from django.test import override_settings
 from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from ....checkout import CheckoutLineInfo, calculations
-from ....checkout.utils import add_variant_to_checkout, fetch_checkout_lines
+from ....checkout import calculations
+from ....checkout.fetch import CheckoutLineInfo, fetch_checkout_lines
+from ....checkout.utils import add_variant_to_checkout
 from ....core.prices import quantize_price
 from ....core.taxes import zero_taxed_money
 from ....product.models import Product

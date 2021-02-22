@@ -3,7 +3,8 @@ from django.core.exceptions import ValidationError
 
 from ...checkout.calculations import calculate_checkout_total_with_gift_cards
 from ...checkout.checkout_cleaner import clean_billing_address, clean_checkout_shipping
-from ...checkout.utils import cancel_active_payments, fetch_checkout_lines
+from ...checkout.fetch import fetch_checkout_lines
+from ...checkout.utils import cancel_active_payments
 from ...core.permissions import OrderPermissions
 from ...core.utils import get_client_ip
 from ...core.utils.url import validate_storefront_url

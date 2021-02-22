@@ -13,7 +13,8 @@ from ...product.models import ProductTranslation, ProductVariantTranslation
 from ...tests.utils import flush_post_commit_hooks
 from .. import calculations
 from ..complete_checkout import _create_order, _prepare_order_data
-from ..utils import add_variant_to_checkout, fetch_checkout_lines
+from ..fetch import fetch_checkout_lines
+from ..utils import add_variant_to_checkout
 
 
 def test_create_order_captured_payment_creates_expected_events(

@@ -14,8 +14,8 @@ from django.contrib.sites.models import Site
 from django.core.cache import cache
 from requests.auth import HTTPBasicAuth
 
-from ...checkout import CheckoutLineInfo, base_calculations
-from ...checkout.utils import fetch_checkout_lines
+from ...checkout import base_calculations
+from ...checkout.fetch import CheckoutLineInfo, fetch_checkout_lines
 from ...core.taxes import TaxError
 
 if TYPE_CHECKING:

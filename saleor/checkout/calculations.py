@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from ..account.models import Address
     from ..channel.models import Channel
     from ..plugins.manager import PluginsManager
-    from . import CheckoutLineInfo
+    from .fetch import CheckoutLineInfo
     from .models import Checkout
 
 

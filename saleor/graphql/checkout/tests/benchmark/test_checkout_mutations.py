@@ -2,8 +2,8 @@ import pytest
 from graphene import Node
 
 from .....checkout import calculations
+from .....checkout.fetch import fetch_checkout_lines
 from .....checkout.models import Checkout
-from .....checkout.utils import fetch_checkout_lines
 from .....plugins.manager import get_plugins_manager
 from ....tests.utils import get_graphql_content
 

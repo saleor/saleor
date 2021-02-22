@@ -1,7 +1,8 @@
 import graphene
 from promise import Promise
 
-from ...checkout import CheckoutLineInfo, calculations, models
+from ...checkout import calculations, models
+from ...checkout.fetch import CheckoutLineInfo
 from ...checkout.utils import get_valid_shipping_methods_for_checkout
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions

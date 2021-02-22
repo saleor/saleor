@@ -6,8 +6,8 @@ import pytest
 
 from ....checkout import calculations
 from ....checkout.error_codes import CheckoutErrorCode
+from ....checkout.fetch import fetch_checkout_lines
 from ....checkout.models import Checkout
-from ....checkout.utils import fetch_checkout_lines
 from ....core.exceptions import InsufficientStock
 from ....core.taxes import zero_money
 from ....order import OrderStatus

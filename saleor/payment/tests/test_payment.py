@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from ...checkout.calculations import checkout_total
-from ...checkout.utils import fetch_checkout_lines
+from ...checkout.fetch import fetch_checkout_lines
 from ...plugins.manager import PluginsManager, get_plugins_manager
 from .. import ChargeStatus, GatewayError, PaymentError, TransactionKind, gateway
 from ..error_codes import PaymentErrorCode
