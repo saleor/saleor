@@ -337,6 +337,10 @@ class ShippingPriceMixin:
     def save(cls, info, instance, cleaned_input):
         super().save(info, instance, cleaned_input)
 
+        delete_postal_code_rules = cleaned_input.get("delete_postal_code_rules")
+        if delete_postal_code_rules:
+            instance.postal_code_rules.filter(id__in=delete_postal_code_rules).delete()
+
         if cleaned_input.get("add_postal_code_rules"):
             inclusion_type = cleaned_input["inclusion_type"]
             for postal_code_rule in cleaned_input["add_postal_code_rules"]:
@@ -355,10 +359,6 @@ class ShippingPriceMixin:
                             )
                         }
                     )
-
-        delete_postal_code_rules = cleaned_input.get("delete_postal_code_rules")
-        if delete_postal_code_rules:
-            instance.postal_code_rules.filter(id__in=delete_postal_code_rules).delete()
 
 
 class ShippingPriceCreate(ShippingPriceMixin, ModelMutation):
