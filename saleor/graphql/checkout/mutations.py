@@ -872,9 +872,10 @@ class CheckoutComplete(BaseMutation):
                 raise e
 
             lines = fetch_checkout_lines(checkout)
+            checkout_info = fetch_checkout_info(checkout, lines, info.context.discounts)
             order, action_required, action_data = complete_checkout(
                 manager=info.context.plugins,
-                checkout=checkout,
+                checkout_info=checkout_info,
                 lines=lines,
                 payment_data=data.get("payment_data", {}),
                 store_source=store_source,

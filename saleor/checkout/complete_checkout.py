@@ -41,7 +41,7 @@ from .utils import get_voucher_for_checkout
 
 if TYPE_CHECKING:
     from ..plugins.manager import PluginsManager
-    from .fetch import CheckoutLineInfo
+    from .fetch import CheckoutInfo, CheckoutLineInfo
     from .models import Channel
 
 
@@ -402,7 +402,7 @@ def _create_order(
 
 def _prepare_checkout(
     manager: "PluginsManager",
-    checkout: models.Checkout,
+    checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     discounts,
     tracking_code,
@@ -410,8 +410,9 @@ def _prepare_checkout(
     payment,
 ):
     """Prepare checkout object to complete the checkout process."""
+    checkout = checkout_info.checkout
     subtotal = manager.calculate_checkout_subtotal(
-        checkout, lines, checkout.shipping_address, discounts
+        checkout, lines, checkout_info.shipping_address, discounts
     )
     clean_checkout_shipping(checkout, lines, discounts, CheckoutErrorCode, subtotal)
     clean_checkout_payment(
@@ -517,7 +518,7 @@ def _process_payment(
 
 def complete_checkout(
     manager: "PluginsManager",
-    checkout: models.Checkout,
+    checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     payment_data,
     store_source,
@@ -533,10 +534,11 @@ def complete_checkout(
     for thread race.
     :raises ValidationError
     """
+    checkout = checkout_info.checkout
     payment = checkout.get_last_active_payment()
     _prepare_checkout(
         manager=manager,
-        checkout=checkout,
+        checkout_info=checkout_info,
         lines=lines,
         discounts=discounts,
         tracking_code=tracking_code,
