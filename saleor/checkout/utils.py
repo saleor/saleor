@@ -38,7 +38,7 @@ if TYPE_CHECKING:
     from prices import TaxedMoney
 
     from ..account.models import Address
-    from .fetch import CheckoutLineInfo, CheckoutInfo
+    from .fetch import CheckoutInfo, CheckoutLineInfo
 
 
 def get_user_checkout(

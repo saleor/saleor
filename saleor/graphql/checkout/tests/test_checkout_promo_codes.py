@@ -5,7 +5,11 @@ import graphene
 from prices import Money
 
 from ....checkout import calculations
-from ....checkout.fetch import CheckoutLineInfo, fetch_checkout_lines, fetch_checkout_info
+from ....checkout.fetch import (
+    CheckoutLineInfo,
+    fetch_checkout_info,
+    fetch_checkout_lines,
+)
 from ....checkout.utils import add_voucher_to_checkout
 from ....discount import DiscountInfo, VoucherType
 from ....plugins.manager import get_plugins_manager

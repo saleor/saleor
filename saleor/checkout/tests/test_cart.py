@@ -2,7 +2,7 @@ import pytest
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
-from ...checkout.fetch import fetch_checkout_lines, fetch_checkout_info
+from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...plugins.manager import get_plugins_manager
 from ...product.models import Category
 from .. import calculations, utils

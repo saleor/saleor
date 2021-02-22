@@ -17,7 +17,7 @@ from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...shipping.models import ShippingZone
 from .. import AddressType, calculations
-from ..fetch import fetch_checkout_lines, fetch_checkout_info, CheckoutInfo
+from ..fetch import CheckoutInfo, fetch_checkout_info, fetch_checkout_lines
 from ..models import Checkout
 from ..utils import (
     add_voucher_to_checkout,

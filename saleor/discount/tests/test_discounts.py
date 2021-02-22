@@ -5,7 +5,7 @@ import pytest
 from django.utils import timezone
 from prices import Money
 
-from ...checkout.fetch import fetch_checkout_lines, fetch_checkout_info
+from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...checkout.utils import get_voucher_discount_for_checkout
 from ...plugins.manager import get_plugins_manager
 from ...product.models import Product, ProductVariant, ProductVariantChannelListing
