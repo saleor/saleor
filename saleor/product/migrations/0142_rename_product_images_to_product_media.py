@@ -33,7 +33,7 @@ def migrate_images_content_to_media(apps, _schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("product", "0140_auto_20210125_0905"),
+        ("product", "0141_update_descritpion_fields"),
     ]
 
     operations = [
@@ -73,7 +73,7 @@ class Migration(migrations.Migration):
                             ("IMAGE", "An uploaded image or an URL to an image"),
                             ("VIDEO", "A URL to an external video"),
                         ],
-                        default="image",
+                        default="IMAGE",
                         max_length=32,
                     ),
                 ),
