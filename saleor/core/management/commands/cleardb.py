@@ -15,7 +15,7 @@ from ....checkout.models import Checkout
 from ....discount.models import Sale, Voucher
 from ....giftcard.models import GiftCard
 from ....order.models import Order
-from ....page.models import Page
+from ....page.models import Page, PageType
 from ....payment.models import Payment, Transaction
 from ....product.models import Category, Collection, Product, ProductType
 from ....shipping.models import ShippingMethod, ShippingZone
@@ -90,6 +90,9 @@ class Command(BaseCommand):
 
         Page.objects.all().delete()
         self.stdout.write("Removed pages")
+
+        PageType.objects.all().delete()
+        self.stdout.write("Removed page types")
 
         Webhook.objects.all().delete()
         self.stdout.write("Removed webhooks")
