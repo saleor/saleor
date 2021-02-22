@@ -638,9 +638,10 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         shipping_address = cls.validate_address(
             shipping_address, instance=checkout.shipping_address, info=info
         )
+        discounts = info.context.discounts
 
         lines = fetch_checkout_lines(checkout)
-        checkout_info = fetch_checkout_info(checkout, lines, info.context.discounts)
+        checkout_info = fetch_checkout_info(checkout, lines, discounts)
 
         country = get_user_country_context(
             destination_address=shipping_address,
@@ -656,9 +657,11 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
 
         with transaction.atomic():
             shipping_address.save()
-            change_shipping_address_in_checkout(checkout, shipping_address)
+            change_shipping_address_in_checkout(
+                checkout, checkout_info, shipping_address, lines, discounts
+            )
         recalculate_checkout_discount(
-            info.context.plugins, checkout_info, lines, info.context.discounts
+            info.context.plugins, checkout_info, lines, discounts
         )
 
         info.context.plugins.checkout_updated(checkout)

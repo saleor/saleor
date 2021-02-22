@@ -7,8 +7,6 @@ from django.utils import timezone
 from prices import Money
 
 from ..account.models import User
-from ..checkout import calculations
-from ..checkout.error_codes import CheckoutErrorCode
 from ..core.exceptions import ProductNotPublished
 from ..core.taxes import zero_taxed_money
 from ..core.utils.promo_code import (
@@ -30,7 +28,9 @@ from ..plugins.manager import PluginsManager, get_plugins_manager
 from ..product import models as product_models
 from ..shipping.models import ShippingMethod
 from ..warehouse.availability import check_stock_quantity, check_stock_quantity_bulk
-from . import AddressType
+from . import AddressType, calculations
+from .error_codes import CheckoutErrorCode
+from .fetch import update_checkout_info_shipping_address
 from .models import Checkout, CheckoutLine
 
 if TYPE_CHECKING:
@@ -190,7 +190,9 @@ def change_billing_address_in_checkout(checkout, address):
         checkout.save(update_fields=["billing_address", "last_change"])
 
 
-def change_shipping_address_in_checkout(checkout, address):
+def change_shipping_address_in_checkout(
+    checkout, checkout_info, address, lines, discounts
+):
     """Save shipping address in checkout if changed.
 
     Remove previously saved address if not connected to any user.
@@ -202,6 +204,7 @@ def change_shipping_address_in_checkout(checkout, address):
         if remove:
             checkout.shipping_address.delete()
         checkout.shipping_address = address
+        update_checkout_info_shipping_address(checkout_info, address, lines, discounts)
         checkout.save(update_fields=["shipping_address", "last_change"])
 
 

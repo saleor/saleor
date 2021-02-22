@@ -848,12 +848,15 @@ def test_recalculate_checkout_discount_free_shipping_for_checkout_without_shippi
 
 
 def test_change_address_in_checkout(checkout, address):
-    change_shipping_address_in_checkout(checkout, address)
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
+    change_shipping_address_in_checkout(checkout, checkout_info, address, lines, [])
     change_billing_address_in_checkout(checkout, address)
 
     checkout.refresh_from_db()
     assert checkout.shipping_address == address
     assert checkout.billing_address == address
+    assert checkout_info.shipping_address == address
 
 
 def test_change_address_in_checkout_to_none(checkout, address):
@@ -861,12 +864,15 @@ def test_change_address_in_checkout_to_none(checkout, address):
     checkout.billing_address = address.get_copy()
     checkout.save()
 
-    change_shipping_address_in_checkout(checkout, None)
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
+    change_shipping_address_in_checkout(checkout, checkout_info, None, lines, [])
     change_billing_address_in_checkout(checkout, None)
 
     checkout.refresh_from_db()
     assert checkout.shipping_address is None
     assert checkout.billing_address is None
+    assert checkout_info.shipping_address is None
 
 
 def test_change_address_in_checkout_to_same(checkout, address):
@@ -876,12 +882,15 @@ def test_change_address_in_checkout_to_same(checkout, address):
     shipping_address_id = checkout.shipping_address.id
     billing_address_id = checkout.billing_address.id
 
-    change_shipping_address_in_checkout(checkout, address)
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
+    change_shipping_address_in_checkout(checkout, checkout_info, address, lines, [])
     change_billing_address_in_checkout(checkout, address)
 
     checkout.refresh_from_db()
     assert checkout.shipping_address.id == shipping_address_id
     assert checkout.billing_address.id == billing_address_id
+    assert checkout_info.shipping_address == address
 
 
 def test_change_address_in_checkout_to_other(checkout, address):
@@ -891,13 +900,18 @@ def test_change_address_in_checkout_to_other(checkout, address):
     checkout.save(update_fields=["shipping_address", "billing_address"])
     other_address = Address.objects.create(country=Country("DE"))
 
-    change_shipping_address_in_checkout(checkout, other_address)
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
+    change_shipping_address_in_checkout(
+        checkout, checkout_info, other_address, lines, []
+    )
     change_billing_address_in_checkout(checkout, other_address)
 
     checkout.refresh_from_db()
     assert checkout.shipping_address == other_address
     assert checkout.billing_address == other_address
     assert not Address.objects.filter(id=address_id).exists()
+    assert checkout_info.shipping_address == other_address
 
 
 def test_change_address_in_checkout_from_user_address_to_other(
@@ -910,13 +924,18 @@ def test_change_address_in_checkout_from_user_address_to_other(
     checkout.save(update_fields=["shipping_address", "billing_address"])
     other_address = Address.objects.create(country=Country("DE"))
 
-    change_shipping_address_in_checkout(checkout, other_address)
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
+    change_shipping_address_in_checkout(
+        checkout, checkout_info, other_address, lines, []
+    )
     change_billing_address_in_checkout(checkout, other_address)
 
     checkout.refresh_from_db()
     assert checkout.shipping_address == other_address
     assert checkout.billing_address == other_address
     assert Address.objects.filter(id=address_id).exists()
+    assert checkout_info.shipping_address == other_address
 
 
 def test_add_voucher_to_checkout(checkout_with_item, voucher):
