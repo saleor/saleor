@@ -40,7 +40,7 @@ class PostalCodeRulesByShippingMethodIdLoader(DataLoader):
     def batch_load(self, keys):
         postal_code_rules = ShippingMethodPostalCodeRule.objects.filter(
             shipping_method_id__in=keys
-        )
+        ).order_by("id")
 
         postal_code_rules_map = defaultdict(list)
         for postal_code in postal_code_rules:
