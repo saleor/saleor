@@ -7,7 +7,6 @@ from django.utils import timezone
 from prices import Money
 
 from ..account.models import User
-from ..channel.models import Channel
 from ..checkout import calculations
 from ..checkout.error_codes import CheckoutErrorCode
 from ..core.exceptions import ProductNotPublished
@@ -40,6 +39,7 @@ if TYPE_CHECKING:
     from prices import TaxedMoney
 
     from ..account.models import Address
+    from ..channel.models import Channel
 
 
 def get_user_checkout(
@@ -290,7 +290,7 @@ def get_prices_of_discounted_specific_product(
     checkout: "Checkout",
     lines: Iterable["CheckoutLineInfo"],
     voucher: Voucher,
-    channel: Channel,
+    channel: "Channel",
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> List[Money]:
     """Get prices of variants belonging to the discounted specific products.
