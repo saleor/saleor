@@ -58,6 +58,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Allocate stocks for order lines in a bulk way - #6877 by @IKarbowiak
 - Add product description_plaintext to populatedb - #6894 by @d-wysocki
 - Deallocate stocks for order lines in a bulk way - #6896 by @IKarbowiak
+- Prevent negative available quantity - #6897 by @d-wysocki
 
 # 2.11.1
 
