@@ -52,7 +52,7 @@ def _get_voucher_data_for_order(checkout_info: "CheckoutInfo") -> dict:
     :raises NotApplicable: When the voucher is not applicable in the current checkout.
     """
     checkout = checkout_info.checkout
-    voucher = get_voucher_for_checkout(checkout, with_lock=True)
+    voucher = get_voucher_for_checkout(checkout_info, with_lock=True)
 
     if checkout.voucher_code and not voucher:
         msg = "Voucher expired in meantime. Order placement aborted."

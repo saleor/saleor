@@ -368,13 +368,14 @@ def get_voucher_discount_for_checkout(
 
 
 def get_voucher_for_checkout(
-    checkout: Checkout, vouchers=None, with_lock: bool = False
+    checkout_info: "CheckoutInfo", vouchers=None, with_lock: bool = False
 ) -> Optional[Voucher]:
     """Return voucher with voucher code saved in checkout if active or None."""
+    checkout = checkout_info.checkout
     if checkout.voucher_code is not None:
         if vouchers is None:
             vouchers = Voucher.objects.active_in_channel(
-                date=timezone.now(), channel_slug=checkout.channel.slug
+                date=timezone.now(), channel_slug=checkout_info.channel.slug
             )
         try:
             qs = vouchers
@@ -398,7 +399,7 @@ def recalculate_checkout_discount(
     applicable.
     """
     checkout = checkout_info.checkout
-    voucher = get_voucher_for_checkout(checkout)
+    voucher = get_voucher_for_checkout(checkout_info)
     if voucher is not None:
         address = checkout_info.shipping_address or checkout_info.billing_address
         try:
@@ -521,19 +522,19 @@ def add_voucher_to_checkout(
     )
 
 
-def remove_promo_code_from_checkout(checkout: Checkout, promo_code: str):
+def remove_promo_code_from_checkout(checkout_info: "CheckoutInfo", promo_code: str):
     """Remove gift card or voucher data from checkout."""
     if promo_code_is_voucher(promo_code):
-        remove_voucher_code_from_checkout(checkout, promo_code)
+        remove_voucher_code_from_checkout(checkout_info, promo_code)
     elif promo_code_is_gift_card(promo_code):
-        remove_gift_card_code_from_checkout(checkout, promo_code)
+        remove_gift_card_code_from_checkout(checkout_info.checkout, promo_code)
 
 
-def remove_voucher_code_from_checkout(checkout: Checkout, voucher_code: str):
+def remove_voucher_code_from_checkout(checkout_info: "CheckoutInfo", voucher_code: str):
     """Remove voucher data from checkout by code."""
-    existing_voucher = get_voucher_for_checkout(checkout)
+    existing_voucher = get_voucher_for_checkout(checkout_info)
     if existing_voucher and existing_voucher.code == voucher_code:
-        remove_voucher_from_checkout(checkout)
+        remove_voucher_from_checkout(checkout_info.checkout)
 
 
 def remove_voucher_from_checkout(checkout: Checkout):

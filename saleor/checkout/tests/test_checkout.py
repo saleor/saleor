@@ -660,7 +660,8 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
 
 
 def test_get_voucher_for_checkout(checkout_with_voucher, voucher):
-    checkout_voucher = get_voucher_for_checkout(checkout_with_voucher)
+    checkout_info = fetch_checkout_info(checkout_with_voucher, [], [])
+    checkout_voucher = get_voucher_for_checkout(checkout_info)
     assert checkout_voucher == voucher
 
 
@@ -668,12 +669,14 @@ def test_get_voucher_for_checkout_expired_voucher(checkout_with_voucher, voucher
     date_yesterday = timezone.now() - datetime.timedelta(days=1)
     voucher.end_date = date_yesterday
     voucher.save()
-    checkout_voucher = get_voucher_for_checkout(checkout_with_voucher)
+    checkout_info = fetch_checkout_info(checkout_with_voucher, [], [])
+    checkout_voucher = get_voucher_for_checkout(checkout_info)
     assert checkout_voucher is None
 
 
 def test_get_voucher_for_checkout_no_voucher_code(checkout):
-    checkout_voucher = get_voucher_for_checkout(checkout)
+    checkout_info = fetch_checkout_info(checkout, [], [])
+    checkout_voucher = get_voucher_for_checkout(checkout_info)
     assert checkout_voucher is None
 
 

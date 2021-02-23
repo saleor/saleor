@@ -949,6 +949,7 @@ class CheckoutRemovePromoCode(BaseMutation):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
-        remove_promo_code_from_checkout(checkout, promo_code)
+        checkout_info = fetch_checkout_info(checkout, [], info.context.discounts)
+        remove_promo_code_from_checkout(checkout_info, promo_code)
         info.context.plugins.checkout_updated(checkout)
         return CheckoutRemovePromoCode(checkout=checkout)
