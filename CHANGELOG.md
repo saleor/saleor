@@ -10,6 +10,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add missing span in PluginManager - #6900 by @fowczarek
 - Fix Sentry reporting - #6902 by @fowczarek
 - Fix removing page types in cleardb command - #6918 by @fowczarek
+- Add support for temporarily reserving stock for given user within shipping zone - #6629 by @rafalp
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
