@@ -860,7 +860,7 @@ def test_recalculate_checkout_discount_free_shipping_for_checkout_without_shippi
 def test_change_address_in_checkout(checkout, address):
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [])
-    change_shipping_address_in_checkout(checkout, checkout_info, address, lines, [])
+    change_shipping_address_in_checkout(checkout_info, address, lines, [])
     change_billing_address_in_checkout(checkout, address)
 
     checkout.refresh_from_db()
@@ -876,7 +876,7 @@ def test_change_address_in_checkout_to_none(checkout, address):
 
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [])
-    change_shipping_address_in_checkout(checkout, checkout_info, None, lines, [])
+    change_shipping_address_in_checkout(checkout_info, None, lines, [])
     change_billing_address_in_checkout(checkout, None)
 
     checkout.refresh_from_db()
@@ -894,7 +894,7 @@ def test_change_address_in_checkout_to_same(checkout, address):
 
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [])
-    change_shipping_address_in_checkout(checkout, checkout_info, address, lines, [])
+    change_shipping_address_in_checkout(checkout_info, address, lines, [])
     change_billing_address_in_checkout(checkout, address)
 
     checkout.refresh_from_db()
@@ -912,9 +912,7 @@ def test_change_address_in_checkout_to_other(checkout, address):
 
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [])
-    change_shipping_address_in_checkout(
-        checkout, checkout_info, other_address, lines, []
-    )
+    change_shipping_address_in_checkout(checkout_info, other_address, lines, [])
     change_billing_address_in_checkout(checkout, other_address)
 
     checkout.refresh_from_db()
@@ -936,9 +934,7 @@ def test_change_address_in_checkout_from_user_address_to_other(
 
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [])
-    change_shipping_address_in_checkout(
-        checkout, checkout_info, other_address, lines, []
-    )
+    change_shipping_address_in_checkout(checkout_info, other_address, lines, [])
     change_billing_address_in_checkout(checkout, other_address)
 
     checkout.refresh_from_db()

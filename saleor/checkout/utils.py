@@ -193,13 +193,12 @@ def change_billing_address_in_checkout(checkout, address):
         checkout.save(update_fields=["billing_address", "last_change"])
 
 
-def change_shipping_address_in_checkout(
-    checkout, checkout_info, address, lines, discounts
-):
+def change_shipping_address_in_checkout(checkout_info, address, lines, discounts):
     """Save shipping address in checkout if changed.
 
     Remove previously saved address if not connected to any user.
     """
+    checkout = checkout_info.checkout
     changed, remove = _check_new_checkout_address(
         checkout, address, AddressType.SHIPPING
     )
