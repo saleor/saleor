@@ -76,7 +76,7 @@ class ReservationCreate(BaseMutation):
                 {
                     "quantity": ValidationError(
                         "The quantity should be higher than zero.",
-                        code=ReservationErrorCode.ZERO_QUANTITY,
+                        code=ReservationErrorCode.ZERO_QUANTITY.value,
                     )
                 }
             )
@@ -107,7 +107,7 @@ class ReservationCreate(BaseMutation):
                     "quantity": ValidationError(
                         f"Insufficient product stock: {product_variant}",
                         code=exc.code.value,
-                        params={"variant": [variant_global_id]},
+                        params={"variant": variant_global_id},
                     )
                 }
             )

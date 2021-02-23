@@ -13,6 +13,7 @@ MUTATION_RESERVATION_CREATE = """
           field
           message
           code
+          variant
         }
       }
     }
@@ -175,6 +176,7 @@ def test_mutation_fails_when_reserved_quantity_exceeds_available_quantity(
     assert data["reservationErrors"][0]["message"] == (
         "Insufficient product stock: SKU_A"
     )
+    assert data["reservationErrors"][0]["variant"] == variant_id
     assert not Reservation.objects.exists()
 
 

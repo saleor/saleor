@@ -37,7 +37,7 @@ def get_reserved_quantity_bulk(
         .annotate_total_quantity()
     )
 
-    variant_reservations = defaultdict(int)
+    variant_reservations: Dict[int, int] = defaultdict(int)
     for reservation in reservations:
         variant_reservations[reservation["product_variant_id"]] = reservation[
             "total_quantity"
@@ -81,7 +81,7 @@ def get_user_reserved_quantity_bulk(
         .annotate_total_quantity()
     )
 
-    variant_reservations = defaultdict(int)
+    variant_reservations: Dict[int, int] = defaultdict(int)
     for reservation in reservations:
         variant_reservations[reservation["product_variant_id"]] = reservation[
             "total_quantity"

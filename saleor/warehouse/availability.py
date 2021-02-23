@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING, Iterable, List, Optional
+from typing import TYPE_CHECKING, Dict, Iterable, List, Optional
 
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
@@ -49,7 +49,7 @@ def check_stock_quantity(
 def check_stock_quantity_bulk(
     variants: Iterable["ProductVariant"],
     country_code: str,
-    quantities: int,
+    quantities: List[int],
     user: Optional["User"] = None,
 ):
     """Validate if there is stock available for given variants in given country.
@@ -64,7 +64,7 @@ def check_stock_quantity_bulk(
         .annotate_available_quantity()
     )
 
-    variant_stocks = defaultdict(list)
+    variant_stocks: Dict[List[Stock]] = defaultdict(list)
     for stock in all_variants_stocks:
         variant_stocks[stock.product_variant_id].append(stock)
 
