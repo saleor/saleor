@@ -631,44 +631,6 @@ def is_fully_paid(
     return total_paid >= checkout_total.amount
 
 
-def clean_checkout(
-    manager: PluginsManager,
-    checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
-    discounts: Iterable[DiscountInfo],
-):
-    """Check if checkout can be completed."""
-    checkout = checkout_info.checkout
-    if is_shipping_required(lines):
-        if not checkout.shipping_method:
-            raise ValidationError(
-                "Shipping method is not set",
-                code=CheckoutErrorCode.SHIPPING_METHOD_NOT_SET.value,
-            )
-        if not checkout.shipping_address:
-            raise ValidationError(
-                "Shipping address is not set",
-                code=CheckoutErrorCode.SHIPPING_ADDRESS_NOT_SET.value,
-            )
-        if not is_valid_shipping_method(checkout_info):
-            raise ValidationError(
-                "Shipping method is not valid for your shipping address",
-                code=CheckoutErrorCode.INVALID_SHIPPING_METHOD.value,
-            )
-
-    if not checkout.billing_address:
-        raise ValidationError(
-            "Billing address is not set",
-            code=CheckoutErrorCode.BILLING_ADDRESS_NOT_SET.value,
-        )
-
-    if not is_fully_paid(manager, checkout_info, lines, discounts):
-        raise ValidationError(
-            "Provided payment methods can not cover the checkout's total amount",
-            code=CheckoutErrorCode.CHECKOUT_NOT_FULLY_PAID.value,
-        )
-
-
 def cancel_active_payments(checkout: Checkout):
     checkout.payments.filter(is_active=True).update(is_active=False)
 
