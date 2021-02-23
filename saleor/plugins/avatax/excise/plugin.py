@@ -287,11 +287,11 @@ class AvataxExcisePlugin(AvataxPlugin):
             logger.debug("Error in tax response %s")
             return base_total
 
-        line_tax_total = 0
+        line_tax_total = Decimal(0)
 
         for line in taxes_data.get("TransactionTaxes", []):
             if line.get("InvoiceLine") == checkout_line_info.line.id:
-                line_tax_total += line.get("TaxAmount")
+                line_tax_total += Decimal(line.get("TaxAmount", 0.0))
 
         if not line_tax_total > 0:
             return base_total
