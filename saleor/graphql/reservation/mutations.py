@@ -15,8 +15,8 @@ from ...reservation.stock import (
     get_user_reserved_quantity_bulk,
     remove_user_reservations,
 )
-from ...warehouse.availability import check_stock_quantity
 from ...shipping.models import ShippingZone
+from ...warehouse.availability import check_stock_quantity
 from ..account.enums import CountryCodeEnum
 from ..core.mutations import BaseMutation
 from ..core.types.common import ReservationError
