@@ -326,7 +326,7 @@ def _prepare_order_data(
 
 @transaction.atomic
 def _create_order(
-    *, checkout: Checkout, order_data: dict, user: User, site_settings=None
+    *, checkout_info: "CheckoutInfo", order_data: dict, user: User, site_settings=None
 ) -> Order:
     """Create an order from the checkout.
 
@@ -341,6 +341,7 @@ def _create_order(
     """
     from ..order.utils import add_gift_card_to_order
 
+    checkout = checkout_info.checkout
     order = Order.objects.filter(checkout_token=checkout.token).first()
     if order is not None:
         return order
@@ -360,7 +361,7 @@ def _create_order(
         **order_data,
         checkout_token=checkout.token,
         status=status,
-        channel=checkout.channel,
+        channel=checkout_info.channel,
     )
     order_lines = []
     for line_info in order_lines_info:
@@ -370,7 +371,7 @@ def _create_order(
 
     OrderLine.objects.bulk_create(order_lines)
 
-    country_code = checkout.get_country()
+    country_code = checkout_info.get_country()
     allocate_stocks(order_lines_info, country_code)
 
     # Add gift cards to the order
@@ -571,7 +572,7 @@ def complete_checkout(
     if not action_required:
         try:
             order = _create_order(
-                checkout=checkout,
+                checkout_info=checkout_info,
                 order_data=order_data,
                 user=user,  # type: ignore
                 site_settings=site_settings,

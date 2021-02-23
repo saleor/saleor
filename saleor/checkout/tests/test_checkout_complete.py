@@ -45,7 +45,7 @@ def test_create_order_captured_payment_creates_expected_events(
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [])
     order = _create_order(
-        checkout=checkout,
+        checkout_info=checkout_info,
         order_data=_prepare_order_data(
             manager=manager,
             checkout_info=checkout_info,
@@ -185,7 +185,7 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [])
     order = _create_order(
-        checkout=checkout,
+        checkout_info=checkout_info,
         order_data=_prepare_order_data(
             manager=manager,
             checkout_info=checkout_info,
@@ -317,7 +317,7 @@ def test_create_order_preauth_payment_creates_expected_events(
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [])
     order = _create_order(
-        checkout=checkout,
+        checkout_info=checkout_info,
         order_data=_prepare_order_data(
             manager=manager,
             checkout_info=checkout_info,
@@ -428,7 +428,7 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [])
     order = _create_order(
-        checkout=checkout,
+        checkout_info=checkout_info,
         order_data=_prepare_order_data(
             manager=manager,
             checkout_info=checkout_info,
@@ -546,14 +546,14 @@ def test_create_order_doesnt_duplicate_order(
     )
 
     order_1 = _create_order(
-        checkout=checkout,
+        checkout_info=checkout_info,
         order_data=order_data,
         user=customer_user,
     )
     assert order_1.checkout_token == checkout.token
 
     order_2 = _create_order(
-        checkout=checkout,
+        checkout_info=checkout_info,
         order_data=order_data,
         user=customer_user,
     )
@@ -596,7 +596,7 @@ def test_create_order_with_gift_card(
     gift_cards_balance = checkout.get_total_gift_cards_balance()
 
     order = _create_order(
-        checkout=checkout,
+        checkout_info=checkout_info,
         order_data=_prepare_order_data(
             manager=manager,
             checkout_info=checkout_info,
@@ -639,7 +639,7 @@ def test_create_order_with_gift_card_partial_use(
     checkout.save()
 
     order = _create_order(
-        checkout=checkout,
+        checkout_info=checkout_info,
         order_data=_prepare_order_data(
             manager=manager,
             checkout_info=checkout_info,
@@ -696,7 +696,7 @@ def test_create_order_with_many_gift_cards(
     checkout.save()
 
     order = _create_order(
-        checkout=checkout,
+        checkout_info=checkout_info,
         order_data=_prepare_order_data(
             manager=manager,
             checkout_info=checkout_info,
@@ -727,7 +727,7 @@ def test_note_in_created_order(checkout_with_item, address, customer_user):
     lines = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [])
     order = _create_order(
-        checkout=checkout_with_item,
+        checkout_info=checkout_info,
         order_data=_prepare_order_data(
             manager=manager,
             checkout_info=checkout_info,
@@ -760,7 +760,7 @@ def test_create_order_with_variant_tracking_false(
     )
 
     order_1 = _create_order(
-        checkout=checkout,
+        checkout_info=checkout_info,
         order_data=order_data,
         user=customer_user,
     )
