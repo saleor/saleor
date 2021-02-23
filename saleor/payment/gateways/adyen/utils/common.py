@@ -17,6 +17,7 @@ from .....checkout.calculations import (
 )
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
+from .....checkout.utils import is_shipping_required
 from .....core.prices import quantize_price
 from .....discount.utils import fetch_active_discounts
 from .....payment.models import Payment
@@ -187,8 +188,9 @@ def append_klarna_data(payment_information: "PaymentData", payment_data: dict):
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     discounts = fetch_active_discounts()
+    checkout_info = fetch_checkout_info(checkout, lines, discounts)
     address = (
-        checkout.shipping_address or checkout.billing_address
+        checkout_info.shipping_address or checkout_info.billing_address
     )  # FIXME: check which address we need here
     currency = payment_information.currency
     country_code = checkout.get_country()
@@ -200,10 +202,8 @@ def append_klarna_data(payment_information: "PaymentData", payment_data: dict):
     for line_info in lines:
         total = checkout_line_total(
             manager=manager,
-            checkout=checkout,
+            checkout_info=checkout_info,
             checkout_line_info=line_info,
-            address=address,
-            channel=checkout.channel,
             discounts=discounts,
         )
         total_gross = total.gross.amount
@@ -226,7 +226,7 @@ def append_klarna_data(payment_information: "PaymentData", payment_data: dict):
         }
         line_items.append(line_data)
 
-    if checkout.shipping_method and checkout.is_shipping_required():
+    if checkout_info.shipping_method and is_shipping_required(lines):
         line_items.append(
             get_shipping_data(manager, checkout, lines, address, discounts)
         )

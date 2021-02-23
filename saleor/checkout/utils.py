@@ -312,10 +312,8 @@ def get_prices_of_discounted_specific_product(
         line = line_info.line
         line_total = calculations.checkout_line_total(
             manager=manager,
-            checkout=checkout_info.checkout,
+            checkout_info=checkout_info,
             checkout_line_info=line_info,
-            address=address,
-            channel=checkout_info.channel,
             discounts=discounts,
         ).gross
         line_unit_price = manager.calculate_checkout_line_unit_price(
