@@ -1,0 +1,230 @@
+interactions:
+- request:
+    body: '{"EffectiveDate": "02/22/21", "InvoiceDate": "02/22/21", "TitleTransferCode":
+      "DEST", "TransactionType": "RETAIL", "TransactionLines": [{"InvoiceLine": 1,
+      "ProductCode": "202015500", "UnitPrice": "170.000", "UnitOfMeasure": "PAC",
+      "BilledUnits": "1", "LineAmount": "170.00", "AlternateUnitPrice": "1.000", "TaxIncluded":
+      false, "UnitQuantity": 18, "UnitQuantityUnitOfMeasure": "EA", "DestinationCountryCode":
+      "USA", "DestinationJurisdiction": "AZ", "DestinationAddress1": "2000 Main Street",
+      "DestinationAddress2": "", "DestinationCounty": "", "DestinationCity": "Tempe",
+      "DestinationPostalCode": "85281", "SaleCountryCode": "USA", "SaleAddress1":
+      "2000 Main Street", "SaleAddress2": "", "SaleJurisdiction": "AZ", "SaleCounty":
+      "", "SaleCity": "Tempe", "SalePostalCode": "85281", "OriginCountryCode": "USA",
+      "OriginJurisdiction": "TX", "OriginCounty": "", "OriginCity": "Austin", "OriginPostalCode":
+      "78701", "OriginAddress1": "1100 Congress Ave", "OriginAddress2": "", "CustomString1":
+      null, "CustomString2": null, "CustomString3": null, "CustomNumeric1": 102.51,
+      "CustomNumeric2": 108.0, "CustomNumeric3": 115.25}], "InvoiceNumber": null}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Basic Og==
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1140'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.25.1
+      x-company-id:
+      - '1337'
+    method: POST
+    uri: https://excisesbx.avalara.com/api/v1/AvaTaxExcise/transactions/create
+  response:
+    body:
+      string: "{\r\n  \"UserTranId\": \"38bad331-c889-4e20-bf2a-1c684b2956e0\",\r\n
+        \ \"TranId\": 38973050,\r\n  \"Status\": \"Success\",\r\n  \"ReturnCode\":
+        0,\r\n  \"TotalTaxAmount\": 16.79,\r\n  \"TransactionTaxes\": [\r\n    {\r\n
+        \     \"TransactionTaxAmounts\": [],\r\n      \"SequenceId\": 1,\r\n      \"TransactionLine\":
+        1,\r\n      \"InvoiceLine\": 1,\r\n      \"CountryCode\": \"USA\",\r\n      \"Jurisdiction\":
+        \"AZ\",\r\n      \"LocalJurisdiction\": \"NONE\",\r\n      \"ProductCategory\":
+        0.0,\r\n      \"TaxingLevel\": \"STATE\",\r\n      \"TaxType\": \"TOBACCO\",\r\n
+        \     \"RateType\": \"TAX\",\r\n      \"RateSubtype\": \"CGRH1\",\r\n      \"CalculationTypeInd\":
+        \"C\",\r\n      \"TaxRate\": 0.2180000000,\r\n      \"TaxQuantity\": 18.0,\r\n
+        \     \"TaxAmount\": 3.92,\r\n      \"TaxExemptionInd\": \"N\",\r\n      \"DeferredInd\":
+        \"N\",\r\n      \"SalesTaxBaseAmount\": 0.0,\r\n      \"LicenseNumber\": \"\",\r\n
+        \     \"UserReturnedValue\": \"\",\r\n      \"ScenarioId\": 1574219,\r\n      \"ScenarioTaxGroupId\":
+        4395,\r\n      \"ScenarioSequence\": 2,\r\n      \"RateDescription\": \"AZ
+        State Cigar Tax (Retail more than 5 cents)\",\r\n      \"Currency\": \"USD\",\r\n
+        \     \"UnitOfMeasure\": \"EA\",\r\n      \"SubtotalInd\": \"U\",\r\n      \"StatusCode\":
+        \"ACTIVE\",\r\n      \"QuantityInd\": \"B\"\r\n    },\r\n    {\r\n      \"TransactionTaxAmounts\":
+        [],\r\n      \"SequenceId\": 2,\r\n      \"TransactionLine\": 1,\r\n      \"InvoiceLine\":
+        1,\r\n      \"CountryCode\": \"USA\",\r\n      \"Jurisdiction\": \"AZ\",\r\n
+        \     \"LocalJurisdiction\": \"04\",\r\n      \"ProductCategory\": 0.0,\r\n
+        \     \"TaxingLevel\": \"STA\",\r\n      \"TaxType\": \"U\",\r\n      \"RateType\":
+        \"G\",\r\n      \"RateSubtype\": \"NONE\",\r\n      \"CalculationTypeInd\":
+        \"P\",\r\n      \"TaxRate\": 0.056000,\r\n      \"TaxQuantity\": 0.0,\r\n
+        \     \"TaxAmount\": 9.74,\r\n      \"TaxExemptionInd\": \"N\",\r\n      \"SalesTaxBaseAmount\":
+        173.92,\r\n      \"LicenseNumber\": \"\",\r\n      \"RateDescription\": \"AZ
+        STATE TAX - ARIZONA\",\r\n      \"Currency\": \"USD\",\r\n      \"SubtotalInd\":
+        \"C\",\r\n      \"StatusCode\": \"ACTIVE\",\r\n      \"QuantityInd\": \"B\"\r\n
+        \   },\r\n    {\r\n      \"TransactionTaxAmounts\": [],\r\n      \"SequenceId\":
+        3,\r\n      \"TransactionLine\": 1,\r\n      \"InvoiceLine\": 1,\r\n      \"CountryCode\":
+        \"USA\",\r\n      \"Jurisdiction\": \"AZ\",\r\n      \"LocalJurisdiction\":
+        \"73000\",\r\n      \"ProductCategory\": 0.0,\r\n      \"TaxingLevel\": \"CIT\",\r\n
+        \     \"TaxType\": \"U\",\r\n      \"RateType\": \"G\",\r\n      \"RateSubtype\":
+        \"NONE\",\r\n      \"CalculationTypeInd\": \"P\",\r\n      \"TaxRate\": 0.018000,\r\n
+        \     \"TaxQuantity\": 0.0,\r\n      \"TaxAmount\": 3.13,\r\n      \"TaxExemptionInd\":
+        \"N\",\r\n      \"SalesTaxBaseAmount\": 173.92,\r\n      \"LicenseNumber\":
+        \"\",\r\n      \"RateDescription\": \"AZ CITY TAX - TEMPE\",\r\n      \"Currency\":
+        \"USD\",\r\n      \"SubtotalInd\": \"C\",\r\n      \"StatusCode\": \"ACTIVE\",\r\n
+        \     \"QuantityInd\": \"B\"\r\n    }\r\n  ],\r\n  \"TransactionErrors\":
+        [\r\n    {\r\n      \"SequenceId\": 1,\r\n      \"ErrorCode\": \"-881\",\r\n
+        \     \"ErrorMessage\": \"No county was provided on the Destination for transaction
+        line 1.\",\r\n      \"ErrorLevelInd\": \"Warning\",\r\n      \"TransactionLine\":
+        1\r\n    }\r\n  ],\r\n  \"UserReturnValue\": \"\"\r\n}"
+    headers:
+      Cache-Control:
+      - private
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '2879'
+      Content-Security-Policy:
+      - 'default-src ''self''; font-src ''self'' use.typekit.net fonts.gstatic.com
+        data: ; img-src ''self'' p.typekit.net *.walkme.com *.cloudfront.net data:
+        ; script-src ''self'' ''unsafe-inline'' ''unsafe-eval'' use.typekit.net *.walkme.com
+        *.cloudfront.net; style-src  ''self'' ''unsafe-inline'' use.typekit.net; connect-src
+        ''self'' performance.typekit.net ec.walkme.com; frame-src ''self'' s3.amazonaws.com
+        *.s3.amazonaws.com;'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Mon, 22 Feb 2021 20:27:03 GMT
+      Feature-Policy:
+      - geolocation 'none'; midi 'none'; notifications 'none'; push 'none'; sync-xhr
+        'self'; microphone 'none'; camera 'none'; magnetometer 'none'; gyroscope 'none';
+        speaker 'none'; vibrate 'none'; fullscreen 'none'; payment 'none';
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - ''
+      Set-Cookie:
+      - ASP.NET_SessionId=xu5jfo5t2ppunl5ohtoqtipr; path=/; HttpOnly; SameSite=Lax
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - sameorigin
+      X-XSS-Protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"EffectiveDate": "02/22/21", "InvoiceDate": "02/22/21", "TitleTransferCode":
+      "DEST", "TransactionType": "RETAIL", "TransactionLines": [{"InvoiceLine": 1,
+      "ProductCode": "202015500", "UnitPrice": "170.000", "UnitOfMeasure": "PAC",
+      "BilledUnits": "1", "LineAmount": "170.00", "AlternateUnitPrice": "1.000", "TaxIncluded":
+      false, "UnitQuantity": 18, "UnitQuantityUnitOfMeasure": "EA", "DestinationCountryCode":
+      "USA", "DestinationJurisdiction": "AZ", "DestinationAddress1": "2000 Main Street",
+      "DestinationAddress2": "", "DestinationCounty": "", "DestinationCity": "Tempe",
+      "DestinationPostalCode": "85281", "SaleCountryCode": "USA", "SaleAddress1":
+      "2000 Main Street", "SaleAddress2": "", "SaleJurisdiction": "AZ", "SaleCounty":
+      "", "SaleCity": "Tempe", "SalePostalCode": "85281", "OriginCountryCode": "USA",
+      "OriginJurisdiction": "TX", "OriginCounty": "", "OriginCity": "Austin", "OriginPostalCode":
+      "78701", "OriginAddress1": "1100 Congress Ave", "OriginAddress2": "", "CustomString1":
+      null, "CustomString2": null, "CustomString3": null, "CustomNumeric1": 102.51,
+      "CustomNumeric2": 108.0, "CustomNumeric3": 115.25}], "InvoiceNumber": null}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Basic Og==
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1140'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.25.1
+      x-company-id:
+      - '1337'
+    method: POST
+    uri: https://excisesbx.avalara.com/api/v1/AvaTaxExcise/transactions/create
+  response:
+    body:
+      string: "{\r\n  \"UserTranId\": \"7ae1d545-2a51-4841-9861-87cc55efb7d1\",\r\n
+        \ \"TranId\": 38973051,\r\n  \"Status\": \"Success\",\r\n  \"ReturnCode\":
+        0,\r\n  \"TotalTaxAmount\": 16.79,\r\n  \"TransactionTaxes\": [\r\n    {\r\n
+        \     \"TransactionTaxAmounts\": [],\r\n      \"SequenceId\": 1,\r\n      \"TransactionLine\":
+        1,\r\n      \"InvoiceLine\": 1,\r\n      \"CountryCode\": \"USA\",\r\n      \"Jurisdiction\":
+        \"AZ\",\r\n      \"LocalJurisdiction\": \"NONE\",\r\n      \"ProductCategory\":
+        0.0,\r\n      \"TaxingLevel\": \"STATE\",\r\n      \"TaxType\": \"TOBACCO\",\r\n
+        \     \"RateType\": \"TAX\",\r\n      \"RateSubtype\": \"CGRH1\",\r\n      \"CalculationTypeInd\":
+        \"C\",\r\n      \"TaxRate\": 0.2180000000,\r\n      \"TaxQuantity\": 18.0,\r\n
+        \     \"TaxAmount\": 3.92,\r\n      \"TaxExemptionInd\": \"N\",\r\n      \"DeferredInd\":
+        \"N\",\r\n      \"SalesTaxBaseAmount\": 0.0,\r\n      \"LicenseNumber\": \"\",\r\n
+        \     \"UserReturnedValue\": \"\",\r\n      \"ScenarioId\": 1574219,\r\n      \"ScenarioTaxGroupId\":
+        4395,\r\n      \"ScenarioSequence\": 2,\r\n      \"RateDescription\": \"AZ
+        State Cigar Tax (Retail more than 5 cents)\",\r\n      \"Currency\": \"USD\",\r\n
+        \     \"UnitOfMeasure\": \"EA\",\r\n      \"SubtotalInd\": \"U\",\r\n      \"StatusCode\":
+        \"ACTIVE\",\r\n      \"QuantityInd\": \"B\"\r\n    },\r\n    {\r\n      \"TransactionTaxAmounts\":
+        [],\r\n      \"SequenceId\": 2,\r\n      \"TransactionLine\": 1,\r\n      \"InvoiceLine\":
+        1,\r\n      \"CountryCode\": \"USA\",\r\n      \"Jurisdiction\": \"AZ\",\r\n
+        \     \"LocalJurisdiction\": \"04\",\r\n      \"ProductCategory\": 0.0,\r\n
+        \     \"TaxingLevel\": \"STA\",\r\n      \"TaxType\": \"U\",\r\n      \"RateType\":
+        \"G\",\r\n      \"RateSubtype\": \"NONE\",\r\n      \"CalculationTypeInd\":
+        \"P\",\r\n      \"TaxRate\": 0.056000,\r\n      \"TaxQuantity\": 0.0,\r\n
+        \     \"TaxAmount\": 9.74,\r\n      \"TaxExemptionInd\": \"N\",\r\n      \"SalesTaxBaseAmount\":
+        173.92,\r\n      \"LicenseNumber\": \"\",\r\n      \"RateDescription\": \"AZ
+        STATE TAX - ARIZONA\",\r\n      \"Currency\": \"USD\",\r\n      \"SubtotalInd\":
+        \"C\",\r\n      \"StatusCode\": \"ACTIVE\",\r\n      \"QuantityInd\": \"B\"\r\n
+        \   },\r\n    {\r\n      \"TransactionTaxAmounts\": [],\r\n      \"SequenceId\":
+        3,\r\n      \"TransactionLine\": 1,\r\n      \"InvoiceLine\": 1,\r\n      \"CountryCode\":
+        \"USA\",\r\n      \"Jurisdiction\": \"AZ\",\r\n      \"LocalJurisdiction\":
+        \"73000\",\r\n      \"ProductCategory\": 0.0,\r\n      \"TaxingLevel\": \"CIT\",\r\n
+        \     \"TaxType\": \"U\",\r\n      \"RateType\": \"G\",\r\n      \"RateSubtype\":
+        \"NONE\",\r\n      \"CalculationTypeInd\": \"P\",\r\n      \"TaxRate\": 0.018000,\r\n
+        \     \"TaxQuantity\": 0.0,\r\n      \"TaxAmount\": 3.13,\r\n      \"TaxExemptionInd\":
+        \"N\",\r\n      \"SalesTaxBaseAmount\": 173.92,\r\n      \"LicenseNumber\":
+        \"\",\r\n      \"RateDescription\": \"AZ CITY TAX - TEMPE\",\r\n      \"Currency\":
+        \"USD\",\r\n      \"SubtotalInd\": \"C\",\r\n      \"StatusCode\": \"ACTIVE\",\r\n
+        \     \"QuantityInd\": \"B\"\r\n    }\r\n  ],\r\n  \"TransactionErrors\":
+        [\r\n    {\r\n      \"SequenceId\": 1,\r\n      \"ErrorCode\": \"-881\",\r\n
+        \     \"ErrorMessage\": \"No county was provided on the Destination for transaction
+        line 1.\",\r\n      \"ErrorLevelInd\": \"Warning\",\r\n      \"TransactionLine\":
+        1\r\n    }\r\n  ],\r\n  \"UserReturnValue\": \"\"\r\n}"
+    headers:
+      Cache-Control:
+      - private
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '2879'
+      Content-Security-Policy:
+      - 'default-src ''self''; font-src ''self'' use.typekit.net fonts.gstatic.com
+        data: ; img-src ''self'' p.typekit.net *.walkme.com *.cloudfront.net data:
+        ; script-src ''self'' ''unsafe-inline'' ''unsafe-eval'' use.typekit.net *.walkme.com
+        *.cloudfront.net; style-src  ''self'' ''unsafe-inline'' use.typekit.net; connect-src
+        ''self'' performance.typekit.net ec.walkme.com; frame-src ''self'' s3.amazonaws.com
+        *.s3.amazonaws.com;'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Mon, 22 Feb 2021 20:27:04 GMT
+      Feature-Policy:
+      - geolocation 'none'; midi 'none'; notifications 'none'; push 'none'; sync-xhr
+        'self'; microphone 'none'; camera 'none'; magnetometer 'none'; gyroscope 'none';
+        speaker 'none'; vibrate 'none'; fullscreen 'none'; payment 'none';
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - ''
+      Set-Cookie:
+      - ASP.NET_SessionId=b5frsu0np0nbfo3qsffbcttc; path=/; HttpOnly; SameSite=Lax
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - sameorigin
+      X-XSS-Protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+version: 1

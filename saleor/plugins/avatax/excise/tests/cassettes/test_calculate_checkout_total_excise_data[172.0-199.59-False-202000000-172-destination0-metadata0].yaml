@@ -1,0 +1,248 @@
+interactions:
+- request:
+    body: '{"EffectiveDate": "02/22/21", "InvoiceDate": "02/22/21", "TitleTransferCode":
+      "DEST", "TransactionType": "RETAIL", "TransactionLines": [{"InvoiceLine": 1,
+      "ProductCode": "202000000", "UnitPrice": "172.000", "UnitOfMeasure": "PAC",
+      "BilledUnits": "1", "LineAmount": "172.00", "AlternateUnitPrice": "1.000", "TaxIncluded":
+      false, "UnitQuantity": 25, "UnitQuantityUnitOfMeasure": "EA", "DestinationCountryCode":
+      "USA", "DestinationJurisdiction": "VA", "DestinationAddress1": "2000 Main Street",
+      "DestinationAddress2": "", "DestinationCounty": "", "DestinationCity": "Richmond",
+      "DestinationPostalCode": "23226", "SaleCountryCode": "USA", "SaleAddress1":
+      "2000 Main Street", "SaleAddress2": "", "SaleJurisdiction": "VA", "SaleCounty":
+      "", "SaleCity": "Richmond", "SalePostalCode": "23226", "OriginCountryCode":
+      "USA", "OriginJurisdiction": "TX", "OriginCounty": "", "OriginCity": "Austin",
+      "OriginPostalCode": "78701", "OriginAddress1": "1100 Congress Ave", "OriginAddress2":
+      "", "CustomString1": null, "CustomString2": null, "CustomString3": null, "CustomNumeric1":
+      81.46, "CustomNumeric2": 85.65, "CustomNumeric3": 95.72}], "InvoiceNumber":
+      null}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Basic Og==
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1144'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.25.1
+      x-company-id:
+      - '1337'
+    method: POST
+    uri: https://excisesbx.avalara.com/api/v1/AvaTaxExcise/transactions/create
+  response:
+    body:
+      string: "{\r\n  \"UserTranId\": \"0d6c4dd3-da49-4c4b-bb0b-bb3ae24f5a5d\",\r\n
+        \ \"TranId\": 38973048,\r\n  \"Status\": \"Success\",\r\n  \"ReturnCode\":
+        0,\r\n  \"TotalTaxAmount\": 27.59,\r\n  \"TransactionTaxes\": [\r\n    {\r\n
+        \     \"TransactionTaxAmounts\": [],\r\n      \"SequenceId\": 1,\r\n      \"TransactionLine\":
+        1,\r\n      \"InvoiceLine\": 1,\r\n      \"CountryCode\": \"USA\",\r\n      \"Jurisdiction\":
+        \"VA\",\r\n      \"LocalJurisdiction\": \"NONE\",\r\n      \"ProductCategory\":
+        0.0,\r\n      \"TaxingLevel\": \"STATE\",\r\n      \"TaxType\": \"TOBACCO\",\r\n
+        \     \"RateType\": \"TAX\",\r\n      \"RateSubtype\": \"CGRH\",\r\n      \"CalculationTypeInd\":
+        \"P\",\r\n      \"TaxRate\": 0.2000000000,\r\n      \"TaxQuantity\": 1.0,\r\n
+        \     \"TaxAmount\": 16.29,\r\n      \"TaxExemptionInd\": \"N\",\r\n      \"DeferredInd\":
+        \"N\",\r\n      \"SalesTaxBaseAmount\": 81.46,\r\n      \"LicenseNumber\":
+        \"\",\r\n      \"UserReturnedValue\": \"\",\r\n      \"ScenarioId\": 1574099,\r\n
+        \     \"ScenarioTaxGroupId\": 4343,\r\n      \"ScenarioSequence\": 1,\r\n
+        \     \"RateDescription\": \"VA State Cigar Tax\",\r\n      \"Currency\":
+        \"USD\",\r\n      \"UnitOfMeasure\": \"pac\",\r\n      \"SubtotalInd\": \"A\",\r\n
+        \     \"StatusCode\": \"ACTIVE\",\r\n      \"QuantityInd\": \"B\"\r\n    },\r\n
+        \   {\r\n      \"TransactionTaxAmounts\": [],\r\n      \"SequenceId\": 2,\r\n
+        \     \"TransactionLine\": 1,\r\n      \"InvoiceLine\": 1,\r\n      \"CountryCode\":
+        \"USA\",\r\n      \"Jurisdiction\": \"VA\",\r\n      \"LocalJurisdiction\":
+        \"51\",\r\n      \"ProductCategory\": 0.0,\r\n      \"TaxingLevel\": \"STA\",\r\n
+        \     \"TaxType\": \"U\",\r\n      \"RateType\": \"G\",\r\n      \"RateSubtype\":
+        \"NONE\",\r\n      \"CalculationTypeInd\": \"P\",\r\n      \"TaxRate\": 0.043000,\r\n
+        \     \"TaxQuantity\": 0.0,\r\n      \"TaxAmount\": 8.10,\r\n      \"TaxExemptionInd\":
+        \"N\",\r\n      \"SalesTaxBaseAmount\": 188.29,\r\n      \"LicenseNumber\":
+        \"\",\r\n      \"RateDescription\": \"VA STATE TAX - VIRGINIA\",\r\n      \"Currency\":
+        \"USD\",\r\n      \"SubtotalInd\": \"C\",\r\n      \"StatusCode\": \"ACTIVE\",\r\n
+        \     \"QuantityInd\": \"B\"\r\n    },\r\n    {\r\n      \"TransactionTaxAmounts\":
+        [],\r\n      \"SequenceId\": 3,\r\n      \"TransactionLine\": 1,\r\n      \"InvoiceLine\":
+        1,\r\n      \"CountryCode\": \"USA\",\r\n      \"Jurisdiction\": \"VA\",\r\n
+        \     \"LocalJurisdiction\": \"67000\",\r\n      \"ProductCategory\": 0.0,\r\n
+        \     \"TaxingLevel\": \"CIT\",\r\n      \"TaxType\": \"U\",\r\n      \"RateType\":
+        \"G\",\r\n      \"RateSubtype\": \"NONE\",\r\n      \"CalculationTypeInd\":
+        \"P\",\r\n      \"TaxRate\": 0.010000,\r\n      \"TaxQuantity\": 0.0,\r\n
+        \     \"TaxAmount\": 1.88,\r\n      \"TaxExemptionInd\": \"N\",\r\n      \"SalesTaxBaseAmount\":
+        188.29,\r\n      \"LicenseNumber\": \"\",\r\n      \"RateDescription\": \"VA
+        CITY TAX - RICHMOND\",\r\n      \"Currency\": \"USD\",\r\n      \"SubtotalInd\":
+        \"C\",\r\n      \"StatusCode\": \"ACTIVE\",\r\n      \"QuantityInd\": \"B\"\r\n
+        \   },\r\n    {\r\n      \"TransactionTaxAmounts\": [],\r\n      \"SequenceId\":
+        4,\r\n      \"TransactionLine\": 1,\r\n      \"InvoiceLine\": 1,\r\n      \"CountryCode\":
+        \"USA\",\r\n      \"Jurisdiction\": \"VA\",\r\n      \"LocalJurisdiction\":
+        \"OGSP0\",\r\n      \"ProductCategory\": 0.0,\r\n      \"TaxingLevel\": \"STJ\",\r\n
+        \     \"TaxType\": \"U\",\r\n      \"RateType\": \"G\",\r\n      \"RateSubtype\":
+        \"NONE\",\r\n      \"CalculationTypeInd\": \"P\",\r\n      \"TaxRate\": 0.007000,\r\n
+        \     \"TaxQuantity\": 0.0,\r\n      \"TaxAmount\": 1.32,\r\n      \"TaxExemptionInd\":
+        \"N\",\r\n      \"SalesTaxBaseAmount\": 188.29,\r\n      \"LicenseNumber\":
+        \"\",\r\n      \"RateDescription\": \"VA SPECIAL TAX - RICHMOND CO SP\",\r\n
+        \     \"Currency\": \"USD\",\r\n      \"SubtotalInd\": \"C\",\r\n      \"StatusCode\":
+        \"ACTIVE\",\r\n      \"QuantityInd\": \"B\"\r\n    }\r\n  ],\r\n  \"TransactionErrors\":
+        [],\r\n  \"UserReturnValue\": \"\"\r\n}"
+    headers:
+      Cache-Control:
+      - private
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '3376'
+      Content-Security-Policy:
+      - 'default-src ''self''; font-src ''self'' use.typekit.net fonts.gstatic.com
+        data: ; img-src ''self'' p.typekit.net *.walkme.com *.cloudfront.net data:
+        ; script-src ''self'' ''unsafe-inline'' ''unsafe-eval'' use.typekit.net *.walkme.com
+        *.cloudfront.net; style-src  ''self'' ''unsafe-inline'' use.typekit.net; connect-src
+        ''self'' performance.typekit.net ec.walkme.com; frame-src ''self'' s3.amazonaws.com
+        *.s3.amazonaws.com;'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Mon, 22 Feb 2021 20:27:01 GMT
+      Feature-Policy:
+      - geolocation 'none'; midi 'none'; notifications 'none'; push 'none'; sync-xhr
+        'self'; microphone 'none'; camera 'none'; magnetometer 'none'; gyroscope 'none';
+        speaker 'none'; vibrate 'none'; fullscreen 'none'; payment 'none';
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - ''
+      Set-Cookie:
+      - ASP.NET_SessionId=slejuvevwj3exmnmv3tnzk22; path=/; HttpOnly; SameSite=Lax
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - sameorigin
+      X-XSS-Protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"EffectiveDate": "02/22/21", "InvoiceDate": "02/22/21", "TitleTransferCode":
+      "DEST", "TransactionType": "RETAIL", "TransactionLines": [{"InvoiceLine": 1,
+      "ProductCode": "202000000", "UnitPrice": "172.000", "UnitOfMeasure": "PAC",
+      "BilledUnits": "1", "LineAmount": "172.00", "AlternateUnitPrice": "1.000", "TaxIncluded":
+      false, "UnitQuantity": 25, "UnitQuantityUnitOfMeasure": "EA", "DestinationCountryCode":
+      "USA", "DestinationJurisdiction": "VA", "DestinationAddress1": "2000 Main Street",
+      "DestinationAddress2": "", "DestinationCounty": "", "DestinationCity": "Richmond",
+      "DestinationPostalCode": "23226", "SaleCountryCode": "USA", "SaleAddress1":
+      "2000 Main Street", "SaleAddress2": "", "SaleJurisdiction": "VA", "SaleCounty":
+      "", "SaleCity": "Richmond", "SalePostalCode": "23226", "OriginCountryCode":
+      "USA", "OriginJurisdiction": "TX", "OriginCounty": "", "OriginCity": "Austin",
+      "OriginPostalCode": "78701", "OriginAddress1": "1100 Congress Ave", "OriginAddress2":
+      "", "CustomString1": null, "CustomString2": null, "CustomString3": null, "CustomNumeric1":
+      81.46, "CustomNumeric2": 85.65, "CustomNumeric3": 95.72}], "InvoiceNumber":
+      null}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Basic Og==
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1144'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.25.1
+      x-company-id:
+      - '1337'
+    method: POST
+    uri: https://excisesbx.avalara.com/api/v1/AvaTaxExcise/transactions/create
+  response:
+    body:
+      string: "{\r\n  \"UserTranId\": \"3ed08fc5-99e1-4fde-8a0a-e287e0298be5\",\r\n
+        \ \"TranId\": 38973049,\r\n  \"Status\": \"Success\",\r\n  \"ReturnCode\":
+        0,\r\n  \"TotalTaxAmount\": 27.59,\r\n  \"TransactionTaxes\": [\r\n    {\r\n
+        \     \"TransactionTaxAmounts\": [],\r\n      \"SequenceId\": 1,\r\n      \"TransactionLine\":
+        1,\r\n      \"InvoiceLine\": 1,\r\n      \"CountryCode\": \"USA\",\r\n      \"Jurisdiction\":
+        \"VA\",\r\n      \"LocalJurisdiction\": \"NONE\",\r\n      \"ProductCategory\":
+        0.0,\r\n      \"TaxingLevel\": \"STATE\",\r\n      \"TaxType\": \"TOBACCO\",\r\n
+        \     \"RateType\": \"TAX\",\r\n      \"RateSubtype\": \"CGRH\",\r\n      \"CalculationTypeInd\":
+        \"P\",\r\n      \"TaxRate\": 0.2000000000,\r\n      \"TaxQuantity\": 1.0,\r\n
+        \     \"TaxAmount\": 16.29,\r\n      \"TaxExemptionInd\": \"N\",\r\n      \"DeferredInd\":
+        \"N\",\r\n      \"SalesTaxBaseAmount\": 81.46,\r\n      \"LicenseNumber\":
+        \"\",\r\n      \"UserReturnedValue\": \"\",\r\n      \"ScenarioId\": 1574099,\r\n
+        \     \"ScenarioTaxGroupId\": 4343,\r\n      \"ScenarioSequence\": 1,\r\n
+        \     \"RateDescription\": \"VA State Cigar Tax\",\r\n      \"Currency\":
+        \"USD\",\r\n      \"UnitOfMeasure\": \"pac\",\r\n      \"SubtotalInd\": \"A\",\r\n
+        \     \"StatusCode\": \"ACTIVE\",\r\n      \"QuantityInd\": \"B\"\r\n    },\r\n
+        \   {\r\n      \"TransactionTaxAmounts\": [],\r\n      \"SequenceId\": 2,\r\n
+        \     \"TransactionLine\": 1,\r\n      \"InvoiceLine\": 1,\r\n      \"CountryCode\":
+        \"USA\",\r\n      \"Jurisdiction\": \"VA\",\r\n      \"LocalJurisdiction\":
+        \"51\",\r\n      \"ProductCategory\": 0.0,\r\n      \"TaxingLevel\": \"STA\",\r\n
+        \     \"TaxType\": \"U\",\r\n      \"RateType\": \"G\",\r\n      \"RateSubtype\":
+        \"NONE\",\r\n      \"CalculationTypeInd\": \"P\",\r\n      \"TaxRate\": 0.043000,\r\n
+        \     \"TaxQuantity\": 0.0,\r\n      \"TaxAmount\": 8.10,\r\n      \"TaxExemptionInd\":
+        \"N\",\r\n      \"SalesTaxBaseAmount\": 188.29,\r\n      \"LicenseNumber\":
+        \"\",\r\n      \"RateDescription\": \"VA STATE TAX - VIRGINIA\",\r\n      \"Currency\":
+        \"USD\",\r\n      \"SubtotalInd\": \"C\",\r\n      \"StatusCode\": \"ACTIVE\",\r\n
+        \     \"QuantityInd\": \"B\"\r\n    },\r\n    {\r\n      \"TransactionTaxAmounts\":
+        [],\r\n      \"SequenceId\": 3,\r\n      \"TransactionLine\": 1,\r\n      \"InvoiceLine\":
+        1,\r\n      \"CountryCode\": \"USA\",\r\n      \"Jurisdiction\": \"VA\",\r\n
+        \     \"LocalJurisdiction\": \"67000\",\r\n      \"ProductCategory\": 0.0,\r\n
+        \     \"TaxingLevel\": \"CIT\",\r\n      \"TaxType\": \"U\",\r\n      \"RateType\":
+        \"G\",\r\n      \"RateSubtype\": \"NONE\",\r\n      \"CalculationTypeInd\":
+        \"P\",\r\n      \"TaxRate\": 0.010000,\r\n      \"TaxQuantity\": 0.0,\r\n
+        \     \"TaxAmount\": 1.88,\r\n      \"TaxExemptionInd\": \"N\",\r\n      \"SalesTaxBaseAmount\":
+        188.29,\r\n      \"LicenseNumber\": \"\",\r\n      \"RateDescription\": \"VA
+        CITY TAX - RICHMOND\",\r\n      \"Currency\": \"USD\",\r\n      \"SubtotalInd\":
+        \"C\",\r\n      \"StatusCode\": \"ACTIVE\",\r\n      \"QuantityInd\": \"B\"\r\n
+        \   },\r\n    {\r\n      \"TransactionTaxAmounts\": [],\r\n      \"SequenceId\":
+        4,\r\n      \"TransactionLine\": 1,\r\n      \"InvoiceLine\": 1,\r\n      \"CountryCode\":
+        \"USA\",\r\n      \"Jurisdiction\": \"VA\",\r\n      \"LocalJurisdiction\":
+        \"OGSP0\",\r\n      \"ProductCategory\": 0.0,\r\n      \"TaxingLevel\": \"STJ\",\r\n
+        \     \"TaxType\": \"U\",\r\n      \"RateType\": \"G\",\r\n      \"RateSubtype\":
+        \"NONE\",\r\n      \"CalculationTypeInd\": \"P\",\r\n      \"TaxRate\": 0.007000,\r\n
+        \     \"TaxQuantity\": 0.0,\r\n      \"TaxAmount\": 1.32,\r\n      \"TaxExemptionInd\":
+        \"N\",\r\n      \"SalesTaxBaseAmount\": 188.29,\r\n      \"LicenseNumber\":
+        \"\",\r\n      \"RateDescription\": \"VA SPECIAL TAX - RICHMOND CO SP\",\r\n
+        \     \"Currency\": \"USD\",\r\n      \"SubtotalInd\": \"C\",\r\n      \"StatusCode\":
+        \"ACTIVE\",\r\n      \"QuantityInd\": \"B\"\r\n    }\r\n  ],\r\n  \"TransactionErrors\":
+        [],\r\n  \"UserReturnValue\": \"\"\r\n}"
+    headers:
+      Cache-Control:
+      - private
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '3376'
+      Content-Security-Policy:
+      - 'default-src ''self''; font-src ''self'' use.typekit.net fonts.gstatic.com
+        data: ; img-src ''self'' p.typekit.net *.walkme.com *.cloudfront.net data:
+        ; script-src ''self'' ''unsafe-inline'' ''unsafe-eval'' use.typekit.net *.walkme.com
+        *.cloudfront.net; style-src  ''self'' ''unsafe-inline'' use.typekit.net; connect-src
+        ''self'' performance.typekit.net ec.walkme.com; frame-src ''self'' s3.amazonaws.com
+        *.s3.amazonaws.com;'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Mon, 22 Feb 2021 20:27:02 GMT
+      Feature-Policy:
+      - geolocation 'none'; midi 'none'; notifications 'none'; push 'none'; sync-xhr
+        'self'; microphone 'none'; camera 'none'; magnetometer 'none'; gyroscope 'none';
+        speaker 'none'; vibrate 'none'; fullscreen 'none'; payment 'none';
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - ''
+      Set-Cookie:
+      - ASP.NET_SessionId=bsxpz4kr3dqf103t12vjy1k5; path=/; HttpOnly; SameSite=Lax
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - sameorigin
+      X-XSS-Protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+version: 1

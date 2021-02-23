@@ -17,8 +17,15 @@ from django.core.cache import cache
 from requests.auth import HTTPBasicAuth
 
 from ....checkout import base_calculations
+from ....checkout.utils import fetch_checkout_lines
 from ....core.taxes import TaxError
-from .. import TransactionType
+from .. import (
+    CACHE_KEY,
+    CACHE_TIME,
+    AvataxConfiguration,
+    api_get_request,
+    taxes_need_new_fetch,
+)
 
 if TYPE_CHECKING:
     # flake8: noqa
@@ -30,17 +37,8 @@ logger = logging.getLogger(__name__)
 
 
 def get_metadata_key(key_name: str):
-    """ Namespace metadata key names: PLUGIN_ID:Key """
+    """Namespace metadata key names: PLUGIN_ID:Key."""
     return "mirumee.taxes.avalara_excise:" + key_name
-
-
-@dataclass
-class AvataxConfiguration:
-    username_or_account: str
-    password_or_license: str
-    use_sandbox: bool = True
-    company_name: str = "DEFAULT"
-    autocommit: bool = False
 
 
 class EnhancedJSONEncoder(json.JSONEncoder):
@@ -62,28 +60,30 @@ def get_api_url(use_sandbox=True) -> str:
 
 
 def api_post_request(
-    url: str, data: Dict[str, Any], config: AvataxConfiguration
+    url: str, data: Optional[Dict[str, Any]], config: AvataxConfiguration
 ) -> Dict[str, Any]:
     response = None
     try:
-        auth = HTTPBasicAuth(config.username, config.password)
+        auth = HTTPBasicAuth(config.username_or_account, config.password_or_license)
         headers = {
-            "x-company-id": config.company_id,
+            "x-company-id": config.company_name,
             "Content-Type": "application/json",
         }
         formatted_data = json.dumps(data, cls=EnhancedJSONEncoder)
         response = requests.post(
-            url + "AvaTaxExcise/transactions/create",
+            url,
             headers=headers,
             auth=auth,
             data=formatted_data,
         )
-        # Do we want to set a timeout here?
         logger.debug("Hit to Avatax to calculate taxes %s", url)
         json_response = response.json()
-        if "error" in response:  # type: ignore
+        if json_response.get("Status") == "Errors found":
             logger.exception("Avatax response contains errors %s", json_response)
+            # this is how avatax handles an error in the response
+            # is this strict enough with our setup?
             return json_response
+
     except requests.exceptions.RequestException:
         logger.exception("Fetching taxes failed %s", url)
         return {}
@@ -96,68 +96,18 @@ def api_post_request(
     return json_response  # type: ignore
 
 
-def api_get_request(
-    url: str,
-    username_or_account: str,
-    password_or_license: str,
-):
-    response = None
-    try:
-        auth = HTTPBasicAuth(username_or_account, password_or_license)
-        response = requests.get(url, auth=auth, timeout=TIMEOUT)
-        json_response = response.json()
-        logger.debug("[GET] Hit to %s", url)
-        if "error" in json_response:  # type: ignore
-            logger.error("Avatax response contains errors %s", json_response)
-        return json_response
-    except requests.exceptions.RequestException:
-        logger.exception("Failed to fetch data from %s", url)
-        return {}
-    except json.JSONDecodeError:
-        content = response.content if response else "Unable to find the response"
-        logger.exception(
-            "Unable to decode the response from Avatax. Response: %s", content
-        )
-        return {}
-
-
-@dataclass
-class RequestData:
-    EffectiveDate: date
-    InvoiceDate: date
-    TitleTransferCode: str
-    TransactionType: str
-    TransactionLines: List[Dict[str, Union[str, int, bool, None]]]
-
-
-def generate_request_data(
-    lines: List[Dict[str, Any]],
-    checkout: "Checkout",
-    config: AvataxConfiguration,
-):
-    checkout_id = str(checkout.token)
-    data: Dict = {}
-    date = checkout.last_change.strftime("%m/%d/%y")
-    data = RequestData(
-        EffectiveDate=date,
-        InvoiceDate=date,
-        TitleTransferCode="DEST",
-        TransactionType="RETAIL",
-        TransactionLines=lines,
-    )
-
-    return data
-
-
 @dataclass
 class TransactionLine:
     InvoiceLine: int
     ProductCode: str
     UnitPrice: Decimal
+    UnitOfMeasure: str
     BilledUnits: Decimal
+    LineAmount: Optional[Decimal]
     AlternateUnitPrice: Optional[Decimal]
     TaxIncluded: bool
     UnitQuantity: Optional[int]
+    UnitQuantityUnitOfMeasure: Optional[str]
     DestinationCountryCode: str
     """ ISO 3166-1 alpha-3 code """
     DestinationJurisdiction: str
@@ -175,7 +125,7 @@ class TransactionLine:
     SalePostalCode: str
 
     """ WIP """
-    Origin: Optional[str]
+    # Origin: Optional[str]
     OriginCountryCode: str
     OriginJurisdiction: str  # state or region
     OriginCounty: str
@@ -192,37 +142,195 @@ class TransactionLine:
     CustomNumeric3: Optional[Decimal]
 
 
+@dataclass
+class TransactionCreateRequestData:
+    EffectiveDate: str
+    InvoiceDate: str
+    TitleTransferCode: str
+    TransactionType: str
+    TransactionLines: List[TransactionLine]
+    InvoiceNumber: Optional[str] = None
+
+
+def generate_request_data(
+    transaction_type: str,
+    lines: List[TransactionLine],
+    checkout: "Checkout",
+):
+    date = checkout.last_change.strftime("%m/%d/%y")
+    data = TransactionCreateRequestData(
+        EffectiveDate=date,
+        InvoiceDate=date,
+        TitleTransferCode="DEST",
+        TransactionType=transaction_type,
+        TransactionLines=lines,
+    )
+
+    return data
+
+
+def generate_request_data_order(
+    transaction_type: str,
+    lines: List[TransactionLine],
+    order: "Order",
+):
+    date = order.created.strftime("%m/%d/%y")
+    data = TransactionCreateRequestData(
+        EffectiveDate=date,
+        InvoiceDate=date,
+        InvoiceNumber=order.pk,
+        TitleTransferCode="DEST",
+        TransactionType=transaction_type,
+        TransactionLines=lines,
+    )
+
+    return data
+
+
 def get_checkout_lines_data(
     checkout: "Checkout", discounts=None
-) -> List[Dict[str, Union[str, int, bool, None]]]:
-    data: List[Dict[str, Union[str, int, bool, None]]] = []
-    lines = checkout.lines.prefetch_related(
-        "variant__product__category",
-        "variant__product__collections",
-        "variant__product__product_type",
-    ).filter(variant__product__charge_taxes=True)
-    tax_included = Site.objects.get_current().settings.include_taxes_in_prices
+) -> List[TransactionLine]:
+    data: List[TransactionLine] = []
+    lines_info = fetch_checkout_lines(checkout)
     channel = checkout.channel
+    tax_included = Site.objects.get_current().settings.include_taxes_in_prices
     shipping_address = checkout.shipping_address
+    if shipping_address is None:
+        raise TaxError("Shipping address required for ATE tax calculation")
 
-    for line in lines:
-        variant = line.variant
-        channel_listing = variant.channel_listings.get(channel=channel)
-        stock = variant.stocks.for_country(checkout.shipping_address.country).first()
+    for line_info in lines_info:
+        line = line_info.line
+        variant = line_info.variant
+        product = line_info.product
+        stock = variant.stocks.for_country(shipping_address.country).first()
         warehouse = stock.warehouse
         cost_price = (
-            channel_listing.cost_price.amount if channel_listing.cost_price else None
+            line_info.channel_listing.cost_price.amount
+            if line_info.channel_listing.cost_price
+            else None
         )
+        line_amount = (
+            base_calculations.base_checkout_line_total(
+                line_info,
+                channel,
+                discounts,
+            ).gross.amount
+            if tax_included
+            else base_calculations.base_checkout_line_total(
+                line_info,
+                channel,
+                discounts,
+            ).net.amount
+        )
+
+    data.append(
+        TransactionLine(
+            InvoiceLine=line_info.line.id,
+            ProductCode=variant.sku,
+            UnitPrice=line_info.channel_listing.price.amount,
+            UnitOfMeasure=line_info.product.product_type.get_value_from_private_metadata(
+                get_metadata_key("UnitOfMeasure")
+            ),
+            BilledUnits=Decimal(line.quantity),
+            LineAmount=line_amount,
+            AlternateUnitPrice=cost_price,
+            TaxIncluded=tax_included,
+            UnitQuantity=variant.get_value_from_private_metadata(
+                get_metadata_key("UnitQuantity")
+            ),
+            UnitQuantityUnitOfMeasure=line_info.product.product_type.get_value_from_private_metadata(
+                get_metadata_key("UnitQuantityUnitOfMeasure")
+            ),
+            DestinationCountryCode=shipping_address.country.alpha3,
+            DestinationJurisdiction=shipping_address.country_area,
+            DestinationAddress1=shipping_address.street_address_1,
+            DestinationAddress2=shipping_address.street_address_2,
+            DestinationCity=shipping_address.city,
+            DestinationCounty=shipping_address.city_area,
+            DestinationPostalCode=shipping_address.postal_code,
+            SaleCountryCode=shipping_address.country.alpha3,
+            SaleJurisdiction=shipping_address.country_area,
+            SaleAddress1=shipping_address.street_address_1,
+            SaleAddress2=shipping_address.street_address_2,
+            SaleCity=shipping_address.city,
+            SaleCounty=shipping_address.city_area,
+            SalePostalCode=shipping_address.postal_code,
+            # Origin=warehouse.id,  # check with avalara?
+            OriginCountryCode=warehouse.address.country.alpha3,
+            OriginJurisdiction=warehouse.address.country_area,
+            OriginAddress1=warehouse.address.street_address_1,
+            OriginAddress2=warehouse.address.street_address_2,
+            OriginCity=warehouse.address.city,
+            OriginCounty=warehouse.address.city_area,
+            OriginPostalCode=warehouse.address.postal_code,
+            CustomString1=variant.get_value_from_private_metadata(
+                get_metadata_key("CustomString1")
+            ),
+            CustomString2=variant.get_value_from_private_metadata(
+                get_metadata_key("CustomString2")
+            ),
+            CustomString3=variant.get_value_from_private_metadata(
+                get_metadata_key("CustomString3")
+            ),
+            CustomNumeric1=variant.get_value_from_private_metadata(
+                get_metadata_key("CustomNumeric1")
+            ),
+            CustomNumeric2=variant.get_value_from_private_metadata(
+                get_metadata_key("CustomNumeric2")
+            ),
+            CustomNumeric3=variant.get_value_from_private_metadata(
+                get_metadata_key("CustomNumeric3")
+            ),
+        )
+    )
+    return data
+
+
+def get_order_lines_data(order: "Order", discounts=None) -> List[TransactionLine]:
+
+    data: List[TransactionLine] = []
+    order_lines = order.lines.all()
+    channel = order.channel
+
+    tax_included = Site.objects.get_current().settings.include_taxes_in_prices
+    shipping_address = order.shipping_address
+    if shipping_address is None:
+        raise TaxError("Shipping address required for ATE tax calculation")
+
+    for line in order_lines:
+        variant = line.variant
+        if variant is None:
+            continue
+        product_type = variant.product.product_type
+        stock = variant.stocks.for_country(shipping_address.country).first()
+        warehouse = stock.warehouse
+        variant_channel_listing = variant.channel_listings.get(channel=channel)
+        cost_price = (
+            variant_channel_listing.cost_price_amount
+            if variant_channel_listing
+            else None
+        )
+        line_amount = (
+            line.unit_price_gross_amount if tax_included else line.unit_price_net_amount
+        )
+
         data.append(
             TransactionLine(
                 InvoiceLine=line.id,
                 ProductCode=variant.sku,
-                UnitPrice=channel_listing.price.amount,
-                BilledUnits=line.quantity,
+                UnitPrice=variant_channel_listing.price.amount,
+                UnitOfMeasure=product_type.get_value_from_private_metadata(
+                    get_metadata_key("UnitOfMeasure")
+                ),
+                BilledUnits=Decimal(line.quantity),
+                LineAmount=line_amount,
                 AlternateUnitPrice=cost_price,
                 TaxIncluded=tax_included,
                 UnitQuantity=variant.get_value_from_private_metadata(
                     get_metadata_key("UnitQuantity")
+                ),
+                UnitQuantityUnitOfMeasure=product_type.get_value_from_private_metadata(
+                    get_metadata_key("UnitQuantityUnitOfMeasure")
                 ),
                 DestinationCountryCode=shipping_address.country.alpha3,
                 DestinationJurisdiction=shipping_address.country_area,
@@ -238,7 +346,7 @@ def get_checkout_lines_data(
                 SaleCity=shipping_address.city,
                 SaleCounty=shipping_address.city_area,
                 SalePostalCode=shipping_address.postal_code,
-                Origin=warehouse.id,  # check with avalara?
+                # Origin=warehouse.id,  # check with avalara?
                 OriginCountryCode=warehouse.address.country.alpha3,
                 OriginJurisdiction=warehouse.address.country_area,
                 OriginAddress1=warehouse.address.street_address_1,
@@ -266,33 +374,85 @@ def get_checkout_lines_data(
                 ),
             )
         )
-
-    # append_shipping_to_data(data, checkout.shipping_method, checkout.channel_id)
-
     return data
 
 
 def generate_request_data_from_checkout(
     checkout: "Checkout",
-    config: AvataxConfiguration,
-    transaction_token=None,
-    transaction_type=TransactionType.ORDER,
+    transaction_type="RETAIL",  # This field is not well documented in ATE
     discounts=None,
 ):
     lines = get_checkout_lines_data(checkout, discounts)
     data = generate_request_data(
+        transaction_type,
         checkout=checkout,
         lines=lines,
-        config=config,
     )
-
     return data
+
+
+def generate_request_data_from_order(
+    order: "Order",
+    transaction_type="RETAIL",  # This field is not well documented in ATE
+    discounts=None,
+):
+    lines = get_order_lines_data(order, discounts)
+    data = generate_request_data_order(
+        transaction_type,
+        order=order,
+        lines=lines,
+    )
+    return data
+
+
+def _fetch_new_taxes_data(
+    data: Dict[str, Dict], data_cache_key: str, config: AvataxConfiguration
+):
+    transaction_url = urljoin(
+        get_api_url(config.use_sandbox), "AvaTaxExcise/transactions/create"
+    )
+    with opentracing.global_tracer().start_active_span(
+        "avatax_excise.transactions.create"
+    ) as scope:
+        span = scope.span
+        span.set_tag(opentracing.tags.COMPONENT, "tax")
+        span.set_tag("service.name", "avatax_excise")
+        response = api_post_request(transaction_url, data, config)
+    if response and response.get("Status") == "Success":
+        cache.set(data_cache_key, (data, response), CACHE_TIME)
+    else:
+        # cache failed response to limit hits to avatax.
+        cache.set(data_cache_key, (data, response), 10)
+    return response
+
+
+def get_cached_response_or_fetch(
+    data: Dict[str, Dict],
+    token_in_cache: str,
+    config: AvataxConfiguration,
+    force_refresh: bool = False,
+):
+    """Try to find response in cache.
+
+    Return cached response if requests data are the same. Fetch new data in other cases.
+    """
+    data_cache_key = CACHE_KEY + token_in_cache
+    if taxes_need_new_fetch(data, token_in_cache) or force_refresh:
+        response = _fetch_new_taxes_data(data, data_cache_key, config)
+    else:
+        _, response = cache.get(data_cache_key)
+
+    return response
 
 
 def get_checkout_tax_data(
     checkout: "Checkout", discounts, config: AvataxConfiguration
 ) -> Dict[str, Any]:
-    data = generate_request_data_from_checkout(checkout, config, discounts=discounts)
-    url = get_api_url()
-    tax_response = api_post_request(url, data, config)
-    return tax_response
+    data = generate_request_data_from_checkout(checkout, discounts=discounts)
+    return get_cached_response_or_fetch(data, str(checkout.token), config)
+
+
+def get_order_tax_data(order: "Order", config: AvataxConfiguration) -> Dict[str, Any]:
+    data = generate_request_data_from_order(order)
+    return _fetch_new_taxes_data(data, str(order.token), config)
+    # TODO - should this be cached? i think no

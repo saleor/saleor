@@ -1,0 +1,110 @@
+interactions:
+- request:
+    body: '{"EffectiveDate": "02/18/21", "InvoiceDate": "02/18/21", "TitleTransferCode":
+      "DEST", "TransactionType": "RETAIL", "TransactionLines": [{"InvoiceLine": 9,
+      "ProductCode": "123", "UnitPrice": "10.000", "UnitOfMeasure": "PAC", "BilledUnits":
+      "3", "LineAmount": "15.00", "AlternateUnitPrice": "1.000", "TaxIncluded": true,
+      "UnitQuantity": null, "UnitQuantityUnitOfMeasure": "EA", "DestinationCountryCode":
+      "USA", "DestinationJurisdiction": "TX", "DestinationAddress1": "1100 Congress
+      Ave", "DestinationAddress2": "", "DestinationCounty": "", "DestinationCity":
+      "Austin", "DestinationPostalCode": "78701", "SaleCountryCode": "USA", "SaleAddress1":
+      "1100 Congress Ave", "SaleAddress2": "", "SaleJurisdiction": "TX", "SaleCounty":
+      "", "SaleCity": "Austin", "SalePostalCode": "78701", "OriginCountryCode": "USA",
+      "OriginJurisdiction": "TX", "OriginCounty": "", "OriginCity": "Austin", "OriginPostalCode":
+      "78701", "OriginAddress1": "1100 Congress Ave", "OriginAddress2": "", "CustomString1":
+      null, "CustomString2": null, "CustomString3": null, "CustomNumeric1": null,
+      "CustomNumeric2": null, "CustomNumeric3": null}]}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Basic Og==
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1109'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.25.1
+      x-company-id:
+      - '1337'
+    method: POST
+    uri: https://excisesbx.avalara.com/api/v1/AvaTaxExcise/transactions/create
+  response:
+    body:
+      string: "{\r\n  \"UserTranId\": \"090406b6-ffed-44db-bd40-8ed93ef709a2\",\r\n
+        \ \"TranId\": 38923660,\r\n  \"Status\": \"Success\",\r\n  \"ReturnCode\":
+        0,\r\n  \"TotalTaxAmount\": 1.14,\r\n  \"TransactionTaxes\": [\r\n    {\r\n
+        \     \"TransactionTaxAmounts\": [],\r\n      \"SequenceId\": 1,\r\n      \"TransactionLine\":
+        1,\r\n      \"InvoiceLine\": 9,\r\n      \"CountryCode\": \"USA\",\r\n      \"Jurisdiction\":
+        \"TX\",\r\n      \"LocalJurisdiction\": \"48\",\r\n      \"ProductCategory\":
+        0.0,\r\n      \"TaxingLevel\": \"STA\",\r\n      \"TaxType\": \"S\",\r\n      \"RateType\":
+        \"G\",\r\n      \"RateSubtype\": \"NONE\",\r\n      \"CalculationTypeInd\":
+        \"P\",\r\n      \"TaxRate\": 0.062500,\r\n      \"TaxQuantity\": 0.0,\r\n
+        \     \"TaxAmount\": 0.86,\r\n      \"TaxExemptionInd\": \"N\",\r\n      \"SalesTaxBaseAmount\":
+        13.8600,\r\n      \"LicenseNumber\": \"\",\r\n      \"RateDescription\": \"TX
+        STATE TAX - TEXAS\",\r\n      \"Currency\": \"USD\",\r\n      \"SubtotalInd\":
+        \"C\",\r\n      \"StatusCode\": \"ACTIVE\",\r\n      \"QuantityInd\": \"B\"\r\n
+        \   },\r\n    {\r\n      \"TransactionTaxAmounts\": [],\r\n      \"SequenceId\":
+        2,\r\n      \"TransactionLine\": 1,\r\n      \"InvoiceLine\": 9,\r\n      \"CountryCode\":
+        \"USA\",\r\n      \"Jurisdiction\": \"TX\",\r\n      \"LocalJurisdiction\":
+        \"05000\",\r\n      \"ProductCategory\": 0.0,\r\n      \"TaxingLevel\": \"CIT\",\r\n
+        \     \"TaxType\": \"S\",\r\n      \"RateType\": \"G\",\r\n      \"RateSubtype\":
+        \"NONE\",\r\n      \"CalculationTypeInd\": \"P\",\r\n      \"TaxRate\": 0.010000,\r\n
+        \     \"TaxQuantity\": 0.0,\r\n      \"TaxAmount\": 0.14,\r\n      \"TaxExemptionInd\":
+        \"N\",\r\n      \"SalesTaxBaseAmount\": 13.8600,\r\n      \"LicenseNumber\":
+        \"\",\r\n      \"RateDescription\": \"TX CITY TAX - AUSTIN\",\r\n      \"Currency\":
+        \"USD\",\r\n      \"SubtotalInd\": \"C\",\r\n      \"StatusCode\": \"ACTIVE\",\r\n
+        \     \"QuantityInd\": \"B\"\r\n    },\r\n    {\r\n      \"TransactionTaxAmounts\":
+        [],\r\n      \"SequenceId\": 3,\r\n      \"TransactionLine\": 1,\r\n      \"InvoiceLine\":
+        9,\r\n      \"CountryCode\": \"USA\",\r\n      \"Jurisdiction\": \"TX\",\r\n
+        \     \"LocalJurisdiction\": \"6000814\",\r\n      \"ProductCategory\": 0.0,\r\n
+        \     \"TaxingLevel\": \"STJ\",\r\n      \"TaxType\": \"S\",\r\n      \"RateType\":
+        \"G\",\r\n      \"RateSubtype\": \"NONE\",\r\n      \"CalculationTypeInd\":
+        \"P\",\r\n      \"TaxRate\": 0.010000,\r\n      \"TaxQuantity\": 0.0,\r\n
+        \     \"TaxAmount\": 0.14,\r\n      \"TaxExemptionInd\": \"N\",\r\n      \"SalesTaxBaseAmount\":
+        13.8600,\r\n      \"LicenseNumber\": \"\",\r\n      \"RateDescription\": \"TX
+        SPECIAL TAX - AUSTIN MTA TRANSIT\",\r\n      \"Currency\": \"USD\",\r\n      \"SubtotalInd\":
+        \"C\",\r\n      \"StatusCode\": \"ACTIVE\",\r\n      \"QuantityInd\": \"B\"\r\n
+        \   }\r\n  ],\r\n  \"TransactionErrors\": [],\r\n  \"UserReturnValue\": \"\"\r\n}"
+    headers:
+      Cache-Control:
+      - private
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '2451'
+      Content-Security-Policy:
+      - 'default-src ''self''; font-src ''self'' use.typekit.net fonts.gstatic.com
+        data: ; img-src ''self'' p.typekit.net *.walkme.com *.cloudfront.net data:
+        ; script-src ''self'' ''unsafe-inline'' ''unsafe-eval'' use.typekit.net *.walkme.com
+        *.cloudfront.net; style-src  ''self'' ''unsafe-inline'' use.typekit.net; connect-src
+        ''self'' performance.typekit.net ec.walkme.com; frame-src ''self'' s3.amazonaws.com
+        *.s3.amazonaws.com;'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Thu, 18 Feb 2021 00:29:11 GMT
+      Feature-Policy:
+      - geolocation 'none'; midi 'none'; notifications 'none'; push 'none'; sync-xhr
+        'self'; microphone 'none'; camera 'none'; magnetometer 'none'; gyroscope 'none';
+        speaker 'none'; vibrate 'none'; fullscreen 'none'; payment 'none';
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - ''
+      Set-Cookie:
+      - ASP.NET_SessionId=evkbs2fiwpel0psnyj4oomuf; path=/; HttpOnly; SameSite=Lax
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - sameorigin
+      X-XSS-Protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+version: 1

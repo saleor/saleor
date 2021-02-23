@@ -1,19 +1,32 @@
+from decimal import Decimal
+
 import pytest
+from django.core.management.color import no_style
+from django.db import connection
+from django.test import override_settings
 from prices import Money, TaxedMoney
 
-from ..plugin import AvataxExcisePlugin
+from saleor.shipping.models import ShippingMethodChannelListing
+
+from .....account.models import Address
+from .....checkout import CheckoutLineInfo
+from .....checkout.models import CheckoutLine
+from .....checkout.utils import add_variant_to_checkout, fetch_checkout_lines
+from .....core.prices import quantize_price
+from .....core.taxes import TaxError
+from .....product.models import ProductType, ProductVariant
+from .....warehouse.models import Warehouse
 from ....manager import get_plugins_manager
 from ....models import PluginConfiguration
-from .....core.prices import quantize_price
-from .....account.models import Address
-from .....warehouse.models import Warehouse
+from .. import get_metadata_key
+from ..plugin import AvataxExcisePlugin
 
 
 @pytest.fixture
 def plugin_configuration(db):
     def set_configuration(
         username="api_user",
-        password="test",
+        password="cuoeJw178n7M11IpDfdf",
         sandbox=True,
         company_id="1337",
     ):
@@ -21,10 +34,11 @@ def plugin_configuration(db):
             "active": True,
             "name": AvataxExcisePlugin.PLUGIN_NAME,
             "configuration": [
-                {"name": "Username", "value": username},
-                {"name": "Password", "value": password},
+                {"name": "Username or account", "value": username},
+                {"name": "Password or license", "value": password},
                 {"name": "Use sandbox", "value": sandbox},
-                {"name": "Company ID", "value": company_id},
+                {"name": "Company name", "value": company_id},
+                {"name": "Autocommit", "value": False},
             ],
         }
         configuration = PluginConfiguration.objects.create(
@@ -50,6 +64,17 @@ def address_usa_tx():
 
 
 @pytest.fixture
+def cigar_product_type():
+    return ProductType.objects.create(
+        name="Cigar",
+        private_metadata={
+            "mirumee.taxes.avalara_excise:UnitOfMeasure": "PAC",
+            "mirumee.taxes.avalara_excise:UnitQuantityUnitOfMeasure": "EA",
+        },
+    )
+
+
+@pytest.fixture
 def warehouse(address_usa_tx, shipping_zone):
     warehouse = Warehouse.objects.create(
         address=address_usa_tx,
@@ -62,14 +87,24 @@ def warehouse(address_usa_tx, shipping_zone):
     return warehouse
 
 
-@pytest.mark.vcr(filter_headers=["Authorization"])
+@pytest.fixture
+def reset_sequences():
+    sequence_sql = connection.ops.sequence_reset_sql(no_style(), [CheckoutLine])
+    with connection.cursor() as cursor:
+        for sql in sequence_sql:
+            cursor.execute(sql)
+
+
+@pytest.mark.vcr
 @pytest.mark.parametrize(
     "with_discount, expected_net, expected_gross, taxes_in_prices",
     [
-        (True, "15.00", "15.00", True),  # TODO real values
+        (False, "30.00", "32.29", True),
     ],
 )
+@override_settings(PLUGINS=["saleor.plugins.avatax.excise.plugin.AvataxExcisePlugin"])
 def test_calculate_checkout_line_total(
+    reset_sequences,  # pylint: disable=unused-argument
     with_discount,
     expected_net,
     expected_gross,
@@ -83,9 +118,7 @@ def test_calculate_checkout_line_total(
     plugin_configuration,
 ):
     plugin_configuration()
-    manager = get_plugins_manager(
-        plugins=["saleor.plugins.avatax.excise.plugin.AvataxExcisePlugin"]
-    )
+    manager = get_plugins_manager()
 
     checkout_with_item.shipping_address = address_usa_tx
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
@@ -101,18 +134,240 @@ def test_calculate_checkout_line_total(
     discounts = [discount_info] if with_discount else None
     channel = checkout_with_item.channel
     channel_listing = line.variant.channel_listings.get(channel=channel)
+
+    checkout_line_info = CheckoutLineInfo(
+        line=line,
+        variant=line.variant,
+        channel_listing=channel_listing,
+        product=line.variant.product,
+        collections=[],
+    )
+
     total = manager.calculate_checkout_line_total(
         checkout_with_item,
-        line,
-        line.variant,
-        line.variant.product,
-        [],
+        checkout_line_info,
         checkout_with_item.shipping_address,
         channel,
-        channel_listing,
         discounts,
     )
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
         net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
     )
+
+
+@pytest.mark.vcr
+@pytest.mark.parametrize(
+    "with_discount, expected_net, expected_gross, voucher_amount, taxes_in_prices",
+    [
+        (False, "43.98", "48.95", "0.0", False),
+    ],
+)
+@override_settings(PLUGINS=["saleor.plugins.avatax.excise.plugin.AvataxExcisePlugin"])
+def test_calculate_checkout_total(
+    reset_sequences,  # pylint: disable=unused-argument
+    with_discount,
+    expected_net,
+    expected_gross,
+    voucher_amount,
+    taxes_in_prices,
+    checkout_with_item,
+    product_with_single_variant,
+    discount_info,
+    shipping_zone,
+    address_usa_tx,
+    address_usa,
+    site_settings,
+    monkeypatch,
+    plugin_configuration,
+    non_default_category,
+):
+    plugin_configuration()
+    # Required ATE variant data
+    metadata = {
+        get_metadata_key("UnitQuantity"): 1,
+    }
+    ProductVariant.objects.filter(sku="SKU_SINGLE_VARIANT").update(
+        sku="202127000", private_metadata=metadata
+    )
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.excise.plugin.AvataxExcisePlugin._skip_plugin",
+        lambda *_: False,
+    )
+    manager = get_plugins_manager()
+    checkout_with_item.shipping_address = address_usa_tx
+    checkout_with_item.save()
+    site_settings.company_address = address_usa
+    site_settings.include_taxes_in_prices = taxes_in_prices
+    site_settings.save()
+
+    voucher_amount = Money(voucher_amount, "USD")
+    checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
+    checkout_with_item.discount = voucher_amount
+    checkout_with_item.save()
+
+    product_with_single_variant.charge_taxes = False
+    product_with_single_variant.category = non_default_category
+    product_with_single_variant.save()
+    add_variant_to_checkout(
+        checkout_with_item, product_with_single_variant.variants.get()
+    )
+
+    discounts = [discount_info] if with_discount else None
+    lines = fetch_checkout_lines(checkout_with_item)
+    total = manager.calculate_checkout_total(
+        checkout_with_item, lines, address_usa_tx, discounts
+    )
+    total = quantize_price(total, total.currency)
+    assert total == TaxedMoney(
+        net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
+    )
+
+
+@pytest.mark.vcr
+@pytest.mark.parametrize(
+    "expected_net, expected_gross, taxes_in_prices, variant_sku, price, destination, "
+    "metadata",
+    [
+        (
+            "172.0",
+            "199.59",
+            False,
+            "202000000",
+            172,
+            {"city": "Richmond", "postal_code": "23226", "country_area": "VA"},
+            {
+                "UnitQuantity": 25,
+                "CustomNumeric1": 81.46,
+                "CustomNumeric2": 85.65,
+                "CustomNumeric3": 95.72,
+            },
+        ),
+        (
+            "170.00",
+            "186.79",
+            False,
+            "202015500",
+            170,
+            {"city": "Tempe", "postal_code": "85281", "country_area": "AZ"},
+            {
+                "UnitQuantity": 18,
+                "CustomNumeric1": 102.51,
+                "CustomNumeric2": 108.00,
+                "CustomNumeric3": 115.25,
+            },
+        ),
+    ],
+)
+@override_settings(PLUGINS=["saleor.plugins.avatax.excise.plugin.AvataxExcisePlugin"])
+def test_calculate_checkout_total_excise_data(
+    reset_sequences,  # pylint: disable=unused-argument
+    expected_net,
+    expected_gross,
+    taxes_in_prices,
+    variant_sku,
+    price,
+    destination,
+    metadata,
+    checkout,
+    product,
+    shipping_zone,
+    address_usa,
+    site_settings,
+    monkeypatch,
+    plugin_configuration,
+    cigar_product_type,
+):
+    plugin_configuration()
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.excise.plugin.AvataxExcisePlugin._skip_plugin",
+        lambda *_: False,
+    )
+    manager = get_plugins_manager()
+
+    address_usa.city = destination["city"]
+    address_usa.postal_code = destination["postal_code"]
+    address_usa.country_area = destination["country_area"]
+    address_usa.save()
+
+    checkout.shipping_address = address_usa
+    checkout.billing_address = address_usa
+    shipping_method = shipping_zone.shipping_methods.get()
+    ShippingMethodChannelListing.objects.filter(shipping_method=shipping_method).update(
+        price_amount=0
+    )
+    checkout.shipping_method = shipping_method
+
+    metadata = {
+        get_metadata_key("UnitQuantity"): metadata["UnitQuantity"],
+        get_metadata_key("CustomNumeric1"): metadata["CustomNumeric1"],
+        get_metadata_key("CustomNumeric2"): metadata["CustomNumeric2"],
+        get_metadata_key("CustomNumeric3"): metadata["CustomNumeric3"],
+    }
+
+    product.product_type = cigar_product_type
+    product.save()
+
+    variant = product.variants.get()
+    variant.sku = variant_sku
+    variant.private_metadata = metadata
+    variant.save()
+    listing = variant.channel_listings.first()
+    listing.price_amount = Decimal(price)
+    listing.save()
+    add_variant_to_checkout(checkout, variant, 1)
+    checkout.save()
+
+    site_settings.company_address = address_usa
+    site_settings.include_taxes_in_prices = taxes_in_prices
+    site_settings.save()
+
+    lines = fetch_checkout_lines(checkout)
+    total = manager.calculate_checkout_total(checkout, lines, address_usa_tx, None)
+    total = quantize_price(total, total.currency)
+    assert total == TaxedMoney(
+        net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
+    )
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.excise.plugin.AvataxExcisePlugin"])
+def test_preprocess_order_creation(
+    checkout_with_item,
+    address,
+    address_usa_tx,
+    site_settings,
+    shipping_zone,
+    discount_info,
+    plugin_configuration,
+):
+    plugin_configuration()
+    manager = get_plugins_manager()
+    site_settings.company_address = address
+    site_settings.save()
+
+    checkout_with_item.shipping_address = address_usa_tx
+    checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
+    checkout_with_item.save()
+    discounts = [discount_info]
+    manager.preprocess_order_creation(checkout_with_item, discounts)
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.excise.plugin.AvataxExcisePlugin"])
+def test_preprocess_order_creation_wrong_data(
+    checkout_with_item,
+    address,
+    shipping_zone,
+    plugin_configuration,
+):
+    plugin_configuration("wrong", "wrong")
+
+    manager = get_plugins_manager()
+
+    checkout_with_item.shipping_address = address
+    checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
+    checkout_with_item.save()
+    discounts = []
+    with pytest.raises(TaxError):
+        manager.preprocess_order_creation(checkout_with_item, discounts)

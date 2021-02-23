@@ -1,0 +1,204 @@
+interactions:
+- request:
+    body: '{"EffectiveDate": "02/16/21", "InvoiceDate": "02/16/21", "TitleTransferCode":
+      "DEST", "TransactionType": "RETAIL", "TransactionLines": [{"InvoiceLine": 1,
+      "ProductCode": "123", "UnitPrice": "10.000", "UnitOfMeasure": "PAC", "BilledUnits":
+      "3", "LineAmount": "30.00", "AlternateUnitPrice": "1.000", "TaxIncluded": false,
+      "UnitQuantity": null, "UnitQuantityUnitOfMeasure": "EA", "DestinationCountryCode":
+      "USA", "DestinationJurisdiction": "TX", "DestinationAddress1": "1100 Congress
+      Ave", "DestinationAddress2": "", "DestinationCounty": "", "DestinationCity":
+      "Austin", "DestinationPostalCode": "78701", "SaleCountryCode": "USA", "SaleAddress1":
+      "1100 Congress Ave", "SaleAddress2": "", "SaleJurisdiction": "TX", "SaleCounty":
+      "", "SaleCity": "Austin", "SalePostalCode": "78701", "OriginCountryCode": "USA",
+      "OriginJurisdiction": "TX", "OriginCounty": "", "OriginCity": "Austin", "OriginPostalCode":
+      "78701", "OriginAddress1": "1100 Congress Ave", "OriginAddress2": "", "CustomString1":
+      null, "CustomString2": null, "CustomString3": null, "CustomNumeric1": null,
+      "CustomNumeric2": null, "CustomNumeric3": null}, {"InvoiceLine": 2, "ProductCode":
+      "202127000", "UnitPrice": "1.990", "UnitOfMeasure": "PAC", "BilledUnits": "1",
+      "LineAmount": "1.99", "AlternateUnitPrice": "1.000", "TaxIncluded": false, "UnitQuantity":
+      1, "UnitQuantityUnitOfMeasure": "EA", "DestinationCountryCode": "USA", "DestinationJurisdiction":
+      "TX", "DestinationAddress1": "1100 Congress Ave", "DestinationAddress2": "",
+      "DestinationCounty": "", "DestinationCity": "Austin", "DestinationPostalCode":
+      "78701", "SaleCountryCode": "USA", "SaleAddress1": "1100 Congress Ave", "SaleAddress2":
+      "", "SaleJurisdiction": "TX", "SaleCounty": "", "SaleCity": "Austin", "SalePostalCode":
+      "78701", "OriginCountryCode": "USA", "OriginJurisdiction": "TX", "OriginCounty":
+      "", "OriginCity": "Austin", "OriginPostalCode": "78701", "OriginAddress1": "1100
+      Congress Ave", "OriginAddress2": "", "CustomString1": null, "CustomString2":
+      null, "CustomString3": null, "CustomNumeric1": null, "CustomNumeric2": null,
+      "CustomNumeric3": null}]}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Basic Og==
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '2085'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.25.1
+      x-company-id:
+      - '1337'
+    method: POST
+    uri: https://excisesbx.avalara.com/api/v1/AvaTaxExcise/transactions/create
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAEAO2YXW/aMBSG7yv1P1jRLjYJUD4gwC4mpWlWpaKBEVN1mnZhHLeLlCbMsauiqv+9
+        dpKC+VS1bmo6wQWIvOccxz7Pa0wejo8A0CY5oZCi1I+0z0CbGlFXNzu42TavxRvR9Wbf7k+bNuno
+        JrZs1GtbWqNIXCRZvb5hmrZeXg4ZYjyXtUKOMcnzKnxMGKepm0VEaFUszBhKILp3bjOeMnG93ep3
+        l9VzhFmcpSKAyII/pADAQ/mxEVMWKQJ/NhYxIfnNSYpJcadGY1vuIE7lPZlL0U/vshiTTcGVQ9B5
+        NQttEjraUjznNM6juKgpVXiliIMMo2Q9IhgGnhIzolnEMXMRIzcZnYuIXr+lK/eM7uP0ZkDuSFKs
+        L3Sgmi5kOJ8VNwaHJ47rDhVxLIouVOdqTQn5lFWi6585Y+h7Y1OJcVGCeYKKlRZxflrA4q4OLgvJ
+        3rZ0w9DL14r+jaOUxUzOy1ib1gIAmbyiePfkdibHrcYMlDFPyTWhlERbpBAlJBfpJygnanGlIaLB
+        aU4CfjslVKYr2dITJa8kukQJJ2t6KFIRjbMCKtMS07WNTVUMf0YzPiuiOna7uxnyTKd00WpHTkmO
+        aTxbsgSksQhw4xtEgSgNPnoI//oEmuALsMBgmoMZoUAufAN8FWALgMAgzhkYUTFTEfRBTN+yGiDI
+        gGh3zmQzUCK+piybIowztd9crGuK5yXkp+rSpDEbXl8QlHNaLIunWkByJD1ddWSiSsW+8Owcx4X+
+        pQrvMxxV5olWKo+NV5ve3Gd6Y5fpjX9m+nZvr+X1/Y7f7vdwh9PPdvt8be/Z7vDRLofbZme3u9en
+        sDCg0er1XuzurRa2XuzhHSaSeyYQG6DwDfSunPBF0K9h7dYBa6tmWOsCCP2PyXZ9WBOyjX2/WzvJ
+        1luW/rZkixX8XoHtTELoB++W7HbNyLYFED2j/Ypd+/zA9ut27ZHn+s5gBW9wAR0Ax04Qrmwd7wv1
+        Ts3+kBzOJm9J+X9zNrFrhvXhbHI4m/wdsrs1I/twNnlrtmt6NpEfJcQqqB6lGVUAV550LZ9zHR89
+        PgGS2FGiGxYAAA==
+    headers:
+      Cache-Control:
+      - no-store, no-cache
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Length:
+      - '808'
+      Content-Security-Policy:
+      - 'default-src ''self''; font-src ''self'' use.typekit.net fonts.gstatic.com
+        data: ; img-src ''self'' p.typekit.net *.walkme.com *.cloudfront.net data:
+        ; script-src ''self'' ''unsafe-inline'' ''unsafe-eval'' use.typekit.net *.walkme.com
+        *.cloudfront.net; style-src  ''self'' ''unsafe-inline'' use.typekit.net; connect-src
+        ''self'' performance.typekit.net ec.walkme.com; frame-src ''self'' s3.amazonaws.com
+        *.s3.amazonaws.com;'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Tue, 16 Feb 2021 23:50:35 GMT
+      Feature-Policy:
+      - geolocation 'none'; midi 'none'; notifications 'none'; push 'none'; sync-xhr
+        'self'; microphone 'none'; camera 'none'; magnetometer 'none'; gyroscope 'none';
+        speaker 'none'; vibrate 'none'; fullscreen 'none'; payment 'none';
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - ''
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - sameorigin
+      X-XSS-Protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"EffectiveDate": "02/16/21", "InvoiceDate": "02/16/21", "TitleTransferCode":
+      "DEST", "TransactionType": "RETAIL", "TransactionLines": [{"InvoiceLine": 1,
+      "ProductCode": "123", "UnitPrice": "10.000", "UnitOfMeasure": "PAC", "BilledUnits":
+      "3", "LineAmount": "30.00", "AlternateUnitPrice": "1.000", "TaxIncluded": false,
+      "UnitQuantity": null, "UnitQuantityUnitOfMeasure": "EA", "DestinationCountryCode":
+      "USA", "DestinationJurisdiction": "TX", "DestinationAddress1": "1100 Congress
+      Ave", "DestinationAddress2": "", "DestinationCounty": "", "DestinationCity":
+      "Austin", "DestinationPostalCode": "78701", "SaleCountryCode": "USA", "SaleAddress1":
+      "1100 Congress Ave", "SaleAddress2": "", "SaleJurisdiction": "TX", "SaleCounty":
+      "", "SaleCity": "Austin", "SalePostalCode": "78701", "OriginCountryCode": "USA",
+      "OriginJurisdiction": "TX", "OriginCounty": "", "OriginCity": "Austin", "OriginPostalCode":
+      "78701", "OriginAddress1": "1100 Congress Ave", "OriginAddress2": "", "CustomString1":
+      null, "CustomString2": null, "CustomString3": null, "CustomNumeric1": null,
+      "CustomNumeric2": null, "CustomNumeric3": null}, {"InvoiceLine": 2, "ProductCode":
+      "202127000", "UnitPrice": "1.990", "UnitOfMeasure": "PAC", "BilledUnits": "1",
+      "LineAmount": "1.99", "AlternateUnitPrice": "1.000", "TaxIncluded": false, "UnitQuantity":
+      1, "UnitQuantityUnitOfMeasure": "EA", "DestinationCountryCode": "USA", "DestinationJurisdiction":
+      "TX", "DestinationAddress1": "1100 Congress Ave", "DestinationAddress2": "",
+      "DestinationCounty": "", "DestinationCity": "Austin", "DestinationPostalCode":
+      "78701", "SaleCountryCode": "USA", "SaleAddress1": "1100 Congress Ave", "SaleAddress2":
+      "", "SaleJurisdiction": "TX", "SaleCounty": "", "SaleCity": "Austin", "SalePostalCode":
+      "78701", "OriginCountryCode": "USA", "OriginJurisdiction": "TX", "OriginCounty":
+      "", "OriginCity": "Austin", "OriginPostalCode": "78701", "OriginAddress1": "1100
+      Congress Ave", "OriginAddress2": "", "CustomString1": null, "CustomString2":
+      null, "CustomString3": null, "CustomNumeric1": null, "CustomNumeric2": null,
+      "CustomNumeric3": null}]}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Basic Og==
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '2085'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.25.1
+      x-company-id:
+      - '1337'
+    method: POST
+    uri: https://excisesbx.avalara.com/api/v1/AvaTaxExcise/transactions/create
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAEAO2YXWvbMBSG7wv9DyLsYoMk+CMfzi4GrusVl9TJYqd0jF0oymlncO1MlkpD6X+v
+        ZLuJ8klZN+qO5MbE7zlHls7zKoofjo8Qqo0zoCHFiTetfUa1LgHcNgEaVrejN1oTAo2epemNqdHu
+        ta2WeU3IpFbPExdJptXTDaOjF7cDhhnPZK2AEwJZVoaPgHGaOOkUhKaVJVKG4xDf27cpT5i432r2
+        usvqGSYsShMRALLgDykg9FBcNmKKInngz/oiJoDfHBIC+ZPq9W25/SiRz2QsRS+5SyMCm4Ijh6Dz
+        cha1cWDXluI5p1E2jfKaUg2vFLGfEhyvR/gD31VihjSdcsIczOAmpXMRYfWamvLM+D5KbvpwB3G+
+        vqEdqulCDuez/MHCwYntOANFHImiC9W+WlMCPmGl6Hhn9ij03JGhxDg4JjzG+UqLOC/JYXFWB5eF
+        ZG+bmq5rxWdF/8ZxwiIm56WvTWsBgExeUdx7uJ3JccsxfWXMU7gGSmG6RQpwDJlIP8EZqMWVhogG
+        Jxn4/HYCVKYr2dITBa8wvcQxhzU9EKmYRmkOlWGK6Xb0TVUMf0ZTPsuj2p1WdzPkmU7potWOnEJG
+        aDRbsoSksQA50Q2mSJRGH11Mfn1CDfQFmag/ydAMKJILX0dfBdgCINSPMoaGVMxUBH0Q0zfNOvJT
+        JNqdMdkMHIuvCUsnmJBU7TcX65qQeQH5qbo0ScQG1xeAM07zZXFVC0iOpKfLjoxVKd8Xnp1jO6F3
+        qcL7DEeZeVIrlMf6q01v7DO9vsv0+j8zfcvaa3ltv+O3+z3Y4fSz3T5f23u2O3y4y+Edo73b3etT
+        WBhQb1rWi9291cLmiz28w0Ryz0RiAxS+Cd0rO3gR9GtYO1XA2qwY1poAQvtjsh0vrAjZ+r7frZ1k
+        a01Te1uyxQp+L8G2x0Ho+e+W7FbFyO4IICy99Ypd+/zA9ut27aHreHZ/BW90EdooHNl+sLJ1vC/U
+        2xX7Q3I4m7wl5f/N2aRTMawPZ5PD2eTvkN2tGNmHs8lbs13Rs4m8FBCroLqUplQBXHnTtXzPdXz0
+        +AQclDQxGxYAAA==
+    headers:
+      Cache-Control:
+      - no-store, no-cache
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Length:
+      - '808'
+      Content-Security-Policy:
+      - 'default-src ''self''; font-src ''self'' use.typekit.net fonts.gstatic.com
+        data: ; img-src ''self'' p.typekit.net *.walkme.com *.cloudfront.net data:
+        ; script-src ''self'' ''unsafe-inline'' ''unsafe-eval'' use.typekit.net *.walkme.com
+        *.cloudfront.net; style-src  ''self'' ''unsafe-inline'' use.typekit.net; connect-src
+        ''self'' performance.typekit.net ec.walkme.com; frame-src ''self'' s3.amazonaws.com
+        *.s3.amazonaws.com;'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Tue, 16 Feb 2021 23:50:36 GMT
+      Feature-Policy:
+      - geolocation 'none'; midi 'none'; notifications 'none'; push 'none'; sync-xhr
+        'self'; microphone 'none'; camera 'none'; magnetometer 'none'; gyroscope 'none';
+        speaker 'none'; vibrate 'none'; fullscreen 'none'; payment 'none';
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - ''
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - sameorigin
+      X-XSS-Protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+version: 1
