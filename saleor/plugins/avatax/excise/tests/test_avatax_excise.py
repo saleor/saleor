@@ -1,6 +1,8 @@
 from decimal import Decimal
+from unittest.mock import patch
 
 import pytest
+from django.core.exceptions import ValidationError
 from django.core.management.color import no_style
 from django.db import connection
 from django.test import override_settings
@@ -93,6 +95,55 @@ def reset_sequences():
     with connection.cursor() as cursor:
         for sql in sequence_sql:
             cursor.execute(sql)
+
+
+@patch("saleor.plugins.avatax.excise.plugin.api_get_request")
+def test_save_plugin_configuration(api_get_request_mock, settings):
+    settings.PLUGINS = ["saleor.plugins.avatax.excise.plugin.AvataxExcisePlugin"]
+    api_get_request_mock.return_value = {"authenticated": True}
+    manager = get_plugins_manager()
+    manager.save_plugin_configuration(
+        AvataxExcisePlugin.PLUGIN_ID,
+        {
+            "active": True,
+            "configuration": [
+                {"name": "Username or account", "value": "test"},
+                {"name": "Password or license", "value": "test"},
+            ],
+        },
+    )
+    manager.save_plugin_configuration(AvataxExcisePlugin.PLUGIN_ID, {"active": True})
+    plugin_configuration = PluginConfiguration.objects.get(
+        identifier=AvataxExcisePlugin.PLUGIN_ID
+    )
+    assert plugin_configuration.active
+
+
+@patch("saleor.plugins.avatax.excise.plugin.api_get_request")
+def test_save_plugin_configuration_authentication_failed(
+    api_get_request_mock, settings
+):
+    settings.PLUGINS = ["saleor.plugins.avatax.excise.plugin.AvataxExcisePlugin"]
+    api_get_request_mock.return_value = {"authenticated": False}
+    manager = get_plugins_manager()
+
+    with pytest.raises(ValidationError) as e:
+        manager.save_plugin_configuration(
+            AvataxExcisePlugin.PLUGIN_ID,
+            {
+                "active": True,
+                "configuration": [
+                    {"name": "Username or account", "value": "test"},
+                    {"name": "Password or license", "value": "test"},
+                ],
+            },
+        )
+    assert e._excinfo[1].args[0] == "Authentication failed. Please check provided data."
+    # manager.save_plugin_configuration(AvataxExcisePlugin.PLUGIN_ID, {"active": True})
+    plugin_configuration = PluginConfiguration.objects.get(
+        identifier=AvataxExcisePlugin.PLUGIN_ID
+    )
+    assert not plugin_configuration.active
 
 
 @pytest.mark.vcr
