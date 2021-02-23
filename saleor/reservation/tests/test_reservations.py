@@ -2,7 +2,6 @@ from ..stock import (
     get_reserved_quantity,
     get_reserved_quantity_bulk,
     get_user_reserved_quantity_bulk,
-    remove_expired_reservations,
     remove_user_reservations,
 )
 

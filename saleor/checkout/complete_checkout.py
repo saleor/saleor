@@ -581,7 +581,7 @@ def complete_checkout(
             # remove stock reservations if user is authenticated
             if user.is_authenticated:
                 remove_user_reservations(
-                    user, checkout.get_country(), [l.variant for l in lines]
+                    user, checkout.get_country(), [line.variant for line in lines]
                 )
         except InsufficientStock as e:
             release_voucher_usage(order_data)

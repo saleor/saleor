@@ -9,8 +9,8 @@ from django.utils import timezone
 from graphql.error import GraphQLError
 
 from ...core.exceptions import InsufficientStock
-from ...reservation.error_codes import ReservationErrorCode
 from ...reservation import models
+from ...reservation.error_codes import ReservationErrorCode
 from ...reservation.stock import (
     get_user_reserved_quantity_bulk,
     remove_user_reservations,

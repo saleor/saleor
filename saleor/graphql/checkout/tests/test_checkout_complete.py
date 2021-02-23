@@ -1153,9 +1153,6 @@ def test_checkout_complete_removes_reservations(
     checkout_line.quantity = 3
     checkout_line.save()
 
-    checkout_line_quantity = checkout_line.quantity
-    checkout_line_variant = checkout_line.variant
-
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     total = calculations.calculate_checkout_total_with_gift_cards(
@@ -1224,9 +1221,6 @@ def test_checkout_complete_ships_other_users_reservations(
     checkout_line.quantity = 1
     checkout_line.save()
 
-    checkout_line_quantity = checkout_line.quantity
-    checkout_line_variant = checkout_line.variant
-
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     total = calculations.calculate_checkout_total_with_gift_cards(
@@ -1294,9 +1288,6 @@ def test_checkout_complete_fails_if_theres_not_enough_non_reserved_stock(
     checkout_line.variant = variant_with_reserved_stock
     checkout_line.quantity = 2
     checkout_line.save()
-
-    checkout_line_quantity = checkout_line.quantity
-    checkout_line_variant = checkout_line.variant
 
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)

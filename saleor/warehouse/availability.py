@@ -5,10 +5,7 @@ from django.db.models import Sum
 from django.db.models.functions import Coalesce
 
 from ..core.exceptions import InsufficientStock, InsufficientStockData
-from ..reservation.stock import (
-    get_reserved_quantity,
-    get_reserved_quantity_bulk,
-)
+from ..reservation.stock import get_reserved_quantity, get_reserved_quantity_bulk
 from .models import Stock, StockQuerySet
 
 if TYPE_CHECKING:
