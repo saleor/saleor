@@ -13,8 +13,6 @@ from .mutations.shippings import (
     ShippingPriceExcludeProducts,
     ShippingPriceRemoveProductFromExclude,
     ShippingPriceUpdate,
-    ShippingZipCodeRulesCreate,
-    ShippingZipCodeRulesDelete,
     ShippingZoneCreate,
     ShippingZoneDelete,
     ShippingZoneUpdate,
@@ -54,8 +52,6 @@ class ShippingQueries(graphene.ObjectType):
 
 class ShippingMutations(graphene.ObjectType):
     shipping_method_channel_listing_update = ShippingMethodChannelListingUpdate.Field()
-    shipping_method_zip_code_rules_create = ShippingZipCodeRulesCreate.Field()
-    shipping_method_zip_code_rules_delete = ShippingZipCodeRulesDelete.Field()
     shipping_price_create = ShippingPriceCreate.Field()
     shipping_price_delete = ShippingPriceDelete.Field()
     shipping_price_bulk_delete = ShippingPriceBulkDelete.Field()
