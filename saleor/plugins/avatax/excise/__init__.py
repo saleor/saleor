@@ -450,7 +450,29 @@ def get_checkout_tax_data(
     return get_cached_response_or_fetch(data, str(checkout.token), config)
 
 
-def get_order_tax_data(order: "Order", config: AvataxConfiguration) -> Dict[str, Any]:
+def get_order_tax_data(
+    order: "Order", config: AvataxConfiguration, force_refresh=False
+) -> Dict[str, Any]:
     data = generate_request_data_from_order(order)
-    return _fetch_new_taxes_data(data, str(order.token), config)
-    # TODO - should this be cached? i think no
+
+    response = get_cached_response_or_fetch(
+        data, "order_%s" % order.token, config, force_refresh
+    )
+    if response.get("Status") != "Success":
+        transaction_errors = response.get("TransactionErrors")
+        customer_msg = ""
+        if isinstance(transaction_errors, list):
+            for error in transaction_errors:
+                error_message = error.get("ErrorMessage")
+                if error_message:
+                    customer_msg += error_message
+                error_code = response.get("ErrorCode", "")
+                logger.warning(
+                    "Unable to calculate taxes for order %s, error_code: %s, "
+                    "error_msg: %s",
+                    order.token,
+                    error_code,
+                    error_message,
+                )
+        raise TaxError(customer_msg)
+    return response
