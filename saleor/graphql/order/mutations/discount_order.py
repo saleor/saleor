@@ -114,13 +114,12 @@ class OrderDiscountAdd(OrderDiscountCommon):
     @classmethod
     def validate(cls, info, order, input):
         cls.validate_order(info, order)
-        # FIXME use sitesetings to check if the price should be calcualted for gross or
-        # net
         cls.validate_order_discount_input(info, order.undiscounted_total.gross, input)
 
     @classmethod
     @transaction.atomic
     def perform_mutation(cls, root, info, **data):
+
         requester = get_user_or_app_from_context(info.context)
         order = cls.get_node_or_error(info, data.get("order_id"), only_type=Order)
         input = data.get("input", {})
@@ -129,6 +128,7 @@ class OrderDiscountAdd(OrderDiscountCommon):
         reason = input.get("reason")
         value_type = input.get("value_type")
         value = input.get("value")
+
         order_discount = create_order_discount_for_order(
             order, reason, value_type, value
         )
@@ -138,7 +138,6 @@ class OrderDiscountAdd(OrderDiscountCommon):
             user=requester,
             order_discount=order_discount,
         )
-        # FIXME call tax plugins here
         return OrderDiscountAdd(order=order)
 
 
@@ -165,8 +164,7 @@ class OrderDiscountUpdate(OrderDiscountCommon):
         cls.validate_order(info, order)
         input["value"] = input.get("value") or order_discount.value
         input["value_type"] = input.get("value_type") or order_discount.value_type
-        # FIXME use sitesetings to check if the price should be calcualted for gross or
-        # net
+
         cls.validate_order_discount_input(info, order.undiscounted_total.gross, input)
 
     @classmethod
@@ -240,7 +238,6 @@ class OrderDiscountDelete(OrderDiscountCommon):
         order.refresh_from_db()
         recalculate_order(order)
         return OrderDiscountDelete(order=order)
-        # FIXME call order event here. Update webhook payload
 
 
 class OrderLineDiscountUpdate(OrderDiscountCommon):
@@ -272,8 +269,6 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
         input["value"] = input.get("value") or order_line.unit_discount_value
         input["value_type"] = input.get("value_type") or order_line.unit_discount_type
 
-        # FIXME use sitesetings to check if the price should be calcualted for gross or
-        # net
         cls.validate_order_discount_input(
             info, order_line.undiscounted_unit_price.gross, input
         )
@@ -281,6 +276,7 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
     @classmethod
     @transaction.atomic
     def perform_mutation(cls, root, info, **data):
+
         requester = get_user_or_app_from_context(info.context)
         order_line = cls.get_node_or_error(
             info, data.get("order_line_id"), only_type=OrderLine
@@ -293,6 +289,8 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
         value = input.get("value")
 
         order_line_before_update = copy.deepcopy(order_line)
+        tax_included = info.context.site.settings.include_taxes_in_prices
+
         update_discount_for_order_line(
             order_line,
             order=order,
@@ -300,6 +298,7 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
             value_type=value_type,
             value=value,
             manager=info.context.plugins,
+            tax_included=tax_included,
         )
         if (
             order_line_before_update.unit_discount_value != value
@@ -342,6 +341,7 @@ class OrderLineDiscountRemove(OrderDiscountCommon):
     @classmethod
     @transaction.atomic
     def perform_mutation(cls, root, info, **data):
+        tax_included = info.context.site.settings.include_taxes_in_prices
         requester = get_user_or_app_from_context(info.context)
         order_line = cls.get_node_or_error(
             info, data.get("order_line_id"), only_type=OrderLine
@@ -349,7 +349,9 @@ class OrderLineDiscountRemove(OrderDiscountCommon):
         order = order_line.order
         cls.validate(info, order)
 
-        remove_discount_from_order_line(order_line, order, manager=info.context.plugins)
+        remove_discount_from_order_line(
+            order_line, order, manager=info.context.plugins, tax_included=tax_included
+        )
 
         events.order_line_discount_removed_event(
             order=order,

@@ -1,10 +1,12 @@
 from decimal import Decimal
 from functools import partial
+from unittest.mock import patch
 
 import graphene
 import pytest
-from prices import Money, fixed_discount, percentage_discount
+from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 
+from ....core.prices import quantize_price
 from ....discount import DiscountValueType
 from ....order import OrderEvents, OrderStatus
 from ....order.error_codes import OrderErrorCode
@@ -461,6 +463,9 @@ def test_update_order_line_discount(
     draft_order_with_fixed_discount_order, staff_api_client, permission_manage_orders
 ):
     line_to_discount = draft_order_with_fixed_discount_order.lines.first()
+    unit_price = Money(Decimal(7.3), currency="USD")
+    line_to_discount.unit_price = TaxedMoney(unit_price, unit_price)
+    line_to_discount.save()
 
     line_price_before_discount = line_to_discount.unit_price
 
@@ -490,7 +495,7 @@ def test_update_order_line_discount(
     )
     expected_line_price = discount(line_price_before_discount)
 
-    assert line_to_discount.unit_price == expected_line_price
+    assert line_to_discount.unit_price == quantize_price(expected_line_price, "USD")
     unit_discount = line_to_discount.unit_discount
     assert unit_discount == (line_price_before_discount - expected_line_price).gross
 
@@ -513,6 +518,8 @@ def test_update_order_line_discount_line_with_discount(
     draft_order_with_fixed_discount_order, staff_api_client, permission_manage_orders
 ):
     line_to_discount = draft_order_with_fixed_discount_order.lines.first()
+    unit_price = quantize_price(Money(Decimal(7.3), currency="USD"), currency="USD")
+    line_to_discount.unit_price = TaxedMoney(unit_price, unit_price)
 
     line_to_discount.unit_discount_amount = Decimal("2.500")
     line_to_discount.unit_discount_type = DiscountValueType.FIXED
@@ -623,17 +630,23 @@ mutation OrderLineDiscountRemove($orderLineId: ID!){
 """
 
 
+@patch("saleor.plugins.manager.PluginsManager.calculate_order_line_unit")
 def test_delete_discount_from_order_line(
-    draft_order_with_fixed_discount_order, staff_api_client, permission_manage_orders
+    mocked_calculate_order_line_unit,
+    draft_order_with_fixed_discount_order,
+    staff_api_client,
+    permission_manage_orders,
 ):
     line = draft_order_with_fixed_discount_order.lines.first()
+
+    line_undiscounted_price = line.undiscounted_unit_price
+
+    mocked_calculate_order_line_unit.return_value = line_undiscounted_price
 
     line.unit_discount_amount = Decimal("2.5")
     line.unit_discount_type = DiscountValueType.FIXED
     line.unit_discount_value = Decimal("2.5")
     line.save()
-
-    line_undiscounted_price = line.undiscounted_unit_price
 
     variables = {
         "orderLineId": graphene.Node.to_global_id("OrderLine", line.pk),
