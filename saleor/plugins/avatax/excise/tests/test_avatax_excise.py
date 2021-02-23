@@ -412,7 +412,7 @@ def test_preprocess_order_creation_wrong_data(
     shipping_zone,
     plugin_configuration,
 ):
-    plugin_configuration("wrong", "wrong")
+    plugin_configuration()
 
     manager = get_plugins_manager()
 
@@ -420,5 +420,7 @@ def test_preprocess_order_creation_wrong_data(
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save()
     discounts = []
-    with pytest.raises(TaxError):
+    with pytest.raises(TaxError) as e:
         manager.preprocess_order_creation(checkout_with_item, discounts)
+    # Fails due to no ATE scenario these from/to addresses
+    assert "No Scenario record found" in e._excinfo[1].args[0]
