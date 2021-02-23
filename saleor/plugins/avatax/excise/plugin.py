@@ -247,14 +247,15 @@ class AvataxExcisePlugin(AvataxPlugin):
 
         transaction_id = response.get("UserTranId")
 
-        # call the commit api with the UserTranId
-        commit_url = urljoin(
-            get_api_url(self.config.use_sandbox),
-            f"AvaTaxExcise/transactions/{transaction_id}/commit",
-        )
-        commit_response = api_post_request(commit_url, None, self.config)
+        if self.config.autocommit:
+            # call the commit api with the UserTranId
+            commit_url = urljoin(
+                get_api_url(self.config.use_sandbox),
+                f"AvaTaxExcise/transactions/{transaction_id}/commit",
+            )
+            commit_response = api_post_request(commit_url, None, self.config)
 
-        # TODO do something if commit fails
+            # TODO do something if commit fails
 
         return previous_value
 
