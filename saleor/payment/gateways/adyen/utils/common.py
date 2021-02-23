@@ -148,10 +148,12 @@ def request_data_for_payment(
     return request_data
 
 
-def get_shipping_data(manager, checkout, lines, address, discounts):
+def get_shipping_data(manager, checkout_info, lines, discounts):
+    address = checkout_info.shipping_address or checkout_info.billing_address
+    currency = checkout_info.checkout.currency
     shipping_total = checkout_shipping_price(
         manager=manager,
-        checkout=checkout,
+        checkout=checkout_info.checkout,
         lines=lines,
         address=address,
         discounts=discounts,
@@ -164,12 +166,12 @@ def get_shipping_data(manager, checkout, lines, address, discounts):
     )
     return {
         "quantity": 1,
-        "amountExcludingTax": to_adyen_price(total_net, checkout.currency),
+        "amountExcludingTax": to_adyen_price(total_net, currency),
         "taxPercentage": tax_percentage_in_adyen_format,
-        "description": f"Shipping - {checkout.shipping_method.name}",
-        "id": f"Shipping:{checkout.shipping_method.id}",
-        "taxAmount": to_adyen_price(tax_amount, checkout.currency),
-        "amountIncludingTax": to_adyen_price(total_gross, checkout.currency),
+        "description": f"Shipping - {checkout_info.shipping_method.name}",
+        "id": f"Shipping:{checkout_info.shipping_method.id}",
+        "taxAmount": to_adyen_price(tax_amount, currency),
+        "amountIncludingTax": to_adyen_price(total_gross, currency),
     }
 
 
@@ -189,9 +191,6 @@ def append_klarna_data(payment_information: "PaymentData", payment_data: dict):
     lines = fetch_checkout_lines(checkout)
     discounts = fetch_active_discounts()
     checkout_info = fetch_checkout_info(checkout, lines, discounts)
-    address = (
-        checkout_info.shipping_address or checkout_info.billing_address
-    )  # FIXME: check which address we need here
     currency = payment_information.currency
     country_code = checkout.get_country()
 
@@ -227,9 +226,7 @@ def append_klarna_data(payment_information: "PaymentData", payment_data: dict):
         line_items.append(line_data)
 
     if checkout_info.shipping_method and is_shipping_required(lines):
-        line_items.append(
-            get_shipping_data(manager, checkout, lines, address, discounts)
-        )
+        line_items.append(get_shipping_data(manager, checkout_info, lines, discounts))
 
     payment_data["lineItems"] = line_items
     return payment_data
