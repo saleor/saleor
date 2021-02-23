@@ -64,7 +64,7 @@ def check_stock_quantity_bulk(
         .annotate_available_quantity()
     )
 
-    variant_stocks: Dict[List[Stock]] = defaultdict(list)
+    variant_stocks: Dict[int, List[Stock]] = defaultdict(list)
     for stock in all_variants_stocks:
         variant_stocks[stock.product_variant_id].append(stock)
 

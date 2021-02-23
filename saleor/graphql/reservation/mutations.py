@@ -86,7 +86,7 @@ class ReservationCreate(BaseMutation):
                     "quantity": ValidationError(
                         "Cannot reserve more than %d times this item."
                         "" % RESERVATION_SIZE_LIMIT,
-                        code=ReservationErrorCode.QUANTITY_GREATER_THAN_LIMIT,
+                        code=ReservationErrorCode.QUANTITY_GREATER_THAN_LIMIT.value,
                     )
                 }
             )
@@ -123,7 +123,7 @@ class ReservationCreate(BaseMutation):
                 {
                     "country_code": ValidationError(
                         f"Cannot reserve stock for {country_code} country code.",
-                        code=ReservationErrorCode.INVALID_COUNTRY_CODE,
+                        code=ReservationErrorCode.INVALID_COUNTRY_CODE.value,
                     )
                 }
             )
@@ -274,7 +274,7 @@ class ReservationsRemove(BaseMutation):
 
         remove_user_reservations(info.context.user, country_code, variants)
 
-        removed_reservations = []
+        removed_reservations: List[RemovedReservationDict] = []
         for variant in variants:
             removed_reservations.append(
                 {
