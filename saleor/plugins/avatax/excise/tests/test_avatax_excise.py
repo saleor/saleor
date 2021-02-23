@@ -1,5 +1,6 @@
 from decimal import Decimal
-from unittest.mock import patch
+from json import JSONDecodeError
+from unittest.mock import Mock, patch
 
 import pytest
 from django.core.exceptions import ValidationError
@@ -7,6 +8,7 @@ from django.core.management.color import no_style
 from django.db import connection
 from django.test import override_settings
 from prices import Money, TaxedMoney
+from requests import RequestException
 
 from saleor.shipping.models import ShippingMethodChannelListing
 
@@ -20,7 +22,8 @@ from .....product.models import ProductType, ProductVariant
 from .....warehouse.models import Warehouse
 from ....manager import get_plugins_manager
 from ....models import PluginConfiguration
-from .. import get_metadata_key
+from ... import AvataxConfiguration
+from .. import api_post_request, get_metadata_key
 from ..plugin import AvataxExcisePlugin
 
 
@@ -424,3 +427,37 @@ def test_preprocess_order_creation_wrong_data(
         manager.preprocess_order_creation(checkout_with_item, discounts)
     # Fails due to no ATE scenario these from/to addresses
     assert "No Scenario record found" in e._excinfo[1].args[0]
+
+
+def test_api_post_request_handles_request_errors(product, monkeypatch):
+    mocked_response = Mock(side_effect=RequestException())
+    monkeypatch.setattr("saleor.plugins.avatax.excise.requests.post", mocked_response)
+
+    config = AvataxConfiguration(
+        username_or_account="test",
+        password_or_license="test",
+        use_sandbox=False,
+    )
+    url = "https://www.avatax.api.com/some-get-path"
+
+    response = api_post_request(url, {}, config)
+
+    assert mocked_response.called
+    assert response == {}
+
+
+def test_api_post_request_handles_json_errors(product, monkeypatch):
+    mocked_response = Mock(side_effect=JSONDecodeError("", "", 0))
+    monkeypatch.setattr("saleor.plugins.avatax.excise.requests.post", mocked_response)
+
+    config = AvataxConfiguration(
+        username_or_account="test",
+        password_or_license="test",
+        use_sandbox=False,
+    )
+    url = "https://www.avatax.api.com/some-get-path"
+
+    response = api_post_request(url, {}, config)
+
+    assert mocked_response.called
+    assert response == {}

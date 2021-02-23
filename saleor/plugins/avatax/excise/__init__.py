@@ -47,8 +47,6 @@ class EnhancedJSONEncoder(json.JSONEncoder):
             return dataclasses.asdict(o)
         if isinstance(o, Decimal):
             return str(o)
-        if isinstance(o, UUID):
-            return o.hex
         return super().default(o)
 
 
