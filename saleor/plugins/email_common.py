@@ -55,37 +55,27 @@ DEFAULT_EMAIL_CONFIGURATION = [
     {"name": "use_tls", "value": False},
     {"name": "use_ssl", "value": False},
 ]
+
+
 DEFAULT_EMAIL_CONFIG_STRUCTURE = {
     "host": {
         "type": ConfigurationTypeField.STRING,
-        "help_text": (
-            "The host to use for sending email. Leave it blank if you want to use "
-            "system environment - EMAIL_HOST."
-        ),
+        "help_text": ("The host to use for sending email."),
         "label": "SMTP host",
     },
     "port": {
         "type": ConfigurationTypeField.STRING,
-        "help_text": (
-            "Port to use for the SMTP server. Leave it blank if you want to use "
-            "system environment - EMAIL_PORT."
-        ),
+        "help_text": ("Port to use for the SMTP server."),
         "label": "SMTP port",
     },
     "username": {
         "type": ConfigurationTypeField.STRING,
-        "help_text": (
-            "Username to use for the SMTP server. Leave it blank if you want to "
-            "use system environment - EMAIL_HOST_USER."
-        ),
+        "help_text": ("Username to use for the SMTP server."),
         "label": "SMTP user",
     },
     "password": {
         "type": ConfigurationTypeField.PASSWORD,
-        "help_text": (
-            "Password to use for the SMTP server. Leave it blank if you want to "
-            "use system environment - EMAIL_HOST_PASSWORD."
-        ),
+        "help_text": ("Password to use for the SMTP server."),
         "label": "Password",
     },
     "sender_name": {
@@ -104,8 +94,7 @@ DEFAULT_EMAIL_CONFIG_STRUCTURE = {
             "Whether to use a TLS (secure) connection when talking to the SMTP "
             "server. This is used for explicit TLS connections, generally on port "
             "587. Use TLS/Use SSL are mutually exclusive, so only set one of those"
-            " settings to True. Leave it blank if you want to use system environment"
-            " - EMAIL_USE_TLS"
+            " settings to True."
         ),
         "label": "Use TLS",
     },
@@ -116,8 +105,7 @@ DEFAULT_EMAIL_CONFIG_STRUCTURE = {
             "the SMTP server. In most email documentation this type of TLS "
             "connection is referred to as SSL. It is generally used on port 465. "
             "Use TLS/Use SSL are mutually exclusive, so only set one of those"
-            " settings to True. Leave it blank if you want to use system environment"
-            " - EMAIL_USE_SSL"
+            " settings to True."
         ),
         "label": "Use SSL",
     },

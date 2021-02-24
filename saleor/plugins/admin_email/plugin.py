@@ -23,6 +23,7 @@ from .notify_events import (
     send_csv_product_export_success,
     send_set_staff_password_email,
     send_staff_order_confirmation,
+    send_staff_reset_password,
 )
 
 logger = logging.getLogger(__name__)
@@ -34,6 +35,7 @@ class AdminTemplate:
     set_staff_password_email: Optional[str]
     csv_product_export_success: Optional[str]
     csv_export_failed: Optional[str]
+    staff_reset_password: Optional[str]
 
 
 def get_admin_template_map(templates: AdminTemplate):
@@ -44,6 +46,9 @@ def get_admin_template_map(templates: AdminTemplate):
             templates.csv_product_export_success
         ),
         AdminNotifyEvent.CSV_EXPORT_FAILED: templates.csv_export_failed,
+        AdminNotifyEvent.ACCOUNT_STAFF_RESET_PASSWORD: (
+            templates.set_staff_password_email
+        ),
     }
 
 
@@ -51,6 +56,7 @@ def get_admin_event_map():
     return {
         AdminNotifyEvent.STAFF_ORDER_CONFIRMATION: send_staff_order_confirmation,
         AdminNotifyEvent.ACCOUNT_SET_STAFF_PASSWORD: send_set_staff_password_email,
+        AdminNotifyEvent.ACCOUNT_STAFF_RESET_PASSWORD: send_staff_reset_password,
         AdminNotifyEvent.CSV_PRODUCT_EXPORT_SUCCESS: send_csv_product_export_success,
         AdminNotifyEvent.CSV_EXPORT_FAILED: send_csv_export_failed,
     }
@@ -59,9 +65,18 @@ def get_admin_event_map():
 class AdminEmailPlugin(BasePlugin):
     PLUGIN_ID = constants.PLUGIN_ID
     PLUGIN_NAME = "Admin emails"
+    PLUGIN_DESCRIPTION = "Plugin responsible for sending the staff emails."
     DEFAULT_ACTIVE = True
 
     DEFAULT_CONFIGURATION = [
+        {
+            "name": constants.STAFF_PASSWORD_RESET_SUBJECT_FIELD,
+            "value": constants.STAFF_PASSWORD_RESET_DEFAULT_SUBJECT,
+        },
+        {
+            "name": constants.STAFF_PASSWORD_RESET_TEMPLATE_FIELD,
+            "value": DEFAULT_EMAIL_VALUE,
+        },
         {
             "name": constants.STAFF_ORDER_CONFIRMATION_SUBJECT_FIELD,
             "value": constants.STAFF_ORDER_CONFIRMATION_DEFAULT_SUBJECT,
@@ -97,25 +112,35 @@ class AdminEmailPlugin(BasePlugin):
     ] + DEFAULT_EMAIL_CONFIGURATION  # type: ignore
 
     CONFIG_STRUCTURE = {
+        constants.STAFF_PASSWORD_RESET_SUBJECT_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_SUBJECT_HELP_TEXT,
+            "label": "Reset password subject",
+        },
+        constants.STAFF_PASSWORD_RESET_TEMPLATE_FIELD: {
+            "type": ConfigurationTypeField.MULTILINE,
+            "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
+            "label": "Reset password template",
+        },
         constants.STAFF_ORDER_CONFIRMATION_SUBJECT_FIELD: {
             "type": ConfigurationTypeField.STRING,
             "help_text": DEFAULT_SUBJECT_HELP_TEXT,
-            "label": "Staff order confirmation subject",
+            "label": "Order confirmation subject",
         },
         constants.STAFF_ORDER_CONFIRMATION_TEMPLATE_FIELD: {
             "type": ConfigurationTypeField.MULTILINE,
             "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
-            "label": "Staff order confirmation template",
+            "label": "Order confirmation template",
         },
         constants.SET_STAFF_PASSWORD_SUBJECT_FIELD: {
             "type": ConfigurationTypeField.STRING,
             "help_text": DEFAULT_SUBJECT_HELP_TEXT,
-            "label": "Set staff password subject",
+            "label": "Set password subject",
         },
         constants.SET_STAFF_PASSWORD_TEMPLATE_FIELD: {
             "type": ConfigurationTypeField.MULTILINE,
             "help_text": DEFAULT_TEMPLATE_HELP_TEXT,
-            "label": "Set staff password email template",
+            "label": "Set password email template",
         },
         constants.CSV_PRODUCT_EXPORT_SUCCESS_SUBJECT_FIELD: {
             "type": ConfigurationTypeField.STRING,
@@ -139,6 +164,24 @@ class AdminEmailPlugin(BasePlugin):
         },
     }
     CONFIG_STRUCTURE.update(DEFAULT_EMAIL_CONFIG_STRUCTURE)
+    CONFIG_STRUCTURE["host"][
+        "help_text"
+    ] += " Leave it blank if you want to use system environment - EMAIL_HOST."
+    CONFIG_STRUCTURE["port"][
+        "help_text"
+    ] += " Leave it blank if you want to use system environment - EMAIL_PORT."
+    CONFIG_STRUCTURE["username"][
+        "help_text"
+    ] += " Leave it blank if you want to use system environment - EMAIL_HOST_USER."
+    CONFIG_STRUCTURE["password"][
+        "help_text"
+    ] += " Leave it blank if you want to use system environment - EMAIL_HOST_PASSWORD."
+    CONFIG_STRUCTURE["use_tls"][
+        "help_text"
+    ] += " Leave it blank if you want to use system environment - EMAIL_USE_TLS."
+    CONFIG_STRUCTURE["use_ssl"][
+        "help_text"
+    ] += " Leave it blank if you want to use system environment - EMAIL_USE_SSL."
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -164,6 +207,9 @@ class AdminEmailPlugin(BasePlugin):
             ],
             staff_order_confirmation=configuration[
                 constants.STAFF_ORDER_CONFIRMATION_TEMPLATE_FIELD
+            ],
+            staff_reset_password=configuration[
+                constants.STAFF_PASSWORD_RESET_TEMPLATE_FIELD
             ],
         )
 

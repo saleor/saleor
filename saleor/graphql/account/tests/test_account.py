@@ -3358,7 +3358,7 @@ def test_request_password_reset_email_for_staff(mocked_notify, staff_api_client)
     }
 
     mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_PASSWORD_RESET, payload=expected_payload
+        NotifyEventType.ACCOUNT_STAFF_RESET_PASSWORD, payload=expected_payload
     )
 
 

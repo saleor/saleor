@@ -3,6 +3,7 @@ from .tasks import (
     send_export_failed_email_task,
     send_set_staff_password_email_task,
     send_staff_order_confirmation_email_task,
+    send_staff_password_reset_email_task,
 )
 
 
@@ -32,3 +33,9 @@ def send_csv_export_failed(payload: dict, config: dict):
     recipient_email = payload.get("recipient_email")
     if recipient_email:
         send_export_failed_email_task.delay(recipient_email, payload, config)
+
+
+def send_staff_reset_password(payload: dict, config: dict):
+    recipient_email = payload.get("recipient_email")
+    if recipient_email:
+        send_staff_password_reset_email_task.delay(recipient_email, payload, config)
