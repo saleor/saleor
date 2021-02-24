@@ -55,7 +55,11 @@ from ..giftcard.models import GiftCard
 from ..menu.models import Menu, MenuItem, MenuItemTranslation
 from ..order import OrderStatus
 from ..order.actions import cancel_fulfillment, fulfill_order_line
-from ..order.events import OrderEvents
+from ..order.events import (
+    OrderEvents,
+    draft_order_added_products_event,
+    fulfillment_refunded_event,
+)
 from ..order.models import FulfillmentStatus, Order, OrderEvent, OrderLine
 from ..order.utils import recalculate_order
 from ..page.models import Page, PageTranslation, PageType
@@ -2263,6 +2267,33 @@ def order_with_lines(
 
     order.refresh_from_db()
     return order
+
+
+@pytest.fixture
+def order_with_lines_and_events(order_with_lines, staff_user):
+    events = []
+    for event_type, _ in OrderEvents.CHOICES:
+        events.append(
+            OrderEvent(
+                type=event_type,
+                order=order_with_lines,
+                user=staff_user,
+            )
+        )
+    OrderEvent.objects.bulk_create(events)
+    fulfillment_refunded_event(
+        order=order_with_lines,
+        user=staff_user,
+        refunded_lines=[(1, order_with_lines.lines.first())],
+        amount=Decimal("10.0"),
+        shipping_costs_included=False,
+    )
+    draft_order_added_products_event(
+        order=order_with_lines,
+        user=staff_user,
+        order_lines=[(1, order_with_lines.lines.first())],
+    )
+    return order_with_lines
 
 
 @pytest.fixture
