@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 
 from ...checkout.calculations import calculate_checkout_total_with_gift_cards
 from ...checkout.checkout_cleaner import clean_billing_address, clean_checkout_shipping
-from ...checkout.fetch import fetch_checkout_lines
+from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...checkout.utils import cancel_active_payments
 from ...core.permissions import OrderPermissions
 from ...core.utils import get_client_ip
@@ -129,6 +129,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         cls.validate_return_url(data)
 
         lines = fetch_checkout_lines(checkout)
+        checkout_info = fetch_checkout_info(checkout, lines, info.context.discounts)
         address = (
             checkout.shipping_address or checkout.billing_address
         )  # FIXME: check which address we need here
@@ -140,10 +141,8 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             discounts=info.context.discounts,
         )
         amount = data.get("amount", checkout_total.gross.amount)
-        clean_checkout_shipping(
-            checkout, lines, info.context.discounts, PaymentErrorCode
-        )
-        clean_billing_address(checkout, PaymentErrorCode)
+        clean_checkout_shipping(checkout_info, lines, PaymentErrorCode)
+        clean_billing_address(checkout_info, PaymentErrorCode)
         cls.clean_payment_amount(info, checkout_total, amount)
         extra_data = {
             "customer_user_agent": info.context.META.get("HTTP_USER_AGENT"),
