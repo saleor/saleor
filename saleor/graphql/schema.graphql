@@ -4537,7 +4537,7 @@ type RefreshToken {
 }
 
 type RemovedReservation {
-  productVariant: ProductVariant
+  variant: ProductVariant
   quantity: Int
 }
 
@@ -4564,13 +4564,13 @@ type RequestPasswordReset {
 
 type Reservation implements Node {
   expires: DateTime!
-  productVariant: ProductVariant!
   quantity: Int!
   id: ID!
 }
 
 type ReservationCreate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  variant: ProductVariant
   reservation: Reservation
   reservationErrors: [ReservationError!]!
 }
@@ -4590,6 +4590,7 @@ type ReservationError {
 
 enum ReservationErrorCode {
   GRAPHQL_ERROR
+  INVALID
   INVALID_COUNTRY_CODE
   INSUFFICIENT_STOCK
   NOT_FOUND
