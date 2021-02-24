@@ -112,3 +112,24 @@ def test_mutation_fails_if_user_is_not_authenticated(
         "You do not have permission to perform this action"
     )
     assert Reservation.objects.exists()
+
+
+def test_mutation_fails_if_invalid_node_ids_variants_are_given(
+    customer_user, user_api_client, variant_with_reserved_stock
+):
+    variant = variant_with_reserved_stock
+    variant_id = graphene.Node.to_global_id("Product", variant.id + 10)
+    variables = {
+        "reservationsInput": {
+            "countryCode": "US",
+            "variantsIds": [variant_id],
+        }
+    }
+    assert Reservation.objects.exists()
+    response = user_api_client.post_graphql(MUTATION_RESERVATIONS_REMOVE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["reservationsRemove"]
+    assert data["reservationsErrors"][0]["message"] == (
+        f"Must receive ProductVariant id: {variant_id}"
+    )
+    assert Reservation.objects.exists()

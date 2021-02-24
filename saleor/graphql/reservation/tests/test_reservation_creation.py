@@ -202,3 +202,22 @@ def test_mutation_fails_when_variant_could_not_be_found(user_api_client):
         "Couldn't resolve to a node: UHJvZHVjdFZhcmlhbnQ6MQ=="
     )
     assert not Reservation.objects.exists()
+
+
+def test_mutation_fails_when_other_type_node_id_is_given_instead_of_product_variant(
+    user_api_client,
+):
+    variant_id = graphene.Node.to_global_id("Product", 1)
+    variables = {
+        "reservationInput": {
+            "countryCode": "JP",
+            "quantity": 5,
+            "variantId": variant_id,
+        }
+    }
+    assert not Reservation.objects.exists()
+    response = user_api_client.post_graphql(MUTATION_RESERVATION_CREATE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["reservationCreate"]
+    assert data["reservationErrors"][0]["message"] == "Must receive a ProductVariant id"
+    assert not Reservation.objects.exists()
