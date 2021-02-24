@@ -3,6 +3,7 @@ from typing import Optional
 
 import graphene
 from django.conf import settings
+from django_countries.fields import Country
 from graphene import relay
 from graphene_federation import key
 from graphql.error import GraphQLError
@@ -378,7 +379,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                                     collections=collections,
                                     discounts=discounts,
                                     channel=channel,
-                                    country=country_code,
+                                    country=Country(country_code),
                                     local_currency=get_currency_for_country(
                                         country_code
                                     ),
@@ -589,7 +590,8 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     def resolve_description_json(root: ChannelContext[models.Product], info):
-        return root.node.description
+        description = root.node.description
+        return description if description is not None else {}
 
     @staticmethod
     def resolve_tax_type(root: ChannelContext[models.Product], info):
@@ -656,7 +658,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                                     collections=collections,
                                     discounts=discounts,
                                     channel=channel,
-                                    country=country_code,
+                                    country=Country(country_code),
                                     local_currency=get_currency_for_country(
                                         country_code
                                     ),
@@ -1012,7 +1014,8 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     def resolve_description_json(root: ChannelContext[models.Collection], info):
-        return root.node.description
+        description = root.node.description
+        return description if description is not None else {}
 
 
 @key(fields="id")
@@ -1070,7 +1073,8 @@ class Category(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_description_json(root: models.Category, info):
-        return root.description
+        description = root.description
+        return description if description is not None else {}
 
     @staticmethod
     def resolve_background_image(root: models.Category, info, size=None, **_kwargs):

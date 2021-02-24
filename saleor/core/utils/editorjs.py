@@ -1,5 +1,6 @@
 import re
 import warnings
+from typing import Dict, Optional
 
 from urllib3.util import parse_url
 
@@ -7,7 +8,7 @@ BLACKLISTED_URL_SCHEMES = ("javascript",)
 HYPERLINK_TAG_WITH_URL_PATTERN = r"(.*?<a\s+href=\\?\")(\w+://\S+[^\\])(\\?\">)"
 
 
-def clean_editor_js(definitions: dict, *, to_string: bool = False):
+def clean_editor_js(definitions: Optional[Dict], *, to_string: bool = False):
     """Sanitize a given EditorJS JSON definitions.
 
     Look for not allowed URLs, replaced them with `invalid` value, and clean valid ones.
@@ -16,6 +17,10 @@ def clean_editor_js(definitions: dict, *, to_string: bool = False):
      instead of returning json object.
     """
     string = ""
+
+    if definitions is None:
+        return string if to_string else definitions
+
     blocks = definitions.get("blocks")
 
     if not blocks or not isinstance(blocks, list):

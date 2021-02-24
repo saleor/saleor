@@ -24,6 +24,9 @@ from ..discount.utils import (
     increase_voucher_usage,
     remove_voucher_usage_by_customer,
 )
+from ..graphql.checkout.utils import (
+    prepare_insufficient_stock_checkout_validation_error,
+)
 from ..order import OrderLineData, OrderStatus
 from ..order.actions import order_created
 from ..order.emails import send_order_confirmation, send_staff_order_confirmation
@@ -484,9 +487,8 @@ def _get_order_data(
             discounts=discounts,
         )
     except InsufficientStock as e:
-        raise ValidationError(
-            f"Insufficient product stock: {', '.join(e.items)}", code=e.code
-        )
+        error = prepare_insufficient_stock_checkout_validation_error(e)
+        raise error
     except NotApplicable:
         raise ValidationError(
             "Voucher not applicable",
@@ -559,9 +561,9 @@ def complete_checkout(
 
     try:
         order_data = _get_order_data(manager, checkout, lines, discounts)
-    except ValidationError as error:
+    except ValidationError as exc:
         gateway.payment_refund_or_void(payment)
-        raise error
+        raise exc
 
     txn = _process_payment(
         payment=payment,  # type: ignore
@@ -591,8 +593,6 @@ def complete_checkout(
         except InsufficientStock as e:
             release_voucher_usage(order_data)
             gateway.payment_refund_or_void(payment)
-            raise ValidationError(
-                f"Insufficient product stock: {', '.join(e.items)}", code=e.code
-            )
-
+            error = prepare_insufficient_stock_checkout_validation_error(e)
+            raise error
     return order, action_required, action_data

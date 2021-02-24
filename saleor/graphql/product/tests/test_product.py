@@ -219,6 +219,41 @@ def test_product_query_description(
     assert product_data["descriptionJson"] == description
 
 
+def test_product_query_with_no_description(
+    staff_api_client, permission_manage_products, product, channel_USD
+):
+    query = """
+        query ($id: ID, $slug: String, $channel:String){
+            product(
+                id: $id,
+                slug: $slug,
+                channel: $channel
+            ) {
+                id
+                name
+                description
+                descriptionJson
+            }
+        }
+        """
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.pk),
+        "channel": channel_USD.slug,
+    }
+
+    response = staff_api_client.post_graphql(
+        query,
+        variables=variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+    assert product_data is not None
+    assert product_data["description"] is None
+    assert product_data["descriptionJson"] == "{}"
+
+
 def test_product_query_by_id_not_available_as_staff_user(
     staff_api_client, permission_manage_products, product, channel_USD
 ):
@@ -2430,6 +2465,50 @@ def test_search_product_by_description(user_api_client, product_list, channel_US
     assert len(content["data"]["products"]["edges"]) == 1
 
 
+def test_search_product_by_description_and_name(
+    user_api_client, product_list, product, channel_USD, category, product_type
+):
+    search_query = """
+    query Products(
+      $filters: ProductFilterInput, $sortBy: ProductOrder,$channel: String
+    ) {
+      products(first: 10, filter: $filters, sortBy: $sortBy,channel: $channel) {
+        edges {
+        node {
+          id
+          name
+          slug
+        }
+        }
+      }
+    }
+    """
+    product.description_plaintext = "red big red product"
+    product.save()
+
+    product_2 = product_list[1]
+    product_2.name = "red product"
+    product_2.save()
+    product_1 = product_list[0]
+    product_1.description_plaintext = "some red product"
+    product_1.save()
+
+    variables = {
+        "filters": {
+            "search": "red",
+        },
+        "sortBy": {"field": "RANK", "direction": "DESC"},
+        "channel": channel_USD.slug,
+    }
+    response = user_api_client.post_graphql(search_query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["products"]["edges"]
+
+    assert data[0]["node"]["name"] == product_2.name
+    assert data[1]["node"]["name"] == product.name
+    assert data[2]["node"]["name"] == product_1.name
+
+
 @freeze_time("2020-03-18 12:00:00")
 def test_create_product_with_rating(
     staff_api_client,
@@ -3834,7 +3913,7 @@ def test_update_product_without_description_clear_description_plaintext(
     assert not data["productErrors"]
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
-    assert data["product"]["description"] == "{}"
+    assert data["product"]["description"] is None
 
     product.refresh_from_db()
     assert product.description_plaintext == ""

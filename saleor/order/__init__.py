@@ -188,6 +188,7 @@ class OrderLineData:
     quantity: int
     variant: Optional["ProductVariant"] = None
     replace: bool = False
+    warehouse_pk: Optional[str] = None
 
 
 @dataclass
