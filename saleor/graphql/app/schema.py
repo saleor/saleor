@@ -19,7 +19,7 @@ from .mutations import (
     AppTokenVerify,
     AppUpdate,
 )
-from .resolvers import resolve_apps, resolve_apps_installations
+from .resolvers import _resolve_app, resolve_apps, resolve_apps_installations
 from .sorters import AppSortingInput
 from .types import App, AppInstallation
 
@@ -43,7 +43,7 @@ class AppQueries(graphene.ObjectType):
     )
     app = graphene.Field(
         App,
-        id=graphene.Argument(graphene.ID, description="ID of the app.", required=True),
+        id=graphene.Argument(graphene.ID, description="ID of the app.", required=False),
         description="Look up a app by ID.",
     )
 
@@ -55,9 +55,11 @@ class AppQueries(graphene.ObjectType):
     def resolve_apps(self, info, **kwargs):
         return resolve_apps(info, **kwargs)
 
-    @permission_required(AppPermission.MANAGE_APPS)
-    def resolve_app(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, App)
+    def resolve_app(self, info, id=None):
+        app = info.context.app
+        if not id:
+            return app if app else None
+        return _resolve_app(info, id)
 
 
 class AppMutations(graphene.ObjectType):
