@@ -72,8 +72,7 @@ def update_voucher_discount(func):
 
 
 def get_voucher_discount_assigned_to_order(order: Order):
-    voucher_discount = order.discounts.filter(type=OrderDiscountType.VOUCHER).first()
-    return voucher_discount
+    return order.discounts.filter(type=OrderDiscountType.VOUCHER).first()
 
 
 def recalculate_order_discounts(order: Order):
