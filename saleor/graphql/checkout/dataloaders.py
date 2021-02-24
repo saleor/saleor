@@ -10,7 +10,7 @@ from ..product.dataloaders import (
     CollectionsByVariantIdLoader,
     ProductByVariantIdLoader,
     ProductVariantByIdLoader,
-    VariantChannelListingByVariantIdAndChannelSlugLoader,
+    VariantChannelListingByVariantIdAndChannelIdLoader,
 )
 
 
@@ -26,71 +26,67 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
     context_key = "checkoutlinesinfo_by_checkout"
 
     def batch_load(self, keys):
-        from ..channel.dataloaders import ChannelByCheckoutLineIDLoader
-
-        def with_checkout_lines(checkout_lines):
+        def with_checkout_lines(results):
+            checkouts, checkout_lines = results
             variants_pks = list(
                 {line.variant_id for lines in checkout_lines for line in lines}
             )
             if not variants_pks:
                 return [[] for _ in keys]
-            channel = ChannelByCheckoutLineIDLoader(self.context).load(
-                checkout_lines[0][0].id
+
+            channel_pks = [checkout.channel_id for checkout in checkouts]
+
+            def with_variants_products_collections(results):
+                variants, products, collections, channel_listings = results
+                variants_map = dict(zip(variants_pks, variants))
+                products_map = dict(zip(variants_pks, products))
+                collections_map = dict(zip(variants_pks, collections))
+                channel_listings_map = dict(
+                    zip(variant_ids_channel_ids, channel_listings)
+                )
+
+                lines_info_map = defaultdict(list)
+                for checkout, lines in zip(checkouts, checkout_lines):
+                    lines_info_map[checkout.pk].extend(
+                        [
+                            CheckoutLineInfo(
+                                line=line,
+                                variant=variants_map[line.variant_id],
+                                channel_listing=channel_listings_map[
+                                    (line.variant_id, checkout.channel_id)
+                                ],
+                                product=products_map[line.variant_id],
+                                collections=collections_map[line.variant_id],
+                            )
+                            for line in lines
+                        ]
+                    )
+                return [lines_info_map[key] for key in keys]
+
+            variants = ProductVariantByIdLoader(self.context).load_many(variants_pks)
+            products = ProductByVariantIdLoader(self.context).load_many(variants_pks)
+            collections = CollectionsByVariantIdLoader(self.context).load_many(
+                variants_pks
             )
 
-            def map_variant_ids_with_channel(channel):
-                def with_variants_products_collections(results):
-                    variants, products, collections, channel_listings = results
-                    variants_map = dict(zip(variants_pks, variants))
-                    products_map = dict(zip(variants_pks, products))
-                    collections_map = dict(zip(variants_pks, collections))
-                    channel_listings_map = dict(zip(variants_pks, channel_listings))
-
-                    lines_info = []
-                    for lines in checkout_lines:
-                        lines_info.append(
-                            [
-                                CheckoutLineInfo(
-                                    line=line,
-                                    variant=variants_map[line.variant_id],
-                                    channel_listing=channel_listings_map[
-                                        line.variant_id
-                                    ],
-                                    product=products_map[line.variant_id],
-                                    collections=collections_map[line.variant_id],
-                                )
-                                for line in lines
-                            ]
-                        )
-                    return lines_info
-
-                variants = ProductVariantByIdLoader(self.context).load_many(
-                    variants_pks
-                )
-                products = ProductByVariantIdLoader(self.context).load_many(
-                    variants_pks
-                )
-                collections = CollectionsByVariantIdLoader(self.context).load_many(
-                    variants_pks
+            variant_ids_channel_ids = []
+            for channel_id, lines in zip(channel_pks, checkout_lines):
+                variant_ids_channel_ids.extend(
+                    [(line.variant_id, channel_id) for line in lines]
                 )
 
-                variant_ids_channel_slug = [
-                    (variant_pk, channel.slug) for variant_pk in variants_pks
-                ]
-                channel_listings = VariantChannelListingByVariantIdAndChannelSlugLoader(
-                    self.context
-                ).load_many(variant_ids_channel_slug)
-                return Promise.all(
-                    [variants, products, collections, channel_listings]
-                ).then(with_variants_products_collections)
+            channel_listings = VariantChannelListingByVariantIdAndChannelIdLoader(
+                self.context
+            ).load_many(variant_ids_channel_ids)
+            return Promise.all(
+                [variants, products, collections, channel_listings]
+            ).then(with_variants_products_collections)
 
-            return channel.then(map_variant_ids_with_channel)
-
-        return (
-            CheckoutLinesByCheckoutTokenLoader(self.context)
-            .load_many(keys)
-            .then(with_checkout_lines)
+        checkouts = CheckoutByTokenLoader(self.context).load_many(keys)
+        checkout_lines = CheckoutLinesByCheckoutTokenLoader(self.context).load_many(
+            keys
         )
+        return Promise.all([checkouts, checkout_lines]).then(with_checkout_lines)
 
 
 class CheckoutByIdLoader(DataLoader):
