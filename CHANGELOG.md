@@ -17,8 +17,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop `CHECKOUT_QUANTITY_CHANGED` webhook - #6797 by @d-wysocki
 - Drop deprecated `taxRate` field from `ProductType` - #6795 by @d-wysocki
 - Remove resolving user's location from GeoIP; drop `PaymentInput.billingAddress` input field - #6784 by @maarcingebala
-- Change the payload of the order webhook to handle discounts list.
-Deprecate fields order.discount, order.discount_name, order.translated_discount_name - #6874 by @korycins
 - Change the payload of the order webhook to handle discounts list, added fields: `Order.discounts`,
 `OrderLine.unit_discount_amount`,`OrderLine.unit_discount_type`, `OrderLine.unit_discount_reason` , remove fields:
 `Order.discount_amount`, `Order.discount_name`, `Order.translated_discount_name`.
