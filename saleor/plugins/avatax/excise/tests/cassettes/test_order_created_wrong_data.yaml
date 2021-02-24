@@ -1,0 +1,94 @@
+interactions:
+- request:
+    body: '{"EffectiveDate": "02/24/21", "InvoiceDate": "02/24/21", "TitleTransferCode":
+      "DEST", "TransactionType": "RETAIL", "TransactionLines": [{"InvoiceLine": 70,
+      "ProductCode": "SKU_AA", "UnitPrice": "10.000", "UnitOfMeasure": null, "BilledUnits":
+      "3", "LineAmount": "12.300", "AlternateUnitPrice": "1.000", "TaxIncluded": true,
+      "UnitQuantity": null, "UnitQuantityUnitOfMeasure": null, "DestinationCountryCode":
+      "USA", "DestinationJurisdiction": "TX", "DestinationAddress1": "1100 Congress
+      Ave", "DestinationAddress2": "", "DestinationCounty": "", "DestinationCity":
+      "Austin", "DestinationPostalCode": "78701", "SaleCountryCode": "USA", "SaleAddress1":
+      "1100 Congress Ave", "SaleAddress2": "", "SaleJurisdiction": "TX", "SaleCounty":
+      "", "SaleCity": "Austin", "SalePostalCode": "78701", "OriginCountryCode": "USA",
+      "OriginJurisdiction": "TX", "OriginCounty": "", "OriginCity": "Austin", "OriginPostalCode":
+      "78701", "OriginAddress1": "1100 Congress Ave", "OriginAddress2": "", "CustomString1":
+      null, "CustomString2": null, "CustomString3": null, "CustomNumeric1": null,
+      "CustomNumeric2": null, "CustomNumeric3": null}, {"InvoiceLine": 71, "ProductCode":
+      "SKU_B", "UnitPrice": "20.000", "UnitOfMeasure": null, "BilledUnits": "2", "LineAmount":
+      "24.600", "AlternateUnitPrice": "2.000", "TaxIncluded": true, "UnitQuantity":
+      null, "UnitQuantityUnitOfMeasure": null, "DestinationCountryCode": "USA", "DestinationJurisdiction":
+      "TX", "DestinationAddress1": "1100 Congress Ave", "DestinationAddress2": "",
+      "DestinationCounty": "", "DestinationCity": "Austin", "DestinationPostalCode":
+      "78701", "SaleCountryCode": "USA", "SaleAddress1": "1100 Congress Ave", "SaleAddress2":
+      "", "SaleJurisdiction": "TX", "SaleCounty": "", "SaleCity": "Austin", "SalePostalCode":
+      "78701", "OriginCountryCode": "USA", "OriginJurisdiction": "TX", "OriginCounty":
+      "", "OriginCity": "Austin", "OriginPostalCode": "78701", "OriginAddress1": "1100
+      Congress Ave", "OriginAddress2": "", "CustomString1": null, "CustomString2":
+      null, "CustomString3": null, "CustomNumeric1": null, "CustomNumeric2": null,
+      "CustomNumeric3": null}], "InvoiceNumber": 67}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Basic Og==
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '2110'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.25.1
+      x-company-id:
+      - '1337'
+    method: POST
+    uri: https://excisesbx.avalara.com/api/v1/AvaTaxExcise/transactions/create
+  response:
+    body:
+      string: "{\r\n  \"UserTranId\": \"\",\r\n  \"TranId\": 38987394,\r\n  \"Status\":
+        \"Errors found\",\r\n  \"ReturnCode\": -1,\r\n  \"TotalTaxAmount\": 0.0,\r\n
+        \ \"TransactionTaxes\": [],\r\n  \"TransactionErrors\": [\r\n    {\r\n      \"SequenceId\":
+        1,\r\n      \"ErrorCode\": \"-995\",\r\n      \"ErrorMessage\": \"Product
+        \\\"SKU_AA\\\" does not exist or is not active for 02/24/2021 00:00:00.\",\r\n
+        \     \"ErrorLevelInd\": \"Critical\",\r\n      \"TransactionLine\": 1\r\n
+        \   }\r\n  ],\r\n  \"UserReturnValue\": \"\"\r\n}"
+    headers:
+      Cache-Control:
+      - private
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '440'
+      Content-Security-Policy:
+      - 'default-src ''self''; font-src ''self'' use.typekit.net fonts.gstatic.com
+        data: ; img-src ''self'' p.typekit.net *.walkme.com *.cloudfront.net data:
+        ; script-src ''self'' ''unsafe-inline'' ''unsafe-eval'' use.typekit.net *.walkme.com
+        *.cloudfront.net; style-src  ''self'' ''unsafe-inline'' use.typekit.net; connect-src
+        ''self'' performance.typekit.net ec.walkme.com; frame-src ''self'' s3.amazonaws.com
+        *.s3.amazonaws.com;'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 24 Feb 2021 03:37:37 GMT
+      Feature-Policy:
+      - geolocation 'none'; midi 'none'; notifications 'none'; push 'none'; sync-xhr
+        'self'; microphone 'none'; camera 'none'; magnetometer 'none'; gyroscope 'none';
+        speaker 'none'; vibrate 'none'; fullscreen 'none'; payment 'none';
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - ''
+      Set-Cookie:
+      - ASP.NET_SessionId=2xuz1ppokbwctrcm5iz2pgc2; path=/; HttpOnly; SameSite=Lax
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - sameorigin
+      X-XSS-Protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+version: 1

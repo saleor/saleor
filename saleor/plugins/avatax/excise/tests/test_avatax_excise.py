@@ -30,10 +30,10 @@ from ..plugin import AvataxExcisePlugin
 @pytest.fixture
 def plugin_configuration(db):
     def set_configuration(
-        username="api_user",
-        password="cuoeJw178n7M11IpDfdf",
+        username="test",
+        password="test",
         sandbox=True,
-        company_id="1337",
+        company_id="test",
     ):
         data = {
             "active": True,
@@ -503,3 +503,77 @@ def test_api_post_request_handles_json_errors(product, monkeypatch):
 
     assert mocked_response.called
     assert response == {}
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.excise.plugin.AvataxExcisePlugin"])
+def test_order_created_wrong_data(
+    order_with_lines,
+    address,
+    address_usa_tx,
+    site_settings,
+    shipping_zone,
+    plugin_configuration,
+):
+    plugin_configuration()
+    manager = get_plugins_manager()
+
+    site_settings.company_address = address
+    site_settings.save()
+
+    order_with_lines.shipping_address = address_usa_tx
+    order_with_lines.shipping_method = shipping_zone.shipping_methods.get()
+    order_with_lines.save()
+
+    with pytest.raises(TaxError) as e:
+        manager.order_created(order_with_lines)
+        # Fails due to skus not being configured in ATE
+    assert "does not exist or is not active" in e._excinfo[1].args[0]
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.excise.plugin.AvataxExcisePlugin"])
+def test_order_created(
+    order_with_lines,
+    product,
+    shipping_zone,
+    address_usa_tx,
+    site_settings,
+    plugin_configuration,
+    cigar_product_type,
+):
+    plugin_configuration()
+    manager = get_plugins_manager()
+
+    site_settings.company_address = address_usa_tx
+    site_settings.save()
+
+    order_with_lines.shipping_address = address_usa_tx
+    order_with_lines.shipping_method = shipping_zone.shipping_methods.get()
+    shipping_method = shipping_zone.shipping_methods.get()
+    ShippingMethodChannelListing.objects.filter(shipping_method=shipping_method).update(
+        price_amount=0
+    )
+    order_with_lines.shipping_method = shipping_method
+
+    product.product_type = cigar_product_type
+    product.save()
+
+    variant = product.variants.first()
+    variant.sku = "202015500"
+    variant.save()
+
+    listing = variant.channel_listings.first()
+    listing.price_amount = Decimal(170)
+    listing.save()
+
+    for order_line in order_with_lines.lines.all():
+        order_line.product_name = product.name
+        order_line.variant_name = variant.name
+        order_line.product_sku = variant.sku
+        order_line.variant = variant
+        order_line.save()
+
+    order_with_lines.save()
+
+    manager.order_created(order_with_lines)
