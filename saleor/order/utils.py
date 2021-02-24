@@ -73,8 +73,7 @@ def update_voucher_discount(func):
 
 
 def get_voucher_discount_assigned_to_order(order: Order):
-    voucher_discount = order.discounts.filter(type=OrderDiscountType.VOUCHER).first()
-    return voucher_discount
+    return order.discounts.filter(type=OrderDiscountType.VOUCHER).first()
 
 
 def recalculate_order_discounts(order: Order):
@@ -84,6 +83,7 @@ def recalculate_order_discounts(order: Order):
     for order_discount in order_discounts:
         current_order_discount = copy.deepcopy(order_discount)
         current_total = order.total.gross.amount
+
         update_order_discount_for_order(
             order,
             order_discount,
@@ -599,6 +599,7 @@ def update_order_discount_for_order(
     if force_update or current_value != value or current_value_type != value_type:
         # Add to total current amount of discount.
         current_total = order.total + already_applied_discount_amount
+
         new_total = apply_discount_to_value(value, value_type, currency, current_total)
         new_amount = (current_total - new_total).gross
 

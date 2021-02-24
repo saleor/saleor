@@ -304,14 +304,14 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
             order_line_before_update.unit_discount_value != value
             or order_line_before_update.unit_discount_type != value_type
         ):
-            # Create event only when we chane type or value of the discount
+            # Create event only when we change type or value of the discount
             events.order_line_discount_updated_event(
                 order=order,
                 user=requester,
                 line=order_line,
                 line_before_update=order_line_before_update,
             )
-        recalculate_order(order)
+            recalculate_order(order)
         return OrderLineDiscountUpdate(order_line=order_line, order=order)
 
 
