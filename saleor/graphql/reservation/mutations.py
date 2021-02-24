@@ -18,6 +18,7 @@ from ...reservation.stock import (
 from ...shipping.models import ShippingZone
 from ...warehouse.availability import check_stock_quantity
 from ..account.enums import CountryCodeEnum
+from ..channel import ChannelContext
 from ..core.mutations import BaseMutation
 from ..core.types.common import ReservationError
 from ..product.types import ProductVariant
@@ -44,6 +45,7 @@ class ReservationCreateInput(graphene.InputObjectType):
 
 
 class ReservationCreate(BaseMutation):
+    variant = graphene.Field(ProductVariant)
     reservation = graphene.Field(
         Reservation, description="An reservation instance that was created or updated."
     )
@@ -134,7 +136,7 @@ class ReservationCreate(BaseMutation):
     def clean_input(cls, info, data):
         cleaned_input = {
             "product_variant": cls.get_node_or_error(
-                info, data["variant_id"], ProductVariant
+                info, data["variant_id"], "variant_id", ProductVariant
             ),
             "shipping_zone": cls.retrieve_shipping_zone(data["country_code"]),
         }
@@ -185,11 +187,14 @@ class ReservationCreate(BaseMutation):
     def perform_mutation(cls, root, info, **data):
         cleaned_input = cls.clean_input(info, data["input"])
         instance = cls.save(info, cleaned_input)
-        return ReservationCreate(reservation=instance)
+        variant = ChannelContext(
+            node=cleaned_input["product_variant"], channel_slug=None
+        )
+        return ReservationCreate(reservation=instance, variant=variant)
 
 
 class RemovedReservationDict(TypedDict):
-    product_variant: ProductVariant
+    variant: ProductVariant
     quantity: int
 
 
@@ -243,7 +248,9 @@ class ReservationsRemove(BaseMutation):
         # TODO: cleanup after get_nodes_or_error is fixed
         try:
             return cls.get_nodes_or_error(
-                clean_variants_ids, "variants_ids", ProductVariant
+                clean_variants_ids,
+                "variants_ids",
+                ProductVariant,
             )
         except (AssertionError, GraphQLError) as e:
             raise ValidationError(
@@ -278,7 +285,7 @@ class ReservationsRemove(BaseMutation):
         for variant in variants:
             removed_reservations.append(
                 {
-                    "product_variant": variant,
+                    "variant": variant,
                     "quantity": reservations_total[variant.id],
                 }
             )

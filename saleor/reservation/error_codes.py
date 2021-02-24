@@ -3,6 +3,7 @@ from enum import Enum
 
 class ReservationErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
+    INVALID = "invalid"
     INVALID_COUNTRY_CODE = "invalid_country_code"
     INSUFFICIENT_STOCK = "insufficient_stock"
     NOT_FOUND = "not_found"

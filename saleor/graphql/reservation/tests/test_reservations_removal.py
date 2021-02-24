@@ -8,7 +8,7 @@ MUTATION_RESERVATIONS_REMOVE = """
     mutation removeReservations($reservationsInput: ReservationsRemoveInput!) {
       reservationsRemove(input: $reservationsInput) {
         removedReservations {
-            productVariant {
+            variant {
                 id
             }
             quantity
@@ -43,7 +43,7 @@ def test_mutation_removes_users_stock_reservations(
 
     assert data["removedReservations"] == [
         {
-            "productVariant": {"id": variant_id},
+            "variant": {"id": variant_id},
             "quantity": 3,
         }
     ]

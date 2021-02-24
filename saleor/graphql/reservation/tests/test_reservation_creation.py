@@ -7,7 +7,11 @@ MUTATION_RESERVATION_CREATE = """
     mutation createReservation($reservationInput: ReservationCreateInput!) {
       reservationCreate(input: $reservationInput) {
         reservation {
+            expires
             quantity
+        }
+        variant {
+            id
         }
         reservationErrors {
           field
@@ -37,6 +41,7 @@ def test_mutation_creates_new_stock_reservation(
     content = get_graphql_content(response)
     data = content["data"]["reservationCreate"]
     assert not data["reservationErrors"]
+    assert data["variant"] == {"id": variant_id}
 
     reservation = Reservation.objects.first()
     assert reservation.user == customer_user
