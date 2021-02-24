@@ -3,7 +3,7 @@ from unittest import mock
 import pytest
 
 from .....checkout import calculations
-from .....checkout.fetch import fetch_checkout_lines
+from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....plugins.manager import get_plugins_manager
 from .... import TransactionKind
 from ....models import Transaction
@@ -73,8 +73,9 @@ def payment_adyen_for_checkout(checkout_with_items, address, shipping_method):
     checkout_with_items.save()
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_items)
+    checkout_info = fetch_checkout_info(checkout_with_items, lines, [])
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_with_items, lines, address
+        manager, checkout_info, lines, address
     )
     payment = create_payment(
         gateway=AdyenGatewayPlugin.PLUGIN_ID,

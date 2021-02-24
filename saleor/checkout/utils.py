@@ -618,7 +618,7 @@ def is_fully_paid(
     checkout_total = (
         calculations.checkout_total(
             manager=manager,
-            checkout=checkout,
+            checkout_info=checkout_info,
             lines=lines,
             address=address,
             discounts=discounts,

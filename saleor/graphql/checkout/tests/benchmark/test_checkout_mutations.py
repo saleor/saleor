@@ -2,7 +2,7 @@ import pytest
 from graphene import Node
 
 from .....checkout import calculations
-from .....checkout.fetch import fetch_checkout_lines
+from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
 from .....plugins.manager import get_plugins_manager
 from ....tests.utils import get_graphql_content
@@ -492,10 +492,11 @@ def test_checkout_payment_charge(
     """
 
     lines = fetch_checkout_lines(checkout_with_billing_address)
+    checkout_info = fetch_checkout_info(checkout_with_billing_address, lines, [])
     manager = get_plugins_manager()
     total = calculations.checkout_total(
         manager=manager,
-        checkout=checkout_with_billing_address,
+        checkout_info=checkout_info,
         lines=lines,
         address=checkout_with_billing_address.shipping_address,
     )
