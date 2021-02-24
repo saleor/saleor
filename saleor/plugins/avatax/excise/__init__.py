@@ -29,9 +29,15 @@ from .. import (
 
 if TYPE_CHECKING:
     # flake8: noqa
+    from ....account.models import Address
     from ....checkout.models import Checkout, CheckoutLine
     from ....order.models import Order
-    from ....product.models import Product, ProductType, ProductVariant
+    from ....product.models import (
+        Product,
+        ProductType,
+        ProductVariant,
+        ProductVariantChannelListing,
+    )
 
 logger = logging.getLogger(__name__)
 
@@ -107,7 +113,7 @@ class TransactionLine:
     UnitQuantity: Optional[int]
     UnitQuantityUnitOfMeasure: Optional[str]
     DestinationCountryCode: str
-    """ ISO 3166-1 alpha-3 code """
+    """ISO 3166-1 alpha-3 code"""
     DestinationJurisdiction: str
     DestinationAddress1: Optional[str]
     DestinationAddress2: Optional[str]
@@ -122,10 +128,8 @@ class TransactionLine:
     SaleCity: str
     SalePostalCode: str
 
-    """ WIP """
-    # Origin: Optional[str]
     OriginCountryCode: str
-    OriginJurisdiction: str  # state or region
+    OriginJurisdiction: str
     OriginCounty: str
     OriginCity: str
     OriginPostalCode: str
@@ -185,58 +189,40 @@ def generate_request_data_order(
     return data
 
 
-def get_checkout_lines_data(
-    checkout: "Checkout", discounts=None
-) -> List[TransactionLine]:
-    data: List[TransactionLine] = []
-    lines_info = fetch_checkout_lines(checkout)
-    channel = checkout.channel
-    tax_included = Site.objects.get_current().settings.include_taxes_in_prices
-    shipping_address = checkout.shipping_address
-    if shipping_address is None:
-        raise TaxError("Shipping address required for ATE tax calculation")
-
-    for line_info in lines_info:
-        line = line_info.line
-        variant = line_info.variant
-        product = line_info.product
-        stock = variant.stocks.for_country(shipping_address.country).first()
-        warehouse = stock.warehouse if stock else None
-        cost_price = (
-            line_info.channel_listing.cost_price.amount
-            if line_info.channel_listing.cost_price
-            else None
-        )
-        line_amount = (
-            base_calculations.base_checkout_line_total(
-                line_info,
-                channel,
-                discounts,
-            ).gross.amount
-            if tax_included
-            else base_calculations.base_checkout_line_total(
-                line_info,
-                channel,
-                discounts,
-            ).net.amount
-        )
-
+def append_line_to_data(
+    data: List[TransactionLine],
+    line_id: int,
+    quantity: int,
+    line_amount: Decimal,
+    tax_included: bool,
+    variant_channel_listing: "ProductVariantChannelListing",
+    variant: "ProductVariant",
+    shipping_address: "Address",
+):
+    """Abstract line data regardless of Checkout or Order."""
+    stock = variant.stocks.for_country(shipping_address.country).first()
+    warehouse = stock.warehouse
+    cost_price = (
+        variant_channel_listing.cost_price.amount
+        if variant_channel_listing.cost_price
+        else None
+    )
     data.append(
         TransactionLine(
-            InvoiceLine=line_info.line.id,
+            InvoiceLine=line_id,
             ProductCode=variant.sku,
-            UnitPrice=line_info.channel_listing.price.amount,
-            UnitOfMeasure=line_info.product.product_type.get_value_from_private_metadata(
+            UnitPrice=variant_channel_listing.price.amount,
+            UnitOfMeasure=variant.product.product_type.get_value_from_private_metadata(
                 get_metadata_key("UnitOfMeasure")
             ),
-            BilledUnits=Decimal(line.quantity),
+            BilledUnits=Decimal(quantity),
             LineAmount=line_amount,
             AlternateUnitPrice=cost_price,
             TaxIncluded=tax_included,
             UnitQuantity=variant.get_value_from_private_metadata(
                 get_metadata_key("UnitQuantity")
             ),
-            UnitQuantityUnitOfMeasure=line_info.product.product_type.get_value_from_private_metadata(
+            UnitQuantityUnitOfMeasure=variant.product.product_type.get_value_from_private_metadata(
                 get_metadata_key("UnitQuantityUnitOfMeasure")
             ),
             DestinationCountryCode=shipping_address.country.alpha3,
@@ -253,7 +239,6 @@ def get_checkout_lines_data(
             SaleCity=shipping_address.city,
             SaleCounty=shipping_address.city_area,
             SalePostalCode=shipping_address.postal_code,
-            # Origin=warehouse.id,  # check with avalara?
             OriginCountryCode=warehouse.address.country.alpha3,
             OriginJurisdiction=warehouse.address.country_area,
             OriginAddress1=warehouse.address.street_address_1,
@@ -281,6 +266,44 @@ def get_checkout_lines_data(
             ),
         )
     )
+
+
+def get_checkout_lines_data(
+    checkout: "Checkout", discounts=None
+) -> List[TransactionLine]:
+    data: List[TransactionLine] = []
+    lines_info = fetch_checkout_lines(checkout)
+    channel = checkout.channel
+    tax_included = Site.objects.get_current().settings.include_taxes_in_prices
+    shipping_address = checkout.shipping_address
+    if shipping_address is None:
+        raise TaxError("Shipping address required for ATE tax calculation")
+
+    for line_info in lines_info:
+        line_amount = (
+            base_calculations.base_checkout_line_total(
+                line_info,
+                channel,
+                discounts,
+            ).gross.amount
+            if tax_included
+            else base_calculations.base_checkout_line_total(
+                line_info,
+                channel,
+                discounts,
+            ).net.amount
+        )
+
+        append_line_to_data(
+            data,
+            line_info.line.id,
+            line_info.line.quantity,
+            line_amount,
+            tax_included,
+            line_info.channel_listing,
+            line_info.line.variant,
+            shipping_address,
+        )
     return data
 
 
@@ -299,78 +322,19 @@ def get_order_lines_data(order: "Order", discounts=None) -> List[TransactionLine
         variant = line.variant
         if variant is None:
             continue
-        product_type = variant.product.product_type
-        stock = variant.stocks.for_country(shipping_address.country).first()
-        warehouse = stock.warehouse
         variant_channel_listing = variant.channel_listings.get(channel=channel)
-        cost_price = (
-            variant_channel_listing.cost_price_amount
-            if variant_channel_listing
-            else None
-        )
         line_amount = (
             line.unit_price_gross_amount if tax_included else line.unit_price_net_amount
         )
-
-        data.append(
-            TransactionLine(
-                InvoiceLine=line.id,
-                ProductCode=variant.sku,
-                UnitPrice=variant_channel_listing.price.amount,
-                UnitOfMeasure=product_type.get_value_from_private_metadata(
-                    get_metadata_key("UnitOfMeasure")
-                ),
-                BilledUnits=Decimal(line.quantity),
-                LineAmount=line_amount,
-                AlternateUnitPrice=cost_price,
-                TaxIncluded=tax_included,
-                UnitQuantity=variant.get_value_from_private_metadata(
-                    get_metadata_key("UnitQuantity")
-                ),
-                UnitQuantityUnitOfMeasure=product_type.get_value_from_private_metadata(
-                    get_metadata_key("UnitQuantityUnitOfMeasure")
-                ),
-                DestinationCountryCode=shipping_address.country.alpha3,
-                DestinationJurisdiction=shipping_address.country_area,
-                DestinationAddress1=shipping_address.street_address_1,
-                DestinationAddress2=shipping_address.street_address_2,
-                DestinationCity=shipping_address.city,
-                DestinationCounty=shipping_address.city_area,
-                DestinationPostalCode=shipping_address.postal_code,
-                SaleCountryCode=shipping_address.country.alpha3,
-                SaleJurisdiction=shipping_address.country_area,
-                SaleAddress1=shipping_address.street_address_1,
-                SaleAddress2=shipping_address.street_address_2,
-                SaleCity=shipping_address.city,
-                SaleCounty=shipping_address.city_area,
-                SalePostalCode=shipping_address.postal_code,
-                # Origin=warehouse.id,  # check with avalara?
-                OriginCountryCode=warehouse.address.country.alpha3,
-                OriginJurisdiction=warehouse.address.country_area,
-                OriginAddress1=warehouse.address.street_address_1,
-                OriginAddress2=warehouse.address.street_address_2,
-                OriginCity=warehouse.address.city,
-                OriginCounty=warehouse.address.city_area,
-                OriginPostalCode=warehouse.address.postal_code,
-                CustomString1=variant.get_value_from_private_metadata(
-                    get_metadata_key("CustomString1")
-                ),
-                CustomString2=variant.get_value_from_private_metadata(
-                    get_metadata_key("CustomString2")
-                ),
-                CustomString3=variant.get_value_from_private_metadata(
-                    get_metadata_key("CustomString3")
-                ),
-                CustomNumeric1=variant.get_value_from_private_metadata(
-                    get_metadata_key("CustomNumeric1")
-                ),
-                CustomNumeric2=variant.get_value_from_private_metadata(
-                    get_metadata_key("CustomNumeric2")
-                ),
-                CustomNumeric3=variant.get_value_from_private_metadata(
-                    get_metadata_key("CustomNumeric3")
-                ),
-            )
+        append_line_to_data(
+            data,
+            line.id,
+            line.quantity,
+            line_amount,
+            tax_included,
+            variant_channel_listing,
+            variant,
+            shipping_address,
         )
     return data
 
