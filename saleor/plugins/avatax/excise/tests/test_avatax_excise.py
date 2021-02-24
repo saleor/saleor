@@ -122,6 +122,26 @@ def test_save_plugin_configuration(api_get_request_mock, settings):
     assert plugin_configuration.active
 
 
+def test_save_plugin_configuration_invalid(settings):
+    settings.PLUGINS = ["saleor.plugins.avatax.excise.plugin.AvataxExcisePlugin"]
+    manager = get_plugins_manager()
+    with pytest.raises(ValidationError):
+        manager.save_plugin_configuration(
+            AvataxExcisePlugin.PLUGIN_ID,
+            {
+                "active": True,
+                "configuration": [
+                    {"name": "Username or account", "value": ""},
+                    {"name": "Password or license", "value": ""},
+                ],
+            },
+        )
+    plugin_configuration = PluginConfiguration.objects.get(
+        identifier=AvataxExcisePlugin.PLUGIN_ID
+    )
+    assert not plugin_configuration.active
+
+
 @patch("saleor.plugins.avatax.excise.plugin.api_get_request")
 def test_save_plugin_configuration_authentication_failed(
     api_get_request_mock, settings
@@ -276,6 +296,28 @@ def test_calculate_checkout_total(
     assert total == TaxedMoney(
         net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
     )
+
+
+@patch("saleor.plugins.avatax.plugin.AvataxPlugin._skip_plugin")
+@override_settings(PLUGINS=["saleor.plugins.avatax.excise.plugin.AvataxExcisePlugin"])
+def test_calculate_checkout_total_skip(
+    skip_mock, checkout_with_item, address_usa, plugin_configuration
+):
+    skip_mock.return_value = True
+    plugin_configuration()
+    manager = get_plugins_manager()
+    manager.calculate_checkout_total(checkout_with_item, [], address_usa, [])
+    skip_mock.assert_called_once
+
+
+@override_settings(PLUGINS=["saleor.plugins.avatax.excise.plugin.AvataxExcisePlugin"])
+def test_calculate_checkout_total_invalid_checkout(
+    checkout_with_item, address_usa, plugin_configuration
+):
+    plugin_configuration()
+    manager = get_plugins_manager()
+    total = manager.calculate_checkout_total(checkout_with_item, [], address_usa, [])
+    assert total == TaxedMoney(net=Money("0.00", "USD"), gross=Money("0.00", "USD"))
 
 
 @pytest.mark.vcr

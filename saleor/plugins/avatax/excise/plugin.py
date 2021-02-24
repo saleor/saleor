@@ -138,10 +138,9 @@ class AvataxExcisePlugin(AvataxPlugin):
             return checkout_total
 
         response = get_checkout_tax_data(checkout, discounts, self.config)
-        if not response or "Error" in response["Status"]:
+        if not response or "Errors found" in response["Status"]:
             return checkout_total
 
-        # this check may be redundant
         if len(response["TransactionTaxes"]) == 0:
             raise TaxError("ATE did not return TransactionTaxes")
 

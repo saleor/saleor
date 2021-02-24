@@ -201,7 +201,7 @@ def get_checkout_lines_data(
         variant = line_info.variant
         product = line_info.product
         stock = variant.stocks.for_country(shipping_address.country).first()
-        warehouse = stock.warehouse
+        warehouse = stock.warehouse if stock else None
         cost_price = (
             line_info.channel_listing.cost_price.amount
             if line_info.channel_listing.cost_price
