@@ -145,9 +145,10 @@ def test_checkout_totals_use_discounts(
 
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, discounts)
     taxed_total = calculations.checkout_total(
         manager=manager,
-        checkout=checkout,
+        checkout_info=checkout_info,
         lines=lines,
         address=checkout.shipping_address,
         discounts=discounts,
@@ -506,10 +507,11 @@ def test_checkout_add_many_gift_card_code(
 
 def test_checkout_get_total_with_gift_card(api_client, checkout_with_item, gift_card):
     lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [])
     manager = get_plugins_manager()
     taxed_total = calculations.checkout_total(
         manager=manager,
-        checkout=checkout_with_item,
+        checkout_info=checkout_info,
         lines=lines,
         address=checkout_with_item.shipping_address,
     )
@@ -529,10 +531,11 @@ def test_checkout_get_total_with_many_gift_card(
     api_client, checkout_with_gift_card, gift_card_created_by_staff
 ):
     lines = fetch_checkout_lines(checkout_with_gift_card)
+    checkout_info = fetch_checkout_info(checkout_with_gift_card, lines, [])
     manager = get_plugins_manager()
     taxed_total = calculations.checkout_total(
         manager=manager,
-        checkout=checkout_with_gift_card,
+        checkout_info=checkout_info,
         lines=lines,
         address=checkout_with_gift_card.shipping_address,
     )

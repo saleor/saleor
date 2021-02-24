@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from ...checkout.calculations import checkout_total
-from ...checkout.fetch import fetch_checkout_lines
+from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...plugins.manager import PluginsManager, get_plugins_manager
 from .. import ChargeStatus, GatewayError, PaymentError, TransactionKind, gateway
 from ..error_codes import PaymentErrorCode
@@ -88,8 +88,9 @@ def test_create_payment(checkout_with_item, address):
 
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [])
     total = checkout_total(
-        manager=manager, checkout=checkout_with_item, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
 
     data = {
@@ -127,8 +128,9 @@ def test_create_payment_from_checkout_requires_billing_address(checkout_with_ite
 
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [])
     total = checkout_total(
-        manager=manager, checkout=checkout_with_item, lines=lines, address=None
+        manager=manager, checkout_info=checkout_info, lines=lines, address=None
     )
 
     data = {
@@ -168,8 +170,9 @@ def test_create_payment_information_for_checkout_payment(address, checkout_with_
 
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [])
     total = checkout_total(
-        manager=manager, checkout=checkout_with_item, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
 
     data = {

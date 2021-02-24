@@ -15,7 +15,7 @@ from .....checkout.calculations import (
     checkout_shipping_price,
     checkout_total,
 )
-from .....checkout.fetch import fetch_checkout_lines
+from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
 from .....core.prices import quantize_price
 from .....discount.utils import fetch_active_discounts
@@ -267,9 +267,10 @@ def request_data_for_gateway_config(
     address = checkout.billing_address or checkout.shipping_address
     discounts = fetch_active_discounts()
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, discounts)
     total = checkout_total(
         manager=manager,
-        checkout=checkout,
+        checkout_info=checkout_info,
         lines=lines,
         address=address,
         discounts=discounts,

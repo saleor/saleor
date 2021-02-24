@@ -135,7 +135,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         )  # FIXME: check which address we need here
         checkout_total = calculate_checkout_total_with_gift_cards(
             manager=info.context.plugins,
-            checkout=checkout,
+            checkout_info=checkout_info,
             lines=lines,
             address=address,
             discounts=info.context.discounts,

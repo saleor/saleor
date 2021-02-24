@@ -77,10 +77,11 @@ def checkout_with_voucher(checkout_with_billing_address, voucher):
 def checkout_with_charged_payment(checkout_with_voucher):
     checkout = checkout_with_voucher
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout_with_voucher, lines, [])
     manager = get_plugins_manager()
     taxed_total = calculations.checkout_total(
         manager=manager,
-        checkout=checkout,
+        checkout_info=checkout_info,
         lines=lines,
         address=checkout.shipping_address,
     )

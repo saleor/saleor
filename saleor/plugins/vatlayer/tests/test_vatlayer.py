@@ -9,7 +9,11 @@ from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from ....checkout import calculations
-from ....checkout.fetch import CheckoutLineInfo, fetch_checkout_lines
+from ....checkout.fetch import (
+    CheckoutLineInfo,
+    fetch_checkout_info,
+    fetch_checkout_lines,
+)
 from ....checkout.utils import add_variant_to_checkout
 from ....core.prices import quantize_price
 from ....core.taxes import zero_taxed_money
@@ -554,9 +558,10 @@ def test_calculations_checkout_total_with_vatlayer(
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [])
     checkout_subtotal = calculations.checkout_total(
         manager=manager,
-        checkout=checkout_with_item,
+        checkout_info=checkout_info,
         lines=lines,
         address=checkout_with_item.shipping_address,
     )

@@ -629,7 +629,7 @@ def test_create_order_with_gift_card_partial_use(
 
     price_without_gift_card = calculations.checkout_total(
         manager=manager,
-        checkout=checkout,
+        checkout_info=checkout_info,
         lines=lines,
         address=checkout.shipping_address,
     )
@@ -682,7 +682,7 @@ def test_create_order_with_many_gift_cards(
 
     price_without_gift_card = calculations.checkout_total(
         manager=manager,
-        checkout=checkout,
+        checkout_info=checkout_info,
         lines=lines,
         address=checkout.shipping_address,
     )
