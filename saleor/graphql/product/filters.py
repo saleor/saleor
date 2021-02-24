@@ -218,7 +218,7 @@ def product_search(phrase):
         phrase (str): searched phrase
 
     """
-    query = SearchQuery(phrase, config="english")
+    query = SearchQuery(f"'{phrase}':*", config="english", search_type="raw")
     vector = F("search_vector")
     ft_in_description_or_name = Q(search_vector=query)
 

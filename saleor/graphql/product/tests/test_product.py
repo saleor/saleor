@@ -2487,7 +2487,7 @@ def test_search_product_by_description_and_name(
     product.save()
 
     product_2 = product_list[1]
-    product_2.name = "red product"
+    product_2.name = "redproduct"
     product_2.save()
     product_1 = product_list[0]
     product_1.description_plaintext = "some red product"
