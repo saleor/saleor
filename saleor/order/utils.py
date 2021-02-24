@@ -1,17 +1,17 @@
 from decimal import Decimal
-from functools import wraps
-from typing import Iterable, List
+from functools import partial, wraps
+from typing import Iterable, List, Optional, Union
 
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
-from prices import Money, TaxedMoney
+from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 
 from ..account.models import User
 from ..core.taxes import zero_money
 from ..core.weight import zero_weight
-from ..discount import OrderDiscountType
-from ..discount.models import NotApplicable, Voucher, VoucherType
+from ..discount import DiscountValueType, OrderDiscountType
+from ..discount.models import NotApplicable, OrderDiscount, Voucher, VoucherType
 from ..discount.utils import get_products_voucher_discount, validate_voucher_in_order
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import Order, OrderLine
@@ -75,6 +75,20 @@ def get_voucher_discount_assigned_to_order(order: Order):
     return order.discounts.filter(type=OrderDiscountType.VOUCHER).first()
 
 
+def recalculate_order_discounts(order: Order):
+    """Recalculate all order discounts assigned to order."""
+
+    order_discounts = order.discounts.filter(type=OrderDiscountType.MANUAL)
+    for order_discount in order_discounts:
+        update_order_discount_for_order(
+            order,
+            order_discount,
+            force_update=True,
+            discount_amount=Money(Decimal(0), currency=order.currency),
+            save_order=False,
+        )
+
+
 @update_voucher_discount
 def recalculate_order(order: Order, **kwargs):
     """Recalculate and assign total price of order.
@@ -87,7 +101,7 @@ def recalculate_order(order: Order, **kwargs):
     """
 
     # avoid using prefetched order lines
-    lines = [OrderLine.objects.get(pk=line.pk) for line in order]
+    lines = OrderLine.objects.filter(order_id=order.pk)
     prices = [line.total_price for line in lines]
     total = sum(prices, order.shipping_price)
     undiscounted_total = TaxedMoney(total.net, total.gross)
@@ -101,6 +115,9 @@ def recalculate_order(order: Order, **kwargs):
 
     order.total = total
     order.undiscounted_total = undiscounted_total
+
+    recalculate_order_discounts(order)
+
     order.save(
         update_fields=[
             "total_net_amount",
@@ -129,37 +146,36 @@ def recalculate_order_weight(order):
     order.save(update_fields=["weight"])
 
 
-def update_order_prices(order, discounts):
-    """Update prices in order with given discounts and proper taxes."""
-    manager = get_plugins_manager()
-    channel = order.channel
-    for line in order:  # type: OrderLine
-        if line.variant:
-            variant = line.variant
-            product = variant.product
-            channel_listing = line.variant.channel_listings.get(channel=channel)
-            collections = product.collections.all()
-            unit_price = line.variant.get_price(
-                product, collections, channel, channel_listing, discounts
-            )
-            unit_price = TaxedMoney(unit_price, unit_price)
-            line.unit_price = unit_price
-            line.save(
-                update_fields=[
-                    "currency",
-                    "unit_price_net_amount",
-                    "unit_price_gross_amount",
-                ]
-            )
+def update_order_line_prices(line: "OrderLine", order: "Order", manager):
+    variant = line.variant
+    product = variant.product  # type: ignore
 
-            price = manager.calculate_order_line_unit(order, line, variant, product)
-            if price != line.unit_price:
-                line.unit_price = price
-                if price.tax and price.net:
-                    line.tax_rate = manager.get_order_line_tax_rate(
-                        order, product, None, price
-                    )
-                line.save()
+    price = manager.calculate_order_line_unit(order, line, variant, product)
+    if price != line.unit_price:
+        line.unit_price = price
+        line.total_price = line.unit_price * line.quantity
+        if price.tax and price.net:
+            line.tax_rate = manager.get_order_line_tax_rate(order, product, None, price)
+
+
+def update_order_prices(order, manager):
+    """Update prices in order with given discounts and proper taxes."""
+
+    lines_to_update = []
+    for line in order.lines.all():  # type: OrderLine
+        if line.variant:
+            update_order_line_prices(line, order, manager)
+            lines_to_update.append(line)
+    OrderLine.objects.bulk_update(
+        lines_to_update,
+        [
+            "tax_rate",
+            "unit_price_net_amount",
+            "unit_price_gross_amount",
+            "total_price_net_amount",
+            "total_price_gross_amount",
+        ],
+    )
 
     if order.shipping_method:
         shipping_price = manager.calculate_order_shipping(order)
@@ -491,3 +507,164 @@ def get_total_order_discount(order: Order) -> Money:
     )
     total_order_discount = min(total_order_discount, order.undiscounted_total_gross)
     return total_order_discount
+
+
+def get_order_discounts(order: Order) -> List[OrderDiscount]:
+    """Return all discounts applied to the order by staff user."""
+    return list(order.discounts.filter(type=OrderDiscountType.MANUAL))
+
+
+def apply_discount_to_value(
+    value: Decimal,
+    value_type: str,
+    currency: str,
+    price_to_discount: Union[Money, TaxedMoney],
+):
+    """Calculate the price based on the provided values."""
+    if value_type == DiscountValueType.FIXED:
+        discount_method = fixed_discount
+        discount_kwargs = {"discount": Money(value, currency)}
+    else:
+        discount_method = percentage_discount
+        discount_kwargs = {"percentage": value}
+    discount = partial(
+        discount_method,
+        **discount_kwargs,
+    )
+    return discount(price_to_discount)
+
+
+def create_order_discount_for_order(
+    order: Order, reason: str, value_type: str, value: Decimal
+):
+    """Add new order discount and update the prices."""
+
+    new_total = apply_discount_to_value(value, value_type, order.currency, order.total)
+    order.discounts.create(
+        value_type=value_type,
+        value=value,
+        reason=reason,
+        amount=(order.total - new_total).gross,  # type: ignore
+    )
+    order.total = new_total
+    order.save(update_fields=["total_net_amount", "total_gross_amount"])
+
+
+def update_order_discount_for_order(
+    order: Order,
+    order_discount_to_update: OrderDiscount,
+    reason: Optional[str] = None,
+    value_type: Optional[str] = None,
+    value: Optional[Decimal] = None,
+    force_update: bool = False,
+    discount_amount: Optional[Money] = None,
+    save_order: bool = True,
+):
+    """Update the order_discount for an order and recalculate the order's prices."""
+    current_value = order_discount_to_update.value
+    current_value_type = order_discount_to_update.value_type
+    value = value if value is not None else current_value
+    value_type = value_type or order_discount_to_update.value_type
+    currency = order_discount_to_update.currency
+    fields_to_update = []
+    if reason is not None:
+        order_discount_to_update.reason = reason
+        fields_to_update.append("reason")
+
+    if discount_amount is None:
+        discount_amount = order_discount_to_update.amount
+
+    if force_update or current_value != value or current_value_type != value_type:
+        # Add to total current amount of discount.
+        current_total = order.total + discount_amount
+        new_total = apply_discount_to_value(value, value_type, currency, current_total)
+        new_amount = (current_total - new_total).gross
+
+        order_discount_to_update.amount = new_amount
+        order_discount_to_update.value = value
+        order_discount_to_update.value_type = value_type
+        fields_to_update.extend(["value_type", "value", "amount_value"])
+
+        order.total = new_total
+        if save_order:
+            order.save(update_fields=["total_net_amount", "total_gross_amount"])
+    order_discount_to_update.save(update_fields=fields_to_update)
+
+
+def remove_order_discount_from_order(order: Order, order_discount: OrderDiscount):
+    """Remove the order discount from order and update the prices."""
+
+    discount_amount = order_discount.amount
+    order_discount.delete()
+
+    order.total += discount_amount
+    order.save(update_fields=["total_net_amount", "total_gross_amount"])
+
+
+def update_discount_for_order_line(
+    order_line: OrderLine,
+    order: "Order",
+    reason: Optional[str],
+    value_type: Optional[str],
+    value: Optional[Decimal],
+    manager,
+):
+    """Update discount fields for order line. Apply discount to the price."""
+    current_value = order_line.unit_discount_value
+    current_value_type = order_line.unit_discount_type
+    value = value or current_value
+    value_type = value_type or current_value_type
+    fields_to_update = []
+    if reason is not None:
+        order_line.unit_discount_reason = reason
+        fields_to_update.append("unit_discount_reason")
+    if current_value != value or current_value_type != value_type:
+        undiscounted_unit_price = order_line.undiscounted_unit_price
+        currency = undiscounted_unit_price.currency
+        unit_price_with_discount = apply_discount_to_value(
+            value, value_type, currency, undiscounted_unit_price
+        )
+        order_line.unit_discount = (
+            undiscounted_unit_price - unit_price_with_discount
+        ).gross
+        order_line.unit_price = unit_price_with_discount
+        order_line.unit_discount_type = value_type
+        order_line.unit_discount_value = value
+        order_line.total_price = order_line.unit_price * order_line.quantity
+        update_order_line_prices(order_line, order, manager)
+        fields_to_update.extend(
+            [
+                "tax_rate",
+                "unit_discount_value",
+                "unit_discount_amount",
+                "unit_discount_type",
+                "unit_discount_reason",
+                "unit_price_gross_amount",
+                "unit_price_net_amount",
+                "total_price_net_amount",
+                "total_price_gross_amount",
+            ]
+        )
+    order_line.save(update_fields=fields_to_update)
+
+
+def remove_discount_from_order_line(order_line: OrderLine, order: "Order", manager):
+    """Drop discount applied to order line. Restore undiscounted price."""
+    order_line.unit_price = order_line.undiscounted_unit_price
+    order_line.unit_discount_amount = Decimal(0)
+    order_line.unit_discount_value = Decimal(0)
+    order_line.unit_discount_reason = ""
+    order_line.total_price = order_line.unit_price * order_line.quantity
+    update_order_line_prices(order_line, order, manager)
+    order_line.save(
+        update_fields=[
+            "tax_rate",
+            "unit_discount_value",
+            "unit_discount_amount",
+            "unit_discount_reason",
+            "unit_price_gross_amount",
+            "unit_price_net_amount",
+            "total_price_net_amount",
+            "total_price_gross_amount",
+        ]
+    )

@@ -2708,6 +2708,11 @@ type Mutation {
   orderFulfillmentUpdateTracking(id: ID!, input: FulfillmentUpdateTrackingInput!): FulfillmentUpdateTracking
   orderFulfillmentRefundProducts(input: OrderRefundProductsInput!, order: ID!): FulfillmentRefundProducts
   orderFulfillmentReturnProducts(input: OrderReturnProductsInput!, order: ID!): FulfillmentReturnProducts
+  orderDiscountAdd(input: OrderDiscountCommonInput!, orderId: ID!): OrderDiscountAdd
+  orderDiscountUpdate(discountId: ID!, input: OrderDiscountCommonInput!): OrderDiscountUpdate
+  orderDiscountDelete(discountId: ID!): OrderDiscountDelete
+  orderLineDiscountUpdate(input: OrderDiscountCommonInput!, orderLineId: ID!): OrderLineDiscountUpdate
+  orderLineDiscountRemove(orderLineId: ID!): OrderLineDiscountRemove
   orderMarkAsPaid(id: ID!, transactionReference: String): OrderMarkAsPaid
   orderRefund(amount: PositiveDecimal!, id: ID!): OrderRefund
   orderUpdate(id: ID!, input: OrderUpdateInput!): OrderUpdate
@@ -2900,6 +2905,7 @@ type Order implements Node & ObjectWithMetadata {
   paymentStatusDisplay: String!
   payments: [Payment]
   total: TaxedMoney!
+  undiscountedTotal: TaxedMoney!
   subtotal: TaxedMoney!
   statusDisplay: String
   canFinalize: Boolean!
@@ -2912,6 +2918,7 @@ type Order implements Node & ObjectWithMetadata {
   discount: Money @deprecated(reason: "Use discounts field. This field will be removed in Saleor 4.0.")
   discountName: String @deprecated(reason: "Use discounts field. This field will be removed in Saleor 4.0.")
   translatedDiscountName: String @deprecated(reason: "Use discounts field. This field will be removed in Saleor 4.0.")
+  discounts: [OrderDiscount!]
 }
 
 enum OrderAction {
@@ -2972,6 +2979,46 @@ enum OrderDirection {
   DESC
 }
 
+type OrderDiscount implements Node {
+  id: ID!
+  type: OrderDiscountType!
+  valueType: DiscountValueTypeEnum!
+  value: PositiveDecimal!
+  name: String
+  translatedName: String
+  reason: String
+  amount: Money!
+}
+
+type OrderDiscountAdd {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  order: Order
+  orderErrors: [OrderError!]!
+}
+
+input OrderDiscountCommonInput {
+  valueType: DiscountValueTypeEnum!
+  value: PositiveDecimal!
+  reason: String
+}
+
+type OrderDiscountDelete {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  order: Order
+  orderErrors: [OrderError!]!
+}
+
+enum OrderDiscountType {
+  VOUCHER
+  MANUAL
+}
+
+type OrderDiscountUpdate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  order: Order
+  orderErrors: [OrderError!]!
+}
+
 input OrderDraftFilterInput {
   customer: String
   created: DateRangeInput
@@ -2993,6 +3040,7 @@ enum OrderErrorCode {
   CANNOT_CANCEL_FULFILLMENT
   CANNOT_CANCEL_ORDER
   CANNOT_DELETE
+  CANNOT_DISCOUNT
   CANNOT_REFUND
   CAPTURE_INACTIVE_PAYMENT
   NOT_EDITABLE
@@ -3147,20 +3195,39 @@ type OrderLine implements Node {
   isShippingRequired: Boolean!
   quantity: Int!
   quantityFulfilled: Int!
+  unitDiscountReason: String
   taxRate: Float!
   digitalContentUrl: DigitalContentUrl
   thumbnail(size: Int): Image
   unitPrice: TaxedMoney!
+  undiscountedUnitPrice: TaxedMoney!
+  unitDiscount: Money!
+  unitDiscountValue: PositiveDecimal!
   totalPrice: TaxedMoney!
   variant: ProductVariant
   translatedProductName: String!
   translatedVariantName: String!
   allocations: [Allocation!]
+  unitDiscountType: DiscountValueTypeEnum
 }
 
 input OrderLineCreateInput {
   quantity: Int!
   variantId: ID!
+}
+
+type OrderLineDiscountRemove {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  orderLine: OrderLine
+  order: Order
+  orderErrors: [OrderError!]!
+}
+
+type OrderLineDiscountUpdate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  orderLine: OrderLine
+  order: Order
+  orderErrors: [OrderError!]!
 }
 
 input OrderLineInput {

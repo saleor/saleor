@@ -242,10 +242,10 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             return
         shipping_address = cleaned_input.get("shipping_address")
         if shipping_address and instance.is_shipping_required():
-            update_order_prices(instance, info.context.discounts)
+            update_order_prices(instance, info.context.plugins)
         billing_address = cleaned_input.get("billing_address")
         if billing_address and not instance.is_shipping_required():
-            update_order_prices(instance, info.context.discounts)
+            update_order_prices(instance, info.context.plugins)
 
     @classmethod
     @transaction.atomic
@@ -294,7 +294,9 @@ class DraftOrderUpdate(DraftOrderCreate):
 
     @classmethod
     def get_instance(cls, info, **data):
-        instance = super().get_instance(info, **data)
+        instance = super().get_instance(
+            info, qs=models.Order.objects.prefetch_related("lines"), **data
+        )
         if instance.status != OrderStatus.DRAFT:
             raise ValidationError(
                 {

@@ -3,7 +3,13 @@ from collections import defaultdict
 from django.db.models import F
 
 from ...discount import DiscountInfo
-from ...discount.models import Sale, SaleChannelListing, Voucher, VoucherChannelListing
+from ...discount.models import (
+    OrderDiscount,
+    Sale,
+    SaleChannelListing,
+    Voucher,
+    VoucherChannelListing,
+)
 from ...discount.utils import (
     fetch_categories,
     fetch_collections,
@@ -117,3 +123,14 @@ class VoucherChannelListingByVoucherIdLoader(DataLoader):
         return [
             voucher_channel_listings_by_voucher_map[voucher_id] for voucher_id in keys
         ]
+
+
+class OrderDiscountsByOrderIDLoader(DataLoader):
+    context_key = "orderdiscounts_by_order_id"
+
+    def batch_load(self, keys):
+        discounts = OrderDiscount.objects.filter(order_id__in=keys)
+        discount_map = defaultdict(list)
+        for discount in discounts:
+            discount_map[discount.order_id].append(discount)
+        return [discount_map.get(order_id, []) for order_id in keys]

@@ -10,6 +10,13 @@ from .bulk_mutations.draft_orders import DraftOrderBulkDelete, DraftOrderLinesBu
 from .bulk_mutations.orders import OrderBulkCancel
 from .enums import OrderStatusFilter
 from .filters import DraftOrderFilter, OrderFilter
+from .mutations.discount_order import (
+    OrderDiscountAdd,
+    OrderDiscountDelete,
+    OrderDiscountUpdate,
+    OrderLineDiscountRemove,
+    OrderLineDiscountUpdate,
+)
 from .mutations.draft_orders import (
     DraftOrderComplete,
     DraftOrderCreate,
@@ -168,6 +175,13 @@ class OrderMutations(graphene.ObjectType):
     order_fulfillment_update_tracking = FulfillmentUpdateTracking.Field()
     order_fulfillment_refund_products = FulfillmentRefundProducts.Field()
     order_fulfillment_return_products = FulfillmentReturnProducts.Field()
+
+    order_discount_add = OrderDiscountAdd.Field()
+    order_discount_update = OrderDiscountUpdate.Field()
+    order_discount_delete = OrderDiscountDelete.Field()
+
+    order_line_discount_update = OrderLineDiscountUpdate.Field()
+    order_line_discount_remove = OrderLineDiscountRemove.Field()
 
     order_mark_as_paid = OrderMarkAsPaid.Field()
     order_refund = OrderRefund.Field()

@@ -13,7 +13,7 @@ from django.utils.timezone import now
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField, TaxedMoneyField
 from measurement.measures import Weight
-from prices import Money
+from prices import Money, TaxedMoney
 
 from ..account.models import Address
 from ..channel.models import Channel
@@ -490,6 +490,10 @@ class OrderLine(models.Model):
             if self.variant_name
             else self.product_name
         )
+
+    @property
+    def undiscounted_unit_price(self) -> "TaxedMoney":
+        return self.unit_price + self.unit_discount
 
     @property
     def quantity_unfulfilled(self):

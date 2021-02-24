@@ -218,7 +218,12 @@ class OrderUpdateShipping(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
+        order = cls.get_node_or_error(
+            info,
+            data.get("id"),
+            only_type=Order,
+            qs=models.Order.objects.prefetch_related("lines"),
+        )
         data = data.get("input")
 
         if not data["shipping_method"]:
@@ -275,7 +280,7 @@ class OrderUpdateShipping(BaseMutation):
                 "shipping_tax_rate",
             ]
         )
-        update_order_prices(order, info.context.discounts)
+        update_order_prices(order, info.context.plugins)
         # Post-process the results
         order_shipping_updated(order)
         return OrderUpdateShipping(order=order)

@@ -22,7 +22,7 @@ from django.test.utils import CaptureQueriesContext as BaseCaptureQueriesContext
 from django.utils import timezone
 from django_countries import countries
 from PIL import Image
-from prices import Money, TaxedMoney
+from prices import Money, TaxedMoney, fixed_discount
 
 from ..account.models import Address, StaffNotificationRecipient, User
 from ..app.models import App, AppInstallation
@@ -55,7 +55,11 @@ from ..giftcard.models import GiftCard
 from ..menu.models import Menu, MenuItem, MenuItemTranslation
 from ..order import OrderStatus
 from ..order.actions import cancel_fulfillment, fulfill_order_line
-from ..order.events import OrderEvents
+from ..order.events import (
+    OrderEvents,
+    draft_order_added_products_event,
+    fulfillment_refunded_event,
+)
 from ..order.models import FulfillmentStatus, Order, OrderEvent, OrderLine
 from ..order.utils import recalculate_order
 from ..page.models import Page, PageTranslation, PageType
@@ -2266,6 +2270,33 @@ def order_with_lines(
 
 
 @pytest.fixture
+def order_with_lines_and_events(order_with_lines, staff_user):
+    events = []
+    for event_type, _ in OrderEvents.CHOICES:
+        events.append(
+            OrderEvent(
+                type=event_type,
+                order=order_with_lines,
+                user=staff_user,
+            )
+        )
+    OrderEvent.objects.bulk_create(events)
+    fulfillment_refunded_event(
+        order=order_with_lines,
+        user=staff_user,
+        refunded_lines=[(1, order_with_lines.lines.first())],
+        amount=Decimal("10.0"),
+        shipping_costs_included=False,
+    )
+    draft_order_added_products_event(
+        order=order_with_lines,
+        user=staff_user,
+        order_lines=[(1, order_with_lines.lines.first())],
+    )
+    return order_with_lines
+
+
+@pytest.fixture
 def order_with_lines_channel_PLN(
     customer_user,
     product_type,
@@ -2501,6 +2532,22 @@ def draft_order(order_with_lines):
     order_with_lines.status = OrderStatus.DRAFT
     order_with_lines.save(update_fields=["status"])
     return order_with_lines
+
+
+@pytest.fixture
+def draft_order_with_fixed_discount_order(draft_order):
+    value = Decimal("20")
+    discount = partial(fixed_discount, discount=Money(value, draft_order.currency))
+    draft_order.undiscounted_total = draft_order.total
+    draft_order.total = discount(draft_order.total)
+    draft_order.discounts.create(
+        value_type=DiscountValueType.FIXED,
+        value=value,
+        reason="Discount reason",
+        amount=(draft_order.undiscounted_total - draft_order.total).gross,  # type: ignore
+    )
+    draft_order.save()
+    return draft_order
 
 
 @pytest.fixture
