@@ -238,6 +238,7 @@ class OrderDiscountDelete(OrderDiscountCommon):
         )
 
         order.refresh_from_db()
+        recalculate_order(order)
         return OrderDiscountDelete(order=order)
         # FIXME call order event here. Update webhook payload
 

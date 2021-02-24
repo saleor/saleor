@@ -95,10 +95,15 @@ def recalculate_order_discounts(order: Order):
         )
         discount_value = order_discount.value
         discount_type = order_discount.value_type
+        amount = order_discount.amount
 
         if (
-            discount_type == DiscountValueType.PERCENTAGE
-            or current_total < discount_value
+            (
+                discount_type == DiscountValueType.PERCENTAGE
+                or current_total < discount_value
+            )
+            # No need to add new event when new and old amount of discount is the same
+            and amount != current_order_discount.amount
         ):
             events.order_discount_automatically_updated_event(
                 order=order,
