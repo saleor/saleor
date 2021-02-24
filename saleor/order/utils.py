@@ -10,6 +10,7 @@ from prices import Money, TaxedMoney
 from ..account.models import User
 from ..core.taxes import zero_money
 from ..core.weight import zero_weight
+from ..discount import OrderDiscountType
 from ..discount.models import NotApplicable, Voucher, VoucherType
 from ..discount.utils import get_products_voucher_discount, validate_voucher_in_order
 from ..order import FulfillmentStatus, OrderStatus
@@ -65,10 +66,13 @@ def update_voucher_discount(func):
                 discount = get_voucher_discount_for_order(order)
             except NotApplicable:
                 discount = zero_money(order.currency)
-            order.discount = discount
-        return func(*args, **kwargs)
+        return func(*args, **kwargs, discount=discount)
 
     return decorator
+
+
+def get_voucher_discount_assigned_to_order(order: Order):
+    return order.discounts.filter(type=OrderDiscountType.VOUCHER).first()
 
 
 @update_voucher_discount
@@ -81,23 +85,37 @@ def recalculate_order(order: Order, **kwargs):
     Voucher discount amount is recalculated by default. To avoid this, pass
     update_voucher_discount argument set to False.
     """
+
     # avoid using prefetched order lines
     lines = [OrderLine.objects.get(pk=line.pk) for line in order]
     prices = [line.total_price for line in lines]
     total = sum(prices, order.shipping_price)
+    undiscounted_total = TaxedMoney(total.net, total.gross)
+
+    voucher_discount = kwargs.get("discount", zero_money(order.currency))
+
     # discount amount can't be greater than order total
-    order.discount_amount = min(order.discount_amount, total.gross.amount)
-    if order.discount:
-        total -= order.discount
+    voucher_discount = min(voucher_discount, total.gross)
+
+    total -= voucher_discount
+
     order.total = total
+    order.undiscounted_total = undiscounted_total
     order.save(
         update_fields=[
-            "discount_amount",
             "total_net_amount",
             "total_gross_amount",
+            "undiscounted_total_net_amount",
+            "undiscounted_total_gross_amount",
             "currency",
         ]
     )
+    if voucher_discount:
+        assigned_order_discount = get_voucher_discount_assigned_to_order(order)
+        if assigned_order_discount:
+            assigned_order_discount.amount_value = voucher_discount.amount
+            assigned_order_discount.value = voucher_discount.amount
+            assigned_order_discount.save(update_fields=["value", "amount_value"])
     recalculate_order_weight(order)
 
 
@@ -462,3 +480,14 @@ def get_voucher_discount_for_order(order: Order) -> Money:
 
 def match_orders_with_new_user(user: User) -> None:
     Order.objects.confirmed().filter(user_email=user.email, user=None).update(user=user)
+
+
+def get_total_order_discount(order: Order) -> Money:
+    """Return total order discount assigned to the order."""
+    all_discounts = order.discounts.all()
+    total_order_discount = Money(
+        sum([discount.amount_value for discount in all_discounts]),
+        currency=order.currency,
+    )
+    total_order_discount = min(total_order_discount, order.undiscounted_total_gross)
+    return total_order_discount

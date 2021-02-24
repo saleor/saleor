@@ -447,6 +447,26 @@ class Order(CountableDjangoObjectType):
     is_shipping_required = graphene.Boolean(
         description="Returns True, if order requires shipping.", required=True
     )
+    discount = graphene.Field(
+        Money,
+        description="Returns applied discount.",
+        deprecation_reason=(
+            "Use discounts field. This field will be removed in Saleor 4.0."
+        ),
+    )
+    discount_name = graphene.String(
+        description="Discount name.",
+        deprecation_reason=(
+            "Use discounts field. This field will be removed in Saleor 4.0."
+        ),
+    )
+
+    translated_discount_name = graphene.String(
+        description="Translated discount name.",
+        deprecation_reason=(
+            "Use discounts field. This field will be removed in Saleor 4.0."
+        ),
+    )
 
     class Meta:
         description = "Represents an order in the shop."
@@ -477,6 +497,23 @@ class Order(CountableDjangoObjectType):
             "weight",
             "redirect_url",
         ]
+
+    @staticmethod
+    def resolve_discount(root: models.Order, _info):
+        discount = root.discounts.first()
+        return (
+            Money(amount=discount.value, currency=root.currency) if discount else None
+        )
+
+    @staticmethod
+    def resolve_discount_name(root: models.Order, _info):
+        discount = root.discounts.first()
+        return discount.name if discount else None
+
+    @staticmethod
+    def resolve_translated_discount_name(root: models.Order, _info):
+        discount = root.discounts.first()
+        return discount.translated_name if discount else None
 
     @staticmethod
     def resolve_billing_address(root: models.Order, info):

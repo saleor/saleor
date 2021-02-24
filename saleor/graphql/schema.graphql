@@ -2883,9 +2883,6 @@ type Order implements Node & ObjectWithMetadata {
   token: String!
   voucher: Voucher
   giftCards: [GiftCard]
-  discount: Money
-  discountName: String
-  translatedDiscountName: String
   displayGrossPrices: Boolean!
   customerNote: String!
   weight: Weight
@@ -2912,6 +2909,9 @@ type Order implements Node & ObjectWithMetadata {
   totalBalance: Money!
   userEmail: String
   isShippingRequired: Boolean!
+  discount: Money @deprecated(reason: "Use discounts field. This field will be removed in Saleor 4.0.")
+  discountName: String @deprecated(reason: "Use discounts field. This field will be removed in Saleor 4.0.")
+  translatedDiscountName: String @deprecated(reason: "Use discounts field. This field will be removed in Saleor 4.0.")
 }
 
 enum OrderAction {
