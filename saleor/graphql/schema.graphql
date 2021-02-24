@@ -3089,6 +3089,7 @@ type OrderEvent implements Node {
   transactionReference: String
   shippingCostsIncluded: Boolean
   relatedOrder: Order
+  discount: OrderEventDiscountObject
 }
 
 type OrderEventCountableConnection {
@@ -3102,10 +3103,21 @@ type OrderEventCountableEdge {
   cursor: String!
 }
 
+type OrderEventDiscountObject {
+  valueType: DiscountValueTypeEnum!
+  value: PositiveDecimal!
+  reason: String
+  amount: Money
+  oldValueType: DiscountValueTypeEnum
+  oldValue: PositiveDecimal
+  oldAmount: Money
+}
+
 type OrderEventOrderLineObject {
   quantity: Int
   orderLine: OrderLine
   itemName: String
+  discount: OrderEventDiscountObject
 }
 
 enum OrderEventsEmailsEnum {
@@ -3132,6 +3144,12 @@ enum OrderEventsEnum {
   ORDER_MARKED_AS_PAID
   ORDER_FULLY_PAID
   ORDER_REPLACEMENT_CREATED
+  ORDER_DISCOUNT_ADDED
+  ORDER_DISCOUNT_AUTOMATICALLY_UPDATED
+  ORDER_DISCOUNT_UPDATED
+  ORDER_DISCOUNT_DELETED
+  ORDER_LINE_DISCOUNT_UPDATED
+  ORDER_LINE_DISCOUNT_REMOVED
   UPDATED_ADDRESS
   EMAIL_SENT
   CONFIRMED

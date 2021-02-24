@@ -1,6 +1,8 @@
+from decimal import Decimal
 from typing import Optional
 
 import graphene
+import prices
 from django.core.exceptions import ValidationError
 from graphene import relay
 from promise import Promise
@@ -50,10 +52,65 @@ from .enums import OrderEventsEmailsEnum, OrderEventsEnum
 from .utils import validate_draft_order
 
 
+def get_order_discount_event(discount_obj: dict):
+    currency = discount_obj["currency"]
+
+    amount = prices.Money(Decimal(discount_obj["amount_value"]), currency)
+
+    old_amount = None
+    old_amount_value = discount_obj.get("old_amount_value")
+    if old_amount_value:
+        old_amount = prices.Money(Decimal(old_amount_value), currency)
+
+    return OrderEventDiscountObject(
+        value=discount_obj.get("value"),
+        amount=amount,
+        value_type=discount_obj.get("value_type"),
+        reason=discount_obj.get("reason"),
+        old_value_type=discount_obj.get("old_value_type"),
+        old_value=discount_obj.get("old_value"),
+        old_amount=old_amount,
+    )
+
+
+class OrderDiscount(graphene.ObjectType):
+    value_type = graphene.Field(
+        DiscountValueTypeEnum,
+        required=True,
+        description="Type of the discount: fixed or percent.",
+    )
+    value = PositiveDecimal(
+        required=True,
+        description="Value of the discount. Can store fixed value or percent value.",
+    )
+    reason = graphene.String(
+        required=False, description="Explanation for the applied discount."
+    )
+    amount = graphene.Field(Money, description="Returns amount of discount.")
+
+
+class OrderEventDiscountObject(OrderDiscount):
+    old_value_type = graphene.Field(
+        DiscountValueTypeEnum,
+        required=False,
+        description="Type of the discount: fixed or percent.",
+    )
+    old_value = PositiveDecimal(
+        required=False,
+        description="Value of the discount. Can store fixed value or percent value.",
+    )
+    old_amount = graphene.Field(
+        Money, required=False, description="Returns amount of discount."
+    )
+
+
 class OrderEventOrderLineObject(graphene.ObjectType):
     quantity = graphene.Int(description="The variant quantity.")
     order_line = graphene.Field(lambda: OrderLine, description="The order line.")
     item_name = graphene.String(description="The variant name.")
+    discount = graphene.Field(
+        OrderEventDiscountObject, description="The discount applied to the order line."
+    )
 
 
 class OrderEvent(CountableDjangoObjectType):
@@ -94,6 +151,9 @@ class OrderEvent(CountableDjangoObjectType):
     )
     related_order = graphene.Field(
         lambda: Order, description="The order which is related to this order."
+    )
+    discount = graphene.Field(
+        OrderEventDiscountObject, description="The discount applied to the order."
     )
 
     class Meta:
@@ -178,11 +238,16 @@ class OrderEvent(CountableDjangoObjectType):
                 if line.pk == line_pk:
                     line_object = line
                     break
+
+            discount = raw_line.get("discount")
+            if discount:
+                discount = get_order_discount_event(discount)
             results.append(
                 OrderEventOrderLineObject(
                     quantity=raw_line["quantity"],
                     order_line=line_object,
                     item_name=raw_line["item"],
+                    discount=discount,
                 )
             )
 
@@ -212,6 +277,13 @@ class OrderEvent(CountableDjangoObjectType):
         if not order_pk:
             return None
         return OrderByIdLoader(info.context).load(order_pk)
+
+    @staticmethod
+    def resolve_discount(root: models.OrderEvent, info):
+        discount_obj = root.parameters.get("discount")
+        if not discount_obj:
+            return None
+        return get_order_discount_event(discount_obj)
 
 
 class FulfillmentLine(CountableDjangoObjectType):

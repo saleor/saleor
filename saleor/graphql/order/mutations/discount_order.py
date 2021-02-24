@@ -1,10 +1,12 @@
+import copy
+
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from prices import Money
 
 from ....core.permissions import OrderPermissions
-from ....order import OrderStatus
+from ....order import OrderStatus, events
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import (
     create_order_discount_for_order,
@@ -19,6 +21,7 @@ from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
 from ...discount.enums import DiscountValueTypeEnum
+from ...utils import get_user_or_app_from_context
 from ..types import Order, OrderLine
 
 
@@ -118,6 +121,7 @@ class OrderDiscountAdd(OrderDiscountCommon):
     @classmethod
     @transaction.atomic
     def perform_mutation(cls, root, info, **data):
+        requester = get_user_or_app_from_context(info.context)
         order = cls.get_node_or_error(info, data.get("order_id"), only_type=Order)
         input = data.get("input", {})
         cls.validate(info, order, input)
@@ -125,7 +129,15 @@ class OrderDiscountAdd(OrderDiscountCommon):
         reason = input.get("reason")
         value_type = input.get("value_type")
         value = input.get("value")
-        create_order_discount_for_order(order, reason, value_type, value)
+        order_discount = create_order_discount_for_order(
+            order, reason, value_type, value
+        )
+
+        events.order_discount_added_event(
+            order=order,
+            user=requester,
+            order_discount=order_discount,
+        )
         # FIXME call tax plugins here
         return OrderDiscountAdd(order=order)
 
@@ -160,6 +172,7 @@ class OrderDiscountUpdate(OrderDiscountCommon):
     @classmethod
     @transaction.atomic
     def perform_mutation(cls, root, info, **data):
+        requester = get_user_or_app_from_context(info.context)
         order_discount = cls.get_node_or_error(
             info, data.get("discount_id"), only_type="OrderDiscount"
         )
@@ -171,9 +184,25 @@ class OrderDiscountUpdate(OrderDiscountCommon):
         value_type = input.get("value_type")
         value = input.get("value")
 
+        order_discount_before_update = copy.deepcopy(order_discount)
         update_order_discount_for_order(
-            order, order_discount, reason=reason, value_type=value_type, value=value
+            order,
+            order_discount,
+            reason=reason,
+            value_type=value_type,
+            value=value,
         )
+        if (
+            order_discount_before_update.value_type != value_type
+            or order_discount_before_update.value != value
+        ):
+            # call update event only when we changed the type or value of the discount
+            events.order_discount_updated_event(
+                order=order,
+                user=requester,
+                order_discount=order_discount,
+                old_order_discount=order_discount_before_update,
+            )
         return OrderDiscountUpdate(order=order)
 
 
@@ -194,6 +223,7 @@ class OrderDiscountDelete(OrderDiscountCommon):
     @classmethod
     @transaction.atomic
     def perform_mutation(cls, root, info, **data):
+        requester = get_user_or_app_from_context(info.context)
         order_discount = cls.get_node_or_error(
             info, data.get("discount_id"), only_type="OrderDiscount"
         )
@@ -201,6 +231,12 @@ class OrderDiscountDelete(OrderDiscountCommon):
         cls.validate_order(info, order)
 
         remove_order_discount_from_order(order, order_discount)
+        events.order_discount_deleted_event(
+            order=order,
+            user=requester,
+            order_discount=order_discount,
+        )
+
         order.refresh_from_db()
         return OrderDiscountDelete(order=order)
         # FIXME call order event here. Update webhook payload
@@ -244,6 +280,7 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
     @classmethod
     @transaction.atomic
     def perform_mutation(cls, root, info, **data):
+        requester = get_user_or_app_from_context(info.context)
         order_line = cls.get_node_or_error(
             info, data.get("order_line_id"), only_type=OrderLine
         )
@@ -254,6 +291,7 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
         value_type = input.get("value_type")
         value = input.get("value")
 
+        order_line_before_update = copy.deepcopy(order_line)
         update_discount_for_order_line(
             order_line,
             order=order,
@@ -262,7 +300,18 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
             value=value,
             manager=info.context.plugins,
         )
-        recalculate_order(order)
+        if (
+            order_line_before_update.unit_discount_value != value
+            or order_line_before_update.unit_discount_type != value_type
+        ):
+            # Create event only when we change type or value of the discount
+            events.order_line_discount_updated_event(
+                order=order,
+                user=requester,
+                line=order_line,
+                line_before_update=order_line_before_update,
+            )
+            recalculate_order(order)
         return OrderLineDiscountUpdate(order_line=order_line, order=order)
 
 
@@ -292,6 +341,7 @@ class OrderLineDiscountRemove(OrderDiscountCommon):
     @classmethod
     @transaction.atomic
     def perform_mutation(cls, root, info, **data):
+        requester = get_user_or_app_from_context(info.context)
         order_line = cls.get_node_or_error(
             info, data.get("order_line_id"), only_type=OrderLine
         )
@@ -299,5 +349,12 @@ class OrderLineDiscountRemove(OrderDiscountCommon):
         cls.validate(info, order)
 
         remove_discount_from_order_line(order_line, order, manager=info.context.plugins)
+
+        events.order_line_discount_removed_event(
+            order=order,
+            user=requester,
+            line=order_line,
+        )
+
         recalculate_order(order)
         return OrderLineDiscountRemove(order_line=order_line, order=order)
