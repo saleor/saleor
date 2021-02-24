@@ -658,7 +658,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         with transaction.atomic():
             shipping_address.save()
             change_shipping_address_in_checkout(
-                checkout, checkout_info, shipping_address, lines, discounts
+                checkout_info, shipping_address, lines, discounts
             )
         recalculate_checkout_discount(
             info.context.plugins, checkout_info, lines, discounts
@@ -872,9 +872,10 @@ class CheckoutComplete(BaseMutation):
                 raise e
 
             lines = fetch_checkout_lines(checkout)
+            checkout_info = fetch_checkout_info(checkout, lines, info.context.discounts)
             order, action_required, action_data = complete_checkout(
                 manager=info.context.plugins,
-                checkout=checkout,
+                checkout_info=checkout_info,
                 lines=lines,
                 payment_data=data.get("payment_data", {}),
                 store_source=store_source,
@@ -948,6 +949,7 @@ class CheckoutRemovePromoCode(BaseMutation):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
-        remove_promo_code_from_checkout(checkout, promo_code)
+        checkout_info = fetch_checkout_info(checkout, [], info.context.discounts)
+        remove_promo_code_from_checkout(checkout_info, promo_code)
         info.context.plugins.checkout_updated(checkout)
         return CheckoutRemovePromoCode(checkout=checkout)

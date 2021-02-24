@@ -39,26 +39,33 @@ def test_is_valid_shipping_method(checkout_with_item, address, shipping_zone):
     checkout.shipping_address = address
     checkout.save()
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
     # no shipping method assigned
-    assert not is_valid_shipping_method(checkout, lines, None)
+    assert not is_valid_shipping_method(checkout_info)
     shipping_method = shipping_zone.shipping_methods.first()
     checkout.shipping_method = shipping_method
     checkout.save()
+    checkout_info = fetch_checkout_info(checkout, lines, [])
 
-    assert is_valid_shipping_method(checkout, lines, None)
+    assert is_valid_shipping_method(checkout_info)
 
     zone = ShippingZone.objects.create(name="DE", countries=["DE"])
     shipping_method.shipping_zone = zone
     shipping_method.save()
-    assert not is_valid_shipping_method(checkout, lines, None)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
+
+    assert not is_valid_shipping_method(checkout_info)
 
 
 def test_clear_shipping_method(checkout, shipping_method):
     checkout.shipping_method = shipping_method
     checkout.save()
-    clear_shipping_method(checkout)
+    checkout_info = fetch_checkout_info(checkout, [], [])
+    clear_shipping_method(checkout_info)
     checkout.refresh_from_db()
     assert not checkout.shipping_method
+    assert not checkout_info.shipping_method
+    assert not checkout_info.shipping_method_channel_listings
 
 
 def test_last_change_update(checkout):
@@ -653,7 +660,8 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
 
 
 def test_get_voucher_for_checkout(checkout_with_voucher, voucher):
-    checkout_voucher = get_voucher_for_checkout(checkout_with_voucher)
+    checkout_info = fetch_checkout_info(checkout_with_voucher, [], [])
+    checkout_voucher = get_voucher_for_checkout(checkout_info)
     assert checkout_voucher == voucher
 
 
@@ -661,12 +669,14 @@ def test_get_voucher_for_checkout_expired_voucher(checkout_with_voucher, voucher
     date_yesterday = timezone.now() - datetime.timedelta(days=1)
     voucher.end_date = date_yesterday
     voucher.save()
-    checkout_voucher = get_voucher_for_checkout(checkout_with_voucher)
+    checkout_info = fetch_checkout_info(checkout_with_voucher, [], [])
+    checkout_voucher = get_voucher_for_checkout(checkout_info)
     assert checkout_voucher is None
 
 
 def test_get_voucher_for_checkout_no_voucher_code(checkout):
-    checkout_voucher = get_voucher_for_checkout(checkout)
+    checkout_info = fetch_checkout_info(checkout, [], [])
+    checkout_voucher = get_voucher_for_checkout(checkout_info)
     assert checkout_voucher is None
 
 
@@ -850,7 +860,7 @@ def test_recalculate_checkout_discount_free_shipping_for_checkout_without_shippi
 def test_change_address_in_checkout(checkout, address):
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [])
-    change_shipping_address_in_checkout(checkout, checkout_info, address, lines, [])
+    change_shipping_address_in_checkout(checkout_info, address, lines, [])
     change_billing_address_in_checkout(checkout, address)
 
     checkout.refresh_from_db()
@@ -866,7 +876,7 @@ def test_change_address_in_checkout_to_none(checkout, address):
 
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [])
-    change_shipping_address_in_checkout(checkout, checkout_info, None, lines, [])
+    change_shipping_address_in_checkout(checkout_info, None, lines, [])
     change_billing_address_in_checkout(checkout, None)
 
     checkout.refresh_from_db()
@@ -884,7 +894,7 @@ def test_change_address_in_checkout_to_same(checkout, address):
 
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [])
-    change_shipping_address_in_checkout(checkout, checkout_info, address, lines, [])
+    change_shipping_address_in_checkout(checkout_info, address, lines, [])
     change_billing_address_in_checkout(checkout, address)
 
     checkout.refresh_from_db()
@@ -902,9 +912,7 @@ def test_change_address_in_checkout_to_other(checkout, address):
 
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [])
-    change_shipping_address_in_checkout(
-        checkout, checkout_info, other_address, lines, []
-    )
+    change_shipping_address_in_checkout(checkout_info, other_address, lines, [])
     change_billing_address_in_checkout(checkout, other_address)
 
     checkout.refresh_from_db()
@@ -926,9 +934,7 @@ def test_change_address_in_checkout_from_user_address_to_other(
 
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [])
-    change_shipping_address_in_checkout(
-        checkout, checkout_info, other_address, lines, []
-    )
+    change_shipping_address_in_checkout(checkout_info, other_address, lines, [])
     change_billing_address_in_checkout(checkout, other_address)
 
     checkout.refresh_from_db()
@@ -1029,6 +1035,7 @@ def test_is_fully_paid(checkout_with_item, payment_dummy):
     checkout = checkout_with_item
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
     total = calculations.checkout_total(
         manager=manager,
         checkout=checkout,
@@ -1042,7 +1049,7 @@ def test_is_fully_paid(checkout_with_item, payment_dummy):
     payment.currency = total.gross.currency
     payment.checkout = checkout
     payment.save()
-    is_paid = is_fully_paid(manager, checkout, lines, None)
+    is_paid = is_fully_paid(manager, checkout_info, lines, None)
     assert is_paid
 
 
@@ -1050,6 +1057,7 @@ def test_is_fully_paid_many_payments(checkout_with_item, payment_dummy):
     checkout = checkout_with_item
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
     total = calculations.checkout_total(
         manager=manager,
         checkout=checkout,
@@ -1071,7 +1079,7 @@ def test_is_fully_paid_many_payments(checkout_with_item, payment_dummy):
     payment2.currency = total.gross.currency
     payment2.checkout = checkout
     payment2.save()
-    is_paid = is_fully_paid(manager, checkout, lines, None)
+    is_paid = is_fully_paid(manager, checkout_info, lines, None)
     assert is_paid
 
 
@@ -1079,6 +1087,7 @@ def test_is_fully_paid_partially_paid(checkout_with_item, payment_dummy):
     checkout = checkout_with_item
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
     total = calculations.checkout_total(
         manager=manager,
         checkout=checkout,
@@ -1092,7 +1101,7 @@ def test_is_fully_paid_partially_paid(checkout_with_item, payment_dummy):
     payment.currency = total.gross.currency
     payment.checkout = checkout
     payment.save()
-    is_paid = is_fully_paid(manager, checkout, lines, None)
+    is_paid = is_fully_paid(manager, checkout_info, lines, None)
     assert not is_paid
 
 
@@ -1100,7 +1109,8 @@ def test_is_fully_paid_no_payment(checkout_with_item):
     checkout = checkout_with_item
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
-    is_paid = is_fully_paid(manager, checkout, lines, None)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
+    is_paid = is_fully_paid(manager, checkout_info, lines, None)
     assert not is_paid
 
 

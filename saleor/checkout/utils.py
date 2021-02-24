@@ -30,7 +30,10 @@ from ..shipping.models import ShippingMethod
 from ..warehouse.availability import check_stock_quantity, check_stock_quantity_bulk
 from . import AddressType, calculations
 from .error_codes import CheckoutErrorCode
-from .fetch import update_checkout_info_shipping_address
+from .fetch import (
+    update_checkout_info_shipping_address,
+    update_checkout_info_shipping_method,
+)
 from .models import Checkout, CheckoutLine
 
 if TYPE_CHECKING:
@@ -190,13 +193,12 @@ def change_billing_address_in_checkout(checkout, address):
         checkout.save(update_fields=["billing_address", "last_change"])
 
 
-def change_shipping_address_in_checkout(
-    checkout, checkout_info, address, lines, discounts
-):
+def change_shipping_address_in_checkout(checkout_info, address, lines, discounts):
     """Save shipping address in checkout if changed.
 
     Remove previously saved address if not connected to any user.
     """
+    checkout = checkout_info.checkout
     changed, remove = _check_new_checkout_address(
         checkout, address, AddressType.SHIPPING
     )
@@ -365,13 +367,14 @@ def get_voucher_discount_for_checkout(
 
 
 def get_voucher_for_checkout(
-    checkout: Checkout, vouchers=None, with_lock: bool = False
+    checkout_info: "CheckoutInfo", vouchers=None, with_lock: bool = False
 ) -> Optional[Voucher]:
     """Return voucher with voucher code saved in checkout if active or None."""
+    checkout = checkout_info.checkout
     if checkout.voucher_code is not None:
         if vouchers is None:
             vouchers = Voucher.objects.active_in_channel(
-                date=timezone.now(), channel_slug=checkout.channel.slug
+                date=timezone.now(), channel_slug=checkout_info.channel.slug
             )
         try:
             qs = vouchers
@@ -395,7 +398,7 @@ def recalculate_checkout_discount(
     applicable.
     """
     checkout = checkout_info.checkout
-    voucher = get_voucher_for_checkout(checkout)
+    voucher = get_voucher_for_checkout(checkout_info)
     if voucher is not None:
         address = checkout_info.shipping_address or checkout_info.billing_address
         try:
@@ -518,19 +521,19 @@ def add_voucher_to_checkout(
     )
 
 
-def remove_promo_code_from_checkout(checkout: Checkout, promo_code: str):
+def remove_promo_code_from_checkout(checkout_info: "CheckoutInfo", promo_code: str):
     """Remove gift card or voucher data from checkout."""
     if promo_code_is_voucher(promo_code):
-        remove_voucher_code_from_checkout(checkout, promo_code)
+        remove_voucher_code_from_checkout(checkout_info, promo_code)
     elif promo_code_is_gift_card(promo_code):
-        remove_gift_card_code_from_checkout(checkout, promo_code)
+        remove_gift_card_code_from_checkout(checkout_info.checkout, promo_code)
 
 
-def remove_voucher_code_from_checkout(checkout: Checkout, voucher_code: str):
+def remove_voucher_code_from_checkout(checkout_info: "CheckoutInfo", voucher_code: str):
     """Remove voucher data from checkout by code."""
-    existing_voucher = get_voucher_for_checkout(checkout)
+    existing_voucher = get_voucher_for_checkout(checkout_info)
     if existing_voucher and existing_voucher.code == voucher_code:
-        remove_voucher_from_checkout(checkout)
+        remove_voucher_from_checkout(checkout_info.checkout)
 
 
 def remove_voucher_from_checkout(checkout: Checkout):
@@ -577,35 +580,30 @@ def get_valid_shipping_methods_for_checkout(
     )
 
 
-def is_valid_shipping_method(
-    checkout: Checkout,
-    lines: Iterable["CheckoutLineInfo"],
-    discounts: Iterable[DiscountInfo],
-    subtotal: Optional["TaxedMoney"] = None,
-):
+def is_valid_shipping_method(checkout_info: "CheckoutInfo"):
     """Check if shipping method is valid and remove (if not)."""
-    if not checkout.shipping_method:
+    if not checkout_info.shipping_method:
         return False
-    if not checkout.shipping_address:
+    if not checkout_info.shipping_address:
         return False
 
-    valid_methods = get_valid_shipping_methods_for_checkout(
-        checkout, lines, discounts, subtotal=subtotal
-    )
-    if valid_methods is None or checkout.shipping_method not in valid_methods:
-        clear_shipping_method(checkout)
+    valid_methods = checkout_info.valid_shipping_methods
+    if valid_methods is None or checkout_info.shipping_method not in valid_methods:
+        clear_shipping_method(checkout_info)
         return False
     return True
 
 
-def clear_shipping_method(checkout: Checkout):
+def clear_shipping_method(checkout_info: "CheckoutInfo"):
+    checkout = checkout_info.checkout
     checkout.shipping_method = None
+    update_checkout_info_shipping_method(checkout_info, None)
     checkout.save(update_fields=["shipping_method", "last_change"])
 
 
 def is_fully_paid(
     manager: PluginsManager,
-    checkout: Checkout,
+    checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable[DiscountInfo],
 ):
@@ -613,9 +611,10 @@ def is_fully_paid(
 
     Note that these payments may not be captured or charged at all.
     """
+    checkout = checkout_info.checkout
     payments = [payment for payment in checkout.payments.all() if payment.is_active]
     total_paid = sum([p.total for p in payments])
-    address = checkout.shipping_address or checkout.billing_address
+    address = checkout_info.shipping_address or checkout_info.billing_address
     checkout_total = (
         calculations.checkout_total(
             manager=manager,
@@ -630,43 +629,6 @@ def is_fully_paid(
         checkout_total, zero_taxed_money(checkout_total.currency)
     ).gross
     return total_paid >= checkout_total.amount
-
-
-def clean_checkout(
-    manager: PluginsManager,
-    checkout: Checkout,
-    lines: Iterable["CheckoutLineInfo"],
-    discounts: Iterable[DiscountInfo],
-):
-    """Check if checkout can be completed."""
-    if is_shipping_required(lines):
-        if not checkout.shipping_method:
-            raise ValidationError(
-                "Shipping method is not set",
-                code=CheckoutErrorCode.SHIPPING_METHOD_NOT_SET.value,
-            )
-        if not checkout.shipping_address:
-            raise ValidationError(
-                "Shipping address is not set",
-                code=CheckoutErrorCode.SHIPPING_ADDRESS_NOT_SET.value,
-            )
-        if not is_valid_shipping_method(checkout, lines, discounts):
-            raise ValidationError(
-                "Shipping method is not valid for your shipping address",
-                code=CheckoutErrorCode.INVALID_SHIPPING_METHOD.value,
-            )
-
-    if not checkout.billing_address:
-        raise ValidationError(
-            "Billing address is not set",
-            code=CheckoutErrorCode.BILLING_ADDRESS_NOT_SET.value,
-        )
-
-    if not is_fully_paid(manager, checkout, lines, discounts):
-        raise ValidationError(
-            "Provided payment methods can not cover the checkout's total amount",
-            code=CheckoutErrorCode.CHECKOUT_NOT_FULLY_PAID.value,
-        )
 
 
 def cancel_active_payments(checkout: Checkout):

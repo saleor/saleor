@@ -13,7 +13,7 @@ from ...product.models import ProductTranslation, ProductVariantTranslation
 from ...tests.utils import flush_post_commit_hooks
 from .. import calculations
 from ..complete_checkout import _create_order, _prepare_order_data
-from ..fetch import fetch_checkout_lines
+from ..fetch import fetch_checkout_info, fetch_checkout_lines
 from ..utils import add_variant_to_checkout
 
 
@@ -43,11 +43,12 @@ def test_create_order_captured_payment_creates_expected_events(
     # Place checkout
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
     order = _create_order(
-        checkout=checkout,
+        checkout_info=checkout_info,
         order_data=_prepare_order_data(
             manager=manager,
-            checkout=checkout,
+            checkout_info=checkout_info,
             lines=lines,
             discounts=None,
         ),
@@ -182,11 +183,12 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
     # Place checkout
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
     order = _create_order(
-        checkout=checkout,
+        checkout_info=checkout_info,
         order_data=_prepare_order_data(
             manager=manager,
-            checkout=checkout,
+            checkout_info=checkout_info,
             lines=lines,
             discounts=None,
         ),
@@ -313,11 +315,12 @@ def test_create_order_preauth_payment_creates_expected_events(
     # Place checkout
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
     order = _create_order(
-        checkout=checkout,
+        checkout_info=checkout_info,
         order_data=_prepare_order_data(
             manager=manager,
-            checkout=checkout,
+            checkout_info=checkout_info,
             lines=lines,
             discounts=None,
         ),
@@ -423,11 +426,12 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
     # Place checkout
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
     order = _create_order(
-        checkout=checkout,
+        checkout_info=checkout_info,
         order_data=_prepare_order_data(
             manager=manager,
-            checkout=checkout,
+            checkout_info=checkout_info,
             lines=lines,
             discounts=None,
         ),
@@ -512,10 +516,11 @@ def test_create_order_insufficient_stock(
 
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
     with pytest.raises(InsufficientStock):
         _prepare_order_data(
             manager=manager,
-            checkout=checkout,
+            checkout_info=checkout_info,
             lines=lines,
             discounts=None,
         )
@@ -535,19 +540,20 @@ def test_create_order_doesnt_duplicate_order(
 
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
     order_data = _prepare_order_data(
-        manager=manager, checkout=checkout, lines=lines, discounts=None
+        manager=manager, checkout_info=checkout_info, lines=lines, discounts=None
     )
 
     order_1 = _create_order(
-        checkout=checkout,
+        checkout_info=checkout_info,
         order_data=order_data,
         user=customer_user,
     )
     assert order_1.checkout_token == checkout.token
 
     order_2 = _create_order(
-        checkout=checkout,
+        checkout_info=checkout_info,
         order_data=order_data,
         user=customer_user,
     )
@@ -570,6 +576,7 @@ def test_create_order_with_gift_card(
 
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
 
     subtotal = calculations.checkout_subtotal(
         manager=manager,
@@ -589,10 +596,10 @@ def test_create_order_with_gift_card(
     gift_cards_balance = checkout.get_total_gift_cards_balance()
 
     order = _create_order(
-        checkout=checkout,
+        checkout_info=checkout_info,
         order_data=_prepare_order_data(
             manager=manager,
-            checkout=checkout,
+            checkout_info=checkout_info,
             lines=lines,
             discounts=None,
         ),
@@ -618,6 +625,7 @@ def test_create_order_with_gift_card_partial_use(
 
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
 
     price_without_gift_card = calculations.checkout_total(
         manager=manager,
@@ -631,10 +639,10 @@ def test_create_order_with_gift_card_partial_use(
     checkout.save()
 
     order = _create_order(
-        checkout=checkout,
+        checkout_info=checkout_info,
         order_data=_prepare_order_data(
             manager=manager,
-            checkout=checkout,
+            checkout_info=checkout_info,
             lines=lines,
             discounts=None,
         ),
@@ -670,6 +678,7 @@ def test_create_order_with_many_gift_cards(
 
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
 
     price_without_gift_card = calculations.checkout_total(
         manager=manager,
@@ -687,10 +696,10 @@ def test_create_order_with_many_gift_cards(
     checkout.save()
 
     order = _create_order(
-        checkout=checkout,
+        checkout_info=checkout_info,
         order_data=_prepare_order_data(
             manager=manager,
-            checkout=checkout,
+            checkout_info=checkout_info,
             lines=lines,
             discounts=None,
         ),
@@ -716,11 +725,12 @@ def test_note_in_created_order(checkout_with_item, address, customer_user):
     checkout_with_item.save()
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [])
     order = _create_order(
-        checkout=checkout_with_item,
+        checkout_info=checkout_info,
         order_data=_prepare_order_data(
             manager=manager,
-            checkout=checkout_with_item,
+            checkout_info=checkout_info,
             lines=lines,
             discounts=None,
         ),
@@ -743,13 +753,14 @@ def test_create_order_with_variant_tracking_false(
 
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
 
     order_data = _prepare_order_data(
-        manager=manager, checkout=checkout, lines=lines, discounts=None
+        manager=manager, checkout_info=checkout_info, lines=lines, discounts=None
     )
 
     order_1 = _create_order(
-        checkout=checkout,
+        checkout_info=checkout_info,
         order_data=order_data,
         user=customer_user,
     )
@@ -774,6 +785,7 @@ def test_create_order_use_tanslations(
 
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
 
     variant = lines[0].variant
     product = lines[0].product
@@ -790,7 +802,7 @@ def test_create_order_use_tanslations(
     )
 
     order_data = _prepare_order_data(
-        manager=manager, checkout=checkout, lines=lines, discounts=None
+        manager=manager, checkout_info=checkout_info, lines=lines, discounts=None
     )
     order_line = order_data["lines"][0].line
 

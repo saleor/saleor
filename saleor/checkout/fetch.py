@@ -148,7 +148,11 @@ def update_checkout_info_shipping_method(
 ):
     checkout_info.shipping_method = shipping_method
     checkout_info.shipping_method_channel_listings = (
-        ShippingMethodChannelListing.objects.filter(
-            shipping_method=shipping_method, channel=checkout_info.channel
-        ).first()
+        (
+            ShippingMethodChannelListing.objects.filter(
+                shipping_method=shipping_method, channel=checkout_info.channel
+            ).first()
+        )
+        if shipping_method
+        else None
     )
