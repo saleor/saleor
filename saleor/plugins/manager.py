@@ -374,6 +374,14 @@ class PluginsManager(PaymentInterface):
             )
         return default_value
 
+    def custom_auth(self, payload):
+        method_name = "custom_auth"
+        return self.__run_method_on_plugins(method_name, None, payload)
+
+    def register_account(self, payload):
+        method_name = "register_account"
+        return self.__run_method_on_plugins(method_name, None, payload)
+
     def get_client_token(self, gateway, token_config: "TokenConfig") -> str:
         method_name = "get_client_token"
         default_value = None

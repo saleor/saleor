@@ -411,6 +411,9 @@ class BasePlugin:
     ) -> List["CustomerSource"]:
         return NotImplemented
 
+    def create_client_token(self, payload, previous_value):
+        return NotImplemented
+
     def get_client_token(self, token_config, previous_value):
         return NotImplemented
 
@@ -426,6 +429,7 @@ class BasePlugin:
     def get_payment_gateway(
         self, currency: Optional[str], previous_value
     ) -> Optional["PaymentGateway"]:
+        print(f"get payment gateway   {self.PLUGIN_ID}")
         payment_config = self.get_payment_config(previous_value)
         payment_config = payment_config if payment_config != NotImplemented else []
         currencies = self.get_supported_currencies(previous_value=[])
@@ -442,6 +446,7 @@ class BasePlugin:
     def get_payment_gateway_for_checkout(
         self, checkout: "Checkout", previous_value,
     ) -> Optional["PaymentGateway"]:
+        print(f"get payment gateway for checkout  {self.PLUGIN_ID}")
         return self.get_payment_gateway(checkout.currency, previous_value)
 
     @classmethod

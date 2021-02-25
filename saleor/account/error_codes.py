@@ -4,6 +4,7 @@ from enum import Enum
 class AccountErrorCode(Enum):
     ACTIVATE_OWN_ACCOUNT = "activate_own_account"
     ACTIVATE_SUPERUSER_ACCOUNT = "activate_superuser_account"
+    ACCOUNT_ALREADY_EXISTS="account already exists"
     DUPLICATED_INPUT_ITEM = "duplicated_input_item"
     DEACTIVATE_OWN_ACCOUNT = "deactivate_own_account"
     DEACTIVATE_SUPERUSER_ACCOUNT = "deactivate_superuser_account"

@@ -25,10 +25,11 @@ from .base import (
     BaseCustomerCreate,
 )
 
-
 class AccountRegisterInput(graphene.InputObjectType):
     email = graphene.String(description="The email address of the user.", required=True)
     password = graphene.String(description="Password.", required=True)
+    username = graphene.String(descripton="The username of the user", required=True)
+    name = graphene.String(descripton="The name of the user", required=True)
     redirect_url = graphene.String(
         description=(
             "Base of frontend URL that will be needed to create confirmation URL."
@@ -95,15 +96,28 @@ class AccountRegister(ModelMutation):
     @classmethod
     def save(cls, info, user, cleaned_input):
         password = cleaned_input["password"]
-        user.set_password(password)
-        if settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL:
-            user.is_active = False
-            user.save()
-            emails.send_account_confirmation_email(user, cleaned_input["redirect_url"])
+
+        is_user_created = info.context.plugins.register_account(cleaned_input)
+        print(is_user_created)
+        if is_user_created:
+            user.set_password(password)
+            if settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL:
+                user.is_active = False
+                user.save()
+                emails.send_account_confirmation_email(user, cleaned_input["redirect_url"])
+            else:
+                user.save()
+            account_events.customer_account_created_event(user=user)
+            info.context.plugins.customer_created(customer=user)
         else:
-            user.save()
-        account_events.customer_account_created_event(user=user)
-        info.context.plugins.customer_created(customer=user)
+            raise ValidationError(
+                {
+                    "email": ValidationError(
+                        "User already exists",
+                        code=AccountErrorCode.INVALID_CREDENTIALS.value,
+                    )
+                }
+            )
 
 
 class AccountInput(graphene.InputObjectType):
