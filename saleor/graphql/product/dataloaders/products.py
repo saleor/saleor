@@ -192,10 +192,11 @@ class VariantChannelListingByVariantIdLoader(DataLoader):
         ]
 
 
-class VariantChannelListingByVariantIdAndChannelSlugLoader(
+class VariantChannelListingByVariantIdAndChannelLoader(
     DataLoader[VariantIdAndChannelSlug, ProductVariantChannelListing]
 ):
     context_key = "variantchannelisting_by_variant_and_channel"
+    field = ""
 
     def batch_load(self, keys):
         # Split the list of keys by channel first. A typical query will only touch
@@ -204,30 +205,27 @@ class VariantChannelListingByVariantIdAndChannelSlugLoader(
         variant_channel_listing_by_channel: DefaultDict[str, List[int]] = defaultdict(
             list
         )
-        for variant_id, channel_slug in keys:
-            variant_channel_listing_by_channel[channel_slug].append(variant_id)
+        for variant_id, channel in keys:
+            variant_channel_listing_by_channel[channel].append(variant_id)
 
         # For each channel execute a single query for all product variants.
         variant_channel_listing_by_variant_and_channel: DefaultDict[
             VariantIdAndChannelSlug, Optional[ProductVariantChannelListing]
         ] = defaultdict()
-        for channel_slug, variant_ids in variant_channel_listing_by_channel.items():
-            variant_channel_listings = self.batch_load_channel(
-                channel_slug, variant_ids
-            )
+        for channel, variant_ids in variant_channel_listing_by_channel.items():
+            variant_channel_listings = self.batch_load_channel(channel, variant_ids)
             for variant_id, variant_channel_listing in variant_channel_listings:
                 variant_channel_listing_by_variant_and_channel[
-                    (variant_id, channel_slug)
+                    (variant_id, channel)
                 ] = variant_channel_listing
 
         return [variant_channel_listing_by_variant_and_channel[key] for key in keys]
 
     def batch_load_channel(
-        self, channel_slug: str, variant_ids: Iterable[int]
+        self, channel: str, variant_ids: Iterable[int]
     ) -> Iterable[Tuple[int, Optional[ProductVariantChannelListing]]]:
-        variant_channel_listings = ProductVariantChannelListing.objects.filter(
-            channel__slug=channel_slug, variant_id__in=variant_ids
-        )
+        filter = {f"channel__{self.field}": channel, "variant_id__in": variant_ids}
+        variant_channel_listings = ProductVariantChannelListing.objects.filter(**filter)
 
         variant_channel_listings_map: Dict[int, ProductVariantChannelListing] = {}
         for variant_channel_listing in variant_channel_listings.iterator():
@@ -239,6 +237,20 @@ class VariantChannelListingByVariantIdAndChannelSlugLoader(
             (variant_id, variant_channel_listings_map.get(variant_id))
             for variant_id in variant_ids
         ]
+
+
+class VariantChannelListingByVariantIdAndChannelSlugLoader(
+    VariantChannelListingByVariantIdAndChannelLoader
+):
+    context_key = "variantchannelisting_by_variant_and_channelslug"
+    field = "slug"
+
+
+class VariantChannelListingByVariantIdAndChannelIdLoader(
+    VariantChannelListingByVariantIdAndChannelLoader
+):
+    context_key = "variantchannelisting_by_variant_and_channelid"
+    field = "id"
 
 
 class VariantsChannelListingByProductIdAndChanneSlugLoader(
