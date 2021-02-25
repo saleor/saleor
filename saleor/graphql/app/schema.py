@@ -44,7 +44,10 @@ class AppQueries(graphene.ObjectType):
     app = graphene.Field(
         App,
         id=graphene.Argument(graphene.ID, description="ID of the app.", required=False),
-        description="Look up a app by ID.",
+        description=(
+            "Look up an app by ID. "
+            "If ID is not provided, return the currently authenticated app."
+        ),
     )
 
     @permission_required(AppPermission.MANAGE_APPS)
