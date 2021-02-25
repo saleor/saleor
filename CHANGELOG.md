@@ -60,6 +60,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add product description_plaintext to populatedb - #6894 by @d-wysocki
 - Deallocate stocks for order lines in a bulk way - #6896 by @IKarbowiak
 - Prevent negative available quantity - #6897 by @d-wysocki
+- Fix CheckoutLinesInfoByCheckoutTokenLoader dataloader - #6929 by @IKarbowiak
 
 # 2.11.1
 
