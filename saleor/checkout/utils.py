@@ -344,7 +344,6 @@ def get_voucher_discount_for_checkout(
 
     Raise NotApplicable if voucher of given type cannot be applied.
     """
-    checkout = checkout_info.checkout
     validate_voucher_for_checkout(manager, voucher, checkout_info, lines, discounts)
     if voucher.type == VoucherType.ENTIRE_ORDER:
         subtotal = calculations.checkout_subtotal(
