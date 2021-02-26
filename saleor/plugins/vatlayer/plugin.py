@@ -191,11 +191,10 @@ class VatlayerPlugin(BasePlugin):
 
     def calculate_checkout_line_unit_price(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
-        channel: "Channel",
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
         unit_price = self.__calculate_checkout_line_unit_price(
@@ -204,7 +203,7 @@ class VatlayerPlugin(BasePlugin):
             checkout_line_info.variant,
             checkout_line_info.product,
             checkout_line_info.collections,
-            channel,
+            checkout_info.channel,
             checkout_line_info.channel_listing,
             previous_value,
         )

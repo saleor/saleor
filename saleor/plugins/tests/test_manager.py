@@ -348,15 +348,15 @@ def test_manager_calculates_checkout_line_unit_price(
         product=line.variant.product,
         collections=[],
     )
+    checkout_info = fetch_checkout_info(checkout_with_item, [checkout_line_info], [])
 
     taxed_total = PluginsManager(plugins=plugins).calculate_checkout_line_unit_price(
         total_line_price,
         quantity,
-        checkout_with_item,
+        checkout_info,
         checkout_line_info,
         address,
         [],
-        channel,
     )
     currency = total_line_price.net.currency
     expected_net = Money(

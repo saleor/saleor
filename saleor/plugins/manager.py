@@ -269,11 +269,10 @@ class PluginsManager(PaymentInterface):
         self,
         total_line_price: TaxedMoney,
         quantity: int,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
-        channel: "Channel",
     ):
         default_value = base_calculations.base_checkout_line_unit_price(
             total_line_price, quantity
@@ -282,11 +281,10 @@ class PluginsManager(PaymentInterface):
             self.__run_method_on_plugins(
                 "calculate_checkout_line_unit_price",
                 default_value,
-                checkout,
+                checkout_info,
                 checkout_line_info,
                 address,
                 discounts,
-                channel,
             ),
             total_line_price.currency,
         )

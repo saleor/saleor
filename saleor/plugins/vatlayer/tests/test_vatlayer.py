@@ -435,15 +435,15 @@ def test_calculate_checkout_line_unit_price(
         product=line.variant.product,
         collections=[],
     )
+    checkout_info = fetch_checkout_info(checkout_with_item, [checkout_line_info], [])
 
     line_price = manager.calculate_checkout_line_unit_price(
         total_price,
         line.quantity,
-        checkout_with_item,
+        checkout_info,
         checkout_line_info,
         address,
         [],
-        channel,
     )
 
     assert line_price == TaxedMoney(

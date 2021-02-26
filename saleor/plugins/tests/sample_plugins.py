@@ -103,14 +103,13 @@ class PluginSample(BasePlugin):
 
     def calculate_checkout_line_unit_price(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
-        channel: "Channel",
         previous_value: TaxedMoney,
     ):
-        currency = checkout.currency
+        currency = checkout_info.checkout.currency
         price = Money("10.0", currency)
         return TaxedMoney(price, price)
 
