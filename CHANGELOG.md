@@ -3,6 +3,13 @@
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
 ## [Unreleased]
+- Add query contains only schema validation - #6827 by @fowczarek
+- Add introspection caching - #6871 by @fowczarek
+- Refactor plugins manager(add missing tracing, optimize imports, drop plugins manager from settings) - #6890 by @fowczarek
+- Add CUSTOMER_UPDATED webhook, add addresses field to customer CUSTOMER_CREATED webhook - #6898 by @piotrgrundas
+- Add missing span in PluginManager - #6900 by @fowczarek
+- Fix Sentry reporting - #6902 by @fowczarek
+- Fix removing page types in cleardb command - #6918 by @fowczarek
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -12,9 +19,13 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop authorization keys API - #6631 by @maarcingebala
 - Drop `type` field from `AttributeValue` type - #6710 by @IKarbowiak
 - Drop `apply_taxes_to_shipping_price_range` plugin hook - #6746 by @maarcingebala
+- Drop `CHECKOUT_QUANTITY_CHANGED` webhook - #6797 by @d-wysocki
+- Drop deprecated `taxRate` field from `ProductType` - #6795 by @d-wysocki
+- Remove resolving user's location from GeoIP; drop `PaymentInput.billingAddress` input field - #6784 by @maarcingebala
 
 ### Other
 
+- Fix creating translations with app - #6804 by @krzysztofwolski
 - Add possibility to provide external payment ID during the conversion draft order to order - #6320 by @korycins
 - Add basic rating for `Products` - #6284 by @korycins
 - Add metadata to shipping zones and shipping methods - #6340 by @maarcingebala
@@ -39,6 +50,17 @@ All notable, unreleased changes to this project will be documented in this file.
 - Introduce page reference attributes - #6624 by @IKarbowiak
 - Introduce product reference attributes - #6711 by @IKarbowiak
 - Add metadata to warehouse - #6727 by @d-wysocki
+- Add page webhooks: `PAGE_CREATED`, `PAGE_UPDATED` and `PAGE_DELETED` - #6787 by @d-wysocki
+- Add `PRODUCT_DELETED` webhook - #6794 by @d-wysocki
+- Fix `product_updated` and `product_created` webhooks - #6798 by @d-wysocki
+- Add interface for integrating the auth plugins - #6799 by @korycins
+- Fix page `contentJson` field to return JSON - #6832 by @d-wysocki
+- Add SearchRank to search product by name and description. New enum added to `ProductOrderField` - `RANK` - which returns results sorted by search rank - #6872 by @d-wysocki
+- Allocate stocks for order lines in a bulk way - #6877 by @IKarbowiak
+- Add product description_plaintext to populatedb - #6894 by @d-wysocki
+- Deallocate stocks for order lines in a bulk way - #6896 by @IKarbowiak
+- Prevent negative available quantity - #6897 by @d-wysocki
+- Fix CheckoutLinesInfoByCheckoutTokenLoader dataloader - #6929 by @IKarbowiak
 
 # 2.11.1
 

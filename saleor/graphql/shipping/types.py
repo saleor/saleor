@@ -21,13 +21,13 @@ from ..translations.fields import TranslationField
 from ..translations.types import ShippingMethodTranslation
 from ..warehouse.types import Warehouse
 from .dataloaders import (
+    PostalCodeRulesByShippingMethodIdLoader,
     ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
     ShippingMethodChannelListingByShippingMethodIdLoader,
     ShippingMethodsByShippingZoneIdAndChannelSlugLoader,
     ShippingMethodsByShippingZoneIdLoader,
-    ZipCodeRulesByShippingMethodIdLoader,
 )
-from .enums import ShippingMethodTypeEnum
+from .enums import PostalCodeRuleInclusionTypeEnum, ShippingMethodTypeEnum
 
 
 class ShippingMethodChannelListing(CountableDjangoObjectType):
@@ -48,17 +48,21 @@ class ShippingMethodChannelListing(CountableDjangoObjectType):
         return ChannelByIdLoader(info.context).load(root.channel_id)
 
 
-class ShippingMethodZipCodeRule(CountableDjangoObjectType):
+class ShippingMethodPostalCodeRule(CountableDjangoObjectType):
     start = graphene.String(description="Start address range.")
     end = graphene.String(description="End address range.")
+    inclusion_type = PostalCodeRuleInclusionTypeEnum(
+        description="Inclusion type of the postal code rule."
+    )
 
     class Meta:
-        description = "Represents shipping method zip code."
+        description = "Represents shipping method postal code rule."
         interfaces = [relay.Node]
-        model = models.ShippingMethodZipCodeRule
+        model = models.ShippingMethodPostalCodeRule
         only_fields = [
             "start",
             "end",
+            "inclusion_type",
         ]
 
 
@@ -82,9 +86,11 @@ class ShippingMethod(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     minimum_order_price = graphene.Field(
         Money, description="The price of the cheapest variant (including discounts)."
     )
-    zip_code_rules = graphene.List(
-        ShippingMethodZipCodeRule,
-        description="Zip code exclude range of the shipping method.",
+    postal_code_rules = graphene.List(
+        ShippingMethodPostalCodeRule,
+        description=(
+            "Postal code ranges rule of exclusion or inclusion of the shipping method."
+        ),
     )
     excluded_products = ChannelContextFilterConnectionField(
         "saleor.graphql.product.types.products.Product",
@@ -163,10 +169,10 @@ class ShippingMethod(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return convert_weight_to_default_weight_unit(root.node.maximum_order_weight)
 
     @staticmethod
-    def resolve_zip_code_rules(
+    def resolve_postal_code_rules(
         root: ChannelContext[models.ShippingMethod], info, **_kwargs
     ):
-        return ZipCodeRulesByShippingMethodIdLoader(info.context).load(root.node.id)
+        return PostalCodeRulesByShippingMethodIdLoader(info.context).load(root.node.id)
 
     @staticmethod
     def resolve_minimum_order_weight(

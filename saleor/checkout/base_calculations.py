@@ -66,19 +66,20 @@ def base_checkout_total(
 
 
 def base_checkout_line_total(
-    line: "CheckoutLine",
-    variant: "ProductVariant",
-    product: "Product",
-    collections: Iterable["Collection"],
+    checkout_line_info: "CheckoutLineInfo",
     channel: "Channel",
-    channel_listing: "ProductVariantChannelListing",
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> TaxedMoney:
     """Return the total price of this line."""
+    variant = checkout_line_info.variant
     variant_price = variant.get_price(
-        product, collections, channel, channel_listing, discounts or []
+        checkout_line_info.product,
+        checkout_line_info.collections,
+        channel,
+        checkout_line_info.channel_listing,
+        discounts or [],
     )
-    amount = line.quantity * variant_price
+    amount = checkout_line_info.line.quantity * variant_price
     price = quantize_price(amount, amount.currency)
     return TaxedMoney(net=price, gross=price)
 

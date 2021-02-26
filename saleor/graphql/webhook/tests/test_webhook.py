@@ -421,10 +421,12 @@ SAMPLE_PAYLOAD_QUERY = """
         (WebhookSampleEventTypeEnum.CUSTOMER_CREATED, False),
         (WebhookSampleEventTypeEnum.PRODUCT_CREATED, False),
         (WebhookSampleEventTypeEnum.PRODUCT_UPDATED, False),
-        (WebhookSampleEventTypeEnum.CHECKOUT_QUANTITY_CHANGED, False),
         (WebhookSampleEventTypeEnum.CHECKOUT_CREATED, False),
         (WebhookSampleEventTypeEnum.CHECKOUT_UPDATED, False),
         (WebhookSampleEventTypeEnum.FULFILLMENT_CREATED, True),
+        (WebhookSampleEventTypeEnum.PAGE_CREATED, False),
+        (WebhookSampleEventTypeEnum.PAGE_UPDATED, False),
+        (WebhookSampleEventTypeEnum.PAGE_DELETED, False),
     ],
 )
 def test_sample_payload_query_by_app(
@@ -462,10 +464,12 @@ def test_sample_payload_query_by_app(
         (WebhookSampleEventTypeEnum.CUSTOMER_CREATED, True),
         (WebhookSampleEventTypeEnum.PRODUCT_CREATED, True),
         (WebhookSampleEventTypeEnum.PRODUCT_UPDATED, True),
-        (WebhookSampleEventTypeEnum.CHECKOUT_QUANTITY_CHANGED, True),
         (WebhookSampleEventTypeEnum.CHECKOUT_CREATED, True),
         (WebhookSampleEventTypeEnum.CHECKOUT_UPDATED, True),
         (WebhookSampleEventTypeEnum.FULFILLMENT_CREATED, False),
+        (WebhookSampleEventTypeEnum.PAGE_CREATED, True),
+        (WebhookSampleEventTypeEnum.PAGE_UPDATED, True),
+        (WebhookSampleEventTypeEnum.PAGE_DELETED, True),
     ],
 )
 def test_sample_payload_query_by_staff(
@@ -476,12 +480,14 @@ def test_sample_payload_query_by_staff(
     permission_manage_users,
     permission_manage_products,
     permission_manage_checkouts,
+    permission_manage_pages,
 ):
     mock_generate_sample_payload.return_value = {"mocked_response": ""}
     query = SAMPLE_PAYLOAD_QUERY
     staff_api_client.user.user_permissions.add(permission_manage_users)
     staff_api_client.user.user_permissions.add(permission_manage_products)
     staff_api_client.user.user_permissions.add(permission_manage_checkouts)
+    staff_api_client.user.user_permissions.add(permission_manage_pages)
     variables = {"event_type": event_type.name}
     response = staff_api_client.post_graphql(query, variables=variables)
     if not has_access:

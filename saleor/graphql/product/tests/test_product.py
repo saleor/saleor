@@ -38,6 +38,8 @@ from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
 from ....product.utils.costs import get_product_costs_data
 from ....tests.utils import dummy_editorjs
 from ....warehouse.models import Allocation, Stock, Warehouse
+from ....webhook.event_types import WebhookEventType
+from ....webhook.payloads import generate_product_deleted_payload
 from ...core.enums import AttributeErrorCode, ReportingPeriod
 from ...tests.utils import (
     assert_no_permission,
@@ -215,6 +217,41 @@ def test_product_query_description(
     assert product_data is not None
     assert product_data["description"] == description
     assert product_data["descriptionJson"] == description
+
+
+def test_product_query_with_no_description(
+    staff_api_client, permission_manage_products, product, channel_USD
+):
+    query = """
+        query ($id: ID, $slug: String, $channel:String){
+            product(
+                id: $id,
+                slug: $slug,
+                channel: $channel
+            ) {
+                id
+                name
+                description
+                descriptionJson
+            }
+        }
+        """
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.pk),
+        "channel": channel_USD.slug,
+    }
+
+    response = staff_api_client.post_graphql(
+        query,
+        variables=variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+    assert product_data is not None
+    assert product_data["description"] is None
+    assert product_data["descriptionJson"] == "{}"
 
 
 def test_product_query_by_id_not_available_as_staff_user(
@@ -1355,9 +1392,9 @@ def test_fetch_product_from_category_query(
     category = Category.objects.first()
     product = category.products.first()
     query = """
-    query {
-        category(id: "%(category_id)s") {
-            products(first: 20, channel: "%(channel_slug)s") {
+    query CategoryProducts($id: ID, $channel: String, $address: AddressInput) {
+        category(id: $id) {
+            products(first: 20, channel: $channel) {
                 edges {
                     node {
                         id
@@ -1393,8 +1430,8 @@ def test_fetch_product_from_category_query(
                                 stop
                             }
                         }
-                        isAvailable
-                        pricing {
+                        isAvailable(address: $address)
+                        pricing(address: $address) {
                             priceRange {
                                 start {
                                     gross {
@@ -1416,12 +1453,14 @@ def test_fetch_product_from_category_query(
             }
         }
     }
-    """ % {
-        "category_id": graphene.Node.to_global_id("Category", category.id),
-        "channel_slug": channel_USD.slug,
-    }
+    """
     staff_api_client.user.user_permissions.add(permission_manage_products)
-    response = staff_api_client.post_graphql(query)
+    variables = {
+        "id": graphene.Node.to_global_id("Category", category.id),
+        "channel": channel_USD.slug,
+        "address": {"country": "US"},
+    }
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert content["data"]["category"] is not None
     product_edges_data = content["data"]["category"]["products"]["edges"]
@@ -2268,7 +2307,11 @@ CREATE_PRODUCT_MUTATION = """
 """
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_created")
 def test_create_product(
+    created_webhook_mock,
+    updated_webhook_mock,
     staff_api_client,
     product_type,
     category,
@@ -2341,6 +2384,11 @@ def test_create_product(
     )
     assert slugify(non_existent_attr_value) in values
     assert color_value_slug in values
+
+    product = Product.objects.first()
+    created_webhook_mock.assert_called_once_with(product)
+
+    updated_webhook_mock.assert_not_called()
 
 
 def test_create_product_description_plaintext(
@@ -2415,6 +2463,50 @@ def test_search_product_by_description(user_api_client, product_list, channel_US
     content = get_graphql_content(response)
 
     assert len(content["data"]["products"]["edges"]) == 1
+
+
+def test_search_product_by_description_and_name(
+    user_api_client, product_list, product, channel_USD, category, product_type
+):
+    search_query = """
+    query Products(
+      $filters: ProductFilterInput, $sortBy: ProductOrder,$channel: String
+    ) {
+      products(first: 10, filter: $filters, sortBy: $sortBy,channel: $channel) {
+        edges {
+        node {
+          id
+          name
+          slug
+        }
+        }
+      }
+    }
+    """
+    product.description_plaintext = "red big red product"
+    product.save()
+
+    product_2 = product_list[1]
+    product_2.name = "red product"
+    product_2.save()
+    product_1 = product_list[0]
+    product_1.description_plaintext = "some red product"
+    product_1.save()
+
+    variables = {
+        "filters": {
+            "search": "red",
+        },
+        "sortBy": {"field": "RANK", "direction": "DESC"},
+        "channel": channel_USD.slug,
+    }
+    response = user_api_client.post_graphql(search_query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["products"]["edges"]
+
+    assert data[0]["node"]["name"] == product_2.name
+    assert data[1]["node"]["name"] == product.name
+    assert data[2]["node"]["name"] == product_1.name
 
 
 @freeze_time("2020-03-18 12:00:00")
@@ -3677,7 +3769,9 @@ MUTATION_UPDATE_PRODUCT = """
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_created")
 def test_update_product(
+    created_webhook_mock,
     updated_webhook_mock,
     staff_api_client,
     category,
@@ -3743,6 +3837,7 @@ def test_update_product(
     assert attributes[0]["values"][0]["slug"] == "rainbow"
 
     updated_webhook_mock.assert_called_once_with(product)
+    created_webhook_mock.assert_not_called()
 
 
 def test_update_and_search_product_by_description(
@@ -3818,7 +3913,7 @@ def test_update_product_without_description_clear_description_plaintext(
     assert not data["productErrors"]
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
-    assert data["product"]["description"] == "{}"
+    assert data["product"]["description"] is None
 
     product.refresh_from_db()
     assert product.description_plaintext == ""
@@ -4894,6 +4989,37 @@ def test_delete_product(staff_api_client, product, permission_manage_products):
     assert node_id == data["product"]["id"]
 
 
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_delete_product_trigger_webhook(
+    mocked_webhook_trigger,
+    staff_api_client,
+    product,
+    permission_manage_products,
+    settings,
+):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    query = DELETE_PRODUCT_MUTATION
+    node_id = graphene.Node.to_global_id("Product", product.id)
+    variants_id = list(product.variants.all().values_list("id", flat=True))
+    variables = {"id": node_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productDelete"]
+    assert data["product"]["name"] == product.name
+    with pytest.raises(product._meta.model.DoesNotExist):
+        product.refresh_from_db()
+    assert node_id == data["product"]["id"]
+
+    expected_data = generate_product_deleted_payload(product, variants_id)
+
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.PRODUCT_DELETED, expected_data
+    )
+
+
 def test_delete_product_variant_in_draft_order(
     staff_api_client,
     product_with_two_variants,
@@ -5008,7 +5134,6 @@ PRODUCT_TYPE_QUERY = """
                     }
                 }
             }
-            taxRate
             taxType {
                 taxCode
                 description
@@ -5168,7 +5293,6 @@ PRODUCT_TYPE_CREATE_MUTATION = """
             productType {
                 name
                 slug
-                taxRate
                 isShippingRequired
                 hasVariants
                 variantAttributes {
@@ -6312,10 +6436,10 @@ def test_product_variant_price(
     ).update(price_amount=variant_price_amount)
 
     query = """
-        query getProductVariants($id: ID!, $channel: String) {
+        query getProductVariants($id: ID!, $channel: String, $address: AddressInput) {
             product(id: $id, channel: $channel) {
                 variants {
-                    pricing {
+                    pricing(address: $address) {
                         priceUndiscounted {
                             gross {
                                 amount
@@ -6327,7 +6451,11 @@ def test_product_variant_price(
         }
         """
     product_id = graphene.Node.to_global_id("Product", variant.product.id)
-    variables = {"id": product_id, "channel": channel_USD.slug}
+    variables = {
+        "id": product_id,
+        "channel": channel_USD.slug,
+        "address": {"country": "US"},
+    }
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["product"]

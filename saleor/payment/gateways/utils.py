@@ -5,6 +5,16 @@ if TYPE_CHECKING:
     from ..interface import GatewayConfig
 
 
+def require_active_plugin(fn):
+    def wrapped(self, *args, **kwargs):
+        previous = kwargs.get("previous_value", None)
+        if not self.active:
+            return previous
+        return fn(self, *args, **kwargs)
+
+    return wrapped
+
+
 def get_supported_currencies(config: "GatewayConfig", gateway_name: str) -> List[str]:
     """Return supported currencies for given gateway configuration.
 

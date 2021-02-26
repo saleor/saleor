@@ -569,11 +569,6 @@ class ProductCreate(ModelMutation):
             error.code = ProductErrorCode.REQUIRED.value
             raise ValidationError({"slug": error})
 
-        # FIXME  tax_rate logic should be dropped after we remove tax_rate from input
-        tax_rate = cleaned_input.pop("tax_rate", "")
-        if tax_rate:
-            info.context.plugins.assign_tax_code_to_object_meta(instance, tax_rate)
-
         if "tax_code" in cleaned_input:
             info.context.plugins.assign_tax_code_to_object_meta(
                 instance, cleaned_input["tax_code"]
@@ -623,10 +618,13 @@ class ProductCreate(ModelMutation):
             instance.collections.set(collections)
 
     @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        info.context.plugins.product_created(instance)
+
+    @classmethod
     def perform_mutation(cls, _root, info, **data):
         response = super().perform_mutation(_root, info, **data)
         product = getattr(response, cls._meta.return_field_name)
-        info.context.plugins.product_created(product)
 
         # Wrap product instance with ChannelContext in response
         setattr(
@@ -658,6 +656,9 @@ class ProductUpdate(ProductCreate):
         attributes = cleaned_input.get("attributes")
         if attributes:
             AttributeAssignmentMixin.save(instance, attributes)
+
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
         info.context.plugins.product_updated(instance)
 
 
@@ -680,19 +681,19 @@ class ProductDelete(ModelDeleteMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         node_id = data.get("id")
-        instance = cls.get_node_or_error(info, node_id, only_type=Product)
 
+        instance = cls.get_node_or_error(info, node_id, only_type=Product)
+        variants_id = list(instance.variants.all().values_list("id", flat=True))
         # get draft order lines for variant
         line_pks = list(
             order_models.OrderLine.objects.filter(
-                variant__in=instance.variants.all(), order__status=OrderStatus.DRAFT
+                variant_id__in=variants_id, order__status=OrderStatus.DRAFT
             ).values_list("pk", flat=True)
         )
-
         response = super().perform_mutation(_root, info, **data)
-
         # delete order lines for deleted variant
         order_models.OrderLine.objects.filter(pk__in=line_pks).delete()
+        info.context.plugins.product_deleted(instance, variants_id)
 
         return response
 
@@ -1063,14 +1064,6 @@ class ProductTypeCreate(ModelMutation):
         except ValidationError as error:
             error.code = ProductErrorCode.REQUIRED.value
             raise ValidationError({"slug": error})
-
-        # FIXME  tax_rate logic should be dropped after we remove tax_rate from input
-        tax_rate = cleaned_input.pop("tax_rate", "")
-        if tax_rate:
-            instance.store_value_in_metadata(
-                {"vatlayer.code": tax_rate, "description": tax_rate}
-            )
-            info.context.plugins.assign_tax_code_to_object_meta(instance, tax_rate)
 
         tax_code = cleaned_input.pop("tax_code", "")
         if tax_code:

@@ -226,7 +226,6 @@ def test_trigger_webhooks_with_http_and_secret_key(
         "X-Saleor-Event": "order_created",
         "X-Saleor-Domain": "mirumee.com",
         "X-Saleor-Signature": expected_signature,
-        "X-Saleor-HMAC-SHA256": f"sha1={expected_signature}",
     }
 
     mock_request.assert_called_once_with(

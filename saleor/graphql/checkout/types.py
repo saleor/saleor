@@ -1,7 +1,7 @@
 import graphene
 from promise import Promise
 
-from ...checkout import calculations, models
+from ...checkout import CheckoutLineInfo, calculations, models
 from ...checkout.utils import get_valid_shipping_methods_for_checkout
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
@@ -142,15 +142,18 @@ class CheckoutLine(CountableDjangoObjectType):
                 channel,
                 discounts,
             ) = data
-            return info.context.plugins.calculate_checkout_line_total(
-                checkout=checkout,
-                checkout_line=root,
+            line_info = CheckoutLineInfo(
+                line=root,
                 variant=variant,
+                channel_listing=channel_listing,
                 product=product,
                 collections=collections,
+            )
+            return info.context.plugins.calculate_checkout_line_total(
+                checkout=checkout,
+                checkout_line_info=line_info,
                 address=address,
                 channel=channel,
-                channel_listing=channel_listing,
                 discounts=discounts,
             )
 

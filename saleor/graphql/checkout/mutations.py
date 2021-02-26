@@ -39,7 +39,9 @@ from ..core.utils import from_global_id_strict_type
 from ..order.types import Order
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
+from ..utils import get_user_country_context
 from .types import Checkout, CheckoutLine
+from .utils import prepare_insufficient_stock_checkout_validation_error
 
 ERROR_DOES_NOT_SHIP = "This checkout doesn't need shipping"
 
@@ -120,12 +122,15 @@ def check_lines_quantity(variants, quantities, country):
     try:
         check_stock_quantity_bulk(variants, country, quantities)
     except InsufficientStock as e:
-        remaining = e.context["available_quantity"]
-        item_name = e.item.display_product()
-        message = (
-            f"Could not add item {item_name}. Only {remaining} remaining in stock."
-        )
-        raise ValidationError({"quantity": ValidationError(message, code=e.code)})
+        errors = [
+            ValidationError(
+                f"Could not add items {item.variant}. "
+                f"Only {item.available_quantity} remaining in stock.",
+                code=e.code,
+            )
+            for item in e.items
+        ]
+        raise ValidationError({"quantity": errors})
 
 
 def validate_variants_available_for_purchase(variants, channel_id):
@@ -286,19 +291,18 @@ class CheckoutCreate(ModelMutation, I18nMixin):
     @classmethod
     def clean_input(cls, info, instance: models.Checkout, data, input_cls=None):
         user = info.context.user
-        country = info.context.country.code
         channel = data.pop("channel")
         cleaned_input = super().clean_input(info, instance, data)
 
         cleaned_input["channel"] = channel
         cleaned_input["currency"] = channel.currency_code
 
-        # set country to one from shipping address
-        shipping_address = cleaned_input.get("shipping_address")
-        if shipping_address and shipping_address.country:
-            if shipping_address.country != country:
-                country = shipping_address.country
-        cleaned_input["country"] = country
+        shipping_address = cls.retrieve_shipping_address(user, data)
+        billing_address = cls.retrieve_billing_address(user, data)
+        country = get_user_country_context(
+            destination_address=shipping_address,
+            company_address=info.context.site.settings.company_address,
+        )
 
         # Resolve and process the lines, retrieving the variants and quantities
         lines = data.pop("lines", None)
@@ -308,14 +312,14 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 cleaned_input["quantities"],
             ) = cls.clean_checkout_lines(lines, country, cleaned_input["channel"].id)
 
-        cleaned_input["shipping_address"] = cls.retrieve_shipping_address(user, data)
-        cleaned_input["billing_address"] = cls.retrieve_billing_address(user, data)
-
         # Use authenticated user's email as default email
         if user.is_authenticated:
             email = data.pop("email", None)
             cleaned_input["email"] = email or user.email
 
+        cleaned_input["shipping_address"] = shipping_address
+        cleaned_input["billing_address"] = billing_address
+        cleaned_input["country"] = country
         return cleaned_input
 
     @classmethod
@@ -335,9 +339,8 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             try:
                 add_variants_to_checkout(instance, variants, quantities)
             except InsufficientStock as exc:
-                raise ValidationError(
-                    f"Insufficient product stock: {exc.item}", code=exc.code
-                )
+                error = prepare_insufficient_stock_checkout_validation_error(exc)
+                raise ValidationError({"lines": error})
             except ProductNotPublished as exc:
                 raise ValidationError(
                     "Can't create checkout with unpublished product.",
@@ -426,15 +429,13 @@ class CheckoutLinesAdd(BaseMutation):
                         checkout, variant, quantity, replace=replace
                     )
                 except InsufficientStock as exc:
-                    raise ValidationError(
-                        f"Insufficient product stock: {exc.item}", code=exc.code
-                    )
+                    error = prepare_insufficient_stock_checkout_validation_error(exc)
+                    raise ValidationError({"lines": error})
                 except ProductNotPublished as exc:
                     raise ValidationError(
                         "Can't add unpublished product.",
                         code=exc.code,
                     )
-            info.context.plugins.checkout_quantity_changed(checkout)
 
         lines = fetch_checkout_lines(checkout)
         update_checkout_shipping_method_if_invalid(
@@ -483,7 +484,6 @@ class CheckoutLineDelete(BaseMutation):
 
         if line and line in checkout.lines.all():
             line.delete()
-            info.context.plugins.checkout_quantity_changed(checkout)
 
         lines = fetch_checkout_lines(checkout)
         update_checkout_shipping_method_if_invalid(
@@ -634,11 +634,10 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
 
         lines = fetch_checkout_lines(checkout)
 
-        country = info.context.country.code
-        # set country to one from shipping address
-        if shipping_address and shipping_address.country:
-            if shipping_address.country != country:
-                country = shipping_address.country
+        country = get_user_country_context(
+            destination_address=shipping_address,
+            company_address=info.context.site.settings.company_address,
+        )
         checkout.set_country(country, commit=True)
 
         # Resolve and process the lines, validating variants quantities
@@ -748,7 +747,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             only_type=ShippingMethod,
             field="shipping_method_id",
             qs=shipping_models.ShippingMethod.objects.prefetch_related(
-                "zip_code_rules"
+                "postal_code_rules"
             ),
         )
 
@@ -872,6 +871,7 @@ class CheckoutComplete(BaseMutation):
                 store_source=store_source,
                 discounts=info.context.discounts,
                 user=info.context.user,
+                site_settings=info.context.site.settings,
                 tracking_code=tracking_code,
                 redirect_url=data.get("redirect_url"),
             )

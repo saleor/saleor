@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any, List, Optional
 
 from ...webhook.event_types import WebhookEventType
 from ...webhook.payloads import (
@@ -7,6 +7,8 @@ from ...webhook.payloads import (
     generate_fulfillment_payload,
     generate_invoice_payload,
     generate_order_payload,
+    generate_page_payload,
+    generate_product_deleted_payload,
     generate_product_payload,
 )
 from ..base_plugin import BasePlugin
@@ -17,6 +19,7 @@ if TYPE_CHECKING:
     from ...checkout.models import Checkout
     from ...invoice.models import Invoice
     from ...order.models import Fulfillment, Order
+    from ...page.models import Page
     from ...product.models import Product
 
 
@@ -107,6 +110,14 @@ class WebhookPlugin(BasePlugin):
             WebhookEventType.CUSTOMER_CREATED, customer_data
         )
 
+    def customer_updated(self, customer: "User", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        customer_data = generate_customer_payload(customer)
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.CUSTOMER_UPDATED, customer_data
+        )
+
     def product_created(self, product: "Product", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
@@ -119,16 +130,13 @@ class WebhookPlugin(BasePlugin):
         product_data = generate_product_payload(product)
         trigger_webhooks_for_event.delay(WebhookEventType.PRODUCT_UPDATED, product_data)
 
-    # Deprecated. This method will be removed in Saleor 3.0
-    def checkout_quantity_changed(
-        self, checkout: "Checkout", previous_value: Any
+    def product_deleted(
+        self, product: "Product", variants: List[int], previous_value: Any
     ) -> Any:
         if not self.active:
             return previous_value
-        checkout_data = generate_checkout_payload(checkout)
-        trigger_webhooks_for_event.delay(
-            WebhookEventType.CHECKOUT_QUANTITY_CHANGED, checkout_data
-        )
+        product_data = generate_product_deleted_payload(product, variants)
+        trigger_webhooks_for_event.delay(WebhookEventType.PRODUCT_DELETED, product_data)
 
     def checkout_created(self, checkout: "Checkout", previous_value: Any) -> Any:
         if not self.active:
@@ -145,3 +153,21 @@ class WebhookPlugin(BasePlugin):
         trigger_webhooks_for_event.delay(
             WebhookEventType.CHECKOUT_UPADTED, checkout_data
         )
+
+    def page_created(self, page: "Page", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        page_data = generate_page_payload(page)
+        trigger_webhooks_for_event.delay(WebhookEventType.PAGE_CREATED, page_data)
+
+    def page_updated(self, page: "Page", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        page_data = generate_page_payload(page)
+        trigger_webhooks_for_event.delay(WebhookEventType.PAGE_UPDATED, page_data)
+
+    def page_deleted(self, page: "Page", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        page_data = generate_page_payload(page)
+        trigger_webhooks_for_event.delay(WebhookEventType.PAGE_DELETED, page_data)

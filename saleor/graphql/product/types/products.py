@@ -3,6 +3,7 @@ from typing import Optional
 
 import graphene
 from django.conf import settings
+from django_countries.fields import Country
 from graphene import relay
 from graphene_federation import key
 from graphql.error import GraphQLError
@@ -11,6 +12,7 @@ from ....account.utils import requestor_is_staff_member_or_app
 from ....attribute import models as attribute_models
 from ....core.permissions import OrderPermissions, ProductPermissions
 from ....core.tracing import no_trace
+from ....core.utils import get_currency_for_country
 from ....core.weight import convert_weight_to_default_weight_unit
 from ....product import models
 from ....product.templatetags.product_images import (
@@ -24,6 +26,7 @@ from ....product.utils.availability import (
 )
 from ....product.utils.variants import get_variant_selection_attributes
 from ....warehouse.availability import is_product_in_stock
+from ...account import types as account_types
 from ...account.enums import CountryCodeEnum
 from ...attribute.filters import AttributeFilterInput
 from ...attribute.resolvers import resolve_attributes
@@ -33,7 +36,7 @@ from ...channel.dataloaders import ChannelBySlugLoader
 from ...channel.types import ChannelContextType, ChannelContextTypeWithMetadata
 from ...channel.utils import get_default_channel_slug_or_graphql_error
 from ...core.connection import CountableDjangoObjectType
-from ...core.enums import ReportingPeriod, TaxRateType
+from ...core.enums import ReportingPeriod
 from ...core.fields import (
     ChannelContextFilterConnectionField,
     FilterInputConnectionField,
@@ -58,7 +61,11 @@ from ...translations.types import (
     ProductTranslation,
     ProductVariantTranslation,
 )
-from ...utils import get_database_id, get_user_or_app_from_context
+from ...utils import (
+    get_database_id,
+    get_user_country_context,
+    get_user_or_app_from_context,
+)
 from ...utils.filters import reporting_period_to_date
 from ...warehouse.dataloaders import (
     AvailableQuantityByProductVariantIdAndCountryCodeLoader,
@@ -94,6 +101,16 @@ from .channels import (
     ProductVariantChannelListing,
 )
 from .digital_contents import DigitalContent
+
+destination_address_argument = graphene.Argument(
+    account_types.AddressInput,
+    description=(
+        "Destination address used to find warehouses where stock availability "
+        "for this product is checked. If address is empty, uses "
+        "`Shop.companyAddress` or fallbacks to server's "
+        "`settings.DEFAULT_COUNTRY` configuration."
+    ),
+)
 
 
 class Margin(graphene.ObjectType):
@@ -158,6 +175,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     )
     pricing = graphene.Field(
         VariantPricingInfo,
+        address=destination_address_argument,
         description=(
             "Lists the storefront variant's pricing, the current price and discounts, "
             "only meant for displaying."
@@ -198,18 +216,24 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     stocks = graphene.Field(
         graphene.List(Stock),
         description="Stocks for the product variant.",
+        address=destination_address_argument,
         country_code=graphene.Argument(
             CountryCodeEnum,
-            description="Two-letter ISO 3166-1 country code.",
-            required=False,
+            description=(
+                "DEPRECATED: use `address` argument instead. This argument will be "
+                "removed in Saleor 4.0. Two-letter ISO 3166-1 country code."
+            ),
         ),
     )
     quantity_available = graphene.Int(
         required=True,
         description="Quantity of a product available for sale in one checkout.",
+        address=destination_address_argument,
         country_code=graphene.Argument(
             CountryCodeEnum,
             description=(
+                "DEPRECATED: use `address` argument instead. This argument will be "
+                "removed in Saleor 4.0."
                 "Two-letter ISO 3166-1 country code. When provided, the exact quantity "
                 "from a warehouse operating in shipping zones that contain this "
                 "country will be returned. Otherwise, it will return the maximum "
@@ -232,16 +256,32 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
     )
     def resolve_stocks(
-        root: ChannelContext[models.ProductVariant], info, country_code=None
+        root: ChannelContext[models.ProductVariant],
+        info,
+        address=None,
+        country_code=None,
     ):
+        if address is not None:
+            country_code = get_user_country_context(
+                address, info.context.site.settings.company_address
+            )
+
         if not country_code:
             return root.node.stocks.annotate_available_quantity()
         return root.node.stocks.for_country(country_code).annotate_available_quantity()
 
     @staticmethod
     def resolve_quantity_available(
-        root: ChannelContext[models.ProductVariant], info, country_code=None
+        root: ChannelContext[models.ProductVariant],
+        info,
+        address=None,
+        country_code=None,
     ):
+        if address is not None:
+            country_code = get_user_country_context(
+                address, info.context.site.settings.company_address
+            )
+
         if not root.node.track_inventory:
             return settings.MAX_CHECKOUT_LINE_QUANTITY
 
@@ -294,12 +334,19 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return VariantChannelListingByVariantIdLoader(info.context).load(root.node.id)
 
     @staticmethod
-    def resolve_pricing(root: ChannelContext[models.ProductVariant], info):
+    def resolve_pricing(
+        root: ChannelContext[models.ProductVariant], info, address=None
+    ):
         if not root.channel_slug:
             return None
 
+        country_code = get_user_country_context(
+            address, info.context.site.settings.company_address
+        )
+
         channel_slug = str(root.channel_slug)
         context = info.context
+
         product = ProductByIdLoader(context).load(root.node.product_id)
         product_channel_listing = ProductChannelListingByProductIdAndChannelSlugLoader(
             context
@@ -333,8 +380,10 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                                     collections=collections,
                                     discounts=discounts,
                                     channel=channel,
-                                    country=context.country,
-                                    local_currency=context.currency,
+                                    country=Country(country_code),
+                                    local_currency=get_currency_for_country(
+                                        country_code
+                                    ),
                                     plugins=context.plugins,
                                 )
                                 return VariantPricingInfo(**asdict(availability))
@@ -449,13 +498,15 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     )
     pricing = graphene.Field(
         ProductPricingInfo,
+        address=destination_address_argument,
         description=(
             "Lists the storefront product's pricing, the current price and discounts, "
             "only meant for displaying."
         ),
     )
     is_available = graphene.Boolean(
-        description="Whether the product is in stock and visible or not."
+        address=destination_address_argument,
+        description="Whether the product is in stock and visible or not.",
     )
     tax_type = graphene.Field(
         TaxType, description="A type of tax. Assigned by enabled tax gateway"
@@ -541,7 +592,8 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     @staticmethod
     @no_trace
     def resolve_description_json(root: ChannelContext[models.Product], info):
-        return root.node.description
+        description = root.node.description
+        return description if description is not None else {}
 
     @staticmethod
     def resolve_tax_type(root: ChannelContext[models.Product], info):
@@ -570,10 +622,13 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return ""
 
     @staticmethod
-    def resolve_pricing(root: ChannelContext[models.Product], info):
+    def resolve_pricing(root: ChannelContext[models.Product], info, address=None):
         if not root.channel_slug:
             return None
 
+        country_code = get_user_country_context(
+            address, info.context.site.settings.company_address
+        )
         context = info.context
         channel_slug = str(root.channel_slug)
         product_channel_listing = ProductChannelListingByProductIdAndChannelSlugLoader(
@@ -606,8 +661,10 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                                     collections=collections,
                                     discounts=discounts,
                                     channel=channel,
-                                    country=context.country,
-                                    local_currency=context.currency,
+                                    country=Country(country_code),
+                                    local_currency=get_currency_for_country(
+                                        country_code
+                                    ),
                                     plugins=context.plugins,
                                 )
                                 return ProductPricingInfo(**asdict(availability))
@@ -633,14 +690,17 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         )
 
     @staticmethod
-    def resolve_is_available(root: ChannelContext[models.Product], info):
+    def resolve_is_available(root: ChannelContext[models.Product], info, address=None):
         if not root.channel_slug:
             return None
+
         channel_slug = str(root.channel_slug)
+        country_code = get_user_country_context(
+            address, info.context.site.settings.company_address
+        )
 
         def calculate_is_available(product_channel_listing):
-            country = info.context.country
-            in_stock = is_product_in_stock(root.node, country)
+            in_stock = is_product_in_stock(root.node, country_code)
             is_visible = False
             if product_channel_listing:
                 is_visible = product_channel_listing.is_available_for_purchase()
@@ -793,7 +853,6 @@ class ProductType(CountableDjangoObjectType):
             "Use the top-level `products` query with the `productTypes` filter."
         ),
     )
-    tax_rate = TaxRateType(description="A type of tax rate.")
     tax_type = graphene.Field(
         TaxType, description="A type of tax. Assigned by enabled tax gateway"
     )
@@ -834,13 +893,6 @@ class ProductType(CountableDjangoObjectType):
     def resolve_tax_type(root: models.ProductType, info):
         tax_data = info.context.plugins.get_tax_code_from_object_meta(root)
         return TaxType(tax_code=tax_data.code, description=tax_data.description)
-
-    @staticmethod
-    def resolve_tax_rate(root: models.ProductType, _info, **_kwargs):
-        # FIXME this resolver should be dropped after we drop tax_rate from API
-        if not hasattr(root, "meta"):
-            return None
-        return root.get_value_from_metadata("vatlayer.code")
 
     @staticmethod
     def resolve_product_attributes(root: models.ProductType, info):
@@ -966,7 +1018,8 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     @staticmethod
     @no_trace
     def resolve_description_json(root: ChannelContext[models.Collection], info):
-        return root.node.description
+        description = root.node.description
+        return description if description is not None else {}
 
 
 @key(fields="id")
@@ -1025,7 +1078,8 @@ class Category(CountableDjangoObjectType):
     @staticmethod
     @no_trace
     def resolve_description_json(root: models.Category, info):
-        return root.description
+        description = root.description
+        return description if description is not None else {}
 
     @staticmethod
     def resolve_background_image(root: models.Category, info, size=None, **_kwargs):

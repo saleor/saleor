@@ -82,14 +82,8 @@ def validate_order_lines(order, country):
             try:
                 check_stock_quantity(line.variant, country, line.quantity)
             except InsufficientStock as exc:
-                raise ValidationError(
-                    {
-                        "lines": ValidationError(
-                            f"Insufficient product stock: {exc.item}",
-                            code=OrderErrorCode.INSUFFICIENT_STOCK,
-                        )
-                    }
-                )
+                errors = prepare_insufficient_stock_order_validation_errors(exc)
+                raise ValidationError({"lines": errors})
 
 
 def validate_product_is_published(order):
@@ -217,3 +211,29 @@ def validate_draft_order(order, country):
     validate_product_is_published(order)
     validate_product_is_available_for_purchase(order)
     validate_channel_is_active(order.channel)
+
+
+def prepare_insufficient_stock_order_validation_errors(exc):
+    errors = []
+    for item in exc.items:
+        order_line_global_id = (
+            graphene.Node.to_global_id("OrderLine", item.order_line.pk)
+            if item.order_line
+            else None
+        )
+        warehouse_global_id = (
+            graphene.Node.to_global_id("Warehouse", item.warehouse_pk)
+            if item.warehouse_pk
+            else None
+        )
+        errors.append(
+            ValidationError(
+                f"Insufficient product stock: {item.variant}",
+                code=OrderErrorCode.INSUFFICIENT_STOCK,
+                params={
+                    "order_line": order_line_global_id,
+                    "warehouse": warehouse_global_id,
+                },
+            )
+        )
+    return errors

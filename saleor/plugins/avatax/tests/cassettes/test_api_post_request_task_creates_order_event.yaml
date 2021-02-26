@@ -1,16 +1,16 @@
 interactions:
 - request:
     body: '{"createTransactionModel": {"companyCode": "DEFAULT", "type": "SalesInvoice",
-      "lines": [{"quantity": 3, "amount": "36.90", "taxCode": "O9999999", "taxIncluded":
-      true, "itemCode": "SKU_A", "description": "Test product"}, {"quantity": 2, "amount":
-      "49.20", "taxCode": "O9999999", "taxIncluded": true, "itemCode": "SKU_B", "description":
-      "Test product 2"}, {"quantity": 1, "amount": "10.00", "taxCode": "FR020100",
-      "taxIncluded": true, "itemCode": "Shipping", "description": null}], "code":
-      "9cfe9695-f1db-40ba-90aa-e1539fda12f7", "date": "2020-08-24", "customerCode":
-      0, "addresses": {"shipFrom": {"line1": "2000 Main Street", "line2": "", "city":
-      "Irvine", "region": "CA", "country": "US", "postalCode": "92614"}, "shipTo":
-      {"line1": "T\u0119czowa 7", "line2": "", "city": "WROC\u0141AW", "region": "",
-      "country": "PL", "postalCode": "53-601"}}, "commit": false, "currencyCode":
+      "lines": [{"quantity": 3, "amount": "36.900", "taxCode": "O9999999", "taxIncluded":
+      true, "itemCode": "SKU_AA", "description": "Test product"}, {"quantity": 2,
+      "amount": "49.200", "taxCode": "O9999999", "taxIncluded": true, "itemCode":
+      "SKU_B", "description": "Test product 2"}, {"quantity": 1, "amount": "10.000",
+      "taxCode": "FR020100", "taxIncluded": true, "itemCode": "Shipping", "description":
+      null}], "code": "6a36aa3d-4e5a-45f5-896b-ec0ec34ba7c2", "date": "2021-01-26",
+      "customerCode": 0, "addresses": {"shipFrom": {"line1": "2000 Main Street", "line2":
+      "", "city": "Irvine", "region": "CA", "country": "US", "postalCode": "92614"},
+      "shipTo": {"line1": "T\u0119czowa 7", "line2": "", "city": "WROC\u0141AW", "region":
+      "", "country": "PL", "postalCode": "53-601"}}, "commit": false, "currencyCode":
       "USD", "email": "test@example.com"}}'
     headers:
       Accept:
@@ -22,45 +22,71 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '914'
+      - '918'
       User-Agent:
-      - python-requests/2.24.0
+      - python-requests/2.25.1
     method: POST
     uri: https://rest.avatax.com/api/v2/transactions/createoradjust
   response:
     body:
-      string: '{"id":1000806342096,"code":"9cfe9695-f1db-40ba-90aa-e1539fda12f7","companyId":242975,"date":"2020-08-24","status":"Saved","type":"SalesInvoice","batchCode":"","currencyCode":"USD","customerUsageType":"","entityUseCode":"","customerVendorCode":"0","customerCode":"0","exemptNo":"","reconciled":false,"locationCode":"","reportingLocationCode":"","purchaseOrderNo":"","referenceCode":"","salespersonCode":"","taxOverrideType":"None","taxOverrideAmount":0.0,"taxOverrideReason":"","totalAmount":78.13,"totalExempt":0.0,"totalDiscount":0.0,"totalTax":17.9700,"totalTaxable":78.13,"totalTaxCalculated":17.9700,"adjustmentReason":"NotAdjusted","adjustmentDescription":"","locked":false,"region":"","country":"PL","version":1,"softwareVersion":"20.8.0.9","originAddressId":3001586652614,"destinationAddressId":2001586652614,"exchangeRateEffectiveDate":"2020-08-24","exchangeRate":1.0,"isSellerImporterOfRecord":true,"description":"","email":"test@example.com","businessIdentificationNo":"","modifiedDate":"2020-08-24T07:47:36.3333522Z","modifiedUserId":283192,"taxDate":"2020-08-24T00:00:00Z","lines":[{"id":2002547288862,"transactionId":1000806342096,"lineNumber":"1","boundaryOverrideId":0,"customerUsageType":"","entityUseCode":"","description":"Test
-        product","destinationAddressId":2001586652614,"originAddressId":3001586652614,"discountAmount":0.0,"discountTypeId":0,"exemptAmount":0.0,"exemptCertId":0,"exemptNo":"","isItemTaxable":true,"isSSTP":false,"itemCode":"SKU_A","lineAmount":30.0,"quantity":3.0,"ref1":"","ref2":"","reportingDate":"2020-08-24","revAccount":"","sourcing":"Destination","tax":6.9000,"taxableAmount":30.0,"taxCalculated":6.9000,"taxCode":"O9999999","taxCodeId":5340,"taxDate":"2020-08-24","taxEngine":"","taxOverrideType":"None","businessIdentificationNo":"","taxOverrideAmount":0.0,"taxOverrideReason":"","taxIncluded":true,"details":[{"id":10001474842630,"transactionLineId":2002547288862,"transactionId":1000806342096,"addressId":2001586652614,"country":"PL","region":"PL","countyFIPS":"","stateFIPS":"PL","exemptAmount":0.0,"exemptReasonId":4,"inState":false,"jurisCode":"PL","jurisName":"POLAND","jurisdictionId":200102,"signatureCode":"","stateAssignedNo":"","jurisType":"CNT","jurisdictionType":"Country","nonTaxableAmount":0.0,"nonTaxableRuleId":0,"nonTaxableType":"RateRule","rate":0.230000,"rateRuleId":410972,"rateSourceId":0,"serCode":"","sourcing":"Destination","tax":6.9000,"taxableAmount":30.0,"taxType":"Output","taxSubTypeId":"O","taxTypeGroupId":"InputAndOutput","taxName":"Standard
-        Rate","taxAuthorityTypeId":45,"taxRegionId":205102,"taxCalculated":6.9000,"taxOverride":0.0,"rateType":"Standard","rateTypeCode":"S","taxableUnits":30.0,"nonTaxableUnits":0.0,"exemptUnits":0.0,"unitOfBasis":"PerCurrencyUnit","isNonPassThru":false,"isFee":false}],"nonPassthroughDetails":[],"lineLocationTypes":[{"documentLineLocationTypeId":6002351241906,"documentLineId":2002547288862,"documentAddressId":3001586652614,"locationTypeCode":"ShipFrom"},{"documentLineLocationTypeId":7001372545282,"documentLineId":2002547288862,"documentAddressId":2001586652614,"locationTypeCode":"ShipTo"}],"hsCode":"","costInsuranceFreight":0.0,"vatCode":"PLS-2300O--US","vatNumberTypeId":0},{"id":3002547288861,"transactionId":1000806342096,"lineNumber":"2","boundaryOverrideId":0,"customerUsageType":"","entityUseCode":"","description":"Test
-        product 2","destinationAddressId":2001586652614,"originAddressId":3001586652614,"discountAmount":0.0,"discountTypeId":0,"exemptAmount":0.0,"exemptCertId":0,"exemptNo":"","isItemTaxable":true,"isSSTP":false,"itemCode":"SKU_B","lineAmount":40.0,"quantity":2.0,"ref1":"","ref2":"","reportingDate":"2020-08-24","revAccount":"","sourcing":"Destination","tax":9.2000,"taxableAmount":40.0,"taxCalculated":9.2000,"taxCode":"O9999999","taxCodeId":5340,"taxDate":"2020-08-24","taxEngine":"","taxOverrideType":"None","businessIdentificationNo":"","taxOverrideAmount":0.0,"taxOverrideReason":"","taxIncluded":true,"details":[{"id":11001474842630,"transactionLineId":3002547288861,"transactionId":1000806342096,"addressId":2001586652614,"country":"PL","region":"PL","countyFIPS":"","stateFIPS":"PL","exemptAmount":0.0,"exemptReasonId":4,"inState":false,"jurisCode":"PL","jurisName":"POLAND","jurisdictionId":200102,"signatureCode":"","stateAssignedNo":"","jurisType":"CNT","jurisdictionType":"Country","nonTaxableAmount":0.0,"nonTaxableRuleId":0,"nonTaxableType":"RateRule","rate":0.230000,"rateRuleId":410972,"rateSourceId":0,"serCode":"","sourcing":"Destination","tax":9.2000,"taxableAmount":40.0,"taxType":"Output","taxSubTypeId":"O","taxTypeGroupId":"InputAndOutput","taxName":"Standard
-        Rate","taxAuthorityTypeId":45,"taxRegionId":205102,"taxCalculated":9.2000,"taxOverride":0.0,"rateType":"Standard","rateTypeCode":"S","taxableUnits":40.0,"nonTaxableUnits":0.0,"exemptUnits":0.0,"unitOfBasis":"PerCurrencyUnit","isNonPassThru":false,"isFee":false}],"nonPassthroughDetails":[],"lineLocationTypes":[{"documentLineLocationTypeId":8001372545283,"documentLineId":3002547288861,"documentAddressId":3001586652614,"locationTypeCode":"ShipFrom"},{"documentLineLocationTypeId":9001372545283,"documentLineId":3002547288861,"documentAddressId":2001586652614,"locationTypeCode":"ShipTo"}],"hsCode":"","costInsuranceFreight":0.0,"vatCode":"PLS-2300O--US","vatNumberTypeId":0},{"id":4002547288863,"transactionId":1000806342096,"lineNumber":"3","boundaryOverrideId":0,"customerUsageType":"","entityUseCode":"","description":"","destinationAddressId":2001586652614,"originAddressId":3001586652614,"discountAmount":0.0,"discountTypeId":0,"exemptAmount":0.0,"exemptCertId":0,"exemptNo":"","isItemTaxable":true,"isSSTP":false,"itemCode":"Shipping","lineAmount":8.13,"quantity":1.0,"ref1":"","ref2":"","reportingDate":"2020-08-24","revAccount":"","sourcing":"Destination","tax":1.87,"taxableAmount":8.13,"taxCalculated":1.87,"taxCode":"FR020100","taxCodeId":4784,"taxDate":"2020-08-24","taxEngine":"","taxOverrideType":"None","businessIdentificationNo":"","taxOverrideAmount":0.0,"taxOverrideReason":"","taxIncluded":true,"details":[{"id":12001474842630,"transactionLineId":4002547288863,"transactionId":1000806342096,"addressId":2001586652614,"country":"PL","region":"PL","countyFIPS":"","stateFIPS":"PL","exemptAmount":0.0,"exemptReasonId":4,"inState":false,"jurisCode":"PL","jurisName":"POLAND","jurisdictionId":200102,"signatureCode":"","stateAssignedNo":"","jurisType":"CNT","jurisdictionType":"Country","nonTaxableAmount":0.0,"nonTaxableRuleId":0,"nonTaxableType":"RateRule","rate":0.230000,"rateRuleId":410972,"rateSourceId":0,"serCode":"","sourcing":"Destination","tax":1.87,"taxableAmount":8.13,"taxType":"Output","taxSubTypeId":"O","taxTypeGroupId":"InputAndOutput","taxName":"Standard
-        Rate","taxAuthorityTypeId":45,"taxRegionId":205102,"taxCalculated":1.87,"taxOverride":0.0,"rateType":"Standard","rateTypeCode":"S","taxableUnits":8.13,"nonTaxableUnits":0.0,"exemptUnits":0.0,"unitOfBasis":"PerCurrencyUnit","isNonPassThru":false,"isFee":false}],"nonPassthroughDetails":[],"lineLocationTypes":[{"documentLineLocationTypeId":10001372545283,"documentLineId":4002547288863,"documentAddressId":3001586652614,"locationTypeCode":"ShipFrom"},{"documentLineLocationTypeId":11001372545283,"documentLineId":4002547288863,"documentAddressId":2001586652614,"locationTypeCode":"ShipTo"}],"hsCode":"","costInsuranceFreight":0.0,"vatCode":"PLS-2300F--US","vatNumberTypeId":0}],"addresses":[{"id":2001586652614,"transactionId":1000806342096,"boundaryLevel":"Zip5","line1":"Teczowa
-        7","line2":"","line3":"","city":"WROCLAW","region":"","postalCode":"53-601","country":"PL","taxRegionId":205102},{"id":3001586652614,"transactionId":1000806342096,"boundaryLevel":"Address","line1":"2000
-        Main St","line2":"","line3":"","city":"Irvine","region":"CA","postalCode":"92614-7202","country":"US","taxRegionId":4017409,"latitude":"33.684716","longitude":"-117.851489"}],"locationTypes":[{"documentLocationTypeId":0,"documentId":1000806342096,"documentAddressId":3001586652614,"locationTypeCode":"ShipFrom"},{"documentLocationTypeId":0,"documentId":1000806342096,"documentAddressId":2001586652614,"locationTypeCode":"ShipTo"}],"summary":[{"country":"PL","region":"PL","jurisType":"Country","jurisCode":"PL","jurisName":"POLAND","taxAuthorityType":45,"stateAssignedNo":"","taxType":"Output","taxSubType":"O","taxName":"Standard
-        Rate","rateType":"Standard","taxable":78.13,"rate":0.230000,"tax":17.97,"taxCalculated":17.97,"nonTaxable":0.0,"exemption":0.0}]}'
+      string: !!binary |
+        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
+        L5//AlCxcaNxJAAA
     headers:
       Connection:
       - keep-alive
-      Content-Length:
-      - '8460'
+      Content-Encoding:
+      - gzip
       Content-Type:
       - application/json; charset=utf-8
-      DatabaseCalls:
-      - '1'
-      DatabaseDuration:
-      - '00:00:00.0010000'
       Date:
-      - Mon, 24 Aug 2020 07:47:36 GMT
+      - Tue, 26 Jan 2021 08:31:19 GMT
       Location:
-      - /api/v2/companies/242975/transactions/1000806342096
+      - /api/v2/companies/242975/transactions/3001253181349
       Server:
       - Kestrel
       ServerDuration:
-      - '00:00:00.1346619'
-      ServiceDuration:
-      - 00:00:00
-      X-Content-Type-Options:
-      - nosniff
+      - '00:00:00.0492208'
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Accept-Encoding
     status:
       code: 201
       message: Created

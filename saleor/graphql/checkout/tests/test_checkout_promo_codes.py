@@ -4,7 +4,7 @@ from decimal import Decimal
 import graphene
 from prices import Money
 
-from ....checkout import calculations
+from ....checkout import CheckoutLineInfo, calculations
 from ....checkout.utils import add_voucher_to_checkout, fetch_checkout_lines
 from ....discount import DiscountInfo, VoucherType
 from ....plugins.manager import get_plugins_manager
@@ -149,16 +149,19 @@ def test_checkout_totals_use_discounts(
     assert data["subtotalPrice"]["gross"]["amount"] == taxed_total.gross.amount
 
     line = checkout.lines.first()
+    checkout_line_info = CheckoutLineInfo(
+        line=line,
+        variant=line.variant,
+        channel_listing=line.variant.channel_listings.get(channel=channel_USD),
+        product=line.variant.product,
+        collections=[],
+    )
     line_total = calculations.checkout_line_total(
         manager=manager,
         checkout=checkout,
-        line=line,
-        variant=line.variant,
-        product=line.variant.product,
-        collections=[],
+        checkout_line_info=checkout_line_info,
         address=checkout.shipping_address,
         channel=channel_USD,
-        channel_listing=line.variant.channel_listings.get(channel=channel_USD),
         discounts=discounts,
     )
     assert data["lines"][0]["totalPrice"]["gross"]["amount"] == line_total.gross.amount

@@ -12,7 +12,7 @@ from ..core.taxes import zero_money
 from ..core.weight import zero_weight
 from ..discount.models import NotApplicable, Voucher, VoucherType
 from ..discount.utils import get_products_voucher_discount, validate_voucher_in_order
-from ..order import FulfillmentStatus, OrderStatus
+from ..order import FulfillmentStatus, OrderLineData, OrderStatus
 from ..order.models import Order, OrderLine
 from ..plugins.manager import get_plugins_manager
 from ..product.utils.digital_products import get_default_digital_content_settings
@@ -117,7 +117,8 @@ def update_order_prices(order, discounts):
     channel = order.channel
     for line in order:  # type: OrderLine
         if line.variant:
-            product = line.variant.product
+            variant = line.variant
+            product = variant.product
             channel_listing = line.variant.channel_listings.get(channel=channel)
             collections = product.collections.all()
             unit_price = line.variant.get_price(
@@ -133,7 +134,7 @@ def update_order_prices(order, discounts):
                 ]
             )
 
-            price = manager.calculate_order_line_unit(line)
+            price = manager.calculate_order_line_unit(order, line, variant, product)
             if price != line.unit_price:
                 line.unit_price = price
                 if price.tax and price.net:
@@ -254,7 +255,7 @@ def add_variant_to_draft_order(order, variant, quantity, discounts=None):
             variant=variant,
         )
         manager = get_plugins_manager()
-        unit_price = manager.calculate_order_line_unit(line)
+        unit_price = manager.calculate_order_line_unit(order, line, variant, product)
         line.unit_price = unit_price
         line.tax_rate = manager.get_order_line_tax_rate(
             order, product, None, unit_price
@@ -334,10 +335,13 @@ def restock_order_lines(order):
         shipping_zones__countries__contains=country
     ).first()
 
+    dellocating_stock_lines: List[OrderLineData] = []
     for line in order:
         if line.variant and line.variant.track_inventory:
             if line.quantity_unfulfilled > 0:
-                deallocate_stock(line, line.quantity_unfulfilled)
+                dellocating_stock_lines.append(
+                    OrderLineData(line=line, quantity=line.quantity_unfulfilled)
+                )
             if line.quantity_fulfilled > 0:
                 allocation = line.allocations.first()
                 warehouse = (
@@ -348,6 +352,9 @@ def restock_order_lines(order):
         if line.quantity_fulfilled > 0:
             line.quantity_fulfilled = 0
             line.save(update_fields=["quantity_fulfilled"])
+
+    if dellocating_stock_lines:
+        deallocate_stock(dellocating_stock_lines)
 
 
 def restock_fulfillment_lines(fulfillment, warehouse):

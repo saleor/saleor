@@ -3,7 +3,9 @@ from unittest import mock
 import graphene
 import pytest
 from django.test import override_settings
+from graphql.execution.base import ExecutionResult
 
+from .... import __version__ as saleor_version
 from ....demo.views import EXAMPLE_QUERY
 from ...tests.fixtures import (
     ACCESS_CONTROL_ALLOW_CREDENTIALS,
@@ -13,6 +15,7 @@ from ...tests.fixtures import (
     API_PATH,
 )
 from ...tests.utils import get_graphql_content, get_graphql_content_from_response
+from ...views import generate_cache_key
 
 
 def test_batch_queries(category, product, api_client, channel_USD):
@@ -309,3 +312,88 @@ def test_example_query(api_client, product):
     response = api_client.post_graphql(EXAMPLE_QUERY)
     content = get_graphql_content(response)
     assert content["data"]["products"]["edges"][0]["node"]["name"] == product.name
+
+
+@pytest.mark.parametrize(
+    "other_query",
+    ["me{email}", 'products(first:5,channel:"channel"){edges{node{name}}}'],
+)
+def test_query_contains_not_only_schema_raise_error(
+    other_query, api_client, graphql_log_handler
+):
+    query = """
+        query IntrospectionQuery {
+            %(other_query)s
+            __schema {
+                queryType {
+                    name
+                }
+            }
+        }
+        """
+    response = api_client.post_graphql(query % {"other_query": other_query})
+    assert response.status_code == 400
+    assert graphql_log_handler.messages == [
+        "saleor.graphql.errors.handled[INFO].GraphQLError"
+    ]
+
+
+INTROSPECTION_QUERY = """
+query IntrospectionQuery {
+    __schema {
+        queryType {
+            name
+        }
+    }
+}
+"""
+
+INTROSPECTION_RESULT = {"__schema": {"queryType": {"name": "Query"}}}
+
+
+@mock.patch("saleor.graphql.views.cache.set")
+@mock.patch("saleor.graphql.views.cache.get")
+@override_settings(DEBUG=False)
+def test_introspection_query_is_cached(cache_get_mock, cache_set_mock, api_client):
+    cache_get_mock.return_value = None
+    cache_key = generate_cache_key(INTROSPECTION_QUERY)
+    response = api_client.post_graphql(INTROSPECTION_QUERY)
+    content = get_graphql_content(response)
+    assert content["data"] == INTROSPECTION_RESULT
+    cache_get_mock.assert_called_once_with(cache_key)
+    cache_set_mock.assert_called_once_with(
+        cache_key, ExecutionResult(data=INTROSPECTION_RESULT)
+    )
+
+
+@mock.patch("saleor.graphql.views.cache.set")
+@mock.patch("saleor.graphql.views.cache.get")
+@override_settings(DEBUG=False)
+def test_introspection_query_is_cached_only_once(
+    cache_get_mock, cache_set_mock, api_client
+):
+    cache_get_mock.return_value = ExecutionResult(data=INTROSPECTION_RESULT)
+    cache_key = generate_cache_key(INTROSPECTION_QUERY)
+    response = api_client.post_graphql(INTROSPECTION_QUERY)
+    content = get_graphql_content(response)
+    assert content["data"] == INTROSPECTION_RESULT
+    cache_get_mock.assert_called_once_with(cache_key)
+    cache_set_mock.assert_not_called()
+
+
+@mock.patch("saleor.graphql.views.cache.set")
+@mock.patch("saleor.graphql.views.cache.get")
+@override_settings(DEBUG=True)
+def test_introspection_query_is_not_cached_in_debug_mode(
+    cache_get_mock, cache_set_mock, api_client
+):
+    response = api_client.post_graphql(INTROSPECTION_QUERY)
+    content = get_graphql_content(response)
+    assert content["data"] == INTROSPECTION_RESULT
+    cache_get_mock.assert_not_called()
+    cache_set_mock.assert_not_called()
+
+
+def test_generate_cache_key_use_saleor_version():
+    cache_key = generate_cache_key(INTROSPECTION_QUERY)
+    assert saleor_version in cache_key

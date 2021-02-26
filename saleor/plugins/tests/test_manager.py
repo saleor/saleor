@@ -11,6 +11,7 @@ from ...checkout.utils import fetch_checkout_lines
 from ...core.taxes import TaxType
 from ...payment.interface import PaymentGateway
 from ...product.models import Product
+from ..base_plugin import ExternalAccessTokens
 from ..manager import PluginsManager, get_plugins_manager
 from ..models import PluginConfiguration
 from ..tests.sample_plugins import (
@@ -22,10 +23,10 @@ from ..tests.sample_plugins import (
 )
 
 
-def test_get_plugins_manager():
-    manager_path = "saleor.plugins.manager.PluginsManager"
+def test_get_plugins_manager(settings):
     plugin_path = "saleor.plugins.tests.sample_plugins.PluginSample"
-    manager = get_plugins_manager(manager_path=manager_path, plugins=[plugin_path])
+    settings.PLUGINS = [plugin_path]
+    manager = get_plugins_manager()
     assert isinstance(manager, PluginsManager)
     assert len(manager.plugins) == 1
 
@@ -111,15 +112,18 @@ def test_manager_calculates_checkout_line_total(
     channel_listing = line.variant.channel_listings.get(channel=channel)
     currency = checkout_with_item.currency
     expected_total = Money(amount, currency)
+    checkout_line_info = CheckoutLineInfo(
+        line=line,
+        variant=line.variant,
+        channel_listing=channel_listing,
+        product=line.variant.product,
+        collections=[],
+    )
     taxed_total = PluginsManager(plugins=plugins).calculate_checkout_line_total(
         checkout_with_item,
-        line,
-        line.variant,
-        line.variant.product,
-        [],
+        checkout_line_info,
         checkout_with_item.shipping_address,
         channel,
-        channel_listing,
         [discount_info],
     )
     assert TaxedMoney(expected_total, expected_total) == taxed_total
@@ -308,9 +312,9 @@ def test_manager_get_order_shipping_tax_rate_no_plugins(
             ["saleor.plugins.tests.sample_plugins.PluginSample"],
             TaxedMoney(
                 net=Money(amount=10, currency="USD"),
-                gross=Money(amount=12, currency="USD"),
+                gross=Money(amount=10, currency="USD"),
             ),
-            2,
+            1,
         ),
         (
             [],
@@ -318,15 +322,33 @@ def test_manager_get_order_shipping_tax_rate_no_plugins(
                 net=Money(amount=15, currency="USD"),
                 gross=Money(amount=15, currency="USD"),
             ),
-            1,
+            2,
         ),
     ],
 )
 def test_manager_calculates_checkout_line_unit_price(
-    plugins, total_line_price, quantity
+    plugins, total_line_price, quantity, checkout_with_item, address
 ):
+    line = checkout_with_item.lines.first()
+    channel = checkout_with_item.channel
+    channel_listing = line.variant.channel_listings.get(channel=channel)
+
+    checkout_line_info = CheckoutLineInfo(
+        line=line,
+        variant=line.variant,
+        channel_listing=channel_listing,
+        product=line.variant.product,
+        collections=[],
+    )
+
     taxed_total = PluginsManager(plugins=plugins).calculate_checkout_line_unit_price(
-        total_line_price, quantity
+        total_line_price,
+        quantity,
+        checkout_with_item,
+        checkout_line_info,
+        address,
+        [],
+        channel,
     )
     currency = total_line_price.net.currency
     expected_net = Money(
@@ -343,9 +365,12 @@ def test_manager_calculates_checkout_line_unit_price(
     [(["saleor.plugins.tests.sample_plugins.PluginSample"], "1.0"), ([], "12.30")],
 )
 def test_manager_calculates_order_line(order_line, plugins, amount):
+    variant = order_line.variant
     currency = order_line.unit_price.currency
     expected_price = Money(amount, currency)
-    unit_price = PluginsManager(plugins=plugins).calculate_order_line_unit(order_line)
+    unit_price = PluginsManager(plugins=plugins).calculate_order_line_unit(
+        order_line.order, order_line, variant, variant.product
+    )
     assert expected_price == unit_price.gross
 
 
@@ -630,3 +655,116 @@ def test_manager_inncorrect_plugin(rf):
     response = manager.webhook(request, "incorrect.plugin.id")
     assert isinstance(response, HttpResponseNotFound)
     assert response.status_code == 404
+
+
+def test_manager_external_authentication(rf):
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+    ]
+    manager = PluginsManager(plugins=plugins)
+
+    response = manager.external_authentication_url(
+        PluginSample.PLUGIN_ID, {"redirectUrl": "ABC"}, rf.request()
+    )
+    assert response == {"authorizeUrl": "http://www.auth.provider.com/authorize/"}
+
+
+def test_manager_external_refresh(rf):
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+    ]
+    manager = PluginsManager(plugins=plugins)
+    response = manager.external_refresh(
+        PluginSample.PLUGIN_ID, {"refreshToken": "ABC11"}, rf.request()
+    )
+
+    expected_plugin_response = ExternalAccessTokens(
+        token="token4", refresh_token="refresh5", csrf_token="csrf6"
+    )
+    assert response == expected_plugin_response
+
+
+def test_manager_external_obtain_access_tokens(rf):
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+    ]
+    manager = PluginsManager(plugins=plugins)
+    response = manager.external_obtain_access_tokens(
+        PluginSample.PLUGIN_ID, {"code": "ABC11", "state": "state1"}, rf.request()
+    )
+
+    expected_plugin_response = ExternalAccessTokens(
+        token="token1", refresh_token="refresh2", csrf_token="csrf3"
+    )
+    assert response == expected_plugin_response
+
+
+def test_manager_authenticate_user(rf, admin_user):
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+    ]
+    manager = PluginsManager(plugins=plugins)
+    user = manager.authenticate_user(rf.request())
+    assert user == admin_user
+
+
+def test_manager_external_logout(rf, admin_user):
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+    ]
+    manager = PluginsManager(plugins=plugins)
+    response = manager.external_logout(PluginSample.PLUGIN_ID, {}, rf.request())
+    assert response == {"logoutUrl": "http://www.auth.provider.com/logout/"}
+
+
+def test_manager_external_verify(rf, admin_user):
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+    ]
+    manager = PluginsManager(plugins=plugins)
+    user, response_data = manager.external_verify(
+        PluginSample.PLUGIN_ID, {}, rf.request()
+    )
+    assert user == admin_user
+    assert response_data == {"some_data": "data"}
+
+
+def test_list_external_authentications():
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+        "saleor.plugins.tests.sample_plugins.ActivePaymentGateway",
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+    ]
+    manager = PluginsManager(plugins=plugins)
+    external_auths = manager.list_external_authentications(active_only=False)
+
+    assert {
+        "id": PluginInactive.PLUGIN_ID,
+        "name": PluginInactive.PLUGIN_NAME,
+    } in external_auths
+    assert {
+        "id": PluginSample.PLUGIN_ID,
+        "name": PluginSample.PLUGIN_NAME,
+    } in external_auths
+
+
+def test_list_external_authentications_active_only():
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+        "saleor.plugins.tests.sample_plugins.ActivePaymentGateway",
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+    ]
+
+    manager = PluginsManager(plugins=plugins)
+    external_auths = manager.list_external_authentications(active_only=True)
+
+    assert {
+        "id": PluginSample.PLUGIN_ID,
+        "name": PluginSample.PLUGIN_NAME,
+    } in external_auths

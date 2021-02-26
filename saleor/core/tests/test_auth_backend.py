@@ -43,6 +43,34 @@ def test_incorect_type_of_token(rf, staff_user):
         backend.authenticate(request)
 
 
+def test_saleor_is_not_owner_of_token(rf, staff_user, settings):
+    payload = jwt_user_payload(
+        staff_user,
+        JWT_ACCESS_TYPE,
+        settings.JWT_TTL_ACCESS,
+        token_owner="mirumee.custom.auth.plugin",
+    )
+    token = jwt_encode(payload)
+    request = rf.request(HTTP_AUTHORIZATION=f"JWT {token}")
+    backend = JSONWebTokenBackend()
+
+    assert backend.authenticate(request) is None
+
+
+def test_raises_error_when_owner_field_is_missing(rf, staff_user, settings):
+    payload = jwt_user_payload(
+        staff_user,
+        JWT_ACCESS_TYPE,
+        settings.JWT_TTL_ACCESS,
+        token_owner=None,  # type: ignore
+    )
+    token = jwt_encode(payload)
+    request = rf.request(HTTP_AUTHORIZATION=f"JWT {token}")
+    backend = JSONWebTokenBackend()
+    with pytest.raises(InvalidTokenError):
+        backend.authenticate(request)
+
+
 def test_incorrect_token(rf, staff_user, settings):
     payload = jwt_user_payload(
         staff_user,
@@ -100,6 +128,27 @@ def test_user_deactivated_token(rf, staff_user):
         backend.authenticate(request)
 
 
+def test_user_doesnt_have_permissions_from_token(staff_user, app, rf):
+    staff_user.user_permissions.set(
+        Permission.objects.filter(codename__in=["manage_checkouts", "manage_orders"])
+    )
+    app.permissions.set(
+        Permission.objects.filter(codename__in=["manage_apps", "manage_checkouts"])
+    )
+    access_token_for_app = create_access_token_for_app(app, staff_user)
+
+    expected_permissions = Permission.objects.filter(codename__in=["manage_checkouts"])
+
+    # user doesn't have the same permissions as in the token
+    staff_user.user_permissions.set(expected_permissions)
+
+    request = rf.request(HTTP_AUTHORIZATION=f"JWT {access_token_for_app}")
+    backend = JSONWebTokenBackend()
+    user = backend.authenticate(request)
+    assert user == staff_user
+    assert set(user.effective_permissions) == set(expected_permissions)
+
+
 @pytest.mark.parametrize(
     "user_permissions, app_permissions, expected_limited_permissions",
     [
@@ -136,29 +185,6 @@ def test_user_with_limited_permissions(
     assert set(user_permissions) == set(limited_permissions)
 
 
-def test_user_doesnt_have_permissions_from_token(staff_user, app, rf):
-    staff_user.user_permissions.set(
-        Permission.objects.filter(
-            codename__in=["manage_apps", "manage_checkouts", "manage_orders"]
-        )
-    )
-    app.permissions.set(
-        Permission.objects.filter(codename__in=["manage_apps", "manage_checkouts"])
-    )
-    access_token_for_app = create_access_token_for_app(app, staff_user)
-
-    expected_permissions = Permission.objects.filter(codename__in=["manage_checkouts"])
-
-    # user doesn't have the same permissions as in the token
-    staff_user.user_permissions.set(expected_permissions)
-
-    request = rf.request(HTTP_AUTHORIZATION=f"JWT {access_token_for_app}")
-    backend = JSONWebTokenBackend()
-    user = backend.authenticate(request)
-    assert user == staff_user
-    assert set(user.effective_permissions) == set(expected_permissions)
-
-
 def test_user_payload_doesnt_have_user_token(rf, staff_user, settings):
     access_payload = jwt_user_payload(
         staff_user, JWT_ACCESS_TYPE, settings.JWT_TTL_ACCESS
@@ -166,19 +192,6 @@ def test_user_payload_doesnt_have_user_token(rf, staff_user, settings):
     del access_payload["token"]
     access_token = jwt_encode(access_payload)
 
-    request = rf.request(HTTP_AUTHORIZATION=f"JWT {access_token}")
-    backend = JSONWebTokenBackend()
-    with pytest.raises(InvalidTokenError):
-        backend.authenticate(request)
-
-
-def test_user_has_old_token_type(rf, staff_user, settings):
-    settings.JWT_EXPIRE = False
-    access_token = (
-        "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwiZ"
-        "XhwIjoxNTYwMTczNDI2LCJvcmlnSWF0IjoxNTYwMTczMTI2fQ.QrYkGfEqnwC-d--EHATAfXoWURJf"
-        "lFfbntR7BESI9mg"
-    )
     request = rf.request(HTTP_AUTHORIZATION=f"JWT {access_token}")
     backend = JSONWebTokenBackend()
     with pytest.raises(InvalidTokenError):

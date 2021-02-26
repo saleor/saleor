@@ -58,10 +58,6 @@ def send_webhook_using_http(target_url, message, domain, signature, event_type):
         "X-Saleor-Signature": signature,
     }
 
-    if signature:
-        # This header is depreceated and will be removed in Saleor3.0
-        headers["X-Saleor-HMAC-SHA256"] = f"sha1={signature}"
-
     response = requests.post(
         target_url, data=message, headers=headers, timeout=WEBHOOK_TIMEOUT
     )

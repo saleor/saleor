@@ -1,14 +1,20 @@
-from typing import Union
+from typing import TYPE_CHECKING, Optional, Union
 
 import graphene
+from django.conf import settings
 from django.db.models import Value
 from django.db.models.functions import Concat
 from graphene_django.registry import get_global_registry
 from graphql.error import GraphQLError
 from graphql_relay import from_global_id
 
+from ...account import models as account_models
 from ..core.enums import PermissionEnum
 from ..core.types import Permission
+
+if TYPE_CHECKING:
+    from ..account import types as account_types
+
 
 ERROR_COULD_NO_RESOLVE_GLOBAL_ID = (
     "Could not resolve to a node with the global id list of '%s'."
@@ -131,3 +137,26 @@ def get_user_or_app_from_context(context):
 def requestor_is_superuser(requestor):
     """Return True if requestor is superuser."""
     return getattr(requestor, "is_superuser", False)
+
+
+def get_user_country_context(
+    destination_address: Optional[
+        Union["account_types.AddressInput", "account_models.Address"]
+    ] = None,
+    company_address: Optional["account_models.Address"] = None,
+) -> str:
+    """Get country of the current user to use for tax and stock related calculations.
+
+    User's country context is determined from the provided `destination_address` (which
+    may represent user's current location determined by the client or a shipping
+    address provided in the checkout). If `destination_address` is not given, the
+    default company address from the shop settings is assumed. If this address is not
+    set, fallback to the `DEFAULT_COUNTRY` setting.
+    """
+    if destination_address and destination_address.country:
+        if isinstance(destination_address, account_models.Address):
+            return destination_address.country.code
+        return destination_address.country
+    elif company_address and company_address.country:
+        return company_address.country.code
+    return settings.DEFAULT_COUNTRY

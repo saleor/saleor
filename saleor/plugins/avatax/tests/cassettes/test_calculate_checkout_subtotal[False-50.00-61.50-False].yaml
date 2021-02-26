@@ -2,15 +2,16 @@ interactions:
 - request:
     body: '{"createTransactionModel": {"companyCode": "DEFAULT", "type": "SalesOrder",
       "lines": [{"quantity": 3, "amount": "30.00", "taxCode": "O9999999", "taxIncluded":
-      false, "itemCode": "123", "description": ""}, {"quantity": 2, "amount": "20.00",
-      "taxCode": "O9999999", "taxIncluded": false, "itemCode": "SKU_A", "description":
-      ""}, {"quantity": 1, "amount": "10.00", "taxCode": "FR020100", "taxIncluded":
-      false, "itemCode": "Shipping", "description": ""}], "code": "014993b5-40a5-411e-a623-9a073e208dfc",
-      "date": "2019-06-26", "customerCode": 0, "addresses": {"shipFrom": {"line1":
-      "2000 Main Street", "line2": "", "city": "Irvine", "region": "CA", "country":
-      "US", "postalCode": "92614"}, "shipTo": {"line1": "T\u0119czowa 7", "line2":
-      "", "city": "WROC\u0141AW", "region": "", "country": "PL", "postalCode": "53-601"}},
-      "commit": false, "currencyCode": "USD", "email": ""}}'
+      false, "itemCode": "123", "description": "Test product"}, {"quantity": 2, "amount":
+      "20.00", "taxCode": "O9999999", "taxIncluded": false, "itemCode": "SKU_A", "description":
+      "Test product"}, {"quantity": 1, "amount": "10.000", "taxCode": "FR020100",
+      "taxIncluded": false, "itemCode": "Shipping", "description": null}], "code":
+      "b3231feb-9be9-454a-b603-2940d568926f", "date": "2021-01-25", "customerCode":
+      0, "addresses": {"shipFrom": {"line1": "T\u0119czowa 7", "line2": "", "city":
+      "WROC\u0141AW", "region": "", "country": "PL", "postalCode": "53-601"}, "shipTo":
+      {"line1": "O\u0142awska 10", "line2": "", "city": "WROC\u0141AW", "region":
+      "", "country": "PL", "postalCode": "53-105"}}, "commit": false, "currencyCode":
+      "USD", "email": ""}}'
     headers:
       Accept:
       - '*/*'
@@ -21,94 +22,57 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '869'
+      - '900'
       User-Agent:
-      - python-requests/2.22.0
+      - python-requests/2.25.1
     method: POST
-    uri: https://sandbox-rest.avatax.com/api/v2/transactions/createoradjust
+    uri: https://rest.avatax.com/api/v2/transactions/createoradjust
   response:
     body:
-      string: "{\"id\":0,\"code\":\"014993b5-40a5-411e-a623-9a073e208dfc\",\"companyId\"\
-        :242975,\"date\":\"2019-06-26\",\"paymentDate\":\"2019-06-26\",\"status\"\
-        :\"Temporary\",\"type\":\"SalesOrder\",\"currencyCode\":\"USD\",\"customerVendorCode\"\
-        :\"0\",\"customerCode\":\"0\",\"reconciled\":false,\"totalAmount\":60.0,\"\
-        totalExempt\":0.0,\"totalDiscount\":0.0,\"totalTax\":13.8,\"totalTaxable\"\
-        :60.0,\"totalTaxCalculated\":13.8,\"adjustmentReason\":\"NotAdjusted\",\"\
-        locked\":false,\"version\":1,\"exchangeRateEffectiveDate\":\"2019-06-26\"\
-        ,\"exchangeRate\":1.0,\"email\":\"\",\"modifiedDate\":\"2019-06-26T10:52:09.4094448Z\"\
-        ,\"modifiedUserId\":283192,\"taxDate\":\"2019-06-26T00:00:00\",\"lines\":[{\"\
-        id\":0,\"transactionId\":0,\"lineNumber\":\"1\",\"description\":\"\",\"discountAmount\"\
-        :0.0,\"exemptAmount\":0.0,\"exemptCertId\":0,\"isItemTaxable\":true,\"itemCode\"\
-        :\"123\",\"lineAmount\":30.0,\"quantity\":3.0,\"reportingDate\":\"2019-06-26\"\
-        ,\"tax\":6.9,\"taxableAmount\":30.0,\"taxCalculated\":6.9,\"taxCode\":\"O9999999\"\
-        ,\"taxCodeId\":5340,\"taxDate\":\"2019-06-26\",\"taxIncluded\":false,\"details\"\
-        :[{\"id\":0,\"transactionLineId\":0,\"transactionId\":0,\"country\":\"PL\"\
-        ,\"region\":\"PL\",\"exemptAmount\":0.0,\"jurisCode\":\"PL\",\"jurisName\"\
-        :\"POLAND\",\"stateAssignedNo\":\"\",\"jurisType\":\"CNT\",\"jurisdictionType\"\
-        :\"Country\",\"nonTaxableAmount\":0.0,\"rate\":0.230000,\"tax\":6.9,\"taxableAmount\"\
-        :30.0,\"taxType\":\"Output\",\"taxSubTypeId\":\"O\",\"taxName\":\"Standard\
-        \ Rate\",\"taxAuthorityTypeId\":45,\"taxCalculated\":6.9,\"rateType\":\"Standard\"\
-        ,\"rateTypeCode\":\"S\",\"isNonPassThru\":false}],\"nonPassthroughDetails\"\
-        :[],\"hsCode\":\"\",\"costInsuranceFreight\":0.0,\"vatCode\":\"PLS-2300O--US\"\
-        ,\"vatNumberTypeId\":0},{\"id\":0,\"transactionId\":0,\"lineNumber\":\"2\"\
-        ,\"description\":\"\",\"discountAmount\":0.0,\"exemptAmount\":0.0,\"exemptCertId\"\
-        :0,\"isItemTaxable\":true,\"itemCode\":\"SKU_A\",\"lineAmount\":20.0,\"quantity\"\
-        :2.0,\"reportingDate\":\"2019-06-26\",\"tax\":4.6,\"taxableAmount\":20.0,\"\
-        taxCalculated\":4.6,\"taxCode\":\"O9999999\",\"taxCodeId\":5340,\"taxDate\"\
-        :\"2019-06-26\",\"taxIncluded\":false,\"details\":[{\"id\":0,\"transactionLineId\"\
-        :0,\"transactionId\":0,\"country\":\"PL\",\"region\":\"PL\",\"exemptAmount\"\
-        :0.0,\"jurisCode\":\"PL\",\"jurisName\":\"POLAND\",\"stateAssignedNo\":\"\"\
-        ,\"jurisType\":\"CNT\",\"jurisdictionType\":\"Country\",\"nonTaxableAmount\"\
-        :0.0,\"rate\":0.230000,\"tax\":4.6,\"taxableAmount\":20.0,\"taxType\":\"Output\"\
-        ,\"taxSubTypeId\":\"O\",\"taxName\":\"Standard Rate\",\"taxAuthorityTypeId\"\
-        :45,\"taxCalculated\":4.6,\"rateType\":\"Standard\",\"rateTypeCode\":\"S\"\
-        ,\"isNonPassThru\":false}],\"nonPassthroughDetails\":[],\"hsCode\":\"\",\"\
-        costInsuranceFreight\":0.0,\"vatCode\":\"PLS-2300O--US\",\"vatNumberTypeId\"\
-        :0},{\"id\":0,\"transactionId\":0,\"lineNumber\":\"3\",\"description\":\"\"\
-        ,\"discountAmount\":0.0,\"exemptAmount\":0.0,\"exemptCertId\":0,\"isItemTaxable\"\
-        :true,\"itemCode\":\"Shipping\",\"lineAmount\":10.0,\"quantity\":1.0,\"reportingDate\"\
-        :\"2019-06-26\",\"tax\":2.3,\"taxableAmount\":10.0,\"taxCalculated\":2.3,\"\
-        taxCode\":\"FR020100\",\"taxCodeId\":4784,\"taxDate\":\"2019-06-26\",\"taxIncluded\"\
-        :false,\"details\":[{\"id\":0,\"transactionLineId\":0,\"transactionId\":0,\"\
-        country\":\"PL\",\"region\":\"PL\",\"exemptAmount\":0.0,\"jurisCode\":\"PL\"\
-        ,\"jurisName\":\"POLAND\",\"stateAssignedNo\":\"\",\"jurisType\":\"CNT\",\"\
-        jurisdictionType\":\"Country\",\"nonTaxableAmount\":0.0,\"rate\":0.230000,\"\
-        tax\":2.3,\"taxableAmount\":10.0,\"taxType\":\"Output\",\"taxSubTypeId\":\"\
-        O\",\"taxName\":\"Standard Rate\",\"taxAuthorityTypeId\":45,\"taxCalculated\"\
-        :2.3,\"rateType\":\"Standard\",\"rateTypeCode\":\"S\",\"isNonPassThru\":false}],\"\
-        nonPassthroughDetails\":[],\"hsCode\":\"\",\"costInsuranceFreight\":0.0,\"\
-        vatCode\":\"PLS-2300F--US\",\"vatNumberTypeId\":0}],\"addresses\":[{\"id\"\
-        :0,\"transactionId\":0,\"boundaryLevel\":\"Zip5\",\"line1\":\"T\u0119czowa\
-        \ 7\",\"line2\":\"\",\"line3\":\"\",\"city\":\"WROCLAW\",\"region\":\"\",\"\
-        postalCode\":\"53-601\",\"country\":\"PL\",\"taxRegionId\":205102,\"latitude\"\
-        :\"0\",\"longitude\":\"0\"},{\"id\":0,\"transactionId\":0,\"boundaryLevel\"\
-        :\"Zip5\",\"line1\":\"2000 Main Street\",\"line2\":\"\",\"line3\":\"\",\"\
-        city\":\"Irvine\",\"region\":\"CA\",\"postalCode\":\"92614\",\"country\":\"\
-        US\",\"taxRegionId\":4017409,\"latitude\":\"0\",\"longitude\":\"0\"}],\"summary\"\
-        :[{\"country\":\"PL\",\"region\":\"PL\",\"jurisType\":\"Country\",\"jurisCode\"\
-        :\"PL\",\"jurisName\":\"POLAND\",\"taxAuthorityType\":45,\"stateAssignedNo\"\
-        :\"\",\"taxType\":\"Output\",\"taxSubType\":\"O\",\"taxName\":\"Standard Rate\"\
-        ,\"rateType\":\"Standard\",\"taxable\":60.0,\"rate\":0.230000,\"tax\":13.8,\"\
-        taxCalculated\":13.8,\"nonTaxable\":0.0,\"exemption\":0.0}]}"
+      string: !!binary |
+        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
     headers:
       Connection:
       - keep-alive
+      Content-Encoding:
+      - gzip
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 26 Jun 2019 10:52:13 GMT
+      - Mon, 25 Jan 2021 13:39:35 GMT
       Location:
       - /api/v2/companies/242975/transactions/0
       Server:
       - Kestrel
       ServerDuration:
-      - '00:00:00.1165949'
+      - '00:00:00.0243836'
       Transfer-Encoding:
       - chunked
-      X-Content-Type-Options:
-      - nosniff
-      X-Powered-By:
-      - ASP.NET
+      Vary:
+      - Accept-Encoding
     status:
       code: 201
       message: Created

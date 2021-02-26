@@ -910,7 +910,7 @@ def test_checkout_create_check_lines_quantity_multiple_warehouse(
     content = get_graphql_content(response)
     data = content["data"]["checkoutCreate"]
     assert data["checkoutErrors"][0]["message"] == (
-        "Could not add item Test product (SKU_A). Only 7 remaining in stock."
+        "Could not add items SKU_A. Only 7 remaining in stock."
     )
     assert data["checkoutErrors"][0]["field"] == "quantity"
 
@@ -1004,7 +1004,7 @@ def test_checkout_create_check_lines_quantity(
     content = get_graphql_content(response)
     data = content["data"]["checkoutCreate"]
     assert data["checkoutErrors"][0]["message"] == (
-        "Could not add item Test product (SKU_A). Only 15 remaining in stock."
+        "Could not add items SKU_A. Only 15 remaining in stock."
     )
     assert data["checkoutErrors"][0]["field"] == "quantity"
 
@@ -1196,7 +1196,7 @@ def test_checkout_available_shipping_methods(
     assert data["availableShippingMethods"][0]["name"] == shipping_method.name
 
 
-def test_checkout_available_shipping_methods_excluded_zip_codes(
+def test_checkout_available_shipping_methods_excluded_postal_codes(
     api_client, checkout_with_item, address, shipping_zone
 ):
     address.country = Country("GB")
@@ -1205,7 +1205,7 @@ def test_checkout_available_shipping_methods_excluded_zip_codes(
     checkout_with_item.shipping_address = address
     checkout_with_item.save()
     shipping_method = shipping_zone.shipping_methods.first()
-    shipping_method.zip_code_rules.create(start="BH16 7HA", end="BH16 7HG")
+    shipping_method.postal_code_rules.create(start="BH16 7HA", end="BH16 7HG")
 
     query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
     variables = {"token": checkout_with_item.token}
@@ -1493,7 +1493,7 @@ def test_checkout_lines_add_check_lines_quantity(user_api_client, checkout, stoc
     content = get_graphql_content(response)
     data = content["data"]["checkoutLinesAdd"]
     assert data["checkoutErrors"][0]["message"] == (
-        "Could not add item Test product (SKU_A). Only 15 remaining in stock."
+        "Could not add items SKU_A. Only 15 remaining in stock."
     )
     assert data["checkoutErrors"][0]["field"] == "quantity"
 
@@ -1664,7 +1664,7 @@ def test_checkout_lines_update_check_lines_quantity(
 
     data = content["data"]["checkoutLinesUpdate"]
     assert data["checkoutErrors"][0]["message"] == (
-        "Could not add item Test product (123). Only 10 remaining in stock."
+        "Could not add items 123. Only 10 remaining in stock."
     )
     assert data["checkoutErrors"][0]["field"] == "quantity"
 
@@ -2588,15 +2588,19 @@ def test_checkout_shipping_method_update(
         assert checkout.shipping_method is None
 
 
-@patch("saleor.shipping.models.check_shipping_method_for_zip_code")
-def test_checkout_shipping_method_update_excluded_zip_code(
-    mock_check_zip_code, staff_api_client, shipping_method, checkout_with_item, address
+@patch("saleor.shipping.postal_codes.is_shipping_method_applicable_for_postal_code")
+def test_checkout_shipping_method_update_excluded_postal_code(
+    mock_is_shipping_method_available,
+    staff_api_client,
+    shipping_method,
+    checkout_with_item,
+    address,
 ):
     checkout = checkout_with_item
     checkout.shipping_address = address
     checkout.save(update_fields=["shipping_address"])
     query = MUTATION_UPDATE_SHIPPING_METHOD
-    mock_check_zip_code.return_value = True
+    mock_is_shipping_method_available.return_value = False
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
@@ -2616,7 +2620,8 @@ def test_checkout_shipping_method_update_excluded_zip_code(
     ]
     assert checkout.shipping_method is None
     assert (
-        mock_check_zip_code.call_count == shipping_models.ShippingMethod.objects.count()
+        mock_is_shipping_method_available.call_count
+        == shipping_models.ShippingMethod.objects.count()
     )
 
 

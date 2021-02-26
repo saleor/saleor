@@ -7,6 +7,7 @@ from django_countries import countries
 from ....account.models import Address
 from ....core.error_codes import ShopErrorCode
 from ....core.permissions import get_permissions_codename
+from ....shipping import PostalCodeRuleInclusionType
 from ....shipping.models import ShippingMethod
 from ....site.models import Site
 from ...account.enums import CountryCodeEnum
@@ -565,28 +566,38 @@ def test_query_default_country(user_api_client, settings):
     assert data["country"] == "United States of America"
 
 
-def test_query_geolocalization(user_api_client):
-    query = """
-        query {
-            shop {
-                geolocalization {
-                    country {
-                        code
-                    }
-                }
+AVAILABLE_EXTERNAL_AUTHENTICATIONS_QUERY = """
+    query{
+        shop {
+            availableExternalAuthentications{
+                id
+                name
             }
         }
-    """
-    GERMAN_IP = "79.222.222.22"
-    response = user_api_client.post_graphql(query, HTTP_X_FORWARDED_FOR=GERMAN_IP)
-    content = get_graphql_content(response)
-    data = content["data"]["shop"]["geolocalization"]
-    assert data["country"]["code"] == "DE"
+    }
+"""
 
+
+@pytest.mark.parametrize(
+    "external_auths",
+    [
+        [{"id": "auth1", "name": "Auth-1"}],
+        [{"id": "auth1", "name": "Auth-1"}, {"id": "auth2", "name": "Auth-2"}],
+        [],
+    ],
+)
+def test_query_available_external_authentications(
+    external_auths, user_api_client, monkeypatch
+):
+    monkeypatch.setattr(
+        "saleor.plugins.manager.PluginsManager.list_external_authentications",
+        lambda self, active_only: external_auths,
+    )
+    query = AVAILABLE_EXTERNAL_AUTHENTICATIONS_QUERY
     response = user_api_client.post_graphql(query)
     content = get_graphql_content(response)
-    data = content["data"]["shop"]["geolocalization"]
-    assert data["country"] is None
+    data = content["data"]["shop"]["availableExternalAuthentications"]
+    assert data == external_auths
 
 
 AVAILABLE_PAYMENT_GATEWAYS_QUERY = """
@@ -753,6 +764,54 @@ def test_query_available_shipping_methods_for_given_address_vatlayer_set(
     assert graphene.Node.to_global_id(
         "ShippingMethod", shipping_zone_without_countries.pk
     ) not in {ship_meth["id"] for ship_meth in data}
+
+
+def test_query_available_shipping_methods_for_excluded_postal_code(
+    staff_api_client, channel_USD, shipping_method
+):
+    # given
+    query = AVAILABLE_SHIPPING_METHODS_QUERY
+    variables = {
+        "channel": channel_USD.slug,
+        "address": {"country": CountryCodeEnum.PL.name, "postalCode": "53-601"},
+    }
+    shipping_method.postal_code_rules.create(
+        start="53-600", end="54-600", inclusion_type=PostalCodeRuleInclusionType.EXCLUDE
+    )
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["shop"]["availableShippingMethods"]
+    assert graphene.Node.to_global_id("ShippingMethod", shipping_method.pk) not in {
+        ship_meth["id"] for ship_meth in data
+    }
+
+
+def test_query_available_shipping_methods_for_included_postal_code(
+    staff_api_client, channel_USD, shipping_method
+):
+    # given
+    query = AVAILABLE_SHIPPING_METHODS_QUERY
+    variables = {
+        "channel": channel_USD.slug,
+        "address": {"country": CountryCodeEnum.PL.name, "postalCode": "53-601"},
+    }
+    shipping_method.postal_code_rules.create(
+        start="53-600", end="54-600", inclusion_type=PostalCodeRuleInclusionType.INCLUDE
+    )
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["shop"]["availableShippingMethods"]
+    assert graphene.Node.to_global_id("ShippingMethod", shipping_method.pk) in {
+        ship_meth["id"] for ship_meth in data
+    }
 
 
 MUTATION_SHOP_ADDRESS_UPDATE = """
