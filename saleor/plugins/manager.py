@@ -130,7 +130,7 @@ class PluginsManager(PaymentInterface):
                 checkout_info, lines, address, discounts
             ),
             shipping_price=self.calculate_checkout_shipping(
-                checkout_info.checkout, lines, address, discounts
+                checkout_info, lines, address, discounts
             ),
             discount=checkout_info.checkout.discount,
             currency=checkout_info.checkout.currency,
@@ -180,22 +180,24 @@ class PluginsManager(PaymentInterface):
 
     def calculate_checkout_shipping(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         lines: Iterable["CheckoutLineInfo"],
         address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
     ) -> TaxedMoney:
-        default_value = base_calculations.base_checkout_shipping_price(checkout, lines)
+        default_value = base_calculations.base_checkout_shipping_price(
+            checkout_info.checkout, lines
+        )
         return quantize_price(
             self.__run_method_on_plugins(
                 "calculate_checkout_shipping",
                 default_value,
-                checkout,
+                checkout_info,
                 lines,
                 address,
                 discounts,
             ),
-            checkout.currency,
+            checkout_info.checkout.currency,
         )
 
     def calculate_order_shipping(self, order: "Order") -> TaxedMoney:

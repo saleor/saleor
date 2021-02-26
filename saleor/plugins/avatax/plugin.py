@@ -244,7 +244,7 @@ class AvataxPlugin(BasePlugin):
 
     def calculate_checkout_shipping(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         lines: Iterable["CheckoutLineInfo"],
         address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
@@ -258,10 +258,12 @@ class AvataxPlugin(BasePlugin):
         if self._skip_plugin(previous_value):
             return base_shipping_price
 
-        if not _validate_checkout(checkout, [line_info.line for line_info in lines]):
+        if not _validate_checkout(
+            checkout_info.checkout, [line_info.line for line_info in lines]
+        ):
             return base_shipping_price
 
-        response = get_checkout_tax_data(checkout, discounts, self.config)
+        response = get_checkout_tax_data(checkout_info.checkout, discounts, self.config)
         if not response or "error" in response:
             return base_shipping_price
 
