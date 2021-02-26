@@ -46,6 +46,7 @@ from ..warehouse.types import Allocation, Warehouse
 from .dataloaders import (
     AllocationsByOrderLineIdLoader,
     OrderByIdLoader,
+    OrderLineByIdLoader,
     OrderLinesByOrderIdLoader,
 )
 from .enums import OrderEventsEmailsEnum, OrderEventsEnum
@@ -220,7 +221,7 @@ class OrderEvent(CountableDjangoObjectType):
         return root.parameters.get("invoice_number")
 
     @staticmethod
-    def resolve_lines(root: models.OrderEvent, _info):
+    def resolve_lines(root: models.OrderEvent, info):
         raw_lines = root.parameters.get("lines", None)
 
         if not raw_lines:
@@ -228,30 +229,34 @@ class OrderEvent(CountableDjangoObjectType):
 
         line_pks = []
         for entry in raw_lines:
-            line_pks.append(entry.get("line_pk", None))
+            line_pk = entry.get("line_pk", None)
+            if not line_pk:
+                continue
+            line_pks.append(line_pk)
 
-        lines = models.OrderLine.objects.filter(pk__in=line_pks).all()
-        results = []
-        for raw_line, line_pk in zip(raw_lines, line_pks):
-            line_object = None
-            for line in lines:
-                if line.pk == line_pk:
-                    line_object = line
-                    break
-
-            discount = raw_line.get("discount")
-            if discount:
-                discount = get_order_discount_event(discount)
-            results.append(
-                OrderEventOrderLineObject(
-                    quantity=raw_line["quantity"],
-                    order_line=line_object,
-                    item_name=raw_line["item"],
-                    discount=discount,
+        def _resolve_lines(lines):
+            results = []
+            lines_dict = {line.pk: line for line in lines if line}
+            for raw_line in raw_lines:
+                line_pk = raw_line.get("line_pk")
+                line_object = lines_dict.get(line_pk)
+                discount = raw_line.get("discount")
+                if discount:
+                    discount = get_order_discount_event(discount)
+                results.append(
+                    OrderEventOrderLineObject(
+                        quantity=raw_line["quantity"],
+                        order_line=line_object,
+                        item_name=raw_line["item"],
+                        discount=discount,
+                    )
                 )
-            )
 
-        return results
+            return results
+
+        return (
+            OrderLineByIdLoader(info.context).load_many(line_pks).then(_resolve_lines)
+        )
 
     @staticmethod
     def resolve_fulfilled_items(root: models.OrderEvent, _info):
@@ -749,7 +754,7 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_events(root: models.Order, _info):
-        return root.events.all().order_by("pk")
+        return root.events.prefetch_related("user").all().order_by("pk")
 
     @staticmethod
     def resolve_is_paid(root: models.Order, _info):

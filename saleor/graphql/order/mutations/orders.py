@@ -280,7 +280,7 @@ class OrderUpdateShipping(BaseMutation):
                 "shipping_tax_rate",
             ]
         )
-        update_order_prices(order, info.context.plugins)
+        update_order_prices(order, info.context.plugins, info.context.site.settings)
         # Post-process the results
         order_shipping_updated(order)
         return OrderUpdateShipping(order=order)

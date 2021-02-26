@@ -456,7 +456,9 @@ def test_queryset_ready_to_capture(channel_USD):
 
 
 @patch("saleor.plugins.manager.PluginsManager.calculate_order_line_unit")
-def test_update_order_prices(mocked_calculate_order_line_unit, order_with_lines):
+def test_update_order_prices(
+    mocked_calculate_order_line_unit, order_with_lines, site_settings
+):
     manager = get_plugins_manager()
     channel = order_with_lines.channel
     address = order_with_lines.shipping_address
@@ -488,7 +490,7 @@ def test_update_order_prices(mocked_calculate_order_line_unit, order_with_lines)
     ).price
     shipping_price = TaxedMoney(net=shipping_price, gross=shipping_price)
 
-    update_order_prices(order_with_lines, manager)
+    update_order_prices(order_with_lines, manager, site_settings)
 
     line_1.refresh_from_db()
     line_2.refresh_from_db()
@@ -500,7 +502,7 @@ def test_update_order_prices(mocked_calculate_order_line_unit, order_with_lines)
     assert order_with_lines.total == total
 
 
-def test_update_order_prices_tax_included(order_with_lines, vatlayer):
+def test_update_order_prices_tax_included(order_with_lines, vatlayer, site_settings):
     manager = get_plugins_manager()
 
     channel = order_with_lines.channel
@@ -532,7 +534,7 @@ def test_update_order_prices_tax_included(order_with_lines, vatlayer):
         channel_id=order_with_lines.channel_id
     ).price
 
-    update_order_prices(order_with_lines, manager)
+    update_order_prices(order_with_lines, manager, site_settings)
 
     line_1.refresh_from_db()
     line_2.refresh_from_db()

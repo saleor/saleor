@@ -169,9 +169,14 @@ def recalculate_order_weight(order):
     order.save(update_fields=["weight"])
 
 
-def update_order_line_prices(line: "OrderLine", order: "Order", manager):
+def update_taxes_for_order_line(
+    line: "OrderLine", order: "Order", manager, tax_included
+):
     variant = line.variant
     product = variant.product  # type: ignore
+
+    line_price = line.unit_price.gross if tax_included else line.unit_price.net
+    line.unit_price = TaxedMoney(line_price, line_price)
 
     price = manager.calculate_order_line_unit(order, line, variant, product)
     if price != line.unit_price:
@@ -181,16 +186,13 @@ def update_order_line_prices(line: "OrderLine", order: "Order", manager):
             line.tax_rate = manager.get_order_line_tax_rate(order, product, None, price)
 
 
-def update_order_prices(order, manager):
-    """Update prices in order with given discounts and proper taxes."""
-
-    lines_to_update = []
-    for line in order.lines.all():  # type: OrderLine
-        if line.variant:
-            update_order_line_prices(line, order, manager)
-            lines_to_update.append(line)
+def update_taxes_for_order_lines(
+    lines: List[OrderLine], order: "Order", manager, tax_included
+):
+    for line in lines:
+        update_taxes_for_order_line(line, order, manager, tax_included=tax_included)
     OrderLine.objects.bulk_update(
-        lines_to_update,
+        lines,
         [
             "tax_rate",
             "unit_price_net_amount",
@@ -199,6 +201,12 @@ def update_order_prices(order, manager):
             "total_price_gross_amount",
         ],
     )
+
+
+def update_order_prices(order, manager, tax_included):
+    """Update prices in order with given discounts and proper taxes."""
+
+    update_taxes_for_order_lines(order.lines.all(), order, manager, tax_included)
 
     if order.shipping_method:
         shipping_price = manager.calculate_order_shipping(order)
@@ -564,19 +572,17 @@ def apply_discount_to_value(
 
 
 def create_order_discount_for_order(
-    order: Order,
-    reason: str,
-    value_type: str,
-    value: Decimal,
+    order: Order, reason: str, value_type: str, value: Decimal
 ):
     """Add new order discount and update the prices."""
 
     new_total = apply_discount_to_value(value, value_type, order.currency, order.total)
+    amount = (order.total - new_total).gross
     order_discount = order.discounts.create(
         value_type=value_type,
         value=value,
         reason=reason,
-        amount=(order.total - new_total).gross,  # type: ignore
+        amount=amount,  # type: ignore
     )
     order.total = new_total
     order.save(update_fields=["total_net_amount", "total_gross_amount"])
@@ -612,6 +618,7 @@ def update_order_discount_for_order(
         current_total = order.total + already_applied_discount_amount
 
         new_total = apply_discount_to_value(value, value_type, currency, current_total)
+
         new_amount = (current_total - new_total).gross
 
         order_discount_to_update.amount = new_amount
@@ -643,6 +650,7 @@ def update_discount_for_order_line(
     value_type: Optional[str],
     value: Optional[Decimal],
     manager,
+    tax_included,
 ):
     """Update discount fields for order line. Apply discount to the price."""
     current_value = order_line.unit_discount_value
@@ -659,14 +667,15 @@ def update_discount_for_order_line(
         unit_price_with_discount = apply_discount_to_value(
             value, value_type, currency, undiscounted_unit_price
         )
+
         order_line.unit_discount = (
             undiscounted_unit_price - unit_price_with_discount
         ).gross
+
         order_line.unit_price = unit_price_with_discount
         order_line.unit_discount_type = value_type
         order_line.unit_discount_value = value
         order_line.total_price = order_line.unit_price * order_line.quantity
-        update_order_line_prices(order_line, order, manager)
         fields_to_update.extend(
             [
                 "tax_rate",
@@ -680,20 +689,34 @@ def update_discount_for_order_line(
                 "total_price_gross_amount",
             ]
         )
+
+    # Save lines before calculating the taxes as some plugin can fetch all order data
+    # from db
     order_line.save(update_fields=fields_to_update)
 
+    update_taxes_for_order_line(order_line, order, manager, tax_included)
+    order_line.save(
+        update_fields=[
+            "unit_price_gross_amount",
+            "unit_price_net_amount",
+            "total_price_net_amount",
+            "total_price_gross_amount",
+            "tax_rate",
+        ]
+    )
 
-def remove_discount_from_order_line(order_line: OrderLine, order: "Order", manager):
+
+def remove_discount_from_order_line(
+    order_line: OrderLine, order: "Order", manager, tax_included
+):
     """Drop discount applied to order line. Restore undiscounted price."""
     order_line.unit_price = order_line.undiscounted_unit_price
     order_line.unit_discount_amount = Decimal(0)
     order_line.unit_discount_value = Decimal(0)
     order_line.unit_discount_reason = ""
     order_line.total_price = order_line.unit_price * order_line.quantity
-    update_order_line_prices(order_line, order, manager)
     order_line.save(
         update_fields=[
-            "tax_rate",
             "unit_discount_value",
             "unit_discount_amount",
             "unit_discount_reason",
@@ -701,5 +724,16 @@ def remove_discount_from_order_line(order_line: OrderLine, order: "Order", manag
             "unit_price_net_amount",
             "total_price_net_amount",
             "total_price_gross_amount",
+        ]
+    )
+
+    update_taxes_for_order_line(order_line, order, manager, tax_included)
+    order_line.save(
+        update_fields=[
+            "unit_price_gross_amount",
+            "unit_price_net_amount",
+            "total_price_net_amount",
+            "total_price_gross_amount",
+            "tax_rate",
         ]
     )

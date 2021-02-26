@@ -243,10 +243,18 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             return
         shipping_address = cleaned_input.get("shipping_address")
         if shipping_address and instance.is_shipping_required():
-            update_order_prices(instance, info.context.plugins)
+            update_order_prices(
+                instance,
+                info.context.plugins,
+                info.context.site.settings.include_taxes_in_prices,
+            )
         billing_address = cleaned_input.get("billing_address")
         if billing_address and not instance.is_shipping_required():
-            update_order_prices(instance, info.context.plugins)
+            update_order_prices(
+                instance,
+                info.context.plugins,
+                info.context.site.settings.include_taxes_in_prices,
+            )
 
     @classmethod
     @transaction.atomic
