@@ -1,5 +1,6 @@
 from decimal import Decimal
 from operator import attrgetter
+import uuid
 
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
@@ -13,6 +14,10 @@ from ..core.taxes import zero_money
 from ..order.models import Order
 from . import ChargeStatus, CustomPaymentChoices, TransactionError, TransactionKind
 
+
+class MonchiquePayment(models.Model):
+    payment_id = models.ForeignKey('Payment', on_delete=models.PROTECT) #Change to payment
+    transaction_id = models.UUIDField(primary_key=False, default=None, editable=True, null=True)
 
 class Payment(models.Model):
     """A model that represents a single payment.
@@ -28,7 +33,6 @@ class Payment(models.Model):
     Several payment methods can be used within a single order. Each payment
     method may consist of multiple transactions.
     """
-
     gateway = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
     to_confirm = models.BooleanField(default=False)

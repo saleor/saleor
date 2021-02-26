@@ -12,8 +12,8 @@ from ....payment.interface import (
     PaymentData,
     PaymentMethodInfo,
 )
-
 from ....monchique.network import payment_authorize, payment_capture, payment_refund
+from ...models import (MonchiquePayment, Payment)
 
 def authorize(
     payment_information: PaymentData,
@@ -24,10 +24,18 @@ def authorize(
     user = backend.get_user(payment_information.customer_email)
     authorization_response = payment_authorize(payment_information.amount, user.monchique_token)
 
+    is_success = authorization_response['is_authorized']
+    transaction_id = authorization_response.get('tx_id')
+
+    if is_success:
+        payment = Payment.objects.get(pk=payment_information.payment_id)
+        obj = MonchiquePayment.objects.create(payment_id=payment, transaction_id=transaction_id)
+        obj.save()
+
     return GatewayResponse(
-        is_success=authorization_response['is_authorized'],
+        is_success=is_success,
         action_required=False,
-        transaction_id=authorization_response.get('tx_id') or "",
+        transaction_id=transaction_id or "",
         amount=payment_information.amount,
         currency=payment_information.currency,
         error=authorization_response.get('error_code'),
@@ -57,9 +65,10 @@ def capture(payment_information: PaymentData, transaction_id: str, config: Gatew
         # searchable_key=str(searchable_key) if searchable_key else None,
     )
 
-def refund(payment_information: PaymentData, transaction_id: str, config: GatewayConfig) -> GatewayResponse:
+def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
     backend = JSONWebTokenBackend()
     user = backend.get_user(payment_information.customer_email)
+    transaction_id = get_tx_id(payment_information.payment_id)
     refund_response = payment_refund(payment_information.amount, transaction_id, user.monchique_token)
 
     return GatewayResponse(
@@ -101,3 +110,6 @@ def process_payment(
         return authorize_response
 
     return capture(payment_information, authorize_response.transaction_id, config)
+
+def get_tx_id(payment_id):
+    return MonchiquePayment.objects.get(payment_id=payment_id).transaction_id

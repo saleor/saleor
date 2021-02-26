@@ -105,6 +105,7 @@ class CreateToken(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
+        print("hereeee")
         monchique_token = info.context.plugins.custom_auth(data)
         if monchique_token:
             user = cls.get_user(info, data)

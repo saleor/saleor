@@ -28,7 +28,8 @@ def custom_login(email, password):
         body=json.dumps(data),
         headers={'Content-Type': 'application/json'}
     )
-
+    print(response.data)
+    print(response.status)
     return response.headers.get('authorization')
 
 
