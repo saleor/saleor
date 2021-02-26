@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     # flake8: noqa
     from ...account.models import Address
     from ...channel.models import Channel
-    from ...checkout.fetch import CheckoutLineInfo
+    from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ...checkout.models import Checkout
     from ...discount import DiscountInfo
     from ...order.models import Order, OrderLine
@@ -92,14 +92,13 @@ class PluginSample(BasePlugin):
 
     def calculate_checkout_line_total(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
-        channel: "Channel",
         discounts: Iterable["DiscountInfo"],
         previous_value: TaxedMoney,
     ):
-        price = Money("1.0", currency=checkout.currency)
+        price = Money("1.0", currency=checkout_info.checkout.currency)
         return TaxedMoney(price, price)
 
     def calculate_checkout_line_unit_price(

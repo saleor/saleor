@@ -167,10 +167,9 @@ class VatlayerPlugin(BasePlugin):
 
     def calculate_checkout_line_total(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
-        channel: "Channel",
         discounts: Iterable["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -180,7 +179,7 @@ class VatlayerPlugin(BasePlugin):
             checkout_line_info.variant,
             checkout_line_info.product,
             checkout_line_info.collections,
-            channel,
+            checkout_info.channel,
             checkout_line_info.channel_listing,
             previous_value,
         )

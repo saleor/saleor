@@ -114,6 +114,10 @@ class CheckoutLine(CountableDjangoObjectType):
                 discounts = DiscountsByDateTimeLoader(info.context).load(
                     info.context.request_time
                 )
+                checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(
+                    checkout.token
+                )
+
                 return Promise.all(
                     [
                         checkout,
@@ -124,6 +128,7 @@ class CheckoutLine(CountableDjangoObjectType):
                         collections,
                         channel,
                         discounts,
+                        checkout_info,
                     ]
                 ).then(calculate_line_total_price)
 
@@ -143,6 +148,7 @@ class CheckoutLine(CountableDjangoObjectType):
                 collections,
                 channel,
                 discounts,
+                checkout_info,
             ) = data
             line_info = CheckoutLineInfo(
                 line=root,
@@ -152,10 +158,9 @@ class CheckoutLine(CountableDjangoObjectType):
                 collections=collections,
             )
             return info.context.plugins.calculate_checkout_line_total(
-                checkout=checkout,
+                checkout_info=checkout_info,
                 checkout_line_info=line_info,
                 address=address,
-                channel=channel,
                 discounts=discounts,
             )
 

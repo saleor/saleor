@@ -164,10 +164,9 @@ def _create_line_for_order(
         translated_variant_name = ""
 
     total_line_price = manager.calculate_checkout_line_total(
-        checkout,
+        checkout_info,
         checkout_line_info,
         address,
-        channel,
         discounts,
     )
     unit_price = manager.calculate_checkout_line_unit_price(

@@ -331,10 +331,9 @@ class AvataxPlugin(BasePlugin):
 
     def calculate_checkout_line_total(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
-        channel: "Channel",
         discounts: Iterable["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -345,10 +344,12 @@ class AvataxPlugin(BasePlugin):
         if not checkout_line_info.product.charge_taxes:
             return base_total
 
-        if not _validate_checkout(checkout, [checkout_line_info.line]):
+        if not _validate_checkout(checkout_info.checkout, [checkout_line_info.line]):
             return base_total
 
-        taxes_data = get_checkout_tax_data(checkout, discounts, self.config)
+        taxes_data = get_checkout_tax_data(
+            checkout_info.checkout, discounts, self.config
+        )
         if not taxes_data or "error" in taxes_data:
             return base_total
 

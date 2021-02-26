@@ -156,10 +156,9 @@ class PluginsManager(PaymentInterface):
     ) -> TaxedMoney:
         line_totals = [
             self.calculate_checkout_line_total(
-                checkout_info.checkout,
+                checkout_info,
                 line_info,
                 address,
-                line_info.channel_listing.channel,
                 discounts,
             )
             for line_info in lines
@@ -242,28 +241,26 @@ class PluginsManager(PaymentInterface):
 
     def calculate_checkout_line_total(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
-        channel: "Channel",
         discounts: Iterable["DiscountInfo"],
     ):
         default_value = base_calculations.base_checkout_line_total(
             checkout_line_info,
-            channel,
+            checkout_info.channel,
             discounts,
         )
         return quantize_price(
             self.__run_method_on_plugins(
                 "calculate_checkout_line_total",
                 default_value,
-                checkout,
+                checkout_info,
                 checkout_line_info,
                 address,
-                channel,
                 discounts,
             ),
-            checkout.currency,
+            checkout_info.checkout.currency,
         )
 
     def calculate_checkout_line_unit_price(
