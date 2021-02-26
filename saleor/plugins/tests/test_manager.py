@@ -124,11 +124,13 @@ def test_manager_calculates_checkout_line_total(
         product=line.variant.product,
         collections=[],
     )
+    checkout_info = fetch_checkout_info(
+        checkout_with_item, [checkout_line_info], [discount_info]
+    )
     taxed_total = PluginsManager(plugins=plugins).calculate_checkout_line_total(
-        checkout_with_item,
+        checkout_info,
         checkout_line_info,
         checkout_with_item.shipping_address,
-        channel,
         [discount_info],
     )
     assert TaxedMoney(expected_total, expected_total) == taxed_total

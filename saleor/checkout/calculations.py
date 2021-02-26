@@ -104,10 +104,9 @@ def checkout_line_total(
     """
     address = checkout_info.shipping_address or checkout_info.billing_address
     calculated_line_total = manager.calculate_checkout_line_total(
-        checkout_info.checkout,
+        checkout_info,
         checkout_line_info,
         address,
-        checkout_info.channel,
         discounts or [],
     )
     return quantize_price(calculated_line_total, checkout_info.checkout.currency)
