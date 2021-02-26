@@ -235,7 +235,7 @@ def _get_shipping_voucher_discount_for_checkout(
 
     shipping_price = calculations.checkout_shipping_price(
         manager=manager,
-        checkout=checkout_info.checkout,
+        checkout_info=checkout_info,
         lines=lines,
         address=address,
         discounts=discounts,

@@ -103,7 +103,7 @@ class VatlayerPlugin(BasePlugin):
             )
             + calculations.checkout_shipping_price(
                 manager=manager,
-                checkout=checkout_info.checkout,
+                checkout_info=checkout_info,
                 lines=lines,
                 address=address,
                 discounts=discounts,

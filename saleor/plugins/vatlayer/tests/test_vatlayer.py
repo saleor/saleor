@@ -594,9 +594,10 @@ def test_calculations_checkout_shipping_price_with_vatlayer(
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [])
     checkout_shipping_price = calculations.checkout_shipping_price(
         manager=manager,
-        checkout=checkout_with_item,
+        checkout_info=checkout_info,
         lines=lines,
         address=checkout_with_item.shipping_address,
     )
