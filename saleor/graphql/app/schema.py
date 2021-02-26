@@ -60,8 +60,8 @@ class AppQueries(graphene.ObjectType):
 
     def resolve_app(self, info, id=None):
         app = info.context.app
-        if not id:
-            return app if app else None
+        if not id and app:
+            return app
         return _resolve_app(info, id)
 
 

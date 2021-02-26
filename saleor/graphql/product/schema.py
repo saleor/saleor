@@ -296,6 +296,7 @@ class ProductQueries(graphene.ObjectType):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
         requestor = get_user_or_app_from_context(info.context)
         is_staff = requestor_is_staff_member_or_app(requestor)
+
         if channel is None and not is_staff:
             channel = get_default_channel_slug_or_graphql_error()
         if id:

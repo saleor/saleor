@@ -3,8 +3,6 @@ import pytest
 from freezegun import freeze_time
 
 from .....core.jwt import create_access_token_for_app
-from .....webhook.event_types import WebhookEventType
-from .....webhook.models import Webhook
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 QUERY_APP = """
@@ -46,14 +44,14 @@ def test_app_query(
     permission_manage_staff,
     app,
     external_app,
+    webhook,
 ):
     app = app if app_type == "custom" else external_app
     app.permissions.add(permission_manage_staff)
 
-    webhook = Webhook.objects.create(
-        name="Simple webhook", app=app, target_url="http://www.example.com/test"
-    )
-    webhook.events.create(event_type=WebhookEventType.ORDER_CREATED)
+    webhook = webhook
+    webhook.app = app
+    webhook.save()
 
     id = graphene.Node.to_global_id("App", app.id)
     variables = {"id": id}
@@ -133,17 +131,19 @@ def test_app_with_access_to_resources(
     get_graphql_content(response)
 
 
-def test_own_app_without_id(
-    app_api_client,
-    app,
-    permission_manage_orders,
-    order_with_lines,
+def test_app_without_id_as_staff(
+    staff_api_client, app, permission_manage_apps, order_with_lines, webhook
 ):
-    webhook = Webhook.objects.create(
-        name="Simple webhook", app=app, target_url="http://www.example.com/test"
+    response = staff_api_client.post_graphql(
+        QUERY_APP, permissions=[permission_manage_apps]
     )
-    webhook.events.create(event_type=WebhookEventType.ORDER_CREATED)
+    content = get_graphql_content(response)
+    assert content["data"]["app"] is None
 
+
+def test_own_app_without_id(
+    app_api_client, app, permission_manage_orders, order_with_lines, webhook
+):
     response = app_api_client.post_graphql(
         QUERY_APP,
     )
@@ -182,19 +182,21 @@ def test_app_query_without_permission(
     assert_no_permission(response)
 
 
-def test_app_query_with_permission(
-    app_api_client,
-    permission_manage_apps,
+def test_app_query_without_permission_and_id(
+    staff_api_client,
     app,
-    external_app,
+    order_with_lines,
+):
+    response = staff_api_client.post_graphql(
+        QUERY_APP,
+    )
+    assert_no_permission(response)
+
+
+def test_app_query_with_permission(
+    app_api_client, permission_manage_apps, app, external_app, webhook
 ):
     app.permissions.add(permission_manage_apps)
-
-    webhook = Webhook.objects.create(
-        name="Simple webhook", app=app, target_url="http://www.example.com/test"
-    )
-    webhook.events.create(event_type=WebhookEventType.ORDER_CREATED)
-
     id = graphene.Node.to_global_id("App", app.id)
     variables = {"id": id}
     response = app_api_client.post_graphql(
