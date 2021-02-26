@@ -96,11 +96,7 @@ def fetch_checkout_info(
     shipping_channel_listings = ShippingMethodChannelListing.objects.filter(
         shipping_method=shipping_method, channel=channel
     ).first()
-    valid_shipping_method = get_valid_shipping_method_list_for_checkout_info(
-        checkout, shipping_address, lines, discounts
-    )
-
-    return CheckoutInfo(
+    checkout_info = CheckoutInfo(
         checkout=checkout,
         user=checkout.user,
         channel=channel,
@@ -108,8 +104,14 @@ def fetch_checkout_info(
         shipping_address=shipping_address,
         shipping_method=shipping_method,
         shipping_method_channel_listings=shipping_channel_listings,
-        valid_shipping_methods=valid_shipping_method,
+        valid_shipping_methods=[],
     )
+    valid_shipping_methods = get_valid_shipping_method_list_for_checkout_info(
+        checkout_info, shipping_address, lines, discounts
+    )
+    checkout_info.valid_shipping_methods = valid_shipping_methods
+
+    return checkout_info
 
 
 def update_checkout_info_shipping_address(
@@ -120,13 +122,13 @@ def update_checkout_info_shipping_address(
 ):
     checkout_info.shipping_address = address
     valid_methods = get_valid_shipping_method_list_for_checkout_info(
-        checkout_info.checkout, address, lines, discounts
+        checkout_info, address, lines, discounts
     )
     checkout_info.valid_shipping_methods = valid_methods
 
 
 def get_valid_shipping_method_list_for_checkout_info(
-    checkout: "Checkout",
+    checkout_info: "CheckoutInfo",
     shipping_address: Optional["Address"],
     lines: Iterable[CheckoutLineInfo],
     discounts: Iterable["DiscountInfo"],
@@ -135,7 +137,7 @@ def get_valid_shipping_method_list_for_checkout_info(
 
     country_code = shipping_address.country.code if shipping_address else None
     valid_shipping_method = get_valid_shipping_methods_for_checkout(
-        checkout, lines, discounts, country_code=country_code
+        checkout_info, lines, discounts, country_code=country_code
     )
     valid_shipping_method = (
         list(valid_shipping_method) if valid_shipping_method is not None else []

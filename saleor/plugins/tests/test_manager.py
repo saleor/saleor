@@ -62,8 +62,9 @@ def test_manager_calculates_checkout_subtotal(
     currency = checkout_with_item.currency
     expected_subtotal = Money(subtotal_amount, currency)
     lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [])
     taxed_subtotal = PluginsManager(plugins=plugins).calculate_checkout_subtotal(
-        checkout_with_item, lines, None, [discount_info]
+        checkout_info, lines, None, [discount_info]
     )
     assert TaxedMoney(expected_subtotal, expected_subtotal) == taxed_subtotal
 

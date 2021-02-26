@@ -127,7 +127,7 @@ class PluginsManager(PaymentInterface):
 
         default_value = base_calculations.base_checkout_total(
             subtotal=self.calculate_checkout_subtotal(
-                checkout_info.checkout, lines, address, discounts
+                checkout_info, lines, address, discounts
             ),
             shipping_price=self.calculate_checkout_shipping(
                 checkout_info.checkout, lines, address, discounts
@@ -149,14 +149,14 @@ class PluginsManager(PaymentInterface):
 
     def calculate_checkout_subtotal(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         lines: Iterable["CheckoutLineInfo"],
         address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
     ) -> TaxedMoney:
         line_totals = [
             self.calculate_checkout_line_total(
-                checkout,
+                checkout_info.checkout,
                 line_info,
                 address,
                 line_info.channel_listing.channel,
@@ -165,18 +165,18 @@ class PluginsManager(PaymentInterface):
             for line_info in lines
         ]
         default_value = base_calculations.base_checkout_subtotal(
-            line_totals, checkout.currency
+            line_totals, checkout_info.checkout.currency
         )
         return quantize_price(
             self.__run_method_on_plugins(
                 "calculate_checkout_subtotal",
                 default_value,
-                checkout,
+                checkout_info,
                 lines,
                 address,
                 discounts,
             ),
-            checkout.currency,
+            checkout_info.checkout.currency,
         )
 
     def calculate_checkout_shipping(

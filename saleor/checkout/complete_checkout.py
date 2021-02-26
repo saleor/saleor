@@ -315,7 +315,7 @@ def _prepare_order_data(
     # assign gift cards to the order
 
     order_data["total_price_left"] = (
-        manager.calculate_checkout_subtotal(checkout, lines, address, discounts)
+        manager.calculate_checkout_subtotal(checkout_info, lines, address, discounts)
         + shipping_total
         - checkout.discount
     ).gross

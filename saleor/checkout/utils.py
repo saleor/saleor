@@ -554,7 +554,7 @@ def remove_voucher_from_checkout(checkout: Checkout):
 
 
 def get_valid_shipping_methods_for_checkout(
-    checkout: Checkout,
+    checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable[DiscountInfo],
     country_code: Optional[str] = None,
@@ -562,18 +562,18 @@ def get_valid_shipping_methods_for_checkout(
 ):
     if not is_shipping_required(lines):
         return None
-    if not checkout.shipping_address:
+    if not checkout_info.shipping_address:
         return None
     # TODO: subtotal should comes from arg instead of calculate it in this function
     # use info.context.plugins from resolver
     if subtotal is None:
         manager = get_plugins_manager()
         subtotal = manager.calculate_checkout_subtotal(
-            checkout, lines, checkout.shipping_address, discounts
+            checkout_info, lines, checkout_info.shipping_address, discounts
         )
     return ShippingMethod.objects.applicable_shipping_methods_for_instance(
-        checkout,
-        channel_id=checkout.channel_id,
+        checkout_info.checkout,
+        channel_id=checkout_info.checkout.channel_id,
         price=subtotal.gross,
         country_code=country_code,
         lines=lines,

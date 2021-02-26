@@ -75,9 +75,9 @@ class PluginSample(BasePlugin):
         return TaxedMoney(total, total)
 
     def calculate_checkout_subtotal(
-        self, checkout, lines, address, discounts, previous_value
+        self, checkout_info, lines, address, discounts, previous_value
     ):
-        subtotal = Money("1.0", currency=checkout.currency)
+        subtotal = Money("1.0", currency=checkout_info.checkout.currency)
         return TaxedMoney(subtotal, subtotal)
 
     def calculate_checkout_shipping(
