@@ -319,11 +319,10 @@ def get_prices_of_discounted_specific_product(
         line_unit_price = manager.calculate_checkout_line_unit_price(
             line_total,
             line.quantity,
-            checkout_info.checkout,
+            checkout_info,
             line_info,
             address,
             discounts,
-            checkout_info.channel,
         )
         line_prices.extend([line_unit_price] * line.quantity)
 

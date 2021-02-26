@@ -142,7 +142,6 @@ def _create_line_for_order(
     :raises InsufficientStock: when there is not enough items in stock for this variant.
     """
     checkout = checkout_info.checkout
-    channel = checkout_info.channel
     checkout_line = checkout_line_info.line
     quantity = checkout_line.quantity
     variant = checkout_line_info.variant
@@ -172,11 +171,10 @@ def _create_line_for_order(
     unit_price = manager.calculate_checkout_line_unit_price(
         total_line_price,
         quantity,
-        checkout,
+        checkout_info,
         checkout_line_info,
         address,
         discounts,
-        channel,
     )
     tax_rate = manager.get_checkout_line_tax_rate(
         checkout, checkout_line_info, address, discounts, unit_price

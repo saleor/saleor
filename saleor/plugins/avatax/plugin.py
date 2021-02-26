@@ -368,17 +368,16 @@ class AvataxPlugin(BasePlugin):
 
     def calculate_checkout_line_unit_price(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
-        channel: "Channel",
         previous_value: TaxedMoney,
     ):
         if not checkout_line_info.product.charge_taxes:
             return previous_value
         return self._calculate_unit_price(
-            checkout,
+            checkout_info.checkout,
             checkout_line_info.line,
             checkout_line_info.variant,
             previous_value,
