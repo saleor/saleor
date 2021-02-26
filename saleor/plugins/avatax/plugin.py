@@ -179,13 +179,13 @@ class AvataxPlugin(BasePlugin):
 
     def _calculate_checkout_subtotal(
         self,
-        checkout,
+        checkout_info: "CheckoutInfo",
         lines: Iterable["CheckoutLineInfo"],
         discounts: Iterable[DiscountInfo],
         base_subtotal: TaxedMoney,
     ) -> TaxedMoney:
-        currency = checkout.currency
-        response = get_checkout_tax_data(checkout, discounts, self.config)
+        currency = checkout_info.checkout.currency
+        response = get_checkout_tax_data(checkout_info.checkout, discounts, self.config)
         if not response or "error" in response:
             return base_subtotal
 
@@ -200,12 +200,12 @@ class AvataxPlugin(BasePlugin):
         sub_total_net = Money(sub_net, currency)
         taxed_subtotal = TaxedMoney(net=sub_total_net, gross=sub_total_gross)
         return self._append_prices_of_not_taxed_lines(
-            taxed_subtotal, lines, checkout.channel, discounts
+            taxed_subtotal, lines, checkout_info.channel, discounts
         )
 
     def calculate_checkout_subtotal(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         lines: Iterable["CheckoutLineInfo"],
         address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
@@ -215,14 +215,16 @@ class AvataxPlugin(BasePlugin):
             return previous_value
 
         base_subtotal = previous_value
-        if not _validate_checkout(checkout, [line_info.line for line_info in lines]):
+        if not _validate_checkout(
+            checkout_info.checkout, [line_info.line for line_info in lines]
+        ):
             return base_subtotal
-        response = get_checkout_tax_data(checkout, discounts, self.config)
+        response = get_checkout_tax_data(checkout_info.checkout, discounts, self.config)
         if not response or "error" in response:
             return base_subtotal
 
         return self._calculate_checkout_subtotal(
-            checkout, lines, discounts, base_subtotal
+            checkout_info, lines, discounts, base_subtotal
         )
 
     def _calculate_checkout_shipping(

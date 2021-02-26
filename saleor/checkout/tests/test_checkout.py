@@ -157,9 +157,7 @@ def test_get_voucher_discount_for_checkout_voucher_validation(
     manager = get_plugins_manager()
     address = checkout_with_voucher.shipping_address
     get_voucher_discount_for_checkout(manager, voucher, checkout_info, lines, address)
-    subtotal = manager.calculate_checkout_subtotal(
-        checkout_with_voucher, lines, address, []
-    )
+    subtotal = manager.calculate_checkout_subtotal(checkout_info, lines, address, [])
     quantity = checkout_with_voucher.quantity
     customer_email = checkout_with_voucher.get_customer_email()
     mock_validate_voucher.assert_called_once_with(

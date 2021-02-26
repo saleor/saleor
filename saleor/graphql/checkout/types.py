@@ -374,17 +374,17 @@ class Checkout(CountableDjangoObjectType):
     # TODO: We should optimize it in/after PR#5819
     def resolve_available_shipping_methods(root: models.Checkout, info):
         def calculate_available_shipping_methods(data):
-            address, lines, discounts, channel = data
+            address, lines, checkout_info, discounts, channel = data
             channel_slug = channel.slug
             display_gross = info.context.site.settings.display_gross_prices
             manager = info.context.plugins
             subtotal = manager.calculate_checkout_subtotal(
-                root, lines, address, discounts
+                checkout_info, lines, address, discounts
             )
             if not address:
                 return []
             available = get_valid_shipping_methods_for_checkout(
-                root,
+                checkout_info,
                 lines,
                 discounts,
                 subtotal=subtotal,
@@ -440,10 +440,11 @@ class Checkout(CountableDjangoObjectType):
             else None
         )
         lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
+        checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )
-        return Promise.all([address, lines, discounts, channel]).then(
+        return Promise.all([address, lines, checkout_info, discounts, channel]).then(
             calculate_available_shipping_methods
         )
 

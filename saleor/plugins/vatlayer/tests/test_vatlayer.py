@@ -297,8 +297,9 @@ def test_calculate_checkout_subtotal(
     discounts = [discount_info] if with_discount else None
     add_variant_to_checkout(checkout_with_item, variant, 2)
     lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts)
     total = manager.calculate_checkout_subtotal(
-        checkout_with_item, lines, address, discounts
+        checkout_info, lines, address, discounts
     )
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
