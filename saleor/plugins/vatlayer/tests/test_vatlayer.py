@@ -249,9 +249,8 @@ def test_calculate_checkout_total(
 
     discounts = [discount_info] if with_discount else None
     lines = fetch_checkout_lines(checkout_with_item)
-    total = manager.calculate_checkout_total(
-        checkout_with_item, lines, address, discounts
-    )
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts)
+    total = manager.calculate_checkout_total(checkout_info, lines, address, discounts)
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
         net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")

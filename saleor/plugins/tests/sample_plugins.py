@@ -69,9 +69,9 @@ class PluginSample(BasePlugin):
         return HttpResponseNotFound()
 
     def calculate_checkout_total(
-        self, checkout, lines, address, discounts, previous_value
+        self, checkout_info, lines, address, discounts, previous_value
     ):
-        total = Money("1.0", currency=checkout.currency)
+        total = Money("1.0", currency=checkout_info.checkout.currency)
         return TaxedMoney(total, total)
 
     def calculate_checkout_subtotal(
