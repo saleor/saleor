@@ -37,11 +37,12 @@ def test_adding_same_variant(checkout, product):
     assert checkout.quantity == 3
     subtotal = TaxedMoney(Money("30.00", "USD"), Money("30.00", "USD"))
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
     manager = get_plugins_manager()
     assert (
         calculations.checkout_subtotal(
             manager=manager,
-            checkout=checkout,
+            checkout_info=checkout_info,
             lines=lines,
             address=checkout.shipping_address,
         )

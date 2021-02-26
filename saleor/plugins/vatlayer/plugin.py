@@ -96,7 +96,7 @@ class VatlayerPlugin(BasePlugin):
         return (
             calculations.checkout_subtotal(
                 manager=manager,
-                checkout=checkout_info.checkout,
+                checkout_info=checkout_info,
                 lines=lines,
                 address=address,
                 discounts=discounts,

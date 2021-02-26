@@ -580,7 +580,7 @@ def test_create_order_with_gift_card(
 
     subtotal = calculations.checkout_subtotal(
         manager=manager,
-        checkout=checkout,
+        checkout_info=checkout_info,
         lines=lines,
         address=checkout.shipping_address,
     )
