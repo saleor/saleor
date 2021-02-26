@@ -125,11 +125,11 @@ def test_get_discount_for_checkout_value_voucher(
     subtotal = TaxedMoney(Money(total, "USD"), Money(total, "USD"))
     monkeypatch.setattr(
         "saleor.checkout.utils.calculations.checkout_subtotal",
-        lambda manager, checkout, lines, address, discounts: subtotal,
+        lambda manager, checkout_info, lines, address, discounts: subtotal,
     )
     monkeypatch.setattr(
         "saleor.discount.utils.calculations.checkout_subtotal",
-        lambda manager, checkout, lines, address, discounts: subtotal,
+        lambda manager, checkout_info, lines, address, discounts: subtotal,
     )
     checkout_info = CheckoutInfo(
         checkout=checkout,
@@ -204,11 +204,11 @@ def test_get_discount_for_checkout_entire_order_voucher_not_applicable(
     subtotal = TaxedMoney(Money(total, "USD"), Money(total, "USD"))
     monkeypatch.setattr(
         "saleor.checkout.utils.calculations.checkout_subtotal",
-        lambda manager, checkout, lines, address, discounts: subtotal,
+        lambda manager, checkout_info, lines, address, discounts: subtotal,
     )
     monkeypatch.setattr(
         "saleor.discount.utils.calculations.checkout_subtotal",
-        lambda manager, checkout, lines, address, discounts: subtotal,
+        lambda manager, checkout_info, lines, address, discounts: subtotal,
     )
     checkout_info = CheckoutInfo(
         checkout=checkout,
@@ -298,13 +298,13 @@ def test_get_discount_for_checkout_specific_products_voucher_not_applicable(
     )
     monkeypatch.setattr(
         "saleor.discount.utils.calculations.checkout_subtotal",
-        lambda manager, checkout, lines, address, discounts: TaxedMoney(
+        lambda manager, checkout_info, lines, address, discounts: TaxedMoney(
             Money(total, "USD"), Money(total, "USD")
         ),
     )
     monkeypatch.setattr(
         "saleor.checkout.utils.calculations.checkout_subtotal",
-        lambda manager, checkout, lines, address, discounts: TaxedMoney(
+        lambda manager, checkout_info, lines, address, discounts: TaxedMoney(
             Money(total, "USD"), Money(total, "USD")
         ),
     )
@@ -364,11 +364,11 @@ def test_get_discount_for_checkout_shipping_voucher(
     subtotal = TaxedMoney(Money(100, "USD"), Money(100, "USD"))
     monkeypatch.setattr(
         "saleor.checkout.utils.calculations.checkout_subtotal",
-        lambda manager, checkout, lines, address, discounts: subtotal,
+        lambda manager, checkout_info, lines, address, discounts: subtotal,
     )
     monkeypatch.setattr(
         "saleor.discount.utils.calculations.checkout_subtotal",
-        lambda manager, checkout, lines, address, discounts: subtotal,
+        lambda manager, checkout_info, lines, address, discounts: subtotal,
     )
     monkeypatch.setattr(
         "saleor.checkout.utils.is_shipping_required", lambda lines: True
@@ -416,11 +416,11 @@ def test_get_discount_for_checkout_shipping_voucher_all_countries(
     subtotal = TaxedMoney(Money(100, "USD"), Money(100, "USD"))
     monkeypatch.setattr(
         "saleor.checkout.utils.calculations.checkout_subtotal",
-        lambda manager, checkout, lines, address, discounts: subtotal,
+        lambda manager, checkout_info, lines, address, discounts: subtotal,
     )
     monkeypatch.setattr(
         "saleor.discount.utils.calculations.checkout_subtotal",
-        lambda manager, checkout, lines, address, discounts: subtotal,
+        lambda manager, checkout_info, lines, address, discounts: subtotal,
     )
     monkeypatch.setattr(
         "saleor.checkout.utils.is_shipping_required", lambda lines: True
@@ -476,7 +476,7 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
     shipping_total = TaxedMoney(net=Money(10, "USD"), gross=Money(10, "USD"))
     monkeypatch.setattr(
         "saleor.discount.utils.calculations.checkout_subtotal",
-        lambda manager, checkout, lines, address, discounts: subtotal,
+        lambda manager, checkout_info, lines, address, discounts: subtotal,
     )
     checkout = Mock(
         get_subtotal=Mock(return_value=subtotal),
@@ -610,11 +610,11 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
 ):
     monkeypatch.setattr(
         "saleor.checkout.utils.calculations.checkout_subtotal",
-        lambda manager, checkout, lines, address, discounts: subtotal,
+        lambda manager, checkout_info, lines, address, discounts: subtotal,
     )
     monkeypatch.setattr(
         "saleor.discount.utils.calculations.checkout_subtotal",
-        lambda manager, checkout, lines, address, discounts: subtotal,
+        lambda manager, checkout_info, lines, address, discounts: subtotal,
     )
     monkeypatch.setattr(
         "saleor.checkout.utils.is_shipping_required", lambda lines: is_shipping_required
@@ -770,11 +770,12 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_less_than_shipping
     checkout = checkout_with_voucher_percentage_and_shipping
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
     channel_listing = shipping_method.channel_listings.get(channel_id=channel_USD.id)
     channel_listing.price = (
         calculations.checkout_subtotal(
             manager=manager,
-            checkout=checkout,
+            checkout_info=checkout_info,
             lines=lines,
             address=checkout.shipping_address,
         ).gross
@@ -795,7 +796,7 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_less_than_shipping
     )
     checkout_subtotal = calculations.checkout_subtotal(
         manager=manager,
-        checkout=checkout,
+        checkout_info=checkout_info,
         lines=lines,
         address=checkout.shipping_address,
     )
@@ -811,11 +812,12 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_bigger_than_shippi
     checkout = checkout_with_voucher_percentage_and_shipping
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
     channel_listing = shipping_method.channel_listings.get(channel=channel_USD)
     channel_listing.price = (
         calculations.checkout_subtotal(
             manager=manager,
-            checkout=checkout,
+            checkout_info=checkout_info,
             lines=lines,
             address=checkout.shipping_address,
         ).gross
@@ -836,7 +838,7 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_bigger_than_shippi
     )
     checkout_subtotal = calculations.checkout_subtotal(
         manager=manager,
-        checkout=checkout,
+        checkout_info=checkout_info,
         lines=lines,
         address=checkout.shipping_address,
     )

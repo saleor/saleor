@@ -349,7 +349,7 @@ def get_voucher_discount_for_checkout(
     if voucher.type == VoucherType.ENTIRE_ORDER:
         subtotal = calculations.checkout_subtotal(
             manager=manager,
-            checkout=checkout,
+            checkout_info=checkout_info,
             lines=lines,
             address=address,
             discounts=discounts,
@@ -410,7 +410,7 @@ def recalculate_checkout_discount(
         else:
             subtotal = calculations.checkout_subtotal(
                 manager=manager,
-                checkout=checkout,
+                checkout_info=checkout_info,
                 lines=lines,
                 address=address,
                 discounts=discounts,
