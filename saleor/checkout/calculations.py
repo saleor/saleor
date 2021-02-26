@@ -87,7 +87,7 @@ def checkout_total(
     It takes in account all plugins.
     """
     calculated_checkout_total = manager.calculate_checkout_total(
-        checkout_info.checkout, lines, address, discounts or []
+        checkout_info, lines, address, discounts or []
     )
     return quantize_price(calculated_checkout_total, checkout_info.checkout.currency)
 

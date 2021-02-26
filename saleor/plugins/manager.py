@@ -21,8 +21,8 @@ if TYPE_CHECKING:
     # flake8: noqa
     from ..account.models import Address, User
     from ..channel.models import Channel
-    from ..checkout.fetch import CheckoutLineInfo
-    from ..checkout.models import Checkout, CheckoutLine
+    from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
+    from ..checkout.models import Checkout
     from ..invoice.models import Invoice
     from ..order.models import Fulfillment, Order, OrderLine
     from ..page.models import Page
@@ -119,7 +119,7 @@ class PluginsManager(PaymentInterface):
 
     def calculate_checkout_total(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         lines: Iterable["CheckoutLineInfo"],
         address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
@@ -127,24 +127,24 @@ class PluginsManager(PaymentInterface):
 
         default_value = base_calculations.base_checkout_total(
             subtotal=self.calculate_checkout_subtotal(
-                checkout, lines, address, discounts
+                checkout_info.checkout, lines, address, discounts
             ),
             shipping_price=self.calculate_checkout_shipping(
-                checkout, lines, address, discounts
+                checkout_info.checkout, lines, address, discounts
             ),
-            discount=checkout.discount,
-            currency=checkout.currency,
+            discount=checkout_info.checkout.discount,
+            currency=checkout_info.checkout.currency,
         )
         return quantize_price(
             self.__run_method_on_plugins(
                 "calculate_checkout_total",
                 default_value,
-                checkout,
+                checkout_info,
                 lines,
                 address,
                 discounts,
             ),
-            checkout.currency,
+            checkout_info.checkout.currency,
         )
 
     def calculate_checkout_subtotal(

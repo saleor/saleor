@@ -10,7 +10,11 @@ from prices import Money, TaxedMoney
 from requests import RequestException
 
 from ....account.models import Address
-from ....checkout.fetch import CheckoutLineInfo, fetch_checkout_lines
+from ....checkout.fetch import (
+    CheckoutLineInfo,
+    fetch_checkout_info,
+    fetch_checkout_lines,
+)
 from ....checkout.utils import add_variant_to_checkout
 from ....core.prices import quantize_price
 from ....core.taxes import TaxError, TaxType
@@ -193,9 +197,8 @@ def test_calculate_checkout_total_uses_default_calculation(
 
     discounts = [discount_info] if with_discount else None
     lines = fetch_checkout_lines(checkout_with_item)
-    total = manager.calculate_checkout_total(
-        checkout_with_item, lines, address, discounts
-    )
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts)
+    total = manager.calculate_checkout_total(checkout_info, lines, address, discounts)
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
         net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
@@ -265,8 +268,9 @@ def test_calculate_checkout_total(
 
     discounts = [discount_info] if with_discount else None
     lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts)
     total = manager.calculate_checkout_total(
-        checkout_with_item, lines, ship_to_pl_address, discounts
+        checkout_info, lines, ship_to_pl_address, discounts
     )
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(

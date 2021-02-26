@@ -40,15 +40,10 @@ if TYPE_CHECKING:
     # flake8: noqa
     from ...account.models import Address
     from ...channel.models import Channel
-    from ...checkout.fetch import CheckoutLineInfo
+    from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ...checkout.models import Checkout, CheckoutLine
     from ...order.models import Order, OrderLine
-    from ...product.models import (
-        Collection,
-        Product,
-        ProductVariant,
-        ProductVariantChannelListing,
-    )
+    from ...product.models import Product, ProductVariant
     from ..models import PluginConfiguration
 
 
@@ -151,7 +146,7 @@ class AvataxPlugin(BasePlugin):
 
     def calculate_checkout_total(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         lines: Iterable["CheckoutLineInfo"],
         address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
@@ -161,9 +156,11 @@ class AvataxPlugin(BasePlugin):
             return previous_value
         checkout_total = previous_value
 
-        if not _validate_checkout(checkout, [line_info.line for line_info in lines]):
+        if not _validate_checkout(
+            checkout_info.checkout, [line_info.line for line_info in lines]
+        ):
             return checkout_total
-        response = get_checkout_tax_data(checkout, discounts, self.config)
+        response = get_checkout_tax_data(checkout_info.checkout, discounts, self.config)
         if not response or "error" in response:
             return checkout_total
         currency = response.get("currencyCode")
@@ -173,9 +170,9 @@ class AvataxPlugin(BasePlugin):
         total_net = Money(amount=total_net, currency=currency)
         taxed_total = TaxedMoney(net=total_net, gross=total_gross)
         total = self._append_prices_of_not_taxed_lines(
-            taxed_total, lines, checkout.channel, discounts
+            taxed_total, lines, checkout_info.channel, discounts
         )
-        voucher_value = checkout.discount
+        voucher_value = checkout_info.checkout.discount
         if voucher_value:
             total -= voucher_value
         return max(total, zero_taxed_money(total.currency))
