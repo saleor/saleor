@@ -79,8 +79,9 @@ def test_manager_calculates_checkout_shipping(
     currency = checkout_with_item.currency
     expected_shipping_price = Money(shipping_amount, currency)
     lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [discount_info])
     taxed_shipping_price = PluginsManager(plugins=plugins).calculate_checkout_shipping(
-        checkout_with_item, lines, None, [discount_info]
+        checkout_info, lines, None, [discount_info]
     )
     assert (
         TaxedMoney(expected_shipping_price, expected_shipping_price)

@@ -25,7 +25,7 @@ def checkout_shipping_price(
     It takes in account all plugins.
     """
     calculated_checkout_shipping = manager.calculate_checkout_shipping(
-        checkout_info.checkout, lines, address, discounts or []
+        checkout_info, lines, address, discounts or []
     )
     return quantize_price(calculated_checkout_shipping, checkout_info.checkout.currency)
 

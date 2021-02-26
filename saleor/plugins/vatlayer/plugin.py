@@ -128,7 +128,7 @@ class VatlayerPlugin(BasePlugin):
 
     def calculate_checkout_shipping(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         lines: List["CheckoutLineInfo"],
         address: Optional["Address"],
         discounts: List["DiscountInfo"],
@@ -141,10 +141,10 @@ class VatlayerPlugin(BasePlugin):
         taxes = None
         if address:
             taxes = self._get_taxes_for_country(address.country)
-        if not checkout.shipping_method:
+        if not checkout_info.shipping_method:
             return previous_value
-        shipping_price = checkout.shipping_method.channel_listings.get(
-            channel_id=checkout.channel_id
+        shipping_price = checkout_info.shipping_method.channel_listings.get(
+            channel_id=checkout_info.channel.id
         ).price
         return get_taxed_shipping_price(shipping_price, taxes)
 

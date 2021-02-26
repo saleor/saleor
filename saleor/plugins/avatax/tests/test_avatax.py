@@ -305,8 +305,9 @@ def test_calculate_checkout_shipping(
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save()
     lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [discount_info])
     shipping_price = manager.calculate_checkout_shipping(
-        checkout_with_item, lines, address, [discount_info]
+        checkout_info, lines, address, [discount_info]
     )
     shipping_price = quantize_price(shipping_price, shipping_price.currency)
     assert shipping_price == TaxedMoney(
