@@ -351,10 +351,10 @@ class Checkout(CountableDjangoObjectType):
     # TODO: We should optimize it in/after PR#5819
     def resolve_shipping_price(root: models.Checkout, info):
         def calculate_shipping_price(data):
-            address, lines, discounts = data
+            address, lines, checkout_info, discounts = data
             return calculations.checkout_shipping_price(
                 manager=info.context.plugins,
-                checkout=root,
+                checkout_info=checkout_info,
                 lines=lines,
                 address=address,
                 discounts=discounts,
@@ -366,10 +366,13 @@ class Checkout(CountableDjangoObjectType):
             else None
         )
         lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
+        checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )
-        return Promise.all([address, lines, discounts]).then(calculate_shipping_price)
+        return Promise.all([address, lines, checkout_info, discounts]).then(
+            calculate_shipping_price
+        )
 
     @staticmethod
     def resolve_lines(root: models.Checkout, info):

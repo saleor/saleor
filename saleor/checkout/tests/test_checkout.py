@@ -426,7 +426,7 @@ def test_get_discount_for_checkout_shipping_voucher_all_countries(
     shipping_total = TaxedMoney(Money(10, "USD"), Money(10, "USD"))
     monkeypatch.setattr(
         "saleor.checkout.utils.calculations.checkout_shipping_price",
-        lambda manager, checkout, lines, address, discounts: shipping_total,
+        lambda manager, checkout_info, lines, address, discounts: shipping_total,
     )
     checkout = Mock(
         spec=Checkout,
