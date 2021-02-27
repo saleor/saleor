@@ -15,7 +15,8 @@ DEBUG = ast.literal_eval(os.environ.get('DEBUG', 'False'))
 
 SITE_ID = int(os.environ.get('SITE_ID', 1))
 
-PROJECT_ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), '../..'))
+PROJECT_ROOT = os.path.normpath(
+    os.path.join(os.path.dirname(__file__), '../..'))
 
 ROOT_URLCONF = 'saleor.urls'
 
@@ -95,7 +96,8 @@ ORDER_FROM_EMAIL = os.getenv('ORDER_FROM_EMAIL', DEFAULT_FROM_EMAIL)
 MEDIA_ROOT = os.environ.get('MEDIA_ROOT', os.path.join(PROJECT_ROOT, 'media'))
 MEDIA_URL = '/media/'
 
-STATIC_ROOT = os.environ.get('STATIC_ROOT', os.path.join(PROJECT_ROOT, 'static'))
+STATIC_ROOT = os.environ.get(
+    'STATIC_ROOT', os.path.join(PROJECT_ROOT, 'static'))
 STATIC_URL = '/static/'
 
 STATICFILES_FINDERS = [
@@ -245,10 +247,14 @@ LOGGING = {
             'class': 'logstash.TCPLogstashHandler',
             'host': '127.0.0.1',
             'port': 5959,  # Default value: 5959
-            'version': 1,  # Version of logstash event schema. Default value: 0 (for backward compatibility of the library)
-            'message_type': 'django',  # 'type' field in logstash message. Default value: 'logstash'.
-            'fqdn': False,  # Fully qualified domain name. Default value: false.
-            'tags': ['django.request', 'django'],  # list of tags. Default: None.
+            # Version of logstash event schema. Default value: 0 (for backward compatibility of the library)
+            'version': 1,
+            # 'type' field in logstash message. Default value: 'logstash'.
+            'message_type': 'django',
+            # Fully qualified domain name. Default value: false.
+            'fqdn': False,
+            # list of tags. Default: None.
+            'tags': ['django.request', 'django'],
         },
     },
     # 'root': {
@@ -434,7 +440,8 @@ VERSATILEIMAGEFIELD_SETTINGS = {
 
 ELASTICSEARCH_HOST = os.environ.get('ELASTICSEARCH_HOST', 'localhost')
 ELASTICSEARCH_PORT = os.environ.get('ELASTICSEARCH_PORT', '9200')
-ELASTICSEARCH_URL = 'http://{}:{}'.format(ELASTICSEARCH_HOST, ELASTICSEARCH_PORT)
+ELASTICSEARCH_URL = 'http://{}:{}'.format(
+    ELASTICSEARCH_HOST, ELASTICSEARCH_PORT)
 
 # We'll support couple of elasticsearch add-ons, but finally we'll use single
 # variable
@@ -566,7 +573,7 @@ ADYEN_PASSWORD = os.environ.get('ADYEN_PASSWORD', None)
 ADYEN_MERCHANT_ACCOUNT = os.environ.get('ADYEN_MERCHANT_ACCOUNT', None)
 ADYEN_HMAC_SECRET = os.environ.get('ADYEN_HMAC_SECRET', None)
 ADYEN_SKIN_CODE = os.environ.get('ADYEN_SKIN_CODE', None)
-ADYEN_ENDPOINT_ROOT= os.environ.get('ADYEN_ENDPOINT_ROOT', None)
+ADYEN_ENDPOINT_ROOT = os.environ.get('ADYEN_ENDPOINT_ROOT', None)
 ADYEN_PAYMENT_OPTIONS_HPP = os.environ.get('ADYEN_PAYMENT_OPTIONS_HPP', None)
 
 PASSWORD_CONFIRMATION_TIMEOUT_DAYS = 1
@@ -583,7 +590,8 @@ PAYPAL_API_VERSION = os.environ.get('PAYPAL_API_VERSION', None)
 
 
 PDF_STORAGE_ROOT = os.environ.get('PDF_STORAGE_ROOT', '/tmp/')
-ORIGINAL_IMAGES_ROOT = os.environ.get('ORIGINAL_IMAGES_ROOT', '/var/www/images/')
+ORIGINAL_IMAGES_ROOT = os.environ.get(
+    'ORIGINAL_IMAGES_ROOT', '/var/www/images/')
 
 ENVIRONMENT = os.environ.get('ENVIRONMENT', None)
 
@@ -611,6 +619,9 @@ MAILCHIMP_DEFAULT_LIST_ID = os.environ.get('MAILCHIMP_DEFAULT_LIST_ID')
 TEST_RUNNER = 'snapshottest.django.TestRunner'
 
 IS_TESTING = os.environ.get('IS_TESTING', False)
+if IS_TESTING:
+    CELERY_TASK_ALWAYS_EAGER = True
+
 RUN_EMAIL_TESTS = os.environ.get('RUN_EMAIL_TESTS', False)
 
 DJANGO_CELERY_BEAT_TZ_AWARE = False
