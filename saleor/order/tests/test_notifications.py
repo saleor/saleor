@@ -1,5 +1,7 @@
 from unittest import mock
 
+from measurement.measures import Weight
+
 from ...core.notify_events import NotifyEventType
 from ...order import notifications
 from ...plugins.manager import get_plugins_manager
@@ -15,7 +17,33 @@ from ..utils import add_variant_to_draft_order
 
 
 def test_get_order_line_payload(order_line):
+    order_line.variant.product.weight = Weight(kg=5)
+    order_line.variant.product.save()
+
     payload = get_order_line_payload(order_line)
+
+    attributes = order_line.variant.product.attributes.all()
+    expected_attributes_payload = []
+    for attr in attributes:
+        expected_attributes_payload.append(
+            {
+                "assignment": {
+                    "attribute": {
+                        "slug": attr.assignment.attribute.slug,
+                        "name": attr.assignment.attribute.name,
+                    }
+                },
+                "values": [
+                    {
+                        "name": value.name,
+                        "value": value.value,
+                        "slug": value.slug,
+                        "file_url": value.file_url,
+                    }
+                    for value in attr.values.all()
+                ],
+            }
+        )
     unit_tax_amount = (
         order_line.unit_price_gross_amount - order_line.unit_price_net_amount
     )
@@ -23,6 +51,19 @@ def test_get_order_line_payload(order_line):
     total_net = order_line.unit_price_net * order_line.quantity
     total_tax = total_gross - total_net
     assert payload == {
+        "variant": {
+            "id": order_line.variant_id,
+            "first_image": None,
+            "images": None,
+            "weight": "",
+        },
+        "product": {
+            "attributes": expected_attributes_payload,
+            "first_image": None,
+            "images": None,
+            "weight": "5.0 kg",
+            "id": order_line.variant.product.id,
+        },
         "translated_product_name": order_line.translated_product_name
         or order_line.product_name,
         "translated_variant_name": order_line.translated_variant_name
@@ -158,35 +199,6 @@ def test_send_email_payment_confirmation(mocked_notify, site_settings, payment_d
     notifications.send_payment_confirmation(order, manager)
     mocked_notify.assert_called_once_with(
         NotifyEventType.ORDER_PAYMENT_CONFIRMATION, expected_payload
-    )
-
-
-@mock.patch("saleor.plugins.manager.PluginsManager.notify")
-def test_send_staff_emails_without_notification_recipient(
-    mocked_notify, order, site_settings
-):
-    manager = get_plugins_manager()
-    notifications.send_staff_order_confirmation(
-        order, "http://www.example.com/", manager
-    )
-    mocked_notify.assert_not_called()
-
-
-@mock.patch("saleor.plugins.manager.PluginsManager.notify")
-def test_send_staff_emails(
-    mocked_notify, order, site_settings, staff_notification_recipient
-):
-    manager = get_plugins_manager()
-    redirect_url = "http://www.example.com/"
-    notifications.send_staff_order_confirmation(order, redirect_url, manager)
-    expected_payload = {
-        "order": get_default_order_payload(order, redirect_url),
-        "recipient_list": [staff_notification_recipient.get_email()],
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
-    }
-    mocked_notify.assert_called_once_with(
-        NotifyEventType.STAFF_ORDER_CONFIRMATION, payload=expected_payload
     )
 
 

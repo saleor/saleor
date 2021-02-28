@@ -13,7 +13,7 @@ from ...order import OrderStatus, models
 from ...order.models import FulfillmentStatus
 from ...order.utils import get_order_country, get_valid_shipping_methods_for_order
 from ...plugins.manager import get_plugins_manager
-from ...product.templatetags.product_images import get_product_image_thumbnail
+from ...product.product_images import get_product_image_thumbnail
 from ...warehouse import models as warehouse_models
 from ..account.types import User
 from ..account.utils import requestor_has_access

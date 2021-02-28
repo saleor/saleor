@@ -1,4 +1,5 @@
 import logging
+import operator
 import os
 import re
 from dataclasses import dataclass
@@ -6,6 +7,7 @@ from decimal import Decimal, InvalidOperation
 from email.headerregistry import Address
 from typing import List, Optional
 
+import dateutil.parser
 import html2text
 import i18naddress
 import pybars
@@ -17,6 +19,7 @@ from django.core.mail import send_mail
 from django.core.mail.backends.smtp import EmailBackend
 from django_prices.utils.locale import get_locale_data
 
+from ..product.product_images import get_thumbnail_size
 from .base_plugin import ConfigurationTypeField
 from .error_codes import PluginErrorCode
 from .models import PluginConfiguration
@@ -139,6 +142,32 @@ def format_address(this, address, include_phone=True, inline=False, latin=False)
     return pybars.strlist(["<br>".join(address_lines)])
 
 
+def format_datetime(this, date, date_format=None):
+    date = dateutil.parser.isoparse(date)
+    if date_format is None:
+        date_format = "%d-%m-%Y"
+    return date.strftime(date_format)
+
+
+def get_product_image_thumbnail(this, size, image):
+    expected_size = get_thumbnail_size(size, "thumbnail", "products", on_demand=False)
+    return image["original"][expected_size]
+
+
+def compare(this, val1, compare_operator, val2):
+    operators = {
+        "==": operator.eq,
+        "!=": operator.neg,
+        "<": operator.lt,
+        "<=": operator.le,
+        ">=": operator.ge,
+        ">": operator.gt,
+    }
+    if compare_operator not in operators:
+        return False
+    return operators[compare_operator](val1, val2)
+
+
 def price(this, net_amount, gross_amount, currency, display_gross=False):
     amount = net_amount
     if display_gross:
@@ -187,6 +216,9 @@ def send_email(
     helpers = {
         "format_address": format_address,
         "price": price,
+        "format_datetime": format_datetime,
+        "get_product_image_thumbnail": get_product_image_thumbnail,
+        "compare": compare,
     }
     message = template(context, helpers=helpers)
     subject_message = subject_template(context, helpers)

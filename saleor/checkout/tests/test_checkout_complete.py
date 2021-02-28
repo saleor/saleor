@@ -157,8 +157,6 @@ def test_create_order_captured_payment_creates_expected_events(
     assert placement_event.date  # ensure a date was set
     assert not placement_event.parameters  # should not have any additional parameters
 
-    # mock_send_staff_order_confirmation.assert_called_once_with(order.pk)
-
 
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_create_order_captured_payment_creates_expected_events_anonymous_user(
@@ -398,8 +396,6 @@ def test_create_order_preauth_payment_creates_expected_events(
     assert placement_event.order == order  # check the associated order is valid
     assert placement_event.date  # ensure a date was set
     assert not placement_event.parameters  # should not have any additional parameters
-
-    # mock_send_staff_order_confirmation.assert_called_once_with(order.pk)
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")

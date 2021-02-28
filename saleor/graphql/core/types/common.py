@@ -3,7 +3,7 @@ from urllib.parse import urljoin
 import graphene
 from django.conf import settings
 
-from ....product.templatetags.product_images import get_thumbnail
+from ....product.product_images import get_thumbnail
 from ..enums import (
     AccountErrorCode,
     AppErrorCode,
