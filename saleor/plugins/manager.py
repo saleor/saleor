@@ -186,7 +186,7 @@ class PluginsManager(PaymentInterface):
         discounts: Iterable[DiscountInfo],
     ) -> TaxedMoney:
         default_value = base_calculations.base_checkout_shipping_price(
-            checkout_info.checkout, lines
+            checkout_info, lines
         )
         return quantize_price(
             self.__run_method_on_plugins(
