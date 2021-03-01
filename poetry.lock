@@ -917,7 +917,7 @@ proto-plus = ">=1.7.1"
 
 [[package]]
 name = "google-cloud-storage"
-version = "1.36.0"
+version = "1.36.1"
 description = "Google Cloud Storage API client library"
 category = "main"
 optional = false
@@ -2894,8 +2894,8 @@ google-cloud-pubsub = [
     {file = "google_cloud_pubsub-2.3.0-py2.py3-none-any.whl", hash = "sha256:77837aa37099e8bfefd836eaa5b8a042edbcd166677515b34bbe112e558d1932"},
 ]
 google-cloud-storage = [
-    {file = "google-cloud-storage-1.36.0.tar.gz", hash = "sha256:9517e26cadb4e52fcd11e83cd1b4051e72351a2e518078102ad2f1b9f4d704bc"},
-    {file = "google_cloud_storage-1.36.0-py2.py3-none-any.whl", hash = "sha256:0880af3c8706a52785ee2c6dc6856e33aa8bf951083b145a889137344a7201ad"},
+    {file = "google-cloud-storage-1.36.1.tar.gz", hash = "sha256:b63f31f3ec51797fce682ef4f6b7323f8b99e9ca0b21092801b1b8d25017f58a"},
+    {file = "google_cloud_storage-1.36.1-py2.py3-none-any.whl", hash = "sha256:e3227abe57122370df02f00b8a6d78da6d41a0df4e6864b7f65a3a4ae673a8a7"},
 ]
 google-crc32c = [
     {file = "google-crc32c-1.1.2.tar.gz", hash = "sha256:dff5bd1236737f66950999d25de7a78144548ebac7788d30ada8c1b6ead60b27"},
