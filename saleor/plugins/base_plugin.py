@@ -21,20 +21,14 @@ if TYPE_CHECKING:
     # flake8: noqa
     from ..account.models import Address, User
     from ..channel.models import Channel
-    from ..checkout.fetch import CheckoutLineInfo
-    from ..checkout.models import Checkout, CheckoutLine
+    from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
+    from ..checkout.models import Checkout
     from ..core.taxes import TaxType
     from ..discount import DiscountInfo
     from ..invoice.models import Invoice
     from ..order.models import Fulfillment, Order, OrderLine
     from ..page.models import Page
-    from ..product.models import (
-        Collection,
-        Product,
-        ProductType,
-        ProductVariant,
-        ProductVariantChannelListing,
-    )
+    from ..product.models import Product, ProductType, ProductVariant
 
 
 PluginConfigurationType = List[dict]
@@ -156,7 +150,7 @@ class BasePlugin:
 
     def calculate_checkout_total(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         lines: List["CheckoutLineInfo"],
         address: Optional["Address"],
         discounts: List["DiscountInfo"],

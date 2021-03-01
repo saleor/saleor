@@ -6,7 +6,7 @@ import graphene
 import pytest
 
 from ......checkout import calculations
-from ......checkout.fetch import fetch_checkout_lines
+from ......checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ......order import OrderEvents, OrderStatus
 from ......plugins.manager import get_plugins_manager
 from ..... import ChargeStatus, TransactionKind
@@ -157,8 +157,9 @@ def test_handle_authorization_for_checkout(
     payment = payment_adyen_for_checkout
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout, lines, address
+        manager, checkout_info, lines, address
     )
     payment.is_active = True
     payment.order = None
@@ -203,8 +204,9 @@ def test_handle_authorization_with_adyen_auto_capture(
     payment = payment_adyen_for_checkout
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout, lines, address
+        manager, checkout_info, lines, address
     )
     payment.is_active = True
     payment.order = None
@@ -396,8 +398,9 @@ def test_handle_capture_for_checkout(
     payment = payment_adyen_for_checkout
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout, lines, address
+        manager, checkout_info, lines, address
     )
     payment.is_active = True
     payment.order = None

@@ -272,7 +272,7 @@ def _prepare_order_data(
 
     taxed_total = calculations.checkout_total(
         manager=manager,
-        checkout=checkout,
+        checkout_info=checkout_info,
         lines=lines,
         address=address,
         discounts=discounts,

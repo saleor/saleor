@@ -2529,10 +2529,11 @@ def test_checkout_prices(user_api_client, checkout_with_item):
     assert data["token"] == str(checkout_with_item.token)
     assert len(data["lines"]) == checkout_with_item.lines.count()
     lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [])
     manager = get_plugins_manager()
     total = calculations.checkout_total(
         manager=manager,
-        checkout=checkout_with_item,
+        checkout_info=checkout_info,
         lines=lines,
         address=checkout_with_item.shipping_address,
     )
@@ -2763,7 +2764,7 @@ def test_clean_checkout(checkout_with_item, payment_dummy, address, shipping_met
     checkout_info = fetch_checkout_info(checkout, lines, [])
     manager = get_plugins_manager()
     total = calculations.checkout_total(
-        manager=manager, checkout=checkout, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
 
     payment = payment_dummy

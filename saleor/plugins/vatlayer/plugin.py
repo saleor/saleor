@@ -30,8 +30,8 @@ if TYPE_CHECKING:
     # flake8: noqa
     from ...account.models import Address
     from ...channel.models import Channel
-    from ...checkout.fetch import CheckoutLineInfo
-    from ...checkout.models import Checkout, CheckoutLine
+    from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
+    from ...checkout.models import Checkout
     from ...discount import DiscountInfo
     from ...order.models import Order, OrderLine
     from ...product.models import (
@@ -83,7 +83,7 @@ class VatlayerPlugin(BasePlugin):
 
     def calculate_checkout_total(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         lines: List["CheckoutLineInfo"],
         address: Optional["Address"],
         discounts: List["DiscountInfo"],
@@ -96,19 +96,19 @@ class VatlayerPlugin(BasePlugin):
         return (
             calculations.checkout_subtotal(
                 manager=manager,
-                checkout=checkout,
+                checkout=checkout_info.checkout,
                 lines=lines,
                 address=address,
                 discounts=discounts,
             )
             + calculations.checkout_shipping_price(
                 manager=manager,
-                checkout=checkout,
+                checkout=checkout_info.checkout,
                 lines=lines,
                 address=address,
                 discounts=discounts,
             )
-            - checkout.discount
+            - checkout_info.checkout.discount
         )
 
     def _get_taxes_for_country(self, country: Country):

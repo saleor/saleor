@@ -6,7 +6,11 @@ from django.http import HttpResponseNotFound, JsonResponse
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
-from ...checkout.fetch import CheckoutLineInfo, fetch_checkout_lines
+from ...checkout.fetch import (
+    CheckoutLineInfo,
+    fetch_checkout_info,
+    fetch_checkout_lines,
+)
 from ...core.taxes import TaxType
 from ...payment.interface import PaymentGateway
 from ...product.models import Product
@@ -41,8 +45,9 @@ def test_manager_calculates_checkout_total(
     expected_total = Money(total_amount, currency)
     manager = PluginsManager(plugins=plugins)
     lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [])
     taxed_total = manager.calculate_checkout_total(
-        checkout_with_item, lines, None, [discount_info]
+        checkout_info, lines, None, [discount_info]
     )
     assert TaxedMoney(expected_total, expected_total) == taxed_total
 

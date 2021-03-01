@@ -720,7 +720,7 @@ def test_recalculate_checkout_discount_with_sale(
     assert (
         calculations.checkout_total(
             manager=manager,
-            checkout=checkout,
+            checkout_info=checkout_info,
             lines=lines,
             address=checkout.shipping_address,
             discounts=[discount_info],
@@ -789,7 +789,7 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_less_than_shipping
     assert checkout.discount_name == "Free shipping"
     checkout_total = calculations.checkout_total(
         manager=manager,
-        checkout=checkout,
+        checkout_info=checkout_info,
         lines=lines,
         address=checkout.shipping_address,
     )
@@ -830,7 +830,7 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_bigger_than_shippi
     assert checkout.discount_name == "Free shipping"
     checkout_total = calculations.checkout_total(
         manager=manager,
-        checkout=checkout,
+        checkout_info=checkout_info,
         lines=lines,
         address=checkout.shipping_address,
     )
@@ -1038,7 +1038,7 @@ def test_is_fully_paid(checkout_with_item, payment_dummy):
     checkout_info = fetch_checkout_info(checkout, lines, [])
     total = calculations.checkout_total(
         manager=manager,
-        checkout=checkout,
+        checkout_info=checkout_info,
         lines=lines,
         address=checkout.shipping_address,
     )
@@ -1060,7 +1060,7 @@ def test_is_fully_paid_many_payments(checkout_with_item, payment_dummy):
     checkout_info = fetch_checkout_info(checkout, lines, [])
     total = calculations.checkout_total(
         manager=manager,
-        checkout=checkout,
+        checkout_info=checkout_info,
         lines=lines,
         address=checkout.shipping_address,
     )
@@ -1090,7 +1090,7 @@ def test_is_fully_paid_partially_paid(checkout_with_item, payment_dummy):
     checkout_info = fetch_checkout_info(checkout, lines, [])
     total = calculations.checkout_total(
         manager=manager,
-        checkout=checkout,
+        checkout_info=checkout_info,
         lines=lines,
         address=checkout.shipping_address,
     )
