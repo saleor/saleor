@@ -71,7 +71,7 @@ def payment_capture(mcoins, tx_id, token) -> bool:
 def payment_refund(mcoins, tx_id, token) -> bool:
     data = {
         'mcoins': int(mcoins),
-        'tx_id': tx_id
+        'tx_id': str(tx_id)
     }
 
     response = http.request(

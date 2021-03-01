@@ -29,8 +29,10 @@ def authorize(
 
     if is_success:
         payment = Payment.objects.get(pk=payment_information.payment_id)
-        obj = MonchiquePayment.objects.create(payment_id=payment, transaction_id=transaction_id)
-        obj.save()
+        MonchiquePayment(
+            payment=payment,
+            transaction_id=transaction_id
+        ).save()    
 
     return GatewayResponse(
         is_success=is_success,
@@ -65,16 +67,15 @@ def capture(payment_information: PaymentData, transaction_id: str, config: Gatew
         # searchable_key=str(searchable_key) if searchable_key else None,
     )
 
-def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
+def refund(payment_information: PaymentData, tx_id: str, config: GatewayConfig) -> GatewayResponse:
     backend = JSONWebTokenBackend()
     user = backend.get_user(payment_information.customer_email)
-    transaction_id = get_tx_id(payment_information.payment_id)
-    refund_response = payment_refund(payment_information.amount, transaction_id, user.monchique_token)
+    refund_response = payment_refund(payment_information.amount, tx_id, user.monchique_token)
 
     return GatewayResponse(
         is_success=refund_response['is_authorized'],
         action_required=False,
-        transaction_id=refund_response.get('tx_id') or "",
+        transaction_id=tx_id,
         amount=payment_information.amount,
         currency=payment_information.currency,
         error=refund_response.get('error_code'),
@@ -110,6 +111,3 @@ def process_payment(
         return authorize_response
 
     return capture(payment_information, authorize_response.transaction_id, config)
-
-def get_tx_id(payment_id):
-    return MonchiquePayment.objects.get(payment_id=payment_id).transaction_id

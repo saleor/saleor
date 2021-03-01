@@ -16,7 +16,7 @@ from . import ChargeStatus, CustomPaymentChoices, TransactionError, TransactionK
 
 
 class MonchiquePayment(models.Model):
-    payment_id = models.ForeignKey('Payment', on_delete=models.PROTECT) #Change to payment
+    payment = models.ForeignKey('Payment', on_delete=models.PROTECT) #Change to payment
     transaction_id = models.UUIDField(primary_key=False, default=None, editable=True, null=True)
 
 class Payment(models.Model):

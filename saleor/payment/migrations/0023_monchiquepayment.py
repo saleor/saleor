@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('transaction_id', models.UUIDField(default=None, null=True)),
-                ('payment_id', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='payment.payment')),
+                ('payment', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='payment.payment')),
             ],
         ),
     ]

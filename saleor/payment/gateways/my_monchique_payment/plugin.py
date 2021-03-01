@@ -3,9 +3,9 @@ from django.conf import Settings, settings
 
 from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from ..utils import get_supported_currencies
-from ....payment.models import Payment, Transaction
+from ....payment.models import Payment
 from ....payment import PaymentError
-from ....core.auth_backend import JSONWebTokenBackend
+from ...models import MonchiquePayment
 
 from . import (
     GatewayConfig,
@@ -118,11 +118,11 @@ class MyMonchiqueGatewayPlugin(BasePlugin):
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
         try:
-            transaction = Transaction.objects.get(payment_id=payment_information.payment_id)
+            tx_id = MonchiquePayment.objects.get(payment=payment_information.payment_id).transaction_id
         except Payment.DoesNotExist:
             raise PaymentError(f"Cannot find Payment {payment_information.payment_id}.")
         return refund(
-            payment_information, transaction.token, self._get_gateway_config()
+            payment_information, tx_id, self._get_gateway_config()
         )
 
     @require_active_plugin
