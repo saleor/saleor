@@ -157,10 +157,10 @@ class AvataxPlugin(BasePlugin):
         checkout_total = previous_value
 
         if not _validate_checkout(
-            checkout_info.checkout, [line_info.line for line_info in lines]
+            checkout_info, [line_info.line for line_info in lines]
         ):
             return checkout_total
-        response = get_checkout_tax_data(checkout_info.checkout, discounts, self.config)
+        response = get_checkout_tax_data(checkout_info, discounts, self.config)
         if not response or "error" in response:
             return checkout_total
         currency = response.get("currencyCode")
@@ -185,7 +185,7 @@ class AvataxPlugin(BasePlugin):
         base_subtotal: TaxedMoney,
     ) -> TaxedMoney:
         currency = checkout_info.checkout.currency
-        response = get_checkout_tax_data(checkout_info.checkout, discounts, self.config)
+        response = get_checkout_tax_data(checkout_info, discounts, self.config)
         if not response or "error" in response:
             return base_subtotal
 
@@ -216,10 +216,10 @@ class AvataxPlugin(BasePlugin):
 
         base_subtotal = previous_value
         if not _validate_checkout(
-            checkout_info.checkout, [line_info.line for line_info in lines]
+            checkout_info, [line_info.line for line_info in lines]
         ):
             return base_subtotal
-        response = get_checkout_tax_data(checkout_info.checkout, discounts, self.config)
+        response = get_checkout_tax_data(checkout_info, discounts, self.config)
         if not response or "error" in response:
             return base_subtotal
 
@@ -259,11 +259,11 @@ class AvataxPlugin(BasePlugin):
             return base_shipping_price
 
         if not _validate_checkout(
-            checkout_info.checkout, [line_info.line for line_info in lines]
+            checkout_info, [line_info.line for line_info in lines]
         ):
             return base_shipping_price
 
-        response = get_checkout_tax_data(checkout_info.checkout, discounts, self.config)
+        response = get_checkout_tax_data(checkout_info, discounts, self.config)
         if not response or "error" in response:
             return base_shipping_price
 
@@ -346,12 +346,10 @@ class AvataxPlugin(BasePlugin):
         if not checkout_line_info.product.charge_taxes:
             return base_total
 
-        if not _validate_checkout(checkout_info.checkout, [checkout_line_info.line]):
+        if not _validate_checkout(checkout_info, [checkout_line_info.line]):
             return base_total
 
-        taxes_data = get_checkout_tax_data(
-            checkout_info.checkout, discounts, self.config
-        )
+        taxes_data = get_checkout_tax_data(checkout_info, discounts, self.config)
         if not taxes_data or "error" in taxes_data:
             return base_total
 
@@ -377,7 +375,7 @@ class AvataxPlugin(BasePlugin):
         if not checkout_line_info.product.charge_taxes:
             return previous_value
         return self._calculate_unit_price(
-            checkout_info.checkout,
+            checkout_info,
             checkout_line_info.line,
             checkout_line_info.variant,
             previous_value,
@@ -401,7 +399,7 @@ class AvataxPlugin(BasePlugin):
 
     def _calculate_unit_price(
         self,
-        instance: Union["Checkout", "Order"],
+        instance: Union["CheckoutInfo", "Order"],
         line: Union["CheckoutLine", "OrderLine"],
         variant: "ProductVariant",
         base_value: TaxedMoney,
@@ -463,14 +461,14 @@ class AvataxPlugin(BasePlugin):
 
     def get_checkout_line_tax_rate(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
         previous_value: Decimal,
     ) -> Decimal:
         return self._get_unit_tax_rate(
-            checkout, previous_value, False, discounts, [checkout_line_info.line]
+            checkout_info, previous_value, False, discounts, [checkout_line_info.line]
         )
 
     def get_order_line_tax_rate(
@@ -484,14 +482,14 @@ class AvataxPlugin(BasePlugin):
 
     def get_checkout_shipping_tax_rate(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         lines: Iterable["CheckoutLineInfo"],
         address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
         previous_value: Decimal,
     ):
         return self._get_shipping_tax_rate(
-            checkout,
+            checkout_info,
             previous_value,
             False,
             discounts,
@@ -503,7 +501,7 @@ class AvataxPlugin(BasePlugin):
 
     def _get_unit_tax_rate(
         self,
-        instance: Union["Order", "Checkout"],
+        instance: Union["Order", "CheckoutInfo"],
         base_rate: Decimal,
         is_order: bool,
         discounts: Optional[Iterable[DiscountInfo]] = None,
@@ -522,7 +520,7 @@ class AvataxPlugin(BasePlugin):
 
     def _get_shipping_tax_rate(
         self,
-        instance: Union["Order", "Checkout"],
+        instance: Union["Order", "CheckoutInfo"],
         base_rate: Decimal,
         is_order: bool,
         discounts: Optional[Iterable[DiscountInfo]] = None,
@@ -544,7 +542,7 @@ class AvataxPlugin(BasePlugin):
 
     def _get_tax_data(
         self,
-        instance: Union["Order", "Checkout"],
+        instance: Union["Order", "CheckoutInfo"],
         base_value: Decimal,
         is_order: bool,
         discounts: Optional[Iterable[DiscountInfo]] = None,

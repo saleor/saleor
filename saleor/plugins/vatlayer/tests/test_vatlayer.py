@@ -652,8 +652,9 @@ def test_get_checkout_line_tax_rate(
         collections=[],
     )
 
+    checkout_info = fetch_checkout_info(checkout_with_item, [checkout_line_info], [])
     tax_rate = manager.get_checkout_line_tax_rate(
-        checkout_with_item,
+        checkout_info,
         checkout_line_info,
         checkout_with_item.shipping_address,
         [],
@@ -688,9 +689,10 @@ def test_get_checkout_line_tax_rate_order_not_valid(
         product=variant.product,
         collections=[],
     )
+    checkout_info = fetch_checkout_info(checkout_with_item, [checkout_line_info], [])
 
     tax_rate = manager.get_checkout_line_tax_rate(
-        checkout_with_item,
+        checkout_info,
         checkout_line_info,
         checkout_with_item.shipping_address,
         [],
@@ -784,9 +786,10 @@ def test_get_checkout_shipping_tax_rate(
         product=variant.product,
         collections=[],
     )
+    checkout_info = fetch_checkout_info(checkout_with_item, [checkout_line_info], [])
 
     tax_rate = manager.get_checkout_shipping_tax_rate(
-        checkout_with_item,
+        checkout_info,
         [checkout_line_info],
         checkout_with_item.shipping_address,
         [],
@@ -821,9 +824,10 @@ def test_get_checkout_shipping_tax_rate_no_address(
         product=variant.product,
         collections=[],
     )
+    checkout_info = fetch_checkout_info(checkout_with_item, [checkout_line_info], [])
 
     tax_rate = manager.get_checkout_shipping_tax_rate(
-        checkout_with_item,
+        checkout_info,
         checkout_line_info,
         checkout_with_item.shipping_address,
         [],
@@ -865,9 +869,10 @@ def test_get_checkout_shipping_tax_rate_skip_plugin(
         product=variant.product,
         collections=[],
     )
+    checkout_info = fetch_checkout_info(checkout_with_item, [checkout_line_info], [])
 
     tax_rate = manager.get_checkout_shipping_tax_rate(
-        checkout_with_item,
+        checkout_info,
         checkout_line_info,
         checkout_with_item.shipping_address,
         [],
