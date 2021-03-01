@@ -120,7 +120,7 @@ def validate_voucher_for_checkout(
     address = checkout_info.shipping_address or checkout_info.billing_address
     subtotal = calculations.checkout_subtotal(
         manager=manager,
-        checkout=checkout_info.checkout,
+        checkout_info=checkout_info,
         lines=lines,
         address=address,
         discounts=discounts,

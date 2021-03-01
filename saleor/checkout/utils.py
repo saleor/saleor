@@ -344,12 +344,11 @@ def get_voucher_discount_for_checkout(
 
     Raise NotApplicable if voucher of given type cannot be applied.
     """
-    checkout = checkout_info.checkout
     validate_voucher_for_checkout(manager, voucher, checkout_info, lines, discounts)
     if voucher.type == VoucherType.ENTIRE_ORDER:
         subtotal = calculations.checkout_subtotal(
             manager=manager,
-            checkout=checkout,
+            checkout_info=checkout_info,
             lines=lines,
             address=address,
             discounts=discounts,
@@ -410,7 +409,7 @@ def recalculate_checkout_discount(
         else:
             subtotal = calculations.checkout_subtotal(
                 manager=manager,
-                checkout=checkout,
+                checkout_info=checkout_info,
                 lines=lines,
                 address=address,
                 discounts=discounts,
@@ -554,7 +553,7 @@ def remove_voucher_from_checkout(checkout: Checkout):
 
 
 def get_valid_shipping_methods_for_checkout(
-    checkout: Checkout,
+    checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable[DiscountInfo],
     country_code: Optional[str] = None,
@@ -562,18 +561,18 @@ def get_valid_shipping_methods_for_checkout(
 ):
     if not is_shipping_required(lines):
         return None
-    if not checkout.shipping_address:
+    if not checkout_info.shipping_address:
         return None
     # TODO: subtotal should comes from arg instead of calculate it in this function
     # use info.context.plugins from resolver
     if subtotal is None:
         manager = get_plugins_manager()
         subtotal = manager.calculate_checkout_subtotal(
-            checkout, lines, checkout.shipping_address, discounts
+            checkout_info, lines, checkout_info.shipping_address, discounts
         )
     return ShippingMethod.objects.applicable_shipping_methods_for_instance(
-        checkout,
-        channel_id=checkout.channel_id,
+        checkout_info.checkout,
+        channel_id=checkout_info.checkout.channel_id,
         price=subtotal.gross,
         country_code=country_code,
         lines=lines,
