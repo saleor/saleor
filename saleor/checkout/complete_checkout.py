@@ -316,7 +316,7 @@ def _prepare_order_data(
         - checkout.discount
     ).gross
 
-    manager.preprocess_order_creation(checkout, discounts)
+    manager.preprocess_order_creation(checkout_info, discounts, lines)
     return order_data
 
 

@@ -323,7 +323,11 @@ class BasePlugin:
         return NotImplemented
 
     def preprocess_order_creation(
-        self, checkout: "Checkout", discounts: List["DiscountInfo"], previous_value: Any
+        self,
+        checkout_info: "CheckoutInfo",
+        discounts: List["DiscountInfo"],
+        lines: Optional[Iterable["CheckoutLineInfo"]],
+        previous_value: Any,
     ):
         """Trigger directly before order creation.
 

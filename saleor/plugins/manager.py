@@ -375,11 +375,14 @@ class PluginsManager(PaymentInterface):
         )
 
     def preprocess_order_creation(
-        self, checkout: "Checkout", discounts: Iterable[DiscountInfo]
+        self,
+        checkout_info: "CheckoutInfo",
+        discounts: Iterable[DiscountInfo],
+        lines: Optional[Iterable["CheckoutLineInfo"]] = None,
     ):
         default_value = None
         return self.__run_method_on_plugins(
-            "preprocess_order_creation", default_value, checkout, discounts
+            "preprocess_order_creation", default_value, checkout_info, discounts, lines
         )
 
     def customer_created(self, customer: "User"):
