@@ -157,9 +157,7 @@ class AvataxPlugin(BasePlugin):
             return previous_value
         checkout_total = previous_value
 
-        if not _validate_checkout(
-            checkout_info, [line_info.line for line_info in lines]
-        ):
+        if not _validate_checkout(checkout_info, lines):
             return checkout_total
         response = get_checkout_tax_data(checkout_info, lines, discounts, self.config)
         if not response or "error" in response:
@@ -216,9 +214,7 @@ class AvataxPlugin(BasePlugin):
             return previous_value
 
         base_subtotal = previous_value
-        if not _validate_checkout(
-            checkout_info, [line_info.line for line_info in lines]
-        ):
+        if not _validate_checkout(checkout_info, lines):
             return base_subtotal
         response = get_checkout_tax_data(checkout_info, lines, discounts, self.config)
         if not response or "error" in response:
@@ -259,9 +255,7 @@ class AvataxPlugin(BasePlugin):
         if self._skip_plugin(previous_value):
             return base_shipping_price
 
-        if not _validate_checkout(
-            checkout_info, [line_info.line for line_info in lines]
-        ):
+        if not _validate_checkout(checkout_info, lines):
             return base_shipping_price
 
         response = get_checkout_tax_data(checkout_info, lines, discounts, self.config)
@@ -351,7 +345,7 @@ class AvataxPlugin(BasePlugin):
         if not checkout_line_info.product.charge_taxes:
             return base_total
 
-        if not _validate_checkout(checkout_info, [checkout_line_info.line]):
+        if not _validate_checkout(checkout_info, [checkout_line_info]):
             return base_total
 
         taxes_data = get_checkout_tax_data(
@@ -383,7 +377,8 @@ class AvataxPlugin(BasePlugin):
             return previous_value
         return self._calculate_unit_price(
             checkout_info,
-            checkout_line_info,
+            checkout_line_info.line,
+            [checkout_line_info],
             checkout_line_info.variant,
             previous_value,
             discounts,
@@ -401,23 +396,22 @@ class AvataxPlugin(BasePlugin):
         if not variant or (variant and not product.charge_taxes):
             return previous_value
         return self._calculate_unit_price(
-            order, order_line, variant, previous_value, is_order=True
+            order, order_line, [], variant, previous_value, is_order=True
         )
 
     def _calculate_unit_price(
         self,
         instance: Union["CheckoutInfo", "Order"],
-        line: Union["CheckoutLineInfo", "OrderLine"],
+        line: Union["CheckoutLine", "OrderLine"],
+        lines_info: Iterable["CheckoutLineInfo"],
         variant: "ProductVariant",
         base_value: TaxedMoney,
         discounts: Optional[Iterable[DiscountInfo]] = [],
         *,
         is_order: bool,
     ):
-        lines = [] if is_order else [line]
-        line = line if is_order else line.line  # type: ignore
         taxes_data = self._get_tax_data(
-            instance, base_value, is_order, discounts, lines  # type: ignore
+            instance, base_value, is_order, discounts, lines_info
         )
         if taxes_data is None:
             return base_value
@@ -476,7 +470,7 @@ class AvataxPlugin(BasePlugin):
         previous_value: Decimal,
     ) -> Decimal:
         return self._get_unit_tax_rate(
-            checkout_info, previous_value, False, discounts, [checkout_line_info.line]
+            checkout_info, previous_value, False, discounts, [checkout_line_info]
         )
 
     def get_order_line_tax_rate(
@@ -501,7 +495,7 @@ class AvataxPlugin(BasePlugin):
             previous_value,
             False,
             discounts,
-            [line_info.line for line_info in lines],
+            lines,
         )
 
     def get_order_shipping_tax_rate(self, order: "Order", previous_value: Decimal):
@@ -513,10 +507,10 @@ class AvataxPlugin(BasePlugin):
         base_rate: Decimal,
         is_order: bool,
         discounts: Optional[Iterable[DiscountInfo]] = None,
-        checkout_lines: Iterable["CheckoutLine"] = [],
+        lines_info: Iterable["CheckoutLineInfo"] = [],
     ):
         response = self._get_tax_data(
-            instance, base_rate, is_order, discounts, checkout_lines
+            instance, base_rate, is_order, discounts, lines_info
         )
         if response is None:
             return base_rate
@@ -532,10 +526,10 @@ class AvataxPlugin(BasePlugin):
         base_rate: Decimal,
         is_order: bool,
         discounts: Optional[Iterable[DiscountInfo]] = None,
-        checkout_lines: Iterable["CheckoutLine"] = [],
+        lines_info: Iterable["CheckoutLineInfo"] = [],
     ):
         response = self._get_tax_data(
-            instance, base_rate, is_order, discounts, checkout_lines
+            instance, base_rate, is_order, discounts, lines_info
         )
         if response is None:
             return base_rate
@@ -554,7 +548,7 @@ class AvataxPlugin(BasePlugin):
         base_value: Decimal,
         is_order: bool,
         discounts: Optional[Iterable[DiscountInfo]] = None,
-        checkout_lines: Iterable["CheckoutLine"] = [],
+        lines_info: Iterable["CheckoutLineInfo"] = [],
     ):
         if self._skip_plugin(base_value):
             return None
@@ -562,7 +556,7 @@ class AvataxPlugin(BasePlugin):
         valid = (
             _validate_order(instance)  # type: ignore
             if is_order
-            else _validate_checkout(instance, checkout_lines)  # type: ignore
+            else _validate_checkout(instance, lines_info)  # type: ignore
         )
 
         if not valid:
@@ -571,7 +565,7 @@ class AvataxPlugin(BasePlugin):
         response = (
             get_order_tax_data(instance, self.config, False)  # type: ignore
             if is_order
-            else get_checkout_tax_data(instance, checkout_lines, discounts, self.config)  # type: ignore
+            else get_checkout_tax_data(instance, lines_info, discounts, self.config)  # type: ignore
         )
         if not response or "error" in response:
             return None
