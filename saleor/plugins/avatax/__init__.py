@@ -14,12 +14,11 @@ from django.core.cache import cache
 from requests.auth import HTTPBasicAuth
 
 from ...checkout import base_calculations
-from ...checkout.fetch import fetch_checkout_lines
 from ...core.taxes import TaxError
 
 if TYPE_CHECKING:
-    from ...checkout.fetch import CheckoutInfo
-    from ...checkout.models import Checkout, CheckoutLine
+    from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
+    from ...checkout.models import CheckoutLine
     from ...order.models import Order
     from ...product.models import Product, ProductType, ProductVariant
 
@@ -229,11 +228,12 @@ def append_shipping_to_data(data: List[Dict], shipping_method, channel_id):
 
 
 def get_checkout_lines_data(
-    checkout: "Checkout", discounts=None
+    checkout_info: "CheckoutInfo",
+    lines_info: Iterable["CheckoutLineInfo"],
+    discounts=None,
 ) -> List[Dict[str, Union[str, int, bool, None]]]:
     data: List[Dict[str, Union[str, int, bool, None]]] = []
-    lines_info = fetch_checkout_lines(checkout)
-    channel = checkout.channel
+    channel = checkout_info.channel
     for line_info in lines_info:
         product = line_info.product
         name = product.name
@@ -253,7 +253,9 @@ def get_checkout_lines_data(
             name=name,
         )
 
-    append_shipping_to_data(data, checkout.shipping_method, checkout.channel_id)
+    append_shipping_to_data(
+        data, checkout_info.shipping_method, checkout_info.channel.id
+    )
     return data
 
 
@@ -359,23 +361,24 @@ def generate_request_data(
 
 
 def generate_request_data_from_checkout(
-    checkout: "Checkout",
+    checkout_info: "CheckoutInfo",
+    lines_info: Iterable["CheckoutLineInfo"],
     config: AvataxConfiguration,
     transaction_token=None,
     transaction_type=TransactionType.ORDER,
     discounts=None,
 ):
 
-    address = checkout.shipping_address or checkout.billing_address
-    lines = get_checkout_lines_data(checkout, discounts)
+    address = checkout_info.shipping_address or checkout_info.billing_address
+    lines = get_checkout_lines_data(checkout_info, lines_info, discounts)
 
-    currency = checkout.currency
+    currency = checkout_info.checkout.currency
     data = generate_request_data(
         transaction_type=transaction_type,
         lines=lines,
-        transaction_token=transaction_token or str(checkout.token),
+        transaction_token=transaction_token or str(checkout_info.checkout.token),
         address=address.as_data() if address else {},
-        customer_email=checkout.email,
+        customer_email=checkout_info.get_customer_email(),
         config=config,
         currency=currency,
     )
@@ -423,10 +426,13 @@ def get_cached_response_or_fetch(
 
 
 def get_checkout_tax_data(
-    checkout_info: "CheckoutInfo", discounts, config: AvataxConfiguration
+    checkout_info: "CheckoutInfo",
+    lines_info: Iterable["CheckoutLineInfo"],
+    discounts,
+    config: AvataxConfiguration,
 ) -> Dict[str, Any]:
     data = generate_request_data_from_checkout(
-        checkout_info.checkout, config, discounts=discounts
+        checkout_info, lines_info, config, discounts=discounts
     )
     return get_cached_response_or_fetch(data, str(checkout_info.checkout.token), config)
 
