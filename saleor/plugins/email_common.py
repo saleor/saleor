@@ -143,6 +143,7 @@ def format_address(this, address, include_phone=True, inline=False, latin=False)
 
 
 def format_datetime(this, date, date_format=None):
+    """Convert datetime to a required format."""
     date = dateutil.parser.isoparse(date)
     if date_format is None:
         date_format = "%d-%m-%Y"
@@ -150,11 +151,13 @@ def format_datetime(this, date, date_format=None):
 
 
 def get_product_image_thumbnail(this, size, image):
+    """Use provided size to get a correct image."""
     expected_size = get_thumbnail_size(size, "thumbnail", "products", on_demand=False)
     return image["original"][expected_size]
 
 
 def compare(this, val1, compare_operator, val2):
+    """Compare two values based on the provided operator."""
     operators = {
         "==": operator.eq,
         "!=": operator.neg,

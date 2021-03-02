@@ -50,12 +50,12 @@ def get_product_attributes(product):
                 },
                 "values": [
                     {
-                        "name": value.name,
-                        "value": value.value,
-                        "slug": value.slug,
-                        "file_url": value.file_url,
+                        "name": value.get("name"),
+                        "value": value.get("value"),
+                        "slug": value.get("slug"),
+                        "file_url": value.get("file_url"),
                     }
-                    for value in attr.values.all()
+                    for value in attr.values.values("name", "value", "slug", "file_url")
                 ],
             }
         )
