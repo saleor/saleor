@@ -3,7 +3,6 @@ from typing import List
 import graphene
 import requests
 from django.core.exceptions import ValidationError
-from django.core.validators import URLValidator
 
 from ...app import models
 from ...app.error_codes import AppErrorCode
@@ -14,6 +13,7 @@ from ...core.permissions import (
     get_permissions,
     get_permissions_enum_list,
 )
+from ...core.utils.url import validate_url
 from ..account.utils import can_manage_app
 from ..core.enums import PermissionEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -376,9 +376,8 @@ class AppInstall(ModelMutation):
 
     @classmethod
     def clean_manifest_url(self, url):
-        url_validator = URLValidator()
         try:
-            url_validator(url)
+            validate_url(url)
         except (ValidationError, AttributeError):
             msg = "Enter a valid URL."
             code = AppErrorCode.INVALID_URL_FORMAT.value
@@ -443,9 +442,8 @@ class AppFetchManifest(BaseMutation):
 
     @classmethod
     def clean_manifest_url(cls, manifest_url):
-        url_validator = URLValidator()
         try:
-            url_validator(manifest_url)
+            validate_url(manifest_url)
         except (ValidationError, AttributeError):
             msg = "Enter a valid URL."
             code = AppErrorCode.INVALID_URL_FORMAT.value

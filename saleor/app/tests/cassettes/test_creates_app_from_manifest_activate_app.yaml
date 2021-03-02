@@ -11,7 +11,7 @@ interactions:
       User-Agent:
       - python-requests/2.23.0
     method: GET
-    uri: http://localhost:3000/manifest
+    uri: http://otherapp:3000/manifest
   response:
     body:
       string: "{\n  \"name\": \"app\",\n  \"version\": \"1.0.0\",\n  \"aboutApp\"\
@@ -19,7 +19,7 @@ interactions:
         : \"http://localhost:8888/app-data-privacy\",\n  \"homepageUrl\": \"http://localhost:8888/homepage\"\
         ,\n  \"supportUrl\": \"http://localhost:8888/support\",\n  \"configurationUrl\"\
         : \"htpp://localhost:8888/configuration\",\n  \"appUrl\": \"http://localhost:8888/app\"\
-        ,\n  \"tokenTargetUrl\": \"http://localhost:3000/register\",\n  \"id\": \"\
+        ,\n  \"tokenTargetUrl\": \"http://otherapp:3000/register\",\n  \"id\": \"\
         app2\",\n  \"permissions\": [\n    \"MANAGE_USERS\",\n    \"MANAGE_ORDERS\"\
         \n  ]\n}"
     headers:
@@ -62,7 +62,7 @@ interactions:
       User-Agent:
       - python-requests/2.23.0
     method: GET
-    uri: http://localhost:3000/manifest
+    uri: http://otherapp:3000/manifest
   response:
     body:
       string: "{\n  \"name\": \"app\",\n  \"version\": \"1.0.0\",\n  \"aboutApp\"\
@@ -70,7 +70,7 @@ interactions:
         : \"http://localhost:8888/app-data-privacy\",\n  \"homepageUrl\": \"http://localhost:8888/homepage\"\
         ,\n  \"supportUrl\": \"http://localhost:8888/support\",\n  \"configurationUrl\"\
         : \"htpp://localhost:8888/configuration\",\n  \"appUrl\": \"http://localhost:8888/app\"\
-        ,\n  \"tokenTargetUrl\": \"http://localhost:3000/register\",\n  \"id\": \"\
+        ,\n  \"tokenTargetUrl\": \"http://otherapp:3000/register\",\n  \"id\": \"\
         app2\",\n  \"permissions\": [\n    \"MANAGE_USERS\",\n    \"MANAGE_ORDERS\"\
         \n  ]\n}"
     headers:
@@ -119,7 +119,7 @@ interactions:
       x-saleor-domain:
       - mirumee.com
     method: POST
-    uri: http://localhost:3000/register
+    uri: http://otherapp:3000/register
   response:
     body:
       string: "{\n  \"auth_token\": \"23tlfEQfMSrESRqUpbCTMy8ay0EwJg\",\n  \"id\"\
@@ -144,7 +144,7 @@ interactions:
       Expires:
       - '-1'
       Location:
-      - http://localhost:3000/register/34
+      - http://otherapp:3000/register/34
       Pragma:
       - no-cache
       Vary:

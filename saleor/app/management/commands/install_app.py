@@ -5,9 +5,9 @@ import requests
 from django.core.exceptions import ValidationError
 from django.core.management import BaseCommand, CommandError
 from django.core.management.base import CommandParser
-from django.core.validators import URLValidator
 
 from ....core import JobStatus
+from ....core.utils.url import validate_url
 from ...installation_utils import install_app
 from ...models import AppInstallation
 from .utils import clean_permissions
@@ -26,9 +26,8 @@ class Command(BaseCommand):
         )
 
     def validate_manifest_url(self, manifest_url: str):
-        url_validator = URLValidator()
         try:
-            url_validator(manifest_url)
+            validate_url(manifest_url)
         except ValidationError:
             raise CommandError(f"Incorrect format of manifest-url: {manifest_url}")
 
