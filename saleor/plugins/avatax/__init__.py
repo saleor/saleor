@@ -18,7 +18,6 @@ from ...core.taxes import TaxError
 
 if TYPE_CHECKING:
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
-    from ...checkout.models import CheckoutLine
     from ...order.models import Order
     from ...product.models import Product, ProductType, ProductVariant
 
@@ -150,7 +149,7 @@ def _validate_order(order: "Order") -> bool:
 
 
 def _validate_checkout(
-    checkout_info: "CheckoutInfo", lines: Iterable["CheckoutLine"]
+    checkout_info: "CheckoutInfo", lines: Iterable["CheckoutLineInfo"]
 ) -> bool:
     """Validate the checkout object if it is ready to generate a request to avatax."""
     if not lines:
