@@ -76,7 +76,7 @@ def get_voucher_discount_assigned_to_order(order: Order):
     return order.discounts.filter(type=OrderDiscountType.VOUCHER).first()
 
 
-def recalculate_order_discounts(order: Order):
+def recalculate_order_discounts(order: Order, with_discount_event: bool = True):
     """Recalculate all order discounts assigned to order."""
 
     order_discounts = order.discounts.filter(type=OrderDiscountType.MANUAL)
@@ -87,15 +87,13 @@ def recalculate_order_discounts(order: Order):
         update_order_discount_for_order(
             order,
             order_discount,
-            force_update=True,
-            # The discount is 0 because the total amount was recaluculated based on
-            # lines price
-            already_applied_discount_amount=Money(Decimal(0), currency=order.currency),
-            save_order=False,
         )
         discount_value = order_discount.value
         discount_type = order_discount.value_type
         amount = order_discount.amount
+
+        if not with_discount_event:
+            continue
 
         if (
             (
@@ -133,13 +131,13 @@ def recalculate_order(order: Order, **kwargs):
 
     # discount amount can't be greater than order total
     voucher_discount = min(voucher_discount, total.gross)
-
     total -= voucher_discount
 
     order.total = total
     order.undiscounted_total = undiscounted_total
 
-    recalculate_order_discounts(order)
+    with_discount_event = kwargs.get("with_discount_event", True)
+    recalculate_order_discounts(order, with_discount_event)
 
     order.save(
         update_fields=[
@@ -576,15 +574,30 @@ def create_order_discount_for_order(
 ):
     """Add new order discount and update the prices."""
 
-    new_total = apply_discount_to_value(value, value_type, order.currency, order.total)
-    amount = (order.total - new_total).gross
+    current_total = order.total
+    currency = order.currency
+    if value_type == DiscountValueType.PERCENTAGE:
+        # percentage discount will generate different value for net and gross
+        net_total = apply_discount_to_value(
+            value, value_type, currency, current_total.net
+        )
+        gross_total = apply_discount_to_value(
+            value, value_type, currency, current_total.gross
+        )
+    else:
+        new_total = apply_discount_to_value(value, value_type, currency, current_total)
+        net_total = new_total.net
+        gross_total = new_total.gross
+
+    new_amount = (current_total - gross_total).gross
+
     order_discount = order.discounts.create(
         value_type=value_type,
         value=value,
         reason=reason,
-        amount=amount,  # type: ignore
+        amount=new_amount,  # type: ignore
     )
-    order.total = new_total
+    order.total = TaxedMoney(net_total, gross_total)
     order.save(update_fields=["total_net_amount", "total_gross_amount"])
     return order_discount
 
@@ -595,13 +608,9 @@ def update_order_discount_for_order(
     reason: Optional[str] = None,
     value_type: Optional[str] = None,
     value: Optional[Decimal] = None,
-    force_update: bool = False,
-    already_applied_discount_amount: Optional[Money] = None,
-    save_order: bool = True,
 ):
     """Update the order_discount for an order and recalculate the order's prices."""
     current_value = order_discount_to_update.value
-    current_value_type = order_discount_to_update.value_type
     value = value if value is not None else current_value
     value_type = value_type or order_discount_to_update.value_type
     currency = order_discount_to_update.currency
@@ -610,25 +619,28 @@ def update_order_discount_for_order(
         order_discount_to_update.reason = reason
         fields_to_update.append("reason")
 
-    if already_applied_discount_amount is None:
-        already_applied_discount_amount = order_discount_to_update.amount
+    current_total = order.total
 
-    if force_update or current_value != value or current_value_type != value_type:
-        # Add to total current amount of discount.
-        current_total = order.total + already_applied_discount_amount
-
+    if value_type == DiscountValueType.PERCENTAGE:
+        net_total = apply_discount_to_value(
+            value, value_type, currency, current_total.net
+        )
+        gross_total = apply_discount_to_value(
+            value, value_type, currency, current_total.gross
+        )
+    else:
         new_total = apply_discount_to_value(value, value_type, currency, current_total)
+        net_total = new_total.net
+        gross_total = new_total.gross
 
-        new_amount = (current_total - new_total).gross
+    new_amount = (current_total - gross_total).gross
 
-        order_discount_to_update.amount = new_amount
-        order_discount_to_update.value = value
-        order_discount_to_update.value_type = value_type
-        fields_to_update.extend(["value_type", "value", "amount_value"])
+    order_discount_to_update.amount = new_amount
+    order_discount_to_update.value = value
+    order_discount_to_update.value_type = value_type
+    fields_to_update.extend(["value_type", "value", "amount_value"])
 
-        order.total = new_total
-        if save_order:
-            order.save(update_fields=["total_net_amount", "total_gross_amount"])
+    order.total = TaxedMoney(net_total, gross_total)
 
     order_discount_to_update.save(update_fields=fields_to_update)
 
