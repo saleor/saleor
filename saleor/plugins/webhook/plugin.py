@@ -110,6 +110,14 @@ class WebhookPlugin(BasePlugin):
             WebhookEventType.CUSTOMER_CREATED, customer_data
         )
 
+    def customer_updated(self, customer: "User", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        customer_data = generate_customer_payload(customer)
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.CUSTOMER_UPDATED, customer_data
+        )
+
     def product_created(self, product: "Product", previous_value: Any) -> Any:
         if not self.active:
             return previous_value

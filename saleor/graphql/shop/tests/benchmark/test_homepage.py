@@ -17,12 +17,6 @@ def test_retrieve_shop(api_client, count_queries):
               country
               code
             }
-            geolocalization {
-              country {
-                code
-                country
-              }
-            }
           }
         }
     """

@@ -8,7 +8,7 @@ from ....checkout import calculations
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.models import Checkout
 from ....checkout.utils import fetch_checkout_lines
-from ....core.exceptions import InsufficientStock
+from ....core.exceptions import InsufficientStock, InsufficientStockData
 from ....core.taxes import zero_money
 from ....order import OrderStatus
 from ....order.models import Order
@@ -971,10 +971,12 @@ def test_order_already_exists(
 def test_create_order_raises_insufficient_stock(
     mocked_create_order, user_api_client, checkout_ready_to_complete, payment_dummy
 ):
-    mocked_create_order.side_effect = InsufficientStock("InsufficientStock")
     checkout = checkout_ready_to_complete
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
+    mocked_create_order.side_effect = InsufficientStock(
+        [InsufficientStockData(variant=lines[0].variant)]
+    )
     total = calculations.calculate_checkout_total_with_gift_cards(
         manager, checkout, lines, checkout.shipping_address
     )

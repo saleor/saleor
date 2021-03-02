@@ -8,6 +8,7 @@ from django.core.management import CommandError, call_command
 from django.db.utils import DataError
 from django.templatetags.static import static
 from django.test import RequestFactory, override_settings
+from django_countries.fields import Country
 
 from ...account.models import Address, User
 from ...account.utils import create_superuser
@@ -20,12 +21,10 @@ from ...shipping.models import ShippingZone
 from ..storages import S3MediaStorage
 from ..templatetags.placeholder import placeholder
 from ..utils import (
-    Country,
     build_absolute_uri,
     create_thumbnails,
     generate_unique_slug,
     get_client_ip,
-    get_country_by_ip,
     get_currency_for_country,
     random_data,
 )
@@ -42,24 +41,6 @@ type_schema = {
         "is_shipping_required": True,
     }
 }
-
-
-@pytest.mark.parametrize(
-    "ip_data, expected_country",
-    [
-        ({"country": {"iso_code": "PL"}}, Country("PL")),
-        ({"country": {"iso_code": "UNKNOWN"}}, None),
-        (None, None),
-        ({}, None),
-        ({"country": {}}, None),
-    ],
-)
-def test_get_country_by_ip(ip_data, expected_country, monkeypatch):
-    monkeypatch.setattr(
-        "saleor.core.utils._get_geo_data_by_ip", Mock(return_value=ip_data)
-    )
-    country = get_country_by_ip("127.0.0.1")
-    assert country == expected_country
 
 
 @pytest.mark.parametrize(
@@ -88,7 +69,7 @@ def test_get_client_ip(ip_address, expected_ip):
     [(Country("PL"), "PLN"), (Country("US"), "USD"), (Country("GB"), "GBP")],
 )
 def test_get_currency_for_country(country, expected_currency, monkeypatch):
-    currency = get_currency_for_country(country)
+    currency = get_currency_for_country(country.code)
     assert currency == expected_currency
 
 

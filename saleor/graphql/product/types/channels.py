@@ -1,10 +1,10 @@
 from dataclasses import asdict
 
 import graphene
-
-from saleor.graphql.product.dataloaders.products import ProductByIdLoader
+from django_countries.fields import Country
 
 from ....core.permissions import ProductPermissions
+from ....core.utils import get_currency_for_country
 from ....graphql.core.types import Money, MoneyRange
 from ....product import models
 from ....product.utils.availability import get_product_availability
@@ -12,12 +12,15 @@ from ....product.utils.costs import (
     get_margin_for_variant_channel_listing,
     get_product_costs_data,
 )
+from ...account import types as account_types
 from ...channel.dataloaders import ChannelByIdLoader
 from ...core.connection import CountableDjangoObjectType
 from ...decorators import permission_required
 from ...discount.dataloaders import DiscountsByDateTimeLoader
+from ...utils import get_user_country_context
 from ..dataloaders import (
     CollectionsByProductIdLoader,
+    ProductByIdLoader,
     ProductVariantsByProductIdLoader,
     VariantChannelListingByVariantIdAndChannelSlugLoader,
     VariantsChannelListingByProductIdAndChanneSlugLoader,
@@ -40,6 +43,15 @@ class ProductChannelListing(CountableDjangoObjectType):
     )
     pricing = graphene.Field(
         "saleor.graphql.product.types.products.ProductPricingInfo",
+        address=graphene.Argument(
+            account_types.AddressInput,
+            description=(
+                "Destination address used to find warehouses where stock availability "
+                "for this product is checked. If address is empty, uses "
+                "`Shop.companyAddress` or fallbacks to server's "
+                "`settings.DEFAULT_COUNTRY` configuration."
+            ),
+        ),
         description=(
             "Lists the storefront product's pricing, the current price and discounts, "
             "only meant for displaying."
@@ -142,8 +154,11 @@ class ProductChannelListing(CountableDjangoObjectType):
         return root.is_available_for_purchase()
 
     @staticmethod
-    def resolve_pricing(root: models.ProductChannelListing, info):
+    def resolve_pricing(root: models.ProductChannelListing, info, address=None):
         context = info.context
+        country_code = get_user_country_context(
+            address, info.context.site.settings.company_address
+        )
 
         def calculate_pricing_info(discounts):
             def calculate_pricing_with_channel(channel):
@@ -163,8 +178,10 @@ class ProductChannelListing(CountableDjangoObjectType):
                                     collections=collections,
                                     discounts=discounts,
                                     channel=channel,
-                                    country=context.country,
-                                    local_currency=context.currency,
+                                    country=Country(country_code),
+                                    local_currency=get_currency_for_country(
+                                        country_code
+                                    ),
                                     plugins=context.plugins,
                                 )
                                 from .products import ProductPricingInfo

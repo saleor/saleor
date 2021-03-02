@@ -24,7 +24,10 @@ from ..discount.utils import (
     increase_voucher_usage,
     remove_voucher_usage_by_customer,
 )
-from ..order import OrderStatus
+from ..graphql.checkout.utils import (
+    prepare_insufficient_stock_checkout_validation_error,
+)
+from ..order import OrderLineData, OrderStatus
 from ..order.actions import order_created
 from ..order.emails import send_order_confirmation, send_staff_order_confirmation
 from ..order.models import Order, OrderLine
@@ -33,7 +36,7 @@ from ..payment.models import Payment, Transaction
 from ..payment.utils import store_customer_id
 from ..product.models import ProductTranslation, ProductVariantTranslation
 from ..warehouse.availability import check_stock_quantity_bulk
-from ..warehouse.management import allocate_stock
+from ..warehouse.management import allocate_stocks
 from . import AddressType, models
 from .checkout_cleaner import clean_checkout_payment, clean_checkout_shipping
 from .models import Checkout
@@ -137,7 +140,7 @@ def _create_line_for_order(
     channel: "Channel",
     products_translation: Dict[int, Optional[str]],
     variants_translation: Dict[int, Optional[str]],
-) -> OrderLine:
+) -> OrderLineData:
     """Create a line for the given order.
 
     :raises InsufficientStock: when there is not enough items in stock for this variant.
@@ -196,7 +199,9 @@ def _create_line_for_order(
         tax_rate=tax_rate,
     )
 
-    return line
+    line_info = OrderLineData(line=line, quantity=quantity, variant=variant)
+
+    return line_info
 
 
 def _create_lines_for_order(
@@ -205,7 +210,7 @@ def _create_lines_for_order(
     lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable[DiscountInfo],
     channel: "Channel",
-) -> Iterable[OrderLine]:
+) -> Iterable[OrderLineData]:
     """Create a lines for the given order.
 
     :raises InsufficientStock: when there is not enough items in stock for this variant.
@@ -324,7 +329,9 @@ def _prepare_order_data(
 
 
 @transaction.atomic
-def _create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
+def _create_order(
+    *, checkout: Checkout, order_data: dict, user: User, site_settings=None
+) -> Order:
     """Create an order from the checkout.
 
     Each order will get a private copy of both the billing and the shipping
@@ -343,10 +350,11 @@ def _create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
         return order
 
     total_price_left = order_data.pop("total_price_left")
-    order_lines = order_data.pop("lines")
+    order_lines_info = order_data.pop("lines")
 
-    # TODO: refactor to use request.site / info.context site
-    site_settings = Site.objects.get_current().settings
+    if site_settings is None:
+        site_settings = Site.objects.get_current().settings
+
     status = (
         OrderStatus.UNFULFILLED
         if site_settings.automatically_confirm_all_new_orders
@@ -358,15 +366,16 @@ def _create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
         status=status,
         channel=checkout.channel,
     )
-    for line in order_lines:
+    order_lines = []
+    for line_info in order_lines_info:
+        line = line_info.line
         line.order_id = order.pk
-    order_lines = OrderLine.objects.bulk_create(order_lines)
+        order_lines.append(line)
 
-    # allocate stocks from the lines
-    for line in order_lines:  # type: OrderLine
-        variant = line.variant
-        if variant and variant.track_inventory:
-            allocate_stock(line, checkout.get_country(), line.quantity)
+    OrderLine.objects.bulk_create(order_lines)
+
+    country_code = checkout.get_country()
+    allocate_stocks(order_lines_info, country_code)
 
     # Add gift cards to the order
     for gift_card in checkout.gift_cards.select_for_update():
@@ -465,7 +474,8 @@ def _get_order_data(
             discounts=discounts,
         )
     except InsufficientStock as e:
-        raise ValidationError(f"Insufficient product stock: {e.item}", code=e.code)
+        error = prepare_insufficient_stock_checkout_validation_error(e)
+        raise error
     except NotApplicable:
         raise ValidationError(
             "Voucher not applicable",
@@ -515,6 +525,7 @@ def complete_checkout(
     store_source,
     discounts,
     user,
+    site_settings=None,
     tracking_code=None,
     redirect_url=None,
 ) -> Tuple[Optional[Order], bool, dict]:
@@ -537,9 +548,9 @@ def complete_checkout(
 
     try:
         order_data = _get_order_data(manager, checkout, lines, discounts)
-    except ValidationError as error:
+    except ValidationError as exc:
         gateway.payment_refund_or_void(payment)
-        raise error
+        raise exc
 
     txn = _process_payment(
         payment=payment,  # type: ignore
@@ -562,12 +573,13 @@ def complete_checkout(
                 checkout=checkout,
                 order_data=order_data,
                 user=user,  # type: ignore
+                site_settings=site_settings,
             )
             # remove checkout after order is successfully created
             checkout.delete()
         except InsufficientStock as e:
             release_voucher_usage(order_data)
             gateway.payment_refund_or_void(payment)
-            raise ValidationError(f"Insufficient product stock: {e.item}", code=e.code)
-
+            error = prepare_insufficient_stock_checkout_validation_error(e)
+            raise error
     return order, action_required, action_data

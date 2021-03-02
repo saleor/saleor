@@ -16,6 +16,7 @@ from django.core.management.utils import get_random_secret_key
 from pytimeparse import parse
 from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
+from sentry_sdk.integrations.logging import ignore_logger
 
 
 def get_list(text):
@@ -213,8 +214,6 @@ MIDDLEWARE = [
     "saleor.core.middleware.request_time",
     "saleor.core.middleware.discounts",
     "saleor.core.middleware.google_analytics",
-    "saleor.core.middleware.country",
-    "saleor.core.middleware.currency",
     "saleor.core.middleware.site",
     "saleor.core.middleware.plugins",
     "saleor.core.middleware.jwt_refresh_token_middleware",
@@ -327,6 +326,9 @@ LOGGING = {
             "class": "logging.StreamHandler",
             "formatter": "django.server" if DEBUG else "json",
         },
+        "null": {
+            "class": "logging.NullHandler",
+        },
     },
     "loggers": {
         "django": {"level": "INFO", "propagate": True},
@@ -341,7 +343,7 @@ LOGGING = {
             "level": "INFO",
             "propagate": False,
         },
-        "graphql.execution.utils": {"propagate": False},
+        "graphql.execution.utils": {"propagate": False, "handlers": ["null"]},
     },
 }
 
@@ -355,7 +357,6 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 DEFAULT_COUNTRY = os.environ.get("DEFAULT_COUNTRY", "US")
-DEFAULT_CURRENCY = os.environ.get("DEFAULT_CURRENCY", "USD")
 DEFAULT_DECIMAL_PLACES = 3
 DEFAULT_MAX_DIGITS = 12
 DEFAULT_CURRENCY_CODE_LENGTH = 3
@@ -499,6 +500,7 @@ if SENTRY_DSN:
     sentry_sdk.init(
         dsn=SENTRY_DSN, integrations=[CeleryIntegration(), DjangoIntegration()]
     )
+    ignore_logger("graphql.execution.utils")
 
 GRAPHENE = {
     "RELAY_CONNECTION_ENFORCE_FIRST_OR_LAST": True,
@@ -509,8 +511,6 @@ GRAPHENE = {
         "saleor.graphql.middleware.app_middleware",
     ],
 }
-
-PLUGINS_MANAGER = "saleor.plugins.manager.PluginsManager"
 
 PLUGINS = [
     "saleor.plugins.avatax.plugin.AvataxPlugin",
@@ -574,6 +574,7 @@ REDIS_URL = os.environ.get("REDIS_URL")
 if REDIS_URL:
     CACHE_URL = os.environ.setdefault("CACHE_URL", REDIS_URL)
 CACHES = {"default": django_cache_url.config()}
+CACHES["default"]["TIMEOUT"] = parse(os.environ.get("CACHE_TIMEOUT", "7 days"))
 
 # Default False because storefront and dashboard don't support expiration of token
 JWT_EXPIRE = get_bool_from_env("JWT_EXPIRE", False)

@@ -181,6 +181,44 @@ def test_collections_query(
     )
 
 
+def test_collections_query_without_description(
+    user_api_client,
+    published_collection,
+    unpublished_collection,
+    permission_manage_products,
+    channel_USD,
+):
+    query = """
+        query Collections ($channel: String) {
+            collections(first:2, channel: $channel) {
+                edges {
+                    node {
+                        name
+                        slug
+                        description
+                        descriptionJson
+                    }
+                }
+            }
+        }
+    """
+
+    # query public collections only as regular user
+    variables = {"channel": channel_USD.slug}
+    collection = published_collection
+    collection.description = None
+    collection.save()
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    edges = content["data"]["collections"]["edges"]
+    assert len(edges) == 1
+    collection_data = edges[0]["node"]
+    assert collection_data["name"] == collection.name
+    assert collection_data["slug"] == collection.slug
+    assert collection_data["description"] is None
+    assert collection_data["descriptionJson"] == "{}"
+
+
 def test_collections_query_as_staff(
     staff_api_client,
     published_collection,

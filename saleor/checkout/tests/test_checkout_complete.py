@@ -791,7 +791,7 @@ def test_create_order_use_tanslations(
     order_data = _prepare_order_data(
         manager=manager, checkout=checkout, lines=lines, discounts=None
     )
-    order_line = order_data["lines"][0]
+    order_line = order_data["lines"][0].line
 
     assert order_line.translated_product_name == translated_product_name
     assert order_line.translated_variant_name == translated_variant_name

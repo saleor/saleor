@@ -4,6 +4,7 @@ from unittest.mock import patch
 import pytest
 from prices import Money, TaxedMoney
 
+from ...order import OrderLineData
 from ...payment import ChargeStatus, PaymentError, TransactionKind
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
@@ -16,7 +17,7 @@ from ..actions import (
     cancel_fulfillment,
     cancel_order,
     clean_mark_order_as_paid,
-    fulfill_order_line,
+    fulfill_order_lines,
     handle_fully_paid_order,
     mark_order_as_paid,
     order_refunded,
@@ -254,7 +255,7 @@ def test_order_refunded(
     )
 
 
-def test_fulfill_order_line(order_with_lines):
+def test_fulfill_order_lines(order_with_lines):
     order = order_with_lines
     line = order.lines.first()
     quantity_fulfilled_before = line.quantity_fulfilled
@@ -262,23 +263,78 @@ def test_fulfill_order_line(order_with_lines):
     stock = Stock.objects.get(product_variant=variant)
     stock_quantity_after = stock.quantity - line.quantity
 
-    fulfill_order_line(line, line.quantity, stock.warehouse.pk)
+    fulfill_order_lines(
+        [
+            OrderLineData(
+                line=line,
+                quantity=line.quantity,
+                variant=variant,
+                warehouse_pk=stock.warehouse.pk,
+            )
+        ],
+    )
 
     stock.refresh_from_db()
     assert stock.quantity == stock_quantity_after
     assert line.quantity_fulfilled == quantity_fulfilled_before + line.quantity
 
 
-def test_fulfill_order_line_with_variant_deleted(order_with_lines):
+def test_fulfill_order_lines_multiply_lines(order_with_lines):
+    order = order_with_lines
+    lines = order.lines.all()
+
+    assert lines.count() > 1
+
+    quantity_fulfilled_before_1 = lines[0].quantity_fulfilled
+    variant_1 = lines[0].variant
+    stock_1 = Stock.objects.get(product_variant=variant_1)
+    stock_quantity_after_1 = stock_1.quantity - lines[0].quantity
+
+    quantity_fulfilled_before_2 = lines[1].quantity_fulfilled
+    variant_2 = lines[1].variant
+    stock_2 = Stock.objects.get(product_variant=variant_2)
+    stock_quantity_after_2 = stock_2.quantity - lines[1].quantity
+
+    fulfill_order_lines(
+        [
+            OrderLineData(
+                line=lines[0],
+                quantity=lines[0].quantity,
+                variant=variant_1,
+                warehouse_pk=stock_1.warehouse.pk,
+            ),
+            OrderLineData(
+                line=lines[1],
+                quantity=lines[1].quantity,
+                variant=variant_2,
+                warehouse_pk=stock_2.warehouse.pk,
+            ),
+        ],
+    )
+
+    stock_1.refresh_from_db()
+    assert stock_1.quantity == stock_quantity_after_1
+    assert (
+        lines[0].quantity_fulfilled == quantity_fulfilled_before_1 + lines[0].quantity
+    )
+
+    stock_2.refresh_from_db()
+    assert stock_2.quantity == stock_quantity_after_2
+    assert (
+        lines[1].quantity_fulfilled == quantity_fulfilled_before_2 + lines[1].quantity
+    )
+
+
+def test_fulfill_order_lines_with_variant_deleted(order_with_lines):
     line = order_with_lines.lines.first()
     line.variant.delete()
 
     line.refresh_from_db()
 
-    fulfill_order_line(line, line.quantity, "warehouse_pk")
+    fulfill_order_lines([OrderLineData(line=line, quantity=line.quantity)])
 
 
-def test_fulfill_order_line_without_inventory_tracking(order_with_lines):
+def test_fulfill_order_lines_without_inventory_tracking(order_with_lines):
     order = order_with_lines
     line = order.lines.first()
     quantity_fulfilled_before = line.quantity_fulfilled
@@ -290,7 +346,16 @@ def test_fulfill_order_line_without_inventory_tracking(order_with_lines):
     # stock should not change
     stock_quantity_after = stock.quantity
 
-    fulfill_order_line(line, line.quantity, stock.warehouse.pk)
+    fulfill_order_lines(
+        [
+            OrderLineData(
+                line=line,
+                quantity=line.quantity,
+                variant=variant,
+                warehouse_pk=stock.warehouse.pk,
+            )
+        ]
+    )
 
     stock.refresh_from_db()
     assert stock.quantity == stock_quantity_after

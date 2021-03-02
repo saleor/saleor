@@ -1,10 +1,10 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
 
-from ..core.exceptions import InsufficientStock
+from ..core.exceptions import InsufficientStock, InsufficientStockData
 from .models import Stock, StockQuerySet
 
 if TYPE_CHECKING:
@@ -31,10 +31,10 @@ def check_stock_quantity(variant: "ProductVariant", country_code: str, quantity:
     if variant.track_inventory:
         stocks = Stock.objects.get_variant_stocks_for_country(country_code, variant)
         if not stocks:
-            raise InsufficientStock(variant)
+            raise InsufficientStock([InsufficientStockData(variant=variant)])
 
         if quantity > _get_available_quantity(stocks):
-            raise InsufficientStock(variant)
+            raise InsufficientStock([InsufficientStockData(variant=variant)])
 
 
 def check_stock_quantity_bulk(variants, country_code, quantities):
@@ -52,20 +52,28 @@ def check_stock_quantity_bulk(variants, country_code, quantities):
     for stock in all_variants_stocks:
         variant_stocks[stock.product_variant_id].append(stock)
 
+    insufficient_stocks: List[InsufficientStockData] = []
     for variant, quantity in zip(variants, quantities):
-        stocks = variant_stocks.get(variant.pk)
+        stocks = variant_stocks.get(variant.pk, [])
         available_quantity = sum([stock.available_quantity for stock in stocks])
 
         if not stocks:
-            raise InsufficientStock(
-                variant, context={"available_quantity": available_quantity}
+            insufficient_stocks.append(
+                InsufficientStockData(
+                    variant=variant, available_quantity=available_quantity
+                )
             )
 
         if variant.track_inventory:
             if quantity > available_quantity:
-                raise InsufficientStock(
-                    variant, context={"available_quantity": available_quantity}
+                insufficient_stocks.append(
+                    InsufficientStockData(
+                        variant=variant, available_quantity=available_quantity
+                    )
                 )
+
+    if insufficient_stocks:
+        raise InsufficientStock(insufficient_stocks)
 
 
 def get_available_quantity(variant: "ProductVariant", country_code: str) -> int:

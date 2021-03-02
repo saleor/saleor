@@ -125,6 +125,7 @@ class CollectionSortingInput(ChannelSortInputObjectType):
 
 class ProductSortField(graphene.Enum):
     NAME = ["name", "slug"]
+    RANK = ["rank"]
     PRICE = ["min_variants_price_amount", "name", "slug"]
     MINIMAL_PRICE = ["discounted_price_amount", "name", "slug"]
     DATE = ["updated_at", "name", "slug"]
@@ -145,6 +146,9 @@ class ProductSortField(graphene.Enum):
             ProductSortField.NAME.name: "name.",
             ProductSortField.PRICE.name: "price.",
             ProductSortField.TYPE.name: "type.",
+            ProductSortField.RANK.name: (
+                "rank. Note: This option is available only with the `search` filter."
+            ),
             ProductSortField.MINIMAL_PRICE.name: (
                 "a minimal price of a product's variant."
             ),
