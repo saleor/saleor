@@ -165,12 +165,11 @@ def test_checkout_totals_use_discounts(
         product=line.variant.product,
         collections=[],
     )
+    checkout_info = fetch_checkout_info(checkout, [checkout_line_info], discounts)
     line_total = calculations.checkout_line_total(
         manager=manager,
-        checkout=checkout,
+        checkout_info=checkout_info,
         checkout_line_info=checkout_line_info,
-        address=checkout.shipping_address,
-        channel=channel_USD,
         discounts=discounts,
     )
     assert data["lines"][0]["totalPrice"]["gross"]["amount"] == line_total.gross.amount

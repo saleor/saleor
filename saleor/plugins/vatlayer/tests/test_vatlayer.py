@@ -390,12 +390,12 @@ def test_calculate_checkout_line_total(
         product=line.variant.product,
         collections=[],
     )
+    checkout_info = fetch_checkout_info(checkout_with_item, [checkout_line_info], [])
 
     line_price = manager.calculate_checkout_line_total(
-        checkout_with_item,
+        checkout_info,
         checkout_line_info,
         address,
-        channel,
         [],
     )
 
