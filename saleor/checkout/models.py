@@ -6,7 +6,6 @@ from uuid import uuid4
 from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import JSONField  # type: ignore
 from django.utils.encoding import smart_str
 from django_countries.fields import Country, CountryField
 from django_prices.models import MoneyField
@@ -179,7 +178,6 @@ class CheckoutLine(models.Model):
     quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
 
     class Meta:
-        unique_together = ("checkout", "variant")
         ordering = ("id",)
 
     def __str__(self):

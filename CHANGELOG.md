@@ -11,6 +11,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix Sentry reporting - #6902 by @fowczarek
 - Fix removing page types in cleardb command - #6918 by @fowczarek
 - Fix argument validation in page resolver - #6960 by @fowczarek
+- Drop `data` field from checkout line model - #6961 by @fowczarek
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
