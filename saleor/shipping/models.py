@@ -19,8 +19,8 @@ from ..core.weight import (
     get_default_weight_unit,
     zero_weight,
 )
-from . import ShippingMethodType
-from .zip_codes import check_shipping_method_for_zip_code
+from . import PostalCodeRuleInclusionType, ShippingMethodType
+from .postal_codes import filter_shipping_methods_by_postal_code_rules
 
 if TYPE_CHECKING:
     # flake8: noqa
@@ -162,15 +162,11 @@ class ShippingMethodQueryset(models.QuerySet):
             weight=instance.get_total_weight(lines),
             country_code=country_code or instance.shipping_address.country.code,
             product_ids=instance_product_ids,
-        ).prefetch_related("zip_code_rules")
+        ).prefetch_related("postal_code_rules")
 
-        excluded_methods_by_zip_code = []
-        for method in applicable_methods:
-            if check_shipping_method_for_zip_code(instance.shipping_address, method):
-                excluded_methods_by_zip_code.append(method.pk)
-        if excluded_methods_by_zip_code:
-            return applicable_methods.exclude(pk__in=excluded_methods_by_zip_code)
-        return applicable_methods
+        return filter_shipping_methods_by_postal_code_rules(
+            applicable_methods, instance.shipping_address
+        )
 
 
 class ShippingMethod(ModelWithMetadata):
@@ -215,12 +211,17 @@ class ShippingMethod(ModelWithMetadata):
         )
 
 
-class ShippingMethodZipCodeRule(models.Model):
+class ShippingMethodPostalCodeRule(models.Model):
     shipping_method = models.ForeignKey(
-        ShippingMethod, on_delete=models.CASCADE, related_name="zip_code_rules"
+        ShippingMethod, on_delete=models.CASCADE, related_name="postal_code_rules"
     )
     start = models.CharField(max_length=32)
     end = models.CharField(max_length=32, blank=True, null=True)
+    inclusion_type = models.CharField(
+        max_length=32,
+        choices=PostalCodeRuleInclusionType.CHOICES,
+        default=PostalCodeRuleInclusionType.EXCLUDE,
+    )
 
     class Meta:
         unique_together = ("shipping_method", "start", "end")

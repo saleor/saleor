@@ -61,7 +61,8 @@ class Page(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_content_json(root: models.Page, info):
-        return root.content
+        content = root.content
+        return content if content is not None else {}
 
     @staticmethod
     def resolve_attributes(root: models.Page, info):
