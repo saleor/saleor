@@ -64,6 +64,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix CheckoutLinesInfoByCheckoutTokenLoader dataloader - #6929 by @IKarbowiak
 - Change the `app` query to return info about the currently authenticated app - #6928 by @d-wysocki
 - Add default sorting by rank for search products - #6936 by @d-wysocki
+- Fix exporting product description to xlsx - #6959 by @IKarbowiak
 
 # 2.11.1
 

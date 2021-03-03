@@ -1,3 +1,4 @@
+import json
 import shutil
 from tempfile import NamedTemporaryFile
 from unittest.mock import ANY, MagicMock, patch
@@ -467,7 +468,11 @@ def test_export_products_in_batches_for_csv(
     # given
     qs = Product.objects.all()
     export_info = {
-        "fields": [ProductFieldEnum.NAME.value, ProductFieldEnum.VARIANT_SKU.value],
+        "fields": [
+            ProductFieldEnum.NAME.value,
+            ProductFieldEnum.DESCRIPTION.value,
+            ProductFieldEnum.VARIANT_SKU.value,
+        ],
         "warehouses": [],
         "attributes": [],
         "channels": [],
@@ -522,15 +527,27 @@ def test_export_products_in_batches_for_xlsx(
     media_root,
 ):
     # given
+    product = product_list[0]
+    product.description = {
+        "blocks": [
+            {"data": {"text": "This is an example description."}, "type": "paragraph"}
+        ]
+    }
+    product.save(update_fields=["description"])
+
     qs = Product.objects.all()
     export_info = {
-        "fields": [ProductFieldEnum.NAME.value, ProductFieldEnum.VARIANT_SKU.value],
+        "fields": [
+            ProductFieldEnum.NAME.value,
+            ProductFieldEnum.DESCRIPTION.value,
+            ProductFieldEnum.VARIANT_SKU.value,
+        ],
         "warehouses": [],
         "attributes": [],
         "channels": [],
     }
-    export_fields = ["id", "name", "variants__sku"]
-    expected_headers = ["id", "name", "variant sku"]
+    export_fields = ["id", "name", "description_as_str", "variants__sku"]
+    expected_headers = ["id", "name", "description", "variant sku"]
 
     table = etl.wrap([expected_headers])
 
@@ -554,6 +571,7 @@ def test_export_products_in_batches_for_xlsx(
         product_data = []
         product_data.append(product.pk)
         product_data.append(product.name)
+        product_data.append(json.dumps(product.description))
 
         for variant in product.variants.all():
             product_data.append(variant.sku)
