@@ -9,6 +9,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add CUSTOMER_UPDATED webhook, add addresses field to customer CUSTOMER_CREATED webhook - #6898 by @piotrgrundas
 - Add missing span in PluginManager - #6900 by @fowczarek
 - Fix Sentry reporting - #6902 by @fowczarek
+- Fix removing page types in cleardb command - #6918 by @fowczarek
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -58,6 +59,11 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add SearchRank to search product by name and description. New enum added to `ProductOrderField` - `RANK` - which returns results sorted by search rank - #6872 by @d-wysocki
 - Allocate stocks for order lines in a bulk way - #6877 by @IKarbowiak
 - Add product description_plaintext to populatedb - #6894 by @d-wysocki
+- Deallocate stocks for order lines in a bulk way - #6896 by @IKarbowiak
+- Prevent negative available quantity - #6897 by @d-wysocki
+- Fix CheckoutLinesInfoByCheckoutTokenLoader dataloader - #6929 by @IKarbowiak
+- Change the `app` query to return info about the currently authenticated app - #6928 by @d-wysocki
+- Add default sorting by rank for search products - #6936 by @d-wysocki
 
 # 2.11.1
 

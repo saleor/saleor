@@ -3,7 +3,7 @@ from unittest.mock import patch
 import graphene
 from django.contrib.auth.models import AnonymousUser
 
-from ....core.exceptions import InsufficientStock
+from ....core.exceptions import InsufficientStock, InsufficientStockData
 from ....order import OrderStatus
 from ....order.error_codes import OrderErrorCode
 from ....order.events import OrderEvents
@@ -398,12 +398,14 @@ def test_order_fulfill_warehouse_with_insufficient_stock_exception(
         },
     }
 
-    error_context = {
-        "order_line": order_line,
-        "warehouse_pk": str(warehouse_no_shipping_zone.pk),
-    }
     mock_create_fulfillments.side_effect = InsufficientStock(
-        [order_line.variant], error_context
+        [
+            InsufficientStockData(
+                variant=order_line.variant,
+                order_line=order_line,
+                warehouse_pk=warehouse_no_shipping_zone.pk,
+            )
+        ]
     )
 
     response = staff_api_client.post_graphql(
