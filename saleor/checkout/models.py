@@ -177,10 +177,9 @@ class CheckoutLine(models.Model):
         "product.ProductVariant", related_name="+", on_delete=models.CASCADE
     )
     quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
-    data = JSONField(blank=True, default=dict)
 
     class Meta:
-        unique_together = ("checkout", "variant", "data")
+        unique_together = ("checkout", "variant")
         ordering = ("id",)
 
     def __str__(self):
