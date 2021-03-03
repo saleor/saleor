@@ -514,6 +514,17 @@ def order_discount_event(
     )
 
 
+def order_discounts_automatically_updated_event(
+    order: Order, changed_order_discounts: List[Tuple["OrderDiscount", "OrderDiscount"]]
+):
+    for previous_order_discount, current_order_discount in changed_order_discounts:
+        order_discount_automatically_updated_event(
+            order=order,
+            order_discount=current_order_discount,
+            old_order_discount=previous_order_discount,
+        )
+
+
 def order_discount_automatically_updated_event(
     order: Order, order_discount: "OrderDiscount", old_order_discount: "OrderDiscount"
 ):

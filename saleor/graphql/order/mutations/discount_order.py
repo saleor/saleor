@@ -6,12 +6,14 @@ from django.db import transaction
 from prices import Money
 
 from ....core.permissions import OrderPermissions
-from ....order import OrderStatus, events
+from ....order import OrderStatus, events, models
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import (
     create_order_discount_for_order,
     get_order_discounts,
     recalculate_order,
+    recalculate_order_discounts,
+    recalculate_order_prices,
     remove_discount_from_order_line,
     remove_order_discount_from_order,
     update_discount_for_order_line,
@@ -77,6 +79,20 @@ class OrderDiscountCommon(BaseMutation):
         elif value > 100:
             error_msg = f"The percentage value ({value}) cannot be higher than 100."
             raise cls._validation_error_for_input_value(error_msg)
+
+    @classmethod
+    def recalculate_order(cls, order: models.Order):
+        """Recalculate order data and save them."""
+        recalculate_order_prices(order)
+        recalculate_order_discounts(order)
+        order.save(
+            update_fields=[
+                "total_net_amount",
+                "total_gross_amount",
+                "undiscounted_total_net_amount",
+                "undiscounted_total_gross_amount",
+            ]
+        )
 
 
 class OrderDiscountAdd(OrderDiscountCommon):
@@ -188,7 +204,8 @@ class OrderDiscountUpdate(OrderDiscountCommon):
         order_discount.value_type = value_type
         order_discount.save()
 
-        recalculate_order(order, with_discount_event=False)
+        cls.recalculate_order(order)
+
         if (
             order_discount_before_update.value_type != value_type
             or order_discount_before_update.value != value
@@ -236,7 +253,9 @@ class OrderDiscountDelete(OrderDiscountCommon):
         )
 
         order.refresh_from_db()
-        recalculate_order(order, with_discount_event=False)
+
+        cls.recalculate_order(order)
+
         return OrderDiscountDelete(order=order)
 
 
