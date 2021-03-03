@@ -6,7 +6,7 @@ from django.conf import settings
 from django.db.models import Case, CharField
 from django.db.models import Value as V
 from django.db.models import When
-from django.db.models.functions import Concat
+from django.db.models.functions import Cast, Concat
 
 from ...attribute import AttributeInputType
 from ...core.utils import build_absolute_uri
@@ -52,6 +52,7 @@ def get_products_data(
                 default=V(""),
                 output_field=CharField(),
             ),
+            description_as_str=Cast("description", CharField()),
         )
         .order_by("pk", "variants__pk")
         .values(*product_export_fields)
