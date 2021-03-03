@@ -80,6 +80,7 @@ class ShippingZone(ModelWithMetadata):
     countries = CountryField(multiple=True, default=[], blank=True)
     default = models.BooleanField(default=False)
     description = models.TextField(blank=True)
+    channels = models.ManyToManyField(Channel, related_name="shipping_zones")
 
     def __str__(self):
         return self.name
