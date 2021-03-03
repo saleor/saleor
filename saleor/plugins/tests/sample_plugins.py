@@ -81,9 +81,9 @@ class PluginSample(BasePlugin):
         return TaxedMoney(subtotal, subtotal)
 
     def calculate_checkout_shipping(
-        self, checkout, lines, address, discounts, previous_value
+        self, checkout_info, lines, address, discounts, previous_value
     ):
-        price = Money("1.0", currency=checkout.currency)
+        price = Money("1.0", currency=checkout_info.checkout.currency)
         return TaxedMoney(price, price)
 
     def calculate_order_shipping(self, order, previous_value):
@@ -103,14 +103,13 @@ class PluginSample(BasePlugin):
 
     def calculate_checkout_line_unit_price(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
-        channel: "Channel",
         previous_value: TaxedMoney,
     ):
-        currency = checkout.currency
+        currency = checkout_info.checkout.currency
         price = Money("10.0", currency)
         return TaxedMoney(price, price)
 
@@ -182,7 +181,7 @@ class PluginSample(BasePlugin):
 
     def get_checkout_line_tax_rate(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
@@ -201,7 +200,7 @@ class PluginSample(BasePlugin):
 
     def get_checkout_shipping_tax_rate(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         lines: Iterable["CheckoutLineInfo"],
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],

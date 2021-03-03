@@ -235,7 +235,7 @@ def _get_shipping_voucher_discount_for_checkout(
 
     shipping_price = calculations.checkout_shipping_price(
         manager=manager,
-        checkout=checkout_info.checkout,
+        checkout_info=checkout_info,
         lines=lines,
         address=address,
         discounts=discounts,
@@ -319,11 +319,10 @@ def get_prices_of_discounted_specific_product(
         line_unit_price = manager.calculate_checkout_line_unit_price(
             line_total,
             line.quantity,
-            checkout_info.checkout,
+            checkout_info,
             line_info,
             address,
             discounts,
-            checkout_info.channel,
         )
         line_prices.extend([line_unit_price] * line.quantity)
 

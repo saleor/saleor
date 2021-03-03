@@ -11,6 +11,7 @@ from requests import RequestException
 
 from ....account.models import Address
 from ....checkout.fetch import (
+    CheckoutInfo,
     CheckoutLineInfo,
     fetch_checkout_info,
     fetch_checkout_lines,
@@ -305,8 +306,9 @@ def test_calculate_checkout_shipping(
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save()
     lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [discount_info])
     shipping_price = manager.calculate_checkout_shipping(
-        checkout_with_item, lines, address, [discount_info]
+        checkout_info, lines, address, [discount_info]
     )
     shipping_price = quantize_price(shipping_price, shipping_price.currency)
     assert shipping_price == TaxedMoney(
@@ -444,7 +446,8 @@ def test_calculate_checkout_line_unit_price(
         net=Money("10.00", "USD") * 3, gross=Money("10.00", "USD") * 3
     )
 
-    checkout_line = fetch_checkout_lines(checkout_with_item)[0]
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_line = lines[0]
     product = checkout_line.variant.product
     product.charge_taxes = charge_taxes
     product.save(update_fields=["charge_taxes"])
@@ -457,20 +460,18 @@ def test_calculate_checkout_line_unit_price(
     checkout.shipping_method = method
     checkout.save()
 
-    channel = checkout.channel
-
     site_settings.company_address = address_usa
     site_settings.include_taxes_in_prices = True
     site_settings.save()
 
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [])
     line_price = manager.calculate_checkout_line_unit_price(
         total_price,
         checkout_line.line.quantity,
-        checkout,
+        checkout_info,
         checkout_line,
         checkout.shipping_address,
         [],
-        channel,
     )
     line_price = quantize_price(line_price, line_price.currency)
 
@@ -652,10 +653,20 @@ def test_get_checkout_line_tax_rate(
         product=variant.product,
         collections=[],
     )
+    checkout_info = CheckoutInfo(
+        checkout=checkout_with_item,
+        shipping_method=checkout_with_item.shipping_method,
+        shipping_address=address,
+        billing_address=None,
+        channel=checkout_with_item.channel,
+        user=None,
+        shipping_method_channel_listings=None,
+        valid_shipping_methods=[],
+    )
 
     # when
     tax_rate = manager.get_checkout_line_tax_rate(
-        checkout_with_item,
+        checkout_info,
         checkout_line_info,
         checkout_with_item.shipping_address,
         [],
@@ -692,10 +703,11 @@ def test_get_checkout_line_tax_rate_checkout_not_valid_default_value_returned(
         product=variant.product,
         collections=[],
     )
+    checkout_info = fetch_checkout_info(checkout_with_item, [checkout_line_info], [])
 
     # when
     tax_rate = manager.get_checkout_line_tax_rate(
-        checkout_with_item,
+        checkout_info,
         checkout_line_info,
         checkout_with_item.shipping_address,
         [],
@@ -733,10 +745,11 @@ def test_get_checkout_line_tax_rate_error_in_response(
         product=variant.product,
         collections=[],
     )
+    checkout_info = fetch_checkout_info(checkout_with_item, [checkout_line_info], [])
 
     # when
     tax_rate = manager.get_checkout_line_tax_rate(
-        checkout_with_item,
+        checkout_info,
         checkout_line_info,
         checkout_with_item.shipping_address,
         [],
@@ -871,10 +884,20 @@ def test_get_checkout_shipping_tax_rate(
         product=variant.product,
         collections=[],
     )
+    checkout_info = CheckoutInfo(
+        checkout=checkout_with_item,
+        shipping_method=checkout_with_item.shipping_method,
+        shipping_address=address,
+        billing_address=None,
+        channel=checkout_with_item.channel,
+        user=None,
+        shipping_method_channel_listings=None,
+        valid_shipping_methods=[],
+    )
 
     # when
     tax_rate = manager.get_checkout_shipping_tax_rate(
-        checkout_with_item,
+        checkout_info,
         [checkout_line_info],
         checkout_with_item.shipping_address,
         [],
@@ -911,10 +934,11 @@ def test_get_checkout_shipping_tax_rate_checkout_not_valid_default_value_returne
         product=variant.product,
         collections=[],
     )
+    checkout_info = fetch_checkout_info(checkout_with_item, [checkout_line_info], [])
 
     # when
     tax_rate = manager.get_checkout_shipping_tax_rate(
-        checkout_with_item,
+        checkout_info,
         [checkout_line_info],
         checkout_with_item.shipping_address,
         [],
@@ -952,10 +976,11 @@ def test_get_checkout_shipping_tax_rate_error_in_response(
         product=variant.product,
         collections=[],
     )
+    checkout_info = fetch_checkout_info(checkout_with_item, [checkout_line_info], [])
 
     # when
     tax_rate = manager.get_checkout_shipping_tax_rate(
-        checkout_with_item,
+        checkout_info,
         [checkout_line_info],
         checkout_with_item.shipping_address,
         [],
@@ -997,10 +1022,11 @@ def test_get_checkout_shipping_tax_rate_skip_plugin(
         product=variant.product,
         collections=[],
     )
+    checkout_info = fetch_checkout_info(checkout_with_item, [checkout_line_info], [])
 
     # when
     tax_rate = manager.get_checkout_shipping_tax_rate(
-        checkout_with_item,
+        checkout_info,
         [checkout_line_info],
         checkout_with_item.shipping_address,
         [],

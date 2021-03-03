@@ -153,7 +153,7 @@ def get_shipping_data(manager, checkout_info, lines, discounts):
     currency = checkout_info.checkout.currency
     shipping_total = checkout_shipping_price(
         manager=manager,
-        checkout=checkout_info.checkout,
+        checkout_info=checkout_info,
         lines=lines,
         address=address,
         discounts=discounts,

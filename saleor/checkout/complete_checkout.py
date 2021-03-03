@@ -141,8 +141,6 @@ def _create_line_for_order(
 
     :raises InsufficientStock: when there is not enough items in stock for this variant.
     """
-    checkout = checkout_info.checkout
-    channel = checkout_info.channel
     checkout_line = checkout_line_info.line
     quantity = checkout_line.quantity
     variant = checkout_line_info.variant
@@ -172,14 +170,13 @@ def _create_line_for_order(
     unit_price = manager.calculate_checkout_line_unit_price(
         total_line_price,
         quantity,
-        checkout,
+        checkout_info,
         checkout_line_info,
         address,
         discounts,
-        channel,
     )
     tax_rate = manager.get_checkout_line_tax_rate(
-        checkout, checkout_line_info, address, discounts, unit_price
+        checkout_info, checkout_line_info, address, discounts, unit_price
     )
 
     line = OrderLine(
@@ -283,10 +280,10 @@ def _prepare_order_data(
     taxed_total = max(taxed_total, zero_taxed_money(checkout.currency))
 
     shipping_total = manager.calculate_checkout_shipping(
-        checkout, lines, address, discounts
+        checkout_info, lines, address, discounts
     )
     shipping_tax_rate = manager.get_checkout_shipping_tax_rate(
-        checkout, lines, address, discounts, shipping_total
+        checkout_info, lines, address, discounts, shipping_total
     )
     order_data.update(
         _process_shipping_data_for_order(checkout_info, shipping_total, manager, lines)

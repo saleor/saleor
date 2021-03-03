@@ -103,7 +103,7 @@ class VatlayerPlugin(BasePlugin):
             )
             + calculations.checkout_shipping_price(
                 manager=manager,
-                checkout=checkout_info.checkout,
+                checkout_info=checkout_info,
                 lines=lines,
                 address=address,
                 discounts=discounts,
@@ -128,7 +128,7 @@ class VatlayerPlugin(BasePlugin):
 
     def calculate_checkout_shipping(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         lines: List["CheckoutLineInfo"],
         address: Optional["Address"],
         discounts: List["DiscountInfo"],
@@ -141,11 +141,12 @@ class VatlayerPlugin(BasePlugin):
         taxes = None
         if address:
             taxes = self._get_taxes_for_country(address.country)
-        if not checkout.shipping_method:
+        if (
+            not checkout_info.shipping_method
+            or not checkout_info.shipping_method_channel_listings
+        ):
             return previous_value
-        shipping_price = checkout.shipping_method.channel_listings.get(
-            channel_id=checkout.channel_id
-        ).price
+        shipping_price = checkout_info.shipping_method_channel_listings.price
         return get_taxed_shipping_price(shipping_price, taxes)
 
     def calculate_order_shipping(
@@ -191,11 +192,10 @@ class VatlayerPlugin(BasePlugin):
 
     def calculate_checkout_line_unit_price(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
-        channel: "Channel",
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
         unit_price = self.__calculate_checkout_line_unit_price(
@@ -204,7 +204,7 @@ class VatlayerPlugin(BasePlugin):
             checkout_line_info.variant,
             checkout_line_info.product,
             checkout_line_info.collections,
-            channel,
+            checkout_info.channel,
             checkout_line_info.channel_listing,
             previous_value,
         )
@@ -249,7 +249,7 @@ class VatlayerPlugin(BasePlugin):
 
     def get_checkout_line_tax_rate(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
@@ -281,7 +281,7 @@ class VatlayerPlugin(BasePlugin):
 
     def get_checkout_shipping_tax_rate(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         lines: Iterable["CheckoutLineInfo"],
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
