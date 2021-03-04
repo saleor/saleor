@@ -20,8 +20,9 @@ from ...account.types import Address, AddressInput, User
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types import Upload
 from ...core.types.common import AccountError, StaffError
-from ...core.utils import get_duplicates_ids, validate_image_file
+from ...core.utils import validate_image_file
 from ...decorators import staff_member_required
+from ...utils.validators import check_for_duplicates
 from ..utils import (
     CustomerDeleteMixin,
     StaffDeleteMixin,
@@ -278,26 +279,14 @@ class StaffUpdate(StaffCreate):
             code = AccountErrorCode.OUT_OF_SCOPE_USER.value
             raise ValidationError({"id": ValidationError(msg, code=code)})
 
-        cls.check_for_duplicates(data)
+        error = check_for_duplicates(data, "add_groups", "remove_groups", "groups")
+        if error:
+            error.code = AccountErrorCode.DUPLICATED_INPUT_ITEM.value
+            raise error
 
         cleaned_input = super().clean_input(info, instance, data)
 
         return cleaned_input
-
-    @classmethod
-    def check_for_duplicates(cls, input_data):
-        duplicated_ids = get_duplicates_ids(
-            input_data.get("add_groups"), input_data.get("remove_groups")
-        )
-        if duplicated_ids:
-            # add error
-            msg = (
-                "The same object cannot be in both list"
-                "for adding and removing items."
-            )
-            code = AccountErrorCode.DUPLICATED_INPUT_ITEM.value
-            params = {"groups": duplicated_ids}
-            raise ValidationError(msg, code=code, params=params)
 
     @classmethod
     def clean_groups(cls, requestor: models.User, cleaned_input: dict, errors: dict):
