@@ -21,7 +21,7 @@ from ..product.models import Product
 from ..warehouse.models import Warehouse
 from .event_types import WebhookEventType
 from .payload_serializers import PayloadSerializer
-from .serializers import serialize_checkout_lines
+from .serializers import serialize_checkout_lines, serialize_product_attributes
 
 ADDRESS_FIELDS = (
     "first_name",
@@ -209,7 +209,6 @@ PRODUCT_FIELDS = (
     "name",
     "description",
     "currency",
-    "attributes",
     "updated_at",
     "charge_taxes",
     "weight",
@@ -245,6 +244,7 @@ def generate_product_payload(product: "Product"):
                 product_variant_fields,
             ),
         },
+        extra_dict_data={"attributes": serialize_product_attributes(product)},
     )
     return product_payload
 
@@ -261,6 +261,25 @@ def generate_product_deleted_payload(product: "Product", variants_id):
         extra_dict_data={"variants": list(variant_global_ids)},
     )
     return product_payload
+
+
+PRODUCT_VARIANT_FIELDS = (
+    "name",
+    "sku",
+    "product",
+    "private_metadata",
+    "metadata",
+)
+
+
+def generate_product_variant_payload(product_variant: "ProductVariant"):
+    serializer = PayloadSerializer()
+    payload = serializer.serialize(
+        [product_variant],
+        fields=PRODUCT_VARIANT_FIELDS,
+        extra_dict_data={"attributes": serialize_product_attributes(product_variant)},
+    )
+    return payload
 
 
 def generate_fulfillment_lines_payload(fulfillment: Fulfillment):

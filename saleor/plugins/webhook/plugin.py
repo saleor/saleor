@@ -10,6 +10,7 @@ from ...webhook.payloads import (
     generate_page_payload,
     generate_product_deleted_payload,
     generate_product_payload,
+    generate_product_variant_payload,
 )
 from ..base_plugin import BasePlugin
 from .tasks import trigger_webhooks_for_event
@@ -137,6 +138,26 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         product_data = generate_product_deleted_payload(product, variants)
         trigger_webhooks_for_event.delay(WebhookEventType.PRODUCT_DELETED, product_data)
+
+    def product_variant_created(
+        self, product: "ProductVariant", previous_value: Any
+    ) -> Any:
+        if not self.active:
+            return previous_value
+        product_data = generate_product_variant_payload(product)
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.PRODUCT_VARIANT_CREATED, product_data
+        )
+
+    def product_variant_updated(
+        self, product: "ProductVariant", previous_value: Any
+    ) -> Any:
+        if not self.active:
+            return previous_value
+        product_data = generate_product_variant_payload(product)
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.PRODUCT_VARIANT_UPDATED, product_data
+        )
 
     def checkout_created(self, checkout: "Checkout", previous_value: Any) -> Any:
         if not self.active:

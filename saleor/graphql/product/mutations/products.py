@@ -877,6 +877,7 @@ class ProductVariantCreate(ModelMutation):
     @classmethod
     @transaction.atomic()
     def save(cls, info, instance, cleaned_input):
+        new_variant = instance.pk is None
         instance.save()
         if not instance.product.default_variant:
             instance.product.default_variant = instance
@@ -891,7 +892,12 @@ class ProductVariantCreate(ModelMutation):
         if attributes:
             AttributeAssignmentMixin.save(instance, attributes)
             generate_and_set_variant_name(instance, cleaned_input.get("sku"))
+
         info.context.plugins.product_updated(instance.product)
+        if new_variant:
+            info.context.plugins.product_variant_created(instance.product)
+        else:
+            info.context.plugins.product_variant_updated(instance.product)
 
     @classmethod
     def create_variant_stocks(cls, variant, stocks):
