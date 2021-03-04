@@ -4,8 +4,8 @@ interactions:
       "lines": [{"quantity": 3, "amount": "15.00", "taxCode": "O9999999", "taxIncluded":
       true, "itemCode": "123", "description": "Test product"}, {"quantity": 1, "amount":
       "10.000", "taxCode": "FR020100", "taxIncluded": true, "itemCode": "Shipping",
-      "description": null}], "code": "0016697d-0bcf-4458-8f7d-9db472e623e8", "date":
-      "2021-01-25", "customerCode": 0, "addresses": {"shipFrom": {"line1": "T\u0119czowa
+      "description": null}], "code": "922dc055-1fb9-4ea8-9cdc-6429324f5ff4", "date":
+      "2021-03-02", "customerCode": 0, "addresses": {"shipFrom": {"line1": "T\u0119czowa
       7", "line2": "", "city": "WROC\u0141AW", "region": "", "country": "PL", "postalCode":
       "53-601"}, "shipTo": {"line1": "O\u0142awska 10", "line2": "", "city": "WROC\u0141AW",
       "region": "", "country": "PL", "postalCode": "53-105"}}, "commit": false, "currencyCode":
@@ -28,29 +28,29 @@ interactions:
   response:
     body:
       string: !!binary |
-        H4sIAAAAAAAEA+1X227bOBD9lUDPsaGL729epwECGHYQO1ugiz7QEm2z1W1JKo23yL/3DEkpcuxs
-        s7c8reEHaTgczpwZnhl990TiTfxLLy4S7k083w8Gg/Ew6fibeNvp9fqjzmiL13Gy6Q1DPggjPvJI
-        OytZfrjB3rAXjof9Sy9hmgyEfhh0/KAT9qFWskPGc311ZklppiuFDWuelYVk8gB9fSjJxoqlXC1l
-        wiVkG6bj/cx6RydXUvI8PjjJ/eoKQv4Y71m+43c4aHZOIa6ULjIu7xXb8bU9hfblWujDveJt+1bz
-        V54nhXRy3xxsF1oi/gjf9aKAy1CQPC7yWKQcoGxZqvillxYx06LIn81LjmC1yHfzk6WykohCcRP4
-        s9Etp3hbHipCp+RSte3qQrN0mhVVrpESvxtFQJNkH4yPSHEXSTaSK6Fiq/csW7NHb9LrDoZOB+9s
-        kyIXbVMQzlgaVylQRoxWnSVfgC1l+Y4zuAQsFoWeGim0DAZfW5A8wHEg4k2C47R92G55rMUDP1cs
-        7fxiJ4XCMyZSC3xWJGIreHKycx1Ek2g8iYLuOAoGo+AT3KmVkXRpyncUBeMQYbPH0/2+PzF/2piK
-        nKNef/te3xgtWa4YfC5yMgSfSGVRZRvU7cQLsOftZZdwFUtRkjHsXXOlL0pZJFWsYSZxGavza/Jm
-        i++MaMaldg4dF6hQN5pnTWq1rFCiAiJXnkEYuThrq0HYBTS/V8zcE28SEfKSbwMLPJ7C+smV9QmG
-        sAhoUUjdkXmisjo2j+V2WdWKzqnl2P6sHRJSbP2oR+V8JmdW7yaP0yqhsrNRJlyjXF5L3xx5c4id
-        JtXcFbDTxLudw7jkO5sj83YmCV8qKZRz3ugYwYJlxGy3y/l0QYxF9MenSoldzpP6shtNx06zxRpq
-        RpIIU2T1At1dw5Z5kbtk1oCawpCGbf1uGPn4vQV+Z3lZ6bKiegOuq2pDUkLFW1qRC2GlWZ4wmVwQ
-        2dqVaaX3hQST1lt66Afn0kquucNqM7BQSx1oK4iqXOjl9hemBLWIWy5rVr/HAtaFWhT5LVNqvZdV
-        Q7dCXXOg7Mi3oVoHEm2FNVvTzSLsHK9bDGuatvTpth4vYZsr68YYRCelnAq2EakDB8GseJqCIJ4+
-        X3pIIMWg97KodvurpkaxtK9LCMHGhdI3uarANzG/llzs9iB548wD002prTrI+LLTMUWHBctEdUr8
-        p8u3MldIZ765Yb4TOa32oizRN+Eb0Wxd8aNuELUZyvSGv8dQQXdE7c92vmP7ELbz2mg67K/v/NAP
-        fJoSSNNxVG846hnBK5z4P0e94KgG1naPsAkGrI43/lOSsh7UfESX1ZEdMltL34elbNgNsfxDlnJx
-        1aS2PlfO78tT16/zFNiPJYnkSv1s3tqgFaIVHeb8gdMs+EmU9NVB/EATyjJl39RXdhHQxSShG1bo
-        McI6pDF4GU8f75az+fQjZblu73guwbssdfnuR53AJ+sv5gFU5p3ZQ60y9PuBj4kJE7LQmD/sIWmR
-        75rXP6XhnwS05vEfxTd2MYQb/0I8A9/MqG6ecPPNX44H6VJVltEHHA3HL+Bp8HwehdxFnjVzzNsm
-        Jjh2NGfgAwRTBjJ0OkdB9XW2oMIAftB5ZaCpLzoUW9cf+kdfRKRFTfhoynJfUMfXywrR69e1CdO6
-        7ehoZkm8P31++gHOIchpiw8AAA==
+        H4sIAAAAAAAEA+1X227jOAz9lcLPTeBbmiZv2XQKFAiSokl3gFnMg2IriWZ8W0nuNDvov++hJLtO
+        k+509tKnLfpgkxRNHlKHzHdPpN7YP/eSMuXe2BuFYZr4g0Ev2KxHvZizy94oSZPeRRyOojDeDDab
+        2CPrvGLF/gZnQ2iGg3MvZZochH4Y9Pyo54cwq9g+54W+OqFSmula4cCK51UpmdzDXu8r8rFkGVcL
+        mXIJ2ZrpZDe10dGXayl5keyd5H55BSF/THas2PI7fGh6yiCplS5zLu8V2/KV/QqdK7TQ+3vFu/6t
+        5a+8SEvp5L75sFV0RPwRset5iZBhIHlSFonIOEDZsEzxcy8rE6ZFWTy7lxzJalFsZ0eqqpbIQnGT
+        +LPTDad8OxEqQqfiUnX96lKzbJKXdaFREr8fRUCTZB9MjChxH0U2kiuhEmv3LFuxR28c9y+Gzgbv
+        bJ2hFl1XEE5ZltQZUEaO1pylX4AtVfmOM4QELOalnhgprAwGXzuQPCBwIOKNg8OyfdhseKLFAz/V
+        LN364iSlwnMmMgt8XqZiI3h6dHLlD8dxPA5G/eFFGF/44SfE01ij6tL072UUjELkzR5POPDHPv3T
+        wUwUHA372/fmymjJCsUQdFmQIwRFJvM6X6Nxx16AM2/vu5SrRIqKnOHsiit9VskyrRMNN6krWVNg
+        UzjbfSdEUy61C+iwQ4W60Txva6tljR4VELn+DMLI5dl4DcI+oPm9ZuaieOOIoJd8E1jk8RQ2T66v
+        jzCER0CLTupfmifqq0P3UHf7qjF0QS1G9s/6ISHlNohi6ucTNbN2N0WS1Sn1nc0y5Rr98lr5Zqib
+        Q+y4qOaygJ7G3u0MziXf2hqZtxNF+FJLoVzwxsYI5iwnartdzCZzoiziPz5RSmwLnja33Vg6eprO
+        VzAzklSYJmsUdHkNXRZl4YrZAGoaQxq69fth5OPvLfA7z4taVzX1G3Bd1muSEirewopcCkvNipTJ
+        9IzY1momtd6VElTaHIkxEE6VlUJzH2vcwEMjdaAtIaoLoRebX5gSNCNuuWxo/R4K6IWal8UtU2q1
+        k3XLt0Jdc6Ds2LflWgcSHYU329OtEn4O9RbDhqctf7qjhyocc23dOoPoqJUzwdYic+AgmSXPMhDE
+        0+dzDwWkHPROlvV2d9X2KFS7poWQbFIqfVOoGnyT8GvJxXYHljfBPDDdttqyh4ovej3TdFBYJmpK
+        4j+dv5W5aHT/BHO9Dzktd6KqMDgRG9Fs0/GX/SDqMpQZDn+PoYL+Jc0/O/oO/UPYrWtr6bC/vvND
+        P/BpTSBLx1Hx8DI2glc48X+OesFRLazdGWELDFgdb/ynJGUjaPiILqsjO1S2kb4PS9m0W2L5hyzl
+        8mpIbXWqnd+Xp65f5ymwH0tTyZX60b61xijEKNrP+AOnZfCTqAaOH2hDWWTsm/rKzgK6mEQablmh
+        xwh6SBPwMp4+3i2ms8lHqnIz3vFcgXdZ5uo9iHqBT95f7APozDtzhkZl6A8CHxsTVmShsX/Yj2Rl
+        sW1f/5KGf5DQiid/lN/Y2RBh/Av5XPhmR3X7hNtvfjoflEvVeU6/4Gg5fgFPi+fzKuQu8rTdY962
+        MSGwgz0Dv0CwZaBCx3sUTF9nC2oM4AebVxaa5qLDsHP9YX/wk4isaAgfbFnuJ9Th9bJCzPpV48KM
+        brs6ml0S70+fn/4EO76VoYwPAAA=
     headers:
       Connection:
       - keep-alive
@@ -59,13 +59,13 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Mon, 25 Jan 2021 13:39:31 GMT
+      - Tue, 02 Mar 2021 07:44:19 GMT
       Location:
       - /api/v2/companies/242975/transactions/0
       Server:
       - Kestrel
       ServerDuration:
-      - '00:00:00.0181325'
+      - '00:00:00.0201118'
       Transfer-Encoding:
       - chunked
       Vary:
