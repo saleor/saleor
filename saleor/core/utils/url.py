@@ -11,7 +11,15 @@ def validate_storefront_url(url):
     Raise ValidationError if URL isn't in RFC 1808 format
     or it isn't allowed by ALLOWED_CLIENT_HOSTS in settings.
     """
-    domain = validate_url(url)
+    try:
+        parsed_url = urlparse(url)
+        domain, _ = split_domain_port(parsed_url.netloc)
+        if not parsed_url.netloc:
+            raise ValidationError(
+                "Invalid URL. Please check if URL is in RFC 1808 format."
+            )
+    except ValueError as error:
+        raise ValidationError(error)
     if not validate_host(domain, settings.ALLOWED_CLIENT_HOSTS):
         error_message = (
             f"{domain or url} is not allowed. Please check "
@@ -25,16 +33,3 @@ def prepare_url(params: str, redirect_url: str) -> str:
     split_url = urlsplit(redirect_url)
     split_url = split_url._replace(query=params)
     return split_url.geturl()
-
-
-def validate_url(url):
-    try:
-        parsed_url = urlparse(url)
-        domain, _ = split_domain_port(parsed_url.netloc)
-        if not parsed_url.netloc:
-            raise ValidationError(
-                "Invalid URL. Please check if URL is in RFC 1808 format."
-            )
-    except ValueError as error:
-        raise ValidationError(error)
-    return domain

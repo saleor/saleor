@@ -7,13 +7,13 @@ from django.core.exceptions import ValidationError
 from ...app import models
 from ...app.error_codes import AppErrorCode
 from ...app.tasks import install_app_task
+from ...app.validators import AppURLValidator
 from ...core import JobStatus
 from ...core.permissions import (
     AppPermission,
     get_permissions,
     get_permissions_enum_list,
 )
-from ...core.utils.url import validate_url
 from ..account.utils import can_manage_app
 from ..core.enums import PermissionEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -376,8 +376,9 @@ class AppInstall(ModelMutation):
 
     @classmethod
     def clean_manifest_url(self, url):
+        url_validator = AppURLValidator()
         try:
-            validate_url(url)
+            url_validator(url)
         except (ValidationError, AttributeError):
             msg = "Enter a valid URL."
             code = AppErrorCode.INVALID_URL_FORMAT.value
@@ -442,8 +443,9 @@ class AppFetchManifest(BaseMutation):
 
     @classmethod
     def clean_manifest_url(cls, manifest_url):
+        url_validator = AppURLValidator()
         try:
-            validate_url(manifest_url)
+            url_validator(manifest_url)
         except (ValidationError, AttributeError):
             msg = "Enter a valid URL."
             code = AppErrorCode.INVALID_URL_FORMAT.value
