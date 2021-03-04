@@ -26,7 +26,7 @@ from ..discount.utils import (
 from ..order import OrderLineData, OrderStatus
 from ..order.actions import order_created
 from ..order.models import Order, OrderLine
-from ..order.notifications import send_order_confirmation, send_staff_order_confirmation
+from ..order.notifications import send_order_confirmation
 from ..payment import PaymentError, gateway
 from ..payment.models import Payment, Transaction
 from ..payment.utils import store_customer_id
@@ -396,12 +396,6 @@ def _create_order(
     # Send the order confirmation email
     transaction.on_commit(
         lambda: send_order_confirmation(order, checkout.redirect_url, plugin_manager)
-    )
-    # TODO we can drop it and subscribe admin and user email plugins to the same event
-    transaction.on_commit(
-        lambda: send_staff_order_confirmation(
-            order, checkout.redirect_url, plugin_manager
-        )
     )
 
     return order

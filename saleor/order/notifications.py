@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Iterable, Optional
+from typing import TYPE_CHECKING, Iterable, List, Optional
 from urllib.parse import urlencode
 
 from django.forms import model_to_dict
@@ -7,13 +7,78 @@ from ..account.models import StaffNotificationRecipient
 from ..core.notifications import get_site_context
 from ..core.notify_events import NotifyEventType
 from ..core.utils.url import prepare_url
-from ..product.models import DigitalContentUrl
+from ..product.models import DigitalContentUrl, Product, ProductImage, ProductVariant
+from ..product.product_images import AVAILABLE_PRODUCT_SIZES, get_thumbnail
 from .models import FulfillmentLine, Order, OrderLine
 
 if TYPE_CHECKING:
     from decimal import Decimal
 
     from ..account.models import User  # noqa: F401
+
+
+def get_image_payload(instance: ProductImage):
+    image_file = instance.image if instance else None
+    return {
+        size: get_thumbnail(image_file, size, "thumbnail")
+        for size in AVAILABLE_PRODUCT_SIZES
+    }
+
+
+def get_default_images_payload(images: List[ProductImage]):
+    first_image_payload = None
+    first_image = images[0] if images else None
+    if first_image:
+        first_image_payload = ({"original": get_image_payload(first_image)},)
+    images_payload = None
+    if images:
+        images_payload = [{"original": get_image_payload(image) for image in images}]
+    return {"first_image": first_image_payload, "images": images_payload}
+
+
+def get_product_attributes(product):
+    attributes = product.attributes.all()
+    attributes_payload = []
+    for attr in attributes:
+        attributes_payload.append(
+            {
+                "assignment": {
+                    "attribute": {
+                        "slug": attr.assignment.attribute.slug,
+                        "name": attr.assignment.attribute.name,
+                    }
+                },
+                "values": [
+                    {
+                        "name": value.get("name"),
+                        "value": value.get("value"),
+                        "slug": value.get("slug"),
+                        "file_url": value.get("file_url"),
+                    }
+                    for value in attr.values.values("name", "value", "slug", "file_url")
+                ],
+            }
+        )
+    return attributes_payload
+
+
+def get_product_payload(product: Product):
+    images = list(product.images.all())
+    return {
+        "id": product.id,
+        "attributes": get_product_attributes(product),
+        "weight": str(product.weight or ""),
+        **get_default_images_payload(images),
+    }
+
+
+def get_product_variant_payload(variant: ProductVariant):
+    images = list(variant.images.all())
+    return {
+        "id": variant.id,
+        "weight": str(variant.weight or ""),
+        **get_default_images_payload(images),
+    }
 
 
 def get_order_line_payload(line: "OrderLine"):
@@ -23,9 +88,11 @@ def get_order_line_payload(line: "OrderLine"):
         digital_url = content.get_absolute_url() if content else None  # type: ignore
     return {
         "id": line.id,
+        "product": get_product_payload(line.variant.product),  # type: ignore
         "product_name": line.product_name,
         "translated_product_name": line.translated_product_name or line.product_name,
         "variant_name": line.variant_name,
+        "variant": get_product_variant_payload(line.variant),  # type: ignore
         "translated_variant_name": line.translated_variant_name or line.variant_name,
         "product_sku": line.product_sku,
         "quantity": line.quantity,
@@ -98,6 +165,12 @@ def get_default_order_payload(order: "Order", redirect_url: str = ""):
     subtotal = order.get_subtotal()
     tax = order.total_gross_amount - order.total_net_amount
 
+    lines = order.lines.prefetch_related(
+        "variant__product__images",
+        "variant__images",
+        "variant__product__attributes__assignment__attribute",
+        "variant__product__attributes__values",
+    ).all()
     order_payload = model_to_dict(order, fields=ORDER_MODEL_FIELDS)
     order_payload.update(
         {
@@ -111,7 +184,7 @@ def get_default_order_payload(order: "Order", redirect_url: str = ""):
             "subtotal_net_amount": subtotal.net.amount,
             "tax_amount": tax,
             "discount_name": order.translated_discount_name or order.discount_name,
-            "lines": get_lines_payload(order.lines.all()),
+            "lines": get_lines_payload(lines),
             "billing_address": get_address_payload(order.billing_address),
             "shipping_address": get_address_payload(order.shipping_address),
             "shipping_method_name": order.shipping_method_name,
@@ -167,6 +240,21 @@ def send_order_confirmation(order, redirect_url, manager):
     }
     manager.notify(NotifyEventType.ORDER_CONFIRMATION, payload)
 
+    # Prepare staff notification for this order
+    staff_notifications = StaffNotificationRecipient.objects.filter(
+        active=True, user__is_active=True, user__is_staff=True
+    )
+    recipient_emails = [
+        notification.get_email() for notification in staff_notifications
+    ]
+    if recipient_emails:
+        payload = {
+            "order": payload["order"],
+            "recipient_list": recipient_emails,
+            **get_site_context(),
+        }
+        manager.notify(NotifyEventType.STAFF_ORDER_CONFIRMATION, payload=payload)
+
 
 def send_order_confirmed(order, user, manager):
     """Send email which tells customer that order has been confirmed."""
@@ -177,23 +265,6 @@ def send_order_confirmed(order, user, manager):
         **get_site_context(),
     }
     manager.notify(NotifyEventType.ORDER_CONFIRMED, payload)
-
-
-def send_staff_order_confirmation(order, redirect_url, manager):
-    """Send staff notification with order confirmation."""
-    staff_notifications = StaffNotificationRecipient.objects.filter(
-        active=True, user__is_active=True, user__is_staff=True
-    )
-    recipient_emails = [
-        notification.get_email() for notification in staff_notifications
-    ]
-    if recipient_emails:
-        payload = {
-            "order": get_default_order_payload(order, redirect_url),
-            "recipient_list": recipient_emails,
-            **get_site_context(),
-        }
-        manager.notify(NotifyEventType.STAFF_ORDER_CONFIRMATION, payload=payload)
 
 
 def send_fulfillment_confirmation_to_customer(order, fulfillment, user, manager):
