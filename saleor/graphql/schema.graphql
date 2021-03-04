@@ -801,6 +801,7 @@ input ChannelCreateInput {
   name: String!
   slug: String!
   currencyCode: String!
+  addShippingZones: [ID!]
 }
 
 type ChannelDeactivate {
