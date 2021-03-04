@@ -1,7 +1,7 @@
 import copy
 from decimal import Decimal
 from functools import partial, wraps
-from typing import Iterable, List, Optional, Union
+from typing import Iterable, List, Optional, Tuple, Union
 
 from django.conf import settings
 from django.db import transaction
@@ -76,22 +76,24 @@ def get_voucher_discount_assigned_to_order(order: Order):
     return order.discounts.filter(type=OrderDiscountType.VOUCHER).first()
 
 
-def recalculate_order_discounts(order: Order):
-    """Recalculate all order discounts assigned to order."""
+def recalculate_order_discounts(
+    order: Order,
+) -> List[Tuple[OrderDiscount, OrderDiscount]]:
+    """Recalculate all order discounts assigned to order.
 
+    It returns the list of tuples which contains order discounts where the amount has
+    been changed.
+    """
+
+    changed_order_discounts = []
     order_discounts = order.discounts.filter(type=OrderDiscountType.MANUAL)
     for order_discount in order_discounts:
-        current_order_discount = copy.deepcopy(order_discount)
+        previous_order_discount = copy.deepcopy(order_discount)
         current_total = order.total.gross.amount
 
         update_order_discount_for_order(
             order,
             order_discount,
-            force_update=True,
-            # The discount is 0 because the total amount was recaluculated based on
-            # lines price
-            already_applied_discount_amount=Money(Decimal(0), currency=order.currency),
-            save_order=False,
         )
         discount_value = order_discount.value
         discount_type = order_discount.value_type
@@ -103,26 +105,17 @@ def recalculate_order_discounts(order: Order):
                 or current_total < discount_value
             )
             # No need to add new event when new and old amount of discount is the same
-            and amount != current_order_discount.amount
+            and amount != previous_order_discount.amount
         ):
-            events.order_discount_automatically_updated_event(
-                order=order,
-                order_discount=order_discount,
-                old_order_discount=current_order_discount,
+            changed_order_discounts.append(
+                # order discount before changes, order discount after update
+                (previous_order_discount, order_discount)
             )
+    return changed_order_discounts
 
 
 @update_voucher_discount
-def recalculate_order(order: Order, **kwargs):
-    """Recalculate and assign total price of order.
-
-    Total price is a sum of items in order and order shipping price minus
-    discount amount.
-
-    Voucher discount amount is recalculated by default. To avoid this, pass
-    update_voucher_discount argument set to False.
-    """
-
+def recalculate_order_prices(order: Order, **kwargs):
     # avoid using prefetched order lines
     lines = OrderLine.objects.filter(order_id=order.pk)
     prices = [line.total_price for line in lines]
@@ -133,13 +126,33 @@ def recalculate_order(order: Order, **kwargs):
 
     # discount amount can't be greater than order total
     voucher_discount = min(voucher_discount, total.gross)
-
     total -= voucher_discount
 
     order.total = total
     order.undiscounted_total = undiscounted_total
 
-    recalculate_order_discounts(order)
+    if voucher_discount:
+        assigned_order_discount = get_voucher_discount_assigned_to_order(order)
+        if assigned_order_discount:
+            assigned_order_discount.amount_value = voucher_discount.amount
+            assigned_order_discount.value = voucher_discount.amount
+            assigned_order_discount.save(update_fields=["value", "amount_value"])
+
+
+def recalculate_order(order: Order, **kwargs):
+    """Recalculate and assign total price of order.
+
+    Total price is a sum of items in order and order shipping price minus
+    discount amount.
+
+    Voucher discount amount is recalculated by default. To avoid this, pass
+    update_voucher_discount argument set to False.
+    """
+
+    recalculate_order_prices(order, **kwargs)
+
+    changed_order_discounts = recalculate_order_discounts(order)
+    events.order_discounts_automatically_updated_event(order, changed_order_discounts)
 
     order.save(
         update_fields=[
@@ -150,12 +163,6 @@ def recalculate_order(order: Order, **kwargs):
             "currency",
         ]
     )
-    if voucher_discount:
-        assigned_order_discount = get_voucher_discount_assigned_to_order(order)
-        if assigned_order_discount:
-            assigned_order_discount.amount_value = voucher_discount.amount
-            assigned_order_discount.value = voucher_discount.amount
-            assigned_order_discount.save(update_fields=["value", "amount_value"])
     recalculate_order_weight(order)
 
 
@@ -179,11 +186,10 @@ def update_taxes_for_order_line(
     line.unit_price = TaxedMoney(line_price, line_price)
 
     price = manager.calculate_order_line_unit(order, line, variant, product)
-    if price != line.unit_price:
-        line.unit_price = price
-        line.total_price = line.unit_price * line.quantity
-        if price.tax and price.net:
-            line.tax_rate = manager.get_order_line_tax_rate(order, product, None, price)
+    line.unit_price = price
+    line.total_price = line.unit_price * line.quantity
+    if price.tax and price.net:
+        line.tax_rate = manager.get_order_line_tax_rate(order, product, None, price)
 
 
 def update_taxes_for_order_lines(
@@ -576,15 +582,23 @@ def create_order_discount_for_order(
 ):
     """Add new order discount and update the prices."""
 
-    new_total = apply_discount_to_value(value, value_type, order.currency, order.total)
-    amount = (order.total - new_total).gross
+    current_total = order.total
+    currency = order.currency
+
+    net_total = apply_discount_to_value(value, value_type, currency, current_total.net)
+    gross_total = apply_discount_to_value(
+        value, value_type, currency, current_total.gross
+    )
+
+    new_amount = (current_total - gross_total).gross
+
     order_discount = order.discounts.create(
         value_type=value_type,
         value=value,
         reason=reason,
-        amount=amount,  # type: ignore
+        amount=new_amount,  # type: ignore
     )
-    order.total = new_total
+    order.total = TaxedMoney(net_total, gross_total)
     order.save(update_fields=["total_net_amount", "total_gross_amount"])
     return order_discount
 
@@ -595,13 +609,9 @@ def update_order_discount_for_order(
     reason: Optional[str] = None,
     value_type: Optional[str] = None,
     value: Optional[Decimal] = None,
-    force_update: bool = False,
-    already_applied_discount_amount: Optional[Money] = None,
-    save_order: bool = True,
 ):
     """Update the order_discount for an order and recalculate the order's prices."""
     current_value = order_discount_to_update.value
-    current_value_type = order_discount_to_update.value_type
     value = value if value is not None else current_value
     value_type = value_type or order_discount_to_update.value_type
     currency = order_discount_to_update.currency
@@ -610,25 +620,21 @@ def update_order_discount_for_order(
         order_discount_to_update.reason = reason
         fields_to_update.append("reason")
 
-    if already_applied_discount_amount is None:
-        already_applied_discount_amount = order_discount_to_update.amount
+    current_total = order.total
 
-    if force_update or current_value != value or current_value_type != value_type:
-        # Add to total current amount of discount.
-        current_total = order.total + already_applied_discount_amount
+    net_total = apply_discount_to_value(value, value_type, currency, current_total.net)
+    gross_total = apply_discount_to_value(
+        value, value_type, currency, current_total.gross
+    )
 
-        new_total = apply_discount_to_value(value, value_type, currency, current_total)
+    new_amount = (current_total - gross_total).gross
 
-        new_amount = (current_total - new_total).gross
+    order_discount_to_update.amount = new_amount
+    order_discount_to_update.value = value
+    order_discount_to_update.value_type = value_type
+    fields_to_update.extend(["value_type", "value", "amount_value"])
 
-        order_discount_to_update.amount = new_amount
-        order_discount_to_update.value = value
-        order_discount_to_update.value_type = value_type
-        fields_to_update.extend(["value_type", "value", "amount_value"])
-
-        order.total = new_total
-        if save_order:
-            order.save(update_fields=["total_net_amount", "total_gross_amount"])
+    order.total = TaxedMoney(net_total, gross_total)
 
     order_discount_to_update.save(update_fields=fields_to_update)
 

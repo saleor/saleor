@@ -135,7 +135,7 @@ def test_add_percentage_order_discount_to_order(
 ):
     total_before_order_discount = draft_order.total
     reason = "The reason of the discount"
-    value = Decimal("10")
+    value = Decimal("10.000")
     variables = {
         "orderId": graphene.Node.to_global_id("Order", draft_order.pk),
         "input": {
@@ -152,7 +152,9 @@ def test_add_percentage_order_discount_to_order(
     draft_order.refresh_from_db()
 
     discount = partial(percentage_discount, percentage=value)
-    expected_total = discount(total_before_order_discount)
+    expected_net_total = discount(total_before_order_discount.net)
+    expected_gross_total = discount(total_before_order_discount.gross)
+    expected_total = TaxedMoney(expected_net_total, expected_gross_total)
 
     errors = data["orderErrors"]
     assert len(errors) == 0
@@ -212,7 +214,7 @@ def test_update_percentage_order_discount_to_order(
     current_undiscounted_total = draft_order.undiscounted_total
 
     reason = "The reason of the discount"
-    value = Decimal("10")
+    value = Decimal("10.000")
     variables = {
         "discountId": graphene.Node.to_global_id("OrderDiscount", order_discount.pk),
         "input": {
@@ -229,7 +231,9 @@ def test_update_percentage_order_discount_to_order(
     draft_order.refresh_from_db()
 
     discount = partial(percentage_discount, percentage=value)
-    expected_total = discount(current_undiscounted_total)
+    expected_net_total = discount(current_undiscounted_total.net)
+    expected_gross_total = discount(current_undiscounted_total.gross)
+    expected_total = TaxedMoney(expected_net_total, expected_gross_total)
 
     errors = data["orderErrors"]
     assert len(errors) == 0
@@ -262,7 +266,7 @@ def test_update_fixed_order_discount_to_order(
     order_discount = draft_order_with_fixed_discount_order.discounts.get()
     current_undiscounted_total = draft_order.undiscounted_total
 
-    value = Decimal("50")
+    value = Decimal("50.000")
     variables = {
         "discountId": graphene.Node.to_global_id("OrderDiscount", order_discount.pk),
         "input": {

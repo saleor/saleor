@@ -6,16 +6,17 @@ from django.db import transaction
 from prices import Money
 
 from ....core.permissions import OrderPermissions
-from ....order import OrderStatus, events
+from ....order import OrderStatus, events, models
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import (
     create_order_discount_for_order,
     get_order_discounts,
     recalculate_order,
+    recalculate_order_discounts,
+    recalculate_order_prices,
     remove_discount_from_order_line,
     remove_order_discount_from_order,
     update_discount_for_order_line,
-    update_order_discount_for_order,
 )
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
@@ -78,6 +79,20 @@ class OrderDiscountCommon(BaseMutation):
         elif value > 100:
             error_msg = f"The percentage value ({value}) cannot be higher than 100."
             raise cls._validation_error_for_input_value(error_msg)
+
+    @classmethod
+    def recalculate_order(cls, order: models.Order):
+        """Recalculate order data and save them."""
+        recalculate_order_prices(order)
+        recalculate_order_discounts(order)
+        order.save(
+            update_fields=[
+                "total_net_amount",
+                "total_gross_amount",
+                "undiscounted_total_net_amount",
+                "undiscounted_total_gross_amount",
+            ]
+        )
 
 
 class OrderDiscountAdd(OrderDiscountCommon):
@@ -178,23 +193,25 @@ class OrderDiscountUpdate(OrderDiscountCommon):
         input = data.get("input")
         cls.validate(info, order, order_discount, input)
 
-        reason = input.get("reason")
-        value_type = input.get("value_type")
-        value = input.get("value")
+        reason = input.get("reason", order_discount.reason)
+        value_type = input.get("value_type", order_discount.value_type)
+        value = input.get("value", order_discount.value)
 
         order_discount_before_update = copy.deepcopy(order_discount)
-        update_order_discount_for_order(
-            order,
-            order_discount,
-            reason=reason,
-            value_type=value_type,
-            value=value,
-        )
+
+        order_discount.reason = reason
+        order_discount.value = value
+        order_discount.value_type = value_type
+        order_discount.save()
+
+        cls.recalculate_order(order)
+
         if (
             order_discount_before_update.value_type != value_type
             or order_discount_before_update.value != value
         ):
             # call update event only when we changed the type or value of the discount
+            order_discount.refresh_from_db()
             events.order_discount_updated_event(
                 order=order,
                 user=requester,
@@ -236,7 +253,9 @@ class OrderDiscountDelete(OrderDiscountCommon):
         )
 
         order.refresh_from_db()
-        recalculate_order(order)
+
+        cls.recalculate_order(order)
+
         return OrderDiscountDelete(order=order)
 
 
