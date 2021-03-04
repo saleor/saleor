@@ -14,6 +14,7 @@ from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import ChannelError, ChannelErrorCode
 from ..core.utils import get_duplicated_values, get_duplicates_ids
 from ..utils import resolve_global_ids_to_primary_keys
+from ..utils.validators import check_for_duplicates
 from .types import Channel
 
 
@@ -71,6 +72,16 @@ class ChannelCreate(ModelMutation):
 class ChannelUpdateInput(ChannelInput):
     name = graphene.String(description="Name of the channel.")
     slug = graphene.String(description="Slug of the channel.")
+    add_shipping_zones = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of shipping zones to assign to the channel.",
+        required=False,
+    )
+    remove_shipping_zones = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of shipping zones to unassign from the channel.",
+        required=False,
+    )
 
 
 class ChannelUpdate(ModelMutation):
@@ -89,12 +100,29 @@ class ChannelUpdate(ModelMutation):
 
     @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
+        error = check_for_duplicates(
+            data, "add_shipping_zones", "remove_shipping_zones", "shipping_zones"
+        )
+        if error:
+            error.code = ChannelErrorCode.DUPLICATED_INPUT_ITEM.value
+            raise ValidationError({"shipping_zones": error})
+
         cleaned_input = super().clean_input(info, instance, data)
         slug = cleaned_input.get("slug")
         if slug:
             cleaned_input["slug"] = slugify(slug)
 
         return cleaned_input
+
+    @classmethod
+    def _save_m2m(cls, info, instance, cleaned_data):
+        super()._save_m2m(info, instance, cleaned_data)
+        add_shipping_zones = cleaned_data.get("add_shipping_zones")
+        if add_shipping_zones:
+            instance.shipping_zones.add(*add_shipping_zones)
+        remove_shipping_zones = cleaned_data.get("remove_shipping_zones")
+        if remove_shipping_zones:
+            instance.shipping_zones.remove(*remove_shipping_zones)
 
 
 class ChannelDeleteInput(graphene.InputObjectType):
