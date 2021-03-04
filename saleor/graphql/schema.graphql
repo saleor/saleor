@@ -781,6 +781,7 @@ type Channel implements Node {
   slug: String!
   currencyCode: String!
   hasOrders: Boolean!
+  shippingZones: [ShippingZone]
 }
 
 type ChannelActivate {
