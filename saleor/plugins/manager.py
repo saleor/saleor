@@ -455,12 +455,6 @@ class PluginsManager(PaymentInterface):
             "order_line_deleted", default_value, order, order_line
         )
 
-    def order_line_updated(self, order: "Order", order_line: "OrderLine"):
-        default_value = None
-        return self.__run_method_on_plugins(
-            "order_line_updated", default_value, order, order_line
-        )
-
     def fulfillment_created(self, fulfillment: "Fulfillment"):
         default_value = None
         return self.__run_method_on_plugins(

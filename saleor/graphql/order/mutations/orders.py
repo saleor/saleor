@@ -206,6 +206,7 @@ class OrderUpdate(DraftOrderCreate):
             user = User.objects.filter(email=instance.user_email).first()
             instance.user = user
         instance.save()
+        update_order_prices(instance, info.context.discounts)
         info.context.plugins.order_updated(instance)
 
 
