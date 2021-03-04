@@ -134,7 +134,6 @@ class OrderDiscountAdd(OrderDiscountCommon):
     @classmethod
     @transaction.atomic
     def perform_mutation(cls, root, info, **data):
-
         requester = get_user_or_app_from_context(info.context)
         order = cls.get_node_or_error(info, data.get("order_id"), only_type=Order)
         input = data.get("input", {})
@@ -269,7 +268,7 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
 
     class Arguments:
         order_line_id = graphene.ID(
-            description="ID of a order_line to update price", required=True
+            description="ID of a order line to update price", required=True
         )
         input = OrderDiscountCommonInput(
             required=True,
@@ -344,7 +343,7 @@ class OrderLineDiscountRemove(OrderDiscountCommon):
 
     class Arguments:
         order_line_id = graphene.ID(
-            description="ID of a order_line to remove its discount", required=True
+            description="ID of a order line to remove its discount", required=True
         )
 
     class Meta:

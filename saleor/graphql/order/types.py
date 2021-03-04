@@ -230,9 +230,8 @@ class OrderEvent(CountableDjangoObjectType):
         line_pks = []
         for entry in raw_lines:
             line_pk = entry.get("line_pk", None)
-            if not line_pk:
-                continue
-            line_pks.append(line_pk)
+            if line_pk:
+                line_pks.append(line_pk)
 
         def _resolve_lines(lines):
             results = []
@@ -363,7 +362,7 @@ class OrderLine(CountableDjangoObjectType):
     )
     unit_discount = graphene.Field(
         Money,
-        description=("The discount applied to the single order line."),
+        description="The discount applied to the single order line.",
         required=True,
     )
     unit_discount_value = graphene.Field(

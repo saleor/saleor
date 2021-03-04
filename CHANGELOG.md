@@ -11,6 +11,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix Sentry reporting - #6902 by @fowczarek
 - Fix removing page types in cleardb command - #6918 by @fowczarek
 - Add possibility to apply discount to order/order line with status `DRAFT` - #6930 by @korycins
+- Deprecate API fields `Order.discount`, `Order.discountName`, `Order.translatedDiscountName` - #6874 by @korycins
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -25,8 +26,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Remove resolving user's location from GeoIP; drop `PaymentInput.billingAddress` input field - #6784 by @maarcingebala
 - Change the payload of the order webhook to handle discounts list, added fields: `Order.discounts`,
 `OrderLine.unit_discount_amount`,`OrderLine.unit_discount_type`, `OrderLine.unit_discount_reason` , remove fields:
-`Order.discount_amount`, `Order.discount_name`, `Order.translated_discount_name`.
-Deprecate API fields `Order.discount`, `Order.discountName`, `Order.translatedDiscountName` - #6874 by @korycins
+`Order.discount_amount`, `Order.discount_name`, `Order.translated_discount_name`- #6874 by @korycins
+
 
 ### Other
 
