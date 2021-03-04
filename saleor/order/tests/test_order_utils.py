@@ -27,7 +27,7 @@ def test_change_quantity_generates_proper_event(
     staff_user,
 ):
     context_mock = Mock(user=staff_user)
-    context_mock.plugins.order_line_updated.return_value = None
+    context_mock.plugins.calculate_order_line_unit.return_value = None
 
     assert not OrderEvent.objects.exists()
     order_with_lines.status = status
