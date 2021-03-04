@@ -1077,7 +1077,7 @@ def test_permission_group_update_mutation_user_in_list_to_add_and_remove(
 
     assert len(errors) == 1
     assert errors[0]["code"] == PermissionGroupErrorCode.DUPLICATED_INPUT_ITEM.name
-    assert errors[0]["field"] is None
+    assert errors[0]["field"] == "users"
     assert errors[0]["permissions"] is None
     assert errors[0]["users"] == [staff_user2_id]
 
@@ -1124,7 +1124,7 @@ def test_permission_group_update_mutation_permissions_in_list_to_add_and_remove(
 
     assert len(errors) == 1
     assert errors[0]["code"] == PermissionGroupErrorCode.DUPLICATED_INPUT_ITEM.name
-    assert errors[0]["field"] is None
+    assert errors[0]["field"] == "permissions"
     assert set(errors[0]["permissions"]) == set(permissions)
     assert errors[0]["users"] is None
 
@@ -1180,7 +1180,7 @@ def test_permission_group_update_mutation_permissions_and_users_duplicated(
     assert {error["code"] for error in errors} == {
         PermissionGroupErrorCode.DUPLICATED_INPUT_ITEM.name
     }
-    assert {error["field"] for error in errors} == {None}
+    assert {error["field"] for error in errors} == {"users", "permissions"}
     assert set(permissions) in [
         set(error["permissions"]) if error["permissions"] else None for error in errors
     ]
