@@ -6,6 +6,7 @@ from ...shipping.models import (
     ShippingMethod,
     ShippingMethodChannelListing,
     ShippingMethodPostalCodeRule,
+    ShippingZone,
 )
 from ..core.dataloaders import DataLoader
 
@@ -16,6 +17,14 @@ class ShippingMethodByIdLoader(DataLoader):
     def batch_load(self, keys):
         shipping_methods = ShippingMethod.objects.in_bulk(keys)
         return [shipping_methods.get(shipping_method_id) for shipping_method_id in keys]
+
+
+class ShippingZoneByIdLoader(DataLoader):
+    context_key = "shippingzone_by_id"
+
+    def batch_load(self, keys):
+        shipping_zones = ShippingZone.objects.in_bulk(keys)
+        return [shipping_zones.get(shipping_zone_id) for shipping_zone_id in keys]
 
 
 class ShippingMethodsByShippingZoneIdLoader(DataLoader):
