@@ -27,6 +27,11 @@ class ChannelCreateInput(ChannelInput):
     currency_code = graphene.String(
         description="Currency of the channel.", required=True
     )
+    add_shipping_zones = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of shipping zones to assign to the channel.",
+        required=False,
+    )
 
 
 class ChannelCreate(ModelMutation):
@@ -54,6 +59,13 @@ class ChannelCreate(ModelMutation):
             cleaned_input["slug"] = slugify(slug)
 
         return cleaned_input
+
+    @classmethod
+    def _save_m2m(cls, info, instance, cleaned_data):
+        super()._save_m2m(info, instance, cleaned_data)
+        shipping_zones = cleaned_data.get("add_shipping_zones")
+        if shipping_zones:
+            instance.shipping_zones.add(*shipping_zones)
 
 
 class ChannelUpdateInput(ChannelInput):
