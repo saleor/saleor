@@ -451,20 +451,6 @@ class AvataxPlugin(BasePlugin):
 
         get_order_tax_data(order, self.config, True)
 
-    def order_line_updated(
-        self, order: "Order", order_line: "OrderLine", previous_value: Any
-    ) -> Any:
-        if self._skip_plugin(previous_value):
-            return previous_value
-
-        return self.calculate_order_line_unit(
-            order,
-            order_line,
-            order_line.variant,  # type: ignore
-            order_line.variant.product,  # type: ignore
-            previous_value,
-        )
-
     def get_tax_rate_type_choices(self, previous_value: Any) -> List[TaxType]:
         if not self.active:
             return previous_value

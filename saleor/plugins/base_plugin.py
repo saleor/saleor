@@ -489,16 +489,6 @@ class BasePlugin:
         """
         return NotImplemented
 
-    def order_line_updated(
-        self, order: "Order", order_line: "OrderLine", previous_value: Any
-    ) -> Any:
-        """Trigger after order line is updated.
-
-        Overwrite this method if you need to trigger specific logic after an order line is
-        updated.
-        """
-        return NotImplemented
-
     def fulfillment_created(
         self, fulfillment: "Fulfillment", previous_value: Any
     ) -> Any:

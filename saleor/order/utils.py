@@ -135,6 +135,16 @@ def update_order_prices(order, discounts):
             )
 
             price = manager.calculate_order_line_unit(order, line, variant, product)
+            if price is not None:
+                net = price.net.amount
+            total_price_net_amount = net * line.quantity
+            total_price_gross_amount = line.unit_price.gross.amount * line.quantity
+            line.total_price_net_amount = total_price_net_amount.quantize(
+                Decimal("0.001")
+            )
+            line.total_price_gross_amount = total_price_gross_amount.quantize(
+                Decimal("0.001")
+            )
             if price != line.unit_price:
                 line.unit_price = price
                 if price.tax and price.net:
@@ -299,7 +309,9 @@ def change_order_line_quantity(context, line, old_quantity, new_quantity):
         line.quantity = new_quantity
         line.save(update_fields=["quantity"])
         net = line.unit_price.net.amount
-        unit_price = context.plugins.order_line_updated(line.order, line)
+        unit_price = context.plugins.calculate_order_line_unit(
+            line.order, line, line.variant, line.variant.product
+        )
         if unit_price is not None:
             net = unit_price.net.amount
         total_price_net_amount = net * line.quantity
