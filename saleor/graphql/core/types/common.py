@@ -114,6 +114,11 @@ class StaffError(AccountError):
 
 class ChannelError(Error):
     code = ChannelErrorCode(description="The error code.", required=True)
+    shipping_zones = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of shipping zone IDs which causes the error.",
+        required=False,
+    )
 
 
 class CheckoutError(Error):
