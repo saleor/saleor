@@ -26,6 +26,21 @@ COUNTRIES_QUERY = """
     }
 """
 
+LIMIT_INFO_QUERY = """
+    {
+      shop {
+        limits {
+          currentUsage {
+            channels
+          }
+          allowedUsage {
+            channels
+          }
+        }
+      }
+    }
+"""
+
 
 def test_query_countries(user_api_client):
     response = user_api_client.post_graphql(COUNTRIES_QUERY % {"attributes": ""})
@@ -1297,3 +1312,25 @@ def test_version_query_as_staff_user(staff_api_client):
     response = staff_api_client.post_graphql(API_VERSION_QUERY)
     content = get_graphql_content(response)
     assert content["data"]["shop"]["version"] == __version__
+
+
+def test_cannot_get_shop_limit_info_when_not_staff(user_api_client):
+    query = LIMIT_INFO_QUERY
+    response = user_api_client.post_graphql(query)
+    assert_no_permission(response)
+
+
+def test_get_shop_limit_info_returns_null_by_default(staff_api_client):
+    query = LIMIT_INFO_QUERY
+    response = staff_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    assert content == {
+        "data": {
+            "shop": {
+                "limits": {
+                    "currentUsage": {"channels": None},
+                    "allowedUsage": {"channels": None},
+                }
+            }
+        }
+    }

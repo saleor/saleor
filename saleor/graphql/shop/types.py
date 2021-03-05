@@ -19,7 +19,11 @@ from ..core.connection import CountableDjangoObjectType
 from ..core.enums import WeightUnitsEnum
 from ..core.types.common import CountryDisplay, LanguageDisplay, Permission
 from ..core.utils import str_to_enum
-from ..decorators import permission_required, staff_member_or_app_required
+from ..decorators import (
+    permission_required,
+    staff_member_or_app_required,
+    staff_member_required,
+)
 from ..menu.dataloaders import MenuByIdLoader
 from ..menu.types import Menu
 from ..shipping.types import ShippingMethod
@@ -62,6 +66,19 @@ class ExternalAuthentication(graphene.ObjectType):
         description="ID of external authentication plugin.", required=True
     )
     name = graphene.String(description="Name of external authentication plugin.")
+
+
+class Limits(graphene.ObjectType):
+    channels = graphene.Int()
+    orders = graphene.Int()
+    product_variants = graphene.Int()
+    staff_users = graphene.Int()
+    warehouses = graphene.Int()
+
+
+class LimitInfo(graphene.ObjectType):
+    current_usage = graphene.Field(Limits, required=True)
+    allowed_usage = graphene.Field(Limits, required=True)
 
 
 class Shop(graphene.ObjectType):
@@ -170,6 +187,11 @@ class Shop(graphene.ObjectType):
         StaffNotificationRecipient,
         description="List of staff notification recipients.",
         required=False,
+    )
+    limits = graphene.Field(
+        LimitInfo,
+        required=True,
+        description="Resource limitations and current usage if any set for a shop",
     )
     version = graphene.String(description="Saleor API version.", required=True)
 
@@ -335,6 +357,11 @@ class Shop(graphene.ObjectType):
     @permission_required(SitePermissions.MANAGE_SETTINGS)
     def resolve_staff_notification_recipients(_, info):
         return account_models.StaffNotificationRecipient.objects.all()
+
+    @staticmethod
+    @staff_member_required
+    def resolve_limits(_, _info):
+        return LimitInfo(current_usage=Limits(), allowed_usage=Limits())
 
     @staticmethod
     @staff_member_or_app_required
