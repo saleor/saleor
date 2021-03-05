@@ -65,8 +65,9 @@ class Channel(CountableDjangoObjectType):
         required=True, description="Whether a channel has associated orders."
     )
     shipping_zones = graphene.List(
-        "saleor.graphql.shipping.types.ShippingZone",
+        graphene.NonNull("saleor.graphql.shipping.types.ShippingZone"),
         description="List of channel shipping zones.",
+        required=True,
     )
 
     class Meta:
