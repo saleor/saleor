@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -15,9 +17,9 @@ from ...channel.types import ChannelContext
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import WeightScalar
 from ...core.types.common import ShippingError
-from ...core.utils import get_duplicates_ids
 from ...product import types as product_types
 from ...utils import resolve_global_ids_to_primary_keys
+from ...utils.validators import check_for_duplicates
 from ..enums import PostalCodeRuleInclusionTypeEnum, ShippingMethodTypeEnum
 from ..types import ShippingMethod, ShippingMethodPostalCodeRule, ShippingZone
 
@@ -78,6 +80,10 @@ class ShippingZoneCreateInput(graphene.InputObjectType):
         graphene.ID,
         description="List of warehouses to assign to a shipping zone",
     )
+    add_channels = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of channels to assign to the shipping zone.",
+    )
 
 
 class ShippingZoneUpdateInput(ShippingZoneCreateInput):
@@ -85,32 +91,49 @@ class ShippingZoneUpdateInput(ShippingZoneCreateInput):
         graphene.ID,
         description="List of warehouses to unassign from a shipping zone",
     )
+    remove_channels = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of channels to unassign from the shipping zone.",
+    )
 
 
 class ShippingZoneMixin:
     @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
-        duplicates_ids = get_duplicates_ids(
-            data.get("add_warehouses"), data.get("remove_warehouses")
+        errors = defaultdict(list)
+        cls.check_duplicates(
+            errors, data, "add_warehouses", "remove_warehouses", "warehouses"
         )
-        if duplicates_ids:
-            error_msg = (
-                "The same object cannot be in both lists "
-                "for adding and removing items."
-            )
-            raise ValidationError(
-                {
-                    "removeWarehouses": ValidationError(
-                        error_msg,
-                        code=ShippingErrorCode.DUPLICATED_INPUT_ITEM.value,
-                        params={"warehouses": list(duplicates_ids)},
-                    )
-                }
-            )
+        cls.check_duplicates(
+            errors, data, "add_channels", "remove_channels", "channels"
+        )
+
+        if errors:
+            raise ValidationError(errors)
 
         cleaned_input = super().clean_input(info, instance, data)
         cleaned_input = cls.clean_default(instance, cleaned_input)
         return cleaned_input
+
+    @classmethod
+    def check_duplicates(
+        cls,
+        errors: dict,
+        input_data: dict,
+        add_field: str,
+        remove_field: str,
+        error_class_field: str,
+    ):
+        """Check if any items are on both input field.
+
+        Raise error if some of items are duplicated.
+        """
+        error = check_for_duplicates(
+            input_data, add_field, remove_field, error_class_field
+        )
+        if error:
+            error.code = ShippingErrorCode.DUPLICATED_INPUT_ITEM.value
+            errors[error_class_field].append(error)
 
     @classmethod
     def clean_default(cls, instance, data):
@@ -144,6 +167,14 @@ class ShippingZoneMixin:
         remove_warehouses = cleaned_data.get("remove_warehouses")
         if remove_warehouses:
             instance.warehouses.remove(*remove_warehouses)
+
+        add_channels = cleaned_data.get("add_channels")
+        if add_channels:
+            instance.channels.add(*add_channels)
+
+        remove_channels = cleaned_data.get("remove_channels")
+        if remove_channels:
+            instance.channels.remove(*remove_channels)
 
 
 class ShippingZoneCreate(ShippingZoneMixin, ModelMutation):
