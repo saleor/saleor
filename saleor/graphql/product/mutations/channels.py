@@ -235,7 +235,7 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
                     "addVariants": ValidationError(
                         "One of channel listing already "
                         "exists for this product variant.",
-                        code=ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
+                        code=ProductErrorCode.ALREADY_EXISTS.value,
                     )
                 }
             )
