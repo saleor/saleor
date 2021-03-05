@@ -1,10 +1,11 @@
 import datetime
 from collections import defaultdict
-from typing import TYPE_CHECKING, DefaultDict, Dict, List
+from typing import TYPE_CHECKING, DefaultDict, Dict, Iterable, List
 
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.utils import IntegrityError
 
 from ....core.permissions import ProductPermissions
 from ....product.error_codes import CollectionErrorCode, ProductErrorCode
@@ -23,7 +24,7 @@ from ...core.types.common import (
     CollectionChannelListingError,
     ProductChannelListingError,
 )
-from ...core.utils import get_duplicated_values
+from ...core.utils import get_duplicated_values, get_duplicates_ids
 from ...core.validators import validate_price_precision
 from ..types.products import Collection, Product, ProductVariant
 
@@ -63,12 +64,24 @@ class ProductChannelListingAddInput(PublishableChannelListingInput):
             "the current day is assumed."
         )
     )
+    add_variants = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of variants to which the channel should be assigned.",
+        required=False,
+    )
+    remove_variants = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of variants from which the channel should be unassigned.",
+        required=False,
+    )
 
 
 class ProductChannelListingUpdateInput(graphene.InputObjectType):
-    add_channels = graphene.List(
+    update_channels = graphene.List(
         graphene.NonNull(ProductChannelListingAddInput),
-        description="List of channels to which the product should be assigned.",
+        description=(
+            "List of channels to which the product should be assigned or updated."
+        ),
         required=False,
     )
     remove_channels = graphene.List(
@@ -97,7 +110,7 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
     @classmethod
     def clean_available_for_purchase(cls, cleaned_input, errors: ErrorType):
         channels_with_invalid_available_for_purchase = []
-        for add_channel in cleaned_input.get("add_channels", []):
+        for add_channel in cleaned_input.get("update_channels", []):
             is_available_for_purchase = add_channel.get("is_available_for_purchase")
             available_for_purchase_date = add_channel.get("available_for_purchase_date")
             if not is_available_for_purchase and available_for_purchase_date:
@@ -120,7 +133,7 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
     @classmethod
     def validate_product_without_category(cls, cleaned_input, errors: ErrorType):
         channels_with_published_product_without_category = []
-        for add_channel in cleaned_input.get("add_channels", []):
+        for add_channel in cleaned_input.get("update_channels", []):
             if add_channel.get("is_published") is True:
                 channels_with_published_product_without_category.append(
                     add_channel["channel_id"]
@@ -137,9 +150,11 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
             )
 
     @classmethod
-    def add_channels(cls, product: "ProductModel", add_channels: List[Dict]):
+    def add_channels(cls, info, product: "ProductModel", add_channels: List[Dict]):
         for add_channel in add_channels:
             channel = add_channel["channel"]
+            add_variants = add_channel.get("add_variants", None)
+            remove_variants = add_channel.get("remove_variants", None)
             defaults = {"currency": channel.currency_code}
             for field in ["is_published", "publication_date", "visible_in_listings"]:
                 if field in add_channel.keys():
@@ -156,12 +171,103 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
                     defaults["available_for_purchase"] = datetime.date.today()
                 else:
                     defaults["available_for_purchase"] = available_for_purchase_date
-            ProductChannelListing.objects.update_or_create(
+            product_channel_listing, _ = ProductChannelListing.objects.update_or_create(
                 product=product, channel=channel, defaults=defaults
+            )
+            cls.validate_variants(add_variants, remove_variants)
+            cls.add_variants(info, channel, add_variants)
+            cls.remove_variants(
+                info, product_channel_listing, product, channel, remove_variants
             )
 
     @classmethod
-    def remove_channels(cls, product: "ProductModel", remove_channels: List[int]):
+    def validate_variants(cls, add_variants, remove_variants):
+        error_code = ProductErrorCode.DUPLICATED_INPUT_ITEM.value
+        errors = defaultdict(list)
+        cls.validate_duplicated_variant_ids(
+            add_variants, remove_variants, errors, error_code
+        )
+        if errors:
+            raise ValidationError(errors)
+
+    @classmethod
+    def validate_duplicated_variant_ids(
+        cls,
+        add_variant_ids: Iterable[str],
+        remove_variant_ids: Iterable[str],
+        errors: ErrorType,
+        error_code,
+    ):
+        duplicated_ids = get_duplicates_ids(add_variant_ids, remove_variant_ids)
+        if duplicated_ids:
+            error_msg = (
+                "The same object cannot be in both lists "
+                "for adding and removing items."
+            )
+            errors["input"].append(
+                ValidationError(
+                    error_msg,
+                    code=error_code,
+                    params={"variants": list(duplicated_ids)},
+                )
+            )
+
+    @classmethod
+    def add_variants(cls, info, channel, add_variants: List[Dict]):
+        if not add_variants:
+            return
+        variants_id = [
+            cls.get_node_or_error(info, id, only_type=ProductVariant, field="id")
+            for id in add_variants
+        ]
+
+        variant_channel_listings = []
+        for variant in variants_id:
+            variant_channel_listings.append(
+                ProductVariantChannelListing(channel=channel, variant=variant)
+            )
+
+        try:
+            ProductVariantChannelListing.objects.bulk_create(variant_channel_listings)
+        except IntegrityError:
+            raise ValidationError(
+                {
+                    "addVariants": ValidationError(
+                        "One of channel listing already "
+                        "exists for this product variant.",
+                        code=ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
+                    )
+                }
+            )
+
+    @classmethod
+    def remove_variants(
+        cls,
+        info,
+        product_channel_listing,
+        product,
+        channel,
+        remove_variants: List[Dict],
+    ):
+        if not remove_variants:
+            return
+        variants_id = [
+            cls.get_node_or_error(info, id, only_type=ProductVariant, field="id")
+            for id in remove_variants
+        ]
+        if (
+            len(variants_id)
+            == ProductVariantChannelListing.objects.filter(
+                channel=channel, variant__product_id=product
+            ).count()
+        ):
+            product_channel_listing.delete()
+        ProductVariantChannelListing.objects.filter(
+            channel=channel, variant_id__in=variants_id
+        ).delete()
+
+    @classmethod
+    def remove_channels(cls, product: "ProductModel", remove_channels: List[Dict]):
         ProductChannelListing.objects.filter(
             product=product, channel_id__in=remove_channels
         ).delete()
@@ -172,7 +278,7 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
     @classmethod
     @transaction.atomic()
     def save(cls, info, product: "ProductModel", cleaned_input: Dict):
-        cls.add_channels(product, cleaned_input.get("add_channels", []))
+        cls.add_channels(info, product, cleaned_input.get("update_channels", []))
         cls.remove_channels(product, cleaned_input.get("remove_channels", []))
         info.context.plugins.product_updated(product)
 
@@ -186,8 +292,9 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
             input,
             errors,
             ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
+            input_source="update_channels",
         )
-        cls.clean_publication_date(cleaned_input)
+        cls.clean_publication_date(cleaned_input, input_source="update_channels")
         cls.clean_available_for_purchase(cleaned_input, errors)
         if not product.category:
             cls.validate_product_without_category(cleaned_input, errors)
