@@ -7,24 +7,20 @@ from ..payment import gateway
 from ..payment import models as payment_models
 from ..payment.error_codes import PaymentErrorCode
 from ..plugins.manager import PluginsManager
-from . import CheckoutLineInfo
 from .error_codes import CheckoutErrorCode
-from .models import Checkout
 from .utils import is_fully_paid, is_shipping_required, is_valid_shipping_method
 
 if TYPE_CHECKING:
-    from prices import TaxedMoney
+    from .fetch import CheckoutInfo, CheckoutLineInfo
 
 
 def clean_checkout_shipping(
-    checkout: Checkout,
-    lines: Iterable[CheckoutLineInfo],
-    discounts: Iterable[DiscountInfo],
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
     error_code: Union[Type[CheckoutErrorCode], Type[PaymentErrorCode]],
-    subtotal: Optional["TaxedMoney"] = None,
 ):
     if is_shipping_required(lines):
-        if not checkout.shipping_method_id:
+        if not checkout_info.shipping_method:
             raise ValidationError(
                 {
                     "shipping_method": ValidationError(
@@ -33,7 +29,7 @@ def clean_checkout_shipping(
                     )
                 }
             )
-        if not checkout.shipping_address_id:
+        if not checkout_info.shipping_address:
             raise ValidationError(
                 {
                     "shipping_address": ValidationError(
@@ -42,7 +38,7 @@ def clean_checkout_shipping(
                     )
                 }
             )
-        if not is_valid_shipping_method(checkout, lines, discounts, subtotal):
+        if not is_valid_shipping_method(checkout_info):
             raise ValidationError(
                 {
                     "shipping_method": ValidationError(
@@ -54,10 +50,10 @@ def clean_checkout_shipping(
 
 
 def clean_billing_address(
-    checkout: Checkout,
+    checkout_info: "CheckoutInfo",
     error_code: Union[Type[CheckoutErrorCode], Type[PaymentErrorCode]],
 ):
-    if not checkout.billing_address_id:
+    if not checkout_info.billing_address:
         raise ValidationError(
             {
                 "billing_address": ValidationError(
@@ -70,14 +66,14 @@ def clean_billing_address(
 
 def clean_checkout_payment(
     manager: PluginsManager,
-    checkout: Checkout,
-    lines: Iterable[CheckoutLineInfo],
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable[DiscountInfo],
     error_code: Type[CheckoutErrorCode],
     last_payment: Optional[payment_models.Payment],
 ):
-    clean_billing_address(checkout, error_code)
-    if not is_fully_paid(manager, checkout, lines, discounts):
+    clean_billing_address(checkout_info, error_code)
+    if not is_fully_paid(manager, checkout_info, lines, discounts):
         gateway.payment_refund_or_void(last_payment)
         raise ValidationError(
             "Provided payment methods can not cover the checkout's total amount",
