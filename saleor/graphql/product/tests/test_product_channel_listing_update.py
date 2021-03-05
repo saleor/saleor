@@ -1226,3 +1226,40 @@ def test_product_channel_listing_add_variant_with_existing_channel_listing(
     assert len(errors) == 1
     assert errors[0]["field"] == "addVariants"
     assert errors[0]["code"] == ProductErrorCode.ALREADY_EXISTS.name
+
+
+def test_product_channel_listing_remove_last_variant_channel_listing(
+    staff_api_client, product, permission_manage_products, channel_USD
+):
+    # given
+    assert product.channel_listings.filter(channel=channel_USD).exists()
+    variant = product.variants.first()
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variants = [variant_id]
+    variables = {
+        "id": product_id,
+        "input": {
+            "updateChannels": [
+                {
+                    "channelId": channel_id,
+                    "isPublished": True,
+                    "removeVariants": variants,
+                }
+            ],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_products,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["productChannelListingUpdate"]
+    assert not data["productChannelListingErrors"]
+    assert not product.channel_listings.filter(channel=channel_USD).exists()
