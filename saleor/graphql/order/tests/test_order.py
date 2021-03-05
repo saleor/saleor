@@ -12,7 +12,9 @@ from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
 from ....account.models import CustomerEvent
+from ....core.prices import quantize_price
 from ....core.taxes import TaxError, zero_taxed_money
+from ....discount.models import OrderDiscount
 from ....order import OrderStatus
 from ....order import events as order_events
 from ....order.error_codes import OrderErrorCode
@@ -267,6 +269,28 @@ query OrdersQuery {
                 shippingTaxRate
                 lines {
                     id
+                    unitPrice{
+                        gross{
+                            amount
+                        }
+                    }
+                    unitDiscount{
+                        amount
+                    }
+                    undiscountedUnitPrice{
+                        gross{
+                            amount
+                        }
+                    }
+                }
+                discounts{
+                    id
+                    valueType
+                    value
+                    reason
+                    amount{
+                        amount
+                    }
                 }
                 fulfillments {
                     fulfillmentOrder
@@ -366,6 +390,95 @@ def test_order_query(
         method["minimumOrderPrice"]["amount"]
     )
     assert expected_method.type.upper() == method["type"]
+
+
+def test_order_discounts_query(
+    staff_api_client,
+    permission_manage_orders,
+    draft_order_with_fixed_discount_order,
+):
+    # given
+    order = draft_order_with_fixed_discount_order
+    order.status = OrderStatus.UNFULFILLED
+    order.save()
+
+    discount = order.discounts.get()
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    discounts_data = order_data.get("discounts")
+    assert len(discounts_data) == 1
+    discount_data = discounts_data[0]
+    _, discount_id = graphene.Node.from_global_id(discount_data["id"])
+    assert int(discount_id) == discount.id
+    assert discount_data["valueType"] == discount.value_type.upper()
+    assert discount_data["value"] == discount.value
+    assert discount_data["amount"]["amount"] == discount.amount_value
+    assert discount_data["reason"] == discount.reason
+
+
+def test_order_line_discount_query(
+    staff_api_client,
+    permission_manage_orders,
+    draft_order_with_fixed_discount_order,
+):
+    # given
+    order = draft_order_with_fixed_discount_order
+    order.status = OrderStatus.UNFULFILLED
+    order.save()
+
+    unit_discount_value = Decimal("5.0")
+    line = order.lines.first()
+    line.unit_discount = Money(unit_discount_value, currency=order.currency)
+    line.unit_price -= line.unit_discount
+    line.save()
+
+    line_with_discount_id = graphene.Node.to_global_id("OrderLine", line.pk)
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    lines_data = order_data.get("lines")
+    line_with_discount = [
+        line for line in lines_data if line["id"] == line_with_discount_id
+    ][0]
+
+    unit_gross_amount = quantize_price(
+        Decimal(line_with_discount["unitPrice"]["gross"]["amount"]),
+        currency=order.currency,
+    )
+    unit_discount_amount = quantize_price(
+        Decimal(line_with_discount["unitDiscount"]["amount"]), currency=order.currency
+    )
+    undiscounted_unit_price = quantize_price(
+        Decimal(line_with_discount["undiscountedUnitPrice"]["gross"]["amount"]),
+        currency=order.currency,
+    )
+
+    expected_unit_price_gross_amount = quantize_price(
+        line.unit_price.gross.amount, currency=order.currency
+    )
+    expected_unit_discount_amount = quantize_price(
+        line.unit_discount.amount, currency=order.currency
+    )
+    expected_undiscounted_unit_price = quantize_price(
+        line.undiscounted_unit_price.gross.amount, currency=order.currency
+    )
+
+    assert unit_gross_amount == expected_unit_price_gross_amount
+    assert unit_discount_amount == expected_unit_discount_amount
+    assert undiscounted_unit_price == expected_undiscounted_unit_price
 
 
 def test_order_query_in_pln_channel(
@@ -4730,9 +4843,7 @@ def test_orders_query_with_filter_search(
             Order(
                 user=customer_user,
                 token=str(uuid.uuid4()),
-                discount_name="test_discount1",
                 user_email="test@example.com",
-                translated_discount_name="translated_discount1_name",
                 channel=channel_USD,
             ),
             Order(
@@ -4743,9 +4854,26 @@ def test_orders_query_with_filter_search(
             Order(
                 token=str(uuid.uuid4()),
                 user_email="user2@example.com",
-                discount_name="test_discount2",
-                translated_discount_name="translated_discount2_name",
                 channel=channel_USD,
+            ),
+        ]
+    )
+
+    OrderDiscount.objects.bulk_create(
+        [
+            OrderDiscount(
+                order=orders[0],
+                name="test_discount1",
+                value=Decimal("1"),
+                amount_value=Decimal("1"),
+                translated_name="translated_discount1_name",
+            ),
+            OrderDiscount(
+                order=orders[2],
+                name="test_discount2",
+                value=Decimal("10"),
+                amount_value=Decimal("10"),
+                translated_name="translated_discount2_name",
             ),
         ]
     )
@@ -4775,9 +4903,7 @@ def test_orders_query_with_filter_search_by_global_payment_id(
                 user=customer_user,
                 token=str(uuid.uuid4()),
                 channel=channel_USD,
-                discount_name="test_discount1",
                 user_email="test@example.com",
-                translated_discount_name="translated_discount1_name",
             ),
             Order(
                 token=str(uuid.uuid4()),
@@ -4786,6 +4912,14 @@ def test_orders_query_with_filter_search_by_global_payment_id(
             ),
         ]
     )
+    OrderDiscount.objects.create(
+        order=orders[0],
+        name="test_discount1",
+        value=Decimal("1"),
+        amount_value=Decimal("1"),
+        translated_name="translated_discount1_name",
+    ),
+
     order_with_payment = orders[0]
     payment = Payment.objects.create(order=order_with_payment)
     global_id = graphene.Node.to_global_id("Payment", payment.pk)
@@ -4830,14 +4964,12 @@ def test_draft_orders_query_with_filter_search(
     customer_user,
     channel_USD,
 ):
-    Order.objects.bulk_create(
+    orders = Order.objects.bulk_create(
         [
             Order(
                 user=customer_user,
                 token=str(uuid.uuid4()),
-                discount_name="test_discount1",
                 user_email="test@example.com",
-                translated_discount_name="translated_discount1_name",
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
             ),
@@ -4850,10 +4982,26 @@ def test_draft_orders_query_with_filter_search(
             Order(
                 token=str(uuid.uuid4()),
                 user_email="user2@example.com",
-                discount_name="test_discount2",
-                translated_discount_name="translated_discount2_name",
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
+            ),
+        ]
+    )
+    OrderDiscount.objects.bulk_create(
+        [
+            OrderDiscount(
+                order=orders[0],
+                name="test_discount1",
+                value=Decimal("1"),
+                amount_value=Decimal("1"),
+                translated_name="translated_discount1_name",
+            ),
+            OrderDiscount(
+                order=orders[2],
+                name="test_discount2",
+                value=Decimal("10"),
+                amount_value=Decimal("10"),
+                translated_name="translated_discount2_name",
             ),
         ]
     )

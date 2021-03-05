@@ -15,6 +15,7 @@ from requests.auth import HTTPBasicAuth
 
 from ...checkout import base_calculations
 from ...core.taxes import TaxError
+from ...order.utils import get_total_order_discount
 
 if TYPE_CHECKING:
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
@@ -293,14 +294,16 @@ def get_order_lines_data(
             name=line.variant.product.name,
             tax_included=tax_included,
         )
-    if order.discount_amount:
+
+    discount_amount = get_total_order_discount(order)
+    if discount_amount:
         append_line_to_data(
             data=data,
             quantity=1,
-            amount=order.discount_amount * -1,
+            amount=discount_amount.amount * -1,
             tax_code=COMMON_DISCOUNT_VOUCHER_CODE,
             item_code="Voucher",
-            name=order.discount_name,
+            name="Order discount",
             tax_included=True,  # Voucher should be always applied as a gross amount
         )
     append_shipping_to_data(data, order.shipping_method, order.channel_id)

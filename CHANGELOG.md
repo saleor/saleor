@@ -10,6 +10,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add missing span in PluginManager - #6900 by @fowczarek
 - Fix Sentry reporting - #6902 by @fowczarek
 - Fix removing page types in cleardb command - #6918 by @fowczarek
+- Add possibility to apply discount to order/order line with status `DRAFT` - #6930 by @korycins
+- Deprecate API fields `Order.discount`, `Order.discountName`, `Order.translatedDiscountName` - #6874 by @korycins
 - Fix argument validation in page resolver - #6960 by @fowczarek
 - Drop `data` field from checkout line model - #6961 by @fowczarek
 
@@ -24,6 +26,10 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop `CHECKOUT_QUANTITY_CHANGED` webhook - #6797 by @d-wysocki
 - Drop deprecated `taxRate` field from `ProductType` - #6795 by @d-wysocki
 - Remove resolving user's location from GeoIP; drop `PaymentInput.billingAddress` input field - #6784 by @maarcingebala
+- Change the payload of the order webhook to handle discounts list, added fields: `Order.discounts`,
+`OrderLine.unit_discount_amount`,`OrderLine.unit_discount_type`, `OrderLine.unit_discount_reason` , remove fields:
+`Order.discount_amount`, `Order.discount_name`, `Order.translated_discount_name`- #6874 by @korycins
+
 - Update checkout performance - introduce `CheckoutInfo` data class - #6958 by @IKarbowiak; Introduced changes in plugin methods definitions:
   - in the following methods, the `checkout` parameter changed to `checkout_info`:
     - `calculate_checkout_total`
