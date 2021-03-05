@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, List
 
-from ..checkout.utils import fetch_checkout_lines
+from ..checkout.fetch import fetch_checkout_lines
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import

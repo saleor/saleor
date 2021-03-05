@@ -19,7 +19,7 @@ from ...account.utils import (
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types.common import PermissionGroupError
-from ...core.utils import get_duplicates_ids
+from ...utils.validators import check_for_duplicates
 
 if TYPE_CHECKING:
     from ....account.models import User
@@ -219,8 +219,8 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         permission_fields = ("add_permissions", "remove_permissions", "permissions")
         user_fields = ("add_users", "remove_users", "users")
 
-        cls.check_for_duplicates(errors, data, permission_fields)
-        cls.check_for_duplicates(errors, data, user_fields)
+        cls.check_duplicates(errors, data, permission_fields)
+        cls.check_duplicates(errors, data, user_fields)
 
         if errors:
             raise ValidationError(errors)
@@ -387,7 +387,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
             cls.update_errors(errors, msg, "remove_users", code, params)
 
     @classmethod
-    def check_for_duplicates(
+    def check_duplicates(
         cls,
         errors: dict,
         input_data: dict,
@@ -397,19 +397,11 @@ class PermissionGroupUpdate(PermissionGroupCreate):
 
         Raise error if some of items are duplicated.
         """
-        add_field, remove_field, error_class_field = fields
-        duplicated_ids = get_duplicates_ids(
-            input_data.get(add_field), input_data.get(remove_field)
-        )
-        if duplicated_ids:
-            # add error
-            error_msg = (
-                "The same object cannot be in both list"
-                "for adding and removing items."
-            )
-            code = PermissionGroupErrorCode.DUPLICATED_INPUT_ITEM.value
-            params = {error_class_field: list(duplicated_ids)}
-            cls.update_errors(errors, error_msg, None, code, params)
+        error = check_for_duplicates(input_data, *fields)
+        if error:
+            error.code = PermissionGroupErrorCode.DUPLICATED_INPUT_ITEM.value
+            error_field = fields[2]
+            errors[error_field].append(error)
 
 
 class PermissionGroupDelete(ModelDeleteMutation):

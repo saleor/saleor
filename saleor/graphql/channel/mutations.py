@@ -231,11 +231,8 @@ class BaseChannelListingMutation(BaseMutation):
 
     @classmethod
     def clean_channels(
-        cls, info, input, errors: ErrorType, error_code, input_source=None
+        cls, info, input, errors: ErrorType, error_code, input_source="add_channels"
     ) -> Dict:
-        if not input_source:
-            input_source = "add_channels"
-
         add_channels = input.get(input_source, [])
         add_channels_ids = [channel["channel_id"] for channel in add_channels]
         remove_channels_ids = input.get("remove_channels", [])
@@ -269,9 +266,7 @@ class BaseChannelListingMutation(BaseMutation):
         return cleaned_input
 
     @classmethod
-    def clean_publication_date(cls, cleaned_input, input_source=None):
-        if not input_source:
-            input_source = "add_channels"
+    def clean_publication_date(cls, cleaned_input, input_source="add_channels"):
         for add_channel in cleaned_input.get(input_source, []):
             is_published = add_channel.get("is_published")
             publication_date = add_channel.get("publication_date")
