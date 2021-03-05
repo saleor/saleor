@@ -25,8 +25,8 @@ from django.http.response import HttpResponseRedirect
 from graphql_relay import from_global_id
 
 from ....checkout.complete_checkout import complete_checkout
+from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
-from ....checkout.utils import fetch_checkout_lines
 from ....core.transactions import transaction_with_commit_on_errors
 from ....core.utils.url import prepare_url
 from ....discount.utils import fetch_active_discounts
@@ -156,9 +156,10 @@ def create_order(payment, checkout):
     try:
         discounts = fetch_active_discounts()
         lines = fetch_checkout_lines(checkout)
+        checkout_info = fetch_checkout_info(checkout, lines, discounts)
         order, _, _ = complete_checkout(
             manager=manager,
-            checkout=checkout,
+            checkout_info=checkout_info,
             lines=lines,
             payment_data={},
             store_source=False,

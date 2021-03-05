@@ -1184,7 +1184,7 @@ def test_product_channel_listing_add_variant_duplicated_ids_in_add_and_remove(
         "productChannelListingErrors"
     ]
     assert len(errors) == 1
-    assert errors[0]["field"] == "input"
+    assert errors[0]["field"] == "addVariants"
     assert errors[0]["code"] == ProductErrorCode.DUPLICATED_INPUT_ITEM.name
     assert errors[0]["variants"] == variants
 
