@@ -198,9 +198,9 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
     def add_variants(cls, channel, add_variants: List[Dict]):
         if not add_variants:
             return
-        variants_id = cls.get_nodes_or_error(add_variants, "id", ProductVariant)
+        variants = cls.get_nodes_or_error(add_variants, "id", ProductVariant)
         variant_channel_listings = []
-        for variant in variants_id:
+        for variant in variants:
             variant_channel_listings.append(
                 ProductVariantChannelListing(channel=channel, variant=variant)
             )
@@ -228,17 +228,14 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
     ):
         if not remove_variants:
             return
-        variants_id = cls.get_nodes_or_error(remove_variants, "id", ProductVariant)
-        if (
-            len(variants_id)
-            == ProductVariantChannelListing.objects.filter(
-                channel=channel, variant__product_id=product
-            ).count()
-        ):
-            product_channel_listing.delete()
+        variants = cls.get_nodes_or_error(remove_variants, "id", ProductVariant)
         ProductVariantChannelListing.objects.filter(
-            channel=channel, variant_id__in=variants_id
+            channel=channel, variant__in=variants
         ).delete()
+        if not ProductVariantChannelListing.objects.filter(
+            channel=channel, variant__product_id=product
+        ).exists():
+            product_channel_listing.delete()
 
     @classmethod
     def remove_channels(cls, product: "ProductModel", remove_channels: List[Dict]):
