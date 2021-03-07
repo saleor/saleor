@@ -29,6 +29,7 @@ from ...core.types.common import OrderError
 from ...product.types import ProductVariant
 from ..types import Order, OrderLine
 from ..utils import (
+    prepare_insufficient_stock_order_validation_errors,
     validate_draft_order,
     validate_product_is_published_in_channel,
     validate_variant_channel_listings,
@@ -242,10 +243,18 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             return
         shipping_address = cleaned_input.get("shipping_address")
         if shipping_address and instance.is_shipping_required():
-            update_order_prices(instance, info.context.discounts)
+            update_order_prices(
+                instance,
+                info.context.plugins,
+                info.context.site.settings.include_taxes_in_prices,
+            )
         billing_address = cleaned_input.get("billing_address")
         if billing_address and not instance.is_shipping_required():
-            update_order_prices(instance, info.context.discounts)
+            update_order_prices(
+                instance,
+                info.context.plugins,
+                info.context.site.settings.include_taxes_in_prices,
+            )
 
     @classmethod
     @transaction.atomic
@@ -294,7 +303,9 @@ class DraftOrderUpdate(DraftOrderCreate):
 
     @classmethod
     def get_instance(cls, info, **data):
-        instance = super().get_instance(info, **data)
+        instance = super().get_instance(
+            info, qs=models.Order.objects.prefetch_related("lines"), **data
+        )
         if instance.status != OrderStatus.DRAFT:
             raise ValidationError(
                 {
@@ -369,14 +380,8 @@ class DraftOrderComplete(BaseMutation):
                 try:
                     allocate_stocks([line_data], country)
                 except InsufficientStock as exc:
-                    raise ValidationError(
-                        {
-                            "lines": ValidationError(
-                                f"Insufficient product stock: {', '.join(exc.items)}",
-                                code=OrderErrorCode.INSUFFICIENT_STOCK,
-                            )
-                        }
-                    )
+                    errors = prepare_insufficient_stock_order_validation_errors(exc)
+                    raise ValidationError({"lines": errors})
         order_created(order, user=info.context.user, from_draft=True)
 
         return DraftOrderComplete(order=order)

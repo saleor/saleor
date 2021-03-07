@@ -22,7 +22,7 @@ from django.test.utils import CaptureQueriesContext as BaseCaptureQueriesContext
 from django.utils import timezone
 from django_countries import countries
 from PIL import Image
-from prices import Money, TaxedMoney
+from prices import Money, TaxedMoney, fixed_discount
 
 from ..account.models import Address, StaffNotificationRecipient, User
 from ..app.models import App, AppInstallation
@@ -53,9 +53,13 @@ from ..discount.models import (
 )
 from ..giftcard.models import GiftCard
 from ..menu.models import Menu, MenuItem, MenuItemTranslation
-from ..order import OrderStatus
-from ..order.actions import cancel_fulfillment, fulfill_order_line
-from ..order.events import OrderEvents
+from ..order import OrderLineData, OrderStatus
+from ..order.actions import cancel_fulfillment, fulfill_order_lines
+from ..order.events import (
+    OrderEvents,
+    draft_order_added_products_event,
+    fulfillment_refunded_event,
+)
 from ..order.models import FulfillmentStatus, Order, OrderEvent, OrderLine
 from ..order.utils import recalculate_order
 from ..page.models import Page, PageTranslation, PageType
@@ -712,8 +716,8 @@ def shipping_method(shipping_zone, channel_USD):
 
 
 @pytest.fixture
-def shipping_method_excldued_by_zip_code(shipping_method):
-    shipping_method.zip_code_rules.create(start="HB2", end="HB6")
+def shipping_method_excluded_by_postal_code(shipping_method):
+    shipping_method.postal_code_rules.create(start="HB2", end="HB6")
     return shipping_method
 
 
@@ -2266,6 +2270,33 @@ def order_with_lines(
 
 
 @pytest.fixture
+def order_with_lines_and_events(order_with_lines, staff_user):
+    events = []
+    for event_type, _ in OrderEvents.CHOICES:
+        events.append(
+            OrderEvent(
+                type=event_type,
+                order=order_with_lines,
+                user=staff_user,
+            )
+        )
+    OrderEvent.objects.bulk_create(events)
+    fulfillment_refunded_event(
+        order=order_with_lines,
+        user=staff_user,
+        refunded_lines=[(1, order_with_lines.lines.first())],
+        amount=Decimal("10.0"),
+        shipping_costs_included=False,
+    )
+    draft_order_added_products_event(
+        order=order_with_lines,
+        user=staff_user,
+        order_lines=[(1, order_with_lines.lines.first())],
+    )
+    return order_with_lines
+
+
+@pytest.fixture
 def order_with_lines_channel_PLN(
     customer_user,
     product_type,
@@ -2445,9 +2476,17 @@ def fulfilled_order(order_with_lines):
     stock_2 = line_2.allocations.get().stock
     warehouse_2_pk = stock_2.warehouse.pk
     fulfillment.lines.create(order_line=line_1, quantity=line_1.quantity, stock=stock_1)
-    fulfill_order_line(line_1, line_1.quantity, warehouse_1_pk)
     fulfillment.lines.create(order_line=line_2, quantity=line_2.quantity, stock=stock_2)
-    fulfill_order_line(line_2, line_2.quantity, warehouse_2_pk)
+    fulfill_order_lines(
+        [
+            OrderLineData(
+                line=line_1, quantity=line_1.quantity, warehouse_pk=warehouse_1_pk
+            ),
+            OrderLineData(
+                line=line_2, quantity=line_2.quantity, warehouse_pk=warehouse_2_pk
+            ),
+        ],
+    )
     order.status = OrderStatus.FULFILLED
     order.save(update_fields=["status"])
     return order
@@ -2463,7 +2502,9 @@ def fulfilled_order_without_inventory_tracking(
     stock = line.variant.stocks.get()
     warehouse_pk = stock.warehouse.pk
     fulfillment.lines.create(order_line=line, quantity=line.quantity, stock=stock)
-    fulfill_order_line(line, line.quantity, warehouse_pk)
+    fulfill_order_lines(
+        [OrderLineData(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)]
+    )
     order.status = OrderStatus.FULFILLED
     order.save(update_fields=["status"])
     return order
@@ -2501,6 +2542,22 @@ def draft_order(order_with_lines):
     order_with_lines.status = OrderStatus.DRAFT
     order_with_lines.save(update_fields=["status"])
     return order_with_lines
+
+
+@pytest.fixture
+def draft_order_with_fixed_discount_order(draft_order):
+    value = Decimal("20")
+    discount = partial(fixed_discount, discount=Money(value, draft_order.currency))
+    draft_order.undiscounted_total = draft_order.total
+    draft_order.total = discount(draft_order.total)
+    draft_order.discounts.create(
+        value_type=DiscountValueType.FIXED,
+        value=value,
+        reason="Discount reason",
+        amount=(draft_order.undiscounted_total - draft_order.total).gross,  # type: ignore
+    )
+    draft_order.save()
+    return draft_order
 
 
 @pytest.fixture

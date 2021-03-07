@@ -1,11 +1,12 @@
 import graphene
 
 from ...page import models
+from ..core.validators import validate_one_of_args_is_in_query
 from .types import PageType
 
 
 def resolve_page(info, global_page_id=None, slug=None):
-    assert global_page_id or slug, "No page ID or slug provided."
+    validate_one_of_args_is_in_query("id", global_page_id, "slug", slug)
     user = info.context.user
 
     if slug is not None:
