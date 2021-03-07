@@ -1,8 +1,12 @@
+from decimal import Decimal
+from functools import partial
 from unittest import mock
 
 from measurement.measures import Weight
+from prices import Money, fixed_discount
 
 from ...core.notify_events import NotifyEventType
+from ...discount import DiscountValueType
 from ...order import notifications
 from ...plugins.manager import get_plugins_manager
 from ...product.models import DigitalContentUrl
@@ -85,6 +89,10 @@ def test_get_order_line_payload(order_line):
         "tax_rate": order_line.tax_rate,
         "is_digital": order_line.is_digital,
         "digital_url": "",
+        "unit_discount_amount": order_line.unit_discount_amount,
+        "unit_discount_reason": order_line.unit_discount_reason,
+        "unit_discount_type": order_line.unit_discount_type,
+        "unit_discount_value": order_line.unit_discount_value,
     }
 
 
@@ -110,17 +118,43 @@ def test_get_default_order_payload(order_line):
     order = order_line.order
     order_line_payload = get_order_line_payload(order_line)
     redirect_url = "http://redirect.com/path"
-    payload = get_default_order_payload(order, redirect_url)
     subtotal = order.get_subtotal()
+    order.total = subtotal + order.shipping_price
     tax = order.total_gross_amount - order.total_net_amount
+
+    value = Decimal("20")
+    discount = partial(fixed_discount, discount=Money(value, order.currency))
+    order.undiscounted_total = order.total
+    order.total = discount(order.total)
+    order.discounts.create(
+        value_type=DiscountValueType.FIXED,
+        value=value,
+        reason="Discount reason",
+        amount=(order.undiscounted_total - order.total).gross,
+        # type: ignore
+    )
+    order.save()
+
+    payload = get_default_order_payload(order, redirect_url)
+
     assert payload == {
+        "discounts": [
+            {
+                "amount_value": Decimal("20.000"),
+                "name": None,
+                "reason": "Discount reason",
+                "translated_name": None,
+                "type": "manual",
+                "value": Decimal("20.000"),
+                "value_type": "fixed",
+            }
+        ],
         "channel_slug": order.channel.slug,
         "id": order.id,
         "token": order.token,
         "created": order.created,
         "display_gross_prices": order.display_gross_prices,
         "currency": order.currency,
-        "discount_amount": order.discount_amount,
         "total_gross_amount": order.total_gross_amount,
         "total_net_amount": order.total_net_amount,
         "shipping_method_name": order.shipping_method_name,
@@ -134,11 +168,14 @@ def test_get_default_order_payload(order_line):
         "subtotal_gross_amount": subtotal.gross.amount,
         "subtotal_net_amount": subtotal.net.amount,
         "tax_amount": tax,
-        "discount_name": order.translated_discount_name or order.discount_name,
         "lines": [order_line_payload],
         "billing_address": get_address_payload(order.billing_address),
         "shipping_address": get_address_payload(order.shipping_address),
         "language_code": order.language_code,
+        "discount_amount": Decimal("20.000"),
+        "undiscounted_total_gross_amount": order.undiscounted_total.gross.amount,
+        "undiscounted_total_net_amount": order.undiscounted_total.net.amount,
+        "voucher_discount": None,
     }
 
 

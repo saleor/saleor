@@ -21,10 +21,10 @@ from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
 from ...core.utils import from_global_id_strict_type, get_duplicated_values
-from ...order.types import Fulfillment, FulfillmentLine, Order
 from ...utils import get_user_or_app_from_context
 from ...warehouse.types import Warehouse
-from ..types import OrderLine
+from ..types import Fulfillment, FulfillmentLine, Order, OrderLine
+from ..utils import prepare_insufficient_stock_order_validation_errors
 
 
 class OrderFulfillStockInput(graphene.InputObjectType):
@@ -218,24 +218,8 @@ class OrderFulfill(BaseMutation):
                 user, order, dict(lines_for_warehouses), notify_customer
             )
         except InsufficientStock as exc:
-            order_line_global_id = graphene.Node.to_global_id(
-                "OrderLine", exc.context["order_line"].pk
-            )
-            warehouse_global_id = graphene.Node.to_global_id(
-                "Warehouse", exc.context["warehouse_pk"]
-            )
-            raise ValidationError(
-                {
-                    "stocks": ValidationError(
-                        f"Insufficient product stock: {', '.join(exc.items)}",
-                        code=OrderErrorCode.INSUFFICIENT_STOCK,
-                        params={
-                            "order_line": order_line_global_id,
-                            "warehouse": warehouse_global_id,
-                        },
-                    )
-                }
-            )
+            errors = prepare_insufficient_stock_order_validation_errors(exc)
+            raise ValidationError({"stocks": errors})
 
         return OrderFulfill(fulfillments=fulfillments, order=order)
 

@@ -5,7 +5,7 @@ class ProductExportFields:
         "fields": {
             "id": "id",
             "name": "name",
-            "description": "description",
+            "description": "description_as_str",
             "category": "category__slug",
             "product type": "product_type__name",
             "charge taxes": "charge_taxes",

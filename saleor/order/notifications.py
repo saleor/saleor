@@ -7,6 +7,7 @@ from ..account.models import StaffNotificationRecipient
 from ..core.notifications import get_site_context
 from ..core.notify_events import NotifyEventType
 from ..core.utils.url import prepare_url
+from ..discount import OrderDiscountType
 from ..product.models import DigitalContentUrl, Product, ProductImage, ProductVariant
 from ..product.product_images import AVAILABLE_PRODUCT_SIZES, get_thumbnail
 from .models import FulfillmentLine, Order, OrderLine
@@ -108,6 +109,10 @@ def get_order_line_payload(line: "OrderLine"):
         "is_shipping_required": line.is_shipping_required,
         "is_digital": line.is_digital,
         "digital_url": digital_url,
+        "unit_discount_value": line.unit_discount_value,
+        "unit_discount_reason": line.unit_discount_reason,
+        "unit_discount_type": line.unit_discount_type,
+        "unit_discount_amount": line.unit_discount_amount,
     }
 
 
@@ -142,6 +147,33 @@ def get_address_payload(address):
     return address
 
 
+def get_discounts_payload(order):
+    order_discounts = order.discounts.all()
+    voucher_discount = None
+    all_discounts = []
+    discount_amount = 0
+    for order_discount in order_discounts:
+        dicount_obj = {
+            "type": order_discount.type,
+            "value_type": order_discount.value_type,
+            "value": order_discount.value,
+            "amount_value": order_discount.amount_value,
+            "name": order_discount.name,
+            "translated_name": order_discount.translated_name,
+            "reason": order_discount.reason,
+        }
+        all_discounts.append(dicount_obj)
+        if order_discount.type == OrderDiscountType.VOUCHER:
+            voucher_discount = dicount_obj
+        discount_amount += order_discount.amount_value
+
+    return {
+        "voucher_discount": voucher_discount,
+        "discounts": all_discounts,
+        "discount_amount": discount_amount,
+    }
+
+
 ORDER_MODEL_FIELDS = [
     "id",
     "token",
@@ -150,6 +182,8 @@ ORDER_MODEL_FIELDS = [
     "discount_amount",
     "total_gross_amount",
     "total_net_amount",
+    "undiscounted_total_gross_amount",
+    "undiscounted_total_net_amount",
     "status",
     "metadata",
     "private_metadata",
@@ -183,15 +217,13 @@ def get_default_order_payload(order: "Order", redirect_url: str = ""):
             "subtotal_gross_amount": subtotal.gross.amount,
             "subtotal_net_amount": subtotal.net.amount,
             "tax_amount": tax,
-            "discount_name": order.translated_discount_name or order.discount_name,
             "lines": get_lines_payload(lines),
             "billing_address": get_address_payload(order.billing_address),
             "shipping_address": get_address_payload(order.shipping_address),
             "shipping_method_name": order.shipping_method_name,
+            **get_discounts_payload(order),
         }
     )
-    if not order.discount_amount:
-        order_payload["discount_amount"] = 0
     return order_payload
 
 

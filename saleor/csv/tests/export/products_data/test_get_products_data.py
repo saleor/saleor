@@ -1,3 +1,5 @@
+import json
+
 from measurement.measures import Weight
 
 from .....attribute.models import Attribute, AttributeValue
@@ -18,8 +20,13 @@ from .utils import (
 
 def test_get_products_data(product, product_with_image, collection, image, channel_USD):
     # given
+    product.description = {
+        "blocks": [
+            {"data": {"text": "This is an example description."}, "type": "paragraph"}
+        ]
+    }
     product.weight = Weight(kg=5)
-    product.save()
+    product.save(update_fields=["description", "weight"])
 
     collection.products.add(product)
 
@@ -62,7 +69,7 @@ def test_get_products_data(product, product_with_image, collection, image, chann
         product_data = {
             "id": product.id,
             "name": product.name,
-            "description": product.description,
+            "description_as_str": json.dumps(product.description),
             "category__slug": product.category.slug,
             "product_type__name": product.product_type.name,
             "charge_taxes": product.charge_taxes,
