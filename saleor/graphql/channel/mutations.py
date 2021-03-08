@@ -62,6 +62,7 @@ class ChannelCreate(ModelMutation):
         return cleaned_input
 
     @classmethod
+    @transaction.atomic
     def _save_m2m(cls, info, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
         shipping_zones = cleaned_data.get("add_shipping_zones")
@@ -115,6 +116,7 @@ class ChannelUpdate(ModelMutation):
         return cleaned_input
 
     @classmethod
+    @transaction.atomic
     def _save_m2m(cls, info, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
         add_shipping_zones = cleaned_data.get("add_shipping_zones")
