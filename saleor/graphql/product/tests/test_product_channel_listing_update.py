@@ -49,7 +49,8 @@ mutation UpdateProductChannelListing(
             variants {
                 channelListings {
                     channel {
-                    slug}
+                        slug
+                    }
                 }
             }
         }
