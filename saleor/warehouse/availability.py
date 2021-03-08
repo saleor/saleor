@@ -84,9 +84,11 @@ def get_available_quantity(variant: "ProductVariant", country_code: str) -> int:
     return _get_available_quantity(stocks)
 
 
-def is_product_in_stock(product: "Product", country_code: str) -> bool:
+def is_product_in_stock(
+    product: "Product", country_code: str, channel_slug: str
+) -> bool:
     """Check if there is any variant of given product available in given country."""
-    stocks = Stock.objects.get_product_stocks_for_country(
-        country_code, product
+    stocks = Stock.objects.get_product_stocks_for_country_and_channel(
+        country_code, channel_slug, product
     ).annotate_available_quantity()
     return any(stocks.values_list("available_quantity", flat=True))
