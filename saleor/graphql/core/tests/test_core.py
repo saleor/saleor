@@ -327,14 +327,6 @@ def test_get_oembed_data(url, expected_media_type):
 )
 def test_get_oembed_data_unsupported_media_provider(url):
     with pytest.raises(
-        ValidationError, match="Incorrect URL or unsupported media provider."
+        ValidationError, match="Unsupported media provider or incorrect URL."
     ):
         get_oembed_data(url, "media_url")
-
-
-def test_get_oembed_data_unsupported_media_type():
-    with pytest.raises(ValidationError, match="Unsupported media type."):
-        get_oembed_data(
-            "https://soundcloud.com/andreasedstr-m/rick-astley-never-gonna-give",
-            "media_url",
-        )
