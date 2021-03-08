@@ -265,9 +265,15 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                 address, info.context.site.settings.company_address
             )
 
-        if not country_code:
-            return root.node.stocks.annotate_available_quantity()
-        return root.node.stocks.for_country(country_code).annotate_available_quantity()
+        stocks = root.node.stocks
+        if root.channel_slug:
+            channel_slug = str(root.channel_slug)
+            stocks = (
+                stocks.for_country(country_code, channel_slug)
+                if country_code
+                else stocks.for_channel(channel_slug)
+            )
+        return stocks.annotate_available_quantity()
 
     @staticmethod
     def resolve_quantity_available(

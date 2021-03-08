@@ -62,6 +62,16 @@ class StockQuerySet(models.QuerySet):
             - Coalesce(Sum("allocations__quantity_allocated"), 0)
         )
 
+    def for_channel(self, channel_slug: str):
+        query_warehouse = models.Subquery(
+            Warehouse.objects.filter(
+                shipping_zones__channels__slug=channel_slug
+            ).values("pk")
+        )
+        return self.select_related("product_variant", "warehouse").filter(
+            warehouse__in=query_warehouse
+        )
+
     def for_country(self, country_code: str, channel_slug=None):
         filter_lookup = {"shipping_zones__countries__contains": country_code}
         if channel_slug is not None:
