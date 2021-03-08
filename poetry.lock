@@ -165,20 +165,20 @@ d = ["aiohttp (>=3.3.2)", "aiohttp-cors"]
 
 [[package]]
 name = "boto3"
-version = "1.17.17"
+version = "1.17.22"
 description = "The AWS SDK for Python"
 category = "main"
 optional = false
 python-versions = ">= 2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*"
 
 [package.dependencies]
-botocore = ">=1.20.17,<1.21.0"
+botocore = ">=1.20.22,<1.21.0"
 jmespath = ">=0.7.1,<1.0.0"
 s3transfer = ">=0.3.0,<0.4.0"
 
 [[package]]
 name = "botocore"
-version = "1.20.17"
+version = "1.20.22"
 description = "Low-level, data-driven core of boto 3."
 category = "main"
 optional = false
@@ -2582,12 +2582,12 @@ black = [
     {file = "black-20.8b1.tar.gz", hash = "sha256:1c02557aa099101b9d21496f8a914e9ed2222ef70336404eeeac8edba836fbea"},
 ]
 boto3 = [
-    {file = "boto3-1.17.17-py2.py3-none-any.whl", hash = "sha256:f3314c513077dd74329380449338b424cb6fe96fceceb436eabafb5586131cfc"},
-    {file = "boto3-1.17.17.tar.gz", hash = "sha256:4523eab37ff005d5174083b59382cfd626b7890c08d56ce162a4bd92af7d44df"},
+    {file = "boto3-1.17.22-py2.py3-none-any.whl", hash = "sha256:ee03a05669c4e82021db8da61c1e7744f231b7481010917ed9066862c8d3cad9"},
+    {file = "boto3-1.17.22.tar.gz", hash = "sha256:4e177c9dd4ac45d9e41867cfb747f4c985d6b05ff14637ac5861a60daa95c7c1"},
 ]
 botocore = [
-    {file = "botocore-1.20.17-py2.py3-none-any.whl", hash = "sha256:931d16867dbb0fa60843204dc88ea01fd9d1ce8c28294ec4865fdf96adddbc29"},
-    {file = "botocore-1.20.17.tar.gz", hash = "sha256:178ce315d19fe0ef33e8ce6754a482d009e8d132c5adcc457f5cf1d99a98753b"},
+    {file = "botocore-1.20.22-py2.py3-none-any.whl", hash = "sha256:e92e22275ddc15b80015ee630b14ac3701bd9834bffc0814a65a894d490d2eaf"},
+    {file = "botocore-1.20.22.tar.gz", hash = "sha256:32e86f9d18555bd3b4dc694a2639a1c1fc8c8b42a49da543b95ac9d04c40770b"},
 ]
 braintree = [
     {file = "braintree-4.6.0-py2.py3-none-any.whl", hash = "sha256:d3aa0e29eb3923574a58e8ee3219566c918ff161c98f2de715ba29cb715169c7"},
