@@ -738,7 +738,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         )
 
         def calculate_is_available(product_channel_listing):
-            in_stock = is_product_in_stock(root.node, country_code)
+            in_stock = is_product_in_stock(root.node, country_code, channel_slug)
             is_visible = False
             if product_channel_listing:
                 is_visible = product_channel_listing.is_available_for_purchase()
