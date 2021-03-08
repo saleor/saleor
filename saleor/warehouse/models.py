@@ -38,7 +38,7 @@ class Warehouse(ModelWithMetadata):
 
     objects = WarehouseQueryset.as_manager()
 
-    class Meta:
+    class Meta(ModelWithMetadata.Meta):
         ordering = ("-slug",)
 
     def __str__(self):

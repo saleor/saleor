@@ -157,7 +157,7 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
 
     objects = UserManager()
 
-    class Meta:
+    class Meta(ModelWithMetadata.Meta):
         ordering = ("email",)
         permissions = (
             (AccountPermissions.MANAGE_USERS.codename, "Manage customers."),
