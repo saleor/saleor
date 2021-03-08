@@ -158,6 +158,10 @@ def _get_edges_for_connection(edge_type, qs, args, sorting_fields):
     cursor = after or before
     requested_count = first or last
 
+    # If we don't receive `first` and `last` we shouldn't build `edges` and `page_info`
+    if not first and not last:
+        return [], {}
+
     if last:
         start_slice, end_slice = 1, None
     else:
@@ -218,7 +222,10 @@ def connection_from_queryset_slice(
     qs = qs[:end_margin]
     edges, page_info = _get_edges_for_connection(edge_type, qs, args, sorting_fields)
 
-    return connection_type(edges=edges, page_info=pageinfo_type(**page_info),)
+    return connection_type(
+        edges=edges,
+        page_info=pageinfo_type(**page_info),
+    )
 
 
 class NonNullConnection(Connection):
