@@ -1,6 +1,7 @@
 import datetime
 from typing import Any
 
+from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 from django.db.models import JSONField  # type: ignore
 from django.db.models import F, Max, Q
@@ -79,6 +80,10 @@ class ModelWithMetadata(models.Model):
     metadata = JSONField(blank=True, null=True, default=dict, encoder=CustomJsonEncoder)
 
     class Meta:
+        indexes = [
+            GinIndex(fields=["private_metadata"], name="%(class)s_p_meta_idx"),
+            GinIndex(fields=["metadata"], name="%(class)s_meta_idx"),
+        ]
         abstract = True
 
     def get_value_from_private_metadata(self, key: str, default: Any = None) -> Any:
