@@ -60,6 +60,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add product description_plaintext to populatedb - #6894 by @d-wysocki
 - Add uploading video URLs to product's gallery - #6838 by @GrzegorzDerdak
 - Deallocate stocks for order lines in a bulk way - #6896 by @IKarbowiak
+- Prevent negative available quantity - #6897 by @d-wysocki
 
 # 2.11.1
 
