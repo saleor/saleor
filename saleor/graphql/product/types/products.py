@@ -67,7 +67,7 @@ from ...utils import (
 )
 from ...utils.filters import reporting_period_to_date
 from ...warehouse.dataloaders import (
-    AvailableQuantityByProductVariantIdAndCountryCodeLoader,
+    AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader,
 )
 from ...warehouse.types import Stock
 from ..dataloaders import (
@@ -284,9 +284,9 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         if not root.node.track_inventory:
             return settings.MAX_CHECKOUT_LINE_QUANTITY
 
-        return AvailableQuantityByProductVariantIdAndCountryCodeLoader(
+        return AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
             info.context
-        ).load((root.node.id, country_code))
+        ).load((root.node.id, country_code, root.channel_slug))
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
