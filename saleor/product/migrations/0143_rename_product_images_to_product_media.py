@@ -33,7 +33,7 @@ def migrate_images_content_to_media(apps, _schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("product", "0141_update_descritpion_fields"),
+        ("product", "0142_auto_20210308_1135"),
     ]
 
     operations = [

@@ -8,8 +8,13 @@ from django.test import override_settings
 from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from ....checkout import CheckoutLineInfo, calculations
-from ....checkout.utils import add_variant_to_checkout, fetch_checkout_lines
+from ....checkout import calculations
+from ....checkout.fetch import (
+    CheckoutLineInfo,
+    fetch_checkout_info,
+    fetch_checkout_lines,
+)
+from ....checkout.utils import add_variant_to_checkout
 from ....core.prices import quantize_price
 from ....core.taxes import zero_taxed_money
 from ....product.models import Product
@@ -244,9 +249,8 @@ def test_calculate_checkout_total(
 
     discounts = [discount_info] if with_discount else None
     lines = fetch_checkout_lines(checkout_with_item)
-    total = manager.calculate_checkout_total(
-        checkout_with_item, lines, address, discounts
-    )
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts)
+    total = manager.calculate_checkout_total(checkout_info, lines, address, discounts)
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
         net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
@@ -293,8 +297,9 @@ def test_calculate_checkout_subtotal(
     discounts = [discount_info] if with_discount else None
     add_variant_to_checkout(checkout_with_item, variant, 2)
     lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts)
     total = manager.calculate_checkout_subtotal(
-        checkout_with_item, lines, address, discounts
+        checkout_info, lines, address, discounts
     )
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
@@ -385,12 +390,12 @@ def test_calculate_checkout_line_total(
         product=line.variant.product,
         collections=[],
     )
+    checkout_info = fetch_checkout_info(checkout_with_item, [checkout_line_info], [])
 
     line_price = manager.calculate_checkout_line_total(
-        checkout_with_item,
+        checkout_info,
         checkout_line_info,
         address,
-        channel,
         [],
     )
 
@@ -430,15 +435,15 @@ def test_calculate_checkout_line_unit_price(
         product=line.variant.product,
         collections=[],
     )
+    checkout_info = fetch_checkout_info(checkout_with_item, [checkout_line_info], [])
 
     line_price = manager.calculate_checkout_line_unit_price(
         total_price,
         line.quantity,
-        checkout_with_item,
+        checkout_info,
         checkout_line_info,
         address,
         [],
-        channel,
     )
 
     assert line_price == TaxedMoney(
@@ -553,9 +558,10 @@ def test_calculations_checkout_total_with_vatlayer(
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [])
     checkout_subtotal = calculations.checkout_total(
         manager=manager,
-        checkout=checkout_with_item,
+        checkout_info=checkout_info,
         lines=lines,
         address=checkout_with_item.shipping_address,
     )
@@ -570,9 +576,10 @@ def test_calculations_checkout_subtotal_with_vatlayer(
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [])
     checkout_subtotal = calculations.checkout_subtotal(
         manager=manager,
-        checkout=checkout_with_item,
+        checkout_info=checkout_info,
         lines=lines,
         address=checkout_with_item.shipping_address,
     )
@@ -587,9 +594,10 @@ def test_calculations_checkout_shipping_price_with_vatlayer(
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [])
     checkout_shipping_price = calculations.checkout_shipping_price(
         manager=manager,
-        checkout=checkout_with_item,
+        checkout_info=checkout_info,
         lines=lines,
         address=checkout_with_item.shipping_address,
     )
@@ -644,8 +652,9 @@ def test_get_checkout_line_tax_rate(
         collections=[],
     )
 
+    checkout_info = fetch_checkout_info(checkout_with_item, [checkout_line_info], [])
     tax_rate = manager.get_checkout_line_tax_rate(
-        checkout_with_item,
+        checkout_info,
         checkout_line_info,
         checkout_with_item.shipping_address,
         [],
@@ -680,9 +689,10 @@ def test_get_checkout_line_tax_rate_order_not_valid(
         product=variant.product,
         collections=[],
     )
+    checkout_info = fetch_checkout_info(checkout_with_item, [checkout_line_info], [])
 
     tax_rate = manager.get_checkout_line_tax_rate(
-        checkout_with_item,
+        checkout_info,
         checkout_line_info,
         checkout_with_item.shipping_address,
         [],
@@ -776,9 +786,10 @@ def test_get_checkout_shipping_tax_rate(
         product=variant.product,
         collections=[],
     )
+    checkout_info = fetch_checkout_info(checkout_with_item, [checkout_line_info], [])
 
     tax_rate = manager.get_checkout_shipping_tax_rate(
-        checkout_with_item,
+        checkout_info,
         [checkout_line_info],
         checkout_with_item.shipping_address,
         [],
@@ -813,9 +824,10 @@ def test_get_checkout_shipping_tax_rate_no_address(
         product=variant.product,
         collections=[],
     )
+    checkout_info = fetch_checkout_info(checkout_with_item, [checkout_line_info], [])
 
     tax_rate = manager.get_checkout_shipping_tax_rate(
-        checkout_with_item,
+        checkout_info,
         checkout_line_info,
         checkout_with_item.shipping_address,
         [],
@@ -857,9 +869,10 @@ def test_get_checkout_shipping_tax_rate_skip_plugin(
         product=variant.product,
         collections=[],
     )
+    checkout_info = fetch_checkout_info(checkout_with_item, [checkout_line_info], [])
 
     tax_rate = manager.get_checkout_shipping_tax_rate(
-        checkout_with_item,
+        checkout_info,
         checkout_line_info,
         checkout_with_item.shipping_address,
         [],
