@@ -76,14 +76,6 @@ def check_stock_quantity_bulk(variants, country_code, quantities):
         raise InsufficientStock(insufficient_stocks)
 
 
-def get_available_quantity(variant: "ProductVariant", country_code: str) -> int:
-    """Return available quantity for given product in given country."""
-    stocks = Stock.objects.get_variant_stocks_for_country(country_code, variant)
-    if not stocks:
-        return 0
-    return _get_available_quantity(stocks)
-
-
 def is_product_in_stock(
     product: "Product", country_code: str, channel_slug: str
 ) -> bool:
