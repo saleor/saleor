@@ -4,6 +4,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Fix total count on connection resolver without first or last - #6976 by @fowczarek
+
 # 2.11.8
 
 - Deprecate `Shop.geolocalization` query - #6828 by @maarcingebala
