@@ -614,6 +614,7 @@ def shipping_zone(db, channel_USD):  # pylint: disable=W0613
     shipping_zone = ShippingZone.objects.create(
         name="Europe", countries=[code for code, name in countries]
     )
+    shipping_zone.channels.add(channel_USD)
     method = shipping_zone.shipping_methods.create(
         name="DHL",
         type=ShippingMethodType.PRICE_BASED,
@@ -637,6 +638,10 @@ def shipping_zones(db, channel_USD, channel_PLN):
             ShippingZone(name="USA", countries=["US"]),
         ]
     )
+
+    shipping_zone_poland.channels.add(channel_PLN, channel_USD)
+    shipping_zone_usa.channels.add(channel_PLN, channel_USD)
+
     method = shipping_zone_poland.shipping_methods.create(
         name="DHL",
         type=ShippingMethodType.PRICE_BASED,
