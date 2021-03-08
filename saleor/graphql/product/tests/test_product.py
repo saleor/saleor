@@ -1492,6 +1492,43 @@ def test_fetch_product_from_category_query(
     assert variant_channel_listing.cost_price.amount == variant_cost
 
 
+def test_query_products_no_channel_shipping_zones(
+    staff_api_client, product, permission_manage_products, stock, channel_USD
+):
+    channel_USD.shipping_zones.clear()
+    category = Category.objects.first()
+    product = category.products.first()
+    query = """
+    query CategoryProducts($id: ID, $channel: String, $address: AddressInput) {
+        category(id: $id) {
+            products(first: 20, channel: $channel) {
+                edges {
+                    node {
+                        id
+                        name
+                        isAvailable(address: $address)
+                    }
+                }
+            }
+        }
+    }
+    """
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    variables = {
+        "id": graphene.Node.to_global_id("Category", category.id),
+        "channel": channel_USD.slug,
+        "address": {"country": "US"},
+    }
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["category"] is not None
+    product_edges_data = content["data"]["category"]["products"]["edges"]
+    assert len(product_edges_data) == category.products.count()
+    product_data = product_edges_data[0]["node"]
+    assert product_data["name"] == product.name
+    assert product_data["isAvailable"] is False
+
+
 def test_products_query_with_filter_attributes(
     query_products_with_filter, staff_api_client, product, permission_manage_products
 ):
