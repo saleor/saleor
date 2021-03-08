@@ -71,7 +71,7 @@ from ...utils import (
 from ...utils.filters import reporting_period_to_date
 from ...warehouse.dataloaders import (
     AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader,
-    StocksWithAvailableQuantityByProductVariantIdAndCountryCodeLoader,
+    StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChanneLoader,
 )
 from ...warehouse.types import Stock
 from ..dataloaders import (
@@ -277,9 +277,9 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                 address, info.context.site.settings.company_address
             )
 
-        return StocksWithAvailableQuantityByProductVariantIdAndCountryCodeLoader(
+        return StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChanneLoader(
             info.context
-        ).load((root.node.id, country_code))
+        ).load((root.node.id, country_code, root.channel_slug))
 
     @staticmethod
     def resolve_quantity_available(

@@ -258,6 +258,68 @@ def test_get_product_variant_channel_listing_as_anonymous(
     assert_no_permission(response)
 
 
+QUERY_PRODUCT_VARIANT_STOCKS = """
+    query ProductVariantDetails($id: ID!, $channel: String) {
+        productVariant(id: $id, channel: $channel) {
+            id
+            stocks{
+                id
+                quantity
+                warehouse{
+                    slug
+                }
+            }
+        }
+    }
+"""
+
+
+def test_get_product_variant_stocks(
+    staff_api_client, variant_with_many_stocks, channel_USD, permission_manage_products
+):
+    # given
+    variant = variant_with_many_stocks
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {"id": variant_id, "channel": channel_USD.slug}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_VARIANT_STOCKS,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    stocks_count = variant.stocks.count()
+    data = content["data"]["productVariant"]
+    assert len(data["stocks"]) == stocks_count
+
+
+def test_get_product_variant_stocks_no_channel_shipping_zones(
+    staff_api_client, variant_with_many_stocks, channel_USD, permission_manage_products
+):
+    # given
+    channel_USD.shipping_zones.clear()
+    variant = variant_with_many_stocks
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {"id": variant_id, "channel": channel_USD.slug}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_VARIANT_STOCKS,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    stocks_count = variant.stocks.count()
+    data = content["data"]["productVariant"]
+    assert data["stocks"] == []
+    assert stocks_count > 0
+
+
 CREATE_VARIANT_MUTATION = """
       mutation createVariant (
             $productId: ID!,
