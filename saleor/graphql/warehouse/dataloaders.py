@@ -4,13 +4,14 @@ from typing import DefaultDict, Iterable, List, Optional, Tuple
 from django.conf import settings
 
 from ...warehouse.models import Stock
+from ..channel.dataloaders import ChannelBySlugLoader
 from ..core.dataloaders import DataLoader
 
 CountryCode = Optional[str]
 VariantIdAndCountryCode = Tuple[int, CountryCode]
 
 
-class AvailableQuantityByProductVariantIdAndCountryCodeLoader(
+class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
     DataLoader[VariantIdAndCountryCode, int]
 ):
     """Calculates available variant quantity based on variant ID and country code.
@@ -23,70 +24,94 @@ class AvailableQuantityByProductVariantIdAndCountryCodeLoader(
     context_key = "available_quantity_by_productvariant_and_country"
 
     def batch_load(self, keys):
-        # Split the list of keys by country first. A typical query will only touch
-        # a handful of unique countries but may access thousands of product variants
-        # so it's cheaper to execute one query per country.
-        variants_by_country: DefaultDict[CountryCode, List[int]] = defaultdict(list)
-        for variant_id, country_code in keys:
-            variants_by_country[country_code].append(variant_id)
+        def with_channels(channels):
+            # Split the list of keys by country first. A typical query will only touch
+            # a handful of unique countries but may access thousands of product variants
+            # so it's cheaper to execute one query per country.
+            variants_by_country_and_channel: DefaultDict[
+                CountryCode, List[int]
+            ] = defaultdict(list)
+            for variant_id, country_code, channel_slug in keys:
+                variants_by_country_and_channel[(country_code, channel_slug)].append(
+                    variant_id
+                )
 
-        # For each country code execute a single query for all product variants.
-        quantity_by_variant_and_country: DefaultDict[
-            VariantIdAndCountryCode, int
-        ] = defaultdict(int)
-        for country_code, variant_ids in variants_by_country.items():
-            quantities = self.batch_load_country(country_code, variant_ids)
-            for variant_id, quantity in quantities:
-                quantity_by_variant_and_country[(variant_id, country_code)] = quantity
+            channel_map = {channel.slug: channel for channel in channels}
 
-        return [quantity_by_variant_and_country[key] for key in keys]
+            # For each country code execute a single query for all product variants.
+            quantity_by_variant_and_country: DefaultDict[
+                VariantIdAndCountryCode, int
+            ] = defaultdict(int)
+            for key, variant_ids in variants_by_country_and_channel.items():
+                country_code, channel_slug = key
+                quantities = batch_load_country(
+                    country_code, channel_map[channel_slug], variant_ids
+                )
+                for variant_id, quantity in quantities:
+                    quantity_by_variant_and_country[
+                        (variant_id, country_code, channel_slug)
+                    ] = quantity
 
-    def batch_load_country(
-        self, country_code: CountryCode, variant_ids: Iterable[int]
-    ) -> Iterable[Tuple[int, int]]:
-        results = Stock.objects.filter(product_variant_id__in=variant_ids)
-        if country_code:
-            results = results.filter(
-                warehouse__shipping_zones__countries__contains=country_code
+            return [quantity_by_variant_and_country[key] for key in keys]
+
+        def batch_load_country(
+            country_code: CountryCode, channel, variant_ids: Iterable[int]
+        ) -> Iterable[Tuple[int, int]]:
+            # get stocks only for warehouses assigned to the shipping zones
+            # that are available in the given channel
+            channel_shipping_zones = channel.shipping_zones.values_list("id", flat=True)
+            results = Stock.objects.filter(product_variant_id__in=variant_ids).filter(
+                warehouse__shipping_zones__id__in=channel_shipping_zones
             )
-        results = results.annotate_available_quantity()
-        results = results.values_list(
-            "product_variant_id", "warehouse__shipping_zones", "available_quantity"
-        )
-
-        # A single country code (or a missing country code) can return results from
-        # multiple shipping zones. We want to combine all quantities within a single
-        # zone and then find out which zone contains the highest total.
-        quantity_by_shipping_zone_by_product_variant: DefaultDict[
-            int, DefaultDict[int, int]
-        ] = defaultdict(lambda: defaultdict(int))
-        for variant_id, shipping_zone_id, quantity in results:
-            quantity_by_shipping_zone_by_product_variant[variant_id][
-                shipping_zone_id
-            ] += quantity
-        quantity_map: DefaultDict[int, int] = defaultdict(int)
-        for (
-            variant_id,
-            quantity_by_shipping_zone,
-        ) in quantity_by_shipping_zone_by_product_variant.items():
-            quantity_values = quantity_by_shipping_zone.values()
             if country_code:
-                # When country code is known, return the sum of quantities from all
-                # shipping zones supporting given country.
-                quantity_map[variant_id] = sum(quantity_values)
-            else:
-                # When country code is unknown, return the highest known quantity.
-                quantity_map[variant_id] = max(quantity_values)
-
-        # Return the quantities after capping them at the maximum quantity allowed in
-        # checkout. This prevent users from tracking the store's precise stock levels.
-        return [
-            (
-                variant_id,
-                min(quantity_map[variant_id], settings.MAX_CHECKOUT_LINE_QUANTITY),
+                results = results.filter(
+                    warehouse__shipping_zones__countries__contains=country_code
+                )
+            results = results.annotate_available_quantity()
+            results = results.values_list(
+                "product_variant_id", "warehouse__shipping_zones", "available_quantity"
             )
-            for variant_id in variant_ids
-        ]
+
+            # A single country code (or a missing country code) can return results from
+            # multiple shipping zones. We want to combine all quantities within a single
+            # zone and then find out which zone contains the highest total.
+            quantity_by_shipping_zone_by_product_variant: DefaultDict[
+                int, DefaultDict[int, int]
+            ] = defaultdict(lambda: defaultdict(int))
+            for variant_id, shipping_zone_id, quantity in results:
+                quantity_by_shipping_zone_by_product_variant[variant_id][
+                    shipping_zone_id
+                ] += quantity
+            quantity_map: DefaultDict[int, int] = defaultdict(int)
+            for (
+                variant_id,
+                quantity_by_shipping_zone,
+            ) in quantity_by_shipping_zone_by_product_variant.items():
+                quantity_values = quantity_by_shipping_zone.values()
+                if country_code:
+                    # When country code is known, return the sum of quantities from all
+                    # shipping zones supporting given country.
+                    quantity_map[variant_id] = sum(quantity_values)
+                else:
+                    # When country code is unknown, return the highest known quantity.
+                    quantity_map[variant_id] = max(quantity_values)
+
+            # Return the quantities after capping them at the maximum quantity allowed
+            # in checkout. This prevent users from tracking the store's precise
+            # stock levels.
+            return [
+                (
+                    variant_id,
+                    min(quantity_map[variant_id], settings.MAX_CHECKOUT_LINE_QUANTITY),
+                )
+                for variant_id in variant_ids
+            ]
+
+        return (
+            ChannelBySlugLoader(self.context)
+            .load_many({slug for _, _, slug in keys})
+            .then(with_channels)
+        )
 
 
 class StocksWithAvailableQuantityByProductVariantIdAndCountryCodeLoader(
