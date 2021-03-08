@@ -4886,7 +4886,8 @@ type ShippingZone implements Node & ObjectWithMetadata {
   priceRange: MoneyRange
   countries: [CountryDisplay]
   shippingMethods: [ShippingMethod]
-  warehouses: [Warehouse]
+  warehouses: [Warehouse!]!
+  channels: [Channel!]!
   description: String
 }
 
@@ -4919,6 +4920,7 @@ input ShippingZoneCreateInput {
   countries: [String]
   default: Boolean
   addWarehouses: [ID]
+  addChannels: [ID!]
 }
 
 type ShippingZoneDelete {
@@ -4939,7 +4941,9 @@ input ShippingZoneUpdateInput {
   countries: [String]
   default: Boolean
   addWarehouses: [ID]
+  addChannels: [ID!]
   removeWarehouses: [ID]
+  removeChannels: [ID!]
 }
 
 type Shop {
