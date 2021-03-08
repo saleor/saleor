@@ -83,6 +83,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Change the `app` query to return info about the currently authenticated app - #6928 by @d-wysocki
 - Add default sorting by rank for search products - #6936 by @d-wysocki
 - Fix exporting product description to xlsx - #6959 by @IKarbowiak
+- Add `Shop.version` field to query API version - #6980 by @maarcingebala
 
 # 2.11.1
 
