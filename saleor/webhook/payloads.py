@@ -305,9 +305,7 @@ def generate_fulfillment_payload(fulfillment: Fulfillment):
     if fulfillment_line and fulfillment_line.stock:
         warehouse = fulfillment_line.stock.warehouse
     else:
-        warehouse = Warehouse.objects.for_country(
-            order_country, order.channel.slug
-        ).first()
+        warehouse = Warehouse.objects.for_country(order_country).first()
     fulfillment_data = serializer.serialize(
         [fulfillment],
         fields=fulfillment_fields,
