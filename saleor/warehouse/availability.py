@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, Dict, Iterable, List
 
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
@@ -37,7 +37,12 @@ def check_stock_quantity(variant: "ProductVariant", country_code: str, quantity:
             raise InsufficientStock([InsufficientStockData(variant=variant)])
 
 
-def check_stock_quantity_bulk(variants, country_code, quantities, channel_slug=None):
+def check_stock_quantity_bulk(
+    variants: Iterable["ProductVariant"],
+    country_code: str,
+    quantities: Iterable[int],
+    channel_slug: str,
+):
     """Validate if there is stock available for given variants in given country.
 
     :raises InsufficientStock: when there is not enough items in stock for a variant.
@@ -48,14 +53,16 @@ def check_stock_quantity_bulk(variants, country_code, quantities, channel_slug=N
         .annotate_available_quantity()
     )
 
-    variant_stocks = defaultdict(list)
+    variant_stocks: Dict[int, List[Stock]] = defaultdict(list)
     for stock in all_variants_stocks:
         variant_stocks[stock.product_variant_id].append(stock)
 
     insufficient_stocks: List[InsufficientStockData] = []
     for variant, quantity in zip(variants, quantities):
         stocks = variant_stocks.get(variant.pk, [])
-        available_quantity = sum([stock.available_quantity for stock in stocks])
+        available_quantity = sum(
+            [stock.available_quantity for stock in stocks]  # type: ignore
+        )
 
         if not stocks:
             insufficient_stocks.append(
