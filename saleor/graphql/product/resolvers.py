@@ -47,20 +47,28 @@ def resolve_digital_contents(_info):
     return models.DigitalContent.objects.all()
 
 
-def resolve_product_by_id(info, id, channel_slug, requestor):
-    return (
-        models.Product.objects.visible_to_user(requestor, channel_slug=channel_slug)
-        .filter(id=id)
-        .first()
-    )
+def resolve_product_by_id(
+    info, id, channel_slug, requestor, requestor_has_access_to_all
+):
+    visible_products = models.Product.objects.visible_to_user(requestor, channel_slug)
+    if not requestor_has_access_to_all:
+        visible_products = visible_products.annotate_visible_in_listings(
+            channel_slug
+        ).exclude(visible_in_listings=False)
+
+    return visible_products.filter(id=id).first()
 
 
-def resolve_product_by_slug(info, product_slug, channel_slug, requestor):
-    return (
-        models.Product.objects.visible_to_user(requestor, channel_slug=channel_slug)
-        .filter(slug=product_slug)
-        .first()
-    )
+def resolve_product_by_slug(
+    info, product_slug, channel_slug, requestor, requestor_has_access_to_all
+):
+    visible_products = models.Product.objects.visible_to_user(requestor, channel_slug)
+    if not requestor_has_access_to_all:
+        visible_products = visible_products.annotate_visible_in_listings(
+            channel_slug
+        ).exclude(visible_in_listings=False)
+
+    return visible_products.filter(slug=product_slug).first()
 
 
 def resolve_products(
@@ -76,11 +84,15 @@ def resolve_products(
     return ChannelQsContext(qs=qs.distinct(), channel_slug=channel_slug)
 
 
-def resolve_variant_by_id(info, id, channel_slug, requestor):
-    visible_products = models.Product.objects.visible_to_user(
-        requestor, channel_slug
-    ).values_list("pk", flat=True)
-    qs = models.ProductVariant.objects.filter(product__id__in=visible_products)
+def resolve_variant_by_id(
+    info, id, channel_slug, requestor, requestor_has_access_to_all
+):
+    visible_products = models.Product.objects.visible_to_user(requestor, channel_slug)
+    if not requestor_has_access_to_all:
+        visible_products = visible_products.annotate_visible_in_listings(
+            channel_slug
+        ).exclude(visible_in_listings=False)
+    qs = models.ProductVariant.objects.filter(product__in=visible_products)
     return qs.filter(pk=id).first()
 
 
@@ -98,7 +110,7 @@ def resolve_product_variant_by_sku(
         ).exclude(visible_in_listings=False)
 
     return (
-        models.ProductVariant.objects.filter(product__id__in=visible_products)
+        models.ProductVariant.objects.filter(product__in=visible_products)
         .filter(sku=sku)
         .first()
     )
@@ -113,7 +125,7 @@ def resolve_product_variants(
             channel_slug
         ).exclude(visible_in_listings=False)
 
-    qs = models.ProductVariant.objects.filter(product__id__in=visible_products)
+    qs = models.ProductVariant.objects.filter(product__in=visible_products)
     if ids:
         db_ids = [get_database_id(info, node_id, "ProductVariant") for node_id in ids]
         qs = qs.filter(pk__in=db_ids)

@@ -302,11 +302,19 @@ class ProductQueries(graphene.ObjectType):
         if id:
             _, id = graphene.Node.from_global_id(id)
             product = resolve_product_by_id(
-                info, id, channel_slug=channel, requestor=requestor
+                info,
+                id,
+                channel_slug=channel,
+                requestor=requestor,
+                requestor_has_access_to_all=is_staff,
             )
         else:
             product = resolve_product_by_slug(
-                info, product_slug=slug, channel_slug=channel, requestor=requestor
+                info,
+                product_slug=slug,
+                channel_slug=channel,
+                requestor=requestor,
+                requestor_has_access_to_all=is_staff,
             )
         return ChannelContext(node=product, channel_slug=channel) if product else None
 
@@ -337,7 +345,11 @@ class ProductQueries(graphene.ObjectType):
         if id:
             _, id = graphene.Node.from_global_id(id)
             variant = resolve_variant_by_id(
-                info, id, channel_slug=channel, requestor=requestor
+                info,
+                id,
+                channel_slug=channel,
+                requestor=requestor,
+                requestor_has_access_to_all=is_staff,
             )
         else:
             variant = resolve_product_variant_by_sku(
