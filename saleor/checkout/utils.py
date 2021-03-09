@@ -51,7 +51,12 @@ def get_user_checkout(
 
 
 def check_variant_in_stock(
-    checkout, variant, quantity=1, replace=False, check_quantity=True
+    checkout: Checkout,
+    variant: product_models.ProductVariant,
+    channel_slug: str,
+    quantity: int = 1,
+    replace: bool = False,
+    check_quantity: bool = True,
 ) -> Tuple[int, Optional[CheckoutLine]]:
     """Check if a given variant is in stock and return the new quantity + line."""
     line = checkout.lines.filter(variant=variant).first()
@@ -65,19 +70,26 @@ def check_variant_in_stock(
         )
 
     if new_quantity > 0 and check_quantity:
-        check_stock_quantity(variant, checkout.get_country(), new_quantity)
+        check_stock_quantity(
+            variant, checkout.get_country(), channel_slug, new_quantity
+        )
 
     return new_quantity, line
 
 
 def add_variant_to_checkout(
-    checkout, variant, quantity=1, replace=False, check_quantity=True
+    checkout_info: "CheckoutInfo",
+    variant: product_models.ProductVariant,
+    quantity: int = 1,
+    replace: bool = False,
+    check_quantity: bool = True,
 ):
     """Add a product variant to checkout.
 
     If `replace` is truthy then any previous quantity is discarded instead
     of added to.
     """
+    checkout = checkout_info.checkout
     product_channel_listing = variant.product.channel_listings.filter(
         channel_id=checkout.channel_id
     ).first()
@@ -87,6 +99,7 @@ def add_variant_to_checkout(
     new_quantity, line = check_variant_in_stock(
         checkout,
         variant,
+        checkout_info.channel.slug,
         quantity=quantity,
         replace=replace,
         check_quantity=check_quantity,
