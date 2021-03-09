@@ -359,6 +359,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
     @classmethod
     @transaction.atomic()
     def save(cls, info, instance: models.Checkout, cleaned_input):
+        channel = cleaned_input["channel"]
         # Create the checkout object
         instance.save()
 
@@ -371,7 +372,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         quantities = cleaned_input.get("quantities")
         if variants and quantities:
             try:
-                add_variants_to_checkout(instance, variants, quantities)
+                add_variants_to_checkout(instance, variants, quantities, channel.slug)
             except InsufficientStock as exc:
                 error = prepare_insufficient_stock_checkout_validation_error(exc)
                 raise ValidationError({"lines": error})

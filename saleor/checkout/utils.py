@@ -108,7 +108,7 @@ def add_variant_to_checkout(
     return checkout
 
 
-def add_variants_to_checkout(checkout, variants, quantities):
+def add_variants_to_checkout(checkout, variants, quantities, channel_slug):
     """Add variants to checkout.
 
     Suitable for new checkouts as it always creates new checkout lines without checking
@@ -117,7 +117,7 @@ def add_variants_to_checkout(checkout, variants, quantities):
 
     # check quantities
     country_code = checkout.get_country()
-    check_stock_quantity_bulk(variants, country_code, quantities)
+    check_stock_quantity_bulk(variants, country_code, quantities, channel_slug)
 
     channel_listings = product_models.ProductChannelListing.objects.filter(
         channel_id=checkout.channel.id,
