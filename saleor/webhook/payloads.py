@@ -299,12 +299,15 @@ def generate_fulfillment_payload(fulfillment: Fulfillment):
 
     # fulfillment fields to serialize
     fulfillment_fields = ("status", "tracking_code", "order__user_email")
-    order_country = get_order_country(fulfillment.order)
+    order = fulfillment.order
+    order_country = get_order_country(order)
     fulfillment_line = fulfillment.lines.first()
     if fulfillment_line and fulfillment_line.stock:
         warehouse = fulfillment_line.stock.warehouse
     else:
-        warehouse = Warehouse.objects.for_country(order_country).first()
+        warehouse = Warehouse.objects.for_country(
+            order_country, order.channel.slug
+        ).first()
     fulfillment_data = serializer.serialize(
         [fulfillment],
         fields=fulfillment_fields,

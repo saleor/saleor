@@ -442,7 +442,7 @@ class CheckoutLinesAdd(BaseMutation):
             for variant, quantity in zip(variants, quantities):
                 try:
                     checkout = add_variant_to_checkout(
-                        checkout, variant, quantity, replace=replace
+                        checkout_info, variant, quantity, replace=replace
                     )
                 except InsufficientStock as exc:
                     error = prepare_insufficient_stock_checkout_validation_error(exc)

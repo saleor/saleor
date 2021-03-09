@@ -176,7 +176,8 @@ def test_checkout_lines_update_remove_shipping_if_removed_product_with_shipping(
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.save()
-    add_variant_to_checkout(checkout, digital_variant, 1)
+    checkout_info = fetch_checkout_info(checkout, [], [])
+    add_variant_to_checkout(checkout_info, digital_variant, 1)
     line = checkout.lines.first()
     variant = line.variant
 
@@ -205,7 +206,8 @@ def test_checkout_line_delete_remove_shipping_if_removed_product_with_shipping(
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.save()
-    add_variant_to_checkout(checkout, digital_variant, 1)
+    checkout_info = fetch_checkout_info(checkout, [], [])
+    add_variant_to_checkout(checkout_info, digital_variant, 1)
     line = checkout.lines.first()
 
     line_id = graphene.Node.to_global_id("CheckoutLine", line.pk)

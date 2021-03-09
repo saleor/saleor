@@ -84,13 +84,15 @@ class StockQuerySet(models.QuerySet):
         )
 
     def get_variant_stocks_for_country(
-        self, country_code: str, product_variant: ProductVariant
+        self, country_code: str, channel_slug: str, product_variant: ProductVariant
     ):
         """Return the stock information about the a stock for a given country.
 
         Note it will raise a 'Stock.DoesNotExist' exception if no such stock is found.
         """
-        return self.for_country(country_code).filter(product_variant=product_variant)
+        return self.for_country(country_code, channel_slug).filter(
+            product_variant=product_variant
+        )
 
     def get_product_stocks_for_country_and_channel(
         self, country_code: str, channel_slug: str, product: Product
