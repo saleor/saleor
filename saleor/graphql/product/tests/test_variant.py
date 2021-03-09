@@ -1,5 +1,6 @@
 from unittest.mock import ANY, patch
 from uuid import uuid4
+
 import graphene
 import pytest
 from django.utils.text import slugify

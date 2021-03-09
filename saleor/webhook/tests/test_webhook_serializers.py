@@ -1,5 +1,7 @@
-from ..serializers import serialize_product_attributes
+from operator import itemgetter
 from unittest.mock import ANY
+
+from ..serializers import serialize_product_attributes
 
 
 def test_serialize_product_attributes(
@@ -18,11 +20,8 @@ def test_serialize_product_attributes(
     }
 
     assert len(product_data) == 1
-    assert product_data[0] == {
-        "id": ANY,
-        "name": "Available Modes",
-        "values": [
-            {"name": "Eco Mode", "value": "", "slug": "eco"},
-            {"name": "Performance Mode", "value": "", "slug": "power"},
-        ],
-    }
+    assert product_data[0]["name"] == "Available Modes"
+    assert sorted(product_data[0]["values"], key=itemgetter("name")) == [
+        {"name": "Eco Mode", "value": "", "slug": "eco"},
+        {"name": "Performance Mode", "value": "", "slug": "power"},
+    ]

@@ -444,9 +444,9 @@ class BasePlugin:
         return NotImplemented
 
     def product_variant_created(
-        self, product: "ProductVariant", previous_value: Any
+        self, product_variant: "ProductVariant", previous_value: Any
     ) -> Any:
-        """Trigger when product is created.
+        """Trigger when product variant is created.
 
         Overwrite this method if you need to trigger specific logic after a product
         variant is created.
@@ -454,7 +454,7 @@ class BasePlugin:
         return NotImplemented
 
     def product_variant_updated(
-        self, product: "ProductVariant", previous_value: Any
+        self, product_variant: "ProductVariant", previous_value: Any
     ) -> Any:
         """Trigger when product variant is updated.
 
@@ -464,12 +464,12 @@ class BasePlugin:
         return NotImplemented
 
     def product_variant_deleted(
-        self, product: "ProductVariant", previous_value: Any
+        self, product_variant: "ProductVariant", previous_value: Any
     ) -> Any:
-        """Trigger when product is deleted.
+        """Trigger when product variant is deleted.
 
-        Overwrite this method if you need to trigger specific logic after a product is
-        deleted.
+        Overwrite this method if you need to trigger specific logic after a product
+        variant is deleted.
         """
         return NotImplemented
 

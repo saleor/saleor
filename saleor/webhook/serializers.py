@@ -1,10 +1,11 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING, List, Union
+from typing import TYPE_CHECKING, Dict, List, Union
+
 from django.db.models import F
 
-from ..attribute.models import AssignedVariantAttribute, AssignedProductAttribute
-from ..product.models import Product
+from ..attribute.models import AssignedProductAttribute, AssignedVariantAttribute
 from ..checkout.fetch import fetch_checkout_lines
+from ..product.models import Product
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -43,7 +44,7 @@ def serialize_product_attributes(
             AssignedProductAttribute.objects.filter(product_id=product.id)
             if isinstance(product, Product)
             else AssignedVariantAttribute.objects.filter(variant_id=product.id)
-        )
+        )  # type: ignore
         .values(
             attribute_name=F("assignment__attribute__name"),
             attribute_id=F("assignment__attribute__id"),
@@ -54,7 +55,7 @@ def serialize_product_attributes(
         .order_by("assignment__attribute__id")
     )
 
-    values = defaultdict(list)
+    values: Dict[str, List] = defaultdict(list)
     for row in queryset:
         values[row["attribute_id"]].append(
             {"name": row["name"], "value": row["value"], "slug": row["slug"]}

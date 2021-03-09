@@ -1,5 +1,5 @@
 import json
-from typing import Iterable, Optional
+from typing import TYPE_CHECKING, Iterable, Optional
 
 import graphene
 from django.db.models import QuerySet
@@ -22,6 +22,11 @@ from ..warehouse.models import Warehouse
 from .event_types import WebhookEventType
 from .payload_serializers import PayloadSerializer
 from .serializers import serialize_checkout_lines, serialize_product_attributes
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from ..product.models import ProductVariant
+
 
 ADDRESS_FIELDS = (
     "first_name",

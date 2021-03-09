@@ -1,15 +1,16 @@
 import json
-import graphene
 from decimal import Decimal
 from itertools import chain
 
+import graphene
+
+from ...discount import DiscountValueType, OrderDiscountType
 from ..payloads import (
     ORDER_FIELDS,
+    PRODUCT_VARIANT_FIELDS,
     generate_order_payload,
     generate_product_variant_payload,
-    PRODUCT_VARIANT_FIELDS,
 )
-from ...discount import DiscountValueType, OrderDiscountType
 
 
 def test_generate_order_payload(
