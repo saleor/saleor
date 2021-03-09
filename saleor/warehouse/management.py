@@ -219,7 +219,28 @@ def increase_stock(
 
 
 @transaction.atomic
-def decrease_stock(order_lines_info: Iterable["OrderLineData"]):
+def increase_allocation(
+    order_line,
+    quantity: int,
+):
+    """Increase allocation for order line with provided quantity."""
+    stock = order_line.allocations.first().stock
+    allocation = order_line.allocations.filter(stock=stock).first()
+    if allocation.quantity_allocated + quantity > allocation.stock.quantity:
+        raise InsufficientStock(
+            [
+                InsufficientStockData(
+                    variant=order_line.variant,
+                    order_line=order_line,
+                )
+            ]
+        )
+    allocation.quantity_allocated = F("quantity_allocated") + quantity
+    allocation.save(update_fields=["quantity_allocated"])
+
+
+@transaction.atomic
+def decrease_stock(order_lines_info: Iterable["OrderLineData"], update_stocks=False):
     """Decrease stocks quantities for given `order_lines` in given warehouses.
 
     Function deallocate as many quantities as requested if order_line has less quantity
@@ -266,9 +287,12 @@ def decrease_stock(order_lines_info: Iterable["OrderLineData"]):
             "quantity_allocated__sum"
         ]
 
-    _decrease_stocks_quantity(
-        order_lines_info, variant_and_warehouse_to_stock, quantity_allocation_for_stocks
-    )
+    if update_stocks:
+        _decrease_stocks_quantity(
+            order_lines_info,
+            variant_and_warehouse_to_stock,
+            quantity_allocation_for_stocks,
+        )
 
 
 def _decrease_stocks_quantity(

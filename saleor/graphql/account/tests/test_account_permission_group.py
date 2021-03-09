@@ -1392,7 +1392,7 @@ def test_permission_group_update_mutation_out_of_scope_users(
         assert staff in group_users
 
 
-def test_permission_group_update_mutation_multiply_errors(
+def test_permission_group_update_mutation_multiple_errors(
     permission_group_manage_users,
     staff_user,
     customer_user,

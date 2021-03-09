@@ -17,7 +17,14 @@ from ..order.models import Order, OrderLine
 from ..plugins.manager import get_plugins_manager
 from ..product.utils.digital_products import get_default_digital_content_settings
 from ..shipping.models import ShippingMethod
-from ..warehouse.management import deallocate_stock, increase_stock
+from ..warehouse.management import (
+    allocate_stocks,
+    deallocate_stock,
+    decrease_stock,
+    get_order_lines_with_track_inventory,
+    increase_allocation,
+    increase_stock,
+)
 from ..warehouse.models import Warehouse
 from . import events
 
@@ -303,9 +310,48 @@ def add_gift_card_to_order(order, gift_card, total_price_left):
     return total_price_left
 
 
-def change_order_line_quantity(context, line, old_quantity, new_quantity):
+def allocate_lines(lines):
+    lines_data = [
+        OrderLineData(line=line, quantity=line.quantity, variant=line.variant)
+        for line in lines
+    ]
+    allocate_stocks(lines_data, lines[0].order.shipping_address.country.code)
+
+
+def decrease_allocations(line, quantity: int):
+    """Decreate allocations for provided order line."""
+    lines_info = [
+        OrderLineData(
+            line=line,
+            quantity=quantity,
+            variant=line.variant,
+            warehouse_pk=line.allocations.first().stock.warehouse.pk,
+        )
+    ]
+    if not get_order_lines_with_track_inventory(lines_info):
+        return
+    decrease_stock(lines_info)
+
+
+def _update_allocations_for_line(line: OrderLine, old_quantity: int, new_quantity: int):
+    if old_quantity == new_quantity:
+        return
+
+    if not get_order_lines_with_track_inventory(
+        [OrderLineData(line=line, quantity=old_quantity, variant=line.variant)]
+    ):
+        return
+
+    if old_quantity < new_quantity:
+        increase_allocation(line, new_quantity - old_quantity)
+    else:
+        decrease_allocations(line, old_quantity - new_quantity)
+
+
+def change_order_line_quantity(context, line, old_quantity: int, new_quantity: int):
     """Change the quantity of ordered items in a order line."""
     if new_quantity:
+        _update_allocations_for_line(line, old_quantity, new_quantity)
         line.quantity = new_quantity
         line.save(update_fields=["quantity"])
         net = line.unit_price.net.amount
@@ -346,8 +392,9 @@ def change_order_line_quantity(context, line, old_quantity, new_quantity):
         )
 
 
-def delete_order_line(manager, line):
+def delete_order_line(manager, line: OrderLine):
     """Delete an order line from an order."""
+    decrease_allocations(line, line.quantity)
     line.delete()
     manager.order_line_deleted(line.order, line)
 

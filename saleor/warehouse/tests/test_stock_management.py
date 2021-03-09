@@ -32,7 +32,7 @@ def test_allocate_stocks(order_line, stock):
     assert allocation.quantity_allocated == 50
 
 
-def test_allocate_stocks_multiply_lines(order_line, order, product, stock):
+def test_allocate_stocks_multiple_lines(order_line, order, product, stock):
     stock.quantity = 100
     stock.save(update_fields=["quantity"])
 
@@ -126,7 +126,7 @@ def test_allocate_stock_insufficient_stocks(order_line, variant_with_many_stocks
     ).exists()
 
 
-def test_allocate_stock_insufficient_stocks_for_multiply_lines(
+def test_allocate_stock_insufficient_stocks_for_multiple_lines(
     order_line, variant_with_many_stocks, product
 ):
     variant = variant_with_many_stocks
@@ -299,7 +299,7 @@ def test_decrease_stock(allocation):
     assert allocation.quantity_allocated == 30
 
 
-def test_decrease_stock_multiply_lines(allocations):
+def test_decrease_stock_multiple_lines(allocations):
     allocation_1 = allocations[0]
     allocation_2 = allocations[0]
 
