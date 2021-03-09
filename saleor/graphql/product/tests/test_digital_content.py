@@ -32,16 +32,22 @@ def test_fetch_all_digital_contents(
 
 
 def test_fetch_single_digital_content(
-    staff_api_client, variant, digital_content, permission_manage_products
+    staff_api_client, digital_content, permission_manage_products
 ):
     query = """
     query {
         digitalContent(id:"%s"){
             id
+            productVariant {
+                id
+            }
         }
     }
     """ % graphene.Node.to_global_id(
         "DigitalContent", digital_content.id
+    )
+    variant_id = graphene.Node.to_global_id(
+        "ProductVariant", digital_content.product_variant.id
     )
     response = staff_api_client.post_graphql(
         query, permissions=[permission_manage_products]
@@ -50,6 +56,7 @@ def test_fetch_single_digital_content(
 
     assert "digitalContent" in content["data"]
     assert "id" in content["data"]["digitalContent"]
+    assert content["data"]["digitalContent"]["productVariant"]["id"] == variant_id
 
 
 def test_digital_content_create_mutation_custom_settings(
