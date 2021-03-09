@@ -378,7 +378,7 @@ class DraftOrderComplete(BaseMutation):
                     line=line, quantity=line.quantity, variant=line.variant
                 )
                 try:
-                    allocate_stocks([line_data], country)
+                    allocate_stocks([line_data], country, order.channel.slug)
                 except InsufficientStock as exc:
                     errors = prepare_insufficient_stock_order_validation_errors(exc)
                     raise ValidationError({"lines": errors})
