@@ -2195,7 +2195,8 @@ def test_checkout_shipping_address_update_changes_checkout_country(
     variant = variant_with_many_stocks_different_shipping_zones
     checkout = Checkout.objects.create(channel=channel_USD, currency="USD")
     checkout.set_country("PL", commit=True)
-    add_variant_to_checkout(checkout, variant, 1)
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, variant, 1)
     assert checkout.shipping_address is None
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
@@ -2246,7 +2247,8 @@ def test_checkout_shipping_address_update_insufficient_stocks(
     variant = variant_with_many_stocks_different_shipping_zones
     checkout = Checkout.objects.create(channel=channel_USD, currency="USD")
     checkout.set_country("PL", commit=True)
-    add_variant_to_checkout(checkout, variant, 1)
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, variant, 1)
     Stock.objects.filter(
         warehouse__shipping_zones__countries__contains="US", product_variant=variant
     ).update(quantity=0)

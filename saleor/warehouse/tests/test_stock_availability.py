@@ -10,39 +10,61 @@ from ..availability import (
 COUNTRY_CODE = "US"
 
 
-def test_check_stock_quantity(variant_with_many_stocks):
-    assert check_stock_quantity(variant_with_many_stocks, COUNTRY_CODE, 7) is None
+def test_check_stock_quantity(variant_with_many_stocks, channel_USD):
+    assert (
+        check_stock_quantity(
+            variant_with_many_stocks, COUNTRY_CODE, channel_USD.slug, 7
+        )
+        is None
+    )
 
 
-def test_check_stock_quantity_out_of_stock(variant_with_many_stocks):
+def test_check_stock_quantity_out_of_stock(variant_with_many_stocks, channel_USD):
     with pytest.raises(InsufficientStock):
-        check_stock_quantity(variant_with_many_stocks, COUNTRY_CODE, 8)
+        check_stock_quantity(
+            variant_with_many_stocks, COUNTRY_CODE, channel_USD.slug, 8
+        )
 
 
 def test_check_stock_quantity_with_allocations(
     variant_with_many_stocks,
     order_line_with_allocation_in_many_stocks,
     order_line_with_one_allocation,
+    channel_USD,
 ):
-    assert check_stock_quantity(variant_with_many_stocks, COUNTRY_CODE, 3) is None
+    assert (
+        check_stock_quantity(
+            variant_with_many_stocks, COUNTRY_CODE, channel_USD.slug, 3
+        )
+        is None
+    )
 
 
 def test_check_stock_quantity_with_allocations_out_of_stock(
-    variant_with_many_stocks, order_line_with_allocation_in_many_stocks
+    variant_with_many_stocks, order_line_with_allocation_in_many_stocks, channel_USD
 ):
     with pytest.raises(InsufficientStock):
-        check_stock_quantity(variant_with_many_stocks, COUNTRY_CODE, 5)
+        check_stock_quantity(
+            variant_with_many_stocks, COUNTRY_CODE, channel_USD.slug, 5
+        )
 
 
-def test_check_stock_quantity_without_stocks(variant_with_many_stocks):
+def test_check_stock_quantity_without_stocks(variant_with_many_stocks, channel_USD):
     variant_with_many_stocks.stocks.all().delete()
     with pytest.raises(InsufficientStock):
-        check_stock_quantity(variant_with_many_stocks, COUNTRY_CODE, 1)
+        check_stock_quantity(
+            variant_with_many_stocks, COUNTRY_CODE, channel_USD.slug, 1
+        )
 
 
-def test_check_stock_quantity_without_one_stock(variant_with_many_stocks):
+def test_check_stock_quantity_without_one_stock(variant_with_many_stocks, channel_USD):
     variant_with_many_stocks.stocks.get(quantity=3).delete()
-    assert check_stock_quantity(variant_with_many_stocks, COUNTRY_CODE, 4) is None
+    assert (
+        check_stock_quantity(
+            variant_with_many_stocks, COUNTRY_CODE, channel_USD.slug, 4
+        )
+        is None
+    )
 
 
 def test_check_stock_quantity_bulk(variant_with_many_stocks, channel_USD):
