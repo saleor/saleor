@@ -8,12 +8,14 @@ from ...webhook.payloads import (
     generate_invoice_payload,
     generate_order_payload,
     generate_page_payload,
+    generate_payment_payload,
     generate_product_deleted_payload,
     generate_product_payload,
     generate_product_variant_payload,
 )
 from ..base_plugin import BasePlugin
-from .tasks import trigger_webhooks_for_event
+from .tasks import trigger_webhook_sync, trigger_webhooks_for_event
+from .utils import webhook_response_to_gateway_response
 
 if TYPE_CHECKING:
     from ...account.models import User
@@ -21,6 +23,7 @@ if TYPE_CHECKING:
     from ...invoice.models import Invoice
     from ...order.models import Fulfillment, Order
     from ...page.models import Page
+    from ...payment.interface import GatewayResponse, PaymentData
     from ...product.models import Product, ProductVariant
 
 
@@ -202,3 +205,23 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         page_data = generate_page_payload(page)
         trigger_webhooks_for_event.delay(WebhookEventType.PAGE_DELETED, page_data)
+
+    def process_payment(
+        self, payment_information: "PaymentData", previous_value, **kwargs
+    ) -> "GatewayResponse":
+        if not self.active:
+            return previous_value
+
+        webhook = kwargs.get("payment_webhook")
+        if not webhook:
+            # TODO: handle webhook not found
+            raise Exception("Payment webhook not available")
+
+        webhook_payload = generate_payment_payload(payment_information)
+        response = trigger_webhook_sync(
+            webhook, WebhookEventType.PAYMENT_PROCESS, webhook_payload
+        )
+        gateway_response = webhook_response_to_gateway_response(
+            payment_information, response
+        )
+        return gateway_response

@@ -25,12 +25,12 @@ class WebhookSchemes(str, Enum):
     GOOGLE_CLOUD_PUBSUB = "gcpubsub"
 
 
-@app.task
-def trigger_webhooks_for_event(event_type, data):
+def _get_webhooks_for_event(event_type):
+    """Get active webhooks from the database for an event."""
     permissions = {}
-    required_permission = WebhookEventType.PERMISSIONS[event_type].value
+    required_permission = WebhookEventType.PERMISSIONS.get(event_type)
     if required_permission:
-        app_label, codename = required_permission.split(".")
+        app_label, codename = required_permission.value.split(".")
         permissions["app__permissions__content_type__app_label"] = app_label
         permissions["app__permissions__codename"] = codename
 
@@ -43,11 +43,25 @@ def trigger_webhooks_for_event(event_type, data):
     webhooks = webhooks.select_related("app").prefetch_related(
         "app__permissions__content_type"
     )
+    return webhooks
 
+
+@app.task
+def trigger_webhooks_for_event(event_type, data):
+    """Send a webhook request for an event as an async task."""
+    webhooks = _get_webhooks_for_event(event_type)
     for webhook in webhooks:
         send_webhook_request.delay(
             webhook.pk, webhook.target_url, webhook.secret_key, event_type, data
         )
+
+
+def trigger_webhook_sync(webhook, event_type, data):
+    """Send a synchronous webhook request."""
+    response = send_webhook_request_sync(
+        webhook.target_url, webhook.secret_key, event_type, data
+    )
+    return response
 
 
 def send_webhook_using_http(target_url, message, domain, signature, event_type):
@@ -62,6 +76,7 @@ def send_webhook_using_http(target_url, message, domain, signature, event_type):
         target_url, data=message, headers=headers, timeout=WEBHOOK_TIMEOUT
     )
     response.raise_for_status()
+    return response
 
 
 def send_webhook_using_aws_sqs(target_url, message, domain, signature, event_type):
@@ -134,3 +149,19 @@ def send_webhook_request(webhook_id, target_url, secret, event_type, data):
         target_url,
         event_type,
     )
+
+
+def send_webhook_request_sync(target_url, secret, event_type, data):
+    parts = urlparse(target_url)
+    domain = Site.objects.get_current().domain
+    message = data.encode("utf-8")
+    signature = signature_for_payload(message, secret)
+
+    response = None
+    if parts.scheme.lower() in [WebhookSchemes.HTTP, WebhookSchemes.HTTPS]:
+        response = send_webhook_using_http(
+            target_url, message, domain, signature, event_type
+        )
+    else:
+        raise ValueError("Unknown webhook scheme: %r" % (parts.scheme,))
+    return response

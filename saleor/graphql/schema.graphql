@@ -5948,6 +5948,7 @@ enum WebhookEventTypeEnum {
   PAGE_CREATED
   PAGE_UPDATED
   PAGE_DELETED
+  PAYMENT_PROCESS
 }
 
 enum WebhookSampleEventTypeEnum {
@@ -5974,6 +5975,7 @@ enum WebhookSampleEventTypeEnum {
   PAGE_CREATED
   PAGE_UPDATED
   PAGE_DELETED
+  PAYMENT_PROCESS
 }
 
 type WebhookUpdate {

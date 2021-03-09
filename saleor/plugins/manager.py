@@ -4,23 +4,31 @@ from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple, Un
 import opentracing
 from django.conf import settings
 from django.core.handlers.wsgi import WSGIRequest
+from django.db.models import Q
 from django.http import HttpResponse, HttpResponseNotFound
 from django.utils.module_loading import import_string
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
+from ..app.models import App
 from ..checkout import base_calculations
 from ..core.payments import PaymentInterface
 from ..core.prices import quantize_price
 from ..core.taxes import TaxType, zero_taxed_money
 from ..discount import DiscountInfo
+from ..payment.interface import PaymentGateway
+from ..webhook.event_types import WebhookEventType
 from .base_plugin import ExternalAccessTokens
 from .models import PluginConfiguration
+from .webhook.utils import (
+    app_to_payment_gateway,
+    from_payment_app_id,
+    to_payment_app_id,
+)
 
 if TYPE_CHECKING:
     # flake8: noqa
     from ..account.models import Address, User
-    from ..channel.models import Channel
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout
     from ..invoice.models import Invoice
@@ -31,16 +39,9 @@ if TYPE_CHECKING:
         GatewayResponse,
         InitializedPaymentResponse,
         PaymentData,
-        PaymentGateway,
         TokenConfig,
     )
-    from ..product.models import (
-        Collection,
-        Product,
-        ProductType,
-        ProductVariant,
-        ProductVariantChannelListing,
-    )
+    from ..product.models import Product, ProductType, ProductVariant
     from .base_plugin import BasePlugin
 
 
@@ -574,7 +575,9 @@ class PluginsManager(PaymentInterface):
             plugins = self.plugins
         return [plugin for plugin in plugins if plugin.active]
 
-    def list_payment_plugin(self, active_only: bool = False) -> Dict[str, "BasePlugin"]:
+    def _list_payment_plugin(
+        self, active_only: bool = False
+    ) -> Dict[str, "BasePlugin"]:
         payment_method = "process_payment"
         plugins = self.plugins
         if active_only:
@@ -585,16 +588,32 @@ class PluginsManager(PaymentInterface):
             if payment_method in type(plugin).__dict__
         }
 
+    def _list_payment_apps(self, active_only: bool = False) -> Dict[str, "App"]:
+        query = Q(webhooks__events__event_type__in=[WebhookEventType.PAYMENT_PROCESS])
+        if active_only:
+            query &= Q(is_active=True)
+        payment_apps = App.objects.filter(query)
+        # TODO: add filtering to return apps with active webhooks
+        return {to_payment_app_id(app): app for app in payment_apps}
+
     def list_payment_gateways(
         self, currency: Optional[str] = None, active_only: bool = True
     ) -> List["PaymentGateway"]:
-        payment_plugins = self.list_payment_plugin(active_only=active_only)
-        # if currency is given return only gateways which support given currency
         gateways = []
+
+        # append payment plugins
+        payment_plugins = self._list_payment_plugin(active_only=active_only)
         for plugin in payment_plugins.values():
+            # if currency is given return only gateways which support given currency
             gateway = plugin.get_payment_gateway(currency=currency, previous_value=None)
             if gateway:
                 gateways.append(gateway)
+
+        # append payment apps
+        payment_apps = self._list_payment_apps(active_only=active_only)
+        for app in payment_apps.values():
+            gateways.append(app_to_payment_gateway(app))
+
         return gateways
 
     def list_external_authentications(self, active_only: bool = True) -> List[dict]:
@@ -612,14 +631,24 @@ class PluginsManager(PaymentInterface):
         self,
         checkout: "Checkout",
     ) -> List["PaymentGateway"]:
-        payment_plugins = self.list_payment_plugin(active_only=True)
         gateways = []
+
+        # append payment plugins
+        payment_plugins = self._list_payment_plugin(active_only=True)
         for plugin in payment_plugins.values():
             gateway = plugin.get_payment_gateway_for_checkout(
                 checkout, previous_value=None
             )
             if gateway:
                 gateways.append(gateway)
+
+        # append payment apps
+        payment_apps = self._list_payment_apps(active_only=True)
+        for app_id, app in payment_apps.items():
+            gateways.append(
+                PaymentGateway(id=app_id, name=app.name, config=[], currencies=[])
+            )
+
         return gateways
 
     def __run_payment_method(
@@ -630,10 +659,27 @@ class PluginsManager(PaymentInterface):
         **kwargs,
     ) -> "GatewayResponse":
         default_value = None
-        gtw = self.get_plugin(gateway)
-        if gtw is not None:
+
+        # Try to run payment method using a payment plugin.
+        plugin = self.get_plugin(gateway)
+        if not plugin:
+            # Otherwise, try to get a payment app and run the payment method using
+            # webhook plugin.
+            app_pk = from_payment_app_id(gateway)
+            app = App.objects.filter(pk=app_pk).first()
+            if app:
+                webhook = app.webhooks.filter(
+                    is_active=True, events__event_type=WebhookEventType.PAYMENT_PROCESS
+                ).first()
+                if webhook:
+                    from .webhook.plugin import WebhookPlugin
+
+                    plugin = self.get_plugin(WebhookPlugin.PLUGIN_ID)
+                    kwargs.update({"payment_webhook": webhook})
+
+        if plugin is not None:
             resp = self.__run_method_on_single_plugin(
-                gtw,
+                plugin,
                 method_name,
                 previous_value=default_value,
                 payment_information=payment_information,

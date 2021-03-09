@@ -42,6 +42,9 @@ class App(ModelWithMetadata):
             ),
         )
 
+    def __str__(self):
+        return self.name
+
     def get_permissions(self) -> Set[str]:
         """Return the permissions of the app."""
         if not self.is_active:
