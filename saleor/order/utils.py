@@ -330,7 +330,7 @@ def decrease_allocations(line, quantity: int):
     ]
     if not get_order_lines_with_track_inventory(lines_info):
         return
-    decrease_stock(lines_info)
+    decrease_stock(lines_info, update_stocks=False)
 
 
 def _update_allocations_for_line(line: OrderLine, old_quantity: int, new_quantity: int):

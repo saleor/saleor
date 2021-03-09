@@ -240,7 +240,7 @@ def increase_allocation(
 
 
 @transaction.atomic
-def decrease_stock(order_lines_info: Iterable["OrderLineData"], update_stocks=False):
+def decrease_stock(order_lines_info: Iterable["OrderLineData"], update_stocks=True):
     """Decrease stocks quantities for given `order_lines` in given warehouses.
 
     Function deallocate as many quantities as requested if order_line has less quantity

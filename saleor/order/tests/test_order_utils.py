@@ -35,6 +35,9 @@ def test_change_quantity_generates_proper_event(
 
     line = order_with_lines.lines.last()
     line.quantity = previous_quantity
+    stock = line.allocations.first().stock
+    stock.quantity = 5
+    stock.save(update_fields=["quantity"])
 
     change_order_line_quantity(context_mock, line, previous_quantity, new_quantity)
 
