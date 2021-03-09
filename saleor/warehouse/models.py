@@ -72,7 +72,7 @@ class StockQuerySet(models.QuerySet):
             warehouse__in=query_warehouse
         )
 
-    def for_country(self, country_code: str, channel_slug=None):
+    def for_country(self, country_code: str, channel_slug):
         filter_lookup = {"shipping_zones__countries__contains": country_code}
         if channel_slug is not None:
             filter_lookup["shipping_zones__channels__slug"] = channel_slug
