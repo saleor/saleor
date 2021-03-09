@@ -15,6 +15,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix argument validation in page resolver - #6960 by @fowczarek
 - Drop `data` field from checkout line model - #6961 by @fowczarek
 - Fix `totalCount` on connection resolver without `first` or `last` - #6975 by @fowczarek
+- Fix variant resolver on `DigitalContent` - #6983 by @fowczarek
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
