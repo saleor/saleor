@@ -37,13 +37,13 @@ def check_stock_quantity(variant: "ProductVariant", country_code: str, quantity:
             raise InsufficientStock([InsufficientStockData(variant=variant)])
 
 
-def check_stock_quantity_bulk(variants, country_code, quantities):
+def check_stock_quantity_bulk(variants, country_code, quantities, channel_slug=None):
     """Validate if there is stock available for given variants in given country.
 
     :raises InsufficientStock: when there is not enough items in stock for a variant.
     """
     all_variants_stocks = (
-        Stock.objects.for_country(country_code)
+        Stock.objects.for_country(country_code, channel_slug)
         .filter(product_variant__in=variants)
         .annotate_available_quantity()
     )
@@ -63,8 +63,7 @@ def check_stock_quantity_bulk(variants, country_code, quantities):
                     variant=variant, available_quantity=available_quantity
                 )
             )
-
-        if variant.track_inventory:
+        elif variant.track_inventory:
             if quantity > available_quantity:
                 insufficient_stocks.append(
                     InsufficientStockData(
