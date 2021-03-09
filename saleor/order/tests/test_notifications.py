@@ -152,7 +152,7 @@ def test_get_default_order_payload(order_line):
         "channel_slug": order.channel.slug,
         "id": order.id,
         "token": order.token,
-        "created": order.created,
+        "created": str(order.created),
         "display_gross_prices": order.display_gross_prices,
         "currency": order.currency,
         "total_gross_amount": order.total_gross_amount,

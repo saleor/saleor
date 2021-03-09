@@ -30,7 +30,7 @@ def get_default_images_payload(images: List[ProductImage]):
     first_image_payload = None
     first_image = images[0] if images else None
     if first_image:
-        first_image_payload = ({"original": get_image_payload(first_image)},)
+        first_image_payload = {"original": get_image_payload(first_image)}
     images_payload = None
     if images:
         images_payload = [{"original": get_image_payload(image) for image in images}]
@@ -209,7 +209,7 @@ def get_default_order_payload(order: "Order", redirect_url: str = ""):
     order_payload.update(
         {
             "channel_slug": order.channel.slug,
-            "created": order.created,
+            "created": str(order.created),
             "shipping_price_net_amount": order.shipping_price_net_amount,
             "shipping_price_gross_amount": order.shipping_price_gross_amount,
             "order_details_url": order_details_url,
