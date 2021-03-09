@@ -147,7 +147,7 @@ class Attribute(ModelWithMetadata):
     objects = AttributeQuerySet.as_manager()
     translated = TranslationProxy()
 
-    class Meta:
+    class Meta(ModelWithMetadata.Meta):
         ordering = ("storefront_search_position", "slug")
 
     def __str__(self) -> str:
