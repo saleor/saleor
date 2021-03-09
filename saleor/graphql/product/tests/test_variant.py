@@ -1,6 +1,5 @@
 from unittest.mock import ANY, patch
 from uuid import uuid4
-
 import graphene
 import pytest
 from django.utils.text import slugify
@@ -320,9 +319,13 @@ CREATE_VARIANT_MUTATION = """
 """
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_variant_created")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_create_variant(
-    updated_webhook_mock,
+    product_updated_webhook_mock,
+    product_variant_updated_webhook_mock,
+    product_variant_created_webhook_mock,
     staff_api_client,
     product,
     product_type,
@@ -368,7 +371,11 @@ def test_create_variant(
     assert len(data["stocks"]) == 1
     assert data["stocks"][0]["quantity"] == stocks[0]["quantity"]
     assert data["stocks"][0]["warehouse"]["slug"] == warehouse.slug
-    updated_webhook_mock.assert_called_once_with(product)
+    product_updated_webhook_mock.assert_called_once_with(product)
+    product_variant_created_webhook_mock.assert_called_once_with(
+        product.variants.last()
+    )
+    product_variant_updated_webhook_mock.assert_not_called()
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
@@ -1093,9 +1100,13 @@ def test_create_product_variant_update_with_new_attributes(
     assert attributes[0]["attribute"]["id"] == size_attribute_id
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_variant_created")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_update_product_variant(
-    updated_webhook_mock,
+    product_updated_webhook_mock,
+    product_variant_updated_webhook_mock,
+    product_variant_created_webhook_mock,
     staff_api_client,
     product,
     size_attribute,
@@ -1152,7 +1163,11 @@ def test_update_product_variant(
     data = content["data"]["productVariantUpdate"]["productVariant"]
     assert data["name"] == variant.name
     assert data["sku"] == sku
-    updated_webhook_mock.assert_called_once_with(product)
+    product_updated_webhook_mock.assert_called_once_with(product)
+    product_variant_updated_webhook_mock.assert_called_once_with(
+        product.variants.last()
+    )
+    product_variant_created_webhook_mock.assert_not_called()
 
 
 def test_update_product_variant_with_negative_weight(
@@ -1848,7 +1863,13 @@ DELETE_VARIANT_MUTATION = """
 """
 
 
-def test_delete_variant(staff_api_client, product, permission_manage_products):
+@patch("saleor.plugins.manager.PluginsManager.product_variant_deleted")
+def test_delete_variant(
+    product_variant_deleted_webhook_mock,
+    staff_api_client,
+    product,
+    permission_manage_products,
+):
     query = DELETE_VARIANT_MUTATION
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
@@ -1858,6 +1879,7 @@ def test_delete_variant(staff_api_client, product, permission_manage_products):
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantDelete"]
+    product_variant_deleted_webhook_mock.assert_called_once_with(variant)
     assert data["productVariant"]["sku"] == variant.sku
     with pytest.raises(variant._meta.model.DoesNotExist):
         variant.refresh_from_db()

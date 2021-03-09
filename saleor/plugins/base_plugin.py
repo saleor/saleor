@@ -464,7 +464,7 @@ class BasePlugin:
         return NotImplemented
 
     def product_variant_deleted(
-        self, product: "ProductVariant", variants: List[int], previous_value: Any
+        self, product: "ProductVariant", previous_value: Any
     ) -> Any:
         """Trigger when product is deleted.
 

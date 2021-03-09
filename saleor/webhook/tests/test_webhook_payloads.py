@@ -1,9 +1,15 @@
 import json
 from decimal import Decimal
+from itertools import chain
 
 import graphene
 
-from ..payloads import ORDER_FIELDS, generate_order_payload
+from ..payloads import (
+    ORDER_FIELDS,
+    generate_order_payload,
+    generate_product_variant_payload,
+    PRODUCT_VARIANT_FIELDS,
+)
 
 
 def test_generate_order_payload(
@@ -58,3 +64,18 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
         ),
         "tax_rate": str(line.tax_rate.quantize(Decimal("0.0001"))),
     }
+
+
+def test_generate_product_variant_payload(product_with_variant_with_two_attributes):
+    variant = product_with_variant_with_two_attributes.variants.first()
+    payload = json.loads(generate_product_variant_payload(variant))[0]
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    additional_fields = ["channel_listings"]
+    extra_dict_data = ["attributes", "product_id"]
+    payload_fields = chain(
+        *[PRODUCT_VARIANT_FIELDS, extra_dict_data, additional_fields]
+    )
+
+    assert variant_id == payload["id"]
+    for field in payload_fields:
+        assert payload.get(field) is not None

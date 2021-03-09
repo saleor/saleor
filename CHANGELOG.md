@@ -12,6 +12,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix removing page types in cleardb command - #6918 by @fowczarek
 - Fix argument validation in page resolver - #6960 by @fowczarek
 - Drop `data` field from checkout line model - #6961 by @fowczarek
+- Add PRODUCT_VARIANT_CREATED/UPDATED/DELETED webhooks, fix attributes field for PRODUCT_CREATED/UPDATED webhooks - #6963 by @piotrgrundas
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki

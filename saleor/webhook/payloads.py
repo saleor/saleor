@@ -266,7 +266,6 @@ def generate_product_deleted_payload(product: "Product", variants_id):
 PRODUCT_VARIANT_FIELDS = (
     "name",
     "sku",
-    "product",
     "private_metadata",
     "metadata",
 )
@@ -274,10 +273,24 @@ PRODUCT_VARIANT_FIELDS = (
 
 def generate_product_variant_payload(product_variant: "ProductVariant"):
     serializer = PayloadSerializer()
+    product_id = graphene.Node.to_global_id("Product", product_variant.product.id)
     payload = serializer.serialize(
         [product_variant],
         fields=PRODUCT_VARIANT_FIELDS,
-        extra_dict_data={"attributes": serialize_product_attributes(product_variant)},
+        additional_fields={
+            "channel_listings": (
+                lambda p: p.channel_listings.all(),
+                (
+                    "currency",
+                    "price_amount",
+                    "cost_price_amount",
+                ),
+            )
+        },
+        extra_dict_data={
+            "attributes": serialize_product_attributes(product_variant),
+            "product_id": product_id,
+        },
     )
     return payload
 

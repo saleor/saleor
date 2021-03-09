@@ -895,9 +895,9 @@ class ProductVariantCreate(ModelMutation):
 
         info.context.plugins.product_updated(instance.product)
         if new_variant:
-            info.context.plugins.product_variant_created(instance.product)
+            info.context.plugins.product_variant_created(instance)
         else:
-            info.context.plugins.product_variant_updated(instance.product)
+            info.context.plugins.product_variant_updated(instance)
 
     @classmethod
     def create_variant_stocks(cls, variant, stocks):
@@ -985,20 +985,20 @@ class ProductVariantDelete(ModelDeleteMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         node_id = data.get("id")
-        variant_pk = from_global_id_strict_type(node_id, ProductVariant, field="pk")
+        instance = cls.get_node_or_error(info, node_id, only_type=ProductVariant)
 
         # get draft order lines for variant
         line_pks = list(
             order_models.OrderLine.objects.filter(
-                variant__pk=variant_pk, order__status=OrderStatus.DRAFT
+                variant__pk=instance.pk, order__status=OrderStatus.DRAFT
             ).values_list("pk", flat=True)
         )
 
         response = super().perform_mutation(_root, info, **data)
+        info.context.plugins.product_variant_deleted(instance)
 
         # delete order lines for deleted variant
         order_models.OrderLine.objects.filter(pk__in=line_pks).delete()
-
         return response
 
 
