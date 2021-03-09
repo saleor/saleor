@@ -45,7 +45,7 @@ def test_check_stock_quantity_without_one_stock(variant_with_many_stocks):
     assert check_stock_quantity(variant_with_many_stocks, COUNTRY_CODE, 4) is None
 
 
-def test_check_stock_quantity_bulk(variant_with_many_stocks):
+def test_check_stock_quantity_bulk(variant_with_many_stocks, channel_USD):
     variant = variant_with_many_stocks
     country_code = "US"
     available_quantity = _get_available_quantity(variant.stocks.all())
@@ -53,7 +53,7 @@ def test_check_stock_quantity_bulk(variant_with_many_stocks):
     # test that it doesn't raise error for available quantity
     assert (
         check_stock_quantity_bulk(
-            [variant_with_many_stocks], country_code, [available_quantity]
+            [variant_with_many_stocks], country_code, [available_quantity], channel_USD
         )
         is None
     )
@@ -61,12 +61,29 @@ def test_check_stock_quantity_bulk(variant_with_many_stocks):
     # test that it raises an error for exceeded quantity
     with pytest.raises(InsufficientStock):
         check_stock_quantity_bulk(
-            [variant_with_many_stocks], country_code, [available_quantity + 1]
+            [variant_with_many_stocks],
+            country_code,
+            [available_quantity + 1],
+            channel_USD,
         )
 
     # test that it raises an error if no stocks are found
     variant.stocks.all().delete()
     with pytest.raises(InsufficientStock):
         check_stock_quantity_bulk(
-            [variant_with_many_stocks], country_code, [available_quantity]
+            [variant_with_many_stocks], country_code, [available_quantity], channel_USD
+        )
+
+
+def test_check_stock_quantity_bulk_no_channel_shipping_zones(
+    variant_with_many_stocks, channel_USD
+):
+    variant = variant_with_many_stocks
+    country_code = "US"
+    available_quantity = _get_available_quantity(variant.stocks.all())
+    channel_USD.shipping_zones.clear()
+
+    with pytest.raises(InsufficientStock):
+        check_stock_quantity_bulk(
+            [variant_with_many_stocks], country_code, [available_quantity], channel_USD
         )
