@@ -6228,7 +6228,7 @@ def test_product_media_create_mutation_with_unknown_url(
     content = get_graphql_content(response)
     errors = content["data"]["productMediaCreate"]["productErrors"]
     assert len(errors) == 1
-    assert errors[0]["code"] == ProductErrorCode.INVALID.name
+    assert errors[0]["code"] == ProductErrorCode.UNSUPPORTED_MEDIA_PROVIDER.name
     assert errors[0]["field"] == "mediaUrl"
 
 
