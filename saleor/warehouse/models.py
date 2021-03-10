@@ -72,7 +72,7 @@ class StockQuerySet(models.QuerySet):
             warehouse__in=query_warehouse
         )
 
-    def for_country(self, country_code: str, channel_slug):
+    def for_country_and_channel(self, country_code: str, channel_slug):
         filter_lookup = {"shipping_zones__countries__contains": country_code}
         if channel_slug is not None:
             filter_lookup["shipping_zones__channels__slug"] = channel_slug
@@ -90,14 +90,14 @@ class StockQuerySet(models.QuerySet):
 
         Note it will raise a 'Stock.DoesNotExist' exception if no such stock is found.
         """
-        return self.for_country(country_code, channel_slug).filter(
+        return self.for_country_and_channel(country_code, channel_slug).filter(
             product_variant=product_variant
         )
 
     def get_product_stocks_for_country_and_channel(
         self, country_code: str, channel_slug: str, product: Product
     ):
-        return self.for_country(country_code, channel_slug).filter(
+        return self.for_country_and_channel(country_code, channel_slug).filter(
             product_variant__product_id=product.pk
         )
 
