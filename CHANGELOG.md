@@ -16,6 +16,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop `data` field from checkout line model - #6961 by @fowczarek
 - Fix `totalCount` on connection resolver without `first` or `last` - #6975 by @fowczarek
 - Fix variant resolver on `DigitalContent` - #6983 by @fowczarek
+- Fix race condition on `send_fulfillment-confirmation` - #6988 by @fowczarek
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
