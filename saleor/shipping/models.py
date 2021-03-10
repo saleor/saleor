@@ -81,7 +81,7 @@ class ShippingZone(ModelWithMetadata):
     def __str__(self):
         return self.name
 
-    class Meta:
+    class Meta(ModelWithMetadata.Meta):
         permissions = (
             (ShippingPermissions.MANAGE_SHIPPING.codename, "Manage shipping."),
         )
@@ -194,7 +194,7 @@ class ShippingMethod(ModelWithMetadata):
     objects = ShippingMethodQueryset.as_manager()
     translated = TranslationProxy()
 
-    class Meta:
+    class Meta(ModelWithMetadata.Meta):
         ordering = ("pk",)
 
     def __str__(self):

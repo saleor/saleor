@@ -159,6 +159,10 @@ def _get_edges_for_connection(edge_type, qs, args, sorting_fields):
     cursor = after or before
     requested_count = first or last
 
+    # If we don't receive `first` and `last` we shouldn't build `edges` and `page_info`
+    if not first and not last:
+        return [], {}
+
     if last:
         start_slice, end_slice = 1, None
     else:

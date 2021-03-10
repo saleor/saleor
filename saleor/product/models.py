@@ -56,7 +56,7 @@ if TYPE_CHECKING:
     from ..app.models import App
 
 
-class Category(MPTTModel, ModelWithMetadata, SeoModel):
+class Category(ModelWithMetadata, MPTTModel, SeoModel):
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
@@ -110,7 +110,7 @@ class ProductType(ModelWithMetadata):
         measurement=Weight, unit_choices=WeightUnits.CHOICES, default=zero_weight
     )
 
-    class Meta:
+    class Meta(ModelWithMetadata.Meta):
         ordering = ("slug",)
         app_label = "product"
         permissions = (
@@ -339,6 +339,7 @@ class Product(SeoModel, ModelWithMetadata):
             (ProductPermissions.MANAGE_PRODUCTS.codename, "Manage products."),
         )
         indexes = [GinIndex(fields=["search_vector"])]
+        indexes.extend(ModelWithMetadata.Meta.indexes)
 
     def __iter__(self):
         if not hasattr(self, "__variants"):
@@ -459,7 +460,7 @@ class ProductVariant(SortableModel, ModelWithMetadata):
     objects = ProductVariantQueryset.as_manager()
     translated = TranslationProxy()
 
-    class Meta:
+    class Meta(ModelWithMetadata.Meta):
         ordering = ("sort_order", "sku")
         app_label = "product"
 
@@ -698,7 +699,7 @@ class Collection(SeoModel, ModelWithMetadata):
 
     translated = TranslationProxy()
 
-    class Meta:
+    class Meta(ModelWithMetadata.Meta):
         ordering = ("slug",)
 
     def __str__(self) -> str:

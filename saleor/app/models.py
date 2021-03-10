@@ -33,7 +33,7 @@ class App(ModelWithMetadata):
     app_url = models.URLField(blank=True, null=True)
     version = models.CharField(max_length=60, blank=True, null=True)
 
-    class Meta:
+    class Meta(ModelWithMetadata.Meta):
         ordering = ("name", "pk")
         permissions = (
             (
