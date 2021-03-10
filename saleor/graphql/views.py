@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import opentracing
 import opentracing.tags
+from opentracing.propagation import Format
 from django.conf import settings
 from django.db import connection
 from django.db.backends.postgresql.base import DatabaseWrapper
@@ -130,7 +131,14 @@ class GraphQLView(View):
         return JsonResponse(data=result, status=status_code, safe=False)
 
     def handle_query(self, request: HttpRequest) -> JsonResponse:
-        with opentracing.global_tracer().start_active_span("http") as scope:
+        tracer = opentracing.global_tracer()
+
+        span_context = tracer.extract(
+            format=Format.HTTP_HEADERS,
+            carrier=request.headers
+        )
+
+        with tracer.start_active_span("http", child_of=span_context) as scope:
             span = scope.span
             span.set_tag(opentracing.tags.COMPONENT, "http")
             span.set_tag(opentracing.tags.HTTP_METHOD, request.method)
