@@ -52,7 +52,7 @@ def check_stock_quantity_bulk(
     :raises InsufficientStock: when there is not enough items in stock for a variant.
     """
     all_variants_stocks = (
-        Stock.objects.for_country(country_code, channel_slug)
+        Stock.objects.for_country_and_channel(country_code, channel_slug)
         .filter(product_variant__in=variants)
         .annotate_available_quantity()
     )
