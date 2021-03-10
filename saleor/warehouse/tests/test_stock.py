@@ -6,7 +6,7 @@ COUNTRY_CODE = "US"
 def test_stocks_for_country(variant_with_many_stocks, channel_USD):
     [stock1, stock2] = (
         Stock.objects.filter(product_variant=variant_with_many_stocks)
-        .for_country(COUNTRY_CODE, channel_USD.slug)
+        .for_country_and_channel(COUNTRY_CODE, channel_USD.slug)
         .order_by("pk")
         .all()
     )
@@ -25,5 +25,7 @@ def test_stock_for_country_does_not_exists(product, warehouse, channel_PLN):
     warehouse.refresh_from_db()
     fake_country_code = "PL"
     assert fake_country_code not in warehouse.countries
-    stock_qs = Stock.objects.for_country(fake_country_code, channel_PLN.slug)
+    stock_qs = Stock.objects.for_country_and_channel(
+        fake_country_code, channel_PLN.slug
+    )
     assert not stock_qs.exists()
