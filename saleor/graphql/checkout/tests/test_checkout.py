@@ -1331,6 +1331,22 @@ def test_checkout_available_shipping_methods_weight_method_with_higher_minimal_w
     assert shipping_method.name not in shipping_methods
 
 
+def test_checkout_available_shipping_methods_shipping_zone_without_channels(
+    api_client, checkout_with_item, address, shipping_zone
+):
+    shipping_zone.channels.clear()
+    checkout_with_item.shipping_address = address
+    checkout_with_item.save()
+
+    query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
+    variables = {"token": checkout_with_item.token}
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    assert len(data["availableShippingMethods"]) == 0
+
+
 def test_checkout_available_shipping_methods_excluded_postal_codes(
     api_client, checkout_with_item, address, shipping_zone
 ):

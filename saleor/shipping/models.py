@@ -123,6 +123,7 @@ class ShippingMethodQueryset(models.QuerySet):
         """
         qs = self.filter(
             shipping_zone__countries__contains=country_code,
+            shipping_zone__channels__id=channel_id,
             channel_listings__currency=price.currency,
             channel_listings__channel_id=channel_id,
         )

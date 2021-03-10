@@ -486,8 +486,10 @@ def test_order_query_in_pln_channel(
     staff_api_client,
     permission_manage_orders,
     order_with_lines_channel_PLN,
+    shipping_zone,
     channel_PLN,
 ):
+    shipping_zone.channels.add(channel_PLN)
     order = order_with_lines_channel_PLN
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(ORDERS_QUERY)
