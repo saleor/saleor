@@ -142,8 +142,12 @@ def test_checkout_update_shipping_method(
     content = get_graphql_content(response)
     data = content["data"]["checkoutShippingMethodUpdate"]
 
-    assert data["errors"] == [
-        {"field": "shippingMethod", "message": "This checkout doesn't need shipping"}
+    assert data["checkoutErrors"] == [
+        {
+            "field": "shippingMethod",
+            "message": "This checkout doesn't need shipping",
+            "code": CheckoutErrorCode.SHIPPING_NOT_REQUIRED.name,
+        }
     ]
 
     # Ensure the shipping method was unchanged

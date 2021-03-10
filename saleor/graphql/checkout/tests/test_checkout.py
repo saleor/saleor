@@ -2674,9 +2674,10 @@ MUTATION_UPDATE_SHIPPING_METHOD = """
             $checkoutId:ID!, $shippingMethodId:ID!){
         checkoutShippingMethodUpdate(
             checkoutId:$checkoutId, shippingMethodId:$shippingMethodId) {
-            errors {
+            checkoutErrors {
                 field
                 message
+                code
             }
             checkout {
                 id
@@ -2717,18 +2718,17 @@ def test_checkout_shipping_method_update(
     mock_clean_shipping.assert_called_once_with(
         checkout_info=checkout_info, lines=lines, method=shipping_method
     )
-
+    errors = data["checkoutErrors"]
     if is_valid_shipping_method:
-        assert not data["errors"]
+        assert not errors
         assert data["checkout"]["id"] == checkout_id
         assert checkout.shipping_method == shipping_method
     else:
-        assert data["errors"] == [
-            {
-                "field": "shippingMethod",
-                "message": "This shipping method is not applicable.",
-            }
-        ]
+        assert len(errors) == 1
+        assert errors[0]["field"] == "shippingMethod"
+        assert (
+            errors[0]["code"] == CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
+        )
         assert checkout.shipping_method is None
 
 
@@ -2756,17 +2756,73 @@ def test_checkout_shipping_method_update_excluded_postal_code(
 
     checkout.refresh_from_db()
 
-    assert data["errors"] == [
-        {
-            "field": "shippingMethod",
-            "message": "This shipping method is not applicable.",
-        }
-    ]
+    errors = data["checkoutErrors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "shippingMethod"
+    assert errors[0]["code"] == CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
     assert checkout.shipping_method is None
     assert (
         mock_is_shipping_method_available.call_count
         == shipping_models.ShippingMethod.objects.count()
     )
+
+
+def test_checkout_shipping_method_update_shipping_zone_without_channel(
+    staff_api_client,
+    shipping_method,
+    checkout_with_item,
+    address,
+):
+    shipping_method.shipping_zone.channels.clear()
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.save(update_fields=["shipping_address"])
+    query = MUTATION_UPDATE_SHIPPING_METHOD
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+
+    response = staff_api_client.post_graphql(
+        query, {"checkoutId": checkout_id, "shippingMethodId": method_id}
+    )
+    data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
+
+    checkout.refresh_from_db()
+
+    errors = data["checkoutErrors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "shippingMethod"
+    assert errors[0]["code"] == CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
+    assert checkout.shipping_method is None
+
+
+def test_checkout_shipping_method_update_shipping_zone_with_channel(
+    staff_api_client,
+    shipping_method,
+    checkout_with_item,
+    address,
+):
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.save(update_fields=["shipping_address"])
+    query = MUTATION_UPDATE_SHIPPING_METHOD
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+
+    response = staff_api_client.post_graphql(
+        query, {"checkoutId": checkout_id, "shippingMethodId": method_id}
+    )
+    data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
+
+    checkout.refresh_from_db()
+
+    checkout.refresh_from_db()
+    errors = data["checkoutErrors"]
+    assert not errors
+    assert data["checkout"]["id"] == checkout_id
+
+    assert checkout.shipping_method == shipping_method
 
 
 def test_query_checkout_line(checkout_with_item, user_api_client):
