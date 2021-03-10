@@ -92,7 +92,7 @@ class Checkout(ModelWithMetadata):
         max_length=35, choices=settings.LANGUAGES, default=settings.LANGUAGE_CODE
     )
 
-    class Meta:
+    class Meta(ModelWithMetadata.Meta):
         ordering = ("-last_change", "pk")
         permissions = (
             (CheckoutPermissions.MANAGE_CHECKOUTS.codename, "Manage checkouts"),

@@ -210,7 +210,7 @@ class Order(ModelWithMetadata):
     redirect_url = models.URLField(blank=True, null=True)
     objects = OrderQueryset.as_manager()
 
-    class Meta:
+    class Meta(ModelWithMetadata.Meta):
         ordering = ("-pk",)
         permissions = ((OrderPermissions.MANAGE_ORDERS.codename, "Manage orders."),)
 
@@ -524,7 +524,7 @@ class Fulfillment(ModelWithMetadata):
     tracking_number = models.CharField(max_length=255, default="", blank=True)
     created = models.DateTimeField(auto_now_add=True)
 
-    class Meta:
+    class Meta(ModelWithMetadata.Meta):
         ordering = ("pk",)
 
     def __str__(self):
