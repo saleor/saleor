@@ -2307,8 +2307,13 @@ PRODUCT_VARIANT_BULK_CREATE_MUTATION = """
 """
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 def test_product_variant_bulk_create_by_attribute_id(
-    staff_api_client, product, size_attribute, permission_manage_products
+    product_variant_created_webhook_mock,
+    staff_api_client,
+    product,
+    size_attribute,
+    permission_manage_products,
 ):
     product_variant_count = ProductVariant.objects.count()
     attribute_value_count = size_attribute.values.count()
@@ -2340,6 +2345,7 @@ def test_product_variant_bulk_create_by_attribute_id(
     product_variant = ProductVariant.objects.get(sku=sku)
     product.refresh_from_db()
     assert product.default_variant == product_variant
+    assert product_variant_created_webhook_mock.call_count == data["count"]
 
 
 def test_product_variant_bulk_create_only_not_variant_selection_attributes(

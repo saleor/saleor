@@ -431,6 +431,7 @@ class ProductVariantBulkCreate(BaseMutation):
             cls.save(info, instance, cleaned_input)
             cls.create_variant_stocks(instance, cleaned_input)
             cls.create_variant_channel_listings(instance, cleaned_input)
+            info.context.plugins.product_variant_created(instance)
         if not product.default_variant:
             product.default_variant = instances[0]
             product.save(update_fields=["default_variant", "updated_at"])
@@ -499,6 +500,10 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
             .distinct()
             .values_list("pk", flat=True)
         )
+
+        product_variants = models.ProductVariant.objects.filter(id__in=pks)
+        for product_variant in product_variants:
+            info.context.plugins.product_variant_deleted(product_variant)
 
         response = super().perform_mutation(_root, info, ids, **data)
 
