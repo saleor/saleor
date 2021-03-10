@@ -12,8 +12,6 @@ import html2text
 import i18naddress
 import pybars
 from babel.numbers import format_currency
-from django.conf import settings
-from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.core.mail.backends.smtp import EmailBackend
@@ -182,17 +180,11 @@ def price(this, net_amount, gross_amount, currency, display_gross=False):
 def send_email(
     config: EmailConfig, recipient_list, context, subject="", template_str=""
 ):
-    sender_name = config.sender_name
+    sender_name = config.sender_name or ""
     sender_address = config.sender_address
-    if not sender_address or not sender_name:
-        # TODO when we deprecate the default mail config from Site, we can drop this if
-        # and require the sender's data as a plugin input or take it from settings file.
-        site = Site.objects.get_current()
-        sender_name = sender_name or site.settings.default_mail_sender_name
-        sender_address = sender_address or site.settings.default_mail_sender_address
-        sender_address = sender_address or settings.DEFAULT_FROM_EMAIL
 
     from_email = str(Address(sender_name, addr_spec=sender_address))
+
     email_backend = EmailBackend(
         host=config.host,
         port=config.port,
@@ -268,15 +260,26 @@ def validate_default_email_configuration(plugin_configuration: "PluginConfigurat
             }
         )
     config = EmailConfig(
-        host=configuration["host"] or settings.EMAIL_HOST,
-        port=configuration["port"] or settings.EMAIL_PORT,
-        username=configuration["username"] or settings.EMAIL_HOST_USER,
-        password=configuration["password"] or settings.EMAIL_HOST_PASSWORD,
+        host=configuration["host"],
+        port=configuration["port"],
+        username=configuration["username"],
+        password=configuration["password"],
         sender_name=configuration["sender_name"],
         sender_address=configuration["sender_address"],
         use_tls=configuration["use_tls"],
         use_ssl=configuration["use_ssl"],
     )
+
+    if not config.sender_address:
+        raise ValidationError(
+            {
+                "sender_address": ValidationError(
+                    "Missing sender address value.",
+                    code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
+                )
+            }
+        )
+
     try:
         validate_email_config(config)
     except Exception as e:
