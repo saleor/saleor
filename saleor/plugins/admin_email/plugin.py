@@ -193,7 +193,8 @@ class AdminEmailPlugin(BasePlugin):
             username=configuration["username"] or settings.EMAIL_HOST_USER,
             password=configuration["password"] or settings.EMAIL_HOST_PASSWORD,
             sender_name=configuration["sender_name"],
-            sender_address=configuration["sender_address"],
+            sender_address=configuration["sender_address"]
+            or settings.DEFAULT_FROM_EMAIL,
             use_tls=configuration["use_tls"] or settings.EMAIL_USE_TLS,
             use_ssl=configuration["use_ssl"] or settings.EMAIL_USE_SSL,
         )
