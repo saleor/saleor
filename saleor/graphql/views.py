@@ -6,7 +6,6 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import opentracing
 import opentracing.tags
-from opentracing.propagation import Format
 from django.conf import settings
 from django.db import connection
 from django.db.backends.postgresql.base import DatabaseWrapper
@@ -22,6 +21,7 @@ from graphql.error import GraphQLError, GraphQLSyntaxError
 from graphql.error import format_error as format_graphql_error
 from graphql.execution import ExecutionResult
 from jwt.exceptions import PyJWTError
+from opentracing.propagation import Format
 
 from ..core.exceptions import PermissionDenied, ReadOnlyException
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
@@ -134,8 +134,7 @@ class GraphQLView(View):
         tracer = opentracing.global_tracer()
 
         span_context = tracer.extract(
-            format=Format.HTTP_HEADERS,
-            carrier=request.headers
+            format=Format.HTTP_HEADERS, carrier=request.headers
         )
 
         with tracer.start_active_span("http", child_of=span_context) as scope:
