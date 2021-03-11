@@ -166,6 +166,35 @@ class ProductVariantsByProductIdLoader(DataLoader):
         return [variant_map.get(product_id, []) for product_id in keys]
 
 
+class AvailableProductVariantsByProductVariantId(
+    DataLoader[VariantIdAndChannelSlug, ProductVariantChannelListing]
+):
+    context_key = "available_productvariant_by_variant_and_channel"
+    field = "slug"
+
+    def batch_load(self, keys):
+        available_variants_by_channel: DefaultDict[str, List[int]] = defaultdict(list)
+        for channel, variants in keys:
+            available_variants = self.batch_load_available(channel, variants)
+            available_variants_by_channel[channel] = available_variants
+        return [available_variants_by_channel[key] for key, _ in keys]
+
+    def batch_load_available(
+        self, channel: str, variant_ids: Iterable[int]
+    ) -> Iterable[int]:
+        filter = {
+            f"channel__{self.field}": channel,
+            "variant_id__in": variant_ids,
+            "price_amount__isnull": False,
+        }
+        variant_channel_listings = ProductVariantChannelListing.objects.filter(**filter)
+
+        return [
+            variant_channel_listing.variant_id
+            for variant_channel_listing in variant_channel_listings.iterator()
+        ]
+
+
 class ProductVariantChannelListingByIdLoader(DataLoader):
     context_key = "productvariantchannelisting_by_id"
 
@@ -224,7 +253,11 @@ class VariantChannelListingByVariantIdAndChannelLoader(
     def batch_load_channel(
         self, channel: str, variant_ids: Iterable[int]
     ) -> Iterable[Tuple[int, Optional[ProductVariantChannelListing]]]:
-        filter = {f"channel__{self.field}": channel, "variant_id__in": variant_ids}
+        filter = {
+            f"channel__{self.field}": channel,
+            "variant_id__in": variant_ids,
+            "price_amount__isnull": False,
+        }
         variant_channel_listings = ProductVariantChannelListing.objects.filter(**filter)
 
         variant_channel_listings_map: Dict[int, ProductVariantChannelListing] = {}
@@ -253,7 +286,7 @@ class VariantChannelListingByVariantIdAndChannelIdLoader(
     field = "id"
 
 
-class VariantsChannelListingByProductIdAndChanneSlugLoader(
+class VariantsChannelListingByProductIdAndChannelSlugLoader(
     DataLoader[ProductIdAndChannelSlug, Iterable[ProductVariantChannelListing]]
 ):
     context_key = "variantschannelisting_by_product_and_channel"

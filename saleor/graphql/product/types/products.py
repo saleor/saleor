@@ -53,6 +53,7 @@ from ...order.dataloaders import (
     OrderByIdLoader,
     OrderLinesByVariantIdAndChannelIdLoader,
 )
+from ...product.dataloaders.products import AvailableProductVariantsByProductVariantId
 from ...translations.fields import TranslationField
 from ...translations.types import (
     CategoryTranslation,
@@ -89,7 +90,7 @@ from ..dataloaders import (
     VariantAttributesByProductTypeIdLoader,
     VariantChannelListingByVariantIdAndChannelSlugLoader,
     VariantChannelListingByVariantIdLoader,
-    VariantsChannelListingByProductIdAndChanneSlugLoader,
+    VariantsChannelListingByProductIdAndChannelSlugLoader,
 )
 from ..enums import VariantAttributeScope
 from ..filters import ProductFilterInput
@@ -632,9 +633,11 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             context
         ).load((root.node.id, channel_slug))
         variants = ProductVariantsByProductIdLoader(context).load(root.node.id)
-        variants_channel_listing = VariantsChannelListingByProductIdAndChanneSlugLoader(
-            context
-        ).load((root.node.id, channel_slug))
+        variants_channel_listing = (
+            VariantsChannelListingByProductIdAndChannelSlugLoader(context).load(
+                (root.node.id, channel_slug)
+            )
+        )
         collections = CollectionsByProductIdLoader(context).load(root.node.id)
         channel = ChannelBySlugLoader(context).load(channel_slug)
 
@@ -727,15 +730,40 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     def resolve_variants(root: ChannelContext[models.Product], info, **_kwargs):
+        requestor = get_user_or_app_from_context(info.context)
+        is_staff = requestor_is_staff_member_or_app(requestor)
+
+        def return_available_variants_in_channel(variants):
+            if is_staff:
+                return variants
+
+            variants_id = (variant.id for variant in variants)
+            variant_channel_listings = AvailableProductVariantsByProductVariantId(
+                info.context
+            ).load((root.channel_slug, variants_id))
+
+            def return_available_variants(available_variants):
+                result = []
+                variants_map = {variant.id: variant for variant in variants}
+                for variant_id in variants_map.keys() & available_variants:
+                    variant = variants_map.get(variant_id)
+                    if variant:
+                        result.append(variant)
+                return result
+
+            return variant_channel_listings.then(return_available_variants)
+
+        def map_channel_context(variants):
+            return [
+                ChannelContext(node=variant, channel_slug=root.channel_slug)
+                for variant in variants
+            ]
+
         return (
             ProductVariantsByProductIdLoader(info.context)
             .load(root.node.id)
-            .then(
-                lambda variants: [
-                    ChannelContext(node=variant, channel_slug=root.channel_slug)
-                    for variant in variants
-                ]
-            )
+            .then(return_available_variants_in_channel)
+            .then(map_channel_context)
         )
 
     @staticmethod

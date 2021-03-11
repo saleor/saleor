@@ -155,7 +155,9 @@ class ProductsQueryset(models.QuerySet):
     def published_with_variants(self, channel_slug: str):
         published = self.published(channel_slug)
         query = ProductVariantChannelListing.objects.filter(
-            variant_id=OuterRef("variants__id"), channel__slug=str(channel_slug)
+            variant_id=OuterRef("variants__id"),
+            channel__slug=str(channel_slug),
+            price_amount__isnull=False,
         ).values_list("variant", flat=True)
         return published.filter(variants__in=query).distinct()
 
@@ -401,6 +403,12 @@ class ProductVariantQueryset(models.QuerySet):
             quantity_allocated=Coalesce(
                 Sum("stocks__allocations__quantity_allocated"), 0
             ),
+        )
+
+    def available_in_channel(self, channel_slug):
+        return self.filter(
+            channel_listings__price_amount__isnull=False,
+            channel_listings__channel__slug=channel_slug,
         )
 
 
