@@ -320,9 +320,16 @@ class ProductQueries(graphene.ObjectType):
 
     def resolve_products(self, info, channel=None, **kwargs):
         requestor = get_user_or_app_from_context(info.context)
-        if channel is None and not requestor_is_staff_member_or_app(requestor):
+        if_staff = requestor_is_staff_member_or_app(requestor)
+        if channel is None and not if_staff:
             channel = get_default_channel_slug_or_graphql_error()
-        return resolve_products(info, requestor, channel_slug=channel, **kwargs)
+        return resolve_products(
+            info,
+            requestor,
+            requestor_has_access_to_all=if_staff,
+            channel_slug=channel,
+            **kwargs,
+        )
 
     def resolve_product_type(self, info, id, **_kwargs):
         return graphene.Node.get_node_from_global_id(info, id, ProductType)
