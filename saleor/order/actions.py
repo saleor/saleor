@@ -175,6 +175,7 @@ def order_returned(
     manager.order_updated(order)
 
 
+@transaction.atomic
 def order_fulfilled(
     fulfillments: List["Fulfillment"],
     user: "User",
@@ -506,11 +507,13 @@ def create_fulfillments(
         )
 
     FulfillmentLine.objects.bulk_create(fulfillment_lines)
-    order_fulfilled(
-        fulfillments,
-        requester,
-        fulfillment_lines,
-        notify_customer,
+    transaction.on_commit(
+        lambda: order_fulfilled(
+            fulfillments,
+            requester,
+            fulfillment_lines,
+            notify_customer,
+        )
     )
     return fulfillments
 

@@ -13,7 +13,7 @@ class Menu(ModelWithMetadata):
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
 
-    class Meta:
+    class Meta(ModelWithMetadata.Meta):
         ordering = ("pk",)
         permissions = ((MenuPermissions.MANAGE_MENUS.codename, "Manage navigation."),)
 
@@ -42,7 +42,7 @@ class MenuItem(ModelWithMetadata, MPTTModel, SortableModel):
     tree = TreeManager()
     translated = TranslationProxy()
 
-    class Meta:
+    class Meta(ModelWithMetadata.Meta):
         ordering = ("sort_order", "pk")
         app_label = "menu"
 
