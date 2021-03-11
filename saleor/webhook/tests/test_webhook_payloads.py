@@ -1,10 +1,12 @@
 import json
 from decimal import Decimal
 from itertools import chain
+from unittest.mock import ANY
 
 import graphene
 
 from ...discount import DiscountValueType, OrderDiscountType
+from ...product.models import ProductVariant
 from ..payloads import (
     ORDER_FIELDS,
     PRODUCT_VARIANT_FIELDS,
@@ -100,6 +102,42 @@ def test_generate_product_variant_payload(product_with_variant_with_two_attribut
         *[PRODUCT_VARIANT_FIELDS, extra_dict_data, additional_fields]
     )
 
-    assert variant_id == payload["id"]
     for field in payload_fields:
         assert payload.get(field) is not None
+
+    assert variant_id is not None
+    assert payload["sku"] == "prodVar1"
+    assert len(payload["attributes"]) == 2
+    assert len(payload["channel_listings"]) == 1
+    assert payload["channel_listings"][0] == {
+        "cost_price_amount": "1.000",
+        "currency": "USD",
+        "id": ANY,
+        "price_amount": "10.000",
+        "type": "ProductVariantChannelListing",
+    }
+
+
+def test_generate_product_variant_deleted_payload(
+    product_with_variant_with_two_attributes,
+):
+    variant = product_with_variant_with_two_attributes.variants.prefetch_related(
+        "channel_listings",
+        "attributes__values",
+    ).first()
+    ProductVariant.objects.filter(id=variant.id).delete()
+    payload = json.loads(generate_product_variant_payload(variant))[0]
+    [_, payload_variant_id] = graphene.Node.from_global_id(payload["id"])
+    additional_fields = ["channel_listings"]
+    extra_dict_data = ["attributes", "product_id"]
+    payload_fields = chain(
+        *[PRODUCT_VARIANT_FIELDS, extra_dict_data, additional_fields]
+    )
+
+    for field in payload_fields:
+        assert payload.get(field) is not None
+
+    assert payload_variant_id != "None"
+    assert payload["sku"] == "prodVar1"
+    assert len(payload["attributes"]) == 2
+    assert len(payload["channel_listings"]) == 1

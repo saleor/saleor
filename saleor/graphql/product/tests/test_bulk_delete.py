@@ -17,6 +17,7 @@ from ....product.models import (
     ProductVariant,
     ProductVariantChannelListing,
 )
+from ....tests.utils import flush_post_commit_hooks
 from ...tests.utils import get_graphql_content
 
 
@@ -380,6 +381,7 @@ def test_delete_product_variants(
     permission_manage_products,
 ):
     query = PRODUCT_VARIANT_BULK_DELETE_MUTATION
+    flush_post_commit_hooks()
 
     assert ProductVariantChannelListing.objects.filter(
         variant_id__in=[variant.id for variant in product_variant_list]

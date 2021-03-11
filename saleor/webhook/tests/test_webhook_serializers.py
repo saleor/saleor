@@ -18,12 +18,12 @@ def test_serialize_product_attributes(
     assert variant_data[1] == {
         "id": ANY,
         "name": "Size",
-        "values": [{"name": "Small", "slug": "small", "value": ""}],
+        "values": [{"name": "Small", "slug": "small", "file": None}],
     }
 
     assert len(product_data) == 1
     assert product_data[0]["name"] == "Available Modes"
     assert sorted(product_data[0]["values"], key=itemgetter("name")) == [
-        {"name": "Eco Mode", "value": "", "slug": "eco"},
-        {"name": "Performance Mode", "value": "", "slug": "power"},
+        {"name": "Eco Mode", "slug": "eco", "file": None},
+        {"name": "Performance Mode", "slug": "power", "file": None},
     ]

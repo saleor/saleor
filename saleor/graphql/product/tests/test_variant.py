@@ -15,6 +15,7 @@ from ....order import OrderStatus
 from ....order.models import OrderLine
 from ....product.error_codes import ProductErrorCode
 from ....product.models import Product, ProductChannelListing, ProductVariant
+from ....tests.utils import flush_post_commit_hooks
 from ....warehouse.error_codes import StockErrorCode
 from ....warehouse.models import Stock, Warehouse
 from ...core.enums import WeightUnitsEnum
@@ -322,11 +323,9 @@ CREATE_VARIANT_MUTATION = """
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
-@patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_create_variant(
-    product_updated_webhook_mock,
-    product_variant_updated_webhook_mock,
-    product_variant_created_webhook_mock,
+    updated_webhook_mock,
+    created_webhook_mock,
     staff_api_client,
     product,
     product_type,
@@ -348,6 +347,7 @@ def test_create_variant(
             "quantity": 20,
         }
     ]
+    flush_post_commit_hooks()
 
     variables = {
         "productId": product_id,
@@ -372,16 +372,13 @@ def test_create_variant(
     assert len(data["stocks"]) == 1
     assert data["stocks"][0]["quantity"] == stocks[0]["quantity"]
     assert data["stocks"][0]["warehouse"]["slug"] == warehouse.slug
-    product_updated_webhook_mock.assert_called_once_with(product)
-    product_variant_created_webhook_mock.assert_called_once_with(
-        product.variants.last()
-    )
-    product_variant_updated_webhook_mock.assert_not_called()
+    created_webhook_mock.assert_called_once_with(product.variants.last())
+    updated_webhook_mock.assert_not_called()
 
 
-@patch("saleor.plugins.manager.PluginsManager.product_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 def test_create_variant_with_file_attribute(
-    updated_webhook_mock,
+    created_webhook_mock,
     staff_api_client,
     product,
     product_type,
@@ -398,6 +395,7 @@ def test_create_variant_with_file_attribute(
     product_type.variant_attributes.add(file_attribute)
     file_attr_id = graphene.Node.to_global_id("Attribute", file_attribute.id)
     existing_value = file_attribute.values.first()
+    flush_post_commit_hooks()
 
     values_count = file_attribute.values.count()
 
@@ -436,12 +434,12 @@ def test_create_variant_with_file_attribute(
     file_attribute.refresh_from_db()
     assert file_attribute.values.count() == values_count + 1
 
-    updated_webhook_mock.assert_called_once_with(product)
+    created_webhook_mock.assert_called_once_with(product.variants.last())
 
 
-@patch("saleor.plugins.manager.PluginsManager.product_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 def test_create_variant_with_file_attribute_new_value(
-    updated_webhook_mock,
+    created_webhook_mock,
     staff_api_client,
     product,
     product_type,
@@ -460,6 +458,7 @@ def test_create_variant_with_file_attribute_new_value(
     product_type.variant_attributes.add(file_attribute)
     file_attr_id = graphene.Node.to_global_id("Attribute", file_attribute.id)
     new_value = "new_value.txt"
+    flush_post_commit_hooks()
 
     values_count = file_attribute.values.count()
 
@@ -499,12 +498,12 @@ def test_create_variant_with_file_attribute_new_value(
     file_attribute.refresh_from_db()
     assert file_attribute.values.count() == values_count + 1
 
-    updated_webhook_mock.assert_called_once_with(product)
+    created_webhook_mock.assert_called_once_with(product.variants.last())
 
 
-@patch("saleor.plugins.manager.PluginsManager.product_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 def test_create_variant_with_file_attribute_no_file_url_given(
-    updated_webhook_mock,
+    created_webhook_mock,
     staff_api_client,
     product,
     product_type,
@@ -522,6 +521,7 @@ def test_create_variant_with_file_attribute_no_file_url_given(
     product_type.variant_attributes.clear()
     product_type.variant_attributes.add(file_attribute)
     file_attr_id = graphene.Node.to_global_id("Attribute", file_attribute.id)
+    flush_post_commit_hooks()
 
     values_count = file_attribute.values.count()
 
@@ -562,12 +562,12 @@ def test_create_variant_with_file_attribute_no_file_url_given(
     file_attribute.refresh_from_db()
     assert file_attribute.values.count() == values_count
 
-    updated_webhook_mock.assert_called_once_with(product)
+    created_webhook_mock.assert_called_once_with(product.variants.last())
 
 
-@patch("saleor.plugins.manager.PluginsManager.product_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 def test_create_variant_with_page_reference_attribute(
-    updated_webhook_mock,
+    created_webhook_mock,
     staff_api_client,
     product,
     product_type,
@@ -585,6 +585,7 @@ def test_create_variant_with_page_reference_attribute(
     ref_attr_id = graphene.Node.to_global_id(
         "Attribute", product_type_page_reference_attribute.id
     )
+    flush_post_commit_hooks()
 
     page_ref_1 = graphene.Node.to_global_id("Page", page_list[0].pk)
     page_ref_2 = graphene.Node.to_global_id("Page", page_list[1].pk)
@@ -641,11 +642,13 @@ def test_create_variant_with_page_reference_attribute(
     product_type_page_reference_attribute.refresh_from_db()
     assert product_type_page_reference_attribute.values.count() == values_count + 2
 
-    updated_webhook_mock.assert_called_once_with(product)
+    created_webhook_mock.assert_called_once_with(product.variants.last())
 
 
-@patch("saleor.plugins.manager.PluginsManager.product_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 def test_create_variant_with_page_reference_attribute_no_references_given(
+    created_webhook_mock,
     updated_webhook_mock,
     staff_api_client,
     product,
@@ -663,6 +666,7 @@ def test_create_variant_with_page_reference_attribute_no_references_given(
     ref_attr_id = graphene.Node.to_global_id(
         "Attribute", product_type_page_reference_attribute.id
     )
+    flush_post_commit_hooks()
 
     values_count = product_type_page_reference_attribute.values.count()
 
@@ -695,12 +699,13 @@ def test_create_variant_with_page_reference_attribute_no_references_given(
     product_type_page_reference_attribute.refresh_from_db()
     assert product_type_page_reference_attribute.values.count() == values_count
 
+    created_webhook_mock.assert_not_called()
     updated_webhook_mock.assert_not_called()
 
 
-@patch("saleor.plugins.manager.PluginsManager.product_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 def test_create_variant_with_product_reference_attribute(
-    updated_webhook_mock,
+    created_webhook_mock,
     staff_api_client,
     product,
     product_type,
@@ -712,6 +717,7 @@ def test_create_variant_with_product_reference_attribute(
     query = CREATE_VARIANT_MUTATION
     product_id = graphene.Node.to_global_id("Product", product.pk)
     sku = "1"
+    flush_post_commit_hooks()
 
     product_type.variant_attributes.clear()
     product_type.variant_attributes.add(product_type_product_reference_attribute)
@@ -776,11 +782,13 @@ def test_create_variant_with_product_reference_attribute(
     product_type_product_reference_attribute.refresh_from_db()
     assert product_type_product_reference_attribute.values.count() == values_count + 2
 
-    updated_webhook_mock.assert_called_once_with(product)
+    created_webhook_mock.assert_called_once_with(product.variants.last())
 
 
-@patch("saleor.plugins.manager.PluginsManager.product_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 def test_create_variant_with_product_reference_attribute_no_references_given(
+    created_webhook_mock,
     updated_webhook_mock,
     staff_api_client,
     product,
@@ -830,6 +838,7 @@ def test_create_variant_with_product_reference_attribute_no_references_given(
     product_type_product_reference_attribute.refresh_from_db()
     assert product_type_product_reference_attribute.values.count() == values_count
 
+    created_webhook_mock.assert_not_called()
     updated_webhook_mock.assert_not_called()
 
 
@@ -1103,9 +1112,7 @@ def test_create_product_variant_update_with_new_attributes(
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
-@patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_update_product_variant(
-    product_updated_webhook_mock,
     product_variant_updated_webhook_mock,
     product_variant_created_webhook_mock,
     staff_api_client,
@@ -1148,6 +1155,7 @@ def test_update_product_variant(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
     sku = "test sku"
+    flush_post_commit_hooks()
 
     variables = {
         "id": variant_id,
@@ -1164,7 +1172,6 @@ def test_update_product_variant(
     data = content["data"]["productVariantUpdate"]["productVariant"]
     assert data["name"] == variant.name
     assert data["sku"] == sku
-    product_updated_webhook_mock.assert_called_once_with(product)
     product_variant_updated_webhook_mock.assert_called_once_with(
         product.variants.last()
     )

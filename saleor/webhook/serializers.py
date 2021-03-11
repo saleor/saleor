@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 from ..checkout.fetch import fetch_checkout_lines
 from ..product.models import Product
@@ -34,7 +34,7 @@ def serialize_checkout_lines(checkout: "Checkout") -> List[dict]:
 
 def serialize_product_or_variant_attributes(
     product_or_variant: Union["Product", "ProductVariant"]
-) -> List[dict]:
+) -> List[Dict]:
     data = []
     for attr in product_or_variant.attributes.all():
         attr_data = {
@@ -44,7 +44,7 @@ def serialize_product_or_variant_attributes(
         }
 
         for attr_value in attr.values.all():
-            value = {
+            value: Dict[str, Optional[Union[str, Dict[str, Any]]]] = {
                 "name": attr_value.name,
                 "slug": attr_value.slug,
                 "file": None,
@@ -55,8 +55,7 @@ def serialize_product_or_variant_attributes(
                     "content_type": attr_value.content_type,
                     "file_url": attr_value.file_url,
                 }
-
-            attr_data["values"].append(value)
+            attr_data["values"].append(value)  # type: ignore
 
         data.append(attr_data)
 

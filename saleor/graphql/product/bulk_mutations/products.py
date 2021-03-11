@@ -3,14 +3,12 @@ from collections import defaultdict
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Prefetch
 from graphene.types import InputObjectType
 
 from ....core.permissions import ProductPermissions, ProductTypePermissions
 from ....order import OrderStatus
 from ....order import models as order_models
 from ....product import models
-from ....attribute.models import AssignedVariantAttribute
 from ....product.error_codes import ProductErrorCode
 from ....product.tasks import update_product_discounted_price_task
 from ....product.utils import delete_categories
@@ -505,6 +503,7 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
             .values_list("pk", flat=True)
         )
 
+        # Get cached variants with related fields to fully populate webhook payload.
         variants = list(
             models.ProductVariant.objects.filter(id__in=pks).prefetch_related(
                 "channel_listings",
