@@ -230,15 +230,17 @@ class BaseChannelListingMutation(BaseMutation):
             )
 
     @classmethod
-    def clean_channels(cls, info, input, errors: ErrorType, error_code) -> Dict:
-        add_channels = input.get("add_channels", [])
+    def clean_channels(
+        cls, info, input, errors: ErrorType, error_code, input_source="add_channels"
+    ) -> Dict:
+        add_channels = input.get(input_source, [])
         add_channels_ids = [channel["channel_id"] for channel in add_channels]
         remove_channels_ids = input.get("remove_channels", [])
         cls.validate_duplicated_channel_ids(
             add_channels_ids, remove_channels_ids, errors, error_code
         )
         cls.validate_duplicated_channel_values(
-            add_channels_ids, "add_channels", errors, error_code
+            add_channels_ids, input_source, errors, error_code
         )
         cls.validate_duplicated_channel_values(
             remove_channels_ids, "remove_channels", errors, error_code
@@ -255,17 +257,17 @@ class BaseChannelListingMutation(BaseMutation):
             remove_channels_ids, Channel
         )
 
-        cleaned_input = {"add_channels": [], "remove_channels": remove_channels_pks}
+        cleaned_input = {input_source: [], "remove_channels": remove_channels_pks}
 
         for channel_listing, channel in zip(add_channels, channels_to_add):
             channel_listing["channel"] = channel
-            cleaned_input["add_channels"].append(channel_listing)
+            cleaned_input[input_source].append(channel_listing)
 
         return cleaned_input
 
     @classmethod
-    def clean_publication_date(cls, cleaned_input):
-        for add_channel in cleaned_input.get("add_channels", []):
+    def clean_publication_date(cls, cleaned_input, input_source="add_channels"):
+        for add_channel in cleaned_input.get(input_source, []):
             is_published = add_channel.get("is_published")
             publication_date = add_channel.get("publication_date")
             if is_published and not publication_date:
