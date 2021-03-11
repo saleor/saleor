@@ -1644,7 +1644,6 @@ type DeletePrivateMetadata {
 type DigitalContent implements Node & ObjectWithMetadata {
   useDefaultSettings: Boolean!
   automaticFulfillment: Boolean!
-  productVariant: ProductVariant!
   contentFile: String!
   maxDownloads: Int
   urlValidDays: Int
@@ -1652,6 +1651,7 @@ type DigitalContent implements Node & ObjectWithMetadata {
   id: ID!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
+  productVariant: ProductVariant!
 }
 
 type DigitalContentCountableConnection {
@@ -2706,6 +2706,11 @@ type Mutation {
   orderFulfillmentUpdateTracking(id: ID!, input: FulfillmentUpdateTrackingInput!): FulfillmentUpdateTracking
   orderFulfillmentRefundProducts(input: OrderRefundProductsInput!, order: ID!): FulfillmentRefundProducts
   orderFulfillmentReturnProducts(input: OrderReturnProductsInput!, order: ID!): FulfillmentReturnProducts
+  orderDiscountAdd(input: OrderDiscountCommonInput!, orderId: ID!): OrderDiscountAdd
+  orderDiscountUpdate(discountId: ID!, input: OrderDiscountCommonInput!): OrderDiscountUpdate
+  orderDiscountDelete(discountId: ID!): OrderDiscountDelete
+  orderLineDiscountUpdate(input: OrderDiscountCommonInput!, orderLineId: ID!): OrderLineDiscountUpdate
+  orderLineDiscountRemove(orderLineId: ID!): OrderLineDiscountRemove
   orderMarkAsPaid(id: ID!, transactionReference: String): OrderMarkAsPaid
   orderRefund(amount: PositiveDecimal!, id: ID!): OrderRefund
   orderUpdate(id: ID!, input: OrderUpdateInput!): OrderUpdate
@@ -2881,9 +2886,6 @@ type Order implements Node & ObjectWithMetadata {
   token: String!
   voucher: Voucher
   giftCards: [GiftCard]
-  discount: Money
-  discountName: String
-  translatedDiscountName: String
   displayGrossPrices: Boolean!
   customerNote: String!
   weight: Weight
@@ -2901,6 +2903,7 @@ type Order implements Node & ObjectWithMetadata {
   paymentStatusDisplay: String!
   payments: [Payment]
   total: TaxedMoney!
+  undiscountedTotal: TaxedMoney!
   subtotal: TaxedMoney!
   statusDisplay: String
   canFinalize: Boolean!
@@ -2910,6 +2913,10 @@ type Order implements Node & ObjectWithMetadata {
   totalBalance: Money!
   userEmail: String
   isShippingRequired: Boolean!
+  discount: Money @deprecated(reason: "Use discounts field. This field will be removed in Saleor 4.0.")
+  discountName: String @deprecated(reason: "Use discounts field. This field will be removed in Saleor 4.0.")
+  translatedDiscountName: String @deprecated(reason: "Use discounts field. This field will be removed in Saleor 4.0.")
+  discounts: [OrderDiscount!]
 }
 
 enum OrderAction {
@@ -2970,6 +2977,46 @@ enum OrderDirection {
   DESC
 }
 
+type OrderDiscount implements Node {
+  id: ID!
+  type: OrderDiscountType!
+  valueType: DiscountValueTypeEnum!
+  value: PositiveDecimal!
+  name: String
+  translatedName: String
+  reason: String
+  amount: Money!
+}
+
+type OrderDiscountAdd {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  order: Order
+  orderErrors: [OrderError!]!
+}
+
+input OrderDiscountCommonInput {
+  valueType: DiscountValueTypeEnum!
+  value: PositiveDecimal!
+  reason: String
+}
+
+type OrderDiscountDelete {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  order: Order
+  orderErrors: [OrderError!]!
+}
+
+enum OrderDiscountType {
+  VOUCHER
+  MANUAL
+}
+
+type OrderDiscountUpdate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  order: Order
+  orderErrors: [OrderError!]!
+}
+
 input OrderDraftFilterInput {
   customer: String
   created: DateRangeInput
@@ -2991,6 +3038,7 @@ enum OrderErrorCode {
   CANNOT_CANCEL_FULFILLMENT
   CANNOT_CANCEL_ORDER
   CANNOT_DELETE
+  CANNOT_DISCOUNT
   CANNOT_REFUND
   CAPTURE_INACTIVE_PAYMENT
   NOT_EDITABLE
@@ -3039,6 +3087,7 @@ type OrderEvent implements Node {
   transactionReference: String
   shippingCostsIncluded: Boolean
   relatedOrder: Order
+  discount: OrderEventDiscountObject
 }
 
 type OrderEventCountableConnection {
@@ -3052,10 +3101,21 @@ type OrderEventCountableEdge {
   cursor: String!
 }
 
+type OrderEventDiscountObject {
+  valueType: DiscountValueTypeEnum!
+  value: PositiveDecimal!
+  reason: String
+  amount: Money
+  oldValueType: DiscountValueTypeEnum
+  oldValue: PositiveDecimal
+  oldAmount: Money
+}
+
 type OrderEventOrderLineObject {
   quantity: Int
   orderLine: OrderLine
   itemName: String
+  discount: OrderEventDiscountObject
 }
 
 enum OrderEventsEmailsEnum {
@@ -3082,6 +3142,12 @@ enum OrderEventsEnum {
   ORDER_MARKED_AS_PAID
   ORDER_FULLY_PAID
   ORDER_REPLACEMENT_CREATED
+  ORDER_DISCOUNT_ADDED
+  ORDER_DISCOUNT_AUTOMATICALLY_UPDATED
+  ORDER_DISCOUNT_UPDATED
+  ORDER_DISCOUNT_DELETED
+  ORDER_LINE_DISCOUNT_UPDATED
+  ORDER_LINE_DISCOUNT_REMOVED
   UPDATED_ADDRESS
   EMAIL_SENT
   CONFIRMED
@@ -3145,20 +3211,39 @@ type OrderLine implements Node {
   isShippingRequired: Boolean!
   quantity: Int!
   quantityFulfilled: Int!
+  unitDiscountReason: String
   taxRate: Float!
   digitalContentUrl: DigitalContentUrl
   thumbnail(size: Int): Image
   unitPrice: TaxedMoney!
+  undiscountedUnitPrice: TaxedMoney!
+  unitDiscount: Money!
+  unitDiscountValue: PositiveDecimal!
   totalPrice: TaxedMoney!
   variant: ProductVariant
   translatedProductName: String!
   translatedVariantName: String!
   allocations: [Allocation!]
+  unitDiscountType: DiscountValueTypeEnum
 }
 
 input OrderLineCreateInput {
   quantity: Int!
   variantId: ID!
+}
+
+type OrderLineDiscountRemove {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  orderLine: OrderLine
+  order: Order
+  orderErrors: [OrderError!]!
+}
+
+type OrderLineDiscountUpdate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  orderLine: OrderLine
+  order: Order
+  orderErrors: [OrderError!]!
 }
 
 input OrderLineInput {
@@ -4967,6 +5052,7 @@ type Shop {
   companyAddress: Address
   customerSetPasswordUrl: String
   staffNotificationRecipients: [StaffNotificationRecipient]
+  version: String!
 }
 
 type ShopAddressUpdate {
