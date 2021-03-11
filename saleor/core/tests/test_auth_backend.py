@@ -62,7 +62,7 @@ def test_saleor_is_not_owner_of_token(prefix, rf, staff_user, settings):
 
 
 @pytest.mark.parametrize("prefix", ["JWT", "Bearer"])
-def test_raises_error_when_owner_field_is_missing(prefix, rf, staff_user, settings):
+def test_owner_field_is_missing(prefix, rf, staff_user, settings):
     payload = jwt_user_payload(
         staff_user,
         JWT_ACCESS_TYPE,
@@ -72,8 +72,7 @@ def test_raises_error_when_owner_field_is_missing(prefix, rf, staff_user, settin
     token = jwt_encode(payload)
     request = rf.request(HTTP_AUTHORIZATION=f"{prefix} {token}")
     backend = JSONWebTokenBackend()
-    with pytest.raises(InvalidTokenError):
-        backend.authenticate(request)
+    assert backend.authenticate(request) is None
 
 
 @pytest.mark.parametrize("prefix", ["JWT", "Bearer"])
