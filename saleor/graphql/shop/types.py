@@ -77,8 +77,16 @@ class Limits(graphene.ObjectType):
 
 
 class LimitInfo(graphene.ObjectType):
-    current_usage = graphene.Field(Limits, required=True)
-    allowed_usage = graphene.Field(Limits, required=True)
+    current_usage = graphene.Field(
+        Limits,
+        required=True,
+        description="Defines the current resource usage.",
+    )
+    allowed_usage = graphene.Field(
+        Limits,
+        required=True,
+        description="Defines the allowed maximum resource usage, null means unlimited.",
+    )
 
 
 class Shop(graphene.ObjectType):
