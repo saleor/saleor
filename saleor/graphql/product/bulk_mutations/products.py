@@ -3,12 +3,14 @@ from collections import defaultdict
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import Prefetch
 from graphene.types import InputObjectType
 
 from ....core.permissions import ProductPermissions, ProductTypePermissions
 from ....order import OrderStatus
 from ....order import models as order_models
 from ....product import models
+from ....attribute.models import AssignedVariantAttribute
 from ....product.error_codes import ProductErrorCode
 from ....product.tasks import update_product_discounted_price_task
 from ....product.utils import delete_categories
@@ -431,7 +433,9 @@ class ProductVariantBulkCreate(BaseMutation):
             cls.save(info, instance, cleaned_input)
             cls.create_variant_stocks(instance, cleaned_input)
             cls.create_variant_channel_listings(instance, cleaned_input)
-            info.context.plugins.product_variant_created(instance)
+            transaction.on_commit(
+                lambda: info.context.plugins.product_variant_created(instance)
+            )
         if not product.default_variant:
             product.default_variant = instances[0]
             product.save(update_fields=["default_variant", "updated_at"])
@@ -501,9 +505,18 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
             .values_list("pk", flat=True)
         )
 
-        product_variants = models.ProductVariant.objects.filter(id__in=pks)
-        for product_variant in product_variants:
-            info.context.plugins.product_variant_deleted(product_variant)
+        variants = list(
+            models.ProductVariant.objects.filter(id__in=pks).prefetch_related(
+                "channel_listings",
+                "attributes__values",
+            )
+        )
+        transaction.on_commit(
+            lambda: [
+                info.context.plugins.product_variant_deleted(variant)
+                for variant in variants
+            ]
+        )
 
         response = super().perform_mutation(_root, info, ids, **data)
 

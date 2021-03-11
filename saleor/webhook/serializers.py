@@ -1,9 +1,5 @@
-from collections import defaultdict
-from typing import TYPE_CHECKING, Dict, List, Union
+from typing import TYPE_CHECKING, List, Union
 
-from django.db.models import F
-
-from ..attribute.models import AssignedProductAttribute, AssignedVariantAttribute
 from ..checkout.fetch import fetch_checkout_lines
 from ..product.models import Product
 
@@ -36,36 +32,32 @@ def serialize_checkout_lines(checkout: "Checkout") -> List[dict]:
     return data
 
 
-def serialize_product_attributes(
-    product: Union["Product", "ProductVariant"]
+def serialize_product_or_variant_attributes(
+    product_or_variant: Union["Product", "ProductVariant"]
 ) -> List[dict]:
-    queryset = (
-        (
-            AssignedProductAttribute.objects.filter(product_id=product.id)
-            if isinstance(product, Product)
-            else AssignedVariantAttribute.objects.filter(variant_id=product.id)
-        )  # type: ignore
-        .values(
-            attribute_name=F("assignment__attribute__name"),
-            attribute_id=F("assignment__attribute__id"),
-            name=F("values__name"),
-            value=F("values__value"),
-            slug=F("values__slug"),
-        )
-        .order_by("assignment__attribute__id")
-    )
-
-    values: Dict[str, List] = defaultdict(list)
-    for row in queryset:
-        values[row["attribute_id"]].append(
-            {"name": row["name"], "value": row["value"], "slug": row["slug"]}
-        )
-
-    return [
-        {
-            "name": row["attribute_name"],
-            "id": row["attribute_id"],
-            "values": values[row["attribute_id"]],
+    data = []
+    for attr in product_or_variant.attributes.all():
+        attr_data = {
+            "name": attr.assignment.attribute.name,
+            "id": attr.assignment.attribute.id,
+            "values": [],
         }
-        for row in queryset.distinct("assignment__attribute__id")
-    ]
+
+        for attr_value in attr.values.all():
+            value = {
+                "name": attr_value.name,
+                "slug": attr_value.slug,
+                "file": None,
+            }
+
+            if attr_value.file_url:
+                value["file"] = {
+                    "content_type": attr_value.content_type,
+                    "file_url": attr_value.file_url,
+                }
+
+            attr_data["values"].append(value)
+
+        data.append(attr_data)
+
+    return data

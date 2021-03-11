@@ -1,16 +1,18 @@
 from operator import itemgetter
 from unittest.mock import ANY
 
-from ..serializers import serialize_product_attributes
+from ..serializers import serialize_product_or_variant_attributes
 
 
 def test_serialize_product_attributes(
     product_with_variant_with_two_attributes, product_with_multiple_values_attributes
 ):
-    variant_data = serialize_product_attributes(
+    variant_data = serialize_product_or_variant_attributes(
         product_with_variant_with_two_attributes.variants.first()
     )
-    product_data = serialize_product_attributes(product_with_multiple_values_attributes)
+    product_data = serialize_product_or_variant_attributes(
+        product_with_multiple_values_attributes
+    )
 
     assert len(variant_data) == 2
     assert variant_data[1] == {

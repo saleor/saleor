@@ -21,7 +21,10 @@ from ..product.models import Product
 from ..warehouse.models import Warehouse
 from .event_types import WebhookEventType
 from .payload_serializers import PayloadSerializer
-from .serializers import serialize_checkout_lines, serialize_product_attributes
+from .serializers import (
+    serialize_checkout_lines,
+    serialize_product_or_variant_attributes,
+)
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
@@ -259,7 +262,9 @@ def generate_product_payload(product: "Product"):
                 product_variant_fields,
             ),
         },
-        extra_dict_data={"attributes": serialize_product_attributes(product)},
+        extra_dict_data={
+            "attributes": serialize_product_or_variant_attributes(product)
+        },
     )
     return product_payload
 
@@ -303,7 +308,7 @@ def generate_product_variant_payload(product_variant: "ProductVariant"):
             )
         },
         extra_dict_data={
-            "attributes": serialize_product_attributes(product_variant),
+            "attributes": serialize_product_or_variant_attributes(product_variant),
             "product_id": product_id,
         },
     )

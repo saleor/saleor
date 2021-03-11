@@ -893,11 +893,11 @@ class ProductVariantCreate(ModelMutation):
             AttributeAssignmentMixin.save(instance, attributes)
             generate_and_set_variant_name(instance, cleaned_input.get("sku"))
 
-        info.context.plugins.product_updated(instance.product)
-        if new_variant:
-            info.context.plugins.product_variant_created(instance)
-        else:
-            info.context.plugins.product_variant_updated(instance)
+        transaction.on_commit(
+            lambda: info.context.plugins.product_variant_created(instance)
+            if new_variant
+            else info.context.plugins.product_variant_updated(instance)
+        )
 
     @classmethod
     def create_variant_stocks(cls, variant, stocks):
@@ -994,8 +994,19 @@ class ProductVariantDelete(ModelDeleteMutation):
             ).values_list("pk", flat=True)
         )
 
+        # Get cached variant with related fields to fully populate webhook payload.
+        variant = (
+            models.ProductVariant.objects.prefetch_related(
+                "channel_listings",
+                "attributes__values",
+            )
+        ).get(id=instance.id)
+        with transaction.atomic():
+            transaction.on_commit(
+                lambda: info.context.plugins.product_variant_deleted(variant)
+            )
+
         response = super().perform_mutation(_root, info, **data)
-        info.context.plugins.product_variant_deleted(instance)
 
         # delete order lines for deleted variant
         order_models.OrderLine.objects.filter(pk__in=line_pks).delete()
@@ -1490,6 +1501,12 @@ class VariantImageAssign(BaseMutation):
                     }
                 )
         variant = ChannelContext(node=variant, channel_slug=None)
+
+        with transaction.atomic():
+            transaction.on_commit(
+                lambda: info.context.plugins.product_variant_deleted(variant)
+            )
+
         return VariantImageAssign(product_variant=variant, image=image)
 
 
@@ -1536,4 +1553,10 @@ class VariantImageUnassign(BaseMutation):
             variant_image.delete()
 
         variant = ChannelContext(node=variant, channel_slug=None)
+
+        with transaction.atomic():
+            transaction.on_commit(
+                lambda: info.context.plugins.product_variant_deleted(variant)
+            )
+
         return VariantImageUnassign(product_variant=variant, image=image)
