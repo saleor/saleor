@@ -216,6 +216,11 @@ class ProductChannelListingError(ProductError):
         description="List of channels IDs which causes the error.",
         required=False,
     )
+    variants = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of variants IDs which causes the error.",
+        required=False,
+    )
 
 
 class CollectionChannelListingError(ProductError):
