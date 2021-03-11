@@ -2328,6 +2328,19 @@ type LanguageDisplay {
   language: String!
 }
 
+type LimitInfo {
+  currentUsage: Limits!
+  allowedUsage: Limits!
+}
+
+type Limits {
+  channels: Int
+  orders: Int
+  productVariants: Int
+  staffUsers: Int
+  warehouses: Int
+}
+
 type Manifest {
   identifier: String!
   version: String!
@@ -5049,6 +5062,7 @@ type Shop {
   companyAddress: Address
   customerSetPasswordUrl: String
   staffNotificationRecipients: [StaffNotificationRecipient]
+  limits: LimitInfo!
   version: String!
 }
 
