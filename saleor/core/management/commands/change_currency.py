@@ -42,12 +42,8 @@ class Command(BaseCommand):
                 )
 
         Checkout.objects.update(currency=currency)
-        Voucher.objects.update(currency=currency)
         GiftCard.objects.update(currency=currency)
         Order.objects.update(currency=currency)
         OrderLine.objects.update(currency=currency)
         Payment.objects.update(currency=currency)
         Transaction.objects.update(currency=currency)
-        Product.objects.update(currency=currency)
-        ProductVariant.objects.update(currency=currency)
-        ShippingMethod.objects.update(currency=currency)
