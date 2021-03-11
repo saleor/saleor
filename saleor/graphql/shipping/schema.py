@@ -2,10 +2,11 @@ import graphene
 
 from ...core.permissions import ShippingPermissions
 from ..channel.types import ChannelContext
-from ..core.fields import PrefetchingConnectionField
+from ..core.fields import ChannelContextFilterConnectionField
 from ..decorators import permission_required
 from ..translations.mutations import ShippingPriceTranslate
 from .bulk_mutations import ShippingPriceBulkDelete, ShippingZoneBulkDelete
+from .filters import ShippingZoneFilterInput
 from .mutations.channels import ShippingMethodChannelListingUpdate
 from .mutations.shippings import (
     ShippingPriceCreate,
@@ -32,8 +33,11 @@ class ShippingQueries(graphene.ObjectType):
         ),
         description="Look up a shipping zone by ID.",
     )
-    shipping_zones = PrefetchingConnectionField(
+    shipping_zones = ChannelContextFilterConnectionField(
         ShippingZone,
+        filter=ShippingZoneFilterInput(
+            description="Filtering options for shipping zones."
+        ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
