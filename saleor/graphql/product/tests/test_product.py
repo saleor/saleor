@@ -1493,7 +1493,11 @@ def test_fetch_product_from_category_query(
 
 
 def test_products_query_with_filter_attributes(
-    query_products_with_filter, staff_api_client, product, permission_manage_products
+    query_products_with_filter,
+    staff_api_client,
+    product,
+    permission_manage_products,
+    channel_USD,
 ):
 
     product_type = ProductType.objects.create(
@@ -1515,7 +1519,10 @@ def test_products_query_with_filter_attributes(
     associate_attribute_values_to_instance(second_product, attribute, attr_value)
 
     variables = {
-        "filter": {"attributes": [{"slug": attribute.slug, "value": attr_value.slug}]}
+        "filter": {
+            "attributes": [{"slug": attribute.slug, "value": attr_value.slug}],
+            "channel": channel_USD.slug,
+        }
     }
 
     staff_api_client.user.user_permissions.add(permission_manage_products)
@@ -1792,12 +1799,15 @@ def test_products_query_with_filter_stock_availability(
     product,
     order_line,
     permission_manage_products,
+    channel_USD,
 ):
     stock = product.variants.first().stocks.first()
     Allocation.objects.create(
         order_line=order_line, stock=stock, quantity_allocated=stock.quantity
     )
-    variables = {"filter": {"stockAvailability": "OUT_OF_STOCK"}}
+    variables = {
+        "filter": {"stockAvailability": "OUT_OF_STOCK", "channel": channel_USD.slug}
+    }
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(query_products_with_filter, variables)
     content = get_graphql_content(response)
@@ -2041,7 +2051,10 @@ def test_filter_products_by_wrong_attributes(user_api_client, product, channel_U
     query = """
     query ($channel: String){
         products(
-            filter: {attributes: {slug: "%(slug)s", value: "%(value)s"}},
+            filter: {
+                attributes: {slug: "%(slug)s", value: "%(value)s"},
+                channel: $channel
+            },
             first: 1,
             channel: $channel
         ) {

@@ -337,7 +337,11 @@ class ProductQueries(graphene.ObjectType):
         if id:
             _, id = graphene.Node.from_global_id(id)
             variant = resolve_variant_by_id(
-                info, id, channel_slug=channel, requestor=requestor
+                info,
+                id,
+                channel_slug=channel,
+                requestor=requestor,
+                requestor_has_access_to_all=is_staff,
             )
         else:
             variant = resolve_product_variant_by_sku(
