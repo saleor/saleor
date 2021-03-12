@@ -2423,6 +2423,33 @@ def test_draft_order_complete_with_inactive_channel(
     assert data["orderErrors"][0]["field"] == "channel"
 
 
+def test_draft_order_complete_channel_without_shipping_zones(
+    staff_api_client,
+    permission_manage_orders,
+    staff_user,
+    draft_order,
+):
+    order = draft_order
+    order.channel.shipping_zones.clear()
+
+    # Ensure no events were created
+    assert not OrderEvent.objects.exists()
+
+    # Ensure no allocation were created
+    assert not Allocation.objects.filter(order_line__order=order).exists()
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+    response = staff_api_client.post_graphql(
+        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderComplete"]
+    assert len(data["orderErrors"]) == 1
+    assert data["orderErrors"][0]["code"] == OrderErrorCode.INSUFFICIENT_STOCK.name
+    assert data["orderErrors"][0]["field"] == "lines"
+
+
 def test_draft_order_complete_product_without_inventory_tracking(
     staff_api_client,
     shipping_method,
