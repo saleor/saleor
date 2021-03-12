@@ -3606,8 +3606,9 @@ ORDER_UPDATE_SHIPPING_QUERY = """
     mutation orderUpdateShipping($order: ID!, $shippingMethod: ID) {
         orderUpdateShipping(
                 order: $order, input: {shippingMethod: $shippingMethod}) {
-            errors {
+            orderErrors {
                 field
+                code
                 message
             }
             order {
@@ -3726,8 +3727,8 @@ def test_order_update_shipping_shipping_required(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]
-    assert data["errors"][0]["field"] == "shippingMethod"
-    assert data["errors"][0]["message"] == (
+    assert data["orderErrors"][0]["field"] == "shippingMethod"
+    assert data["orderErrors"][0]["message"] == (
         "Shipping method is required for this order."
     )
 
@@ -3751,8 +3752,8 @@ def test_order_update_shipping_no_shipping_address(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]
-    assert data["errors"][0]["field"] == "order"
-    assert data["errors"][0]["message"] == (
+    assert data["orderErrors"][0]["field"] == "order"
+    assert data["orderErrors"][0]["message"] == (
         "Cannot choose a shipping method for an order without" " the shipping address."
     )
 
@@ -3778,10 +3779,34 @@ def test_order_update_shipping_incorrect_shipping_method(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]
-    assert data["errors"][0]["field"] == "shippingMethod"
-    assert data["errors"][0]["message"] == (
+    assert data["orderErrors"][0]["field"] == "shippingMethod"
+    assert data["orderErrors"][0]["message"] == (
         "Shipping method cannot be used with this order."
     )
+
+
+def test_order_update_shipping_shipping_zone_without_channels(
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
+    shipping_method,
+    staff_user,
+):
+    order = order_with_lines
+    order.channel.shipping_zones.clear()
+    query = ORDER_UPDATE_SHIPPING_QUERY
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    variables = {"order": order_id, "shippingMethod": method_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderUpdateShipping"]
+    errors = data["orderErrors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "shippingMethod"
+    assert errors[0]["code"] == OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
 
 
 def test_order_update_shipping_excluded_shipping_method_postal_code(
@@ -3812,8 +3837,8 @@ def test_order_update_shipping_excluded_shipping_method_postal_code(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]
-    assert data["errors"][0]["field"] == "shippingMethod"
-    assert data["errors"][0]["message"] == (
+    assert data["orderErrors"][0]["field"] == "shippingMethod"
+    assert data["orderErrors"][0]["message"] == (
         "Shipping method cannot be used with this order."
     )
 
