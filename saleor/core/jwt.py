@@ -141,11 +141,7 @@ def is_saleor_token(token: str) -> bool:
     except jwt.PyJWTError:
         return False
     owner = payload.get(JWT_OWNER_FIELD)
-    if not owner:
-        raise jwt.InvalidTokenError(
-            "Invalid token. Create new one by using tokenCreate mutation."
-        )
-    if owner != JWT_SALEOR_OWNER_NAME:
+    if not owner or owner != JWT_SALEOR_OWNER_NAME:
         return False
     return True
 
