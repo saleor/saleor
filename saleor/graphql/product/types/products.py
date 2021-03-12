@@ -68,6 +68,7 @@ from ...utils import (
 from ...utils.filters import reporting_period_to_date
 from ...warehouse.dataloaders import (
     AvailableQuantityByProductVariantIdAndCountryCodeLoader,
+    StocksWithAvailableQuantityByProductVariantIdAndCountryCodeLoader,
 )
 from ...warehouse.types import Stock
 from ..dataloaders import (
@@ -265,9 +266,9 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                 address, info.context.site.settings.company_address
             )
 
-        if not country_code:
-            return root.node.stocks.annotate_available_quantity()
-        return root.node.stocks.for_country(country_code).annotate_available_quantity()
+        return StocksWithAvailableQuantityByProductVariantIdAndCountryCodeLoader(
+            info.context
+        ).load((root.node.id, country_code))
 
     @staticmethod
     def resolve_quantity_available(
