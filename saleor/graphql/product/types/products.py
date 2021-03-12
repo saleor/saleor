@@ -269,7 +269,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         if root.channel_slug:
             channel_slug = str(root.channel_slug)
             stocks = (
-                stocks.for_country(country_code, channel_slug)
+                stocks.for_country_and_channel(country_code, channel_slug)
                 if country_code
                 else stocks.for_channel(channel_slug)
             )

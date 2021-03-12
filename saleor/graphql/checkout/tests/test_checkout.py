@@ -535,6 +535,35 @@ def test_checkout_create_with_invalid_channel_slug(
     assert error["field"] == "channel"
 
 
+def test_checkout_create_no_channel_shipping_zones(
+    api_client, stock, graphql_address_data, channel_USD
+):
+    """Create checkout object using GraphQL API."""
+    channel_USD.shipping_zones.clear()
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    test_email = "test@example.com"
+    shipping_address = graphql_address_data
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": shipping_address,
+        }
+    }
+    assert not Checkout.objects.exists()
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)["data"]["checkoutCreate"]
+
+    new_checkout = Checkout.objects.first()
+    assert new_checkout is None
+    errors = content["checkoutErrors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == CheckoutErrorCode.INSUFFICIENT_STOCK.name
+    assert errors[0]["field"] == "quantity"
+
+
 def test_checkout_create_multiple_warehouse(
     api_client, variant_with_many_stocks, graphql_address_data, channel_USD
 ):
@@ -1207,6 +1236,22 @@ def test_checkout_available_shipping_methods(
     assert data["availableShippingMethods"][0]["name"] == shipping_method.name
 
 
+def test_checkout_available_shipping_methods_shipping_zone_without_channels(
+    api_client, checkout_with_item, address, shipping_zone
+):
+    shipping_zone.channels.clear()
+    checkout_with_item.shipping_address = address
+    checkout_with_item.save()
+
+    query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
+    variables = {"token": checkout_with_item.token}
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    assert len(data["availableShippingMethods"]) == 0
+
+
 def test_checkout_available_shipping_methods_excluded_postal_codes(
     api_client, checkout_with_item, address, shipping_zone
 ):
@@ -1345,6 +1390,31 @@ def test_checkout_lines_add(
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [])
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
+
+
+def test_checkout_lines_add_no_channel_shipping_zones(
+    user_api_client, checkout_with_item, stock
+):
+    variant = stock.product_variant
+    checkout = checkout_with_item
+    checkout.channel.shipping_zones.clear()
+    line = checkout.lines.first()
+    assert line.quantity == 3
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    variables = {
+        "checkoutId": checkout_id,
+        "lines": [{"variantId": variant_id, "quantity": 1}],
+        "channelSlug": checkout.channel.slug,
+    }
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesAdd"]
+    errors = data["checkoutErrors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == CheckoutErrorCode.INSUFFICIENT_STOCK.name
+    assert errors[0]["field"] == "quantity"
 
 
 def test_checkout_lines_add_with_unpublished_product(
@@ -1588,6 +1658,33 @@ def test_checkout_lines_update(
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [])
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
+
+
+def test_checkout_lines_update_channel_without_shipping_zones(
+    user_api_client, checkout_with_item
+):
+    checkout = checkout_with_item
+    checkout.channel.shipping_zones.clear()
+    assert checkout.lines.count() == 1
+    line = checkout.lines.first()
+    variant = line.variant
+    assert line.quantity == 3
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    variables = {
+        "checkoutId": checkout_id,
+        "lines": [{"variantId": variant_id, "quantity": 1}],
+    }
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
+    content = get_graphql_content(response)
+
+    data = content["data"]["checkoutLinesUpdate"]
+    errors = data["checkoutErrors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == CheckoutErrorCode.INSUFFICIENT_STOCK.name
+    assert errors[0]["field"] == "quantity"
 
 
 def test_create_checkout_with_unpublished_product(
@@ -1951,7 +2048,8 @@ def test_checkout_shipping_address_update_changes_checkout_country(
     variant = variant_with_many_stocks_different_shipping_zones
     checkout = Checkout.objects.create(channel=channel_USD, currency="USD")
     checkout.set_country("PL", commit=True)
-    add_variant_to_checkout(checkout, variant, 1)
+    checkout_info = fetch_checkout_info(checkout, [], [])
+    add_variant_to_checkout(checkout_info, variant, 1)
     assert checkout.shipping_address is None
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
@@ -2001,7 +2099,8 @@ def test_checkout_shipping_address_update_insufficient_stocks(
     variant = variant_with_many_stocks_different_shipping_zones
     checkout = Checkout.objects.create(channel=channel_USD)
     checkout.set_country("PL", commit=True)
-    add_variant_to_checkout(checkout, variant, 1)
+    checkout_info = fetch_checkout_info(checkout, [], [])
+    add_variant_to_checkout(checkout_info, variant, 1)
     Stock.objects.filter(
         warehouse__shipping_zones__countries__contains="US", product_variant=variant
     ).update(quantity=0)
@@ -2012,6 +2111,29 @@ def test_checkout_shipping_address_update_insufficient_stocks(
     shipping_address["country"] = "US"
     shipping_address["countryArea"] = "New York"
     shipping_address["postalCode"] = "10001"
+    variables = {"checkoutId": checkout_id, "shippingAddress": shipping_address}
+
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutShippingAddressUpdate"]
+    errors = data["checkoutErrors"]
+    assert errors[0]["code"] == CheckoutErrorCode.INSUFFICIENT_STOCK.name
+    assert errors[0]["field"] == "quantity"
+
+
+def test_checkout_shipping_address_update_channel_without_shipping_zones(
+    user_api_client,
+    checkout_with_item,
+    graphql_address_data,
+):
+    checkout = checkout_with_item
+    checkout.channel.shipping_zones.clear()
+    assert checkout.shipping_address is None
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    shipping_address = graphql_address_data
     variables = {"checkoutId": checkout_id, "shippingAddress": shipping_address}
 
     response = user_api_client.post_graphql(
@@ -2552,9 +2674,10 @@ MUTATION_UPDATE_SHIPPING_METHOD = """
             $checkoutId:ID!, $shippingMethodId:ID!){
         checkoutShippingMethodUpdate(
             checkoutId:$checkoutId, shippingMethodId:$shippingMethodId) {
-            errors {
+            checkoutErrors {
                 field
                 message
+                code
             }
             checkout {
                 id
@@ -2595,18 +2718,17 @@ def test_checkout_shipping_method_update(
     mock_clean_shipping.assert_called_once_with(
         checkout_info=checkout_info, lines=lines, method=shipping_method
     )
-
+    errors = data["checkoutErrors"]
     if is_valid_shipping_method:
-        assert not data["errors"]
+        assert not errors
         assert data["checkout"]["id"] == checkout_id
         assert checkout.shipping_method == shipping_method
     else:
-        assert data["errors"] == [
-            {
-                "field": "shippingMethod",
-                "message": "This shipping method is not applicable.",
-            }
-        ]
+        assert len(errors) == 1
+        assert errors[0]["field"] == "shippingMethod"
+        assert (
+            errors[0]["code"] == CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
+        )
         assert checkout.shipping_method is None
 
 
@@ -2634,17 +2756,73 @@ def test_checkout_shipping_method_update_excluded_postal_code(
 
     checkout.refresh_from_db()
 
-    assert data["errors"] == [
-        {
-            "field": "shippingMethod",
-            "message": "This shipping method is not applicable.",
-        }
-    ]
+    errors = data["checkoutErrors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "shippingMethod"
+    assert errors[0]["code"] == CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
     assert checkout.shipping_method is None
     assert (
         mock_is_shipping_method_available.call_count
         == shipping_models.ShippingMethod.objects.count()
     )
+
+
+def test_checkout_shipping_method_update_shipping_zone_without_channel(
+    staff_api_client,
+    shipping_method,
+    checkout_with_item,
+    address,
+):
+    shipping_method.shipping_zone.channels.clear()
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.save(update_fields=["shipping_address"])
+    query = MUTATION_UPDATE_SHIPPING_METHOD
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+
+    response = staff_api_client.post_graphql(
+        query, {"checkoutId": checkout_id, "shippingMethodId": method_id}
+    )
+    data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
+
+    checkout.refresh_from_db()
+
+    errors = data["checkoutErrors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "shippingMethod"
+    assert errors[0]["code"] == CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
+    assert checkout.shipping_method is None
+
+
+def test_checkout_shipping_method_update_shipping_zone_with_channel(
+    staff_api_client,
+    shipping_method,
+    checkout_with_item,
+    address,
+):
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.save(update_fields=["shipping_address"])
+    query = MUTATION_UPDATE_SHIPPING_METHOD
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+
+    response = staff_api_client.post_graphql(
+        query, {"checkoutId": checkout_id, "shippingMethodId": method_id}
+    )
+    data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
+
+    checkout.refresh_from_db()
+
+    checkout.refresh_from_db()
+    errors = data["checkoutErrors"]
+    assert not errors
+    assert data["checkout"]["id"] == checkout_id
+
+    assert checkout.shipping_method == shipping_method
 
 
 def test_query_checkout_line(checkout_with_item, user_api_client):

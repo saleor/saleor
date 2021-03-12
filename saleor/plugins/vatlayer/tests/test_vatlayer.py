@@ -295,9 +295,9 @@ def test_calculate_checkout_subtotal(
     product.save()
 
     discounts = [discount_info] if with_discount else None
-    add_variant_to_checkout(checkout_with_item, variant, 2)
+    checkout_info = fetch_checkout_info(checkout_with_item, [], discounts)
+    add_variant_to_checkout(checkout_info, variant, 2)
     lines = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts)
     total = manager.calculate_checkout_subtotal(
         checkout_info, lines, address, discounts
     )

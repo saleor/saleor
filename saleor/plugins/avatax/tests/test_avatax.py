@@ -194,13 +194,12 @@ def test_calculate_checkout_total_uses_default_calculation(
     product_with_single_variant.charge_taxes = False
     product_with_single_variant.category = non_default_category
     product_with_single_variant.save()
-    add_variant_to_checkout(
-        checkout_with_item, product_with_single_variant.variants.get()
-    )
-
     discounts = [discount_info] if with_discount else None
     lines = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts)
+    add_variant_to_checkout(checkout_info, product_with_single_variant.variants.get())
+    lines = fetch_checkout_lines(checkout_with_item)
+
     total = manager.calculate_checkout_total(checkout_info, lines, address, discounts)
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
@@ -265,13 +264,10 @@ def test_calculate_checkout_total(
     product_with_single_variant.charge_taxes = False
     product_with_single_variant.category = non_default_category
     product_with_single_variant.save()
-    add_variant_to_checkout(
-        checkout_with_item, product_with_single_variant.variants.get()
-    )
-
     discounts = [discount_info] if with_discount else None
+    checkout_info = fetch_checkout_info(checkout_with_item, [], discounts)
+    add_variant_to_checkout(checkout_info, product_with_single_variant.variants.get())
     lines = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts)
     total = manager.calculate_checkout_total(
         checkout_info, lines, ship_to_pl_address, discounts
     )
@@ -358,9 +354,11 @@ def test_calculate_checkout_subtotal(
     checkout_with_item.save()
 
     discounts = [discount_info] if with_discount else None
-    add_variant_to_checkout(checkout_with_item, variant, 2)
+
+    checkout_info = fetch_checkout_info(checkout_with_item, [], discounts)
+    add_variant_to_checkout(checkout_info, variant, 2)
     lines = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts)
+
     total = manager.calculate_checkout_subtotal(
         checkout_info, lines, address, discounts
     )

@@ -18,13 +18,13 @@ from ..models import Allocation
 COUNTRY_CODE = "US"
 
 
-def test_allocate_stocks(order_line, stock):
+def test_allocate_stocks(order_line, stock, channel_USD):
     stock.quantity = 100
     stock.save(update_fields=["quantity"])
 
     line_data = OrderLineData(line=order_line, variant=order_line.variant, quantity=50)
 
-    allocate_stocks([line_data], COUNTRY_CODE)
+    allocate_stocks([line_data], COUNTRY_CODE, channel_USD.slug)
 
     stock.refresh_from_db()
     assert stock.quantity == 100
@@ -32,7 +32,7 @@ def test_allocate_stocks(order_line, stock):
     assert allocation.quantity_allocated == 50
 
 
-def test_allocate_stocks_multiply_lines(order_line, order, product, stock):
+def test_allocate_stocks_multiply_lines(order_line, order, product, stock, channel_USD):
     stock.quantity = 100
     stock.save(update_fields=["quantity"])
 
@@ -56,7 +56,7 @@ def test_allocate_stocks_multiply_lines(order_line, order, product, stock):
         line=order_line_2, variant=variant_2, quantity=quantity_2
     )
 
-    allocate_stocks([line_data_1, line_data_2], COUNTRY_CODE)
+    allocate_stocks([line_data_1, line_data_2], COUNTRY_CODE, channel_USD.slug)
 
     stock.refresh_from_db()
     assert stock.quantity == 100
@@ -68,12 +68,12 @@ def test_allocate_stocks_multiply_lines(order_line, order, product, stock):
     assert allocation.quantity_allocated == quantity_2
 
 
-def test_allocate_stock_many_stocks(order_line, variant_with_many_stocks):
+def test_allocate_stock_many_stocks(order_line, variant_with_many_stocks, channel_USD):
     variant = variant_with_many_stocks
     stocks = variant.stocks.all()
 
     line_data = OrderLineData(line=order_line, variant=order_line.variant, quantity=5)
-    allocate_stocks([line_data], COUNTRY_CODE)
+    allocate_stocks([line_data], COUNTRY_CODE, channel_USD.slug)
 
     allocations = Allocation.objects.filter(order_line=order_line, stock__in=stocks)
     assert allocations[0].quantity_allocated == 4
@@ -84,13 +84,14 @@ def test_allocate_stock_many_stocks_partially_allocated(
     order_line,
     order_line_with_allocation_in_many_stocks,
     order_line_with_one_allocation,
+    channel_USD,
 ):
     allocated_line = order_line_with_allocation_in_many_stocks
     variant = allocated_line.variant
     stocks = variant.stocks.all()
 
     line_data = OrderLineData(line=order_line, variant=order_line.variant, quantity=3)
-    allocate_stocks([line_data], COUNTRY_CODE)
+    allocate_stocks([line_data], COUNTRY_CODE, channel_USD.slug)
 
     allocations = Allocation.objects.filter(order_line=order_line, stock__in=stocks)
     assert allocations[0].quantity_allocated == 1
@@ -98,7 +99,7 @@ def test_allocate_stock_many_stocks_partially_allocated(
 
 
 def test_allocate_stock_partially_allocated_insufficient_stocks(
-    order_line, order_line_with_allocation_in_many_stocks
+    order_line, order_line_with_allocation_in_many_stocks, channel_USD
 ):
     allocated_line = order_line_with_allocation_in_many_stocks
     variant = allocated_line.variant
@@ -106,20 +107,33 @@ def test_allocate_stock_partially_allocated_insufficient_stocks(
 
     line_data = OrderLineData(line=order_line, variant=order_line.variant, quantity=6)
     with pytest.raises(InsufficientStock):
-        allocate_stocks([line_data], COUNTRY_CODE)
+        allocate_stocks([line_data], COUNTRY_CODE, channel_USD.slug)
 
     assert not Allocation.objects.filter(
         order_line=order_line, stock__in=stocks
     ).exists()
 
 
-def test_allocate_stock_insufficient_stocks(order_line, variant_with_many_stocks):
+def test_allocate_stocks_no_channel_shipping_zones(order_line, stock, channel_USD):
+    channel_USD.shipping_zones.clear()
+
+    stock.quantity = 100
+    stock.save(update_fields=["quantity"])
+
+    line_data = OrderLineData(line=order_line, variant=order_line.variant, quantity=50)
+    with pytest.raises(InsufficientStock):
+        allocate_stocks([line_data], COUNTRY_CODE, channel_USD.slug)
+
+
+def test_allocate_stock_insufficient_stocks(
+    order_line, variant_with_many_stocks, channel_USD
+):
     variant = variant_with_many_stocks
     stocks = variant.stocks.all()
 
     line_data = OrderLineData(line=order_line, variant=order_line.variant, quantity=10)
     with pytest.raises(InsufficientStock):
-        allocate_stocks([line_data], COUNTRY_CODE)
+        allocate_stocks([line_data], COUNTRY_CODE, channel_USD.slug)
 
     assert not Allocation.objects.filter(
         order_line=order_line, stock__in=stocks
@@ -127,7 +141,7 @@ def test_allocate_stock_insufficient_stocks(order_line, variant_with_many_stocks
 
 
 def test_allocate_stock_insufficient_stocks_for_multiply_lines(
-    order_line, variant_with_many_stocks, product
+    order_line, variant_with_many_stocks, product, channel_USD
 ):
     variant = variant_with_many_stocks
     stocks = variant.stocks.all()
@@ -152,7 +166,7 @@ def test_allocate_stock_insufficient_stocks_for_multiply_lines(
     )
 
     with pytest.raises(InsufficientStock) as exc:
-        allocate_stocks([line_data_1, line_data_2], COUNTRY_CODE)
+        allocate_stocks([line_data_1, line_data_2], COUNTRY_CODE, channel_USD.slug)
 
     assert set(item.variant for item in exc._excinfo[1].items) == {variant, variant_2}
 

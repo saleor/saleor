@@ -23,11 +23,18 @@ def checkout_with_variants(
     product_with_single_variant,
     product_with_two_variants,
 ):
+    checkout_info = fetch_checkout_info(checkout, [], [])
 
-    add_variant_to_checkout(checkout, product_with_default_variant.variants.get(), 1)
-    add_variant_to_checkout(checkout, product_with_single_variant.variants.get(), 10)
-    add_variant_to_checkout(checkout, product_with_two_variants.variants.first(), 3)
-    add_variant_to_checkout(checkout, product_with_two_variants.variants.last(), 5)
+    add_variant_to_checkout(
+        checkout_info, product_with_default_variant.variants.get(), 1
+    )
+    add_variant_to_checkout(
+        checkout_info, product_with_single_variant.variants.get(), 10
+    )
+    add_variant_to_checkout(
+        checkout_info, product_with_two_variants.variants.first(), 3
+    )
+    add_variant_to_checkout(checkout_info, product_with_two_variants.variants.last(), 5)
 
     checkout.save()
     return checkout
