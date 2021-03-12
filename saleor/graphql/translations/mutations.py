@@ -138,6 +138,7 @@ class ProductVariantTranslate(BaseTranslateMutation):
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
 
     @classmethod
+    @transaction.atomic()
     def perform_mutation(cls, _root, info, **data):
         if "id" in data and not data["id"]:
             raise ValidationError(
@@ -151,10 +152,9 @@ class ProductVariantTranslate(BaseTranslateMutation):
         )
         variant = ChannelContext(node=variant, channel_slug=None)
 
-        with transaction.atomic():
-            transaction.on_commit(
-                lambda: info.context.plugins.product_variant_deleted(variant)
-            )
+        transaction.on_commit(
+            lambda: info.context.plugins.product_variant_deleted(variant)
+        )
 
         return cls(**{cls._meta.return_field_name: variant})
 

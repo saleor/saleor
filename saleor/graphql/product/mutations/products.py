@@ -893,11 +893,12 @@ class ProductVariantCreate(ModelMutation):
             AttributeAssignmentMixin.save(instance, attributes)
             generate_and_set_variant_name(instance, cleaned_input.get("sku"))
 
-        transaction.on_commit(
-            lambda: info.context.plugins.product_variant_created(instance)
+        event_to_call = (
+            info.context.plugins.product_variant_created
             if new_variant
-            else info.context.plugins.product_variant_updated(instance)
+            else info.context.plugins.product_variant_updated
         )
+        transaction.on_commit(lambda: event_to_call(instance))
 
     @classmethod
     def create_variant_stocks(cls, variant, stocks):
@@ -983,6 +984,7 @@ class ProductVariantDelete(ModelDeleteMutation):
         return super().success_response(instance)
 
     @classmethod
+    @transaction.atomic()
     def perform_mutation(cls, _root, info, **data):
         node_id = data.get("id")
         instance = cls.get_node_or_error(info, node_id, only_type=ProductVariant)
@@ -997,19 +999,19 @@ class ProductVariantDelete(ModelDeleteMutation):
         # Get cached variant with related fields to fully populate webhook payload.
         variant = (
             models.ProductVariant.objects.prefetch_related(
-                "channel_listings",
-                "attributes__values",
+                "channel_listings", "attributes__values", "variant_images"
             )
         ).get(id=instance.id)
-        with transaction.atomic():
-            transaction.on_commit(
-                lambda: info.context.plugins.product_variant_deleted(variant)
-            )
 
         response = super().perform_mutation(_root, info, **data)
 
         # delete order lines for deleted variant
         order_models.OrderLine.objects.filter(pk__in=line_pks).delete()
+
+        transaction.on_commit(
+            lambda: info.context.plugins.product_variant_deleted(variant)
+        )
+
         return response
 
 
@@ -1477,6 +1479,7 @@ class VariantImageAssign(BaseMutation):
         error_type_field = "product_errors"
 
     @classmethod
+    @transaction.atomic()
     def perform_mutation(cls, _root, info, image_id, variant_id):
         image = cls.get_node_or_error(
             info, image_id, field="image_id", only_type=ProductImage
@@ -1502,10 +1505,9 @@ class VariantImageAssign(BaseMutation):
                 )
         variant = ChannelContext(node=variant, channel_slug=None)
 
-        with transaction.atomic():
-            transaction.on_commit(
-                lambda: info.context.plugins.product_variant_deleted(variant)
-            )
+        transaction.on_commit(
+            lambda: info.context.plugins.product_variant_updated(variant.node)
+        )
 
         return VariantImageAssign(product_variant=variant, image=image)
 
@@ -1528,6 +1530,7 @@ class VariantImageUnassign(BaseMutation):
         error_type_field = "product_errors"
 
     @classmethod
+    @transaction.atomic()
     def perform_mutation(cls, _root, info, image_id, variant_id):
         image = cls.get_node_or_error(
             info, image_id, field="image_id", only_type=ProductImage
@@ -1554,9 +1557,8 @@ class VariantImageUnassign(BaseMutation):
 
         variant = ChannelContext(node=variant, channel_slug=None)
 
-        with transaction.atomic():
-            transaction.on_commit(
-                lambda: info.context.plugins.product_variant_deleted(variant)
-            )
+        transaction.on_commit(
+            lambda: info.context.plugins.product_variant_updated(variant.node)
+        )
 
         return VariantImageUnassign(product_variant=variant, image=image)

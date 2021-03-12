@@ -347,7 +347,6 @@ def test_create_variant(
             "quantity": 20,
         }
     ]
-    flush_post_commit_hooks()
 
     variables = {
         "productId": product_id,
@@ -361,6 +360,8 @@ def test_create_variant(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)["data"]["productVariantCreate"]
+    flush_post_commit_hooks()
+
     assert not content["productErrors"]
     data = content["productVariant"]
     assert data["name"] == variant_value
@@ -395,7 +396,6 @@ def test_create_variant_with_file_attribute(
     product_type.variant_attributes.add(file_attribute)
     file_attr_id = graphene.Node.to_global_id("Attribute", file_attribute.id)
     existing_value = file_attribute.values.first()
-    flush_post_commit_hooks()
 
     values_count = file_attribute.values.count()
 
@@ -418,6 +418,8 @@ def test_create_variant_with_file_attribute(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)["data"]["productVariantCreate"]
+    flush_post_commit_hooks()
+
     assert not content["productErrors"]
     data = content["productVariant"]
     assert data["name"] == sku
@@ -458,7 +460,6 @@ def test_create_variant_with_file_attribute_new_value(
     product_type.variant_attributes.add(file_attribute)
     file_attr_id = graphene.Node.to_global_id("Attribute", file_attribute.id)
     new_value = "new_value.txt"
-    flush_post_commit_hooks()
 
     values_count = file_attribute.values.count()
 
@@ -483,6 +484,8 @@ def test_create_variant_with_file_attribute_new_value(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)["data"]["productVariantCreate"]
+    flush_post_commit_hooks()
+
     assert not content["productErrors"]
     data = content["productVariant"]
     assert data["name"] == sku
@@ -521,7 +524,6 @@ def test_create_variant_with_file_attribute_no_file_url_given(
     product_type.variant_attributes.clear()
     product_type.variant_attributes.add(file_attribute)
     file_attr_id = graphene.Node.to_global_id("Attribute", file_attribute.id)
-    flush_post_commit_hooks()
 
     values_count = file_attribute.values.count()
 
@@ -546,6 +548,8 @@ def test_create_variant_with_file_attribute_no_file_url_given(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)["data"]["productVariantCreate"]
+    flush_post_commit_hooks()
+
     errors = content["productErrors"]
     data = content["productVariant"]
     assert not errors
@@ -585,7 +589,6 @@ def test_create_variant_with_page_reference_attribute(
     ref_attr_id = graphene.Node.to_global_id(
         "Attribute", product_type_page_reference_attribute.id
     )
-    flush_post_commit_hooks()
 
     page_ref_1 = graphene.Node.to_global_id("Page", page_list[0].pk)
     page_ref_2 = graphene.Node.to_global_id("Page", page_list[1].pk)
@@ -610,6 +613,8 @@ def test_create_variant_with_page_reference_attribute(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)["data"]["productVariantCreate"]
+    flush_post_commit_hooks()
+
     assert not content["productErrors"]
     data = content["productVariant"]
     assert data["sku"] == sku
@@ -666,7 +671,6 @@ def test_create_variant_with_page_reference_attribute_no_references_given(
     ref_attr_id = graphene.Node.to_global_id(
         "Attribute", product_type_page_reference_attribute.id
     )
-    flush_post_commit_hooks()
 
     values_count = product_type_page_reference_attribute.values.count()
 
@@ -688,8 +692,10 @@ def test_create_variant_with_page_reference_attribute_no_references_given(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)["data"]["productVariantCreate"]
+    flush_post_commit_hooks()
     errors = content["productErrors"]
     data = content["productVariant"]
+
     assert not data
     assert len(errors) == 1
     assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
@@ -717,7 +723,6 @@ def test_create_variant_with_product_reference_attribute(
     query = CREATE_VARIANT_MUTATION
     product_id = graphene.Node.to_global_id("Product", product.pk)
     sku = "1"
-    flush_post_commit_hooks()
 
     product_type.variant_attributes.clear()
     product_type.variant_attributes.add(product_type_product_reference_attribute)
@@ -750,6 +755,8 @@ def test_create_variant_with_product_reference_attribute(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)["data"]["productVariantCreate"]
+    flush_post_commit_hooks()
+
     assert not content["productErrors"]
     data = content["productVariant"]
     assert data["sku"] == sku
@@ -827,8 +834,10 @@ def test_create_variant_with_product_reference_attribute_no_references_given(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)["data"]["productVariantCreate"]
+    flush_post_commit_hooks()
     errors = content["productErrors"]
     data = content["productVariant"]
+
     assert not data
     assert len(errors) == 1
     assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
@@ -1155,7 +1164,6 @@ def test_update_product_variant(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
     sku = "test sku"
-    flush_post_commit_hooks()
 
     variables = {
         "id": variant_id,
@@ -1169,7 +1177,9 @@ def test_update_product_variant(
     )
     variant.refresh_from_db()
     content = get_graphql_content(response)
+    flush_post_commit_hooks()
     data = content["data"]["productVariantUpdate"]["productVariant"]
+
     assert data["name"] == variant.name
     assert data["sku"] == sku
     product_variant_updated_webhook_mock.assert_called_once_with(
@@ -1886,7 +1896,9 @@ def test_delete_variant(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
+    flush_post_commit_hooks()
     data = content["data"]["productVariantDelete"]
+
     product_variant_deleted_webhook_mock.assert_called_once_with(variant)
     assert data["productVariant"]["sku"] == variant.sku
     with pytest.raises(variant._meta.model.DoesNotExist):
@@ -2343,7 +2355,9 @@ def test_product_variant_bulk_create_by_attribute_id(
         PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
     )
     content = get_graphql_content(response)
+    flush_post_commit_hooks()
     data = content["data"]["productVariantBulkCreate"]
+
     assert not data["bulkProductErrors"]
     assert data["count"] == 1
     assert data["productVariants"][0]["name"] == attribute_value.name

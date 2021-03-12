@@ -6,6 +6,7 @@ from django.db.models import QuerySet
 
 from ..account.models import User
 from ..checkout.models import Checkout
+from ..core.utils import build_absolute_uri
 from ..core.utils.anonymization import (
     anonymize_checkout,
     anonymize_order,
@@ -305,11 +306,15 @@ def generate_product_variant_payload(product_variant: "ProductVariant"):
                     "price_amount",
                     "cost_price_amount",
                 ),
-            )
+            ),
         },
         extra_dict_data={
             "attributes": serialize_product_or_variant_attributes(product_variant),
             "product_id": product_id,
+            "images": [
+                {"alt": img.image.alt, "url": build_absolute_uri(img.image.image.url)}
+                for img in product_variant.variant_images.all()
+            ],
         },
     )
     return payload

@@ -381,7 +381,6 @@ def test_delete_product_variants(
     permission_manage_products,
 ):
     query = PRODUCT_VARIANT_BULK_DELETE_MUTATION
-    flush_post_commit_hooks()
 
     assert ProductVariantChannelListing.objects.filter(
         variant_id__in=[variant.id for variant in product_variant_list]
@@ -397,6 +396,7 @@ def test_delete_product_variants(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
+    flush_post_commit_hooks()
 
     assert content["data"]["productVariantBulkDelete"]["count"] == 3
     assert not ProductVariant.objects.filter(

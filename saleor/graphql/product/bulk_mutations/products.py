@@ -431,9 +431,7 @@ class ProductVariantBulkCreate(BaseMutation):
             cls.save(info, instance, cleaned_input)
             cls.create_variant_stocks(instance, cleaned_input)
             cls.create_variant_channel_listings(instance, cleaned_input)
-            transaction.on_commit(
-                lambda: info.context.plugins.product_variant_created(instance)
-            )
+
         if not product.default_variant:
             product.default_variant = instances[0]
             product.save(update_fields=["default_variant", "updated_at"])
@@ -450,6 +448,7 @@ class ProductVariantBulkCreate(BaseMutation):
         create_stocks(variant, stocks, warehouses)
 
     @classmethod
+    @transaction.atomic
     def perform_mutation(cls, root, info, **data):
         product = cls.get_node_or_error(info, data["product_id"], models.Product)
         errors = defaultdict(list)
@@ -466,6 +465,14 @@ class ProductVariantBulkCreate(BaseMutation):
         instances = [
             ChannelContext(node=instance, channel_slug=None) for instance in instances
         ]
+
+        transaction.on_commit(
+            lambda: [
+                info.context.plugins.product_variant_created(instance.node)
+                for instance in instances
+            ]
+        )
+
         return ProductVariantBulkCreate(
             count=len(instances), product_variants=instances
         )
@@ -508,16 +515,18 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
             models.ProductVariant.objects.filter(id__in=pks).prefetch_related(
                 "channel_listings",
                 "attributes__values",
+                "variant_images",
             )
         )
+
+        response = super().perform_mutation(_root, info, ids, **data)
+
         transaction.on_commit(
             lambda: [
                 info.context.plugins.product_variant_deleted(variant)
                 for variant in variants
             ]
         )
-
-        response = super().perform_mutation(_root, info, ids, **data)
 
         # delete order lines for deleted variants
         order_models.OrderLine.objects.filter(pk__in=order_line_pks).delete()

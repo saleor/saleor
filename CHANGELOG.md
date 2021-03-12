@@ -1,4 +1,3 @@
-
 # Changelog
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
@@ -15,7 +14,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Deprecate API fields `Order.discount`, `Order.discountName`, `Order.translatedDiscountName` - #6874 by @korycins
 - Fix argument validation in page resolver - #6960 by @fowczarek
 - Drop `data` field from checkout line model - #6961 by @fowczarek
-- Add `PRODUCT_VARIANT_CREATED`, `UPDATED`, `DELETED` webhooks, fix attributes field for `PRODUCT_CREATED`, `UPDATED` webhooks - #6963 by @piotrgrundas
+- Add `PRODUCT_VARIANT_CREATED`, `PRODUCT_VARIANT_UPDATED`, `PRODUCT_VARIANT_DELETED` webhooks, fix attributes field for `PRODUCT_CREATED`, `PRODUCT_UPDATED` webhooks - #6963 by @piotrgrundas
 - Fix `totalCount` on connection resolver without `first` or `last` - #6975 by @fowczarek
 - Fix variant resolver on `DigitalContent` - #6983 by @fowczarek
 
@@ -44,7 +43,8 @@ All notable, unreleased changes to this project will be documented in this file.
     - `get_checkout_line_tax_rate`
     - `preprocess_order_creation`
   - additionally, `preprocess_order_creation` was extend with `lines_info` parameter
-- remove `product_updated` webhook in `ProductVariantCreate`, replace `product_updated` with `product_variant_updated` webhook in `ProductVariantChannelListingUpdate` #6963 by @piotrgrundas
+- Remove triggering a webhook event `PRODUCT_UPDATED`  when calling `ProductVariantCreate` mutation.  Use `PRODUCT_VARIANT_CREATED` instead - #6963 by @piotrgrundas
+- Remove triggering a webhook event `PRODUCT_UPDATED` when calling  `ProductVariantChannelListingUpdate` mutation. Use `PRODUCT_VARIANT_UPDATED` instead - #6963 by @piotrgrundas
 
 ### Other
 
