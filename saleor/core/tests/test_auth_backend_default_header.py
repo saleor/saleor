@@ -17,6 +17,17 @@ from ..jwt import (
 from ..permissions import get_permissions_from_names
 
 
+def test_use_default_header_as_a_fallback(rf, staff_user, customer_user):
+    customer_access_token = create_access_token(customer_user)
+
+    request = rf.request(
+        HTTP_AUTHORIZATION_BEARER="", HTTP_AUTHORIZATION=f"JWT {customer_access_token}"
+    )
+    backend = JSONWebTokenBackend()
+    user = backend.authenticate(request)
+    assert user == customer_user
+
+
 @pytest.mark.parametrize("prefix", ["JWT", "Bearer"])
 def test_user_authenticated(prefix, rf, staff_user):
     access_token = create_access_token(staff_user)
