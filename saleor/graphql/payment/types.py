@@ -61,6 +61,16 @@ class PaymentSource(graphene.ObjectType):
     )
 
 
+class PaymentClientToken(graphene.ObjectType):
+    class Meta:
+        description = (
+            "Represents a client token for a specific payment gateway "
+            "to be used on frontend"
+        )
+
+    clientToken = graphene.String(description="Gateway specific client token", required=True)
+
+
 class Payment(CountableDjangoObjectType):
     charge_status = PaymentChargeStatusEnum(
         description="Internal payment status.", required=True
