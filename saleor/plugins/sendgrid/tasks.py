@@ -11,6 +11,9 @@ from . import SendgridConfiguration
 
 logger = logging.getLogger(__name__)
 
+CELERY_RETRY_BACKOFF = 60
+CELERY_RETRY_MAX = 5
+
 
 def send_email(configuration: SendgridConfiguration, template_id, payload):
     recipient_email = payload["recipient_email"]
@@ -24,8 +27,8 @@ def send_email(configuration: SendgridConfiguration, template_id, payload):
 
 @app.task(
     autoretry_for=(SendGridException,),
-    retry_backoff=60,
-    retry_kwargs={"max_retries": 5},
+    retry_backoff=CELERY_RETRY_BACKOFF,
+    retry_kwargs={"max_retries": CELERY_RETRY_MAX},
 )
 def send_account_confirmation_email_task(payload: dict, configuration: dict):
     configuration = SendgridConfiguration(**configuration)
@@ -38,8 +41,8 @@ def send_account_confirmation_email_task(payload: dict, configuration: dict):
 
 @app.task(
     autoretry_for=(SendGridException,),
-    retry_backoff=60,
-    retry_kwargs={"max_retries": 5},
+    retry_backoff=CELERY_RETRY_BACKOFF,
+    retry_kwargs={"max_retries": CELERY_RETRY_MAX},
 )
 def send_password_reset_email_task(payload: dict, configuration: dict):
     configuration = SendgridConfiguration(**configuration)
@@ -54,8 +57,8 @@ def send_password_reset_email_task(payload: dict, configuration: dict):
 
 @app.task(
     autoretry_for=(SendGridException,),
-    retry_backoff=60,
-    retry_kwargs={"max_retries": 5},
+    retry_backoff=CELERY_RETRY_BACKOFF,
+    retry_kwargs={"max_retries": CELERY_RETRY_MAX},
 )
 def send_request_email_change_email_task(payload: dict, configuration: dict):
     configuration = SendgridConfiguration(**configuration)
@@ -76,8 +79,8 @@ def send_request_email_change_email_task(payload: dict, configuration: dict):
 
 @app.task(
     autoretry_for=(SendGridException,),
-    retry_backoff=60,
-    retry_kwargs={"max_retries": 5},
+    retry_backoff=CELERY_RETRY_BACKOFF,
+    retry_kwargs={"max_retries": CELERY_RETRY_MAX},
 )
 def send_user_change_email_notification_task(payload: dict, configuration: dict):
     configuration = SendgridConfiguration(**configuration)
@@ -99,8 +102,8 @@ def send_user_change_email_notification_task(payload: dict, configuration: dict)
 
 @app.task(
     autoretry_for=(SendGridException,),
-    retry_backoff=60,
-    retry_kwargs={"max_retries": 5},
+    retry_backoff=CELERY_RETRY_BACKOFF,
+    retry_kwargs={"max_retries": CELERY_RETRY_MAX},
 )
 def send_account_delete_confirmation_email_task(payload: dict, configuration: dict):
     configuration = SendgridConfiguration(**configuration)
@@ -113,8 +116,8 @@ def send_account_delete_confirmation_email_task(payload: dict, configuration: di
 
 @app.task(
     autoretry_for=(SendGridException,),
-    retry_backoff=60,
-    retry_kwargs={"max_retries": 5},
+    retry_backoff=CELERY_RETRY_BACKOFF,
+    retry_kwargs={"max_retries": CELERY_RETRY_MAX},
 )
 def send_set_user_password_email_task(payload: dict, configuration: dict):
     configuration = SendgridConfiguration(**configuration)
@@ -127,8 +130,8 @@ def send_set_user_password_email_task(payload: dict, configuration: dict):
 
 @app.task(
     autoretry_for=(SendGridException,),
-    retry_backoff=60,
-    retry_kwargs={"max_retries": 5},
+    retry_backoff=CELERY_RETRY_BACKOFF,
+    retry_kwargs={"max_retries": CELERY_RETRY_MAX},
 )
 def send_invoice_email_task(payload: dict, configuration: dict):
     """Send an invoice to user of related order with URL to download it."""
@@ -152,8 +155,8 @@ def send_invoice_email_task(payload: dict, configuration: dict):
 
 @app.task(
     autoretry_for=(SendGridException,),
-    retry_backoff=60,
-    retry_kwargs={"max_retries": 5},
+    retry_backoff=CELERY_RETRY_BACKOFF,
+    retry_kwargs={"max_retries": CELERY_RETRY_MAX},
 )
 def send_order_confirmation_email_task(payload: dict, configuration: dict):
     """Send order confirmation email."""
@@ -172,8 +175,8 @@ def send_order_confirmation_email_task(payload: dict, configuration: dict):
 
 @app.task(
     autoretry_for=(SendGridException,),
-    retry_backoff=60,
-    retry_kwargs={"max_retries": 5},
+    retry_backoff=CELERY_RETRY_BACKOFF,
+    retry_kwargs={"max_retries": CELERY_RETRY_MAX},
 )
 def send_fulfillment_confirmation_email_task(payload: dict, configuration: dict):
     configuration = SendgridConfiguration(**configuration)
@@ -198,8 +201,8 @@ def send_fulfillment_confirmation_email_task(payload: dict, configuration: dict)
 
 @app.task(
     autoretry_for=(SendGridException,),
-    retry_backoff=60,
-    retry_kwargs={"max_retries": 5},
+    retry_backoff=CELERY_RETRY_BACKOFF,
+    retry_kwargs={"max_retries": CELERY_RETRY_MAX},
 )
 def send_fulfillment_update_email_task(payload: dict, configuration: dict):
     configuration = SendgridConfiguration(**configuration)
@@ -212,8 +215,8 @@ def send_fulfillment_update_email_task(payload: dict, configuration: dict):
 
 @app.task(
     autoretry_for=(SendGridException,),
-    retry_backoff=60,
-    retry_kwargs={"max_retries": 5},
+    retry_backoff=CELERY_RETRY_BACKOFF,
+    retry_kwargs={"max_retries": CELERY_RETRY_MAX},
 )
 def send_payment_confirmation_email_task(payload: dict, configuration: dict):
     configuration = SendgridConfiguration(**configuration)
@@ -231,8 +234,8 @@ def send_payment_confirmation_email_task(payload: dict, configuration: dict):
 
 @app.task(
     autoretry_for=(SendGridException,),
-    retry_backoff=60,
-    retry_kwargs={"max_retries": 5},
+    retry_backoff=CELERY_RETRY_BACKOFF,
+    retry_kwargs={"max_retries": CELERY_RETRY_MAX},
 )
 def send_order_canceled_email_task(payload: dict, configuration: dict):
     configuration = SendgridConfiguration(**configuration)
@@ -250,8 +253,8 @@ def send_order_canceled_email_task(payload: dict, configuration: dict):
 
 @app.task(
     autoretry_for=(SendGridException,),
-    retry_backoff=60,
-    retry_kwargs={"max_retries": 5},
+    retry_backoff=CELERY_RETRY_BACKOFF,
+    retry_kwargs={"max_retries": CELERY_RETRY_MAX},
 )
 def send_order_refund_email_task(payload: dict, configuration: dict):
     configuration = SendgridConfiguration(**configuration)
@@ -269,8 +272,8 @@ def send_order_refund_email_task(payload: dict, configuration: dict):
 
 @app.task(
     autoretry_for=(SendGridException,),
-    retry_backoff=60,
-    retry_kwargs={"max_retries": 5},
+    retry_backoff=CELERY_RETRY_BACKOFF,
+    retry_kwargs={"max_retries": CELERY_RETRY_MAX},
 )
 def send_order_confirmed_email_task(payload: dict, configuration: dict):
     configuration = SendgridConfiguration(**configuration)
