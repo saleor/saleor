@@ -3,6 +3,7 @@ from unittest.mock import patch
 import pytest
 
 from ...core.exceptions import InsufficientStock
+from ...tests.utils import flush_post_commit_hooks
 from ...warehouse.models import Allocation, Stock
 from ..actions import create_fulfillments
 from ..models import FulfillmentLine, OrderStatus
@@ -29,6 +30,7 @@ def test_create_fulfillments(
     [fulfillment] = create_fulfillments(
         staff_user, order, fulfillment_lines_for_warehouses, True
     )
+    flush_post_commit_hooks()
 
     order.refresh_from_db()
     fulfillment_lines = FulfillmentLine.objects.filter(
@@ -77,6 +79,7 @@ def test_create_fulfillments_without_notification(
     [fulfillment] = create_fulfillments(
         staff_user, order, fulfillment_lines_for_warehouses, False
     )
+    flush_post_commit_hooks()
 
     order.refresh_from_db()
     fulfillment_lines = FulfillmentLine.objects.filter(
@@ -134,6 +137,7 @@ def test_create_fulfillments_many_warehouses(
     [fulfillment1, fulfillment2] = create_fulfillments(
         staff_user, order, fulfillment_lines_for_warehouses, False
     )
+    flush_post_commit_hooks()
 
     order.refresh_from_db()
     fulfillment_lines = FulfillmentLine.objects.filter(
@@ -183,6 +187,7 @@ def test_create_fulfillments_with_one_line_empty_quantity(
     [fulfillment] = create_fulfillments(
         staff_user, order, fulfillment_lines_for_warehouses, True
     )
+    flush_post_commit_hooks()
 
     order.refresh_from_db()
     fulfillment_lines = FulfillmentLine.objects.filter(
@@ -230,6 +235,7 @@ def test_create_fulfillments_with_variant_without_inventory_tracking(
     [fulfillment] = create_fulfillments(
         staff_user, order, fulfillment_lines_for_warehouses, True
     )
+    flush_post_commit_hooks()
 
     order.refresh_from_db()
     fulfillment_lines = FulfillmentLine.objects.filter(
@@ -275,6 +281,7 @@ def test_create_fulfillments_without_allocations(
     [fulfillment] = create_fulfillments(
         staff_user, order, fulfillment_lines_for_warehouses, True
     )
+    flush_post_commit_hooks()
 
     order.refresh_from_db()
     fulfillment_lines = FulfillmentLine.objects.filter(
