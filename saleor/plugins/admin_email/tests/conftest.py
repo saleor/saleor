@@ -17,6 +17,9 @@ from ..constants import (
     STAFF_ORDER_CONFIRMATION_DEFAULT_SUBJECT,
     STAFF_ORDER_CONFIRMATION_SUBJECT_FIELD,
     STAFF_ORDER_CONFIRMATION_TEMPLATE_FIELD,
+    STAFF_PASSWORD_RESET_DEFAULT_SUBJECT,
+    STAFF_PASSWORD_RESET_SUBJECT_FIELD,
+    STAFF_PASSWORD_RESET_TEMPLATE_FIELD,
 )
 from ..plugin import AdminEmailPlugin
 
@@ -53,6 +56,8 @@ def admin_email_plugin(settings):
         staff_order_confirmation_title=SET_STAFF_PASSWORD_DEFAULT_SUBJECT,
         csv_product_export_title=CSV_PRODUCT_EXPORT_SUCCESS_DEFAULT_SUBJECT,
         csv_product_export_failed_title=CSV_EXPORT_FAILED_DEFAULT_SUBJECT,
+        staff_password_reset_template=DEFAULT_EMAIL_VALUE,
+        staff_password_reset_subject=STAFF_PASSWORD_RESET_DEFAULT_SUBJECT,
     ):
         settings.PLUGINS = ["saleor.plugins.admin_email.plugin.AdminEmailPlugin"]
         manager = get_plugins_manager()
@@ -73,6 +78,10 @@ def admin_email_plugin(settings):
                         {"name": "use_tls", "value": use_tls},
                         {"name": "use_ssl", "value": use_ssl},
                         {
+                            "name": STAFF_PASSWORD_RESET_TEMPLATE_FIELD,
+                            "value": staff_password_reset_template,
+                        },
+                        {
                             "name": SET_STAFF_PASSWORD_TEMPLATE_FIELD,
                             "value": set_staff_password_template,
                         },
@@ -87,6 +96,10 @@ def admin_email_plugin(settings):
                         {
                             "name": CSV_EXPORT_FAILED_TEMPLATE_FIELD,
                             "value": csv_product_export_failed,
+                        },
+                        {
+                            "name": STAFF_PASSWORD_RESET_SUBJECT_FIELD,
+                            "value": staff_password_reset_subject,
                         },
                         {
                             "name": STAFF_ORDER_CONFIRMATION_SUBJECT_FIELD,

@@ -188,7 +188,7 @@ def queryset_in_batches(queryset):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("product", "0129_add_product_types_and_attributes_perm"),
+        ("product", "0131_update_ts_vector_existing_product_name"),
     ]
 
     operations = [

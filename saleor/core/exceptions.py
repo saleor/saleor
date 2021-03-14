@@ -1,22 +1,34 @@
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, List, Optional, Union
+
 from ..checkout.error_codes import CheckoutErrorCode
+
+if TYPE_CHECKING:
+    from ..order.models import OrderLine
+    from ..product.models import ProductVariant
+
+
+@dataclass
+class InsufficientStockData:
+    variant: "ProductVariant"
+    order_line: Optional["OrderLine"] = None
+    warehouse_pk: Union[str, int, None] = None
+    available_quantity: Optional[int] = None
 
 
 class InsufficientStock(Exception):
-    def __init__(self, item, context=None):
-        super().__init__("Insufficient stock for %r" % (item,))
-        self.item = item
-        self.context = context
+    def __init__(self, items: List[InsufficientStockData]):
+        variants = [str(item.variant) for item in items]
+        super().__init__(f"Insufficient stock for {', '.join(variants)}")
+        self.items = items
         self.code = CheckoutErrorCode.INSUFFICIENT_STOCK
 
 
 class AllocationError(Exception):
-    def __init__(self, order_line, quantity):
-        super().__init__(
-            f"Can't deallocate {quantity} for variant: {order_line.variant}"
-            f" in order: {order_line.order}"
-        )
-        self.order_line = order_line
-        self.quantity = quantity
+    def __init__(self, order_lines):
+        lines = [str(line) for line in order_lines]
+        super().__init__(f"Unable to deallocate stock for lines {', '.join(lines)}.")
+        self.order_lines = order_lines
 
 
 class ReadOnlyException(Exception):

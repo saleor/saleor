@@ -143,7 +143,8 @@ class ProductTranslation(BaseTranslationType):
 
     @staticmethod
     def resolve_description_json(root: product_models.ProductTranslation, _info):
-        return root.description
+        description = root.description
+        return description if description is not None else {}
 
 
 class ProductTranslatableContent(CountableDjangoObjectType):
@@ -170,7 +171,8 @@ class ProductTranslatableContent(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_description_json(root: product_models.Product, _info):
-        return root.description
+        description = root.description
+        return description if description is not None else {}
 
 
 class CollectionTranslation(BaseTranslationType):
@@ -188,7 +190,8 @@ class CollectionTranslation(BaseTranslationType):
 
     @staticmethod
     def resolve_description_json(root: product_models.CollectionTranslation, _info):
-        return root.description
+        description = root.description
+        return description if description is not None else {}
 
 
 class CollectionTranslatableContent(CountableDjangoObjectType):
@@ -218,7 +221,8 @@ class CollectionTranslatableContent(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_description_json(root: product_models.Collection, _info):
-        return root.description
+        description = root.description
+        return description if description is not None else {}
 
 
 class CategoryTranslation(BaseTranslationType):
@@ -236,7 +240,8 @@ class CategoryTranslation(BaseTranslationType):
 
     @staticmethod
     def resolve_description_json(root: product_models.CategoryTranslation, _info):
-        return root.description
+        description = root.description
+        return description if description is not None else {}
 
 
 class CategoryTranslatableContent(CountableDjangoObjectType):
@@ -263,7 +268,8 @@ class CategoryTranslatableContent(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_description_json(root: product_models.Category, _info):
-        return root.description
+        description = root.description
+        return description if description is not None else {}
 
 
 class PageTranslation(BaseTranslationType):
@@ -287,7 +293,8 @@ class PageTranslation(BaseTranslationType):
 
     @staticmethod
     def resolve_content_json(root: page_models.PageTranslation, _info):
-        return root.content
+        content = root.content
+        return content if content is not None else {}
 
 
 class PageTranslatableContent(CountableDjangoObjectType):
@@ -326,8 +333,9 @@ class PageTranslatableContent(CountableDjangoObjectType):
         )
 
     @staticmethod
-    def resolve_description_json(root: page_models.Page, _info):
-        return root.content
+    def resolve_content_json(root: page_models.Page, _info):
+        content = root.content
+        return content if content is not None else {}
 
 
 class VoucherTranslation(BaseTranslationType):

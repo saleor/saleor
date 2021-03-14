@@ -56,12 +56,10 @@ if TYPE_CHECKING:
     from ..app.models import App
 
 
-class Category(MPTTModel, ModelWithMetadata, SeoModel):
+class Category(ModelWithMetadata, MPTTModel, SeoModel):
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
-    description = SanitizedJSONField(
-        blank=True, default=dict, sanitizer=clean_editor_js
-    )
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
     parent = models.ForeignKey(
         "self", null=True, blank=True, related_name="children", on_delete=models.CASCADE
     )
@@ -84,9 +82,7 @@ class CategoryTranslation(SeoModelTranslation):
         Category, related_name="translations", on_delete=models.CASCADE
     )
     name = models.CharField(max_length=128)
-    description = SanitizedJSONField(
-        blank=True, default=dict, sanitizer=clean_editor_js
-    )
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
     class Meta:
         unique_together = (("language_code", "category"),)
@@ -114,7 +110,7 @@ class ProductType(ModelWithMetadata):
         measurement=Weight, unit_choices=WeightUnits.CHOICES, default=zero_weight
     )
 
-    class Meta:
+    class Meta(ModelWithMetadata.Meta):
         ordering = ("slug",)
         app_label = "product"
         permissions = (
@@ -308,10 +304,8 @@ class Product(SeoModel, ModelWithMetadata):
     )
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
-    description = SanitizedJSONField(
-        blank=True, default=dict, sanitizer=clean_editor_js
-    )
-    description_plaintext = TextField(blank=True, default="")
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+    description_plaintext = TextField(blank=True)
     search_vector = SearchVectorField(null=True, blank=True)
 
     category = models.ForeignKey(
@@ -345,6 +339,7 @@ class Product(SeoModel, ModelWithMetadata):
             (ProductPermissions.MANAGE_PRODUCTS.codename, "Manage products."),
         )
         indexes = [GinIndex(fields=["search_vector"])]
+        indexes.extend(ModelWithMetadata.Meta.indexes)
 
     def __iter__(self):
         if not hasattr(self, "__variants"):
@@ -382,9 +377,7 @@ class ProductTranslation(SeoModelTranslation):
         Product, related_name="translations", on_delete=models.CASCADE
     )
     name = models.CharField(max_length=250)
-    description = SanitizedJSONField(
-        blank=True, default=dict, sanitizer=clean_editor_js
-    )
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
     class Meta:
         unique_together = (("language_code", "product"),)
@@ -467,7 +460,7 @@ class ProductVariant(SortableModel, ModelWithMetadata):
     objects = ProductVariantQueryset.as_manager()
     translated = TranslationProxy()
 
-    class Meta:
+    class Meta(ModelWithMetadata.Meta):
         ordering = ("sort_order", "sku")
         app_label = "product"
 
@@ -700,15 +693,13 @@ class Collection(SeoModel, ModelWithMetadata):
         upload_to="collection-backgrounds", blank=True, null=True
     )
     background_image_alt = models.CharField(max_length=128, blank=True)
-    description = SanitizedJSONField(
-        blank=True, default=dict, sanitizer=clean_editor_js
-    )
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
     objects = CollectionsQueryset.as_manager()
 
     translated = TranslationProxy()
 
-    class Meta:
+    class Meta(ModelWithMetadata.Meta):
         ordering = ("slug",)
 
     def __str__(self) -> str:
@@ -742,9 +733,7 @@ class CollectionTranslation(SeoModelTranslation):
         Collection, related_name="translations", on_delete=models.CASCADE
     )
     name = models.CharField(max_length=128)
-    description = SanitizedJSONField(
-        blank=True, default=dict, sanitizer=clean_editor_js
-    )
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
     class Meta:
         unique_together = (("language_code", "collection"),)

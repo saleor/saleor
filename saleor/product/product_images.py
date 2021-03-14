@@ -1,13 +1,12 @@
 import logging
 import re
 import warnings
+from typing import List
 
-from django import template
 from django.conf import settings
 from django.templatetags.static import static
 
 logger = logging.getLogger(__name__)
-register = template.Library()
 
 
 # cache available sizes at module level
@@ -20,6 +19,18 @@ def get_available_sizes():
 
 
 AVAILABLE_SIZES = get_available_sizes()
+
+
+def get_available_product_sizes() -> List[str]:
+    """Get list of available product sizes."""
+    sizes = AVAILABLE_SIZES["products"]
+    product_sizes = []
+    for size in sizes:
+        product_sizes.append(size.strip("thumbnail__"))
+    return product_sizes
+
+
+AVAILABLE_PRODUCT_SIZES = get_available_product_sizes()
 
 
 def choose_placeholder(size=""):
@@ -53,12 +64,13 @@ def get_available_sizes_by_method(method, rendition_key_set):
     return sizes
 
 
-def get_thumbnail_size(size, method, rendition_key_set):
+def get_thumbnail_size(size, method, rendition_key_set, on_demand=None):
     """Return the closest larger size if not more than 2 times larger.
 
     Otherwise, return the closest smaller size
     """
-    on_demand = settings.VERSATILEIMAGEFIELD_SETTINGS["create_images_on_demand"]
+    if on_demand is None:
+        on_demand = settings.VERSATILEIMAGEFIELD_SETTINGS["create_images_on_demand"]
     if isinstance(size, int):
         size_str = "%sx%s" % (size, size)
     else:
@@ -82,7 +94,6 @@ def get_thumbnail_size(size, method, rendition_key_set):
     return None
 
 
-@register.simple_tag()
 def get_thumbnail(image_file, size, method, rendition_key_set="products"):
     if image_file:
         used_size = get_thumbnail_size(size, method, rendition_key_set)
@@ -97,7 +108,6 @@ def get_thumbnail(image_file, size, method, rendition_key_set="products"):
     return static(choose_placeholder("%sx%s" % (size, size)))
 
 
-@register.simple_tag()
 def get_product_image_thumbnail(instance, size, method):
     image_file = instance.image if instance else None
     return get_thumbnail(image_file, size, method)

@@ -14,12 +14,12 @@ class Page(ModelWithMetadata, SeoModel, PublishableModel):
     page_type = models.ForeignKey(
         "PageType", related_name="pages", on_delete=models.CASCADE
     )
-    content = SanitizedJSONField(blank=True, default=dict, sanitizer=clean_editor_js)
+    content = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
     created = models.DateTimeField(auto_now_add=True)
 
     translated = TranslationProxy()
 
-    class Meta:
+    class Meta(ModelWithMetadata.Meta):
         ordering = ("slug",)
         permissions = ((PagePermissions.MANAGE_PAGES.codename, "Manage pages."),)
 
@@ -33,7 +33,7 @@ class PageTranslation(SeoModelTranslation):
         Page, related_name="translations", on_delete=models.CASCADE
     )
     title = models.CharField(max_length=255, blank=True)
-    content = SanitizedJSONField(blank=True, default=dict, sanitizer=clean_editor_js)
+    content = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
     class Meta:
         ordering = ("language_code", "page", "pk")
@@ -56,7 +56,7 @@ class PageType(ModelWithMetadata):
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
 
-    class Meta:
+    class Meta(ModelWithMetadata.Meta):
         ordering = ("slug",)
         permissions = (
             (

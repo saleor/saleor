@@ -8,8 +8,8 @@ from ....account import events as account_events
 from ....account import models
 from ....account.error_codes import AccountErrorCode
 from ....account.notifications import (
+    send_password_reset_notification,
     send_set_password_notification,
-    send_user_password_reset_notification,
 )
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions
@@ -149,7 +149,9 @@ class RequestPasswordReset(BaseMutation):
                     )
                 }
             )
-        send_user_password_reset_notification(redirect_url, user, info.context.plugins)
+        send_password_reset_notification(
+            redirect_url, user, info.context.plugins, staff=user.is_staff
+        )
         return RequestPasswordReset()
 
 
@@ -277,6 +279,7 @@ class BaseAddressUpdate(ModelMutation, I18nMixin):
         cls.clean_instance(info, address)
         cls.save(info, address, cleaned_input)
         cls._save_m2m(info, address, cleaned_input)
+        info.context.plugins.customer_updated(user)
         address = info.context.plugins.change_user_address(address, None, user)
         success_response = cls.success_response(address)
         success_response.user = user
@@ -334,6 +337,7 @@ class BaseAddressDelete(ModelDeleteMutation):
         response = cls.success_response(instance)
 
         response.user = user
+        info.context.plugins.customer_updated(user)
         return response
 
 
@@ -438,6 +442,8 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
         if is_creation:
             info.context.plugins.customer_created(customer=instance)
             account_events.customer_account_created_event(user=instance)
+        else:
+            info.context.plugins.customer_updated(instance)
 
         if cleaned_input.get("redirect_url"):
             send_set_password_notification(

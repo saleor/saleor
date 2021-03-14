@@ -49,9 +49,6 @@ ORDER_FIELDS = (
     "total_gross_amount",
     "shipping_price_net_amount",
     "shipping_price_gross_amount",
-    "discount_amount",
-    "discount_name",
-    "translated_discount_name",
     "weight",
     "private_metadata",
     "metadata",
@@ -69,6 +66,9 @@ def generate_order_lines_payload(lines: Iterable[OrderLine]):
         "currency",
         "unit_price_net_amount",
         "unit_price_gross_amount",
+        "unit_discount_amount",
+        "unit_discount_type",
+        "unit_discount_reason",
         "total_price_net_amount",
         "total_price_gross_amount",
         "tax_rate",
@@ -111,6 +111,15 @@ def generate_order_payload(order: "Order"):
         "billing_country_area",
     )
 
+    discount_fields = (
+        "type",
+        "value_type",
+        "value",
+        "amount_value",
+        "name",
+        "translated_name",
+        "reason",
+    )
     shipping_method_fields = ("name", "type", "currency", "price_amount")
     lines = order.lines.all()
     order_data = serializer.serialize(
@@ -122,6 +131,7 @@ def generate_order_payload(order: "Order"):
             "shipping_address": (lambda o: o.shipping_address, ADDRESS_FIELDS),
             "billing_address": (lambda o: o.billing_address, ADDRESS_FIELDS),
             "fulfillments": (lambda o: o.fulfillments.all(), fulfillment_fields),
+            "discounts": (lambda o: o.discounts.all(), discount_fields),
         },
         extra_dict_data={"lines": json.loads(generate_order_lines_payload(lines))},
     )
@@ -194,6 +204,10 @@ def generate_customer_payload(customer: "User"):
             ),
             "default_billing_address": (
                 lambda c: c.default_shipping_address,
+                ADDRESS_FIELDS,
+            ),
+            "addresses": (
+                lambda c: c.addresses.all(),
                 ADDRESS_FIELDS,
             ),
         },
@@ -369,7 +383,9 @@ def generate_sample_payload(event_name: str) -> Optional[dict]:
         WebhookEventType.PAGE_DELETED,
         WebhookEventType.PAGE_UPDATED,
     ]
-    if event_name == WebhookEventType.CUSTOMER_CREATED:
+    user_events = [WebhookEventType.CUSTOMER_CREATED, WebhookEventType.CUSTOMER_UPDATED]
+
+    if event_name in user_events:
         user = generate_fake_user()
         payload = generate_customer_payload(user)
     elif event_name == WebhookEventType.PRODUCT_CREATED:

@@ -3,6 +3,7 @@ from unittest.mock import patch
 import pytest
 
 from ...core.exceptions import InsufficientStock
+from ...tests.utils import flush_post_commit_hooks
 from ...warehouse.models import Allocation, Stock
 from ..actions import create_fulfillments
 from ..models import FulfillmentLine, OrderStatus
@@ -29,6 +30,7 @@ def test_create_fulfillments(
     [fulfillment] = create_fulfillments(
         staff_user, order, fulfillment_lines_for_warehouses, True
     )
+    flush_post_commit_hooks()
 
     order.refresh_from_db()
     fulfillment_lines = FulfillmentLine.objects.filter(
@@ -77,6 +79,7 @@ def test_create_fulfillments_without_notification(
     [fulfillment] = create_fulfillments(
         staff_user, order, fulfillment_lines_for_warehouses, False
     )
+    flush_post_commit_hooks()
 
     order.refresh_from_db()
     fulfillment_lines = FulfillmentLine.objects.filter(
@@ -134,6 +137,7 @@ def test_create_fulfillments_many_warehouses(
     [fulfillment1, fulfillment2] = create_fulfillments(
         staff_user, order, fulfillment_lines_for_warehouses, False
     )
+    flush_post_commit_hooks()
 
     order.refresh_from_db()
     fulfillment_lines = FulfillmentLine.objects.filter(
@@ -183,6 +187,7 @@ def test_create_fulfillments_with_one_line_empty_quantity(
     [fulfillment] = create_fulfillments(
         staff_user, order, fulfillment_lines_for_warehouses, True
     )
+    flush_post_commit_hooks()
 
     order.refresh_from_db()
     fulfillment_lines = FulfillmentLine.objects.filter(
@@ -230,6 +235,7 @@ def test_create_fulfillments_with_variant_without_inventory_tracking(
     [fulfillment] = create_fulfillments(
         staff_user, order, fulfillment_lines_for_warehouses, True
     )
+    flush_post_commit_hooks()
 
     order.refresh_from_db()
     fulfillment_lines = FulfillmentLine.objects.filter(
@@ -275,6 +281,7 @@ def test_create_fulfillments_without_allocations(
     [fulfillment] = create_fulfillments(
         staff_user, order, fulfillment_lines_for_warehouses, True
     )
+    flush_post_commit_hooks()
 
     order.refresh_from_db()
     fulfillment_lines = FulfillmentLine.objects.filter(
@@ -305,55 +312,6 @@ def test_create_fulfillments_without_allocations(
 
 
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
-def test_create_fulfillments_warehouse_with_out_of_stock(
-    mock_email_fulfillment,
-    staff_user,
-    order_with_lines,
-    warehouse,
-):
-    order = order_with_lines
-    order_line1, order_line2 = order.lines.all()
-    order_line1.allocations.all().delete()
-    stock = order_line1.variant.stocks.get(warehouse=warehouse)
-    stock.quantity = 2
-    stock.save(update_fields=["quantity"])
-    fulfillment_lines_for_warehouses = {
-        str(warehouse.pk): [
-            {"order_line": order_line1, "quantity": 3},
-            {"order_line": order_line2, "quantity": 2},
-        ]
-    }
-
-    with pytest.raises(InsufficientStock) as exc:
-        create_fulfillments(staff_user, order, fulfillment_lines_for_warehouses, True)
-
-    assert exc.value.item == order_line1.variant
-    assert exc.value.context == {
-        "order_line": order_line1,
-        "warehouse_pk": str(warehouse.pk),
-    }
-
-    order.refresh_from_db()
-    assert FulfillmentLine.objects.filter(fulfillment__order=order).count() == 0
-
-    assert order.status == OrderStatus.UNFULFILLED
-    assert order.fulfillments.all().count() == 0
-
-    order_line1, order_line2 = order.lines.all()
-    assert order_line1.quantity_fulfilled == 0
-    assert order_line2.quantity_fulfilled == 0
-
-    assert (
-        Allocation.objects.filter(
-            order_line__order=order, quantity_allocated__gt=0
-        ).count()
-        == 1
-    )
-
-    mock_email_fulfillment.assert_not_called()
-
-
-@patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
 def test_create_fulfillments_warehouse_without_stock(
     mock_email_fulfillment,
     staff_user,
@@ -372,10 +330,14 @@ def test_create_fulfillments_warehouse_without_stock(
     with pytest.raises(InsufficientStock) as exc:
         create_fulfillments(staff_user, order, fulfillment_lines_for_warehouses, True)
 
-    assert exc.value.item == order_line1.variant
-    assert exc.value.context == {
-        "order_line": order_line1,
-        "warehouse_pk": str(warehouse_no_shipping_zone.pk),
+    assert len(exc.value.items) == 2
+    assert {item.variant for item in exc.value.items} == {
+        order_line1.variant,
+        order_line2.variant,
+    }
+    assert {item.order_line for item in exc.value.items} == {order_line1, order_line2}
+    assert {item.warehouse_pk for item in exc.value.items} == {
+        str(warehouse_no_shipping_zone.pk)
     }
 
     order.refresh_from_db()
@@ -414,11 +376,10 @@ def test_create_fulfillments_with_variant_without_inventory_tracking_and_without
     with pytest.raises(InsufficientStock) as exc:
         create_fulfillments(staff_user, order, fulfillment_lines_for_warehouses, True)
 
-    assert exc.value.item == order_line.variant
-    assert exc.value.context == {
-        "order_line": order_line,
-        "warehouse_pk": str(warehouse_no_shipping_zone.pk),
-    }
+    assert len(exc.value.items) == 1
+    assert exc.value.items[0].variant == order_line.variant
+    assert exc.value.items[0].order_line == order_line
+    assert exc.value.items[0].warehouse_pk == str(warehouse_no_shipping_zone.pk)
 
     order.refresh_from_db()
     assert FulfillmentLine.objects.filter(fulfillment__order=order).count() == 0
