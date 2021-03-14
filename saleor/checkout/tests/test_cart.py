@@ -2,7 +2,7 @@ import pytest
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
-from ...checkout.utils import fetch_checkout_lines
+from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...plugins.manager import get_plugins_manager
 from ...product.models import Category
 from .. import calculations, utils
@@ -37,11 +37,12 @@ def test_adding_same_variant(checkout, product):
     assert checkout.quantity == 3
     subtotal = TaxedMoney(Money("30.00", "USD"), Money("30.00", "USD"))
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
     manager = get_plugins_manager()
     assert (
         calculations.checkout_subtotal(
             manager=manager,
-            checkout=checkout,
+            checkout_info=checkout_info,
             lines=lines,
             address=checkout.shipping_address,
         )
@@ -95,8 +96,9 @@ def test_get_prices_of_discounted_specific_product(
 
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
     prices = utils.get_prices_of_discounted_specific_product(
-        manager, checkout, lines, voucher, channel
+        manager, checkout_info, lines, voucher
     )
 
     excepted_value = [
@@ -125,8 +127,9 @@ def test_get_prices_of_discounted_specific_product_only_product(
 
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
     prices = utils.get_prices_of_discounted_specific_product(
-        manager, checkout, lines, voucher, channel
+        manager, checkout_info, lines, voucher
     )
 
     excepted_value = [
@@ -158,8 +161,9 @@ def test_get_prices_of_discounted_specific_product_only_collection(
 
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
     prices = utils.get_prices_of_discounted_specific_product(
-        manager, checkout, lines, voucher, checkout.channel
+        manager, checkout_info, lines, voucher
     )
 
     excepted_value = [
@@ -193,8 +197,9 @@ def test_get_prices_of_discounted_specific_product_only_category(
 
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
     prices = utils.get_prices_of_discounted_specific_product(
-        manager, checkout, lines, voucher, channel
+        manager, checkout_info, lines, voucher
     )
 
     excepted_value = [
@@ -218,8 +223,9 @@ def test_get_prices_of_discounted_specific_product_all_products(
 
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [])
     prices = utils.get_prices_of_discounted_specific_product(
-        manager, checkout, lines, voucher, channel
+        manager, checkout_info, lines, voucher
     )
 
     excepted_value = [

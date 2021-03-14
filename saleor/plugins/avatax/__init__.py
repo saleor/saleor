@@ -9,18 +9,16 @@ from urllib.parse import urljoin
 import opentracing
 import opentracing.tags
 import requests
-from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.cache import cache
 from requests.auth import HTTPBasicAuth
 
-from ...checkout import CheckoutLineInfo, base_calculations
-from ...checkout.utils import fetch_checkout_lines
+from ...checkout import base_calculations
 from ...core.taxes import TaxError
+from ...order.utils import get_total_order_discount
 
 if TYPE_CHECKING:
-    # flake8: noqa
-    from ...checkout.models import Checkout, CheckoutLine
+    from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ...order.models import Order
     from ...product.models import Product, ProductType, ProductVariant
 
@@ -144,23 +142,25 @@ def _validate_order(order: "Order") -> bool:
     if not order.lines.exists():
         return False
     shipping_address = order.shipping_address
-    is_shipping_required = order.is_shipping_required()
+    shipping_required = order.is_shipping_required()
     address = shipping_address or order.billing_address
     return _validate_adddress_details(
-        shipping_address, is_shipping_required, address, order.shipping_method
+        shipping_address, shipping_required, address, order.shipping_method
     )
 
 
-def _validate_checkout(checkout: "Checkout", lines: Iterable["CheckoutLine"]) -> bool:
+def _validate_checkout(
+    checkout_info: "CheckoutInfo", lines: Iterable["CheckoutLineInfo"]
+) -> bool:
     """Validate the checkout object if it is ready to generate a request to avatax."""
     if not lines:
         return False
 
-    shipping_address = checkout.shipping_address
-    is_shipping_required = checkout.is_shipping_required()
-    address = shipping_address or checkout.billing_address
+    shipping_address = checkout_info.shipping_address
+    shipping_required = checkout_info.checkout.is_shipping_required()
+    address = shipping_address or checkout_info.billing_address
     return _validate_adddress_details(
-        shipping_address, is_shipping_required, address, checkout.shipping_method
+        shipping_address, shipping_required, address, checkout_info.shipping_method
     )
 
 
@@ -228,11 +228,12 @@ def append_shipping_to_data(data: List[Dict], shipping_method, channel_id):
 
 
 def get_checkout_lines_data(
-    checkout: "Checkout", discounts=None
+    checkout_info: "CheckoutInfo",
+    lines_info: Iterable["CheckoutLineInfo"],
+    discounts=None,
 ) -> List[Dict[str, Union[str, int, bool, None]]]:
     data: List[Dict[str, Union[str, int, bool, None]]] = []
-    lines_info = fetch_checkout_lines(checkout)
-    channel = checkout.channel
+    channel = checkout_info.channel
     for line_info in lines_info:
         product = line_info.product
         name = product.name
@@ -252,7 +253,9 @@ def get_checkout_lines_data(
             name=name,
         )
 
-    append_shipping_to_data(data, checkout.shipping_method, checkout.channel_id)
+    append_shipping_to_data(
+        data, checkout_info.shipping_method, checkout_info.channel.id
+    )
     return data
 
 
@@ -291,14 +294,16 @@ def get_order_lines_data(
             name=line.variant.product.name,
             tax_included=tax_included,
         )
-    if order.discount_amount:
+
+    discount_amount = get_total_order_discount(order)
+    if discount_amount:
         append_line_to_data(
             data=data,
             quantity=1,
-            amount=order.discount_amount * -1,
+            amount=discount_amount.amount * -1,
             tax_code=COMMON_DISCOUNT_VOUCHER_CODE,
             item_code="Voucher",
-            name=order.discount_name,
+            name="Order discount",
             tax_included=True,  # Voucher should be always applied as a gross amount
         )
     append_shipping_to_data(data, order.shipping_method, order.channel_id)
@@ -358,23 +363,24 @@ def generate_request_data(
 
 
 def generate_request_data_from_checkout(
-    checkout: "Checkout",
+    checkout_info: "CheckoutInfo",
+    lines_info: Iterable["CheckoutLineInfo"],
     config: AvataxConfiguration,
     transaction_token=None,
     transaction_type=TransactionType.ORDER,
     discounts=None,
 ):
 
-    address = checkout.shipping_address or checkout.billing_address
-    lines = get_checkout_lines_data(checkout, discounts)
+    address = checkout_info.shipping_address or checkout_info.billing_address
+    lines = get_checkout_lines_data(checkout_info, lines_info, discounts)
 
-    currency = checkout.currency
+    currency = checkout_info.checkout.currency
     data = generate_request_data(
         transaction_type=transaction_type,
         lines=lines,
-        transaction_token=transaction_token or str(checkout.token),
+        transaction_token=transaction_token or str(checkout_info.checkout.token),
         address=address.as_data() if address else {},
-        customer_email=checkout.email,
+        customer_email=checkout_info.get_customer_email(),
         config=config,
         currency=currency,
     )
@@ -422,10 +428,15 @@ def get_cached_response_or_fetch(
 
 
 def get_checkout_tax_data(
-    checkout: "Checkout", discounts, config: AvataxConfiguration
+    checkout_info: "CheckoutInfo",
+    lines_info: Iterable["CheckoutLineInfo"],
+    discounts,
+    config: AvataxConfiguration,
 ) -> Dict[str, Any]:
-    data = generate_request_data_from_checkout(checkout, config, discounts=discounts)
-    return get_cached_response_or_fetch(data, str(checkout.token), config)
+    data = generate_request_data_from_checkout(
+        checkout_info, lines_info, config, discounts=discounts
+    )
+    return get_cached_response_or_fetch(data, str(checkout_info.checkout.token), config)
 
 
 def get_order_request_data(order: "Order", config: AvataxConfiguration):

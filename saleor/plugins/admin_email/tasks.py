@@ -109,3 +109,28 @@ def send_staff_order_confirmation_email_task(
         template_str=email_template_str,
         context=payload,
     )
+
+
+@app.task
+def send_staff_password_reset_email_task(recipient_email, payload, config):
+    email_config = EmailConfig(**config)
+
+    email_template_str = get_email_template_or_default(
+        constants.PLUGIN_ID,
+        constants.STAFF_PASSWORD_RESET_TEMPLATE_FIELD,
+        constants.STAFF_PASSWORD_RESET_DEFAULT_TEMPLATE,
+        constants.DEFAULT_EMAIL_TEMPLATES_PATH,
+    )
+
+    subject = get_email_subject(
+        constants.PLUGIN_ID,
+        constants.STAFF_PASSWORD_RESET_SUBJECT_FIELD,
+        constants.STAFF_PASSWORD_RESET_DEFAULT_SUBJECT,
+    )
+    send_email(
+        config=email_config,
+        recipient_list=[recipient_email],
+        context=payload,
+        subject=subject,
+        template_str=email_template_str,
+    )

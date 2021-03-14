@@ -989,7 +989,6 @@ class ProductVariantDelete(ModelDeleteMutation):
         )
 
         response = super().perform_mutation(_root, info, **data)
-
         # delete order lines for deleted variant
         order_models.OrderLine.objects.filter(pk__in=line_pks).delete()
 

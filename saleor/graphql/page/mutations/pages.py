@@ -13,12 +13,9 @@ from ....page.error_codes import PageErrorCode
 from ...attribute.utils import AttributeAssignmentMixin
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types.common import PageError, SeoInput
-from ...core.utils import (
-    clean_seo_fields,
-    get_duplicates_ids,
-    validate_slug_and_generate_if_needed,
-)
+from ...core.utils import clean_seo_fields, validate_slug_and_generate_if_needed
 from ...product.mutations.products import AttributeValueInput
+from ...utils.validators import check_for_duplicates
 
 if TYPE_CHECKING:
     from ....attribute.models import Attribute
@@ -253,31 +250,14 @@ class PageTypeUpdate(PageTypeMixin, ModelMutation):
         error_type_field = "page_errors"
 
     @classmethod
-    def check_for_duplicates(cls, errors: Dict[str, List[ValidationError]], data: dict):
-        """Check if any items are on both list for adding and removing.
-
-        Raise error if some of items are duplicated.
-        """
-        add_attributes = data.get("add_attributes")
-        remove_attributes = data.get("remove_attributes")
-
-        duplicated_ids = get_duplicates_ids(add_attributes, remove_attributes)
-        if duplicated_ids:
-            error_msg = (
-                "The same object cannot be in both list"
-                "for adding and removing items."
-            )
-            error = ValidationError(
-                error_msg,
-                code=PageErrorCode.DUPLICATED_INPUT_ITEM.value,
-                params={"attributes": duplicated_ids},
-            )
-            errors["attributes"].append(error)
-
-    @classmethod
     def clean_input(cls, info, instance, data):
         errors = defaultdict(list)
-        cls.check_for_duplicates(errors, data)
+        error = check_for_duplicates(
+            data, "add_attributes", "remove_attributes", "attributes"
+        )
+        if error:
+            error.code = PageErrorCode.DUPLICATED_INPUT_ITEM.value
+            errors["attributes"].append(error)
 
         cleaned_input = super().clean_input(info, instance, data)
         try:

@@ -1,4 +1,5 @@
 import logging
+import operator
 import os
 import re
 from dataclasses import dataclass
@@ -6,17 +7,17 @@ from decimal import Decimal, InvalidOperation
 from email.headerregistry import Address
 from typing import List, Optional
 
+import dateutil.parser
 import html2text
 import i18naddress
 import pybars
 from babel.numbers import format_currency
-from django.conf import settings
-from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.core.mail.backends.smtp import EmailBackend
 from django_prices.utils.locale import get_locale_data
 
+from ..product.product_images import get_thumbnail_size
 from .base_plugin import ConfigurationTypeField
 from .error_codes import PluginErrorCode
 from .models import PluginConfiguration
@@ -55,37 +56,27 @@ DEFAULT_EMAIL_CONFIGURATION = [
     {"name": "use_tls", "value": False},
     {"name": "use_ssl", "value": False},
 ]
+
+
 DEFAULT_EMAIL_CONFIG_STRUCTURE = {
     "host": {
         "type": ConfigurationTypeField.STRING,
-        "help_text": (
-            "The host to use for sending email. Leave it blank if you want to use "
-            "system environment - EMAIL_HOST."
-        ),
+        "help_text": ("The host to use for sending email."),
         "label": "SMTP host",
     },
     "port": {
         "type": ConfigurationTypeField.STRING,
-        "help_text": (
-            "Port to use for the SMTP server. Leave it blank if you want to use "
-            "system environment - EMAIL_PORT."
-        ),
+        "help_text": ("Port to use for the SMTP server."),
         "label": "SMTP port",
     },
     "username": {
         "type": ConfigurationTypeField.STRING,
-        "help_text": (
-            "Username to use for the SMTP server. Leave it blank if you want to "
-            "use system environment - EMAIL_HOST_USER."
-        ),
+        "help_text": ("Username to use for the SMTP server."),
         "label": "SMTP user",
     },
     "password": {
         "type": ConfigurationTypeField.PASSWORD,
-        "help_text": (
-            "Password to use for the SMTP server. Leave it blank if you want to "
-            "use system environment - EMAIL_HOST_PASSWORD."
-        ),
+        "help_text": ("Password to use for the SMTP server."),
         "label": "Password",
     },
     "sender_name": {
@@ -104,8 +95,7 @@ DEFAULT_EMAIL_CONFIG_STRUCTURE = {
             "Whether to use a TLS (secure) connection when talking to the SMTP "
             "server. This is used for explicit TLS connections, generally on port "
             "587. Use TLS/Use SSL are mutually exclusive, so only set one of those"
-            " settings to True. Leave it blank if you want to use system environment"
-            " - EMAIL_USE_TLS"
+            " settings to True."
         ),
         "label": "Use TLS",
     },
@@ -116,8 +106,7 @@ DEFAULT_EMAIL_CONFIG_STRUCTURE = {
             "the SMTP server. In most email documentation this type of TLS "
             "connection is referred to as SSL. It is generally used on port 465. "
             "Use TLS/Use SSL are mutually exclusive, so only set one of those"
-            " settings to True. Leave it blank if you want to use system environment"
-            " - EMAIL_USE_SSL"
+            " settings to True."
         ),
         "label": "Use SSL",
     },
@@ -137,6 +126,35 @@ def format_address(this, address, include_phone=True, inline=False, latin=False)
     if inline is True:
         return pybars.strlist([", ".join(address_lines)])
     return pybars.strlist(["<br>".join(address_lines)])
+
+
+def format_datetime(this, date, date_format=None):
+    """Convert datetime to a required format."""
+    date = dateutil.parser.isoparse(date)
+    if date_format is None:
+        date_format = "%d-%m-%Y"
+    return date.strftime(date_format)
+
+
+def get_product_image_thumbnail(this, size, image):
+    """Use provided size to get a correct image."""
+    expected_size = get_thumbnail_size(size, "thumbnail", "products", on_demand=False)
+    return image["original"][expected_size]
+
+
+def compare(this, val1, compare_operator, val2):
+    """Compare two values based on the provided operator."""
+    operators = {
+        "==": operator.eq,
+        "!=": operator.neg,
+        "<": operator.lt,
+        "<=": operator.le,
+        ">=": operator.ge,
+        ">": operator.gt,
+    }
+    if compare_operator not in operators:
+        return False
+    return operators[compare_operator](val1, val2)
 
 
 def price(this, net_amount, gross_amount, currency, display_gross=False):
@@ -162,17 +180,11 @@ def price(this, net_amount, gross_amount, currency, display_gross=False):
 def send_email(
     config: EmailConfig, recipient_list, context, subject="", template_str=""
 ):
-    sender_name = config.sender_name
+    sender_name = config.sender_name or ""
     sender_address = config.sender_address
-    if not sender_address or not sender_name:
-        # TODO when we deprecate the default mail config from Site, we can drop this if
-        # and require the sender's data as a plugin input or take it from settings file.
-        site = Site.objects.get_current()
-        sender_name = sender_name or site.settings.default_mail_sender_name
-        sender_address = sender_address or site.settings.default_mail_sender_address
-        sender_address = sender_address or settings.DEFAULT_FROM_EMAIL
 
     from_email = str(Address(sender_name, addr_spec=sender_address))
+
     email_backend = EmailBackend(
         host=config.host,
         port=config.port,
@@ -187,6 +199,9 @@ def send_email(
     helpers = {
         "format_address": format_address,
         "price": price,
+        "format_datetime": format_datetime,
+        "get_product_image_thumbnail": get_product_image_thumbnail,
+        "compare": compare,
     }
     message = template(context, helpers=helpers)
     subject_message = subject_template(context, helpers)
@@ -245,15 +260,26 @@ def validate_default_email_configuration(plugin_configuration: "PluginConfigurat
             }
         )
     config = EmailConfig(
-        host=configuration["host"] or settings.EMAIL_HOST,
-        port=configuration["port"] or settings.EMAIL_PORT,
-        username=configuration["username"] or settings.EMAIL_HOST_USER,
-        password=configuration["password"] or settings.EMAIL_HOST_PASSWORD,
+        host=configuration["host"],
+        port=configuration["port"],
+        username=configuration["username"],
+        password=configuration["password"],
         sender_name=configuration["sender_name"],
         sender_address=configuration["sender_address"],
         use_tls=configuration["use_tls"],
         use_ssl=configuration["use_ssl"],
     )
+
+    if not config.sender_address:
+        raise ValidationError(
+            {
+                "sender_address": ValidationError(
+                    "Missing sender address value.",
+                    code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
+                )
+            }
+        )
+
     try:
         validate_email_config(config)
     except Exception as e:

@@ -20,23 +20,15 @@ from .models import PluginConfiguration
 if TYPE_CHECKING:
     # flake8: noqa
     from ..account.models import Address, User
-    from ..channel.models import Channel
-    from ..checkout import CheckoutLineInfo
-    from ..checkout.models import Checkout, CheckoutLine
+    from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
+    from ..checkout.models import Checkout
     from ..core.notify_events import NotifyEventType
     from ..core.taxes import TaxType
     from ..discount import DiscountInfo
     from ..invoice.models import Invoice
     from ..order.models import Fulfillment, Order, OrderLine
     from ..page.models import Page
-    from ..product.models import (
-        Collection,
-        Product,
-        ProductType,
-        ProductVariant,
-        ProductVariantChannelListing,
-    )
-
+    from ..product.models import Product, ProductType, ProductVariant
 
 PluginConfigurationType = List[dict]
 
@@ -166,7 +158,7 @@ class BasePlugin:
 
     def calculate_checkout_total(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         lines: List["CheckoutLineInfo"],
         address: Optional["Address"],
         discounts: List["DiscountInfo"],
@@ -181,7 +173,7 @@ class BasePlugin:
 
     def calculate_checkout_subtotal(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         lines: List["CheckoutLineInfo"],
         address: Optional["Address"],
         discounts: List["DiscountInfo"],
@@ -196,7 +188,7 @@ class BasePlugin:
 
     def calculate_checkout_shipping(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         lines: List["CheckoutLineInfo"],
         address: Optional["Address"],
         discounts: List["DiscountInfo"],
@@ -222,10 +214,9 @@ class BasePlugin:
     # TODO: Add information about this change to `breaking changes in changelog`
     def calculate_checkout_line_total(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
-        channel: "Channel",
         discounts: Iterable["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -238,11 +229,10 @@ class BasePlugin:
 
     def calculate_checkout_line_unit_price(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
-        channel: "Channel",
         previous_value: TaxedMoney,
     ):
         """Calculate checkout line unit price."""
@@ -267,7 +257,7 @@ class BasePlugin:
 
     def get_checkout_line_tax_rate(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
@@ -286,7 +276,7 @@ class BasePlugin:
 
     def get_checkout_shipping_tax_rate(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         lines: Iterable["CheckoutLineInfo"],
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
@@ -341,7 +331,11 @@ class BasePlugin:
         return NotImplemented
 
     def preprocess_order_creation(
-        self, checkout: "Checkout", discounts: List["DiscountInfo"], previous_value: Any
+        self,
+        checkout_info: "CheckoutInfo",
+        discounts: List["DiscountInfo"],
+        lines: Optional[Iterable["CheckoutLineInfo"]],
+        previous_value: Any,
     ):
         """Trigger directly before order creation.
 
@@ -420,6 +414,14 @@ class BasePlugin:
 
         Overwrite this method if you need to trigger specific logic after a user is
         created.
+        """
+        return NotImplemented
+
+    def customer_updated(self, customer: "User", previous_value: Any) -> Any:
+        """Trigger when user is updated.
+
+        Overwrite this method if you need to trigger specific logic after a user is
+        updated.
         """
         return NotImplemented
 

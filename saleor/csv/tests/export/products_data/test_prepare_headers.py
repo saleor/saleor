@@ -31,7 +31,7 @@ def test_get_export_fields_and_headers_fields_without_price():
         "collections__slug",
         "id",
         "variants__sku",
-        "description",
+        "description_as_str",
     }
     assert file_headers == expected_headers
 
@@ -169,7 +169,7 @@ def test_get_export_fields_and_headers_info(
     expected_fields = [
         "id",
         "collections__slug",
-        "description",
+        "description_as_str",
     ]
 
     product_headers = []
