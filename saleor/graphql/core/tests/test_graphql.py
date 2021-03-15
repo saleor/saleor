@@ -86,7 +86,7 @@ def test_real_query(user_api_client, product, channel_USD):
             __typename
         }
         products(first: $first, sortBy: $sortBy, filter: {categories: [$categoryId],
-            attributes: $attributesFilter,channel: $channel}, channel: $channel) {
+            attributes: $attributesFilter, channel: $channel}, channel: $channel) {
 
             ...ProductListFragmentQuery
             __typename

@@ -53,7 +53,9 @@ from ...order.dataloaders import (
     OrderByIdLoader,
     OrderLinesByVariantIdAndChannelIdLoader,
 )
-from ...product.dataloaders.products import AvailableProductVariantsByProductVariantId
+from ...product.dataloaders.products import (
+    AvailableProductVariantsByProductVariantIdAndChannel,
+)
 from ...translations.fields import TranslationField
 from ...translations.types import (
     CategoryTranslation,
@@ -733,16 +735,18 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         requestor = get_user_or_app_from_context(info.context)
         is_staff = requestor_is_staff_member_or_app(requestor)
 
-        def return_available_variants_in_channel(variants):
+        def return_available_variants(variants):
             if is_staff:
                 return variants
 
             variants_id = (variant.id for variant in variants)
-            variant_channel_listings = AvailableProductVariantsByProductVariantId(
-                info.context
-            ).load((root.channel_slug, variants_id))
+            available_variants_in_channel = (
+                AvailableProductVariantsByProductVariantIdAndChannel(info.context).load(
+                    (variants_id, root.channel_slug)
+                )
+            )
 
-            def return_available_variants(available_variants):
+            def return_available_variants_in_channel(available_variants):
                 result = []
                 variants_map = {variant.id: variant for variant in variants}
                 for variant_id in variants_map.keys() & available_variants:
@@ -751,7 +755,9 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                         result.append(variant)
                 return result
 
-            return variant_channel_listings.then(return_available_variants)
+            return available_variants_in_channel.then(
+                return_available_variants_in_channel
+            )
 
         def map_channel_context(variants):
             return [
@@ -762,7 +768,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return (
             ProductVariantsByProductIdLoader(info.context)
             .load(root.node.id)
-            .then(return_available_variants_in_channel)
+            .then(return_available_variants)
             .then(map_channel_context)
         )
 
