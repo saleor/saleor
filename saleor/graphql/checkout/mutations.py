@@ -27,6 +27,7 @@ from ...checkout.utils import (
     is_shipping_required,
     recalculate_checkout_discount,
     remove_promo_code_from_checkout,
+    update_checkout_quantity,
 )
 from ...core import analytics
 from ...core.exceptions import InsufficientStock, PermissionDenied, ProductNotPublished
@@ -497,6 +498,7 @@ class CheckoutLineDelete(BaseMutation):
         lines = fetch_checkout_lines(checkout)
         checkout_info = fetch_checkout_info(checkout, lines, info.context.discounts)
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
+        update_checkout_quantity(checkout)
         recalculate_checkout_discount(
             info.context.plugins, checkout_info, lines, info.context.discounts
         )
