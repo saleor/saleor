@@ -1,4 +1,5 @@
 import graphene
+from graphql.error import GraphQLError
 
 from ...account.utils import requestor_is_staff_member_or_app
 from ...core.permissions import ProductPermissions
@@ -105,6 +106,7 @@ from .sorters import (
     CategorySortingInput,
     CollectionSortingInput,
     ProductOrder,
+    ProductOrderField,
     ProductTypeSortingInput,
 )
 from .types import (
@@ -319,6 +321,17 @@ class ProductQueries(graphene.ObjectType):
         return ChannelContext(node=product, channel_slug=channel) if product else None
 
     def resolve_products(self, info, channel=None, **kwargs):
+        # sort by RANK can be used only with search filter
+        if "sort_by" in kwargs and ProductOrderField.RANK == kwargs["sort_by"].get(
+            "field"
+        ):
+            if (
+                "filter" not in kwargs
+                or kwargs["filter"].get("search") is None
+                or not kwargs["filter"]["search"].strip()
+            ):
+                raise GraphQLError("Sorting by Rank is available only with searching.")
+
         requestor = get_user_or_app_from_context(info.context)
         if_staff = requestor_is_staff_member_or_app(requestor)
         if channel is None and not if_staff:
