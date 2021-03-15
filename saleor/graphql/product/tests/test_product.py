@@ -1782,11 +1782,13 @@ def test_products_query_with_filter(
         currency=channel_USD.currency_code,
     )
     ProductChannelListing.objects.create(
+        discounted_price_amount=1.5,
         product=second_product,
         channel=channel_USD,
-        is_published=True,
+        is_published=False,
     )
-    variables = {"filter": {"search": "Juice1"}, "channel": channel_USD.slug}
+    products_filter["channel"] = channel_USD.slug
+    variables = {"filter": products_filter}
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(query_products_with_filter, variables)
     content = get_graphql_content(response)
@@ -1829,12 +1831,15 @@ def test_products_query_with_filter_stock_availability(
     product,
     order_line,
     permission_manage_products,
+    channel_USD,
 ):
     stock = product.variants.first().stocks.first()
     Allocation.objects.create(
         order_line=order_line, stock=stock, quantity_allocated=stock.quantity
     )
-    variables = {"filter": {"stockAvailability": "OUT_OF_STOCK"}}
+    variables = {
+        "filter": {"stockAvailability": "OUT_OF_STOCK", "channel": channel_USD.slug}
+    }
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(query_products_with_filter, variables)
     content = get_graphql_content(response)
@@ -1844,6 +1849,30 @@ def test_products_query_with_filter_stock_availability(
     assert len(products) == 1
     assert products[0]["node"]["id"] == product_id
     assert products[0]["node"]["name"] == product.name
+
+
+def test_products_query_with_filter_stock_availability_channel_without_shipping_zones(
+    query_products_with_filter,
+    staff_api_client,
+    product,
+    order_line,
+    permission_manage_products,
+    channel_USD,
+):
+    channel_USD.shipping_zones.clear()
+    stock = product.variants.first().stocks.first()
+    Allocation.objects.create(
+        order_line=order_line, stock=stock, quantity_allocated=stock.quantity
+    )
+    variables = {
+        "filter": {"stockAvailability": "OUT_OF_STOCK", "channel": channel_USD.slug}
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 0
 
 
 @pytest.mark.parametrize(

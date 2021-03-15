@@ -131,9 +131,10 @@ def filter_products_by_collections(qs, collections):
     return qs.filter(collections__in=collections)
 
 
-def filter_products_by_stock_availability(qs, stock_availability):
+def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
     total_stock = (
-        Stock.objects.select_related("product_variant")
+        Stock.objects.for_channel(channel_slug)
+        .select_related("product_variant")
         .values("product_variant__product_id")
         .annotate(
             total_quantity_allocated=Coalesce(Sum("allocations__quantity_allocated"), 0)
@@ -203,9 +204,9 @@ def _filter_minimal_price(qs, _, value, channel_slug):
     return qs
 
 
-def filter_stock_availability(qs, _, value):
+def _filter_stock_availability(qs, _, value, channel_slug):
     if value:
-        qs = filter_products_by_stock_availability(qs, value)
+        qs = filter_products_by_stock_availability(qs, value, channel_slug)
     return qs
 
 
@@ -326,7 +327,7 @@ class ProductFilter(django_filters.FilterSet):
         method=filter_attributes,
     )
     stock_availability = EnumFilter(
-        input_class=StockAvailability, method=filter_stock_availability
+        input_class=StockAvailability, method="filter_stock_availability"
     )
     product_type = GlobalIDFilter()  # Deprecated
     product_types = GlobalIDMultipleChoiceFilter(field_name="product_type")
@@ -359,6 +360,10 @@ class ProductFilter(django_filters.FilterSet):
     def filter_is_published(self, queryset, name, value):
         channel_slug = get_channel_slug_from_filter_data(self.data)
         return _filter_is_published(queryset, name, value, channel_slug)
+
+    def filter_stock_availability(self, queryset, name, value):
+        channel_slug = get_channel_slug_from_filter_data(self.data)
+        return _filter_stock_availability(queryset, name, value, channel_slug)
 
 
 class ProductVariantFilter(django_filters.FilterSet):

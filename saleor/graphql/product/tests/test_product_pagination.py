@@ -695,9 +695,11 @@ def test_products_pagination_with_filtering(
     staff_api_client,
     permission_manage_products,
     products_for_pagination,
+    channel_USD,
 ):
     page_size = 2
 
+    filter_by["channel"] = channel_USD.slug
     variables = {"first": page_size, "after": None, "filter": filter_by}
     response = staff_api_client.post_graphql(
         QUERY_PRODUCTS_PAGINATION,
