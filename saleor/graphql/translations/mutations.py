@@ -153,7 +153,7 @@ class ProductVariantTranslate(BaseTranslateMutation):
         variant = ChannelContext(node=variant, channel_slug=None)
 
         transaction.on_commit(
-            lambda: info.context.plugins.product_variant_deleted(variant)
+            lambda: info.context.plugins.product_variant_updated(variant)
         )
 
         return cls(**{cls._meta.return_field_name: variant})
