@@ -65,34 +65,26 @@ def test_filtering_by_attribute(
     product_qs = models.Product.objects.all().values_list("pk", flat=True)
 
     filters = {color_attribute.pk: [color.pk]}
-    filtered = filter_products_by_attributes_values(
-        product_qs, filters, channel_USD.slug
-    )
+    filtered = filter_products_by_attributes_values(product_qs, filters)
     assert product_a.pk in list(filtered)
     assert product_b.pk in list(filtered)
 
     associate_attribute_values_to_instance(product_a, color_attribute, color_2)
 
     filters = {color_attribute.pk: [color.pk]}
-    filtered = filter_products_by_attributes_values(
-        product_qs, filters, channel_USD.slug
-    )
+    filtered = filter_products_by_attributes_values(product_qs, filters)
 
     assert product_a.pk not in list(filtered)
     assert product_b.pk in list(filtered)
 
     filters = {color_attribute.pk: [color_2.pk]}
-    filtered = filter_products_by_attributes_values(
-        product_qs, filters, channel_USD.slug
-    )
+    filtered = filter_products_by_attributes_values(product_qs, filters)
     assert product_a.pk in list(filtered)
     assert product_b.pk not in list(filtered)
 
     # Filter by multiple values, should trigger a OR condition
     filters = {color_attribute.pk: [color.pk, color_2.pk]}
-    filtered = filter_products_by_attributes_values(
-        product_qs, filters, channel_USD.slug
-    )
+    filtered = filter_products_by_attributes_values(product_qs, filters)
     assert product_a.pk in list(filtered)
     assert product_b.pk in list(filtered)
 
@@ -103,9 +95,7 @@ def test_filtering_by_attribute(
 
     # Filter by multiple attributes
     filters = {color_attribute.pk: [color_2.pk], size_attribute.pk: [size.pk]}
-    filtered = filter_products_by_attributes_values(
-        product_qs, filters, channel_USD.slug
-    )
+    filtered = filter_products_by_attributes_values(product_qs, filters)
     assert product_a.pk in list(filtered)
 
 
