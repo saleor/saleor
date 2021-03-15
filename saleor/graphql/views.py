@@ -23,6 +23,7 @@ from graphql.error import GraphQLError, GraphQLSyntaxError
 from graphql.error import format_error as format_graphql_error
 from graphql.execution import ExecutionResult
 from jwt.exceptions import PyJWTError
+from opentracing.propagation import Format
 
 from .. import __version__ as saleor_version
 from ..core.exceptions import PermissionDenied, ReadOnlyException
@@ -133,7 +134,13 @@ class GraphQLView(View):
         return JsonResponse(data=result, status=status_code, safe=False)
 
     def handle_query(self, request: HttpRequest) -> JsonResponse:
-        with opentracing.global_tracer().start_active_span("http") as scope:
+        tracer = opentracing.global_tracer()
+
+        span_context = tracer.extract(
+            format=Format.HTTP_HEADERS, carrier=request.headers
+        )
+
+        with tracer.start_active_span("http", child_of=span_context) as scope:
             span = scope.span
             span.set_tag(opentracing.tags.COMPONENT, "http")
             span.set_tag(opentracing.tags.HTTP_METHOD, request.method)
