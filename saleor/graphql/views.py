@@ -23,7 +23,6 @@ from graphql.error import GraphQLError, GraphQLSyntaxError
 from graphql.error import format_error as format_graphql_error
 from graphql.execution import ExecutionResult
 from jwt.exceptions import PyJWTError
-from opentracing.propagation import Format
 
 from .. import __version__ as saleor_version
 from ..core.exceptions import PermissionDenied, ReadOnlyException
@@ -136,11 +135,16 @@ class GraphQLView(View):
     def handle_query(self, request: HttpRequest) -> JsonResponse:
         tracer = opentracing.global_tracer()
 
-        span_context = tracer.extract(
-            format=Format.HTTP_HEADERS, carrier=request.headers
-        )
+        # Disable extending spans from header due to:
+        # https://github.com/DataDog/dd-trace-py/issues/2030
 
-        with tracer.start_active_span("http", child_of=span_context) as scope:
+        # span_context = tracer.extract(
+        #     format=Format.HTTP_HEADERS, carrier=dict(request.headers)
+        # )
+        # We should:
+        # Add `from opentracing.propagation import Format` to imports
+        # Add `child_of=span_ontext` to `start_active_span`
+        with tracer.start_active_span("http") as scope:
             span = scope.span
             span.set_tag(opentracing.tags.COMPONENT, "http")
             span.set_tag(opentracing.tags.HTTP_METHOD, request.method)
