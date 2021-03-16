@@ -1,5 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from ...attribute import models as attribute_models
 from ...core.permissions import SitePermissions
@@ -137,6 +138,7 @@ class ProductVariantTranslate(BaseTranslateMutation):
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
 
     @classmethod
+    @transaction.atomic()
     def perform_mutation(cls, _root, info, **data):
         if "id" in data and not data["id"]:
             raise ValidationError(
@@ -149,6 +151,11 @@ class ProductVariantTranslate(BaseTranslateMutation):
             language_code=data["language_code"], defaults=data["input"]
         )
         variant = ChannelContext(node=variant, channel_slug=None)
+
+        transaction.on_commit(
+            lambda: info.context.plugins.product_variant_updated(variant)
+        )
+
         return cls(**{cls._meta.return_field_name: variant})
 
 
