@@ -23,6 +23,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Allow to use `Bearer` as an authorization prefix - #6996 by @korycins
 - Update checkout quantity when checkout lines are deleted - #7002 by @IKarbowiak
 - Raise an error when the user is trying to sort products by rank without search - #7013 by @IKarbowiak
+- Fix available shipping methods - return also weight methods without weight limits - #7021 by @IKarbowiak
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
