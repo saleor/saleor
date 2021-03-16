@@ -1529,6 +1529,19 @@ def test_products_query_with_filter_attributes(
     assert products[0]["node"]["name"] == second_product.name
 
 
+def test_products_query_filter_by_non_existing_attribute(
+    query_products_with_filter, api_client, product_list, channel_USD
+):
+    variables = {
+        "channel": channel_USD.slug,
+        "filter": {"attributes": [{"slug": "i-do-not-exist", "values": ["red"]}]},
+    }
+    response = api_client.post_graphql(query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+    assert len(products) == 0
+
+
 def test_products_query_with_filter_product_type(
     query_products_with_filter, staff_api_client, product, permission_manage_products
 ):
