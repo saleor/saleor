@@ -94,21 +94,12 @@ class PluginsManager(PaymentInterface):
         method. If plugin doesn't have own implementation of expected method_name, it
         will return previous_value.
         """
-        plugin_id = getattr(plugin, "PLUGIN_ID", "")
         plugin_method = getattr(plugin, method_name, NotImplemented)
         if plugin_method == NotImplemented:
             return previous_value
-        with opentracing.global_tracer().start_active_span(
-            f"{plugin_id}.{method_name}", finish_on_close=False
-        ) as scope:
-            returned_value = plugin_method(
-                *args, **kwargs, previous_value=previous_value
-            )
-            if returned_value == NotImplemented:
-                return previous_value
-            # We should create spans for plugin_method with return data instead of
-            # `NotImplemented`
-            scope.span.finish()
+        returned_value = plugin_method(*args, **kwargs, previous_value=previous_value)
+        if returned_value == NotImplemented:
+            return previous_value
         return returned_value
 
     def change_user_address(
