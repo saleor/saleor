@@ -744,7 +744,7 @@ def test_query_available_shipping_methods_for_given_address(
     data = content["data"]["shop"]["availableShippingMethods"]
     assert len(data) == shipping_method_count - 1
     assert graphene.Node.to_global_id(
-        "ShippingMethod", shipping_zone_without_countries.pk
+        "ShippingMethod", shipping_zone_without_countries.shipping_methods.first().pk
     ) not in {ship_meth["id"] for ship_meth in data}
 
 
