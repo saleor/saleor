@@ -170,6 +170,28 @@ def validate_variants_available_for_purchase(variants, channel_id):
         )
 
 
+def validate_variants_available_in_channel(variants, channel_id):
+    variants_id = {variant.id for variant in variants}
+    available_variants = product_models.ProductVariantChannelListing.objects.filter(
+        variant__in=variants_id, channel_id=channel_id, price_amount__isnull=False
+    ).values_list("variant_id", flat=True)
+    not_available_variants = variants_id - set(available_variants)
+    if not_available_variants:
+        not_available_variants_ids = {
+            graphene.Node.to_global_id("ProductVariant", pk)
+            for pk in not_available_variants
+        }
+        raise ValidationError(
+            {
+                "lines": ValidationError(
+                    "Cannot add lines with unavailable variants.",
+                    code=CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL,
+                    params={"variants": not_available_variants_ids},
+                )
+            }
+        )
+
+
 class CheckoutLineInput(graphene.InputObjectType):
     quantity = graphene.Int(required=True, description="The number of items purchased.")
     variant_id = graphene.ID(required=True, description="ID of the product variant.")
@@ -236,6 +258,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
         quantities = [line["quantity"] for line in lines]
         validate_variants_available_for_purchase(variants, channel_id)
+        validate_variants_available_in_channel(variants, channel_id)
         check_lines_quantity(variants, quantities, country)
         return variants, quantities
 
@@ -430,6 +453,7 @@ class CheckoutLinesAdd(BaseMutation):
 
         check_lines_quantity(variants, quantities, checkout.get_country())
         validate_variants_available_for_purchase(variants, checkout.channel_id)
+        validate_variants_available_in_channel(variants, checkout.channel_id)
 
         if variants and quantities:
             for variant, quantity in zip(variants, quantities):
@@ -873,6 +897,8 @@ class CheckoutComplete(BaseMutation):
                 raise e
 
             lines = fetch_checkout_lines(checkout)
+            variants = [line.variant for line in lines]
+            validate_variants_available_in_channel(variants, checkout.channel)
             checkout_info = fetch_checkout_info(checkout, lines, info.context.discounts)
             order, action_required, action_data = complete_checkout(
                 manager=info.context.plugins,
