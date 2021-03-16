@@ -2329,6 +2329,19 @@ type LanguageDisplay {
   language: String!
 }
 
+type LimitInfo {
+  currentUsage: Limits!
+  allowedUsage: Limits!
+}
+
+type Limits {
+  channels: Int
+  orders: Int
+  productVariants: Int
+  staffUsers: Int
+  warehouses: Int
+}
+
 type Manifest {
   identifier: String!
   version: String!
@@ -5053,6 +5066,7 @@ type Shop {
   companyAddress: Address
   customerSetPasswordUrl: String
   staffNotificationRecipients: [StaffNotificationRecipient]
+  limits: LimitInfo!
   version: String!
 }
 
@@ -5910,6 +5924,9 @@ enum WebhookEventTypeEnum {
   PRODUCT_CREATED
   PRODUCT_UPDATED
   PRODUCT_DELETED
+  PRODUCT_VARIANT_CREATED
+  PRODUCT_VARIANT_UPDATED
+  PRODUCT_VARIANT_DELETED
   CHECKOUT_CREATED
   CHECKOUT_UPDATED
   FULFILLMENT_CREATED
@@ -5933,6 +5950,9 @@ enum WebhookSampleEventTypeEnum {
   PRODUCT_CREATED
   PRODUCT_UPDATED
   PRODUCT_DELETED
+  PRODUCT_VARIANT_CREATED
+  PRODUCT_VARIANT_UPDATED
+  PRODUCT_VARIANT_DELETED
   CHECKOUT_CREATED
   CHECKOUT_UPDATED
   FULFILLMENT_CREATED
