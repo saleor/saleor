@@ -166,6 +166,38 @@ class ProductVariantsByProductIdLoader(DataLoader):
         return [variant_map.get(product_id, []) for product_id in keys]
 
 
+class AvailableProductVariantsByProductVariantIdAndChannel(
+    DataLoader[VariantIdAndChannelSlug, ProductVariantChannelListing]
+):
+    context_key = "available_productvariant_by_variant_and_channel"
+    field = "slug"
+
+    def batch_load(self, keys):
+        # Split the list of keys by channel first. A typical query will only touch
+        # a handful of unique countries but may access thousands of product variants
+        # so it's cheaper to execute one query per channel.
+        available_variants_by_channel: DefaultDict[str, List[int]] = defaultdict(list)
+        for variants, channel in keys:
+            # For each channel execute a single query for all product variants.
+            available_variants = self.batch_load_available(channel, variants)
+            available_variants_by_channel[channel] = available_variants
+        return [available_variants_by_channel[key] for _, key in keys]
+
+    def batch_load_available(
+        self, channel: str, variant_ids: Iterable[int]
+    ) -> Iterable[int]:
+        filter = {
+            f"channel__{self.field}": channel,
+            "variant_id__in": variant_ids,
+            "price_amount__isnull": False,
+        }
+        available_variants = ProductVariantChannelListing.objects.filter(
+            **filter
+        ).values_list("variant__id", flat=True)
+
+        return list(available_variants)
+
+
 class ProductVariantChannelListingByIdLoader(DataLoader):
     context_key = "productvariantchannelisting_by_id"
 
@@ -224,7 +256,11 @@ class VariantChannelListingByVariantIdAndChannelLoader(
     def batch_load_channel(
         self, channel: str, variant_ids: Iterable[int]
     ) -> Iterable[Tuple[int, Optional[ProductVariantChannelListing]]]:
-        filter = {f"channel__{self.field}": channel, "variant_id__in": variant_ids}
+        filter = {
+            f"channel__{self.field}": channel,
+            "variant_id__in": variant_ids,
+            "price_amount__isnull": False,
+        }
         variant_channel_listings = ProductVariantChannelListing.objects.filter(**filter)
 
         variant_channel_listings_map: Dict[int, ProductVariantChannelListing] = {}
@@ -253,7 +289,7 @@ class VariantChannelListingByVariantIdAndChannelIdLoader(
     field = "id"
 
 
-class VariantsChannelListingByProductIdAndChanneSlugLoader(
+class VariantsChannelListingByProductIdAndChannelSlugLoader(
     DataLoader[ProductIdAndChannelSlug, Iterable[ProductVariantChannelListing]]
 ):
     context_key = "variantschannelisting_by_product_and_channel"
@@ -289,7 +325,9 @@ class VariantsChannelListingByProductIdAndChanneSlugLoader(
         self, channel_slug: str, products_ids: Iterable[int]
     ) -> Iterable[Tuple[int, Optional[List[ProductVariantChannelListing]]]]:
         variants_channel_listings = ProductVariantChannelListing.objects.filter(
-            channel__slug=channel_slug, variant__product_id__in=products_ids
+            channel__slug=channel_slug,
+            variant__product_id__in=products_ids,
+            price_amount__isnull=False,
         ).annotate(product_id=F("variant__product_id"))
 
         variants_channel_listings_map: Dict[
