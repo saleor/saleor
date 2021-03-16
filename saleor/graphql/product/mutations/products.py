@@ -878,6 +878,7 @@ class ProductVariantCreate(ModelMutation):
     @classmethod
     @transaction.atomic()
     def save(cls, info, instance, cleaned_input):
+        new_variant = instance.pk is None
         instance.save()
         if not instance.product.default_variant:
             instance.product.default_variant = instance
@@ -892,7 +893,13 @@ class ProductVariantCreate(ModelMutation):
         if attributes:
             AttributeAssignmentMixin.save(instance, attributes)
             generate_and_set_variant_name(instance, cleaned_input.get("sku"))
-        info.context.plugins.product_updated(instance.product)
+
+        event_to_call = (
+            info.context.plugins.product_variant_created
+            if new_variant
+            else info.context.plugins.product_variant_updated
+        )
+        transaction.on_commit(lambda: event_to_call(instance))
 
     @classmethod
     def create_variant_stocks(cls, variant, stocks):
@@ -978,20 +985,33 @@ class ProductVariantDelete(ModelDeleteMutation):
         return super().success_response(instance)
 
     @classmethod
+    @transaction.atomic()
     def perform_mutation(cls, _root, info, **data):
         node_id = data.get("id")
-        variant_pk = from_global_id_strict_type(node_id, ProductVariant, field="pk")
+        instance = cls.get_node_or_error(info, node_id, only_type=ProductVariant)
 
         # get draft order lines for variant
         line_pks = list(
             order_models.OrderLine.objects.filter(
-                variant__pk=variant_pk, order__status=OrderStatus.DRAFT
+                variant__pk=instance.pk, order__status=OrderStatus.DRAFT
             ).values_list("pk", flat=True)
         )
 
+        # Get cached variant with related fields to fully populate webhook payload.
+        variant = (
+            models.ProductVariant.objects.prefetch_related(
+                "channel_listings", "attributes__values", "variant_images"
+            )
+        ).get(id=instance.id)
+
         response = super().perform_mutation(_root, info, **data)
+
         # delete order lines for deleted variant
         order_models.OrderLine.objects.filter(pk__in=line_pks).delete()
+
+        transaction.on_commit(
+            lambda: info.context.plugins.product_variant_deleted(variant)
+        )
 
         return response
 
@@ -1503,6 +1523,7 @@ class VariantMediaAssign(BaseMutation):
         error_type_field = "product_errors"
 
     @classmethod
+    @transaction.atomic()
     def perform_mutation(cls, _root, info, media_id, variant_id):
         media = cls.get_node_or_error(
             info, media_id, field="media_id", only_type=ProductMedia
@@ -1525,6 +1546,9 @@ class VariantMediaAssign(BaseMutation):
                     }
                 )
         variant = ChannelContext(node=variant, channel_slug=None)
+        transaction.on_commit(
+            lambda: info.context.plugins.product_variant_updated(variant.node)
+        )
         return VariantMediaAssign(product_variant=variant, media=media)
 
 
@@ -1546,6 +1570,7 @@ class VariantMediaUnassign(BaseMutation):
         error_type_field = "product_errors"
 
     @classmethod
+    @transaction.atomic()
     def perform_mutation(cls, _root, info, media_id, variant_id):
         media = cls.get_node_or_error(
             info, media_id, field="image_id", only_type=ProductMedia
@@ -1571,4 +1596,7 @@ class VariantMediaUnassign(BaseMutation):
             variant_media.delete()
 
         variant = ChannelContext(node=variant, channel_slug=None)
+        transaction.on_commit(
+            lambda: info.context.plugins.product_variant_updated(variant.node)
+        )
         return VariantMediaUnassign(product_variant=variant, media=media)

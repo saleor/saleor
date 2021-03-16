@@ -4,6 +4,7 @@ import graphene
 
 from ....product.error_codes import ProductErrorCode
 from ....product.models import ProductChannelListing
+from ....tests.utils import flush_post_commit_hooks
 from ...tests.utils import (
     assert_negative_positive_decimal_value,
     assert_no_permission,
@@ -235,9 +236,9 @@ def test_variant_channel_listing_update_as_staff_user(
     assert variant_data["channelListings"][1]["channel"]["slug"] == channel_PLN.slug
 
 
-@patch("saleor.plugins.manager.PluginsManager.product_updated")
-def test_variant_channel_listing_update_trigger_webhook_product_updated(
-    mock_product_updated,
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
+def test_variant_channel_listing_update_trigger_webhook_product_variant_updated(
+    mock_product_variant_updated,
     staff_api_client,
     product,
     permission_manage_products,
@@ -275,9 +276,10 @@ def test_variant_channel_listing_update_trigger_webhook_product_updated(
         permissions=(permission_manage_products,),
     )
     get_graphql_content(response)
+    flush_post_commit_hooks()
 
     # then
-    mock_product_updated.assert_called_once_with(product)
+    mock_product_variant_updated.assert_called_once_with(product.variants.last())
 
 
 def test_variant_channel_listing_update_as_app(

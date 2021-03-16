@@ -110,6 +110,7 @@ MUTATION_CHECKOUT_CREATE = """
           id
           token
           email
+          quantity
           lines {
             quantity
           }
@@ -161,9 +162,10 @@ def test_checkout_create_with_default_channel(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     test_email = "test@example.com"
     shipping_address = graphql_address_data
+    quantity = 1
     variables = {
         "checkoutInput": {
-            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "lines": [{"quantity": quantity, "variantId": variant_id}],
             "email": test_email,
             "shippingAddress": shipping_address,
         }
@@ -178,6 +180,7 @@ def test_checkout_create_with_default_channel(
     new_checkout = Checkout.objects.first()
 
     assert new_checkout.channel == channel_USD
+    assert new_checkout.quantity == quantity
 
     assert any(
         [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
@@ -1297,6 +1300,7 @@ MUTATION_CHECKOUT_LINES_ADD = """
         checkoutLinesAdd(checkoutId: $checkoutId, lines: $lines) {
             checkout {
                 token
+                quantity
                 lines {
                     quantity
                     variant {
@@ -1325,6 +1329,7 @@ def test_checkout_lines_add(
     checkout = checkout_with_item
     line = checkout.lines.first()
     assert line.quantity == 3
+    assert checkout.quantity == 3
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
@@ -1341,6 +1346,7 @@ def test_checkout_lines_add(
     line = checkout.lines.latest("pk")
     assert line.variant == variant
     assert line.quantity == 1
+    assert checkout.quantity == 4
 
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [])
@@ -1537,6 +1543,7 @@ MUTATION_CHECKOUT_LINES_UPDATE = """
         checkoutLinesUpdate(checkoutId: $checkoutId, lines: $lines) {
             checkout {
                 token
+                quantity
                 lines {
                     quantity
                     variant {
@@ -1563,6 +1570,7 @@ def test_checkout_lines_update(
 ):
     checkout = checkout_with_item
     assert checkout.lines.count() == 1
+    assert checkout.quantity == 3
     line = checkout.lines.first()
     variant = line.variant
     assert line.quantity == 3
@@ -1584,6 +1592,7 @@ def test_checkout_lines_update(
     line = checkout.lines.first()
     assert line.variant == variant
     assert line.quantity == 1
+    assert checkout.quantity == 1
 
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [])
@@ -1735,6 +1744,7 @@ def test_checkout_line_delete(
     mocked_update_shipping_method, user_api_client, checkout_with_item
 ):
     checkout = checkout_with_item
+    assert checkout.quantity == 3
     assert checkout.lines.count() == 1
     line = checkout.lines.first()
     assert line.quantity == 3
@@ -1750,6 +1760,7 @@ def test_checkout_line_delete(
     assert not data["errors"]
     checkout.refresh_from_db()
     assert checkout.lines.count() == 0
+    assert checkout.quantity == 0
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [])
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
