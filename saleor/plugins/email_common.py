@@ -32,6 +32,7 @@ DEFAULT_TEMPLATE_HELP_TEXT = (
 )
 DEFAULT_SUBJECT_HELP_TEXT = "An email subject built with Handlebars template language."
 DEFAULT_EMAIL_VALUE = "DEFAULT"
+DEFAULT_EMAIL_TIMEOUT = 5
 
 
 @dataclass
@@ -192,6 +193,7 @@ def send_email(
         password=config.password,
         use_ssl=config.use_ssl,
         use_tls=config.use_tls,
+        timeout=DEFAULT_EMAIL_TIMEOUT,
     )
     compiler = pybars.Compiler()
     template = compiler.compile(template_str)
@@ -224,6 +226,7 @@ def validate_email_config(config: EmailConfig):
         use_ssl=config.use_ssl,
         use_tls=config.use_tls,
         fail_silently=False,
+        timeout=DEFAULT_EMAIL_TIMEOUT,
     )
     try:
         email_backend.open()
@@ -233,11 +236,10 @@ def validate_email_config(config: EmailConfig):
         email_backend.close()
 
 
-def validate_default_email_configuration(plugin_configuration: "PluginConfiguration"):
+def validate_default_email_configuration(
+    plugin_configuration: "PluginConfiguration", configuration: dict
+):
     """Validate if provided configuration is correct."""
-
-    configuration = plugin_configuration.configuration
-    configuration = {item["name"]: item["value"] for item in configuration}
 
     if not plugin_configuration.active:
         return
