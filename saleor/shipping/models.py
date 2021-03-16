@@ -98,6 +98,12 @@ class ShippingMethodQueryset(models.QuerySet):
     def weight_based(self):
         return self.filter(type=ShippingMethodType.WEIGHT_BASED)
 
+    def for_channel(self, channel_slug: str):
+        return self.filter(
+            shipping_zone__channels__slug=channel_slug,
+            channel_listings__channel__slug=channel_slug,
+        )
+
     @staticmethod
     def applicable_shipping_methods_by_channel(shipping_methods, channel_id):
         query = ShippingMethodChannelListing.objects.filter(
