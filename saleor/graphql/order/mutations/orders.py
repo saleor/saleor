@@ -19,7 +19,6 @@ from ....order.actions import (
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import (
     add_variant_to_order,
-    allocate_lines,
     change_order_line_quantity,
     delete_order_line,
     get_valid_shipping_methods_for_order,
@@ -671,7 +670,6 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         cls.validate_variants(order, variants)
 
         lines = cls.add_lines_to_order(order, lines_to_add)
-        allocate_lines(lines)
 
         # Create the products added event
         events.order_added_products_event(

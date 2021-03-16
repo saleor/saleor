@@ -240,6 +240,8 @@ def add_variant_to_order(order, variant, quantity, discounts=None):
     try:
         line = order.lines.get(variant=variant)
         line.quantity += quantity
+        if line.order.status == OrderStatus.UNCONFIRMED:
+            increase_allocation(line, quantity)
         line.save(update_fields=["quantity"])
     except OrderLine.DoesNotExist:
         product = variant.product
@@ -315,7 +317,13 @@ def allocate_lines(lines):
         OrderLineData(line=line, quantity=line.quantity, variant=line.variant)
         for line in lines
     ]
-    allocate_stocks(lines_data, lines[0].order.shipping_address.country.code)
+    if not lines:
+        return
+    order = lines[0].order
+    address = order.shipping_address or order.billing_address
+    if not address:
+        return
+    allocate_stocks(lines_data, address.country.code)
 
 
 def decrease_allocations(line, quantity: int):
@@ -351,7 +359,8 @@ def _update_allocations_for_line(line: OrderLine, old_quantity: int, new_quantit
 def change_order_line_quantity(context, line, old_quantity: int, new_quantity: int):
     """Change the quantity of ordered items in a order line."""
     if new_quantity:
-        _update_allocations_for_line(line, old_quantity, new_quantity)
+        if line.order.status == OrderStatus.UNCONFIRMED:
+            _update_allocations_for_line(line, old_quantity, new_quantity)
         line.quantity = new_quantity
         line.save(update_fields=["quantity"])
         net = line.unit_price.net.amount
@@ -394,7 +403,8 @@ def change_order_line_quantity(context, line, old_quantity: int, new_quantity: i
 
 def delete_order_line(manager, line: OrderLine):
     """Delete an order line from an order."""
-    decrease_allocations(line, line.quantity)
+    if line.order.status == OrderStatus.UNCONFIRMED:
+        decrease_allocations(line, line.quantity)
     line.delete()
     manager.order_line_deleted(line.order, line)
 

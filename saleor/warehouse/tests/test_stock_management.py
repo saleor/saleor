@@ -277,6 +277,7 @@ def test_increase_stock_with_new_allocation(order_line, stock):
 
 @pytest.mark.parametrize("quantity", (19, 20))
 def test_increase_allocation(quantity, allocation):
+    order_line = allocation.order_line
     stock = allocation.stock
     stock.quantity = 100
     stock.save(update_fields=["quantity"])
@@ -288,11 +289,16 @@ def test_increase_allocation(quantity, allocation):
 
     stock.refresh_from_db()
     assert stock.quantity == 100
-    allocation.refresh_from_db()
-    assert allocation.quantity_allocated == initially_allocated + quantity
+    assert (
+        order_line.allocations.all().aggregate(Sum("quantity_allocated"))[
+            "quantity_allocated__sum"
+        ]
+        == initially_allocated + quantity
+    )
 
 
 def test_increase_allocation_insufficient_stock(allocation):
+    order_line = allocation.order_line
     stock = allocation.stock
     stock.quantity = 100
     stock.save(update_fields=["quantity"])
@@ -305,8 +311,12 @@ def test_increase_allocation_insufficient_stock(allocation):
 
     stock.refresh_from_db()
     assert stock.quantity == 100
-    allocation.refresh_from_db()
-    assert allocation.quantity_allocated == initially_allocated
+    assert (
+        order_line.allocations.all().aggregate(Sum("quantity_allocated"))[
+            "quantity_allocated__sum"
+        ]
+        == initially_allocated
+    )
 
 
 def test_decrease_stock(allocation):

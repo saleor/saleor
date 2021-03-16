@@ -5,11 +5,11 @@ from django.db import transaction
 from django.db.models import F, Sum
 
 from ..core.exceptions import AllocationError, InsufficientStock, InsufficientStockData
+from ..order import OrderLineData
 from ..product.models import ProductVariant
 from .models import Allocation, Stock, Warehouse
 
 if TYPE_CHECKING:
-    from ..order import OrderLineData
     from ..order.models import Order, OrderLine
 
 
@@ -224,19 +224,18 @@ def increase_allocation(
     quantity: int,
 ):
     """Increase allocation for order line with provided quantity."""
-    stock = order_line.allocations.first().stock
-    allocation = order_line.allocations.filter(stock=stock).first()
-    if allocation.quantity_allocated + quantity > allocation.stock.quantity:
-        raise InsufficientStock(
-            [
-                InsufficientStockData(
-                    variant=order_line.variant,
-                    order_line=order_line,
-                )
-            ]
+    allocated = order_line.allocations.all().aggregate(Sum("quantity_allocated"))
+    # drop all allocations of order line
+    order_line.allocations.all().delete()
+    lines_data = [
+        OrderLineData(
+            line=order_line,
+            quantity=allocated.get("quantity_allocated__sum", 0) + quantity,
+            variant=order_line.variant,
         )
-    allocation.quantity_allocated = F("quantity_allocated") + quantity
-    allocation.save(update_fields=["quantity_allocated"])
+    ]
+    # create new allocations in stocks
+    allocate_stocks(lines_data, order_line.order.shipping_address.country.code)
 
 
 @transaction.atomic
