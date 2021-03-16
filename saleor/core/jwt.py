@@ -16,7 +16,7 @@ from .permissions import (
 
 JWT_ALGORITHM = "HS256"
 JWT_AUTH_HEADER = "HTTP_AUTHORIZATION"
-JWT_AUTH_HEADER_PREFIX = "JWT"
+AUTH_HEADER_PREFIXES = ["JWT", "BEARER"]
 JWT_ACCESS_TYPE = "access"
 JWT_REFRESH_TYPE = "refresh"
 JWT_THIRDPARTY_ACCESS_TYPE = "thirdparty"
@@ -114,9 +114,8 @@ def create_refresh_token(
 
 def get_token_from_request(request: WSGIRequest) -> Optional[str]:
     auth = request.META.get(JWT_AUTH_HEADER, "").split(maxsplit=1)
-    prefix = JWT_AUTH_HEADER_PREFIX
 
-    if len(auth) != 2 or auth[0].upper() != prefix:
+    if len(auth) != 2 or auth[0].upper() not in AUTH_HEADER_PREFIXES:
         return None
     return auth[1]
 
@@ -142,11 +141,7 @@ def is_saleor_token(token: str) -> bool:
     except jwt.PyJWTError:
         return False
     owner = payload.get(JWT_OWNER_FIELD)
-    if not owner:
-        raise jwt.InvalidTokenError(
-            "Invalid token. Create new one by using tokenCreate mutation."
-        )
-    if owner != JWT_SALEOR_OWNER_NAME:
+    if not owner or owner != JWT_SALEOR_OWNER_NAME:
         return False
     return True
 
