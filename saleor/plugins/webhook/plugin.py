@@ -10,6 +10,7 @@ from ...webhook.payloads import (
     generate_page_payload,
     generate_product_deleted_payload,
     generate_product_payload,
+    generate_product_variant_payload,
 )
 from ..base_plugin import BasePlugin
 from .tasks import trigger_webhooks_for_event
@@ -20,7 +21,7 @@ if TYPE_CHECKING:
     from ...invoice.models import Invoice
     from ...order.models import Fulfillment, Order
     from ...page.models import Page
-    from ...product.models import Product
+    from ...product.models import Product, ProductVariant
 
 
 class WebhookPlugin(BasePlugin):
@@ -137,6 +138,36 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         product_data = generate_product_deleted_payload(product, variants)
         trigger_webhooks_for_event.delay(WebhookEventType.PRODUCT_DELETED, product_data)
+
+    def product_variant_created(
+        self, product_variant: "ProductVariant", previous_value: Any
+    ) -> Any:
+        if not self.active:
+            return previous_value
+        product_variant_data = generate_product_variant_payload(product_variant)
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.PRODUCT_VARIANT_CREATED, product_variant_data
+        )
+
+    def product_variant_updated(
+        self, product_variant: "ProductVariant", previous_value: Any
+    ) -> Any:
+        if not self.active:
+            return previous_value
+        product_variant_data = generate_product_variant_payload(product_variant)
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.PRODUCT_VARIANT_UPDATED, product_variant_data
+        )
+
+    def product_variant_deleted(
+        self, product_variant: "ProductVariant", previous_value: Any
+    ) -> Any:
+        if not self.active:
+            return previous_value
+        product_variant_data = generate_product_variant_payload(product_variant)
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.PRODUCT_VARIANT_DELETED, product_variant_data
+        )
 
     def checkout_created(self, checkout: "Checkout", previous_value: Any) -> Any:
         if not self.active:

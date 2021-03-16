@@ -2710,26 +2710,31 @@ def test_create_product_description_plaintext(
     assert product.description_plaintext == description
 
 
-def test_search_product_by_description(user_api_client, product_list, channel_USD):
-    search_query = """
-    query Products($filters: ProductFilterInput, $channel: String) {
-      products(first: 5, filter: $filters, channel: $channel) {
-        edges {
-        node {
-          id
-          name
+SEARCH_PRODUCTS_QUERY = """
+    query Products(
+        $filters: ProductFilterInput, $sortBy: ProductOrder, $channel: String
+    ) {
+        products(first: 5, filter: $filters, sortBy: $sortBy, channel: $channel) {
+            edges {
+                node {
+                    id
+                    name
+                }
+            }
         }
-        }
-      }
     }
-    """
+"""
+
+
+def test_search_product_by_description(user_api_client, product_list, channel_USD):
+
     variables = {"filters": {"search": "big"}, "channel": channel_USD.slug}
-    response = user_api_client.post_graphql(search_query, variables)
+    response = user_api_client.post_graphql(SEARCH_PRODUCTS_QUERY, variables)
     content = get_graphql_content(response)
     assert len(content["data"]["products"]["edges"]) == 2
 
     variables = {"filters": {"search": "small"}, "channel": channel_USD.slug}
-    response = user_api_client.post_graphql(search_query, variables)
+    response = user_api_client.post_graphql(SEARCH_PRODUCTS_QUERY, variables)
     content = get_graphql_content(response)
 
     assert len(content["data"]["products"]["edges"]) == 1
@@ -2738,21 +2743,6 @@ def test_search_product_by_description(user_api_client, product_list, channel_US
 def test_search_product_by_description_and_name(
     user_api_client, product_list, product, channel_USD, category, product_type
 ):
-    search_query = """
-    query Products(
-      $filters: ProductFilterInput, $sortBy: ProductOrder,$channel: String
-    ) {
-      products(first: 10, filter: $filters, sortBy: $sortBy,channel: $channel) {
-        edges {
-        node {
-          id
-          name
-          slug
-        }
-        }
-      }
-    }
-    """
     product.description_plaintext = "red big red product"
     product.save()
 
@@ -2770,7 +2760,7 @@ def test_search_product_by_description_and_name(
         "sortBy": {"field": "RANK", "direction": "DESC"},
         "channel": channel_USD.slug,
     }
-    response = user_api_client.post_graphql(search_query, variables)
+    response = user_api_client.post_graphql(SEARCH_PRODUCTS_QUERY, variables)
     content = get_graphql_content(response)
     data = content["data"]["products"]["edges"]
 
@@ -2779,24 +2769,73 @@ def test_search_product_by_description_and_name(
     assert data[2]["node"]["name"] == product_1.name
 
 
+def test_sort_product_by_rank_without_search(
+    user_api_client, product_list, product, channel_USD, category, product_type
+):
+    product.description_plaintext = "red big red product"
+    product.save()
+
+    product_2 = product_list[1]
+    product_2.name = "red product"
+    product_2.save()
+    product_1 = product_list[0]
+    product_1.description_plaintext = "some red product"
+    product_1.save()
+
+    variables = {
+        "sortBy": {"field": "RANK", "direction": "DESC"},
+        "channel": channel_USD.slug,
+    }
+    response = user_api_client.post_graphql(SEARCH_PRODUCTS_QUERY, variables)
+    with pytest.raises(AssertionError) as e:
+        get_graphql_content(response)
+
+    assert (
+        e._excinfo[1].args[0][0]["message"]
+        == "Sorting by Rank is available only with searching."
+    )
+
+
+@pytest.mark.parametrize("search_value", ["", "  ", None])
+def test_sort_product_by_rank_with_empty_search_value(
+    search_value,
+    user_api_client,
+    product_list,
+    product,
+    channel_USD,
+    category,
+    product_type,
+):
+    product.description_plaintext = "red big red product"
+    product.save()
+
+    product_2 = product_list[1]
+    product_2.name = "red product"
+    product_2.save()
+    product_1 = product_list[0]
+    product_1.description_plaintext = "some red product"
+    product_1.save()
+
+    variables = {
+        "filters": {
+            "search": search_value,
+        },
+        "sortBy": {"field": "RANK", "direction": "DESC"},
+        "channel": channel_USD.slug,
+    }
+    response = user_api_client.post_graphql(SEARCH_PRODUCTS_QUERY, variables)
+    with pytest.raises(AssertionError) as e:
+        get_graphql_content(response)
+
+    assert (
+        e._excinfo[1].args[0][0]["message"]
+        == "Sorting by Rank is available only with searching."
+    )
+
+
 def test_search_product_by_description_and_name_without_sort_by(
     user_api_client, product_list, product, channel_USD, category, product_type
 ):
-    search_query = """
-    query Products(
-      $filters: ProductFilterInput, $sortBy: ProductOrder,$channel: String
-    ) {
-      products(first: 10, filter: $filters, sortBy: $sortBy,channel: $channel) {
-        edges {
-        node {
-          id
-          name
-          slug
-        }
-        }
-      }
-    }
-    """
     product.description_plaintext = "red big red product"
     product.save()
 
@@ -2813,7 +2852,7 @@ def test_search_product_by_description_and_name_without_sort_by(
         },
         "channel": channel_USD.slug,
     }
-    response = user_api_client.post_graphql(search_query, variables)
+    response = user_api_client.post_graphql(SEARCH_PRODUCTS_QUERY, variables)
     content = get_graphql_content(response)
     data = content["data"]["products"]["edges"]
 
@@ -6641,485 +6680,6 @@ def test_product_update_variants_names(mock__update_variants_names, product_type
     variant_attr_ids = [attr.pk for attr in variant_attributes]
     update_variants_names(product_type.pk, variant_attr_ids)
     assert mock__update_variants_names.call_count == 1
-
-
-def test_unavailable_product_by_id_as_staff(staff_api_client, product, channel_USD):
-    query = """
-        query getProduct($id: ID!, $channel: String) {
-            product(id: $id, channel: $channel) {
-                id
-                name
-            }
-        }
-    """
-    product_channel_listing = product.channel_listings.filter(
-        channel__slug=channel_USD.slug
-    ).first()
-    product_channel_listing.visible_in_listings = False
-    product_channel_listing.save()
-    product_id = graphene.Node.to_global_id("Product", product.id)
-
-    variables = {"id": product_id, "channel": channel_USD.slug}
-    response = staff_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["product"]
-    assert data["id"] == product_id
-
-
-def test_unavailable_product_by_id_as_app(app_api_client, product, channel_USD):
-    query = """
-        query getProduct($id: ID!, $channel: String) {
-            product(id: $id, channel: $channel) {
-                id
-                name
-            }
-        }
-    """
-    product_channel_listing = product.channel_listings.filter(
-        channel__slug=channel_USD.slug
-    ).first()
-    product_channel_listing.visible_in_listings = False
-    product_channel_listing.save()
-    product_id = graphene.Node.to_global_id("Product", product.id)
-
-    variables = {"id": product_id, "channel": channel_USD.slug}
-    response = app_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["product"]
-    assert data["id"] == product_id
-
-
-def test_unavailable_product_by_id_as_user(user_api_client, product, channel_USD):
-    query = """
-        query getProduct($id: ID!, $channel: String) {
-            product(id: $id, channel: $channel) {
-                id
-                name
-            }
-        }
-    """
-    product_channel_listing = product.channel_listings.filter(
-        channel__slug=channel_USD.slug
-    ).first()
-    product_channel_listing.visible_in_listings = False
-    product_channel_listing.save()
-    product_id = graphene.Node.to_global_id("Product", product.id)
-
-    variables = {"id": product_id, "channel": channel_USD.slug}
-    response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    assert content["data"]["product"] is None
-
-
-def test_product_without_variant_price_by_id_as_user(
-    user_api_client, product, channel_USD
-):
-    query = """
-        query getProduct($id: ID!, $channel: String) {
-            product(id: $id, channel: $channel) {
-                id
-                name
-            }
-        }
-    """
-    variant_channel_listing = (
-        product.variants.first()
-        .channel_listings.filter(channel__slug=channel_USD.slug)
-        .first()
-    )
-    variant_channel_listing.price_amount = None
-    variant_channel_listing.save()
-    product_id = graphene.Node.to_global_id("Product", product.id)
-
-    variables = {"id": product_id, "channel": channel_USD.slug}
-    response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    assert content["data"]["product"] is None
-
-
-def test_product_without_variant_price_by_id_as_staff(
-    staff_api_client, product, channel_USD
-):
-    query = """
-        query getProduct($id: ID!, $channel: String) {
-            product(id: $id, channel: $channel) {
-                id
-                name
-            }
-        }
-    """
-    variant_channel_listing = (
-        product.variants.first()
-        .channel_listings.filter(channel__slug=channel_USD.slug)
-        .first()
-    )
-    variant_channel_listing.price_amount = None
-    variant_channel_listing.save()
-    product_id = graphene.Node.to_global_id("Product", product.id)
-
-    variables = {"id": product_id, "channel": channel_USD.slug}
-    response = staff_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["product"]
-    assert data["id"] == product_id
-
-
-def test_product_without_variant_price_by_id_as_app(
-    app_api_client, product, channel_USD
-):
-    query = """
-        query getProduct($id: ID!, $channel: String) {
-            product(id: $id, channel: $channel) {
-                id
-                name
-            }
-        }
-    """
-    variant_channel_listing = (
-        product.variants.first()
-        .channel_listings.filter(channel__slug=channel_USD.slug)
-        .first()
-    )
-    variant_channel_listing.price_amount = None
-    variant_channel_listing.save()
-    product_id = graphene.Node.to_global_id("Product", product.id)
-
-    variables = {"id": product_id, "channel": channel_USD.slug}
-    response = app_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["product"]
-    assert data["id"] == product_id
-
-
-def test_unavailable_product_by_slug_as_staff(staff_api_client, product, channel_USD):
-    query = """
-        query getProduct($slug: String!, $channel: String) {
-            product(slug: $slug, channel: $channel) {
-                id
-                name
-            }
-        }
-    """
-    product_channel_listing = product.channel_listings.filter(
-        channel__slug=channel_USD.slug
-    ).first()
-    product_channel_listing.visible_in_listings = False
-    product_channel_listing.save()
-    product_id = graphene.Node.to_global_id("Product", product.id)
-
-    variables = {"slug": product.slug, "channel": channel_USD.slug}
-    response = staff_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["product"]
-    assert data["id"] == product_id
-
-
-def test_unavailable_product_by_slug_as_app(app_api_client, product, channel_USD):
-    query = """
-        query getProduct($slug: String!, $channel: String) {
-            product(slug: $slug, channel: $channel) {
-                id
-                name
-            }
-        }
-    """
-    product_channel_listing = product.channel_listings.filter(
-        channel__slug=channel_USD.slug
-    ).first()
-    product_channel_listing.visible_in_listings = False
-    product_channel_listing.save()
-    product_id = graphene.Node.to_global_id("Product", product.id)
-
-    variables = {"slug": product.slug, "channel": channel_USD.slug}
-    response = app_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["product"]
-    assert data["id"] == product_id
-
-
-def test_unavailable_product_by_slug_as_user(user_api_client, product, channel_USD):
-    query = """
-        query getProduct($slug: String!, $channel: String) {
-            product(slug: $slug, channel: $channel) {
-                id
-                name
-            }
-        }
-    """
-    product_channel_listing = product.channel_listings.filter(
-        channel__slug=channel_USD.slug
-    ).first()
-    product_channel_listing.visible_in_listings = False
-    product_channel_listing.save()
-
-    variables = {"slug": product.slug, "channel": channel_USD.slug}
-    response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    assert content["data"]["product"] is None
-
-
-def test_product_without_variant_price_by_slug_as_user(
-    user_api_client, product, channel_USD
-):
-    query = """
-        query getProduct($slug: String!, $channel: String) {
-            product(slug: $slug, channel: $channel) {
-                id
-                name
-            }
-        }
-    """
-    variant = product.variants.first()
-    variant.channel_listings.all().delete()
-    variant.channel_listings.create(channel=channel_USD)
-
-    variables = {"slug": product.slug, "channel": channel_USD.slug}
-    response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    assert content["data"]["product"] is None
-
-
-def test_product_without_variant_price_by_slug_as_staff(
-    staff_api_client, product, channel_USD
-):
-    query = """
-        query getProduct($slug: String!, $channel: String) {
-            product(slug: $slug, channel: $channel) {
-                id
-                name
-            }
-        }
-    """
-    variant = product.variants.first()
-    variant.channel_listings.all().delete()
-    variant.channel_listings.create(channel=channel_USD)
-    product_id = graphene.Node.to_global_id("Product", product.id)
-
-    variables = {"slug": product.slug, "channel": channel_USD.slug}
-    response = staff_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["product"]
-    assert data["id"] == product_id
-
-
-def test_product_without_variant_price_by_slug_as_app(
-    staff_api_client, product, channel_USD
-):
-    query = """
-        query getProduct($slug: String!, $channel: String) {
-            product(slug: $slug, channel: $channel) {
-                id
-                name
-            }
-        }
-    """
-    variant = product.variants.first()
-    variant.channel_listings.all().delete()
-    variant.channel_listings.create(channel=channel_USD)
-    product_id = graphene.Node.to_global_id("Product", product.id)
-
-    variables = {"slug": product.slug, "channel": channel_USD.slug}
-    response = staff_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["product"]
-    assert data["id"] == product_id
-
-
-def test_unavailable_product_variant_by_id_as_staff(
-    staff_api_client, variant, channel_USD
-):
-    query = """
-        query getProductVariant($id: ID!, $channel: String) {
-            productVariant(id: $id, channel: $channel) {
-                id
-                name
-            }
-        }
-    """
-    product_channel_listing = variant.product.channel_listings.filter(
-        channel__slug=channel_USD.slug
-    ).first()
-    product_channel_listing.visible_in_listings = False
-    product_channel_listing.save()
-    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
-
-    variables = {"id": variant_id, "channel": channel_USD.slug}
-    response = staff_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["productVariant"]
-    assert data["id"] == variant_id
-
-
-def test_unavailable_product_variant_by_id_as_app(app_api_client, variant, channel_USD):
-    query = """
-        query getProductVariant($id: ID!, $channel: String) {
-            productVariant(id: $id, channel: $channel) {
-                id
-                name
-            }
-        }
-    """
-    product_channel_listing = variant.product.channel_listings.filter(
-        channel__slug=channel_USD.slug
-    ).first()
-    product_channel_listing.visible_in_listings = False
-    product_channel_listing.save()
-    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
-
-    variables = {"id": variant_id, "channel": channel_USD.slug}
-    response = app_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["productVariant"]
-    assert data["id"] == variant_id
-
-
-def test_unavailable_product_variant_by_id_as_user(
-    user_api_client, variant, channel_USD
-):
-    query = """
-        query getProductVariant($id: ID!, $channel: String) {
-            productVariant(id: $id, channel: $channel) {
-                id
-                name
-            }
-        }
-    """
-    variant.channel_listings.all().delete()
-    variant.channel_listings.create(channel=channel_USD)
-    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
-
-    variables = {"id": variant_id, "channel": channel_USD.slug}
-    response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    assert content["data"]["productVariant"] is None
-
-
-def test_product_variant_without_price_by_id_as_user(
-    user_api_client, variant, channel_USD
-):
-    query = """
-        query getProductVariant($id: ID!, $channel: String) {
-            productVariant(id: $id, channel: $channel) {
-                id
-                name
-            }
-        }
-    """
-    variant.channel_listings.all().delete()
-    variant.channel_listings.create(channel=channel_USD)
-
-    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
-
-    variables = {"id": variant_id, "channel": channel_USD.slug}
-    response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    assert content["data"]["productVariant"] is None
-
-
-def test_product_variant_without_price_by_id_as_staff(
-    staff_api_client, variant, channel_USD
-):
-    query = """
-        query getProductVariant($id: ID!, $channel: String) {
-            productVariant(id: $id, channel: $channel) {
-                id
-                name
-            }
-        }
-    """
-    variant.channel_listings.all().delete()
-    variant.channel_listings.create(channel=channel_USD)
-    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
-
-    variables = {"id": variant_id, "channel": channel_USD.slug}
-    response = staff_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["productVariant"]
-    assert data["id"] == variant_id
-
-
-def test_product_variant_without_price_by_id_as_app(
-    app_api_client, variant, channel_USD
-):
-    query = """
-        query getProductVariant($id: ID!, $channel: String) {
-            productVariant(id: $id, channel: $channel) {
-                id
-                name
-            }
-        }
-    """
-    variant.channel_listings.all().delete()
-    variant.channel_listings.create(channel=channel_USD)
-    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
-
-    variables = {"id": variant_id, "channel": channel_USD.slug}
-    response = app_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["productVariant"]
-    assert data["id"] == variant_id
-
-
-def test_product_variant_without_price_sku_as_app(app_api_client, variant, channel_USD):
-    query = """
-        query getProductVariant($sku: String!, $channel: String) {
-            productVariant(sku: $sku, channel: $channel) {
-                id
-                name
-            }
-        }
-    """
-    variant.channel_listings.all().delete()
-    variant.channel_listings.create(channel=channel_USD)
-    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
-
-    variables = {"sku": variant.sku, "channel": channel_USD.slug}
-    response = app_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["productVariant"]
-    assert data["id"] == variant_id
-
-
-def test_product_variant_without_price_sku_as_staff(
-    staff_api_client, variant, channel_USD
-):
-    query = """
-        query getProductVariant($sku: String!, $channel: String) {
-            productVariant(sku: $sku, channel: $channel) {
-                id
-                name
-            }
-        }
-    """
-    variant.channel_listings.all().delete()
-    variant.channel_listings.create(channel=channel_USD)
-    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
-
-    variables = {"sku": variant.sku, "channel": channel_USD.slug}
-    response = staff_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["productVariant"]
-    assert data["id"] == variant_id
-
-
-def test_product_variant_without_price_sku_as_user(
-    user_api_client, variant, channel_USD
-):
-    query = """
-        query getProductVariant($sku: String!, $channel: String) {
-            productVariant(sku: $sku, channel: $channel) {
-                id
-                name
-            }
-        }
-    """
-    variant.channel_listings.all().delete()
-    variant.channel_listings.create(channel=channel_USD)
-
-    variables = {"sku": variant.sku, "channel": channel_USD.slug}
-    response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    assert content["data"]["productVariant"] is None
 
 
 def test_product_variants_by_ids(staff_api_client, variant, channel_USD):

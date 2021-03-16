@@ -14,6 +14,7 @@ from ....webhook.payloads import (
     generate_page_payload,
     generate_product_deleted_payload,
     generate_product_payload,
+    generate_product_variant_payload,
 )
 from ...manager import get_plugins_manager
 from ...webhook.tasks import trigger_webhooks_for_event
@@ -187,6 +188,42 @@ def test_product_deleted(mocked_webhook_trigger, settings, product):
 
     mocked_webhook_trigger.assert_called_once_with(
         WebhookEventType.PRODUCT_DELETED, expected_data
+    )
+
+
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_product_variant_created(mocked_webhook_trigger, settings, variant):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.product_variant_created(variant)
+
+    expected_data = generate_product_variant_payload(variant)
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.PRODUCT_VARIANT_CREATED, expected_data
+    )
+
+
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_product_variant_updated(mocked_webhook_trigger, settings, variant):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.product_variant_updated(variant)
+
+    expected_data = generate_product_variant_payload(variant)
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.PRODUCT_VARIANT_UPDATED, expected_data
+    )
+
+
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_product_variant_deleted(mocked_webhook_trigger, settings, variant):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.product_variant_deleted(variant)
+
+    expected_data = generate_product_variant_payload(variant)
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.PRODUCT_VARIANT_DELETED, expected_data
     )
 
 
