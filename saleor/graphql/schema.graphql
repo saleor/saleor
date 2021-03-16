@@ -3954,7 +3954,7 @@ type Product implements Node & ObjectWithMetadata {
   taxType: TaxType
   attributes: [SelectedAttribute!]!
   channelListings: [ProductChannelListing!]
-  mediaById(id: ID): ProductMedia
+  mediaById(id: ID): ProductMedia!
   imageById(id: ID): ProductImage @deprecated(reason: "Will be removed in Saleor 4.0. Use the `mediaById` field instead.")
   variants: [ProductVariant]
   media: [ProductMedia]
@@ -4054,10 +4054,10 @@ type ProductCreate {
 }
 
 input ProductCreateInput {
-  attributes: [AttributeValueInput]
+  attributes: [AttributeValueInput!]
   category: ID
   chargeTaxes: Boolean
-  collections: [ID]
+  collections: [ID!]
   description: JSONString
   name: String
   slug: String
@@ -4142,10 +4142,10 @@ type ProductImage {
 }
 
 input ProductInput {
-  attributes: [AttributeValueInput]
+  attributes: [AttributeValueInput!]
   category: ID
   chargeTaxes: Boolean
-  collections: [ID]
+  collections: [ID!]
   description: JSONString
   name: String
   slug: String
@@ -4194,7 +4194,7 @@ type ProductMediaDelete {
 type ProductMediaReorder {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   product: Product
-  media: [ProductMedia]
+  media: [ProductMedia!]
   productErrors: [ProductError!]!
 }
 
@@ -4402,7 +4402,7 @@ type ProductVariant implements Node & ObjectWithMetadata {
   quantityOrdered: Int
   revenue(period: ReportingPeriod): TaxedMoney
   images: [ProductImage] @deprecated(reason: "Will be removed in Saleor 4.0. Use the `media` instead.")
-  media: [ProductMedia]
+  media: [ProductMedia!]
   translation(languageCode: LanguageCodeEnum!): ProductVariantTranslation
   digitalContent: DigitalContent
   stocks(address: AddressInput, countryCode: CountryCode): [Stock]

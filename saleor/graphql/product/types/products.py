@@ -210,7 +210,8 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         deprecation_reason="Will be removed in Saleor 4.0. Use the `media` instead.",
     )
     media = graphene.List(
-        lambda: ProductMedia, description="List of media for the product variant."
+        graphene.NonNull(lambda: ProductMedia),
+        description="List of media for the product variant.",
     )
     translation = TranslationField(
         ProductVariantTranslation,
@@ -532,7 +533,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         description="List of availability in channels for the product.",
     )
     media_by_id = graphene.Field(
-        lambda: ProductMedia,
+        graphene.NonNull(lambda: ProductMedia),
         id=graphene.Argument(graphene.ID, description="ID of a product media."),
         description="Get a single product media by ID.",
     )

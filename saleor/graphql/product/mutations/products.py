@@ -472,13 +472,15 @@ class AttributeValueInput(InputObjectType):
 
 
 class ProductInput(graphene.InputObjectType):
-    attributes = graphene.List(AttributeValueInput, description="List of attributes.")
+    attributes = graphene.List(
+        graphene.NonNull(AttributeValueInput), description="List of attributes."
+    )
     category = graphene.ID(description="ID of the product's category.", name="category")
     charge_taxes = graphene.Boolean(
         description="Determine if taxes are being charged for the product."
     )
     collections = graphene.List(
-        graphene.ID,
+        graphene.NonNull(graphene.ID),
         description="List of IDs of collections that the product belongs to.",
         name="collections",
     )
@@ -1304,7 +1306,7 @@ class ProductMediaUpdate(BaseMutation):
 
 class ProductMediaReorder(BaseMutation):
     product = graphene.Field(Product)
-    media = graphene.List(ProductMedia)
+    media = graphene.List(graphene.NonNull(ProductMedia))
 
     class Arguments:
         product_id = graphene.ID(
