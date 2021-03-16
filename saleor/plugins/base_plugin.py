@@ -443,6 +443,36 @@ class BasePlugin:
         """
         return NotImplemented
 
+    def product_variant_created(
+        self, product_variant: "ProductVariant", previous_value: Any
+    ) -> Any:
+        """Trigger when product variant is created.
+
+        Overwrite this method if you need to trigger specific logic after a product
+        variant is created.
+        """
+        return NotImplemented
+
+    def product_variant_updated(
+        self, product_variant: "ProductVariant", previous_value: Any
+    ) -> Any:
+        """Trigger when product variant is updated.
+
+        Overwrite this method if you need to trigger specific logic after a product
+        variant is updated.
+        """
+        return NotImplemented
+
+    def product_variant_deleted(
+        self, product_variant: "ProductVariant", previous_value: Any
+    ) -> Any:
+        """Trigger when product variant is deleted.
+
+        Overwrite this method if you need to trigger specific logic after a product
+        variant is deleted.
+        """
+        return NotImplemented
+
     def order_fully_paid(self, order: "Order", previous_value: Any) -> Any:
         """Trigger when order is fully paid.
 

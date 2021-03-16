@@ -14,10 +14,15 @@ All notable, unreleased changes to this project will be documented in this file.
 - Deprecate API fields `Order.discount`, `Order.discountName`, `Order.translatedDiscountName` - #6874 by @korycins
 - Fix argument validation in page resolver - #6960 by @fowczarek
 - Drop `data` field from checkout line model - #6961 by @fowczarek
+- Add `PRODUCT_VARIANT_CREATED`, `PRODUCT_VARIANT_UPDATED`, `PRODUCT_VARIANT_DELETED` webhooks, fix attributes field for `PRODUCT_CREATED`, `PRODUCT_UPDATED` webhooks - #6963 by @piotrgrundas
 - Fix `totalCount` on connection resolver without `first` or `last` - #6975 by @fowczarek
 - Fix variant resolver on `DigitalContent` - #6983 by @fowczarek
 - Fix race condition on `send_fulfillment-confirmation` - #6988 by @fowczarek
 - Fix resolver by id and slug for product and product variant - #6985 by @d-wysocki
+- Add optional support for reporting resource limits via a stub field in `shop` - #6967 by @NyanKiyoshi
+- Allow to use `Bearer` as an authorization prefix - #6996 by @korycins
+- Update checkout quantity when checkout lines are deleted - #7002 by @IKarbowiak
+- Raise an error when the user is trying to sort products by rank without search - #7013 by @IKarbowiak
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -33,7 +38,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Change the payload of the order webhook to handle discounts list, added fields: `Order.discounts`,
 `OrderLine.unit_discount_amount`,`OrderLine.unit_discount_type`, `OrderLine.unit_discount_reason` , remove fields:
 `Order.discount_amount`, `Order.discount_name`, `Order.translated_discount_name`- #6874 by @korycins
-
 - Update checkout performance - introduce `CheckoutInfo` data class - #6958 by @IKarbowiak; Introduced changes in plugin methods definitions:
   - in the following methods, the `checkout` parameter changed to `checkout_info`:
     - `calculate_checkout_total`
@@ -45,6 +49,8 @@ All notable, unreleased changes to this project will be documented in this file.
     - `get_checkout_line_tax_rate`
     - `preprocess_order_creation`
   - additionally, `preprocess_order_creation` was extend with `lines_info` parameter
+- Remove triggering a webhook event `PRODUCT_UPDATED`  when calling `ProductVariantCreate` mutation.  Use `PRODUCT_VARIANT_CREATED` instead - #6963 by @piotrgrundas
+- Remove triggering a webhook event `PRODUCT_UPDATED` when calling  `ProductVariantChannelListingUpdate` mutation. Use `PRODUCT_VARIANT_UPDATED` instead - #6963 by @piotrgrundas
 
 ### Other
 
