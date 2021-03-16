@@ -193,11 +193,13 @@ class AdminEmailPlugin(BasePlugin):
             username=configuration["username"] or settings.EMAIL_HOST_USER,
             password=configuration["password"] or settings.EMAIL_HOST_PASSWORD,
             sender_name=configuration["sender_name"],
-            sender_address=configuration["sender_address"]
-            or settings.DEFAULT_FROM_EMAIL,
+            sender_address=(
+                configuration["sender_address"] or settings.DEFAULT_FROM_EMAIL
+            ),
             use_tls=configuration["use_tls"] or settings.EMAIL_USE_TLS,
             use_ssl=configuration["use_ssl"] or settings.EMAIL_USE_SSL,
         )
+
         self.templates = AdminTemplate(
             csv_export_failed=configuration[constants.CSV_EXPORT_FAILED_TEMPLATE_FIELD],
             csv_product_export_success=configuration[
@@ -231,7 +233,25 @@ class AdminEmailPlugin(BasePlugin):
     @classmethod
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
         """Validate if provided configuration is correct."""
-        validate_default_email_configuration(plugin_configuration)
+
+        configuration = plugin_configuration.configuration
+        configuration = {item["name"]: item["value"] for item in configuration}
+
+        configuration["host"] = configuration["host"] or settings.EMAIL_HOST
+        configuration["port"] = configuration["port"] or settings.EMAIL_PORT
+        configuration["username"] = (
+            configuration["username"] or settings.EMAIL_HOST_USER
+        )
+        configuration["password"] = (
+            configuration["password"] or settings.EMAIL_HOST_PASSWORD
+        )
+        configuration["sender_address"] = (
+            configuration["sender_address"] or settings.DEFAULT_FROM_EMAIL
+        )
+        configuration["use_tls"] = configuration["use_tls"] or settings.EMAIL_USE_TLS
+        configuration["use_ssl"] = configuration["use_ssl"] or settings.EMAIL_USE_SSL
+
+        validate_default_email_configuration(plugin_configuration, configuration)
         validate_format_of_provided_templates(
             plugin_configuration, constants.TEMPLATE_FIELDS
         )

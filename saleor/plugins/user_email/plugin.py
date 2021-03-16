@@ -427,5 +427,8 @@ class UserEmailPlugin(BasePlugin):
     @classmethod
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
         """Validate if provided configuration is correct."""
-        validate_default_email_configuration(plugin_configuration)
+        configuration = plugin_configuration.configuration
+        configuration = {item["name"]: item["value"] for item in configuration}
+
+        validate_default_email_configuration(plugin_configuration, configuration)
         validate_format_of_provided_templates(plugin_configuration, TEMPLATE_FIELDS)
