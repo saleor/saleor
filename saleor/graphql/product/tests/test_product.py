@@ -2440,26 +2440,31 @@ def test_create_product_description_plaintext(
     assert product.description_plaintext == description
 
 
-def test_search_product_by_description(user_api_client, product_list, channel_USD):
-    search_query = """
-    query Products($filters: ProductFilterInput, $channel: String) {
-      products(first: 5, filter: $filters, channel: $channel) {
-        edges {
-        node {
-          id
-          name
+SEARCH_PRODUCTS_QUERY = """
+    query Products(
+        $filters: ProductFilterInput, $sortBy: ProductOrder, $channel: String
+    ) {
+        products(first: 5, filter: $filters, sortBy: $sortBy, channel: $channel) {
+            edges {
+                node {
+                    id
+                    name
+                }
+            }
         }
-        }
-      }
     }
-    """
+"""
+
+
+def test_search_product_by_description(user_api_client, product_list, channel_USD):
+
     variables = {"filters": {"search": "big"}, "channel": channel_USD.slug}
-    response = user_api_client.post_graphql(search_query, variables)
+    response = user_api_client.post_graphql(SEARCH_PRODUCTS_QUERY, variables)
     content = get_graphql_content(response)
     assert len(content["data"]["products"]["edges"]) == 2
 
     variables = {"filters": {"search": "small"}, "channel": channel_USD.slug}
-    response = user_api_client.post_graphql(search_query, variables)
+    response = user_api_client.post_graphql(SEARCH_PRODUCTS_QUERY, variables)
     content = get_graphql_content(response)
 
     assert len(content["data"]["products"]["edges"]) == 1
@@ -2468,21 +2473,6 @@ def test_search_product_by_description(user_api_client, product_list, channel_US
 def test_search_product_by_description_and_name(
     user_api_client, product_list, product, channel_USD, category, product_type
 ):
-    search_query = """
-    query Products(
-      $filters: ProductFilterInput, $sortBy: ProductOrder,$channel: String
-    ) {
-      products(first: 10, filter: $filters, sortBy: $sortBy,channel: $channel) {
-        edges {
-        node {
-          id
-          name
-          slug
-        }
-        }
-      }
-    }
-    """
     product.description_plaintext = "red big red product"
     product.save()
 
@@ -2500,7 +2490,7 @@ def test_search_product_by_description_and_name(
         "sortBy": {"field": "RANK", "direction": "DESC"},
         "channel": channel_USD.slug,
     }
-    response = user_api_client.post_graphql(search_query, variables)
+    response = user_api_client.post_graphql(SEARCH_PRODUCTS_QUERY, variables)
     content = get_graphql_content(response)
     data = content["data"]["products"]["edges"]
 
@@ -2509,24 +2499,73 @@ def test_search_product_by_description_and_name(
     assert data[2]["node"]["name"] == product_1.name
 
 
+def test_sort_product_by_rank_without_search(
+    user_api_client, product_list, product, channel_USD, category, product_type
+):
+    product.description_plaintext = "red big red product"
+    product.save()
+
+    product_2 = product_list[1]
+    product_2.name = "red product"
+    product_2.save()
+    product_1 = product_list[0]
+    product_1.description_plaintext = "some red product"
+    product_1.save()
+
+    variables = {
+        "sortBy": {"field": "RANK", "direction": "DESC"},
+        "channel": channel_USD.slug,
+    }
+    response = user_api_client.post_graphql(SEARCH_PRODUCTS_QUERY, variables)
+    with pytest.raises(AssertionError) as e:
+        get_graphql_content(response)
+
+    assert (
+        e._excinfo[1].args[0][0]["message"]
+        == "Sorting by Rank is available only with searching."
+    )
+
+
+@pytest.mark.parametrize("search_value", ["", "  ", None])
+def test_sort_product_by_rank_with_empty_search_value(
+    search_value,
+    user_api_client,
+    product_list,
+    product,
+    channel_USD,
+    category,
+    product_type,
+):
+    product.description_plaintext = "red big red product"
+    product.save()
+
+    product_2 = product_list[1]
+    product_2.name = "red product"
+    product_2.save()
+    product_1 = product_list[0]
+    product_1.description_plaintext = "some red product"
+    product_1.save()
+
+    variables = {
+        "filters": {
+            "search": search_value,
+        },
+        "sortBy": {"field": "RANK", "direction": "DESC"},
+        "channel": channel_USD.slug,
+    }
+    response = user_api_client.post_graphql(SEARCH_PRODUCTS_QUERY, variables)
+    with pytest.raises(AssertionError) as e:
+        get_graphql_content(response)
+
+    assert (
+        e._excinfo[1].args[0][0]["message"]
+        == "Sorting by Rank is available only with searching."
+    )
+
+
 def test_search_product_by_description_and_name_without_sort_by(
     user_api_client, product_list, product, channel_USD, category, product_type
 ):
-    search_query = """
-    query Products(
-      $filters: ProductFilterInput, $sortBy: ProductOrder,$channel: String
-    ) {
-      products(first: 10, filter: $filters, sortBy: $sortBy,channel: $channel) {
-        edges {
-        node {
-          id
-          name
-          slug
-        }
-        }
-      }
-    }
-    """
     product.description_plaintext = "red big red product"
     product.save()
 
@@ -2543,7 +2582,7 @@ def test_search_product_by_description_and_name_without_sort_by(
         },
         "channel": channel_USD.slug,
     }
-    response = user_api_client.post_graphql(search_query, variables)
+    response = user_api_client.post_graphql(SEARCH_PRODUCTS_QUERY, variables)
     content = get_graphql_content(response)
     data = content["data"]["products"]["edges"]
 
