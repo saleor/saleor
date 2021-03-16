@@ -212,6 +212,34 @@ def test_checkout_create_with_inactive_channel(
     assert error["code"] == CheckoutErrorCode.CHANNEL_INACTIVE.name
 
 
+def test_checkout_create_with_unavailable_variant(
+    api_client, stock, graphql_address_data, channel_USD
+):
+
+    variant = stock.product_variant
+    variant.channel_listings.filter(channel=channel_USD).delete()
+    variant.channel_listings.create(channel=channel_USD)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    test_email = "test@example.com"
+    shipping_address = graphql_address_data
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": shipping_address,
+        }
+    }
+
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+
+    error = get_graphql_content(response)["data"]["checkoutCreate"]["checkoutErrors"][0]
+
+    assert error["field"] == "lines"
+    assert error["code"] == CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
+    assert error["variants"] == [variant_id]
+
+
 def test_checkout_create_with_inactive_default_channel(
     api_client, stock, graphql_address_data, channel_USD
 ):
@@ -1347,6 +1375,31 @@ def test_checkout_lines_add(
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
 
 
+def test_checkout_lines_add_with_unavailable_variant(
+    user_api_client, checkout_with_item, stock
+):
+    variant = stock.product_variant
+    variant.channel_listings.filter(channel=checkout_with_item.channel).delete()
+    variant.channel_listings.create(channel=checkout_with_item.channel)
+    checkout = checkout_with_item
+    line = checkout.lines.first()
+    assert line.quantity == 3
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    variables = {
+        "checkoutId": checkout_id,
+        "lines": [{"variantId": variant_id, "quantity": 1}],
+        "channelSlug": checkout.channel.slug,
+    }
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+    content = get_graphql_content(response)
+    errors = content["data"]["checkoutLinesAdd"]["checkoutErrors"]
+    assert errors[0]["code"] == CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
+    assert errors[0]["field"] == "lines"
+    assert errors[0]["variants"] == [variant_id]
+
+
 def test_checkout_lines_add_with_unpublished_product(
     user_api_client, checkout_with_item, stock, channel_USD
 ):
@@ -1548,6 +1601,7 @@ MUTATION_CHECKOUT_LINES_UPDATE = """
                 field
                 code
                 message
+                variants
             }
         }
     }
@@ -1588,6 +1642,33 @@ def test_checkout_lines_update(
     lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [])
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
+
+
+def test_checkout_lines_update_with_unavailable_variant(
+    user_api_client, checkout_with_item
+):
+    checkout = checkout_with_item
+    assert checkout.lines.count() == 1
+    line = checkout.lines.first()
+    variant = line.variant
+    variant.channel_listings.filter(channel=checkout_with_item.channel).delete()
+    variant.channel_listings.create(channel=checkout_with_item.channel)
+    assert line.quantity == 3
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    variables = {
+        "checkoutId": checkout_id,
+        "lines": [{"variantId": variant_id, "quantity": 1}],
+    }
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
+    content = get_graphql_content(response)
+
+    errors = content["data"]["checkoutLinesUpdate"]["checkoutErrors"]
+    assert errors[0]["code"] == CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
+    assert errors[0]["field"] == "lines"
+    assert errors[0]["variants"] == [variant_id]
 
 
 def test_create_checkout_with_unpublished_product(
