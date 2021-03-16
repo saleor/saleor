@@ -68,6 +68,7 @@ from ..payment.interface import GatewayConfig, PaymentData
 from ..payment.models import Payment
 from ..plugins.models import PluginConfiguration
 from ..plugins.vatlayer.plugin import VatlayerPlugin
+from ..product import ProductMediaTypes
 from ..product.models import (
     Category,
     CategoryTranslation,
@@ -1296,6 +1297,67 @@ def product_with_variant_with_two_attributes(
     )
 
     variant = ProductVariant.objects.create(product=product, sku="prodVar1")
+    ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_USD,
+        price_amount=Decimal(10),
+        cost_price_amount=Decimal(1),
+        currency=channel_USD.currency_code,
+    )
+
+    associate_attribute_values_to_instance(
+        variant, color_attribute, color_attribute.values.first()
+    )
+    associate_attribute_values_to_instance(
+        variant, size_attribute, size_attribute.values.first()
+    )
+
+    return product
+
+
+@pytest.fixture
+def product_with_variant_with_external_media(
+    color_attribute,
+    size_attribute,
+    category,
+    warehouse,
+    channel_USD,
+):
+    product_type = ProductType.objects.create(
+        name="Type with two variants",
+        slug="two-variants",
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.variant_attributes.add(color_attribute)
+    product_type.variant_attributes.add(size_attribute)
+
+    product = Product.objects.create(
+        name="Test product with two variants",
+        slug="test-product-with-two-variant",
+        product_type=product_type,
+        category=category,
+    )
+    media_obj = ProductMedia.objects.create(
+        product=product,
+        external_url="https://www.youtube.com/watch?v=di8_dJ3Clyo",
+        alt="video_1",
+        type=ProductMediaTypes.VIDEO,
+        oembed_data="{}",
+    )
+    product.media.add(media_obj)
+
+    ProductChannelListing.objects.create(
+        product=product,
+        channel=channel_USD,
+        is_published=True,
+        currency=channel_USD.currency_code,
+        visible_in_listings=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
+    )
+
+    variant = ProductVariant.objects.create(product=product, sku="prodVar1")
+    variant.media.add(media_obj)
     ProductVariantChannelListing.objects.create(
         variant=variant,
         channel=channel_USD,

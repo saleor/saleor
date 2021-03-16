@@ -3957,7 +3957,7 @@ type Product implements Node & ObjectWithMetadata {
   mediaById(id: ID): ProductMedia!
   imageById(id: ID): ProductImage @deprecated(reason: "Will be removed in Saleor 4.0. Use the `mediaById` field instead.")
   variants: [ProductVariant]
-  media: [ProductMedia]
+  media: [ProductMedia!]
   images: [ProductImage] @deprecated(reason: "Will be removed in Saleor 4.0. Use the `media` field instead.")
   collections: [Collection]
   translation(languageCode: LanguageCodeEnum!): ProductTranslation

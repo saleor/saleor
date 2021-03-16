@@ -1970,11 +1970,10 @@ def test_query_product_media_by_id_missing_id(
     }
 
     response = user_api_client.post_graphql(query, variables)
-
     content = get_graphql_content_from_response(response)
     assert len(content["errors"]) == 1
     assert content["errors"][0]["message"] == "Product media not found."
-    assert content["data"]["product"]["mediaById"] is None
+    assert content["data"]["product"] is None
 
 
 def test_query_product_image_by_id(user_api_client, product_with_image, channel_USD):

@@ -515,7 +515,7 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
             models.ProductVariant.objects.filter(id__in=pks).prefetch_related(
                 "channel_listings",
                 "attributes__values",
-                "variant_images",
+                "variant_media",
             )
         )
 

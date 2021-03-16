@@ -549,7 +549,8 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         ProductVariant, description="List of variants for the product."
     )
     media = graphene.List(
-        lambda: ProductMedia, description="List of media for the product."
+        graphene.NonNull(lambda: ProductMedia),
+        description="List of media for the product.",
     )
     images = graphene.List(
         lambda: ProductImage,

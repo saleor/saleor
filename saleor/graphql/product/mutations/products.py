@@ -1002,7 +1002,7 @@ class ProductVariantDelete(ModelDeleteMutation):
         # Get cached variant with related fields to fully populate webhook payload.
         variant = (
             models.ProductVariant.objects.prefetch_related(
-                "channel_listings", "attributes__values", "variant_images"
+                "channel_listings", "attributes__values", "variant_media"
             )
         ).get(id=instance.id)
 
