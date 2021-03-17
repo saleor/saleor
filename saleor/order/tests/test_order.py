@@ -490,7 +490,9 @@ def test_update_order_prices(
     ).price
     shipping_price = TaxedMoney(net=shipping_price, gross=shipping_price)
 
-    update_order_prices(order_with_lines, manager, site_settings)
+    update_order_prices(
+        order_with_lines, manager, site_settings.include_taxes_in_prices
+    )
 
     line_1.refresh_from_db()
     line_2.refresh_from_db()
@@ -534,7 +536,9 @@ def test_update_order_prices_tax_included(order_with_lines, vatlayer, site_setti
         channel_id=order_with_lines.channel_id
     ).price
 
-    update_order_prices(order_with_lines, manager, site_settings)
+    update_order_prices(
+        order_with_lines, manager, site_settings.include_taxes_in_prices
+    )
 
     line_1.refresh_from_db()
     line_2.refresh_from_db()

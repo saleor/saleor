@@ -24,6 +24,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Update checkout quantity when checkout lines are deleted - #7002 by @IKarbowiak
 - Raise an error when the user is trying to sort products by rank without search - #7013 by @IKarbowiak
 - Fix available shipping methods - return also weight methods without weight limits - #7021 by @IKarbowiak
+- Remove redundant Opentracing spans - #6994 by @fowczarek
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -95,6 +96,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add default sorting by rank for search products - #6936 by @d-wysocki
 - Fix exporting product description to xlsx - #6959 by @IKarbowiak
 - Add `Shop.version` field to query API version - #6980 by @maarcingebala
+- Return empty results when filtering by non-existing attribute - #7025 by @maarcingebala
 
 # 2.11.1
 
