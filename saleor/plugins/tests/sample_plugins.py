@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     # flake8: noqa
     from ...account.models import Address
     from ...channel.models import Channel
-    from ...checkout import CheckoutLineInfo
+    from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ...checkout.models import Checkout
     from ...discount import DiscountInfo
     from ...order.models import Order, OrderLine
@@ -69,21 +69,21 @@ class PluginSample(BasePlugin):
         return HttpResponseNotFound()
 
     def calculate_checkout_total(
-        self, checkout, lines, address, discounts, previous_value
+        self, checkout_info, lines, address, discounts, previous_value
     ):
-        total = Money("1.0", currency=checkout.currency)
+        total = Money("1.0", currency=checkout_info.checkout.currency)
         return TaxedMoney(total, total)
 
     def calculate_checkout_subtotal(
-        self, checkout, lines, address, discounts, previous_value
+        self, checkout_info, lines, address, discounts, previous_value
     ):
-        subtotal = Money("1.0", currency=checkout.currency)
+        subtotal = Money("1.0", currency=checkout_info.checkout.currency)
         return TaxedMoney(subtotal, subtotal)
 
     def calculate_checkout_shipping(
-        self, checkout, lines, address, discounts, previous_value
+        self, checkout_info, lines, address, discounts, previous_value
     ):
-        price = Money("1.0", currency=checkout.currency)
+        price = Money("1.0", currency=checkout_info.checkout.currency)
         return TaxedMoney(price, price)
 
     def calculate_order_shipping(self, order, previous_value):
@@ -92,26 +92,24 @@ class PluginSample(BasePlugin):
 
     def calculate_checkout_line_total(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
-        channel: "Channel",
         discounts: Iterable["DiscountInfo"],
         previous_value: TaxedMoney,
     ):
-        price = Money("1.0", currency=checkout.currency)
+        price = Money("1.0", currency=checkout_info.checkout.currency)
         return TaxedMoney(price, price)
 
     def calculate_checkout_line_unit_price(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
-        channel: "Channel",
         previous_value: TaxedMoney,
     ):
-        currency = checkout.currency
+        currency = checkout_info.checkout.currency
         price = Money("10.0", currency)
         return TaxedMoney(price, price)
 
@@ -183,7 +181,7 @@ class PluginSample(BasePlugin):
 
     def get_checkout_line_tax_rate(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
@@ -202,7 +200,7 @@ class PluginSample(BasePlugin):
 
     def get_checkout_shipping_tax_rate(
         self,
-        checkout: "Checkout",
+        checkout_info: "CheckoutInfo",
         lines: Iterable["CheckoutLineInfo"],
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
