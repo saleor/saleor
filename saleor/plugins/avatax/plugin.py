@@ -115,6 +115,15 @@ class AvataxPlugin(BasePlugin):
         if not self.active:
             return True
 
+        # The previous plugin already calculated taxes so we can skip our logic
+        if isinstance(previous_value, TaxedMoneyRange):
+            start = previous_value.start
+            stop = previous_value.stop
+
+            return start.net != start.gross and stop.net != stop.gross
+
+        if isinstance(previous_value, TaxedMoney):
+            return previous_value.net != previous_value.gross
         return False
 
     def _append_prices_of_not_taxed_lines(
