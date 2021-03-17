@@ -24,7 +24,7 @@ from .bulk_mutations.products import (
     CategoryBulkDelete,
     CollectionBulkDelete,
     ProductBulkDelete,
-    ProductImageBulkDelete,
+    ProductMediaBulkDelete,
     ProductTypeBulkDelete,
     ProductVariantBulkCreate,
     ProductVariantBulkDelete,
@@ -70,10 +70,10 @@ from .mutations.products import (
     CollectionUpdate,
     ProductCreate,
     ProductDelete,
-    ProductImageCreate,
-    ProductImageDelete,
-    ProductImageReorder,
-    ProductImageUpdate,
+    ProductMediaCreate,
+    ProductMediaDelete,
+    ProductMediaReorder,
+    ProductMediaUpdate,
     ProductTypeCreate,
     ProductTypeDelete,
     ProductTypeUpdate,
@@ -83,8 +83,8 @@ from .mutations.products import (
     ProductVariantReorder,
     ProductVariantSetDefault,
     ProductVariantUpdate,
-    VariantImageAssign,
-    VariantImageUnassign,
+    VariantMediaAssign,
+    VariantMediaUnassign,
 )
 from .resolvers import (
     resolve_categories,
@@ -408,12 +408,12 @@ class ProductMutations(graphene.ObjectType):
 
     product_channel_listing_update = ProductChannelListingUpdate.Field()
 
-    product_image_create = ProductImageCreate.Field()
+    product_media_create = ProductMediaCreate.Field()
     product_variant_reorder = ProductVariantReorder.Field()
-    product_image_delete = ProductImageDelete.Field()
-    product_image_bulk_delete = ProductImageBulkDelete.Field()
-    product_image_reorder = ProductImageReorder.Field()
-    product_image_update = ProductImageUpdate.Field()
+    product_media_delete = ProductMediaDelete.Field()
+    product_media_bulk_delete = ProductMediaBulkDelete.Field()
+    product_media_reorder = ProductMediaReorder.Field()
+    product_media_update = ProductMediaUpdate.Field()
 
     product_type_create = ProductTypeCreate.Field()
     product_type_delete = ProductTypeDelete.Field()
@@ -443,5 +443,5 @@ class ProductMutations(graphene.ObjectType):
         ProductVariantReorderAttributeValues.Field()
     )
 
-    variant_image_assign = VariantImageAssign.Field()
-    variant_image_unassign = VariantImageUnassign.Field()
+    variant_media_assign = VariantMediaAssign.Field()
+    variant_media_unassign = VariantMediaUnassign.Field()
