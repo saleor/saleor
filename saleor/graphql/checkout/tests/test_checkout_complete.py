@@ -247,27 +247,24 @@ def test_checkout_complete(
 def test_checkout_complete_with_unavailable_variant(
     site_settings,
     user_api_client,
-    checkout_with_gift_card,
+    checkout_with_item,
     gift_card,
     payment_dummy,
     address,
     shipping_method,
 ):
 
-    assert not gift_card.last_used_on
-
-    checkout = checkout_with_gift_card
+    checkout = checkout_with_item
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
-    checkout.store_value_in_metadata(items={"accepted": "true"})
-    checkout.store_value_in_private_metadata(items={"accepted": "false"})
     checkout.save()
 
     checkout_line = checkout.lines.first()
     checkout_line_variant = checkout_line.variant
-    checkout_line_variant.channel_listings.filter(channel=checkout.channel).delete()
-    checkout_line_variant.channel_listings.create(channel=checkout.channel)
+    checkout_line_variant.channel_listings.filter(channel=checkout.channel).update(
+        price_amount=None
+    )
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     variant_id = graphene.Node.to_global_id("ProductVariant", checkout_line_variant.pk)

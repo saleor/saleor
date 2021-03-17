@@ -220,8 +220,7 @@ def test_checkout_create_with_unavailable_variant(
 ):
 
     variant = stock.product_variant
-    variant.channel_listings.filter(channel=channel_USD).delete()
-    variant.channel_listings.create(channel=channel_USD)
+    variant.channel_listings.filter(channel=channel_USD).update(price_amount=None)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     test_email = "test@example.com"
     shipping_address = graphql_address_data
@@ -1385,8 +1384,9 @@ def test_checkout_lines_add_with_unavailable_variant(
     user_api_client, checkout_with_item, stock
 ):
     variant = stock.product_variant
-    variant.channel_listings.filter(channel=checkout_with_item.channel).delete()
-    variant.channel_listings.create(channel=checkout_with_item.channel)
+    variant.channel_listings.filter(channel=checkout_with_item.channel).update(
+        price_amount=None
+    )
     checkout = checkout_with_item
     line = checkout.lines.first()
     assert line.quantity == 3
@@ -1660,8 +1660,9 @@ def test_checkout_lines_update_with_unavailable_variant(
     assert checkout.lines.count() == 1
     line = checkout.lines.first()
     variant = line.variant
-    variant.channel_listings.filter(channel=checkout_with_item.channel).delete()
-    variant.channel_listings.create(channel=checkout_with_item.channel)
+    variant.channel_listings.filter(channel=checkout_with_item.channel).update(
+        price_amount=None
+    )
     assert line.quantity == 3
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
