@@ -582,11 +582,9 @@ def test_order_weight_add_new_variant(order_with_lines, product):
 
 
 def test_order_weight_change_line_quantity(staff_user, order_with_lines):
-    context_mock = Mock(user=staff_user)
-    context_mock.plugins.calculate_order_line_unit.return_value = None
     line = order_with_lines.lines.first()
     new_quantity = line.quantity + 2
-    change_order_line_quantity(context_mock, line, new_quantity, line.quantity)
+    change_order_line_quantity(staff_user, line, new_quantity, line.quantity)
     order_with_lines.refresh_from_db()
     assert order_with_lines.weight == _calculate_order_weight_from_lines(
         order_with_lines
@@ -594,10 +592,8 @@ def test_order_weight_change_line_quantity(staff_user, order_with_lines):
 
 
 def test_order_weight_delete_line(order_with_lines):
-    context_mock = Mock()
-    context_mock.plugins.calculate_order_line_unit.return_value = None
     line = order_with_lines.lines.first()
-    delete_order_line(context_mock, line)
+    delete_order_line(line)
     assert order_with_lines.weight == _calculate_order_weight_from_lines(
         order_with_lines
     )
@@ -877,24 +873,20 @@ def test_category_voucher_checkout_discount_raises_not_applicable(
 
 
 def test_ordered_item_change_quantity(staff_user, transactional_db, order_with_lines):
-    context_mock = Mock(user=staff_user)
-    context_mock.plugins.calculate_order_line_unit.return_value = None
     assert not order_with_lines.events.count()
     lines = order_with_lines.lines.all()
-    change_order_line_quantity(context_mock, lines[1], lines[1].quantity, 0)
-    change_order_line_quantity(context_mock, lines[0], lines[0].quantity, 0)
+    change_order_line_quantity(staff_user, lines[1], lines[1].quantity, 0)
+    change_order_line_quantity(staff_user, lines[0], lines[0].quantity, 0)
     assert order_with_lines.get_total_quantity() == 0
 
 
 def test_change_order_line_quantity_changes_total_prices(
     staff_user, transactional_db, order_with_lines
 ):
-    context_mock = Mock(user=staff_user)
-    context_mock.plugins.calculate_order_line_unit.return_value = None
     assert not order_with_lines.events.count()
     line = order_with_lines.lines.all()[0]
     new_quantity = line.quantity + 1
-    change_order_line_quantity(context_mock, line, line.quantity, new_quantity)
+    change_order_line_quantity(staff_user, line, line.quantity, new_quantity)
     line.refresh_from_db()
     assert line.total_price == line.unit_price * new_quantity
 

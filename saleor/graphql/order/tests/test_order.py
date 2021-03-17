@@ -792,7 +792,7 @@ def test_order_confirm_no_products_in_order(
     errors = content["orderErrors"]
 
     order_unconfirmed.refresh_from_db()
-    assert order_unconfirmed.status == OrderStatus.UNCONFIRMED
+    assert order_unconfirmed.is_unconfirmed()
     assert content["order"] is None
     assert len(errors) == 1
     assert errors[0]["field"] == "id"
