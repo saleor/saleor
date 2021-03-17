@@ -5,6 +5,7 @@ import pytest
 from prices import Money, TaxedMoney
 
 from ...core.weight import zero_weight
+from ...discount import OrderDiscountType
 from ...discount.models import (
     DiscountValueType,
     NotApplicable,
@@ -15,6 +16,7 @@ from ...discount.models import (
 from ...discount.utils import validate_voucher_in_order
 from ...payment import ChargeStatus
 from ...payment.models import Payment
+from ...plugins.manager import get_plugins_manager
 from ...product.models import Collection
 from ...warehouse.models import Stock
 from ...warehouse.tests.utils import get_quantity_allocated_for_stock
@@ -48,12 +50,17 @@ def test_total_setter():
 
 
 def test_order_get_subtotal(order_with_lines):
-    order_with_lines.discount_name = "Test discount"
-    order_with_lines.discount = order_with_lines.total.gross * Decimal("0.5")
+    order_with_lines.discounts.create(
+        type=OrderDiscountType.VOUCHER,
+        value_type=DiscountValueType.FIXED,
+        value=order_with_lines.total.gross.amount * Decimal("0.5"),
+        amount_value=order_with_lines.total.gross.amount * Decimal("0.5"),
+        name="Test discount",
+    )
+
     recalculate_order(order_with_lines)
 
     target_subtotal = order_with_lines.total - order_with_lines.shipping_price
-    target_subtotal += order_with_lines.discount
     assert order_with_lines.get_subtotal() == target_subtotal
 
 
@@ -448,7 +455,11 @@ def test_queryset_ready_to_capture(channel_USD):
     assert OrderStatus.CANCELED not in statuses
 
 
-def test_update_order_prices(order_with_lines):
+@patch("saleor.plugins.manager.PluginsManager.calculate_order_line_unit")
+def test_update_order_prices(
+    mocked_calculate_order_line_unit, order_with_lines, site_settings
+):
+    manager = get_plugins_manager()
     channel = order_with_lines.channel
     address = order_with_lines.shipping_address
     address.country = "DE"
@@ -472,12 +483,16 @@ def test_update_order_prices(order_with_lines):
     )
     price_2 = TaxedMoney(net=price_2, gross=price_2)
 
+    mocked_calculate_order_line_unit.side_effect = [price_1, price_2]
+
     shipping_price = order_with_lines.shipping_method.channel_listings.get(
         channel_id=order_with_lines.channel_id
     ).price
     shipping_price = TaxedMoney(net=shipping_price, gross=shipping_price)
 
-    update_order_prices(order_with_lines, None)
+    update_order_prices(
+        order_with_lines, manager, site_settings.include_taxes_in_prices
+    )
 
     line_1.refresh_from_db()
     line_2.refresh_from_db()
@@ -489,7 +504,9 @@ def test_update_order_prices(order_with_lines):
     assert order_with_lines.total == total
 
 
-def test_update_order_prices_tax_included(order_with_lines, vatlayer):
+def test_update_order_prices_tax_included(order_with_lines, vatlayer, site_settings):
+    manager = get_plugins_manager()
+
     channel = order_with_lines.channel
     address = order_with_lines.shipping_address
     address.country = "DE"
@@ -502,6 +519,8 @@ def test_update_order_prices_tax_included(order_with_lines, vatlayer):
     price_1 = variant_1.get_price(
         product_1, [], channel, variant_channel_listing_1, None
     )
+    line_1.unit_price_gross = price_1
+    line_1.save()
 
     line_2 = order_with_lines.lines.last()
     variant_2 = line_2.variant
@@ -510,12 +529,16 @@ def test_update_order_prices_tax_included(order_with_lines, vatlayer):
     price_2 = variant_2.get_price(
         product_2, [], channel, variant_channel_listing_2, None
     )
+    line_2.unit_price_gross = price_2
+    line_2.save()
 
     shipping_price = order_with_lines.shipping_method.channel_listings.get(
         channel_id=order_with_lines.channel_id
     ).price
 
-    update_order_prices(order_with_lines, None)
+    update_order_prices(
+        order_with_lines, manager, site_settings.include_taxes_in_prices
+    )
 
     line_1.refresh_from_db()
     line_2.refresh_from_db()

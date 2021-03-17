@@ -13,7 +13,7 @@ from prices import Money, fixed_discount, percentage_discount
 from ..channel.models import Channel
 from ..core.permissions import DiscountPermissions
 from ..core.utils.translations import TranslationProxy
-from . import DiscountValueType, VoucherType
+from . import DiscountValueType, OrderDiscountType, VoucherType
 
 
 class NotApplicable(ValueError):
@@ -307,3 +307,42 @@ class SaleTranslation(models.Model):
     class Meta:
         ordering = ("language_code", "name", "pk")
         unique_together = (("language_code", "sale"),)
+
+
+class OrderDiscount(models.Model):
+    order = models.ForeignKey(
+        "order.Order",
+        related_name="discounts",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
+    type = models.CharField(
+        max_length=10,
+        choices=OrderDiscountType.CHOICES,
+        default=OrderDiscountType.MANUAL,
+    )
+    value_type = models.CharField(
+        max_length=10,
+        choices=DiscountValueType.CHOICES,
+        default=DiscountValueType.FIXED,
+    )
+    value = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=0,
+    )
+
+    amount_value = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=0,
+    )
+    amount = MoneyField(amount_field="amount_value", currency_field="currency")
+    currency = models.CharField(
+        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
+    )
+
+    name = models.CharField(max_length=255, null=True, blank=True)
+    translated_name = models.CharField(max_length=255, null=True, blank=True)
+    reason = models.TextField(blank=True, null=True)

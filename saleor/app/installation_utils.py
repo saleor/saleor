@@ -1,8 +1,8 @@
 import requests
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
-from django.core.validators import URLValidator
 
+from ..app.validators import AppURLValidator
 from .models import App, AppInstallation
 from .types import AppType
 
@@ -21,9 +21,8 @@ def send_app_token(target_url: str, token: str):
 
 def validate_manifest_fields(manifest_data):
     token_target_url = manifest_data.get("tokenTargetUrl")
-
     try:
-        url_validator = URLValidator()
+        url_validator = AppURLValidator()
         url_validator(token_target_url)
     except ValidationError:
         raise ValidationError({"tokenTargetUrl": "Incorrect format."})

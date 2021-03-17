@@ -53,17 +53,6 @@ class Command(BaseCommand):
             help="Don't reset SQL sequences that are out of sync.",
         )
 
-    def make_database_faster(self):
-        """Sacrifice some of the safeguards of sqlite3 for speed.
-
-        Users are not likely to run this command in a production environment.
-        They are even less likely to run it in production while using sqlite3.
-        """
-        if "sqlite3" in connection.settings_dict["ENGINE"]:
-            cursor = connection.cursor()
-            cursor.execute("PRAGMA temp_store = MEMORY;")
-            cursor.execute("PRAGMA synchronous = OFF;")
-
     def sequence_reset(self):
         """Run a SQL sequence reset on all saleor.* apps.
 
@@ -88,7 +77,6 @@ class Command(BaseCommand):
             "saleor.payment.gateways.dummy_credit_card.plugin."
             "DummyCreditCardGatewayPlugin",
         ]
-        self.make_database_faster()
         create_images = not options["withoutimages"]
         for msg in create_channels():
             self.stdout.write(msg)

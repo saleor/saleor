@@ -266,6 +266,12 @@ INSTALLED_APPS = [
 ]
 
 
+ENABLE_DJANGO_EXTENSIONS = get_bool_from_env("ENABLE_DJANGO_EXTENSIONS", False)
+if ENABLE_DJANGO_EXTENSIONS:
+    INSTALLED_APPS += [
+        "django_extensions",
+    ]
+
 ENABLE_DEBUG_TOOLBAR = get_bool_from_env("ENABLE_DEBUG_TOOLBAR", False)
 if ENABLE_DEBUG_TOOLBAR:
     # Ensure the graphiql debug toolbar is actually installed before adding it
