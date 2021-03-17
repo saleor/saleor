@@ -21,6 +21,7 @@ from ....core.weight import WeightUnits
 from ....order import OrderStatus
 from ....order.models import OrderLine
 from ....plugins.manager import PluginsManager
+from ....product import ProductMediaTypes
 from ....product.error_codes import ProductErrorCode
 from ....product.models import (
     Category,
@@ -28,7 +29,7 @@ from ....product.models import (
     CollectionChannelListing,
     Product,
     ProductChannelListing,
-    ProductImage,
+    ProductMedia,
     ProductType,
     ProductVariant,
     ProductVariantChannelListing,
@@ -1405,7 +1406,7 @@ def test_fetch_product_from_category_query(
                             url
                             alt
                         }
-                        images {
+                        media {
                             url
                         }
                         variants {
@@ -1937,8 +1938,85 @@ def test_query_products_with_filter_ids(
     assert [node["node"]["id"] for node in products_data] == product_ids
 
 
+def test_query_product_media_by_id(user_api_client, product_with_image, channel_USD):
+    query = """
+    query productMediaById($mediaId: ID!, $productId: ID!, $channel: String) {
+        product(id: $productId, channel: $channel) {
+            mediaById(id: $mediaId) {
+                id
+                url(size: 200)
+            }
+        }
+    }
+    """
+    media = product_with_image.media.first()
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
+        "mediaId": graphene.Node.to_global_id("ProductMedia", media.pk),
+        "channel": channel_USD.slug,
+    }
+
+    response = user_api_client.post_graphql(query, variables)
+
+    content = get_graphql_content(response)
+    assert content["data"]["product"]["mediaById"]["id"]
+    assert content["data"]["product"]["mediaById"]["url"]
+
+
+def test_query_product_media_by_id_missing_id(
+    user_api_client, product_with_image, channel_USD
+):
+    query = """
+    query productMediaById($mediaId: ID!, $productId: ID!, $channel: String) {
+        product(id: $productId, channel: $channel) {
+            mediaById(id: $mediaId) {
+                id
+                url
+            }
+        }
+    }
+    """
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
+        "mediaId": graphene.Node.to_global_id("ProductMedia", 9999),
+        "channel": channel_USD.slug,
+    }
+
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == "Product media not found."
+    assert content["data"]["product"] is None
+
+
 def test_query_product_image_by_id(user_api_client, product_with_image, channel_USD):
-    image = product_with_image.images.first()
+    query = """
+    query productMediaById($imageId: ID!, $productId: ID!, $channel: String) {
+        product(id: $productId, channel: $channel) {
+            imageById(id: $imageId) {
+                id
+                url(size: 200)
+            }
+        }
+    }
+    """
+    media = product_with_image.media.first()
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
+        "imageId": graphene.Node.to_global_id("ProductMedia", media.pk),
+        "channel": channel_USD.slug,
+    }
+
+    response = user_api_client.post_graphql(query, variables)
+
+    content = get_graphql_content(response)
+    assert content["data"]["product"]["imageById"]["id"]
+    assert content["data"]["product"]["imageById"]["url"]
+
+
+def test_query_product_image_by_id_missing_id(
+    user_api_client, product_with_image, channel_USD
+):
     query = """
     query productImageById($imageId: ID!, $productId: ID!, $channel: String) {
         product(id: $productId, channel: $channel) {
@@ -1951,13 +2029,16 @@ def test_query_product_image_by_id(user_api_client, product_with_image, channel_
     """
     variables = {
         "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
-        "imageId": graphene.Node.to_global_id("ProductImage", image.pk),
+        "imageId": graphene.Node.to_global_id("ProductMedia", 9999),
         "channel": channel_USD.slug,
     }
+
     response = user_api_client.post_graphql(query, variables)
-    data = get_graphql_content(response)
-    assert data["data"]["product"]["imageById"]["id"]
-    assert data["data"]["product"]["imageById"]["url"]
+
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == "Product image not found."
+    assert content["data"]["product"]["imageById"] is None
 
 
 def test_product_with_collections(
@@ -6018,18 +6099,39 @@ def test_product_type_delete_mutation_variants_in_draft_order(
     assert OrderLine.objects.filter(pk=order_line_not_in_draft.pk).exists()
 
 
-def test_product_image_create_mutation(
-    monkeypatch, staff_api_client, product, permission_manage_products, media_root
-):
-    query = """
-    mutation createProductImage($image: Upload!, $product: ID!) {
-        productImageCreate(input: {image: $image, product: $product}) {
-            image {
-                id
+PRODUCT_MEDIA_CREATE_QUERY = """
+    mutation createProductMedia(
+        $product: ID!,
+        $image: Upload,
+        $mediaUrl: String,
+        $alt: String
+    ) {
+        productMediaCreate(input: {
+            product: $product,
+            mediaUrl: $mediaUrl,
+            alt: $alt,
+            image: $image
+        }) {
+            product {
+                media {
+                    url
+                    alt
+                    type
+                    oembedData
+                }
+            }
+            productErrors {
+                code
+                field
             }
         }
     }
     """
+
+
+def test_product_media_create_mutation(
+    monkeypatch, staff_api_client, product, permission_manage_products, media_root
+):
     mock_create_thumbnails = Mock(return_value=None)
     monkeypatch.setattr(
         (
@@ -6042,55 +6144,152 @@ def test_product_image_create_mutation(
     image_file, image_name = create_image()
     variables = {
         "product": graphene.Node.to_global_id("Product", product.id),
+        "alt": "",
         "image": image_name,
     }
-    body = get_multipart_request_body(query, variables, image_file, image_name)
+    body = get_multipart_request_body(
+        PRODUCT_MEDIA_CREATE_QUERY, variables, image_file, image_name
+    )
     response = staff_api_client.post_multipart(
         body, permissions=[permission_manage_products]
     )
     get_graphql_content(response)
     product.refresh_from_db()
-    product_image = product.images.last()
+    product_image = product.media.last()
     assert product_image.image.file
 
     # The image creation should have triggered a warm-up
     mock_create_thumbnails.assert_called_once_with(product_image.pk)
 
 
-def test_product_image_create_mutation_without_file(
+def test_product_media_create_mutation_without_file(
     monkeypatch, staff_api_client, product, permission_manage_products, media_root
 ):
-    query = """
-    mutation createProductImage($image: Upload!, $product: ID!) {
-        productImageCreate(input: {image: $image, product: $product}) {
-            productErrors {
-                code
-                field
-            }
-        }
-    }
-    """
     variables = {
         "product": graphene.Node.to_global_id("Product", product.id),
         "image": "image name",
     }
-    body = get_multipart_request_body(query, variables, file="", file_name="name")
+    body = get_multipart_request_body(
+        PRODUCT_MEDIA_CREATE_QUERY, variables, file="", file_name="name"
+    )
     response = staff_api_client.post_multipart(
         body, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
-    errors = content["data"]["productImageCreate"]["productErrors"]
+
+    errors = content["data"]["productMediaCreate"]["productErrors"]
     assert errors[0]["field"] == "image"
     assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
 
 
-def test_invalid_product_image_create_mutation(
+def test_product_media_create_mutation_with_media_url(
+    monkeypatch, staff_api_client, product, permission_manage_products, media_root
+):
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product.id),
+        "mediaUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        "alt": "",
+    }
+    body = get_multipart_request_body(
+        PRODUCT_MEDIA_CREATE_QUERY, variables, file="", file_name="name"
+    )
+    response = staff_api_client.post_multipart(
+        body, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+
+    media = content["data"]["productMediaCreate"]["product"]["media"]
+    assert len(media) == 1
+    assert media[0]["url"] == "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+    assert media[0]["alt"] == "Rick Astley - Never Gonna Give You Up (Video)"
+    assert media[0]["type"] == ProductMediaTypes.VIDEO
+
+    oembed_data = json.loads(media[0]["oembedData"])
+    assert oembed_data["url"] == ("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+    assert oembed_data["type"] == "video"
+    assert oembed_data["html"] is not None
+    assert oembed_data["thumbnail_url"] == (
+        "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg"
+    )
+
+
+def test_product_media_create_mutation_without_url_or_image(
+    monkeypatch, staff_api_client, product, permission_manage_products, media_root
+):
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product.id),
+        "alt": "Test Alt Text",
+    }
+    body = get_multipart_request_body(
+        PRODUCT_MEDIA_CREATE_QUERY, variables, file="", file_name="name"
+    )
+
+    response = staff_api_client.post_multipart(
+        body, permissions=[permission_manage_products]
+    )
+
+    content = get_graphql_content(response)
+    errors = content["data"]["productMediaCreate"]["productErrors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
+    assert errors[0]["field"] == "input"
+
+
+def test_product_media_create_mutation_with_both_url_and_image(
+    monkeypatch, staff_api_client, product, permission_manage_products, media_root
+):
+    image_file, image_name = create_image()
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product.id),
+        "mediaUrl": "https://www.youtube.com/watch?v=SomeVideoID&ab_channel=Test",
+        "image": image_name,
+        "alt": "Test Alt Text",
+    }
+    body = get_multipart_request_body(
+        PRODUCT_MEDIA_CREATE_QUERY, variables, image_file, image_name
+    )
+
+    response = staff_api_client.post_multipart(
+        body, permissions=[permission_manage_products]
+    )
+
+    content = get_graphql_content(response)
+    errors = content["data"]["productMediaCreate"]["productErrors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductErrorCode.DUPLICATED_INPUT_ITEM.name
+    assert errors[0]["field"] == "input"
+
+
+def test_product_media_create_mutation_with_unknown_url(
+    monkeypatch, staff_api_client, product, permission_manage_products, media_root
+):
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product.id),
+        "mediaUrl": "https://www.videohosting.com/SomeVideoID",
+        "alt": "Test Alt Text",
+    }
+    body = get_multipart_request_body(
+        PRODUCT_MEDIA_CREATE_QUERY, variables, file="", file_name="name"
+    )
+
+    response = staff_api_client.post_multipart(
+        body, permissions=[permission_manage_products]
+    )
+
+    content = get_graphql_content(response)
+    errors = content["data"]["productMediaCreate"]["productErrors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductErrorCode.UNSUPPORTED_MEDIA_PROVIDER.name
+    assert errors[0]["field"] == "mediaUrl"
+
+
+def test_invalid_product_media_create_mutation(
     staff_api_client, product, permission_manage_products
 ):
     query = """
-    mutation createProductImage($image: Upload!, $product: ID!) {
-        productImageCreate(input: {image: $image, product: $product}) {
-            image {
+    mutation createProductMedia($image: Upload!, $product: ID!) {
+        productMediaCreate(input: {image: $image, product: $product}) {
+            media {
                 id
                 url
                 sortOrder
@@ -6108,24 +6307,26 @@ def test_invalid_product_image_create_mutation(
         "image": image_name,
     }
     body = get_multipart_request_body(query, variables, image_file, image_name)
+
     response = staff_api_client.post_multipart(
         body, permissions=[permission_manage_products]
     )
+
     content = get_graphql_content(response)
-    assert content["data"]["productImageCreate"]["errors"] == [
+    assert content["data"]["productMediaCreate"]["errors"] == [
         {"field": "image", "message": "Invalid file type"}
     ]
     product.refresh_from_db()
-    assert product.images.count() == 0
+    assert product.media.count() == 0
 
 
 def test_product_image_update_mutation(
     monkeypatch, staff_api_client, product_with_image, permission_manage_products
 ):
     query = """
-    mutation updateProductImage($imageId: ID!, $alt: String) {
-        productImageUpdate(id: $imageId, input: {alt: $alt}) {
-            image {
+    mutation updateProductMedia($mediaId: ID!, $alt: String) {
+        productMediaUpdate(id: $mediaId, input: {alt: $alt}) {
+            media {
                 alt
             }
         }
@@ -6141,57 +6342,57 @@ def test_product_image_update_mutation(
         mock_create_thumbnails,
     )
 
-    image_obj = product_with_image.images.first()
+    media_obj = product_with_image.media.first()
     alt = "damage alt"
     variables = {
         "alt": alt,
-        "imageId": graphene.Node.to_global_id("ProductImage", image_obj.id),
+        "mediaId": graphene.Node.to_global_id("ProductMedia", media_obj.id),
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
-    assert content["data"]["productImageUpdate"]["image"]["alt"] == alt
+    assert content["data"]["productMediaUpdate"]["media"]["alt"] == alt
 
     # We did not update the image field,
     # the image should not have triggered a warm-up
     assert mock_create_thumbnails.call_count == 0
 
 
-def test_product_image_delete(
+def test_product_media_delete(
     staff_api_client, product_with_image, permission_manage_products
 ):
     product = product_with_image
     query = """
-            mutation deleteProductImage($id: ID!) {
-                productImageDelete(id: $id) {
-                    image {
+            mutation deleteProductMedia($id: ID!) {
+                productMediaDelete(id: $id) {
+                    media {
                         id
                         url
                     }
                 }
             }
         """
-    image_obj = product.images.first()
-    node_id = graphene.Node.to_global_id("ProductImage", image_obj.id)
+    media_obj = product.media.first()
+    node_id = graphene.Node.to_global_id("ProductMedia", media_obj.id)
     variables = {"id": node_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
-    data = content["data"]["productImageDelete"]
-    assert image_obj.image.url in data["image"]["url"]
-    with pytest.raises(image_obj._meta.model.DoesNotExist):
-        image_obj.refresh_from_db()
-    assert node_id == data["image"]["id"]
+    data = content["data"]["productMediaDelete"]
+    assert media_obj.image.url in data["media"]["url"]
+    with pytest.raises(media_obj._meta.model.DoesNotExist):
+        media_obj.refresh_from_db()
+    assert node_id == data["media"]["id"]
 
 
-def test_reorder_images(
+def test_reorder_media(
     staff_api_client, product_with_images, permission_manage_products
 ):
     query = """
-    mutation reorderImages($product_id: ID!, $images_ids: [ID]!) {
-        productImageReorder(productId: $product_id, imagesIds: $images_ids) {
+    mutation reorderMedia($product_id: ID!, $media_ids: [ID]!) {
+        productMediaReorder(productId: $product_id, mediaIds: $media_ids) {
             product {
                 id
             }
@@ -6199,14 +6400,14 @@ def test_reorder_images(
     }
     """
     product = product_with_images
-    images = product.images.all()
-    image_0 = images[0]
-    image_1 = images[1]
-    image_0_id = graphene.Node.to_global_id("ProductImage", image_0.id)
-    image_1_id = graphene.Node.to_global_id("ProductImage", image_1.id)
+    media = product.media.all()
+    media_0 = media[0]
+    media_1 = media[1]
+    media_0_id = graphene.Node.to_global_id("ProductMedia", media_0.id)
+    media_1_id = graphene.Node.to_global_id("ProductMedia", media_1.id)
     product_id = graphene.Node.to_global_id("Product", product.id)
 
-    variables = {"product_id": product_id, "images_ids": [image_1_id, image_0_id]}
+    variables = {"product_id": product_id, "media_ids": [media_1_id, media_0_id]}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
@@ -6214,16 +6415,16 @@ def test_reorder_images(
 
     # Check if order has been changed
     product.refresh_from_db()
-    reordered_images = product.images.all()
-    reordered_image_0 = reordered_images[0]
-    reordered_image_1 = reordered_images[1]
-    assert image_0.id == reordered_image_1.id
-    assert image_1.id == reordered_image_0.id
+    reordered_media = product.media.all()
+    reordered_media_0 = reordered_media[0]
+    reordered_media_1 = reordered_media[1]
+    assert media_0.id == reordered_media_1.id
+    assert media_1.id == reordered_media_0.id
 
 
 ASSIGN_VARIANT_QUERY = """
-    mutation assignVariantImageMutation($variantId: ID!, $imageId: ID!) {
-        variantImageAssign(variantId: $variantId, imageId: $imageId) {
+    mutation assignVariantMediaMutation($variantId: ID!, $mediaId: ID!) {
+        variantMediaAssign(variantId: $variantId, mediaId: $mediaId) {
             errors {
                 field
                 message
@@ -6236,38 +6437,37 @@ ASSIGN_VARIANT_QUERY = """
 """
 
 
-def test_assign_variant_image(
+def test_assign_variant_media(
     staff_api_client, user_api_client, product_with_image, permission_manage_products
 ):
     query = ASSIGN_VARIANT_QUERY
     variant = product_with_image.variants.first()
-    image = product_with_image.images.first()
+    media_obj = product_with_image.media.first()
 
     variables = {
         "variantId": to_global_id("ProductVariant", variant.pk),
-        "imageId": to_global_id("ProductImage", image.pk),
+        "mediaId": to_global_id("ProductMedia", media_obj.pk),
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
     get_graphql_content(response)
     variant.refresh_from_db()
-    assert variant.images.first() == image
+    assert variant.media.first() == media_obj
 
 
-def test_assign_variant_image_second_time(
+def test_assign_variant_media_second_time(
     staff_api_client, user_api_client, product_with_image, permission_manage_products
 ):
     # given
     query = ASSIGN_VARIANT_QUERY
     variant = product_with_image.variants.first()
-    image = product_with_image.images.first()
-
-    image.variant_images.create(variant=variant)
+    media_obj = product_with_image.media.first()
+    media_obj.variant_media.create(variant=variant)
 
     variables = {
         "variantId": to_global_id("ProductVariant", variant.pk),
-        "imageId": to_global_id("ProductImage", image.pk),
+        "mediaId": to_global_id("ProductMedia", media_obj.pk),
     }
 
     # when
@@ -6284,7 +6484,7 @@ def test_assign_variant_image_second_time(
     )
 
 
-def test_assign_variant_image_from_different_product(
+def test_assign_variant_media_from_different_product(
     staff_api_client, user_api_client, product_with_image, permission_manage_products
 ):
     query = ASSIGN_VARIANT_QUERY
@@ -6293,16 +6493,16 @@ def test_assign_variant_image_from_different_product(
     product_with_image.slug = "product-with-image"
     product_with_image.save()
 
-    image_2 = ProductImage.objects.create(product=product_with_image)
+    media_obj_2 = ProductMedia.objects.create(product=product_with_image)
     variables = {
         "variantId": to_global_id("ProductVariant", variant.pk),
-        "imageId": to_global_id("ProductImage", image_2.pk),
+        "mediaId": to_global_id("ProductMedia", media_obj_2.pk),
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
-    assert content["data"]["variantImageAssign"]["errors"][0]["field"] == "imageId"
+    assert content["data"]["variantMediaAssign"]["errors"][0]["field"] == "mediaId"
 
     # check permissions
     response = user_api_client.post_graphql(query, variables)
@@ -6310,8 +6510,8 @@ def test_assign_variant_image_from_different_product(
 
 
 UNASSIGN_VARIANT_IMAGE_QUERY = """
-    mutation unassignVariantImageMutation($variantId: ID!, $imageId: ID!) {
-        variantImageUnassign(variantId: $variantId, imageId: $imageId) {
+    mutation unassignVariantMediaMutation($variantId: ID!, $mediaId: ID!) {
+        variantMediaUnassign(variantId: $variantId, mediaId: $mediaId) {
             errors {
                 field
                 message
@@ -6324,42 +6524,42 @@ UNASSIGN_VARIANT_IMAGE_QUERY = """
 """
 
 
-def test_unassign_variant_image(
+def test_unassign_variant_media_image(
     staff_api_client, product_with_image, permission_manage_products
 ):
     query = UNASSIGN_VARIANT_IMAGE_QUERY
 
-    image = product_with_image.images.first()
+    media = product_with_image.media.first()
     variant = product_with_image.variants.first()
-    variant.variant_images.create(image=image)
+    variant.variant_media.create(media=media)
 
     variables = {
         "variantId": to_global_id("ProductVariant", variant.pk),
-        "imageId": to_global_id("ProductImage", image.pk),
+        "mediaId": to_global_id("ProductMedia", media.pk),
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
     get_graphql_content(response)
     variant.refresh_from_db()
-    assert variant.images.count() == 0
+    assert variant.media.count() == 0
 
 
-def test_unassign_not_assigned_variant_image(
+def test_unassign_not_assigned_variant_media_image(
     staff_api_client, product_with_image, permission_manage_products
 ):
     query = UNASSIGN_VARIANT_IMAGE_QUERY
     variant = product_with_image.variants.first()
-    image_2 = ProductImage.objects.create(product=product_with_image)
+    media = ProductMedia.objects.create(product=product_with_image)
     variables = {
         "variantId": to_global_id("ProductVariant", variant.pk),
-        "imageId": to_global_id("ProductImage", image_2.pk),
+        "mediaId": to_global_id("ProductMedia", media.pk),
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
-    assert content["data"]["variantImageUnassign"]["errors"][0]["field"] == ("imageId")
+    assert content["data"]["variantMediaUnassign"]["errors"][0]["field"] == ("mediaId")
 
 
 @patch("saleor.product.tasks.update_variants_names.delay")
