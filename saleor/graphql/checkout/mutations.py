@@ -628,7 +628,8 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
                 }
             )
 
-        if not checkout.is_shipping_required():
+        lines = fetch_checkout_lines(checkout)
+        if not is_shipping_required(lines):
             raise ValidationError(
                 {
                     "shipping_address": ValidationError(
@@ -641,9 +642,8 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         shipping_address = cls.validate_address(
             shipping_address, instance=checkout.shipping_address, info=info
         )
-        discounts = info.context.discounts
 
-        lines = fetch_checkout_lines(checkout)
+        discounts = info.context.discounts
         checkout_info = fetch_checkout_info(checkout, lines, discounts)
 
         country = get_user_country_context(
