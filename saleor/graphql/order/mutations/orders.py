@@ -551,7 +551,7 @@ class OrderConfirm(ModelMutation):
     @classmethod
     def get_instance(cls, info, **data):
         instance = super().get_instance(info, **data)
-        if instance.status != OrderStatus.UNCONFIRMED:
+        if not instance.is_unconfirmed():
             raise ValidationError(
                 {
                     "id": ValidationError(
@@ -636,8 +636,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
             )
             quantity = input_line["quantity"]
             if quantity > 0:
-                if variant:
-                    lines_to_add.append((quantity, variant))
+                lines_to_add.append((quantity, variant))
             else:
                 invalid_ids.append(variant_id)
         if invalid_ids:
@@ -715,7 +714,7 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
         cls.validate_order(line.order)
 
         db_id = line.id
-        delete_order_line(info.context.plugins, line)
+        delete_order_line(line)
         line.id = db_id
 
         # Create the removal event
@@ -764,7 +763,7 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
     @classmethod
     def save(cls, info, instance, cleaned_input):
         change_order_line_quantity(
-            info.context, instance, instance.old_quantity, instance.quantity
+            info.context.user, instance, instance.old_quantity, instance.quantity
         )
         recalculate_order(instance.order)
 

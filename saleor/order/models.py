@@ -307,6 +307,9 @@ class Order(ModelWithMetadata):
     def is_draft(self):
         return self.status == OrderStatus.DRAFT
 
+    def is_unconfirmed(self):
+        return self.status == OrderStatus.UNCONFIRMED
+
     def is_open(self):
         statuses = {OrderStatus.UNFULFILLED, OrderStatus.PARTIALLY_FULFILLED}
         return self.status in statuses
