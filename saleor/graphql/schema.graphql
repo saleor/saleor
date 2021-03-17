@@ -971,6 +971,7 @@ enum CheckoutErrorCode {
   ZERO_QUANTITY
   MISSING_CHANNEL_SLUG
   CHANNEL_INACTIVE
+  UNAVAILABLE_VARIANT_IN_CHANNEL
 }
 
 type CheckoutLine implements Node {
