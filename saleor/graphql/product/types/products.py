@@ -71,6 +71,7 @@ from ...utils import (
 from ...utils.filters import reporting_period_to_date
 from ...warehouse.dataloaders import (
     AvailableQuantityByProductVariantIdAndCountryCodeLoader,
+    StocksWithAvailableQuantityByProductVariantIdAndCountryCodeLoader,
 )
 from ...warehouse.types import Stock
 from ..dataloaders import (
@@ -80,6 +81,8 @@ from ..dataloaders import (
     CollectionsByProductIdLoader,
     ImagesByProductIdLoader,
     ImagesByProductVariantIdLoader,
+    MediaByProductIdLoader,
+    MediaByProductVariantIdLoader,
     ProductAttributesByProductTypeIdLoader,
     ProductByIdLoader,
     ProductChannelListingByProductIdAndChannelSlugLoader,
@@ -205,7 +208,13 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         ),
     )
     images = graphene.List(
-        lambda: ProductImage, description="List of images for the product variant."
+        lambda: ProductImage,
+        description="List of images for the product variant.",
+        deprecation_reason="Will be removed in Saleor 4.0. Use the `media` instead.",
+    )
+    media = graphene.List(
+        graphene.NonNull(lambda: ProductMedia),
+        description="List of media for the product variant.",
     )
     translation = TranslationField(
         ProductVariantTranslation,
@@ -268,9 +277,9 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                 address, info.context.site.settings.company_address
             )
 
-        if not country_code:
-            return root.node.stocks.annotate_available_quantity()
-        return root.node.stocks.for_country(country_code).annotate_available_quantity()
+        return StocksWithAvailableQuantityByProductVariantIdAndCountryCodeLoader(
+            info.context
+        ).load((root.node.id, country_code))
 
     @staticmethod
     def resolve_quantity_available(
@@ -466,6 +475,10 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         )
 
     @staticmethod
+    def resolve_media(root: ChannelContext[models.ProductVariant], info, *_args):
+        return MediaByProductVariantIdLoader(info.context).load(root.node.id)
+
+    @staticmethod
     def resolve_images(root: ChannelContext[models.ProductVariant], info, *_args):
         return ImagesByProductVariantIdLoader(info.context).load(root.node.id)
 
@@ -522,16 +535,32 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         graphene.NonNull(ProductChannelListing),
         description="List of availability in channels for the product.",
     )
+    media_by_id = graphene.Field(
+        graphene.NonNull(lambda: ProductMedia),
+        id=graphene.Argument(graphene.ID, description="ID of a product media."),
+        description="Get a single product media by ID.",
+    )
     image_by_id = graphene.Field(
         lambda: ProductImage,
         id=graphene.Argument(graphene.ID, description="ID of a product image."),
         description="Get a single product image by ID.",
+        deprecation_reason=(
+            "Will be removed in Saleor 4.0. Use the `mediaById` field instead."
+        ),
     )
     variants = graphene.List(
         ProductVariant, description="List of variants for the product."
     )
+    media = graphene.List(
+        graphene.NonNull(lambda: ProductMedia),
+        description="List of media for the product.",
+    )
     images = graphene.List(
-        lambda: ProductImage, description="List of images for the product."
+        lambda: ProductImage,
+        description="List of images for the product.",
+        deprecation_reason=(
+            "Will be removed in Saleor 4.0. Use the `media` field instead."
+        ),
     )
     collections = graphene.List(
         lambda: Collection, description="List of collections for the product."
@@ -603,16 +632,23 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     def resolve_thumbnail(root: ChannelContext[models.Product], info, *, size=255):
-        def return_first_thumbnail(images):
-            image = images[0] if images else None
-            if image:
+        def return_first_thumbnail(product_media):
+            if product_media:
+                image = product_media[0]
+                oembed_data = image.oembed_data
+
+                if oembed_data.get("thumbnail_url"):
+                    return Image(
+                        alt=oembed_data["title"], url=oembed_data["thumbnail_url"]
+                    )
+
                 url = get_product_image_thumbnail(image, size, method="thumbnail")
                 alt = image.alt
                 return Image(alt=alt, url=info.context.build_absolute_uri(url))
             return None
 
         return (
-            ImagesByProductIdLoader(info.context)
+            MediaByProductIdLoader(info.context)
             .load(root.node.id)
             .then(return_first_thumbnail)
         )
@@ -719,12 +755,24 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return SelectedAttributesByProductIdLoader(info.context).load(root.node.id)
 
     @staticmethod
-    def resolve_image_by_id(root: ChannelContext[models.Product], info, id):
-        pk = get_database_id(info, id, ProductImage)
+    def resolve_media_by_id(root: ChannelContext[models.Product], info, id):
+        pk = get_database_id(info, id, ProductMedia)
         try:
-            return root.node.images.get(pk=pk)
-        except models.ProductImage.DoesNotExist:
+            return root.node.media.get(pk=pk)
+        except models.ProductMedia.DoesNotExist:
+            raise GraphQLError("Product media not found.")
+
+    @staticmethod
+    def resolve_image_by_id(root: ChannelContext[models.Product], info, id):
+        pk = get_database_id(info, id, ProductMedia)
+        try:
+            return root.node.media.get(pk=pk)
+        except models.ProductMedia.DoesNotExist:
             raise GraphQLError("Product image not found.")
+
+    @staticmethod
+    def resolve_media(root: ChannelContext[models.Product], info, **_kwargs):
+        return MediaByProductIdLoader(info.context).load(root.node.id)
 
     @staticmethod
     def resolve_images(root: ChannelContext[models.Product], info, **_kwargs):
@@ -1156,21 +1204,24 @@ class Category(CountableDjangoObjectType):
 
 
 @key(fields="id")
-class ProductImage(CountableDjangoObjectType):
+class ProductMedia(CountableDjangoObjectType):
     url = graphene.String(
         required=True,
-        description="The URL of the image.",
+        description="The URL of the media.",
         size=graphene.Int(description="Size of the image."),
     )
 
     class Meta:
-        description = "Represents a product image."
-        only_fields = ["alt", "id", "sort_order"]
+        description = "Represents a product media."
+        fields = ["alt", "id", "sort_order", "type", "oembed_data"]
         interfaces = [relay.Node]
-        model = models.ProductImage
+        model = models.ProductMedia
 
     @staticmethod
-    def resolve_url(root: models.ProductImage, info, *, size=None):
+    def resolve_url(root: models.ProductMedia, info, *, size=None):
+        if root.external_url:
+            return root.external_url
+
         if size:
             url = get_thumbnail(root.image, size, method="thumbnail")
         else:
@@ -1180,3 +1231,37 @@ class ProductImage(CountableDjangoObjectType):
     @staticmethod
     def __resolve_reference(root, _info, **_kwargs):
         return graphene.Node.get_node_from_global_id(_info, root.id)
+
+
+@key(fields="id")
+class ProductImage(graphene.ObjectType):
+    id = graphene.ID(required=True, description="The ID of the image.")
+    alt = graphene.String(description="The alt text of the image.")
+    sort_order = graphene.Int(
+        required=False,
+        description=(
+            "The new relative sorting position of the item (from -inf to +inf). "
+            "1 moves the item one position forward, -1 moves the item one position "
+            "backward, 0 leaves the item unchanged."
+        ),
+    )
+    url = graphene.String(
+        required=True,
+        description="The URL of the image.",
+        size=graphene.Int(description="Size of the image."),
+    )
+
+    class Meta:
+        description = "Represents a product image."
+
+    @staticmethod
+    def resolve_id(root: models.ProductMedia, info):
+        return graphene.Node.to_global_id("ProductMedia", root.id)
+
+    @staticmethod
+    def resolve_url(root: models.ProductMedia, info, *, size=None):
+        if size:
+            url = get_thumbnail(root.image, size, method="thumbnail")
+        else:
+            url = root.image.url
+        return info.context.build_absolute_uri(url)

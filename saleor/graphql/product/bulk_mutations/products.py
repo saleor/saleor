@@ -515,7 +515,7 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
             models.ProductVariant.objects.filter(id__in=pks).prefetch_related(
                 "channel_listings",
                 "attributes__values",
-                "variant_images",
+                "variant_media",
             )
         )
 
@@ -715,17 +715,17 @@ class ProductTypeBulkDelete(ModelBulkDeleteMutation):
         error_type_field = "product_errors"
 
 
-class ProductImageBulkDelete(ModelBulkDeleteMutation):
+class ProductMediaBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID,
             required=True,
-            description="List of product image IDs to delete.",
+            description="List of product media IDs to delete.",
         )
 
     class Meta:
-        description = "Deletes product images."
-        model = models.ProductImage
+        description = "Deletes product media."
+        model = models.ProductMedia
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"

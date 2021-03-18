@@ -23,6 +23,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Allow to use `Bearer` as an authorization prefix - #6996 by @korycins
 - Update checkout quantity when checkout lines are deleted - #7002 by @IKarbowiak
 - Raise an error when the user is trying to sort products by rank without search - #7013 by @IKarbowiak
+- Fix available shipping methods - return also weight methods without weight limits - #7021 by @IKarbowiak
+- Remove redundant Opentracing spans - #6994 by @fowczarek
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -87,6 +89,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add SearchRank to search product by name and description. New enum added to `ProductOrderField` - `RANK` - which returns results sorted by search rank - #6872 by @d-wysocki
 - Allocate stocks for order lines in a bulk way - #6877 by @IKarbowiak
 - Add product description_plaintext to populatedb - #6894 by @d-wysocki
+- Add uploading video URLs to product's gallery - #6838 by @GrzegorzDerdak
 - Deallocate stocks for order lines in a bulk way - #6896 by @IKarbowiak
 - Prevent negative available quantity - #6897 by @d-wysocki
 - Fix CheckoutLinesInfoByCheckoutTokenLoader dataloader - #6929 by @IKarbowiak
@@ -94,6 +97,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add default sorting by rank for search products - #6936 by @d-wysocki
 - Fix exporting product description to xlsx - #6959 by @IKarbowiak
 - Add `Shop.version` field to query API version - #6980 by @maarcingebala
+- Return empty results when filtering by non-existing attribute - #7025 by @maarcingebala
 
 # 2.11.1
 

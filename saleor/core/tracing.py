@@ -4,7 +4,20 @@ from graphene.relay import GlobalID
 from graphene.types.resolver import default_resolver
 from graphql import ResolveInfo
 
-DEFAULT_RESOLVERS = {default_resolver, GlobalID.id_resolver}
+from ..graphql.channel.types import ChannelContextType, ChannelContextTypeWithMetadata
+from ..graphql.meta.types import ObjectWithMetadata
+
+IGNORED_RESOLVERS = {
+    # Default resolvers:
+    default_resolver,
+    GlobalID.id_resolver,
+    ChannelContextType.resolver_with_context,
+    # Metadata resolvers:
+    ChannelContextTypeWithMetadata.resolve_metadata,
+    ChannelContextTypeWithMetadata.resolve_private_metadata,
+    ObjectWithMetadata.resolve_metadata,
+    ObjectWithMetadata.resolve_private_metadata,
+}
 
 
 def should_trace(info: ResolveInfo) -> bool:
@@ -14,7 +27,7 @@ def should_trace(info: ResolveInfo) -> bool:
     resolver = info.parent_type.fields[info.field_name].resolver
     return not (
         resolver is None
-        or is_default_resolver(resolver)
+        or is_resolver_ignored(resolver)
         or is_introspection_field(info)
     )
 
@@ -27,9 +40,9 @@ def is_introspection_field(info: ResolveInfo):
     return False
 
 
-def is_default_resolver(resolver):
+def is_resolver_ignored(resolver):
     while isinstance(resolver, partial):
         resolver = resolver.func
-        if resolver in DEFAULT_RESOLVERS:
+        if resolver in IGNORED_RESOLVERS:
             return True
-    return resolver in DEFAULT_RESOLVERS
+    return resolver in IGNORED_RESOLVERS

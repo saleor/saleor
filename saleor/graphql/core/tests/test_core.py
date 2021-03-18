@@ -8,6 +8,8 @@ from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.utils import timezone
 from graphene import InputField
 
+from ....core.utils.validators import get_oembed_data
+from ....product import ProductMediaTypes
 from ....product.models import Category, Product, ProductChannelListing
 from ...product import types as product_types
 from ...tests.utils import get_graphql_content, get_graphql_content_from_response
@@ -279,3 +281,53 @@ def test_requestor_is_superuser_for_anonymous_user():
     user = AnonymousUser()
     result = requestor_is_superuser(user)
     assert result is False
+
+
+@pytest.mark.vcr
+@pytest.mark.parametrize(
+    "url, expected_media_type",
+    [
+        (
+            "http://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            ProductMediaTypes.VIDEO,
+        ),
+        (
+            "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            ProductMediaTypes.VIDEO,
+        ),
+        (
+            "https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=TestingChannel",
+            ProductMediaTypes.VIDEO,
+        ),
+        (
+            "https://vimeo.com/148751763",
+            ProductMediaTypes.VIDEO,
+        ),
+        (
+            "https://www.flickr.com/photos/megane_wakui/31740618232/",
+            ProductMediaTypes.IMAGE,
+        ),
+    ],
+)
+def test_get_oembed_data(url, expected_media_type):
+    oembed_data, media_type = get_oembed_data(url, "media_url")
+
+    assert oembed_data is not {}
+    assert media_type == expected_media_type
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://www.streamable.com/8vnouo",
+        "https://www.flickr.com/photos/test/test/",
+        "https://www.youtube.com/embed/v=dQw4w9WgXcQ",
+        "https://vimeo.com/test",
+        "http://onet.pl/",
+    ],
+)
+def test_get_oembed_data_unsupported_media_provider(url):
+    with pytest.raises(
+        ValidationError, match="Unsupported media provider or incorrect URL."
+    ):
+        get_oembed_data(url, "media_url")
