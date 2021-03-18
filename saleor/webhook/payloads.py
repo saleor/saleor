@@ -18,6 +18,7 @@ from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..order.utils import get_order_country
 from ..page.models import Page
 from ..payment import ChargeStatus
+from ..product import ProductMediaTypes
 from ..product.models import Product
 from ..warehouse.models import Warehouse
 from .event_types import WebhookEventType
@@ -311,9 +312,16 @@ def generate_product_variant_payload(product_variant: "ProductVariant"):
         extra_dict_data={
             "attributes": serialize_product_or_variant_attributes(product_variant),
             "product_id": product_id,
-            "images": [
-                {"alt": img.image.alt, "url": build_absolute_uri(img.image.image.url)}
-                for img in product_variant.variant_images.all()
+            "media": [
+                {
+                    "alt": media_obj.media.alt,
+                    "url": (
+                        build_absolute_uri(media_obj.media.image.url)
+                        if media_obj.media.type == ProductMediaTypes.IMAGE
+                        else media_obj.media.external_url
+                    ),
+                }
+                for media_obj in product_variant.variant_media.all()
             ],
         },
     )

@@ -16,7 +16,7 @@ from ...channel.models import Channel
 from ...discount.models import Sale, SaleChannelListing, Voucher, VoucherChannelListing
 from ...giftcard.models import GiftCard
 from ...order.models import Order
-from ...product.models import ProductImage, ProductType
+from ...product.models import ProductMedia, ProductType
 from ...shipping.models import ShippingZone
 from ..storages import S3MediaStorage
 from ..templatetags.placeholder import placeholder
@@ -188,7 +188,7 @@ def test_create_gift_card(db):
 def test_create_thumbnails(product_with_image, settings, monkeypatch):
     monkeypatch.setattr("django.core.cache.cache.get", Mock(return_value=None))
     sizeset = settings.VERSATILEIMAGEFIELD_RENDITION_KEY_SETS["products"]
-    product_image = product_with_image.images.first()
+    product_image = product_with_image.media.first()
 
     # There's no way to list images created by versatile prewarmer
     # So we delete all created thumbnails/crops and count them
@@ -199,7 +199,7 @@ def test_create_thumbnails(product_with_image, settings, monkeypatch):
     # Image didn't have any thumbnails/crops created, so there's no log
     assert not log_deleted_images
 
-    create_thumbnails(product_image.pk, ProductImage, "products")
+    create_thumbnails(product_image.pk, ProductMedia, "products")
     log_deleted_images = io.StringIO()
     with redirect_stdout(log_deleted_images):
         product_image.image.delete_all_created_images()
