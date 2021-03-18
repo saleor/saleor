@@ -296,7 +296,7 @@ class VoucherChannelListingInput(graphene.InputObjectType):
     )
     remove_channels = graphene.List(
         graphene.NonNull(graphene.ID),
-        description=("List of channels from which the voucher should be unassigned."),
+        description="List of channels from which the voucher should be unassigned.",
         required=False,
     )
 
@@ -318,14 +318,17 @@ class VoucherChannelListingUpdate(BaseChannelListingMutation):
         error_type_field = "discount_errors"
 
     @classmethod
-    def clean_prices(cls, cleaned_input, voucher, errors):
+    def clean_discount_values_per_channel(cls, cleaned_input, voucher, error_lists):
+        (
+            channels_without_value,
+            channels_with_invalid_value_precision,
+            channels_with_invalid_percentage_value,
+            channels_with_invalid_min_amount_spent_precision,
+        ) = error_lists
         channel_slugs_assigned_to_voucher = voucher.channel_listings.values_list(
             "channel__slug", flat=True
         )
-        is_fixed_value_type = voucher.discount_value_type == DiscountValueType.FIXED
-        channels_without_value = []
-        channels_with_invalid_value_precision = []
-        channels_with_invalid_min_amount_spent_precision = []
+
         for cleaned_channel in cleaned_input.get("add_channels", []):
             channel = cleaned_channel.get("channel", None)
             if not channel:
@@ -339,14 +342,18 @@ class VoucherChannelListingUpdate(BaseChannelListingMutation):
             if missing_required_value or discount_value is None:
                 channels_without_value.append(cleaned_channel["channel_id"])
             # Validate value precision if it is fixed amount voucher
-            if discount_value and is_fixed_value_type:
+            if voucher.discount_value_type == DiscountValueType.FIXED:
                 try:
                     validate_price_precision(discount_value, channel.currency_code)
                 except ValidationError:
                     channels_with_invalid_value_precision.append(
                         cleaned_channel["channel_id"]
                     )
-            if discount_value:
+            if voucher.discount_value_type == DiscountValueType.PERCENTAGE:
+                if discount_value > 100:
+                    channels_with_invalid_percentage_value.append(
+                        cleaned_channel["channel_id"]
+                    )
                 cleaned_channel["discount_value"] = discount_value
 
             min_amount_spent = cleaned_channel.get("min_amount_spent", None)
@@ -357,6 +364,24 @@ class VoucherChannelListingUpdate(BaseChannelListingMutation):
                     channels_with_invalid_min_amount_spent_precision.append(
                         cleaned_channel["channel_id"]
                     )
+
+    @classmethod
+    def clean_discount_values(cls, cleaned_input, voucher, errors):
+        channels_without_value = []
+        channels_with_invalid_value_precision = []
+        channels_with_invalid_percentage_value = []
+        channels_with_invalid_min_amount_spent_precision = []
+        error_lists = (
+            channels_without_value,
+            channels_with_invalid_value_precision,
+            channels_with_invalid_percentage_value,
+            channels_with_invalid_min_amount_spent_precision,
+        )
+        cls.clean_discount_values_per_channel(
+            cleaned_input,
+            voucher,
+            error_lists,
+        )
 
         if channels_without_value:
             errors["discount_value"].append(
@@ -373,6 +398,14 @@ class VoucherChannelListingUpdate(BaseChannelListingMutation):
                     "Invalid amount precision.",
                     code=DiscountErrorCode.INVALID.value,
                     params={"channels": channels_with_invalid_value_precision},
+                )
+            )
+        if channels_with_invalid_percentage_value:
+            errors["discount_value"].append(
+                ValidationError(
+                    "Invalid percentage value.",
+                    code=DiscountErrorCode.INVALID.value,
+                    params={"channels": channels_with_invalid_percentage_value},
                 )
             )
         if channels_with_invalid_min_amount_spent_precision:
@@ -419,7 +452,7 @@ class VoucherChannelListingUpdate(BaseChannelListingMutation):
         cleaned_input = cls.clean_channels(
             info, input, errors, DiscountErrorCode.DUPLICATED_INPUT_ITEM.value
         )
-        cleaned_input = cls.clean_prices(cleaned_input, voucher, errors)
+        cleaned_input = cls.clean_discount_values(cleaned_input, voucher, errors)
 
         if errors:
             raise ValidationError(errors)
