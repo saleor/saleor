@@ -7,6 +7,7 @@ from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
 from ....checkout.utils import add_variant_to_checkout
+from ....plugins.manager import get_plugins_manager
 from ...checkout.mutations import update_checkout_shipping_method_if_invalid
 from ...tests.utils import get_graphql_content
 from .test_checkout import (
@@ -160,8 +161,9 @@ def test_remove_shipping_method_if_only_digital_in_checkout(
     checkout.save()
 
     assert checkout.shipping_method
+    manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [])
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     update_checkout_shipping_method_if_invalid(checkout_info, lines)
 
     checkout.refresh_from_db()
