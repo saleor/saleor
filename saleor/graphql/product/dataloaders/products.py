@@ -511,3 +511,15 @@ class CollectionChannelListingByCollectionIdAndChannelSlugLoader(DataLoader):
             collections_channel_listings_by_collection_and_channel_map.get(key, None)
             for key in keys
         ]
+
+
+class CategoryChildrenByCategoryIdLoader(DataLoader):
+    context_key = "categorychildren_by_category"
+
+    def batch_load(self, keys):
+        categories = Category.objects.filter(parent__isnull=False)
+        parent_to_children_mapping = defaultdict(list)
+        for category in categories:
+            parent_to_children_mapping[category.parent_id].append(category)
+
+        return [parent_to_children_mapping.get(key, []) for key in keys]
