@@ -283,6 +283,7 @@ def test_requestor_is_superuser_for_anonymous_user():
     assert result is False
 
 
+@pytest.mark.vcr
 @pytest.mark.parametrize(
     "url, expected_media_type",
     [
