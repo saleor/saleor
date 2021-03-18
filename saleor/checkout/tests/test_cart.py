@@ -271,4 +271,5 @@ def test_get_total_weight(checkout_with_item):
     variant.save()
     line.quantity = 6
     line.save()
-    assert checkout_with_item.get_total_weight() == Weight(kg=60)
+    lines = fetch_checkout_lines(checkout_with_item)
+    assert checkout_with_item.get_total_weight(lines) == Weight(kg=60)
