@@ -189,6 +189,7 @@ class BaseReorderAttributeValuesMutation(BaseMutation):
 
 class AttributeValueCreateInput(graphene.InputObjectType):
     name = graphene.String(required=True, description=AttributeValueDescriptions.NAME)
+    value = graphene.String(description=AttributeValueDescriptions.VALUE)
 
 
 class AttributeCreateInput(graphene.InputObjectType):
