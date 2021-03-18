@@ -1,0 +1,82 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Connection:
+      - close
+      Host:
+      - vimeo.com
+      User-Agent:
+      - python-micawber
+    method: GET
+    uri: https://vimeo.com/api/oembed.json?format=json&maxheight=1080&maxwidth=1920&url=https%3A%2F%2Fvimeo.com%2F148751763
+  response:
+    body:
+      string: '{"type":"video","version":"1.0","provider_name":"Vimeo","provider_url":"https:\/\/vimeo.com\/","title":"Rick
+        Astley - Never Gonna Give You Up","author_name":"Rick Astley","author_url":"https:\/\/vimeo.com\/user46726126","is_plus":"0","account_type":"basic","html":"<iframe
+        src=\"https:\/\/player.vimeo.com\/video\/148751763?app_id=122963\" width=\"320\"
+        height=\"240\" frameborder=\"0\" allow=\"autoplay; fullscreen; picture-in-picture\"
+        allowfullscreen title=\"Rick Astley - Never Gonna Give You Up\"><\/iframe>","width":320,"height":240,"duration":214,"description":"","thumbnail_url":"https:\/\/i.vimeocdn.com\/video\/547780029_295x166.jpg","thumbnail_width":295,"thumbnail_height":221,"thumbnail_url_with_play_button":"https:\/\/i.vimeocdn.com\/filter\/overlay?src0=https%3A%2F%2Fi.vimeocdn.com%2Fvideo%2F547780029_295x166.jpg&src1=http%3A%2F%2Ff.vimeocdn.com%2Fp%2Fimages%2Fcrawler_play.png","upload_date":"2015-12-12
+        19:51:18","video_id":148751763,"uri":"\/videos\/148751763"}'
+    headers:
+      Accept-Ranges:
+      - bytes
+      Access-Control-Allow-Headers:
+      - X-Requested-With
+      Access-Control-Allow-Origin:
+      - '*'
+      Age:
+      - '0'
+      Cache-Control:
+      - no-store, no-cache, must-revalidate, post-check=0, pre-check=0
+      Connection:
+      - close
+      Content-Length:
+      - '982'
+      Content-Security-Policy-Report-Only:
+      - 'default-src https: data: blob: wss: ''unsafe-inline'' ''unsafe-eval''; report-uri
+        /_csp'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 18 Mar 2021 09:22:45 GMT
+      Etag:
+      - '"3d00955b438ddd10b764354ab9578e738318c3b7"'
+      Last-Modified:
+      - Thu, 18 Mar 2021 08:21:04 GMT
+      Server:
+      - nginx
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Vary:
+      - Accept-Encoding
+      Via:
+      - 1.1 varnish, 1.1 varnish, 1.1 varnish
+      X-BApp-Server:
+      - pweb-v9157-nfxnf
+      X-Cache:
+      - MISS, MISS
+      X-Cache-Hits:
+      - 0, 0
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - sameorigin
+      X-Served-By:
+      - cache-bwi5140-BWI, cache-cph20621-CPH
+      X-Timer:
+      - S1616059366.666689,VS0,VE133
+      X-UA-Compatible:
+      - IE=edge
+      X-VServer:
+      - infra-webproxy-a-9
+      X-Varnish-Cache:
+      - '0'
+      X-Vimeo-DC:
+      - ge
+      X-XSS-Protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+version: 1
