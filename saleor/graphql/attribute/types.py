@@ -23,6 +23,7 @@ color_pattern = re.compile(COLOR_PATTERN)
 class AttributeValue(CountableDjangoObjectType):
     name = graphene.String(description=AttributeValueDescriptions.NAME)
     slug = graphene.String(description=AttributeValueDescriptions.SLUG)
+    value = graphene.String(description=AttributeValueDescriptions.VALUE)
     translation = TranslationField(
         AttributeValueTranslation, type_name="attribute value"
     )
