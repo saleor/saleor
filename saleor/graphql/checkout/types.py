@@ -394,7 +394,6 @@ class Checkout(CountableDjangoObjectType):
             available = get_valid_shipping_methods_for_checkout(
                 checkout_info,
                 lines,
-                discounts,
                 subtotal=subtotal,
                 country_code=address.country.code,
             )
