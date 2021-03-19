@@ -218,7 +218,9 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             lines = []
             for variant, quantity in zip(variants, quantities):
                 lines.append((quantity, variant))
-                add_variant_to_draft_order(instance, variant, quantity)
+                add_variant_to_draft_order(
+                    instance, variant, quantity, info.context.plugins
+                )
 
             # New event
             events.draft_order_added_products_event(
@@ -451,7 +453,9 @@ class DraftOrderLinesCreate(BaseMutation):
         # Add the lines
         try:
             lines = [
-                add_variant_to_draft_order(order, variant, quantity)
+                add_variant_to_draft_order(
+                    order, variant, quantity, info.context.plugins
+                )
                 for quantity, variant in lines_to_add
             ]
         except TaxError as tax_error:
