@@ -695,11 +695,11 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                                     collections=collections,
                                     discounts=discounts,
                                     channel=channel,
+                                    plugins=context.plugins,
                                     country=Country(country_code),
                                     local_currency=get_currency_for_country(
                                         country_code
                                     ),
-                                    plugins=context.plugins,
                                 )
                                 return ProductPricingInfo(**asdict(availability))
 
