@@ -7,6 +7,7 @@ if TYPE_CHECKING:
     from ..account.models import Address, User
     from ..channel.models import Channel
     from ..discount import DiscountInfo
+    from ..plugins.manager import PluginsManager
     from ..product.models import (
         Collection,
         Product,
@@ -87,6 +88,7 @@ def fetch_checkout_info(
     checkout: "Checkout",
     lines: Iterable[CheckoutLineInfo],
     discounts: Iterable["DiscountInfo"],
+    manager: "PluginsManager",
 ) -> CheckoutInfo:
     """Fetch checkout as CheckoutInfo object."""
 
@@ -107,7 +109,7 @@ def fetch_checkout_info(
         valid_shipping_methods=[],
     )
     valid_shipping_methods = get_valid_shipping_method_list_for_checkout_info(
-        checkout_info, shipping_address, lines, discounts
+        checkout_info, shipping_address, lines, discounts, manager
     )
     checkout_info.valid_shipping_methods = valid_shipping_methods
 
@@ -116,13 +118,14 @@ def fetch_checkout_info(
 
 def update_checkout_info_shipping_address(
     checkout_info: CheckoutInfo,
-    address: "Address",
+    address: Optional["Address"],
     lines: Iterable[CheckoutLineInfo],
     discounts: Iterable["DiscountInfo"],
+    manager: "PluginsManager",
 ):
     checkout_info.shipping_address = address
     valid_methods = get_valid_shipping_method_list_for_checkout_info(
-        checkout_info, address, lines, discounts
+        checkout_info, address, lines, discounts, manager
     )
     checkout_info.valid_shipping_methods = valid_methods
 
@@ -132,12 +135,16 @@ def get_valid_shipping_method_list_for_checkout_info(
     shipping_address: Optional["Address"],
     lines: Iterable[CheckoutLineInfo],
     discounts: Iterable["DiscountInfo"],
+    manager: "PluginsManager",
 ):
     from .utils import get_valid_shipping_methods_for_checkout
 
     country_code = shipping_address.country.code if shipping_address else None
+    subtotal = manager.calculate_checkout_subtotal(
+        checkout_info, lines, checkout_info.shipping_address, discounts
+    )
     valid_shipping_method = get_valid_shipping_methods_for_checkout(
-        checkout_info, lines, discounts, country_code=country_code
+        checkout_info, lines, subtotal, country_code=country_code
     )
     valid_shipping_method = (
         list(valid_shipping_method) if valid_shipping_method is not None else []
