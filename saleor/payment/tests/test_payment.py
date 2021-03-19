@@ -482,6 +482,7 @@ def test_is_currency_supported(
     currency, exp_response, dummy_gateway_config, monkeypatch
 ):
     # given
+    manager = get_plugins_manager()
     dummy_gateway_config.supported_currencies = "USD, EUR"
     monkeypatch.setattr(
         "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin._get_gateway_config",
@@ -489,7 +490,7 @@ def test_is_currency_supported(
     )
 
     # when
-    response = is_currency_supported(currency, "mirumee.payments.dummy")
+    response = is_currency_supported(currency, "mirumee.payments.dummy", manager)
 
     # then
     assert response == exp_response

@@ -79,8 +79,8 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             )
 
     @classmethod
-    def validate_gateway(cls, gateway_id, currency):
-        if not is_currency_supported(currency, gateway_id):
+    def validate_gateway(cls, manager, gateway_id, currency):
+        if not is_currency_supported(currency, gateway_id, manager):
             raise ValidationError(
                 {
                     "gateway": ValidationError(
@@ -124,11 +124,11 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         data = data["input"]
         gateway = data["gateway"]
 
-        cls.validate_gateway(gateway, checkout.currency)
-        cls.validate_token(info.context.plugins, gateway, data)
+        manager = info.context.plugins
+        cls.validate_gateway(manager, gateway, checkout.currency)
+        cls.validate_token(manager, gateway, data)
         cls.validate_return_url(data)
 
-        manager = info.context.plugins
         lines = fetch_checkout_lines(checkout)
         checkout_info = fetch_checkout_info(
             checkout, lines, info.context.discounts, manager
