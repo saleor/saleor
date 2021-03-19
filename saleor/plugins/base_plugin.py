@@ -203,10 +203,10 @@ class BasePlugin:
         """
         return NotImplemented
 
-    # TODO: Add information about this change to `breaking changes in changelog`
     def calculate_checkout_line_total(
         self,
         checkout_info: "CheckoutInfo",
+        lines: List["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],

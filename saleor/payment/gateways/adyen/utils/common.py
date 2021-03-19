@@ -202,6 +202,7 @@ def append_klarna_data(payment_information: "PaymentData", payment_data: dict):
         total = checkout_line_total(
             manager=manager,
             checkout_info=checkout_info,
+            lines=lines,
             checkout_line_info=line_info,
             discounts=discounts,
         )

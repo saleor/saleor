@@ -132,6 +132,7 @@ def _validate_gift_cards(checkout: Checkout):
 def _create_line_for_order(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
     discounts: Iterable[DiscountInfo],
     products_translation: Dict[int, Optional[str]],
@@ -163,6 +164,7 @@ def _create_line_for_order(
 
     total_line_price = manager.calculate_checkout_line_total(
         checkout_info,
+        lines,
         checkout_line_info,
         address,
         discounts,
@@ -240,6 +242,7 @@ def _create_lines_for_order(
         _create_line_for_order(
             manager,
             checkout_info,
+            lines,
             checkout_line_info,
             discounts,
             product_translations,
