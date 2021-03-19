@@ -121,24 +121,17 @@ def test_manager_calculates_order_shipping(order_with_lines, plugins, shipping_a
 def test_manager_calculates_checkout_line_total(
     checkout_with_item, discount_info, plugins, amount
 ):
-    line = checkout_with_item.lines.all()[0]
-    channel = checkout_with_item.channel
-    channel_listing = line.variant.channel_listings.get(channel=channel)
     currency = checkout_with_item.currency
     expected_total = Money(amount, currency)
     manager = get_plugins_manager()
-    checkout_line_info = CheckoutLineInfo(
-        line=line,
-        variant=line.variant,
-        channel_listing=channel_listing,
-        product=line.variant.product,
-        collections=[],
-    )
+    lines = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
-        checkout_with_item, [checkout_line_info], [discount_info], manager
+        checkout_with_item, lines, [discount_info], manager
     )
+    checkout_line_info = lines[0]
     taxed_total = PluginsManager(plugins=plugins).calculate_checkout_line_total(
         checkout_info,
+        lines,
         checkout_line_info,
         checkout_with_item.shipping_address,
         [discount_info],

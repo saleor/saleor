@@ -9,7 +9,6 @@ from django.test import override_settings
 from prices import Money, TaxedMoney
 from requests import RequestException
 
-from ....account.models import Address
 from ....checkout.fetch import (
     CheckoutInfo,
     CheckoutLineInfo,
@@ -37,41 +36,6 @@ from .. import (
     taxes_need_new_fetch,
 )
 from ..plugin import AvataxPlugin
-
-
-@pytest.fixture
-def plugin_configuration(db):
-    def set_configuration(username="test", password="test", sandbox=False):
-        data = {
-            "active": True,
-            "name": AvataxPlugin.PLUGIN_NAME,
-            "configuration": [
-                {"name": "Username or account", "value": username},
-                {"name": "Password or license", "value": password},
-                {"name": "Use sandbox", "value": sandbox},
-                {"name": "Company name", "value": "DEFAULT"},
-                {"name": "Autocommit", "value": False},
-            ],
-        }
-        configuration = PluginConfiguration.objects.create(
-            identifier=AvataxPlugin.PLUGIN_ID, **data
-        )
-        return configuration
-
-    return set_configuration
-
-
-@pytest.fixture
-def ship_to_pl_address(db):
-    return Address.objects.create(
-        first_name="Eleanor",
-        last_name="Smith",
-        street_address_1="Oławska 10",
-        city="WROCŁAW",
-        postal_code="53-105",
-        country="PL",
-        phone="+48713988155",
-    )
 
 
 @pytest.mark.vcr()
@@ -115,22 +79,14 @@ def test_calculate_checkout_line_total(
     product.save()
     product.product_type.save()
     discounts = [discount_info] if with_discount else None
-    channel = checkout_with_item.channel
-    channel_listing = line.variant.channel_listings.get(channel=channel)
 
-    checkout_line_info = CheckoutLineInfo(
-        line=line,
-        variant=line.variant,
-        channel_listing=channel_listing,
-        product=line.variant.product,
-        collections=[],
-    )
-    checkout_info = fetch_checkout_info(
-        checkout_with_item, [checkout_line_info], discounts, manager
-    )
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts, manager)
+    checkout_line_info = lines[0]
 
     total = manager.calculate_checkout_line_total(
         checkout_info,
+        lines,
         checkout_line_info,
         checkout_with_item.shipping_address,
         discounts,
