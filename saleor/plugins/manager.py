@@ -45,6 +45,34 @@ if TYPE_CHECKING:
     from .base_plugin import BasePlugin
 
 
+METHOD_NAME_AUTHORIZE_PAYMENT = "authorize_payment"
+METHOD_NAME_CAPTURE_PAYMENT = "capture_payment"
+METHOD_NAME_REFUND_PAYMENT = "refund_payment"
+METHOD_NAME_VOID_PAYMENT = "void_payment"
+METHOD_NAME_CONFIRM_PAYMENT = "confirm_payment"
+METHOD_NAME_PROCESS_PAYMENT = "process_payment"
+
+
+def _get_webhook_for_method(webhooks_queryset, method_name):
+    """Get a webhook instance for a PluginManager's payment method."""
+    qs = webhooks_queryset.filter(is_active=True)
+    if method_name == METHOD_NAME_AUTHORIZE_PAYMENT:
+        qs = qs.filter(events__event_type=WebhookEventType.PAYMENT_AUTHORIZE)
+    elif method_name == METHOD_NAME_CAPTURE_PAYMENT:
+        qs = qs.filter(events__event_type=WebhookEventType.PAYMENT_CAPTURE)
+    elif method_name == METHOD_NAME_REFUND_PAYMENT:
+        qs = qs.filter(events__event_type=WebhookEventType.PAYMENT_REFUND)
+    elif method_name == METHOD_NAME_VOID_PAYMENT:
+        qs = qs.filter(events__event_type=WebhookEventType.PAYMENT_VOID)
+    elif method_name == METHOD_NAME_CONFIRM_PAYMENT:
+        qs = qs.filter(events__event_type=WebhookEventType.PAYMENT_CONFIRM)
+    elif method_name == METHOD_NAME_PROCESS_PAYMENT:
+        qs = qs.filter(events__event_type=WebhookEventType.PAYMENT_PROCESS)
+    else:
+        raise ValueError(f"Unsupported method for webhook payment: {method_name}")
+    return qs.first()
+
+
 class PluginsManager(PaymentInterface):
     """Base manager for handling plugins logic."""
 
@@ -506,38 +534,44 @@ class PluginsManager(PaymentInterface):
     def authorize_payment(
         self, gateway: str, payment_information: "PaymentData"
     ) -> "GatewayResponse":
-        method_name = "authorize_payment"
-        return self.__run_payment_method(gateway, method_name, payment_information)
+        return self.__run_payment_method(
+            gateway, METHOD_NAME_AUTHORIZE_PAYMENT, payment_information
+        )
 
     def capture_payment(
         self, gateway: str, payment_information: "PaymentData"
     ) -> "GatewayResponse":
-        method_name = "capture_payment"
-        return self.__run_payment_method(gateway, method_name, payment_information)
+        return self.__run_payment_method(
+            gateway, METHOD_NAME_CAPTURE_PAYMENT, payment_information
+        )
 
     def refund_payment(
         self, gateway: str, payment_information: "PaymentData"
     ) -> "GatewayResponse":
-        method_name = "refund_payment"
-        return self.__run_payment_method(gateway, method_name, payment_information)
+        return self.__run_payment_method(
+            gateway, METHOD_NAME_REFUND_PAYMENT, payment_information
+        )
 
     def void_payment(
         self, gateway: str, payment_information: "PaymentData"
     ) -> "GatewayResponse":
-        method_name = "void_payment"
-        return self.__run_payment_method(gateway, method_name, payment_information)
+        return self.__run_payment_method(
+            gateway, METHOD_NAME_VOID_PAYMENT, payment_information
+        )
 
     def confirm_payment(
         self, gateway: str, payment_information: "PaymentData"
     ) -> "GatewayResponse":
-        method_name = "confirm_payment"
-        return self.__run_payment_method(gateway, method_name, payment_information)
+        return self.__run_payment_method(
+            gateway, METHOD_NAME_CONFIRM_PAYMENT, payment_information
+        )
 
     def process_payment(
         self, gateway: str, payment_information: "PaymentData"
     ) -> "GatewayResponse":
-        method_name = "process_payment"
-        return self.__run_payment_method(gateway, method_name, payment_information)
+        return self.__run_payment_method(
+            gateway, METHOD_NAME_PROCESS_PAYMENT, payment_information
+        )
 
     def token_is_required_as_payment_input(self, gateway) -> bool:
         method_name = "token_is_required_as_payment_input"
@@ -668,9 +702,7 @@ class PluginsManager(PaymentInterface):
             app_pk = from_payment_app_id(gateway)
             app = App.objects.filter(pk=app_pk).first()
             if app:
-                webhook = app.webhooks.filter(
-                    is_active=True, events__event_type=WebhookEventType.PAYMENT_PROCESS
-                ).first()
+                webhook = _get_webhook_for_method(app.webhooks.all(), method_name)
                 if webhook:
                     from .webhook.plugin import WebhookPlugin
 

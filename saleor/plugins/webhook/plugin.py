@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING, Any, List, Optional
 
+from ...payment import TransactionKind
 from ...webhook.event_types import WebhookEventType
 from ...webhook.payloads import (
     generate_checkout_payload,
@@ -206,22 +207,92 @@ class WebhookPlugin(BasePlugin):
         page_data = generate_page_payload(page)
         trigger_webhooks_for_event.delay(WebhookEventType.PAGE_DELETED, page_data)
 
-    def process_payment(
-        self, payment_information: "PaymentData", previous_value, **kwargs
+    # Webhook payment functions
+
+    def __run_payment_webhook(
+        self,
+        event_type: str,
+        transaction_kind: str,
+        payment_information: "PaymentData",
+        previous_value,
+        **kwargs
     ) -> "GatewayResponse":
         if not self.active:
             return previous_value
 
         webhook = kwargs.get("payment_webhook")
         if not webhook:
-            # TODO: handle webhook not found
+            # TODO: handle webhook not found.
             raise Exception("Payment webhook not available")
 
         webhook_payload = generate_payment_payload(payment_information)
-        response = trigger_webhook_sync(
-            webhook, WebhookEventType.PAYMENT_PROCESS, webhook_payload
+        response = trigger_webhook_sync(webhook, event_type, webhook_payload)
+        return webhook_response_to_gateway_response(
+            payment_information, response, transaction_kind
         )
-        gateway_response = webhook_response_to_gateway_response(
-            payment_information, response
+
+    def authorize_payment(
+        self, payment_information: "PaymentData", previous_value, **kwargs
+    ) -> "GatewayResponse":
+        return self.__run_payment_webhook(
+            WebhookEventType.PAYMENT_AUTHORIZE,
+            TransactionKind.AUTH,
+            payment_information,
+            previous_value,
+            **kwargs,
         )
-        return gateway_response
+
+    def capture_payment(
+        self, payment_information: "PaymentData", previous_value, **kwargs
+    ) -> "GatewayResponse":
+        return self.__run_payment_webhook(
+            WebhookEventType.PAYMENT_CAPTURE,
+            TransactionKind.CAPTURE,
+            payment_information,
+            previous_value,
+            **kwargs,
+        )
+
+    def refund_payment(
+        self, payment_information: "PaymentData", previous_value, **kwargs
+    ) -> "GatewayResponse":
+        return self.__run_payment_webhook(
+            WebhookEventType.PAYMENT_REFUND,
+            TransactionKind.REFUND,
+            payment_information,
+            previous_value,
+            **kwargs,
+        )
+
+    def void_payment(
+        self, payment_information: "PaymentData", previous_value, **kwargs
+    ) -> "GatewayResponse":
+        return self.__run_payment_webhook(
+            WebhookEventType.PAYMENT_VOID,
+            TransactionKind.VOID,
+            payment_information,
+            previous_value,
+            **kwargs,
+        )
+
+    def confirm_payment(
+        self, payment_information: "PaymentData", previous_value, **kwargs
+    ) -> "GatewayResponse":
+        return self.__run_payment_webhook(
+            WebhookEventType.PAYMENT_CONFIRM,
+            TransactionKind.CONFIRM,
+            payment_information,
+            previous_value,
+            **kwargs,
+        )
+
+    def process_payment(
+        self, payment_information: "PaymentData", previous_value, **kwargs
+    ) -> "GatewayResponse":
+        return self.__run_payment_webhook(
+            WebhookEventType.PAYMENT_PROCESS,
+            TransactionKind.CAPTURE,
+            payment_information,
+            previous_value,
+            **kwargs,
+        )

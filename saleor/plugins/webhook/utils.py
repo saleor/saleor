@@ -1,6 +1,5 @@
 from typing import TYPE_CHECKING
 
-from ...payment import TransactionKind
 from ...payment.interface import GatewayResponse, PaymentGateway, PaymentMethodInfo
 
 if TYPE_CHECKING:
@@ -11,7 +10,9 @@ if TYPE_CHECKING:
 
 
 def webhook_response_to_gateway_response(
-    payment_information: "PaymentData", response: "RequestsResponse"
+    payment_information: "PaymentData",
+    response: "RequestsResponse",
+    transaction_kind: "str",
 ) -> "GatewayResponse":
     response_json = response.json()
 
@@ -35,7 +36,7 @@ def webhook_response_to_gateway_response(
         customer_id=response_json.get("customer_id"),
         error=error,
         is_success=is_success,
-        kind=TransactionKind.CAPTURE,
+        kind=transaction_kind,
         transaction_id=response_json.get("transaction_id"),
         payment_method_info=payment_method_info,
         raw_response=response_json,
