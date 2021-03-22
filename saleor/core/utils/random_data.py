@@ -869,7 +869,8 @@ def create_shipping_zone(shipping_methods_names, countries, shipping_zone_name):
             for name in shipping_methods_names
         ]
     )
-    for channel in Channel.objects.all():
+    channels = Channel.objects.all()
+    for channel in channels:
         ShippingMethodChannelListing.objects.bulk_create(
             [
                 ShippingMethodChannelListing(
@@ -883,6 +884,7 @@ def create_shipping_zone(shipping_methods_names, countries, shipping_zone_name):
                 for shipping_method in shipping_methods
             ]
         )
+    shipping_zone.channels.add(*channels)
     return "Shipping Zone: %s" % shipping_zone
 
 

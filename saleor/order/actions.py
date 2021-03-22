@@ -375,7 +375,10 @@ def automatically_fulfill_digital_lines(order: "Order"):
 
 
 def _create_fulfillment_lines(
-    fulfillment: Fulfillment, warehouse_pk: str, lines_data: List[Dict]
+    fulfillment: Fulfillment,
+    warehouse_pk: str,
+    lines_data: List[Dict],
+    channel_slug: str,
 ) -> List[FulfillmentLine]:
     """Modify stocks and allocations. Return list of unsaved FulfillmentLines.
 
@@ -391,6 +394,7 @@ def _create_fulfillment_lines(
                     },
                     ...
                 ]
+        channel_slug (str): Channel for which fulfillment lines should be created.
 
     Return:
         List[FulfillmentLine]: Unsaved fulfillmet lines created for this fulfillment
@@ -402,9 +406,11 @@ def _create_fulfillment_lines(
     """
     lines = [line_data["order_line"] for line_data in lines_data]
     variants = [line.variant for line in lines]
-    stocks = Stock.objects.filter(
-        warehouse_id=warehouse_pk, product_variant__in=variants
-    ).select_related("product_variant")
+    stocks = (
+        Stock.objects.for_channel(channel_slug)
+        .filter(warehouse_id=warehouse_pk, product_variant__in=variants)
+        .select_related("product_variant")
+    )
 
     variant_to_stock: Dict[str, List[Stock]] = defaultdict(list)
     for stock in stocks:
@@ -503,6 +509,7 @@ def create_fulfillments(
                 fulfillment,
                 warehouse_pk,
                 fulfillment_lines_for_warehouses[warehouse_pk],
+                order.channel.slug,
             )
         )
 

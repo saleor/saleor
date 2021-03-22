@@ -35,6 +35,7 @@ from ..attribute.models import (
     AttributeValueTranslation,
 )
 from ..attribute.utils import associate_attribute_values_to_instance
+from ..checkout.fetch import fetch_checkout_info
 from ..checkout.models import Checkout
 from ..checkout.utils import add_variant_to_checkout
 from ..core import JobStatus
@@ -66,6 +67,7 @@ from ..page.models import Page, PageTranslation, PageType
 from ..payment import ChargeStatus, TransactionKind
 from ..payment.interface import GatewayConfig, PaymentData
 from ..payment.models import Payment
+from ..plugins.manager import get_plugins_manager
 from ..plugins.models import PluginConfiguration
 from ..plugins.vatlayer.plugin import VatlayerPlugin
 from ..product import ProductMediaTypes
@@ -259,7 +261,8 @@ def checkout(db, channel_USD):
 @pytest.fixture
 def checkout_with_item(checkout, product):
     variant = product.variants.get()
-    add_variant_to_checkout(checkout, variant, 3)
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, variant, 3)
     checkout.save()
     return checkout
 
@@ -317,7 +320,8 @@ def checkout_ready_to_complete(checkout_with_item, address, shipping_method, gif
 def checkout_with_digital_item(checkout, digital_content):
     """Create a checkout with a digital line."""
     variant = digital_content.product_variant
-    add_variant_to_checkout(checkout, variant, 1)
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, variant, 1)
     checkout.email = "customer@example.com"
     checkout.save()
     return checkout
@@ -327,7 +331,8 @@ def checkout_with_digital_item(checkout, digital_content):
 def checkout_with_shipping_required(checkout_with_item, product):
     checkout = checkout_with_item
     variant = product.variants.get()
-    add_variant_to_checkout(checkout, variant, 3)
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, variant, 3)
     checkout.save()
     return checkout
 
@@ -351,7 +356,8 @@ def other_shipping_method(shipping_zone, channel_USD):
 @pytest.fixture
 def checkout_without_shipping_required(checkout, product_without_shipping):
     variant = product_without_shipping.variants.get()
-    add_variant_to_checkout(checkout, variant, 1)
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, variant, 1)
     checkout.save()
     return checkout
 
@@ -359,7 +365,8 @@ def checkout_without_shipping_required(checkout, product_without_shipping):
 @pytest.fixture
 def checkout_with_single_item(checkout, product):
     variant = product.variants.get()
-    add_variant_to_checkout(checkout, variant, 1)
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, variant, 1)
     checkout.save()
     return checkout
 
@@ -369,7 +376,8 @@ def checkout_with_variant_without_inventory_tracking(
     checkout, variant_without_inventory_tracking, address, shipping_method
 ):
     variant = variant_without_inventory_tracking
-    add_variant_to_checkout(checkout, variant, 1)
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, variant, 1)
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
@@ -382,10 +390,11 @@ def checkout_with_variant_without_inventory_tracking(
 @pytest.fixture
 def checkout_with_items(checkout, product_list, product):
     variant = product.variants.get()
-    add_variant_to_checkout(checkout, variant, 1)
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, variant, 1)
     for prod in product_list:
         variant = prod.variants.get()
-        add_variant_to_checkout(checkout, variant, 1)
+        add_variant_to_checkout(checkout_info, variant, 1)
     checkout.refresh_from_db()
     return checkout
 
@@ -393,7 +402,8 @@ def checkout_with_items(checkout, product_list, product):
 @pytest.fixture
 def checkout_with_voucher(checkout, product, voucher):
     variant = product.variants.get()
-    add_variant_to_checkout(checkout, variant, 3)
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, variant, 3)
     checkout.voucher_code = voucher.code
     checkout.discount = Money("20.00", "USD")
     checkout.save()
@@ -403,7 +413,8 @@ def checkout_with_voucher(checkout, product, voucher):
 @pytest.fixture
 def checkout_with_voucher_percentage(checkout, product, voucher_percentage):
     variant = product.variants.get()
-    add_variant_to_checkout(checkout, variant, 3)
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, variant, 3)
     checkout.voucher_code = voucher_percentage.code
     checkout.discount = Money("3.00", "USD")
     checkout.save()
@@ -544,9 +555,10 @@ def user_checkout_PLN(customer_user, channel_PLN):
 
 @pytest.fixture
 def user_checkout_with_items(user_checkout, product_list):
+    checkout_info = fetch_checkout_info(user_checkout, [], [], get_plugins_manager())
     for product in product_list:
         variant = product.variants.get()
-        add_variant_to_checkout(user_checkout, variant, 1)
+        add_variant_to_checkout(checkout_info, variant, 1)
     user_checkout.refresh_from_db()
     return user_checkout
 
@@ -615,6 +627,7 @@ def shipping_zone(db, channel_USD):  # pylint: disable=W0613
     shipping_zone = ShippingZone.objects.create(
         name="Europe", countries=[code for code, name in countries]
     )
+    shipping_zone.channels.add(channel_USD)
     method = shipping_zone.shipping_methods.create(
         name="DHL",
         type=ShippingMethodType.PRICE_BASED,
@@ -638,6 +651,10 @@ def shipping_zones(db, channel_USD, channel_PLN):
             ShippingZone(name="USA", countries=["US"]),
         ]
     )
+
+    shipping_zone_poland.channels.add(channel_PLN, channel_USD)
+    shipping_zone_usa.channels.add(channel_PLN, channel_USD)
+
     method = shipping_zone_poland.shipping_methods.create(
         name="DHL",
         type=ShippingMethodType.PRICE_BASED,

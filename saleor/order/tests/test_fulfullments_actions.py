@@ -108,10 +108,10 @@ def test_create_fulfillments_without_notification(
 def test_create_fulfillments_many_warehouses(
     staff_user,
     order_with_lines,
-    warehouses,
+    warehouses_with_shipping_zone,
 ):
     order = order_with_lines
-    warehouse1, warehouse2 = warehouses
+    warehouse1, warehouse2 = warehouses_with_shipping_zone
     order_line1, order_line2 = order.lines.all()
 
     stock_w1_l1 = Stock(

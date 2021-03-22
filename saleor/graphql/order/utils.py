@@ -80,7 +80,9 @@ def validate_order_lines(order, country):
             )
         if line.variant.track_inventory:
             try:
-                check_stock_quantity(line.variant, country, line.quantity)
+                check_stock_quantity(
+                    line.variant, country, order.channel.slug, line.quantity
+                )
             except InsufficientStock as exc:
                 errors = prepare_insufficient_stock_order_validation_errors(exc)
                 raise ValidationError({"lines": errors})

@@ -70,8 +70,8 @@ from ...utils import (
 )
 from ...utils.filters import reporting_period_to_date
 from ...warehouse.dataloaders import (
-    AvailableQuantityByProductVariantIdAndCountryCodeLoader,
-    StocksWithAvailableQuantityByProductVariantIdAndCountryCodeLoader,
+    AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader,
+    StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChanneLoader,
 )
 from ...warehouse.types import Stock
 from ..dataloaders import (
@@ -277,9 +277,9 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                 address, info.context.site.settings.company_address
             )
 
-        return StocksWithAvailableQuantityByProductVariantIdAndCountryCodeLoader(
+        return StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChanneLoader(
             info.context
-        ).load((root.node.id, country_code))
+        ).load((root.node.id, country_code, root.channel_slug))
 
     @staticmethod
     def resolve_quantity_available(
@@ -296,9 +296,9 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         if not root.node.track_inventory:
             return settings.MAX_CHECKOUT_LINE_QUANTITY
 
-        return AvailableQuantityByProductVariantIdAndCountryCodeLoader(
+        return AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
             info.context
-        ).load((root.node.id, country_code))
+        ).load((root.node.id, country_code, root.channel_slug))
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
@@ -738,7 +738,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         )
 
         def calculate_is_available(product_channel_listing):
-            in_stock = is_product_in_stock(root.node, country_code)
+            in_stock = is_product_in_stock(root.node, country_code, channel_slug)
             is_visible = False
             if product_channel_listing:
                 is_visible = product_channel_listing.is_available_for_purchase()
