@@ -20,7 +20,7 @@ celery = { version = ">=4.4.5,<6.0.0", extras = ["redis"] }
 dj-database-url = "^0"
 dj-email-url = "^1"
 django = "^3.0.7"
-django-countries = ">=6.1,<7.0"
+django-countries = ">=6.1,<8.0"
 django-filter = "^2.3"
 django-measurement = "^3.0"
 django-mptt = "^0"
