@@ -16,7 +16,12 @@ from ...attribute.models import (
 from ...product.models import Category, Collection, Product, ProductType, ProductVariant
 from ...warehouse.models import Stock
 from ..channel.filters import get_channel_slug_from_filter_data
-from ..core.filters import EnumFilter, ListObjectTypeFilter, ObjectTypeFilter
+from ..core.filters import (
+    EnumFilter,
+    ListObjectTypeFilter,
+    MetadataFilterBase,
+    ObjectTypeFilter,
+)
 from ..core.types import ChannelFilterInputObjectType, FilterInputObjectType
 from ..core.types.common import IntRangeInput, PriceRangeInput
 from ..utils import get_nodes, resolve_global_ids_to_primary_keys
@@ -313,7 +318,7 @@ class ProductStockFilterInput(graphene.InputObjectType):
     quantity = graphene.Field(IntRangeInput, required=False)
 
 
-class ProductFilter(django_filters.FilterSet):
+class ProductFilter(MetadataFilterBase):
     is_published = django_filters.BooleanFilter(method="filter_is_published")
     collections = GlobalIDMultipleChoiceFilter(method=filter_collections)
     categories = GlobalIDMultipleChoiceFilter(method=filter_categories)
@@ -364,7 +369,7 @@ class ProductFilter(django_filters.FilterSet):
         return _filter_is_published(queryset, name, value, channel_slug)
 
 
-class ProductVariantFilter(django_filters.FilterSet):
+class ProductVariantFilter(MetadataFilterBase):
     search = django_filters.CharFilter(
         method=filter_fields_containing_value("name", "product__name", "sku")
     )
@@ -375,7 +380,7 @@ class ProductVariantFilter(django_filters.FilterSet):
         fields = ["search", "sku"]
 
 
-class CollectionFilter(django_filters.FilterSet):
+class CollectionFilter(MetadataFilterBase):
     published = EnumFilter(
         input_class=CollectionPublished, method="filter_is_published"
     )
@@ -397,7 +402,7 @@ class CollectionFilter(django_filters.FilterSet):
         return queryset
 
 
-class CategoryFilter(django_filters.FilterSet):
+class CategoryFilter(MetadataFilterBase):
     search = django_filters.CharFilter(
         method=filter_fields_containing_value("slug", "name", "description")
     )
@@ -408,7 +413,7 @@ class CategoryFilter(django_filters.FilterSet):
         fields = ["search"]
 
 
-class ProductTypeFilter(django_filters.FilterSet):
+class ProductTypeFilter(MetadataFilterBase):
     search = django_filters.CharFilter(
         method=filter_fields_containing_value("name", "slug")
     )
