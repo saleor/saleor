@@ -25,7 +25,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Raise an error when the user is trying to sort products by rank without search - #7013 by @IKarbowiak
 - Fix available shipping methods - return also weight methods without weight limits - #7021 by @IKarbowiak
 - Remove redundant Opentracing spans - #6994 by @fowczarek
-- Validate discount value for percentage vouchers - #7033 by @d-wysocki
+- Validate discount value for percentage vouchers and sales - #7033 by @d-wysocki
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
