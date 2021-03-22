@@ -17,6 +17,7 @@ from ....product.models import (
     ProductVariant,
     ProductVariantChannelListing,
 )
+from ....tests.utils import flush_post_commit_hooks
 from ...tests.utils import get_graphql_content
 
 
@@ -372,8 +373,12 @@ mutation productVariantBulkDelete($ids: [ID]!) {
 """
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_variant_deleted")
 def test_delete_product_variants(
-    staff_api_client, product_variant_list, permission_manage_products
+    product_variant_deleted_webhook_mock,
+    staff_api_client,
+    product_variant_list,
+    permission_manage_products,
 ):
     query = PRODUCT_VARIANT_BULK_DELETE_MUTATION
 
@@ -391,11 +396,16 @@ def test_delete_product_variants(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
+    flush_post_commit_hooks()
 
     assert content["data"]["productVariantBulkDelete"]["count"] == 3
     assert not ProductVariant.objects.filter(
         id__in=[variant.id for variant in product_variant_list]
     ).exists()
+    assert (
+        product_variant_deleted_webhook_mock.call_count
+        == content["data"]["productVariantBulkDelete"]["count"]
+    )
 
 
 def test_delete_product_variants_in_draft_orders(

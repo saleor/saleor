@@ -5,8 +5,8 @@ import requests
 from django.core.exceptions import ValidationError
 from django.core.management import BaseCommand, CommandError
 from django.core.management.base import CommandParser
-from django.core.validators import URLValidator
 
+from ....app.validators import AppURLValidator
 from ....core import JobStatus
 from ...installation_utils import install_app
 from ...models import AppInstallation
@@ -26,7 +26,7 @@ class Command(BaseCommand):
         )
 
     def validate_manifest_url(self, manifest_url: str):
-        url_validator = URLValidator()
+        url_validator = AppURLValidator()
         try:
             url_validator(manifest_url)
         except ValidationError:

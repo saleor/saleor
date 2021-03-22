@@ -4,6 +4,7 @@ import graphene
 import pytest
 from django_countries import countries
 
+from .... import __version__
 from ....account.models import Address
 from ....core.error_codes import ShopErrorCode
 from ....core.permissions import get_permissions_codename
@@ -22,6 +23,21 @@ COUNTRIES_QUERY = """
                 country
             }
         }
+    }
+"""
+
+LIMIT_INFO_QUERY = """
+    {
+      shop {
+        limits {
+          currentUsage {
+            channels
+          }
+          allowedUsage {
+            channels
+          }
+        }
+      }
     }
 """
 
@@ -1265,3 +1281,56 @@ def test_order_settings_query_as_staff(
 def test_order_settings_query_as_user(user_api_client, site_settings):
     response = user_api_client.post_graphql(ORDER_SETTINGS_QUERY)
     assert_no_permission(response)
+
+
+API_VERSION_QUERY = """
+    query {
+        shop {
+            version
+        }
+    }
+"""
+
+
+def test_version_query_as_anonymous_user(api_client):
+    response = api_client.post_graphql(API_VERSION_QUERY)
+    assert_no_permission(response)
+
+
+def test_version_query_as_customer(user_api_client):
+    response = user_api_client.post_graphql(API_VERSION_QUERY)
+    assert_no_permission(response)
+
+
+def test_version_query_as_app(app_api_client):
+    response = app_api_client.post_graphql(API_VERSION_QUERY)
+    content = get_graphql_content(response)
+    assert content["data"]["shop"]["version"] == __version__
+
+
+def test_version_query_as_staff_user(staff_api_client):
+    response = staff_api_client.post_graphql(API_VERSION_QUERY)
+    content = get_graphql_content(response)
+    assert content["data"]["shop"]["version"] == __version__
+
+
+def test_cannot_get_shop_limit_info_when_not_staff(user_api_client):
+    query = LIMIT_INFO_QUERY
+    response = user_api_client.post_graphql(query)
+    assert_no_permission(response)
+
+
+def test_get_shop_limit_info_returns_null_by_default(staff_api_client):
+    query = LIMIT_INFO_QUERY
+    response = staff_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    assert content == {
+        "data": {
+            "shop": {
+                "limits": {
+                    "currentUsage": {"channels": None},
+                    "allowedUsage": {"channels": None},
+                }
+            }
+        }
+    }
