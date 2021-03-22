@@ -11,7 +11,10 @@ if TYPE_CHECKING:
 
 
 def store_user_address(
-    user: User, address: "Address", address_type: str, manager: "PluginsManager"
+    user: User,
+    address: "Address",
+    address_type: str,
+    manager: "PluginsManager",
 ):
     """Add address to user address book and set as default one."""
     address = manager.change_user_address(address, address_type, user)

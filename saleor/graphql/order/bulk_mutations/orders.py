@@ -33,4 +33,4 @@ class OrderBulkCancel(BaseBulkMutation):
     @classmethod
     def bulk_action(cls, info, queryset, user):
         for order in queryset:
-            cancel_order(order=order, user=user)
+            cancel_order(order=order, user=user, manager=info.context.plugins)
