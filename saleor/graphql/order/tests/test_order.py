@@ -486,8 +486,10 @@ def test_order_query_in_pln_channel(
     staff_api_client,
     permission_manage_orders,
     order_with_lines_channel_PLN,
+    shipping_zone,
     channel_PLN,
 ):
+    shipping_zone.channels.add(channel_PLN)
     order = order_with_lines_channel_PLN
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(ORDERS_QUERY)
@@ -619,6 +621,35 @@ def test_order_available_shipping_methods_weight_method_with_higher_minimal_weig
         method["name"] for method in order_data["availableShippingMethods"]
     ]
     assert shipping_method.name not in shipping_methods
+
+
+def test_order_query_shipping_zones_with_available_shipping_methods(
+    staff_api_client,
+    permission_manage_orders,
+    fulfilled_order,
+    shipping_zone,
+):
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDERS_QUERY_SHIPPING_METHODS)
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    assert len(order_data["availableShippingMethods"]) == 1
+
+
+def test_order_query_shipping_zones_without_channel(
+    staff_api_client,
+    permission_manage_orders,
+    fulfilled_order,
+    shipping_zone,
+    channel_USD,
+):
+    channel_USD.shipping_zones.clear()
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDERS_QUERY_SHIPPING_METHODS)
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+
+    assert len(order_data["availableShippingMethods"]) == 0
 
 
 def test_order_query_shipping_methods_excluded_postal_codes(
@@ -2392,6 +2423,33 @@ def test_draft_order_complete_with_inactive_channel(
     assert data["orderErrors"][0]["field"] == "channel"
 
 
+def test_draft_order_complete_channel_without_shipping_zones(
+    staff_api_client,
+    permission_manage_orders,
+    staff_user,
+    draft_order,
+):
+    order = draft_order
+    order.channel.shipping_zones.clear()
+
+    # Ensure no events were created
+    assert not OrderEvent.objects.exists()
+
+    # Ensure no allocation were created
+    assert not Allocation.objects.filter(order_line__order=order).exists()
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+    response = staff_api_client.post_graphql(
+        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderComplete"]
+    assert len(data["orderErrors"]) == 1
+    assert data["orderErrors"][0]["code"] == OrderErrorCode.INSUFFICIENT_STOCK.name
+    assert data["orderErrors"][0]["field"] == "lines"
+
+
 def test_draft_order_complete_product_without_inventory_tracking(
     staff_api_client,
     shipping_method,
@@ -3656,8 +3714,9 @@ ORDER_UPDATE_SHIPPING_QUERY = """
     mutation orderUpdateShipping($order: ID!, $shippingMethod: ID) {
         orderUpdateShipping(
                 order: $order, input: {shippingMethod: $shippingMethod}) {
-            errors {
+            orderErrors {
                 field
+                code
                 message
             }
             order {
@@ -3776,8 +3835,8 @@ def test_order_update_shipping_shipping_required(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]
-    assert data["errors"][0]["field"] == "shippingMethod"
-    assert data["errors"][0]["message"] == (
+    assert data["orderErrors"][0]["field"] == "shippingMethod"
+    assert data["orderErrors"][0]["message"] == (
         "Shipping method is required for this order."
     )
 
@@ -3801,8 +3860,8 @@ def test_order_update_shipping_no_shipping_address(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]
-    assert data["errors"][0]["field"] == "order"
-    assert data["errors"][0]["message"] == (
+    assert data["orderErrors"][0]["field"] == "order"
+    assert data["orderErrors"][0]["message"] == (
         "Cannot choose a shipping method for an order without" " the shipping address."
     )
 
@@ -3828,10 +3887,34 @@ def test_order_update_shipping_incorrect_shipping_method(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]
-    assert data["errors"][0]["field"] == "shippingMethod"
-    assert data["errors"][0]["message"] == (
+    assert data["orderErrors"][0]["field"] == "shippingMethod"
+    assert data["orderErrors"][0]["message"] == (
         "Shipping method cannot be used with this order."
     )
+
+
+def test_order_update_shipping_shipping_zone_without_channels(
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
+    shipping_method,
+    staff_user,
+):
+    order = order_with_lines
+    order.channel.shipping_zones.clear()
+    query = ORDER_UPDATE_SHIPPING_QUERY
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    variables = {"order": order_id, "shippingMethod": method_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderUpdateShipping"]
+    errors = data["orderErrors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "shippingMethod"
+    assert errors[0]["code"] == OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
 
 
 def test_order_update_shipping_excluded_shipping_method_postal_code(
@@ -3862,8 +3945,8 @@ def test_order_update_shipping_excluded_shipping_method_postal_code(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]
-    assert data["errors"][0]["field"] == "shippingMethod"
-    assert data["errors"][0]["message"] == (
+    assert data["orderErrors"][0]["field"] == "shippingMethod"
+    assert data["orderErrors"][0]["message"] == (
         "Shipping method cannot be used with this order."
     )
 

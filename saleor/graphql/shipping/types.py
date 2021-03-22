@@ -7,6 +7,7 @@ from ...shipping import models
 from ..channel import ChannelQsContext
 from ..channel.dataloaders import ChannelByIdLoader
 from ..channel.types import (
+    Channel,
     ChannelContext,
     ChannelContextType,
     ChannelContextTypeWithMetadata,
@@ -21,6 +22,7 @@ from ..translations.fields import TranslationField
 from ..translations.types import ShippingMethodTranslation
 from ..warehouse.types import Warehouse
 from .dataloaders import (
+    ChannelsByShippingZoneIdLoader,
     PostalCodeRulesByShippingMethodIdLoader,
     ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
     ShippingMethodChannelListingByShippingMethodIdLoader,
@@ -212,7 +214,14 @@ class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         ),
     )
     warehouses = graphene.List(
-        Warehouse, description="List of warehouses for shipping zone."
+        graphene.NonNull(Warehouse),
+        description="List of warehouses for shipping zone.",
+        required=True,
+    )
+    channels = graphene.List(
+        graphene.NonNull(Channel),
+        description="List of channels for shipping zone.",
+        required=True,
     )
     description = graphene.String(description="Description of a shipping zone.")
 
@@ -266,3 +275,7 @@ class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     @staticmethod
     def resolve_warehouses(root: ChannelContext[models.ShippingZone], *_args):
         return root.node.warehouses.all()
+
+    @staticmethod
+    def resolve_channels(root: ChannelContext[models.ShippingZone], info, **_kwargs):
+        return ChannelsByShippingZoneIdLoader(info.context).load(root.node.id)

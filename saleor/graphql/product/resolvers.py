@@ -68,7 +68,7 @@ def resolve_products(
 ) -> ChannelQsContext:
     qs = models.Product.objects.visible_to_user(requestor, channel_slug)
     if stock_availability:
-        qs = filter_products_by_stock_availability(qs, stock_availability)
+        qs = filter_products_by_stock_availability(qs, stock_availability, channel_slug)
     if not requestor_is_staff_member_or_app(requestor):
         qs = qs.annotate_visible_in_listings(channel_slug).exclude(
             visible_in_listings=False
