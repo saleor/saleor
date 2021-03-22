@@ -230,7 +230,7 @@ def increase_allocation(
     lines_data = [
         OrderLineData(
             line=order_line,
-            quantity=allocated.get("quantity_allocated__sum", 0) + quantity,
+            quantity=(allocated["quantity_allocated__sum"] or 0) + quantity,
             variant=order_line.variant,
         )
     ]

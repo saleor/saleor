@@ -20,7 +20,6 @@ from ..plugins.manager import get_plugins_manager
 from ..product.utils.digital_products import get_default_digital_content_settings
 from ..shipping.models import ShippingMethod
 from ..warehouse.management import (
-    allocate_stocks,
     deallocate_stock,
     decrease_stock,
     get_order_lines_with_track_inventory,
@@ -301,8 +300,6 @@ def add_variant_to_order(order, variant, quantity, discounts=None):
     try:
         line = order.lines.get(variant=variant)
         line.quantity += quantity
-        if line.order.status == OrderStatus.UNCONFIRMED:
-            increase_allocation(line, quantity)
         line.save(update_fields=["quantity"])
     except OrderLine.DoesNotExist:
         product = variant.product
@@ -352,6 +349,9 @@ def add_variant_to_order(order, variant, quantity, discounts=None):
             ]
         )
 
+    if line.order.is_unconfirmed():
+        increase_allocation(line, quantity)
+
     return line
 
 
@@ -371,20 +371,6 @@ def add_gift_card_to_order(order, gift_card, total_price_left):
         gift_card.last_used_on = timezone.now()
         gift_card.save(update_fields=["current_balance_amount", "last_used_on"])
     return total_price_left
-
-
-def allocate_lines(lines):
-    lines_data = [
-        OrderLineData(line=line, quantity=line.quantity, variant=line.variant)
-        for line in lines
-    ]
-    if not lines:
-        return
-    order = lines[0].order
-    address = order.shipping_address or order.billing_address
-    if not address:
-        return
-    allocate_stocks(lines_data, address.country.code)
 
 
 def decrease_allocations(line, quantity: int):
