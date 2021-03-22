@@ -194,7 +194,6 @@ def test_calculate_checkout_line_total_use_cache(
 
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
 @patch("saleor.plugins.avatax.cache.set")
-@pytest.mark.skip("FIX_ME")
 def test_calculate_checkout_line_unit_price_use_cache(
     mock_cache_set,
     checkout_with_items_and_shipping,
@@ -233,13 +232,14 @@ def test_calculate_checkout_line_unit_price_use_cache(
         total_line_price,
         quantity,
         checkout_info,
+        lines,
         checkout_line_info,
         checkout_info.shipping_address,
         [],
     )
 
     # when
-    assert result == Money("10", "USD")
+    assert result == TaxedMoney(net=Money("4.07", "USD"), gross=Money("5", "USD"))
 
     avalara_cache_key = CACHE_KEY + str(checkout.token)
     mocked_cache.assert_called_with(avalara_cache_key)

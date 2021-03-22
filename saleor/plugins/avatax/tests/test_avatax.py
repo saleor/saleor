@@ -427,6 +427,7 @@ def test_calculate_checkout_line_unit_price(
         total_price,
         checkout_line.line.quantity,
         checkout_info,
+        lines,
         checkout_line,
         checkout.shipping_address,
         [],

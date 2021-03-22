@@ -367,6 +367,7 @@ class AvataxPlugin(BasePlugin):
     def calculate_checkout_line_unit_price(
         self,
         checkout_info: "CheckoutInfo",
+        lines: Iterable["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
@@ -377,8 +378,7 @@ class AvataxPlugin(BasePlugin):
         return self._calculate_unit_price(
             checkout_info,
             checkout_line_info.line,
-            # FixMe
-            [checkout_line_info],
+            lines,
             checkout_line_info.variant,
             previous_value,
             discounts,

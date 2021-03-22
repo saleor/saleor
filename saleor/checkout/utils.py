@@ -329,6 +329,7 @@ def get_prices_of_discounted_specific_product(
             line_total,
             line.quantity,
             checkout_info,
+            lines,
             line_info,
             address,
             discounts,

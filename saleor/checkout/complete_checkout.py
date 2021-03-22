@@ -173,6 +173,7 @@ def _create_line_for_order(
         total_line_price,
         quantity,
         checkout_info,
+        lines,
         checkout_line_info,
         address,
         discounts,
