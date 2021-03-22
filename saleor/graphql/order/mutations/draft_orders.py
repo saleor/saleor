@@ -384,7 +384,9 @@ class DraftOrderComplete(BaseMutation):
                 except InsufficientStock as exc:
                     errors = prepare_insufficient_stock_order_validation_errors(exc)
                     raise ValidationError({"lines": errors})
-        order_created(order, user=info.context.user, from_draft=True)
+        order_created(
+            order, user=info.context.user, manager=info.context.plugins, from_draft=True
+        )
 
         return DraftOrderComplete(order=order)
 

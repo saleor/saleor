@@ -101,14 +101,11 @@ def _process_user_data_for_order(checkout_info: "CheckoutInfo", manager):
     """Fetch, process and return shipping data from checkout."""
     billing_address = checkout_info.billing_address
 
-    if checkout_info.user:
+    if checkout_info.user and billing_address:
         store_user_address(
             checkout_info.user, billing_address, AddressType.BILLING, manager=manager
         )
-        if (
-            billing_address
-            and checkout_info.user.addresses.filter(pk=billing_address.pk).exists()
-        ):
+        if checkout_info.user.addresses.filter(pk=billing_address.pk).exists():
             billing_address = billing_address.get_copy()
 
     return {
@@ -328,7 +325,12 @@ def _prepare_order_data(
 
 @transaction.atomic
 def _create_order(
-    *, checkout_info: "CheckoutInfo", order_data: dict, user: User, site_settings=None
+    *,
+    checkout_info: "CheckoutInfo",
+    order_data: dict,
+    user: User,
+    manager: "PluginsManager",
+    site_settings=None
 ) -> Order:
     """Create an order from the checkout.
 
@@ -403,7 +405,9 @@ def _create_order(
     order.private_metadata = checkout.private_metadata
     order.save()
 
-    transaction.on_commit(lambda: order_created(order=order, user=user))
+    transaction.on_commit(
+        lambda: order_created(order=order, user=user, manager=manager)
+    )
 
     # Send the order confirmation email
     transaction.on_commit(
@@ -590,6 +594,7 @@ def complete_checkout(
                 checkout_info=checkout_info,
                 order_data=order_data,
                 user=user,  # type: ignore
+                manager=manager,
                 site_settings=site_settings,
             )
             # remove checkout after order is successfully created
