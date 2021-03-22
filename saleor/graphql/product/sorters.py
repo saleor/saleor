@@ -167,7 +167,8 @@ class ProductOrderField(graphene.Enum):
         return queryset.annotate(
             min_variants_price_amount=Min(
                 "variants__channel_listings__price_amount",
-                filter=Q(variants__channel_listings__channel__slug=channel_slug),
+                filter=Q(variants__channel_listings__channel__slug=channel_slug)
+                & Q(variants__channel_listings__price_amount__isnull=False),
             )
         )
 

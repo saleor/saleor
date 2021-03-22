@@ -2639,6 +2639,30 @@ def test_draft_order_lines_create(
     assert data["orderErrors"][0]["field"] == "quantity"
 
 
+def test_draft_order_lines_create_with_unavailable_variant(
+    draft_order, permission_manage_orders, staff_api_client
+):
+    query = DRAFT_ORDER_LINES_CREATE_MUTATION
+    order = draft_order
+    channel = order.channel
+    line = order.lines.first()
+    variant = line.variant
+    variant.channel_listings.filter(channel=channel).update(price_amount=None)
+    quantity = 1
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variables = {"orderId": order_id, "variantId": variant_id, "quantity": quantity}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    error = content["data"]["draftOrderLinesCreate"]["orderErrors"][0]
+    assert error["code"] == OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.name
+    assert error["field"] == "input"
+    assert error["variants"] == [variant_id]
+
+
 def test_draft_order_lines_create_with_product_and_variant_not_assigned_to_channel(
     draft_order, permission_manage_orders, staff_api_client, variant
 ):

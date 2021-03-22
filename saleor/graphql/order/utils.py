@@ -138,7 +138,7 @@ def validate_variant_channel_listings(variants, channel):
         )
     variant_ids = set([variant.id for variant in variants])
     variant_channel_listings = ProductVariantChannelListing.objects.filter(
-        channel=channel, variant_id__in=variant_ids
+        channel=channel, variant_id__in=variant_ids, price_amount__isnull=False
     )
     variant_ids_in_channel = set(
         [

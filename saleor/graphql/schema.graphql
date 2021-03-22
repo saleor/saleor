@@ -971,6 +971,7 @@ enum CheckoutErrorCode {
   ZERO_QUANTITY
   MISSING_CHANNEL_SLUG
   CHANNEL_INACTIVE
+  UNAVAILABLE_VARIANT_IN_CHANNEL
 }
 
 type CheckoutLine implements Node {
@@ -4014,6 +4015,8 @@ input ProductChannelListingAddInput {
   visibleInListings: Boolean
   isAvailableForPurchase: Boolean
   availableForPurchaseDate: Date
+  addVariants: [ID!]
+  removeVariants: [ID!]
 }
 
 type ProductChannelListingError {
@@ -4023,6 +4026,7 @@ type ProductChannelListingError {
   attributes: [ID!]
   values: [ID!]
   channels: [ID!]
+  variants: [ID!]
 }
 
 type ProductChannelListingUpdate {
@@ -4032,7 +4036,7 @@ type ProductChannelListingUpdate {
 }
 
 input ProductChannelListingUpdateInput {
-  addChannels: [ProductChannelListingAddInput!]
+  updateChannels: [ProductChannelListingAddInput!]
   removeChannels: [ID!]
 }
 
