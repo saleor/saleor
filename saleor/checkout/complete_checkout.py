@@ -179,7 +179,7 @@ def _create_line_for_order(
         discounts,
     )
     tax_rate = manager.get_checkout_line_tax_rate(
-        checkout_info, checkout_line_info, address, discounts, unit_price
+        checkout_info, lines, checkout_line_info, address, discounts, unit_price
     )
 
     line = OrderLine(

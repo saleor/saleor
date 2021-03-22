@@ -464,14 +464,14 @@ class AvataxPlugin(BasePlugin):
     def get_checkout_line_tax_rate(
         self,
         checkout_info: "CheckoutInfo",
-        # FIX ME
+        lines: Iterable["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
         previous_value: Decimal,
     ) -> Decimal:
         return self._get_unit_tax_rate(
-            checkout_info, previous_value, False, discounts, [checkout_line_info]
+            checkout_info, previous_value, False, discounts, lines
         )
 
     def get_order_line_tax_rate(

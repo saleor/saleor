@@ -1,7 +1,6 @@
 from decimal import Decimal
 from unittest.mock import Mock, patch
 
-import pytest
 from django.test import override_settings
 from prices import Money, TaxedMoney
 
@@ -248,7 +247,6 @@ def test_calculate_checkout_line_unit_price_use_cache(
 
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
 @patch("saleor.plugins.avatax.cache.set")
-@pytest.mark.skip("FIX_ME")
 def test_get_checkout_line_tax_rate_use_cache(
     mock_cache_set,
     checkout_with_items_and_shipping,
@@ -284,6 +282,7 @@ def test_get_checkout_line_tax_rate_use_cache(
     # then
     result = manager.get_checkout_line_tax_rate(
         checkout_info,
+        lines,
         checkout_line_info,
         checkout_info.shipping_address,
         [],
@@ -291,7 +290,7 @@ def test_get_checkout_line_tax_rate_use_cache(
     )
 
     # when
-    assert result == Decimal("0.25")
+    assert result == Decimal("0.23")
 
     avalara_cache_key = CACHE_KEY + str(checkout.token)
     mocked_cache.assert_called_with(avalara_cache_key)

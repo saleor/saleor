@@ -142,25 +142,19 @@ def test_manager_calculates_checkout_line_total(
 def test_manager_get_checkout_line_tax_rate_sample_plugin(
     checkout_with_item, discount_info
 ):
-    line = checkout_with_item.lines.all()[0]
     plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
     unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
-    variant = line.variant
     manager = get_plugins_manager()
-    checkout_line_info = CheckoutLineInfo(
-        line=line,
-        variant=variant,
-        channel_listing=variant.channel_listings.first(),
-        product=variant.product,
-        collections=[],
-    )
+    lines = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
-        checkout_with_item, [checkout_line_info], [discount_info], manager
+        checkout_with_item, lines, [discount_info], manager
     )
+    checkout_line_info = lines[0]
 
     tax_rate = PluginsManager(plugins=plugins).get_checkout_line_tax_rate(
         checkout_info,
+        lines,
         checkout_line_info,
         checkout_with_item.shipping_address,
         [discount_info],
@@ -179,21 +173,15 @@ def test_manager_get_checkout_line_tax_rate_sample_plugin(
 def test_manager_get_checkout_line_tax_rate_no_plugins(
     checkout_with_item, discount_info, unit_price, expected_tax_rate
 ):
-    line = checkout_with_item.lines.all()[0]
-    variant = line.variant
     manager = get_plugins_manager()
-    checkout_line_info = CheckoutLineInfo(
-        line=line,
-        variant=variant,
-        channel_listing=variant.channel_listings.first(),
-        product=variant.product,
-        collections=[],
-    )
+    lines = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
-        checkout_with_item, [checkout_line_info], [discount_info], manager
+        checkout_with_item, lines, [discount_info], manager
     )
+    checkout_line_info = lines[0]
     tax_rate = PluginsManager(plugins=[]).get_checkout_line_tax_rate(
         checkout_info,
+        lines,
         checkout_line_info,
         checkout_with_item.shipping_address,
         [discount_info],

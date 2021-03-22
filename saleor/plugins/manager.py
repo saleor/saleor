@@ -311,6 +311,7 @@ class PluginsManager(PaymentInterface):
     def get_checkout_line_tax_rate(
         self,
         checkout_info: "CheckoutInfo",
+        lines: Iterable["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
@@ -321,6 +322,7 @@ class PluginsManager(PaymentInterface):
             "get_checkout_line_tax_rate",
             default_value,
             checkout_info,
+            lines,
             checkout_line_info,
             address,
             discounts,
