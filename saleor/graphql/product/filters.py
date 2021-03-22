@@ -80,7 +80,6 @@ def filter_products_by_attributes_values(qs, queries: T_PRODUCT_FILTER_QUERIES):
         )
         for values in queries.values()
     ]
-
     return qs.filter(*filters)
 
 
@@ -95,12 +94,14 @@ def filter_products_by_attributes(qs, filter_value):
 def filter_products_by_variant_price(qs, channel_slug, price_lte=None, price_gte=None):
     if price_lte:
         qs = qs.filter(
-            variants__channel_listings__price_amount__lte=price_lte,
+            Q(variants__channel_listings__price_amount__lte=price_lte)
+            | Q(variants__channel_listings__price_amount__isnull=True),
             variants__channel_listings__channel__slug=channel_slug,
         )
     if price_gte:
         qs = qs.filter(
-            variants__channel_listings__price_amount__gte=price_gte,
+            Q(variants__channel_listings__price_amount__gte=price_gte)
+            | Q(variants__channel_listings__price_amount__isnull=True),
             variants__channel_listings__channel__slug=channel_slug,
         )
     return qs
@@ -112,11 +113,13 @@ def filter_products_by_minimal_price(
     if minimal_price_lte:
         qs = qs.filter(
             channel_listings__discounted_price_amount__lte=minimal_price_lte,
+            channel_listings__discounted_price_amount__isnull=False,
             channel_listings__channel__slug=channel_slug,
         )
     if minimal_price_gte:
         qs = qs.filter(
             channel_listings__discounted_price_amount__gte=minimal_price_gte,
+            channel_listings__discounted_price_amount__isnull=False,
             channel_listings__channel__slug=channel_slug,
         )
     return qs
@@ -143,7 +146,9 @@ def filter_products_by_stock_availability(qs, stock_availability):
         )
         .annotate(total_quantity=Coalesce(Sum("quantity"), 0))
         .annotate(total_available=F("total_quantity") - F("total_quantity_allocated"))
-        .filter(total_available__lte=0)
+        .filter(
+            total_available__lte=0,
+        )
         .values_list("product_variant__product_id", flat=True)
     )
     if stock_availability == StockAvailability.IN_STOCK:
@@ -153,7 +158,7 @@ def filter_products_by_stock_availability(qs, stock_availability):
     return qs
 
 
-def filter_attributes(qs, _, value):
+def _filter_attributes(qs, _, value):
     if value:
         value_list = []
         for v in value:
@@ -206,7 +211,7 @@ def _filter_minimal_price(qs, _, value, channel_slug):
     return qs
 
 
-def filter_stock_availability(qs, _, value):
+def _filter_stock_availability(qs, _, value):
     if value:
         qs = filter_products_by_stock_availability(qs, value)
     return qs
@@ -326,10 +331,10 @@ class ProductFilter(django_filters.FilterSet):
     )
     attributes = ListObjectTypeFilter(
         input_class="saleor.graphql.attribute.types.AttributeInput",
-        method=filter_attributes,
+        method="filter_attributes",
     )
     stock_availability = EnumFilter(
-        input_class=StockAvailability, method=filter_stock_availability
+        input_class=StockAvailability, method="filter_stock_availability"
     )
     product_type = GlobalIDFilter()  # Deprecated
     product_types = GlobalIDMultipleChoiceFilter(field_name="product_type")
@@ -350,6 +355,12 @@ class ProductFilter(django_filters.FilterSet):
             "stocks",
             "search",
         ]
+
+    def filter_attributes(self, queryset, name, value):
+        return _filter_attributes(queryset, name, value)
+
+    def filter_stock_availability(self, queryset, name, value):
+        return _filter_stock_availability(queryset, name, value)
 
     def filter_variant_price(self, queryset, name, value):
         channel_slug = get_channel_slug_from_filter_data(self.data)
