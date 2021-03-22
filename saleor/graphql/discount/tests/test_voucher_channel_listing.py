@@ -1,5 +1,6 @@
 import graphene
 
+from ....discount import DiscountValueType
 from ....discount.error_codes import DiscountErrorCode
 from ...tests.utils import assert_no_permission, get_graphql_content
 
@@ -426,6 +427,46 @@ def test_voucher_channel_listing_create_with_null_as_discount_value(
     assert len(errors) == 1
     assert errors[0]["field"] == "discountValue"
     assert errors[0]["code"] == DiscountErrorCode.REQUIRED.name
+    assert errors[0]["channels"] == [channel_id]
+
+
+def test_voucher_channel_listing_create_with_invalid_percentage_value(
+    staff_api_client,
+    voucher_without_channel,
+    permission_manage_discounts,
+    channel_USD,
+):
+    # given
+    voucher = voucher_without_channel
+    voucher.discount_value_type = DiscountValueType.PERCENTAGE
+    voucher.save()
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.pk)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": voucher_id,
+        "input": {
+            "addChannels": [
+                {
+                    "channelId": channel_id,
+                    "discountValue": 101,
+                }
+            ]
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        VOUCHER_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_discounts,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["voucherChannelListingUpdate"]["discountErrors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "discountValue"
+    assert errors[0]["code"] == DiscountErrorCode.INVALID.name
     assert errors[0]["channels"] == [channel_id]
 
 
