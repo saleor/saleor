@@ -425,7 +425,7 @@ class Checkout(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_available_payment_gateways(root: models.Checkout, info):
-        return info.context.plugins.checkout_available_payment_gateways(checkout=root)
+        return info.context.plugins.list_payment_gateways(currency=root.currency)
 
     @staticmethod
     def resolve_gift_cards(root: models.Checkout, _info):

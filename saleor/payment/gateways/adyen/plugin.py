@@ -253,11 +253,11 @@ class AdyenGatewayPlugin(BasePlugin):
         return previous_value
 
     @require_active_plugin
-    def get_payment_gateway_for_checkout(
-        self,
-        checkout: "Checkout",
-        previous_value,
-    ) -> Optional["PaymentGateway"]:
+    def get_payment_gateways(
+        self, currency: Optional[str], checkout: Optional["Checkout"], previous_value
+    ) -> List["PaymentGateway"]:
+        if not checkout:
+            return []
 
         config = self._get_gateway_config()
         request = request_data_for_gateway_config(
@@ -270,7 +270,7 @@ class AdyenGatewayPlugin(BasePlugin):
             span.set_tag(opentracing.tags.COMPONENT, "payment")
             span.set_tag("service.name", "adyen")
             response = api_call(request, self.adyen.checkout.payment_methods)
-        return PaymentGateway(
+        gateway = PaymentGateway(
             id=self.PLUGIN_ID,
             name=self.PLUGIN_NAME,
             config=[
@@ -282,6 +282,7 @@ class AdyenGatewayPlugin(BasePlugin):
             ],
             currencies=self.get_supported_currencies([]),
         )
+        return [gateway]
 
     @property
     def order_auto_confirmation(self):
