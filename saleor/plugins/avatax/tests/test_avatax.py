@@ -9,12 +9,7 @@ from django.test import override_settings
 from prices import Money, TaxedMoney
 from requests import RequestException
 
-from ....checkout.fetch import (
-    CheckoutInfo,
-    CheckoutLineInfo,
-    fetch_checkout_info,
-    fetch_checkout_lines,
-)
+from ....checkout.fetch import CheckoutInfo, fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import add_variant_to_checkout
 from ....core.prices import quantize_price
 from ....core.taxes import TaxError, TaxType
@@ -852,20 +847,12 @@ def test_get_checkout_shipping_tax_rate(
     shipping_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
     manager = get_plugins_manager()
-    line = checkout_with_item.lines.first()
 
     checkout_with_item.shipping_address = address
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save(update_fields=["shipping_address", "shipping_method"])
 
-    variant = line.variant
-    checkout_line_info = CheckoutLineInfo(
-        line=line,
-        variant=variant,
-        channel_listing=variant.channel_listings.first(),
-        product=variant.product,
-        collections=[],
-    )
+    lines = fetch_checkout_lines(checkout_with_item)
     checkout_info = CheckoutInfo(
         checkout=checkout_with_item,
         shipping_method=checkout_with_item.shipping_method,
@@ -880,8 +867,7 @@ def test_get_checkout_shipping_tax_rate(
     # when
     tax_rate = manager.get_checkout_shipping_tax_rate(
         checkout_info,
-        # Convert to lines
-        [checkout_line_info],
+        lines,
         checkout_with_item.shipping_address,
         [],
         shipping_price,
@@ -904,27 +890,17 @@ def test_get_checkout_shipping_tax_rate_checkout_not_valid_default_value_returne
     shipping_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
     manager = get_plugins_manager()
-    line = checkout_with_item.lines.first()
 
     checkout_with_item.shipping_address = address
     checkout_with_item.save(update_fields=["shipping_address"])
 
-    variant = line.variant
-    checkout_line_info = CheckoutLineInfo(
-        line=line,
-        variant=variant,
-        channel_listing=variant.channel_listings.first(),
-        product=variant.product,
-        collections=[],
-    )
-    checkout_info = fetch_checkout_info(
-        checkout_with_item, [checkout_line_info], [], manager
-    )
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
 
     # when
     tax_rate = manager.get_checkout_shipping_tax_rate(
         checkout_info,
-        [checkout_line_info],
+        lines,
         checkout_with_item.shipping_address,
         [],
         shipping_price,
@@ -947,28 +923,18 @@ def test_get_checkout_shipping_tax_rate_error_in_response(
     shipping_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
     manager = get_plugins_manager()
-    line = checkout_with_item.lines.first()
 
     checkout_with_item.shipping_address = address
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save(update_fields=["shipping_address", "shipping_method"])
 
-    variant = line.variant
-    checkout_line_info = CheckoutLineInfo(
-        line=line,
-        variant=variant,
-        channel_listing=variant.channel_listings.first(),
-        product=variant.product,
-        collections=[],
-    )
-    checkout_info = fetch_checkout_info(
-        checkout_with_item, [checkout_line_info], [], manager
-    )
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
 
     # when
     tax_rate = manager.get_checkout_shipping_tax_rate(
         checkout_info,
-        [checkout_line_info],
+        lines,
         checkout_with_item.shipping_address,
         [],
         shipping_price,
@@ -995,28 +961,18 @@ def test_get_checkout_shipping_tax_rate_skip_plugin(
     shipping_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
     manager = get_plugins_manager()
-    line = checkout_with_item.lines.first()
 
     checkout_with_item.shipping_address = address
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save(update_fields=["shipping_address", "shipping_method"])
 
-    variant = line.variant
-    checkout_line_info = CheckoutLineInfo(
-        line=line,
-        variant=variant,
-        channel_listing=variant.channel_listings.first(),
-        product=variant.product,
-        collections=[],
-    )
-    checkout_info = fetch_checkout_info(
-        checkout_with_item, [checkout_line_info], [], manager
-    )
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
 
     # when
     tax_rate = manager.get_checkout_shipping_tax_rate(
         checkout_info,
-        [checkout_line_info],
+        lines,
         checkout_with_item.shipping_address,
         [],
         shipping_price,

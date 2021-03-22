@@ -9,11 +9,7 @@ from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from ....checkout import calculations
-from ....checkout.fetch import (
-    CheckoutLineInfo,
-    fetch_checkout_info,
-    fetch_checkout_lines,
-)
+from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import add_variant_to_checkout
 from ....core.prices import quantize_price
 from ....core.taxes import zero_taxed_money
@@ -753,21 +749,12 @@ def test_get_checkout_shipping_tax_rate(
 
     unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
-    variant = line.variant
-    checkout_line_info = CheckoutLineInfo(
-        line=line,
-        variant=variant,
-        channel_listing=variant.channel_listings.first(),
-        product=variant.product,
-        collections=[],
-    )
-    checkout_info = fetch_checkout_info(
-        checkout_with_item, [checkout_line_info], [], manager
-    )
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
 
     tax_rate = manager.get_checkout_shipping_tax_rate(
         checkout_info,
-        [checkout_line_info],
+        lines,
         checkout_with_item.shipping_address,
         [],
         unit_price,
@@ -793,21 +780,12 @@ def test_get_checkout_shipping_tax_rate_no_address(
 
     unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
-    variant = line.variant
-    checkout_line_info = CheckoutLineInfo(
-        line=line,
-        variant=variant,
-        channel_listing=variant.channel_listings.first(),
-        product=variant.product,
-        collections=[],
-    )
-    checkout_info = fetch_checkout_info(
-        checkout_with_item, [checkout_line_info], [], manager
-    )
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
 
     tax_rate = manager.get_checkout_shipping_tax_rate(
         checkout_info,
-        checkout_line_info,
+        lines,
         checkout_with_item.shipping_address,
         [],
         unit_price,
@@ -840,21 +818,12 @@ def test_get_checkout_shipping_tax_rate_skip_plugin(
 
     unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
-    variant = line.variant
-    checkout_line_info = CheckoutLineInfo(
-        line=line,
-        variant=variant,
-        channel_listing=variant.channel_listings.first(),
-        product=variant.product,
-        collections=[],
-    )
-    checkout_info = fetch_checkout_info(
-        checkout_with_item, [checkout_line_info], [], manager
-    )
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
 
     tax_rate = manager.get_checkout_shipping_tax_rate(
         checkout_info,
-        checkout_line_info,
+        lines,
         checkout_with_item.shipping_address,
         [],
         unit_price,
