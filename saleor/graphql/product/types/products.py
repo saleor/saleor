@@ -73,6 +73,7 @@ from ...warehouse.dataloaders import (
 from ...warehouse.types import Stock
 from ..dataloaders import (
     CategoryByIdLoader,
+    CategoryChildrenByCategoryIdLoader,
     CollectionChannelListingByCollectionIdAndChannelSlugLoader,
     CollectionChannelListingByCollectionIdLoader,
     CollectionsByProductIdLoader,
@@ -1137,7 +1138,7 @@ class Category(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_children(root: models.Category, info, **_kwargs):
-        return root.children.all()
+        return CategoryChildrenByCategoryIdLoader(info.context).load(root.pk)
 
     @staticmethod
     def resolve_url(root: models.Category, _info):

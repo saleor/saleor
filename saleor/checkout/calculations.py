@@ -94,6 +94,7 @@ def checkout_line_total(
     *,
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
     discounts: Iterable[DiscountInfo] = [],
 ) -> "TaxedMoney":
@@ -104,6 +105,7 @@ def checkout_line_total(
     address = checkout_info.shipping_address or checkout_info.billing_address
     calculated_line_total = manager.calculate_checkout_line_total(
         checkout_info,
+        lines,
         checkout_line_info,
         address,
         discounts or [],

@@ -26,6 +26,10 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix available shipping methods - return also weight methods without weight limits - #7021 by @IKarbowiak
 - Remove redundant Opentracing spans - #6994 by @fowczarek
 - Trigger `PRODUCT_UPDATED` webhook for collections and categories mutataions - #7051 by @d-wysocki
+- Support setting value for AttributeValue mutations - #7037 by @piotrgrundas
+- Validate discount value for percentage vouchers and sales - #7033 by @d-wysocki
+- Optimize children field on Category type - #7045 by @IKarbowiak
+- Added support for querying objects by metadata fields - #6683 by @LeOndaz
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -52,6 +56,12 @@ All notable, unreleased changes to this project will be documented in this file.
     - `get_checkout_line_tax_rate`
     - `preprocess_order_creation`
   - additionally, `preprocess_order_creation` was extend with `lines_info` parameter
+- Fix Avalara caching - #7036 by @fowczarek;
+ - Introduced changes in plugin methods definitions:
+    - `calculate_checkout_line_total`  was extended with `lines` parameter
+    - `calculate_checkout_line_unit_price`  was extended with `lines` parameter
+    - `get_checkout_line_tax_rate`  was extended with `lines` parameter
+  To get proper taxes we should always send the whole checkout to Avalara.
 - Remove triggering a webhook event `PRODUCT_UPDATED`  when calling `ProductVariantCreate` mutation.  Use `PRODUCT_VARIANT_CREATED` instead - #6963 by @piotrgrundas
 - Remove triggering a webhook event `PRODUCT_UPDATED` when calling  `ProductVariantChannelListingUpdate` mutation. Use `PRODUCT_VARIANT_UPDATED` instead - #6963 by @piotrgrundas
 

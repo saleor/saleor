@@ -4,7 +4,7 @@ from graphene_django.filter import GlobalIDMultipleChoiceFilter
 
 from ...order.models import Order
 from ..channel.types import Channel
-from ..core.filters import ListObjectTypeFilter, ObjectTypeFilter
+from ..core.filters import ListObjectTypeFilter, MetadataFilterBase, ObjectTypeFilter
 from ..core.types.common import DateRangeInput
 from ..core.utils import from_global_id_strict_type
 from ..payment.enums import PaymentChargeStatusEnum
@@ -92,7 +92,7 @@ def filter_channels(qs, _, values):
     return qs
 
 
-class DraftOrderFilter(django_filters.FilterSet):
+class DraftOrderFilter(MetadataFilterBase):
     customer = django_filters.CharFilter(method=filter_customer)
     created = ObjectTypeFilter(input_class=DateRangeInput, method=filter_created_range)
     search = django_filters.CharFilter(method=filter_order_search)
