@@ -187,7 +187,7 @@ class PaymentCapture(BaseMutation):
             info, payment_id, field="payment_id", only_type=Payment
         )
         try:
-            gateway.capture(payment, amount)
+            gateway.capture(payment, info.context.plugins, amount)
             payment.refresh_from_db()
         except PaymentError as e:
             raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR)
@@ -207,7 +207,7 @@ class PaymentRefund(PaymentCapture):
             info, payment_id, field="payment_id", only_type=Payment
         )
         try:
-            gateway.refund(payment, amount=amount)
+            gateway.refund(payment, info.context.plugins, amount=amount)
             payment.refresh_from_db()
         except PaymentError as e:
             raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR)
@@ -232,7 +232,7 @@ class PaymentVoid(BaseMutation):
             info, payment_id, field="payment_id", only_type=Payment
         )
         try:
-            gateway.void(payment)
+            gateway.void(payment, info.context.plugins)
             payment.refresh_from_db()
         except PaymentError as e:
             raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR)

@@ -433,7 +433,13 @@ class OrderCapture(BaseMutation):
         clean_order_capture(payment)
 
         transaction = try_payment_action(
-            order, info.context.user, payment, gateway.capture, payment, amount
+            order,
+            info.context.user,
+            payment,
+            gateway.capture,
+            payment,
+            info.context.plugins,
+            amount,
         )
         # Confirm that we changed the status to capture. Some payment can receive
         # asynchronous webhook with update status
@@ -463,7 +469,12 @@ class OrderVoid(BaseMutation):
         clean_void_payment(payment)
 
         transaction = try_payment_action(
-            order, info.context.user, payment, gateway.void, payment
+            order,
+            info.context.user,
+            payment,
+            gateway.void,
+            payment,
+            info.context.plugins,
         )
         # Confirm that we changed the status to void. Some payment can receive
         # asynchronous webhook with update status
@@ -504,7 +515,13 @@ class OrderRefund(BaseMutation):
         clean_refund_payment(payment)
 
         transaction = try_payment_action(
-            order, info.context.user, payment, gateway.refund, payment, amount
+            order,
+            info.context.user,
+            payment,
+            gateway.refund,
+            payment,
+            info.context.plugins,
+            amount,
         )
 
         # Confirm that we changed the status to refund. Some payment can receive
@@ -553,7 +570,7 @@ class OrderConfirm(ModelMutation):
         payment = order.get_last_payment()
         manager = info.context.plugins
         if payment and payment.is_authorized and payment.can_capture():
-            gateway.capture(payment)
+            gateway.capture(payment, info.context.plugins)
             order_captured(order, info.context.user, payment.total, payment, manager)
         order_confirmed(order, info.context.user, manager, send_confirmation_email=True)
         return OrderConfirm(order=order)

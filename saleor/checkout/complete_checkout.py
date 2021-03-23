@@ -519,14 +519,14 @@ def _process_payment(
     """Process the payment assigned to checkout."""
     try:
         if payment.to_confirm:
-            txn = gateway.confirm(payment, additional_data=payment_data)
+            txn = gateway.confirm(payment, plugin_manager, additional_data=payment_data)
         else:
             txn = gateway.process_payment(
                 payment=payment,
                 token=payment.token,
+                plugin_manager=plugin_manager,
                 store_source=store_source,
                 additional_data=payment_data,
-                plugin_manager=plugin_manager,
             )
         payment.refresh_from_db()
         if not txn.is_success:
@@ -570,7 +570,7 @@ def complete_checkout(
     try:
         order_data = _get_order_data(manager, checkout_info, lines, discounts)
     except ValidationError as exc:
-        gateway.payment_refund_or_void(payment)
+        gateway.payment_refund_or_void(payment, manager)
         raise exc
 
     txn = _process_payment(
@@ -601,7 +601,7 @@ def complete_checkout(
             checkout.delete()
         except InsufficientStock as e:
             release_voucher_usage(order_data)
-            gateway.payment_refund_or_void(payment)
+            gateway.payment_refund_or_void(payment, manager)
             error = prepare_insufficient_stock_checkout_validation_error(e)
             raise error
     return order, action_required, action_data

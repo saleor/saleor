@@ -4,8 +4,6 @@ from typing import TYPE_CHECKING, Callable, List, Optional
 
 from django.db import transaction
 
-from ..payment.interface import TokenConfig
-from ..plugins.manager import get_plugins_manager
 from . import GatewayError, PaymentError, TransactionKind
 from .models import Payment, Transaction
 from .utils import (
@@ -76,12 +74,10 @@ def with_locked_payment(fn: Callable) -> Callable:
 def process_payment(
     payment: Payment,
     token: str,
+    plugin_manager: "PluginsManager",
     store_source: bool = False,
     additional_data: Optional[dict] = None,
-    plugin_manager: Optional["PluginsManager"] = None,
 ) -> Transaction:
-    if not plugin_manager:
-        plugin_manager = get_plugins_manager()
     payment_data = create_payment_information(
         payment=payment,
         payment_token=token,
@@ -109,8 +105,12 @@ def process_payment(
 @require_active_payment
 @with_locked_payment
 @payment_postprocess
-def authorize(payment: Payment, token: str, store_source: bool = False) -> Transaction:
-    plugin_manager = get_plugins_manager()
+def authorize(
+    payment: Payment,
+    token: str,
+    plugin_manager: "PluginsManager",
+    store_source: bool = False,
+) -> Transaction:
     clean_authorize(payment)
     payment_data = create_payment_information(
         payment=payment, payment_token=token, store_source=store_source
@@ -135,9 +135,11 @@ def authorize(payment: Payment, token: str, store_source: bool = False) -> Trans
 @with_locked_payment
 @payment_postprocess
 def capture(
-    payment: Payment, amount: Decimal = None, store_source: bool = False
+    payment: Payment,
+    plugin_manager: "PluginsManager",
+    amount: Decimal = None,
+    store_source: bool = False,
 ) -> Transaction:
-    plugin_manager = get_plugins_manager()
     if amount is None:
         amount = payment.get_charge_amount()
     clean_capture(payment, Decimal(amount))
@@ -163,8 +165,9 @@ def capture(
 @require_active_payment
 @with_locked_payment
 @payment_postprocess
-def refund(payment: Payment, amount: Decimal = None) -> Transaction:
-    plugin_manager = get_plugins_manager()
+def refund(
+    payment: Payment, plugin_manager: "PluginsManager", amount: Decimal = None
+) -> Transaction:
     if amount is None:
         amount = payment.captured_amount
     _validate_refund_amount(payment, amount)
@@ -202,8 +205,7 @@ def refund(payment: Payment, amount: Decimal = None) -> Transaction:
 @require_active_payment
 @with_locked_payment
 @payment_postprocess
-def void(payment: Payment) -> Transaction:
-    plugin_manager = get_plugins_manager()
+def void(payment: Payment, plugin_manager: "PluginsManager") -> Transaction:
     token = _get_past_transaction_token(payment, TransactionKind.AUTH)
     payment_data = create_payment_information(payment=payment, payment_token=token)
     response, error = _fetch_gateway_response(
@@ -222,8 +224,11 @@ def void(payment: Payment) -> Transaction:
 @require_active_payment
 @with_locked_payment
 @payment_postprocess
-def confirm(payment: Payment, additional_data: Optional[dict] = None) -> Transaction:
-    plugin_manager = get_plugins_manager()
+def confirm(
+    payment: Payment,
+    plugin_manager: "PluginsManager",
+    additional_data: Optional[dict] = None,
+) -> Transaction:
     txn = payment.transactions.filter(
         kind=TransactionKind.ACTION_TO_CONFIRM, is_success=True
     ).last()
@@ -247,19 +252,14 @@ def confirm(payment: Payment, additional_data: Optional[dict] = None) -> Transac
     )
 
 
-def list_payment_sources(gateway: str, customer_id: str) -> List["CustomerSource"]:
-    plugin_manager = get_plugins_manager()
+def list_payment_sources(
+    gateway: str, customer_id: str, plugin_manager: "PluginsManager"
+) -> List["CustomerSource"]:
     return plugin_manager.list_payment_sources(gateway, customer_id)
 
 
-def get_client_token(gateway: str, customer_id: str = None) -> str:
-    plugin_manager = get_plugins_manager()
-    token_config = TokenConfig(customer_id=customer_id)
-    return plugin_manager.get_client_token(gateway, token_config)
-
-
-def list_gateways() -> List["PaymentGateway"]:
-    return get_plugins_manager().list_payment_gateways()
+def list_gateways(plugin_manager: "PluginsManager") -> List["PaymentGateway"]:
+    return plugin_manager.list_payment_gateways()
 
 
 def _fetch_gateway_response(fn, *args, **kwargs):
@@ -294,10 +294,12 @@ def _validate_refund_amount(payment: Payment, amount: Decimal):
         raise PaymentError("Cannot refund more than captured.")
 
 
-def payment_refund_or_void(payment: Optional[Payment]):
+def payment_refund_or_void(
+    payment: Optional[Payment], plugin_manager: "PluginsManager"
+):
     if payment is None:
         return
     if payment.can_refund():
-        refund(payment)
+        refund(payment, plugin_manager)
     elif payment.can_void():
-        void(payment)
+        void(payment, plugin_manager)

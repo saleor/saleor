@@ -1126,7 +1126,7 @@ def _process_refund(
             amount += order.shipping_price_gross_amount
     if amount:
         amount = min(payment.captured_amount, amount)
-        gateway.refund(payment, amount)
+        gateway.refund(payment, manager, amount)
         order_refunded(order, requester, amount, payment, manager=manager)
 
     fulfillment_refunded_event(

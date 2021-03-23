@@ -1,5 +1,5 @@
 from decimal import Decimal
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 from prices import Money, TaxedMoney
 
@@ -61,7 +61,7 @@ def test_create_refund_fulfillment_only_order_lines(
             == current_allocation.quantity_allocated
         )
     amount = sum([line.unit_price_gross_amount * 2 for line in order_lines_to_refund])
-    mocked_refund.assert_called_once_with(payment_dummy, amount)
+    mocked_refund.assert_called_once_with(payment_dummy, ANY, amount)
 
 
 @patch("saleor.order.actions.gateway.refund")
@@ -105,7 +105,7 @@ def test_create_refund_fulfillment_multiple_order_line_refunds(
     for line in order_lines_to_refund:
         assert line.quantity_unfulfilled == original_quantity.get(line.pk) - 2
 
-    assert mocked_refund.call_count == 2
+    assert mocked_refund.call_count == ANY, 2
 
 
 @patch("saleor.order.actions.gateway.refund")
@@ -145,7 +145,7 @@ def test_create_refund_fulfillment_included_shipping_costs(
         assert line.quantity_unfulfilled == original_quantity.get(line.pk) - 2
     amount = sum([line.unit_price_gross_amount * 2 for line in order_lines_to_refund])
     amount += order_with_lines.shipping_price_gross_amount
-    mocked_refund.assert_called_once_with(payment_dummy, amount)
+    mocked_refund.assert_called_once_with(payment_dummy, ANY, amount)
 
 
 @patch("saleor.order.actions.gateway.refund")
@@ -185,7 +185,7 @@ def test_create_refund_fulfillment_only_fulfillment_lines(
     amount = sum(
         [line.order_line.unit_price_gross_amount * 2 for line in fulfillment_lines]
     )
-    mocked_refund.assert_called_once_with(payment_dummy, amount)
+    mocked_refund.assert_called_once_with(payment_dummy, ANY, amount)
 
 
 @patch("saleor.order.actions.gateway.refund")
@@ -228,7 +228,7 @@ def test_create_refund_fulfillment_multiple_fulfillment_lines_refunds(
     for line in fulfillment_lines:
         assert line.quantity == original_quantity.get(line.pk) - 2
 
-    assert mocked_refund.call_count == 2
+    assert mocked_refund.call_count == ANY, 2
 
 
 @patch("saleor.order.actions.gateway.refund")
@@ -268,7 +268,7 @@ def test_create_refund_fulfillment_custom_amount(
 
     for line in fulfillment_lines:
         assert line.quantity == original_quantity.get(line.pk) - 2
-    mocked_refund.assert_called_once_with(payment_dummy, amount)
+    mocked_refund.assert_called_once_with(payment_dummy, ANY, amount)
 
 
 @patch("saleor.order.actions.gateway.refund")
@@ -343,4 +343,4 @@ def test_create_refund_fulfillment_multiple_refunds(
     order_line.refresh_from_db()
     assert order_line.quantity_fulfilled == 4
     assert order_line.quantity_unfulfilled == 1
-    assert mocked_refund.call_count == 2
+    assert mocked_refund.call_count == ANY, 2
