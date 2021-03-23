@@ -27,6 +27,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Remove redundant Opentracing spans - #6994 by @fowczarek
 - Support setting value for AttributeValue mutations - #7037 by @piotrgrundas
 - Validate discount value for percentage vouchers and sales - #7033 by @d-wysocki
+- Optimize children field on Category type - #7045 by @IKarbowiak
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
