@@ -406,7 +406,7 @@ def _update_allocations_for_line(line: OrderLine, old_quantity: int, new_quantit
 def change_order_line_quantity(user, line, old_quantity: int, new_quantity: int):
     """Change the quantity of ordered items in a order line."""
     if new_quantity:
-        if line.order.status == OrderStatus.UNCONFIRMED:
+        if line.order.is_unconfirmed():
             _update_allocations_for_line(line, old_quantity, new_quantity)
         line.quantity = new_quantity
         total_price_net_amount = line.quantity * line.unit_price_net_amount
@@ -440,7 +440,7 @@ def change_order_line_quantity(user, line, old_quantity: int, new_quantity: int)
 
 def delete_order_line(line):
     """Delete an order line from an order."""
-    if line.order.status == OrderStatus.UNCONFIRMED:
+    if line.order.is_unconfirmed():
         decrease_allocations(line, line.quantity)
     line.delete()
 
