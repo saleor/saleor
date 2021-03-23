@@ -229,6 +229,12 @@ class CollectionCreate(ModelMutation):
             create_collection_background_image_thumbnails.delay(instance.pk)
 
     @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        products = instance.products.all()
+        for product in products:
+            info.context.plugins.product_updated(product)
+
+    @classmethod
     def perform_mutation(cls, _root, info, **kwargs):
         result = super().perform_mutation(_root, info, **kwargs)
         return CollectionCreate(
@@ -251,6 +257,10 @@ class CollectionUpdate(CollectionCreate):
         error_type_field = "collection_errors"
 
     @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        pass
+
+    @classmethod
     def save(cls, info, instance, cleaned_input):
         if cleaned_input.get("background_image"):
             create_collection_background_image_thumbnails.delay(instance.pk)
@@ -270,7 +280,14 @@ class CollectionDelete(ModelDeleteMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **kwargs):
+        node_id = kwargs.get("id")
+
+        instance = cls.get_node_or_error(info, node_id, only_type=Collection)
+        products = list(instance.products.all())
+
         result = super().perform_mutation(_root, info, **kwargs)
+        for product in products:
+            info.context.plugins.product_updated(product)
         return CollectionDelete(
             collection=ChannelContext(node=result.collection, channel_slug=None)
         )
@@ -393,6 +410,11 @@ class CollectionAddProducts(BaseMutation):
             update_products_discounted_prices_of_catalogues_task.delay(
                 product_ids=[pq.pk for pq in products]
             )
+        transaction.on_commit(
+            lambda: [
+                info.context.plugins.product_updated(product) for product in products
+            ]
+        )
         return CollectionAddProducts(
             collection=ChannelContext(node=collection, channel_slug=None)
         )
@@ -439,6 +461,8 @@ class CollectionRemoveProducts(BaseMutation):
         )
         products = cls.get_nodes_or_error(products, "products", only_type=Product)
         collection.products.remove(*products)
+        for product in products:
+            info.context.plugins.product_updated(product)
         if collection.sale_set.exists():
             # Updated the db entries, recalculating discounts of affected products
             update_products_discounted_prices_of_catalogues_task.delay(

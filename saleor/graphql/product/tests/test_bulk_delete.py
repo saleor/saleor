@@ -170,6 +170,42 @@ def test_delete_collections(
     ).exists()
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_delete_collections_trigger_product_updated_webhook(
+    product_updated_mock,
+    staff_api_client,
+    collection_list,
+    product_list,
+    permission_manage_products,
+):
+    query = """
+    mutation collectionBulkDelete($ids: [ID]!) {
+        collectionBulkDelete(ids: $ids) {
+            count
+        }
+    }
+    """
+    for collection in collection_list:
+        collection.products.add(*product_list)
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("Collection", collection.id)
+            for collection in collection_list
+        ]
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+
+    assert content["data"]["collectionBulkDelete"]["count"] == 3
+    assert not Collection.objects.filter(
+        id__in=[collection.id for collection in collection_list]
+    ).exists()
+    expected_call_count = len(collection_list) * len(product_list)
+    assert expected_call_count == product_updated_mock.call_count
+
+
 DELETE_PRODUCTS_MUTATION = """
 mutation productBulkDelete($ids: [ID]!) {
     productBulkDelete(ids: $ids) {
