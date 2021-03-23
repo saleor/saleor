@@ -1,5 +1,5 @@
 from decimal import Decimal
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 from prices import Money, TaxedMoney
 
@@ -128,7 +128,7 @@ def test_create_return_fulfillment_only_order_lines_with_refund(
         )
 
     amount = sum([line.unit_price_gross_amount * 2 for line in order_lines_to_return])
-    mocked_refund.assert_called_once_with(payment_dummy_fully_charged, amount)
+    mocked_refund.assert_called_once_with(payment_dummy_fully_charged, ANY, amount)
     assert not replace_order
 
 
@@ -185,7 +185,7 @@ def test_create_return_fulfillment_only_order_lines_included_shipping_costs(
 
     amount = sum([line.unit_price_gross_amount * 2 for line in order_lines_to_return])
     amount += order_with_lines.shipping_price_gross_amount
-    mocked_refund.assert_called_once_with(payment_dummy_fully_charged, amount)
+    mocked_refund.assert_called_once_with(payment_dummy_fully_charged, ANY, amount)
     assert not replace_order
 
 
@@ -339,7 +339,7 @@ def test_create_return_fulfillment_multiple_order_line_returns(
     for line in order_lines_to_return:
         assert line.quantity_unfulfilled == original_quantity.get(line.pk) - 2
 
-    assert mocked_refund.call_count == 2
+    assert mocked_refund.call_count == ANY, 2
 
 
 @patch("saleor.order.actions.gateway.refund")
@@ -516,7 +516,7 @@ def test_create_return_fulfillment_multiple_fulfillment_lines_returns(
     for line in fulfillment_lines:
         assert line.quantity == original_quantity.get(line.pk) - 2
 
-    assert mocked_refund.call_count == 2
+    assert mocked_refund.call_count == ANY, 2
 
 
 @patch("saleor.order.actions.gateway.refund")
@@ -589,7 +589,7 @@ def test_create_return_fulfillment_multiple_lines_returns(
     for line in fulfillment_lines:
         assert line.quantity == original_quantity.get(line.pk) - 2
 
-    assert mocked_refund.call_count == 2
+    assert mocked_refund.call_count == ANY, 2
 
 
 @patch("saleor.order.actions.gateway.refund")
@@ -767,4 +767,4 @@ def test_create_return_fulfillment_with_lines_already_refunded(
             for line in fulfillment_lines_to_return
         ]
     )
-    mocked_refund.assert_called_once_with(payment_dummy_fully_charged, amount)
+    mocked_refund.assert_called_once_with(payment_dummy_fully_charged, ANY, amount)

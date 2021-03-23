@@ -1,5 +1,5 @@
 from decimal import Decimal
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 import graphene
 from prices import Money, TaxedMoney
@@ -108,7 +108,7 @@ def test_fulfillment_return_products_amount_and_shipping_costs(
     staff_api_client.post_graphql(ORDER_FULFILL_RETURN_MUTATION, variables)
 
     mocked_refund.assert_called_with(
-        payment_dummy, quantize_price(amount_to_refund, fulfilled_order.currency)
+        payment_dummy, ANY, quantize_price(amount_to_refund, fulfilled_order.currency)
     )
 
 
@@ -215,7 +215,7 @@ def test_fulfillment_return_products_order_lines(
 
     amount = line_to_return.unit_price_gross_amount * line_quantity_to_return
     amount += order_with_lines.shipping_price_gross_amount
-    mocked_refund.assert_called_with(payment_dummy, amount)
+    mocked_refund.assert_called_with(payment_dummy, ANY, amount)
 
 
 def test_fulfillment_return_products_order_lines_quantity_bigger_than_total(
@@ -317,7 +317,7 @@ def test_fulfillment_return_products_order_lines_custom_amount(
     assert len(return_fulfillment["lines"]) == 1
     assert return_fulfillment["lines"][0]["orderLine"]["id"] == line_id
     assert return_fulfillment["lines"][0]["quantity"] == 2
-    mocked_refund.assert_called_with(payment_dummy, amount_to_refund)
+    mocked_refund.assert_called_with(payment_dummy, ANY, amount_to_refund)
 
 
 @patch("saleor.order.actions.gateway.refund")
@@ -434,7 +434,7 @@ def test_fulfillment_return_products_fulfillment_lines(
         * quantity_to_return
     )
     amount += fulfilled_order.shipping_price_gross_amount
-    mocked_refund.assert_called_with(payment_dummy, amount)
+    mocked_refund.assert_called_with(payment_dummy, ANY, amount)
 
 
 def test_fulfillment_return_products_fulfillment_lines_quantity_bigger_than_total(
@@ -594,7 +594,7 @@ def test_fulfillment_return_products_fulfillment_lines_include_shipping_costs(
     assert return_fulfillment["lines"][0]["quantity"] == 2
     amount = fulfillment_line_to_return.order_line.unit_price_gross_amount * 2
     amount += fulfilled_order.shipping_price_gross_amount
-    mocked_refund.assert_called_with(payment_dummy, amount)
+    mocked_refund.assert_called_with(payment_dummy, ANY, amount)
 
 
 @patch("saleor.order.actions.gateway.refund")
@@ -695,4 +695,4 @@ def test_fulfillment_return_products_fulfillment_lines_and_order_lines(
 
     amount = order_line.unit_price_gross_amount * 2
     amount = quantize_price(amount, fulfilled_order.currency)
-    mocked_refund.assert_called_with(payment_dummy, amount)
+    mocked_refund.assert_called_with(payment_dummy, ANY, amount)

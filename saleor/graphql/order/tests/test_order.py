@@ -817,7 +817,7 @@ def test_order_confirm(
         type=order_events.OrderEvents.PAYMENT_CAPTURED,
         parameters__amount=payment_txn_preauth.get_total().amount,
     ).exists()
-    capture_mock.assert_called_once_with(payment_txn_preauth)
+    capture_mock.assert_called_once_with(payment_txn_preauth, ANY)
 
 
 def test_order_confirm_unfulfilled(staff_api_client, order, permission_manage_orders):

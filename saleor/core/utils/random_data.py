@@ -544,21 +544,22 @@ def create_fake_payment(mock_email_confirmation, order):
         total=order.total.gross.amount,
         currency=order.total.gross.currency,
     )
+    manager = get_plugins_manager()
 
     # Create authorization transaction
-    gateway.authorize(payment, payment.token)
+    gateway.authorize(payment, payment.token, manager)
     # 20% chance to void the transaction at this stage
     if random.choice([0, 0, 0, 0, 1]):
-        gateway.void(payment)
+        gateway.void(payment, manager)
         return payment
     # 25% to end the payment at the authorization stage
     if not random.choice([1, 1, 1, 0]):
         return payment
     # Create capture transaction
-    gateway.capture(payment)
+    gateway.capture(payment, manager)
     # 25% to refund the payment
     if random.choice([0, 0, 0, 1]):
-        gateway.refund(payment)
+        gateway.refund(payment, manager)
     return payment
 
 
