@@ -479,6 +479,7 @@ input AttributeFilterInput {
   filterableInStorefront: Boolean
   filterableInDashboard: Boolean
   availableInGrid: Boolean
+  metadata: [MetadataInput]
   search: String
   ids: [ID]
   type: AttributeTypeEnum
@@ -719,6 +720,7 @@ type CategoryDelete {
 
 input CategoryFilterInput {
   search: String
+  metadata: [MetadataInput]
   ids: [ID]
 }
 
@@ -1157,6 +1159,7 @@ enum CollectionErrorCode {
 input CollectionFilterInput {
   published: CollectionPublished
   search: String
+  metadata: [MetadataInput]
   ids: [ID]
   channel: String
 }
@@ -2428,6 +2431,7 @@ enum MenuErrorCode {
 input MenuFilterInput {
   search: String
   slug: [String]
+  metadata: [MetadataInput]
 }
 
 input MenuInput {
@@ -2492,6 +2496,7 @@ type MenuItemDelete {
 
 input MenuItemFilterInput {
   search: String
+  metadata: [MetadataInput]
 }
 
 input MenuItemInput {
@@ -3036,6 +3041,7 @@ input OrderDraftFilterInput {
   customer: String
   created: DateRangeInput
   search: String
+  metadata: [MetadataInput]
   channels: [ID]
 }
 
@@ -3193,6 +3199,7 @@ input OrderFilterInput {
   customer: String
   created: DateRangeInput
   search: String
+  metadata: [MetadataInput]
   channels: [ID]
 }
 
@@ -3496,6 +3503,7 @@ enum PageErrorCode {
 
 input PageFilterInput {
   search: String
+  metadata: [MetadataInput]
 }
 
 type PageInfo {
@@ -4129,6 +4137,7 @@ input ProductFilterInput {
   productType: ID
   stocks: ProductStockFilterInput
   search: String
+  metadata: [MetadataInput]
   price: PriceRangeInput
   minimalPrice: PriceRangeInput
   productTypes: [ID]
@@ -4343,6 +4352,7 @@ input ProductTypeFilterInput {
   search: String
   configurable: ProductTypeConfigurable
   productType: ProductTypeEnum
+  metadata: [MetadataInput]
   ids: [ID]
 }
 
@@ -4488,6 +4498,7 @@ type ProductVariantDelete {
 input ProductVariantFilterInput {
   search: String
   sku: [String]
+  metadata: [MetadataInput]
 }
 
 input ProductVariantInput {
