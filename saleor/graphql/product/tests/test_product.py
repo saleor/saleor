@@ -6182,6 +6182,7 @@ def test_product_media_create_mutation_without_file(
     assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
 
 
+@pytest.mark.vcr
 def test_product_media_create_mutation_with_media_url(
     monkeypatch, staff_api_client, product, permission_manage_products, media_root
 ):
@@ -6205,7 +6206,7 @@ def test_product_media_create_mutation_with_media_url(
     assert media[0]["type"] == ProductMediaTypes.VIDEO
 
     oembed_data = json.loads(media[0]["oembedData"])
-    assert oembed_data["url"] == ("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+    assert oembed_data["url"] == "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
     assert oembed_data["type"] == "video"
     assert oembed_data["html"] is not None
     assert oembed_data["thumbnail_url"] == (
