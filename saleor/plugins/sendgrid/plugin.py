@@ -87,6 +87,8 @@ EVENT_MAP = {
     ),
 }
 
+HELP_TEXT_TEMPLATE = "ID of the dynamic template in Sendgrid"
+
 
 class SendgridEmailPlugin(BasePlugin):
     PLUGIN_ID = "mirumee.notifications.sendgrid_email"
@@ -125,75 +127,73 @@ class SendgridEmailPlugin(BasePlugin):
         },
         "account_confirmation_template_id": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": "The dynamic template ID for account confirmation.",
-            "label": "Template ID for account confirmation",
+            "help_text": HELP_TEXT_TEMPLATE,
+            "label": "Account confirmation email template",
         },
         "account_set_customer_password_template_id": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": "The dynamic template ID for account set customer password.",
-            "label": "Template ID for account set customer password",
+            "help_text": HELP_TEXT_TEMPLATE,
+            "label": "Account set customer password email template",
         },
         "account_delete_template_id": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": "The dynamic template ID for account delete.",
-            "label": "Template ID for account delete",
+            "help_text": HELP_TEXT_TEMPLATE,
+            "label": "Account delete email template",
         },
         "account_change_email_confirm_template_id": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": (
-                "The dynamic template ID for account change email confirmation."
-            ),
-            "label": "Template ID for account change email confirm",
+            "help_text": HELP_TEXT_TEMPLATE,
+            "label": "Account change email confirm email template",
         },
         "account_change_email_request_template_id": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": "The dynamic template ID for account change email request.",
-            "label": "Template ID for account change email request",
+            "help_text": HELP_TEXT_TEMPLATE,
+            "label": "Account change email request email template",
         },
         "account_password_reset_template_id": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": "The dynamic template ID for account password reset.",
-            "label": "Template ID for account password reset",
+            "help_text": HELP_TEXT_TEMPLATE,
+            "label": "Account password reset email template",
         },
         "invoice_ready_template_id": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": "The dynamic template ID for invoice ready.",
-            "label": "Template ID for invoice ready",
+            "help_text": HELP_TEXT_TEMPLATE,
+            "label": "Invoice ready email template",
         },
         "order_confirmation_template_id": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": "The dynamic template ID for order confirmation.",
-            "label": "Template ID for order confirmation",
+            "help_text": HELP_TEXT_TEMPLATE,
+            "label": "Order confirmation email template",
         },
         "order_confirmed_template_id": {
             "type": ConfigurationTypeField.STRING,
             "help_text": "The dynamic template ID for order confirmed.",
-            "label": "Template ID for order confirmed",
+            "label": "Order confirmed email template",
         },
         "order_fulfillment_confirmation_template_id": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": "The dynamic template ID for order fulfillment confirmation.",
-            "label": "Template ID for order fulfillment confirmation",
+            "help_text": HELP_TEXT_TEMPLATE,
+            "label": "Order fulfillment confirmation email template",
         },
         "order_fulfillment_update_template_id": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": "The dynamic template ID for order fulfillment update",
-            "label": "Template ID for order fulfillment update",
+            "help_text": HELP_TEXT_TEMPLATE,
+            "label": "Order fulfillment update email template",
         },
         "order_payment_confirmation_template_id": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": "The dynamic template ID for order payment confirmation.",
-            "label": "Template ID for order payment confirmation",
+            "help_text": HELP_TEXT_TEMPLATE,
+            "label": "Order payment confirmation email template",
         },
         "order_canceled_template_id": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": "The dynamic template ID for order canceled",
-            "label": "Template ID for order canceled",
+            "help_text": HELP_TEXT_TEMPLATE,
+            "label": "Order canceled email template",
         },
         "order_refund_confirmation_template_id": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": "The dynamic template ID for order refund confirmation",
-            "label": "Template ID for order refund confirmation",
+            "help_text": HELP_TEXT_TEMPLATE,
+            "label": "Order refund confirmation email template",
         },
         "api_key": {
             "type": ConfigurationTypeField.SECRET,
