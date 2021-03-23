@@ -154,8 +154,7 @@ def create_payment_notification_for_order(
     )
 
 
-def create_order(payment, checkout):
-    manager = get_plugins_manager()
+def create_order(payment, checkout, manager):
     try:
         discounts = fetch_active_discounts()
         lines = fetch_checkout_lines(checkout)
@@ -177,7 +176,7 @@ def create_order(payment, checkout):
     return order
 
 
-def handle_not_created_order(notification, payment, checkout, kind):
+def handle_not_created_order(notification, payment, checkout, kind, manager):
     """Process the notification in case when payment doesn't have assigned order."""
 
     # We don't want to create order for payment that is cancelled or refunded
@@ -200,7 +199,7 @@ def handle_not_created_order(notification, payment, checkout, kind):
 
     # Only when we confirm that notification is success we will create the order
     if transaction.is_success and checkout:  # type: ignore
-        order = create_order(payment, checkout)
+        order = create_order(payment, checkout, manager)
         return order
     return None
 
@@ -219,7 +218,7 @@ def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayCo
     if adyen_auto_capture:
         kind = TransactionKind.CAPTURE
     if not payment.order:
-        handle_not_created_order(notification, payment, checkout, kind)
+        handle_not_created_order(notification, payment, checkout, kind, manager)
     else:
         adyen_auto_capture = gateway_config.connection_params["adyen_auto_capture"]
         kind = TransactionKind.AUTH
@@ -312,7 +311,7 @@ def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig)
     manager = get_plugins_manager()
     if not payment.order:
         handle_not_created_order(
-            notification, payment, checkout, TransactionKind.CAPTURE
+            notification, payment, checkout, TransactionKind.CAPTURE, manager
         )
     else:
         capture_transaction = payment.transactions.filter(
@@ -797,4 +796,4 @@ def handle_api_response(
         gateway_response=gateway_response,
     )
     if is_success and not action_required and not payment.order:
-        create_order(payment, checkout)
+        create_order(payment, checkout, get_plugins_manager())
