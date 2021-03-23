@@ -1,14 +1,15 @@
 import itertools
 import uuid
-from typing import Set
+from typing import Iterable, Optional, Set
 
 from django.db import models
 from django.db.models import Count, Exists, F, OuterRef, Prefetch, Q, Sum
 from django.db.models.expressions import Subquery
 from django.db.models.functions import Coalesce
 from django.db.models.query import QuerySet
+from django.utils import timezone
 
-from ..account.models import Address
+from ..account.models import Addressą
 from ..channel.models import Channel
 from ..checkout.models import CheckoutLine
 from ..core.models import ModelWithMetadata
@@ -186,6 +187,20 @@ class StockQuerySet(models.QuerySet):
             product_variant=product_variant
         )
 
+    def get_variants_stocks_for_country(
+        self,
+        country_code: str,
+        channel_slug: str,
+        products_variants: Iterable[ProductVariant],
+    ):
+        """Return the stock information about the a stock for a given country.
+
+        Note it will raise a 'Stock.DoesNotExist' exception if no such stock is found.
+        """
+        return self.for_country_and_channel(country_code, channel_slug).filter(
+            product_variant__in=products_variants
+        )
+
     def get_product_stocks_for_country_and_channel(
         self, country_code: str, channel_slug: str, product: Product
     ):
@@ -279,4 +294,43 @@ class PreorderAllocation(models.Model):
 
     class Meta:
         unique_together = [["order_line", "product_variant_channel_listing"]]
+        ordering = ("pk",)
+
+
+class ReservationQuerySet(models.QuerySet):
+    def not_expired(self):
+        return self.filter(reserved_until__gt=timezone.now())
+
+    def exclude_checkout_lines(self, checkout_lines: Optional[Iterable[CheckoutLine]]):
+        if checkout_lines:
+            return self.exclude(checkout_line__in=checkout_lines)
+
+        return self
+
+
+class Reservation(models.Model):
+    checkout_line = models.ForeignKey(
+        CheckoutLine,
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="reservations",
+    )
+    stock = models.ForeignKey(
+        Stock,
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="reservations",
+    )
+    quantity_reserved = models.PositiveIntegerField(default=0)
+    reserved_until = models.DateTimeField()
+
+    objects = models.Manager.from_queryset(ReservationQuerySet)()
+
+    class Meta:
+        unique_together = [["checkout_line", "stock"]]
+        indexes = [
+            models.Index(fields=['checkout_line', 'reserved_until']),
+        ]
         ordering = ("pk",)

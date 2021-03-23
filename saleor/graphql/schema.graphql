@@ -1017,6 +1017,7 @@ type Checkout implements Node & ObjectWithMetadata {
   email: String!
   isShippingRequired: Boolean!
   quantity: Int!
+  stockReservationExpires: DateTime
   lines: [CheckoutLine]
   shippingPrice: TaxedMoney
   shippingMethod: ShippingMethod @deprecated(reason: "This field will be removed in Saleor 4.0. Use `deliveryMethod` instead.")
