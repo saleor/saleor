@@ -16,7 +16,7 @@ from ....account.models import CustomerEvent
 from ....core.prices import quantize_price
 from ....core.taxes import TaxError, zero_taxed_money
 from ....discount.models import OrderDiscount
-from ....order import OrderStatus
+from ....order import FulfillmentStatus, OrderStatus
 from ....order import events as order_events
 from ....order.error_codes import OrderErrorCode
 from ....order.events import order_replacement_created
@@ -3583,8 +3583,20 @@ def test_clean_order_capture():
     assert e.value.error_dict["payment"][0].message == msg
 
 
-def test_clean_order_cancel(fulfilled_order_with_all_cancelled_fulfillments):
-    order = fulfilled_order_with_all_cancelled_fulfillments
+@pytest.mark.parametrize(
+    "status",
+    [
+        FulfillmentStatus.RETURNED,
+        FulfillmentStatus.REFUNDED_AND_RETURNED,
+        FulfillmentStatus.REFUNDED,
+        FulfillmentStatus.CANCELED,
+        FulfillmentStatus.REPLACED,
+    ],
+)
+def test_clean_order_cancel(status, fulfillment):
+    order = fulfillment.order
+    fulfillment.status = status
+    fulfillment.save()
     # Shouldn't raise any errors
     assert clean_order_cancel(order) is None
 
