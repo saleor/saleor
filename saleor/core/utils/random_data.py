@@ -64,11 +64,11 @@ from ...product.models import (
     CollectionProduct,
     Product,
     ProductChannelListing,
-    ProductImage,
+    ProductMedia,
     ProductType,
     ProductVariant,
     ProductVariantChannelListing,
-    VariantImage,
+    VariantMedia,
 )
 from ...product.tasks import update_products_discounted_prices_of_discount_task
 from ...product.thumbnails import (
@@ -300,8 +300,8 @@ def create_product_variants(variants_data, create_images):
             product.default_variant = variant
             product.save(update_fields=["default_variant", "updated_at"])
         if create_images:
-            image = variant.product.images.filter().first()
-            VariantImage.objects.get_or_create(variant=variant, image=image)
+            image = variant.product.get_first_image()
+            VariantMedia.objects.get_or_create(variant=variant, media=image)
         quantity = random.randint(100, 500)
         create_stocks(variant, quantity=quantity)
 
@@ -473,9 +473,9 @@ def get_email(first_name, last_name):
 def create_product_image(product, placeholder_dir, image_name):
     image = get_image(placeholder_dir, image_name)
     # We don't want to create duplicated product images
-    if product.images.count() >= len(IMAGES_MAPPING.get(product.pk, [])):
+    if product.media.count() >= len(IMAGES_MAPPING.get(product.pk, [])):
         return None
-    product_image = ProductImage(product=product, image=image)
+    product_image = ProductMedia(product=product, image=image)
     product_image.save()
     create_product_thumbnails.delay(product_image.pk)
     return product_image

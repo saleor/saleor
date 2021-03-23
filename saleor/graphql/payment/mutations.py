@@ -128,13 +128,16 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         cls.validate_token(info.context.plugins, gateway, data)
         cls.validate_return_url(data)
 
+        manager = info.context.plugins
         lines = fetch_checkout_lines(checkout)
-        checkout_info = fetch_checkout_info(checkout, lines, info.context.discounts)
+        checkout_info = fetch_checkout_info(
+            checkout, lines, info.context.discounts, manager
+        )
         address = (
             checkout.shipping_address or checkout.billing_address
         )  # FIXME: check which address we need here
         checkout_total = calculate_checkout_total_with_gift_cards(
-            manager=info.context.plugins,
+            manager=manager,
             checkout_info=checkout_info,
             lines=lines,
             address=address,

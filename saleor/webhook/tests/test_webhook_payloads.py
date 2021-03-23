@@ -1,10 +1,18 @@
 import json
 from decimal import Decimal
+from itertools import chain
+from unittest.mock import ANY
 
 import graphene
 
 from ...discount import DiscountValueType, OrderDiscountType
-from ..payloads import ORDER_FIELDS, generate_order_payload
+from ...product.models import ProductVariant
+from ..payloads import (
+    ORDER_FIELDS,
+    PRODUCT_VARIANT_FIELDS,
+    generate_order_payload,
+    generate_product_variant_payload,
+)
 
 
 def test_generate_order_payload(
@@ -82,3 +90,96 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
         ),
         "tax_rate": str(line.tax_rate.quantize(Decimal("0.0001"))),
     }
+
+
+def test_generate_product_variant_payload(
+    product_with_variant_with_two_attributes, product_with_images
+):
+    variant = product_with_variant_with_two_attributes.variants.first()
+    payload = json.loads(generate_product_variant_payload(variant))[0]
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    additional_fields = ["channel_listings"]
+    extra_dict_data = ["attributes", "product_id", "media"]
+    payload_fields = list(
+        chain(
+            ["id", "type"], PRODUCT_VARIANT_FIELDS, extra_dict_data, additional_fields
+        )
+    )
+
+    for field in payload_fields:
+        assert payload.get(field) is not None
+
+    assert variant_id is not None
+    assert payload["sku"] == "prodVar1"
+    assert len(payload["attributes"]) == 2
+    assert len(payload["channel_listings"]) == 1
+    assert payload["channel_listings"][0] == {
+        "cost_price_amount": "1.000",
+        "currency": "USD",
+        "id": ANY,
+        "price_amount": "10.000",
+        "type": "ProductVariantChannelListing",
+    }
+    assert len(payload.keys()) == len(payload_fields)
+
+
+def test_generate_product_variant_with_external_media_payload(
+    product_with_variant_with_external_media,
+):
+    variant = product_with_variant_with_external_media.variants.first()
+    payload = json.loads(generate_product_variant_payload(variant))[0]
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    additional_fields = ["channel_listings"]
+    extra_dict_data = ["attributes", "product_id", "media"]
+    payload_fields = list(
+        chain(
+            ["id", "type"], PRODUCT_VARIANT_FIELDS, extra_dict_data, additional_fields
+        )
+    )
+
+    for field in payload_fields:
+        assert payload.get(field) is not None
+
+    assert variant_id is not None
+    assert payload["sku"] == "prodVar1"
+    assert payload["media"] == [
+        {"alt": "video_1", "url": "https://www.youtube.com/watch?v=di8_dJ3Clyo"}
+    ]
+    assert len(payload["attributes"]) == 2
+    assert len(payload["channel_listings"]) == 1
+    assert payload["channel_listings"][0] == {
+        "cost_price_amount": "1.000",
+        "currency": "USD",
+        "id": ANY,
+        "price_amount": "10.000",
+        "type": "ProductVariantChannelListing",
+    }
+    assert len(payload.keys()) == len(payload_fields)
+
+
+def test_generate_product_variant_deleted_payload(
+    product_with_variant_with_two_attributes,
+):
+    variant = product_with_variant_with_two_attributes.variants.prefetch_related(
+        "channel_listings",
+        "attributes__values",
+        "variant_media",
+    ).first()
+    ProductVariant.objects.filter(id=variant.id).delete()
+    payload = json.loads(generate_product_variant_payload(variant))[0]
+    [_, payload_variant_id] = graphene.Node.from_global_id(payload["id"])
+    additional_fields = ["channel_listings"]
+    extra_dict_data = ["attributes", "product_id", "media"]
+    payload_fields = list(
+        chain(
+            ["id", "type"], PRODUCT_VARIANT_FIELDS, extra_dict_data, additional_fields
+        )
+    )
+    for field in payload_fields:
+        assert payload.get(field) is not None
+
+    assert payload_variant_id != "None"
+    assert payload["sku"] == "prodVar1"
+    assert len(payload["attributes"]) == 2
+    assert len(payload["channel_listings"]) == 1
+    assert len(payload.keys()) == len(payload_fields)
