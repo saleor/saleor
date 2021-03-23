@@ -12,11 +12,12 @@ from ....product.models import (
     Collection,
     Product,
     ProductChannelListing,
-    ProductImage,
+    ProductMedia,
     ProductType,
     ProductVariant,
     ProductVariantChannelListing,
 )
+from ....tests.utils import flush_post_commit_hooks
 from ...tests.utils import get_graphql_content
 
 
@@ -306,14 +307,14 @@ def test_delete_products_variants_in_draft_order(
     ).exists()
 
 
-def test_delete_product_images(
+def test_delete_product_media(
     staff_api_client, product_with_images, permission_manage_products
 ):
-    images = product_with_images.images.all()
+    media = product_with_images.media.all()
 
     query = """
-    mutation productImageBulkDelete($ids: [ID]!) {
-        productImageBulkDelete(ids: $ids) {
+    mutation productMediaBulkDelete($ids: [ID]!) {
+        productMediaBulkDelete(ids: $ids) {
             count
         }
     }
@@ -321,7 +322,8 @@ def test_delete_product_images(
 
     variables = {
         "ids": [
-            graphene.Node.to_global_id("ProductImage", image.id) for image in images
+            graphene.Node.to_global_id("ProductMedia", media_obj.id)
+            for media_obj in media
         ]
     }
     response = staff_api_client.post_graphql(
@@ -329,9 +331,9 @@ def test_delete_product_images(
     )
     content = get_graphql_content(response)
 
-    assert content["data"]["productImageBulkDelete"]["count"] == 2
-    assert not ProductImage.objects.filter(
-        id__in=[image.id for image in images]
+    assert content["data"]["productMediaBulkDelete"]["count"] == 2
+    assert not ProductMedia.objects.filter(
+        id__in=[media_obj.id for media_obj in media]
     ).exists()
 
 
@@ -372,8 +374,12 @@ mutation productVariantBulkDelete($ids: [ID]!) {
 """
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_variant_deleted")
 def test_delete_product_variants(
-    staff_api_client, product_variant_list, permission_manage_products
+    product_variant_deleted_webhook_mock,
+    staff_api_client,
+    product_variant_list,
+    permission_manage_products,
 ):
     query = PRODUCT_VARIANT_BULK_DELETE_MUTATION
 
@@ -391,11 +397,16 @@ def test_delete_product_variants(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
+    flush_post_commit_hooks()
 
     assert content["data"]["productVariantBulkDelete"]["count"] == 3
     assert not ProductVariant.objects.filter(
         id__in=[variant.id for variant in product_variant_list]
     ).exists()
+    assert (
+        product_variant_deleted_webhook_mock.call_count
+        == content["data"]["productVariantBulkDelete"]["count"]
+    )
 
 
 def test_delete_product_variants_in_draft_orders(

@@ -126,7 +126,7 @@ def test_calculate_checkout_line_total(
         collections=[],
     )
     checkout_info = fetch_checkout_info(
-        checkout_with_item, [checkout_line_info], discounts
+        checkout_with_item, [checkout_line_info], discounts, manager
     )
 
     total = manager.calculate_checkout_line_total(
@@ -200,7 +200,7 @@ def test_calculate_checkout_total_uses_default_calculation(
 
     discounts = [discount_info] if with_discount else None
     lines = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts, manager)
     total = manager.calculate_checkout_total(checkout_info, lines, address, discounts)
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
@@ -271,7 +271,7 @@ def test_calculate_checkout_total(
 
     discounts = [discount_info] if with_discount else None
     lines = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts, manager)
     total = manager.calculate_checkout_total(
         checkout_info, lines, ship_to_pl_address, discounts
     )
@@ -306,7 +306,9 @@ def test_calculate_checkout_shipping(
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save()
     lines = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, [discount_info])
+    checkout_info = fetch_checkout_info(
+        checkout_with_item, lines, [discount_info], manager
+    )
     shipping_price = manager.calculate_checkout_shipping(
         checkout_info, lines, address, [discount_info]
     )
@@ -360,7 +362,7 @@ def test_calculate_checkout_subtotal(
     discounts = [discount_info] if with_discount else None
     add_variant_to_checkout(checkout_with_item, variant, 2)
     lines = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts, manager)
     total = manager.calculate_checkout_subtotal(
         checkout_info, lines, address, discounts
     )
@@ -464,7 +466,7 @@ def test_calculate_checkout_line_unit_price(
     site_settings.include_taxes_in_prices = True
     site_settings.save()
 
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, [])
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     line_price = manager.calculate_checkout_line_unit_price(
         total_price,
         checkout_line.line.quantity,
@@ -512,7 +514,7 @@ def test_preprocess_order_creation(
     checkout_with_item.save()
     discounts = [discount_info]
     lines = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts, manager)
     manager.preprocess_order_creation(checkout_info, discounts, lines)
 
 
@@ -543,7 +545,7 @@ def test_preprocess_order_creation_no_lines_data(
     checkout_with_item.save()
     discounts = [discount_info]
     lines = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts, manager)
     manager.preprocess_order_creation(checkout_info, discounts)
 
 
@@ -570,7 +572,7 @@ def test_preprocess_order_creation_wrong_data(
     checkout_with_item.save()
     discounts = [discount_info]
     lines = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts, manager)
     with pytest.raises(TaxError):
         manager.preprocess_order_creation(checkout_info, discounts, lines)
 
@@ -604,8 +606,9 @@ def test_checkout_needs_new_fetch(
     config = AvataxConfiguration(
         username_or_account="wrong_data", password_or_license="wrong_data"
     )
+    manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, [])
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     checkout_data = generate_request_data_from_checkout(checkout_info, lines, config)
     assert taxes_need_new_fetch(checkout_data, str(checkout_with_item.token))
 
@@ -618,8 +621,9 @@ def test_taxes_need_new_fetch_uses_cached_data(
     config = AvataxConfiguration(
         username_or_account="wrong_data", password_or_license="wrong_data"
     )
+    manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, [])
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     checkout_data = generate_request_data_from_checkout(checkout_info, lines, config)
     monkeypatch.setattr(
         "saleor.plugins.avatax.cache.get", lambda x: [checkout_data, None]
@@ -742,7 +746,9 @@ def test_get_checkout_line_tax_rate_checkout_not_valid_default_value_returned(
         product=variant.product,
         collections=[],
     )
-    checkout_info = fetch_checkout_info(checkout_with_item, [checkout_line_info], [])
+    checkout_info = fetch_checkout_info(
+        checkout_with_item, [checkout_line_info], [], manager
+    )
 
     # when
     tax_rate = manager.get_checkout_line_tax_rate(
@@ -784,7 +790,9 @@ def test_get_checkout_line_tax_rate_error_in_response(
         product=variant.product,
         collections=[],
     )
-    checkout_info = fetch_checkout_info(checkout_with_item, [checkout_line_info], [])
+    checkout_info = fetch_checkout_info(
+        checkout_with_item, [checkout_line_info], [], manager
+    )
 
     # when
     tax_rate = manager.get_checkout_line_tax_rate(
@@ -973,7 +981,9 @@ def test_get_checkout_shipping_tax_rate_checkout_not_valid_default_value_returne
         product=variant.product,
         collections=[],
     )
-    checkout_info = fetch_checkout_info(checkout_with_item, [checkout_line_info], [])
+    checkout_info = fetch_checkout_info(
+        checkout_with_item, [checkout_line_info], [], manager
+    )
 
     # when
     tax_rate = manager.get_checkout_shipping_tax_rate(
@@ -1015,7 +1025,9 @@ def test_get_checkout_shipping_tax_rate_error_in_response(
         product=variant.product,
         collections=[],
     )
-    checkout_info = fetch_checkout_info(checkout_with_item, [checkout_line_info], [])
+    checkout_info = fetch_checkout_info(
+        checkout_with_item, [checkout_line_info], [], manager
+    )
 
     # when
     tax_rate = manager.get_checkout_shipping_tax_rate(
@@ -1061,7 +1073,9 @@ def test_get_checkout_shipping_tax_rate_skip_plugin(
         product=variant.product,
         collections=[],
     )
-    checkout_info = fetch_checkout_info(checkout_with_item, [checkout_line_info], [])
+    checkout_info = fetch_checkout_info(
+        checkout_with_item, [checkout_line_info], [], manager
+    )
 
     # when
     tax_rate = manager.get_checkout_shipping_tax_rate(
@@ -1359,7 +1373,7 @@ def test_plugin_uses_configuration_from_db(
     checkout_with_item.save()
     discounts = [discount_info]
     lines = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts, manager)
     manager.preprocess_order_creation(checkout_info, discounts, lines)
 
     field_to_update = [

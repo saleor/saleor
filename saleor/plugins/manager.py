@@ -97,20 +97,13 @@ class PluginsManager(PaymentInterface):
         method. If plugin doesn't have own implementation of expected method_name, it
         will return previous_value.
         """
-        plugin_id = getattr(plugin, "PLUGIN_ID", "")
-        with opentracing.global_tracer().start_active_span(
-            f"{plugin_id}.{method_name}"
-        ):
-            plugin_method = getattr(plugin, method_name, NotImplemented)
-            if plugin_method == NotImplemented:
-                return previous_value
-
-            returned_value = plugin_method(
-                *args, **kwargs, previous_value=previous_value
-            )
-            if returned_value == NotImplemented:
-                return previous_value
-            return returned_value
+        plugin_method = getattr(plugin, method_name, NotImplemented)
+        if plugin_method == NotImplemented:
+            return previous_value
+        returned_value = plugin_method(*args, **kwargs, previous_value=previous_value)
+        if returned_value == NotImplemented:
+            return previous_value
+        return returned_value
 
     def change_user_address(
         self, address: "Address", address_type: Optional[str], user: Optional["User"]
@@ -408,6 +401,24 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins(
             "product_deleted", default_value, product, variants
+        )
+
+    def product_variant_created(self, product_variant: "ProductVariant"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "product_variant_created", default_value, product_variant
+        )
+
+    def product_variant_updated(self, product_variant: "ProductVariant"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "product_variant_updated", default_value, product_variant
+        )
+
+    def product_variant_deleted(self, product_variant: "ProductVariant"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "product_variant_deleted", default_value, product_variant
         )
 
     def order_created(self, order: "Order"):
