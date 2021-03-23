@@ -52,7 +52,7 @@ All notable, unreleased changes to this project will be documented in this file.
     - `get_checkout_line_tax_rate`
     - `preprocess_order_creation`
   - additionally, `preprocess_order_creation` was extend with `lines_info` parameter
-- Fix Avalara caching - #7036 by @fowczarek; Introduced changes in plugin methods definitions:
+- Fix Avalara caching - #7036 by @fowczarek;
  - Introduced changes in plugin methods definitions:
     - `calculate_checkout_line_total`  was extended with `lines` parameter
     - `calculate_checkout_line_unit_price`  was extended with `lines` parameter
