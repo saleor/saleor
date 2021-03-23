@@ -156,7 +156,7 @@ def create_order(payment, checkout):
     try:
         discounts = fetch_active_discounts()
         lines = fetch_checkout_lines(checkout)
-        checkout_info = fetch_checkout_info(checkout, lines, discounts)
+        checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
         order, _, _ = complete_checkout(
             manager=manager,
             checkout_info=checkout_info,

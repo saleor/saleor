@@ -88,7 +88,7 @@ def test_create_payment(checkout_with_item, address):
 
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, [])
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     total = checkout_total(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
@@ -128,7 +128,7 @@ def test_create_payment_from_checkout_requires_billing_address(checkout_with_ite
 
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, [])
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     total = checkout_total(
         manager=manager, checkout_info=checkout_info, lines=lines, address=None
     )
@@ -170,7 +170,7 @@ def test_create_payment_information_for_checkout_payment(address, checkout_with_
 
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, [])
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     total = checkout_total(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )

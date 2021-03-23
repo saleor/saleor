@@ -29,6 +29,7 @@ RUN apt-get update \
   libtiff5 \
   libwebp6 \
   libxml2 \
+  libpq5 \
   shared-mime-info \
   mime-support \
   && apt-get clean \

@@ -85,6 +85,14 @@ def test_category_view(api_client, category_with_products, count_queries, channe
             backgroundImage {
               url
             }
+            children(first: 10) {
+              edges {
+                node {
+                  id
+                  name
+                }
+              }
+            }
             ancestors(last: 5) {
               edges {
                 node {
@@ -115,4 +123,37 @@ def test_category_view(api_client, category_with_products, count_queries, channe
         "id": graphene.Node.to_global_id("Category", category_with_products.pk),
         "channel": channel_USD.slug,
     }
-    get_graphql_content(api_client.post_graphql(query, variables))
+    content = get_graphql_content(api_client.post_graphql(query, variables))
+    assert content["data"]["category"] is not None
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_categories_children(api_client, categories_with_children, count_queries):
+    query = """query categories {
+        categories(first: 30) {
+          edges {
+            node {
+              children(first: 30) {
+                edges {
+                  node {
+                    id
+                    name
+                    children(first: 30) {
+                      edges {
+                        node {
+                          id
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }"""
+
+    content = get_graphql_content(api_client.post_graphql(query))
+    assert content["data"]["categories"] is not None

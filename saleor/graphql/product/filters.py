@@ -85,7 +85,10 @@ def filter_products_by_attributes_values(qs, queries: T_PRODUCT_FILTER_QUERIES):
 
 
 def filter_products_by_attributes(qs, filter_value):
-    queries = _clean_product_attributes_filter_input(filter_value)
+    try:
+        queries = _clean_product_attributes_filter_input(filter_value)
+    except ValueError:
+        return Product.objects.none()
     return filter_products_by_attributes_values(qs, queries)
 
 
