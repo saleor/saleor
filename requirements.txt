@@ -75,7 +75,7 @@ jmespath==0.10.0; python_version >= "2.7" and python_full_version < "3.0.0" or p
 jsonfield==3.1.0; python_version >= "3.6"
 kombu==5.0.2; python_version >= "3.6"
 libcst==0.3.17; python_version >= "3.6"
-lxml==4.6.2; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0"
+lxml==4.6.3; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0"
 markdown==3.3.4; python_version >= "3.6"
 maxminddb==2.0.3; python_version >= "3.6"
 measurement==3.2.0
