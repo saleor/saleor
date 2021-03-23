@@ -157,7 +157,7 @@ def test_handle_authorization_for_checkout(
     payment = payment_adyen_for_checkout
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [])
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
         manager, checkout_info, lines, address
     )
@@ -204,7 +204,7 @@ def test_handle_authorization_with_adyen_auto_capture(
     payment = payment_adyen_for_checkout
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [])
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
         manager, checkout_info, lines, address
     )
@@ -398,7 +398,7 @@ def test_handle_capture_for_checkout(
     payment = payment_adyen_for_checkout
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [])
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
         manager, checkout_info, lines, address
     )

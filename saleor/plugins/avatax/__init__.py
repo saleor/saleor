@@ -14,6 +14,7 @@ from django.core.cache import cache
 from requests.auth import HTTPBasicAuth
 
 from ...checkout import base_calculations
+from ...checkout.utils import is_shipping_required
 from ...core.taxes import TaxError
 from ...order.utils import get_total_order_discount
 
@@ -157,7 +158,7 @@ def _validate_checkout(
         return False
 
     shipping_address = checkout_info.shipping_address
-    shipping_required = checkout_info.checkout.is_shipping_required()
+    shipping_required = is_shipping_required(lines)
     address = shipping_address or checkout_info.billing_address
     return _validate_adddress_details(
         shipping_address, shipping_required, address, checkout_info.shipping_method
