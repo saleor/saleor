@@ -70,6 +70,25 @@ class CollectionBulkDelete(ModelBulkDeleteMutation):
         error_type_class = ProductError
         error_type_field = "product_errors"
 
+    @classmethod
+    def perform_mutation(cls, _root, info, ids, **data):
+        response = super().perform_mutation(
+            _root,
+            info,
+            ids,
+            manager=info.context.plugins,
+            **data,
+        )
+        return response
+
+    @classmethod
+    def bulk_action(cls, queryset, manager):
+        collections_ids = queryset.values_list("id", flat=True)
+        products = list(models.Product.objects.filter(collections__in=collections_ids))
+        queryset.delete()
+        for product in products:
+            manager.product_updated(product)
+
 
 class ProductBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
