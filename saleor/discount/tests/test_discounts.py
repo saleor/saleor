@@ -230,8 +230,9 @@ def test_specific_products_voucher_checkout_discount(
         discount=Money(discount_value, channel_USD.currency_code),
     )
     checkout = checkout_with_item
+    manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, discounts)
+    checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
     manager = get_plugins_manager()
     discount = get_voucher_discount_for_checkout(
         manager, voucher, checkout_info, lines, checkout.shipping_address, discounts

@@ -8,7 +8,8 @@ from ..core.notifications import get_site_context
 from ..core.notify_events import NotifyEventType
 from ..core.utils.url import prepare_url
 from ..discount import OrderDiscountType
-from ..product.models import DigitalContentUrl, Product, ProductImage, ProductVariant
+from ..product import ProductMediaTypes
+from ..product.models import DigitalContentUrl, Product, ProductMedia, ProductVariant
 from ..product.product_images import AVAILABLE_PRODUCT_SIZES, get_thumbnail
 from .models import FulfillmentLine, Order, OrderLine
 
@@ -18,7 +19,7 @@ if TYPE_CHECKING:
     from ..account.models import User  # noqa: F401
 
 
-def get_image_payload(instance: ProductImage):
+def get_image_payload(instance: ProductMedia):
     image_file = instance.image if instance else None
     return {
         size: get_thumbnail(image_file, size, "thumbnail")
@@ -26,7 +27,7 @@ def get_image_payload(instance: ProductImage):
     }
 
 
-def get_default_images_payload(images: List[ProductImage]):
+def get_default_images_payload(images: List[ProductMedia]):
     first_image_payload = None
     first_image = images[0] if images else None
     if first_image:
@@ -64,7 +65,8 @@ def get_product_attributes(product):
 
 
 def get_product_payload(product: Product):
-    images = list(product.images.all())
+    all_media = product.media.all()
+    images = [media for media in all_media if media.type == ProductMediaTypes.IMAGE]
     return {
         "id": product.id,
         "attributes": get_product_attributes(product),
@@ -74,7 +76,8 @@ def get_product_payload(product: Product):
 
 
 def get_product_variant_payload(variant: ProductVariant):
-    images = list(variant.images.all())
+    all_media = variant.media.all()
+    images = [media for media in all_media if media.type == ProductMediaTypes.IMAGE]
     return {
         "id": variant.id,
         "weight": str(variant.weight or ""),
@@ -200,8 +203,8 @@ def get_default_order_payload(order: "Order", redirect_url: str = ""):
     tax = order.total_gross_amount - order.total_net_amount
 
     lines = order.lines.prefetch_related(
-        "variant__product__images",
-        "variant__images",
+        "variant__product__media",
+        "variant__media",
         "variant__product__attributes__assignment__attribute",
         "variant__product__attributes__values",
     ).all()

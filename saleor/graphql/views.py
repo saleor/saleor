@@ -133,7 +133,18 @@ class GraphQLView(View):
         return JsonResponse(data=result, status=status_code, safe=False)
 
     def handle_query(self, request: HttpRequest) -> JsonResponse:
-        with opentracing.global_tracer().start_active_span("http") as scope:
+        tracer = opentracing.global_tracer()
+
+        # Disable extending spans from header due to:
+        # https://github.com/DataDog/dd-trace-py/issues/2030
+
+        # span_context = tracer.extract(
+        #     format=Format.HTTP_HEADERS, carrier=dict(request.headers)
+        # )
+        # We should:
+        # Add `from opentracing.propagation import Format` to imports
+        # Add `child_of=span_ontext` to `start_active_span`
+        with tracer.start_active_span("http") as scope:
             span = scope.span
             span.set_tag(opentracing.tags.COMPONENT, "http")
             span.set_tag(opentracing.tags.HTTP_METHOD, request.method)
