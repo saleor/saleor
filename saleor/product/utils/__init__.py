@@ -33,7 +33,7 @@ def calculate_revenue_for_variant(
 
 
 @transaction.atomic
-def delete_categories(categories_ids: List[str]):
+def delete_categories(categories_ids: List[str], manager):
     """Delete categories and perform all necessary actions.
 
     Set products of deleted categories as unpublished, delete categories
@@ -51,8 +51,12 @@ def delete_categories(categories_ids: List[str]):
     ProductChannelListing.objects.filter(product__in=products).update(
         is_published=False, publication_date=None
     )
-    product_ids = list(products.values_list("id", flat=True))
+    products = list(products)
     categories.delete()
+    product_ids = [product.id for product in products]
+    for product in products:
+        manager.product_updated(product)
+
     update_products_discounted_prices_task.delay(product_ids=product_ids)
 
 

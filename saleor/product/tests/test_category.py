@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+from ...plugins.manager import get_plugins_manager
 from ..models import Category
 from ..utils import collect_categories_tree_products, delete_categories
 
@@ -26,7 +27,7 @@ def test_delete_categories(
     child = parent.children.first()
     product_list = [child.products.first(), parent.products.first()]
 
-    delete_categories([parent.pk])
+    delete_categories([parent.pk], manager=get_plugins_manager())
 
     assert not Category.objects.filter(
         id__in=[category.id for category in [parent, child]]
@@ -43,3 +44,21 @@ def test_delete_categories(
         for product_channel_listing in product.channel_listings.all():
             assert not product_channel_listing.is_published
             assert not product_channel_listing.publication_date
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_delete_categories_trigger_product_updated_webhook(
+    product_updated_mock,
+    categories_tree_with_published_products,
+):
+    parent = categories_tree_with_published_products
+    child = parent.children.first()
+    product_list = [child.products.first(), parent.products.first()]
+
+    delete_categories([parent.pk], manager=get_plugins_manager())
+
+    assert not Category.objects.filter(
+        id__in=[category.id for category in [parent, child]]
+    ).exists()
+
+    assert len(product_list) == product_updated_mock.call_count
