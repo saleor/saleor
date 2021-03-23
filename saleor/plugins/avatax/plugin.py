@@ -333,6 +333,7 @@ class AvataxPlugin(BasePlugin):
     def calculate_checkout_line_total(
         self,
         checkout_info: "CheckoutInfo",
+        lines: Iterable["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
@@ -345,12 +346,10 @@ class AvataxPlugin(BasePlugin):
         if not checkout_line_info.product.charge_taxes:
             return base_total
 
-        if not _validate_checkout(checkout_info, [checkout_line_info]):
+        if not _validate_checkout(checkout_info, lines):
             return base_total
 
-        taxes_data = get_checkout_tax_data(
-            checkout_info, [checkout_line_info], discounts, self.config
-        )
+        taxes_data = get_checkout_tax_data(checkout_info, lines, discounts, self.config)
         if not taxes_data or "error" in taxes_data:
             return base_total
 
@@ -368,6 +367,7 @@ class AvataxPlugin(BasePlugin):
     def calculate_checkout_line_unit_price(
         self,
         checkout_info: "CheckoutInfo",
+        lines: Iterable["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
@@ -378,7 +378,7 @@ class AvataxPlugin(BasePlugin):
         return self._calculate_unit_price(
             checkout_info,
             checkout_line_info.line,
-            [checkout_line_info],
+            lines,
             checkout_line_info.variant,
             previous_value,
             discounts,
@@ -464,13 +464,14 @@ class AvataxPlugin(BasePlugin):
     def get_checkout_line_tax_rate(
         self,
         checkout_info: "CheckoutInfo",
+        lines: Iterable["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
         previous_value: Decimal,
     ) -> Decimal:
         return self._get_unit_tax_rate(
-            checkout_info, previous_value, False, discounts, [checkout_line_info]
+            checkout_info, previous_value, False, discounts, lines
         )
 
     def get_order_line_tax_rate(

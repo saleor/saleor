@@ -6,8 +6,8 @@ authorizenet==1.1.3
 babel==2.9.0; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
 beautifulsoup4==4.7.1
 billiard==3.6.3.0; python_version >= "3.6"
-boto3==1.17.27; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.6.0")
-botocore==1.20.27; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0"
+boto3==1.17.33; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.6.0")
+botocore==1.20.33; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0"
 braintree==4.6.0
 cachetools==4.2.1; python_version >= "3.5" and python_version < "4.0" and (python_version >= "3.5" and python_full_version < "3.0.0" or python_version >= "3.5" and python_full_version >= "3.6.0")
 cairocffi==1.2.0; python_version >= "3.6"
@@ -45,7 +45,7 @@ django==3.1.7; python_version >= "3.6"
 draftjs-sanitizer==1.0.0
 enmerkar==0.7.1
 et-xmlfile==1.0.1; python_version >= "3.6"
-faker==6.6.0; python_version >= "3.6"
+faker==6.6.2; python_version >= "3.6"
 freezegun==0.3.15; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.5.0")
 google-api-core==1.26.1; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 google-auth==1.27.1; python_version >= "3.6" and python_full_version < "3.0.0" or python_version >= "3.6" and python_full_version >= "3.6.0"
@@ -75,11 +75,11 @@ jmespath==0.10.0; python_version >= "2.7" and python_full_version < "3.0.0" or p
 jsonfield==3.1.0; python_version >= "3.6"
 kombu==5.0.2; python_version >= "3.6"
 libcst==0.3.17; python_version >= "3.6"
-lxml==4.6.2; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0"
+lxml==4.6.3; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0"
 markdown==3.3.4; python_version >= "3.6"
 maxminddb==2.0.3; python_version >= "3.6"
 measurement==3.2.0
-micawber==0.5.2
+micawber==0.5.3
 mpmath==1.2.1; python_version >= "3.6"
 mypy-extensions==0.4.3; python_version >= "3.6"
 oauthlib==3.1.0; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
@@ -87,7 +87,7 @@ openpyxl==3.0.7; python_version >= "3.6"
 opentracing==2.4.0
 packaging==20.9; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 petl==1.7.2; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
-phonenumberslite==8.12.19
+phonenumberslite==8.12.20
 pillow==8.1.2; python_version >= "3.6"
 prices==1.1.0
 promise==2.3
@@ -133,7 +133,7 @@ tqdm==4.59.0; (python_version >= "2.7" and python_full_version < "3.0.0") or (py
 typing-extensions==3.7.4.3; python_version >= "3.6"
 typing-inspect==0.6.0; python_version >= "3.6"
 unidecode==1.2.0; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.4.0"
-urllib3==1.26.3; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version < "4"
+urllib3==1.26.4; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version < "4"
 uvicorn==0.13.4
 uvloop==0.15.2; sys_platform != "win32" and sys_platform != "cygwin" and platform_python_implementation != "PyPy" and python_version >= "3.7"
 vine==5.0.0; python_version >= "3.6"

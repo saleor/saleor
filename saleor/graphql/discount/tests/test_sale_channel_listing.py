@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import graphene
 
+from ....discount import DiscountValueType
 from ....discount.error_codes import DiscountErrorCode
 from ....discount.models import SaleChannelListing
 from ...tests.utils import assert_negative_positive_decimal_value, get_graphql_content
@@ -258,6 +259,39 @@ def test_sale_channel_listing_update_with_invalid_decimal_places(
     # given
     sale_id = graphene.Node.to_global_id("Sale", sale.pk)
     discounted = 1.123
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": sale_id,
+        "input": {
+            "addChannels": [{"channelId": channel_id, "discountValue": discounted}],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        SALE_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_discounts,),
+    )
+    content = get_graphql_content(response)
+    # then
+    errors = content["data"]["saleChannelListingUpdate"]["discountErrors"]
+
+    assert len(errors) == 1
+    assert errors[0]["code"] == DiscountErrorCode.INVALID.name
+    assert errors[0]["field"] == "input"
+    assert errors[0]["channels"] == [channel_id]
+
+
+def test_sale_channel_listing_update_with_invalid_percentage_value(
+    staff_api_client, sale, permission_manage_discounts, channel_USD
+):
+    # given
+    sale = sale
+    sale.type = DiscountValueType.PERCENTAGE
+    sale.save()
+    sale_id = graphene.Node.to_global_id("Sale", sale.pk)
+    discounted = 101
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {
         "id": sale_id,

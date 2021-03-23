@@ -150,6 +150,7 @@ class PluginsManager(PaymentInterface):
         line_totals = [
             self.calculate_checkout_line_total(
                 checkout_info,
+                lines,
                 line_info,
                 address,
                 discounts,
@@ -237,6 +238,7 @@ class PluginsManager(PaymentInterface):
     def calculate_checkout_line_total(
         self,
         checkout_info: "CheckoutInfo",
+        lines: Iterable["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
@@ -251,6 +253,7 @@ class PluginsManager(PaymentInterface):
                 "calculate_checkout_line_total",
                 default_value,
                 checkout_info,
+                lines,
                 checkout_line_info,
                 address,
                 discounts,
@@ -263,6 +266,7 @@ class PluginsManager(PaymentInterface):
         total_line_price: TaxedMoney,
         quantity: int,
         checkout_info: "CheckoutInfo",
+        lines: Iterable["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
@@ -275,6 +279,7 @@ class PluginsManager(PaymentInterface):
                 "calculate_checkout_line_unit_price",
                 default_value,
                 checkout_info,
+                lines,
                 checkout_line_info,
                 address,
                 discounts,
@@ -306,6 +311,7 @@ class PluginsManager(PaymentInterface):
     def get_checkout_line_tax_rate(
         self,
         checkout_info: "CheckoutInfo",
+        lines: Iterable["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
@@ -316,6 +322,7 @@ class PluginsManager(PaymentInterface):
             "get_checkout_line_tax_rate",
             default_value,
             checkout_info,
+            lines,
             checkout_line_info,
             address,
             discounts,
