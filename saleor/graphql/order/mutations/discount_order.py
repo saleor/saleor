@@ -6,7 +6,7 @@ from django.db import transaction
 from prices import Money
 
 from ....core.permissions import OrderPermissions
-from ....order import OrderStatus, events, models
+from ....order import events, models
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import (
     create_order_discount_for_order,
@@ -47,10 +47,8 @@ class OrderDiscountCommon(BaseMutation):
 
     @classmethod
     def validate_order(cls, info, order):
-        # This condition can be removed when we introduce discount for the rest type of
-        # the orders.
-        if order.status != OrderStatus.DRAFT:
-            error_msg = "Only draft order can be modified."
+        if not (order.is_draft() or order.is_unconfirmed()):
+            error_msg = "Only draft and unconfirmed order can be modified."
             raise ValidationError(
                 {
                     "orderId": ValidationError(
