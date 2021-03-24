@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 
 from ....account.models import User
+from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError, zero_taxed_money
 from ....order import OrderStatus, events, models
@@ -762,9 +763,15 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
-        change_order_line_quantity(
-            info.context.user, instance, instance.old_quantity, instance.quantity
-        )
+        try:
+            change_order_line_quantity(
+                info.context.user, instance, instance.old_quantity, instance.quantity
+            )
+        except InsufficientStock:
+            raise ValidationError(
+                "Cannot set new quantity because of insufficient stock.",
+                code=OrderErrorCode.INSUFFICIENT_STOCK,
+            )
         recalculate_order(instance.order)
 
     @classmethod
