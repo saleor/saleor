@@ -14,7 +14,7 @@ def setup_dummy_gateway(settings):
 
 def test_authorize_success(payment_dummy):
     txn = gateway.authorize(
-        payment=payment_dummy, token="Fake", plugin_manager=get_plugins_manager()
+        payment=payment_dummy, token="Fake", manager=get_plugins_manager()
     )
     assert txn.is_success
     assert txn.kind == TransactionKind.AUTH
@@ -44,7 +44,7 @@ def test_authorize_failed(is_active, charge_status, payment_dummy):
     payment.save()
     with pytest.raises(PaymentError):
         txn = gateway.authorize(
-            payment=payment, token="Fake", plugin_manager=get_plugins_manager()
+            payment=payment, token="Fake", manager=get_plugins_manager()
         )
         assert txn is None
 
@@ -53,7 +53,7 @@ def test_authorize_gateway_error(payment_dummy, monkeypatch):
     monkeypatch.setattr("saleor.payment.gateways.dummy.dummy_success", lambda: False)
     with pytest.raises(PaymentError):
         txn = gateway.authorize(
-            payment=payment_dummy, token="Fake", plugin_manager=get_plugins_manager()
+            payment=payment_dummy, token="Fake", manager=get_plugins_manager()
         )
         assert txn.kind == TransactionKind.AUTH
         assert not txn.is_success
@@ -63,9 +63,7 @@ def test_authorize_gateway_error(payment_dummy, monkeypatch):
 def test_void_success(payment_txn_preauth):
     assert payment_txn_preauth.is_active
     assert payment_txn_preauth.charge_status == ChargeStatus.NOT_CHARGED
-    txn = gateway.void(
-        payment=payment_txn_preauth, plugin_manager=get_plugins_manager()
-    )
+    txn = gateway.void(payment=payment_txn_preauth, manager=get_plugins_manager())
     assert txn.is_success
     assert txn.kind == TransactionKind.VOID
     assert txn.payment == payment_txn_preauth
@@ -94,16 +92,14 @@ def test_void_failed(is_active, charge_status, payment_dummy):
     payment.charge_status = charge_status
     payment.save()
     with pytest.raises(PaymentError):
-        txn = gateway.void(payment=payment, plugin_manager=get_plugins_manager())
+        txn = gateway.void(payment=payment, manager=get_plugins_manager())
         assert txn is None
 
 
 def test_void_gateway_error(payment_txn_preauth, monkeypatch):
     monkeypatch.setattr("saleor.payment.gateways.dummy.dummy_success", lambda: False)
     with pytest.raises(PaymentError):
-        txn = gateway.void(
-            payment=payment_txn_preauth, plugin_manager=get_plugins_manager()
-        )
+        txn = gateway.void(payment=payment_txn_preauth, manager=get_plugins_manager())
         assert txn.kind == TransactionKind.VOID
         assert not txn.is_success
         assert txn.payment == payment_txn_preauth
@@ -116,7 +112,7 @@ def test_void_gateway_error(payment_txn_preauth, monkeypatch):
 def test_capture_success(amount, charge_status, payment_txn_preauth):
     txn = gateway.capture(
         payment=payment_txn_preauth,
-        plugin_manager=get_plugins_manager(),
+        manager=get_plugins_manager(),
         amount=Decimal(amount),
     )
     assert txn.is_success
@@ -146,7 +142,7 @@ def test_capture_failed(
     payment.save()
     with pytest.raises(PaymentError):
         txn = gateway.capture(
-            payment=payment, plugin_manager=get_plugins_manager(), amount=amount
+            payment=payment, manager=get_plugins_manager(), amount=amount
         )
         assert txn is None
 
@@ -155,7 +151,7 @@ def test_capture_gateway_error(payment_txn_preauth, monkeypatch):
     monkeypatch.setattr("saleor.payment.gateways.dummy.dummy_success", lambda: False)
     with pytest.raises(PaymentError):
         txn = gateway.capture(
-            payment=payment_txn_preauth, plugin_manager=get_plugins_manager(), amount=80
+            payment=payment_txn_preauth, manager=get_plugins_manager(), amount=80
         )
         assert txn.kind == TransactionKind.CAPTURE
         assert not txn.is_success
@@ -186,7 +182,7 @@ def test_refund_success(
     payment.save()
     txn = gateway.refund(
         payment=payment,
-        plugin_manager=get_plugins_manager(),
+        manager=get_plugins_manager(),
         amount=Decimal(refund_amount),
     )
 
@@ -219,7 +215,7 @@ def test_refund_failed(
     with pytest.raises(PaymentError):
         txn = gateway.refund(
             payment=payment,
-            plugin_manager=get_plugins_manager(),
+            manager=get_plugins_manager(),
             amount=Decimal(refund_amount),
         )
         assert txn is None
@@ -234,7 +230,7 @@ def test_refund_gateway_error(payment_txn_captured, monkeypatch):
     with pytest.raises(PaymentError):
         gateway.refund(
             payment=payment,
-            plugin_manager=get_plugins_manager(),
+            manager=get_plugins_manager(),
             amount=Decimal("80.00"),
         )
 

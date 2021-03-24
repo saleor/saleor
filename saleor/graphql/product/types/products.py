@@ -695,7 +695,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                                     collections=collections,
                                     discounts=discounts,
                                     channel=channel,
-                                    plugins=context.plugins,
+                                    manager=context.plugins,
                                     country=Country(country_code),
                                     local_currency=get_currency_for_country(
                                         country_code

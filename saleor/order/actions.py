@@ -704,7 +704,7 @@ def create_refund_fulfillment(
     payment,
     order_lines_to_refund: List[OrderLineData],
     fulfillment_lines_to_refund: List[FulfillmentLineData],
-    plugin_manager: "PluginsManager",
+    manager: "PluginsManager",
     amount=None,
     refund_shipping_costs=False,
 ):
@@ -727,7 +727,7 @@ def create_refund_fulfillment(
         fulfillment_lines_to_refund=fulfillment_lines_to_refund,
         amount=amount,
         refund_shipping_costs=refund_shipping_costs,
-        manager=plugin_manager,
+        manager=manager,
     )
 
     with transaction.atomic():
@@ -1007,7 +1007,7 @@ def create_fulfillments_for_returned_products(
     payment: Optional[Payment],
     order_lines: List[OrderLineData],
     fulfillment_lines: List[FulfillmentLineData],
-    plugin_manager: "PluginsManager",
+    manager: "PluginsManager",
     refund: bool = False,
     amount: Optional[Decimal] = None,
     refund_shipping_costs=False,
@@ -1044,7 +1044,7 @@ def create_fulfillments_for_returned_products(
             fulfillment_lines_to_refund=return_fulfillment_lines,
             amount=amount,
             refund_shipping_costs=refund_shipping_costs,
-            manager=plugin_manager,
+            manager=manager,
         )
 
     with transaction.atomic():
@@ -1064,7 +1064,7 @@ def create_fulfillments_for_returned_products(
             order=order,
             order_lines=return_order_lines,
             fulfillment_lines=return_fulfillment_lines,
-            manager=plugin_manager,
+            manager=manager,
             refund=refund,
         )
         Fulfillment.objects.filter(order=order, lines=None).delete()

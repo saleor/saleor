@@ -514,17 +514,17 @@ def _process_payment(
     store_source: bool,
     payment_data: Optional[dict],
     order_data: dict,
-    plugin_manager: "PluginsManager",
+    manager: "PluginsManager",
 ) -> Transaction:
     """Process the payment assigned to checkout."""
     try:
         if payment.to_confirm:
-            txn = gateway.confirm(payment, plugin_manager, additional_data=payment_data)
+            txn = gateway.confirm(payment, manager, additional_data=payment_data)
         else:
             txn = gateway.process_payment(
                 payment=payment,
                 token=payment.token,
-                plugin_manager=plugin_manager,
+                manager=manager,
                 store_source=store_source,
                 additional_data=payment_data,
             )
@@ -578,7 +578,7 @@ def complete_checkout(
         store_source=store_source,
         payment_data=payment_data,
         order_data=order_data,
-        plugin_manager=manager,
+        manager=manager,
     )
 
     if txn.customer_id and user.is_authenticated:

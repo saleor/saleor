@@ -145,7 +145,7 @@ def get_product_availability(
     collections: Iterable[Collection],
     discounts: Iterable[DiscountInfo],
     channel: Channel,
-    plugins: "PluginsManager",
+    manager: "PluginsManager",
     country: Optional[Country] = None,
     local_currency: Optional[str] = None,
 ) -> ProductAvailability:
@@ -161,10 +161,10 @@ def get_product_availability(
         )
         if discounted_net_range is not None:
             discounted = TaxedMoneyRange(
-                start=plugins.apply_taxes_to_product(
+                start=manager.apply_taxes_to_product(
                     product, discounted_net_range.start, country
                 ),
-                stop=plugins.apply_taxes_to_product(
+                stop=manager.apply_taxes_to_product(
                     product, discounted_net_range.stop, country
                 ),
             )
@@ -180,10 +180,10 @@ def get_product_availability(
         )
         if undiscounted_net_range is not None:
             undiscounted = TaxedMoneyRange(
-                start=plugins.apply_taxes_to_product(
+                start=manager.apply_taxes_to_product(
                     product, undiscounted_net_range.start, country
                 ),
-                stop=plugins.apply_taxes_to_product(
+                stop=manager.apply_taxes_to_product(
                     product, undiscounted_net_range.stop, country
                 ),
             )
