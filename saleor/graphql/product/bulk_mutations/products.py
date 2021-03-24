@@ -53,19 +53,8 @@ class CategoryBulkDelete(ModelBulkDeleteMutation):
         error_type_field = "product_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, ids, **data):
-        response = super().perform_mutation(
-            _root,
-            info,
-            ids,
-            manager=info.context.plugins,
-            **data,
-        )
-        return response
-
-    @classmethod
-    def bulk_action(cls, queryset, manager):
-        delete_categories(queryset.values_list("pk", flat=True), manager)
+    def bulk_action(cls, info, queryset):
+        delete_categories(queryset.values_list("pk", flat=True), info.context.plugins)
 
 
 class CollectionBulkDelete(ModelBulkDeleteMutation):
@@ -82,23 +71,18 @@ class CollectionBulkDelete(ModelBulkDeleteMutation):
         error_type_field = "product_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, ids, **data):
-        response = super().perform_mutation(
-            _root,
-            info,
-            ids,
-            manager=info.context.plugins,
-            **data,
-        )
-        return response
-
-    @classmethod
-    def bulk_action(cls, queryset, manager):
+    def bulk_action(cls, info, queryset):
         collections_ids = queryset.values_list("id", flat=True)
-        products = list(models.Product.objects.filter(collections__in=collections_ids))
+        products = list(
+            models.Product.objects.prefetch_related(
+                "attributes", "collections", "variants", "category"
+            )
+            .filter(collections__in=collections_ids)
+            .distinct()
+        )
         queryset.delete()
         for product in products:
-            manager.product_updated(product)
+            info.context.plugins.product_updated(product)
 
 
 class ProductBulkDelete(ModelBulkDeleteMutation):
@@ -134,7 +118,6 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
             _root,
             info,
             ids,
-            manager=info.context.plugins,
             product_to_variant=product_to_variant,
             **data,
         )
@@ -145,7 +128,7 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
         return response
 
     @classmethod
-    def bulk_action(cls, queryset, manager, product_to_variant):
+    def bulk_action(cls, info, queryset, product_to_variant):
         product_variant_map = defaultdict(list)
         for product, variant in product_to_variant:
             product_variant_map[product].append(variant)
@@ -154,7 +137,7 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
         queryset.delete()
         for product in products:
             variants = product_variant_map.get(product.id)
-            manager.product_deleted(product, variants)
+            info.context.plugins.product_deleted(product, variants)
 
 
 class BulkAttributeValueInput(InputObjectType):

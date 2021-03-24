@@ -240,8 +240,7 @@ def test_delete_collections_trigger_product_updated_webhook(
     assert not Collection.objects.filter(
         id__in=[collection.id for collection in collection_list]
     ).exists()
-    expected_call_count = len(collection_list) * len(product_list)
-    assert expected_call_count == product_updated_mock.call_count
+    assert len(product_list) == product_updated_mock.call_count
 
 
 DELETE_PRODUCTS_MUTATION = """

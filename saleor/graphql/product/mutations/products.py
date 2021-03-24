@@ -230,7 +230,9 @@ class CollectionCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        products = instance.products.all()
+        products = instance.products.prefetch_related(
+            "attributes", "collections", "variants", "category"
+        ).all()
         for product in products:
             info.context.plugins.product_updated(product)
 
@@ -283,7 +285,11 @@ class CollectionDelete(ModelDeleteMutation):
         node_id = kwargs.get("id")
 
         instance = cls.get_node_or_error(info, node_id, only_type=Collection)
-        products = list(instance.products.all())
+        products = list(
+            instance.products.prefetch_related(
+                "attributes", "collections", "variants", "category"
+            ).all()
+        )
 
         result = super().perform_mutation(_root, info, **kwargs)
         for product in products:
@@ -402,7 +408,14 @@ class CollectionAddProducts(BaseMutation):
         collection = cls.get_node_or_error(
             info, collection_id, field="collection_id", only_type=Collection
         )
-        products = cls.get_nodes_or_error(products, "products", Product)
+        products = cls.get_nodes_or_error(
+            products,
+            "products",
+            Product,
+            qs=models.Product.objects.prefetch_related(
+                "attributes", "collections", "variants", "category"
+            ),
+        )
         cls.clean_products(products)
         collection.products.add(*products)
         if collection.sale_set.exists():
@@ -459,7 +472,14 @@ class CollectionRemoveProducts(BaseMutation):
         collection = cls.get_node_or_error(
             info, collection_id, field="collection_id", only_type=Collection
         )
-        products = cls.get_nodes_or_error(products, "products", only_type=Product)
+        products = cls.get_nodes_or_error(
+            products,
+            "products",
+            only_type=Product,
+            qs=models.Product.objects.prefetch_related(
+                "attributes", "collections", "variants", "category"
+            ),
+        )
         collection.products.remove(*products)
         for product in products:
             info.context.plugins.product_updated(product)
