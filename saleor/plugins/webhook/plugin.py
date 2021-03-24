@@ -1,7 +1,10 @@
+import json
 from typing import TYPE_CHECKING, Any, List, Optional
 
+from ...app.models import App
 from ...payment import TransactionKind
 from ...webhook.event_types import WebhookEventType
+from ...webhook.models import Webhook
 from ...webhook.payloads import (
     generate_checkout_payload,
     generate_customer_payload,
@@ -16,7 +19,10 @@ from ...webhook.payloads import (
 )
 from ..base_plugin import BasePlugin
 from .tasks import trigger_webhook_sync, trigger_webhooks_for_event
-from .utils import webhook_response_to_gateway_response
+from .utils import (
+    webhook_response_to_gateway_response,
+    webhook_response_to_payment_gateways,
+)
 
 if TYPE_CHECKING:
     from ...account.models import User
@@ -24,7 +30,7 @@ if TYPE_CHECKING:
     from ...invoice.models import Invoice
     from ...order.models import Fulfillment, Order
     from ...page.models import Page
-    from ...payment.interface import GatewayResponse, PaymentData
+    from ...payment.interface import GatewayResponse, PaymentData, PaymentGateway
     from ...product.models import Product, ProductVariant
 
 
@@ -220,7 +226,15 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
 
-        webhook = kwargs.get("payment_webhook")
+        app = None
+        app_pk = kwargs.get("payment_app")
+        if app_pk is not None:
+            app = App.objects.filter(pk=app_pk).first()
+        if app:
+            webhooks = app.webhooks.all().filter(is_active=True)
+            webhooks = webhooks.filter(events__event_type=event_type)
+            webhook = webhooks.first()
+
         if not webhook:
             # TODO: handle webhook not found.
             raise Exception("Payment webhook not available")
@@ -230,6 +244,29 @@ class WebhookPlugin(BasePlugin):
         return webhook_response_to_gateway_response(
             payment_information, response, transaction_kind
         )
+
+    def get_payment_gateways(
+        self,
+        currency: Optional[str],
+        checkout: Optional["Checkout"],
+        previous_value,
+        **kwargs
+    ) -> List["PaymentGateway"]:
+        # TODO: Fix query to return first "list payments" webhook from each app.
+        webhooks = Webhook.objects.filter(
+            is_active=True,
+            app__is_active=True,
+            events__event_type=WebhookEventType.PAYMENT_LIST_GATEWAYS,
+        )
+        gateways = []
+        for webhook in webhooks:
+            response = trigger_webhook_sync(
+                webhook, WebhookEventType.PAYMENT_LIST_GATEWAYS, json.dumps({})
+            )
+            if response:
+                app_gateways = webhook_response_to_payment_gateways(response)
+                gateways.extend(app_gateways)
+        return gateways
 
     def authorize_payment(
         self, payment_information: "PaymentData", previous_value, **kwargs

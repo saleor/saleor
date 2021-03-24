@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 from ...payment.interface import GatewayResponse, PaymentGateway, PaymentMethodInfo
 
@@ -7,6 +7,37 @@ if TYPE_CHECKING:
 
     from ...app.models import App
     from ...payment.interface import PaymentData
+
+
+def to_payment_app_id(app: "App") -> "str":
+    return f"app:{app.pk}"
+
+
+def from_payment_app_id(app_id: str) -> "int":
+    return int(app_id.split(":")[1])
+
+
+def webhook_response_to_payment_gateways(
+    response: "RequestsResponse",
+) -> List["PaymentGateway"]:
+    response_json = response.json()
+    gateways = []
+    for gateway_data in response_json:
+        gateway_id = gateway_data.get("id")
+        gateway_name = gateway_data.get("name")
+        gateway_currencies = gateway_data.get("currencies")
+        gateway_config = gateway_data.get("config")
+
+        # TODO: fix gateway_id to include app pk
+        gateways.append(
+            PaymentGateway(
+                id=gateway_id,
+                name=gateway_name,
+                currencies=gateway_currencies,
+                config=gateway_config,
+            )
+        )
+    return gateways
 
 
 def webhook_response_to_gateway_response(
@@ -41,17 +72,3 @@ def webhook_response_to_gateway_response(
         payment_method_info=payment_method_info,
         raw_response=response_json,
     )
-
-
-def to_payment_app_id(app: "App") -> "str":
-    return f"app:{app.pk}"
-
-
-def from_payment_app_id(app_id: str) -> "int":
-    return int(app_id.split(":")[1])
-
-
-def app_to_payment_gateway(app: "App") -> "PaymentGateway":
-    app_id = to_payment_app_id(app)
-    # TODO: handle config and supported currencies
-    return PaymentGateway(id=app_id, name=app.name, config=[], currencies=[])

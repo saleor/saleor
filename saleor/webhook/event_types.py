@@ -40,6 +40,7 @@ class WebhookEventType:
     PAGE_UPDATED = "page_updated"
     PAGE_DELETED = "page_deleted"
 
+    PAYMENT_LIST_GATEWAYS = "payment_list_gateways"
     PAYMENT_AUTHORIZE = "payment_authorize"
     PAYMENT_CAPTURE = "payment_capture"
     PAYMENT_REFUND = "payment_refund"
@@ -74,10 +75,11 @@ class WebhookEventType:
         PAGE_DELETED: "Page Deleted",
         PAYMENT_AUTHORIZE: "Authorize payment",
         PAYMENT_CAPTURE: "Capture payment",
+        PAYMENT_CONFIRM: "Confirm payment",
+        PAYMENT_LIST_GATEWAYS: "List payment gateways",
+        PAYMENT_PROCESS: "Process payment",
         PAYMENT_REFUND: "Refund payment",
         PAYMENT_VOID: "Void payment",
-        PAYMENT_CONFIRM: "Confirm payment",
-        PAYMENT_PROCESS: "Process payment",
     }
 
     CHOICES = [
@@ -107,10 +109,21 @@ class WebhookEventType:
         (PAGE_DELETED, DISPLAY_LABELS[PAGE_DELETED]),
         (PAYMENT_AUTHORIZE, DISPLAY_LABELS[PAYMENT_AUTHORIZE]),
         (PAYMENT_CAPTURE, DISPLAY_LABELS[PAYMENT_CAPTURE]),
+        (PAYMENT_CONFIRM, DISPLAY_LABELS[PAYMENT_CONFIRM]),
+        (PAYMENT_LIST_GATEWAYS, DISPLAY_LABELS[PAYMENT_LIST_GATEWAYS]),
+        (PAYMENT_PROCESS, DISPLAY_LABELS[PAYMENT_PROCESS]),
         (PAYMENT_REFUND, DISPLAY_LABELS[PAYMENT_REFUND]),
         (PAYMENT_VOID, DISPLAY_LABELS[PAYMENT_VOID]),
-        (PAYMENT_CONFIRM, DISPLAY_LABELS[PAYMENT_CONFIRM]),
-        (PAYMENT_PROCESS, DISPLAY_LABELS[PAYMENT_PROCESS]),
+    ]
+
+    PAYMENT_EVENTS = [
+        PAYMENT_AUTHORIZE,
+        PAYMENT_CAPTURE,
+        PAYMENT_CONFIRM,
+        PAYMENT_LIST_GATEWAYS,
+        PAYMENT_PROCESS,
+        PAYMENT_REFUND,
+        PAYMENT_VOID,
     ]
 
     PERMISSIONS = {

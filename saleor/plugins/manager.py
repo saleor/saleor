@@ -4,27 +4,19 @@ from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple, Un
 import opentracing
 from django.conf import settings
 from django.core.handlers.wsgi import WSGIRequest
-from django.db.models import Q
 from django.http import HttpResponse, HttpResponseNotFound
 from django.utils.module_loading import import_string
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
-from ..app.models import App
 from ..checkout import base_calculations
 from ..core.payments import PaymentInterface
 from ..core.prices import quantize_price
 from ..core.taxes import TaxType, zero_taxed_money
 from ..discount import DiscountInfo
-from ..payment.interface import PaymentGateway
-from ..webhook.event_types import WebhookEventType
 from .base_plugin import ExternalAccessTokens
 from .models import PluginConfiguration
-from .webhook.utils import (
-    app_to_payment_gateway,
-    from_payment_app_id,
-    to_payment_app_id,
-)
+from .webhook.utils import from_payment_app_id
 
 if TYPE_CHECKING:
     # flake8: noqa
@@ -39,38 +31,11 @@ if TYPE_CHECKING:
         GatewayResponse,
         InitializedPaymentResponse,
         PaymentData,
+        PaymentGateway,
         TokenConfig,
     )
     from ..product.models import Product, ProductType, ProductVariant
     from .base_plugin import BasePlugin
-
-
-METHOD_NAME_AUTHORIZE_PAYMENT = "authorize_payment"
-METHOD_NAME_CAPTURE_PAYMENT = "capture_payment"
-METHOD_NAME_REFUND_PAYMENT = "refund_payment"
-METHOD_NAME_VOID_PAYMENT = "void_payment"
-METHOD_NAME_CONFIRM_PAYMENT = "confirm_payment"
-METHOD_NAME_PROCESS_PAYMENT = "process_payment"
-
-
-def _get_webhook_for_method(webhooks_queryset, method_name):
-    """Get a webhook instance for a PluginManager's payment method."""
-    qs = webhooks_queryset.filter(is_active=True)
-    if method_name == METHOD_NAME_AUTHORIZE_PAYMENT:
-        qs = qs.filter(events__event_type=WebhookEventType.PAYMENT_AUTHORIZE)
-    elif method_name == METHOD_NAME_CAPTURE_PAYMENT:
-        qs = qs.filter(events__event_type=WebhookEventType.PAYMENT_CAPTURE)
-    elif method_name == METHOD_NAME_REFUND_PAYMENT:
-        qs = qs.filter(events__event_type=WebhookEventType.PAYMENT_REFUND)
-    elif method_name == METHOD_NAME_VOID_PAYMENT:
-        qs = qs.filter(events__event_type=WebhookEventType.PAYMENT_VOID)
-    elif method_name == METHOD_NAME_CONFIRM_PAYMENT:
-        qs = qs.filter(events__event_type=WebhookEventType.PAYMENT_CONFIRM)
-    elif method_name == METHOD_NAME_PROCESS_PAYMENT:
-        qs = qs.filter(events__event_type=WebhookEventType.PAYMENT_PROCESS)
-    else:
-        raise ValueError(f"Unsupported method for webhook payment: {method_name}")
-    return qs.first()
 
 
 class PluginsManager(PaymentInterface):
@@ -542,42 +507,38 @@ class PluginsManager(PaymentInterface):
         self, gateway: str, payment_information: "PaymentData"
     ) -> "GatewayResponse":
         return self.__run_payment_method(
-            gateway, METHOD_NAME_AUTHORIZE_PAYMENT, payment_information
+            gateway, "authorize_payment", payment_information
         )
 
     def capture_payment(
         self, gateway: str, payment_information: "PaymentData"
     ) -> "GatewayResponse":
         return self.__run_payment_method(
-            gateway, METHOD_NAME_CAPTURE_PAYMENT, payment_information
+            gateway, "capture_payment", payment_information
         )
 
     def refund_payment(
         self, gateway: str, payment_information: "PaymentData"
     ) -> "GatewayResponse":
-        return self.__run_payment_method(
-            gateway, METHOD_NAME_REFUND_PAYMENT, payment_information
-        )
+        return self.__run_payment_method(gateway, "refund_payment", payment_information)
 
     def void_payment(
         self, gateway: str, payment_information: "PaymentData"
     ) -> "GatewayResponse":
-        return self.__run_payment_method(
-            gateway, METHOD_NAME_VOID_PAYMENT, payment_information
-        )
+        return self.__run_payment_method(gateway, "void_payment", payment_information)
 
     def confirm_payment(
         self, gateway: str, payment_information: "PaymentData"
     ) -> "GatewayResponse":
         return self.__run_payment_method(
-            gateway, METHOD_NAME_CONFIRM_PAYMENT, payment_information
+            gateway, "confirm_payment", payment_information
         )
 
     def process_payment(
         self, gateway: str, payment_information: "PaymentData"
     ) -> "GatewayResponse":
         return self.__run_payment_method(
-            gateway, METHOD_NAME_PROCESS_PAYMENT, payment_information
+            gateway, "process_payment", payment_information
         )
 
     def token_is_required_as_payment_input(self, gateway) -> bool:
@@ -616,43 +577,47 @@ class PluginsManager(PaymentInterface):
             plugins = self.plugins
         return [plugin for plugin in plugins if plugin.active]
 
-    def _list_payment_plugin(
-        self, active_only: bool = False
-    ) -> Dict[str, "BasePlugin"]:
-        payment_method = "process_payment"
-        plugins = self.plugins
-        if active_only:
-            plugins = self.get_active_plugins()
-        return {
-            plugin.PLUGIN_ID: plugin
-            for plugin in plugins
-            if payment_method in type(plugin).__dict__
-        }
-
-    def _list_payment_apps(self, active_only: bool = False) -> Dict[str, "App"]:
-        query = Q(webhooks__events__event_type__in=[WebhookEventType.PAYMENT_PROCESS])
-        if active_only:
-            query &= Q(is_active=True)
-        payment_apps = App.objects.filter(query)
-        # TODO: add filtering to return apps with active webhooks
-        return {to_payment_app_id(app): app for app in payment_apps}
-
     def list_payment_gateways(
         self,
         currency: Optional[str] = None,
         checkout: Optional["Checkout"] = None,
         active_only: bool = True,
     ) -> List["PaymentGateway"]:
-        gateways = []
+        from .webhook.plugin import WebhookPlugin
 
-        # append payment plugins
-        payment_plugins = self._list_payment_plugin(active_only=active_only)
-        for plugin in payment_plugins.values():
+        plugins = self.plugins
+        if active_only:
+            plugins = self.get_active_plugins()
+
+        # WebhookPlugin has the `process_payment` method defined but we don't want to
+        # list it as a payment gateway.
+        exclude_webhook_plugin = (
+            lambda plugin: plugin.PLUGIN_ID != WebhookPlugin.PLUGIN_ID
+        )
+        payment_plugins = [
+            plugin
+            for plugin in plugins
+            if "process_payment" in type(plugin).__dict__
+            and exclude_webhook_plugin(plugin)
+        ]
+
+        gateways = []
+        for plugin in payment_plugins:
             gateways.extend(
                 plugin.get_payment_gateways(
                     currency=currency, checkout=checkout, previous_value=None
                 )
             )
+
+        # Fetch payment gateways from apps that listen to payment events.
+        app_gateways = self.__run_method_on_single_plugin(
+            self.get_plugin(WebhookPlugin.PLUGIN_ID),
+            "get_payment_gateways",
+            currency=currency,
+            checkout=checkout,
+            previous_value=None,
+        )
+        gateways.extend(app_gateways)
         return gateways
 
     def list_external_authentications(self, active_only: bool = True) -> List[dict]:
@@ -681,14 +646,10 @@ class PluginsManager(PaymentInterface):
             # Otherwise, try to get a payment app and run the payment method using
             # webhook plugin.
             app_pk = from_payment_app_id(gateway)
-            app = App.objects.filter(pk=app_pk).first()
-            if app:
-                webhook = _get_webhook_for_method(app.webhooks.all(), method_name)
-                if webhook:
-                    from .webhook.plugin import WebhookPlugin
+            from .webhook.plugin import WebhookPlugin
 
-                    plugin = self.get_plugin(WebhookPlugin.PLUGIN_ID)
-                    kwargs.update({"payment_webhook": webhook})
+            plugin = self.get_plugin(WebhookPlugin.PLUGIN_ID)
+            kwargs.update({"payment_app": app_pk})
 
         if plugin is not None:
             resp = self.__run_method_on_single_plugin(

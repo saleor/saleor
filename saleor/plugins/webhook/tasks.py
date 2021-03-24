@@ -162,11 +162,14 @@ def send_webhook_request_sync(target_url, secret, event_type, data):
         logger.debug(
             "[Webhook] Sending payload to %r for event %r.", target_url, event_type
         )
-        # TODO: Handle 50x and 40x errors.
-        response = send_webhook_using_http(
-            target_url, message, domain, signature, event_type
-        )
-        logger.debug("[Webhook] Received response from %r.", target_url)
+        try:
+            response = send_webhook_using_http(
+                target_url, message, domain, signature, event_type
+            )
+        except RequestException as e:
+            logger.debug("[Webhook] Failed request to %r : %r.", target_url, e)
+        else:
+            logger.warning("[Webhook] Success response from %r.", target_url)
     else:
         raise ValueError("Unknown webhook scheme: %r" % (parts.scheme,))
     return response
