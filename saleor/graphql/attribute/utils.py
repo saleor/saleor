@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple, Union
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import DataError
 from django.db.models import Q
 from django.utils.text import slugify
 from graphql.error import GraphQLError
@@ -370,20 +371,36 @@ class AttributeAssignmentMixin:
         :param instance: the product or variant to associate the attribute against.
         :param cleaned_input: the cleaned user input (refer to clean_attributes)
         """
+        errors = []
+
         for attribute, attr_values in cleaned_input:
-            if attribute.input_type == AttributeInputType.FILE:
-                attribute_values = cls._pre_save_file_value(
-                    instance, attribute, attr_values
+            try:
+                if attribute.input_type == AttributeInputType.FILE:
+                    attribute_values = cls._pre_save_file_value(
+                        instance, attribute, attr_values
+                    )
+                elif attribute.input_type == AttributeInputType.REFERENCE:
+                    attribute_values = cls._pre_save_reference_values(
+                        instance, attribute, attr_values
+                    )
+                else:
+                    attribute_values = cls._pre_save_values(attribute, attr_values)
+
+                associate_attribute_values_to_instance(
+                    instance, attribute, *attribute_values
                 )
-            elif attribute.input_type == AttributeInputType.REFERENCE:
-                attribute_values = cls._pre_save_reference_values(
-                    instance, attribute, attr_values
+
+            except DataError as e:
+                errors.append(
+                    ValidationError(
+                        str(e),
+                        code="INVALID",
+                        params={"attributes": [attr_values.global_id]},
+                    )
                 )
-            else:
-                attribute_values = cls._pre_save_values(attribute, attr_values)
-            associate_attribute_values_to_instance(
-                instance, attribute, *attribute_values
-            )
+
+        if errors:
+            raise ValidationError(errors)
 
 
 def get_variant_selection_attributes(qs: "QuerySet"):
