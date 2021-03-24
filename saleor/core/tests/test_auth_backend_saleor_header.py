@@ -17,6 +17,20 @@ from ..jwt import (
 from ..permissions import get_permissions_from_names
 
 
+@pytest.mark.parametrize("token_type", ["Basic", "Bearer"])
+def test_use_authorization_bearer_header_when_authorization_is_provided(
+    token_type, rf, staff_user, customer_user
+):
+    staff_access_token = create_access_token(staff_user)
+    request = rf.request(
+        HTTP_AUTHORIZATION_BEARER=f"{staff_access_token}",
+        HTTP_AUTHORIZATION=f"{token_type} ABC1234",
+    )
+    backend = JSONWebTokenBackend()
+    user = backend.authenticate(request)
+    assert user == staff_user
+
+
 def test_use_saleor_header_as_a_first_try(rf, staff_user, customer_user):
     staff_access_token = create_access_token(staff_user)
     customer_access_token = create_access_token(customer_user)
