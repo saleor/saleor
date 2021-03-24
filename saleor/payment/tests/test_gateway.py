@@ -87,7 +87,7 @@ def test_process_payment(fake_payment_interface, payment_txn_preauth):
     fake_payment_interface.process_payment.return_value = PROCESS_PAYMENT_RESPONSE
 
     transaction = gateway.process_payment(
-        payment=payment_txn_preauth, token=TOKEN, plugin_manager=fake_payment_interface
+        payment=payment_txn_preauth, token=TOKEN, manager=fake_payment_interface
     )
 
     fake_payment_interface.process_payment.assert_called_once_with(
@@ -110,7 +110,7 @@ def test_store_source_when_processing_payment(
     transaction = gateway.process_payment(
         payment=payment_txn_preauth,
         token=TOKEN,
-        plugin_manager=fake_payment_interface,
+        manager=fake_payment_interface,
         store_source=True,
     )
 
@@ -127,7 +127,7 @@ def test_authorize_payment(fake_payment_interface, payment_dummy):
     fake_payment_interface.authorize_payment.return_value = AUTHORIZE_RESPONSE
 
     transaction = gateway.authorize(
-        payment=payment_dummy, token=TOKEN, plugin_manager=fake_payment_interface
+        payment=payment_dummy, token=TOKEN, manager=fake_payment_interface
     )
 
     fake_payment_interface.authorize_payment.assert_called_once_with(
@@ -147,7 +147,7 @@ def test_capture_payment(fake_payment_interface, payment_txn_preauth):
     fake_payment_interface.capture_payment.return_value = PROCESS_PAYMENT_RESPONSE
 
     transaction = gateway.capture(
-        payment=payment_txn_preauth, plugin_manager=fake_payment_interface
+        payment=payment_txn_preauth, manager=fake_payment_interface
     )
 
     fake_payment_interface.capture_payment.assert_called_once_with(
@@ -163,7 +163,7 @@ def test_refund_for_manual_payment(payment_txn_captured):
     payment_txn_captured.gateway = CustomPaymentChoices.MANUAL
     transaction = gateway.refund(
         payment=payment_txn_captured,
-        plugin_manager=get_plugins_manager(),
+        manager=get_plugins_manager(),
         amount=PARTIAL_REFUND_AMOUNT,
     )
     payment_txn_captured.refresh_from_db()
@@ -183,7 +183,7 @@ def test_partial_refund_payment(fake_payment_interface, payment_txn_captured):
     fake_payment_interface.refund_payment.return_value = PARTIAL_REFUND_RESPONSE
     transaction = gateway.refund(
         payment=payment_txn_captured,
-        plugin_manager=fake_payment_interface,
+        manager=fake_payment_interface,
         amount=PARTIAL_REFUND_AMOUNT,
     )
     fake_payment_interface.refund_payment.assert_called_once_with(
@@ -207,7 +207,7 @@ def test_full_refund_payment(fake_payment_interface, payment_txn_captured):
     )
     fake_payment_interface.refund_payment.return_value = FULL_REFUND_RESPONSE
     transaction = gateway.refund(
-        payment=payment_txn_captured, plugin_manager=fake_payment_interface
+        payment=payment_txn_captured, manager=fake_payment_interface
     )
     fake_payment_interface.refund_payment.assert_called_once_with(
         USED_GATEWAY, PAYMENT_DATA
@@ -231,7 +231,7 @@ def test_void_payment(fake_payment_interface, payment_txn_preauth):
     fake_payment_interface.void_payment.return_value = VOID_RESPONSE
 
     transaction = gateway.void(
-        payment=payment_txn_preauth, plugin_manager=fake_payment_interface
+        payment=payment_txn_preauth, manager=fake_payment_interface
     )
 
     fake_payment_interface.void_payment.assert_called_once_with(
@@ -255,7 +255,7 @@ def test_confirm_payment(fake_payment_interface, payment_txn_to_confirm):
     fake_payment_interface.confirm_payment.return_value = CONFIRM_RESPONSE
 
     transaction = gateway.confirm(
-        payment=payment_txn_to_confirm, plugin_manager=fake_payment_interface
+        payment=payment_txn_to_confirm, manager=fake_payment_interface
     )
 
     fake_payment_interface.confirm_payment.assert_called_once_with(
