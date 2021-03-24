@@ -1,6 +1,6 @@
 import json
 from decimal import Decimal
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 import graphene
 import pytest
@@ -832,7 +832,7 @@ def test_list_payment_sources(
     )
     response = user_api_client.post_graphql(query)
 
-    mock_get_source_list.assert_called_once_with(gateway, dummy_customer_id)
+    mock_get_source_list.assert_called_once_with(gateway, dummy_customer_id, ANY)
     content = get_graphql_content(response)["data"]["me"]["storedPaymentSources"]
     assert content is not None and len(content) == 1
     assert content[0] == {"gateway": gateway, "creditCardInfo": {"lastDigits": "5678"}}

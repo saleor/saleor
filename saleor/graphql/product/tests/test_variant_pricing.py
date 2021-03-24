@@ -3,7 +3,7 @@ from unittest.mock import Mock
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
-from ....plugins.manager import PluginsManager
+from ....plugins.manager import PluginsManager, get_plugins_manager
 from ....product.models import ProductVariant
 from ....product.utils.availability import get_variant_availability
 from ...tests.utils import get_graphql_content
@@ -112,6 +112,7 @@ def test_variant_pricing(
     product_channel_listing = product.channel_listings.get()
     variant_channel_listing = variant.channel_listings.get()
 
+    manager = get_plugins_manager()
     pricing = get_variant_availability(
         variant=variant,
         variant_channel_listing=variant_channel_listing,
@@ -120,6 +121,7 @@ def test_variant_pricing(
         collections=[],
         discounts=[],
         channel=channel_USD,
+        plugins=manager,
     )
     assert pricing.price == taxed_price
     assert pricing.price_local_currency is None
@@ -140,6 +142,7 @@ def test_variant_pricing(
         collections=[],
         discounts=[],
         channel=channel_USD,
+        plugins=manager,
         local_currency="PLN",
         country=Country("US"),
     )
@@ -153,6 +156,7 @@ def test_variant_pricing(
         collections=[],
         discounts=[],
         channel=channel_USD,
+        plugins=manager,
     )
     assert pricing.price.tax.amount
     assert pricing.price_undiscounted.tax.amount

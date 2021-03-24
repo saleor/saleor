@@ -6,7 +6,7 @@ from django_countries.fields import Country
 from freezegun import freeze_time
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
-from ...plugins.manager import PluginsManager
+from ...plugins.manager import PluginsManager, get_plugins_manager
 from .. import models
 from ..utils.availability import get_product_availability
 
@@ -22,12 +22,14 @@ def test_availability(stock, monkeypatch, settings, channel_USD):
     monkeypatch.setattr(
         PluginsManager, "apply_taxes_to_product", Mock(return_value=taxed_price)
     )
+    manager = get_plugins_manager()
     availability = get_product_availability(
         product=product,
         product_channel_listing=product_channel_listing,
         variants=product.variants.all(),
         variants_channel_listing=variants_channel_listing,
         channel=channel_USD,
+        manager=manager,
         collections=[],
         discounts=[],
         country=Country("PL"),
@@ -50,6 +52,7 @@ def test_availability(stock, monkeypatch, settings, channel_USD):
         collections=[],
         discounts=[],
         channel=channel_USD,
+        manager=manager,
         local_currency="PLN",
         country=Country("PL"),
     )
@@ -63,6 +66,7 @@ def test_availability(stock, monkeypatch, settings, channel_USD):
         collections=[],
         discounts=[],
         channel=channel_USD,
+        manager=manager,
         country=Country("PL"),
     )
     assert availability.price_range.start.tax.amount
@@ -82,6 +86,7 @@ def test_availability_with_all_variant_channel_listings(stock, channel_USD):
     [variant1_channel_listing, variant2_channel_listing] = variants_channel_listing
     variant2_channel_listing.price_amount = Decimal(15)
     variant2_channel_listing.save()
+    manager = get_plugins_manager()
 
     # when
     availability = get_product_availability(
@@ -90,6 +95,7 @@ def test_availability_with_all_variant_channel_listings(stock, channel_USD):
         variants=variants,
         variants_channel_listing=variants_channel_listing,
         channel=channel_USD,
+        manager=manager,
         collections=[],
         discounts=[],
         country=Country("PL"),
@@ -111,6 +117,7 @@ def test_availability_with_missing_variant_channel_listings(stock, channel_USD):
     )
     [variant1_channel_listing, variant2_channel_listing] = variants_channel_listing
     variant2_channel_listing.delete()
+    manager = get_plugins_manager()
 
     # when
     availability = get_product_availability(
@@ -119,6 +126,7 @@ def test_availability_with_missing_variant_channel_listings(stock, channel_USD):
         variants=variants,
         variants_channel_listing=variants_channel_listing,
         channel=channel_USD,
+        manager=manager,
         collections=[],
         discounts=[],
         country=Country("PL"),
@@ -138,6 +146,7 @@ def test_availability_without_variant_channel_listings(stock, channel_USD):
     models.ProductVariantChannelListing.objects.filter(
         variant__in=variants, channel=channel_USD
     ).delete()
+    manager = get_plugins_manager()
 
     # when
     availability = get_product_availability(
@@ -146,6 +155,7 @@ def test_availability_without_variant_channel_listings(stock, channel_USD):
         variants=variants,
         variants_channel_listing=[],
         channel=channel_USD,
+        manager=manager,
         collections=[],
         discounts=[],
         country=Country("PL"),

@@ -544,21 +544,22 @@ def create_fake_payment(mock_email_confirmation, order):
         total=order.total.gross.amount,
         currency=order.total.gross.currency,
     )
+    manager = get_plugins_manager()
 
     # Create authorization transaction
-    gateway.authorize(payment, payment.token)
+    gateway.authorize(payment, payment.token, manager)
     # 20% chance to void the transaction at this stage
     if random.choice([0, 0, 0, 0, 1]):
-        gateway.void(payment)
+        gateway.void(payment, manager)
         return payment
     # 25% to end the payment at the authorization stage
     if not random.choice([1, 1, 1, 0]):
         return payment
     # Create capture transaction
-    gateway.capture(payment)
+    gateway.capture(payment, manager)
     # 25% to refund the payment
     if random.choice([0, 0, 0, 1]):
-        gateway.refund(payment)
+        gateway.refund(payment, manager)
     return payment
 
 
@@ -1277,8 +1278,9 @@ def create_gift_card():
 def add_address_to_admin(email):
     address = create_address()
     user = User.objects.get(email=email)
-    store_user_address(user, address, AddressType.BILLING)
-    store_user_address(user, address, AddressType.SHIPPING)
+    manager = get_plugins_manager()
+    store_user_address(user, address, AddressType.BILLING, manager)
+    store_user_address(user, address, AddressType.SHIPPING, manager)
 
 
 def create_page_type():
