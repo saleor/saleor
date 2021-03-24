@@ -1,12 +1,12 @@
 from ..celeryconf import app
 from ..core.utils import create_thumbnails
-from .models import Category, Collection, ProductImage
+from .models import Category, Collection, ProductMedia
 
 
 @app.task
 def create_product_thumbnails(image_id: str):
-    """Take a ProductImage model and create thumbnails for it."""
-    create_thumbnails(pk=image_id, model=ProductImage, size_set="products")
+    """Take a ProductMedia model and create thumbnails for it."""
+    create_thumbnails(pk=image_id, model=ProductMedia, size_set="products")
 
 
 @app.task

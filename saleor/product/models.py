@@ -7,6 +7,7 @@ from django.contrib.postgres.aggregates import StringAgg
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVectorField
 from django.db import models
+from django.db.models import JSONField  # type: ignore
 from django.db.models import (
     BooleanField,
     Case,
@@ -46,6 +47,7 @@ from ..core.weight import WeightUnits, zero_weight
 from ..discount import DiscountInfo
 from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel, SeoModelTranslation
+from . import ProductMediaTypes
 
 if TYPE_CHECKING:
     # flake8: noqa
@@ -363,7 +365,8 @@ class Product(SeoModel, ModelWithMetadata):
         return json_content_to_raw_text(self.description)
 
     def get_first_image(self):
-        images = list(self.images.all())
+        all_media = self.media.all()
+        images = [media for media in all_media if media.type == ProductMediaTypes.IMAGE]
         return images[0] if images else None
 
     @staticmethod
@@ -450,7 +453,7 @@ class ProductVariant(SortableModel, ModelWithMetadata):
     product = models.ForeignKey(
         Product, related_name="variants", on_delete=models.CASCADE
     )
-    images = models.ManyToManyField("ProductImage", through="VariantImage")
+    media = models.ManyToManyField("ProductMedia", through="VariantMedia")
     track_inventory = models.BooleanField(default=True)
 
     weight = MeasurementField(
@@ -505,8 +508,9 @@ class ProductVariant(SortableModel, ModelWithMetadata):
         )
         return smart_text(product_display)
 
-    def get_first_image(self) -> "ProductImage":
-        images = list(self.images.all())
+    def get_first_image(self) -> "ProductMedia":
+        all_media = self.media.all()
+        images = [media for media in all_media if media.type == ProductMediaTypes.IMAGE]
         return images[0] if images else self.product.get_first_image()
 
     def get_ordering_queryset(self):
@@ -617,32 +621,39 @@ class DigitalContentUrl(models.Model):
         return build_absolute_uri(url)
 
 
-class ProductImage(SortableModel):
-    product = models.ForeignKey(
-        Product, related_name="images", on_delete=models.CASCADE
+class ProductMedia(SortableModel):
+    product = models.ForeignKey(Product, related_name="media", on_delete=models.CASCADE)
+    image = VersatileImageField(
+        upload_to="products", ppoi_field="ppoi", blank=True, null=True
     )
-    image = VersatileImageField(upload_to="products", ppoi_field="ppoi", blank=False)
     ppoi = PPOIField()
     alt = models.CharField(max_length=128, blank=True)
+    type = models.CharField(
+        max_length=32,
+        choices=ProductMediaTypes.CHOICES,
+        default=ProductMediaTypes.IMAGE,
+    )
+    external_url = models.CharField(max_length=256, blank=True, null=True)
+    oembed_data = JSONField(blank=True, default=dict)
 
     class Meta:
         ordering = ("sort_order", "pk")
         app_label = "product"
 
     def get_ordering_queryset(self):
-        return self.product.images.all()
+        return self.product.media.all()
 
 
-class VariantImage(models.Model):
+class VariantMedia(models.Model):
     variant = models.ForeignKey(
-        "ProductVariant", related_name="variant_images", on_delete=models.CASCADE
+        "ProductVariant", related_name="variant_media", on_delete=models.CASCADE
     )
-    image = models.ForeignKey(
-        ProductImage, related_name="variant_images", on_delete=models.CASCADE
+    media = models.ForeignKey(
+        ProductMedia, related_name="variant_media", on_delete=models.CASCADE
     )
 
     class Meta:
-        unique_together = ("variant", "image")
+        unique_together = ("variant", "media")
 
 
 class CollectionProduct(SortableModel):

@@ -571,6 +571,7 @@ type AttributeValue implements Node {
   id: ID!
   name: String
   slug: String
+  value: String
   translation(languageCode: LanguageCodeEnum!): AttributeValueTranslation
   inputType: AttributeInputTypeEnum
   reference: ID
@@ -592,6 +593,7 @@ type AttributeValueCreate {
 
 input AttributeValueCreateInput {
   name: String!
+  value: String
 }
 
 type AttributeValueDelete {
@@ -2632,12 +2634,12 @@ type Mutation {
   productUpdate(id: ID!, input: ProductInput!): ProductUpdate
   productTranslate(id: ID!, input: TranslationInput!, languageCode: LanguageCodeEnum!): ProductTranslate
   productChannelListingUpdate(id: ID!, input: ProductChannelListingUpdateInput!): ProductChannelListingUpdate
-  productImageCreate(input: ProductImageCreateInput!): ProductImageCreate
+  productMediaCreate(input: ProductMediaCreateInput!): ProductMediaCreate
   productVariantReorder(moves: [ReorderInput]!, productId: ID!): ProductVariantReorder
-  productImageDelete(id: ID!): ProductImageDelete
-  productImageBulkDelete(ids: [ID]!): ProductImageBulkDelete
-  productImageReorder(imagesIds: [ID]!, productId: ID!): ProductImageReorder
-  productImageUpdate(id: ID!, input: ProductImageUpdateInput!): ProductImageUpdate
+  productMediaDelete(id: ID!): ProductMediaDelete
+  productMediaBulkDelete(ids: [ID]!): ProductMediaBulkDelete
+  productMediaReorder(mediaIds: [ID]!, productId: ID!): ProductMediaReorder
+  productMediaUpdate(id: ID!, input: ProductMediaUpdateInput!): ProductMediaUpdate
   productTypeCreate(input: ProductTypeInput!): ProductTypeCreate
   productTypeDelete(id: ID!): ProductTypeDelete
   productTypeBulkDelete(ids: [ID]!): ProductTypeBulkDelete
@@ -2660,8 +2662,8 @@ type Mutation {
   productVariantTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): ProductVariantTranslate
   productVariantChannelListingUpdate(id: ID!, input: [ProductVariantChannelListingAddInput!]!): ProductVariantChannelListingUpdate
   productVariantReorderAttributeValues(attributeId: ID!, moves: [ReorderInput]!, variantId: ID!): ProductVariantReorderAttributeValues
-  variantImageAssign(imageId: ID!, variantId: ID!): VariantImageAssign
-  variantImageUnassign(imageId: ID!, variantId: ID!): VariantImageUnassign
+  variantMediaAssign(mediaId: ID!, variantId: ID!): VariantMediaAssign
+  variantMediaUnassign(mediaId: ID!, variantId: ID!): VariantMediaUnassign
   paymentCapture(amount: PositiveDecimal, paymentId: ID!): PaymentCapture
   paymentRefund(amount: PositiveDecimal, paymentId: ID!): PaymentRefund
   paymentVoid(paymentId: ID!): PaymentVoid
@@ -3954,9 +3956,11 @@ type Product implements Node & ObjectWithMetadata {
   taxType: TaxType
   attributes: [SelectedAttribute!]!
   channelListings: [ProductChannelListing!]
-  imageById(id: ID): ProductImage
+  mediaById(id: ID): ProductMedia!
+  imageById(id: ID): ProductImage @deprecated(reason: "Will be removed in Saleor 4.0. Use the `mediaById` field instead.")
   variants: [ProductVariant]
-  images: [ProductImage]
+  media: [ProductMedia!]
+  images: [ProductImage] @deprecated(reason: "Will be removed in Saleor 4.0. Use the `media` field instead.")
   collections: [Collection]
   translation(languageCode: LanguageCodeEnum!): ProductTranslation
   availableForPurchase: Date
@@ -4052,10 +4056,10 @@ type ProductCreate {
 }
 
 input ProductCreateInput {
-  attributes: [AttributeValueInput]
+  attributes: [AttributeValueInput!]
   category: ID
   chargeTaxes: Boolean
-  collections: [ID]
+  collections: [ID!]
   description: JSONString
   name: String
   slug: String
@@ -4097,6 +4101,7 @@ enum ProductErrorCode {
   VARIANT_NO_DIGITAL_CONTENT
   CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT
   PRODUCT_NOT_ASSIGNED_TO_CHANNEL
+  UNSUPPORTED_MEDIA_PROVIDER
 }
 
 enum ProductFieldEnum {
@@ -4131,62 +4136,18 @@ input ProductFilterInput {
   channel: String
 }
 
-type ProductImage implements Node {
+type ProductImage {
   id: ID!
+  alt: String
   sortOrder: Int
-  alt: String!
   url(size: Int): String!
 }
 
-type ProductImageBulkDelete {
-  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  count: Int!
-  productErrors: [ProductError!]!
-}
-
-type ProductImageCreate {
-  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  product: Product
-  image: ProductImage
-  productErrors: [ProductError!]!
-}
-
-input ProductImageCreateInput {
-  alt: String
-  image: Upload!
-  product: ID!
-}
-
-type ProductImageDelete {
-  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  product: Product
-  image: ProductImage
-  productErrors: [ProductError!]!
-}
-
-type ProductImageReorder {
-  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  product: Product
-  images: [ProductImage]
-  productErrors: [ProductError!]!
-}
-
-type ProductImageUpdate {
-  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  product: Product
-  image: ProductImage
-  productErrors: [ProductError!]!
-}
-
-input ProductImageUpdateInput {
-  alt: String
-}
-
 input ProductInput {
-  attributes: [AttributeValueInput]
+  attributes: [AttributeValueInput!]
   category: ID
   chargeTaxes: Boolean
-  collections: [ID]
+  collections: [ID!]
   description: JSONString
   name: String
   slug: String
@@ -4194,6 +4155,65 @@ input ProductInput {
   seo: SeoInput
   weight: WeightScalar
   rating: Float
+}
+
+type ProductMedia implements Node {
+  id: ID!
+  sortOrder: Int
+  alt: String!
+  type: ProductMediaType!
+  oembedData: JSONString!
+  url(size: Int): String!
+}
+
+type ProductMediaBulkDelete {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  count: Int!
+  productErrors: [ProductError!]!
+}
+
+type ProductMediaCreate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  product: Product
+  media: ProductMedia
+  productErrors: [ProductError!]!
+}
+
+input ProductMediaCreateInput {
+  alt: String
+  image: Upload
+  product: ID!
+  mediaUrl: String
+}
+
+type ProductMediaDelete {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  product: Product
+  media: ProductMedia
+  productErrors: [ProductError!]!
+}
+
+type ProductMediaReorder {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  product: Product
+  media: [ProductMedia!]
+  productErrors: [ProductError!]!
+}
+
+enum ProductMediaType {
+  IMAGE
+  VIDEO
+}
+
+type ProductMediaUpdate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  product: Product
+  media: ProductMedia
+  productErrors: [ProductError!]!
+}
+
+input ProductMediaUpdateInput {
+  alt: String
 }
 
 input ProductOrder {
@@ -4383,7 +4403,8 @@ type ProductVariant implements Node & ObjectWithMetadata {
   margin: Int
   quantityOrdered: Int
   revenue(period: ReportingPeriod): TaxedMoney
-  images: [ProductImage]
+  images: [ProductImage] @deprecated(reason: "Will be removed in Saleor 4.0. Use the `media` instead.")
+  media: [ProductMedia!]
   translation(languageCode: LanguageCodeEnum!): ProductVariantTranslation
   digitalContent: DigitalContent
   stocks(address: AddressInput, countryCode: CountryCode): [Stock]
@@ -5545,17 +5566,17 @@ enum VariantAttributeScope {
   NOT_VARIANT_SELECTION
 }
 
-type VariantImageAssign {
+type VariantMediaAssign {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   productVariant: ProductVariant
-  image: ProductImage
+  media: ProductMedia
   productErrors: [ProductError!]!
 }
 
-type VariantImageUnassign {
+type VariantMediaUnassign {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   productVariant: ProductVariant
-  image: ProductImage
+  media: ProductMedia
   productErrors: [ProductError!]!
 }
 
@@ -5988,7 +6009,7 @@ enum WeightUnitsEnum {
 
 scalar _Any
 
-union _Entity = Address | User | Group | App | ProductVariant | Product | ProductType | Collection | Category | ProductImage | PageType
+union _Entity = Address | User | Group | App | ProductVariant | Product | ProductType | Collection | Category | ProductMedia | ProductImage | PageType
 
 type _Service {
   sdl: String

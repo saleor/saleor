@@ -1,7 +1,7 @@
 import copy
 from decimal import Decimal
 from functools import partial, wraps
-from typing import Iterable, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union
 
 from django.conf import settings
 from django.db import transaction
@@ -28,6 +28,9 @@ from ..warehouse.management import (
 )
 from ..warehouse.models import Warehouse
 from . import events
+
+if TYPE_CHECKING:
+    from ..plugins.manager import PluginsManager
 
 
 def get_order_country(order: Order) -> str:
@@ -199,7 +202,7 @@ def update_taxes_for_order_line(
 
 
 def update_taxes_for_order_lines(
-    lines: List[OrderLine], order: "Order", manager, tax_included
+    lines: Iterable[OrderLine], order: "Order", manager, tax_included
 ):
     for line in lines:
         update_taxes_for_order_line(line, order, manager, tax_included=tax_included)
@@ -215,7 +218,7 @@ def update_taxes_for_order_lines(
     )
 
 
-def update_order_prices(order, manager, tax_included):
+def update_order_prices(order: Order, manager: "PluginsManager", tax_included: bool):
     """Update prices in order with given discounts and proper taxes."""
 
     update_taxes_for_order_lines(order.lines.all(), order, manager, tax_included)
