@@ -9,11 +9,7 @@ from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from ....checkout import calculations
-from ....checkout.fetch import (
-    CheckoutLineInfo,
-    fetch_checkout_info,
-    fetch_checkout_lines,
-)
+from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import add_variant_to_checkout
 from ....core.prices import quantize_price
 from ....core.taxes import zero_taxed_money
@@ -249,7 +245,7 @@ def test_calculate_checkout_total(
 
     discounts = [discount_info] if with_discount else None
     lines = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts, manager)
     total = manager.calculate_checkout_total(checkout_info, lines, address, discounts)
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
@@ -297,7 +293,7 @@ def test_calculate_checkout_subtotal(
     discounts = [discount_info] if with_discount else None
     add_variant_to_checkout(checkout_with_item, variant, 2)
     lines = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts, manager)
     total = manager.calculate_checkout_subtotal(
         checkout_info, lines, address, discounts
     )
@@ -369,9 +365,6 @@ def test_calculate_checkout_line_total(
     line = checkout_with_item.lines.first()
     assert line.quantity > 1
 
-    channel = checkout_with_item.channel
-    channel_listing = line.variant.channel_listings.get(channel=channel)
-
     method = shipping_zone.shipping_methods.get()
     checkout_with_item.shipping_address = address
     checkout_with_item.shipping_method_name = method.name
@@ -383,17 +376,13 @@ def test_calculate_checkout_line_total(
     manager.assign_tax_code_to_object_meta(variant.product, "standard")
     product.save()
 
-    checkout_line_info = CheckoutLineInfo(
-        line=line,
-        variant=line.variant,
-        channel_listing=channel_listing,
-        product=line.variant.product,
-        collections=[],
-    )
-    checkout_info = fetch_checkout_info(checkout_with_item, [checkout_line_info], [])
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    checkout_line_info = lines[0]
 
     line_price = manager.calculate_checkout_line_total(
         checkout_info,
+        lines,
         checkout_line_info,
         address,
         [],
@@ -414,9 +403,6 @@ def test_calculate_checkout_line_unit_price(
 
     line = checkout_with_item.lines.first()
 
-    channel = checkout_with_item.channel
-    channel_listing = line.variant.channel_listings.get(channel=channel)
-
     method = shipping_zone.shipping_methods.get()
     checkout_with_item.shipping_address = address
     checkout_with_item.shipping_method_name = method.name
@@ -428,19 +414,15 @@ def test_calculate_checkout_line_unit_price(
     manager.assign_tax_code_to_object_meta(variant.product, "standard")
     product.save()
 
-    checkout_line_info = CheckoutLineInfo(
-        line=line,
-        variant=line.variant,
-        channel_listing=channel_listing,
-        product=line.variant.product,
-        collections=[],
-    )
-    checkout_info = fetch_checkout_info(checkout_with_item, [checkout_line_info], [])
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    checkout_line_info = lines[0]
 
     line_price = manager.calculate_checkout_line_unit_price(
         total_price,
         line.quantity,
         checkout_info,
+        lines,
         checkout_line_info,
         address,
         [],
@@ -558,7 +540,7 @@ def test_calculations_checkout_total_with_vatlayer(
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, [])
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     checkout_subtotal = calculations.checkout_total(
         manager=manager,
         checkout_info=checkout_info,
@@ -576,7 +558,7 @@ def test_calculations_checkout_subtotal_with_vatlayer(
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, [])
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     checkout_subtotal = calculations.checkout_subtotal(
         manager=manager,
         checkout_info=checkout_info,
@@ -594,7 +576,7 @@ def test_calculations_checkout_shipping_price_with_vatlayer(
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, [])
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     checkout_shipping_price = calculations.checkout_shipping_price(
         manager=manager,
         checkout_info=checkout_info,
@@ -643,18 +625,12 @@ def test_get_checkout_line_tax_rate(
 
     unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
-    variant = line.variant
-    checkout_line_info = CheckoutLineInfo(
-        line=line,
-        variant=variant,
-        channel_listing=variant.channel_listings.first(),
-        product=variant.product,
-        collections=[],
-    )
-
-    checkout_info = fetch_checkout_info(checkout_with_item, [checkout_line_info], [])
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    checkout_line_info = lines[0]
     tax_rate = manager.get_checkout_line_tax_rate(
         checkout_info,
+        lines,
         checkout_line_info,
         checkout_with_item.shipping_address,
         [],
@@ -681,18 +657,13 @@ def test_get_checkout_line_tax_rate_order_not_valid(
 
     unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
-    variant = line.variant
-    checkout_line_info = CheckoutLineInfo(
-        line=line,
-        variant=variant,
-        channel_listing=variant.channel_listings.first(),
-        product=variant.product,
-        collections=[],
-    )
-    checkout_info = fetch_checkout_info(checkout_with_item, [checkout_line_info], [])
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    checkout_line_info = lines[0]
 
     tax_rate = manager.get_checkout_line_tax_rate(
         checkout_info,
+        lines,
         checkout_line_info,
         checkout_with_item.shipping_address,
         [],
@@ -778,19 +749,12 @@ def test_get_checkout_shipping_tax_rate(
 
     unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
-    variant = line.variant
-    checkout_line_info = CheckoutLineInfo(
-        line=line,
-        variant=variant,
-        channel_listing=variant.channel_listings.first(),
-        product=variant.product,
-        collections=[],
-    )
-    checkout_info = fetch_checkout_info(checkout_with_item, [checkout_line_info], [])
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
 
     tax_rate = manager.get_checkout_shipping_tax_rate(
         checkout_info,
-        [checkout_line_info],
+        lines,
         checkout_with_item.shipping_address,
         [],
         unit_price,
@@ -816,19 +780,12 @@ def test_get_checkout_shipping_tax_rate_no_address(
 
     unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
-    variant = line.variant
-    checkout_line_info = CheckoutLineInfo(
-        line=line,
-        variant=variant,
-        channel_listing=variant.channel_listings.first(),
-        product=variant.product,
-        collections=[],
-    )
-    checkout_info = fetch_checkout_info(checkout_with_item, [checkout_line_info], [])
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
 
     tax_rate = manager.get_checkout_shipping_tax_rate(
         checkout_info,
-        checkout_line_info,
+        lines,
         checkout_with_item.shipping_address,
         [],
         unit_price,
@@ -861,19 +818,12 @@ def test_get_checkout_shipping_tax_rate_skip_plugin(
 
     unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
-    variant = line.variant
-    checkout_line_info = CheckoutLineInfo(
-        line=line,
-        variant=variant,
-        channel_listing=variant.channel_listings.first(),
-        product=variant.product,
-        collections=[],
-    )
-    checkout_info = fetch_checkout_info(checkout_with_item, [checkout_line_info], [])
+    lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
 
     tax_rate = manager.get_checkout_shipping_tax_rate(
         checkout_info,
-        checkout_line_info,
+        lines,
         checkout_with_item.shipping_address,
         [],
         unit_price,

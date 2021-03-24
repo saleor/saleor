@@ -20,7 +20,6 @@ from ..payment import (
 )
 from ..payment.models import Payment, Transaction
 from ..payment.utils import create_payment
-from ..plugins.manager import PluginsManager, get_plugins_manager
 from ..warehouse.management import (
     deallocate_stock,
     deallocate_stock_for_order,
@@ -59,6 +58,7 @@ from .utils import (
 )
 
 if TYPE_CHECKING:
+    from ..plugins.manager import PluginsManager
     from ..warehouse.models import Warehouse
 
 logger = logging.getLogger(__name__)
@@ -68,40 +68,53 @@ OrderLineIDType = int
 QuantityType = int
 
 
-def order_created(order: "Order", user: "User", from_draft: bool = False):
+def order_created(
+    order: "Order", user: "User", manager: "PluginsManager", from_draft: bool = False
+):
     events.order_created_event(order=order, user=user, from_draft=from_draft)
-    manager = get_plugins_manager()
     manager.order_created(order)
     payment = order.get_last_payment()
     if payment:
         if order.is_captured():
             order_captured(
-                order=order, user=user, amount=payment.total, payment=payment
+                order=order,
+                user=user,
+                amount=payment.total,
+                payment=payment,
+                manager=manager,
             )
         elif order.is_pre_authorized():
             order_authorized(
-                order=order, user=user, amount=payment.total, payment=payment
+                order=order,
+                user=user,
+                amount=payment.total,
+                payment=payment,
+                manager=manager,
             )
     site_settings = Site.objects.get_current().settings
     if site_settings.automatically_confirm_all_new_orders:
-        order_confirmed(order, user)
+        order_confirmed(order, user, manager)
 
 
 def order_confirmed(
-    order: "Order", user: "User", send_confirmation_email: bool = False
+    order: "Order",
+    user: "User",
+    manager: "PluginsManager",
+    send_confirmation_email: bool = False,
 ):
     """Order confirmed.
 
     Trigger event, plugin hooks and optionally confirmation email.
     """
     events.order_confirmed_event(order=order, user=user)
-    manager = get_plugins_manager()
     manager.order_confirmed(order)
     if send_confirmation_email:
         send_order_confirmed.delay(order.pk, user.pk)
 
 
-def handle_fully_paid_order(order: "Order", user: Optional["User"] = None):
+def handle_fully_paid_order(
+    manager: "PluginsManager", order: "Order", user: Optional["User"] = None
+):
     events.order_fully_paid_event(order=order, user=user)
 
     if order.get_customer_email():
@@ -117,13 +130,12 @@ def handle_fully_paid_order(order: "Order", user: Optional["User"] = None):
     except Exception:
         # Analytics failing should not abort the checkout flow
         logger.exception("Recording order in analytics failed")
-    manager = get_plugins_manager()
     manager.order_fully_paid(order)
     manager.order_updated(order)
 
 
 @transaction.atomic
-def cancel_order(order: "Order", user: Optional["User"]):
+def cancel_order(order: "Order", user: Optional["User"], manager: "PluginsManager"):
     """Cancel order.
 
     Release allocation of unfulfilled order items.
@@ -135,7 +147,6 @@ def cancel_order(order: "Order", user: Optional["User"]):
     order.status = OrderStatus.CANCELED
     order.save(update_fields=["status"])
 
-    manager = get_plugins_manager()
     manager.order_cancelled(order)
     manager.order_updated(order)
 
@@ -147,21 +158,21 @@ def order_refunded(
     user: Optional["User"],
     amount: "Decimal",
     payment: "Payment",
-    manager: Optional["PluginsManager"] = None,
+    manager: "PluginsManager",
 ):
     events.payment_refunded_event(
         order=order, user=user, amount=amount, payment=payment
     )
-    if not manager:
-        manager = get_plugins_manager()
     manager.order_updated(order)
 
     send_order_refunded_confirmation(order, user, amount, payment.currency)
 
 
-def order_voided(order: "Order", user: "User", payment: "Payment"):
+def order_voided(
+    order: "Order", user: "User", payment: "Payment", manager: "PluginsManager"
+):
     events.payment_voided_event(order=order, user=user, payment=payment)
-    get_plugins_manager().order_updated(order)
+    manager.order_updated(order)
 
 
 def order_returned(
@@ -180,6 +191,7 @@ def order_fulfilled(
     fulfillments: List["Fulfillment"],
     user: "User",
     fulfillment_lines: List["FulfillmentLine"],
+    manager: "PluginsManager",
     notify_customer=True,
 ):
     order = fulfillments[0].order
@@ -187,7 +199,6 @@ def order_fulfilled(
     events.fulfillment_fulfilled_items_event(
         order=order, user=user, fulfillment_lines=fulfillment_lines
     )
-    manager = get_plugins_manager()
     manager.order_updated(order)
 
     for fulfillment in fulfillments:
@@ -201,33 +212,44 @@ def order_fulfilled(
             send_fulfillment_confirmation_to_customer(order, fulfillment, user)
 
 
-def order_shipping_updated(order: "Order"):
+def order_shipping_updated(order: "Order", manager: "PluginsManager"):
     recalculate_order(order)
-    get_plugins_manager().order_updated(order)
+    manager.order_updated(order)
 
 
 def order_authorized(
-    order: "Order", user: Optional["User"], amount: "Decimal", payment: "Payment"
+    order: "Order",
+    user: Optional["User"],
+    amount: "Decimal",
+    payment: "Payment",
+    manager: "PluginsManager",
 ):
     events.payment_authorized_event(
         order=order, user=user, amount=amount, payment=payment
     )
-    get_plugins_manager().order_updated(order)
+    manager.order_updated(order)
 
 
 def order_captured(
-    order: "Order", user: Optional["User"], amount: "Decimal", payment: "Payment"
+    order: "Order",
+    user: Optional["User"],
+    amount: "Decimal",
+    payment: "Payment",
+    manager: "PluginsManager",
 ):
     events.payment_captured_event(
         order=order, user=user, amount=amount, payment=payment
     )
-    get_plugins_manager().order_updated(order)
+    manager.order_updated(order)
     if order.is_fully_paid():
-        handle_fully_paid_order(order, user)
+        handle_fully_paid_order(manager, order, user)
 
 
 def fulfillment_tracking_updated(
-    fulfillment: "Fulfillment", user: "User", tracking_number: str
+    fulfillment: "Fulfillment",
+    user: "User",
+    tracking_number: str,
+    manager: "PluginsManager",
 ):
     events.fulfillment_tracking_updated_event(
         order=fulfillment.order,
@@ -235,12 +257,15 @@ def fulfillment_tracking_updated(
         tracking_number=tracking_number,
         fulfillment=fulfillment,
     )
-    get_plugins_manager().order_updated(fulfillment.order)
+    manager.order_updated(fulfillment.order)
 
 
 @transaction.atomic
 def cancel_fulfillment(
-    fulfillment: "Fulfillment", user: "User", warehouse: "Warehouse"
+    fulfillment: "Fulfillment",
+    user: "User",
+    warehouse: "Warehouse",
+    manager: "PluginsManager",
 ):
     """Cancel fulfillment.
 
@@ -260,12 +285,15 @@ def cancel_fulfillment(
     fulfillment.status = FulfillmentStatus.CANCELED
     fulfillment.save(update_fields=["status"])
     update_order_status(fulfillment.order)
-    get_plugins_manager().order_updated(fulfillment.order)
+    manager.order_updated(fulfillment.order)
 
 
 @transaction.atomic
 def mark_order_as_paid(
-    order: "Order", request_user: "User", external_reference: Optional[str] = None
+    order: "Order",
+    request_user: "User",
+    manager: "PluginsManager",
+    external_reference: Optional[str] = None,
 ):
     """Mark order as paid.
 
@@ -299,7 +327,6 @@ def mark_order_as_paid(
     events.order_manually_marked_as_paid_event(
         order=order, user=request_user, transaction_reference=external_reference
     )
-    manager = get_plugins_manager()
     manager.order_fully_paid(order)
     manager.order_updated(order)
 
@@ -460,6 +487,7 @@ def create_fulfillments(
     requester: "User",
     order: "Order",
     fulfillment_lines_for_warehouses: Dict,
+    manager: "PluginsManager",
     notify_customer: bool = True,
 ) -> List[Fulfillment]:
     """Fulfill order.
@@ -481,6 +509,7 @@ def create_fulfillments(
                         ...
                     ]
                 }
+        manager (PluginsManager): Base manager for handling plugins logic.
         notify_customer (bool): If `True` system send email about
             fulfillments to customer.
 
@@ -512,6 +541,7 @@ def create_fulfillments(
             fulfillments,
             requester,
             fulfillment_lines,
+            manager,
             notify_customer,
         )
     )
@@ -674,7 +704,7 @@ def create_refund_fulfillment(
     payment,
     order_lines_to_refund: List[OrderLineData],
     fulfillment_lines_to_refund: List[FulfillmentLineData],
-    plugin_manager: "PluginsManager",
+    manager: "PluginsManager",
     amount=None,
     refund_shipping_costs=False,
 ):
@@ -697,7 +727,7 @@ def create_refund_fulfillment(
         fulfillment_lines_to_refund=fulfillment_lines_to_refund,
         amount=amount,
         refund_shipping_costs=refund_shipping_costs,
-        manager=plugin_manager,
+        manager=manager,
     )
 
     with transaction.atomic():
@@ -977,7 +1007,7 @@ def create_fulfillments_for_returned_products(
     payment: Optional[Payment],
     order_lines: List[OrderLineData],
     fulfillment_lines: List[FulfillmentLineData],
-    plugin_manager: PluginsManager,
+    manager: "PluginsManager",
     refund: bool = False,
     amount: Optional[Decimal] = None,
     refund_shipping_costs=False,
@@ -1014,7 +1044,7 @@ def create_fulfillments_for_returned_products(
             fulfillment_lines_to_refund=return_fulfillment_lines,
             amount=amount,
             refund_shipping_costs=refund_shipping_costs,
-            manager=plugin_manager,
+            manager=manager,
         )
 
     with transaction.atomic():
@@ -1034,7 +1064,7 @@ def create_fulfillments_for_returned_products(
             order=order,
             order_lines=return_order_lines,
             fulfillment_lines=return_fulfillment_lines,
-            manager=plugin_manager,
+            manager=manager,
             refund=refund,
         )
         Fulfillment.objects.filter(order=order, lines=None).delete()
@@ -1096,7 +1126,7 @@ def _process_refund(
             amount += order.shipping_price_gross_amount
     if amount:
         amount = min(payment.captured_amount, amount)
-        gateway.refund(payment, amount)
+        gateway.refund(payment, manager, amount)
         order_refunded(order, requester, amount, payment, manager=manager)
 
     fulfillment_refunded_event(

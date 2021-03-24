@@ -16,7 +16,7 @@ from ....account.models import CustomerEvent
 from ....core.prices import quantize_price
 from ....core.taxes import TaxError, zero_taxed_money
 from ....discount.models import OrderDiscount
-from ....order import OrderStatus
+from ....order import FulfillmentStatus, OrderStatus
 from ....order import events as order_events
 from ....order.error_codes import OrderErrorCode
 from ....order.events import order_replacement_created
@@ -817,7 +817,7 @@ def test_order_confirm(
         type=order_events.OrderEvents.PAYMENT_CAPTURED,
         parameters__amount=payment_txn_preauth.get_total().amount,
     ).exists()
-    capture_mock.assert_called_once_with(payment_txn_preauth)
+    capture_mock.assert_called_once_with(payment_txn_preauth, ANY)
 
 
 def test_order_confirm_unfulfilled(staff_api_client, order, permission_manage_orders):
@@ -3210,7 +3210,9 @@ def test_order_cancel(
     assert not data["orderErrors"]
 
     mock_clean_order_cancel.assert_called_once_with(order)
-    mock_cancel_order.assert_called_once_with(order=order, user=staff_api_client.user)
+    mock_cancel_order.assert_called_once_with(
+        order=order, user=staff_api_client.user, manager=ANY
+    )
 
 
 @patch("saleor.graphql.order.mutations.orders.cancel_order")
@@ -3233,7 +3235,9 @@ def test_order_cancel_as_app(
     assert not data["orderErrors"]
 
     mock_clean_order_cancel.assert_called_once_with(order)
-    mock_cancel_order.assert_called_once_with(order=order, user=AnonymousUser())
+    mock_cancel_order.assert_called_once_with(
+        order=order, user=AnonymousUser(), manager=ANY
+    )
 
 
 def test_order_capture(
@@ -3583,8 +3587,20 @@ def test_clean_order_capture():
     assert e.value.error_dict["payment"][0].message == msg
 
 
-def test_clean_order_cancel(fulfilled_order_with_all_cancelled_fulfillments):
-    order = fulfilled_order_with_all_cancelled_fulfillments
+@pytest.mark.parametrize(
+    "status",
+    [
+        FulfillmentStatus.RETURNED,
+        FulfillmentStatus.REFUNDED_AND_RETURNED,
+        FulfillmentStatus.REFUNDED,
+        FulfillmentStatus.CANCELED,
+        FulfillmentStatus.REPLACED,
+    ],
+)
+def test_clean_order_cancel(status, fulfillment):
+    order = fulfillment.order
+    fulfillment.status = status
+    fulfillment.save()
     # Shouldn't raise any errors
     assert clean_order_cancel(order) is None
 
@@ -4346,7 +4362,9 @@ def test_order_bulk_cancel(
     assert data["count"] == expected_count
     assert not data["orderErrors"]
 
-    calls = [call(order=order, user=staff_api_client.user) for order in orders]
+    calls = [
+        call(order=order, user=staff_api_client.user, manager=ANY) for order in orders
+    ]
 
     mock_cancel_order.assert_has_calls(calls, any_order=True)
     mock_cancel_order.call_count == expected_count
@@ -4375,7 +4393,7 @@ def test_order_bulk_cancel_as_app(
     assert data["count"] == expected_count
     assert not data["orderErrors"]
 
-    calls = [call(order=order, user=AnonymousUser()) for order in orders]
+    calls = [call(order=order, user=AnonymousUser(), manager=ANY) for order in orders]
 
     mock_cancel_order.assert_has_calls(calls, any_order=True)
     assert mock_cancel_order.call_count == expected_count

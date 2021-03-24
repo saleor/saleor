@@ -37,7 +37,7 @@ class PageBulkPublish(BaseBulkMutation):
         error_type_field = "page_errors"
 
     @classmethod
-    def bulk_action(cls, queryset, is_published):
+    def bulk_action(cls, info, queryset, is_published):
         queryset.update(is_published=is_published)
 
 

@@ -53,7 +53,7 @@ class CategoryBulkDelete(ModelBulkDeleteMutation):
         error_type_field = "product_errors"
 
     @classmethod
-    def bulk_action(cls, queryset):
+    def bulk_action(cls, info, queryset):
         delete_categories(queryset.values_list("pk", flat=True))
 
 
@@ -115,7 +115,7 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
         return response
 
     @classmethod
-    def bulk_action(cls, queryset, manager, product_to_variant):
+    def bulk_action(cls, info, queryset, manager, product_to_variant):
         product_variant_map = defaultdict(list)
         for product, variant in product_to_variant:
             product_variant_map[product].append(variant)

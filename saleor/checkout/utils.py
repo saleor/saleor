@@ -24,7 +24,7 @@ from ..giftcard.utils import (
     add_gift_card_code_to_checkout,
     remove_gift_card_code_from_checkout,
 )
-from ..plugins.manager import PluginsManager, get_plugins_manager
+from ..plugins.manager import PluginsManager
 from ..product import models as product_models
 from ..shipping.models import ShippingMethod
 from ..warehouse.availability import check_stock_quantity, check_stock_quantity_bulk
@@ -193,7 +193,13 @@ def change_billing_address_in_checkout(checkout, address):
         checkout.save(update_fields=["billing_address", "last_change"])
 
 
-def change_shipping_address_in_checkout(checkout_info, address, lines, discounts):
+def change_shipping_address_in_checkout(
+    checkout_info: "CheckoutInfo",
+    address: "Address",
+    lines: Iterable["CheckoutLineInfo"],
+    discounts: Iterable[DiscountInfo],
+    manager: "PluginsManager",
+):
     """Save shipping address in checkout if changed.
 
     Remove previously saved address if not connected to any user.
@@ -204,9 +210,11 @@ def change_shipping_address_in_checkout(checkout_info, address, lines, discounts
     )
     if changed:
         if remove:
-            checkout.shipping_address.delete()
+            checkout.shipping_address.delete()  # type: ignore
         checkout.shipping_address = address
-        update_checkout_info_shipping_address(checkout_info, address, lines, discounts)
+        update_checkout_info_shipping_address(
+            checkout_info, address, lines, discounts, manager
+        )
         checkout.save(update_fields=["shipping_address", "last_change"])
 
 
@@ -313,6 +321,7 @@ def get_prices_of_discounted_specific_product(
         line_total = calculations.checkout_line_total(
             manager=manager,
             checkout_info=checkout_info,
+            lines=lines,
             checkout_line_info=line_info,
             discounts=discounts,
         ).gross
@@ -320,6 +329,7 @@ def get_prices_of_discounted_specific_product(
             line_total,
             line.quantity,
             checkout_info,
+            lines,
             line_info,
             address,
             discounts,
@@ -552,21 +562,13 @@ def remove_voucher_from_checkout(checkout: Checkout):
 def get_valid_shipping_methods_for_checkout(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-    discounts: Iterable[DiscountInfo],
+    subtotal: "TaxedMoney",
     country_code: Optional[str] = None,
-    subtotal: Optional["TaxedMoney"] = None,
 ):
     if not is_shipping_required(lines):
         return None
     if not checkout_info.shipping_address:
         return None
-    # TODO: subtotal should comes from arg instead of calculate it in this function
-    # use info.context.plugins from resolver
-    if subtotal is None:
-        manager = get_plugins_manager()
-        subtotal = manager.calculate_checkout_subtotal(
-            checkout_info, lines, checkout_info.shipping_address, discounts
-        )
     return ShippingMethod.objects.applicable_shipping_methods_for_instance(
         checkout_info.checkout,
         channel_id=checkout_info.checkout.channel_id,

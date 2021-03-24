@@ -79,8 +79,8 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             )
 
     @classmethod
-    def validate_gateway(cls, gateway_id, currency):
-        if not is_currency_supported(currency, gateway_id):
+    def validate_gateway(cls, manager, gateway_id, currency):
+        if not is_currency_supported(currency, gateway_id, manager):
             raise ValidationError(
                 {
                     "gateway": ValidationError(
@@ -124,17 +124,20 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         data = data["input"]
         gateway = data["gateway"]
 
-        cls.validate_gateway(gateway, checkout.currency)
-        cls.validate_token(info.context.plugins, gateway, data)
+        manager = info.context.plugins
+        cls.validate_gateway(manager, gateway, checkout.currency)
+        cls.validate_token(manager, gateway, data)
         cls.validate_return_url(data)
 
         lines = fetch_checkout_lines(checkout)
-        checkout_info = fetch_checkout_info(checkout, lines, info.context.discounts)
+        checkout_info = fetch_checkout_info(
+            checkout, lines, info.context.discounts, manager
+        )
         address = (
             checkout.shipping_address or checkout.billing_address
         )  # FIXME: check which address we need here
         checkout_total = calculate_checkout_total_with_gift_cards(
-            manager=info.context.plugins,
+            manager=manager,
             checkout_info=checkout_info,
             lines=lines,
             address=address,
@@ -184,7 +187,7 @@ class PaymentCapture(BaseMutation):
             info, payment_id, field="payment_id", only_type=Payment
         )
         try:
-            gateway.capture(payment, amount)
+            gateway.capture(payment, info.context.plugins, amount)
             payment.refresh_from_db()
         except PaymentError as e:
             raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR)
@@ -204,7 +207,7 @@ class PaymentRefund(PaymentCapture):
             info, payment_id, field="payment_id", only_type=Payment
         )
         try:
-            gateway.refund(payment, amount=amount)
+            gateway.refund(payment, info.context.plugins, amount=amount)
             payment.refresh_from_db()
         except PaymentError as e:
             raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR)
@@ -229,7 +232,7 @@ class PaymentVoid(BaseMutation):
             info, payment_id, field="payment_id", only_type=Payment
         )
         try:
-            gateway.void(payment)
+            gateway.void(payment, info.context.plugins)
             payment.refresh_from_db()
         except PaymentError as e:
             raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR)

@@ -71,7 +71,8 @@ def test_add_variant_to_draft_order_adds_line_for_new_variant(
     variant = product.variants.get()
     lines_before = order.lines.count()
     settings.LANGUAGE_CODE = "fr"
-    add_variant_to_draft_order(order, variant, 1)
+    manager = get_plugins_manager()
+    add_variant_to_draft_order(order, variant, 1, manager)
 
     line = order.lines.last()
     assert order.lines.count() == lines_before + 1
@@ -94,7 +95,8 @@ def test_add_variant_to_draft_order_adds_line_for_variant_with_price_0(
 
     lines_before = order.lines.count()
     settings.LANGUAGE_CODE = "fr"
-    add_variant_to_draft_order(order, variant, 1)
+    manager = get_plugins_manager()
+    add_variant_to_draft_order(order, variant, 1, manager)
 
     line = order.lines.last()
     assert order.lines.count() == lines_before + 1
@@ -112,8 +114,9 @@ def test_add_variant_to_draft_order_not_allocates_stock_for_new_variant(
     stock = Stock.objects.get(product_variant=variant)
 
     stock_before = get_quantity_allocated_for_stock(stock)
+    manager = get_plugins_manager()
 
-    add_variant_to_draft_order(order_with_lines, variant, 1)
+    add_variant_to_draft_order(order_with_lines, variant, 1, manager)
 
     stock.refresh_from_db()
     assert get_quantity_allocated_for_stock(stock) == stock_before
@@ -124,8 +127,9 @@ def test_add_variant_to_draft_order_edits_line_for_existing_variant(order_with_l
     variant = existing_line.variant
     lines_before = order_with_lines.lines.count()
     line_quantity_before = existing_line.quantity
+    manager = get_plugins_manager()
 
-    add_variant_to_draft_order(order_with_lines, variant, 1)
+    add_variant_to_draft_order(order_with_lines, variant, 1, manager)
 
     existing_line.refresh_from_db()
     assert order_with_lines.lines.count() == lines_before
@@ -142,8 +146,9 @@ def test_add_variant_to_draft_order_not_allocates_stock_for_existing_variant(
     stock_before = get_quantity_allocated_for_stock(stock)
     quantity_before = existing_line.quantity
     quantity_unfulfilled_before = existing_line.quantity_unfulfilled
+    manager = get_plugins_manager()
 
-    add_variant_to_draft_order(order_with_lines, variant, 1)
+    add_variant_to_draft_order(order_with_lines, variant, 1, manager)
 
     stock.refresh_from_db()
     existing_line.refresh_from_db()
@@ -565,7 +570,8 @@ def test_calculate_order_weight(order_with_lines):
 
 def test_order_weight_add_more_variant(order_with_lines):
     variant = order_with_lines.lines.first().variant
-    add_variant_to_draft_order(order_with_lines, variant, 2)
+    manager = get_plugins_manager()
+    add_variant_to_draft_order(order_with_lines, variant, 2, manager)
     order_with_lines.refresh_from_db()
     assert order_with_lines.weight == _calculate_order_weight_from_lines(
         order_with_lines
@@ -574,7 +580,8 @@ def test_order_weight_add_more_variant(order_with_lines):
 
 def test_order_weight_add_new_variant(order_with_lines, product):
     variant = product.variants.first()
-    add_variant_to_draft_order(order_with_lines, variant, 2)
+    manager = get_plugins_manager()
+    add_variant_to_draft_order(order_with_lines, variant, 2, manager)
     order_with_lines.refresh_from_db()
     assert order_with_lines.weight == _calculate_order_weight_from_lines(
         order_with_lines
@@ -603,7 +610,8 @@ def test_get_order_weight_non_existing_product(order_with_lines, product):
     # Removing product should not affect order's weight
     order = order_with_lines
     variant = product.variants.first()
-    add_variant_to_draft_order(order, variant, 1)
+    manager = get_plugins_manager()
+    add_variant_to_draft_order(order, variant, 1, manager)
     old_weight = order.get_total_weight()
 
     product.delete()

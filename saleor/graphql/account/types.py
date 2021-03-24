@@ -352,7 +352,7 @@ class User(CountableDjangoObjectType):
         from .resolvers import resolve_payment_sources
 
         if root == info.context.user:
-            return resolve_payment_sources(root)
+            return resolve_payment_sources(info, root)
         raise PermissionDenied()
 
     @staticmethod

@@ -190,7 +190,7 @@ def append_klarna_data(payment_information: "PaymentData", payment_data: dict):
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
     discounts = fetch_active_discounts()
-    checkout_info = fetch_checkout_info(checkout, lines, discounts)
+    checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
     currency = payment_information.currency
     country_code = checkout.get_country()
 
@@ -202,6 +202,7 @@ def append_klarna_data(payment_information: "PaymentData", payment_data: dict):
         total = checkout_line_total(
             manager=manager,
             checkout_info=checkout_info,
+            lines=lines,
             checkout_line_info=line_info,
             discounts=discounts,
         )
@@ -264,7 +265,7 @@ def request_data_for_gateway_config(
     address = checkout.billing_address or checkout.shipping_address
     discounts = fetch_active_discounts()
     lines = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, discounts)
+    checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
     total = checkout_total(
         manager=manager,
         checkout_info=checkout_info,

@@ -1,6 +1,7 @@
 import django_filters
 
 from ...page.models import Page
+from ..core.filters import MetadataFilterBase
 from ..core.types import FilterInputObjectType
 from ..utils.filters import filter_by_query_param
 
@@ -18,7 +19,7 @@ def filter_page_type_search(qs, _, value):
     return qs
 
 
-class PageFilter(django_filters.FilterSet):
+class PageFilter(MetadataFilterBase):
     search = django_filters.CharFilter(method=filter_page_search)
 
     class Meta:
