@@ -394,13 +394,13 @@ class AttributeAssignmentMixin:
                 errors.append(
                     ValidationError(
                         str(e),
-                        code="INVALID",
+                        code=ProductErrorCode.INVALID.value,
                         params={"attributes": [attr_values.global_id]},
                     )
                 )
 
         if errors:
-            raise ValidationError(errors)
+            raise ValidationError({"attributes": errors})
 
 
 def get_variant_selection_attributes(qs: "QuerySet"):

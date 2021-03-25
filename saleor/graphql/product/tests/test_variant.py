@@ -1050,6 +1050,60 @@ def test_create_variant_invalid_variant_attributes(
         assert error in errors
 
 
+def test_create_variant_attributes_save_error(
+    permission_manage_products,
+    product,
+    product_type,
+    staff_api_client,
+    text_attribute,
+    warehouse,
+):
+    query = CREATE_VARIANT_MUTATION
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    sku = "1"
+    price = 1.32
+    cost_price = 3.22
+    weight = 10.22
+
+    product_type.variant_attributes.add(text_attribute)
+    attr_id = graphene.Node.to_global_id("Attribute", text_attribute.id)
+
+    stocks = [
+        {
+            "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
+            "quantity": 20,
+        }
+    ]
+    variables = {
+        "productId": product_id,
+        "sku": sku,
+        "stocks": stocks,
+        "costPrice": cost_price,
+        "price": price,
+        "weight": weight,
+        "attributes": [
+            {"id": attr_id, "values": ["long text" * 100]},
+        ],
+        "trackInventory": True,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+
+    data = content["data"]["productVariantCreate"]
+    errors = data["productErrors"]
+
+    assert not data["productVariant"]
+    assert len(errors) == 1
+    assert errors[0] == {
+        "attributes": [attr_id],
+        "code": ProductErrorCode.INVALID.name,
+        "field": "attributes",
+        "message": ANY,
+    }
+
+
 def test_create_product_variant_update_with_new_attributes(
     staff_api_client, permission_manage_products, product, size_attribute
 ):
