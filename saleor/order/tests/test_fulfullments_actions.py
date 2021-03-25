@@ -3,17 +3,16 @@ from unittest.mock import patch
 import pytest
 
 from ...core.exceptions import InsufficientStock
+from ...plugins.manager import get_plugins_manager
 from ...tests.utils import flush_post_commit_hooks
 from ...warehouse.models import Allocation, Stock
 from ..actions import create_fulfillments
 from ..models import FulfillmentLine, OrderStatus
 
 
-@patch("saleor.order.actions.get_plugins_manager")
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
 def test_create_fulfillments(
     mock_email_fulfillment,
-    mock_get_plugins_manager,
     staff_user,
     order_with_lines,
     warehouse,
@@ -26,9 +25,9 @@ def test_create_fulfillments(
             {"order_line": order_line2, "quantity": 2},
         ]
     }
-
+    manager = get_plugins_manager()
     [fulfillment] = create_fulfillments(
-        staff_user, order, fulfillment_lines_for_warehouses, True
+        staff_user, order, fulfillment_lines_for_warehouses, manager, True
     )
     flush_post_commit_hooks()
 
@@ -56,7 +55,7 @@ def test_create_fulfillments(
     )
 
     mock_email_fulfillment.assert_called_once_with(
-        order, order.fulfillments.get(), staff_user, mock_get_plugins_manager()
+        order, order.fulfillments.get(), staff_user, manager
     )
 
 
@@ -77,7 +76,11 @@ def test_create_fulfillments_without_notification(
     }
 
     [fulfillment] = create_fulfillments(
-        staff_user, order, fulfillment_lines_for_warehouses, False
+        staff_user,
+        order,
+        fulfillment_lines_for_warehouses,
+        get_plugins_manager(),
+        False,
     )
     flush_post_commit_hooks()
 
@@ -135,7 +138,11 @@ def test_create_fulfillments_many_warehouses(
     }
 
     [fulfillment1, fulfillment2] = create_fulfillments(
-        staff_user, order, fulfillment_lines_for_warehouses, False
+        staff_user,
+        order,
+        fulfillment_lines_for_warehouses,
+        get_plugins_manager(),
+        False,
     )
     flush_post_commit_hooks()
 
@@ -166,11 +173,9 @@ def test_create_fulfillments_many_warehouses(
     )
 
 
-@patch("saleor.order.actions.get_plugins_manager")
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
 def test_create_fulfillments_with_one_line_empty_quantity(
     mock_email_fulfillment,
-    mock_get_plugins_manager,
     staff_user,
     order_with_lines,
     warehouse,
@@ -184,8 +189,9 @@ def test_create_fulfillments_with_one_line_empty_quantity(
         ]
     }
 
+    manager = get_plugins_manager()
     [fulfillment] = create_fulfillments(
-        staff_user, order, fulfillment_lines_for_warehouses, True
+        staff_user, order, fulfillment_lines_for_warehouses, manager, True
     )
     flush_post_commit_hooks()
 
@@ -211,15 +217,13 @@ def test_create_fulfillments_with_one_line_empty_quantity(
     )
 
     mock_email_fulfillment.assert_called_once_with(
-        order, order.fulfillments.get(), staff_user, mock_get_plugins_manager()
+        order, order.fulfillments.get(), staff_user, manager
     )
 
 
-@patch("saleor.order.actions.get_plugins_manager")
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
 def test_create_fulfillments_with_variant_without_inventory_tracking(
     mock_email_fulfillment,
-    mock_get_plugins_manager,
     staff_user,
     order_with_line_without_inventory_tracking,
     warehouse,
@@ -232,8 +236,9 @@ def test_create_fulfillments_with_variant_without_inventory_tracking(
         str(warehouse.pk): [{"order_line": order_line, "quantity": 2}]
     }
 
+    manager = get_plugins_manager()
     [fulfillment] = create_fulfillments(
-        staff_user, order, fulfillment_lines_for_warehouses, True
+        staff_user, order, fulfillment_lines_for_warehouses, manager, True
     )
     flush_post_commit_hooks()
 
@@ -254,15 +259,13 @@ def test_create_fulfillments_with_variant_without_inventory_tracking(
     assert stock_quantity_before == stock.quantity
 
     mock_email_fulfillment.assert_called_once_with(
-        order, order.fulfillments.get(), staff_user, mock_get_plugins_manager()
+        order, order.fulfillments.get(), staff_user, manager
     )
 
 
-@patch("saleor.order.actions.get_plugins_manager")
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
 def test_create_fulfillments_without_allocations(
     mock_email_fulfillment,
-    mock_get_plugins_manager,
     staff_user,
     order_with_lines,
     warehouse,
@@ -278,8 +281,9 @@ def test_create_fulfillments_without_allocations(
         ]
     }
 
+    manager = get_plugins_manager()
     [fulfillment] = create_fulfillments(
-        staff_user, order, fulfillment_lines_for_warehouses, True
+        staff_user, order, fulfillment_lines_for_warehouses, manager, True
     )
     flush_post_commit_hooks()
 
@@ -307,7 +311,7 @@ def test_create_fulfillments_without_allocations(
     )
 
     mock_email_fulfillment.assert_called_once_with(
-        order, order.fulfillments.get(), staff_user, mock_get_plugins_manager()
+        order, order.fulfillments.get(), staff_user, manager
     )
 
 
@@ -328,7 +332,13 @@ def test_create_fulfillments_warehouse_without_stock(
     }
 
     with pytest.raises(InsufficientStock) as exc:
-        create_fulfillments(staff_user, order, fulfillment_lines_for_warehouses, True)
+        create_fulfillments(
+            staff_user,
+            order,
+            fulfillment_lines_for_warehouses,
+            get_plugins_manager(),
+            True,
+        )
 
     assert len(exc.value.items) == 2
     assert {item.variant for item in exc.value.items} == {
@@ -374,7 +384,13 @@ def test_create_fulfillments_with_variant_without_inventory_tracking_and_without
     }
 
     with pytest.raises(InsufficientStock) as exc:
-        create_fulfillments(staff_user, order, fulfillment_lines_for_warehouses, True)
+        create_fulfillments(
+            staff_user,
+            order,
+            fulfillment_lines_for_warehouses,
+            get_plugins_manager(),
+            True,
+        )
 
     assert len(exc.value.items) == 1
     assert exc.value.items[0].variant == order_line.variant

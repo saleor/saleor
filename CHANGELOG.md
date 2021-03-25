@@ -25,7 +25,11 @@ All notable, unreleased changes to this project will be documented in this file.
 - Raise an error when the user is trying to sort products by rank without search - #7013 by @IKarbowiak
 - Fix available shipping methods - return also weight methods without weight limits - #7021 by @IKarbowiak
 - Remove redundant Opentracing spans - #6994 by @fowczarek
+- Support setting value for AttributeValue mutations - #7037 by @piotrgrundas
 - Validate discount value for percentage vouchers and sales - #7033 by @d-wysocki
+- Optimize children field on Category type - #7045 by @IKarbowiak
+- Added support for querying objects by metadata fields - #6683 by @LeOndaz
+- Avoid using `get_plugins_manager` method - #7052 by @IKarbowiak
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -53,8 +57,15 @@ All notable, unreleased changes to this project will be documented in this file.
     - `get_checkout_line_tax_rate`
     - `preprocess_order_creation`
   - additionally, `preprocess_order_creation` was extend with `lines_info` parameter
+- Fix Avalara caching - #7036 by @fowczarek;
+ - Introduced changes in plugin methods definitions:
+    - `calculate_checkout_line_total`  was extended with `lines` parameter
+    - `calculate_checkout_line_unit_price`  was extended with `lines` parameter
+    - `get_checkout_line_tax_rate`  was extended with `lines` parameter
+  To get proper taxes we should always send the whole checkout to Avalara.
 - Remove triggering a webhook event `PRODUCT_UPDATED`  when calling `ProductVariantCreate` mutation.  Use `PRODUCT_VARIANT_CREATED` instead - #6963 by @piotrgrundas
 - Remove triggering a webhook event `PRODUCT_UPDATED` when calling  `ProductVariantChannelListingUpdate` mutation. Use `PRODUCT_VARIANT_UPDATED` instead - #6963 by @piotrgrundas
+- Refactor listing payment gateways - #7050 by @maarcingebala. Breaking changes in plugin methods: removed `get_payment_gateway` and `get_payment_gateway_for_checkout`; instead `get_payment_gateways` was added.
 
 ### Other
 
@@ -101,6 +112,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix exporting product description to xlsx - #6959 by @IKarbowiak
 - Add `Shop.version` field to query API version - #6980 by @maarcingebala
 - Return empty results when filtering by non-existing attribute - #7025 by @maarcingebala
+- Add new authorization header `Authorization-Bearer` - #6998 by @korycins
 
 # 2.11.1
 

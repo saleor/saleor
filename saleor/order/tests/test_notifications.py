@@ -265,9 +265,10 @@ def test_send_confirmation_emails_without_addresses_for_payment(
     payment_dummy,
 ):
     order = payment_dummy.order
+    manager = get_plugins_manager()
 
     line = add_variant_to_draft_order(
-        order, digital_content.product_variant, quantity=1
+        order, digital_content.product_variant, quantity=1, manager=manager
     )
     DigitalContentUrl.objects.create(content=digital_content, line=line)
 
@@ -276,7 +277,6 @@ def test_send_confirmation_emails_without_addresses_for_payment(
     order.billing_address = None
     order.save(update_fields=["shipping_address", "shipping_method", "billing_address"])
 
-    manager = get_plugins_manager()
     notifications.send_payment_confirmation(order, manager)
 
     expected_payload = {
@@ -304,9 +304,10 @@ def test_send_confirmation_emails_without_addresses_for_order(
 ):
 
     assert not order.lines.count()
+    manager = get_plugins_manager()
 
     line = add_variant_to_draft_order(
-        order, digital_content.product_variant, quantity=1
+        order, digital_content.product_variant, quantity=1, manager=manager
     )
     DigitalContentUrl.objects.create(content=digital_content, line=line)
 
@@ -316,7 +317,6 @@ def test_send_confirmation_emails_without_addresses_for_order(
     order.save(update_fields=["shipping_address", "shipping_method", "billing_address"])
 
     redirect_url = "https://www.example.com"
-    manager = get_plugins_manager()
 
     notifications.send_order_confirmation(order, redirect_url, manager)
 

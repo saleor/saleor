@@ -215,7 +215,11 @@ class OrderFulfill(BaseMutation):
 
         try:
             fulfillments = create_fulfillments(
-                user, order, dict(lines_for_warehouses), notify_customer
+                user,
+                order,
+                dict(lines_for_warehouses),
+                info.context.plugins,
+                notify_customer,
             )
         except InsufficientStock as exc:
             errors = prepare_insufficient_stock_order_validation_errors(exc)
@@ -251,7 +255,9 @@ class FulfillmentUpdateTracking(BaseMutation):
         fulfillment.tracking_number = tracking_number
         fulfillment.save()
         order = fulfillment.order
-        fulfillment_tracking_updated(fulfillment, info.context.user, tracking_number)
+        fulfillment_tracking_updated(
+            fulfillment, info.context.user, tracking_number, info.context.plugins
+        )
         input_data = data.get("input", {})
         notify_customer = input_data.get("notify_customer")
         if notify_customer:
@@ -294,7 +300,9 @@ class FulfillmentCancel(BaseMutation):
             )
 
         order = fulfillment.order
-        cancel_fulfillment(fulfillment, info.context.user, warehouse)
+        cancel_fulfillment(
+            fulfillment, info.context.user, warehouse, info.context.plugins
+        )
         fulfillment.refresh_from_db(fields=["status"])
         order.refresh_from_db(fields=["status"])
         return FulfillmentCancel(fulfillment=fulfillment, order=order)
