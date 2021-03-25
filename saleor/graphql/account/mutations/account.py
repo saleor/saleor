@@ -266,7 +266,9 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
         cls.save(info, address, cleaned_input)
         cls._save_m2m(info, address, cleaned_input)
         if address_type:
-            utils.change_user_default_address(user, address, address_type)
+            utils.change_user_default_address(
+                user, address, address_type, info.context.plugins
+            )
         return AccountAddressCreate(user=user, address=address)
 
     @classmethod
@@ -331,7 +333,9 @@ class AccountSetDefaultAddress(BaseMutation):
         else:
             address_type = AddressType.SHIPPING
 
-        utils.change_user_default_address(user, address, address_type)
+        utils.change_user_default_address(
+            user, address, address_type, info.context.plugins
+        )
         info.context.plugins.customer_updated(user)
         return cls(user=user)
 
