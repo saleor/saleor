@@ -299,6 +299,16 @@ class ProductsQueryset(models.QuerySet):
             f"{ordering}name",
         )
 
+    def prefetched_product_for_webhook(self):
+        return self.prefetch_related(
+            "attributes__values",
+            "attributes__assignment__attribute",
+            "collections",
+            "variants__stocks",
+            "variants__stocks__allocations",
+            "category",
+        )
+
 
 class Product(SeoModel, ModelWithMetadata):
     product_type = models.ForeignKey(
@@ -405,6 +415,15 @@ class ProductVariantQueryset(models.QuerySet):
             quantity_allocated=Coalesce(
                 Sum("stocks__allocations__quantity_allocated"), 0
             ),
+        )
+
+    def prefetch_variant_updated(self):
+        return self.prefetch_related(
+            "channel_listings",
+            "attributes__values",
+            "attributes__assignment__attribute",
+            "variant_media__media",
+            "product",
         )
 
 

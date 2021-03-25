@@ -74,9 +74,7 @@ class CollectionBulkDelete(ModelBulkDeleteMutation):
     def bulk_action(cls, info, queryset):
         collections_ids = queryset.values_list("id", flat=True)
         products = list(
-            models.Product.objects.prefetch_related(
-                "attributes", "collections", "variants", "category"
-            )
+            models.Product.objects.prefetched_product_for_webhook()
             .filter(collections__in=collections_ids)
             .distinct()
         )

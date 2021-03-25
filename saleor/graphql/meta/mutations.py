@@ -47,7 +47,8 @@ class BaseMetadataMutation(BaseMutation):
     @classmethod
     def get_instance(cls, info, **data):
         object_id = data.get("id")
-        return cls.get_node_or_error(info, object_id)
+        qs = data.get("qs", None)
+        return cls.get_node_or_error(info, object_id, qs=qs)
 
     @classmethod
     def validate_model_is_model_with_metadata(cls, model, object_id):
@@ -114,6 +115,10 @@ class BaseMetadataMutation(BaseMutation):
         """Run extra metadata method based on mutating model."""
         type_name, _ = graphene.Node.from_global_id(data["id"])
         if MODEL_EXTRA_METHODS.get(type_name):
+            if type_name == product_models.Product.__name__:
+                data[
+                    "qs"
+                ] = product_models.Product.objects.prefetched_product_for_webhook()
             instance = cls.get_instance(info, **data)
             MODEL_EXTRA_METHODS[type_name](instance, info, **data)
 
