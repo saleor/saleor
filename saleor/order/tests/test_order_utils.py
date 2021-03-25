@@ -1,6 +1,6 @@
 import pytest
 
-from .. import OrderStatus
+from .. import OrderLineData, OrderStatus
 from ..events import OrderEvents
 from ..models import Order, OrderEvent
 from ..utils import change_order_line_quantity, match_orders_with_new_user
@@ -30,11 +30,17 @@ def test_change_quantity_generates_proper_event(
 
     line = order_with_lines.lines.last()
     line.quantity = previous_quantity
+    line_info = OrderLineData(
+        line=line,
+        quantity=line.quantity,
+        variant=line.variant,
+        warehouse_pk=line.allocations.first().stock.warehouse.pk,
+    )
     stock = line.allocations.first().stock
     stock.quantity = 5
     stock.save(update_fields=["quantity"])
 
-    change_order_line_quantity(staff_user, line, previous_quantity, new_quantity)
+    change_order_line_quantity(staff_user, line_info, previous_quantity, new_quantity)
 
     if removed_count:
         expected_type = OrderEvents.REMOVED_PRODUCTS

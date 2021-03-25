@@ -2350,6 +2350,19 @@ def order_with_lines(
 
 
 @pytest.fixture
+def lines_info(order_with_lines):
+    return [
+        OrderLineData(
+            line=line,
+            quantity=line.quantity,
+            variant=line.variant,
+            warehouse_pk=line.allocations.first().stock.warehouse.pk,
+        )
+        for line in order_with_lines.lines.all()
+    ]
+
+
+@pytest.fixture
 def order_with_lines_and_events(order_with_lines, staff_user):
     events = []
     for event_type, _ in OrderEvents.CHOICES:

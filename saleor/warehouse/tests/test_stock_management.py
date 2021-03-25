@@ -278,6 +278,12 @@ def test_increase_stock_with_new_allocation(order_line, stock):
 @pytest.mark.parametrize("quantity", (19, 20))
 def test_increase_allocation(quantity, allocation):
     order_line = allocation.order_line
+    order_line_info = OrderLineData(
+        line=order_line,
+        quantity=order_line.quantity,
+        variant=order_line.variant,
+        warehouse_pk=allocation.stock.warehouse.pk,
+    )
     stock = allocation.stock
     stock.quantity = 100
     stock.save(update_fields=["quantity"])
@@ -285,7 +291,7 @@ def test_increase_allocation(quantity, allocation):
     allocation.quantity_allocated = initially_allocated
     allocation.save(update_fields=["quantity_allocated"])
 
-    increase_allocation(allocation.order_line, quantity)
+    increase_allocation(order_line_info, quantity)
 
     stock.refresh_from_db()
     assert stock.quantity == 100
@@ -299,6 +305,12 @@ def test_increase_allocation(quantity, allocation):
 
 def test_increase_allocation_insufficient_stock(allocation):
     order_line = allocation.order_line
+    order_line_info = OrderLineData(
+        line=order_line,
+        quantity=order_line.quantity,
+        variant=order_line.variant,
+        warehouse_pk=allocation.stock.warehouse.pk,
+    )
     stock = allocation.stock
     stock.quantity = 100
     stock.save(update_fields=["quantity"])
@@ -307,7 +319,7 @@ def test_increase_allocation_insufficient_stock(allocation):
     allocation.save(update_fields=["quantity_allocated"])
 
     with pytest.raises(InsufficientStock):
-        increase_allocation(allocation.order_line, 21)
+        increase_allocation(order_line_info, 21)
 
     stock.refresh_from_db()
     assert stock.quantity == 100

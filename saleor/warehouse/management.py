@@ -220,22 +220,16 @@ def increase_stock(
 
 @transaction.atomic
 def increase_allocation(
-    order_line,
+    line_info,
     quantity: int,
 ):
     """Increase allocation for order line with provided quantity."""
-    allocated = order_line.allocations.all().aggregate(Sum("quantity_allocated"))
+    allocated = line_info.line.allocations.all().aggregate(Sum("quantity_allocated"))
     # drop all allocations of order line
-    order_line.allocations.all().delete()
-    lines_data = [
-        OrderLineData(
-            line=order_line,
-            quantity=(allocated["quantity_allocated__sum"] or 0) + quantity,
-            variant=order_line.variant,
-        )
-    ]
+    line_info.line.allocations.all().delete()
+    line_info.quantity = (allocated["quantity_allocated__sum"] or 0) + quantity
     # create new allocations in stocks
-    allocate_stocks(lines_data, order_line.order.shipping_address.country.code)
+    allocate_stocks([line_info], line_info.line.order.shipping_address.country.code)
 
 
 @transaction.atomic

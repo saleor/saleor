@@ -353,7 +353,15 @@ def add_variant_to_order(order, variant, quantity, discounts=None):
         )
 
     if line.order.is_unconfirmed():
-        increase_allocation(line, quantity)
+        increase_allocation(
+            OrderLineData(
+                line=line,
+                quantity=quantity,
+                variant=variant,
+                warehouse_pk=None,
+            ),
+            quantity,
+        )
 
     return line
 
@@ -376,41 +384,34 @@ def add_gift_card_to_order(order, gift_card, total_price_left):
     return total_price_left
 
 
-def decrease_allocations(line, quantity: int):
-    """Decreate allocations for provided order line."""
-    lines_info = [
-        OrderLineData(
-            line=line,
-            quantity=quantity,
-            variant=line.variant,
-            warehouse_pk=line.allocations.first().stock.warehouse.pk,
-        )
-    ]
+def decrease_allocations(lines_info):
+    """Decreate allocations for provided order lines."""
     if not get_order_lines_with_track_inventory(lines_info):
         return
     decrease_stock(lines_info, update_stocks=False)
 
 
-def _update_allocations_for_line(line: OrderLine, old_quantity: int, new_quantity: int):
+def _update_allocations_for_line(
+    line_info: OrderLineData, old_quantity: int, new_quantity: int
+):
     if old_quantity == new_quantity:
         return
 
-    if not get_order_lines_with_track_inventory(
-        [OrderLineData(line=line, quantity=old_quantity, variant=line.variant)]
-    ):
+    if not get_order_lines_with_track_inventory([line_info]):
         return
 
     if old_quantity < new_quantity:
-        increase_allocation(line, new_quantity - old_quantity)
+        increase_allocation(line_info, new_quantity - old_quantity)
     else:
-        decrease_allocations(line, old_quantity - new_quantity)
+        decrease_allocations([line_info])
 
 
-def change_order_line_quantity(user, line, old_quantity: int, new_quantity: int):
+def change_order_line_quantity(user, line_info, old_quantity: int, new_quantity: int):
     """Change the quantity of ordered items in a order line."""
+    line = line_info.line
     if new_quantity:
         if line.order.is_unconfirmed():
-            _update_allocations_for_line(line, old_quantity, new_quantity)
+            _update_allocations_for_line(line_info, old_quantity, new_quantity)
         line.quantity = new_quantity
         total_price_net_amount = line.quantity * line.unit_price_net_amount
         total_price_gross_amount = line.quantity * line.unit_price_gross_amount
@@ -426,7 +427,7 @@ def change_order_line_quantity(user, line, old_quantity: int, new_quantity: int)
             ]
         )
     else:
-        delete_order_line(line)
+        delete_order_line(line_info)
 
     quantity_diff = old_quantity - new_quantity
 
@@ -441,11 +442,11 @@ def change_order_line_quantity(user, line, old_quantity: int, new_quantity: int)
         )
 
 
-def delete_order_line(line):
+def delete_order_line(line_info):
     """Delete an order line from an order."""
-    if line.order.is_unconfirmed():
-        decrease_allocations(line, line.quantity)
-    line.delete()
+    if line_info.line.order.is_unconfirmed():
+        decrease_allocations([line_info])
+    line_info.line.delete()
 
 
 def restock_order_lines(order):
