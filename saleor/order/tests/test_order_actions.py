@@ -74,7 +74,8 @@ def test_handle_fully_paid_order_digital_lines(
     order = order_with_digital_line
     order.redirect_url = redirect_url
     order.save()
-    handle_fully_paid_order(order)
+    manager = get_plugins_manager()
+    handle_fully_paid_order(manager, order)
 
     fulfillment = order.fulfillments.first()
 
@@ -108,7 +109,8 @@ def test_handle_fully_paid_order_digital_lines(
 
 @patch("saleor.order.emails.send_payment_confirmation.delay")
 def test_handle_fully_paid_order(mock_send_payment_confirmation, order):
-    handle_fully_paid_order(order)
+    manager = get_plugins_manager()
+    handle_fully_paid_order(manager, order)
     event_order_paid, event_email_sent = order.events.all()
     assert event_order_paid.type == OrderEvents.ORDER_FULLY_PAID
 
@@ -125,15 +127,17 @@ def test_handle_fully_paid_order(mock_send_payment_confirmation, order):
 def test_handle_fully_paid_order_no_email(mock_send_payment_confirmation, order):
     order.user = None
     order.user_email = ""
+    manager = get_plugins_manager()
 
-    handle_fully_paid_order(order)
+    handle_fully_paid_order(manager, order)
     event = order.events.get()
     assert event.type == OrderEvents.ORDER_FULLY_PAID
     assert not mock_send_payment_confirmation.called
 
 
 def test_mark_as_paid(admin_user, draft_order):
-    mark_order_as_paid(draft_order, admin_user)
+    manager = get_plugins_manager()
+    mark_order_as_paid(draft_order, admin_user, manager)
     payment = draft_order.payments.last()
     assert payment.charge_status == ChargeStatus.FULLY_CHARGED
     assert payment.captured_amount == draft_order.total.gross.amount
@@ -145,7 +149,10 @@ def test_mark_as_paid(admin_user, draft_order):
 
 def test_mark_as_paid_with_external_reference(admin_user, draft_order):
     external_reference = "transaction_id"
-    mark_order_as_paid(draft_order, admin_user, external_reference=external_reference)
+    manager = get_plugins_manager()
+    mark_order_as_paid(
+        draft_order, admin_user, manager, external_reference=external_reference
+    )
     payment = draft_order.payments.last()
     assert payment.charge_status == ChargeStatus.FULLY_CHARGED
     assert payment.captured_amount == draft_order.total.gross.amount
@@ -161,8 +168,9 @@ def test_mark_as_paid_no_billing_address(admin_user, draft_order):
     draft_order.billing_address = None
     draft_order.save()
 
+    manager = get_plugins_manager()
     with pytest.raises(Exception):
-        mark_order_as_paid(draft_order, admin_user)
+        mark_order_as_paid(draft_order, admin_user, manager)
 
 
 def test_clean_mark_order_as_paid(payment_txn_preauth):
@@ -175,7 +183,7 @@ def test_cancel_fulfillment(fulfilled_order, warehouse):
     fulfillment = fulfilled_order.fulfillments.first()
     line_1, line_2 = fulfillment.lines.all()
 
-    cancel_fulfillment(fulfillment, None, warehouse)
+    cancel_fulfillment(fulfillment, None, warehouse, get_plugins_manager())
 
     fulfillment.refresh_from_db()
     fulfilled_order.refresh_from_db()
@@ -193,7 +201,7 @@ def test_cancel_fulfillment_variant_witout_inventory_tracking(
     stock = line.order_line.variant.stocks.get()
     stock_quantity_before = stock.quantity
 
-    cancel_fulfillment(fulfillment, None, warehouse)
+    cancel_fulfillment(fulfillment, None, warehouse, get_plugins_manager())
 
     fulfillment.refresh_from_db()
     line.refresh_from_db()
@@ -211,13 +219,14 @@ def test_cancel_order(
 ):
     # given
     order = fulfilled_order_with_all_cancelled_fulfillments
+    manager = get_plugins_manager()
 
     assert Allocation.objects.filter(
         order_line__order=order, quantity_allocated__gt=0
     ).exists()
 
     # when
-    cancel_order(order, None)
+    cancel_order(order, None, manager)
 
     # then
     order_event = order.events.last()

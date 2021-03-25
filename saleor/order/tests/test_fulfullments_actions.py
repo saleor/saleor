@@ -3,6 +3,7 @@ from unittest.mock import patch
 import pytest
 
 from ...core.exceptions import InsufficientStock
+from ...plugins.manager import get_plugins_manager
 from ...tests.utils import flush_post_commit_hooks
 from ...warehouse.models import Allocation, Stock
 from ..actions import create_fulfillments
@@ -26,7 +27,7 @@ def test_create_fulfillments(
     }
 
     [fulfillment] = create_fulfillments(
-        staff_user, order, fulfillment_lines_for_warehouses, True
+        staff_user, order, fulfillment_lines_for_warehouses, get_plugins_manager(), True
     )
     flush_post_commit_hooks()
 
@@ -75,7 +76,11 @@ def test_create_fulfillments_without_notification(
     }
 
     [fulfillment] = create_fulfillments(
-        staff_user, order, fulfillment_lines_for_warehouses, False
+        staff_user,
+        order,
+        fulfillment_lines_for_warehouses,
+        get_plugins_manager(),
+        False,
     )
     flush_post_commit_hooks()
 
@@ -133,7 +138,11 @@ def test_create_fulfillments_many_warehouses(
     }
 
     [fulfillment1, fulfillment2] = create_fulfillments(
-        staff_user, order, fulfillment_lines_for_warehouses, False
+        staff_user,
+        order,
+        fulfillment_lines_for_warehouses,
+        get_plugins_manager(),
+        False,
     )
     flush_post_commit_hooks()
 
@@ -181,7 +190,7 @@ def test_create_fulfillments_with_one_line_empty_quantity(
     }
 
     [fulfillment] = create_fulfillments(
-        staff_user, order, fulfillment_lines_for_warehouses, True
+        staff_user, order, fulfillment_lines_for_warehouses, get_plugins_manager(), True
     )
     flush_post_commit_hooks()
 
@@ -227,7 +236,7 @@ def test_create_fulfillments_with_variant_without_inventory_tracking(
     }
 
     [fulfillment] = create_fulfillments(
-        staff_user, order, fulfillment_lines_for_warehouses, True
+        staff_user, order, fulfillment_lines_for_warehouses, get_plugins_manager(), True
     )
     flush_post_commit_hooks()
 
@@ -270,7 +279,7 @@ def test_create_fulfillments_without_allocations(
     }
 
     [fulfillment] = create_fulfillments(
-        staff_user, order, fulfillment_lines_for_warehouses, True
+        staff_user, order, fulfillment_lines_for_warehouses, get_plugins_manager(), True
     )
     flush_post_commit_hooks()
 
@@ -319,7 +328,13 @@ def test_create_fulfillments_warehouse_without_stock(
     }
 
     with pytest.raises(InsufficientStock) as exc:
-        create_fulfillments(staff_user, order, fulfillment_lines_for_warehouses, True)
+        create_fulfillments(
+            staff_user,
+            order,
+            fulfillment_lines_for_warehouses,
+            get_plugins_manager(),
+            True,
+        )
 
     assert len(exc.value.items) == 2
     assert {item.variant for item in exc.value.items} == {
@@ -365,7 +380,13 @@ def test_create_fulfillments_with_variant_without_inventory_tracking_and_without
     }
 
     with pytest.raises(InsufficientStock) as exc:
-        create_fulfillments(staff_user, order, fulfillment_lines_for_warehouses, True)
+        create_fulfillments(
+            staff_user,
+            order,
+            fulfillment_lines_for_warehouses,
+            get_plugins_manager(),
+            True,
+        )
 
     assert len(exc.value.items) == 1
     assert exc.value.items[0].variant == order_line.variant

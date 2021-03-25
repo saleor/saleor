@@ -58,9 +58,9 @@ def test_get_payment_gateway_for_checkout(
     checkout_with_single_item.billing_address = address
     checkout_with_single_item.save()
     adyen_plugin = adyen_plugin()
-    response = adyen_plugin.get_payment_gateway_for_checkout(
-        checkout_with_single_item, None
-    )
+    response = adyen_plugin.get_payment_gateways(
+        currency=None, checkout=checkout_with_single_item, previous_value=None
+    )[0]
     assert response.id == adyen_plugin.PLUGIN_ID
     assert response.name == adyen_plugin.PLUGIN_NAME
     config = response.config
