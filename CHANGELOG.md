@@ -30,6 +30,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Optimize children field on Category type - #7045 by @IKarbowiak
 - Added support for querying objects by metadata fields - #6683 by @LeOndaz
 - Avoid using `get_plugins_manager` method - #7052 by @IKarbowiak
+- Fix invalid tax rates for lines - #7058 by @IKarbowiak
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
