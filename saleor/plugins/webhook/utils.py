@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING, List
+import re
+from typing import TYPE_CHECKING, List, Optional
 
 from ...payment.interface import GatewayResponse, PaymentGateway, PaymentMethodInfo
 
@@ -9,16 +10,21 @@ if TYPE_CHECKING:
     from ...payment.interface import PaymentData
 
 
-def to_payment_app_id(app: "App") -> "str":
-    return f"app:{app.pk}"
+def to_payment_app_id(app: "App", gateway_id: str) -> "str":
+    return f"app:{app.pk}:{gateway_id}"
 
 
-def from_payment_app_id(app_id: str) -> "int":
-    return int(app_id.split(":")[1])
+def from_payment_app_id(app_gateway_id: str) -> Optional["int"]:
+    pattern = r"^app:(?P<app_pk>[0-9]+):[-a-zA-Z0-9_]+"
+    match = re.match(pattern, app_gateway_id)
+    app_pk = None
+    if match:
+        app_pk = match.groupdict().get("app_pk")
+    return int(app_pk) if app_pk else None
 
 
 def webhook_response_to_payment_gateways(
-    response: "RequestsResponse",
+    response: "RequestsResponse", app: "App"
 ) -> List["PaymentGateway"]:
     response_json = response.json()
     gateways = []
@@ -28,10 +34,9 @@ def webhook_response_to_payment_gateways(
         gateway_currencies = gateway_data.get("currencies")
         gateway_config = gateway_data.get("config")
 
-        # TODO: fix gateway_id to include app pk
         gateways.append(
             PaymentGateway(
-                id=gateway_id,
+                id=to_payment_app_id(app, gateway_id),
                 name=gateway_name,
                 currencies=gateway_currencies,
                 config=gateway_config,

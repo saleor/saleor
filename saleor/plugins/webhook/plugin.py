@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, Any, List, Optional
 from ...app.models import App
 from ...payment import TransactionKind
 from ...webhook.event_types import WebhookEventType
-from ...webhook.models import Webhook
 from ...webhook.payloads import (
     generate_checkout_payload,
     generate_customer_payload,
@@ -230,17 +229,11 @@ class WebhookPlugin(BasePlugin):
         app_pk = kwargs.get("payment_app")
         if app_pk is not None:
             app = App.objects.filter(pk=app_pk).first()
-        if app:
-            webhooks = app.webhooks.all().filter(is_active=True)
-            webhooks = webhooks.filter(events__event_type=event_type)
-            webhook = webhooks.first()
-
-        if not webhook:
-            # TODO: handle webhook not found.
-            raise Exception("Payment webhook not available")
+        if not app:
+            raise Exception("App not found")
 
         webhook_payload = generate_payment_payload(payment_information)
-        response = trigger_webhook_sync(webhook, event_type, webhook_payload)
+        response = trigger_webhook_sync(event_type, webhook_payload, app.webhooks.all())
         return webhook_response_to_gateway_response(
             payment_information, response, transaction_kind
         )
@@ -252,19 +245,18 @@ class WebhookPlugin(BasePlugin):
         previous_value,
         **kwargs
     ) -> List["PaymentGateway"]:
-        # TODO: Fix query to return first "list payments" webhook from each app.
-        webhooks = Webhook.objects.filter(
-            is_active=True,
-            app__is_active=True,
-            events__event_type=WebhookEventType.PAYMENT_LIST_GATEWAYS,
-        )
         gateways = []
-        for webhook in webhooks:
+        apps = App.objects.filter(
+            webhooks__events__event_type="payment_list_gateways"
+        ).prefetch_related("webhooks")
+        for app in apps:
             response = trigger_webhook_sync(
-                webhook, WebhookEventType.PAYMENT_LIST_GATEWAYS, json.dumps({})
+                event_type=WebhookEventType.PAYMENT_LIST_GATEWAYS,
+                data=json.dumps({}),
+                webhooks_qs=app.webhooks.all(),
             )
             if response:
-                app_gateways = webhook_response_to_payment_gateways(response)
+                app_gateways = webhook_response_to_payment_gateways(response, app)
                 gateways.extend(app_gateways)
         return gateways
 

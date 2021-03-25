@@ -25,7 +25,7 @@ class WebhookSchemes(str, Enum):
     GOOGLE_CLOUD_PUBSUB = "gcpubsub"
 
 
-def _get_webhooks_for_event(event_type):
+def _get_webhooks_for_event(event_type, webhooks=None):
     """Get active webhooks from the database for an event."""
     permissions = {}
     required_permission = WebhookEventType.PERMISSIONS.get(event_type)
@@ -34,7 +34,10 @@ def _get_webhooks_for_event(event_type):
         permissions["app__permissions__content_type__app_label"] = app_label
         permissions["app__permissions__codename"] = codename
 
-    webhooks = Webhook.objects.filter(
+    if webhooks is None:
+        webhooks = Webhook.objects.all()
+
+    webhooks = webhooks.filter(
         is_active=True,
         app__is_active=True,
         events__event_type__in=[event_type, WebhookEventType.ANY],
@@ -56,8 +59,16 @@ def trigger_webhooks_for_event(event_type, data):
         )
 
 
-def trigger_webhook_sync(webhook, event_type, data):
+def trigger_webhook_sync(event_type, data, webhooks_qs=None):
     """Send a synchronous webhook request."""
+    webhooks = _get_webhooks_for_event(event_type, webhooks_qs)
+    webhook = webhooks.first()
+    if not webhook:
+        # TODO: handle webhook not found.
+        # raise Exception("Payment webhook not available")
+        return None
+
+    print("TRIGGER webhook: ", webhook, webhook.app)
     response = send_webhook_request_sync(
         webhook.target_url, webhook.secret_key, event_type, data
     )
