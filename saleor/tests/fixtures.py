@@ -773,6 +773,22 @@ def color_attribute(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
+def text_attribute(db):  # pylint: disable=W0613
+    attribute = Attribute.objects.create(
+        slug="text",
+        name="Text",
+        type=AttributeInputType.TEXT,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
+    )
+    AttributeValue.objects.create(
+        attribute=attribute, name="Some cool text", slug="come-cool-text"
+    )
+    return attribute
+
+
+@pytest.fixture
 def color_attribute_without_values(db):  # pylint: disable=W0613
     return Attribute.objects.create(
         slug="color",
