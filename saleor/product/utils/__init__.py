@@ -44,9 +44,7 @@ def delete_categories(categories_ids: List[str], manager):
     categories = Category.objects.select_for_update().filter(pk__in=categories_ids)
     categories.prefetch_related("products")
 
-    products = Product.objects.prefetch_related(
-        "attributes", "collections", "variants", "category"
-    ).none()
+    products = Product.objects.prefetched_product_for_webhook().none()
     for category in categories:
         products = products | collect_categories_tree_products(category)
 
