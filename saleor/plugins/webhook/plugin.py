@@ -1,4 +1,3 @@
-import json
 from typing import TYPE_CHECKING, Any, List, Optional
 
 from ...app.models import App
@@ -9,6 +8,7 @@ from ...webhook.payloads import (
     generate_customer_payload,
     generate_fulfillment_payload,
     generate_invoice_payload,
+    generate_list_gateways_payload,
     generate_order_payload,
     generate_page_payload,
     generate_payment_payload,
@@ -252,7 +252,7 @@ class WebhookPlugin(BasePlugin):
         for app in apps:
             response = trigger_webhook_sync(
                 event_type=WebhookEventType.PAYMENT_LIST_GATEWAYS,
-                data=json.dumps({}),
+                data=generate_list_gateways_payload(currency, checkout),
                 webhooks_qs=app.webhooks.all(),
             )
             if response:

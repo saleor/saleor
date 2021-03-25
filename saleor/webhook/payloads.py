@@ -403,6 +403,19 @@ def generate_payment_payload(payment_data: "PaymentData"):
     return json.dumps(data, cls=CustomJsonEncoder)
 
 
+def generate_list_gateways_payload(
+    currency: Optional[str], checkout: Optional["Checkout"]
+):
+    if checkout:
+        # Deserialize checkout payload to dict and generate a new payload including
+        # currency.
+        checkout_data = json.loads(generate_checkout_payload(checkout))
+    else:
+        checkout_data = None
+    payload = {"checkout": checkout_data, "currency": currency}
+    return json.dumps(payload)
+
+
 def _get_sample_object(qs: QuerySet):
     """Return random object from query."""
     random_object = qs.order_by("?").first()
