@@ -27,11 +27,11 @@ class PluginsQueries(graphene.ObjectType):
 
     @permission_required(PluginsPermissions.MANAGE_PLUGINS)
     def resolve_plugin(self, info, **data):
-        return resolve_plugin(info, data.get("id"))
+        return resolve_plugin(info, data.get("id"), info.context.plugins)
 
     @permission_required(PluginsPermissions.MANAGE_PLUGINS)
-    def resolve_plugins(self, _info, **kwargs):
-        return resolve_plugins(**kwargs)
+    def resolve_plugins(self, info, **kwargs):
+        return resolve_plugins(info.context.plugins, **kwargs)
 
 
 class PluginsMutations(graphene.ObjectType):
