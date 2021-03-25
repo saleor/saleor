@@ -65,6 +65,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Remove triggering a webhook event `PRODUCT_UPDATED`  when calling `ProductVariantCreate` mutation.  Use `PRODUCT_VARIANT_CREATED` instead - #6963 by @piotrgrundas
 - Remove triggering a webhook event `PRODUCT_UPDATED` when calling  `ProductVariantChannelListingUpdate` mutation. Use `PRODUCT_VARIANT_UPDATED` instead - #6963 by @piotrgrundas
 - Refactor listing payment gateways - #7050 by @maarcingebala. Breaking changes in plugin methods: removed `get_payment_gateway` and `get_payment_gateway_for_checkout`; instead `get_payment_gateways` was added.
+- Fix doubling price in checkout for products without tax - #7056 by @IKarbowiak
+  - Introduce changes in plugins method:
+    - `calculate_checkout_subtotal` has been dropped from plugins, for correct subtotal calculation, `calculate_checkout_line_total` must be set (manager method for calculating checkout subtotal uses `calculate_checkout_line_total` method)
 
 ### Other
 
