@@ -470,18 +470,28 @@ class AvataxPlugin(BasePlugin):
         discounts: Iterable[DiscountInfo],
         previous_value: Decimal,
     ) -> Decimal:
+        if not checkout_line_info.product.charge_taxes:
+            return previous_value
         return self._get_unit_tax_rate(
-            checkout_info, previous_value, False, discounts, lines
+            checkout_info,
+            previous_value,
+            False,
+            checkout_line_info.variant.sku,
+            discounts,
+            lines,
         )
 
     def get_order_line_tax_rate(
         self,
         order: "Order",
         product: "Product",
+        variant: "ProductVariant",
         address: Optional["Address"],
         previous_value: Decimal,
     ) -> Decimal:
-        return self._get_unit_tax_rate(order, previous_value, True)
+        if not product.charge_taxes:
+            return previous_value
+        return self._get_unit_tax_rate(order, previous_value, True, variant.sku)
 
     def get_checkout_shipping_tax_rate(
         self,
@@ -507,6 +517,7 @@ class AvataxPlugin(BasePlugin):
         instance: Union["Order", "CheckoutInfo"],
         base_rate: Decimal,
         is_order: bool,
+        item_code: str,
         discounts: Optional[Iterable[DiscountInfo]] = None,
         lines_info: Iterable["CheckoutLineInfo"] = [],
     ):
@@ -515,11 +526,21 @@ class AvataxPlugin(BasePlugin):
         )
         if response is None:
             return base_rate
-        rate = None
-        response_summary = response.get("summary")
-        if response_summary:
-            rate = Decimal(response_summary[0].get("rate", 0.0))
-        return rate or base_rate
+        lines_data = response.get("lines", [])
+        for line in lines_data:
+            if line["itemCode"] == item_code:
+                details = line.get("details")
+                if not details:
+                    return base_rate
+                # when tax is equal to 0 tax rate for product is still provided
+                # in the response
+                tax = Decimal(details[0].get("tax", 0.0))
+                return (
+                    Decimal(details[0].get("rate", 0.0))
+                    if tax != Decimal(0.0)
+                    else base_rate
+                )
+        return base_rate
 
     def _get_shipping_tax_rate(
         self,
