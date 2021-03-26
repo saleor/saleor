@@ -30,6 +30,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Optimize children field on Category type - #7045 by @IKarbowiak
 - Added support for querying objects by metadata fields - #6683 by @LeOndaz
 - Avoid using `get_plugins_manager` method - #7052 by @IKarbowiak
+- Add benchmarks for triggered product and variants webhooks - #7061 by @d-wysocki
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -65,6 +66,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Remove triggering a webhook event `PRODUCT_UPDATED`  when calling `ProductVariantCreate` mutation.  Use `PRODUCT_VARIANT_CREATED` instead - #6963 by @piotrgrundas
 - Remove triggering a webhook event `PRODUCT_UPDATED` when calling  `ProductVariantChannelListingUpdate` mutation. Use `PRODUCT_VARIANT_UPDATED` instead - #6963 by @piotrgrundas
 - Refactor listing payment gateways - #7050 by @maarcingebala. Breaking changes in plugin methods: removed `get_payment_gateway` and `get_payment_gateway_for_checkout`; instead `get_payment_gateways` was added.
+- Change error class in `CollectionBulkDelete` to `CollectionErrors` - #7061 by @d-wysocki
+
 
 ### Other
 

@@ -1074,7 +1074,7 @@ type CollectionAddProducts {
 type CollectionBulkDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   count: Int!
-  productErrors: [ProductError!]!
+  collectionErrors: [CollectionError!]!
 }
 
 type CollectionChannelListing implements Node {
