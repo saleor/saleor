@@ -10,7 +10,7 @@ class PluginConfiguration(models.Model):
     identifier = models.CharField(max_length=128)
     name = models.CharField(max_length=128)
     channel = models.ForeignKey(
-        Channel, blank=True, null=True, on_delete=models.SET_NULL
+        Channel, blank=True, null=True, on_delete=models.CASCADE
     )
     description = models.TextField(blank=True)
     active = models.BooleanField(default=False)
