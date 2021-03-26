@@ -593,7 +593,6 @@ class ProductCreate(ModelMutation):
         """Prefetch related fields that are needed to process the mutation."""
         # If we are updating an instance and want to update its attributes,
         # prefetch them.
-
         object_id = data.get("id")
         if object_id and data.get("attributes"):
             # Prefetches needed by AttributeAssignmentMixin and
@@ -603,7 +602,6 @@ class ProductCreate(ModelMutation):
                 "product_type__attributeproduct",
             )
             return cls.get_node_or_error(info, object_id, only_type="Product", qs=qs)
-
         return super().get_instance(info, **data)
 
     @classmethod

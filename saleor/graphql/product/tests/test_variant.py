@@ -1050,7 +1050,7 @@ def test_create_variant_invalid_variant_attributes(
         assert error in errors
 
 
-def test_create_product_variant_update_with_new_attributes(
+def test_product_variant_update_with_new_attributes(
     staff_api_client, permission_manage_products, product, size_attribute
 ):
     query = """
