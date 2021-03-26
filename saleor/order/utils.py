@@ -21,9 +21,9 @@ from ..product.utils.digital_products import get_default_digital_content_setting
 from ..shipping.models import ShippingMethod
 from ..warehouse.management import (
     deallocate_stock,
-    decrease_stock,
+    decrease_allocations,
     get_order_lines_with_track_inventory,
-    increase_allocation,
+    increase_allocations,
     increase_stock,
 )
 from ..warehouse.models import Warehouse
@@ -353,14 +353,15 @@ def add_variant_to_order(order, variant, quantity, discounts=None):
         )
 
     if line.order.is_unconfirmed():
-        increase_allocation(
-            OrderLineData(
-                line=line,
-                quantity=quantity,
-                variant=variant,
-                warehouse_pk=None,
-            ),
-            quantity,
+        increase_allocations(
+            [
+                OrderLineData(
+                    line=line,
+                    quantity=quantity,
+                    variant=variant,
+                    warehouse_pk=None,
+                )
+            ]
         )
 
     return line
@@ -384,13 +385,6 @@ def add_gift_card_to_order(order, gift_card, total_price_left):
     return total_price_left
 
 
-def decrease_allocations(lines_info):
-    """Decreate allocations for provided order lines."""
-    if not get_order_lines_with_track_inventory(lines_info):
-        return
-    decrease_stock(lines_info, update_stocks=False)
-
-
 def _update_allocations_for_line(
     line_info: OrderLineData, old_quantity: int, new_quantity: int
 ):
@@ -401,7 +395,8 @@ def _update_allocations_for_line(
         return
 
     if old_quantity < new_quantity:
-        increase_allocation(line_info, new_quantity - old_quantity)
+        line_info.quantity = new_quantity - old_quantity
+        increase_allocations([line_info])
     else:
         line_info.quantity = old_quantity - new_quantity
         decrease_allocations([line_info])

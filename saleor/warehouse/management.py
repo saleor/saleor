@@ -219,17 +219,30 @@ def increase_stock(
 
 
 @transaction.atomic
-def increase_allocation(
-    line_info,
-    quantity: int,
-):
-    """Increase allocation for order line with provided quantity."""
-    allocated = line_info.line.allocations.all().aggregate(Sum("quantity_allocated"))
-    # drop all allocations of order line
-    line_info.line.allocations.all().delete()
-    line_info.quantity = (allocated["quantity_allocated__sum"] or 0) + quantity
-    # create new allocations in stocks
-    allocate_stocks([line_info], line_info.line.order.shipping_address.country.code)
+def increase_allocations(lines_info: Iterable["OrderLineData"]):
+    """Increase allocation for order lines with appropriate quantity."""
+    for line_info in lines_info:
+        allocated = line_info.line.allocations.all().aggregate(
+            Sum("quantity_allocated")
+        )
+        # drop all allocations of order line
+        line_info.line.allocations.all().delete()
+        line_info.quantity = (
+            allocated["quantity_allocated__sum"] or 0
+        ) + line_info.quantity
+        # create new allocations in stocks
+        allocate_stocks(
+            [line_info],
+            line_info.line.order.shipping_address.country.code,  # type: ignore
+        )
+
+
+def decrease_allocations(lines_info: Iterable["OrderLineData"]):
+    """Decreate allocations for provided order lines."""
+    tracked_lines = get_order_lines_with_track_inventory(lines_info)
+    if not tracked_lines:
+        return
+    decrease_stock(tracked_lines, update_stocks=False)
 
 
 @transaction.atomic
@@ -241,6 +254,8 @@ def decrease_stock(order_lines_info: Iterable["OrderLineData"], update_stocks=Tr
     stock in a given warehouse, if stock not exists or have not enough stock,
     the function raise InsufficientStock exception. When the stock has enough quantity
     function decrease it by given value.
+    If update_stocks is False, allocations will decrease but stocks quantities
+    will stay unmodified (case of unconfirmed order editing).
     """
     variants = [line_info.variant for line_info in order_lines_info]
     warehouse_pks = [line_info.warehouse_pk for line_info in order_lines_info]
