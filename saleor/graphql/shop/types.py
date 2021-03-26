@@ -10,7 +10,6 @@ from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 from ... import __version__
 from ...account import models as account_models
 from ...core.permissions import SitePermissions, get_permissions
-from ...plugins.manager import get_plugins_manager
 from ...site import models as site_models
 from ..account.types import Address, AddressInput, StaffNotificationRecipient
 from ..channel import ChannelContext
@@ -209,8 +208,8 @@ class Shop(graphene.ObjectType):
         )
 
     @staticmethod
-    def resolve_available_payment_gateways(_, _info, currency: Optional[str] = None):
-        return get_plugins_manager().list_payment_gateways(currency=currency)
+    def resolve_available_payment_gateways(_, info, currency: Optional[str] = None):
+        return info.context.plugins.list_payment_gateways(currency=currency)
 
     @staticmethod
     def resolve_available_external_authentications(_, info):

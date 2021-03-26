@@ -3,8 +3,7 @@ from typing import TYPE_CHECKING, List, Optional
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ..checkout.models import Checkout, CheckoutLine
-    from ..discount import DiscountInfo
+    from ..checkout.models import Checkout
     from ..payment.interface import (
         CustomerSource,
         GatewayResponse,
@@ -17,14 +16,10 @@ if TYPE_CHECKING:
 class PaymentInterface(ABC):
     @abstractmethod
     def list_payment_gateways(
-        self, currency: Optional[str] = None, active_only: bool = True
-    ) -> List["PaymentGateway"]:
-        pass
-
-    @abstractmethod
-    def checkout_available_payment_gateways(
         self,
-        checkout: "Checkout",
+        currency: Optional[str] = None,
+        checkout: Optional["Checkout"] = None,
+        active_only: bool = True,
     ) -> List["PaymentGateway"]:
         pass
 
