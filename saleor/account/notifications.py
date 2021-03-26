@@ -28,7 +28,7 @@ def send_password_reset_notification(redirect_url, user, manager, staff=False):
     params = urlencode({"email": user.email, "token": token})
     reset_url = prepare_url(params, redirect_url)
 
-    user_payload = {
+    payload = {
         "user": get_default_user_payload(user),
         "recipient_email": user.email,
         "token": token,
@@ -41,7 +41,7 @@ def send_password_reset_notification(redirect_url, user, manager, staff=False):
         if staff
         else NotifyEventType.ACCOUNT_PASSWORD_RESET
     )
-    manager.notify(event, payload=user_payload)
+    manager.notify(event, payload=payload)
 
 
 def send_account_confirmation(user, redirect_url, manager):
@@ -107,7 +107,7 @@ def send_set_password_notification(redirect_url, user, manager, staff=False):
     token = default_token_generator.make_token(user)
     params = urlencode({"email": user.email, "token": token})
     password_set_url = prepare_url(params, redirect_url)
-    user_payload = {
+    payload = {
         "user": get_default_user_payload(user),
         "token": default_token_generator.make_token(user),
         "recipient_email": user.email,
@@ -118,4 +118,4 @@ def send_set_password_notification(redirect_url, user, manager, staff=False):
         event = NotifyEventType.ACCOUNT_SET_STAFF_PASSWORD
     else:
         event = NotifyEventType.ACCOUNT_SET_CUSTOMER_PASSWORD
-    manager.notify(event, payload=user_payload)
+    manager.notify(event, payload=payload)

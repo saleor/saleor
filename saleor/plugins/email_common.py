@@ -26,9 +26,9 @@ logger = logging.getLogger(__name__)
 
 
 DEFAULT_TEMPLATE_HELP_TEXT = (
-    "An HTML template built with handlebars template language. Leave it "
+    "An HTML template built with Handlebars template language. Leave it "
     "blank if you don't want to send an email for this action. Use the "
-    "default Saleor template by providing DEFAULT value."
+    'default Saleor template by providing the "DEFAULT" string as a value.'
 )
 DEFAULT_SUBJECT_HELP_TEXT = "An email subject built with Handlebars template language."
 DEFAULT_EMAIL_VALUE = "DEFAULT"
@@ -95,7 +95,7 @@ DEFAULT_EMAIL_CONFIG_STRUCTURE = {
         "help_text": (
             "Whether to use a TLS (secure) connection when talking to the SMTP "
             "server. This is used for explicit TLS connections, generally on port "
-            "587. Use TLS/Use SSL are mutually exclusive, so only set one of those"
+            "587. Use TLS/Use SSL are mutually exclusive, so only set one of these"
             " settings to True."
         ),
         "label": "Use TLS",
@@ -106,7 +106,7 @@ DEFAULT_EMAIL_CONFIG_STRUCTURE = {
             "Whether to use an implicit TLS (secure) connection when talking to "
             "the SMTP server. In most email documentation this type of TLS "
             "connection is referred to as SSL. It is generally used on port 465. "
-            "Use TLS/Use SSL are mutually exclusive, so only set one of those"
+            "Use TLS/Use SSL are mutually exclusive, so only set one of these"
             " settings to True."
         ),
         "label": "Use SSL",
@@ -228,12 +228,10 @@ def validate_email_config(config: EmailConfig):
         fail_silently=False,
         timeout=DEFAULT_EMAIL_TIMEOUT,
     )
-    try:
-        email_backend.open()
-    except Exception:
-        raise
-    finally:
-        email_backend.close()
+    with email_backend:
+        # make sure that we have correct config. It will raise error in case when we are
+        # not able to log in to email backend.
+        pass
 
 
 def validate_default_email_configuration(
@@ -327,14 +325,9 @@ def validate_format_of_provided_templates(
 
 
 def get_email_template(
-    plugin_identifier: str, template_field_name: str, default: str
+    plugin_configuration: PluginConfiguration, template_field_name: str, default: str
 ) -> str:
     """Get email template from plugin configuration."""
-    plugin_configuration = PluginConfiguration.objects.filter(
-        identifier=plugin_identifier
-    ).first()
-    if not plugin_configuration:
-        return default
     configuration = plugin_configuration.configuration
     for config_field in configuration:
         if config_field["name"] == template_field_name:
@@ -343,16 +336,18 @@ def get_email_template(
 
 
 def get_email_template_or_default(
-    plugin_identifier: str,
+    plugin_configuration: Optional[PluginConfiguration],
     template_field_name: str,
     default_template_file_name: str,
     default_template_path: str,
 ):
-    email_template_str = get_email_template(
-        plugin_identifier=plugin_identifier,
-        template_field_name=template_field_name,
-        default=DEFAULT_EMAIL_VALUE,
-    )
+    email_template_str = DEFAULT_EMAIL_VALUE
+    if plugin_configuration:
+        email_template_str = get_email_template(
+            plugin_configuration=plugin_configuration,
+            template_field_name=template_field_name,
+            default=DEFAULT_EMAIL_VALUE,
+        )
     if email_template_str == DEFAULT_EMAIL_VALUE:
         email_template_str = get_default_email_template(
             default_template_file_name, default_template_path
@@ -361,12 +356,11 @@ def get_email_template_or_default(
 
 
 def get_email_subject(
-    plugin_identifier: str, subject_field_name: str, default: str
+    plugin_configuration: Optional["PluginConfiguration"],
+    subject_field_name: str,
+    default: str,
 ) -> str:
     """Get email subject from plugin configuration."""
-    plugin_configuration = PluginConfiguration.objects.filter(
-        identifier=plugin_identifier
-    ).first()
     if not plugin_configuration:
         return default
     configuration = plugin_configuration.configuration

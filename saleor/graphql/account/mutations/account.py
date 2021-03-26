@@ -92,7 +92,7 @@ class AccountRegister(ModelMutation):
             password_validation.validate_password(password, instance)
         except ValidationError as error:
             raise ValidationError({"password": error})
-        data["language_code"] = data.get("language_code") or settings.LANGUAGE_CODE
+        data["language_code"] = data.get("language_code", settings.LANGUAGE_CODE)
         return super().clean_input(info, instance, data, input_cls=None)
 
     @classmethod

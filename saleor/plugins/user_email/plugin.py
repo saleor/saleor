@@ -108,7 +108,6 @@ def get_user_event_map():
 class UserEmailPlugin(BasePlugin):
     PLUGIN_ID = constants.PLUGIN_ID
     PLUGIN_NAME = "User emails"
-    # TODO the configuration will be implemented in separate pull request
 
     DEFAULT_CONFIGURATION = [
         {
