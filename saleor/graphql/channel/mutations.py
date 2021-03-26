@@ -125,6 +125,9 @@ class ChannelUpdate(ModelMutation):
         remove_shipping_zones = cleaned_data.get("remove_shipping_zones")
         if remove_shipping_zones:
             instance.shipping_zones.remove(*remove_shipping_zones)
+            instance.shipping_method_listings.filter(
+                shipping_method__shipping_zone__in=remove_shipping_zones
+            ).delete()
 
 
 class ChannelDeleteInput(graphene.InputObjectType):
