@@ -331,7 +331,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             email = data.pop("email", None)
             cleaned_input["email"] = email or user.email
 
-        language_code = data.get("language_code") or settings.LANGUAGE_CODE
+        language_code = data.get("language_code", settings.LANGUAGE_CODE)
         cleaned_input["language_code"] = language_code
 
         cleaned_input["shipping_address"] = shipping_address
