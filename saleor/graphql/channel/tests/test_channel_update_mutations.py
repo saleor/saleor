@@ -257,9 +257,8 @@ def test_channel_update_mutation_remove_shipping_zone(
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     name = "newName"
     slug = "new_slug"
-    remove_shipping_zone = graphene.Node.to_global_id(
-        "ShippingZone", shipping_zones[0].pk
-    )
+    shipping_zone = shipping_zones[0].pk
+    remove_shipping_zone = graphene.Node.to_global_id("ShippingZone", shipping_zone)
     variables = {
         "id": channel_id,
         "input": {
@@ -268,6 +267,9 @@ def test_channel_update_mutation_remove_shipping_zone(
             "removeShippingZones": [remove_shipping_zone],
         },
     }
+    assert channel_USD.shipping_method_listings.filter(
+        shipping_method__shipping_zone=shipping_zone
+    )
 
     # when
     response = staff_api_client.post_graphql(
@@ -288,6 +290,9 @@ def test_channel_update_mutation_remove_shipping_zone(
     zones = [zone["id"] for zone in channel_data["shippingZones"]]
     assert len(zones) == len(shipping_zones) - 1
     assert remove_shipping_zone not in zones
+    assert not channel_USD.shipping_method_listings.filter(
+        shipping_method__shipping_zone=shipping_zone
+    )
 
 
 def test_channel_update_mutation_add_and_remove_shipping_zone(
