@@ -610,14 +610,16 @@ class PluginsManager(PaymentInterface):
             )
 
         # Fetch payment gateways from apps that listen to payment events.
-        app_gateways = self.__run_method_on_single_plugin(
-            self.get_plugin(WebhookPlugin.PLUGIN_ID),
-            "get_payment_gateways",
-            currency=currency,
-            checkout=checkout,
-            previous_value=None,
-        )
-        gateways.extend(app_gateways)
+        webhook_plugin = self.get_plugin(WebhookPlugin.PLUGIN_ID)
+        if webhook_plugin and webhook_plugin.active:
+            app_gateways = self.__run_method_on_single_plugin(
+                webhook_plugin,
+                "get_payment_gateways",
+                currency=currency,
+                checkout=checkout,
+                previous_value=[],
+            )
+            gateways.extend(app_gateways)
         return gateways
 
     def list_external_authentications(self, active_only: bool = True) -> List[dict]:
@@ -649,7 +651,10 @@ class PluginsManager(PaymentInterface):
             from .webhook.plugin import WebhookPlugin
 
             plugin = self.get_plugin(WebhookPlugin.PLUGIN_ID)
-            kwargs.update({"payment_app": app_pk})
+            if plugin and plugin.active:
+                kwargs.update({"payment_app": app_pk})
+            else:
+                plugin = None
 
         if plugin is not None:
             resp = self.__run_method_on_single_plugin(
