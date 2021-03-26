@@ -17,7 +17,6 @@ from ...graphql.utils import get_user_or_app_from_context
 from ...order import OrderStatus, models
 from ...order.models import FulfillmentStatus
 from ...order.utils import get_order_country, get_valid_shipping_methods_for_order
-from ...plugins.manager import get_plugins_manager
 from ...product.templatetags.product_images import get_product_image_thumbnail
 from ...warehouse import models as warehouse_models
 from ..account.types import User
@@ -824,12 +823,12 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     # TODO: We should optimize it in/after PR#5819
-    def resolve_available_shipping_methods(root: models.Order, _info):
+    def resolve_available_shipping_methods(root: models.Order, info):
         available = get_valid_shipping_methods_for_order(root)
         if available is None:
             return []
         available_shipping_methods = []
-        manager = get_plugins_manager()
+        manager = info.context.plugins
         display_gross = display_gross_prices()
         for shipping_method in available:
             # Ignore typing check because it is checked in
