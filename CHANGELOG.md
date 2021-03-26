@@ -29,6 +29,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Validate discount value for percentage vouchers and sales - #7033 by @d-wysocki
 - Optimize children field on Category type - #7045 by @IKarbowiak
 - Added support for querying objects by metadata fields - #6683 by @LeOndaz
+- Add text attribute input - #7059 by @piotrgrundas
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
