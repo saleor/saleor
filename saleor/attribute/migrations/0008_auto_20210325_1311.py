@@ -6,13 +6,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('attribute', '0007_auto_20210308_1135'),
+        ("attribute", "0007_auto_20210308_1135"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='attribute',
-            name='input_type',
-            field=models.CharField(choices=[('dropdown', 'Dropdown'), ('multiselect', 'Multi Select'), ('file', 'File'), ('reference', 'Reference'), ('text', 'Text')], default='dropdown', max_length=50),
+            model_name="attribute",
+            name="input_type",
+            field=models.CharField(
+                choices=[
+                    ("dropdown", "Dropdown"),
+                    ("multiselect", "Multi Select"),
+                    ("file", "File"),
+                    ("reference", "Reference"),
+                    ("text", "Text"),
+                ],
+                default="dropdown",
+                max_length=50,
+            ),
         ),
     ]
