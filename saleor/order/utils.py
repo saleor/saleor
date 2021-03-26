@@ -403,6 +403,7 @@ def _update_allocations_for_line(
     if old_quantity < new_quantity:
         increase_allocation(line_info, new_quantity - old_quantity)
     else:
+        line_info.quantity = old_quantity - new_quantity
         decrease_allocations([line_info])
 
 
