@@ -759,7 +759,7 @@ def shipping_method_channel_PLN(shipping_zone, channel_PLN):
 
 
 @pytest.fixture
-def color_attribute(db):  # pylint: disable=W0613
+def color_attribute(db):
     attribute = Attribute.objects.create(
         slug="color",
         name="Color",
@@ -774,11 +774,12 @@ def color_attribute(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def text_attribute(db):  # pylint: disable=W0613
+def text_attribute(db):
     attribute = Attribute.objects.create(
         slug="text",
         name="Text",
         type=AttributeInputType.TEXT,
+        input_type=AttributeInputType.TEXT,
         filterable_in_storefront=True,
         filterable_in_dashboard=True,
         available_in_grid=True,
