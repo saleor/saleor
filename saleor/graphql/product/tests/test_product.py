@@ -3267,6 +3267,66 @@ def test_create_product_with_product_reference_attribute_required_no_references(
     ]
 
 
+def test_create_product_with_text_attribute(
+    staff_api_client,
+    product_type,
+    category,
+    text_attribute,
+    color_attribute,
+    permission_manage_products,
+    product,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_slug = "product-test-slug"
+
+    # Add second attribute
+    product_type.product_attributes.add(text_attribute)
+    text_attribute_id = graphene.Node.to_global_id("Attribute", text_attribute.id)
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "attributes": [{"id": text_attribute_id, "values": ["Cool text"]}],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["productErrors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == product_slug
+    assert data["product"]["productType"]["name"] == product_type.name
+    assert data["product"]["category"]["name"] == category.name
+    _, product_id = graphene.Node.from_global_id(data["product"]["id"])
+    expected_attributes_data = [
+        {
+            "attribute": {"slug": "text"},
+            "values": [
+                {
+                    "slug": "cool-text",
+                    "name": "Cool text",
+                    "reference": None,
+                    "file": None,
+                }
+            ],
+        },
+        {"attribute": {"slug": color_attribute.slug}, "values": []},
+    ]
+    for attr_data in data["product"]["attributes"]:
+        assert attr_data in expected_attributes_data
+
+
 def test_create_product_no_values_given(
     staff_api_client,
     product_type,

@@ -15,7 +15,7 @@ class AttributeInputType:
         (TEXT, "Text"),
     ]
     # list of the input types that can be used in variant selection
-    ALLOWED_IN_VARIANT_SELECTION = [DROPDOWN, TEXT]
+    ALLOWED_IN_VARIANT_SELECTION = [DROPDOWN]
 
 
 class AttributeType:

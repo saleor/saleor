@@ -1050,6 +1050,59 @@ def test_create_variant_invalid_variant_attributes(
         assert error in errors
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_variant_created")
+def test_create_variant_with_text_attribute(
+    created_webhook_mock,
+    permission_manage_products,
+    product,
+    product_type,
+    staff_api_client,
+    text_attribute,
+    warehouse,
+):
+    product_type.variant_attributes.add(text_attribute)
+    query = CREATE_VARIANT_MUTATION
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    sku = "1"
+    price = 1.32
+    cost_price = 3.22
+    weight = 10.22
+    attr_id = graphene.Node.to_global_id("Attribute", text_attribute.id)
+    text = "Sample text"
+    stocks = [
+        {
+            "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
+            "quantity": 20,
+        }
+    ]
+    variables = {
+        "productId": product_id,
+        "sku": sku,
+        "stocks": stocks,
+        "costPrice": cost_price,
+        "price": price,
+        "weight": weight,
+        "attributes": [
+            {"id": attr_id, "values": text},
+        ],
+        "trackInventory": True,
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)["data"]["productVariantCreate"]
+    flush_post_commit_hooks()
+    data = content["productVariant"]
+
+    assert not content["productErrors"]
+    assert data["name"] == sku
+    assert data["sku"] == sku
+    assert data["attributes"][-1]["attribute"]["slug"] == text_attribute.slug
+    assert data["attributes"][-1]["values"][0]["name"] == text
+    created_webhook_mock.assert_called_once_with(product.variants.last())
+
+
 def test_create_variant_attributes_save_error(
     permission_manage_products,
     product,
@@ -1399,6 +1452,50 @@ def test_update_product_variant_with_current_attribute(
     assert variant.sku == sku
     assert variant.attributes.first().values.first().slug == "red"
     assert variant.attributes.last().values.first().slug == "small"
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
+def test_update_variant_with_text_attribute(
+    product_variant_updated,
+    permission_manage_products,
+    product,
+    product_type,
+    staff_api_client,
+    text_attribute,
+    warehouse,
+):
+    product_type.variant_attributes.add(text_attribute)
+    query = QUERY_UPDATE_VARIANT_ATTRIBUTES
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    sku = "123"
+    attr_id = graphene.Node.to_global_id("Attribute", text_attribute.id)
+    text = text_attribute.values.first().name
+    variables = {
+        "id": variant_id,
+        "sku": sku,
+        "attributes": [
+            {"id": attr_id, "values": text},
+        ],
+    }
+    associate_attribute_values_to_instance(
+        variant, text_attribute, text_attribute.values.first()
+    )
+    values_count = text_attribute.values.count()
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)["data"]["productVariantUpdate"]
+    variant.refresh_from_db()
+    data = content["productVariant"]
+
+    assert not content["productErrors"]
+    assert data["sku"] == sku
+    assert data["attributes"][-1]["attribute"]["slug"] == text_attribute.slug
+    assert data["attributes"][-1]["values"][0]["name"] == text
+    assert text_attribute.values.count() == values_count
+    product_variant_updated.assert_called_once_with(product.variants.last())
 
 
 def test_update_product_variant_with_new_attribute(
