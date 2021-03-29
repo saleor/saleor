@@ -163,21 +163,6 @@ class BasePlugin:
         """
         return NotImplemented
 
-    def calculate_checkout_subtotal(
-        self,
-        checkout_info: "CheckoutInfo",
-        lines: List["CheckoutLineInfo"],
-        address: Optional["Address"],
-        discounts: List["DiscountInfo"],
-        previous_value: TaxedMoney,
-    ) -> TaxedMoney:
-        """Calculate the subtotal for checkout.
-
-        Overwrite this method if you need to apply specific logic for the calculation
-        of a checkout subtotal. Return TaxedMoney.
-        """
-        return NotImplemented
-
     def calculate_checkout_shipping(
         self,
         checkout_info: "CheckoutInfo",
