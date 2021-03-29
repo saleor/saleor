@@ -157,18 +157,10 @@ class PluginsManager(PaymentInterface):
             )
             for line_info in lines
         ]
-        default_value = base_calculations.base_checkout_subtotal(
-            line_totals, checkout_info.checkout.currency
-        )
+        currency = checkout_info.checkout.currency
+        total = sum(line_totals, zero_taxed_money(currency))
         return quantize_price(
-            self.__run_method_on_plugins(
-                "calculate_checkout_subtotal",
-                default_value,
-                checkout_info,
-                lines,
-                address,
-                discounts,
-            ),
+            total,
             checkout_info.checkout.currency,
         )
 
