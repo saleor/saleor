@@ -104,6 +104,7 @@ class Payment(CountableDjangoObjectType):
             "checkout",
             "order",
             "customer_ip_address",
+            "payment_method_type",
         ]
 
     @staticmethod

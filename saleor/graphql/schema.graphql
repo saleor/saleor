@@ -3676,6 +3676,7 @@ type Payment implements Node {
   token: String!
   checkout: Checkout
   order: Order
+  paymentMethodType: String!
   customerIpAddress: String
   chargeStatus: PaymentChargeStatusEnum!
   actions: [OrderAction]!
