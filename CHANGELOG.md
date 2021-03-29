@@ -30,6 +30,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Optimize children field on Category type - #7045 by @IKarbowiak
 - Added support for querying objects by metadata fields - #6683 by @LeOndaz
 - Avoid using `get_plugins_manager` method - #7052 by @IKarbowiak
+- Add field `languageCode` to types: `AccountInput`, `AccountRegisterInput`, `CheckoutCreateInput`, `CustomerInput`, `Order`, `User`. Add field `languageCodeEnum` to `Order` type. Add new mutation `CheckoutLanguageCodeUpdate`. Deprecate field `Order.languageCode`.  - #6609 by @korycins
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
