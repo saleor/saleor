@@ -264,6 +264,7 @@ class VatlayerPlugin(BasePlugin):
         self,
         order: "Order",
         product: "Product",
+        variant: "ProductVariant",
         address: Optional["Address"],
         previous_value: Decimal,
     ) -> Decimal:
