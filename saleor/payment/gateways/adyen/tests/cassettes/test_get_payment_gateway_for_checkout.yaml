@@ -14,36 +14,36 @@ interactions:
       Content-Type:
       - application/json
       User-Agent:
-      - adyen-python-api-library/4.0.0
+      - adyen-python-api-library/5.0.0
       x-api-key:
       - test_key
     method: POST
-    uri: https://checkout-test.adyen.com/v64/paymentMethods
+    uri: https://checkout-test.adyen.com/v67/paymentMethods
   response:
     body:
-      string: '{"groups":[{"name":"Credit Card","types":["visa","mc","amex","diners","discover"]}],"paymentMethods":[{"brands":["visa","mc","amex","diners","discover"],"details":[{"key":"encryptedCardNumber","type":"cardToken"},{"key":"encryptedSecurityCode","type":"cardToken"},{"key":"encryptedExpiryMonth","type":"cardToken"},{"key":"encryptedExpiryYear","type":"cardToken"},{"key":"holderName","optional":true,"type":"text"}],"name":"Credit
-        Card","type":"scheme"},{"configuration":{"intent":"capture"},"name":"PayPal","supportsRecurring":true,"type":"paypal"},{"name":"Paysafecard","supportsRecurring":true,"type":"paysafecard"},{"configuration":{"merchantDisplayName":"SaleorECOM","merchantIdentifier":"1000"},"details":[{"key":"applepay.token","type":"applePayToken"}],"name":"Apple
-        Pay","supportsRecurring":true,"type":"applepay"},{"configuration":{"merchantId":"1000","gatewayMerchantId":"SaleorECOM"},"details":[{"key":"paywithgoogle.token","type":"payWithGoogleToken"}],"name":"Google
-        Pay","supportsRecurring":true,"type":"paywithgoogle"}]}'
+      string: '{"paymentMethods":[{"brands":["visa","mc","amex","diners","discover"],"details":[{"key":"encryptedCardNumber","type":"cardToken"},{"key":"encryptedSecurityCode","type":"cardToken"},{"key":"encryptedExpiryMonth","type":"cardToken"},{"key":"encryptedExpiryYear","type":"cardToken"},{"key":"holderName","optional":true,"type":"text"}],"name":"Credit
+        Card","type":"scheme"},{"configuration":{"intent":"capture"},"name":"PayPal","type":"paypal"},{"name":"Paysafecard","type":"paysafecard"},{"configuration":{"merchantId":"1000","merchantName":"SaleorECOM"},"details":[{"key":"applepay.token","type":"applePayToken"}],"name":"Apple
+        Pay","type":"applepay"},{"configuration":{"merchantId":"1000","gatewayMerchantId":"SaleorECOM"},"details":[{"key":"paywithgoogle.token","type":"payWithGoogleToken"}],"name":"Google
+        Pay","type":"paywithgoogle"}]}'
     headers:
       Connection:
       - Keep-Alive
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Thu, 07 Jan 2021 08:30:32 GMT
+      - Mon, 29 Mar 2021 08:40:50 GMT
       Keep-Alive:
       - timeout=15, max=100
       Server:
       - Apache
       Set-Cookie:
-      - JSESSIONID=BF32081F757B98CBB0DD5177B5497D87.test3e; Path=/checkout; Secure;
+      - JSESSIONID=73392E2C59932808B5774FF38EEC17F1.test7e; Path=/checkout; Secure;
         HttpOnly
       Transfer-Encoding:
       - chunked
       pspReference:
-      - 851610008232020A
+      - 861617007250091C
     status:
       code: 200
-      message: OK
+      message: '200'
 version: 1

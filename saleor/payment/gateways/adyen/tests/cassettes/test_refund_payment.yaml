@@ -1,9 +1,9 @@
 interactions:
 - request:
     body: '{"merchantAccount": "SaleorECOM", "modificationAmount": {"value": "8000",
-      "currency": "USD"}, "originalReference": "882595494831959A", "reference": "UGF5bWVudDoxMTU4",
+      "currency": "USD"}, "originalReference": "882595494831959A", "reference": "UGF5bWVudDoxMjI=",
       "applicationInfo": {"adyenLibrary": {"name": "adyen-python-api-library", "version":
-      "4.0.0"}}}'
+      "5.0.0"}}}'
     headers:
       Accept:
       - '*/*'
@@ -16,7 +16,7 @@ interactions:
       Content-Type:
       - application/json
       User-Agent:
-      - adyen-python-api-library/4.0.0
+      - adyen-python-api-library/5.0.0
       x-api-key:
       - test_key
     method: POST
@@ -32,18 +32,18 @@ interactions:
       Content-Type:
       - application/json;charset=utf-8
       Date:
-      - Thu, 07 Jan 2021 08:47:13 GMT
+      - Mon, 29 Mar 2021 08:45:38 GMT
       Keep-Alive:
       - timeout=15, max=100
       Server:
       - Apache
       Set-Cookie:
-      - JSESSIONID=34EEEA766BB7A07B0C79B65D3598AC98.test103e; Path=/pal; Secure; HttpOnly
+      - JSESSIONID=9D37EDB4589FEE0CE7FB35F2B571DA50.test104e; Path=/pal; Secure; HttpOnly
       Transfer-Encoding:
       - chunked
       pspReference:
-      - 882610009233471H
+      - 882617007538759E
     status:
       code: 200
-      message: OK
+      message: '200'
 version: 1
