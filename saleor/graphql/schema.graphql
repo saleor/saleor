@@ -3736,6 +3736,10 @@ enum PaymentErrorCode {
   NOT_SUPPORTED_GATEWAY
 }
 
+input PaymentFilterInput {
+  checkouts: [ID]
+}
+
 type PaymentGateway {
   name: String!
   id: ID!
@@ -4603,7 +4607,7 @@ type Query {
   productVariants(ids: [ID], channel: String, filter: ProductVariantFilterInput, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   reportProductSales(period: ReportingPeriod!, channel: String!, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   payment(id: ID!): Payment
-  payments(before: String, after: String, first: Int, last: Int): PaymentCountableConnection
+  payments(filter: PaymentFilterInput, before: String, after: String, first: Int, last: Int): PaymentCountableConnection
   page(id: ID, slug: String): Page
   pages(sortBy: PageSortingInput, filter: PageFilterInput, before: String, after: String, first: Int, last: Int): PageCountableConnection
   pageType(id: ID!): PageType
@@ -5372,21 +5376,9 @@ type Transaction implements Node {
   token: String!
   kind: TransactionKind!
   isSuccess: Boolean!
-  error: TransactionError
+  error: String
+  gatewayResponse: JSONString!
   amount: Money
-}
-
-enum TransactionError {
-  TRANSACTIONERROR_INCORRECT_NUMBER
-  TRANSACTIONERROR_INVALID_NUMBER
-  TRANSACTIONERROR_INCORRECT_CVV
-  TRANSACTIONERROR_INVALID_CVV
-  TRANSACTIONERROR_INCORRECT_ZIP
-  TRANSACTIONERROR_INCORRECT_ADDRESS
-  TRANSACTIONERROR_INVALID_EXPIRY_DATE
-  TRANSACTIONERROR_EXPIRED
-  TRANSACTIONERROR_PROCESSING_ERROR
-  TRANSACTIONERROR_DECLINED
 }
 
 enum TransactionKind {
