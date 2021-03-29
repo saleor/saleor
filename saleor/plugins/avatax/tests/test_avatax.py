@@ -323,6 +323,50 @@ def test_calculate_checkout_subtotal(
     )
 
 
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_checkout_subtotal_for_product_without_tax(
+    checkout,
+    stock,
+    monkeypatch,
+    site_settings,
+    ship_to_pl_address,
+    shipping_zone,
+    address,
+    plugin_configuration,
+):
+    plugin_configuration()
+    variant = stock.product_variant
+    product = variant.product
+    product.charge_taxes = False
+    product.save(update_fields=["charge_taxes"])
+
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
+        lambda _: {"PC040156": "desc"},
+    )
+    manager = get_plugins_manager()
+    site_settings.company_address = address
+    site_settings.include_taxes_in_prices = True
+    site_settings.save()
+
+    checkout.shipping_address = ship_to_pl_address
+    checkout.shipping_method = shipping_zone.shipping_methods.get()
+    checkout.save()
+
+    quantity = 2
+    add_variant_to_checkout(checkout, variant, quantity)
+    lines = fetch_checkout_lines(checkout)
+    assert len(lines) == 1
+
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = manager.calculate_checkout_subtotal(checkout_info, lines, address, [])
+    total = quantize_price(total, total.currency)
+    expected_total = variant.channel_listings.first().price_amount * quantity
+    assert total == TaxedMoney(
+        net=Money(expected_total, "USD"), gross=Money(expected_total, "USD")
+    )
+
+
 @pytest.mark.vcr
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
 def test_calculate_order_shipping(
