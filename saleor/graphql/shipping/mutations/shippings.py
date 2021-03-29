@@ -175,6 +175,9 @@ class ShippingZoneMixin:
         remove_channels = cleaned_data.get("remove_channels")
         if remove_channels:
             instance.channels.remove(*remove_channels)
+            models.ShippingMethodChannelListing.objects.filter(
+                shipping_method__shipping_zone=instance, channel__in=remove_channels
+            ).delete()
 
 
 class ShippingZoneCreate(ShippingZoneMixin, ModelMutation):

@@ -2,6 +2,7 @@ import graphene
 import pytest
 
 from ....shipping.error_codes import ShippingErrorCode
+from ....shipping.models import ShippingMethodChannelListing
 from ....shipping.utils import get_countries_without_shipping_zone
 from ...core.enums import WeightUnitsEnum
 from ...tests.utils import get_graphql_content
@@ -461,7 +462,11 @@ def test_update_shipping_zone_remove_channels(
 ):
     shipping_zone.channels.add(channel_USD, channel_PLN)
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
-    channel_id = graphene.Node.to_global_id("Channel", channel_PLN.pk)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.pk)
+
+    assert ShippingMethodChannelListing.objects.filter(
+        shipping_method__shipping_zone=shipping_zone, channel=channel_USD
+    )
 
     variables = {
         "id": shipping_id,
@@ -477,7 +482,10 @@ def test_update_shipping_zone_remove_channels(
     data = content["data"]["shippingZoneUpdate"]["shippingZone"]
     assert len(data["channels"]) == 1
     assert data["channels"][0]["id"] == graphene.Node.to_global_id(
-        "Channel", channel_USD.pk
+        "Channel", channel_PLN.pk
+    )
+    assert not ShippingMethodChannelListing.objects.filter(
+        shipping_method__shipping_zone=shipping_zone, channel=channel_USD
     )
 
 
