@@ -111,6 +111,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `Shop.version` field to query API version - #6980 by @maarcingebala
 - Return empty results when filtering by non-existing attribute - #7025 by @maarcingebala
 - Add new authorization header `Authorization-Bearer` - #6998 by @korycins
+- Add field `paymentMethodType` to `Payment` object - #7073 by @korycins
 
 # 2.11.1
 
