@@ -31,6 +31,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Added support for querying objects by metadata fields - #6683 by @LeOndaz
 - Avoid using `get_plugins_manager` method - #7052 by @IKarbowiak
 - Add benchmarks for triggered product and variants webhooks - #7061 by @d-wysocki
+- Extend `Transaction` type with gateway response and `Payment` type with filter - #7062 by @IKarbowiak
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki

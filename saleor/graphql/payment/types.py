@@ -23,6 +23,7 @@ class Transaction(CountableDjangoObjectType):
             "kind",
             "is_success",
             "error",
+            "gateway_response",
         ]
 
     @staticmethod
