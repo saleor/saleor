@@ -1,6 +1,5 @@
 import graphene
 import pytest
-from graphql_relay import to_global_id
 
 from ....tests.utils import get_graphql_content
 
@@ -197,7 +196,7 @@ def test_create_collection(
     """
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     product_ids = [
-        to_global_id("Product", product.pk)
+        graphene.Node.to_global_id("Product", product.pk)
         for product in product_list_with_many_channels
     ]
     name = "test-name"
@@ -241,7 +240,7 @@ def test_delete_collection(
     """
     collection = collection_with_products[0].collections.first()
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
-    collection_id = to_global_id("Collection", collection.id)
+    collection_id = graphene.Node.to_global_id("Collection", collection.id)
 
     variables = {
         "id": collection_id,
@@ -284,8 +283,10 @@ def test_collection_add_products(
     """
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
-    collection_id = to_global_id("Collection", collection.id)
-    product_ids = [to_global_id("Product", product.pk) for product in product_list]
+    collection_id = graphene.Node.to_global_id("Collection", collection.id)
+    product_ids = [
+        graphene.Node.to_global_id("Product", product.pk) for product in product_list
+    ]
     variables = {"id": collection_id, "products": product_ids}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
@@ -324,9 +325,10 @@ def test_remove_products_from_collection(
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
     collection = collection_with_products[0].collections.first()
-    collection_id = to_global_id("Collection", collection.id)
+    collection_id = graphene.Node.to_global_id("Collection", collection.id)
     product_ids = [
-        to_global_id("Product", product.pk) for product in collection_with_products
+        graphene.Node.to_global_id("Product", product.pk)
+        for product in collection_with_products
     ]
     variables = {"id": collection_id, "products": product_ids}
     response = staff_api_client.post_graphql(

@@ -176,54 +176,6 @@ class AvataxPlugin(BasePlugin):
             total -= voucher_value
         return max(total, zero_taxed_money(total.currency))
 
-    def _calculate_checkout_subtotal(
-        self,
-        checkout_info: "CheckoutInfo",
-        lines: Iterable["CheckoutLineInfo"],
-        discounts: Iterable[DiscountInfo],
-        base_subtotal: TaxedMoney,
-    ) -> TaxedMoney:
-        currency = checkout_info.checkout.currency
-        response = get_checkout_tax_data(checkout_info, lines, discounts, self.config)
-        if not response or "error" in response:
-            return base_subtotal
-
-        sub_tax = Decimal(0.0)
-        sub_net = Decimal(0.0)
-        for line in response.get("lines", []):
-            if line["itemCode"] == "Shipping":
-                continue
-            sub_tax += Decimal(line["tax"])
-            sub_net += Decimal(line.get("lineAmount", 0.0))
-        sub_total_gross = Money(sub_net + sub_tax, currency)
-        sub_total_net = Money(sub_net, currency)
-        taxed_subtotal = TaxedMoney(net=sub_total_net, gross=sub_total_gross)
-        return self._append_prices_of_not_taxed_lines(
-            taxed_subtotal, lines, checkout_info.channel, discounts
-        )
-
-    def calculate_checkout_subtotal(
-        self,
-        checkout_info: "CheckoutInfo",
-        lines: Iterable["CheckoutLineInfo"],
-        address: Optional["Address"],
-        discounts: Iterable[DiscountInfo],
-        previous_value: TaxedMoney,
-    ) -> TaxedMoney:
-        if self._skip_plugin(previous_value):
-            return previous_value
-
-        base_subtotal = previous_value
-        if not _validate_checkout(checkout_info, lines):
-            return base_subtotal
-        response = get_checkout_tax_data(checkout_info, lines, discounts, self.config)
-        if not response or "error" in response:
-            return base_subtotal
-
-        return self._calculate_checkout_subtotal(
-            checkout_info, lines, discounts, base_subtotal
-        )
-
     def _calculate_checkout_shipping(
         self, currency: str, lines: List[Dict], shipping_price: TaxedMoney
     ) -> TaxedMoney:
