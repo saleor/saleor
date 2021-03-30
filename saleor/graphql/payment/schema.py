@@ -1,8 +1,9 @@
 import graphene
 
 from ...core.permissions import OrderPermissions
-from ..core.fields import PrefetchingConnectionField
+from ..core.fields import FilterInputConnectionField
 from ..decorators import permission_required
+from .filters import PaymentFilterInput
 from .mutations import PaymentCapture, PaymentInitialize, PaymentRefund, PaymentVoid
 from .resolvers import resolve_payments
 from .types import Payment
@@ -16,7 +17,11 @@ class PaymentQueries(graphene.ObjectType):
             graphene.ID, description="ID of the payment.", required=True
         ),
     )
-    payments = PrefetchingConnectionField(Payment, description="List of payments.")
+    payments = FilterInputConnectionField(
+        Payment,
+        filter=PaymentFilterInput(description="Filtering options for payments."),
+        description="List of payments.",
+    )
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_payment(self, info, **data):
