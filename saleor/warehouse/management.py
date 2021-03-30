@@ -222,14 +222,15 @@ def increase_stock(
 def increase_allocations(lines_info: Iterable["OrderLineData"]):
     """Increase allocation for order lines with appropriate quantity."""
     for line_info in lines_info:
-        allocated = line_info.line.allocations.all().aggregate(
-            Sum("quantity_allocated")
+        allocation_list = line_info.line.allocations.select_related(
+            "stock"
+        ).select_for_update(of=("self", "stock"))
+        allocated = sum(
+            [allocation.quantity_allocated for allocation in allocation_list]
         )
         # drop all allocations of order line
         line_info.line.allocations.all().delete()
-        line_info.quantity = (
-            allocated["quantity_allocated__sum"] or 0
-        ) + line_info.quantity
+        line_info.quantity += allocated
         # create new allocations in stocks
         allocate_stocks(
             [line_info],
