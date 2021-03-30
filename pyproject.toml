@@ -51,7 +51,7 @@ purl = "^1.5"
 python-magic-bin = {version = "^0.4.14", platform = "win32"}
 razorpay = "^1.2"
 requests = "^2.22"
-sentry-sdk = "^0"
+sentry-sdk = "^1.0"
 stripe = "^2.47.0"
 text-unidecode = "^1.2"
 tqdm = "^4.47"
