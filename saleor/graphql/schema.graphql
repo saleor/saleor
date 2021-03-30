@@ -1075,7 +1075,7 @@ type CollectionAddProducts {
 type CollectionBulkDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   count: Int!
-  productErrors: [ProductError!]!
+  collectionErrors: [CollectionError!]!
 }
 
 type CollectionChannelListing implements Node {
@@ -3677,6 +3677,7 @@ type Payment implements Node {
   token: String!
   checkout: Checkout
   order: Order
+  paymentMethodType: String!
   customerIpAddress: String
   chargeStatus: PaymentChargeStatusEnum!
   actions: [OrderAction]!
@@ -3735,6 +3736,10 @@ enum PaymentErrorCode {
   SHIPPING_METHOD_NOT_SET
   PAYMENT_ERROR
   NOT_SUPPORTED_GATEWAY
+}
+
+input PaymentFilterInput {
+  checkouts: [ID]
 }
 
 type PaymentGateway {
@@ -4604,7 +4609,7 @@ type Query {
   productVariants(ids: [ID], channel: String, filter: ProductVariantFilterInput, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   reportProductSales(period: ReportingPeriod!, channel: String!, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   payment(id: ID!): Payment
-  payments(before: String, after: String, first: Int, last: Int): PaymentCountableConnection
+  payments(filter: PaymentFilterInput, before: String, after: String, first: Int, last: Int): PaymentCountableConnection
   page(id: ID, slug: String): Page
   pages(sortBy: PageSortingInput, filter: PageFilterInput, before: String, after: String, first: Int, last: Int): PageCountableConnection
   pageType(id: ID!): PageType
@@ -5373,21 +5378,9 @@ type Transaction implements Node {
   token: String!
   kind: TransactionKind!
   isSuccess: Boolean!
-  error: TransactionError
+  error: String
+  gatewayResponse: JSONString!
   amount: Money
-}
-
-enum TransactionError {
-  TRANSACTIONERROR_INCORRECT_NUMBER
-  TRANSACTIONERROR_INVALID_NUMBER
-  TRANSACTIONERROR_INCORRECT_CVV
-  TRANSACTIONERROR_INVALID_CVV
-  TRANSACTIONERROR_INCORRECT_ZIP
-  TRANSACTIONERROR_INCORRECT_ADDRESS
-  TRANSACTIONERROR_INVALID_EXPIRY_DATE
-  TRANSACTIONERROR_EXPIRED
-  TRANSACTIONERROR_PROCESSING_ERROR
-  TRANSACTIONERROR_DECLINED
 }
 
 enum TransactionKind {

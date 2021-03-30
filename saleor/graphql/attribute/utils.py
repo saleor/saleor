@@ -266,7 +266,7 @@ class AttributeAssignmentMixin:
         """Lazy-retrieve or create the database object from the supplied raw value."""
         value_model = attribute.values.model
         text = attr_values.values[0] if attr_values.values else ""
-        # don't create ne value when assignment already exists
+        # don't create new value when assignment already exists
         value = cls._get_assigned_attribute_value_if_exists(
             instance, attribute, "name", text
         )
@@ -277,7 +277,6 @@ class AttributeAssignmentMixin:
                 name=text,
                 slug=slugify(text, allow_unicode=True),
             )
-
         return (value,)
 
     @classmethod
@@ -399,7 +398,6 @@ class AttributeAssignmentMixin:
         :param cleaned_input: the cleaned user input (refer to clean_attributes)
         """
         for attribute, attr_values in cleaned_input:
-
             if attribute.input_type == AttributeInputType.FILE:
                 attribute_values = cls._pre_save_file_value(
                     instance, attribute, attr_values
