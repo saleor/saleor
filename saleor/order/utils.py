@@ -191,7 +191,9 @@ def update_taxes_for_order_line(
     line.unit_price = price
     line.total_price = line.unit_price * line.quantity
     if price.tax and price.net:
-        line.tax_rate = manager.get_order_line_tax_rate(order, product, None, price)
+        line.tax_rate = manager.get_order_line_tax_rate(
+            order, product, variant, None, price
+        )
 
 
 def update_taxes_for_order_lines(
@@ -330,7 +332,7 @@ def add_variant_to_draft_order(order, variant, quantity, manager, discounts=None
         unit_price = manager.calculate_order_line_unit(order, line, variant, product)
         line.unit_price = unit_price
         line.tax_rate = manager.get_order_line_tax_rate(
-            order, product, None, unit_price
+            order, product, variant, None, unit_price
         )
         line.save(
             update_fields=[

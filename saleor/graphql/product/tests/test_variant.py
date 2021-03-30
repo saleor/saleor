@@ -1103,7 +1103,7 @@ def test_create_variant_with_text_attribute(
     created_webhook_mock.assert_called_once_with(product.variants.last())
 
 
-def test_create_variant_attributes_save_error(
+def test_create_variant_with_text_attribute_length_exceeded(
     permission_manage_products,
     product,
     product_type,
@@ -1153,11 +1153,11 @@ def test_create_variant_attributes_save_error(
         "attributes": [attr_id],
         "code": ProductErrorCode.INVALID.name,
         "field": "attributes",
-        "message": ANY,
+        "message": "Attribute value length is exceeded.",
     }
 
 
-def test_create_product_variant_update_with_new_attributes(
+def test_product_variant_update_with_new_attributes(
     staff_api_client, permission_manage_products, product, size_attribute
 ):
     query = """
