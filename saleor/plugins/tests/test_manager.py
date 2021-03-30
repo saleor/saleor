@@ -195,6 +195,7 @@ def test_manager_get_order_line_tax_rate_sample_plugin(order_with_lines):
     tax_rate = PluginsManager(plugins=plugins).get_order_line_tax_rate(
         order,
         product,
+        line.variant,
         None,
         unit_price,
     )
@@ -217,6 +218,7 @@ def test_manager_get_order_line_tax_rate_no_plugins(
     tax_rate = PluginsManager(plugins=[]).get_order_line_tax_rate(
         order,
         product,
+        line.variant,
         None,
         unit_price,
     )
