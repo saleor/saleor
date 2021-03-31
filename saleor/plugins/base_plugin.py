@@ -20,9 +20,9 @@ from .models import PluginConfiguration
 if TYPE_CHECKING:
     # flake8: noqa
     from ..account.models import Address, User
-    from ..channel.models import Channel
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout
+    from ..core.notify_events import NotifyEventType
     from ..core.taxes import TaxType
     from ..discount import DiscountInfo
     from ..invoice.models import Invoice
@@ -30,18 +30,19 @@ if TYPE_CHECKING:
     from ..page.models import Page
     from ..product.models import Product, ProductType, ProductVariant
 
-
 PluginConfigurationType = List[dict]
 
 
 class ConfigurationTypeField:
     STRING = "String"
+    MULTILINE = "Multiline"
     BOOLEAN = "Boolean"
     SECRET = "Secret"
     SECRET_MULTILINE = "SecretMultiline"
     PASSWORD = "Password"
     CHOICES = [
         (STRING, "Field is a String"),
+        (MULTILINE, "Field is a Multiline"),
         (BOOLEAN, "Field is a Boolean"),
         (SECRET, "Field is a Secret"),
         (PASSWORD, "Field is a Password"),
@@ -136,6 +137,13 @@ class BasePlugin:
         """Handle received http request.
 
         Overwrite this method if the plugin expects the incoming requests.
+        """
+        return NotImplemented
+
+    def notify(self, event: "NotifyEventType", payload: dict, previous_value):
+        """Handle notification request.
+
+        Overwrite this method if the plugin is responsible for sending notifications.
         """
         return NotImplemented
 

@@ -15,7 +15,7 @@ from ..account.types import Address, AddressInput, StaffNotificationRecipient
 from ..channel import ChannelContext
 from ..checkout.types import PaymentGateway
 from ..core.connection import CountableDjangoObjectType
-from ..core.enums import WeightUnitsEnum
+from ..core.enums import LanguageCodeEnum, WeightUnitsEnum
 from ..core.types.common import CountryDisplay, LanguageDisplay, Permission
 from ..core.utils import str_to_enum
 from ..decorators import (
@@ -26,7 +26,6 @@ from ..decorators import (
 from ..menu.dataloaders import MenuByIdLoader
 from ..menu.types import Menu
 from ..shipping.types import ShippingMethod
-from ..translations.enums import LanguageCodeEnum
 from ..translations.fields import TranslationField
 from ..translations.resolvers import resolve_translation
 from ..translations.types import ShopTranslation

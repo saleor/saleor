@@ -573,7 +573,7 @@ def get_valid_shipping_methods_for_checkout(
         checkout_info.checkout,
         channel_id=checkout_info.checkout.channel_id,
         price=subtotal.gross,
-        country_code=country_code,
+        country_code=country_code,  # type: ignore
         lines=lines,
     )
 

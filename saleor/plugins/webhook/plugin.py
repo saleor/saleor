@@ -1,5 +1,7 @@
+import json
 from typing import TYPE_CHECKING, Any, List, Optional
 
+from ...core.utils.json_serializer import CustomJsonEncoder
 from ...webhook.event_types import WebhookEventType
 from ...webhook.payloads import (
     generate_checkout_payload,
@@ -18,6 +20,7 @@ from .tasks import trigger_webhooks_for_event
 if TYPE_CHECKING:
     from ...account.models import User
     from ...checkout.models import Checkout
+    from ...core.notify_events import NotifyEventType
     from ...invoice.models import Invoice
     from ...order.models import Fulfillment, Order
     from ...page.models import Page
@@ -183,6 +186,14 @@ class WebhookPlugin(BasePlugin):
         checkout_data = generate_checkout_payload(checkout)
         trigger_webhooks_for_event.delay(
             WebhookEventType.CHECKOUT_UPADTED, checkout_data
+        )
+
+    def notify(self, event: "NotifyEventType", payload: dict, previous_value) -> Any:
+        if not self.active:
+            return previous_value
+        data = {"notify_event": event, "payload": payload}
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.NOTIFY_USER, json.dumps(data, cls=CustomJsonEncoder)
         )
 
     def page_created(self, page: "Page", previous_value: Any) -> Any:

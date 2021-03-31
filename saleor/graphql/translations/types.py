@@ -11,10 +11,10 @@ from ...shipping import models as shipping_models
 from ...site import models as site_models
 from ..channel import ChannelContext
 from ..core.connection import CountableDjangoObjectType
+from ..core.enums import LanguageCodeEnum
 from ..core.types import LanguageDisplay
 from ..core.utils import str_to_enum
 from ..decorators import permission_required
-from .enums import LanguageCodeEnum
 from .fields import TranslationField
 
 BASIC_TRANSLATABLE_FIELDS = ["id", "name"]
