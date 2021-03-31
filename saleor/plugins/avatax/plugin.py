@@ -402,14 +402,6 @@ class AvataxPlugin(BasePlugin):
             gross=order.shipping_method.price,  # type: ignore
         )
 
-    def order_line_deleted(
-        self, order: "Order", order_line: "OrderLine", previous_value: Any
-    ) -> Any:
-        if self._skip_plugin(previous_value):
-            return previous_value
-
-        get_order_tax_data(order, self.config, True)
-
     def get_tax_rate_type_choices(self, previous_value: Any) -> List[TaxType]:
         if not self.active:
             return previous_value
