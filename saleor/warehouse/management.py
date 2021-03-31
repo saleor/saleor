@@ -227,6 +227,8 @@ def increase_allocations(lines_info: Iterable["OrderLineData"]):
         .select_related("stock", "order_line")
         .select_for_update(of=("self", "stock"))
     )
+    # evaluate allocations query to trigger select_for_update lock
+    allocation_pks_to_delete = [alloc.pk for alloc in allocations]
     allocation_quantity_map: Dict[int, list] = defaultdict(list)
 
     for alloc in allocations:
@@ -237,7 +239,7 @@ def increase_allocations(lines_info: Iterable["OrderLineData"]):
         # line_info.quantity resembles amount to add, sum it with already allocated.
         line_info.quantity += allocated
 
-    allocations.delete()
+    Allocation.objects.filter(pk__in=allocation_pks_to_delete).delete()
 
     allocate_stocks(
         lines_info,
