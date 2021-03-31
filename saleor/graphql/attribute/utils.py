@@ -490,8 +490,6 @@ def validate_attributes_input(
             validate_file_attributes_input(*attrs)
         elif attribute.input_type == AttributeInputType.REFERENCE:
             validate_reference_attributes_input(*attrs)
-        elif attribute.input_type == AttributeInputType.TEXT:
-            validate_text_attributes_input(*attrs)
         # validation for other input types
         else:
             validate_standard_attributes_input(*attrs)
@@ -550,6 +548,8 @@ def validate_standard_attributes_input(
     variant_validation: bool,
 ):
     attribute_id = attr_values.global_id
+    name_field = attribute.values.model.name.field  # type: ignore
+
     if not attr_values.values:
         if attribute.value_required or (
             variant_validation and is_variant_selection_attribute(attribute)
@@ -564,25 +564,14 @@ def validate_standard_attributes_input(
         attribute_errors[
             AttributeInputErrors.ERROR_DROPDOWN_GET_MORE_THAN_ONE_VALUE
         ].append(attribute_id)
+
     for value in attr_values.values:
         if value is None or not value.strip():
             attribute_errors[AttributeInputErrors.ERROR_BLANK_VALUE].append(
                 attribute_id
             )
-
-
-def validate_text_attributes_input(
-    attribute: "Attribute",
-    attr_values: "AttrValuesInput",
-    attribute_errors: T_ERROR_DICT,
-    variant_validation: bool,
-):
-    name_field = attribute.values.model.name.field  # type: ignore
-    attribute_id = attr_values.global_id
-    text = attr_values.values[0] if attr_values.values else ""
-
-    if len(text) > name_field.max_length:
-        attribute_errors[AttributeInputErrors.ERROR_MAX_LENGTH].append(attribute_id)
+        elif len(value) > name_field.max_length:
+            attribute_errors[AttributeInputErrors.ERROR_MAX_LENGTH].append(attribute_id)
 
 
 def is_variant_selection_attribute(attribute: attribute_models.Attribute):
