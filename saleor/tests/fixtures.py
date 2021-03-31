@@ -66,6 +66,7 @@ from ..page.models import Page, PageTranslation, PageType
 from ..payment import ChargeStatus, TransactionKind
 from ..payment.interface import GatewayConfig, PaymentData
 from ..payment.models import Payment
+from ..plugins.manager import get_plugins_manager
 from ..plugins.models import PluginConfiguration
 from ..plugins.vatlayer.plugin import VatlayerPlugin
 from ..product import ProductMediaTypes
@@ -2620,7 +2621,7 @@ def fulfilled_order_with_all_cancelled_fulfillments(
     fulfilled_order, staff_user, warehouse
 ):
     fulfillment = fulfilled_order.fulfillments.get()
-    cancel_fulfillment(fulfillment, staff_user, warehouse)
+    cancel_fulfillment(fulfillment, staff_user, warehouse, get_plugins_manager())
     return fulfilled_order
 
 
@@ -2692,6 +2693,30 @@ def payment_txn_captured(order_with_lines, payment_dummy):
         kind=TransactionKind.CAPTURE,
         gateway_response={},
         is_success=True,
+    )
+    return payment
+
+
+@pytest.fixture
+def payment_txn_capture_failed(order_with_lines, payment_dummy):
+    order = order_with_lines
+    payment = payment_dummy
+    payment.order = order
+    payment.charge_status = ChargeStatus.REFUSED
+    payment.save()
+
+    payment.transactions.create(
+        amount=payment.total,
+        currency=payment.currency,
+        kind=TransactionKind.CAPTURE_FAILED,
+        gateway_response={
+            "status": 403,
+            "errorCode": "901",
+            "message": "Invalid Merchant Account",
+            "errorType": "security",
+        },
+        error="invalid",
+        is_success=False,
     )
     return payment
 

@@ -310,7 +310,7 @@ class OrderUpdateShipping(BaseMutation):
             info.context.site.settings.include_taxes_in_prices,
         )
         # Post-process the results
-        order_shipping_updated(order)
+        order_shipping_updated(order, info.context.plugins)
         return OrderUpdateShipping(order=order)
 
 
@@ -383,7 +383,7 @@ class OrderCancel(BaseMutation):
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         clean_order_cancel(order)
-        cancel_order(order=order, user=info.context.user)
+        cancel_order(order=order, user=info.context.user, manager=info.context.plugins)
         return OrderCancel(order=order)
 
 
@@ -419,7 +419,9 @@ class OrderMarkAsPaid(BaseMutation):
             order, info.context.user, None, clean_mark_order_as_paid, order
         )
 
-        mark_order_as_paid(order, info.context.user, transaction_reference)
+        mark_order_as_paid(
+            order, info.context.user, info.context.plugins, transaction_reference
+        )
         return OrderMarkAsPaid(order=order)
 
 
@@ -455,12 +457,20 @@ class OrderCapture(BaseMutation):
         clean_order_capture(payment)
 
         transaction = try_payment_action(
-            order, info.context.user, payment, gateway.capture, payment, amount
+            order,
+            info.context.user,
+            payment,
+            gateway.capture,
+            payment,
+            info.context.plugins,
+            amount,
         )
         # Confirm that we changed the status to capture. Some payment can receive
         # asynchronous webhook with update status
         if transaction.kind == TransactionKind.CAPTURE:
-            order_captured(order, info.context.user, amount, payment)
+            order_captured(
+                order, info.context.user, amount, payment, info.context.plugins
+            )
         return OrderCapture(order=order)
 
 
@@ -483,12 +493,17 @@ class OrderVoid(BaseMutation):
         clean_void_payment(payment)
 
         transaction = try_payment_action(
-            order, info.context.user, payment, gateway.void, payment
+            order,
+            info.context.user,
+            payment,
+            gateway.void,
+            payment,
+            info.context.plugins,
         )
         # Confirm that we changed the status to void. Some payment can receive
         # asynchronous webhook with update status
         if transaction.kind == TransactionKind.VOID:
-            order_voided(order, info.context.user, payment)
+            order_voided(order, info.context.user, payment, info.context.plugins)
         return OrderVoid(order=order)
 
 
@@ -524,7 +539,13 @@ class OrderRefund(BaseMutation):
         clean_refund_payment(payment)
 
         transaction = try_payment_action(
-            order, info.context.user, payment, gateway.refund, payment, amount
+            order,
+            info.context.user,
+            payment,
+            gateway.refund,
+            payment,
+            info.context.plugins,
+            amount,
         )
 
         # Confirm that we changed the status to refund. Some payment can receive
@@ -580,10 +601,11 @@ class OrderConfirm(ModelMutation):
         order.status = OrderStatus.UNFULFILLED
         order.save(update_fields=["status"])
         payment = order.get_last_payment()
+        manager = info.context.plugins
         if payment and payment.is_authorized and payment.can_capture():
-            gateway.capture(payment)
-            order_captured(order, info.context.user, payment.total, payment)
-        order_confirmed(order, info.context.user, send_confirmation_email=True)
+            gateway.capture(payment, info.context.plugins)
+            order_captured(order, info.context.user, payment.total, payment, manager)
+        order_confirmed(order, info.context.user, manager, send_confirmation_email=True)
         return OrderConfirm(order=order)
 
 
@@ -662,11 +684,15 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
             raise ValidationError({"input": error})
 
     @staticmethod
-    def add_lines_to_order(order, lines_to_add):
+    def add_lines_to_order(order, lines_to_add, manager):
         try:
             return [
                 add_variant_to_order(
-                    order, variant, quantity, allocate_stock=order.is_unconfirmed()
+                    order,
+                    variant,
+                    quantity,
+                    manager,
+                    allocate_stock=order.is_unconfirmed(),
                 )
                 for quantity, variant in lines_to_add
             ]
@@ -684,7 +710,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         variants = [line[1] for line in lines_to_add]
         cls.validate_variants(order, variants)
 
-        lines = cls.add_lines_to_order(order, lines_to_add)
+        lines = cls.add_lines_to_order(order, lines_to_add, info.context.plugins)
 
         # Create the products added event
         events.order_added_products_event(

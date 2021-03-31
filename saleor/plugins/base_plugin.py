@@ -163,21 +163,6 @@ class BasePlugin:
         """
         return NotImplemented
 
-    def calculate_checkout_subtotal(
-        self,
-        checkout_info: "CheckoutInfo",
-        lines: List["CheckoutLineInfo"],
-        address: Optional["Address"],
-        discounts: List["DiscountInfo"],
-        previous_value: TaxedMoney,
-    ) -> TaxedMoney:
-        """Calculate the subtotal for checkout.
-
-        Overwrite this method if you need to apply specific logic for the calculation
-        of a checkout subtotal. Return TaxedMoney.
-        """
-        return NotImplemented
-
     def calculate_checkout_shipping(
         self,
         checkout_info: "CheckoutInfo",
@@ -203,10 +188,10 @@ class BasePlugin:
         """
         return NotImplemented
 
-    # TODO: Add information about this change to `breaking changes in changelog`
     def calculate_checkout_line_total(
         self,
         checkout_info: "CheckoutInfo",
+        lines: List["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
@@ -222,6 +207,7 @@ class BasePlugin:
     def calculate_checkout_line_unit_price(
         self,
         checkout_info: "CheckoutInfo",
+        lines: List["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
@@ -250,6 +236,7 @@ class BasePlugin:
     def get_checkout_line_tax_rate(
         self,
         checkout_info: "CheckoutInfo",
+        lines: List["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
@@ -261,6 +248,7 @@ class BasePlugin:
         self,
         order: "Order",
         product: "Product",
+        variant: "ProductVariant",
         address: Optional["Address"],
         previous_value: Decimal,
     ) -> Decimal:
@@ -611,28 +599,22 @@ class BasePlugin:
     def token_is_required_as_payment_input(self, previous_value):
         return previous_value
 
-    def get_payment_gateway(
-        self, currency: Optional[str], previous_value
-    ) -> Optional["PaymentGateway"]:
+    def get_payment_gateways(
+        self, currency: Optional[str], checkout: Optional["Checkout"], previous_value
+    ) -> List["PaymentGateway"]:
         payment_config = self.get_payment_config(previous_value)
         payment_config = payment_config if payment_config != NotImplemented else []
         currencies = self.get_supported_currencies(previous_value=[])
         currencies = currencies if currencies != NotImplemented else []
         if currency and currency not in currencies:
-            return None
-        return PaymentGateway(
+            return []
+        gateway = PaymentGateway(
             id=self.PLUGIN_ID,
             name=self.PLUGIN_NAME,
             config=payment_config,
             currencies=currencies,
         )
-
-    def get_payment_gateway_for_checkout(
-        self,
-        checkout: "Checkout",
-        previous_value,
-    ) -> Optional["PaymentGateway"]:
-        return self.get_payment_gateway(checkout.currency, previous_value)
+        return [gateway]
 
     @classmethod
     def _update_config_items(

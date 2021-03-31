@@ -74,12 +74,6 @@ class PluginSample(BasePlugin):
         total = Money("1.0", currency=checkout_info.checkout.currency)
         return TaxedMoney(total, total)
 
-    def calculate_checkout_subtotal(
-        self, checkout_info, lines, address, discounts, previous_value
-    ):
-        subtotal = Money("1.0", currency=checkout_info.checkout.currency)
-        return TaxedMoney(subtotal, subtotal)
-
     def calculate_checkout_shipping(
         self, checkout_info, lines, address, discounts, previous_value
     ):
@@ -93,6 +87,7 @@ class PluginSample(BasePlugin):
     def calculate_checkout_line_total(
         self,
         checkout_info: "CheckoutInfo",
+        lines: Iterable["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
@@ -104,6 +99,7 @@ class PluginSample(BasePlugin):
     def calculate_checkout_line_unit_price(
         self,
         checkout_info: "CheckoutInfo",
+        lines: Iterable["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
@@ -182,6 +178,7 @@ class PluginSample(BasePlugin):
     def get_checkout_line_tax_rate(
         self,
         checkout_info: "CheckoutInfo",
+        lines: Iterable["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
@@ -193,6 +190,7 @@ class PluginSample(BasePlugin):
         self,
         order: "Order",
         product: "Product",
+        variant: "ProductVariant",
         address: Optional["Address"],
         previous_value: Decimal,
     ) -> Decimal:

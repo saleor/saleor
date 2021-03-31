@@ -253,35 +253,40 @@ class AdyenGatewayPlugin(BasePlugin):
         return previous_value
 
     @require_active_plugin
-    def get_payment_gateway_for_checkout(
-        self,
-        checkout: "Checkout",
-        previous_value,
-    ) -> Optional["PaymentGateway"]:
+    def get_payment_gateways(
+        self, currency: Optional[str], checkout: Optional["Checkout"], previous_value
+    ) -> List["PaymentGateway"]:
+        local_config = self._get_gateway_config()
+        config = [
+            {
+                "field": "client_key",
+                "value": local_config.connection_params["client_key"],
+            }
+        ]
 
-        config = self._get_gateway_config()
-        request = request_data_for_gateway_config(
-            checkout, config.connection_params["merchant_account"]
-        )
-        with opentracing.global_tracer().start_active_span(
-            "adyen.checkout.payment_methods"
-        ) as scope:
-            span = scope.span
-            span.set_tag(opentracing.tags.COMPONENT, "payment")
-            span.set_tag("service.name", "adyen")
-            response = api_call(request, self.adyen.checkout.payment_methods)
-        return PaymentGateway(
+        if checkout:
+            # If checkout is available, fetch available payment methods from Adyen API
+            # and append them to the config object returned for the gateway.
+            request = request_data_for_gateway_config(
+                checkout, local_config.connection_params["merchant_account"]
+            )
+            with opentracing.global_tracer().start_active_span(
+                "adyen.checkout.payment_methods"
+            ) as scope:
+                span = scope.span
+                span.set_tag(opentracing.tags.COMPONENT, "payment")
+                span.set_tag("service.name", "adyen")
+                response = api_call(request, self.adyen.checkout.payment_methods)
+                adyen_payment_methods = json.dumps(response.message)
+                config.append({"field": "config", "value": adyen_payment_methods})
+
+        gateway = PaymentGateway(
             id=self.PLUGIN_ID,
             name=self.PLUGIN_NAME,
-            config=[
-                {
-                    "field": "client_key",
-                    "value": config.connection_params["client_key"],
-                },
-                {"field": "config", "value": json.dumps(response.message)},
-            ],
+            config=config,
             currencies=self.get_supported_currencies([]),
         )
+        return [gateway]
 
     @property
     def order_auto_confirmation(self):
