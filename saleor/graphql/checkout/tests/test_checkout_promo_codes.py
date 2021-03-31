@@ -5,11 +5,7 @@ import graphene
 from prices import Money
 
 from ....checkout import calculations
-from ....checkout.fetch import (
-    CheckoutLineInfo,
-    fetch_checkout_info,
-    fetch_checkout_lines,
-)
+from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import add_voucher_to_checkout
 from ....discount import DiscountInfo, VoucherType
 from ....plugins.manager import get_plugins_manager
@@ -157,20 +153,13 @@ def test_checkout_totals_use_discounts(
     assert data["totalPrice"]["gross"]["amount"] == taxed_total.gross.amount
     assert data["subtotalPrice"]["gross"]["amount"] == taxed_total.gross.amount
 
-    line = checkout.lines.first()
-    checkout_line_info = CheckoutLineInfo(
-        line=line,
-        variant=line.variant,
-        channel_listing=line.variant.channel_listings.get(channel=channel_USD),
-        product=line.variant.product,
-        collections=[],
-    )
-    checkout_info = fetch_checkout_info(
-        checkout, [checkout_line_info], discounts, manager
-    )
+    lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+    checkout_line_info = lines[0]
     line_total = calculations.checkout_line_total(
         manager=manager,
         checkout_info=checkout_info,
+        lines=lines,
         checkout_line_info=checkout_line_info,
         discounts=discounts,
     )

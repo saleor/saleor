@@ -216,7 +216,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             lines = []
             for variant, quantity in zip(variants, quantities):
                 lines.append((quantity, variant))
-                add_variant_to_order(instance, variant, quantity)
+                add_variant_to_order(instance, variant, quantity, info.context.plugins)
 
             # New event
             events.order_added_products_event(
@@ -380,6 +380,8 @@ class DraftOrderComplete(BaseMutation):
                 except InsufficientStock as exc:
                     errors = prepare_insufficient_stock_order_validation_errors(exc)
                     raise ValidationError({"lines": errors})
-        order_created(order, user=info.context.user, from_draft=True)
+        order_created(
+            order, user=info.context.user, manager=info.context.plugins, from_draft=True
+        )
 
         return DraftOrderComplete(order=order)

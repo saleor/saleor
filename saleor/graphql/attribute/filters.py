@@ -7,7 +7,7 @@ from ...attribute.models import Attribute
 from ...product.models import Category, Product
 from ..attribute.enums import AttributeTypeEnum
 from ..channel.filters import get_channel_slug_from_filter_data
-from ..core.filters import EnumFilter
+from ..core.filters import EnumFilter, MetadataFilterBase
 from ..core.types import ChannelFilterInputObjectType
 from ..core.utils import from_global_id_strict_type
 from ..utils import get_user_or_app_from_context
@@ -58,7 +58,7 @@ def filter_attribute_type(qs, _, value):
     return qs.filter(type=value)
 
 
-class AttributeFilter(django_filters.FilterSet):
+class AttributeFilter(MetadataFilterBase):
     # Search by attribute name and slug
     search = django_filters.CharFilter(
         method=filter_fields_containing_value("slug", "name")

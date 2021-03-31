@@ -333,8 +333,8 @@ class User(CountableDjangoObjectType):
     def resolve_orders(root: models.User, info, **_kwargs):
         viewer = info.context.user
         if viewer.has_perm(OrderPermissions.MANAGE_ORDERS):
-            return root.orders.all()  # type: ignore
-        return root.orders.confirmed()  # type: ignore
+            return root.orders.all()
+        return root.orders.non_draft()
 
     @staticmethod
     def resolve_avatar(root: models.User, info, size=None, **_kwargs):
@@ -352,7 +352,7 @@ class User(CountableDjangoObjectType):
         from .resolvers import resolve_payment_sources
 
         if root == info.context.user:
-            return resolve_payment_sources(root)
+            return resolve_payment_sources(info, root)
         raise PermissionDenied()
 
     @staticmethod
