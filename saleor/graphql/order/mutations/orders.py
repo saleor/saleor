@@ -583,7 +583,7 @@ class OrderConfirm(ModelMutation):
                     )
                 }
             )
-        if not instance.lines.count():
+        if not instance.lines.exists():
             raise ValidationError(
                 {
                     "id": ValidationError(
