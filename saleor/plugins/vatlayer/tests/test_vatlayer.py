@@ -699,7 +699,9 @@ def test_get_order_line_tax_rate(
 
     unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
-    tax_rate = manager.get_order_line_tax_rate(order, product, address, unit_price)
+    tax_rate = manager.get_order_line_tax_rate(
+        order, product, order_line.variant, address, unit_price
+    )
     assert tax_rate == Decimal("0.230")
 
 
@@ -721,7 +723,9 @@ def test_get_order_line_tax_rate_order_no_address_given(
 
     unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
-    tax_rate = manager.get_order_line_tax_rate(order, product, None, unit_price)
+    tax_rate = manager.get_order_line_tax_rate(
+        order, product, order_line.variant, None, unit_price
+    )
     assert tax_rate == Decimal("0.25")
 
 
