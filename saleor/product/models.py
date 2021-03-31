@@ -423,11 +423,8 @@ class ProductVariantQueryset(models.QuerySet):
 
     def prefetched_for_webhook(self):
         return self.prefetch_related(
-            "channel_listings",
             "attributes__values",
             "attributes__assignment__attribute",
-            "variant_media__media",
-            "product",
         )
 
 

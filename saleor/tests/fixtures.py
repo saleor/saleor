@@ -2685,6 +2685,30 @@ def payment_txn_captured(order_with_lines, payment_dummy):
 
 
 @pytest.fixture
+def payment_txn_capture_failed(order_with_lines, payment_dummy):
+    order = order_with_lines
+    payment = payment_dummy
+    payment.order = order
+    payment.charge_status = ChargeStatus.REFUSED
+    payment.save()
+
+    payment.transactions.create(
+        amount=payment.total,
+        currency=payment.currency,
+        kind=TransactionKind.CAPTURE_FAILED,
+        gateway_response={
+            "status": 403,
+            "errorCode": "901",
+            "message": "Invalid Merchant Account",
+            "errorType": "security",
+        },
+        error="invalid",
+        is_success=False,
+    )
+    return payment
+
+
+@pytest.fixture
 def payment_txn_to_confirm(order_with_lines, payment_dummy):
     order = order_with_lines
     payment = payment_dummy

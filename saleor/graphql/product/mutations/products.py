@@ -638,6 +638,7 @@ class ProductCreate(ModelMutation):
                 "product_type__attributeproduct",
             )
             return cls.get_node_or_error(info, object_id, only_type="Product", qs=qs)
+
         return super().get_instance(info, **data)
 
     @classmethod
@@ -718,6 +719,7 @@ class ProductDelete(ModelDeleteMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         node_id = data.get("id")
+
         instance = cls.get_node_or_error(info, node_id, only_type=Product)
         variants_id = list(instance.variants.all().values_list("id", flat=True))
         # get draft order lines for variant
