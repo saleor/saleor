@@ -11,6 +11,7 @@ from ..management import (
     deallocate_stock,
     deallocate_stock_for_order,
     decrease_stock,
+    increase_allocations,
     increase_stock,
 )
 from ..models import Allocation
@@ -32,7 +33,7 @@ def test_allocate_stocks(order_line, stock):
     assert allocation.quantity_allocated == 50
 
 
-def test_allocate_stocks_multiply_lines(order_line, order, product, stock):
+def test_allocate_stocks_multiple_lines(order_line, order, product, stock):
     stock.quantity = 100
     stock.save(update_fields=["quantity"])
 
@@ -126,7 +127,7 @@ def test_allocate_stock_insufficient_stocks(order_line, variant_with_many_stocks
     ).exists()
 
 
-def test_allocate_stock_insufficient_stocks_for_multiply_lines(
+def test_allocate_stock_insufficient_stocks_for_multiple_lines(
     order_line, variant_with_many_stocks, product
 ):
     variant = variant_with_many_stocks
@@ -274,6 +275,62 @@ def test_increase_stock_with_new_allocation(order_line, stock):
     assert allocation.quantity_allocated == 50
 
 
+@pytest.mark.parametrize("quantity", (19, 20))
+def test_increase_allocations(quantity, allocation):
+    order_line = allocation.order_line
+    order_line_info = OrderLineData(
+        line=order_line,
+        quantity=quantity,
+        variant=order_line.variant,
+        warehouse_pk=allocation.stock.warehouse.pk,
+    )
+    stock = allocation.stock
+    stock.quantity = 100
+    stock.save(update_fields=["quantity"])
+    initially_allocated = 80
+    allocation.quantity_allocated = initially_allocated
+    allocation.save(update_fields=["quantity_allocated"])
+
+    increase_allocations([order_line_info])
+
+    stock.refresh_from_db()
+    assert stock.quantity == 100
+    assert (
+        order_line.allocations.all().aggregate(Sum("quantity_allocated"))[
+            "quantity_allocated__sum"
+        ]
+        == initially_allocated + quantity
+    )
+
+
+def test_increase_allocation_insufficient_stock(allocation):
+    order_line = allocation.order_line
+    order_line_info = OrderLineData(
+        line=order_line,
+        quantity=21,
+        variant=order_line.variant,
+        warehouse_pk=allocation.stock.warehouse.pk,
+    )
+    stock = allocation.stock
+    stock.quantity = 100
+    stock.save(update_fields=["quantity"])
+    initially_allocated = 80
+    allocation.quantity_allocated = initially_allocated
+    allocation.save(update_fields=["quantity_allocated"])
+
+    with pytest.raises(InsufficientStock):
+        increase_allocations([order_line_info])
+
+    stock.refresh_from_db()
+    assert stock.quantity == 100
+    assert (
+        order_line.allocations.all().aggregate(Sum("quantity_allocated"))[
+            "quantity_allocated__sum"
+        ]
+        == initially_allocated
+    )
+
+
 def test_decrease_stock(allocation):
     stock = allocation.stock
     stock.quantity = 100
@@ -299,7 +356,34 @@ def test_decrease_stock(allocation):
     assert allocation.quantity_allocated == 30
 
 
-def test_decrease_stock_multiply_lines(allocations):
+@pytest.mark.parametrize("quantity, expected_allocated", ((50, 30), (200, 0)))
+def test_decrease_stock_without_stock_update(quantity, expected_allocated, allocation):
+    stock = allocation.stock
+    stock.quantity = 100
+    stock.save(update_fields=["quantity"])
+    allocation.quantity_allocated = 80
+    allocation.save(update_fields=["quantity_allocated"])
+    warehouse_pk = allocation.stock.warehouse.pk
+
+    decrease_stock(
+        [
+            OrderLineData(
+                line=allocation.order_line,
+                quantity=quantity,
+                variant=stock.product_variant,
+                warehouse_pk=warehouse_pk,
+            )
+        ],
+        update_stocks=False,
+    )
+
+    stock.refresh_from_db()
+    assert stock.quantity == 100
+    allocation.refresh_from_db()
+    assert allocation.quantity_allocated == expected_allocated
+
+
+def test_decrease_stock_multiple_lines(allocations):
     allocation_1 = allocations[0]
     allocation_2 = allocations[0]
 
