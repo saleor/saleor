@@ -222,7 +222,7 @@ def increase_stock(
 def increase_allocations(lines_info: Iterable["OrderLineData"]):
     """Increase allocation for order lines with appropriate quantity."""
     line_pks = [info.line.pk for info in lines_info]
-    allocations = (
+    allocations = list(
         Allocation.objects.filter(order_line__in=line_pks)
         .select_related("stock", "order_line")
         .select_for_update(of=("self", "stock"))
