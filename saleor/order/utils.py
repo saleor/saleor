@@ -331,6 +331,7 @@ def add_variant_to_draft_order(order, variant, quantity, manager, discounts=None
         )
         unit_price = manager.calculate_order_line_unit(order, line, variant, product)
         line.unit_price = unit_price
+        line.total_price = unit_price * quantity
         line.tax_rate = manager.get_order_line_tax_rate(
             order, product, variant, None, unit_price
         )
@@ -339,6 +340,8 @@ def add_variant_to_draft_order(order, variant, quantity, manager, discounts=None
                 "currency",
                 "unit_price_net_amount",
                 "unit_price_gross_amount",
+                "total_price_net_amount",
+                "total_price_gross_amount",
                 "tax_rate",
             ]
         )
