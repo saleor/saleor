@@ -5,9 +5,8 @@ from django.contrib.auth import password_validation
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 
-from ....account import emails
 from ....account import events as account_events
-from ....account import models, utils
+from ....account import models, notifications, utils
 from ....account.error_codes import AccountErrorCode
 from ....checkout import AddressType
 from ....core.jwt import create_token, jwt_decode
@@ -15,6 +14,7 @@ from ....core.utils.url import validate_storefront_url
 from ....settings import JWT_TTL_REQUEST_EMAIL_CHANGE
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
+from ...core.enums import LanguageCodeEnum
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types.common import AccountError
 from ..i18n import I18nMixin
@@ -34,6 +34,9 @@ class AccountRegisterInput(graphene.InputObjectType):
             "Base of frontend URL that will be needed to create confirmation URL."
         ),
         required=False,
+    )
+    language_code = graphene.Argument(
+        LanguageCodeEnum, required=False, description="User language code."
     )
 
 
@@ -89,7 +92,7 @@ class AccountRegister(ModelMutation):
             password_validation.validate_password(password, instance)
         except ValidationError as error:
             raise ValidationError({"password": error})
-
+        data["language_code"] = data.get("language_code", settings.LANGUAGE_CODE)
         return super().clean_input(info, instance, data, input_cls=None)
 
     @classmethod
@@ -99,7 +102,9 @@ class AccountRegister(ModelMutation):
         if settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL:
             user.is_active = False
             user.save()
-            emails.send_account_confirmation_email(user, cleaned_input["redirect_url"])
+            notifications.send_account_confirmation(
+                user, cleaned_input["redirect_url"], info.context.plugins
+            )
         else:
             user.save()
         account_events.customer_account_created_event(user=user)
@@ -114,6 +119,9 @@ class AccountInput(graphene.InputObjectType):
     )
     default_shipping_address = AddressInput(
         description="Shipping address of the customer."
+    )
+    language_code = graphene.Argument(
+        LanguageCodeEnum, required=False, description="User language code."
     )
 
 
@@ -173,7 +181,9 @@ class AccountRequestDeletion(BaseMutation):
             raise ValidationError(
                 {"redirect_url": error}, code=AccountErrorCode.INVALID
             )
-        emails.send_account_delete_confirmation_email_with_url(redirect_url, user)
+        notifications.send_account_delete_confirmation_notification(
+            redirect_url, user, info.context.plugins
+        )
         return AccountRequestDeletion()
 
 
@@ -399,7 +409,9 @@ class RequestEmailChange(BaseMutation):
             "user_pk": user.pk,
         }
         token = create_token(token_payload, JWT_TTL_REQUEST_EMAIL_CHANGE)
-        emails.send_user_change_email_url(redirect_url, user, new_email, token)
+        notifications.send_request_user_change_email_notification(
+            redirect_url, user, new_email, token, info.context.plugins
+        )
         return RequestEmailChange(user=user)
 
 
@@ -455,11 +467,8 @@ class ConfirmEmailChange(BaseMutation):
 
         user.email = new_email
         user.save(update_fields=["email"])
-        emails.send_user_change_email_notification(old_email)
-        event_parameters = {"old_email": old_email, "new_email": new_email}
-
-        account_events.customer_email_changed_event(
-            user=user, parameters=event_parameters
+        notifications.send_user_change_email_notification(
+            old_email, user, info.context.plugins
         )
         info.context.plugins.customer_updated(user)
         return ConfirmEmailChange(user=user)
