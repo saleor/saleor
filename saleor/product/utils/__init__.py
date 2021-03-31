@@ -44,7 +44,7 @@ def delete_categories(categories_ids: List[str], manager):
     categories = Category.objects.select_for_update().filter(pk__in=categories_ids)
     categories.prefetch_related("products")
 
-    products = Product.objects.prefetched_product_for_webhook().none()
+    products = Product.objects.none()
     for category in categories:
         products = products | collect_categories_tree_products(category)
 
@@ -52,6 +52,7 @@ def delete_categories(categories_ids: List[str], manager):
         is_published=False, publication_date=None
     )
     products = list(products)
+
     categories.delete()
     product_ids = [product.id for product in products]
     for product in products:
@@ -62,7 +63,7 @@ def delete_categories(categories_ids: List[str], manager):
 
 def collect_categories_tree_products(category: "Category") -> "QuerySet[Product]":
     """Collect products from all levels in category tree."""
-    products = category.products.all()
+    products = category.products.prefetched_for_webhook(single_object=False)
     descendants = category.get_descendants()
     for descendant in descendants:
         products = products | descendant.products.all()

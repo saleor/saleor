@@ -230,7 +230,7 @@ class CollectionCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        products = instance.products.prefetched_product_for_webhook().all()
+        products = instance.products.prefetched_for_webhook(single_object=False)
         for product in products:
             info.context.plugins.product_updated(product)
 
@@ -258,6 +258,7 @@ class CollectionUpdate(CollectionCreate):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
+        """Override this method with `pass` to avoid triggering product webhook."""
         pass
 
     @classmethod
@@ -283,7 +284,7 @@ class CollectionDelete(ModelDeleteMutation):
         node_id = kwargs.get("id")
 
         instance = cls.get_node_or_error(info, node_id, only_type=Collection)
-        products = list(instance.products.prefetched_product_for_webhook().all())
+        products = list(instance.products.prefetched_for_webhook(single_object=False))
 
         result = super().perform_mutation(_root, info, **kwargs)
         for product in products:
@@ -406,7 +407,7 @@ class CollectionAddProducts(BaseMutation):
             products,
             "products",
             Product,
-            qs=models.Product.objects.prefetched_product_for_webhook(),
+            qs=models.Product.objects.prefetched_for_webhook(single_object=False),
         )
         cls.clean_products(products)
         collection.products.add(*products)
@@ -468,7 +469,7 @@ class CollectionRemoveProducts(BaseMutation):
             products,
             "products",
             only_type=Product,
-            qs=models.Product.objects.prefetched_product_for_webhook(),
+            qs=models.Product.objects.prefetched_for_webhook(single_object=False),
         )
         collection.products.remove(*products)
         for product in products:
@@ -635,9 +636,8 @@ class ProductCreate(ModelMutation):
             qs = cls.Meta.model.objects.prefetch_related(
                 "product_type__product_attributes__values",
                 "product_type__attributeproduct",
-            ).prefetched_product_for_webhook()
+            )
             return cls.get_node_or_error(info, object_id, only_type="Product", qs=qs)
-
         return super().get_instance(info, **data)
 
     @classmethod
@@ -696,7 +696,6 @@ class ProductUpdate(ProductCreate):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        # TODO: add prefetch related
         info.context.plugins.product_updated(instance)
 
 
@@ -719,7 +718,6 @@ class ProductDelete(ModelDeleteMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         node_id = data.get("id")
-
         instance = cls.get_node_or_error(info, node_id, only_type=Product)
         variants_id = list(instance.variants.all().values_list("id", flat=True))
         # get draft order lines for variant
@@ -1424,7 +1422,7 @@ class ProductVariantSetDefault(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, product_id, variant_id):
-        qs = models.Product.objects.prefetched_product_for_webhook()
+        qs = models.Product.objects.prefetched_for_webhook()
         product = cls.get_node_or_error(
             info, product_id, field="product_id", only_type=Product, qs=qs
         )
@@ -1480,7 +1478,7 @@ class ProductVariantReorder(BaseMutation):
         pk = from_global_id_strict_type(product_id, only_type=Product, field="id")
 
         try:
-            product = models.Product.objects.prefetched_product_for_webhook().get(pk=pk)
+            product = models.Product.objects.prefetched_for_webhook().get(pk=pk)
         except ObjectDoesNotExist:
             raise ValidationError(
                 {
@@ -1566,7 +1564,7 @@ class VariantMediaAssign(BaseMutation):
         media = cls.get_node_or_error(
             info, media_id, field="media_id", only_type=ProductMedia
         )
-        qs = models.ProductVariant.objects.prefetch_variant_updated()
+        qs = models.ProductVariant.objects.prefetched_for_webhook()
         variant = cls.get_node_or_error(
             info, variant_id, field="variant_id", only_type=ProductVariant, qs=qs
         )
@@ -1614,7 +1612,7 @@ class VariantMediaUnassign(BaseMutation):
         media = cls.get_node_or_error(
             info, media_id, field="image_id", only_type=ProductMedia
         )
-        qs = models.ProductVariant.objects.prefetch_variant_updated()
+        qs = models.ProductVariant.objects.prefetched_for_webhook()
         variant = cls.get_node_or_error(
             info, variant_id, field="variant_id", only_type=ProductVariant, qs=qs
         )
