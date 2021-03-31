@@ -665,7 +665,9 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
     def add_lines_to_order(order, lines_to_add):
         try:
             return [
-                add_variant_to_order(order, variant, quantity)
+                add_variant_to_order(
+                    order, variant, quantity, allocate_stock=order.is_unconfirmed()
+                )
                 for quantity, variant in lines_to_add
             ]
         except TaxError as tax_error:

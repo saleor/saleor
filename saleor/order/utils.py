@@ -295,7 +295,9 @@ def update_order_status(order):
 
 
 @transaction.atomic
-def add_variant_to_order(order, variant, quantity, discounts=None):
+def add_variant_to_order(
+    order, variant, quantity, discounts=None, allocate_stock=False
+):
     """Add total_quantity of variant to order.
 
     Returns an order line the variant was added to.
@@ -352,7 +354,7 @@ def add_variant_to_order(order, variant, quantity, discounts=None):
             ]
         )
 
-    if line.order.is_unconfirmed():
+    if allocate_stock:
         increase_allocations(
             [
                 OrderLineData(

@@ -221,21 +221,28 @@ def increase_stock(
 @transaction.atomic
 def increase_allocations(lines_info: Iterable["OrderLineData"]):
     """Increase allocation for order lines with appropriate quantity."""
+    line_pks = [info.line.pk for info in lines_info]
+    allocations = (
+        Allocation.objects.filter(order_line__in=line_pks)
+        .select_related("stock", "order_line")
+        .select_for_update(of=("self", "stock"))
+    )
+    allocation_quantity_map: Dict[int, list] = defaultdict(list)
+
+    for alloc in allocations:
+        allocation_quantity_map[alloc.order_line.pk].append(alloc.quantity_allocated)
+
+    allocations.delete()
+
     for line_info in lines_info:
-        allocation_list = line_info.line.allocations.select_related(
-            "stock"
-        ).select_for_update(of=("self", "stock"))
-        allocated = sum(
-            [allocation.quantity_allocated for allocation in allocation_list]
-        )
-        # drop all allocations of order line
-        line_info.line.allocations.all().delete()
+        allocated = sum(allocation_quantity_map[line_info.line.pk])
+        # line_info.quantity resembles amount to add, sum it with already allocated.
         line_info.quantity += allocated
-        # create new allocations in stocks
-        allocate_stocks(
-            [line_info],
-            line_info.line.order.shipping_address.country.code,  # type: ignore
-        )
+
+    allocate_stocks(
+        lines_info,
+        lines_info[0].line.order.shipping_address.country.code,  # type: ignore
+    )
 
 
 def decrease_allocations(lines_info: Iterable["OrderLineData"]):
