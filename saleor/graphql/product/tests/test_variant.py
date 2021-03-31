@@ -1050,7 +1050,7 @@ def test_create_variant_invalid_variant_attributes(
         assert error in errors
 
 
-def test_create_product_variant_update_with_new_attributes(
+def test_product_variant_update_with_new_attributes(
     staff_api_client, permission_manage_products, product, size_attribute
 ):
     query = """
@@ -3474,6 +3474,35 @@ def test_variant_stocks_update_stock_duplicated_warehouse(
     assert errors[0]["code"] == StockErrorCode.UNIQUE.name
     assert errors[0]["field"] == "warehouse"
     assert errors[0]["index"] == 2
+
+
+def test_product_variant_stocks_update_too_big_quantity_value(
+    staff_api_client, variant, warehouse, permission_manage_products
+):
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    second_warehouse = Warehouse.objects.get(pk=warehouse.pk)
+    second_warehouse.slug = "second warehouse"
+    second_warehouse.pk = None
+    second_warehouse.save()
+
+    Stock.objects.create(product_variant=variant, warehouse=warehouse, quantity=10)
+
+    quantity = 99999999999
+    stocks = [
+        {
+            "warehouse": graphene.Node.to_global_id("Warehouse", second_warehouse.id),
+            "quantity": 99999999999,
+        },
+    ]
+    variables = {"variantId": variant_id, "stocks": stocks}
+    response = staff_api_client.post_graphql(VARIANT_STOCKS_UPDATE_MUTATIONS, variables)
+    content = get_graphql_content(response, ignore_errors=True)
+    assert len(content["errors"]) == 1
+    assert (
+        content["errors"][0]["message"]
+        == f"Int cannot represent non 32-bit signed integer value: {quantity}"
+    )
 
 
 VARIANT_STOCKS_DELETE_MUTATION = """
