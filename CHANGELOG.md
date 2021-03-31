@@ -76,6 +76,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix doubling price in checkout for products without tax - #7056 by @IKarbowiak
   - Introduce changes in plugins method:
     - `calculate_checkout_subtotal` has been dropped from plugins, for correct subtotal calculation, `calculate_checkout_line_total` must be set (manager method for calculating checkout subtotal uses `calculate_checkout_line_total` method)
+- Make `order` property of invoice webhook payload contain order instead of order lines - #7081 by @pdblaszczyk
+  - Affected webhook events: `INVOICE_REQUESTED`, `INVOICE_SENT`, `INVOICE_DELETED`
 
 ### Other
 

@@ -568,7 +568,7 @@ def test_update_order_prices_tax_included(order_with_lines, vatlayer, site_setti
 
 def _calculate_order_weight_from_lines(order):
     weight = zero_weight()
-    for line in order:
+    for line in order.lines.all():
         weight += line.variant.get_weight() * line.quantity
     return weight
 

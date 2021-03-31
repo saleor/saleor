@@ -171,7 +171,7 @@ def recalculate_order(order: Order, **kwargs):
 def recalculate_order_weight(order):
     """Recalculate order weights."""
     weight = zero_weight()
-    for line in order:
+    for line in order.lines.all():
         if line.variant:
             weight += line.variant.get_weight() * line.quantity
     order.weight = weight
@@ -410,7 +410,7 @@ def restock_order_lines(order):
     ).first()
 
     dellocating_stock_lines: List[OrderLineData] = []
-    for line in order:
+    for line in order.lines.all():
         if line.variant and line.variant.track_inventory:
             if line.quantity_unfulfilled > 0:
                 dellocating_stock_lines.append(
