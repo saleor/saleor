@@ -778,7 +778,7 @@ def text_attribute(db):
     attribute = Attribute.objects.create(
         slug="text",
         name="Text",
-        type=AttributeInputType.TEXT,
+        type=AttributeType.PRODUCT_TYPE,
         input_type=AttributeInputType.TEXT,
         filterable_in_storefront=True,
         filterable_in_dashboard=True,
@@ -1148,6 +1148,7 @@ def product_type(color_attribute, size_attribute):
         has_variants=True,
         is_shipping_required=True,
     )
+
     product_type.product_attributes.add(color_attribute)
     product_type.variant_attributes.add(size_attribute)
     return product_type

@@ -2534,6 +2534,66 @@ def test_create_product_description_plaintext(
     assert product.description_plaintext == description
 
 
+def test_create_product_with_text_attribute(
+    staff_api_client,
+    product_type,
+    category,
+    text_attribute,
+    color_attribute,
+    permission_manage_products,
+    product,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_slug = "product-test-slug"
+
+    # Add second attribute
+    product_type.product_attributes.add(text_attribute)
+    text_attribute_id = graphene.Node.to_global_id("Attribute", text_attribute.id)
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "attributes": [{"id": text_attribute_id, "values": ["Cool text"]}],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["productErrors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == product_slug
+    assert data["product"]["productType"]["name"] == product_type.name
+    assert data["product"]["category"]["name"] == category.name
+    _, product_id = graphene.Node.from_global_id(data["product"]["id"])
+    expected_attributes_data = [
+        {
+            "attribute": {"slug": "text"},
+            "values": [
+                {
+                    "slug": "cool-text",
+                    "name": "Cool text",
+                    "reference": None,
+                    "file": None,
+                }
+            ],
+        },
+        {"attribute": {"slug": color_attribute.slug}, "values": []},
+    ]
+    for attr_data in data["product"]["attributes"]:
+        assert attr_data in expected_attributes_data
+
+
 SEARCH_PRODUCTS_QUERY = """
     query Products(
         $filters: ProductFilterInput, $sortBy: ProductOrder, $channel: String
@@ -3265,66 +3325,6 @@ def test_create_product_with_product_reference_attribute_required_no_references(
             "Attribute", product_type_product_reference_attribute.pk
         )
     ]
-
-
-def test_create_product_with_text_attribute(
-    staff_api_client,
-    product_type,
-    category,
-    text_attribute,
-    color_attribute,
-    permission_manage_products,
-    product,
-):
-    query = CREATE_PRODUCT_MUTATION
-
-    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
-    category_id = graphene.Node.to_global_id("Category", category.pk)
-    product_name = "test name"
-    product_slug = "product-test-slug"
-
-    # Add second attribute
-    product_type.product_attributes.add(text_attribute)
-    text_attribute_id = graphene.Node.to_global_id("Attribute", text_attribute.id)
-
-    # test creating root product
-    variables = {
-        "input": {
-            "productType": product_type_id,
-            "category": category_id,
-            "name": product_name,
-            "slug": product_slug,
-            "attributes": [{"id": text_attribute_id, "values": ["Cool text"]}],
-        }
-    }
-
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["productCreate"]
-    assert data["productErrors"] == []
-    assert data["product"]["name"] == product_name
-    assert data["product"]["slug"] == product_slug
-    assert data["product"]["productType"]["name"] == product_type.name
-    assert data["product"]["category"]["name"] == category.name
-    _, product_id = graphene.Node.from_global_id(data["product"]["id"])
-    expected_attributes_data = [
-        {
-            "attribute": {"slug": "text"},
-            "values": [
-                {
-                    "slug": "cool-text",
-                    "name": "Cool text",
-                    "reference": None,
-                    "file": None,
-                }
-            ],
-        },
-        {"attribute": {"slug": color_attribute.slug}, "values": []},
-    ]
-    for attr_data in data["product"]["attributes"]:
-        assert attr_data in expected_attributes_data
 
 
 def test_create_product_no_values_given(
@@ -5617,6 +5617,47 @@ def test_product_type_create_mutation(
     new_instance = ProductType.objects.latest("pk")
     tax_code = manager.get_tax_code_from_object_meta(new_instance).code
     assert tax_code == "wine"
+
+
+def test_create_product_type_with_text_attribute(
+    staff_api_client,
+    product_type,
+    permission_manage_product_types_and_attributes,
+    text_attribute,
+):
+    query = PRODUCT_TYPE_CREATE_MUTATION
+    product_type_name = "test type"
+    slug = "test-type"
+
+    product_type.product_attributes.add(text_attribute)
+
+    product_attributes_ids = [
+        graphene.Node.to_global_id("Attribute", attr.id)
+        for attr in product_type.product_attributes.all()
+    ]
+
+    variables = {
+        "name": product_type_name,
+        "slug": slug,
+        "productAttributes": product_attributes_ids,
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productTypeCreate"]["productType"]
+    errors = content["data"]["productTypeCreate"]["productErrors"]
+
+    assert not errors
+    assert data["name"] == product_type_name
+    assert data["slug"] == slug
+    expected_attributes = [
+        {"name": "Color", "values": [{"name": "Red"}, {"name": "Blue"}]},
+        {"name": "Text", "values": [{"name": "Some cool text"}]},
+    ]
+    for attribute in data["productAttributes"]:
+        assert attribute in expected_attributes
 
 
 @pytest.mark.parametrize(
