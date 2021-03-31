@@ -299,12 +299,16 @@ class ProductsQueryset(models.QuerySet):
             f"{ordering}name",
         )
 
-    def prefetched_product_for_webhook(self):
+    def prefetched_for_webhook(self, single_object=True):
+        if single_object:
+            return self.prefetch_related(
+                "attributes__values",
+                "attributes__assignment__attribute",
+            )
         return self.prefetch_related(
             "attributes__values",
             "attributes__assignment__attribute",
             "collections",
-            "variants__stocks",
             "variants__stocks__allocations",
             "category",
         )
@@ -417,7 +421,7 @@ class ProductVariantQueryset(models.QuerySet):
             ),
         )
 
-    def prefetch_variant_updated(self):
+    def prefetched_for_webhook(self):
         return self.prefetch_related(
             "channel_listings",
             "attributes__values",

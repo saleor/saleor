@@ -146,7 +146,7 @@ class ProductVariantTranslate(BaseTranslateMutation):
             )
 
         variant_pk = from_global_id_strict_type(data["id"], ProductVariant, field="id")
-        variant = product_models.ProductVariant.objects.prefetch_variant_updated().get(
+        variant = product_models.ProductVariant.objects.prefetched_for_webhook().get(
             pk=variant_pk
         )
         variant.translations.update_or_create(
