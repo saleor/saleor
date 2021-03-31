@@ -26,6 +26,8 @@ def populate_email_config_in_user_email_plugin(apps, schema):
         "username": email_config["EMAIL_HOST_USER"],
         "password": email_config["EMAIL_HOST_PASSWORD"],
         "sender_address": getattr(settings, "DEFAULT_FROM_EMAIL"),
+        "use_tls": email_config["EMAIL_USE_TLS"],
+        "use_ssl": email_config["EMAIL_USE_SSL"],
     }
 
     if not all(
