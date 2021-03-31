@@ -232,12 +232,12 @@ def increase_allocations(lines_info: Iterable["OrderLineData"]):
     for alloc in allocations:
         allocation_quantity_map[alloc.order_line.pk].append(alloc.quantity_allocated)
 
-    allocations.delete()
-
     for line_info in lines_info:
         allocated = sum(allocation_quantity_map[line_info.line.pk])
         # line_info.quantity resembles amount to add, sum it with already allocated.
         line_info.quantity += allocated
+
+    allocations.delete()
 
     allocate_stocks(
         lines_info,
