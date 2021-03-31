@@ -532,7 +532,7 @@ def test_assign_page_attribute_to_product_type(
     assert errors[0]["attributes"] == [tag_page_attr_id]
 
 
-def test_assign_attribute_to_product_type_multiply_errors_returned(
+def test_assign_attribute_to_product_type_multiple_errors_returned(
     staff_api_client,
     permission_manage_product_types_and_attributes,
     color_attribute,

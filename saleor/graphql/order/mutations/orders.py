@@ -3,9 +3,10 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 
 from ....account.models import User
+from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError, zero_taxed_money
-from ....order import OrderStatus, events, models
+from ....order import OrderLineData, OrderStatus, events, models
 from ....order.actions import (
     cancel_order,
     clean_mark_order_as_paid,
@@ -664,7 +665,9 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
     def add_lines_to_order(order, lines_to_add):
         try:
             return [
-                add_variant_to_order(order, variant, quantity)
+                add_variant_to_order(
+                    order, variant, quantity, allocate_stock=order.is_unconfirmed()
+                )
                 for quantity, variant in lines_to_add
             ]
         except TaxError as tax_error:
@@ -709,12 +712,22 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, id):
-        line = cls.get_node_or_error(info, id, only_type=OrderLine)
+        line = cls.get_node_or_error(
+            info,
+            id,
+            only_type=OrderLine,
+        )
         order = line.order
         cls.validate_order(line.order)
 
         db_id = line.id
-        delete_order_line(line)
+        line_info = OrderLineData(
+            line=line,
+            quantity=line.quantity,
+            variant=line.variant,
+            warehouse_pk=line.allocations.first().stock.warehouse.pk,
+        )
+        delete_order_line(line_info)
         line.id = db_id
 
         # Create the removal event
@@ -762,9 +775,21 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
-        change_order_line_quantity(
-            info.context.user, instance, instance.old_quantity, instance.quantity
+        line_info = OrderLineData(
+            line=instance,
+            quantity=instance.quantity,
+            variant=instance.variant,
+            warehouse_pk=instance.allocations.first().stock.warehouse.pk,
         )
+        try:
+            change_order_line_quantity(
+                info.context.user, line_info, instance.old_quantity, instance.quantity
+            )
+        except InsufficientStock:
+            raise ValidationError(
+                "Cannot set new quantity because of insufficient stock.",
+                code=OrderErrorCode.INSUFFICIENT_STOCK,
+            )
         recalculate_order(instance.order)
 
     @classmethod
