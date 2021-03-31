@@ -21,6 +21,7 @@ from ...core.mutations import BaseMutation, ModelBulkDeleteMutation, ModelMutati
 from ...core.types.common import (
     BulkProductError,
     BulkStockError,
+    CollectionError,
     ProductError,
     StockError,
 )
@@ -67,8 +68,8 @@ class CollectionBulkDelete(ModelBulkDeleteMutation):
         description = "Deletes collections."
         model = models.Collection
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        error_type_class = ProductError
-        error_type_field = "product_errors"
+        error_type_class = CollectionError
+        error_type_field = "collection_errors"
 
 
 class ProductBulkDelete(ModelBulkDeleteMutation):
@@ -384,7 +385,6 @@ class ProductVariantBulkCreate(BaseMutation):
                     ValidationError(exc.message, exc.code, params={"index": index})
                 )
 
-            cleaned_input = None
             variant_data["product_type"] = product.product_type
             variant_data["product"] = product
             cleaned_input = cls.clean_variant_input(

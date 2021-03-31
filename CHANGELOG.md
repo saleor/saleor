@@ -31,9 +31,11 @@ All notable, unreleased changes to this project will be documented in this file.
 - Added support for querying objects by metadata fields - #6683 by @LeOndaz
 - Avoid using `get_plugins_manager` method - #7052 by @IKarbowiak
 - Add field `languageCode` to types: `AccountInput`, `AccountRegisterInput`, `CheckoutCreateInput`, `CustomerInput`, `Order`, `User`. Add field `languageCodeEnum` to `Order` type. Add new mutation `CheckoutLanguageCodeUpdate`. Deprecate field `Order.languageCode`.  - #6609 by @korycins
+- Add benchmarks for triggered product and variants webhooks - #7061 by @d-wysocki
 - Extend `Transaction` type with gateway response and `Payment` type with filter - #7062 by @IKarbowiak
 - Fix invalid tax rates for lines - #7058 by @IKarbowiak
 - Allow seeing unconfirmed orders - #7072 by @IKarbowiak
+- Raise GraphQLError when too big integer value is provided - #7076 by @IKarbowiak
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -70,6 +72,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Remove triggering a webhook event `PRODUCT_UPDATED`  when calling `ProductVariantCreate` mutation.  Use `PRODUCT_VARIANT_CREATED` instead - #6963 by @piotrgrundas
 - Remove triggering a webhook event `PRODUCT_UPDATED` when calling  `ProductVariantChannelListingUpdate` mutation. Use `PRODUCT_VARIANT_UPDATED` instead - #6963 by @piotrgrundas
 - Refactor listing payment gateways - #7050 by @maarcingebala. Breaking changes in plugin methods: removed `get_payment_gateway` and `get_payment_gateway_for_checkout`; instead `get_payment_gateways` was added.
+- Change error class in `CollectionBulkDelete` to `CollectionErrors` - #7061 by @d-wysocki
 - Fix doubling price in checkout for products without tax - #7056 by @IKarbowiak
   - Introduce changes in plugins method:
     - `calculate_checkout_subtotal` has been dropped from plugins, for correct subtotal calculation, `calculate_checkout_line_total` must be set (manager method for calculating checkout subtotal uses `calculate_checkout_line_total` method)

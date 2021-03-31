@@ -29,6 +29,7 @@ from ..core.exceptions import PermissionDenied, ReadOnlyException
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
 
 API_PATH = SimpleLazyObject(lambda: reverse("api"))
+INT_ERROR_MSG = "Int cannot represent non 32-bit signed integer value"
 
 unhandled_errors_logger = logging.getLogger("saleor.graphql.errors.unhandled")
 handled_errors_logger = logging.getLogger("saleor.graphql.errors.handled")
@@ -291,6 +292,11 @@ class GraphQLView(View):
                     return response
             except Exception as e:
                 span.set_tag(opentracing.tags.ERROR, True)
+                # In the graphql-core version that we are using,
+                # the Exception is raised for too big integers value.
+                # As it's a validation error we want to raise GraphQLError instead.
+                if str(e).startswith(INT_ERROR_MSG):
+                    e = GraphQLError(str(e))
                 return ExecutionResult(errors=[e], invalid=True)
 
     @staticmethod
