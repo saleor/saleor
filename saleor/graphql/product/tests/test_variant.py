@@ -1,3 +1,4 @@
+import json
 from unittest.mock import ANY, patch
 from uuid import uuid4
 
@@ -15,7 +16,7 @@ from ....order import OrderStatus
 from ....order.models import OrderLine
 from ....product.error_codes import ProductErrorCode
 from ....product.models import Product, ProductChannelListing, ProductVariant
-from ....tests.utils import flush_post_commit_hooks
+from ....tests.utils import dummy_editorjs, flush_post_commit_hooks
 from ....warehouse.error_codes import StockErrorCode
 from ....warehouse.models import Stock, Warehouse
 from ...core.enums import WeightUnitsEnum
@@ -293,6 +294,7 @@ CREATE_VARIANT_MUTATION = """
                                 name
                                 slug
                                 reference
+                                richText
                                 file {
                                     url
                                     contentType
@@ -628,12 +630,14 @@ def test_create_variant_with_page_reference_attribute(
         {
             "slug": f"{variant_pk}_{page_list[0].pk}",
             "file": None,
+            "richText": None,
             "reference": page_ref_1,
             "name": page_list[0].title,
         },
         {
             "slug": f"{variant_pk}_{page_list[1].pk}",
             "file": None,
+            "richText": None,
             "reference": page_ref_2,
             "name": page_list[1].title,
         },
@@ -770,12 +774,14 @@ def test_create_variant_with_product_reference_attribute(
         {
             "slug": f"{variant_pk}_{product_list[0].pk}",
             "file": None,
+            "richText": None,
             "reference": product_ref_1,
             "name": product_list[0].name,
         },
         {
             "slug": f"{variant_pk}_{product_list[1].pk}",
             "file": None,
+            "richText": None,
             "reference": product_ref_2,
             "name": product_list[1].name,
         },
@@ -1057,18 +1063,18 @@ def test_create_variant_with_text_attribute(
     product,
     product_type,
     staff_api_client,
-    text_attribute,
+    rich_text_attribute,
     warehouse,
 ):
-    product_type.variant_attributes.add(text_attribute)
+    product_type.variant_attributes.add(rich_text_attribute)
     query = CREATE_VARIANT_MUTATION
     product_id = graphene.Node.to_global_id("Product", product.pk)
     sku = "1"
     price = 1.32
     cost_price = 3.22
     weight = 10.22
-    attr_id = graphene.Node.to_global_id("Attribute", text_attribute.id)
-    text = "Sample text"
+    attr_id = graphene.Node.to_global_id("Attribute", rich_text_attribute.id)
+    rich_text = json.dumps(dummy_editorjs("Sample text"))
     stocks = [
         {
             "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
@@ -1083,7 +1089,7 @@ def test_create_variant_with_text_attribute(
         "price": price,
         "weight": weight,
         "attributes": [
-            {"id": attr_id, "values": text},
+            {"id": attr_id, "richText": rich_text},
         ],
         "trackInventory": True,
     }
@@ -1098,8 +1104,7 @@ def test_create_variant_with_text_attribute(
     assert not content["productErrors"]
     assert data["name"] == sku
     assert data["sku"] == sku
-    assert data["attributes"][-1]["attribute"]["slug"] == text_attribute.slug
-    assert data["attributes"][-1]["values"][0]["name"] == text
+    assert data["attributes"][-1]["values"][0]["richText"] == rich_text
     created_webhook_mock.assert_called_once_with(product.variants.last())
 
 
@@ -1108,7 +1113,7 @@ def test_create_variant_with_text_attribute_length_exceeded(
     product,
     product_type,
     staff_api_client,
-    text_attribute,
+    rich_text_attribute,
     warehouse,
 ):
     query = CREATE_VARIANT_MUTATION
@@ -1118,8 +1123,8 @@ def test_create_variant_with_text_attribute_length_exceeded(
     cost_price = 3.22
     weight = 10.22
 
-    product_type.variant_attributes.add(text_attribute)
-    attr_id = graphene.Node.to_global_id("Attribute", text_attribute.id)
+    product_type.variant_attributes.add(rich_text_attribute)
+    attr_id = graphene.Node.to_global_id("Attribute", rich_text_attribute.id)
 
     stocks = [
         {
@@ -1360,6 +1365,7 @@ QUERY_UPDATE_VARIANT_ATTRIBUTES = """
                                 contentType
                             }
                             reference
+                            richText
                         }
                     }
                 }
@@ -1461,27 +1467,30 @@ def test_update_variant_with_text_attribute(
     product,
     product_type,
     staff_api_client,
-    text_attribute,
+    rich_text_attribute,
     warehouse,
 ):
-    product_type.variant_attributes.add(text_attribute)
+    product_type.variant_attributes.add(rich_text_attribute)
     query = QUERY_UPDATE_VARIANT_ATTRIBUTES
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     sku = "123"
-    attr_id = graphene.Node.to_global_id("Attribute", text_attribute.id)
-    text = text_attribute.values.first().name
+    attr_id = graphene.Node.to_global_id("Attribute", rich_text_attribute.id)
+    rich_text_attribute_value = rich_text_attribute.values.first()
+    rich_text = json.dumps(rich_text_attribute_value.rich_text)
     variables = {
         "id": variant_id,
         "sku": sku,
         "attributes": [
-            {"id": attr_id, "values": text},
+            {"id": attr_id, "richText": rich_text},
         ],
     }
+    rich_text_attribute_value.slug = f"{variant.id}_{rich_text_attribute.id}"
+    rich_text_attribute_value.save()
+    values_count = rich_text_attribute.values.count()
     associate_attribute_values_to_instance(
-        variant, text_attribute, text_attribute.values.first()
+        variant, rich_text_attribute, rich_text_attribute.values.first()
     )
-    values_count = text_attribute.values.count()
 
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
@@ -1492,9 +1501,9 @@ def test_update_variant_with_text_attribute(
 
     assert not content["productErrors"]
     assert data["sku"] == sku
-    assert data["attributes"][-1]["attribute"]["slug"] == text_attribute.slug
-    assert data["attributes"][-1]["values"][0]["name"] == text
-    assert text_attribute.values.count() == values_count
+    assert data["attributes"][-1]["attribute"]["slug"] == rich_text_attribute.slug
+    assert data["attributes"][-1]["values"][0]["richText"] == rich_text
+    assert rich_text_attribute.values.count() == values_count
     product_variant_updated.assert_called_once_with(product.variants.last())
 
 

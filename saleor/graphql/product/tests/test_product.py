@@ -2383,6 +2383,7 @@ CREATE_PRODUCT_MUTATION = """
                                     slug
                                     name
                                     reference
+                                    richText
                                     file {
                                         url
                                         contentType
@@ -2538,7 +2539,7 @@ def test_create_product_with_text_attribute(
     staff_api_client,
     product_type,
     category,
-    text_attribute,
+    rich_text_attribute,
     color_attribute,
     permission_manage_products,
     product,
@@ -2551,8 +2552,11 @@ def test_create_product_with_text_attribute(
     product_slug = "product-test-slug"
 
     # Add second attribute
-    product_type.product_attributes.add(text_attribute)
-    text_attribute_id = graphene.Node.to_global_id("Attribute", text_attribute.id)
+    product_type.product_attributes.add(rich_text_attribute)
+    rich_text_attribute_id = graphene.Node.to_global_id(
+        "Attribute", rich_text_attribute.id
+    )
+    rich_text = json.dumps(dummy_editorjs("test product" * 5))
 
     # test creating root product
     variables = {
@@ -2561,7 +2565,12 @@ def test_create_product_with_text_attribute(
             "category": category_id,
             "name": product_name,
             "slug": product_slug,
-            "attributes": [{"id": text_attribute_id, "values": ["Cool text"]}],
+            "attributes": [
+                {
+                    "id": rich_text_attribute_id,
+                    "richText": rich_text,
+                }
+            ],
         }
     }
 
@@ -2576,19 +2585,21 @@ def test_create_product_with_text_attribute(
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"]["name"] == category.name
     _, product_id = graphene.Node.from_global_id(data["product"]["id"])
+
     expected_attributes_data = [
+        {"attribute": {"slug": "color"}, "values": []},
         {
             "attribute": {"slug": "text"},
             "values": [
                 {
-                    "slug": "cool-text",
-                    "name": "Cool text",
+                    "slug": f"{product_id}_{rich_text_attribute.id}",
+                    "name": "test producttest producttest producttest productt…",
                     "reference": None,
+                    "richText": rich_text,
                     "file": None,
                 }
             ],
         },
-        {"attribute": {"slug": color_attribute.slug}, "values": []},
     ]
     for attr_data in data["product"]["attributes"]:
         assert attr_data in expected_attributes_data
@@ -2835,6 +2846,7 @@ def test_create_product_with_file_attribute(
                     "slug": f"{existing_value.slug}-2",
                     "file": {"url": existing_value.file_url, "contentType": None},
                     "reference": None,
+                    "richText": None,
                 }
             ],
         },
@@ -2902,6 +2914,7 @@ def test_create_product_with_page_reference_attribute(
                     "slug": f"{product_id}_{page.id}",
                     "name": page.title,
                     "file": None,
+                    "richText": None,
                     "reference": reference,
                 }
             ],
@@ -2970,6 +2983,7 @@ def test_create_product_with_product_reference_attribute(
                     "slug": f"{product_id}_{product.id}",
                     "name": product.name,
                     "file": None,
+                    "richText": None,
                     "reference": reference,
                 }
             ],
@@ -3038,6 +3052,7 @@ def test_create_product_with_product_reference_attribute_values_saved_in_order(
             "slug": f"{product_id}_{product.id}",
             "name": product.name,
             "file": None,
+            "richText": None,
             "reference": reference,
         }
         for product, reference in zip(reference_instances, reference_ids)
@@ -3109,6 +3124,7 @@ def test_create_product_with_file_attribute_new_attribute_value(
                     "name": non_existing_value,
                     "slug": slugify(non_existing_value, allow_unicode=True),
                     "reference": None,
+                    "richText": None,
                     "file": {
                         "url": "http://testserver/media/" + non_existing_value,
                         "contentType": None,
@@ -5541,6 +5557,7 @@ PRODUCT_TYPE_CREATE_MUTATION = """
                     name
                     values {
                         name
+                        richText
                     }
                 }
             }
@@ -5623,14 +5640,13 @@ def test_create_product_type_with_text_attribute(
     staff_api_client,
     product_type,
     permission_manage_product_types_and_attributes,
-    text_attribute,
+    rich_text_attribute,
 ):
     query = PRODUCT_TYPE_CREATE_MUTATION
     product_type_name = "test type"
     slug = "test-type"
 
-    product_type.product_attributes.add(text_attribute)
-
+    product_type.product_attributes.add(rich_text_attribute)
     product_attributes_ids = [
         graphene.Node.to_global_id("Attribute", attr.id)
         for attr in product_type.product_attributes.all()
@@ -5653,8 +5669,24 @@ def test_create_product_type_with_text_attribute(
     assert data["name"] == product_type_name
     assert data["slug"] == slug
     expected_attributes = [
-        {"name": "Color", "values": [{"name": "Red"}, {"name": "Blue"}]},
-        {"name": "Text", "values": [{"name": "Some cool text"}]},
+        {
+            "name": "Color",
+            "values": [
+                {"name": "Red", "richText": None},
+                {"name": "Blue", "richText": None},
+            ],
+        },
+        {
+            "name": "Text",
+            "values": [
+                {
+                    "name": "Rich text attribute content.",
+                    "richText": json.dumps(
+                        rich_text_attribute.values.first().rich_text
+                    ),
+                }
+            ],
+        },
     ]
     for attribute in data["productAttributes"]:
         assert attribute in expected_attributes
