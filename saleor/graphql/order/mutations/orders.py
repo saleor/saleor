@@ -747,11 +747,16 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
         cls.validate_order(line.order)
 
         db_id = line.id
+        warehouse_pk = (
+            line.allocations.first().stock.warehouse.pk
+            if order.is_unconfirmed()
+            else None
+        )
         line_info = OrderLineData(
             line=line,
             quantity=line.quantity,
             variant=line.variant,
-            warehouse_pk=line.allocations.first().stock.warehouse.pk,
+            warehouse_pk=warehouse_pk,
         )
         delete_order_line(line_info)
         line.id = db_id
@@ -801,11 +806,16 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
+        warehouse_pk = (
+            instance.allocations.first().stock.warehouse.pk
+            if instance.order.is_unconfirmed()
+            else None
+        )
         line_info = OrderLineData(
             line=instance,
             quantity=instance.quantity,
             variant=instance.variant,
-            warehouse_pk=instance.allocations.first().stock.warehouse.pk,
+            warehouse_pk=warehouse_pk,
         )
         try:
             change_order_line_quantity(
