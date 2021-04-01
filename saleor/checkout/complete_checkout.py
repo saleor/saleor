@@ -5,7 +5,6 @@ from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils.encoding import smart_text
-from django.utils.translation import get_language
 from prices import TaxedMoney
 
 from ..account.error_codes import AccountErrorCode
@@ -29,8 +28,8 @@ from ..graphql.checkout.utils import (
 )
 from ..order import OrderLineData, OrderStatus
 from ..order.actions import order_created
-from ..order.emails import send_order_confirmation, send_staff_order_confirmation
 from ..order.models import Order, OrderLine
+from ..order.notifications import send_order_confirmation
 from ..payment import PaymentError, gateway
 from ..payment.models import Payment, Transaction
 from ..payment.utils import store_customer_id
@@ -208,8 +207,9 @@ def _create_lines_for_order(
 
     :raises InsufficientStock: when there is not enough items in stock for this variant.
     """
-    translation_language_code = get_language()
+    translation_language_code = checkout_info.checkout.language_code
     country_code = checkout_info.get_country()
+
     variants = []
     quantities = []
     products = []
@@ -293,7 +293,7 @@ def _prepare_order_data(
     order_data.update(_process_user_data_for_order(checkout_info, manager))
     order_data.update(
         {
-            "language_code": get_language(),
+            "language_code": checkout.language_code,
             "tracking_client_id": checkout.tracking_code or "",
             "total": taxed_total,
             "undiscounted_total": undiscounted_total,
@@ -411,10 +411,7 @@ def _create_order(
 
     # Send the order confirmation email
     transaction.on_commit(
-        lambda: send_order_confirmation.delay(order.pk, checkout.redirect_url, user.pk)
-    )
-    transaction.on_commit(
-        lambda: send_staff_order_confirmation.delay(order.pk, checkout.redirect_url)
+        lambda: send_order_confirmation(order, checkout.redirect_url, manager)
     )
 
     return order

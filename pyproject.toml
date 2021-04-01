@@ -68,7 +68,10 @@ Adyen = "^4.0.0"
 google-cloud-pubsub = ">=1.7,<3.0"
 uvicorn = {extras = ["standard"], version = ">=0.12.2,<0.14.0"}
 gunicorn = "^20.0.4"
+pybars3 = "^0.9.7"
+html2text = "^2020.1.16"
 authorizenet = "^1.1.3"
+sendgrid = "^6.5.0"
 micawber = "^0.5.2"
 
 [tool.poetry.dev-dependencies]

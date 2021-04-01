@@ -12,10 +12,11 @@ from ...order import models as order_models
 from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUserLoader
 from ..checkout.types import Checkout
 from ..core.connection import CountableDjangoObjectType
+from ..core.enums import LanguageCodeEnum
 from ..core.fields import PrefetchingConnectionField
 from ..core.scalars import UUID
 from ..core.types import CountryDisplay, Image, Permission
-from ..core.utils import from_global_id_strict_type
+from ..core.utils import from_global_id_strict_type, str_to_enum
 from ..decorators import one_of_permissions_required, permission_required
 from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display
@@ -241,6 +242,9 @@ class User(CountableDjangoObjectType):
         "saleor.graphql.payment.types.PaymentSource",
         description="List of stored payment sources.",
     )
+    language_code = graphene.Field(
+        LanguageCodeEnum, description="User language code.", required=True
+    )
 
     class Meta:
         description = "Represents user data."
@@ -364,6 +368,10 @@ class User(CountableDjangoObjectType):
         if root.id is not None:
             return graphene.Node.get_node_from_global_id(_info, root.id)
         return get_user_model().objects.get(email=root.email)
+
+    @staticmethod
+    def resolve_language_code(root, _info, **_kwargs):
+        return LanguageCodeEnum[str_to_enum(root.language_code)]
 
 
 class ChoiceValue(graphene.ObjectType):
