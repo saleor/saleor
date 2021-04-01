@@ -1166,12 +1166,14 @@ def test_query_order_as_app(app_api_client, permission_manage_orders, order):
 DRAFT_ORDER_CREATE_MUTATION = """
     mutation draftCreate(
         $user: ID, $discount: PositiveDecimal, $lines: [OrderLineCreateInput],
-        $shippingAddress: AddressInput, $shippingMethod: ID, $voucher: ID,
-        $customerNote: String, $channel: ID, $redirectUrl: String
+        $shippingAddress: AddressInput, $billingAddress: AddressInput,
+        $shippingMethod: ID, $voucher: ID, $customerNote: String, $channel: ID,
+        $redirectUrl: String
         ) {
             draftOrderCreate(
                 input: {user: $user, discount: $discount,
                 lines: $lines, shippingAddress: $shippingAddress,
+                billingAddress: $billingAddress,
                 shippingMethod: $shippingMethod, voucher: $voucher,
                 channel: $channel,
                 redirectUrl: $redirectUrl,
@@ -1192,6 +1194,16 @@ DRAFT_ORDER_CREATE_MUTATION = """
                             productName
                             productSku
                             quantity
+                        }
+                        billingAddress{
+                            city
+                            streetAddress1
+                            postalCode
+                        }
+                        shippingAddress{
+                            city
+                            streetAddress1
+                            postalCode
                         }
                         status
                         voucher {
@@ -1244,6 +1256,7 @@ def test_draft_order_create(
         "user": user_id,
         "discount": discount,
         "lines": variant_list,
+        "billingAddress": shipping_address,
         "shippingAddress": shipping_address,
         "shippingMethod": shipping_id,
         "voucher": voucher_id,
@@ -1261,17 +1274,20 @@ def test_draft_order_create(
     assert data["voucher"]["code"] == voucher.code
     assert data["customerNote"] == customer_note
     assert data["redirectUrl"] == redirect_url
+    assert (
+        data["billingAddress"]["streetAddress1"]
+        == graphql_address_data["streetAddress1"]
+    )
+    assert (
+        data["shippingAddress"]["streetAddress1"]
+        == graphql_address_data["streetAddress1"]
+    )
 
     order = Order.objects.first()
     assert order.user == customer_user
-    # billing address should be copied
-    assert order.billing_address.pk != customer_user.default_billing_address.pk
-    assert (
-        order.billing_address.as_data()
-        == customer_user.default_billing_address.as_data()
-    )
     assert order.shipping_method == shipping_method
-    assert order.shipping_address.first_name == graphql_address_data["firstName"]
+    assert order.billing_address
+    assert order.shipping_address
 
     # Ensure the correct event was created
     created_draft_event = OrderEvent.objects.get(
@@ -1339,12 +1355,8 @@ def test_draft_order_create_with_inactive_channel(
 
     order = Order.objects.first()
     assert order.user == customer_user
-    # billing address should be copied
-    assert order.billing_address.pk != customer_user.default_billing_address.pk
-    assert (
-        order.billing_address.as_data()
-        == customer_user.default_billing_address.as_data()
-    )
+    # billing address shouldn't be set
+    assert not order.billing_address
     assert order.shipping_method == shipping_method
     assert order.shipping_address.first_name == graphql_address_data["firstName"]
 
@@ -1404,12 +1416,8 @@ def test_draft_order_create_variant_with_0_price(
 
     order = Order.objects.first()
     assert order.user == customer_user
-    # billing address should be copied
-    assert order.billing_address.pk != customer_user.default_billing_address.pk
-    assert (
-        order.billing_address.as_data()
-        == customer_user.default_billing_address.as_data()
-    )
+    # billing address shouldn't be copied from user
+    assert not order.billing_address
     assert order.shipping_method == shipping_method
     assert order.shipping_address.first_name == graphql_address_data["firstName"]
 
@@ -1826,11 +1834,7 @@ def test_draft_order_create_with_channel(
     assert order.user == customer_user
     assert order.channel.id == channel_USD.id
     # billing address should be copied
-    assert order.billing_address.pk != customer_user.default_billing_address.pk
-    assert (
-        order.billing_address.as_data()
-        == customer_user.default_billing_address.as_data()
-    )
+    assert not order.billing_address
     assert order.shipping_method == shipping_method
     assert order.shipping_address.first_name == graphql_address_data["firstName"]
 

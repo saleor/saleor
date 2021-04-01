@@ -172,13 +172,6 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         display_gross_prices = info.context.site.settings.display_gross_prices
         cleaned_input["display_gross_prices"] = display_gross_prices
 
-        # Set up default addresses if possible
-        user = cleaned_input.get("user")
-        if user and not shipping_address:
-            cleaned_input["shipping_address"] = user.default_shipping_address
-        if user and not billing_address:
-            cleaned_input["billing_address"] = user.default_billing_address
-
         if shipping_address:
             shipping_address = cls.validate_address(
                 shipping_address, instance=instance.shipping_address, info=info
