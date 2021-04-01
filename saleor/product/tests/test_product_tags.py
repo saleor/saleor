@@ -4,7 +4,7 @@ import pytest
 from django.templatetags.static import static
 from django.test import override_settings
 
-from ..templatetags.product_images import (
+from ..product_images import (
     choose_placeholder,
     get_product_image_thumbnail,
     get_thumbnail,
@@ -26,7 +26,7 @@ def test_get_thumbnail():
 
 def test_get_thumbnail_no_instance(monkeypatch):
     monkeypatch.setattr(
-        "saleor.product.templatetags.product_images.choose_placeholder",
+        "saleor.product.product_images.choose_placeholder",
         lambda x: "placeholder",
     )
     output = get_thumbnail(image_file=None, size=10, method="crop")
@@ -35,7 +35,7 @@ def test_get_thumbnail_no_instance(monkeypatch):
 
 def test_get_product_image_thumbnail_no_instance(monkeypatch):
     monkeypatch.setattr(
-        "saleor.product.templatetags.product_images.choose_placeholder",
+        "saleor.product.product_images.choose_placeholder",
         lambda x: "placeholder",
     )
     output = get_product_image_thumbnail(instance=None, size=10, method="crop")
@@ -43,7 +43,7 @@ def test_get_product_image_thumbnail_no_instance(monkeypatch):
 
 
 @patch(
-    "saleor.product.templatetags.product_images.AVAILABLE_SIZES",
+    "saleor.product.product_images.AVAILABLE_SIZES",
     {
         "products": (
             "thumbnail__800x800",
@@ -63,7 +63,7 @@ def test_get_thumbnail_to_larger():
 
 
 @patch(
-    "saleor.product.templatetags.product_images.AVAILABLE_SIZES",
+    "saleor.product.product_images.AVAILABLE_SIZES",
     {
         "products": (
             "crop__10x10",
@@ -83,7 +83,7 @@ def test_get_thumbnail_to_smaller():
 
 
 @patch(
-    "saleor.product.templatetags.product_images.AVAILABLE_SIZES",
+    "saleor.product.product_images.AVAILABLE_SIZES",
     {"products": ("thumbnail__800x800",)},
 )
 @override_settings(
