@@ -182,6 +182,7 @@ def test_staff_multiple_orders_address_resolving(
     count_queries,
 ):
     staff_api_client.user.user_permissions.add(permission_manage_orders)
-    get_graphql_content(
+    content = get_graphql_content(
         staff_api_client.post_graphql(MULTIPLE_ORDER_ADDRESS_DETAILS_QUERY)
     )
+    assert content["data"]["orders"] is not None
