@@ -499,7 +499,7 @@ enum AttributeInputTypeEnum {
   MULTISELECT
   FILE
   REFERENCE
-  TEXT
+  RICH_TEXT
 }
 
 type AttributeReorderValues {
@@ -578,6 +578,7 @@ type AttributeValue implements Node {
   inputType: AttributeInputTypeEnum
   reference: ID
   file: File
+  richText: JSONString
 }
 
 type AttributeValueBulkDelete {
@@ -596,6 +597,7 @@ type AttributeValueCreate {
 input AttributeValueCreateInput {
   name: String!
   value: String
+  richText: JSONString
 }
 
 type AttributeValueDelete {
@@ -611,6 +613,7 @@ input AttributeValueInput {
   file: String
   contentType: String
   references: [ID!]
+  richText: JSONString
 }
 
 type AttributeValueTranslatableContent implements Node {

@@ -236,7 +236,7 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
     product_type_product_reference_attribute,
     product_with_image,
     product_with_variant_with_two_attributes,
-    text_attribute,
+    rich_text_attribute,
     variant_with_many_stocks,
 ):
     # given
@@ -245,13 +245,13 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
         file_attribute,
         product_type_page_reference_attribute,
         product_type_product_reference_attribute,
-        text_attribute,
+        rich_text_attribute,
     )
     product.product_type.product_attributes.add(
         file_attribute,
         product_type_page_reference_attribute,
         product_type_product_reference_attribute,
-        text_attribute,
+        rich_text_attribute,
     )
 
     # add file attribute
@@ -262,12 +262,14 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
         product, file_attribute, file_attribute.values.first()
     )
 
-    # add text attribute
+    # add rich text attribute
     associate_attribute_values_to_instance(
-        variant_with_many_stocks, text_attribute, text_attribute.values.first()
+        variant_with_many_stocks,
+        rich_text_attribute,
+        rich_text_attribute.values.first(),
     )
     associate_attribute_values_to_instance(
-        product, text_attribute, text_attribute.values.first()
+        product, rich_text_attribute, rich_text_attribute.values.first()
     )
 
     # add page reference attribute

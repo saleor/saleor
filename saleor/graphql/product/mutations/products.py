@@ -469,6 +469,9 @@ class AttributeValueInput(InputObjectType):
         description="List of entity IDs that will be used as references.",
         required=False,
     )
+    rich_text = graphene.JSONString(
+        required=False, description="Text content in JSON format."
+    )
 
 
 class ProductInput(graphene.InputObjectType):
