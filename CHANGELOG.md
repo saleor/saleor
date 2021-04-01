@@ -30,10 +30,12 @@ All notable, unreleased changes to this project will be documented in this file.
 - Optimize children field on Category type - #7045 by @IKarbowiak
 - Added support for querying objects by metadata fields - #6683 by @LeOndaz
 - Avoid using `get_plugins_manager` method - #7052 by @IKarbowiak
+- Add field `languageCode` to types: `AccountInput`, `AccountRegisterInput`, `CheckoutCreateInput`, `CustomerInput`, `Order`, `User`. Add field `languageCodeEnum` to `Order` type. Add new mutation `CheckoutLanguageCodeUpdate`. Deprecate field `Order.languageCode`.  - #6609 by @korycins
 - Add benchmarks for triggered product and variants webhooks - #7061 by @d-wysocki
 - Extend `Transaction` type with gateway response and `Payment` type with filter - #7062 by @IKarbowiak
 - Fix invalid tax rates for lines - #7058 by @IKarbowiak
 - Allow seeing unconfirmed orders - #7072 by @IKarbowiak
+- Raise GraphQLError when too big integer value is provided - #7076 by @IKarbowiak
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -46,6 +48,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop `CHECKOUT_QUANTITY_CHANGED` webhook - #6797 by @d-wysocki
 - Drop deprecated `taxRate` field from `ProductType` - #6795 by @d-wysocki
 - Unconfirmed order manipulation - #6829 by @tomaszszymanski129
+- Email interface as a plugin - #6301 by @korycins
 - Remove resolving user's location from GeoIP; drop `PaymentInput.billingAddress` input field - #6784 by @maarcingebala
 - Change the payload of the order webhook to handle discounts list, added fields: `Order.discounts`,
 `OrderLine.unit_discount_amount`,`OrderLine.unit_discount_type`, `OrderLine.unit_discount_reason` , remove fields:
@@ -107,6 +110,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix `product_updated` and `product_created` webhooks - #6798 by @d-wysocki
 - Add interface for integrating the auth plugins - #6799 by @korycins
 - Fix page `contentJson` field to return JSON - #6832 by @d-wysocki
+- Add SendgridPlugin - #6793 by @korycins
 - Add SearchRank to search product by name and description. New enum added to `ProductOrderField` - `RANK` - which returns results sorted by search rank - #6872 by @d-wysocki
 - Allocate stocks for order lines in a bulk way - #6877 by @IKarbowiak
 - Add product description_plaintext to populatedb - #6894 by @d-wysocki

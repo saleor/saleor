@@ -15,8 +15,8 @@ from ....order.actions import (
     create_refund_fulfillment,
     fulfillment_tracking_updated,
 )
-from ....order.emails import send_fulfillment_update
 from ....order.error_codes import OrderErrorCode
+from ....order.notifications import send_fulfillment_update
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
@@ -261,7 +261,7 @@ class FulfillmentUpdateTracking(BaseMutation):
         input_data = data.get("input", {})
         notify_customer = input_data.get("notify_customer")
         if notify_customer:
-            send_fulfillment_update.delay(order.pk, fulfillment.pk)
+            send_fulfillment_update(order, fulfillment, info.context.plugins)
         return FulfillmentUpdateTracking(fulfillment=fulfillment, order=order)
 
 
