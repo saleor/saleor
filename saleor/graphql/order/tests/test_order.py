@@ -1647,6 +1647,47 @@ def test_draft_order_create_without_channel(
     assert error["field"] == "channel"
 
 
+def test_draft_order_create_with_negative_quantity_line(
+    staff_api_client,
+    permission_manage_orders,
+    staff_user,
+    customer_user,
+    product_without_shipping,
+    shipping_method,
+    channel_USD,
+    variant,
+    voucher,
+    graphql_address_data,
+):
+    variant_0 = variant
+    query = DRAFT_ORDER_CREATE_MUTATION
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
+    variant_1 = product_without_shipping.variants.first()
+    variant_1.quantity = 2
+    variant_1.save()
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+
+    variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
+    variant_list = [
+        {"variantId": variant_0_id, "quantity": -2},
+        {"variantId": variant_1_id, "quantity": 1},
+    ]
+    variables = {
+        "user": user_id,
+        "lines": variant_list,
+        "channel": channel_id,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    error = content["data"]["draftOrderCreate"]["orderErrors"][0]
+    assert error["code"] == OrderErrorCode.ZERO_QUANTITY.name
+    assert error["field"] == "quantity"
+
+
 def test_draft_order_create_with_channel_with_unpublished_product(
     staff_api_client,
     permission_manage_orders,
