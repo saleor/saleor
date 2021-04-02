@@ -19,7 +19,7 @@ from ...order.models import FulfillmentStatus
 from ...order.utils import get_order_country, get_valid_shipping_methods_for_order
 from ...product.product_images import get_product_image_thumbnail
 from ...warehouse import models as warehouse_models
-from ..account.dataloaders import AddressByIdLoader
+from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..account.types import User
 from ..account.utils import requestor_has_access
 from ..channel import ChannelContext
@@ -692,25 +692,29 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_billing_address(root: models.Order, info):
-        requester = get_user_or_app_from_context(info.context)
-        if requestor_has_access(requester, root.user, OrderPermissions.MANAGE_ORDERS):
-            return AddressByIdLoader(info.context).load(root.billing_address_id)
-        return (
-            AddressByIdLoader(info.context)
-            .load(root.billing_address_id)
-            .then(obfuscate_address)
-        )
+        def _resolve_billing_address(data):
+            user, address = data
+            requester = get_user_or_app_from_context(info.context)
+            if requestor_has_access(requester, user, OrderPermissions.MANAGE_ORDERS):
+                return address
+            return obfuscate_address(address)
+
+        user = UserByUserIdLoader(info.context).load(root.user_id)
+        address = AddressByIdLoader(info.context).load(root.billing_address_id)
+        return Promise.all([user, address]).then(_resolve_billing_address)
 
     @staticmethod
     def resolve_shipping_address(root: models.Order, info):
-        requester = get_user_or_app_from_context(info.context)
-        if requestor_has_access(requester, root.user, OrderPermissions.MANAGE_ORDERS):
-            return AddressByIdLoader(info.context).load(root.shipping_address_id)
-        return (
-            AddressByIdLoader(info.context)
-            .load(root.shipping_address_id)
-            .then(obfuscate_address)
-        )
+        def _resolve_shipping_address(data):
+            user, address = data
+            requester = get_user_or_app_from_context(info.context)
+            if requestor_has_access(requester, user, OrderPermissions.MANAGE_ORDERS):
+                return address
+            return obfuscate_address(address)
+
+        user = UserByUserIdLoader(info.context).load(root.user_id)
+        address = AddressByIdLoader(info.context).load(root.shipping_address_id)
+        return Promise.all([user, address]).then(_resolve_shipping_address)
 
     @staticmethod
     def resolve_shipping_price(root: models.Order, _info):
@@ -810,18 +814,29 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_user_email(root: models.Order, info):
-        requester = get_user_or_app_from_context(info.context)
-        customer_email = root.get_customer_email()
-        if requestor_has_access(requester, root.user, OrderPermissions.MANAGE_ORDERS):
-            return customer_email
-        return obfuscate_email(customer_email)
+        def _resolve_user_email(user):
+            requester = get_user_or_app_from_context(info.context)
+            if requestor_has_access(requester, user, OrderPermissions.MANAGE_ORDERS):
+                return user.email
+            return obfuscate_email(user.email)
+
+        if not root.user_id:
+            return root.user_email
+        return (
+            UserByUserIdLoader(info.context)
+            .load(root.user_id)
+            .then(_resolve_user_email)
+        )
 
     @staticmethod
     def resolve_user(root: models.Order, info):
-        requester = get_user_or_app_from_context(info.context)
-        if requestor_has_access(requester, root.user, AccountPermissions.MANAGE_USERS):
-            return root.user
-        raise PermissionDenied()
+        def _resolve_user(user):
+            requester = get_user_or_app_from_context(info.context)
+            if requestor_has_access(requester, user, AccountPermissions.MANAGE_USERS):
+                return user
+            raise PermissionDenied()
+
+        return UserByUserIdLoader(info.context).load(root.user_id).then(_resolve_user)
 
     @staticmethod
     def resolve_shipping_method(root: models.Order, info):
