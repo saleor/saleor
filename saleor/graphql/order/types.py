@@ -692,6 +692,8 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_billing_address(root: models.Order, info):
+        if not root.shipping_address_id:
+            return
         requester = get_user_or_app_from_context(info.context)
         if requestor_has_access(requester, root.user, OrderPermissions.MANAGE_ORDERS):
             return AddressByIdLoader(info.context).load(root.billing_address_id)
@@ -703,6 +705,8 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_shipping_address(root: models.Order, info):
+        if not root.shipping_address_id:
+            return
         requester = get_user_or_app_from_context(info.context)
         if requestor_has_access(requester, root.user, OrderPermissions.MANAGE_ORDERS):
             return AddressByIdLoader(info.context).load(root.shipping_address_id)
