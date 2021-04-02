@@ -19,6 +19,7 @@ from ...order.models import FulfillmentStatus
 from ...order.utils import get_order_country, get_valid_shipping_methods_for_order
 from ...product.product_images import get_product_image_thumbnail
 from ...warehouse import models as warehouse_models
+from ..account.dataloaders import AddressByIdLoader
 from ..account.types import User
 from ..account.utils import requestor_has_access
 from ..channel import ChannelContext
@@ -693,15 +694,23 @@ class Order(CountableDjangoObjectType):
     def resolve_billing_address(root: models.Order, info):
         requester = get_user_or_app_from_context(info.context)
         if requestor_has_access(requester, root.user, OrderPermissions.MANAGE_ORDERS):
-            return root.billing_address
-        return obfuscate_address(root.billing_address)
+            return AddressByIdLoader(info.context).load(root.billing_address_id)
+        return (
+            AddressByIdLoader(info.context)
+            .load(root.billing_address_id)
+            .then(obfuscate_address)
+        )
 
     @staticmethod
     def resolve_shipping_address(root: models.Order, info):
         requester = get_user_or_app_from_context(info.context)
         if requestor_has_access(requester, root.user, OrderPermissions.MANAGE_ORDERS):
-            return root.shipping_address
-        return obfuscate_address(root.shipping_address)
+            return AddressByIdLoader(info.context).load(root.shipping_address_id)
+        return (
+            AddressByIdLoader(info.context)
+            .load(root.shipping_address_id)
+            .then(obfuscate_address)
+        )
 
     @staticmethod
     def resolve_shipping_price(root: models.Order, _info):
