@@ -179,8 +179,14 @@ mutation productBulkDelete($ids: [ID]!) {
 """
 
 
+@patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_products(
-    staff_api_client, product_list, permission_manage_products, order_list, channel_USD
+    mocked_recalculate_orders_task,
+    staff_api_client,
+    product_list,
+    permission_manage_products,
+    order_list,
+    channel_USD,
 ):
     # given
     query = DELETE_PRODUCTS_MUTATION
@@ -248,10 +254,13 @@ def test_delete_products(
     assert not OrderLine.objects.filter(pk__in=draft_order_lines_pks).exists()
 
     assert OrderLine.objects.filter(pk__in=not_draft_order_lines_pks).exists()
+    assert mocked_recalculate_orders_task.called
 
 
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+@patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_products_trigger_webhook(
+    mocked_recalculate_orders_task,
     mocked_webhook_trigger,
     staff_api_client,
     product_list,
@@ -276,21 +285,25 @@ def test_delete_products_trigger_webhook(
 
     assert content["data"]["productBulkDelete"]["count"] == 3
     assert mocked_webhook_trigger.called
+    assert mocked_recalculate_orders_task.called
 
 
+@patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_products_variants_in_draft_order(
-    staff_api_client, product_list, permission_manage_products
+    mocked_recalculate_orders_task,
+    draft_order,
+    staff_api_client,
+    product_list,
+    permission_manage_products,
 ):
     query = DELETE_PRODUCTS_MUTATION
-
-    assert ProductChannelListing.objects.filter(
-        product_id__in=[product.id for product in product_list]
-    ).exists()
+    products_id = draft_order.lines.all().values_list("variant__product_id", flat=True)
+    assert ProductChannelListing.objects.filter(product_id__in=products_id).exists()
 
     variables = {
         "ids": [
-            graphene.Node.to_global_id("Product", product.id)
-            for product in product_list
+            graphene.Node.to_global_id("Product", product_id)
+            for product_id in products_id
         ]
     }
     response = staff_api_client.post_graphql(
@@ -298,13 +311,10 @@ def test_delete_products_variants_in_draft_order(
     )
     content = get_graphql_content(response)
 
-    assert content["data"]["productBulkDelete"]["count"] == 3
-    assert not Product.objects.filter(
-        id__in=[product.id for product in product_list]
-    ).exists()
-    assert not ProductChannelListing.objects.filter(
-        product_id__in=[product.id for product in product_list]
-    ).exists()
+    assert content["data"]["productBulkDelete"]["count"] == 2
+    assert not Product.objects.filter(id__in=products_id).exists()
+    assert not ProductChannelListing.objects.filter(product_id__in=products_id).exists()
+    mocked_recalculate_orders_task.assert_called_once_with({draft_order.id})
 
 
 def test_delete_product_media(
@@ -375,7 +385,9 @@ mutation productVariantBulkDelete($ids: [ID]!) {
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_deleted")
+@patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_product_variants(
+    mocked_recalculate_orders_task,
     product_variant_deleted_webhook_mock,
     staff_api_client,
     product_variant_list,
@@ -407,9 +419,12 @@ def test_delete_product_variants(
         product_variant_deleted_webhook_mock.call_count
         == content["data"]["productVariantBulkDelete"]["count"]
     )
+    assert mocked_recalculate_orders_task.called
 
 
+@patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_product_variants_in_draft_orders(
+    mocked_recalculate_orders_task,
     staff_api_client,
     product_variant_list,
     permission_manage_products,
@@ -500,10 +515,15 @@ def test_delete_product_variants_in_draft_orders(
         second_draft_order.refresh_from_db()
 
     assert OrderLine.objects.filter(pk=order_line_not_in_draft_pk).exists()
+    mocked_recalculate_orders_task.assert_called_once_with({draft_order.id})
 
 
+@patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_product_variants_delete_default_variant(
-    staff_api_client, product, permission_manage_products
+    mocked_recalculate_orders_task,
+    staff_api_client,
+    product,
+    permission_manage_products,
 ):
     # given
     query = PRODUCT_VARIANT_BULK_DELETE_MUTATION
@@ -546,10 +566,15 @@ def test_delete_product_variants_delete_default_variant(
 
     product.refresh_from_db()
     assert product.default_variant.pk == new_default_variant.pk
+    assert mocked_recalculate_orders_task.called
 
 
+@patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_product_variants_delete_all_product_variants(
-    staff_api_client, product, permission_manage_products
+    mocked_recalculate_orders_task,
+    staff_api_client,
+    product,
+    permission_manage_products,
 ):
     # given
     query = PRODUCT_VARIANT_BULK_DELETE_MUTATION
@@ -591,10 +616,16 @@ def test_delete_product_variants_delete_all_product_variants(
 
     product.refresh_from_db()
     assert product.default_variant is None
+    assert mocked_recalculate_orders_task.called
 
 
+@patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_product_variants_from_different_products(
-    staff_api_client, product, product_with_two_variants, permission_manage_products
+    mocked_recalculate_orders_task,
+    staff_api_client,
+    product,
+    product_with_two_variants,
+    permission_manage_products,
 ):
     # given
     query = PRODUCT_VARIANT_BULK_DELETE_MUTATION
@@ -637,3 +668,4 @@ def test_delete_product_variants_from_different_products(
 
     assert product_1.default_variant is None
     assert product_2.default_variant.pk == product_2_second_variant.pk
+    assert mocked_recalculate_orders_task.called

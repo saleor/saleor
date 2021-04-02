@@ -36,6 +36,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix invalid tax rates for lines - #7058 by @IKarbowiak
 - Allow seeing unconfirmed orders - #7072 by @IKarbowiak
 - Raise GraphQLError when too big integer value is provided - #7076 by @IKarbowiak
+- Recalculate draft order when product/variant was deleted - #7085 by @d-wysocki
+- Added validation for `DraftOrderCreate` with negative quantity line - #7085 by @d-wysocki
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki

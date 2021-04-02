@@ -5150,7 +5150,13 @@ DELETE_PRODUCT_MUTATION = """
 """
 
 
-def test_delete_product(staff_api_client, product, permission_manage_products):
+@patch("saleor.order.tasks.recalculate_orders_task.delay")
+def test_delete_product(
+    mocked_recalculate_orders_task,
+    staff_api_client,
+    product,
+    permission_manage_products,
+):
     query = DELETE_PRODUCT_MUTATION
     node_id = graphene.Node.to_global_id("Product", product.id)
     variables = {"id": node_id}
@@ -5163,10 +5169,13 @@ def test_delete_product(staff_api_client, product, permission_manage_products):
     with pytest.raises(product._meta.model.DoesNotExist):
         product.refresh_from_db()
     assert node_id == data["product"]["id"]
+    assert mocked_recalculate_orders_task.called
 
 
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+@patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_product_trigger_webhook(
+    mocked_recalculate_orders_task,
     mocked_webhook_trigger,
     staff_api_client,
     product,
@@ -5194,9 +5203,12 @@ def test_delete_product_trigger_webhook(
     mocked_webhook_trigger.assert_called_once_with(
         WebhookEventType.PRODUCT_DELETED, expected_data
     )
+    assert mocked_recalculate_orders_task.called
 
 
+@patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_product_variant_in_draft_order(
+    mocked_recalculate_orders_task,
     staff_api_client,
     product_with_two_variants,
     permission_manage_products,
@@ -5262,6 +5274,7 @@ def test_delete_product_variant_in_draft_order(
     assert not OrderLine.objects.filter(pk__in=draft_order_lines_pks).exists()
 
     assert OrderLine.objects.filter(pk__in=not_draft_order_lines_pks).exists()
+    mocked_recalculate_orders_task.assert_called_once_with({draft_order.id})
 
 
 def test_product_type(user_api_client, product_type, channel_USD):

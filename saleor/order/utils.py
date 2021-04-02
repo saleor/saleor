@@ -290,15 +290,16 @@ def update_order_status(order):
 
 
 @transaction.atomic
-def add_variant_to_draft_order(order, variant, quantity, manager, discounts=None):
+def add_variant_to_draft_order(order, variant, quantity, user, manager, discounts=None):
     """Add total_quantity of variant to order.
 
     Returns an order line the variant was added to.
     """
     try:
         line = order.lines.get(variant=variant)
-        line.quantity += quantity
-        line.save(update_fields=["quantity"])
+        old_quantity = line.quantity
+        new_quantity = old_quantity + quantity
+        change_order_line_quantity(user, line, old_quantity, new_quantity)
     except OrderLine.DoesNotExist:
         product = variant.product
         collections = product.collections.all()

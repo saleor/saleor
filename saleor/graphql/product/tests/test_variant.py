@@ -1882,7 +1882,9 @@ DELETE_VARIANT_MUTATION = """
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_deleted")
+@patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_variant(
+    mocked_recalculate_orders_task,
     product_variant_deleted_webhook_mock,
     staff_api_client,
     product,
@@ -1903,9 +1905,12 @@ def test_delete_variant(
     assert data["productVariant"]["sku"] == variant.sku
     with pytest.raises(variant._meta.model.DoesNotExist):
         variant.refresh_from_db()
+    assert mocked_recalculate_orders_task.called
 
 
+@patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_variant_in_draft_order(
+    mocked_recalculate_orders_task,
     staff_api_client,
     order_line,
     permission_manage_products,
@@ -1941,7 +1946,20 @@ def test_delete_variant_in_draft_order(
         quantity=quantity,
     )
     order_line_not_in_draft_pk = order_line_not_in_draft.pk
-
+    second_draft_order = order_list[0]
+    second_draft_order.status = OrderStatus.DRAFT
+    second_draft_order.save(update_fields=["status"])
+    OrderLine.objects.create(
+        variant=variant,
+        order=second_draft_order,
+        product_name=str(product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
+        quantity=quantity,
+    )
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
@@ -1953,10 +1971,17 @@ def test_delete_variant_in_draft_order(
         order_line.refresh_from_db()
 
     assert OrderLine.objects.filter(pk=order_line_not_in_draft_pk).exists()
+    mocked_recalculate_orders_task.assert_called_once_with(
+        {draft_order.id, second_draft_order.id}
+    )
 
 
+@patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_default_variant(
-    staff_api_client, product_with_two_variants, permission_manage_products
+    mocked_recalculate_orders_task,
+    staff_api_client,
+    product_with_two_variants,
+    permission_manage_products,
 ):
     # given
     query = DELETE_VARIANT_MUTATION
@@ -1987,10 +2012,15 @@ def test_delete_default_variant(
 
     product.refresh_from_db()
     assert product.default_variant.pk == second_variant.pk
+    assert mocked_recalculate_orders_task.called
 
 
+@patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_not_default_variant_left_default_variant_unchanged(
-    staff_api_client, product_with_two_variants, permission_manage_products
+    mocked_recalculate_orders_task,
+    staff_api_client,
+    product_with_two_variants,
+    permission_manage_products,
 ):
     # given
     query = DELETE_VARIANT_MUTATION
@@ -2021,10 +2051,15 @@ def test_delete_not_default_variant_left_default_variant_unchanged(
 
     product.refresh_from_db()
     assert product.default_variant.pk == default_variant.pk
+    assert mocked_recalculate_orders_task.called
 
 
+@patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_default_all_product_variant_left_product_default_variant_unset(
-    staff_api_client, product, permission_manage_products
+    mocked_recalculate_orders_task,
+    staff_api_client,
+    product,
+    permission_manage_products,
 ):
     # given
     query = DELETE_VARIANT_MUTATION
@@ -2053,6 +2088,7 @@ def test_delete_default_all_product_variant_left_product_default_variant_unset(
 
     product.refresh_from_db()
     assert not product.default_variant
+    assert mocked_recalculate_orders_task.called
 
 
 def _fetch_all_variants(client, variables={}, permissions=None):
