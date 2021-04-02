@@ -1,4 +1,7 @@
+import logging
 from typing import Iterable, List, Optional
+
+from django.core.exceptions import ObjectDoesNotExist
 
 from ..attribute.models import Attribute
 from ..celeryconf import app
@@ -11,6 +14,8 @@ from .utils.variant_prices import (
     update_products_discounted_prices_of_discount,
 )
 from .utils.variants import generate_and_set_variant_name
+
+logger = logging.getLogger(__name__)
 
 
 def _update_variants_names(instance: ProductType, saved_attributes: Iterable):
@@ -36,14 +41,22 @@ def _update_variants_names(instance: ProductType, saved_attributes: Iterable):
 
 @app.task
 def update_variants_names(product_type_pk: int, saved_attributes_ids: List[int]):
-    instance = ProductType.objects.get(pk=product_type_pk)
+    try:
+        instance = ProductType.objects.get(pk=product_type_pk)
+    except ObjectDoesNotExist:
+        logging.warning(f"Cannot find product type with id: {product_type_pk}.")
+        return
     saved_attributes = Attribute.objects.filter(pk__in=saved_attributes_ids)
     _update_variants_names(instance, saved_attributes)
 
 
 @app.task
 def update_product_discounted_price_task(product_pk: int):
-    product = Product.objects.get(pk=product_pk)
+    try:
+        product = Product.objects.get(pk=product_pk)
+    except ObjectDoesNotExist:
+        logging.warning(f"Cannot find product with id: {product_pk}.")
+        return
     update_product_discounted_price(product)
 
 
@@ -60,7 +73,11 @@ def update_products_discounted_prices_of_catalogues_task(
 
 @app.task
 def update_products_discounted_prices_of_discount_task(discount_pk: int):
-    discount = Sale.objects.get(pk=discount_pk)
+    try:
+        discount = Sale.objects.get(pk=discount_pk)
+    except ObjectDoesNotExist:
+        logging.warning(f"Cannot find discount with id: {discount_pk}.")
+        return
     update_products_discounted_prices_of_discount(discount)
 
 
