@@ -38,6 +38,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Raise GraphQLError when too big integer value is provided - #7076 by @IKarbowiak
 - Recalculate draft order when product/variant was deleted - #7085 by @d-wysocki
 - Added validation for `DraftOrderCreate` with negative quantity line - #7085 by @d-wysocki
+- Performance upgrade on orders query with shipping and billing addresses - #7083 by @tomaszszymanski129
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
