@@ -86,6 +86,8 @@ from ...warehouse.management import increase_stock
 from ...warehouse.models import Stock, Warehouse
 
 fake = Factory.create()
+fake.seed(0)
+
 PRODUCTS_LIST_DIR = "products-list/"
 
 DUMMY_STAFF_PASSWORD = "password"
