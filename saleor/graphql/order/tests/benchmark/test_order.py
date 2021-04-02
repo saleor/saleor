@@ -152,3 +152,37 @@ def test_staff_order_details(
     }
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     get_graphql_content(staff_api_client.post_graphql(query, variables))
+
+
+MULTIPLE_ORDER_ADDRESS_DETAILS_QUERY = """
+  query orders {
+    orders(first: 10) {
+      edges {
+        node {
+          id
+          shippingAddress {
+            id
+          }
+          billingAddress {
+            id
+          }
+        }
+      }
+    }
+  }
+"""
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_staff_multiple_orders_address_resolving(
+    staff_api_client,
+    permission_manage_orders,
+    orders_for_benchmarks,
+    count_queries,
+):
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    content = get_graphql_content(
+        staff_api_client.post_graphql(MULTIPLE_ORDER_ADDRESS_DETAILS_QUERY)
+    )
+    assert content["data"]["orders"] is not None
