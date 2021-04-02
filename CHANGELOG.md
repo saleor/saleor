@@ -37,6 +37,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Allow seeing unconfirmed orders - #7072 by @IKarbowiak
 - Raise GraphQLError when too big integer value is provided - #7076 by @IKarbowiak
 - Performance upgrade on orders query with shipping and billing addresses - #7083 by @tomaszszymanski129
+- Performance upgrade on orders query with `user` and `userEmail` fields - #7091 by @tomaszszymanski129
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
