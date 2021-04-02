@@ -594,6 +594,16 @@ def shipping_method(shipping_zone):
 
 
 @pytest.fixture
+def shipping_method_weight_based(shipping_zone):
+    method = ShippingMethod.objects.create(
+        name="weight based method",
+        type=ShippingMethodType.WEIGHT_BASED,
+        shipping_zone=shipping_zone,
+    )
+    return method
+
+
+@pytest.fixture
 def color_attribute(db):  # pylint: disable=W0613
     attribute = Attribute.objects.create(slug="color", name="Color")
     AttributeValue.objects.create(attribute=attribute, name="Red", slug="red")

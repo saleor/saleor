@@ -7,6 +7,7 @@ import graphene
 import pytest
 from django.core.exceptions import ValidationError
 from django.test import override_settings
+from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
 from ....account.models import User
@@ -23,6 +24,7 @@ from ....payment import TransactionKind
 from ....payment.interface import GatewayResponse
 from ....plugins.manager import PluginsManager
 from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
+from ....product.models import ProductVariant
 from ....warehouse.models import Stock
 from ...tests.utils import assert_no_permission, get_graphql_content
 from ..mutations import (
@@ -744,28 +746,95 @@ def test_checkout_available_payment_gateways_currency_specified_PLN(
     )
 
 
+GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS = """
+query getCheckout($token: UUID!) {
+    checkout(token: $token) {
+        availableShippingMethods {
+            name
+            price {
+                amount
+            }
+        }
+    }
+}
+"""
+
+
 def test_checkout_available_shipping_methods(
     api_client, checkout_with_item, address, shipping_zone
 ):
     checkout_with_item.shipping_address = address
     checkout_with_item.save()
 
-    query = """
-    query getCheckout($token: UUID!) {
-        checkout(token: $token) {
-            availableShippingMethods {
-                name
-            }
-        }
-    }
-    """
+    query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
     variables = {"token": checkout_with_item.token}
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
 
     shipping_method = shipping_zone.shipping_methods.first()
-    assert data["availableShippingMethods"] == [{"name": shipping_method.name}]
+    assert data["availableShippingMethods"][0]["name"] == shipping_method.name
+
+
+@pytest.mark.parametrize("minimum_order_weight_value", [0, 2, None])
+def test_checkout_available_shipping_methods_with_weight_based_shipping_method(
+    api_client,
+    checkout_with_item,
+    address,
+    shipping_method_weight_based,
+    minimum_order_weight_value,
+):
+    checkout_with_item.shipping_address = address
+    checkout_with_item.save()
+
+    shipping_method = shipping_method_weight_based
+    if minimum_order_weight_value is not None:
+        weight = Weight(kg=minimum_order_weight_value)
+        shipping_method.minimum_order_weight = weight
+        variant = checkout_with_item.lines.first().variant
+        variant.weight = weight
+        variant.save(update_fields=["weight"])
+    else:
+        shipping_method.minimum_order_weight = minimum_order_weight_value
+
+    shipping_method.save(update_fields=["minimum_order_weight"])
+
+    query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
+    variables = {"token": checkout_with_item.token}
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    shipping_methods = [method["name"] for method in data["availableShippingMethods"]]
+    assert shipping_method.name in shipping_methods
+
+
+def test_checkout_available_shipping_methods_weight_method_with_higher_minimal_weigh(
+    api_client, checkout_with_item, address, shipping_method_weight_based
+):
+    checkout_with_item.shipping_address = address
+    checkout_with_item.save()
+
+    shipping_method = shipping_method_weight_based
+    weight_value = 5
+    shipping_method.minimum_order_weight = Weight(kg=weight_value)
+    shipping_method.save(update_fields=["minimum_order_weight"])
+
+    variants = []
+    for line in checkout_with_item.lines.all():
+        variant = line.variant
+        variant.weight = Weight(kg=1)
+        variants.append(variant)
+    ProductVariant.objects.bulk_update(variants, ["weight"])
+
+    query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
+    variables = {"token": checkout_with_item.token}
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    shipping_methods = [method["name"] for method in data["availableShippingMethods"]]
+    assert shipping_method.name not in shipping_methods
 
 
 @pytest.mark.parametrize(
@@ -794,18 +863,7 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     checkout_with_item.shipping_address = address
     checkout_with_item.save()
 
-    query = """
-    query getCheckout($token: UUID!) {
-        checkout(token: $token) {
-            availableShippingMethods {
-                name
-                price {
-                    amount
-                }
-            }
-        }
-    }
-    """
+    query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
     variables = {"token": checkout_with_item.token}
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -822,15 +880,7 @@ def test_checkout_available_shipping_methods_with_price_displayed(
 def test_checkout_no_available_shipping_methods_without_address(
     api_client, checkout_with_item
 ):
-    query = """
-    query getCheckout($token: UUID!) {
-        checkout(token: $token) {
-            availableShippingMethods {
-                name
-            }
-        }
-    }
-    """
+    query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
     variables = {"token": checkout_with_item.token}
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -840,15 +890,7 @@ def test_checkout_no_available_shipping_methods_without_address(
 
 
 def test_checkout_no_available_shipping_methods_without_lines(api_client, checkout):
-    query = """
-    query getCheckout($token: UUID!) {
-        checkout(token: $token) {
-            availableShippingMethods {
-                name
-            }
-        }
-    }
-    """
+    query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
     variables = {"token": checkout.token}
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)

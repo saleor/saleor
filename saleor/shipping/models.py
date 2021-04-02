@@ -28,10 +28,13 @@ if TYPE_CHECKING:
 def _applicable_weight_based_methods(weight, qs):
     """Return weight based shipping methods that are applicable for the total weight."""
     qs = qs.weight_based()
-    min_weight_matched = Q(minimum_order_weight__lte=weight)
-    no_weight_limit = Q(maximum_order_weight__isnull=True)
-    max_weight_matched = Q(maximum_order_weight__gte=weight)
-    return qs.filter(min_weight_matched & (no_weight_limit | max_weight_matched))
+    min_weight_matched = Q(minimum_order_weight__lte=weight) | Q(
+        minimum_order_weight__isnull=True
+    )
+    max_weight_matched = Q(maximum_order_weight__gte=weight) | Q(
+        maximum_order_weight__isnull=True
+    )
+    return qs.filter(min_weight_matched & max_weight_matched)
 
 
 def _applicable_price_based_methods(price: Money, qs):
