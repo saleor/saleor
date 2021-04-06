@@ -98,10 +98,11 @@ def test_payment_gateway_refund_payment(
     )
 
 
+@pytest.mark.parametrize("payment_id", [-1, None])
 def test_payment_gateway_refund_payment_no_payment(
-    authorize_net_plugin, dummy_payment_data
+    payment_id, authorize_net_plugin, dummy_payment_data
 ):
-    dummy_payment_data.payment_id = 100
+    dummy_payment_data.payment_id = payment_id
     with pytest.raises(PaymentError):
         authorize_net_plugin.refund_payment(dummy_payment_data, None)
 
