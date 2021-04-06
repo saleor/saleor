@@ -2960,23 +2960,36 @@ def test_clean_checkout_no_payment(checkout_with_item, shipping_method, address)
     assert e.value.error_list[0].message == msg
 
 
+QUERY_CHECKOUT = """
+    query getCheckout($token: UUID!){
+        checkout(token: $token){
+            id
+            token
+            lines{
+                id
+                variant{
+                    id
+                }
+            }
+            shippingPrice{
+                currency
+                gross {
+                    amount
+                }
+                net {
+                    amount
+                }
+            }
+        }
+    }
+"""
+
+
 def test_get_variant_data_from_checkout_line_variant_hidden_in_listings(
     checkout_with_item, api_client
 ):
     # given
-    query = """
-        query getCheckout($token: UUID!){
-            checkout(token: $token){
-                id
-                lines{
-                    id
-                    variant{
-                        id
-                    }
-                }
-            }
-        }
-    """
+    query = QUERY_CHECKOUT
     checkout = checkout_with_item
     variant = checkout.lines.get().variant
     variant.product.channel_listings.update(visible_in_listings=False)
@@ -2988,3 +3001,28 @@ def test_get_variant_data_from_checkout_line_variant_hidden_in_listings(
     # then
     content = get_graphql_content(response)
     assert content["data"]["checkout"]["lines"][0]["variant"]["id"]
+
+
+@override_settings(PLUGINS=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"])
+def test_get_checkout_with_vatlayer_set(
+    checkout_with_item, api_client, vatlayer, site_settings, shipping_zone
+):
+    # given
+    site_settings.include_taxes_in_prices = True
+    site_settings.save()
+
+    query = QUERY_CHECKOUT
+    checkout = checkout_with_item
+    checkout.shipping_method = shipping_zone.shipping_methods.get()
+    checkout.save()
+
+    variant = checkout.lines.get().variant
+    variant.product.channel_listings.update(visible_in_listings=False)
+    variables = {"token": checkout.token}
+
+    # when
+    response = api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["token"] == str(checkout.token)
