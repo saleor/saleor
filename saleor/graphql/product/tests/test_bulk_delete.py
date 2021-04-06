@@ -254,7 +254,7 @@ def test_delete_products(
     assert not OrderLine.objects.filter(pk__in=draft_order_lines_pks).exists()
 
     assert OrderLine.objects.filter(pk__in=not_draft_order_lines_pks).exists()
-    assert mocked_recalculate_orders_task.called
+    mocked_recalculate_orders_task.assert_called_once_with({draft_order.id})
 
 
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
@@ -285,7 +285,7 @@ def test_delete_products_trigger_webhook(
 
     assert content["data"]["productBulkDelete"]["count"] == 3
     assert mocked_webhook_trigger.called
-    assert mocked_recalculate_orders_task.called
+    mocked_recalculate_orders_task.assert_called_once_with(set())
 
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
@@ -419,7 +419,7 @@ def test_delete_product_variants(
         product_variant_deleted_webhook_mock.call_count
         == content["data"]["productVariantBulkDelete"]["count"]
     )
-    assert mocked_recalculate_orders_task.called
+    mocked_recalculate_orders_task.assert_called_once_with(set())
 
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
@@ -566,7 +566,7 @@ def test_delete_product_variants_delete_default_variant(
 
     product.refresh_from_db()
     assert product.default_variant.pk == new_default_variant.pk
-    assert mocked_recalculate_orders_task.called
+    mocked_recalculate_orders_task.assert_called_once_with(set())
 
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
@@ -616,7 +616,7 @@ def test_delete_product_variants_delete_all_product_variants(
 
     product.refresh_from_db()
     assert product.default_variant is None
-    assert mocked_recalculate_orders_task.called
+    mocked_recalculate_orders_task.assert_called_once_with(set())
 
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
@@ -668,4 +668,4 @@ def test_delete_product_variants_from_different_products(
 
     assert product_1.default_variant is None
     assert product_2.default_variant.pk == product_2_second_variant.pk
-    assert mocked_recalculate_orders_task.called
+    mocked_recalculate_orders_task.assert_called_once_with(set())
