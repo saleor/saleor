@@ -119,3 +119,13 @@ def validate_required_string_field(cleaned_input, field_name: str):
     else:
         raise ValidationError(f"{field_name.capitalize()} is required.")
     return cleaned_input
+
+
+def from_global_id_or_error(id):
+    """Resolve id from global or raise ValidationError."""
+    try:
+        return graphene.Node.from_global_id(id)
+    except (binascii.Error, UnicodeDecodeError):
+        raise ValidationError(
+            {"id": ValidationError(f"Couldn't resolve id: {id}.", code="not_found")}
+        )

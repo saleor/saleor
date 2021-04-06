@@ -41,6 +41,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix dataloader for fetching checkout info - #7084 by @IKarbowiak
 - Update also draft order line total price after getting the unit price from plugin - #7080 by @IKarbowiak
 - Fix failing product tasks when instances are removed - #7092 by @IKarbowiak
+- Catch invalid ID in query and raise ValidationError - #7114 by @d-wysocki
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
