@@ -425,6 +425,7 @@ class ProductVariantQueryset(models.QuerySet):
         return self.prefetch_related(
             "attributes__values",
             "attributes__assignment__attribute",
+            "variant_media__media",
         )
 
 
