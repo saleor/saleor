@@ -68,7 +68,7 @@ def validate_shipping_address(order):
 
 
 def validate_order_lines(order, country):
-    for line in order:
+    for line in order.lines.all():
         if line.variant is None:
             raise ValidationError(
                 {
@@ -88,7 +88,7 @@ def validate_order_lines(order, country):
 
 def validate_product_is_published(order):
     variant_ids = []
-    for line in order:
+    for line in order.lines.all():
         variant_ids.append(line.variant_id)
     unpublished_product = Product.objects.filter(
         variants__id__in=variant_ids
@@ -161,7 +161,7 @@ def validate_variant_channel_listings(variants, channel):
 
 
 def validate_product_is_available_for_purchase(order):
-    for line in order:
+    for line in order.lines.all():
         product_channel_listing = line.variant.product.channel_listings.filter(
             channel_id=order.channel_id
         ).first()

@@ -160,7 +160,7 @@ class CategoryDelete(ModelDeleteMutation):
 
         db_id = instance.id
 
-        delete_categories([db_id])
+        delete_categories([db_id], manager=info.context.plugins)
 
         instance.id = db_id
         return cls.success_response(instance)
@@ -229,6 +229,12 @@ class CollectionCreate(ModelMutation):
             create_collection_background_image_thumbnails.delay(instance.pk)
 
     @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        products = instance.products.prefetched_for_webhook(single_object=False)
+        for product in products:
+            info.context.plugins.product_updated(product)
+
+    @classmethod
     def perform_mutation(cls, _root, info, **kwargs):
         result = super().perform_mutation(_root, info, **kwargs)
         return CollectionCreate(
@@ -251,6 +257,11 @@ class CollectionUpdate(CollectionCreate):
         error_type_field = "collection_errors"
 
     @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        """Override this method with `pass` to avoid triggering product webhook."""
+        pass
+
+    @classmethod
     def save(cls, info, instance, cleaned_input):
         if cleaned_input.get("background_image"):
             create_collection_background_image_thumbnails.delay(instance.pk)
@@ -270,7 +281,14 @@ class CollectionDelete(ModelDeleteMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **kwargs):
+        node_id = kwargs.get("id")
+
+        instance = cls.get_node_or_error(info, node_id, only_type=Collection)
+        products = list(instance.products.prefetched_for_webhook(single_object=False))
+
         result = super().perform_mutation(_root, info, **kwargs)
+        for product in products:
+            info.context.plugins.product_updated(product)
         return CollectionDelete(
             collection=ChannelContext(node=result.collection, channel_slug=None)
         )
@@ -385,7 +403,12 @@ class CollectionAddProducts(BaseMutation):
         collection = cls.get_node_or_error(
             info, collection_id, field="collection_id", only_type=Collection
         )
-        products = cls.get_nodes_or_error(products, "products", Product)
+        products = cls.get_nodes_or_error(
+            products,
+            "products",
+            Product,
+            qs=models.Product.objects.prefetched_for_webhook(single_object=False),
+        )
         cls.clean_products(products)
         collection.products.add(*products)
         if collection.sale_set.exists():
@@ -393,6 +416,11 @@ class CollectionAddProducts(BaseMutation):
             update_products_discounted_prices_of_catalogues_task.delay(
                 product_ids=[pq.pk for pq in products]
             )
+        transaction.on_commit(
+            lambda: [
+                info.context.plugins.product_updated(product) for product in products
+            ]
+        )
         return CollectionAddProducts(
             collection=ChannelContext(node=collection, channel_slug=None)
         )
@@ -437,8 +465,15 @@ class CollectionRemoveProducts(BaseMutation):
         collection = cls.get_node_or_error(
             info, collection_id, field="collection_id", only_type=Collection
         )
-        products = cls.get_nodes_or_error(products, "products", only_type=Product)
+        products = cls.get_nodes_or_error(
+            products,
+            "products",
+            only_type=Product,
+            qs=models.Product.objects.prefetched_for_webhook(single_object=False),
+        )
         collection.products.remove(*products)
+        for product in products:
+            info.context.plugins.product_updated(product)
         if collection.sale_set.exists():
             # Updated the db entries, recalculating discounts of affected products
             update_products_discounted_prices_of_catalogues_task.delay(
@@ -497,7 +532,9 @@ class StockInput(graphene.InputObjectType):
     warehouse = graphene.ID(
         required=True, description="Warehouse in which stock is located."
     )
-    quantity = graphene.Int(description="Quantity of items available for sell.")
+    quantity = graphene.Int(
+        required=True, description="Quantity of items available for sell."
+    )
 
 
 class ProductCreateInput(ProductInput):
@@ -1389,8 +1426,9 @@ class ProductVariantSetDefault(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, product_id, variant_id):
+        qs = models.Product.objects.prefetched_for_webhook()
         product = cls.get_node_or_error(
-            info, product_id, field="product_id", only_type=Product
+            info, product_id, field="product_id", only_type=Product, qs=qs
         )
         variant = cls.get_node_or_error(
             info,
@@ -1444,7 +1482,7 @@ class ProductVariantReorder(BaseMutation):
         pk = from_global_id_strict_type(product_id, only_type=Product, field="id")
 
         try:
-            product = models.Product.objects.prefetch_related("variants").get(pk=pk)
+            product = models.Product.objects.prefetched_for_webhook().get(pk=pk)
         except ObjectDoesNotExist:
             raise ValidationError(
                 {
@@ -1530,8 +1568,9 @@ class VariantMediaAssign(BaseMutation):
         media = cls.get_node_or_error(
             info, media_id, field="media_id", only_type=ProductMedia
         )
+        qs = models.ProductVariant.objects.prefetched_for_webhook()
         variant = cls.get_node_or_error(
-            info, variant_id, field="variant_id", only_type=ProductVariant
+            info, variant_id, field="variant_id", only_type=ProductVariant, qs=qs
         )
         if media and variant:
             # check if the given image and variant can be matched together
@@ -1577,8 +1616,9 @@ class VariantMediaUnassign(BaseMutation):
         media = cls.get_node_or_error(
             info, media_id, field="image_id", only_type=ProductMedia
         )
+        qs = models.ProductVariant.objects.prefetched_for_webhook()
         variant = cls.get_node_or_error(
-            info, variant_id, field="variant_id", only_type=ProductVariant
+            info, variant_id, field="variant_id", only_type=ProductVariant, qs=qs
         )
 
         try:

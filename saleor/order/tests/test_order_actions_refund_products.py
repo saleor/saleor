@@ -23,7 +23,7 @@ def test_create_refund_fulfillment_only_order_lines(
 
     order_lines_to_refund = order_with_lines.lines.all()
     original_quantity = {
-        line.id: line.quantity_unfulfilled for line in order_with_lines
+        line.id: line.quantity_unfulfilled for line in order_with_lines.lines.all()
     }
     order_line_ids = order_lines_to_refund.values_list("id", flat=True)
     original_allocations = list(
@@ -75,7 +75,7 @@ def test_create_refund_fulfillment_multiple_order_line_refunds(
     payment = order_with_lines.get_last_payment()
     order_lines_to_refund = order_with_lines.lines.all()
     original_quantity = {
-        line.id: line.quantity_unfulfilled for line in order_with_lines
+        line.id: line.quantity_unfulfilled for line in order_with_lines.lines.all()
     }
     order_line_ids = order_lines_to_refund.values_list("id", flat=True)
     lines_count = order_lines_to_refund.count()
@@ -119,7 +119,7 @@ def test_create_refund_fulfillment_included_shipping_costs(
     payment = order_with_lines.get_last_payment()
     order_lines_to_refund = order_with_lines.lines.all()
     original_quantity = {
-        line.id: line.quantity_unfulfilled for line in order_with_lines
+        line.id: line.quantity_unfulfilled for line in order_with_lines.lines.all()
     }
     order_line_ids = order_lines_to_refund.values_list("id", flat=True)
     lines_count = order_with_lines.lines.count()

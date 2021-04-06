@@ -20,7 +20,7 @@ def test_create_return_fulfillment_only_order_lines(
 
     order_lines_to_return = order_with_lines.lines.all()
     original_quantity = {
-        line.id: line.quantity_unfulfilled for line in order_with_lines
+        line.id: line.quantity_unfulfilled for line in order_with_lines.lines.all()
     }
     order_line_ids = order_lines_to_return.values_list("id", flat=True)
     original_allocations = list(
@@ -86,7 +86,7 @@ def test_create_return_fulfillment_only_order_lines_with_refund(
 
     order_lines_to_return = order_with_lines.lines.all()
     original_quantity = {
-        line.id: line.quantity_unfulfilled for line in order_with_lines
+        line.id: line.quantity_unfulfilled for line in order_with_lines.lines.all()
     }
     order_line_ids = order_lines_to_return.values_list("id", flat=True)
     original_allocations = list(
@@ -141,7 +141,7 @@ def test_create_return_fulfillment_only_order_lines_included_shipping_costs(
 
     order_lines_to_return = order_with_lines.lines.all()
     original_quantity = {
-        line.id: line.quantity_unfulfilled for line in order_with_lines
+        line.id: line.quantity_unfulfilled for line in order_with_lines.lines.all()
     }
     order_line_ids = order_lines_to_return.values_list("id", flat=True)
     original_allocations = list(
@@ -198,7 +198,7 @@ def test_create_return_fulfillment_only_order_lines_with_replace_request(
 
     order_lines_to_return = order_with_lines.lines.all()
     original_quantity = {
-        line.id: line.quantity_unfulfilled for line in order_with_lines
+        line.id: line.quantity_unfulfilled for line in order_with_lines.lines.all()
     }
     order_line_ids = order_lines_to_return.values_list("id", flat=True)
     original_allocations = list(
@@ -309,7 +309,7 @@ def test_create_return_fulfillment_multiple_order_line_returns(
     payment = order_with_lines.get_last_payment()
     order_lines_to_return = order_with_lines.lines.all()
     original_quantity = {
-        line.id: line.quantity_unfulfilled for line in order_with_lines
+        line.id: line.quantity_unfulfilled for line in order_with_lines.lines.all()
     }
     order_line_ids = order_lines_to_return.values_list("id", flat=True)
     lines_count = order_lines_to_return.count()

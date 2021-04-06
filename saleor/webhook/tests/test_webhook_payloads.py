@@ -10,6 +10,7 @@ from ...product.models import ProductVariant
 from ..payloads import (
     ORDER_FIELDS,
     PRODUCT_VARIANT_FIELDS,
+    generate_invoice_payload,
     generate_order_payload,
     generate_product_variant_payload,
 )
@@ -44,7 +45,6 @@ def test_generate_order_payload(
     assert payload.get("shipping_method")
     assert payload.get("shipping_tax_rate")
     assert payload.get("lines")
-    assert payload.get("payments")
     assert payload.get("shipping_address")
     assert payload.get("billing_address")
     assert payload.get("fulfillments")
@@ -183,3 +183,32 @@ def test_generate_product_variant_deleted_payload(
     assert len(payload["attributes"]) == 2
     assert len(payload["channel_listings"]) == 1
     assert len(payload.keys()) == len(payload_fields)
+
+
+def test_generate_invoice_payload(fulfilled_order):
+    invoice = fulfilled_order.invoices.first()
+    payload = json.loads(generate_invoice_payload(invoice))[0]
+
+    assert payload == {
+        "type": "Invoice",
+        "id": graphene.Node.to_global_id("Invoice", invoice.id),
+        "order": {
+            "type": "Order",
+            "id": graphene.Node.to_global_id("Order", invoice.order.id),
+            "private_metadata": {},
+            "metadata": {},
+            "created": ANY,
+            "status": "fulfilled",
+            "user_email": "test@example.com",
+            "shipping_method_name": "DHL",
+            "shipping_price_net_amount": "10.000",
+            "shipping_price_gross_amount": "12.300",
+            "shipping_tax_rate": "0.0000",
+            "total_net_amount": "80.000",
+            "total_gross_amount": "98.400",
+            "weight": "0.0:kg",
+        },
+        "number": "01/12/2020/TEST",
+        "created": ANY,
+        "external_url": "http://www.example.com/invoice.pdf",
+    }
