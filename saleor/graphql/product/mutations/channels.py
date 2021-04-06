@@ -8,11 +8,11 @@ from django.db import transaction
 
 from ....core.permissions import ProductPermissions
 from ....product.error_codes import CollectionErrorCode, ProductErrorCode
-from ....product.models import (
-    CollectionChannelListing,
-    ProductChannelListing,
-    ProductVariantChannelListing,
-)
+from ....product.models import CollectionChannelListing
+from ....product.models import Product as ProductModel
+from ....product.models import ProductChannelListing
+from ....product.models import ProductVariant as ProductVariantModel
+from ....product.models import ProductVariantChannelListing
 from ....product.tasks import update_product_discounted_price_task
 from ...channel import ChannelContext
 from ...channel.mutations import BaseChannelListingMutation
@@ -30,8 +30,6 @@ from ..types.products import Collection, Product, ProductVariant
 if TYPE_CHECKING:
     from ....channel.models import Channel as ChannelModel
     from ....product.models import Collection as CollectionModel
-    from ....product.models import Product as ProductModel
-    from ....product.models import ProductVariant as ProductVariantModel
 
 ErrorType = DefaultDict[str, List[ValidationError]]
 
@@ -178,7 +176,8 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, id, input):
-        product = cls.get_node_or_error(info, id, only_type=Product, field="id")
+        qs = ProductModel.objects.prefetched_for_webhook()
+        product = cls.get_node_or_error(info, id, only_type=Product, field="id", qs=qs)
         errors = defaultdict(list)
 
         cleaned_input = cls.clean_channels(
@@ -339,8 +338,9 @@ class ProductVariantChannelListingUpdate(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, id, input):
+        qs = ProductVariantModel.objects.prefetched_for_webhook()
         variant: "ProductVariantModel" = cls.get_node_or_error(  # type: ignore
-            info, id, only_type=ProductVariant, field="id"
+            info, id, only_type=ProductVariant, field="id", qs=qs
         )
         errors = defaultdict(list)
 

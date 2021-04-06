@@ -143,6 +143,38 @@ def test_process_payment_with_auto_capture(
 
 
 @pytest.mark.vcr
+def test_process_payment_with_3ds_redirect(
+    payment_adyen_for_checkout,
+    adyen_additional_data_for_3ds,
+    checkout_with_items,
+    adyen_plugin,
+):
+    payment_adyen_for_checkout.extra_data = ""
+    payment_adyen_for_checkout.save(update_fields=["extra_data"])
+    payment_info = create_payment_information(
+        payment_adyen_for_checkout, additional_data=adyen_additional_data_for_3ds
+    )
+    adyen_plugin = adyen_plugin(auto_capture=True)
+    response = adyen_plugin.process_payment(payment_info, None)
+    assert response.is_success is True
+    assert response.action_required is True
+    assert response.kind == TransactionKind.AUTH
+    assert response.amount == Decimal("80.00")
+    assert response.currency == checkout_with_items.currency
+    assert response.error is None
+
+    action_required_data = response.action_required_data
+    assert action_required_data["type"] == "redirect"
+    assert action_required_data["paymentMethodType"] == "scheme"
+    assert action_required_data["paymentData"]
+
+    payment_data = action_required_data["paymentData"]
+    payment_adyen_for_checkout.refresh_from_db()
+    assert payment_adyen_for_checkout.extra_data == json.dumps(
+        [{"payment_data": payment_data, "parameters": ["MD", "PaRes"]}]
+    )
+
+
 @mock.patch("saleor.payment.gateways.adyen.plugin.api_call")
 def test_process_payment_additional_action(
     api_call_mock, payment_adyen_for_checkout, checkout_with_items, adyen_plugin
@@ -186,7 +218,6 @@ def test_process_payment_additional_action(
     )
 
 
-@pytest.mark.vcr
 @mock.patch("saleor.payment.gateways.adyen.plugin.api_call")
 def test_process_payment_additional_action_payment_does_not_exists(
     api_call_mock, payment_adyen_for_checkout, checkout_with_items, adyen_plugin
@@ -221,7 +252,6 @@ def test_process_payment_additional_action_payment_does_not_exists(
     assert str(e.value) == "Payment cannot be performed. Payment does not exists."
 
 
-@pytest.mark.vcr
 @mock.patch("saleor.payment.gateways.adyen.plugin.api_call")
 def test_process_payment_additional_action_checkout_does_not_exists(
     api_call_mock, payment_adyen_for_checkout, checkout_with_items, adyen_plugin
