@@ -4,6 +4,7 @@ from unittest.mock import Mock, patch
 import graphene
 import pytest
 from django.contrib.auth.models import AnonymousUser
+from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.shortcuts import reverse
 from graphql.error import GraphQLError
@@ -11,7 +12,7 @@ from graphql_relay import to_global_id
 
 from ...product.types import Product
 from ...tests.utils import get_graphql_content
-from ...utils import get_nodes
+from ...utils import from_global_id_or_error, get_nodes
 from ...utils.filters import filter_by_query_param
 
 
@@ -283,3 +284,13 @@ def test_filter_by_query_param(qs):
         q_objects |= Q(**{q: test_kwargs[q]})
     # FIXME: django 1.11 fails on called_once_with(q_objects)
     qs.filter.call_count == 1
+
+
+def test_from_global_id_or_error(product):
+    invalid_id = "invalid"
+    message = f"Couldn't resolve id: {invalid_id}."
+
+    with pytest.raises(ValidationError) as error:
+        from_global_id_or_error(invalid_id)
+
+    assert error.value.error_dict["id"][0].message == message
