@@ -47,6 +47,7 @@ from ..core.weight import WeightUnits, zero_weight
 from ..discount import DiscountInfo
 from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel, SeoModelTranslation
+from ..store.models import Store
 from . import ProductMediaTypes
 
 if TYPE_CHECKING:
@@ -312,6 +313,14 @@ class Product(SeoModel, ModelWithMetadata):
 
     category = models.ForeignKey(
         Category,
+        related_name="products",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+
+    store = models.ForeignKey(
+        Store,
         related_name="products",
         on_delete=models.SET_NULL,
         null=True,

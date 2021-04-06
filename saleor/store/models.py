@@ -1,0 +1,97 @@
+from django.db import models
+from mptt.managers import TreeManager
+from mptt.models import MPTTModel
+from versatileimagefield.fields import PPOIField, VersatileImageField
+
+from ..core.utils.translations import TranslationProxy
+from django.conf import settings
+from ..account.models import PossiblePhoneNumberField
+from mptt.managers import TreeManager
+from ..core.utils.editorjs import clean_editor_js
+from ..core.db.fields import SanitizedJSONField
+from ..core.models import ModelWithMetadata, SortableModel
+from ..seo.models import SeoModel, SeoModelTranslation
+
+
+class StoreCategory(ModelWithMetadata, MPTTModel, SeoModel):
+    name = models.CharField(max_length=250)
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+
+    translated = TranslationProxy()
+
+    def __str__(self) -> str:
+        return self.name
+
+class StoreCategoryTranslation(SeoModelTranslation):
+    language_code = models.CharField(max_length=10)
+    store_category = models.ForeignKey(
+        StoreCategory, related_name="translations", on_delete=models.CASCADE
+    )
+    name = models.CharField(max_length=128)
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+
+    class Meta:
+        unique_together = (("language_code", "store_category"),)
+
+    def __str__(self) -> str:
+        return self.name
+
+    def __repr__(self) -> str:
+        class_ = type(self)
+        return "%s(pk=%r, name=%r, store_category_pk=%r)" % (
+            class_.__name__,
+            self.pk,
+            self.name,
+            self.category_id,
+        )
+
+class Store(models.Model):
+    name = models.CharField(max_length=250)
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+
+    category = models.ForeignKey(
+        StoreCategory,
+        related_name="stores",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+
+    phone = PossiblePhoneNumberField(blank=True, default="")
+    acreage = models.FloatField(max_length=250)
+    latlong = models.CharField(max_length=250)
+
+    background_image = VersatileImageField(
+        upload_to="store-backgrounds", blank=True, null=True
+    )
+    background_image_alt = models.CharField(max_length=128, blank=True)
+    translated = TranslationProxy()
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class StoreTranslation(models.Model):
+    language_code = models.CharField(max_length=10)
+    store = models.ForeignKey(
+        Store, related_name="translations", on_delete=models.CASCADE
+    )
+    name = models.CharField(max_length=128)
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+
+    class Meta:
+        unique_together = (("language_code", "store"),)
+
+    def __str__(self) -> str:
+        return self.name
+
+    def __repr__(self) -> str:
+        class_ = type(self)
+        return "%s(pk=%r, name=%r, category_pk=%r)" % (
+            class_.__name__,
+            self.pk,
+            self.name,
+            self.store_id,
+        )
+
+
