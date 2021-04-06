@@ -627,7 +627,7 @@ def create_order_lines(order, discounts, how_many=10):
 
 
 def create_fulfillments(order):
-    for line in order:
+    for line in order.lines.all():
         if random.choice([False, True]):
             fulfillment, _ = Fulfillment.objects.get_or_create(order=order)
             quantity = random.randrange(0, line.quantity) + 1
@@ -695,7 +695,7 @@ def create_fake_order(discounts, max_order_lines=5):
     lines = create_order_lines(order, discounts, random.randrange(1, max_order_lines))
     order.total = sum([line.total_price for line in lines], shipping_price)
     weight = Weight(kg=0)
-    for line in order:
+    for line in order.lines.all():
         weight += line.variant.get_weight()
     order.weight = weight
     order.save()

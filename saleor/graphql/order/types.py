@@ -699,6 +699,8 @@ class Order(CountableDjangoObjectType):
                 return address
             return obfuscate_address(address)
 
+        if not root.billing_address_id:
+            return
         user = UserByUserIdLoader(info.context).load(root.user_id)
         address = AddressByIdLoader(info.context).load(root.billing_address_id)
         return Promise.all([user, address]).then(_resolve_billing_address)
@@ -712,6 +714,8 @@ class Order(CountableDjangoObjectType):
                 return address
             return obfuscate_address(address)
 
+        if not root.shipping_address_id:
+            return
         user = UserByUserIdLoader(info.context).load(root.user_id)
         address = AddressByIdLoader(info.context).load(root.shipping_address_id)
         return Promise.all([user, address]).then(_resolve_shipping_address)

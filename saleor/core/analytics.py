@@ -54,7 +54,7 @@ def get_order_payloads(order):
             quantity=order_line.quantity,
             item_id=order_line.product_sku,
         )
-        for order_line in order
+        for order_line in order.lines.all()
     ]
     return ga.transaction(
         order.id,

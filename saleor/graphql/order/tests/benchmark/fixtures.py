@@ -6,6 +6,8 @@ from prices import Money, TaxedMoney
 from .....account.models import User
 from .....order.models import Order
 
+ORDER_COUNT_IN_BENCHMARKS = 10
+
 
 @pytest.fixture
 def users_for_benchmarks(address):
@@ -15,10 +17,10 @@ def users_for_benchmarks(address):
             is_active=True,
             default_billing_address=address.get_copy(),
             default_shipping_address=address.get_copy(),
-            first_name="John",
-            last_name="Doe",
+            first_name=f"John_{i}",
+            last_name=f"Doe_{i}",
         )
-        for i in range(10)
+        for i in range(ORDER_COUNT_IN_BENCHMARKS)
     ]
     return User.objects.bulk_create(users)
 
@@ -34,6 +36,6 @@ def orders_for_benchmarks(channel_USD, address, users_for_benchmarks):
             user=users_for_benchmarks[i],
             total=TaxedMoney(net=Money(i, "USD"), gross=Money(i, "USD")),
         )
-        for i in range(10)
+        for i in range(ORDER_COUNT_IN_BENCHMARKS)
     ]
     return Order.objects.bulk_create(orders)

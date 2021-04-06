@@ -36,8 +36,12 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix invalid tax rates for lines - #7058 by @IKarbowiak
 - Allow seeing unconfirmed orders - #7072 by @IKarbowiak
 - Raise GraphQLError when too big integer value is provided - #7076 by @IKarbowiak
+- Remove html tags from product description_plaintext - #7094 by @d-wysocki
 - Performance upgrade on orders query with shipping and billing addresses - #7083 by @tomaszszymanski129
 - Performance upgrade on orders query with `user` and `userEmail` fields - #7091 by @tomaszszymanski129
+- Fix dataloader for fetching checkout info - #7084 by @IKarbowiak
+- Update also draft order line total price after getting the unit price from plugin - #7080 by @IKarbowiak
+- Fix failing product tasks when instances are removed - #7092 by @IKarbowiak
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -78,6 +82,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix doubling price in checkout for products without tax - #7056 by @IKarbowiak
   - Introduce changes in plugins method:
     - `calculate_checkout_subtotal` has been dropped from plugins, for correct subtotal calculation, `calculate_checkout_line_total` must be set (manager method for calculating checkout subtotal uses `calculate_checkout_line_total` method)
+- Make `order` property of invoice webhook payload contain order instead of order lines - #7081 by @pdblaszczyk
+  - Affected webhook events: `INVOICE_REQUESTED`, `INVOICE_SENT`, `INVOICE_DELETED`
+- Make quantity field on `StockInput` required - #7082 by @IKarbowiak
 
 ### Other
 
