@@ -1905,7 +1905,7 @@ def test_delete_variant(
     assert data["productVariant"]["sku"] == variant.sku
     with pytest.raises(variant._meta.model.DoesNotExist):
         variant.refresh_from_db()
-    assert mocked_recalculate_orders_task.called
+    mocked_recalculate_orders_task.assert_called_once_with(set())
 
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
@@ -2012,7 +2012,7 @@ def test_delete_default_variant(
 
     product.refresh_from_db()
     assert product.default_variant.pk == second_variant.pk
-    assert mocked_recalculate_orders_task.called
+    mocked_recalculate_orders_task.assert_called_once_with(set())
 
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
@@ -2051,7 +2051,7 @@ def test_delete_not_default_variant_left_default_variant_unchanged(
 
     product.refresh_from_db()
     assert product.default_variant.pk == default_variant.pk
-    assert mocked_recalculate_orders_task.called
+    mocked_recalculate_orders_task.assert_called_once_with(set())
 
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
@@ -2088,7 +2088,7 @@ def test_delete_default_all_product_variant_left_product_default_variant_unset(
 
     product.refresh_from_db()
     assert not product.default_variant
-    assert mocked_recalculate_orders_task.called
+    mocked_recalculate_orders_task.assert_called_once_with(set())
 
 
 def _fetch_all_variants(client, variables={}, permissions=None):
