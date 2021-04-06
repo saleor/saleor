@@ -18,7 +18,7 @@ def test_get_order_payloads(order_with_lines):
     assert Decimal(transaction["tt"]) == order.total.tax.amount
     assert Decimal(transaction["ts"]) == order.shipping_price.net.amount
 
-    for i, line in enumerate(order):
+    for i, line in enumerate(order.lines.all()):
         item = data[i + 1]
         assert item["ti"] == order.pk
         assert item["in"] == line.variant.display_product()

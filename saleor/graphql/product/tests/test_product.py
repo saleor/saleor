@@ -7,6 +7,7 @@ import graphene
 import pytest
 from django.core.exceptions import ValidationError
 from django.utils.dateparse import parse_datetime
+from django.utils.html import strip_tags
 from django.utils.text import slugify
 from freezegun import freeze_time
 from graphql_relay import to_global_id
@@ -3959,6 +3960,9 @@ def test_update_product(
     color_attribute,
 ):
     query = MUTATION_UPDATE_PRODUCT
+    expected_other_description_json = other_description_json
+    text = expected_other_description_json["blocks"][0]["data"]["text"]
+    expected_other_description_json["blocks"][0]["data"]["text"] = strip_tags(text)
     other_description_json = json.dumps(other_description_json)
 
     product_id = graphene.Node.to_global_id("Product", product.pk)
@@ -3998,7 +4002,7 @@ def test_update_product(
     assert data["productErrors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
-    assert data["product"]["description"] == other_description_json
+    assert data["product"]["description"] == json.dumps(expected_other_description_json)
     assert data["product"]["chargeTaxes"] == product_charge_taxes
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert not data["product"]["category"]["name"] == category.name
