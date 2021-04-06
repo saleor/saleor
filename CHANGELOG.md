@@ -40,6 +40,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Performance upgrade on orders query with shipping and billing addresses - #7083 by @tomaszszymanski129
 - Fix dataloader for fetching checkout info - #7084 by @IKarbowiak
 - Update also draft order line total price after getting the unit price from plugin - #7080 by @IKarbowiak
+- Fix failing product tasks when instances are removed - #7092 by @IKarbowiak
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
