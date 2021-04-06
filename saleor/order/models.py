@@ -250,9 +250,6 @@ class Order(ModelWithMetadata):
     def _index_shipping_phone(self):
         return self.shipping_address.phone
 
-    def __iter__(self):
-        return iter(self.lines.all())
-
     def __repr__(self):
         return "<Order #%r>" % (self.id,)
 
@@ -297,14 +294,14 @@ class Order(ModelWithMetadata):
         )
 
     def is_shipping_required(self):
-        return any(line.is_shipping_required for line in self)
+        return any(line.is_shipping_required for line in self.lines.all())
 
     def get_subtotal(self):
-        subtotal_iterator = (line.total_price for line in self)
+        subtotal_iterator = (line.total_price for line in self.lines.all())
         return sum(subtotal_iterator, zero_taxed_money(currency=self.currency))
 
     def get_total_quantity(self):
-        return sum([line.quantity for line in self])
+        return sum([line.quantity for line in self.lines.all()])
 
     def is_draft(self):
         return self.status == OrderStatus.DRAFT
@@ -559,7 +556,7 @@ class Fulfillment(ModelWithMetadata):
         return self.status != FulfillmentStatus.CANCELED
 
     def get_total_quantity(self):
-        return sum([line.quantity for line in self])
+        return sum([line.quantity for line in self.lines.all()])
 
     @property
     def is_tracking_number_url(self):
