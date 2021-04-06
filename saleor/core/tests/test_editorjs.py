@@ -2,6 +2,7 @@ import warnings
 from unittest import mock
 
 import pytest
+from django.utils.html import strip_tags
 
 from ..utils.editorjs import clean_editor_js
 
@@ -34,7 +35,7 @@ def test_clean_editor_js(text):
     result = clean_editor_js(data, to_string=True)
 
     # then
-    assert result == text
+    assert result == strip_tags(text)
 
 
 def test_clean_editor_js_no_blocks():
@@ -137,7 +138,7 @@ def test_clean_editor_js_for_list():
     result = clean_editor_js(data, to_string=True)
 
     # then
-    assert result == (
+    assert result == strip_tags(
         "The Saleor Winter Sale is snowed "
         '<a href="https://docs.saleor.io/docs/">. Test.'
         "It is a block-styled editor "

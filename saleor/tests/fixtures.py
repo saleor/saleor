@@ -3472,7 +3472,7 @@ def other_description_json():
             {
                 "key": "",
                 "data": {
-                    "text": "A GRAPHQL-FIRST ECOMMERCE PLATFORM FOR PERFECTIONISTS",
+                    "text": "A GRAPHQL-FIRST <b>ECOMMERCE</b> PLATFORM FOR PERFECTIONISTS",
                 },
                 "text": "A GRAPHQL-FIRST ECOMMERCE PLATFORM FOR PERFECTIONISTS",
                 "type": "header-two",
