@@ -498,7 +498,9 @@ class StockInput(graphene.InputObjectType):
     warehouse = graphene.ID(
         required=True, description="Warehouse in which stock is located."
     )
-    quantity = graphene.Int(description="Quantity of items available for sell.")
+    quantity = graphene.Int(
+        required=True, description="Quantity of items available for sell."
+    )
 
 
 class ProductCreateInput(ProductInput):

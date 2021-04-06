@@ -2399,7 +2399,7 @@ def test_draft_order_complete(
     order.refresh_from_db()
     assert data["status"] == order.status.upper()
 
-    for line in order:
+    for line in order.lines.all():
         allocation = line.allocations.get()
         assert allocation.quantity_allocated == line.quantity_unfulfilled
 
@@ -4386,6 +4386,27 @@ def test_query_draft_order_by_token_as_anonymous_customer(api_client, draft_orde
     response = api_client.post_graphql(query, {"token": draft_order.token})
     content = get_graphql_content(response)
     assert not content["data"]["orderByToken"]
+
+
+def test_query_order_without_addresess(order, user_api_client, channel_USD):
+    # given
+    query = ORDER_BY_TOKEN_QUERY
+
+    order = Order.objects.create(
+        token=str(uuid.uuid4()),
+        channel=channel_USD,
+        user=user_api_client.user,
+    )
+
+    # when
+    response = user_api_client.post_graphql(query, {"token": order.token})
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderByToken"]
+    assert data["userEmail"] == user_api_client.user.email
+    assert data["billingAddress"] is None
+    assert data["shippingAddress"] is None
 
 
 MUTATION_ORDER_BULK_CANCEL = """
