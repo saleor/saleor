@@ -36,6 +36,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix invalid tax rates for lines - #7058 by @IKarbowiak
 - Allow seeing unconfirmed orders - #7072 by @IKarbowiak
 - Raise GraphQLError when too big integer value is provided - #7076 by @IKarbowiak
+- Remove html tags from product description_plaintext - #7094 by @d-wysocki
+- Performance upgrade on orders query with shipping and billing addresses - #7083 by @tomaszszymanski129
+- Fix dataloader for fetching checkout info - #7084 by @IKarbowiak
 - Update also draft order line total price after getting the unit price from plugin - #7080 by @IKarbowiak
 
 ### Breaking
