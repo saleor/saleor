@@ -911,14 +911,14 @@ def test_add_products_to_collection(
     """
     collection_id = to_global_id("Collection", collection.id)
     product_ids = [to_global_id("Product", product.pk) for product in product_list]
-    no_products_before = collection.products.count()
+    products_before = collection.products.count()
     variables = {"id": collection_id, "products": product_ids}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
     data = content["data"]["collectionAddProducts"]["collection"]
-    assert data["products"]["totalCount"] == no_products_before + len(product_ids)
+    assert data["products"]["totalCount"] == products_before + len(product_ids)
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
@@ -943,14 +943,14 @@ def test_add_products_to_collection_trigger_product_updated_webhook(
     """
     collection_id = to_global_id("Collection", collection.id)
     product_ids = [to_global_id("Product", product.pk) for product in product_list]
-    no_products_before = collection.products.count()
+    products_before = collection.products.count()
     variables = {"id": collection_id, "products": product_ids}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
     data = content["data"]["collectionAddProducts"]["collection"]
-    assert data["products"]["totalCount"] == no_products_before + len(product_ids)
+    assert data["products"]["totalCount"] == products_before + len(product_ids)
     assert len(product_list) == product_updated_mock.call_count
 
 
@@ -1008,14 +1008,14 @@ def test_remove_products_from_collection(
     collection.products.add(*product_list)
     collection_id = to_global_id("Collection", collection.id)
     product_ids = [to_global_id("Product", product.pk) for product in product_list]
-    no_products_before = collection.products.count()
+    products_before = collection.products.count()
     variables = {"id": collection_id, "products": product_ids}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
     data = content["data"]["collectionRemoveProducts"]["collection"]
-    assert data["products"]["totalCount"] == no_products_before - len(product_ids)
+    assert data["products"]["totalCount"] == products_before - len(product_ids)
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
@@ -1041,14 +1041,14 @@ def test_remove_products_from_collection_trigger_product_updated_webhook(
     collection.products.add(*product_list)
     collection_id = to_global_id("Collection", collection.id)
     product_ids = [to_global_id("Product", product.pk) for product in product_list]
-    no_products_before = collection.products.count()
+    products_before = collection.products.count()
     variables = {"id": collection_id, "products": product_ids}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
     data = content["data"]["collectionRemoveProducts"]["collection"]
-    assert data["products"]["totalCount"] == no_products_before - len(product_ids)
+    assert data["products"]["totalCount"] == products_before - len(product_ids)
     assert len(product_list) == product_updated_mock.call_count
 
 
