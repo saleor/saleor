@@ -7,6 +7,7 @@ import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
 from freezegun import freeze_time
+from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
 from ....account.models import CustomerEvent
@@ -307,6 +308,25 @@ def test_order_query(
     assert expected_method.type.upper() == method["type"]
 
 
+ORDERS_QUERY_SHIPPING_METHODS = """
+    query OrdersQuery {
+        orders(first: 1) {
+            edges {
+                node {
+                    availableShippingMethods {
+                        name
+                        price {
+                            amount
+                        }
+                        type
+                    }
+                }
+            }
+        }
+    }
+"""
+
+
 @pytest.mark.parametrize(
     "expected_price_type, expected_price, display_gross_prices",
     (("gross", 13, True), ("net", 10, False)),
@@ -322,23 +342,7 @@ def test_order_available_shipping_methods_query(
     shipping_zone,
     site_settings,
 ):
-    query = """
-    query OrdersQuery {
-        orders(first: 1) {
-            edges {
-                node {
-                    availableShippingMethods {
-                        id
-                        price {
-                            amount
-                        }
-                        type
-                    }
-                }
-            }
-        }
-    }
-    """
+    query = ORDERS_QUERY_SHIPPING_METHODS
     shipping_method = shipping_zone.shipping_methods.first()
     taxed_price = TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD"))
     apply_taxes_to_shipping_mock = Mock(return_value=taxed_price)
@@ -356,6 +360,62 @@ def test_order_available_shipping_methods_query(
 
     apply_taxes_to_shipping_mock.assert_called_once_with(shipping_method.price, ANY)
     assert expected_price == method["price"]["amount"]
+
+
+@pytest.mark.parametrize("minimum_order_weight_value", [0, 2, None])
+def test_order_available_shipping_methods_with_weight_based_shipping_method(
+    staff_api_client,
+    order_line,
+    shipping_method_weight_based,
+    permission_manage_orders,
+    minimum_order_weight_value,
+):
+
+    shipping_method = shipping_method_weight_based
+    order = order_line.order
+    if minimum_order_weight_value is not None:
+        weight = Weight(kg=minimum_order_weight_value)
+        shipping_method.minimum_order_weight = weight
+        order.weight = weight
+        order.save(update_fields=["weight"])
+    else:
+        shipping_method.minimum_order_weight = minimum_order_weight_value
+
+    shipping_method.save(update_fields=["minimum_order_weight"])
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDERS_QUERY_SHIPPING_METHODS)
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+
+    shipping_methods = [
+        method["name"] for method in order_data["availableShippingMethods"]
+    ]
+    assert shipping_method.name in shipping_methods
+
+
+def test_order_available_shipping_methods_weight_method_with_higher_minimal_weigh(
+    staff_api_client, order_line, shipping_method_weight_based, permission_manage_orders
+):
+    order = order_line.order
+
+    shipping_method = shipping_method_weight_based
+    weight_value = 5
+    shipping_method.minimum_order_weight = Weight(kg=weight_value)
+    shipping_method.save(update_fields=["minimum_order_weight"])
+
+    order.weight = Weight(kg=1)
+    order.save(update_fields=["weight"])
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDERS_QUERY_SHIPPING_METHODS)
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+
+    shipping_methods = [
+        method["name"] for method in order_data["availableShippingMethods"]
+    ]
+    assert shipping_method.name not in shipping_methods
 
 
 def test_order_query_customer(api_client):
