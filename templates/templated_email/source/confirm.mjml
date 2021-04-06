@@ -14,9 +14,12 @@
         </mj-text>
         <mj-text>
           {% blocktrans trimmed context "Account confirmation e-mail text" %}
-            In order to log into {{ site_name }}, you have to confirm your email address first.
-            Please click the link below to do so and log into your account.
+            You’re almost done! Just a quick click of the link below and you’re on your way
+            to enjoying the freshest, most delicious food that Utah farmers provide!
           {% endblocktrans %}
+        </mj-text>
+        <mj-text>
+            Please confirm your email address by clicking the link below:
         </mj-text>
         <mj-text>
           <a href="{{ confirm_url | safe }}">
