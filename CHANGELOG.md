@@ -25,6 +25,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Raise an error when the user is trying to sort products by rank without search - #7013 by @IKarbowiak
 - Fix available shipping methods - return also weight methods without weight limits - #7021 by @IKarbowiak
 - Remove redundant Opentracing spans - #6994 by @fowczarek
+- Trigger `PRODUCT_UPDATED` webhook for collections and categories mutations - #7051 by @d-wysocki
 - Support setting value for AttributeValue mutations - #7037 by @piotrgrundas
 - Validate discount value for percentage vouchers and sales - #7033 by @d-wysocki
 - Optimize children field on Category type - #7045 by @IKarbowiak
@@ -53,6 +54,10 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop `apply_taxes_to_shipping_price_range` plugin hook - #6746 by @maarcingebala
 - Drop `CHECKOUT_QUANTITY_CHANGED` webhook - #6797 by @d-wysocki
 - Drop deprecated `taxRate` field from `ProductType` - #6795 by @d-wysocki
+- Unconfirmed order manipulation - #6829 by @tomaszszymanski129
+  - Remove mutations for draft order lines manipulation: `draftOrderLinesCreate`, `draftOrderLineDelete`, `draftOrderLineUpdate`
+  - Use `orderLinesCreate`, `orderLineDelete`, `orderLineUpdate` mutations instead.
+  - Order events enums `DRAFT_ADDED_PRODUCTS` and `DRAFT_REMOVED_PRODUCTS` are now `ADDED_PRODUCTS` and `REMOVED_PRODUCTS`
 - Email interface as a plugin - #6301 by @korycins
 - Remove resolving user's location from GeoIP; drop `PaymentInput.billingAddress` input field - #6784 by @maarcingebala
 - Change the payload of the order webhook to handle discounts list, added fields: `Order.discounts`,

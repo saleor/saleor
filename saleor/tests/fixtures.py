@@ -57,8 +57,8 @@ from ..order import OrderLineData, OrderStatus
 from ..order.actions import cancel_fulfillment, fulfill_order_lines
 from ..order.events import (
     OrderEvents,
-    draft_order_added_products_event,
     fulfillment_refunded_event,
+    order_added_products_event,
 )
 from ..order.models import FulfillmentStatus, Order, OrderEvent, OrderLine
 from ..order.utils import recalculate_order
@@ -2351,6 +2351,19 @@ def order_with_lines(
 
 
 @pytest.fixture
+def lines_info(order_with_lines):
+    return [
+        OrderLineData(
+            line=line,
+            quantity=line.quantity,
+            variant=line.variant,
+            warehouse_pk=line.allocations.first().stock.warehouse.pk,
+        )
+        for line in order_with_lines.lines.all()
+    ]
+
+
+@pytest.fixture
 def order_with_lines_and_events(order_with_lines, staff_user):
     events = []
     for event_type, _ in OrderEvents.CHOICES:
@@ -2369,7 +2382,7 @@ def order_with_lines_and_events(order_with_lines, staff_user):
         amount=Decimal("10.0"),
         shipping_costs_included=False,
     )
-    draft_order_added_products_event(
+    order_added_products_event(
         order=order_with_lines,
         user=staff_user,
         order_lines=[(1, order_with_lines.lines.first())],
