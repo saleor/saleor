@@ -311,7 +311,7 @@ def test_page_type_update_duplicated_slug(
     assert errors[0]["field"] == "slug"
 
 
-def test_page_type_update_multiply_errors(
+def test_page_type_update_multiple_errors(
     staff_api_client,
     page_type,
     permission_manage_page_types_and_attributes,
@@ -319,7 +319,7 @@ def test_page_type_update_multiply_errors(
     size_page_attribute,
     color_attribute,
 ):
-    """Ensure that if multiply errors occurred all will raised."""
+    """Ensure that if multiple errors occurred all will be raised."""
 
     # given
     staff_user = staff_api_client.user

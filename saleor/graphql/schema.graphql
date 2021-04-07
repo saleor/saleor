@@ -1823,30 +1823,9 @@ input DraftOrderInput {
   redirectUrl: String
 }
 
-type DraftOrderLineDelete {
-  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  order: Order
-  orderLine: OrderLine
-  orderErrors: [OrderError!]!
-}
-
-type DraftOrderLineUpdate {
-  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  order: Order
-  orderErrors: [OrderError!]!
-  orderLine: OrderLine
-}
-
 type DraftOrderLinesBulkDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   count: Int!
-  orderErrors: [OrderError!]!
-}
-
-type DraftOrderLinesCreate {
-  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  order: Order
-  orderLines: [OrderLine!]
   orderErrors: [OrderError!]!
 }
 
@@ -2725,9 +2704,6 @@ type Mutation {
   draftOrderDelete(id: ID!): DraftOrderDelete
   draftOrderBulkDelete(ids: [ID]!): DraftOrderBulkDelete
   draftOrderLinesBulkDelete(ids: [ID]!): DraftOrderLinesBulkDelete
-  draftOrderLinesCreate(id: ID!, input: [OrderLineCreateInput]!): DraftOrderLinesCreate
-  draftOrderLineDelete(id: ID!): DraftOrderLineDelete
-  draftOrderLineUpdate(id: ID!, input: OrderLineInput!): DraftOrderLineUpdate
   draftOrderUpdate(id: ID!, input: DraftOrderInput!): DraftOrderUpdate
   orderAddNote(order: ID!, input: OrderAddNoteInput!): OrderAddNote
   orderCancel(id: ID!): OrderCancel
@@ -2738,6 +2714,9 @@ type Mutation {
   orderFulfillmentUpdateTracking(id: ID!, input: FulfillmentUpdateTrackingInput!): FulfillmentUpdateTracking
   orderFulfillmentRefundProducts(input: OrderRefundProductsInput!, order: ID!): FulfillmentRefundProducts
   orderFulfillmentReturnProducts(input: OrderReturnProductsInput!, order: ID!): FulfillmentReturnProducts
+  orderLinesCreate(id: ID!, input: [OrderLineCreateInput]!): OrderLinesCreate
+  orderLineDelete(id: ID!): OrderLineDelete
+  orderLineUpdate(id: ID!, input: OrderLineInput!): OrderLineUpdate
   orderDiscountAdd(input: OrderDiscountCommonInput!, orderId: ID!): OrderDiscountAdd
   orderDiscountUpdate(discountId: ID!, input: OrderDiscountCommonInput!): OrderDiscountUpdate
   orderDiscountDelete(discountId: ID!): OrderDiscountDelete
@@ -3168,8 +3147,8 @@ enum OrderEventsEmailsEnum {
 enum OrderEventsEnum {
   DRAFT_CREATED
   DRAFT_CREATED_FROM_REPLACE
-  DRAFT_ADDED_PRODUCTS
-  DRAFT_REMOVED_PRODUCTS
+  ADDED_PRODUCTS
+  REMOVED_PRODUCTS
   PLACED
   PLACED_FROM_DRAFT
   OVERSOLD_ITEMS
@@ -3268,6 +3247,13 @@ input OrderLineCreateInput {
   variantId: ID!
 }
 
+type OrderLineDelete {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  order: Order
+  orderLine: OrderLine
+  orderErrors: [OrderError!]!
+}
+
 type OrderLineDiscountRemove {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   orderLine: OrderLine
@@ -3284,6 +3270,20 @@ type OrderLineDiscountUpdate {
 
 input OrderLineInput {
   quantity: Int!
+}
+
+type OrderLineUpdate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  order: Order
+  orderErrors: [OrderError!]!
+  orderLine: OrderLine
+}
+
+type OrderLinesCreate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  order: Order
+  orderLines: [OrderLine!]
+  orderErrors: [OrderError!]!
 }
 
 type OrderMarkAsPaid {

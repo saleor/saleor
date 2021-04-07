@@ -444,7 +444,9 @@ def get_order_request_data(order: "Order", config: AvataxConfiguration):
     address = order.shipping_address or order.billing_address
     lines = get_order_lines_data(order)
     transaction = (
-        TransactionType.INVOICE if not order.is_draft() else TransactionType.ORDER
+        TransactionType.INVOICE
+        if not (order.is_draft() or order.is_unconfirmed())
+        else TransactionType.ORDER
     )
     data = generate_request_data(
         transaction_type=transaction,
