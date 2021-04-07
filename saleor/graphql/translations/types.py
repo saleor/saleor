@@ -433,7 +433,7 @@ class ShippingMethodTranslation(BaseTranslationType):
     class Meta:
         model = shipping_models.ShippingMethodTranslation
         interfaces = [graphene.relay.Node]
-        only_fields = BASIC_TRANSLATABLE_FIELDS
+        only_fields = BASIC_TRANSLATABLE_FIELDS + ["description"]
 
 
 class ShippingMethodTranslatableContent(CountableDjangoObjectType):
