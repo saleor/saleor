@@ -1057,7 +1057,7 @@ def test_create_variant_invalid_variant_attributes(
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
-def test_create_variant_with_text_attribute(
+def test_create_variant_with_rich_text_attribute(
     created_webhook_mock,
     permission_manage_products,
     product,
@@ -1106,60 +1106,6 @@ def test_create_variant_with_text_attribute(
     assert data["sku"] == sku
     assert data["attributes"][-1]["values"][0]["richText"] == rich_text
     created_webhook_mock.assert_called_once_with(product.variants.last())
-
-
-def test_create_variant_with_text_attribute_length_exceeded(
-    permission_manage_products,
-    product,
-    product_type,
-    staff_api_client,
-    rich_text_attribute,
-    warehouse,
-):
-    query = CREATE_VARIANT_MUTATION
-    product_id = graphene.Node.to_global_id("Product", product.pk)
-    sku = "1"
-    price = 1.32
-    cost_price = 3.22
-    weight = 10.22
-
-    product_type.variant_attributes.add(rich_text_attribute)
-    attr_id = graphene.Node.to_global_id("Attribute", rich_text_attribute.id)
-
-    stocks = [
-        {
-            "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
-            "quantity": 20,
-        }
-    ]
-    variables = {
-        "productId": product_id,
-        "sku": sku,
-        "stocks": stocks,
-        "costPrice": cost_price,
-        "price": price,
-        "weight": weight,
-        "attributes": [
-            {"id": attr_id, "values": ["long text" * 100]},
-        ],
-        "trackInventory": True,
-    }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
-    content = get_graphql_content(response)
-
-    data = content["data"]["productVariantCreate"]
-    errors = data["productErrors"]
-
-    assert not data["productVariant"]
-    assert len(errors) == 1
-    assert errors[0] == {
-        "attributes": [attr_id],
-        "code": ProductErrorCode.INVALID.name,
-        "field": "attributes",
-        "message": "Attribute value length is exceeded.",
-    }
 
 
 def test_product_variant_update_with_new_attributes(
@@ -1461,7 +1407,7 @@ def test_update_product_variant_with_current_attribute(
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
-def test_update_variant_with_text_attribute(
+def test_update_variant_with_rich_text_attribute(
     product_variant_updated,
     permission_manage_products,
     product,

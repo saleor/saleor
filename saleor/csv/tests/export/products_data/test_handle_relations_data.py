@@ -861,7 +861,7 @@ def test_add_file_attribute_info_to_data(product):
     assert result[pk][expected_header] == {"http://mirumee.com/media/" + test_url}
 
 
-def test_add_text_attribute_info_to_data(product):
+def test_add_rich_text_attribute_info_to_data(product):
     # given
     pk = product.pk
     slug = "testtxt"
