@@ -12,7 +12,7 @@ from ...shipping import models as shipping_models
 from ..channel import ChannelContext
 from ..core.mutations import BaseMutation
 from ..core.types.common import MetadataError
-from .extra_methods import MODEL_EXTRA_METHODS
+from .extra_methods import MODEL_EXTRA_METHODS, MODEL_EXTRA_PREFETCH
 from .permissions import PRIVATE_META_PERMISSION_MAP, PUBLIC_META_PERMISSION_MAP
 from .types import ObjectWithMetadata
 
@@ -47,7 +47,8 @@ class BaseMetadataMutation(BaseMutation):
     @classmethod
     def get_instance(cls, info, **data):
         object_id = data.get("id")
-        return cls.get_node_or_error(info, object_id)
+        qs = data.get("qs", None)
+        return cls.get_node_or_error(info, object_id, qs=qs)
 
     @classmethod
     def validate_model_is_model_with_metadata(cls, model, object_id):
@@ -114,6 +115,9 @@ class BaseMetadataMutation(BaseMutation):
         """Run extra metadata method based on mutating model."""
         type_name, _ = graphene.Node.from_global_id(data["id"])
         if MODEL_EXTRA_METHODS.get(type_name):
+            prefetch_method = MODEL_EXTRA_PREFETCH.get(type_name)
+            if prefetch_method:
+                data["qs"] = prefetch_method()
             instance = cls.get_instance(info, **data)
             MODEL_EXTRA_METHODS[type_name](instance, info, **data)
 

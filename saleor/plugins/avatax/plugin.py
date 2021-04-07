@@ -270,7 +270,7 @@ class AvataxPlugin(BasePlugin):
         return previous_value
 
     def order_created(self, order: "Order", previous_value: Any) -> Any:
-        if not self.active:
+        if not self.active or order.is_unconfirmed():
             return previous_value
         request_data = get_order_request_data(order, self.config)
 
@@ -281,6 +281,9 @@ class AvataxPlugin(BasePlugin):
             transaction_url, request_data, asdict(self.config), order.id
         )
         return previous_value
+
+    def order_confirmed(self, order: "Order", previous_value: Any) -> Any:
+        return self.order_created(order, previous_value)
 
     def calculate_checkout_line_total(
         self,
