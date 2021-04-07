@@ -1370,13 +1370,16 @@ def test_shipping_method_create_translation(
     staff_api_client, shipping_method, permission_manage_translations
 ):
     query = """
-    mutation shippingPriceTranslate($shippingMethodId: ID!) {
+    mutation shippingPriceTranslate(
+        $shippingMethodId: ID!, $input: DescriptionTranslationInput!
+    ) {
         shippingPriceTranslate(
                 id: $shippingMethodId, languageCode: PL,
-                input: {name: "DHL PL"}) {
+                input: $input) {
             shippingMethod {
                 translation(languageCode: PL) {
                     name
+                    description
                     language {
                         code
                     }
@@ -1389,14 +1392,20 @@ def test_shipping_method_create_translation(
     shipping_method_id = graphene.Node.to_global_id(
         "ShippingMethod", shipping_method.id
     )
+    description = dummy_editorjs("description", True)
+    variables = {
+        "shippingMethodId": shipping_method_id,
+        "input": {"name": "DHL PL", "description": description},
+    }
     response = staff_api_client.post_graphql(
         query,
-        {"shippingMethodId": shipping_method_id},
+        variables,
         permissions=[permission_manage_translations],
     )
     data = get_graphql_content(response)["data"]["shippingPriceTranslate"]
 
     assert data["shippingMethod"]["translation"]["name"] == "DHL PL"
+    assert data["shippingMethod"]["translation"]["description"] == description
     assert data["shippingMethod"]["translation"]["language"]["code"] == "PL"
 
 
