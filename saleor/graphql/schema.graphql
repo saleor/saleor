@@ -636,6 +636,11 @@ type AttributeValueTranslation implements Node {
   language: LanguageDisplay!
 }
 
+input AttributeValueTranslationInput {
+  name: String
+  richText: JSONString
+}
+
 type AttributeValueUpdate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   attribute: Attribute
@@ -2814,7 +2819,7 @@ type Mutation {
   attributeValueCreate(attribute: ID!, input: AttributeValueCreateInput!): AttributeValueCreate
   attributeValueDelete(id: ID!): AttributeValueDelete
   attributeValueUpdate(id: ID!, input: AttributeValueCreateInput!): AttributeValueUpdate
-  attributeValueTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): AttributeValueTranslate
+  attributeValueTranslate(id: ID!, input: AttributeValueTranslationInput!, languageCode: LanguageCodeEnum!): AttributeValueTranslate
   attributeReorderValues(attributeId: ID!, moves: [ReorderInput]!): AttributeReorderValues
   appCreate(input: AppInput!): AppCreate
   appUpdate(id: ID!, input: AppInput!): AppUpdate

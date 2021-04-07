@@ -44,6 +44,10 @@ class NameTranslationInput(graphene.InputObjectType):
     name = graphene.String()
 
 
+class AttributeValueTranslationInput(NameTranslationInput):
+    rich_text = graphene.JSONString()
+
+
 class SeoTranslationInput(graphene.InputObjectType):
     seo_title = graphene.String()
     seo_description = graphene.String()
@@ -181,7 +185,7 @@ class AttributeValueTranslate(BaseTranslateMutation):
         language_code = graphene.Argument(
             LanguageCodeEnum, required=True, description="Translation language code."
         )
-        input = NameTranslationInput(required=True)
+        input = AttributeValueTranslationInput(required=True)
 
     class Meta:
         description = "Creates/Updates translations for attribute value."
