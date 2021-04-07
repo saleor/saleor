@@ -494,6 +494,8 @@ def validate_attributes_input(
             validate_file_attributes_input(*attrs)
         elif attribute.input_type == AttributeInputType.REFERENCE:
             validate_reference_attributes_input(*attrs)
+        elif attribute.input_type == AttributeInputType.RICH_TEXT:
+            validate_rich_text_attributes_input(*attrs)
         # validation for other input types
         else:
             validate_standard_attributes_input(*attrs)
@@ -543,6 +545,19 @@ def validate_reference_attributes_input(
             attribute_errors[AttributeInputErrors.ERROR_NO_REFERENCE_GIVEN].append(
                 attribute_id
             )
+
+
+def validate_rich_text_attributes_input(
+    attribute: "Attribute",
+    attr_values: "AttrValuesInput",
+    attribute_errors: T_ERROR_DICT,
+    variant_validation: bool,
+):
+    attribute_id = attr_values.global_id
+    text = clean_editor_js(attr_values.rich_text or {}, to_string=True)
+
+    if not text.strip() and attribute.value_required:
+        attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(attribute_id)
 
 
 def validate_standard_attributes_input(

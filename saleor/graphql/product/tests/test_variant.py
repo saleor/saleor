@@ -984,6 +984,7 @@ def test_create_variant_invalid_variant_attributes(
     warehouse,
     color_attribute,
     weight_attribute,
+    rich_text_attribute,
 ):
     query = CREATE_VARIANT_MUTATION
     product_id = graphene.Node.to_global_id("Product", product.pk)
@@ -1006,6 +1007,12 @@ def test_create_variant_invalid_variant_attributes(
     product_type.variant_attributes.add(weight_attribute)
     weight_attr_id = graphene.Node.to_global_id("Attribute", weight_attribute.id)
 
+    # Add fourth attribute
+    rich_text_attribute.value_required = True
+    rich_text_attribute.save()
+    product_type.variant_attributes.add(rich_text_attribute)
+    rich_text_attr_id = graphene.Node.to_global_id("Attribute", rich_text_attribute.id)
+
     stocks = [
         {
             "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
@@ -1024,6 +1031,7 @@ def test_create_variant_invalid_variant_attributes(
             {"id": color_attr_id, "values": [" "]},
             {"id": weight_attr_id, "values": [None]},
             {"id": size_attr_id, "values": [non_existent_attr_value, size_value_slug]},
+            {"id": rich_text_attr_id, "richText": json.dumps(dummy_editorjs(" "))},
         ],
         "trackInventory": True,
     }
@@ -1036,7 +1044,7 @@ def test_create_variant_invalid_variant_attributes(
     errors = data["productErrors"]
 
     assert not data["productVariant"]
-    assert len(errors) == 2
+    assert len(errors) == 3
 
     expected_errors = [
         {
@@ -1048,6 +1056,12 @@ def test_create_variant_invalid_variant_attributes(
         {
             "attributes": [size_attr_id],
             "code": ProductErrorCode.INVALID.name,
+            "field": "attributes",
+            "message": ANY,
+        },
+        {
+            "attributes": [rich_text_attr_id],
+            "code": ProductErrorCode.REQUIRED.name,
             "field": "attributes",
             "message": ANY,
         },
