@@ -13,7 +13,7 @@ from ..core.models import ModelWithMetadata, SortableModel
 from ..seo.models import SeoModel, SeoModelTranslation
 
 
-class StoreCategory(ModelWithMetadata, MPTTModel, SeoModel):
+class StoreType(ModelWithMetadata, MPTTModel, SeoModel):
     name = models.CharField(max_length=250)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
@@ -22,23 +22,23 @@ class StoreCategory(ModelWithMetadata, MPTTModel, SeoModel):
     def __str__(self) -> str:
         return self.name
 
-class StoreCategoryTranslation(SeoModelTranslation):
+class StoreTypeTranslation(SeoModelTranslation):
     language_code = models.CharField(max_length=10)
-    store_category = models.ForeignKey(
-        StoreCategory, related_name="translations", on_delete=models.CASCADE
+    store_type = models.ForeignKey(
+        StoreType, related_name="translations", on_delete=models.CASCADE
     )
     name = models.CharField(max_length=128)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
     class Meta:
-        unique_together = (("language_code", "store_category"),)
+        unique_together = (("language_code", "store_type"),)
 
     def __str__(self) -> str:
         return self.name
 
     def __repr__(self) -> str:
         class_ = type(self)
-        return "%s(pk=%r, name=%r, store_category_pk=%r)" % (
+        return "%s(pk=%r, name=%r, store_type_pk=%r)" % (
             class_.__name__,
             self.pk,
             self.name,
@@ -49,8 +49,8 @@ class Store(models.Model):
     name = models.CharField(max_length=250)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
-    category = models.ForeignKey(
-        StoreCategory,
+    type = models.ForeignKey(
+        StoreType,
         related_name="stores",
         on_delete=models.SET_NULL,
         null=True,
