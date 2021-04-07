@@ -268,7 +268,7 @@ def test_checkout_complete_requires_confirmation(
         )[1]
     )
     order = Order.objects.get(pk=order_id)
-    assert order.status == OrderStatus.UNCONFIRMED
+    assert order.is_unconfirmed()
     order_confirmed_mock.assert_not_called()
 
 

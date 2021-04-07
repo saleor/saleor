@@ -17,7 +17,7 @@ from ..notifications import (
     get_default_order_payload,
     get_order_line_payload,
 )
-from ..utils import add_variant_to_draft_order
+from ..utils import add_variant_to_order
 
 
 def test_get_order_line_payload(order_line):
@@ -267,7 +267,7 @@ def test_send_confirmation_emails_without_addresses_for_payment(
 ):
     order = payment_dummy.order
 
-    line = add_variant_to_draft_order(
+    line = add_variant_to_order(
         order,
         digital_content.product_variant,
         quantity=1,
@@ -309,7 +309,7 @@ def test_send_confirmation_emails_without_addresses_for_order(
 
     assert not order.lines.count()
 
-    line = add_variant_to_draft_order(
+    line = add_variant_to_order(
         order,
         digital_content.product_variant,
         quantity=1,

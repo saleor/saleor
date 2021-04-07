@@ -47,8 +47,8 @@ def test_associate_attribute_to_product_instance_without_values(product):
     assert new_assignment.values.count() == 0
 
 
-def test_associate_attribute_to_product_instance_multiply_values(product):
-    """Ensure multiply values in proper order are assigned."""
+def test_associate_attribute_to_product_instance_multiple_values(product):
+    """Ensure multiple values in proper order are assigned."""
     old_assignment = product.attributes.first()
     assert old_assignment is not None, "The product doesn't have attribute-values"
     assert old_assignment.values.count() == 1
@@ -69,8 +69,8 @@ def test_associate_attribute_to_product_instance_multiply_values(product):
     ) == [(values[1].pk, 0), (values[0].pk, 1)]
 
 
-def test_associate_attribute_to_page_instance_multiply_values(page):
-    """Ensure multiply values in proper order are assigned."""
+def test_associate_attribute_to_page_instance_multiple_values(page):
+    """Ensure multiple values in proper order are assigned."""
     old_assignment = page.attributes.first()
     assert old_assignment is not None, "The page doesn't have attribute-values"
     assert old_assignment.values.count() == 1
@@ -91,8 +91,8 @@ def test_associate_attribute_to_page_instance_multiply_values(page):
     ) == [(values[1].pk, 0), (values[0].pk, 1)]
 
 
-def test_associate_attribute_to_variant_instance_multiply_values(variant):
-    """Ensure multiply values in proper order are assigned."""
+def test_associate_attribute_to_variant_instance_multiple_values(variant):
+    """Ensure multiple values in proper order are assigned."""
 
     attribute = variant.product.product_type.variant_attributes.first()
     values = attribute.values.all()

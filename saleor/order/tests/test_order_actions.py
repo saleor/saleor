@@ -281,7 +281,7 @@ def test_fulfill_order_lines(order_with_lines):
     assert line.quantity_fulfilled == quantity_fulfilled_before + line.quantity
 
 
-def test_fulfill_order_lines_multiply_lines(order_with_lines):
+def test_fulfill_order_lines_multiple_lines(order_with_lines):
     order = order_with_lines
     lines = order.lines.all()
 

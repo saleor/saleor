@@ -56,7 +56,7 @@ class CategoryBulkDelete(ModelBulkDeleteMutation):
 
     @classmethod
     def bulk_action(cls, info, queryset):
-        delete_categories(queryset.values_list("pk", flat=True))
+        delete_categories(queryset.values_list("pk", flat=True), info.context.plugins)
 
 
 class CollectionBulkDelete(ModelBulkDeleteMutation):
@@ -71,6 +71,18 @@ class CollectionBulkDelete(ModelBulkDeleteMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = CollectionError
         error_type_field = "collection_errors"
+
+    @classmethod
+    def bulk_action(cls, info, queryset):
+        collections_ids = queryset.values_list("id", flat=True)
+        products = list(
+            models.Product.objects.prefetched_for_webhook(single_object=False)
+            .filter(collections__in=collections_ids)
+            .distinct()
+        )
+        queryset.delete()
+        for product in products:
+            info.context.plugins.product_updated(product)
 
 
 class ProductBulkDelete(ModelBulkDeleteMutation):
@@ -106,7 +118,6 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
             _root,
             info,
             ids,
-            manager=info.context.plugins,
             product_to_variant=product_to_variant,
             **data,
         )
@@ -118,7 +129,7 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
         return response
 
     @classmethod
-    def bulk_action(cls, info, queryset, manager, product_to_variant):
+    def bulk_action(cls, info, queryset, product_to_variant):
         product_variant_map = defaultdict(list)
         for product, variant in product_to_variant:
             product_variant_map[product].append(variant)
@@ -127,7 +138,7 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
         queryset.delete()
         for product in products:
             variants = product_variant_map.get(product.id)
-            manager.product_deleted(product, variants)
+            info.context.plugins.product_deleted(product, variants)
 
 
 class BulkAttributeValueInput(InputObjectType):
