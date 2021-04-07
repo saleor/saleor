@@ -66,6 +66,44 @@ def test_delete_categories(staff_api_client, category_list, permission_manage_pr
     ).exists()
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_delete_categories_trigger_product_updated_webhook(
+    product_updated_mock,
+    staff_api_client,
+    category_list,
+    product_list,
+    permission_manage_products,
+):
+    first_product = product_list[0]
+    first_product.category = category_list[0]
+    first_product.save()
+
+    second_product = product_list[1]
+    second_product.category = category_list[1]
+    second_product.save()
+
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("Category", category.id)
+            for category in category_list
+        ]
+    }
+    response = staff_api_client.post_graphql(
+        MUTATION_CATEGORY_BULK_DELETE,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    assert content["data"]["categoryBulkDelete"]["count"] == 3
+    assert not Category.objects.filter(
+        id__in=[category.id for category in category_list]
+    ).exists()
+
+    # updated two categories with products
+    assert product_updated_mock.call_count == 2
+
+
 @patch("saleor.product.utils.update_products_discounted_prices_task")
 def test_delete_categories_with_subcategories_and_products(
     mock_update_products_discounted_prices_task,
@@ -168,6 +206,41 @@ def test_delete_collections(
     assert not Collection.objects.filter(
         id__in=[collection.id for collection in collection_list]
     ).exists()
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_delete_collections_trigger_product_updated_webhook(
+    product_updated_mock,
+    staff_api_client,
+    collection_list,
+    product_list,
+    permission_manage_products,
+):
+    query = """
+    mutation collectionBulkDelete($ids: [ID]!) {
+        collectionBulkDelete(ids: $ids) {
+            count
+        }
+    }
+    """
+    for collection in collection_list:
+        collection.products.add(*product_list)
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("Collection", collection.id)
+            for collection in collection_list
+        ]
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+
+    assert content["data"]["collectionBulkDelete"]["count"] == 3
+    assert not Collection.objects.filter(
+        id__in=[collection.id for collection in collection_list]
+    ).exists()
+    assert len(product_list) == product_updated_mock.call_count
 
 
 DELETE_PRODUCTS_MUTATION = """

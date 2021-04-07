@@ -121,11 +121,22 @@ def validate_required_string_field(cleaned_input, field_name: str):
     return cleaned_input
 
 
-def from_global_id_or_error(id):
-    """Resolve id from global or raise ValidationError."""
+def from_global_id_or_error(
+    id: str, only_type: Union[ObjectType, str] = None, field: str = "id"
+):
+    """Resolve id from global or raise ValidationError.
+
+    Optional validate object type.
+    """
     try:
-        return graphene.Node.from_global_id(id)
+        _type, _id = graphene.Node.from_global_id(id)
     except (binascii.Error, UnicodeDecodeError):
         raise ValidationError(
-            {"id": ValidationError(f"Couldn't resolve id: {id}.", code="not_found")}
+            {field: ValidationError(f"Couldn't resolve id: {id}.", code="not_found")}
         )
+
+    if only_type and str(_type) != str(only_type):
+        raise ValidationError(
+            {field: ValidationError(f"Must receive a {only_type} id.", code="invalid")}
+        )
+    return _type, _id
