@@ -18,7 +18,13 @@ from ..order import FulfillmentStatus, OrderLineData, OrderStatus
 from ..order.models import Order, OrderLine
 from ..product.utils.digital_products import get_default_digital_content_settings
 from ..shipping.models import ShippingMethod
-from ..warehouse.management import deallocate_stock, increase_stock
+from ..warehouse.management import (
+    deallocate_stock,
+    decrease_allocations,
+    get_order_lines_with_track_inventory,
+    increase_allocations,
+    increase_stock,
+)
 from ..warehouse.models import Warehouse
 from . import events
 
@@ -290,7 +296,9 @@ def update_order_status(order):
 
 
 @transaction.atomic
-def add_variant_to_draft_order(order, variant, quantity, manager, discounts=None):
+def add_variant_to_order(
+    order, variant, quantity, manager, discounts=None, allocate_stock=False
+):
     """Add total_quantity of variant to order.
 
     Returns an order line the variant was added to.
@@ -335,6 +343,7 @@ def add_variant_to_draft_order(order, variant, quantity, manager, discounts=None
         line.tax_rate = manager.get_order_line_tax_rate(
             order, product, variant, None, unit_price
         )
+        line.total_price = unit_price * quantity
         line.save(
             update_fields=[
                 "currency",
@@ -343,6 +352,18 @@ def add_variant_to_draft_order(order, variant, quantity, manager, discounts=None
                 "total_price_net_amount",
                 "total_price_gross_amount",
                 "tax_rate",
+            ]
+        )
+
+    if allocate_stock:
+        increase_allocations(
+            [
+                OrderLineData(
+                    line=line,
+                    quantity=quantity,
+                    variant=variant,
+                    warehouse_pk=None,
+                )
             ]
         )
 
@@ -367,9 +388,29 @@ def add_gift_card_to_order(order, gift_card, total_price_left):
     return total_price_left
 
 
-def change_order_line_quantity(user, line, old_quantity, new_quantity):
+def _update_allocations_for_line(
+    line_info: OrderLineData, old_quantity: int, new_quantity: int
+):
+    if old_quantity == new_quantity:
+        return
+
+    if not get_order_lines_with_track_inventory([line_info]):
+        return
+
+    if old_quantity < new_quantity:
+        line_info.quantity = new_quantity - old_quantity
+        increase_allocations([line_info])
+    else:
+        line_info.quantity = old_quantity - new_quantity
+        decrease_allocations([line_info])
+
+
+def change_order_line_quantity(user, line_info, old_quantity: int, new_quantity: int):
     """Change the quantity of ordered items in a order line."""
+    line = line_info.line
     if new_quantity:
+        if line.order.is_unconfirmed():
+            _update_allocations_for_line(line_info, old_quantity, new_quantity)
         line.quantity = new_quantity
         total_price_net_amount = line.quantity * line.unit_price_net_amount
         total_price_gross_amount = line.quantity * line.unit_price_gross_amount
@@ -385,24 +426,26 @@ def change_order_line_quantity(user, line, old_quantity, new_quantity):
             ]
         )
     else:
-        delete_order_line(line)
+        delete_order_line(line_info)
 
     quantity_diff = old_quantity - new_quantity
 
     # Create the removal event
     if quantity_diff > 0:
-        events.draft_order_removed_products_event(
+        events.order_removed_products_event(
             order=line.order, user=user, order_lines=[(quantity_diff, line)]
         )
     elif quantity_diff < 0:
-        events.draft_order_added_products_event(
+        events.order_added_products_event(
             order=line.order, user=user, order_lines=[(quantity_diff * -1, line)]
         )
 
 
-def delete_order_line(line):
+def delete_order_line(line_info):
     """Delete an order line from an order."""
-    line.delete()
+    if line_info.line.order.is_unconfirmed():
+        decrease_allocations([line_info])
+    line_info.line.delete()
 
 
 def restock_order_lines(order):

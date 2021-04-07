@@ -250,7 +250,7 @@ def test_validate_attributes_input_for_product_lack_of_required_attribute(
     }
 
 
-def test_validate_attributes_input_for_product_multiply_errors(
+def test_validate_attributes_input_for_product_multiple_errors(
     weight_attribute, color_attribute, product_type
 ):
     # given
@@ -545,7 +545,7 @@ def test_validate_attributes_input_for_page_lack_of_required_attribute(
     }
 
 
-def test_validate_attributes_input_for_page_multiply_errors(
+def test_validate_attributes_input_for_page_multiple_errors(
     weight_attribute, color_attribute, page_type
 ):
     # given
@@ -838,7 +838,7 @@ def test_validate_attributes_input_empty_values_given(
     }
 
 
-def test_validate_attributes_input_multiply_errors(
+def test_validate_attributes_input_multiple_errors(
     weight_attribute, color_attribute, product_type
 ):
     # given
