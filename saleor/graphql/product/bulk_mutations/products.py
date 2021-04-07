@@ -499,6 +499,7 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
     @transaction.atomic
     def perform_mutation(cls, _root, info, ids, **data):
         _, pks = resolve_global_ids_to_primary_keys(ids, ProductVariant)
+        # get draft order lines for variants
         lines_id_and_orders_id = order_models.OrderLine.objects.filter(
             variant__pk__in=pks, order__status=OrderStatus.DRAFT
         ).values("pk", "order_id")

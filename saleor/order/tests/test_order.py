@@ -97,7 +97,7 @@ def test_add_variant_to_draft_order_adds_line_for_new_variant(
 
 
 def test_add_variant_to_draft_order_adds_line_for_new_variant_with_tax(
-    order_with_lines, product, product_translation_fr, settings
+    order_with_lines, product, product_translation_fr, settings, info
 ):
     order = order_with_lines
     variant = product.variants.get()
@@ -108,7 +108,7 @@ def test_add_variant_to_draft_order_adds_line_for_new_variant_with_tax(
         calculate_order_line_unit=Mock(return_value=price),
         get_order_line_tax_rate=Mock(return_value=0.25),
     )
-    add_variant_to_draft_order(order, variant, 1, manager)
+    add_variant_to_draft_order(order, variant, 1, info.context.user, manager)
 
     line = order.lines.last()
     assert order.lines.count() == lines_before + 1
