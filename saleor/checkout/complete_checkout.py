@@ -512,11 +512,17 @@ def _process_payment(
     payment_data: Optional[dict],
     order_data: dict,
     manager: "PluginsManager",
+    channel_slug: str,
 ) -> Transaction:
     """Process the payment assigned to checkout."""
     try:
         if payment.to_confirm:
-            txn = gateway.confirm(payment, manager, additional_data=payment_data)
+            txn = gateway.confirm(
+                payment,
+                manager,
+                additional_data=payment_data,
+                channel_slug=channel_slug,
+            )
         else:
             txn = gateway.process_payment(
                 payment=payment,
@@ -524,6 +530,7 @@ def _process_payment(
                 manager=manager,
                 store_source=store_source,
                 additional_data=payment_data,
+                channel_slug=channel_slug,
             )
         payment.refresh_from_db()
         if not txn.is_success:
@@ -553,6 +560,7 @@ def complete_checkout(
     :raises ValidationError
     """
     checkout = checkout_info.checkout
+    channel_slug = checkout_info.channel.slug
     payment = checkout.get_last_active_payment()
     _prepare_checkout(
         manager=manager,
@@ -567,7 +575,7 @@ def complete_checkout(
     try:
         order_data = _get_order_data(manager, checkout_info, lines, discounts)
     except ValidationError as exc:
-        gateway.payment_refund_or_void(payment, manager)
+        gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
         raise exc
 
     txn = _process_payment(
@@ -576,6 +584,7 @@ def complete_checkout(
         payment_data=payment_data,
         order_data=order_data,
         manager=manager,
+        channel_slug=channel_slug,
     )
 
     if txn.customer_id and user.is_authenticated:
@@ -598,7 +607,7 @@ def complete_checkout(
             checkout.delete()
         except InsufficientStock as e:
             release_voucher_usage(order_data)
-            gateway.payment_refund_or_void(payment, manager)
+            gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
             error = prepare_insufficient_stock_checkout_validation_error(e)
             raise error
     return order, action_required, action_data

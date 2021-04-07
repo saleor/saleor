@@ -15,15 +15,15 @@ def vcr_config():
 
 
 @pytest.fixture
-def plugin_configuration(db):
+def plugin_configuration(db, channel_USD):
     def set_configuration(
-        username="test",
-        password="test",
-        sandbox=False,
+        username="test", password="test", sandbox=False, channel=None
     ):
+        channel = channel or channel_USD
         data = {
             "active": True,
             "name": AvataxPlugin.PLUGIN_NAME,
+            "channel": channel,
             "configuration": [
                 {"name": "Username or account", "value": username},
                 {"name": "Password or license", "value": password},

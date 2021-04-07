@@ -27,7 +27,7 @@ def test_get_plugins_manager(settings):
     settings.PLUGINS = [plugin_path]
     manager = get_plugins_manager()
     assert isinstance(manager, PluginsManager)
-    assert len(manager.plugins) == 1
+    assert len(manager.all_plugins) == 1
 
 
 @pytest.mark.parametrize(
@@ -404,6 +404,7 @@ def test_manager_apply_taxes_to_product(product, plugins, price, channel_USD):
             variant.product, [], channel_USD, variant_channel_listing, None
         ),
         country,
+        channel_USD.slug,
     )
     assert TaxedMoney(expected_price, expected_price) == taxed_price
 
@@ -420,7 +421,7 @@ def test_manager_apply_taxes_to_shipping(
     ).price
     expected_price = Money(price_amount, "USD")
     taxed_price = PluginsManager(plugins=plugins).apply_taxes_to_shipping(
-        shipping_price, address
+        shipping_price, address, channel_slug=channel_USD.slug
     )
     assert TaxedMoney(expected_price, expected_price) == taxed_price
 
@@ -437,17 +438,6 @@ def test_manager_get_tax_rate_percentage_value(plugins, amount, product):
     assert tax_rate_value == Decimal(amount)
 
 
-def test_manager_get_plugin_configurations(plugin_configuration):
-    plugins = [
-        "saleor.plugins.tests.sample_plugins.PluginSample",
-        "saleor.plugins.tests.sample_plugins.PluginInactive",
-    ]
-    manager = PluginsManager(plugins=plugins)
-    plugin_configs = manager._plugin_configs.values()
-    assert len(plugin_configs) == 1
-    assert set(plugin_configs) == set(list(PluginConfiguration.objects.all()))
-
-
 def test_manager_get_plugin_configuration(plugin_configuration):
     plugins = [
         "saleor.plugins.tests.sample_plugins.PluginSample",
@@ -461,10 +451,12 @@ def test_manager_get_plugin_configuration(plugin_configuration):
     assert plugin.DEFAULT_CONFIGURATION == configuration_from_db.configuration
 
 
-def test_manager_save_plugin_configuration(plugin_configuration):
+def test_manager_save_plugin_configuration(plugin_configuration, channel_USD):
     plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
     manager = PluginsManager(plugins=plugins)
-    manager.save_plugin_configuration(PluginSample.PLUGIN_ID, {"active": False})
+    manager.save_plugin_configuration(
+        PluginSample.PLUGIN_ID, channel_USD.slug, {"active": False}
+    )
     plugin_configuration.refresh_from_db()
     assert not plugin_configuration.active
 
@@ -516,7 +508,7 @@ def test_plugin_add_new_configuration(
     assert plugin.configuration[0] == {**new_config, **new_config_structure}
 
 
-def test_manager_serve_list_of_payment_gateways():
+def test_manager_serve_list_of_payment_gateways(channel_USD):
     expected_gateway = PaymentGateway(
         id=ActivePaymentGateway.PLUGIN_ID,
         name=ActivePaymentGateway.PLUGIN_NAME,
@@ -532,7 +524,7 @@ def test_manager_serve_list_of_payment_gateways():
     assert manager.list_payment_gateways() == [expected_gateway]
 
 
-def test_manager_serve_list_all_payment_gateways():
+def test_manager_serve_list_all_payment_gateways(channel_USD):
     expected_gateways = [
         PaymentGateway(
             id=ActivePaymentGateway.PLUGIN_ID,
@@ -556,7 +548,7 @@ def test_manager_serve_list_all_payment_gateways():
     assert manager.list_payment_gateways(active_only=False) == expected_gateways
 
 
-def test_manager_serve_list_all_payment_gateways_specified_currency():
+def test_manager_serve_list_all_payment_gateways_specified_currency(channel_USD):
     expected_gateways = [
         PaymentGateway(
             id=ActiveDummyPaymentGateway.PLUGIN_ID,
@@ -578,7 +570,9 @@ def test_manager_serve_list_all_payment_gateways_specified_currency():
     )
 
 
-def test_manager_serve_list_all_payment_gateways_specified_currency_two_gateways():
+def test_manager_serve_list_all_payment_gateways_specified_currency_two_gateways(
+    channel_USD,
+):
     expected_gateways = [
         PaymentGateway(
             id=ActivePaymentGateway.PLUGIN_ID,
@@ -725,7 +719,7 @@ def test_manager_external_verify(rf, admin_user):
     assert response_data == {"some_data": "data"}
 
 
-def test_list_external_authentications():
+def test_list_external_authentications(channel_USD):
     plugins = [
         "saleor.plugins.tests.sample_plugins.PluginInactive",
         "saleor.plugins.tests.sample_plugins.ActivePaymentGateway",
@@ -744,7 +738,7 @@ def test_list_external_authentications():
     } in external_auths
 
 
-def test_list_external_authentications_active_only():
+def test_list_external_authentications_active_only(channel_USD):
     plugins = [
         "saleor.plugins.tests.sample_plugins.PluginInactive",
         "saleor.plugins.tests.sample_plugins.ActivePaymentGateway",

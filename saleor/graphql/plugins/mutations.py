@@ -31,6 +31,10 @@ class PluginUpdate(BaseMutation):
 
     class Arguments:
         id = graphene.ID(required=True, description="ID of plugin to update.")
+        channel = graphene.String(
+            required=False,
+            description="Slug of a channel for which the data should be modified.",
+        )
         input = PluginUpdateInput(
             description="Fields required to update a plugin configuration.",
             required=True,
@@ -45,6 +49,7 @@ class PluginUpdate(BaseMutation):
     @classmethod
     def perform_mutation(cls, root, info, **data):
         plugin_id = data.get("id")
+        channel_slug = data.get("channel")
         data = data.get("input")
         manager = info.context.plugins
         plugin = manager.get_plugin(plugin_id)
@@ -56,5 +61,5 @@ class PluginUpdate(BaseMutation):
                     )
                 }
             )
-        instance = manager.save_plugin_configuration(plugin_id, data)
+        instance = manager.save_plugin_configuration(plugin_id, channel_slug, data)
         return PluginUpdate(plugin=instance)

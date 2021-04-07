@@ -907,6 +907,7 @@ class Order(CountableDjangoObjectType):
                 taxed_price = manager.apply_taxes_to_shipping(
                     shipping_channel_listing.price,
                     root.shipping_address,  # type: ignore
+                    root.channel.slug,
                 )
                 if display_gross:
                     shipping_method.price = taxed_price.gross

@@ -169,7 +169,7 @@ def create_order(payment, checkout, manager):
             user=checkout.user or AnonymousUser(),
         )
     except ValidationError:
-        payment_refund_or_void(payment, manager)
+        payment_refund_or_void(payment, manager, checkout_info.channel.slug)
         return None
     # Refresh the payment to assign the newly created order
     payment.refresh_from_db()

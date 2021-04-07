@@ -26,6 +26,7 @@ class PluginSample(BasePlugin):
     PLUGIN_NAME = "PluginSample"
     PLUGIN_DESCRIPTION = "Test plugin description"
     DEFAULT_ACTIVE = True
+    CONFIGURATION_PER_CHANNEL = False
     DEFAULT_CONFIGURATION = [
         {"name": "Username", "value": "admin"},
         {"name": "Password", "value": None},
@@ -210,10 +211,19 @@ class PluginSample(BasePlugin):
         return Decimal("0.080").quantize(Decimal(".01"))
 
 
+class ChannelPluginSample(PluginSample):
+    PLUGIN_ID = "plugin.sample"
+    PLUGIN_NAME = "PluginSample"
+    PLUGIN_DESCRIPTION = "Test plugin description"
+    DEFAULT_ACTIVE = True
+    CONFIGURATION_PER_CHANNEL = True
+
+
 class PluginInactive(BasePlugin):
     PLUGIN_ID = "plugin.inactive"
     PLUGIN_NAME = "PluginInactive"
     PLUGIN_DESCRIPTION = "Test plugin description_2"
+    CONFIGURATION_PER_CHANNEL = False
 
     def external_obtain_access_tokens(
         self, data: dict, request: WSGIRequest, previous_value
@@ -228,6 +238,7 @@ class ActivePlugin(BasePlugin):
     PLUGIN_NAME = "Active"
     PLUGIN_DESCRIPTION = "Not working"
     DEFAULT_ACTIVE = True
+    CONFIGURATION_PER_CHANNEL = False
 
 
 class ActivePaymentGateway(BasePlugin):

@@ -8,12 +8,13 @@ from .sample_plugins import PluginInactive, PluginSample
 
 
 @pytest.fixture
-def plugin_configuration(db):
+def plugin_configuration(db, channel_USD):
     configuration, _ = PluginConfiguration.objects.get_or_create(
         identifier=PluginSample.PLUGIN_ID,
         name=PluginSample.PLUGIN_NAME,
         defaults={
             "active": PluginSample.DEFAULT_ACTIVE,
+            "channel": channel_USD,
             "configuration": PluginSample.DEFAULT_CONFIGURATION,
             "name": PluginSample.PLUGIN_NAME,
         },
@@ -23,12 +24,13 @@ def plugin_configuration(db):
 
 
 @pytest.fixture
-def inactive_plugin_configuration(db):
+def inactive_plugin_configuration(db, channel_USD):
     return PluginConfiguration.objects.get_or_create(
         identifier=PluginSample.PLUGIN_ID,
         name=PluginInactive.PLUGIN_NAME,
         defaults={
             "active": PluginInactive.DEFAULT_ACTIVE,
+            "channel": channel_USD,
             "configuration": PluginInactive.DEFAULT_CONFIGURATION,
             "name": PluginInactive.PLUGIN_NAME,
         },
