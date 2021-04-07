@@ -3,6 +3,22 @@
 from django.db import migrations, models
 
 
+def update_existing_order_events_in_db(apps, schema_editor):
+    OrderEvent = apps.get_model("order", "OrderEvent")
+    OrderEvent.objects.filter(type="draft_added_products").update(type="added_products")
+    OrderEvent.objects.filter(type="draft_removed_products").update(
+        type="removed_products"
+    )
+
+
+def revert_existing_order_events_in_db(apps, schema_editor):
+    OrderEvent = apps.get_model("order", "OrderEvent")
+    OrderEvent.objects.filter(type="added_products").update(type="draft_added_products")
+    OrderEvent.objects.filter(type="removed_products").update(
+        type="draft_removed_products"
+    )
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -60,5 +76,9 @@ class Migration(migrations.Migration):
                 ],
                 max_length=255,
             ),
+        ),
+        migrations.RunPython(
+            update_existing_order_events_in_db,
+            reverse_code=revert_existing_order_events_in_db,
         ),
     ]
