@@ -103,6 +103,11 @@ All notable, unreleased changes to this project will be documented in this file.
 - Make `order` property of invoice webhook payload contain order instead of order lines - #7081 by @pdblaszczyk
   - Affected webhook events: `INVOICE_REQUESTED`, `INVOICE_SENT`, `INVOICE_DELETED`
 - Make quantity field on `StockInput` required - #7082 by @IKarbowiak
+- Add description to shipping method - #7116 by @IKarbowiak
+  - `ShippingMethod` was extended with `description` field.
+  - `ShippingPriceInput` was extended with `description` field
+  - Extended `shippingPriceUpdate`, `shippingPriceCreate` mutation to add/edit description
+  - Input field in `shippingPriceTranslate` changed to `DescriptionTranslationInput`
 
 ### Other
 
