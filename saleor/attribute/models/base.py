@@ -216,6 +216,7 @@ class AttributeValueTranslation(models.Model):
         AttributeValue, related_name="translations", on_delete=models.CASCADE
     )
     name = models.CharField(max_length=100)
+    rich_text = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
     class Meta:
         unique_together = (("language_code", "attribute_value"),)

@@ -54,7 +54,7 @@ class AttributeValueTranslation(BaseTranslationType):
     class Meta:
         model = attribute_models.AttributeValueTranslation
         interfaces = [graphene.relay.Node]
-        only_fields = BASIC_TRANSLATABLE_FIELDS
+        only_fields = BASIC_TRANSLATABLE_FIELDS + ["rich_text"]
 
 
 class AttributeValueTranslatableContent(CountableDjangoObjectType):

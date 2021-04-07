@@ -632,6 +632,7 @@ type AttributeValueTranslate {
 type AttributeValueTranslation implements Node {
   id: ID!
   name: String!
+  richText: JSONString
   language: LanguageDisplay!
 }
 

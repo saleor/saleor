@@ -2535,7 +2535,7 @@ def test_create_product_description_plaintext(
     assert product.description_plaintext == description
 
 
-def test_create_product_with_text_attribute(
+def test_create_product_with_rich_text_attribute(
     staff_api_client,
     product_type,
     category,
@@ -5636,7 +5636,7 @@ def test_product_type_create_mutation(
     assert tax_code == "wine"
 
 
-def test_create_product_type_with_text_attribute(
+def test_create_product_type_with_rich_text_attribute(
     staff_api_client,
     product_type,
     permission_manage_product_types_and_attributes,

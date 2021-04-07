@@ -29,7 +29,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Validate discount value for percentage vouchers and sales - #7033 by @d-wysocki
 - Optimize children field on Category type - #7045 by @IKarbowiak
 - Added support for querying objects by metadata fields - #6683 by @LeOndaz
-- Add text attribute input - #7059 by @piotrgrundas
+- Add rich text attribute input - #7059 by @piotrgrundas
 - Avoid using `get_plugins_manager` method - #7052 by @IKarbowiak
 - Add benchmarks for triggered product and variants webhooks - #7061 by @d-wysocki
 - Extend `Transaction` type with gateway response and `Payment` type with filter - #7062 by @IKarbowiak
