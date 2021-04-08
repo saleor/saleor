@@ -10,7 +10,7 @@ from .....payment import ChargeStatus
 from .....payment.models import Payment
 
 ORDER_COUNT_IN_BENCHMARKS = 10
-PAYMENTS_PER_ORDER = 1
+PAYMENTS_PER_ORDER = 3
 
 
 def _create_payments_for_order(order):
