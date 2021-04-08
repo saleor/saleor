@@ -307,7 +307,10 @@ def add_variant_to_order(
         line = order.lines.get(variant=variant)
         old_quantity = line.quantity
         new_quantity = old_quantity + quantity
-        change_order_line_quantity(user, line, old_quantity, new_quantity)
+        line_info = OrderLineData(line=line, quantity=old_quantity)
+        change_order_line_quantity(
+            user, line_info, old_quantity, new_quantity, send_event=False
+        )
     except OrderLine.DoesNotExist:
         product = variant.product
         collections = product.collections.all()
@@ -406,7 +409,9 @@ def _update_allocations_for_line(
         decrease_allocations([line_info])
 
 
-def change_order_line_quantity(user, line_info, old_quantity: int, new_quantity: int):
+def change_order_line_quantity(
+    user, line_info, old_quantity: int, new_quantity: int, send_event=True
+):
     """Change the quantity of ordered items in a order line."""
     line = line_info.line
     if new_quantity:
@@ -431,7 +436,11 @@ def change_order_line_quantity(user, line_info, old_quantity: int, new_quantity:
 
     quantity_diff = old_quantity - new_quantity
 
-    # Create the removal event
+    if send_event:
+        create_order_event(line, user, quantity_diff)
+
+
+def create_order_event(line, user, quantity_diff):
     if quantity_diff > 0:
         events.order_removed_products_event(
             order=line.order, user=user, order_lines=[(quantity_diff, line)]
