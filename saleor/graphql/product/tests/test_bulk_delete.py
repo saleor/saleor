@@ -67,6 +67,44 @@ def test_delete_categories(staff_api_client, category_list, permission_manage_pr
     ).exists()
 
 
+@patch("saleor.product.signals.delete_versatile_image")
+def test_delete_categories_with_images(
+    delete_versatile_image_mock,
+    staff_api_client,
+    category_list,
+    image_list,
+    permission_manage_products,
+    media_root,
+):
+    category_list[0].background_image = image_list[0]
+    category_list[0].save(update_fields=["background_image"])
+
+    category_list[1].background_image = image_list[1]
+    category_list[1].save(update_fields=["background_image"])
+
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("Category", category.id)
+            for category in category_list
+        ]
+    }
+    response = staff_api_client.post_graphql(
+        MUTATION_CATEGORY_BULK_DELETE,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    assert content["data"]["categoryBulkDelete"]["count"] == 3
+    assert not Category.objects.filter(
+        id__in=[category.id for category in category_list]
+    ).exists()
+    assert delete_versatile_image_mock.call_count == 2
+    assert {
+        call_args.args[0] for call_args in delete_versatile_image_mock.call_args_list
+    } == {category_list[0].background_image, category_list[1].background_image}
+
+
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_delete_categories_trigger_product_updated_webhook(
     product_updated_mock,
@@ -181,16 +219,19 @@ def test_delete_categories_with_subcategories_and_products(
     assert product_channel_listings.count() == 3
 
 
-def test_delete_collections(
-    staff_api_client, collection_list, permission_manage_products
-):
-    query = """
+MUTATION_COLLECTION_BULK_DELETE = """
     mutation collectionBulkDelete($ids: [ID]!) {
         collectionBulkDelete(ids: $ids) {
             count
         }
     }
-    """
+"""
+
+
+def test_delete_collections(
+    staff_api_client, collection_list, permission_manage_products
+):
+    query = MUTATION_COLLECTION_BULK_DELETE
 
     variables = {
         "ids": [
@@ -207,6 +248,44 @@ def test_delete_collections(
     assert not Collection.objects.filter(
         id__in=[collection.id for collection in collection_list]
     ).exists()
+
+
+@patch("saleor.product.signals.delete_versatile_image")
+def test_delete_collections_with_images(
+    delete_versatile_image_mock,
+    staff_api_client,
+    collection_list,
+    image_list,
+    permission_manage_products,
+    media_root,
+):
+    query = MUTATION_COLLECTION_BULK_DELETE
+
+    collection_list[0].background_image = image_list[0]
+    collection_list[0].save(update_fields=["background_image"])
+
+    collection_list[1].background_image = image_list[1]
+    collection_list[1].save(update_fields=["background_image"])
+
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("Collection", collection.id)
+            for collection in collection_list
+        ]
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+
+    assert content["data"]["collectionBulkDelete"]["count"] == 3
+    assert not Collection.objects.filter(
+        id__in=[collection.id for collection in collection_list]
+    ).exists()
+    assert delete_versatile_image_mock.call_count == 2
+    assert {
+        call_args.args[0] for call_args in delete_versatile_image_mock.call_args_list
+    } == {collection_list[0].background_image, collection_list[1].background_image}
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
