@@ -5252,6 +5252,48 @@ def test_delete_product(
     mocked_recalculate_orders_task.assert_called_once_with(set())
 
 
+@patch("saleor.product.signals.delete_from_storage")
+def test_delete_product_with_image(
+    delete_from_storage_mock,
+    staff_api_client,
+    product_with_image,
+    variant_with_image,
+    permission_manage_products,
+    media_root,
+):
+    """Ensure deleting product delete also product and variants images from storage."""
+
+    # given
+    query = DELETE_PRODUCT_MUTATION
+    product = product_with_image
+    variant = product.variants.first()
+    node_id = graphene.Node.to_global_id("Product", product.id)
+
+    product_img_paths = [media.image.name for media in product.media.all()]
+    variant_img_paths = [media.image.name for media in variant.media.all()]
+    image_paths = product_img_paths + variant_img_paths
+
+    variables = {"id": node_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productDelete"]
+    assert data["product"]["name"] == product.name
+    with pytest.raises(product._meta.model.DoesNotExist):
+        product.refresh_from_db()
+    assert node_id == data["product"]["id"]
+
+    assert delete_from_storage_mock.call_count == len(image_paths)
+    assert {
+        call_args.args[0] for call_args in delete_from_storage_mock.call_args_list
+    } == set(image_paths)
+
+
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_product_trigger_webhook(
@@ -6510,8 +6552,12 @@ def test_product_image_update_mutation(
     assert mock_create_thumbnails.call_count == 0
 
 
+@patch("saleor.product.signals.delete_from_storage")
 def test_product_media_delete(
-    staff_api_client, product_with_image, permission_manage_products
+    delete_from_storage_mock,
+    staff_api_client,
+    product_with_image,
+    permission_manage_products,
 ):
     product = product_with_image
     query = """
@@ -6536,6 +6582,7 @@ def test_product_media_delete(
     with pytest.raises(media_obj._meta.model.DoesNotExist):
         media_obj.refresh_from_db()
     assert node_id == data["media"]["id"]
+    delete_from_storage_mock.assert_called_once_with(media_obj.image.name)
 
 
 def test_reorder_media(

@@ -6,8 +6,12 @@ class ProductAppConfig(AppConfig):
     name = "saleor.product"
 
     def ready(self):
-        from .models import Category, Collection, DigitalContent
-        from .signals import delete_background_image, delete_digital_content_file
+        from .models import Category, Collection, DigitalContent, ProductMedia
+        from .signals import (
+            delete_background_image,
+            delete_digital_content_file,
+            delete_product_media_image,
+        )
 
         post_delete.connect(
             delete_background_image,
@@ -23,4 +27,9 @@ class ProductAppConfig(AppConfig):
             delete_digital_content_file,
             sender=DigitalContent,
             dispatch_uid="delete_digital_content_file",
+        )
+        post_delete.connect(
+            delete_product_media_image,
+            sender=ProductMedia,
+            dispatch_uid="delete_product_media_image",
         )
