@@ -5,12 +5,18 @@ from ..core.utils import str_to_enum
 
 
 def description(enum):
-    if enum == WebhookEventTypeEnum.CHECKOUT_CREATED:
+    if enum == None:
+        return "Enum determining type of webhook."
+    elif enum == WebhookEventTypeEnum.CHECKOUT_CREATED:
         return "A new checkout is created."
     elif enum == WebhookEventTypeEnum.CHECKOUT_UPDATED:
         return "A checkout is updated. Also triggers for all updates related to a checkout."
     elif enum == WebhookEventTypeEnum.CUSTOMER_CREATED:
         return "A new customer account is created."
+    elif enum == WebhookEventTypeEnum.CUSTOMER_UPDATED:
+        return "A customer account is updated."
+    elif enum == WebhookEventTypeEnum.NOTIFY_USER:
+        return "User notification triggered."
     elif enum == WebhookEventTypeEnum.ORDER_CREATED:
         return "A new order is placed."
     elif enum == WebhookEventTypeEnum.ORDER_CONFIRMED:
@@ -25,10 +31,24 @@ def description(enum):
         return "An order is fulfilled."
     elif enum == WebhookEventTypeEnum.FULFILLMENT_CREATED:
         return "A new fulfillment is created."
+    elif enum == WebhookEventTypeEnum.PAGE_CREATED:
+        return "A new page is created."
+    elif enum == WebhookEventTypeEnum.PAGE_UPDATED:
+        return "A page is updated."
+    elif enum == WebhookEventTypeEnum.PAGE_DELETED:
+        return "A page is deleted."
     elif enum == WebhookEventTypeEnum.PRODUCT_CREATED:
         return "A new product is created."
     elif enum == WebhookEventTypeEnum.PRODUCT_UPDATED:
         return "A product is updated."
+    elif enum == WebhookEventTypeEnum.PRODUCT_DELETED:
+        return "A product is deleted."
+    elif enum == WebhookEventTypeEnum.PRODUCT_VARIANT_CREATED:
+        return "A new product variant is created."
+    elif enum == WebhookEventTypeEnum.PRODUCT_VARIANT_UPDATED:
+        return "A product variant is updated."
+    elif enum == WebhookEventTypeEnum.PRODUCT_VARIANT_DELETED:
+        return "A product variant is deleted."
     elif enum == WebhookEventTypeEnum.INVOICE_REQUESTED:
         return "An invoice for order requested."
     elif enum == WebhookEventTypeEnum.INVOICE_DELETED:
@@ -37,7 +57,7 @@ def description(enum):
         return "Invoice has been send."
     elif enum == WebhookEventTypeEnum.ANY_EVENTS:
         return "All the events."
-    return "Enum determining type of webhook."
+    return
 
 
 WebhookEventTypeEnum = graphene.Enum(
