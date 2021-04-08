@@ -48,6 +48,7 @@ from ..warehouse.types import Allocation, Warehouse
 from .dataloaders import (
     AllocationsByOrderLineIdLoader,
     OrderByIdLoader,
+    OrderEventsByOrderIdLoader,
     OrderLineByIdLoader,
     OrderLinesByOrderIdLoader,
 )
@@ -776,7 +777,7 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_events(root: models.Order, _info):
-        return root.events.prefetch_related("user").all().order_by("pk")
+        return OrderEventsByOrderIdLoader(_info.context).load(root.id)
 
     @staticmethod
     def resolve_is_paid(root: models.Order, _info):
