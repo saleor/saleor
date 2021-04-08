@@ -852,9 +852,9 @@ DELETE_COLLECTION_MUTATION = """
 """
 
 
-@patch("saleor.product.signals.delete_from_storage")
+@patch("saleor.product.signals.delete_versatile_image")
 def test_delete_collection(
-    delete_from_storage_mock,
+    delete_versatile_image_mock,
     staff_api_client,
     collection,
     permission_manage_products,
@@ -870,12 +870,12 @@ def test_delete_collection(
     assert data["name"] == collection.name
     with pytest.raises(collection._meta.model.DoesNotExist):
         collection.refresh_from_db()
-    delete_from_storage_mock.assert_not_called()
+    delete_versatile_image_mock.assert_not_called()
 
 
-@patch("saleor.product.signals.delete_from_storage")
+@patch("saleor.product.signals.delete_versatile_image")
 def test_delete_collection_with_background_image(
-    delete_from_storage_mock,
+    delete_versatile_image_mock,
     staff_api_client,
     collection_with_image,
     permission_manage_products,
@@ -892,7 +892,7 @@ def test_delete_collection_with_background_image(
     assert data["name"] == collection.name
     with pytest.raises(collection._meta.model.DoesNotExist):
         collection.refresh_from_db()
-    assert delete_from_storage_mock.called_once_with(collection.background_image.name)
+    delete_versatile_image_mock.assert_called_once_with(collection.background_image)
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")

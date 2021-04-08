@@ -181,7 +181,7 @@ DIGITAL_CONTENT_DELETE_MUTATION = """
 """
 
 
-@patch("saleor.product.signals.delete_from_storage")
+@patch("saleor.product.signals.delete_from_storage.delay")
 def test_digital_content_delete_mutation(
     delete_from_storage_mock,
     monkeypatch,
@@ -195,7 +195,7 @@ def test_digital_content_delete_mutation(
     variant.digital_content = digital_content
     variant.digital_content.save()
 
-    path = digital_content.content_file.name
+    path = digital_content.content_file.path
 
     assert hasattr(variant, "digital_content")
     variables = {"variant": graphene.Node.to_global_id("ProductVariant", variant.id)}
