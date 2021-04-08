@@ -169,6 +169,9 @@ MULTIPLE_ORDER_ADDRESS_DETAILS_QUERY = """
             id
           }
           userEmail
+          events {
+            id
+          }
         }
       }
     }

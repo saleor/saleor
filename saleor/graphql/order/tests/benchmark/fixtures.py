@@ -1,12 +1,15 @@
+import random
 import uuid
 
 import pytest
 from prices import Money, TaxedMoney
 
 from .....account.models import User
-from .....order.models import Order
+from .....order import OrderEvents
+from .....order.models import Order, OrderEvent
 
 ORDER_COUNT_IN_BENCHMARKS = 10
+EVENTS_PER_ORDER = 5
 
 
 @pytest.fixture
@@ -38,4 +41,11 @@ def orders_for_benchmarks(channel_USD, address, users_for_benchmarks):
         )
         for i in range(ORDER_COUNT_IN_BENCHMARKS)
     ]
-    return Order.objects.bulk_create(orders)
+    created_orders = Order.objects.bulk_create(orders)
+
+    events = [
+        OrderEvent(order=order, type=random.choice(OrderEvents.CHOICES)[0])
+        for order in created_orders
+    ]
+    OrderEvent.objects.bulk_create(events)
+    return created_orders
