@@ -22,7 +22,7 @@ class StaffMemberStatus(graphene.Enum):
     @property
     def description(self):
         if self == StaffMemberStatus.ACTIVE:
-            return 'User account has been activated.'
+            return "User account has been activated."
         elif self == StaffMemberStatus.DEACTIVATED:
-            return 'User account has not been activated yet.'
+            return "User account has not been activated yet."
         return None
