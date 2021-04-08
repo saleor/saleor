@@ -701,7 +701,12 @@ class Order(CountableDjangoObjectType):
 
         if not root.billing_address_id:
             return
-        user = UserByUserIdLoader(info.context).load(root.user_id)
+
+        if root.user_id:
+            user = UserByUserIdLoader(info.context).load(root.user_id)
+        else:
+            user = None  # type: ignore
+
         address = AddressByIdLoader(info.context).load(root.billing_address_id)
         return Promise.all([user, address]).then(_resolve_billing_address)
 
@@ -716,7 +721,12 @@ class Order(CountableDjangoObjectType):
 
         if not root.shipping_address_id:
             return
-        user = UserByUserIdLoader(info.context).load(root.user_id)
+
+        if root.user_id:
+            user = UserByUserIdLoader(info.context).load(root.user_id)
+        else:
+            user = None  # type: ignore
+
         address = AddressByIdLoader(info.context).load(root.shipping_address_id)
         return Promise.all([user, address]).then(_resolve_shipping_address)
 
@@ -826,6 +836,7 @@ class Order(CountableDjangoObjectType):
 
         if not root.user_id:
             return root.user_email
+
         return (
             UserByUserIdLoader(info.context)
             .load(root.user_id)
@@ -839,6 +850,9 @@ class Order(CountableDjangoObjectType):
             if requestor_has_access(requester, user, AccountPermissions.MANAGE_USERS):
                 return user
             raise PermissionDenied()
+
+        if not root.user_id:
+            return None
 
         return UserByUserIdLoader(info.context).load(root.user_id).then(_resolve_user)
 
