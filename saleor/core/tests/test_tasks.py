@@ -5,7 +5,7 @@ from ..tasks import delete_from_storage
 
 def test_delete_from_storage(product_with_image, media_root):
     # given
-    path = product_with_image.media.first().image.name
+    path = product_with_image.media.first().image.path
     assert default_storage.exists(path)
 
     # when

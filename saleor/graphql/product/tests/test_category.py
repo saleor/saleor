@@ -768,9 +768,9 @@ MUTATION_CATEGORY_DELETE = """
 """
 
 
-@patch("saleor.product.signals.delete_from_storage")
+@patch("saleor.product.signals.delete_versatile_image")
 def test_category_delete_mutation(
-    delete_from_storage_mock,
+    delete_versatile_image_mock,
     staff_api_client,
     category,
     permission_manage_products,
@@ -785,12 +785,12 @@ def test_category_delete_mutation(
     with pytest.raises(category._meta.model.DoesNotExist):
         category.refresh_from_db()
 
-    delete_from_storage_mock.assert_not_called()
+    delete_versatile_image_mock.assert_not_called()
 
 
-@patch("saleor.product.signals.delete_from_storage")
+@patch("saleor.product.signals.delete_versatile_image")
 def test_delete_category_with_background_image(
-    delete_from_storage_mock,
+    delete_versatile_image_mock,
     staff_api_client,
     category_with_image,
     permission_manage_products,
@@ -807,7 +807,7 @@ def test_delete_category_with_background_image(
     assert data["category"]["name"] == category.name
     with pytest.raises(category._meta.model.DoesNotExist):
         category.refresh_from_db()
-    assert delete_from_storage_mock.called_once_with(category.background_image.name)
+    delete_versatile_image_mock.assert_called_once_with(category.background_image)
 
 
 @patch("saleor.product.utils.update_products_discounted_prices_task")

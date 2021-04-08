@@ -13,6 +13,7 @@ class ProductAppConfig(AppConfig):
             delete_product_media_image,
         )
 
+        # preventing duplicate signals
         post_delete.connect(
             delete_background_image,
             sender=Category,

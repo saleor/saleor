@@ -2028,13 +2028,13 @@ def test_delete_variant(
     mocked_recalculate_orders_task.assert_called_once_with(set())
 
 
-@patch("saleor.product.signals.delete_from_storage")
+@patch("saleor.product.signals.delete_versatile_image")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_deleted")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_variant_with_image(
     mocked_recalculate_orders_task,
     product_variant_deleted_webhook_mock,
-    delete_from_storage_mock,
+    delete_versatile_image_mock,
     staff_api_client,
     variant_with_image,
     permission_manage_products,
@@ -2058,8 +2058,8 @@ def test_delete_variant_with_image(
     assert data["productVariant"]["sku"] == variant.sku
     with pytest.raises(variant._meta.model.DoesNotExist):
         variant.refresh_from_db()
-    delete_from_storage_mock.assert_not_called()
     mocked_recalculate_orders_task.assert_called_once_with(set())
+    delete_versatile_image_mock.assert_not_called()
 
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
