@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from graphene import relay
 from promise import Promise
 
+from ...account.models import Address
 from ...account.utils import requestor_is_staff_member_or_app
 from ...core.anonymize import obfuscate_address, obfuscate_email
 from ...core.exceptions import PermissionDenied
@@ -693,7 +694,12 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     def resolve_billing_address(root: models.Order, info):
         def _resolve_billing_address(data):
-            user, address = data
+            if isinstance(data, Address):
+                user = None
+                address = data
+            else:
+                user, address = data
+
             requester = get_user_or_app_from_context(info.context)
             if requestor_has_access(requester, user, OrderPermissions.MANAGE_ORDERS):
                 return address
@@ -704,16 +710,22 @@ class Order(CountableDjangoObjectType):
 
         if root.user_id:
             user = UserByUserIdLoader(info.context).load(root.user_id)
-        else:
-            user = None  # type: ignore
-
-        address = AddressByIdLoader(info.context).load(root.billing_address_id)
-        return Promise.all([user, address]).then(_resolve_billing_address)
+            address = AddressByIdLoader(info.context).load(root.billing_address_id)
+            return Promise.all([user, address]).then(_resolve_billing_address)
+        return (
+            AddressByIdLoader(info.context)
+            .load(root.billing_address_id)
+            .then(_resolve_billing_address)
+        )
 
     @staticmethod
     def resolve_shipping_address(root: models.Order, info):
         def _resolve_shipping_address(data):
-            user, address = data
+            if isinstance(data, Address):
+                user = None
+                address = data
+            else:
+                user, address = data
             requester = get_user_or_app_from_context(info.context)
             if requestor_has_access(requester, user, OrderPermissions.MANAGE_ORDERS):
                 return address
@@ -724,11 +736,13 @@ class Order(CountableDjangoObjectType):
 
         if root.user_id:
             user = UserByUserIdLoader(info.context).load(root.user_id)
-        else:
-            user = None  # type: ignore
-
-        address = AddressByIdLoader(info.context).load(root.shipping_address_id)
-        return Promise.all([user, address]).then(_resolve_shipping_address)
+            address = AddressByIdLoader(info.context).load(root.shipping_address_id)
+            return Promise.all([user, address]).then(_resolve_shipping_address)
+        return (
+            AddressByIdLoader(info.context)
+            .load(root.shipping_address_id)
+            .then(_resolve_shipping_address)
+        )
 
     @staticmethod
     def resolve_shipping_price(root: models.Order, _info):
