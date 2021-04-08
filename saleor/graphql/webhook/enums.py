@@ -5,12 +5,15 @@ from ..core.utils import str_to_enum
 
 
 def description(enum):
-    if enum == None:
+    if enum is None:
         return "Enum determining type of webhook."
     elif enum == WebhookEventTypeEnum.CHECKOUT_CREATED:
         return "A new checkout is created."
     elif enum == WebhookEventTypeEnum.CHECKOUT_UPDATED:
-        return "A checkout is updated. Also triggers for all updates related to a checkout."
+        return (
+            "A checkout is updated. "
+            "Also triggers for all updates related to a checkout."
+        )
     elif enum == WebhookEventTypeEnum.CUSTOMER_CREATED:
         return "A new customer account is created."
     elif enum == WebhookEventTypeEnum.CUSTOMER_UPDATED:
@@ -20,11 +23,19 @@ def description(enum):
     elif enum == WebhookEventTypeEnum.ORDER_CREATED:
         return "A new order is placed."
     elif enum == WebhookEventTypeEnum.ORDER_CONFIRMED:
-        return "An order is confirmed (status change unconfirmed -> unfulfilled) by staff user using OrderConfirm mutation. Also triggers when user finish checkout and shop setting `automatically_confirm_all_new_orders` is enabled."
+        return (
+            "An order is confirmed (status change unconfirmed -> unfulfilled) "
+            "by staff user using OrderConfirm mutation. "
+            "Also triggers when user finish checkout and shop setting "
+            "`automatically_confirm_all_new_orders` is enabled."
+        )
     elif enum == WebhookEventTypeEnum.ORDER_FULLY_PAID:
         return "Payment is made and an order is fully paid."
     elif enum == WebhookEventTypeEnum.ORDER_UPDATED:
-        return "An order is updated; triggered for all changes related to an order; covers all other order webhooks, except for ORDER_CREATED."
+        return (
+            "An order is updated; triggered for all changes related to an order; "
+            "covers all other order webhooks, except for ORDER_CREATED."
+        )
     elif enum == WebhookEventTypeEnum.ORDER_CANCELLED:
         return "An order is cancelled."
     elif enum == WebhookEventTypeEnum.ORDER_FULFILLED:
@@ -57,7 +68,7 @@ def description(enum):
         return "Invoice has been send."
     elif enum == WebhookEventTypeEnum.ANY_EVENTS:
         return "All the events."
-    return
+    return None
 
 
 WebhookEventTypeEnum = graphene.Enum(
