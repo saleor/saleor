@@ -845,11 +845,11 @@ class Order(CountableDjangoObjectType):
         def _resolve_user_email(user):
             requester = get_user_or_app_from_context(info.context)
             if requestor_has_access(requester, user, OrderPermissions.MANAGE_ORDERS):
-                return user.email
-            return obfuscate_email(user.email)
+                return user.email if user else root.user_email
+            return obfuscate_email(user.email if user else root.user_email)
 
         if not root.user_id:
-            return root.user_email
+            return _resolve_user_email(None)
 
         return (
             UserByUserIdLoader(info.context)
