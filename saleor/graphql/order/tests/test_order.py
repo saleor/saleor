@@ -1667,6 +1667,47 @@ def test_draft_order_create_without_channel(
     assert error["field"] == "channel"
 
 
+def test_draft_order_create_with_negative_quantity_line(
+    staff_api_client,
+    permission_manage_orders,
+    staff_user,
+    customer_user,
+    product_without_shipping,
+    shipping_method,
+    channel_USD,
+    variant,
+    voucher,
+    graphql_address_data,
+):
+    variant_0 = variant
+    query = DRAFT_ORDER_CREATE_MUTATION
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
+    variant_1 = product_without_shipping.variants.first()
+    variant_1.quantity = 2
+    variant_1.save()
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+
+    variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
+    variant_list = [
+        {"variantId": variant_0_id, "quantity": -2},
+        {"variantId": variant_1_id, "quantity": 1},
+    ]
+    variables = {
+        "user": user_id,
+        "lines": variant_list,
+        "channel": channel_id,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    error = content["data"]["draftOrderCreate"]["orderErrors"][0]
+    assert error["code"] == OrderErrorCode.ZERO_QUANTITY.name
+    assert error["field"] == "quantity"
+
+
 def test_draft_order_create_with_channel_with_unpublished_product(
     staff_api_client,
     permission_manage_orders,
@@ -2634,7 +2675,53 @@ ORDER_LINES_CREATE_MUTATION = """
 
 @pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
 def test_order_lines_create(
-    status, order_with_lines, permission_manage_orders, staff_api_client
+    status,
+    order_with_lines,
+    permission_manage_orders,
+    staff_api_client,
+    variant_with_many_stocks,
+):
+    query = ORDER_LINES_CREATE_MUTATION
+    order = order_with_lines
+    order.status = status
+    order.save(update_fields=["status"])
+    variant = variant_with_many_stocks
+    quantity = 1
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variables = {"orderId": order_id, "variantId": variant_id, "quantity": quantity}
+
+    # mutation should fail without proper permissions
+    response = staff_api_client.post_graphql(query, variables)
+    assert_no_permission(response)
+    assert not OrderEvent.objects.exists()
+
+    # assign permissions
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(query, variables)
+    assert OrderEvent.objects.count() == 1
+    assert OrderEvent.objects.last().type == order_events.OrderEvents.ADDED_PRODUCTS
+    content = get_graphql_content(response)
+    data = content["data"]["orderLinesCreate"]
+    assert data["orderLines"][0]["productSku"] == variant.sku
+    assert data["orderLines"][0]["quantity"] == quantity
+
+    # mutation should fail when quantity is lower than 1
+    variables = {"orderId": order_id, "variantId": variant_id, "quantity": 0}
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["orderLinesCreate"]
+    assert data["orderErrors"]
+    assert data["orderErrors"][0]["field"] == "quantity"
+    assert data["orderErrors"][0]["variants"] == [variant_id]
+
+
+@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+def test_order_lines_create_with_existing_variant(
+    status,
+    order_with_lines,
+    permission_manage_orders,
+    staff_api_client,
 ):
     query = ORDER_LINES_CREATE_MUTATION
     order = order_with_lines
@@ -2662,15 +2749,6 @@ def test_order_lines_create(
     data = content["data"]["orderLinesCreate"]
     assert data["orderLines"][0]["productSku"] == variant.sku
     assert data["orderLines"][0]["quantity"] == old_quantity + quantity
-
-    # mutation should fail when quantity is lower than 1
-    variables = {"orderId": order_id, "variantId": variant_id, "quantity": 0}
-    response = staff_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["orderLinesCreate"]
-    assert data["orderErrors"]
-    assert data["orderErrors"][0]["field"] == "quantity"
-    assert data["orderErrors"][0]["variants"] == [variant_id]
 
 
 @pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
