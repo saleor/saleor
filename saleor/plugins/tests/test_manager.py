@@ -16,6 +16,7 @@ from ..models import PluginConfiguration
 from ..tests.sample_plugins import (
     ActiveDummyPaymentGateway,
     ActivePaymentGateway,
+    ChannelPluginSample,
     InactivePaymentGateway,
     PluginInactive,
     PluginSample,
@@ -28,6 +29,112 @@ def test_get_plugins_manager(settings):
     manager = get_plugins_manager()
     assert isinstance(manager, PluginsManager)
     assert len(manager.all_plugins) == 1
+
+
+def test_manager_with_default_configuration_for_channel_plugins(
+    settings, channel_USD, channel_PLN
+):
+    settings.PLUGINS = [
+        "saleor.plugins.tests.sample_plugins.ChannelPluginSample",
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+    ]
+    manager = get_plugins_manager()
+    assert len(manager.global_plugins) == 1
+    assert isinstance(manager.global_plugins[0], PluginSample)
+    assert {channel_PLN.slug, channel_USD.slug} == set(
+        manager.plugins_per_channel.keys()
+    )
+
+    for channel_slug, plugins in manager.plugins_per_channel.items():
+        assert len(plugins) == 2
+        assert all(
+            [
+                isinstance(plugin, (PluginSample, ChannelPluginSample))
+                for plugin in plugins
+            ]
+        )
+
+    # global plugin + plugins for each channel
+    assert len(manager.all_plugins) == 3
+
+
+def test_manager_with_channel_plugins(
+    settings, channel_USD, channel_PLN, channel_plugin_configurations
+):
+    settings.PLUGINS = [
+        "saleor.plugins.tests.sample_plugins.ChannelPluginSample",
+    ]
+    manager = get_plugins_manager()
+
+    assert {channel_PLN.slug, channel_USD.slug} == set(
+        manager.plugins_per_channel.keys()
+    )
+
+    for channel_slug, plugins in manager.plugins_per_channel.items():
+        assert len(plugins) == 1
+        # make sure that we load proper config from DB
+        assert plugins[0].configuration[0]["value"] == channel_slug
+
+    # global plugin + plugins for each channel
+    assert len(manager.all_plugins) == 2
+
+
+def test_manager_get_plugins_with_channel_slug(
+    settings, channel_USD, plugin_configuration, inactive_plugin_configuration
+):
+    settings.PLUGINS = [
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+    ]
+    manager = get_plugins_manager()
+
+    plugins = manager.get_plugins(channel_slug=channel_USD.slug)
+
+    assert plugins == manager.plugins_per_channel[channel_USD.slug]
+
+
+def test_manager_get_active_plugins_with_channel_slug(
+    settings, channel_USD, plugin_configuration, inactive_plugin_configuration
+):
+    settings.PLUGINS = [
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+    ]
+    manager = get_plugins_manager()
+
+    plugins = manager.get_plugins(channel_slug=channel_USD.slug, active_only=True)
+
+    assert len(plugins) == 1
+    assert isinstance(plugins[0], PluginSample)
+
+
+def test_manager_get_plugins_without_channel_slug(
+    settings, channel_USD, plugin_configuration, inactive_plugin_configuration
+):
+    settings.PLUGINS = [
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+    ]
+    manager = get_plugins_manager()
+
+    plugins = manager.get_plugins(channel_slug=None)
+
+    assert plugins == manager.all_plugins
+
+
+def test_manager_get_active_plugins_without_channel_slug(
+    settings, channel_USD, plugin_configuration, inactive_plugin_configuration
+):
+    settings.PLUGINS = [
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+    ]
+    manager = get_plugins_manager()
+
+    plugins = manager.get_plugins(channel_slug=None, active_only=True)
+
+    assert len(plugins) == 1
+    assert isinstance(plugins[0], PluginSample)
 
 
 @pytest.mark.parametrize(
@@ -451,12 +558,10 @@ def test_manager_get_plugin_configuration(plugin_configuration):
     assert plugin.DEFAULT_CONFIGURATION == configuration_from_db.configuration
 
 
-def test_manager_save_plugin_configuration(plugin_configuration, channel_USD):
+def test_manager_save_plugin_configuration(plugin_configuration):
     plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
     manager = PluginsManager(plugins=plugins)
-    manager.save_plugin_configuration(
-        PluginSample.PLUGIN_ID, channel_USD.slug, {"active": False}
-    )
+    manager.save_plugin_configuration(PluginSample.PLUGIN_ID, None, {"active": False})
     plugin_configuration.refresh_from_db()
     assert not plugin_configuration.active
 

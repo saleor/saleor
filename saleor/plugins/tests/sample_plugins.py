@@ -212,11 +212,19 @@ class PluginSample(BasePlugin):
 
 
 class ChannelPluginSample(PluginSample):
-    PLUGIN_ID = "plugin.sample"
-    PLUGIN_NAME = "PluginSample"
-    PLUGIN_DESCRIPTION = "Test plugin description"
+    PLUGIN_ID = "channel.plugin.sample"
+    PLUGIN_NAME = "ChannelPluginSample"
+    PLUGIN_DESCRIPTION = "Test channel plugin description"
     DEFAULT_ACTIVE = True
     CONFIGURATION_PER_CHANNEL = True
+    DEFAULT_CONFIGURATION = [{"name": "input-per-channel", "value": None}]
+    CONFIG_STRUCTURE = {
+        "input-per-channel": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "Test input",
+            "label": "Input per channel",
+        }
+    }
 
 
 class PluginInactive(BasePlugin):
