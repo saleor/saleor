@@ -14,6 +14,7 @@ from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
 from ....account.models import CustomerEvent
+from ....core.anonymize import obfuscate_email
 from ....core.notify_events import NotifyEventType
 from ....core.prices import quantize_price
 from ....core.taxes import TaxError, zero_taxed_money
@@ -4025,6 +4026,7 @@ def test_order_by_token_query_by_anonymous_user(api_client, order):
     assert data["billingAddress"]["phone"] == str(order.billing_address.phone)[
         :3
     ] + "." * (len(str(order.billing_address.phone)) - 3)
+    assert data["userEmail"] == obfuscate_email(order.user_email)
 
 
 def test_order_by_token_query_by_order_owner(user_api_client, order):
