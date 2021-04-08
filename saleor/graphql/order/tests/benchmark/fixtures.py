@@ -1,3 +1,4 @@
+import random
 import uuid
 
 import pytest
@@ -5,8 +6,23 @@ from prices import Money, TaxedMoney
 
 from .....account.models import User
 from .....order.models import Order
+from .....payment import ChargeStatus
+from .....payment.models import Payment
 
 ORDER_COUNT_IN_BENCHMARKS = 10
+PAYMENTS_PER_ORDER = 1
+
+
+def _create_payments_for_order(order):
+    return [
+        Payment(
+            gateway="mirumee.payments.dummy",
+            order=order,
+            is_active=True,
+            charge_status=random.choice(ChargeStatus.CHOICES)[0],
+        )
+        for _ in range(PAYMENTS_PER_ORDER)
+    ]
 
 
 @pytest.fixture
@@ -26,7 +42,7 @@ def users_for_benchmarks(address):
 
 
 @pytest.fixture
-def orders_for_benchmarks(channel_USD, address, users_for_benchmarks):
+def orders_for_benchmarks(channel_USD, address, payment_dummy, users_for_benchmarks):
     orders = [
         Order(
             token=str(uuid.uuid4()),
@@ -38,4 +54,10 @@ def orders_for_benchmarks(channel_USD, address, users_for_benchmarks):
         )
         for i in range(ORDER_COUNT_IN_BENCHMARKS)
     ]
-    return Order.objects.bulk_create(orders)
+    created_orders = Order.objects.bulk_create(orders)
+    payments = []
+    for order in created_orders:
+        payment = _create_payments_for_order(order)
+        payments.extend(payment)
+    Payment.objects.bulk_create(payments)
+    return created_orders
