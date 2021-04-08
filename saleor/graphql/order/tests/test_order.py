@@ -4393,7 +4393,7 @@ def test_query_draft_order_by_token_as_anonymous_customer(api_client, draft_orde
     assert not content["data"]["orderByToken"]
 
 
-def test_query_order_without_addresess(order, user_api_client, channel_USD):
+def test_query_order_without_addresses(order, user_api_client, channel_USD):
     # given
     query = ORDER_BY_TOKEN_QUERY
 
@@ -4412,6 +4412,27 @@ def test_query_order_without_addresess(order, user_api_client, channel_USD):
     assert data["userEmail"] == user_api_client.user.email
     assert data["billingAddress"] is None
     assert data["shippingAddress"] is None
+
+
+def test_order_query_address_without_order_user(
+    staff_api_client, permission_manage_orders, channel_USD, address
+):
+    query = ORDER_BY_TOKEN_QUERY
+    shipping_address = address.get_copy()
+    billing_address = address.get_copy()
+    token = str(uuid.uuid4())
+    Order.objects.create(
+        channel=channel_USD,
+        shipping_address=shipping_address,
+        billing_address=billing_address,
+        token=token,
+    )
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(query, {"token": token})
+    content = get_graphql_content(response)
+    order = content["data"]["orderByToken"]
+    assert order["shippingAddress"] is not None
+    assert order["billingAddress"] is not None
 
 
 MUTATION_ORDER_BULK_CANCEL = """
@@ -4614,42 +4635,6 @@ def test_order_query_with_filter_created(
     orders = content["data"]["orders"]["edges"]
 
     assert len(orders) == count
-
-
-def test_order_query_address_without_order_user(
-    staff_api_client, permission_manage_orders, channel_USD, address
-):
-    query = """
-        query OrdersQuery {
-            orders(first: 1) {
-                edges {
-                    node {
-                        shippingAddress {
-                            id
-                        }
-                        billingAddress {
-                            id
-                        }
-                    }
-                }
-            }
-        }
-    """
-    shipping_address = address.get_copy()
-    billing_address = address.get_copy()
-    Order.objects.create(
-        channel=channel_USD,
-        shipping_address=shipping_address,
-        billing_address=billing_address,
-    )
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
-    response = staff_api_client.post_graphql(query)
-    content = get_graphql_content(response)
-    order = content["data"]["orders"]["edges"][0]["node"]
-    _, shipping_id = graphene.Node.from_global_id(order["shippingAddress"]["id"])
-    _, billing_id = graphene.Node.from_global_id(order["billingAddress"]["id"])
-    assert shipping_address.id == int(shipping_id)
-    assert billing_address.id == int(billing_id)
 
 
 @pytest.mark.parametrize(
