@@ -45,28 +45,6 @@ def validate_image_file(file, field_name):
         )
 
 
-def from_global_id_strict_type(
-    global_id: str, only_type: Union[ObjectType, str], field: str = "id"
-) -> str:
-    """Resolve a node global id with a strict given type required."""
-    try:
-        _type, _id = graphene.Node.from_global_id(global_id)
-    except (binascii.Error, UnicodeDecodeError) as exc:
-        raise ValidationError(
-            {
-                field: ValidationError(
-                    "Couldn't resolve to a node: %s" % global_id, code="not_found"
-                )
-            }
-        ) from exc
-
-    if str(_type) != str(only_type):
-        raise ValidationError(
-            {field: ValidationError(f"Must receive a {only_type} id", code="invalid")}
-        )
-    return _id
-
-
 def validate_slug_and_generate_if_needed(
     instance: Type["Model"],
     slugable_field: str,

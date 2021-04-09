@@ -10,9 +10,10 @@ from django.shortcuts import reverse
 from graphql.error import GraphQLError
 from graphql_relay import to_global_id
 
+from ...core.utils import from_global_id_or_error
 from ...product.types import Product
 from ...tests.utils import get_graphql_content
-from ...utils import from_global_id_or_error, get_nodes
+from ...utils import get_nodes
 from ...utils.filters import filter_by_query_param
 
 

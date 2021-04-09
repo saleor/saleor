@@ -41,7 +41,7 @@ from ..account.types import AddressInput
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.types.common import CheckoutError
-from ..core.utils import from_global_id_strict_type
+from ..core.utils import from_global_id_or_error
 from ..order.types import Order
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
@@ -625,7 +625,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, shipping_address):
-        pk = from_global_id_strict_type(checkout_id, Checkout, field="checkout_id")
+        _type, pk = from_global_id_or_error(checkout_id, Checkout, field="checkout_id")
 
         try:
             checkout = models.Checkout.objects.prefetch_related(
@@ -892,7 +892,7 @@ class CheckoutComplete(BaseMutation):
                     field="checkout_id",
                 )
             except ValidationError as e:
-                checkout_token = from_global_id_strict_type(
+                _type, checkout_token = from_global_id_or_error(
                     checkout_id, Checkout, field="checkout_id"
                 )
 
