@@ -20,6 +20,7 @@ from .models import PluginConfiguration
 if TYPE_CHECKING:
     # flake8: noqa
     from ..account.models import Address, User
+    from ..channel.models import Channel
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout
     from ..core.notify_events import NotifyEventType
@@ -74,9 +75,16 @@ class BasePlugin:
     DEFAULT_CONFIGURATION = []
     DEFAULT_ACTIVE = False
 
-    def __init__(self, *, configuration: PluginConfigurationType, active: bool):
+    def __init__(
+        self,
+        *,
+        configuration: PluginConfigurationType,
+        active: bool,
+        channel: Optional["Channel"] = None
+    ):
         self.configuration = self.get_plugin_configuration(configuration)
         self.active = active
+        self.channel = channel
 
     def __str__(self):
         return self.PLUGIN_NAME
