@@ -16,7 +16,8 @@ from ...page import models as page_models
 from ...page.error_codes import PageErrorCode
 from ...product import models as product_models
 from ...product.error_codes import ProductErrorCode
-from ..utils import from_global_id_or_error, get_nodes
+from ..core.utils import from_global_id_or_error
+from ..utils import get_nodes
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -114,6 +115,7 @@ class AttributeAssignmentMixin:
     @classmethod
     def _resolve_attribute_global_id(cls, error_class, global_id: str) -> int:
         """Resolve an Attribute global ID into an internal ID (int)."""
+        # TODO : remove type
         graphene_type, internal_id = from_global_id_or_error(
             global_id
         )  # type: str, str

@@ -39,6 +39,7 @@ from ...core.fields import (
     PrefetchingConnectionField,
 )
 from ...core.types import Image, Money, TaxedMoney, TaxedMoneyRange, TaxType
+from ...core.utils import from_global_id_or_error
 from ...decorators import (
     one_of_permissions_required,
     permission_required,
@@ -57,11 +58,7 @@ from ...translations.types import (
     ProductTranslation,
     ProductVariantTranslation,
 )
-from ...utils import (
-    get_database_id,
-    get_user_country_context,
-    get_user_or_app_from_context,
-)
+from ...utils import get_user_country_context, get_user_or_app_from_context
 from ...utils.filters import reporting_period_to_date
 from ...warehouse.dataloaders import (
     AvailableQuantityByProductVariantIdAndCountryCodeLoader,
@@ -749,7 +746,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     def resolve_media_by_id(root: ChannelContext[models.Product], info, id):
-        pk = get_database_id(info, id, ProductMedia)
+        _type, pk = from_global_id_or_error(id, "ProductMedia")
         try:
             return root.node.media.get(pk=pk)
         except models.ProductMedia.DoesNotExist:
@@ -757,7 +754,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     def resolve_image_by_id(root: ChannelContext[models.Product], info, id):
-        pk = get_database_id(info, id, ProductMedia)
+        _type, pk = from_global_id_or_error(id, "ProductMedia")
         try:
             return root.node.media.get(pk=pk)
         except models.ProductMedia.DoesNotExist:

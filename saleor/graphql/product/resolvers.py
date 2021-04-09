@@ -4,7 +4,8 @@ from ...account.utils import requestor_is_staff_member_or_app
 from ...order import OrderStatus
 from ...product import models
 from ..channel import ChannelQsContext
-from ..utils import get_database_id, get_user_or_app_from_context
+from ..core.utils import from_global_id_or_error
+from ..utils import get_user_or_app_from_context
 from ..utils.filters import filter_by_period
 from .filters import filter_products_by_stock_availability
 
@@ -115,7 +116,9 @@ def resolve_product_variants(
 
     qs = models.ProductVariant.objects.filter(product__id__in=visible_products)
     if ids:
-        db_ids = [get_database_id(info, node_id, "ProductVariant") for node_id in ids]
+        db_ids = [
+            from_global_id_or_error(node_id, "ProductVariant")[1] for node_id in ids
+        ]
         qs = qs.filter(pk__in=db_ids)
     return ChannelQsContext(qs=qs, channel_slug=channel_slug)
 

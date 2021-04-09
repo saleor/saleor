@@ -11,7 +11,7 @@ from ..core.fields import (
     FilterInputConnectionField,
     PrefetchingConnectionField,
 )
-from ..core.utils import from_global_id_strict_type
+from ..core.utils import from_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_query
 from ..decorators import permission_required
 from ..translations.mutations import (
@@ -20,7 +20,7 @@ from ..translations.mutations import (
     ProductTranslate,
     ProductVariantTranslate,
 )
-from ..utils import from_global_id_or_error, get_user_or_app_from_context
+from ..utils import get_user_or_app_from_context
 from .bulk_mutations.products import (
     CategoryBulkDelete,
     CollectionBulkDelete,
@@ -303,7 +303,7 @@ class ProductQueries(graphene.ObjectType):
         if channel is None and not is_staff:
             channel = get_default_channel_slug_or_graphql_error()
         if id:
-            id = from_global_id_strict_type(id, only_type="Product")
+            _type, id = from_global_id_or_error(id, only_type="Product")
             product = resolve_product_by_id(
                 info, id, channel_slug=channel, requestor=requestor
             )

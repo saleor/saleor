@@ -11,7 +11,6 @@ from graphql_relay import from_global_id
 from ...account import models as account_models
 from ..core.enums import PermissionEnum
 from ..core.types import Permission
-from ..core.utils import from_global_id_or_error
 
 if TYPE_CHECKING:
     from ..account import types as account_types
@@ -25,14 +24,6 @@ REVERSED_DIRECTION = {
     "-": "",
     "": "-",
 }
-
-
-def get_database_id(info, node_id, only_type):
-    """Get a database ID from a node ID of given type."""
-    _type, _id = from_global_id_or_error(node_id)
-    if _type != str(only_type):
-        raise AssertionError("Must receive a %s id." % str(only_type))
-    return _id
 
 
 def resolve_global_ids_to_primary_keys(ids, graphene_type=None):
