@@ -18,6 +18,7 @@ from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
 from django.forms import ModelForm
+from django.template.defaultfilters import truncatechars
 from django.test.utils import CaptureQueriesContext as BaseCaptureQueriesContext
 from django.utils import timezone
 from django_countries import countries
@@ -39,6 +40,7 @@ from ..checkout.models import Checkout
 from ..checkout.utils import add_variant_to_checkout
 from ..core import JobStatus
 from ..core.payments import PaymentInterface
+from ..core.utils.editorjs import clean_editor_js
 from ..csv.events import ExportEvents
 from ..csv.models import ExportEvent, ExportFile
 from ..discount import DiscountInfo, DiscountValueType, VoucherType
@@ -759,7 +761,7 @@ def shipping_method_channel_PLN(shipping_zone, channel_PLN):
 
 
 @pytest.fixture
-def color_attribute(db):  # pylint: disable=W0613
+def color_attribute(db):
     attribute = Attribute.objects.create(
         slug="color",
         name="Color",
@@ -770,6 +772,27 @@ def color_attribute(db):  # pylint: disable=W0613
     )
     AttributeValue.objects.create(attribute=attribute, name="Red", slug="red")
     AttributeValue.objects.create(attribute=attribute, name="Blue", slug="blue")
+    return attribute
+
+
+@pytest.fixture
+def rich_text_attribute(db):
+    attribute = Attribute.objects.create(
+        slug="text",
+        name="Text",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.RICH_TEXT,
+        filterable_in_storefront=False,
+        filterable_in_dashboard=False,
+        available_in_grid=False,
+    )
+    text = "Rich text attribute content."
+    AttributeValue.objects.create(
+        attribute=attribute,
+        name=truncatechars(clean_editor_js(dummy_editorjs(text), to_string=True), 50),
+        slug=f"instance_{attribute.id}",
+        rich_text=dummy_editorjs(text),
+    )
     return attribute
 
 
