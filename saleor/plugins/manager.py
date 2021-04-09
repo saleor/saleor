@@ -866,6 +866,8 @@ class PluginsManager(PaymentInterface):
                 )
                 configuration.name = plugin.PLUGIN_NAME
                 configuration.description = plugin.PLUGIN_DESCRIPTION
+                plugin.active = configuration.active
+                plugin.configuration = configuration.configuration
                 return configuration
 
     def get_plugin(

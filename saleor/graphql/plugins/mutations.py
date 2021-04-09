@@ -58,7 +58,26 @@ class PluginUpdate(BaseMutation):
             raise ValidationError(
                 {
                     "id": ValidationError(
-                        "Plugin doesn't exist", code=PluginErrorCode.NOT_FOUND
+                        "Plugin doesn't exist.", code=PluginErrorCode.NOT_FOUND.value
+                    )
+                }
+            )
+
+        if plugin in manager.global_plugins and channel_slug:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Plugin doesn't support configuration per channel.",
+                        code=PluginErrorCode.INVALID.value,
+                    )
+                }
+            )
+        elif plugin not in manager.global_plugins and not channel_slug:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Plugin requires to specify channel slug.",
+                        code=PluginErrorCode.NOT_FOUND.value,
                     )
                 }
             )
