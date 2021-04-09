@@ -3,7 +3,7 @@ from typing import DefaultDict, Iterable, List, Optional, Tuple
 
 from django.conf import settings
 
-from ...warehouse.models import Stock
+from ...warehouse.models import Stock, Warehouse
 from ..core.dataloaders import DataLoader
 
 CountryCode = Optional[str]
@@ -140,3 +140,11 @@ class StocksWithAvailableQuantityByProductVariantIdAndCountryCodeLoader(
             )
             for variant_id in variant_ids
         ]
+
+
+class WarehouseByIdLoader(DataLoader):
+    context_key = "warehouse_by_id"
+
+    def batch_load(self, keys):
+        warehouses = Warehouse.objects.in_bulk(keys)
+        return [warehouses.get(warehouse_id) for warehouse_id in keys]
