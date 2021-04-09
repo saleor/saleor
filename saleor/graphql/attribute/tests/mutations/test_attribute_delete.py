@@ -20,9 +20,9 @@ ATTRIBUTE_DELETE_MUTATION = """
 """
 
 
-@patch("saleor.attribute.signals.delete_from_storage.delay")
+@patch("saleor.attribute.signals.delete_from_storage_task.delay")
 def test_delete_attribute(
-    delete_from_storage_mock,
+    delete_from_storage_task_mock,
     staff_api_client,
     color_attribute,
     permission_manage_product_types_and_attributes,
@@ -45,12 +45,12 @@ def test_delete_attribute(
     assert data["attribute"]["id"] == variables["id"]
     with pytest.raises(attribute._meta.model.DoesNotExist):
         attribute.refresh_from_db()
-    delete_from_storage_mock.assert_not_called()
+    delete_from_storage_task_mock.assert_not_called()
 
 
-@patch("saleor.attribute.signals.delete_from_storage.delay")
+@patch("saleor.attribute.signals.delete_from_storage_task.delay")
 def test_delete_file_attribute(
-    delete_from_storage_mock,
+    delete_from_storage_task_mock,
     staff_api_client,
     file_attribute,
     permission_manage_product_types_and_attributes,
@@ -74,5 +74,7 @@ def test_delete_file_attribute(
     assert data["attribute"]["id"] == variables["id"]
     with pytest.raises(attribute._meta.model.DoesNotExist):
         attribute.refresh_from_db()
-    assert delete_from_storage_mock.call_count == len(paths)
-    assert {call.args[0] for call in delete_from_storage_mock.call_args_list} == paths
+    assert delete_from_storage_task_mock.call_count == len(paths)
+    assert {
+        call.args[0] for call in delete_from_storage_task_mock.call_args_list
+    } == paths
