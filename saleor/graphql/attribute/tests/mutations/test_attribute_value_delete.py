@@ -4,7 +4,7 @@ import graphene
 import pytest
 
 ATTRIBUTE_VALUE_DELETE_MUTATION = """
-    mutation updateChoice($id: ID!) {
+    mutation AttributeValueDelete($id: ID!) {
         attributeValueDelete(id: $id) {
             attributeValue {
                 name
