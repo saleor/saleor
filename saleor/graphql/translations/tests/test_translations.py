@@ -1,3 +1,5 @@
+import json
+
 import graphene
 import pytest
 from django.contrib.auth.models import Permission
@@ -403,7 +405,9 @@ def test_attribute_translation(user_api_client, color_attribute):
 
 
 def test_attribute_value_translation(user_api_client, pink_attribute_value):
-    pink_attribute_value.translations.create(language_code="pl", name="Różowy")
+    pink_attribute_value.translations.create(
+        language_code="pl", name="Różowy", rich_text=dummy_editorjs("Pink")
+    )
 
     query = """
     query {
@@ -413,6 +417,7 @@ def test_attribute_value_translation(user_api_client, pink_attribute_value):
                     values {
                         translation(languageCode: PL) {
                             name
+                            richText
                             language {
                                 code
                             }
@@ -434,6 +439,9 @@ def test_attribute_value_translation(user_api_client, pink_attribute_value):
 
     attribute_value = data["attributes"]["edges"][0]["node"]["values"][-1]
     assert attribute_value["translation"]["name"] == "Różowy"
+    assert attribute_value["translation"]["richText"] == json.dumps(
+        dummy_editorjs("Pink")
+    )
     assert attribute_value["translation"]["language"]["code"] == "PL"
 
 
