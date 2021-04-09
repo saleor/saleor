@@ -1,5 +1,6 @@
 from collections import defaultdict
 from typing import DefaultDict, Iterable, List, Optional, Tuple
+from uuid import UUID
 
 from django.conf import settings
 
@@ -147,4 +148,4 @@ class WarehouseByIdLoader(DataLoader):
 
     def batch_load(self, keys):
         warehouses = Warehouse.objects.in_bulk(keys)
-        return [warehouses.get(warehouse_id) for warehouse_id in keys]
+        return [warehouses.get(UUID(warehouse_uuid)) for warehouse_uuid in keys]
