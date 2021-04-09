@@ -501,6 +501,7 @@ enum AttributeInputTypeEnum {
   MULTISELECT
   FILE
   REFERENCE
+  RICH_TEXT
 }
 
 type AttributeReorderValues {
@@ -579,6 +580,7 @@ type AttributeValue implements Node {
   inputType: AttributeInputTypeEnum
   reference: ID
   file: File
+  richText: JSONString
 }
 
 type AttributeValueBulkDelete {
@@ -597,6 +599,7 @@ type AttributeValueCreate {
 input AttributeValueCreateInput {
   name: String!
   value: String
+  richText: JSONString
 }
 
 type AttributeValueDelete {
@@ -612,6 +615,7 @@ input AttributeValueInput {
   file: String
   contentType: String
   references: [ID!]
+  richText: JSONString
 }
 
 type AttributeValueTranslatableContent implements Node {
@@ -630,7 +634,13 @@ type AttributeValueTranslate {
 type AttributeValueTranslation implements Node {
   id: ID!
   name: String!
+  richText: JSONString
   language: LanguageDisplay!
+}
+
+input AttributeValueTranslationInput {
+  name: String
+  richText: JSONString
 }
 
 type AttributeValueUpdate {
@@ -2801,7 +2811,7 @@ type Mutation {
   attributeValueCreate(attribute: ID!, input: AttributeValueCreateInput!): AttributeValueCreate
   attributeValueDelete(id: ID!): AttributeValueDelete
   attributeValueUpdate(id: ID!, input: AttributeValueCreateInput!): AttributeValueUpdate
-  attributeValueTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): AttributeValueTranslate
+  attributeValueTranslate(id: ID!, input: AttributeValueTranslationInput!, languageCode: LanguageCodeEnum!): AttributeValueTranslate
   attributeReorderValues(attributeId: ID!, moves: [ReorderInput]!): AttributeReorderValues
   appCreate(input: AppInput!): AppCreate
   appUpdate(id: ID!, input: AppInput!): AppUpdate

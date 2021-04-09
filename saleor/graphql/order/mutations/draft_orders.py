@@ -163,6 +163,15 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                     field_name = "channel"
                 raise ValidationError({field_name: error})
             quantities = [line.get("quantity") for line in lines]
+            if not all(quantity > 0 for quantity in quantities):
+                raise ValidationError(
+                    {
+                        "quantity": ValidationError(
+                            "Ensure this value is greater than 0.",
+                            code=OrderErrorCode.ZERO_QUANTITY,
+                        )
+                    }
+                )
             cleaned_input["variants"] = variants
             cleaned_input["quantities"] = quantities
 
@@ -216,7 +225,9 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             lines = []
             for variant, quantity in zip(variants, quantities):
                 lines.append((quantity, variant))
-                add_variant_to_order(instance, variant, quantity, info.context.plugins)
+                add_variant_to_order(
+                    instance, variant, quantity, info.context.user, info.context.plugins
+                )
 
             # New event
             events.order_added_products_event(
