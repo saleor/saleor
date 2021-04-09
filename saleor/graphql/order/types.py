@@ -19,6 +19,7 @@ from ...graphql.utils import get_user_or_app_from_context
 from ...order import OrderStatus, models
 from ...order.models import FulfillmentStatus
 from ...order.utils import get_order_country, get_valid_shipping_methods_for_order
+from ...payment import ChargeStatus
 from ...product.product_images import get_product_image_thumbnail
 from ...warehouse import models as warehouse_models
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
@@ -819,8 +820,9 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     def resolve_payment_status(root: models.Order, info):
         def _resolve_payment_status(payments):
-            last_payment = max(payments, default=None, key=attrgetter("pk"))
-            return last_payment.charge_status
+            if last_payment := max(payments, default=None, key=attrgetter("pk")):
+                return last_payment.charge_status
+            return ChargeStatus.NOT_CHARGED
 
         return (
             PaymentsByOrderIdLoader(info.context)
@@ -831,8 +833,9 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     def resolve_payment_status_display(root: models.Order, info):
         def _resolve_payment_status(payments):
-            last_payment = max(payments, default=None, key=attrgetter("pk"))
-            return last_payment.get_charge_status_display()
+            if last_payment := max(payments, default=None, key=attrgetter("pk")):
+                return last_payment.get_charge_status_display()
+            return dict(ChargeStatus.CHOICES).get(ChargeStatus.NOT_CHARGED)
 
         return (
             PaymentsByOrderIdLoader(info.context)
