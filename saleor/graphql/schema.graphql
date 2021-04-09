@@ -2824,6 +2824,7 @@ type Mutation {
   appActivate(id: ID!): AppActivate
   appDeactivate(id: ID!): AppDeactivate
   tokenCreate(email: String!, password: String!): CreateToken
+  tokenZaloCreate(user: String!, zaloToken: String!): CreateZaloToken
   tokenRefresh(csrfToken: String, refreshToken: String): RefreshToken
   tokenVerify(token: String!): VerifyToken
   tokensDeactivateAll: DeactivateAllUserTokens

@@ -37,14 +37,15 @@ class StoreQueries(graphene.ObjectType):
         description="Look up a store type by ID.",
     )
 
+    def resolve_store(self, info, level=None, **kwargs):
+        return Store.objects.first()
+
+    def resolve_stores(self, info, level=None, **kwargs):
+        return Store.objects.all()
+
 
 class StoreMutations(graphene.ObjectType):
     # store mutations
     store_create = StoreCreate.Field()
     store_delete = StoreDelete.Field()    
     store_update = StoreUpdate.Field()
-
-    # store type mutations
-    store_type_create = StoreTypeCreate.Field()
-    store_type_update = StoreTypeUpdate.Field()
-    store_type_delete = StoreTypeDelete.Field()

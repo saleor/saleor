@@ -119,6 +119,59 @@ class CreateToken(BaseMutation):
             csrf_token=csrf_token,
         )
 
+class CreateZaloToken(BaseMutation):
+    """Mutation that authenticates a user and returns token and user data."""
+
+    class Arguments:
+        user = graphene.String(required=True, description="Zalo user of a user.")
+        zalotoken = graphene.String(required=True, description="Zalo auth token of a user.")
+
+    class Meta:
+        description = "Create JWT token."
+        error_type_class = AccountError
+        error_type_field = "account_errors"
+
+    token = graphene.String(description="JWT token, required to authenticate.")
+    refresh_token = graphene.String(
+        description="JWT refresh token, required to re-generate access token."
+    )
+    csrf_token = graphene.String(
+        description="CSRF token required to re-generate access token."
+    )
+    user = graphene.Field(User, description="A user instance.")
+
+    @classmethod
+    def _retrieve_user_from_zalo_credentials(cls, zalouser) -> Optional[models.User]:
+        user = models.User.objects.filter(email=zalouser, is_active=True).first()
+        if not user:
+            user = models.User()
+            user.email = zalouser
+            user.is_active = True
+
+        return user    
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        zalouser = "%s@zalo.vn" % data['user']
+        user = cls._retrieve_user_from_zalo_credentials(zalouser)
+        
+        access_token = create_access_token(user)
+        csrf_token = _get_new_csrf_token()
+        refresh_token = create_refresh_token(user, {"csrfToken": csrf_token})
+        info.context.refresh_token = refresh_token
+        info.context._cached_user = user
+        user.last_login = timezone.now()
+        if user.pk is None:
+            user.save()
+        else:    
+            user.save(update_fields=["last_login"])
+        return cls(
+            errors=[],
+            user=user,
+            token=access_token,
+            refresh_token=refresh_token,
+            csrf_token=csrf_token,
+        )
 
 class RefreshToken(BaseMutation):
     """Mutation that refresh user token and returns token and user data."""

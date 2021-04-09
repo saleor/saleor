@@ -84,6 +84,7 @@ class ReadOnlyMiddleware:
         "checkoutShippingAddressUpdate",
         "checkoutShippingMethodUpdate",
         "tokenCreate",
+        "tokenZaloCreate",
         "tokenVerify",
     ]
 

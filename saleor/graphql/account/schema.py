@@ -22,6 +22,7 @@ from .mutations.account import (
 )
 from .mutations.authentication import (
     CreateToken,
+    CreateZaloToken,
     DeactivateAllUserTokens,
     ExternalAuthenticationUrl,
     ExternalLogout,
@@ -189,6 +190,7 @@ class AccountQueries(graphene.ObjectType):
 class AccountMutations(graphene.ObjectType):
     # Base mutations
     token_create = CreateToken.Field()
+    token_zalo_create = CreateZaloToken.Field()
     token_refresh = RefreshToken.Field()
     token_verify = VerifyToken.Field()
     tokens_deactivate_all = DeactivateAllUserTokens.Field()
