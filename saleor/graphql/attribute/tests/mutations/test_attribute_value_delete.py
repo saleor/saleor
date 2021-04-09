@@ -15,7 +15,7 @@ ATTRIBUTE_VALUE_DELETE_MUTATION = """
 """
 
 
-@patch("saleor.attribute.signals.delete_from_storage.delay")
+@patch("saleor.attribute.signals.delete_from_storage_task.delay")
 def test_delete_attribute_value(
     delete_from_storage_mock,
     staff_api_client,
@@ -40,7 +40,7 @@ def test_delete_attribute_value(
     delete_from_storage_mock.assert_not_called()
 
 
-@patch("saleor.attribute.signals.delete_from_storage.delay")
+@patch("saleor.attribute.signals.delete_from_storage_task.delay")
 def test_delete_file_attribute_value(
     delete_from_storage_mock,
     staff_api_client,

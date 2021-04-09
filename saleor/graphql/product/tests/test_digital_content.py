@@ -181,9 +181,9 @@ DIGITAL_CONTENT_DELETE_MUTATION = """
 """
 
 
-@patch("saleor.product.signals.delete_from_storage.delay")
+@patch("saleor.product.signals.delete_from_storage_task.delay")
 def test_digital_content_delete_mutation(
-    delete_from_storage_mock,
+    delete_from_storage_task_mock,
     monkeypatch,
     staff_api_client,
     variant,
@@ -206,7 +206,7 @@ def test_digital_content_delete_mutation(
     get_graphql_content(response)
     variant = ProductVariant.objects.get(id=variant.id)
     assert not hasattr(variant, "digital_content")
-    delete_from_storage_mock.assert_called_once_with(path)
+    delete_from_storage_task_mock.assert_called_once_with(path)
 
 
 def test_digital_content_update_mutation(
