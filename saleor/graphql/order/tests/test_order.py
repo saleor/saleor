@@ -14,6 +14,7 @@ from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
 from ....account.models import CustomerEvent
+from ....core.anonymize import obfuscate_email
 from ....core.notify_events import NotifyEventType
 from ....core.prices import quantize_price
 from ....core.taxes import TaxError, zero_taxed_money
@@ -4103,6 +4104,7 @@ def test_order_by_token_query_by_anonymous_user(api_client, order):
     assert data["billingAddress"]["phone"] == str(order.billing_address.phone)[
         :3
     ] + "." * (len(str(order.billing_address.phone)) - 3)
+    assert data["userEmail"] == obfuscate_email(order.user_email)
 
 
 def test_order_by_token_query_by_order_owner(user_api_client, order):
@@ -4471,7 +4473,7 @@ def test_query_draft_order_by_token_as_anonymous_customer(api_client, draft_orde
     assert not content["data"]["orderByToken"]
 
 
-def test_query_order_without_addresess(order, user_api_client, channel_USD):
+def test_query_order_without_addresses(order, user_api_client, channel_USD):
     # given
     query = ORDER_BY_TOKEN_QUERY
 
@@ -4490,6 +4492,27 @@ def test_query_order_without_addresess(order, user_api_client, channel_USD):
     assert data["userEmail"] == user_api_client.user.email
     assert data["billingAddress"] is None
     assert data["shippingAddress"] is None
+
+
+def test_order_query_address_without_order_user(
+    staff_api_client, permission_manage_orders, channel_USD, address
+):
+    query = ORDER_BY_TOKEN_QUERY
+    shipping_address = address.get_copy()
+    billing_address = address.get_copy()
+    token = str(uuid.uuid4())
+    Order.objects.create(
+        channel=channel_USD,
+        shipping_address=shipping_address,
+        billing_address=billing_address,
+        token=token,
+    )
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(query, {"token": token})
+    content = get_graphql_content(response)
+    order = content["data"]["orderByToken"]
+    assert order["shippingAddress"] is not None
+    assert order["billingAddress"] is not None
 
 
 MUTATION_ORDER_BULK_CANCEL = """
