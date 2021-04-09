@@ -6230,6 +6230,29 @@ def test_product_type_delete_mutation(
         product_type.refresh_from_db()
 
 
+@patch("saleor.product.signals.delete_versatile_image")
+def test_product_type_delete_mutation_deletes_also_images(
+    delete_versatile_image_mock,
+    staff_api_client,
+    product_type,
+    product_with_image,
+    permission_manage_product_types_and_attributes,
+):
+    query = PRODUCT_TYPE_DELETE_MUTATION
+    product_type.products.add(product_with_image)
+    media_obj = product_with_image.media.first()
+    variables = {"id": graphene.Node.to_global_id("ProductType", product_type.id)}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productTypeDelete"]
+    assert data["productType"]["name"] == product_type.name
+    with pytest.raises(product_type._meta.model.DoesNotExist):
+        product_type.refresh_from_db()
+    delete_versatile_image_mock.assert_called_once_with(media_obj.image.name)
+
+
 def test_product_type_delete_mutation_variants_in_draft_order(
     staff_api_client,
     permission_manage_product_types_and_attributes,
