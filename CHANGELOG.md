@@ -30,6 +30,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Validate discount value for percentage vouchers and sales - #7033 by @d-wysocki
 - Optimize children field on Category type - #7045 by @IKarbowiak
 - Added support for querying objects by metadata fields - #6683 by @LeOndaz
+- Add rich text attribute input - #7059 by @piotrgrundas
 - Avoid using `get_plugins_manager` method - #7052 by @IKarbowiak
 - Add field `languageCode` to types: `AccountInput`, `AccountRegisterInput`, `CheckoutCreateInput`, `CustomerInput`, `Order`, `User`. Add field `languageCodeEnum` to `Order` type. Add new mutation `CheckoutLanguageCodeUpdate`. Deprecate field `Order.languageCode`.  - #6609 by @korycins
 - Add benchmarks for triggered product and variants webhooks - #7061 by @d-wysocki
@@ -37,9 +38,12 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix invalid tax rates for lines - #7058 by @IKarbowiak
 - Allow seeing unconfirmed orders - #7072 by @IKarbowiak
 - Raise GraphQLError when too big integer value is provided - #7076 by @IKarbowiak
+- Recalculate draft order when product/variant was deleted - #7085 by @d-wysocki
+- Added validation for `DraftOrderCreate` with negative quantity line - #7085 by @d-wysocki
 - Remove html tags from product description_plaintext - #7094 by @d-wysocki
 - Performance upgrade on orders query with shipping and billing addresses - #7083 by @tomaszszymanski129
 - Performance upgrade on orders query with events - #7120 by @tomaszszymanski129
+- Performance upgrade on orders query with `user` and `userEmail` fields - #7091 by @tomaszszymanski129
 - Fix dataloader for fetching checkout info - #7084 by @IKarbowiak
 - Update also draft order line total price after getting the unit price from plugin - #7080 by @IKarbowiak
 - Fix failing product tasks when instances are removed - #7092 by @IKarbowiak

@@ -32,6 +32,9 @@ class AttributeValue(CountableDjangoObjectType):
     file = graphene.Field(
         File, description=AttributeValueDescriptions.FILE, required=False
     )
+    rich_text = graphene.JSONString(
+        description=AttributeValueDescriptions.RICH_TEXT, required=False
+    )
 
     class Meta:
         description = "Represents a value of an attribute."
