@@ -36,6 +36,7 @@ from ..enums import (
     WebhookErrorCode,
     WeightUnitsEnum,
     WishlistErrorCode,
+    StoreErrorCode,
 )
 from .money import VAT
 
@@ -273,6 +274,8 @@ class PageError(Error):
         required=False,
     )
 
+class StoreError(Error):
+    code = StoreErrorCode(description="The error code.", required=True)
 
 class PaymentError(Error):
     code = PaymentErrorCode(description="The error code.", required=True)

@@ -141,7 +141,12 @@ class CreateZaloToken(BaseMutation):
     user = graphene.Field(User, description="A user instance.")
 
     @classmethod
-    def _retrieve_user_from_zalo_credentials(cls, zalouser) -> Optional[models.User]:
+    def _retrieve_user_from_zalo_credentials(cls, zalouser, zalotoken) -> Optional[models.User]:
+        import requests
+        url = "https://openapi.zalo.me/v2.0/oa/getprofile?access_token=%s&data={\"user_id\":\"%s\"}" % (zalotoken, zalouser)
+        response = requests.get(url)
+        json_response = response.json()
+        print(json_response)
         user = models.User.objects.filter(email=zalouser, is_active=True).first()
         if not user:
             user = models.User()
@@ -153,7 +158,7 @@ class CreateZaloToken(BaseMutation):
     @classmethod
     def perform_mutation(cls, root, info, **data):
         zalouser = "%s@zalo.vn" % data['user']
-        user = cls._retrieve_user_from_zalo_credentials(zalouser)
+        user = cls._retrieve_user_from_zalo_credentials(zalouser, data["zalotoken"])
         
         access_token = create_access_token(user)
         csrf_token = _get_new_csrf_token()
