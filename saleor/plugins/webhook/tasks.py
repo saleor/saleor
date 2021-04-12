@@ -110,8 +110,8 @@ def send_webhook_using_google_cloud_pubsub(
 
 @app.task(
     autoretry_for=(RequestException,),
-    retry_backoff=60,
-    retry_kwargs={"max_retries": 15},
+    retry_backoff=10,
+    retry_kwargs={"max_retries": 5},
 )
 def send_webhook_request(webhook_id, target_url, secret, event_type, data):
     parts = urlparse(target_url)
