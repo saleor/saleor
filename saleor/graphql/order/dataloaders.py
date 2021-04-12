@@ -57,8 +57,8 @@ class OrderEventsByOrderIdLoader(DataLoader):
     def batch_load(self, keys):
         events = OrderEvent.objects.filter(order_id__in=keys).order_by("pk")
         events_map = defaultdict(list)
-        for line in events.iterator():
-            events_map[line.order_id].append(line)
+        for event in events.iterator():
+            events_map[event.order_id].append(event)
         return [events_map.get(order_id, []) for order_id in keys]
 
 
