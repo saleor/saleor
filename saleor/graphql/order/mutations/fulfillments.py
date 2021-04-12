@@ -15,8 +15,8 @@ from ....order.actions import (
     create_refund_fulfillment,
     fulfillment_tracking_updated,
 )
-from ....order.emails import send_fulfillment_update
 from ....order.error_codes import OrderErrorCode
+from ....order.notifications import send_fulfillment_update
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
@@ -215,7 +215,11 @@ class OrderFulfill(BaseMutation):
 
         try:
             fulfillments = create_fulfillments(
-                user, order, dict(lines_for_warehouses), notify_customer
+                user,
+                order,
+                dict(lines_for_warehouses),
+                info.context.plugins,
+                notify_customer,
             )
         except InsufficientStock as exc:
             errors = prepare_insufficient_stock_order_validation_errors(exc)
@@ -251,11 +255,13 @@ class FulfillmentUpdateTracking(BaseMutation):
         fulfillment.tracking_number = tracking_number
         fulfillment.save()
         order = fulfillment.order
-        fulfillment_tracking_updated(fulfillment, info.context.user, tracking_number)
+        fulfillment_tracking_updated(
+            fulfillment, info.context.user, tracking_number, info.context.plugins
+        )
         input_data = data.get("input", {})
         notify_customer = input_data.get("notify_customer")
         if notify_customer:
-            send_fulfillment_update.delay(order.pk, fulfillment.pk)
+            send_fulfillment_update(order, fulfillment, info.context.plugins)
         return FulfillmentUpdateTracking(fulfillment=fulfillment, order=order)
 
 
@@ -294,7 +300,9 @@ class FulfillmentCancel(BaseMutation):
             )
 
         order = fulfillment.order
-        cancel_fulfillment(fulfillment, info.context.user, warehouse)
+        cancel_fulfillment(
+            fulfillment, info.context.user, warehouse, info.context.plugins
+        )
         fulfillment.refresh_from_db(fields=["status"])
         order.refresh_from_db(fields=["status"])
         return FulfillmentCancel(fulfillment=fulfillment, order=order)

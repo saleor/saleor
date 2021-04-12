@@ -26,3 +26,5 @@ class AttributeValueDescriptions:
     SLUG = "Internal representation of a value (unique per attribute)."
     TYPE = "Type of value (used only when `value` field is set)."
     FILE = "Represents file URL and content type (if attribute value is a file)."
+    VALUE = "Represents the value of the attribute value."
+    RICH_TEXT = "Represents the text (JSON) of the attribute value."

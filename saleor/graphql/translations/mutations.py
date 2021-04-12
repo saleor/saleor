@@ -10,12 +10,12 @@ from ...page import models as page_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
 from ..channel import ChannelContext
+from ..core.enums import LanguageCodeEnum
 from ..core.mutations import BaseMutation, ModelMutation, registry
 from ..core.types.common import TranslationError
 from ..core.utils import from_global_id_strict_type
 from ..product.types import Product, ProductVariant
 from ..shop.types import Shop
-from .enums import LanguageCodeEnum
 
 # discount types need to be imported to get Voucher in the graphene registry
 from ..discount import types  # noqa # pylint: disable=unused-import, isort:skip
@@ -42,6 +42,10 @@ class BaseTranslateMutation(ModelMutation):
 
 class NameTranslationInput(graphene.InputObjectType):
     name = graphene.String()
+
+
+class AttributeValueTranslationInput(NameTranslationInput):
+    rich_text = graphene.JSONString()
 
 
 class SeoTranslationInput(graphene.InputObjectType):
@@ -146,7 +150,9 @@ class ProductVariantTranslate(BaseTranslateMutation):
             )
 
         variant_pk = from_global_id_strict_type(data["id"], ProductVariant, field="id")
-        variant = product_models.ProductVariant.objects.get(pk=variant_pk)
+        variant = product_models.ProductVariant.objects.prefetched_for_webhook().get(
+            pk=variant_pk
+        )
         variant.translations.update_or_create(
             language_code=data["language_code"], defaults=data["input"]
         )
@@ -181,7 +187,7 @@ class AttributeValueTranslate(BaseTranslateMutation):
         language_code = graphene.Argument(
             LanguageCodeEnum, required=True, description="Translation language code."
         )
-        input = NameTranslationInput(required=True)
+        input = AttributeValueTranslationInput(required=True)
 
     class Meta:
         description = "Creates/Updates translations for attribute value."

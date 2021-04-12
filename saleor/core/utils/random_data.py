@@ -86,6 +86,8 @@ from ...warehouse.management import increase_stock
 from ...warehouse.models import Stock, Warehouse
 
 fake = Factory.create()
+fake.seed(0)
+
 PRODUCTS_LIST_DIR = "products-list/"
 
 DUMMY_STAFF_PASSWORD = "password"
@@ -533,8 +535,8 @@ def create_fake_user(save=True):
 
 # We don't want to spam the console with payment confirmations sent to
 # fake customers.
-@patch("saleor.order.emails.send_payment_confirmation.delay")
-def create_fake_payment(mock_email_confirmation, order):
+@patch("saleor.plugins.manager.PluginsManager.notify")
+def create_fake_payment(mock_notify, order):
     payment = create_payment(
         gateway="mirumee.payments.dummy",
         customer_ip_address=fake.ipv4(),
@@ -544,21 +546,22 @@ def create_fake_payment(mock_email_confirmation, order):
         total=order.total.gross.amount,
         currency=order.total.gross.currency,
     )
+    manager = get_plugins_manager()
 
     # Create authorization transaction
-    gateway.authorize(payment, payment.token)
+    gateway.authorize(payment, payment.token, manager)
     # 20% chance to void the transaction at this stage
     if random.choice([0, 0, 0, 0, 1]):
-        gateway.void(payment)
+        gateway.void(payment, manager)
         return payment
     # 25% to end the payment at the authorization stage
     if not random.choice([1, 1, 1, 0]):
         return payment
     # Create capture transaction
-    gateway.capture(payment)
+    gateway.capture(payment, manager)
     # 25% to refund the payment
     if random.choice([0, 0, 0, 1]):
-        gateway.refund(payment)
+        gateway.refund(payment, manager)
     return payment
 
 
@@ -626,7 +629,7 @@ def create_order_lines(order, discounts, how_many=10):
 
 
 def create_fulfillments(order):
-    for line in order:
+    for line in order.lines.all():
         if random.choice([False, True]):
             fulfillment, _ = Fulfillment.objects.get_or_create(order=order)
             quantity = random.randrange(0, line.quantity) + 1
@@ -694,7 +697,7 @@ def create_fake_order(discounts, max_order_lines=5):
     lines = create_order_lines(order, discounts, random.randrange(1, max_order_lines))
     order.total = sum([line.total_price for line in lines], shipping_price)
     weight = Weight(kg=0)
-    for line in order:
+    for line in order.lines.all():
         weight += line.variant.get_weight()
     order.weight = weight
     order.save()
@@ -1279,8 +1282,9 @@ def create_gift_card():
 def add_address_to_admin(email):
     address = create_address()
     user = User.objects.get(email=email)
-    store_user_address(user, address, AddressType.BILLING)
-    store_user_address(user, address, AddressType.SHIPPING)
+    manager = get_plugins_manager()
+    store_user_address(user, address, AddressType.BILLING, manager)
+    store_user_address(user, address, AddressType.SHIPPING, manager)
 
 
 def create_page_type():

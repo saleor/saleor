@@ -20,13 +20,24 @@ from ...plugins.manager import get_plugins_manager
 from ...product.models import Collection
 from ...warehouse.models import Stock
 from ...warehouse.tests.utils import get_quantity_allocated_for_stock
-from .. import FulfillmentStatus, OrderEvents, OrderStatus, models
-from ..emails import send_fulfillment_confirmation_to_customer
-from ..events import OrderEvent, OrderEventsEmails, email_sent_event
+from .. import FulfillmentStatus, OrderEvents, OrderStatus
+from ..events import (
+    OrderEventsEmails,
+    event_fulfillment_confirmed_notification,
+    event_fulfillment_digital_links_notification,
+    event_order_cancelled_notification,
+    event_order_confirmation_notification,
+    event_order_refunded_notification,
+    event_payment_confirmed_notification,
+)
 from ..models import Order
+from ..notifications import (
+    get_default_fulfillment_payload,
+    send_fulfillment_confirmation_to_customer,
+)
 from ..templatetags.order_lines import display_translated_order_line_name
 from ..utils import (
-    add_variant_to_draft_order,
+    add_variant_to_order,
     change_order_line_quantity,
     delete_order_line,
     get_voucher_discount_for_order,
@@ -40,7 +51,7 @@ from ..utils import (
 
 def test_total_setter():
     price = TaxedMoney(net=Money(10, "USD"), gross=Money(15, "USD"))
-    order = models.Order()
+    order = Order()
     order.total = price
     assert order.total_net_amount == Decimal(10)
     assert order.total.net == Money(10, "USD")
@@ -64,14 +75,14 @@ def test_order_get_subtotal(order_with_lines):
     assert order_with_lines.get_subtotal() == target_subtotal
 
 
-def test_add_variant_to_draft_order_adds_line_for_new_variant(
-    order_with_lines, product, product_translation_fr, settings
+def test_add_variant_to_order_adds_line_for_new_variant(
+    order_with_lines, product, product_translation_fr, settings, info
 ):
     order = order_with_lines
     variant = product.variants.get()
     lines_before = order.lines.count()
     settings.LANGUAGE_CODE = "fr"
-    add_variant_to_draft_order(order, variant, 1)
+    add_variant_to_order(order, variant, 1, info.context.user, info.context.plugins)
 
     line = order.lines.last()
     assert order.lines.count() == lines_before + 1
@@ -83,8 +94,34 @@ def test_add_variant_to_draft_order_adds_line_for_new_variant(
     assert line.product_name == str(variant.product)
 
 
+def test_add_variant_to_draft_order_adds_line_for_new_variant_with_tax(
+    order_with_lines, product, product_translation_fr, settings, info
+):
+    order = order_with_lines
+    variant = product.variants.get()
+    lines_before = order.lines.count()
+    settings.LANGUAGE_CODE = "fr"
+    price = TaxedMoney(net=Money(8, "USD"), gross=Money(10, "USD"))
+    manager = Mock(
+        calculate_order_line_unit=Mock(return_value=price),
+        get_order_line_tax_rate=Mock(return_value=0.25),
+    )
+
+    add_variant_to_order(order, variant, 1, info.context.user, manager)
+
+    line = order.lines.last()
+    assert order.lines.count() == lines_before + 1
+    assert line.product_sku == variant.sku
+    assert line.quantity == 1
+    assert line.unit_price == price
+    assert line.total_price == price
+    assert line.translated_product_name == str(variant.product.translated)
+    assert line.variant_name == str(variant)
+    assert line.product_name == str(variant.product)
+
+
 def test_add_variant_to_draft_order_adds_line_for_variant_with_price_0(
-    order_with_lines, product, product_translation_fr, settings
+    order_with_lines, product, product_translation_fr, settings, info
 ):
     order = order_with_lines
     variant = product.variants.get()
@@ -94,7 +131,7 @@ def test_add_variant_to_draft_order_adds_line_for_variant_with_price_0(
 
     lines_before = order.lines.count()
     settings.LANGUAGE_CODE = "fr"
-    add_variant_to_draft_order(order, variant, 1)
+    add_variant_to_order(order, variant, 1, info.context.user, info.context.plugins)
 
     line = order.lines.last()
     assert order.lines.count() == lines_before + 1
@@ -105,27 +142,31 @@ def test_add_variant_to_draft_order_adds_line_for_variant_with_price_0(
     assert line.product_name == variant.product.name
 
 
-def test_add_variant_to_draft_order_not_allocates_stock_for_new_variant(
-    order_with_lines, product
+def test_add_variant_to_order_not_allocates_stock_for_new_variant(
+    order_with_lines, product, info
 ):
     variant = product.variants.get()
     stock = Stock.objects.get(product_variant=variant)
 
     stock_before = get_quantity_allocated_for_stock(stock)
 
-    add_variant_to_draft_order(order_with_lines, variant, 1)
+    add_variant_to_order(
+        order_with_lines, variant, 1, info.context.user, info.context.plugins
+    )
 
     stock.refresh_from_db()
     assert get_quantity_allocated_for_stock(stock) == stock_before
 
 
-def test_add_variant_to_draft_order_edits_line_for_existing_variant(order_with_lines):
+def test_add_variant_to_order_edits_line_for_existing_variant(order_with_lines, info):
     existing_line = order_with_lines.lines.first()
     variant = existing_line.variant
     lines_before = order_with_lines.lines.count()
     line_quantity_before = existing_line.quantity
 
-    add_variant_to_draft_order(order_with_lines, variant, 1)
+    add_variant_to_order(
+        order_with_lines, variant, 1, info.context.user, info.context.plugins
+    )
 
     existing_line.refresh_from_db()
     assert order_with_lines.lines.count() == lines_before
@@ -133,8 +174,8 @@ def test_add_variant_to_draft_order_edits_line_for_existing_variant(order_with_l
     assert existing_line.quantity == line_quantity_before + 1
 
 
-def test_add_variant_to_draft_order_not_allocates_stock_for_existing_variant(
-    order_with_lines,
+def test_add_variant_to_order_not_allocates_stock_for_existing_variant(
+    order_with_lines, info
 ):
     existing_line = order_with_lines.lines.first()
     variant = existing_line.variant
@@ -143,7 +184,9 @@ def test_add_variant_to_draft_order_not_allocates_stock_for_existing_variant(
     quantity_before = existing_line.quantity
     quantity_unfulfilled_before = existing_line.quantity_unfulfilled
 
-    add_variant_to_draft_order(order_with_lines, variant, 1)
+    add_variant_to_order(
+        order_with_lines, variant, 1, info.context.user, info.context.plugins
+    )
 
     stock.refresh_from_db()
     existing_line.refresh_from_db()
@@ -552,7 +595,7 @@ def test_update_order_prices_tax_included(order_with_lines, vatlayer, site_setti
 
 def _calculate_order_weight_from_lines(order):
     weight = zero_weight()
-    for line in order:
+    for line in order.lines.all():
         weight += line.variant.get_weight() * line.quantity
     return weight
 
@@ -563,47 +606,53 @@ def test_calculate_order_weight(order_with_lines):
     assert calculated_weight == order_weight
 
 
-def test_order_weight_add_more_variant(order_with_lines):
+def test_order_weight_add_more_variant(order_with_lines, info):
     variant = order_with_lines.lines.first().variant
-    add_variant_to_draft_order(order_with_lines, variant, 2)
+    add_variant_to_order(
+        order_with_lines, variant, 2, info.context.user, info.context.plugins
+    )
     order_with_lines.refresh_from_db()
+
     assert order_with_lines.weight == _calculate_order_weight_from_lines(
         order_with_lines
     )
 
 
-def test_order_weight_add_new_variant(order_with_lines, product):
+def test_order_weight_add_new_variant(order_with_lines, product, info):
     variant = product.variants.first()
-    add_variant_to_draft_order(order_with_lines, variant, 2)
+
+    add_variant_to_order(
+        order_with_lines, variant, 2, info.context.user, info.context.plugins
+    )
     order_with_lines.refresh_from_db()
+
     assert order_with_lines.weight == _calculate_order_weight_from_lines(
         order_with_lines
     )
 
 
-def test_order_weight_change_line_quantity(order_with_lines):
-    line = order_with_lines.lines.first()
-    new_quantity = line.quantity + 2
-    change_order_line_quantity(None, line, new_quantity, line.quantity)
-    order_with_lines.refresh_from_db()
-    assert order_with_lines.weight == _calculate_order_weight_from_lines(
-        order_with_lines
+def test_order_weight_change_line_quantity(staff_user, lines_info):
+    line_info = lines_info[0]
+    new_quantity = line_info.quantity + 2
+    order = line_info.line.order
+    change_order_line_quantity(
+        staff_user, line_info, new_quantity, line_info.quantity, order.channel.slug
     )
+    assert order.weight == _calculate_order_weight_from_lines(order)
 
 
-def test_order_weight_delete_line(order_with_lines):
-    line = order_with_lines.lines.first()
-    delete_order_line(line)
-    assert order_with_lines.weight == _calculate_order_weight_from_lines(
-        order_with_lines
-    )
+def test_order_weight_delete_line(lines_info):
+    order = lines_info[0].line.order
+    line_info = lines_info[0]
+    delete_order_line(line_info)
+    assert order.weight == _calculate_order_weight_from_lines(order)
 
 
-def test_get_order_weight_non_existing_product(order_with_lines, product):
+def test_get_order_weight_non_existing_product(order_with_lines, product, info):
     # Removing product should not affect order's weight
     order = order_with_lines
     variant = product.variants.first()
-    add_variant_to_draft_order(order, variant, 1)
+    add_variant_to_order(order, variant, 1, info.context.user, info.context.plugins)
     old_weight = order.get_total_weight()
 
     product.delete()
@@ -872,31 +921,37 @@ def test_category_voucher_checkout_discount_raises_not_applicable(
         get_voucher_discount_for_order(order_with_lines)
 
 
-def test_ordered_item_change_quantity(transactional_db, order_with_lines):
-    assert not order_with_lines.events.count()
-    lines = order_with_lines.lines.all()
-    change_order_line_quantity(None, lines[1], lines[1].quantity, 0)
-    change_order_line_quantity(None, lines[0], lines[0].quantity, 0)
-    assert order_with_lines.get_total_quantity() == 0
+def test_ordered_item_change_quantity(staff_user, transactional_db, lines_info):
+    order = lines_info[0].line.order
+    assert not order.events.count()
+    change_order_line_quantity(
+        staff_user, lines_info[1], lines_info[1].quantity, 0, order.channel.slug
+    )
+    change_order_line_quantity(
+        staff_user, lines_info[0], lines_info[0].quantity, 0, order.channel.slug
+    )
+    assert order.get_total_quantity() == 0
 
 
 def test_change_order_line_quantity_changes_total_prices(
-    transactional_db, order_with_lines
+    staff_user, transactional_db, lines_info
 ):
-    assert not order_with_lines.events.count()
-    line = order_with_lines.lines.all()[0]
-    new_quantity = line.quantity + 1
-    change_order_line_quantity(None, line, line.quantity, new_quantity)
-    line.refresh_from_db()
-    assert line.total_price == line.unit_price * new_quantity
+    order = lines_info[0].line.order
+    assert not order.events.count()
+    line_info = lines_info[0]
+    new_quantity = line_info.quantity + 1
+    change_order_line_quantity(
+        staff_user, line_info, line_info.quantity, new_quantity, order.channel.slug
+    )
+    assert line_info.line.total_price == line_info.line.unit_price * new_quantity
 
 
-@patch("saleor.order.actions.emails.send_fulfillment_confirmation")
+@patch("saleor.plugins.manager.PluginsManager.notify")
 @pytest.mark.parametrize(
     "has_standard,has_digital", ((True, True), (True, False), (False, True))
 )
 def test_send_fulfillment_order_lines_mails(
-    mocked_send_fulfillment_confirmation,
+    mocked_notify,
     staff_user,
     fulfilled_order,
     fulfillment,
@@ -904,6 +959,7 @@ def test_send_fulfillment_order_lines_mails(
     has_standard,
     has_digital,
 ):
+    manager = get_plugins_manager()
     redirect_url = "http://localhost.pl"
     order = fulfilled_order
     order.redirect_url = redirect_url
@@ -922,38 +978,29 @@ def test_send_fulfillment_order_lines_mails(
         line.save()
 
     send_fulfillment_confirmation_to_customer(
-        order=order,
-        fulfillment=fulfillment,
-        user=staff_user,
+        order=order, fulfillment=fulfillment, user=staff_user, manager=manager
     )
-    events = OrderEvent.objects.all()
-
-    mocked_send_fulfillment_confirmation.delay.assert_called_once_with(
-        order.pk, fulfillment.pk, redirect_url
+    expected_payload = get_default_fulfillment_payload(order, fulfillment)
+    expected_payload["requester_user_id"] = staff_user.id
+    mocked_notify.assert_called_once_with(
+        "order_fulfillment_confirmation", payload=expected_payload
     )
 
-    # Ensure the standard fulfillment event was triggered
-    assert events[0].user == staff_user
-    assert events[0].parameters == {
-        "email": order.user_email,
-        "email_type": OrderEventsEmails.FULFILLMENT,
-    }
 
-    if has_digital:
-        assert len(events) == 2
-        assert events[1].user == staff_user
-        assert events[1].parameters == {
-            "email": order.user_email,
-            "email_type": OrderEventsEmails.DIGITAL_LINKS,
-        }
-    else:
-        assert len(events) == 1
-
-
-def test_email_sent_event_with_user_pk(order):
+@pytest.mark.parametrize(
+    "event_fun, expected_event_type",
+    [
+        (event_order_cancelled_notification, OrderEventsEmails.ORDER_CANCEL),
+        (event_order_confirmation_notification, OrderEventsEmails.ORDER_CONFIRMATION),
+        (event_fulfillment_confirmed_notification, OrderEventsEmails.FULFILLMENT),
+        (event_fulfillment_digital_links_notification, OrderEventsEmails.DIGITAL_LINKS),
+        (event_payment_confirmed_notification, OrderEventsEmails.PAYMENT),
+        (event_order_refunded_notification, OrderEventsEmails.ORDER_REFUND),
+    ],
+)
+def test_email_sent_event_with_user(order, event_fun, expected_event_type):
     user = order.user
-    email_type = OrderEventsEmails.PAYMENT
-    email_sent_event(order=order, user=None, email_type=email_type, user_pk=user.pk)
+    event_fun(order_id=order.id, user_id=user.pk, customer_email=order.user_email)
     events = order.events.all()
     assert len(events) == 1
     event = events[0]
@@ -964,31 +1011,23 @@ def test_email_sent_event_with_user_pk(order):
     assert event.date
     assert event.parameters == {
         "email": order.get_customer_email(),
-        "email_type": email_type,
+        "email_type": expected_event_type,
     }
 
 
-def test_email_sent_event_with_user(order):
-    user = order.user
-    email_type = OrderEventsEmails.PAYMENT
-    email_sent_event(order=order, user=user, email_type=email_type)
-    events = order.events.all()
-    assert len(events) == 1
-    event = events[0]
-    assert event
-    assert event.type == OrderEvents.EMAIL_SENT
-    assert event.user == user
-    assert event.order is order
-    assert event.date
-    assert event.parameters == {
-        "email": order.get_customer_email(),
-        "email_type": email_type,
-    }
-
-
-def test_email_sent_event_without_user_and_user_pk(order):
-    email_type = OrderEventsEmails.PAYMENT
-    email_sent_event(order=order, user=None, email_type=email_type)
+@pytest.mark.parametrize(
+    "event_fun, expected_event_type",
+    [
+        (event_order_cancelled_notification, OrderEventsEmails.ORDER_CANCEL),
+        (event_order_confirmation_notification, OrderEventsEmails.ORDER_CONFIRMATION),
+        (event_fulfillment_confirmed_notification, OrderEventsEmails.FULFILLMENT),
+        (event_fulfillment_digital_links_notification, OrderEventsEmails.DIGITAL_LINKS),
+        (event_payment_confirmed_notification, OrderEventsEmails.PAYMENT),
+        (event_order_refunded_notification, OrderEventsEmails.ORDER_REFUND),
+    ],
+)
+def test_email_sent_event_without_user_pk(order, event_fun, expected_event_type):
+    event_fun(order_id=order.id, user_id=None, customer_email=order.user_email)
     events = order.events.all()
     assert len(events) == 1
     event = events[0]
@@ -999,5 +1038,5 @@ def test_email_sent_event_without_user_and_user_pk(order):
     assert event.date
     assert event.parameters == {
         "email": order.get_customer_email(),
-        "email_type": email_type,
+        "email_type": expected_event_type,
     }

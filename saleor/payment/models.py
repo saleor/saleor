@@ -11,7 +11,7 @@ from prices import Money
 from ..checkout.models import Checkout
 from ..core.taxes import zero_money
 from ..order.models import Order
-from . import ChargeStatus, CustomPaymentChoices, TransactionError, TransactionKind
+from . import ChargeStatus, CustomPaymentChoices, TransactionKind
 
 
 class Payment(models.Model):
@@ -211,7 +211,6 @@ class Transaction(models.Model):
         default=Decimal("0.0"),
     )
     error = models.CharField(
-        choices=[(tag, tag.value) for tag in TransactionError],
         max_length=256,
         null=True,
     )

@@ -1,12 +1,10 @@
 from ...plugins.base_plugin import BasePlugin
-from ...plugins.manager import get_plugins_manager
 from ...plugins.models import PluginConfiguration
 from .filters import filter_plugin_search
 from .sorters import sort_plugins
 
 
-def resolve_plugin(info, plugin_id):
-    manager = get_plugins_manager()
+def resolve_plugin(info, plugin_id, manager):
     plugin: BasePlugin = manager.get_plugin(plugin_id)
     if not plugin:
         return None
@@ -20,12 +18,11 @@ def resolve_plugin(info, plugin_id):
     )
 
 
-def resolve_plugins(sort_by=None, **kwargs):
+def resolve_plugins(manager, sort_by=None, **kwargs):
     plugin_filter = kwargs.get("filter", {})
     search_query = plugin_filter.get("search")
     filter_active = plugin_filter.get("active")
 
-    manager = get_plugins_manager()
     plugins = manager.plugins
 
     if filter_active is not None:

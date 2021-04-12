@@ -72,7 +72,7 @@ class OrderQueryset(models.QuerySet):
         return qs.distinct()
 
     def ready_to_confirm(self):
-        """Return unconfirmed_orders."""
+        """Return unconfirmed orders."""
         return self.filter(status=OrderStatus.UNCONFIRMED)
 
 
@@ -88,7 +88,9 @@ class Order(ModelWithMetadata):
         related_name="orders",
         on_delete=models.SET_NULL,
     )
-    language_code = models.CharField(max_length=35, default=settings.LANGUAGE_CODE)
+    language_code = models.CharField(
+        max_length=35, choices=settings.LANGUAGES, default=settings.LANGUAGE_CODE
+    )
     tracking_client_id = models.CharField(max_length=36, blank=True, editable=False)
     billing_address = models.ForeignKey(
         Address, related_name="+", editable=False, null=True, on_delete=models.SET_NULL
@@ -248,9 +250,6 @@ class Order(ModelWithMetadata):
     def _index_shipping_phone(self):
         return self.shipping_address.phone
 
-    def __iter__(self):
-        return iter(self.lines.all())
-
     def __repr__(self):
         return "<Order #%r>" % (self.id,)
 
@@ -295,25 +294,37 @@ class Order(ModelWithMetadata):
         )
 
     def is_shipping_required(self):
-        return any(line.is_shipping_required for line in self)
+        return any(line.is_shipping_required for line in self.lines.all())
 
     def get_subtotal(self):
-        subtotal_iterator = (line.total_price for line in self)
+        subtotal_iterator = (line.total_price for line in self.lines.all())
         return sum(subtotal_iterator, zero_taxed_money(currency=self.currency))
 
     def get_total_quantity(self):
-        return sum([line.quantity for line in self])
+        return sum([line.quantity for line in self.lines.all()])
 
     def is_draft(self):
         return self.status == OrderStatus.DRAFT
+
+    def is_unconfirmed(self):
+        return self.status == OrderStatus.UNCONFIRMED
 
     def is_open(self):
         statuses = {OrderStatus.UNFULFILLED, OrderStatus.PARTIALLY_FULFILLED}
         return self.status in statuses
 
     def can_cancel(self):
+        statuses_allowed_to_cancel = [
+            FulfillmentStatus.CANCELED,
+            FulfillmentStatus.REFUNDED,
+            FulfillmentStatus.REPLACED,
+            FulfillmentStatus.REFUNDED_AND_RETURNED,
+            FulfillmentStatus.RETURNED,
+        ]
         return (
-            not self.fulfillments.exclude(status=FulfillmentStatus.CANCELED).exists()
+            not self.fulfillments.exclude(
+                status__in=statuses_allowed_to_cancel
+            ).exists()
         ) and self.status not in {OrderStatus.CANCELED, OrderStatus.DRAFT}
 
     def can_capture(self, payment=None):
@@ -548,7 +559,7 @@ class Fulfillment(ModelWithMetadata):
         return self.status != FulfillmentStatus.CANCELED
 
     def get_total_quantity(self):
-        return sum([line.quantity for line in self])
+        return sum([line.quantity for line in self.lines.all()])
 
     @property
     def is_tracking_number_url(self):

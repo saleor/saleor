@@ -63,9 +63,7 @@ def test_on_task_failure(send_export_failed_info_mock, user_export_file):
         "error_type": info_type,
     }
 
-    send_export_failed_info_mock.assert_called_once_with(
-        user_export_file, user_export_file.user.email, "export_failed"
-    )
+    send_export_failed_info_mock.assert_called_once_with(user_export_file)
 
 
 @patch("saleor.csv.tasks.send_export_failed_info")
@@ -104,7 +102,7 @@ def test_on_task_failure_for_app(send_export_failed_info_mock, app_export_file):
         "error_type": info_type,
     }
 
-    send_export_failed_info_mock.assert_not_called()
+    send_export_failed_info_mock.called_once_with(app_export_file, "export_failed")
 
 
 def test_on_task_success(user_export_file):

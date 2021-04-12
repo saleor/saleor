@@ -87,13 +87,17 @@ def test_add_fixed_order_discount_order_is_not_draft(
     assert error["code"] == OrderErrorCode.CANNOT_DISCOUNT.name
 
 
+@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
 def test_add_fixed_order_discount_to_order(
-    draft_order, staff_api_client, permission_manage_orders
+    status, draft_order, staff_api_client, permission_manage_orders
 ):
-    total_before_order_discount = draft_order.total
+    order = draft_order
+    order.status = status
+    order.save(update_fields=["status"])
+    total_before_order_discount = order.total
     value = Decimal("10")
     variables = {
-        "orderId": graphene.Node.to_global_id("Order", draft_order.pk),
+        "orderId": graphene.Node.to_global_id("Order", order.pk),
         "input": {"valueType": DiscountValueTypeEnum.FIXED.name, "value": value},
     }
     staff_api_client.user.user_permissions.add(permission_manage_orders)
@@ -101,26 +105,26 @@ def test_add_fixed_order_discount_to_order(
     content = get_graphql_content(response)
     data = content["data"]["orderDiscountAdd"]
 
-    draft_order.refresh_from_db()
+    order.refresh_from_db()
     expected_gross = total_before_order_discount.gross.amount - value
     expected_net = total_before_order_discount.net.amount - value
 
     errors = data["orderErrors"]
     assert len(errors) == 0
 
-    assert expected_gross == draft_order.total.gross.amount
-    assert expected_net == draft_order.total.net.amount
+    assert expected_gross == order.total.gross.amount
+    assert expected_net == order.total.net.amount
 
-    assert draft_order.undiscounted_total == total_before_order_discount
+    assert order.undiscounted_total == total_before_order_discount
 
-    assert draft_order.discounts.count() == 1
-    order_discount = draft_order.discounts.first()
+    assert order.discounts.count() == 1
+    order_discount = order.discounts.first()
     assert order_discount.value == value
     assert order_discount.value_type == DiscountValueType.FIXED
     assert order_discount.amount.amount == value
     assert order_discount.reason is None
 
-    event = draft_order.events.get()
+    event = order.events.get()
     assert event.type == OrderEvents.ORDER_DISCOUNT_ADDED
     parameters = event.parameters
     discount_data = parameters.get("discount")
@@ -130,14 +134,18 @@ def test_add_fixed_order_discount_to_order(
     assert discount_data["amount_value"] == str(order_discount.amount.amount)
 
 
+@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
 def test_add_percentage_order_discount_to_order(
-    draft_order, staff_api_client, permission_manage_orders
+    status, draft_order, staff_api_client, permission_manage_orders
 ):
-    total_before_order_discount = draft_order.total
+    order = draft_order
+    order.status = status
+    order.save(update_fields=["status"])
+    total_before_order_discount = order.total
     reason = "The reason of the discount"
     value = Decimal("10.000")
     variables = {
-        "orderId": graphene.Node.to_global_id("Order", draft_order.pk),
+        "orderId": graphene.Node.to_global_id("Order", order.pk),
         "input": {
             "valueType": DiscountValueTypeEnum.PERCENTAGE.name,
             "value": value,
@@ -149,7 +157,7 @@ def test_add_percentage_order_discount_to_order(
     content = get_graphql_content(response)
     data = content["data"]["orderDiscountAdd"]
 
-    draft_order.refresh_from_db()
+    order.refresh_from_db()
 
     discount = partial(percentage_discount, percentage=value)
     expected_net_total = discount(total_before_order_discount.net)
@@ -159,18 +167,18 @@ def test_add_percentage_order_discount_to_order(
     errors = data["orderErrors"]
     assert len(errors) == 0
 
-    assert expected_total == draft_order.total
+    assert expected_total == order.total
 
-    assert draft_order.undiscounted_total == total_before_order_discount
+    assert order.undiscounted_total == total_before_order_discount
 
-    assert draft_order.discounts.count() == 1
-    order_discount = draft_order.discounts.first()
+    assert order.discounts.count() == 1
+    order_discount = order.discounts.first()
     assert order_discount.value == value
     assert order_discount.value_type == DiscountValueType.PERCENTAGE
     assert order_discount.amount == (total_before_order_discount - expected_total).gross
     assert order_discount.reason == reason
 
-    event = draft_order.events.get()
+    event = order.events.get()
     assert event.type == OrderEvents.ORDER_DISCOUNT_ADDED
     parameters = event.parameters
     discount_data = parameters.get("discount")
@@ -206,12 +214,18 @@ mutation OrderDiscountUpdate($discountId: ID!, $input: OrderDiscountCommonInput!
 """
 
 
+@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
 def test_update_percentage_order_discount_to_order(
-    draft_order_with_fixed_discount_order, staff_api_client, permission_manage_orders
+    status,
+    draft_order_with_fixed_discount_order,
+    staff_api_client,
+    permission_manage_orders,
 ):
-    draft_order = draft_order_with_fixed_discount_order
+    order = draft_order_with_fixed_discount_order
+    order.status = status
+    order.save(update_fields=["status"])
     order_discount = draft_order_with_fixed_discount_order.discounts.get()
-    current_undiscounted_total = draft_order.undiscounted_total
+    current_undiscounted_total = order.undiscounted_total
 
     reason = "The reason of the discount"
     value = Decimal("10.000")
@@ -228,7 +242,7 @@ def test_update_percentage_order_discount_to_order(
     content = get_graphql_content(response)
     data = content["data"]["orderDiscountUpdate"]
 
-    draft_order.refresh_from_db()
+    order.refresh_from_db()
 
     discount = partial(percentage_discount, percentage=value)
     expected_net_total = discount(current_undiscounted_total.net)
@@ -238,18 +252,18 @@ def test_update_percentage_order_discount_to_order(
     errors = data["orderErrors"]
     assert len(errors) == 0
 
-    assert draft_order.undiscounted_total == current_undiscounted_total
+    assert order.undiscounted_total == current_undiscounted_total
 
-    assert expected_total == draft_order.total
+    assert expected_total == order.total
 
-    assert draft_order.discounts.count() == 1
-    order_discount = draft_order.discounts.first()
+    assert order.discounts.count() == 1
+    order_discount = order.discounts.first()
     assert order_discount.value == value
     assert order_discount.value_type == DiscountValueType.PERCENTAGE
     assert order_discount.amount == (current_undiscounted_total - expected_total).gross
     assert order_discount.reason == reason
 
-    event = draft_order.events.get()
+    event = order.events.get()
     assert event.type == OrderEvents.ORDER_DISCOUNT_UPDATED
     parameters = event.parameters
     discount_data = parameters.get("discount")
@@ -259,12 +273,18 @@ def test_update_percentage_order_discount_to_order(
     assert discount_data["amount_value"] == str(order_discount.amount.amount)
 
 
+@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
 def test_update_fixed_order_discount_to_order(
-    draft_order_with_fixed_discount_order, staff_api_client, permission_manage_orders
+    status,
+    draft_order_with_fixed_discount_order,
+    staff_api_client,
+    permission_manage_orders,
 ):
-    draft_order = draft_order_with_fixed_discount_order
+    order = draft_order_with_fixed_discount_order
+    order.status = status
+    order.save(update_fields=["status"])
     order_discount = draft_order_with_fixed_discount_order.discounts.get()
-    current_undiscounted_total = draft_order.undiscounted_total
+    current_undiscounted_total = order.undiscounted_total
 
     value = Decimal("50.000")
     variables = {
@@ -279,27 +299,25 @@ def test_update_fixed_order_discount_to_order(
     content = get_graphql_content(response)
     data = content["data"]["orderDiscountUpdate"]
 
-    draft_order.refresh_from_db()
+    order.refresh_from_db()
 
-    discount = partial(
-        fixed_discount, discount=Money(value, currency=draft_order.currency)
-    )
+    discount = partial(fixed_discount, discount=Money(value, currency=order.currency))
     expected_total = discount(current_undiscounted_total)
 
     errors = data["orderErrors"]
     assert len(errors) == 0
 
-    assert draft_order.undiscounted_total == current_undiscounted_total
+    assert order.undiscounted_total == current_undiscounted_total
 
-    assert expected_total == draft_order.total
+    assert expected_total == order.total
 
-    assert draft_order.discounts.count() == 1
-    order_discount = draft_order.discounts.first()
+    assert order.discounts.count() == 1
+    order_discount = order.discounts.first()
     assert order_discount.value == value
     assert order_discount.value_type == DiscountValueType.FIXED
     assert order_discount.amount == (current_undiscounted_total - expected_total).gross
 
-    event = draft_order.events.get()
+    event = order.events.get()
     assert event.type == OrderEvents.ORDER_DISCOUNT_UPDATED
     parameters = event.parameters
     discount_data = parameters.get("discount")
@@ -390,12 +408,18 @@ mutation OrderDiscountDelete($discountId: ID!){
 """
 
 
+@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
 def test_delete_order_discount_from_order(
-    draft_order_with_fixed_discount_order, staff_api_client, permission_manage_orders
+    status,
+    draft_order_with_fixed_discount_order,
+    staff_api_client,
+    permission_manage_orders,
 ):
-    draft_order = draft_order_with_fixed_discount_order
+    order = draft_order_with_fixed_discount_order
+    order.status = status
+    order.save(update_fields=["status"])
     order_discount = draft_order_with_fixed_discount_order.discounts.get()
-    current_undiscounted_total = draft_order.undiscounted_total
+    current_undiscounted_total = order.undiscounted_total
 
     variables = {
         "discountId": graphene.Node.to_global_id("OrderDiscount", order_discount.pk),
@@ -405,15 +429,15 @@ def test_delete_order_discount_from_order(
     content = get_graphql_content(response)
     data = content["data"]["orderDiscountDelete"]
 
-    draft_order.refresh_from_db()
+    order.refresh_from_db()
 
     errors = data["orderErrors"]
     assert len(errors) == 0
 
-    assert draft_order.undiscounted_total == current_undiscounted_total
-    assert draft_order.total == current_undiscounted_total
+    assert order.undiscounted_total == current_undiscounted_total
+    assert order.total == current_undiscounted_total
 
-    event = draft_order.events.get()
+    event = order.events.get()
     assert event.type == OrderEvents.ORDER_DISCOUNT_DELETED
 
 
@@ -463,10 +487,17 @@ mutation OrderLineDiscountUpdate($input: OrderDiscountCommonInput!, $orderLineId
 """
 
 
+@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
 def test_update_order_line_discount(
-    draft_order_with_fixed_discount_order, staff_api_client, permission_manage_orders
+    status,
+    draft_order_with_fixed_discount_order,
+    staff_api_client,
+    permission_manage_orders,
 ):
-    line_to_discount = draft_order_with_fixed_discount_order.lines.first()
+    order = draft_order_with_fixed_discount_order
+    order.status = status
+    order.save(update_fields=["status"])
+    line_to_discount = order.lines.first()
     unit_price = Money(Decimal(7.3), currency="USD")
     line_to_discount.unit_price = TaxedMoney(unit_price, unit_price)
     line_to_discount.save()
@@ -495,7 +526,7 @@ def test_update_order_line_discount(
 
     discount = partial(
         fixed_discount,
-        discount=Money(value, currency=draft_order_with_fixed_discount_order.currency),
+        discount=Money(value, currency=order.currency),
     )
     expected_line_price = discount(line_price_before_discount)
 
@@ -503,7 +534,7 @@ def test_update_order_line_discount(
     unit_discount = line_to_discount.unit_discount
     assert unit_discount == (line_price_before_discount - expected_line_price).gross
 
-    event = draft_order_with_fixed_discount_order.events.get()
+    event = order.events.get()
     assert event.type == OrderEvents.ORDER_LINE_DISCOUNT_UPDATED
     parameters = event.parameters
     lines = parameters.get("lines", {})
@@ -518,10 +549,17 @@ def test_update_order_line_discount(
     assert discount_data["amount_value"] == str(unit_discount.amount)
 
 
+@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
 def test_update_order_line_discount_line_with_discount(
-    draft_order_with_fixed_discount_order, staff_api_client, permission_manage_orders
+    status,
+    draft_order_with_fixed_discount_order,
+    staff_api_client,
+    permission_manage_orders,
 ):
-    line_to_discount = draft_order_with_fixed_discount_order.lines.first()
+    order = draft_order_with_fixed_discount_order
+    order.status = status
+    order.save(update_fields=["status"])
+    line_to_discount = order.lines.first()
     unit_price = quantize_price(Money(Decimal(7.3), currency="USD"), currency="USD")
     line_to_discount.unit_price = TaxedMoney(unit_price, unit_price)
 
@@ -566,7 +604,7 @@ def test_update_order_line_discount_line_with_discount(
     unit_discount = line_to_discount.unit_discount
     assert unit_discount == (line_undiscounted_price - expected_line_price).gross
 
-    event = draft_order_with_fixed_discount_order.events.get()
+    event = order.events.get()
     assert event.type == OrderEvents.ORDER_LINE_DISCOUNT_UPDATED
     parameters = event.parameters
     lines = parameters.get("lines", {})
@@ -634,14 +672,19 @@ mutation OrderLineDiscountRemove($orderLineId: ID!){
 """
 
 
+@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
 @patch("saleor.plugins.manager.PluginsManager.calculate_order_line_unit")
 def test_delete_discount_from_order_line(
     mocked_calculate_order_line_unit,
+    status,
     draft_order_with_fixed_discount_order,
     staff_api_client,
     permission_manage_orders,
 ):
-    line = draft_order_with_fixed_discount_order.lines.first()
+    order = draft_order_with_fixed_discount_order
+    order.status = status
+    order.save(update_fields=["status"])
+    line = order.lines.first()
 
     line_undiscounted_price = line.undiscounted_unit_price
 
@@ -667,10 +710,10 @@ def test_delete_discount_from_order_line(
 
     assert line.unit_price == line_undiscounted_price
     unit_discount = line.unit_discount
-    currency = draft_order_with_fixed_discount_order.currency
+    currency = order.currency
     assert unit_discount == Money(Decimal(0), currency=currency)
 
-    event = draft_order_with_fixed_discount_order.events.get()
+    event = order.events.get()
     assert event.type == OrderEvents.ORDER_LINE_DISCOUNT_REMOVED
     parameters = event.parameters
     lines = parameters.get("lines", {})

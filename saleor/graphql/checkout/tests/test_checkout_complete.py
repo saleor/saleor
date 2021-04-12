@@ -1,5 +1,5 @@
 from decimal import Decimal
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 import graphene
 import pytest
@@ -304,7 +304,7 @@ def test_checkout_complete_requires_confirmation(
         )[1]
     )
     order = Order.objects.get(pk=order_id)
-    assert order.status == OrderStatus.UNCONFIRMED
+    assert order.is_unconfirmed()
     order_confirmed_mock.assert_not_called()
 
 
@@ -815,7 +815,7 @@ def test_checkout_complete_insufficient_stock_payment_refunded(
     assert data["checkoutErrors"][0]["message"] == "Insufficient product stock: 123"
     assert orders_count == Order.objects.count()
 
-    gateway_refund_mock.assert_called_once_with(payment)
+    gateway_refund_mock.assert_called_once_with(payment, ANY)
 
 
 @patch("saleor.checkout.complete_checkout.gateway.void")
@@ -870,7 +870,7 @@ def test_checkout_complete_insufficient_stock_payment_voided(
     assert data["checkoutErrors"][0]["message"] == "Insufficient product stock: 123"
     assert orders_count == Order.objects.count()
 
-    gateway_void_mock.assert_called_once_with(payment)
+    gateway_void_mock.assert_called_once_with(payment, ANY)
 
 
 def test_checkout_complete_without_redirect_url(
@@ -992,7 +992,7 @@ def test_checkout_complete_payment_payment_total_different_than_checkout(
     )
     assert orders_count == Order.objects.count()
 
-    gateway_refund_or_void_mock.assert_called_with(payment)
+    gateway_refund_or_void_mock.assert_called_with(payment, ANY)
 
 
 def test_order_already_exists(
