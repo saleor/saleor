@@ -897,6 +897,7 @@ class Order(CountableDjangoObjectType):
         available_shipping_methods = []
         manager = info.context.plugins
         display_gross = display_gross_prices()
+        channel_slug = root.channel.slug
         for shipping_method in available:
             # Ignore typing check because it is checked in
             # get_valid_shipping_methods_for_order
@@ -907,14 +908,13 @@ class Order(CountableDjangoObjectType):
                 taxed_price = manager.apply_taxes_to_shipping(
                     shipping_channel_listing.price,
                     root.shipping_address,  # type: ignore
-                    root.channel.slug,
+                    channel_slug,
                 )
                 if display_gross:
                     shipping_method.price = taxed_price.gross
                 else:
                     shipping_method.price = taxed_price.net
                 available_shipping_methods.append(shipping_method)
-        channel_slug = root.channel.slug
         instances = [
             ChannelContext(node=shipping, channel_slug=channel_slug)
             for shipping in available_shipping_methods
