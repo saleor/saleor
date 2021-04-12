@@ -92,7 +92,16 @@ class Shop(graphene.ObjectType):
         graphene.NonNull(PaymentGateway),
         currency=graphene.Argument(
             graphene.String,
-            description="A currency for which gateways will be returned.",
+            description=(
+                "DEPRECATED: use `channel` argument instead. This argument will be "
+                "removed in Saleor 4.0."
+                "A currency for which gateways will be returned."
+            ),
+            required=False,
+        ),
+        channel=graphene.Argument(
+            graphene.String,
+            description="Slug of a channel for which the data should be returned.",
             required=False,
         ),
         description="List of available payment gateways.",
@@ -207,8 +216,12 @@ class Shop(graphene.ObjectType):
         )
 
     @staticmethod
-    def resolve_available_payment_gateways(_, info, currency: Optional[str] = None):
-        return info.context.plugins.list_payment_gateways(currency=currency)
+    def resolve_available_payment_gateways(
+        _, info, currency: Optional[str] = None, channel: Optional[str] = None
+    ):
+        return info.context.plugins.list_payment_gateways(
+            currency=currency, channel_slug=channel
+        )
 
     @staticmethod
     def resolve_available_external_authentications(_, info):

@@ -53,7 +53,14 @@ class Plugin(CountableDjangoObjectType):
         description = "Plugin."
         model = models.PluginConfiguration
         interfaces = [graphene.relay.Node]
-        only_fields = ["id", "name", "description", "active", "configuration"]
+        only_fields = [
+            "id",
+            "name",
+            "description",
+            "active",
+            "channel",
+            "configuration",
+        ]
 
     def resolve_id(self: models.PluginConfiguration, _info):
         return self.identifier

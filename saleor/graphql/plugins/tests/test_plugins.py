@@ -113,6 +113,7 @@ def test_query_plugins_hides_secret_fields(
             conf_field["value"] = cert
     manager.save_plugin_configuration(
         PluginSample.PLUGIN_ID,
+        None,
         {
             "active": True,
             "configuration": configuration,
@@ -191,6 +192,7 @@ def test_query_plugin_hides_secret_fields(
             conf_field["value"] = api_key
     manager.save_plugin_configuration(
         PluginSample.PLUGIN_ID,
+        None,
         {
             "active": True,
             "configuration": configuration,

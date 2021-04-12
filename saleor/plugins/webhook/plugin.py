@@ -31,6 +31,7 @@ class WebhookPlugin(BasePlugin):
     PLUGIN_ID = "mirumee.webhooks"
     PLUGIN_NAME = "Webhooks"
     DEFAULT_ACTIVE = True
+    CONFIGURATION_PER_CHANNEL = False
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

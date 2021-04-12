@@ -881,7 +881,7 @@ def set_dummy_customer_id(customer_user, dummy_customer_id):
 
 
 def test_list_payment_sources(
-    mocker, dummy_customer_id, set_dummy_customer_id, user_api_client
+    mocker, dummy_customer_id, set_dummy_customer_id, user_api_client, channel_USD
 ):
     gateway = DUMMY_GATEWAY
     query = """
@@ -905,7 +905,7 @@ def test_list_payment_sources(
     )
     response = user_api_client.post_graphql(query)
 
-    mock_get_source_list.assert_called_once_with(gateway, dummy_customer_id, ANY)
+    mock_get_source_list.assert_called_once_with(gateway, dummy_customer_id, ANY, None)
     content = get_graphql_content(response)["data"]["me"]["storedPaymentSources"]
     assert content is not None and len(content) == 1
     assert content[0] == {"gateway": gateway, "creditCardInfo": {"lastDigits": "5678"}}
@@ -943,8 +943,9 @@ def test_stored_payment_sources_restriction(
 
 
 PAYMENT_INITIALIZE_MUTATION = """
-mutation PaymentInitialize($gateway: String!, $paymentData: JSONString){
-      paymentInitialize(gateway: $gateway, paymentData: $paymentData)
+mutation PaymentInitialize(
+    $gateway: String!,$channel: String!, $paymentData: JSONString){
+      paymentInitialize(gateway: $gateway, channel: $channel, paymentData: $paymentData)
       {
         initializedPayment{
           gateway
@@ -961,7 +962,7 @@ mutation PaymentInitialize($gateway: String!, $paymentData: JSONString){
 
 
 @patch.object(PluginsManager, "initialize_payment")
-def test_payment_initialize(mocked_initialize_payment, api_client):
+def test_payment_initialize(mocked_initialize_payment, api_client, channel_USD):
     exected_initialize_payment_response = InitializedPaymentResponse(
         gateway="gateway.id",
         name="PaymentPluginName",
@@ -976,6 +977,7 @@ def test_payment_initialize(mocked_initialize_payment, api_client):
     query = PAYMENT_INITIALIZE_MUTATION
     variables = {
         "gateway": exected_initialize_payment_response.gateway,
+        "channel": channel_USD.slug,
         "paymentData": json.dumps(
             {"paymentMethod": "applepay", "validationUrl": "https://127.0.0.1/valid"}
         ),
@@ -991,10 +993,11 @@ def test_payment_initialize(mocked_initialize_payment, api_client):
     )
 
 
-def test_payment_initialize_gateway_doesnt_exist(api_client):
+def test_payment_initialize_gateway_doesnt_exist(api_client, channel_USD):
     query = PAYMENT_INITIALIZE_MUTATION
     variables = {
         "gateway": "wrong.gateway",
+        "channel": channel_USD.slug,
         "paymentData": json.dumps(
             {"paymentMethod": "applepay", "validationUrl": "https://127.0.0.1/valid"}
         ),
@@ -1005,13 +1008,16 @@ def test_payment_initialize_gateway_doesnt_exist(api_client):
 
 
 @patch.object(PluginsManager, "initialize_payment")
-def test_payment_initialize_plugin_raises_error(mocked_initialize_payment, api_client):
+def test_payment_initialize_plugin_raises_error(
+    mocked_initialize_payment, api_client, channel_USD
+):
     error_msg = "Missing paymentMethod field."
     mocked_initialize_payment.side_effect = PaymentError(error_msg)
 
     query = PAYMENT_INITIALIZE_MUTATION
     variables = {
         "gateway": "gateway.id",
+        "channel": channel_USD.slug,
         "paymentData": json.dumps({"validationUrl": "https://127.0.0.1/valid"}),
     }
     response = api_client.post_graphql(query, variables)

@@ -1,3 +1,4 @@
+from decimal import Decimal
 from unittest import mock
 
 import pytest
@@ -19,7 +20,7 @@ def vcr_config():
 
 
 @pytest.fixture
-def adyen_plugin(settings):
+def adyen_plugin(settings, channel_USD):
     def fun(
         api_key=None,
         merchant_account=None,
@@ -43,6 +44,7 @@ def adyen_plugin(settings):
         with mock.patch("saleor.payment.gateways.adyen.utils.apple_pay.requests.post"):
             manager.save_plugin_configuration(
                 AdyenGatewayPlugin.PLUGIN_ID,
+                channel_USD.slug,
                 {
                     "active": True,
                     "configuration": [
@@ -60,7 +62,7 @@ def adyen_plugin(settings):
             )
 
         manager = get_plugins_manager()
-        return manager.plugins[0]
+        return manager.plugins_per_channel[channel_USD.slug][0]
 
     return fun
 
@@ -91,13 +93,21 @@ def payment_adyen_for_checkout(checkout_with_items, address, shipping_method):
 
 
 @pytest.fixture
-def payment_adyen_for_order(payment_adyen_for_checkout, order_with_lines):
-    payment_adyen_for_checkout.checkout = None
-    payment_adyen_for_checkout.order = order_with_lines
-    payment_adyen_for_checkout.save()
+def payment_adyen_for_order(order_with_lines):
+    payment = create_payment(
+        gateway=AdyenGatewayPlugin.PLUGIN_ID,
+        payment_token="",
+        total=Decimal("80.00"),
+        currency=order_with_lines.currency,
+        email=order_with_lines.user_email,
+        customer_ip_address="",
+        checkout=None,
+        order=order_with_lines,
+        return_url="https://www.example.com",
+    )
 
     Transaction.objects.create(
-        payment=payment_adyen_for_checkout,
+        payment=payment,
         action_required=False,
         kind=TransactionKind.AUTH,
         token="token",
@@ -108,7 +118,7 @@ def payment_adyen_for_order(payment_adyen_for_checkout, order_with_lines):
         gateway_response={},
         action_required_data={},
     )
-    return payment_adyen_for_checkout
+    return payment
 
 
 @pytest.fixture()

@@ -384,7 +384,7 @@ class Checkout(CountableDjangoObjectType):
                     for shipping in shippings:
                         shipping_channel_listing = channel_listing_map[shipping.id]
                         taxed_price = info.context.plugins.apply_taxes_to_shipping(
-                            shipping_channel_listing.price, address
+                            shipping_channel_listing.price, address, channel_slug
                         )
                         if display_gross:
                             shipping.price = taxed_price.gross
@@ -431,7 +431,7 @@ class Checkout(CountableDjangoObjectType):
     @staticmethod
     def resolve_available_payment_gateways(root: models.Checkout, info):
         return info.context.plugins.list_payment_gateways(
-            currency=root.currency, checkout=root
+            currency=root.currency, checkout=root, channel_slug=root.channel.slug
         )
 
     @staticmethod
