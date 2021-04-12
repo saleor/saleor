@@ -53,7 +53,7 @@ class StaffBulkDelete(StaffDeleteMixin, UserBulkDelete):
         if not errors and count:
             clean_instance_ids = [instance.pk for instance in instances]
             qs = models.User.objects.filter(pk__in=clean_instance_ids)
-            cls.bulk_action(queryset=qs, **data)
+            cls.bulk_action(info=info, queryset=qs, **data)
         else:
             count = 0
         return count, errors
@@ -108,5 +108,5 @@ class UserBulkSetActive(BaseBulkMutation):
             )
 
     @classmethod
-    def bulk_action(cls, queryset, is_active):
+    def bulk_action(cls, info, queryset, is_active):
         queryset.update(is_active=is_active)

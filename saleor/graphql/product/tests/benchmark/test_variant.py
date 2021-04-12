@@ -3,7 +3,7 @@ from uuid import uuid4
 import graphene
 import pytest
 
-from .....product.models import ProductVariant
+from .....product.models import ProductMedia, ProductVariant, VariantMedia
 from .....warehouse.models import Stock
 from ....tests.utils import get_graphql_content
 
@@ -170,3 +170,187 @@ def test_product_variant_bulk_create(
     assert not data["bulkProductErrors"]
     assert data["count"] == 1
     assert product_variant_count + 1 == ProductVariant.objects.count()
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_product_variant_create(
+    staff_api_client,
+    permission_manage_products,
+    product_type,
+    product_available_in_many_channels,
+    warehouse,
+    settings,
+    count_queries,
+):
+    query = """
+        mutation createVariant (
+            $productId: ID!,
+            $sku: String,
+            $stocks: [StockInput!],
+            $attributes: [AttributeValueInput]!,
+            $weight: WeightScalar,
+            $trackInventory: Boolean
+        ) {
+            productVariantCreate(
+                input: {
+                    product: $productId,
+                    sku: $sku,
+                    stocks: $stocks,
+                    attributes: $attributes,
+                    trackInventory: $trackInventory,
+                    weight: $weight
+                }
+            ) {
+                productErrors {
+                    field
+                    message
+                    attributes
+                    code
+                }
+                productVariant {
+                    id
+                    name
+                    sku
+                    attributes {
+                        attribute {
+                            slug
+                        }
+                        values {
+                            name
+                            slug
+                            reference
+                            file {
+                                url
+                                contentType
+                            }
+                        }
+                    }
+                    costPrice {
+                        currency
+                        amount
+                        localized
+                    }
+                    weight {
+                        value
+                        unit
+                    }
+                    stocks {
+                        quantity
+                    warehouse {
+                        slug
+                    }
+                }
+            }
+        }
+    }
+    """
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    product = product_available_in_many_channels
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    sku = "1"
+    weight = 10.22
+    attribute_id = graphene.Node.to_global_id(
+        "Attribute", product_type.variant_attributes.first().pk
+    )
+    stocks = [
+        {
+            "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
+            "quantity": 20,
+        }
+    ]
+
+    variables = {
+        "productId": product_id,
+        "sku": sku,
+        "stocks": stocks,
+        "weight": weight,
+        "attributes": [
+            {"id": attribute_id, "values": ["red"]},
+        ],
+        "trackInventory": True,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)["data"]["productVariantCreate"]
+    assert not content["productErrors"]
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_update_product_variant(
+    staff_api_client,
+    permission_manage_products,
+    product_available_in_many_channels,
+    product_type,
+    media_root,
+    settings,
+    image,
+    count_queries,
+):
+    query = """
+        mutation VariantUpdate(
+            $id: ID!
+            $attributes: [AttributeValueInput]
+            $sku: String
+            $trackInventory: Boolean!
+        ) {
+            productVariantUpdate(
+                id: $id
+                input: {
+                    attributes: $attributes
+                    sku: $sku
+                    trackInventory: $trackInventory
+                }
+            ) {
+            errors {
+                field
+                message
+            }
+            productVariant {
+                id
+                attributes {
+                    attribute {
+                        id
+                        name
+                        slug
+                        values {
+                            id
+                            name
+                            slug
+                            __typename
+                        }
+                    __typename
+                    }
+                __typename
+                }
+            }
+        }
+    }
+    """
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    product = product_available_in_many_channels
+    variant = product.variants.first()
+    product_image = ProductMedia.objects.create(product=product, image=image)
+    VariantMedia.objects.create(variant=variant, media=product_image)
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    attribute_id = graphene.Node.to_global_id(
+        "Attribute", product_type.variant_attributes.first().pk
+    )
+    variables = {
+        "attributes": [
+            {"id": attribute_id, "values": ["yellow"]},
+        ],
+        "id": variant_id,
+        "sku": "21599567",
+        "trackInventory": True,
+    }
+
+    data = get_graphql_content(
+        staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_products]
+        )
+    )["data"]["productVariantUpdate"]
+    assert not data["errors"]

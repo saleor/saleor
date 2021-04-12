@@ -6,17 +6,18 @@ from django.db import transaction
 
 from ....account import events as account_events
 from ....account import models
-from ....account.emails import (
-    send_set_password_email_with_url,
-    send_user_password_reset_email_with_url,
-)
 from ....account.error_codes import AccountErrorCode
+from ....account.notifications import (
+    send_password_reset_notification,
+    send_set_password_notification,
+)
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions
 from ....core.utils.url import validate_storefront_url
 from ....order.utils import match_orders_with_new_user
 from ...account.i18n import I18nMixin
 from ...account.types import Address, AddressInput, User
+from ...core.enums import LanguageCodeEnum
 from ...core.mutations import (
     BaseMutation,
     ModelDeleteMutation,
@@ -24,7 +25,7 @@ from ...core.mutations import (
     validation_error_to_error_type,
 )
 from ...core.types.common import AccountError
-from .jwt import CreateToken
+from .authentication import CreateToken
 
 BILLING_ADDRESS_FIELD = "default_billing_address"
 SHIPPING_ADDRESS_FIELD = "default_shipping_address"
@@ -139,7 +140,6 @@ class RequestPasswordReset(BaseMutation):
                     )
                 }
             )
-
         if not user.is_active:
             raise ValidationError(
                 {
@@ -149,7 +149,9 @@ class RequestPasswordReset(BaseMutation):
                     )
                 }
             )
-        send_user_password_reset_email_with_url(redirect_url, user)
+        send_password_reset_notification(
+            redirect_url, user, info.context.plugins, staff=user.is_staff
+        )
         return RequestPasswordReset()
 
 
@@ -277,6 +279,7 @@ class BaseAddressUpdate(ModelMutation, I18nMixin):
         cls.clean_instance(info, address)
         cls.save(info, address, cleaned_input)
         cls._save_m2m(info, address, cleaned_input)
+        info.context.plugins.customer_updated(user)
         address = info.context.plugins.change_user_address(address, None, user)
         success_response = cls.success_response(address)
         success_response.user = user
@@ -334,6 +337,7 @@ class BaseAddressDelete(ModelDeleteMutation):
         response = cls.success_response(instance)
 
         response.user = user
+        info.context.plugins.customer_updated(user)
         return response
 
 
@@ -355,7 +359,9 @@ class UserAddressInput(graphene.InputObjectType):
 
 
 class CustomerInput(UserInput, UserAddressInput):
-    pass
+    language_code = graphene.Field(
+        LanguageCodeEnum, required=False, description="User language code."
+    )
 
 
 class UserCreateInput(CustomerInput):
@@ -436,8 +442,10 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
         if is_creation:
             info.context.plugins.customer_created(customer=instance)
             account_events.customer_account_created_event(user=instance)
+        else:
+            info.context.plugins.customer_updated(instance)
 
         if cleaned_input.get("redirect_url"):
-            send_set_password_email_with_url(
-                cleaned_input.get("redirect_url"), instance
+            send_set_password_notification(
+                cleaned_input.get("redirect_url"), instance, info.context.plugins
             )

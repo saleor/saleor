@@ -26,11 +26,8 @@ class OrderBulkCancel(BaseBulkMutation):
         clean_order_cancel(instance)
 
     @classmethod
-    def perform_mutation(cls, root, info, ids, **data):
-        data["user"] = info.context.user
-        return super().perform_mutation(root, info, ids, **data)
-
-    @classmethod
-    def bulk_action(cls, queryset, user):
+    def bulk_action(cls, info, queryset):
         for order in queryset:
-            cancel_order(order=order, user=user)
+            cancel_order(
+                order=order, user=info.context.user, manager=info.context.plugins
+            )

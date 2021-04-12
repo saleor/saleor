@@ -21,7 +21,7 @@ from .dataloaders import (
 
 
 class Page(CountableDjangoObjectType):
-    content_json = graphene.String(
+    content_json = graphene.JSONString(
         description="Content of the page (JSON).",
         deprecation_reason=(
             "Will be removed in Saleor 4.0. Use the `content` field instead."
@@ -61,7 +61,8 @@ class Page(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_content_json(root: models.Page, info):
-        return root.content
+        content = root.content
+        return content if content is not None else {}
 
     @staticmethod
     def resolve_attributes(root: models.Page, info):

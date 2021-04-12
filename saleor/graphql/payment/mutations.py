@@ -3,7 +3,8 @@ from django.core.exceptions import ValidationError
 
 from ...checkout.calculations import calculate_checkout_total_with_gift_cards
 from ...checkout.checkout_cleaner import clean_billing_address, clean_checkout_shipping
-from ...checkout.utils import cancel_active_payments, fetch_checkout_lines
+from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from ...checkout.utils import cancel_active_payments
 from ...core.permissions import OrderPermissions
 from ...core.utils import get_client_ip
 from ...core.utils.url import validate_storefront_url
@@ -11,7 +12,6 @@ from ...payment import PaymentError, gateway
 from ...payment.error_codes import PaymentErrorCode
 from ...payment.utils import create_payment, is_currency_supported
 from ..account.i18n import I18nMixin
-from ..account.types import AddressInput
 from ..checkout.types import Checkout
 from ..core.mutations import BaseMutation
 from ..core.scalars import PositiveDecimal
@@ -40,15 +40,6 @@ class PaymentInput(graphene.InputObjectType):
             "the checkout total will be used."
         ),
     )
-    billing_address = AddressInput(
-        required=False,
-        description=(
-            "[Deprecated] Billing address. If empty, the billing address associated "
-            "with the checkout instance will be used. Use `checkoutCreate` or "
-            "`checkoutBillingAddressUpdate` mutations to set it. This field will be "
-            "removed after 2020-07-31."
-        ),
-    )
     return_url = graphene.String(
         required=False,
         description=(
@@ -75,18 +66,6 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         error_type_field = "payment_errors"
 
     @classmethod
-    def clean_shipping_method(cls, checkout):
-        if not checkout.shipping_method:
-            raise ValidationError(
-                {
-                    "shipping_method": ValidationError(
-                        "Shipping method not set for this checkout.",
-                        code=PaymentErrorCode.SHIPPING_METHOD_NOT_SET,
-                    )
-                }
-            )
-
-    @classmethod
     def clean_payment_amount(cls, info, checkout_total, amount):
         if amount != checkout_total.gross.amount:
             raise ValidationError(
@@ -100,8 +79,8 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             )
 
     @classmethod
-    def validate_gateway(cls, gateway_id, currency):
-        if not is_currency_supported(currency, gateway_id):
+    def validate_gateway(cls, manager, gateway_id, currency):
+        if not is_currency_supported(currency, gateway_id, manager):
             raise ValidationError(
                 {
                     "gateway": ValidationError(
@@ -145,26 +124,28 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         data = data["input"]
         gateway = data["gateway"]
 
-        cls.validate_gateway(gateway, checkout.currency)
-        cls.validate_token(info.context.plugins, gateway, data)
+        manager = info.context.plugins
+        cls.validate_gateway(manager, gateway, checkout.currency)
+        cls.validate_token(manager, gateway, data)
         cls.validate_return_url(data)
 
         lines = fetch_checkout_lines(checkout)
+        checkout_info = fetch_checkout_info(
+            checkout, lines, info.context.discounts, manager
+        )
         address = (
             checkout.shipping_address or checkout.billing_address
         )  # FIXME: check which address we need here
         checkout_total = calculate_checkout_total_with_gift_cards(
-            manager=info.context.plugins,
-            checkout=checkout,
+            manager=manager,
+            checkout_info=checkout_info,
             lines=lines,
             address=address,
             discounts=info.context.discounts,
         )
         amount = data.get("amount", checkout_total.gross.amount)
-        clean_checkout_shipping(
-            checkout, lines, info.context.discounts, PaymentErrorCode
-        )
-        clean_billing_address(checkout, PaymentErrorCode)
+        clean_checkout_shipping(checkout_info, lines, PaymentErrorCode)
+        clean_billing_address(checkout_info, PaymentErrorCode)
         cls.clean_payment_amount(info, checkout_total, amount)
         extra_data = {
             "customer_user_agent": info.context.META.get("HTTP_USER_AGENT"),
@@ -206,7 +187,7 @@ class PaymentCapture(BaseMutation):
             info, payment_id, field="payment_id", only_type=Payment
         )
         try:
-            gateway.capture(payment, amount)
+            gateway.capture(payment, info.context.plugins, amount)
             payment.refresh_from_db()
         except PaymentError as e:
             raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR)
@@ -226,7 +207,7 @@ class PaymentRefund(PaymentCapture):
             info, payment_id, field="payment_id", only_type=Payment
         )
         try:
-            gateway.refund(payment, amount=amount)
+            gateway.refund(payment, info.context.plugins, amount=amount)
             payment.refresh_from_db()
         except PaymentError as e:
             raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR)
@@ -251,7 +232,7 @@ class PaymentVoid(BaseMutation):
             info, payment_id, field="payment_id", only_type=Payment
         )
         try:
-            gateway.void(payment)
+            gateway.void(payment, info.context.plugins)
             payment.refresh_from_db()
         except PaymentError as e:
             raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR)

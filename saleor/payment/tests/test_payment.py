@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from ...checkout.calculations import checkout_total
-from ...checkout.utils import fetch_checkout_lines
+from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...plugins.manager import PluginsManager, get_plugins_manager
 from .. import ChargeStatus, GatewayError, PaymentError, TransactionKind, gateway
 from ..error_codes import PaymentErrorCode
@@ -88,8 +88,9 @@ def test_create_payment(checkout_with_item, address):
 
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     total = checkout_total(
-        manager=manager, checkout=checkout_with_item, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
 
     data = {
@@ -127,8 +128,9 @@ def test_create_payment_from_checkout_requires_billing_address(checkout_with_ite
 
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     total = checkout_total(
-        manager=manager, checkout=checkout_with_item, lines=lines, address=None
+        manager=manager, checkout_info=checkout_info, lines=lines, address=None
     )
 
     data = {
@@ -168,8 +170,9 @@ def test_create_payment_information_for_checkout_payment(address, checkout_with_
 
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     total = checkout_total(
-        manager=manager, checkout=checkout_with_item, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
 
     data = {
@@ -267,7 +270,7 @@ def test_gateway_charge_failed(
     dummy_response.kind = TransactionKind.CAPTURE
     mock_capture_payment.return_value = dummy_response
     with pytest.raises(PaymentError):
-        gateway.capture(payment, amount)
+        gateway.capture(payment, get_plugins_manager(), amount)
     mock_capture_payment.assert_called_once()
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
@@ -277,38 +280,38 @@ def test_gateway_charge_failed(
 
 def test_gateway_charge_errors(payment_dummy, transaction_token, settings):
     payment = payment_dummy
-    gateway.authorize(payment, transaction_token)
+    gateway.authorize(payment, transaction_token, get_plugins_manager())
     with pytest.raises(PaymentError) as exc:
-        gateway.capture(payment, Decimal("0"))
+        gateway.capture(payment, get_plugins_manager(), Decimal("0"))
     assert exc.value.message == "Amount should be a positive number."
 
     payment.charge_status = ChargeStatus.FULLY_REFUNDED
     payment.save()
     with pytest.raises(PaymentError) as exc:
-        gateway.capture(payment, Decimal("10"))
+        gateway.capture(payment, get_plugins_manager(), Decimal("10"))
     assert exc.value.message == "This payment cannot be captured."
 
     payment.charge_status = ChargeStatus.NOT_CHARGED
     payment.save()
     with pytest.raises(PaymentError) as exc:
-        gateway.capture(payment, Decimal("1000000"))
+        gateway.capture(payment, get_plugins_manager(), Decimal("1000000"))
     assert exc.value.message == ("Unable to charge more than un-captured amount.")
 
 
 def test_gateway_refund_errors(payment_txn_captured):
     payment = payment_txn_captured
     with pytest.raises(PaymentError) as exc:
-        gateway.refund(payment, Decimal("1000000"))
+        gateway.refund(payment, get_plugins_manager(), Decimal("1000000"))
     assert exc.value.message == "Cannot refund more than captured."
 
     with pytest.raises(PaymentError) as exc:
-        gateway.refund(payment, Decimal("0"))
+        gateway.refund(payment, get_plugins_manager(), Decimal("0"))
     assert exc.value.message == "Amount should be a positive number."
 
     payment.charge_status = ChargeStatus.NOT_CHARGED
     payment.save()
     with pytest.raises(PaymentError) as exc:
-        gateway.refund(payment, Decimal("1"))
+        gateway.refund(payment, get_plugins_manager(), Decimal("1"))
     assert exc.value.message == "This payment cannot be refunded."
 
 
@@ -479,6 +482,7 @@ def test_is_currency_supported(
     currency, exp_response, dummy_gateway_config, monkeypatch
 ):
     # given
+    manager = get_plugins_manager()
     dummy_gateway_config.supported_currencies = "USD, EUR"
     monkeypatch.setattr(
         "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin._get_gateway_config",
@@ -486,7 +490,7 @@ def test_is_currency_supported(
     )
 
     # when
-    response = is_currency_supported(currency, "mirumee.payments.dummy")
+    response = is_currency_supported(currency, "mirumee.payments.dummy", manager)
 
     # then
     assert response == exp_response

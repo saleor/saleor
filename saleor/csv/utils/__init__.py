@@ -5,7 +5,7 @@ class ProductExportFields:
         "fields": {
             "id": "id",
             "name": "name",
-            "description": "description",
+            "description": "description_as_str",
             "category": "category__slug",
             "product type": "product_type__name",
             "charge taxes": "charge_taxes",
@@ -15,14 +15,15 @@ class ProductExportFields:
         },
         "product_many_to_many": {
             "collections": "collections__slug",
-            "product images": "images__image",
+            "product media": "media__image",
         },
-        "variant_many_to_many": {"variant images": "variants__images__image"},
+        "variant_many_to_many": {"variant media": "variants__media__image"},
     }
 
     PRODUCT_ATTRIBUTE_FIELDS = {
         "value": "attributes__values__slug",
         "file_url": "attributes__values__file_url",
+        "rich_text": "attributes__values__rich_text",
         "slug": "attributes__assignment__attribute__slug",
         "input_type": "attributes__assignment__attribute__input_type",
         "entity_type": "attributes__assignment__attribute__entity_type",
@@ -49,6 +50,7 @@ class ProductExportFields:
     VARIANT_ATTRIBUTE_FIELDS = {
         "value": "variants__attributes__values__slug",
         "file_url": "variants__attributes__values__file_url",
+        "rich_text": "variants__attributes__values__rich_text",
         "slug": "variants__attributes__assignment__attribute__slug",
         "input_type": "variants__attributes__assignment__attribute__input_type",
         "entity_type": "variants__attributes__assignment__attribute__entity_type",

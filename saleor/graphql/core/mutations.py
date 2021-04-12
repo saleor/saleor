@@ -468,9 +468,12 @@ class ModelMutation(BaseMutation):
         The expected graphene type can be lazy (str).
         """
         object_id = data.get("id")
+        qs = data.get("qs")
         if object_id:
             model_type = cls.get_type_for_model()
-            instance = cls.get_node_or_error(info, object_id, only_type=model_type)
+            instance = cls.get_node_or_error(
+                info, object_id, only_type=model_type, qs=qs
+            )
         else:
             instance = cls._meta.model()
         return instance
@@ -561,7 +564,7 @@ class BaseBulkMutation(BaseMutation):
         """
 
     @classmethod
-    def bulk_action(cls, queryset, **kwargs):
+    def bulk_action(cls, info, queryset, **kwargs):
         """Implement action performed on queryset."""
         raise NotImplementedError
 
@@ -599,7 +602,7 @@ class BaseBulkMutation(BaseMutation):
         count = len(clean_instance_ids)
         if count:
             qs = instance_model.objects.filter(pk__in=clean_instance_ids)
-            cls.bulk_action(queryset=qs, **data)
+            cls.bulk_action(info=info, queryset=qs, **data)
         return count, errors
 
     @classmethod
@@ -619,7 +622,7 @@ class ModelBulkDeleteMutation(BaseBulkMutation):
         abstract = True
 
     @classmethod
-    def bulk_action(cls, queryset):
+    def bulk_action(cls, info, queryset):
         queryset.delete()
 
 

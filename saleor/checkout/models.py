@@ -6,7 +6,6 @@ from uuid import uuid4
 from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import JSONField  # type: ignore
 from django.utils.encoding import smart_str
 from django_countries.fields import Country, CountryField
 from django_prices.models import MoneyField
@@ -25,9 +24,9 @@ if TYPE_CHECKING:
     # flake8: noqa
     from django_measurement import Weight
 
-    from ..checkout.utils import CheckoutLineInfo
     from ..payment.models import Payment
     from ..product.models import ProductVariant
+    from .fetch import CheckoutLineInfo
 
 
 def get_default_country():
@@ -89,7 +88,11 @@ class Checkout(ModelWithMetadata):
     redirect_url = models.URLField(blank=True, null=True)
     tracking_code = models.CharField(max_length=255, blank=True, null=True)
 
-    class Meta:
+    language_code = models.CharField(
+        max_length=35, choices=settings.LANGUAGES, default=settings.LANGUAGE_CODE
+    )
+
+    class Meta(ModelWithMetadata.Meta):
         ordering = ("-last_change", "pk")
         permissions = (
             (CheckoutPermissions.MANAGE_CHECKOUTS.codename, "Manage checkouts"),
@@ -117,19 +120,11 @@ class Checkout(ModelWithMetadata):
             return zero_money(currency=self.currency)
         return Money(balance, self.currency)
 
-    def get_total_weight(
-        self, lines: Optional[Iterable["CheckoutLineInfo"]] = None
-    ) -> "Weight":
-        # Cannot use `sum` as it parses an empty Weight to an int
+    def get_total_weight(self, lines: Iterable["CheckoutLineInfo"]) -> "Weight":
         weights = zero_weight()
-        # TODO: we should use new data structure for lines in order like in checkout
-        if lines is None:
-            for line in self:
-                weights += line.variant.get_weight() * line.quantity
-        else:
-            for checkout_line_info in lines:
-                line = checkout_line_info.line
-                weights += line.variant.get_weight() * line.quantity
+        for checkout_line_info in lines:
+            line = checkout_line_info.line
+            weights += line.variant.get_weight() * line.quantity
         return weights
 
     def get_line(self, variant: "ProductVariant") -> Optional["CheckoutLine"]:
@@ -177,10 +172,8 @@ class CheckoutLine(models.Model):
         "product.ProductVariant", related_name="+", on_delete=models.CASCADE
     )
     quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
-    data = JSONField(blank=True, default=dict)
 
     class Meta:
-        unique_together = ("checkout", "variant", "data")
         ordering = ("id",)
 
     def __str__(self):

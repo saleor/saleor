@@ -64,11 +64,11 @@ from ...product.models import (
     CollectionProduct,
     Product,
     ProductChannelListing,
-    ProductImage,
+    ProductMedia,
     ProductType,
     ProductVariant,
     ProductVariantChannelListing,
-    VariantImage,
+    VariantMedia,
 )
 from ...product.tasks import update_products_discounted_prices_of_discount_task
 from ...product.thumbnails import (
@@ -86,9 +86,13 @@ from ...warehouse.management import increase_stock
 from ...warehouse.models import Stock, Warehouse
 
 fake = Factory.create()
+fake.seed(0)
+
 PRODUCTS_LIST_DIR = "products-list/"
 
 DUMMY_STAFF_PASSWORD = "password"
+
+DEFAULT_CURRENCY = os.environ.get("DEFAULT_CURRENCY", "USD")
 
 IMAGES_MAPPING = {
     61: ["saleordemoproduct_paints_01.png"],
@@ -298,8 +302,8 @@ def create_product_variants(variants_data, create_images):
             product.default_variant = variant
             product.save(update_fields=["default_variant", "updated_at"])
         if create_images:
-            image = variant.product.images.filter().first()
-            VariantImage.objects.get_or_create(variant=variant, image=image)
+            image = variant.product.get_first_image()
+            VariantMedia.objects.get_or_create(variant=variant, media=image)
         quantity = random.randint(100, 500)
         create_stocks(variant, quantity=quantity)
 
@@ -386,7 +390,7 @@ def assign_attributes_to_pages(page_attributes):
 def set_field_as_money(defaults, field):
     amount_field = f"{field}_amount"
     if amount_field in defaults and defaults[amount_field] is not None:
-        defaults[field] = Money(defaults[amount_field], settings.DEFAULT_CURRENCY)
+        defaults[field] = Money(defaults[amount_field], DEFAULT_CURRENCY)
 
 
 def create_products_by_schema(placeholder_dir, create_images):
@@ -450,7 +454,7 @@ def create_products_by_schema(placeholder_dir, create_images):
 
 class SaleorProvider(BaseProvider):
     def money(self):
-        return Money(fake.pydecimal(2, 2, positive=True), settings.DEFAULT_CURRENCY)
+        return Money(fake.pydecimal(2, 2, positive=True), DEFAULT_CURRENCY)
 
     def weight(self):
         return Weight(kg=fake.pydecimal(1, 2, positive=True))
@@ -471,9 +475,9 @@ def get_email(first_name, last_name):
 def create_product_image(product, placeholder_dir, image_name):
     image = get_image(placeholder_dir, image_name)
     # We don't want to create duplicated product images
-    if product.images.count() >= len(IMAGES_MAPPING.get(product.pk, [])):
+    if product.media.count() >= len(IMAGES_MAPPING.get(product.pk, [])):
         return None
-    product_image = ProductImage(product=product, image=image)
+    product_image = ProductMedia(product=product, image=image)
     product_image.save()
     create_product_thumbnails.delay(product_image.pk)
     return product_image
@@ -511,6 +515,7 @@ def create_fake_user(save=True):
         pass
 
     user = User(
+        id=fake.numerify(),
         first_name=address.first_name,
         last_name=address.last_name,
         email=email,
@@ -530,8 +535,8 @@ def create_fake_user(save=True):
 
 # We don't want to spam the console with payment confirmations sent to
 # fake customers.
-@patch("saleor.order.emails.send_payment_confirmation.delay")
-def create_fake_payment(mock_email_confirmation, order):
+@patch("saleor.plugins.manager.PluginsManager.notify")
+def create_fake_payment(mock_notify, order):
     payment = create_payment(
         gateway="mirumee.payments.dummy",
         customer_ip_address=fake.ipv4(),
@@ -541,21 +546,22 @@ def create_fake_payment(mock_email_confirmation, order):
         total=order.total.gross.amount,
         currency=order.total.gross.currency,
     )
+    manager = get_plugins_manager()
 
     # Create authorization transaction
-    gateway.authorize(payment, payment.token)
+    gateway.authorize(payment, payment.token, manager)
     # 20% chance to void the transaction at this stage
     if random.choice([0, 0, 0, 0, 1]):
-        gateway.void(payment)
+        gateway.void(payment, manager)
         return payment
     # 25% to end the payment at the authorization stage
     if not random.choice([1, 1, 1, 0]):
         return payment
     # Create capture transaction
-    gateway.capture(payment)
+    gateway.capture(payment, manager)
     # 25% to refund the payment
     if random.choice([0, 0, 0, 1]):
-        gateway.refund(payment)
+        gateway.refund(payment, manager)
     return payment
 
 
@@ -623,7 +629,7 @@ def create_order_lines(order, discounts, how_many=10):
 
 
 def create_fulfillments(order):
-    for line in order:
+    for line in order.lines.all():
         if random.choice([False, True]):
             fulfillment, _ = Fulfillment.objects.get_or_create(order=order)
             quantity = random.randrange(0, line.quantity) + 1
@@ -691,7 +697,7 @@ def create_fake_order(discounts, max_order_lines=5):
     lines = create_order_lines(order, discounts, random.randrange(1, max_order_lines))
     order.total = sum([line.total_price for line in lines], shipping_price)
     weight = Weight(kg=0)
-    for line in order:
+    for line in order.lines.all():
         weight += line.variant.get_weight()
     order.weight = weight
     order.save()
@@ -1261,8 +1267,8 @@ def create_gift_card():
         code="Gift_card_10",
         defaults={
             "user": user,
-            "initial_balance": Money(10, settings.DEFAULT_CURRENCY),
-            "current_balance": Money(10, settings.DEFAULT_CURRENCY),
+            "initial_balance": Money(10, DEFAULT_CURRENCY),
+            "current_balance": Money(10, DEFAULT_CURRENCY),
         },
     )
     if created:
@@ -1274,8 +1280,9 @@ def create_gift_card():
 def add_address_to_admin(email):
     address = create_address()
     user = User.objects.get(email=email)
-    store_user_address(user, address, AddressType.BILLING)
-    store_user_address(user, address, AddressType.SHIPPING)
+    manager = get_plugins_manager()
+    store_user_address(user, address, AddressType.BILLING, manager)
+    store_user_address(user, address, AddressType.SHIPPING, manager)
 
 
 def create_page_type():

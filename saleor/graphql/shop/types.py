@@ -7,23 +7,25 @@ from django_countries import countries
 from django_prices_vatlayer.models import VAT
 from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 
+from ... import __version__
 from ...account import models as account_models
 from ...core.permissions import SitePermissions, get_permissions
-from ...core.utils import get_client_ip, get_country_by_ip
-from ...plugins.manager import get_plugins_manager
 from ...site import models as site_models
 from ..account.types import Address, AddressInput, StaffNotificationRecipient
 from ..channel import ChannelContext
 from ..checkout.types import PaymentGateway
 from ..core.connection import CountableDjangoObjectType
-from ..core.enums import WeightUnitsEnum
+from ..core.enums import LanguageCodeEnum, WeightUnitsEnum
 from ..core.types.common import CountryDisplay, LanguageDisplay, Permission
 from ..core.utils import str_to_enum
-from ..decorators import permission_required
+from ..decorators import (
+    permission_required,
+    staff_member_or_app_required,
+    staff_member_required,
+)
 from ..menu.dataloaders import MenuByIdLoader
 from ..menu.types import Menu
 from ..shipping.types import ShippingMethod
-from ..translations.enums import LanguageCodeEnum
 from ..translations.fields import TranslationField
 from ..translations.resolvers import resolve_translation
 from ..translations.types import ShopTranslation
@@ -50,20 +52,39 @@ class Domain(graphene.ObjectType):
         description = "Represents shop's domain."
 
 
-class Geolocalization(graphene.ObjectType):
-    country = graphene.Field(
-        CountryDisplay, description="Country of the user acquired by his IP address."
-    )
-
-    class Meta:
-        description = "Represents customers's geolocalization data."
-
-
 class OrderSettings(CountableDjangoObjectType):
     class Meta:
         only_fields = ["automatically_confirm_all_new_orders"]
         description = "Order related settings from site settings."
         model = site_models.SiteSettings
+
+
+class ExternalAuthentication(graphene.ObjectType):
+    id = graphene.String(
+        description="ID of external authentication plugin.", required=True
+    )
+    name = graphene.String(description="Name of external authentication plugin.")
+
+
+class Limits(graphene.ObjectType):
+    channels = graphene.Int()
+    orders = graphene.Int()
+    product_variants = graphene.Int()
+    staff_users = graphene.Int()
+    warehouses = graphene.Int()
+
+
+class LimitInfo(graphene.ObjectType):
+    current_usage = graphene.Field(
+        Limits,
+        required=True,
+        description="Defines the current resource usage.",
+    )
+    allowed_usage = graphene.Field(
+        Limits,
+        required=True,
+        description="Defines the allowed maximum resource usage, null means unlimited.",
+    )
 
 
 class Shop(graphene.ObjectType):
@@ -75,6 +96,11 @@ class Shop(graphene.ObjectType):
             required=False,
         ),
         description="List of available payment gateways.",
+        required=True,
+    )
+    available_external_authentications = graphene.List(
+        graphene.NonNull(ExternalAuthentication),
+        description="List of available external authentications.",
         required=True,
     )
     available_shipping_methods = graphene.List(
@@ -93,9 +119,6 @@ class Shop(graphene.ObjectType):
         ),
         required=False,
         description="Shipping methods that are available for the shop.",
-    )
-    geolocalization = graphene.Field(
-        Geolocalization, description="Customer's geolocalization data."
     )
     countries = graphene.List(
         graphene.NonNull(CountryDisplay),
@@ -171,6 +194,12 @@ class Shop(graphene.ObjectType):
         description="List of staff notification recipients.",
         required=False,
     )
+    limits = graphene.Field(
+        LimitInfo,
+        required=True,
+        description="Resource limitations and current usage if any set for a shop",
+    )
+    version = graphene.String(description="Saleor API version.", required=True)
 
     class Meta:
         description = (
@@ -178,8 +207,12 @@ class Shop(graphene.ObjectType):
         )
 
     @staticmethod
-    def resolve_available_payment_gateways(_, _info, currency: Optional[str] = None):
-        return get_plugins_manager().list_payment_gateways(currency=currency)
+    def resolve_available_payment_gateways(_, info, currency: Optional[str] = None):
+        return info.context.plugins.list_payment_gateways(currency=currency)
+
+    @staticmethod
+    def resolve_available_external_authentications(_, info):
+        return info.context.plugins.list_external_authentications(active_only=True)
 
     @staticmethod
     def resolve_available_shipping_methods(_, info, channel, address=None):
@@ -204,16 +237,6 @@ class Shop(graphene.ObjectType):
             ssl_enabled=settings.ENABLE_SSL,
             url=info.context.build_absolute_uri("/"),
         )
-
-    @staticmethod
-    def resolve_geolocalization(_, info):
-        client_ip = get_client_ip(info.context)
-        country = get_country_by_ip(client_ip)
-        if country:
-            return Geolocalization(
-                country=CountryDisplay(code=country.code, country=country.name)
-            )
-        return Geolocalization(country=None)
 
     @staticmethod
     def resolve_description(_, info):
@@ -340,3 +363,13 @@ class Shop(graphene.ObjectType):
     @permission_required(SitePermissions.MANAGE_SETTINGS)
     def resolve_staff_notification_recipients(_, info):
         return account_models.StaffNotificationRecipient.objects.all()
+
+    @staticmethod
+    @staff_member_required
+    def resolve_limits(_, _info):
+        return LimitInfo(current_usage=Limits(), allowed_usage=Limits())
+
+    @staticmethod
+    @staff_member_or_app_required
+    def resolve_version(_, _info):
+        return __version__

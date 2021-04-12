@@ -58,10 +58,6 @@ def send_webhook_using_http(target_url, message, domain, signature, event_type):
         "X-Saleor-Signature": signature,
     }
 
-    if signature:
-        # This header is depreceated and will be removed in Saleor3.0
-        headers["X-Saleor-HMAC-SHA256"] = f"sha1={signature}"
-
     response = requests.post(
         target_url, data=message, headers=headers, timeout=WEBHOOK_TIMEOUT
     )
@@ -114,8 +110,8 @@ def send_webhook_using_google_cloud_pubsub(
 
 @app.task(
     autoretry_for=(RequestException,),
-    retry_backoff=60,
-    retry_kwargs={"max_retries": 15},
+    retry_backoff=10,
+    retry_kwargs={"max_retries": 5},
 )
 def send_webhook_request(webhook_id, target_url, secret, event_type, data):
     parts = urlparse(target_url)

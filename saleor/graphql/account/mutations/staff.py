@@ -7,8 +7,8 @@ from django.db import transaction
 
 from ....account import events as account_events
 from ....account import models, utils
-from ....account.emails import send_set_password_email_with_url
 from ....account.error_codes import AccountErrorCode
+from ....account.notifications import send_set_password_notification
 from ....account.thumbnails import create_user_avatar_thumbnails
 from ....account.utils import remove_staff_member
 from ....checkout import AddressType
@@ -20,8 +20,9 @@ from ...account.types import Address, AddressInput, User
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types import Upload
 from ...core.types.common import AccountError, StaffError
-from ...core.utils import get_duplicates_ids, validate_image_file
+from ...core.utils import validate_image_file
 from ...decorators import staff_member_required
+from ...utils.validators import check_for_duplicates
 from ..utils import (
     CustomerDeleteMixin,
     StaffDeleteMixin,
@@ -241,8 +242,11 @@ class StaffCreate(ModelMutation):
     def save(cls, info, user, cleaned_input):
         user.save()
         if cleaned_input.get("redirect_url"):
-            send_set_password_email_with_url(
-                redirect_url=cleaned_input.get("redirect_url"), user=user, staff=True
+            send_set_password_notification(
+                redirect_url=cleaned_input.get("redirect_url"),
+                user=user,
+                manager=info.context.plugins,
+                staff=True,
             )
 
     @classmethod
@@ -278,26 +282,14 @@ class StaffUpdate(StaffCreate):
             code = AccountErrorCode.OUT_OF_SCOPE_USER.value
             raise ValidationError({"id": ValidationError(msg, code=code)})
 
-        cls.check_for_duplicates(data)
+        error = check_for_duplicates(data, "add_groups", "remove_groups", "groups")
+        if error:
+            error.code = AccountErrorCode.DUPLICATED_INPUT_ITEM.value
+            raise error
 
         cleaned_input = super().clean_input(info, instance, data)
 
         return cleaned_input
-
-    @classmethod
-    def check_for_duplicates(cls, input_data):
-        duplicated_ids = get_duplicates_ids(
-            input_data.get("add_groups"), input_data.get("remove_groups")
-        )
-        if duplicated_ids:
-            # add error
-            msg = (
-                "The same object cannot be in both list"
-                "for adding and removing items."
-            )
-            code = AccountErrorCode.DUPLICATED_INPUT_ITEM.value
-            params = {"groups": duplicated_ids}
-            raise ValidationError(msg, code=code, params=params)
 
     @classmethod
     def clean_groups(cls, requestor: models.User, cleaned_input: dict, errors: dict):
@@ -510,7 +502,10 @@ class AddressSetDefault(BaseMutation):
         else:
             address_type = AddressType.SHIPPING
 
-        utils.change_user_default_address(user, address, address_type)
+        utils.change_user_default_address(
+            user, address, address_type, info.context.plugins
+        )
+        info.context.plugins.customer_updated(user)
         return cls(user=user)
 
 

@@ -26,13 +26,13 @@ repos:
       - id: seed-isort-config
 
   - repo: https://github.com/pre-commit/mirrors-isort
-    rev: v5.7.0
+    rev: v5.8.0
     hooks:
       - id: isort
         args: ["--profile", "black"]
 
   - repo: https://github.com/pycqa/pydocstyle
-    rev: 5.1.1
+    rev: 6.0.0
     hooks:
       - id: pydocstyle
         files: ^saleor/

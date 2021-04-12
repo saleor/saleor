@@ -15,16 +15,16 @@ from ....order.actions import (
     create_refund_fulfillment,
     fulfillment_tracking_updated,
 )
-from ....order.emails import send_fulfillment_update
 from ....order.error_codes import OrderErrorCode
+from ....order.notifications import send_fulfillment_update
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
 from ...core.utils import from_global_id_strict_type, get_duplicated_values
-from ...order.types import Fulfillment, FulfillmentLine, Order
 from ...utils import get_user_or_app_from_context
 from ...warehouse.types import Warehouse
-from ..types import OrderLine
+from ..types import Fulfillment, FulfillmentLine, Order, OrderLine
+from ..utils import prepare_insufficient_stock_order_validation_errors
 
 
 class OrderFulfillStockInput(graphene.InputObjectType):
@@ -215,27 +215,15 @@ class OrderFulfill(BaseMutation):
 
         try:
             fulfillments = create_fulfillments(
-                user, order, dict(lines_for_warehouses), notify_customer
+                user,
+                order,
+                dict(lines_for_warehouses),
+                info.context.plugins,
+                notify_customer,
             )
         except InsufficientStock as exc:
-            order_line_global_id = graphene.Node.to_global_id(
-                "OrderLine", exc.context["order_line"].pk
-            )
-            warehouse_global_id = graphene.Node.to_global_id(
-                "Warehouse", exc.context["warehouse_pk"]
-            )
-            raise ValidationError(
-                {
-                    "stocks": ValidationError(
-                        f"Insufficient product stock: {exc.item}",
-                        code=OrderErrorCode.INSUFFICIENT_STOCK,
-                        params={
-                            "order_line": order_line_global_id,
-                            "warehouse": warehouse_global_id,
-                        },
-                    )
-                }
-            )
+            errors = prepare_insufficient_stock_order_validation_errors(exc)
+            raise ValidationError({"stocks": errors})
 
         return OrderFulfill(fulfillments=fulfillments, order=order)
 
@@ -267,11 +255,13 @@ class FulfillmentUpdateTracking(BaseMutation):
         fulfillment.tracking_number = tracking_number
         fulfillment.save()
         order = fulfillment.order
-        fulfillment_tracking_updated(fulfillment, info.context.user, tracking_number)
+        fulfillment_tracking_updated(
+            fulfillment, info.context.user, tracking_number, info.context.plugins
+        )
         input_data = data.get("input", {})
         notify_customer = input_data.get("notify_customer")
         if notify_customer:
-            send_fulfillment_update.delay(order.pk, fulfillment.pk)
+            send_fulfillment_update(order, fulfillment, info.context.plugins)
         return FulfillmentUpdateTracking(fulfillment=fulfillment, order=order)
 
 
@@ -310,7 +300,9 @@ class FulfillmentCancel(BaseMutation):
             )
 
         order = fulfillment.order
-        cancel_fulfillment(fulfillment, info.context.user, warehouse)
+        cancel_fulfillment(
+            fulfillment, info.context.user, warehouse, info.context.plugins
+        )
         fulfillment.refresh_from_db(fields=["status"])
         order.refresh_from_db(fields=["status"])
         return FulfillmentCancel(fulfillment=fulfillment, order=order)

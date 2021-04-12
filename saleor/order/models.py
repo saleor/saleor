@@ -13,7 +13,7 @@ from django.utils.timezone import now
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField, TaxedMoneyField
 from measurement.measures import Weight
-from prices import Money
+from prices import Money, TaxedMoney
 
 from ..account.models import Address
 from ..channel.models import Channel
@@ -23,6 +23,7 @@ from ..core.taxes import zero_money, zero_taxed_money
 from ..core.units import WeightUnits
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.weight import zero_weight
+from ..discount import DiscountValueType
 from ..discount.models import Voucher
 from ..giftcard.models import GiftCard
 from ..payment import ChargeStatus, TransactionKind
@@ -72,7 +73,7 @@ class OrderQueryset(models.QuerySet):
         return qs.distinct()
 
     def ready_to_confirm(self):
-        """Return unconfirmed_orders."""
+        """Return unconfirmed orders."""
         return self.filter(status=OrderStatus.UNCONFIRMED)
 
 
@@ -88,7 +89,9 @@ class Order(ModelWithMetadata):
         related_name="orders",
         on_delete=models.SET_NULL,
     )
-    language_code = models.CharField(max_length=35, default=settings.LANGUAGE_CODE)
+    language_code = models.CharField(
+        max_length=35, choices=settings.LANGUAGES, default=settings.LANGUAGE_CODE
+    )
     tracking_client_id = models.CharField(max_length=36, blank=True, editable=False)
     billing_address = models.ForeignKey(
         Address, related_name="+", editable=False, null=True, on_delete=models.SET_NULL
@@ -155,15 +158,33 @@ class Order(ModelWithMetadata):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=0,
     )
+    undiscounted_total_net_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=0,
+    )
+
     total_net = MoneyField(amount_field="total_net_amount", currency_field="currency")
+    undiscounted_total_net = MoneyField(
+        amount_field="undiscounted_total_net_amount", currency_field="currency"
+    )
 
     total_gross_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=0,
     )
+    undiscounted_total_gross_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=0,
+    )
+
     total_gross = MoneyField(
         amount_field="total_gross_amount", currency_field="currency"
+    )
+    undiscounted_total_gross = MoneyField(
+        amount_field="undiscounted_total_gross_amount", currency_field="currency"
     )
 
     total = TaxedMoneyField(
@@ -171,19 +192,17 @@ class Order(ModelWithMetadata):
         gross_amount_field="total_gross_amount",
         currency_field="currency",
     )
+    undiscounted_total = TaxedMoneyField(
+        net_amount_field="undiscounted_total_net_amount",
+        gross_amount_field="undiscounted_total_gross_amount",
+        currency_field="currency",
+    )
 
     voucher = models.ForeignKey(
         Voucher, blank=True, null=True, related_name="+", on_delete=models.SET_NULL
     )
     gift_cards = models.ManyToManyField(GiftCard, blank=True, related_name="orders")
-    discount_amount = models.DecimalField(
-        max_digits=settings.DEFAULT_MAX_DIGITS,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
-    )
-    discount = MoneyField(amount_field="discount_amount", currency_field="currency")
-    discount_name = models.CharField(max_length=255, blank=True, null=True)
-    translated_discount_name = models.CharField(max_length=255, blank=True, null=True)
+
     display_gross_prices = models.BooleanField(default=True)
     customer_note = models.TextField(blank=True, default="")
     weight = MeasurementField(
@@ -194,7 +213,7 @@ class Order(ModelWithMetadata):
     redirect_url = models.URLField(blank=True, null=True)
     objects = OrderQueryset.as_manager()
 
-    class Meta:
+    class Meta(ModelWithMetadata.Meta):
         ordering = ("-pk",)
         permissions = ((OrderPermissions.MANAGE_ORDERS.codename, "Manage orders."),)
 
@@ -233,9 +252,6 @@ class Order(ModelWithMetadata):
 
     def _index_shipping_phone(self):
         return self.shipping_address.phone
-
-    def __iter__(self):
-        return iter(self.lines.all())
 
     def __repr__(self):
         return "<Order #%r>" % (self.id,)
@@ -281,25 +297,37 @@ class Order(ModelWithMetadata):
         )
 
     def is_shipping_required(self):
-        return any(line.is_shipping_required for line in self)
+        return any(line.is_shipping_required for line in self.lines.all())
 
     def get_subtotal(self):
-        subtotal_iterator = (line.total_price for line in self)
+        subtotal_iterator = (line.total_price for line in self.lines.all())
         return sum(subtotal_iterator, zero_taxed_money(currency=self.currency))
 
     def get_total_quantity(self):
-        return sum([line.quantity for line in self])
+        return sum([line.quantity for line in self.lines.all()])
 
     def is_draft(self):
         return self.status == OrderStatus.DRAFT
+
+    def is_unconfirmed(self):
+        return self.status == OrderStatus.UNCONFIRMED
 
     def is_open(self):
         statuses = {OrderStatus.UNFULFILLED, OrderStatus.PARTIALLY_FULFILLED}
         return self.status in statuses
 
     def can_cancel(self):
+        statuses_allowed_to_cancel = [
+            FulfillmentStatus.CANCELED,
+            FulfillmentStatus.REFUNDED,
+            FulfillmentStatus.REPLACED,
+            FulfillmentStatus.REFUNDED_AND_RETURNED,
+            FulfillmentStatus.RETURNED,
+        ]
         return (
-            not self.fulfillments.exclude(status=FulfillmentStatus.CANCELED).exists()
+            not self.fulfillments.exclude(
+                status__in=statuses_allowed_to_cancel
+            ).exists()
         ) and self.status not in {OrderStatus.CANCELED, OrderStatus.DRAFT}
 
     def can_capture(self, payment=None):
@@ -394,9 +422,30 @@ class OrderLine(models.Model):
         max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
     )
 
+    unit_discount_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=0,
+    )
+    unit_discount = MoneyField(
+        amount_field="unit_discount_amount", currency_field="currency"
+    )
+    unit_discount_type = models.CharField(
+        max_length=10,
+        choices=DiscountValueType.CHOICES,
+        default=DiscountValueType.FIXED,
+    )
+    unit_discount_reason = models.TextField(blank=True, null=True)
+
     unit_price_net_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+    )
+    # stores the value of the applied discount. Like 20 of %
+    unit_discount_value = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=0,
     )
     unit_price_net = MoneyField(
         amount_field="unit_price_net_amount", currency_field="currency"
@@ -457,6 +506,10 @@ class OrderLine(models.Model):
         )
 
     @property
+    def undiscounted_unit_price(self) -> "TaxedMoney":
+        return self.unit_price + self.unit_discount
+
+    @property
     def quantity_unfulfilled(self):
         return self.quantity - self.quantity_fulfilled
 
@@ -483,7 +536,7 @@ class Fulfillment(ModelWithMetadata):
     tracking_number = models.CharField(max_length=255, default="", blank=True)
     created = models.DateTimeField(auto_now_add=True)
 
-    class Meta:
+    class Meta(ModelWithMetadata.Meta):
         ordering = ("pk",)
 
     def __str__(self):
@@ -509,7 +562,7 @@ class Fulfillment(ModelWithMetadata):
         return self.status != FulfillmentStatus.CANCELED
 
     def get_total_quantity(self):
-        return sum([line.quantity for line in self])
+        return sum([line.quantity for line in self.lines.all()])
 
     @property
     def is_tracking_number_url(self):

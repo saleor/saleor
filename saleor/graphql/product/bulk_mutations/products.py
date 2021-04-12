@@ -8,6 +8,7 @@ from graphene.types import InputObjectType
 from ....core.permissions import ProductPermissions, ProductTypePermissions
 from ....order import OrderStatus
 from ....order import models as order_models
+from ....order.tasks import recalculate_orders_task
 from ....product import models
 from ....product.error_codes import ProductErrorCode
 from ....product.tasks import update_product_discounted_price_task
@@ -21,6 +22,7 @@ from ...core.mutations import BaseMutation, ModelBulkDeleteMutation, ModelMutati
 from ...core.types.common import (
     BulkProductError,
     BulkStockError,
+    CollectionError,
     ProductError,
     StockError,
 )
@@ -53,8 +55,8 @@ class CategoryBulkDelete(ModelBulkDeleteMutation):
         error_type_field = "product_errors"
 
     @classmethod
-    def bulk_action(cls, queryset):
-        delete_categories(queryset.values_list("pk", flat=True))
+    def bulk_action(cls, info, queryset):
+        delete_categories(queryset.values_list("pk", flat=True), info.context.plugins)
 
 
 class CollectionBulkDelete(ModelBulkDeleteMutation):
@@ -67,8 +69,20 @@ class CollectionBulkDelete(ModelBulkDeleteMutation):
         description = "Deletes collections."
         model = models.Collection
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        error_type_class = ProductError
-        error_type_field = "product_errors"
+        error_type_class = CollectionError
+        error_type_field = "collection_errors"
+
+    @classmethod
+    def bulk_action(cls, info, queryset):
+        collections_ids = queryset.values_list("id", flat=True)
+        products = list(
+            models.Product.objects.prefetched_for_webhook(single_object=False)
+            .filter(collections__in=collections_ids)
+            .distinct()
+        )
+        queryset.delete()
+        for product in products:
+            info.context.plugins.product_updated(product)
 
 
 class ProductBulkDelete(ModelBulkDeleteMutation):
@@ -87,20 +101,44 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
     @classmethod
     def perform_mutation(cls, _root, info, ids, **data):
         _, pks = resolve_global_ids_to_primary_keys(ids, Product)
-        variants = models.ProductVariant.objects.filter(product__pk__in=pks)
+        product_to_variant = list(
+            models.ProductVariant.objects.filter(product__pk__in=pks).values_list(
+                "product_id", "id"
+            )
+        )
+        variants_ids = [variant_id for _, variant_id in product_to_variant]
+
         # get draft order lines for products
-        order_line_pks = list(
-            order_models.OrderLine.objects.filter(
-                variant__in=variants, order__status=OrderStatus.DRAFT
-            ).values_list("pk", flat=True)
+        lines_id_and_orders_id = order_models.OrderLine.objects.filter(
+            variant__id__in=variants_ids, order__status=OrderStatus.DRAFT
+        ).values("pk", "order_id")
+        line_pks = {line["pk"] for line in lines_id_and_orders_id}
+        orders_id = {line["order_id"] for line in lines_id_and_orders_id}
+        response = super().perform_mutation(
+            _root,
+            info,
+            ids,
+            product_to_variant=product_to_variant,
+            **data,
         )
 
-        response = super().perform_mutation(_root, info, ids, **data)
-
         # delete order lines for deleted variants
-        order_models.OrderLine.objects.filter(pk__in=order_line_pks).delete()
+        order_models.OrderLine.objects.filter(pk__in=line_pks).delete()
+        recalculate_orders_task.delay(orders_id)
 
         return response
+
+    @classmethod
+    def bulk_action(cls, info, queryset, product_to_variant):
+        product_variant_map = defaultdict(list)
+        for product, variant in product_to_variant:
+            product_variant_map[product].append(variant)
+
+        products = [product for product in queryset]
+        queryset.delete()
+        for product in products:
+            variants = product_variant_map.get(product.id)
+            info.context.plugins.product_deleted(product, variants)
 
 
 class BulkAttributeValueInput(InputObjectType):
@@ -360,7 +398,6 @@ class ProductVariantBulkCreate(BaseMutation):
                     ValidationError(exc.message, exc.code, params={"index": index})
                 )
 
-            cleaned_input = None
             variant_data["product_type"] = product.product_type
             variant_data["product"] = product
             cleaned_input = cls.clean_variant_input(
@@ -407,6 +444,7 @@ class ProductVariantBulkCreate(BaseMutation):
             cls.save(info, instance, cleaned_input)
             cls.create_variant_stocks(instance, cleaned_input)
             cls.create_variant_channel_listings(instance, cleaned_input)
+
         if not product.default_variant:
             product.default_variant = instances[0]
             product.save(update_fields=["default_variant", "updated_at"])
@@ -423,6 +461,7 @@ class ProductVariantBulkCreate(BaseMutation):
         create_stocks(variant, stocks, warehouses)
 
     @classmethod
+    @transaction.atomic
     def perform_mutation(cls, root, info, **data):
         product = cls.get_node_or_error(info, data["product_id"], models.Product)
         errors = defaultdict(list)
@@ -439,6 +478,14 @@ class ProductVariantBulkCreate(BaseMutation):
         instances = [
             ChannelContext(node=instance, channel_slug=None) for instance in instances
         ]
+
+        transaction.on_commit(
+            lambda: [
+                info.context.plugins.product_variant_created(instance.node)
+                for instance in instances
+            ]
+        )
+
         return ProductVariantBulkCreate(
             count=len(instances), product_variants=instances
         )
@@ -464,22 +511,38 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
     def perform_mutation(cls, _root, info, ids, **data):
         _, pks = resolve_global_ids_to_primary_keys(ids, ProductVariant)
         # get draft order lines for variants
-        order_line_pks = list(
-            order_models.OrderLine.objects.filter(
-                variant__pk__in=pks, order__status=OrderStatus.DRAFT
-            ).values_list("pk", flat=True)
-        )
-
+        lines_id_and_orders_id = order_models.OrderLine.objects.filter(
+            variant__pk__in=pks, order__status=OrderStatus.DRAFT
+        ).values("pk", "order_id")
+        line_pks = {line["pk"] for line in lines_id_and_orders_id}
+        orders_id = {line["order_id"] for line in lines_id_and_orders_id}
         product_pks = list(
             models.Product.objects.filter(variants__in=pks)
             .distinct()
             .values_list("pk", flat=True)
         )
 
+        # Get cached variants with related fields to fully populate webhook payload.
+        variants = list(
+            models.ProductVariant.objects.filter(id__in=pks).prefetch_related(
+                "channel_listings",
+                "attributes__values",
+                "variant_media",
+            )
+        )
+
         response = super().perform_mutation(_root, info, ids, **data)
 
+        transaction.on_commit(
+            lambda: [
+                info.context.plugins.product_variant_deleted(variant)
+                for variant in variants
+            ]
+        )
+
         # delete order lines for deleted variants
-        order_models.OrderLine.objects.filter(pk__in=order_line_pks).delete()
+        order_models.OrderLine.objects.filter(pk__in=line_pks).delete()
+        recalculate_orders_task.delay(orders_id)
 
         # set new product default variant if any has been removed
         products = models.Product.objects.filter(
@@ -665,17 +728,17 @@ class ProductTypeBulkDelete(ModelBulkDeleteMutation):
         error_type_field = "product_errors"
 
 
-class ProductImageBulkDelete(ModelBulkDeleteMutation):
+class ProductMediaBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID,
             required=True,
-            description="List of product image IDs to delete.",
+            description="List of product media IDs to delete.",
         )
 
     class Meta:
-        description = "Deletes product images."
-        model = models.ProductImage
+        description = "Deletes product media."
+        model = models.ProductMedia
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"

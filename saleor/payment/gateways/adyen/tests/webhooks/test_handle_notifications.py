@@ -6,7 +6,7 @@ import graphene
 import pytest
 
 from ......checkout import calculations
-from ......checkout.utils import fetch_checkout_lines
+from ......checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ......order import OrderEvents, OrderStatus
 from ......plugins.manager import get_plugins_manager
 from ..... import ChargeStatus, TransactionKind
@@ -157,8 +157,9 @@ def test_handle_authorization_for_checkout(
     payment = payment_adyen_for_checkout
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout, lines, address
+        manager, checkout_info, lines, address
     )
     payment.is_active = True
     payment.order = None
@@ -203,8 +204,9 @@ def test_handle_authorization_with_adyen_auto_capture(
     payment = payment_adyen_for_checkout
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout, lines, address
+        manager, checkout_info, lines, address
     )
     payment.is_active = True
     payment.order = None
@@ -300,8 +302,9 @@ def test_handle_cancel(
         value=to_adyen_price(payment.total, payment.currency),
     )
     config = adyen_plugin().config
+    manager = get_plugins_manager()
 
-    handle_cancellation(notification, config)
+    handle_cancellation(notification, config, manager)
 
     payment.order.refresh_from_db()
     assert payment.transactions.count() == 2
@@ -329,8 +332,9 @@ def test_handle_cancel_invalid_payment_id(
     transaction_count = payment.transactions.count()
 
     caplog.set_level(logging.WARNING)
+    manager = get_plugins_manager()
 
-    handle_cancellation(notification, config)
+    handle_cancellation(notification, config, manager)
 
     payment.order.refresh_from_db()
     assert payment.transactions.count() == transaction_count
@@ -352,8 +356,9 @@ def test_handle_cancel_already_canceled(
     )
     config = adyen_plugin().config
     create_new_transaction(notification, payment, TransactionKind.CANCEL)
+    manager = get_plugins_manager()
 
-    handle_cancellation(notification, config)
+    handle_cancellation(notification, config, manager)
 
     assert payment.transactions.count() == 2
 
@@ -396,8 +401,9 @@ def test_handle_capture_for_checkout(
     payment = payment_adyen_for_checkout
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout, lines, address
+        manager, checkout_info, lines, address
     )
     payment.is_active = True
     payment.order = None
@@ -669,7 +675,7 @@ def test_handle_refund(
     assert payment.captured_amount == Decimal("0.00")
 
     mock_order_refunded.assert_called_once_with(
-        payment.order, None, transaction.amount, payment
+        payment.order, None, transaction.amount, payment, mock.ANY
     )
     external_events = payment.order.events.filter(
         type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
@@ -966,7 +972,7 @@ def test_handle_cancel_or_refund_action_cancel(
 
     handle_cancel_or_refund(notification, config)
 
-    mock_handle_cancellation.assert_called_once_with(notification, config)
+    mock_handle_cancellation.assert_called_once_with(notification, config, mock.ANY)
 
 
 def test_handle_cancel_or_refund_action_cancel_invalid_payment_id(

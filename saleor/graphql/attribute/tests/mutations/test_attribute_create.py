@@ -30,6 +30,7 @@ CREATE_ATTRIBUTE_MUTATION = """
                 values {
                     name
                     slug
+                    value
                 }
                 productTypes(first: 10) {
                     edges {
@@ -54,10 +55,11 @@ def test_create_attribute_and_attribute_values(
 
     attribute_name = "Example name"
     name = "Value name"
+    value = "Value"
     variables = {
         "input": {
             "name": attribute_name,
-            "values": [{"name": name}],
+            "values": [{"name": name, "value": value}],
             "type": AttributeTypeEnum.PRODUCT_TYPE.name,
         }
     }
@@ -91,6 +93,7 @@ def test_create_attribute_and_attribute_values(
     assert data["attribute"]["type"] == AttributeTypeEnum.PRODUCT_TYPE.name
     assert data["attribute"]["values"][0]["name"] == name
     assert data["attribute"]["values"][0]["slug"] == slugify(name)
+    assert data["attribute"]["values"][0]["value"] == value
 
 
 def test_create_numeric_attribute_and_attribute_values(

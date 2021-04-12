@@ -7,6 +7,7 @@ import graphene
 import pytest
 from django.core.exceptions import ValidationError
 from django.utils.dateparse import parse_datetime
+from django.utils.html import strip_tags
 from django.utils.text import slugify
 from freezegun import freeze_time
 from graphql_relay import to_global_id
@@ -21,6 +22,7 @@ from ....core.units import WeightUnits
 from ....order import OrderStatus
 from ....order.models import OrderLine
 from ....plugins.manager import PluginsManager
+from ....product import ProductMediaTypes
 from ....product.error_codes import ProductErrorCode
 from ....product.models import (
     Category,
@@ -28,7 +30,7 @@ from ....product.models import (
     CollectionChannelListing,
     Product,
     ProductChannelListing,
-    ProductImage,
+    ProductMedia,
     ProductType,
     ProductVariant,
     ProductVariantChannelListing,
@@ -38,6 +40,8 @@ from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
 from ....product.utils.costs import get_product_costs_data
 from ....tests.utils import dummy_editorjs
 from ....warehouse.models import Allocation, Stock, Warehouse
+from ....webhook.event_types import WebhookEventType
+from ....webhook.payloads import generate_product_deleted_payload
 from ...core.enums import AttributeErrorCode, ReportingPeriod
 from ...tests.utils import (
     assert_no_permission,
@@ -215,6 +219,41 @@ def test_product_query_description(
     assert product_data is not None
     assert product_data["description"] == description
     assert product_data["descriptionJson"] == description
+
+
+def test_product_query_with_no_description(
+    staff_api_client, permission_manage_products, product, channel_USD
+):
+    query = """
+        query ($id: ID, $slug: String, $channel:String){
+            product(
+                id: $id,
+                slug: $slug,
+                channel: $channel
+            ) {
+                id
+                name
+                description
+                descriptionJson
+            }
+        }
+        """
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.pk),
+        "channel": channel_USD.slug,
+    }
+
+    response = staff_api_client.post_graphql(
+        query,
+        variables=variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+    assert product_data is not None
+    assert product_data["description"] is None
+    assert product_data["descriptionJson"] == "{}"
 
 
 def test_product_query_by_id_not_available_as_staff_user(
@@ -1355,9 +1394,9 @@ def test_fetch_product_from_category_query(
     category = Category.objects.first()
     product = category.products.first()
     query = """
-    query {
-        category(id: "%(category_id)s") {
-            products(first: 20, channel: "%(channel_slug)s") {
+    query CategoryProducts($id: ID, $channel: String, $address: AddressInput) {
+        category(id: $id) {
+            products(first: 20, channel: $channel) {
                 edges {
                     node {
                         id
@@ -1368,7 +1407,7 @@ def test_fetch_product_from_category_query(
                             url
                             alt
                         }
-                        images {
+                        media {
                             url
                         }
                         variants {
@@ -1393,8 +1432,8 @@ def test_fetch_product_from_category_query(
                                 stop
                             }
                         }
-                        isAvailable
-                        pricing {
+                        isAvailable(address: $address)
+                        pricing(address: $address) {
                             priceRange {
                                 start {
                                     gross {
@@ -1416,12 +1455,14 @@ def test_fetch_product_from_category_query(
             }
         }
     }
-    """ % {
-        "category_id": graphene.Node.to_global_id("Category", category.id),
-        "channel_slug": channel_USD.slug,
-    }
+    """
     staff_api_client.user.user_permissions.add(permission_manage_products)
-    response = staff_api_client.post_graphql(query)
+    variables = {
+        "id": graphene.Node.to_global_id("Category", category.id),
+        "channel": channel_USD.slug,
+        "address": {"country": "US"},
+    }
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert content["data"]["category"] is not None
     product_edges_data = content["data"]["category"]["products"]["edges"]
@@ -1633,6 +1674,19 @@ def test_products_query_with_filter_by_attributes_values_and_range(
         "Product", product.pk
     )
     assert products[0]["node"]["name"] == product.name
+
+
+def test_products_query_filter_by_non_existing_attribute(
+    query_products_with_filter, api_client, product_list, channel_USD
+):
+    variables = {
+        "channel": channel_USD.slug,
+        "filter": {"attributes": [{"slug": "i-do-not-exist", "values": ["red"]}]},
+    }
+    response = api_client.post_graphql(query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+    assert len(products) == 0
 
 
 def test_products_query_with_filter_product_type(
@@ -2030,8 +2084,85 @@ def test_query_products_with_filter_ids(
     assert [node["node"]["id"] for node in products_data] == product_ids
 
 
+def test_query_product_media_by_id(user_api_client, product_with_image, channel_USD):
+    query = """
+    query productMediaById($mediaId: ID!, $productId: ID!, $channel: String) {
+        product(id: $productId, channel: $channel) {
+            mediaById(id: $mediaId) {
+                id
+                url(size: 200)
+            }
+        }
+    }
+    """
+    media = product_with_image.media.first()
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
+        "mediaId": graphene.Node.to_global_id("ProductMedia", media.pk),
+        "channel": channel_USD.slug,
+    }
+
+    response = user_api_client.post_graphql(query, variables)
+
+    content = get_graphql_content(response)
+    assert content["data"]["product"]["mediaById"]["id"]
+    assert content["data"]["product"]["mediaById"]["url"]
+
+
+def test_query_product_media_by_id_missing_id(
+    user_api_client, product_with_image, channel_USD
+):
+    query = """
+    query productMediaById($mediaId: ID!, $productId: ID!, $channel: String) {
+        product(id: $productId, channel: $channel) {
+            mediaById(id: $mediaId) {
+                id
+                url
+            }
+        }
+    }
+    """
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
+        "mediaId": graphene.Node.to_global_id("ProductMedia", 9999),
+        "channel": channel_USD.slug,
+    }
+
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == "Product media not found."
+    assert content["data"]["product"] is None
+
+
 def test_query_product_image_by_id(user_api_client, product_with_image, channel_USD):
-    image = product_with_image.images.first()
+    query = """
+    query productMediaById($imageId: ID!, $productId: ID!, $channel: String) {
+        product(id: $productId, channel: $channel) {
+            imageById(id: $imageId) {
+                id
+                url(size: 200)
+            }
+        }
+    }
+    """
+    media = product_with_image.media.first()
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
+        "imageId": graphene.Node.to_global_id("ProductMedia", media.pk),
+        "channel": channel_USD.slug,
+    }
+
+    response = user_api_client.post_graphql(query, variables)
+
+    content = get_graphql_content(response)
+    assert content["data"]["product"]["imageById"]["id"]
+    assert content["data"]["product"]["imageById"]["url"]
+
+
+def test_query_product_image_by_id_missing_id(
+    user_api_client, product_with_image, channel_USD
+):
     query = """
     query productImageById($imageId: ID!, $productId: ID!, $channel: String) {
         product(id: $productId, channel: $channel) {
@@ -2044,13 +2175,16 @@ def test_query_product_image_by_id(user_api_client, product_with_image, channel_
     """
     variables = {
         "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
-        "imageId": graphene.Node.to_global_id("ProductImage", image.pk),
+        "imageId": graphene.Node.to_global_id("ProductMedia", 9999),
         "channel": channel_USD.slug,
     }
+
     response = user_api_client.post_graphql(query, variables)
-    data = get_graphql_content(response)
-    assert data["data"]["product"]["imageById"]["id"]
-    assert data["data"]["product"]["imageById"]["url"]
+
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == "Product image not found."
+    assert content["data"]["product"]["imageById"] is None
 
 
 def test_product_with_collections(
@@ -2395,6 +2529,7 @@ CREATE_PRODUCT_MUTATION = """
                                     slug
                                     name
                                     reference
+                                    richText
                                     file {
                                         url
                                         contentType
@@ -2413,7 +2548,11 @@ CREATE_PRODUCT_MUTATION = """
 """
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_created")
 def test_create_product(
+    created_webhook_mock,
+    updated_webhook_mock,
     staff_api_client,
     product_type,
     category,
@@ -2487,6 +2626,11 @@ def test_create_product(
     assert slugify(non_existent_attr_value) in values
     assert color_value_slug in values
 
+    product = Product.objects.first()
+    created_webhook_mock.assert_called_once_with(product)
+
+    updated_webhook_mock.assert_not_called()
+
 
 def test_create_product_description_plaintext(
     staff_api_client,
@@ -2537,29 +2681,225 @@ def test_create_product_description_plaintext(
     assert product.description_plaintext == description
 
 
-def test_search_product_by_description(user_api_client, product_list, channel_USD):
-    search_query = """
-    query Products($filters: ProductFilterInput, $channel: String) {
-      products(first: 5, filter: $filters, channel: $channel) {
-        edges {
-        node {
-          id
-          name
+def test_create_product_with_rich_text_attribute(
+    staff_api_client,
+    product_type,
+    category,
+    rich_text_attribute,
+    color_attribute,
+    permission_manage_products,
+    product,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_slug = "product-test-slug"
+
+    # Add second attribute
+    product_type.product_attributes.add(rich_text_attribute)
+    rich_text_attribute_id = graphene.Node.to_global_id(
+        "Attribute", rich_text_attribute.id
+    )
+    rich_text = json.dumps(dummy_editorjs("test product" * 5))
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "attributes": [
+                {
+                    "id": rich_text_attribute_id,
+                    "richText": rich_text,
+                }
+            ],
         }
-        }
-      }
     }
-    """
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["productErrors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == product_slug
+    assert data["product"]["productType"]["name"] == product_type.name
+    assert data["product"]["category"]["name"] == category.name
+    _, product_id = graphene.Node.from_global_id(data["product"]["id"])
+
+    expected_attributes_data = [
+        {"attribute": {"slug": "color"}, "values": []},
+        {
+            "attribute": {"slug": "text"},
+            "values": [
+                {
+                    "slug": f"{product_id}_{rich_text_attribute.id}",
+                    "name": "test producttest producttest producttest productt…",
+                    "reference": None,
+                    "richText": rich_text,
+                    "file": None,
+                }
+            ],
+        },
+    ]
+    for attr_data in data["product"]["attributes"]:
+        assert attr_data in expected_attributes_data
+
+
+SEARCH_PRODUCTS_QUERY = """
+    query Products(
+        $filters: ProductFilterInput, $sortBy: ProductOrder, $channel: String
+    ) {
+        products(first: 5, filter: $filters, sortBy: $sortBy, channel: $channel) {
+            edges {
+                node {
+                    id
+                    name
+                }
+            }
+        }
+    }
+"""
+
+
+def test_search_product_by_description(user_api_client, product_list, channel_USD):
+
     variables = {"filters": {"search": "big"}, "channel": channel_USD.slug}
-    response = user_api_client.post_graphql(search_query, variables)
+    response = user_api_client.post_graphql(SEARCH_PRODUCTS_QUERY, variables)
     content = get_graphql_content(response)
     assert len(content["data"]["products"]["edges"]) == 2
 
     variables = {"filters": {"search": "small"}, "channel": channel_USD.slug}
-    response = user_api_client.post_graphql(search_query, variables)
+    response = user_api_client.post_graphql(SEARCH_PRODUCTS_QUERY, variables)
     content = get_graphql_content(response)
 
     assert len(content["data"]["products"]["edges"]) == 1
+
+
+def test_search_product_by_description_and_name(
+    user_api_client, product_list, product, channel_USD, category, product_type
+):
+    product.description_plaintext = "red big red product"
+    product.save()
+
+    product_2 = product_list[1]
+    product_2.name = "red product"
+    product_2.save()
+    product_1 = product_list[0]
+    product_1.description_plaintext = "some red product"
+    product_1.save()
+
+    variables = {
+        "filters": {
+            "search": "red",
+        },
+        "sortBy": {"field": "RANK", "direction": "DESC"},
+        "channel": channel_USD.slug,
+    }
+    response = user_api_client.post_graphql(SEARCH_PRODUCTS_QUERY, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["products"]["edges"]
+
+    assert data[0]["node"]["name"] == product_2.name
+    assert data[1]["node"]["name"] == product.name
+    assert data[2]["node"]["name"] == product_1.name
+
+
+def test_sort_product_by_rank_without_search(
+    user_api_client, product_list, product, channel_USD, category, product_type
+):
+    product.description_plaintext = "red big red product"
+    product.save()
+
+    product_2 = product_list[1]
+    product_2.name = "red product"
+    product_2.save()
+    product_1 = product_list[0]
+    product_1.description_plaintext = "some red product"
+    product_1.save()
+
+    variables = {
+        "sortBy": {"field": "RANK", "direction": "DESC"},
+        "channel": channel_USD.slug,
+    }
+    response = user_api_client.post_graphql(SEARCH_PRODUCTS_QUERY, variables)
+    with pytest.raises(AssertionError) as e:
+        get_graphql_content(response)
+
+    assert (
+        e._excinfo[1].args[0][0]["message"]
+        == "Sorting by Rank is available only with searching."
+    )
+
+
+@pytest.mark.parametrize("search_value", ["", "  ", None])
+def test_sort_product_by_rank_with_empty_search_value(
+    search_value,
+    user_api_client,
+    product_list,
+    product,
+    channel_USD,
+    category,
+    product_type,
+):
+    product.description_plaintext = "red big red product"
+    product.save()
+
+    product_2 = product_list[1]
+    product_2.name = "red product"
+    product_2.save()
+    product_1 = product_list[0]
+    product_1.description_plaintext = "some red product"
+    product_1.save()
+
+    variables = {
+        "filters": {
+            "search": search_value,
+        },
+        "sortBy": {"field": "RANK", "direction": "DESC"},
+        "channel": channel_USD.slug,
+    }
+    response = user_api_client.post_graphql(SEARCH_PRODUCTS_QUERY, variables)
+    with pytest.raises(AssertionError) as e:
+        get_graphql_content(response)
+
+    assert (
+        e._excinfo[1].args[0][0]["message"]
+        == "Sorting by Rank is available only with searching."
+    )
+
+
+def test_search_product_by_description_and_name_without_sort_by(
+    user_api_client, product_list, product, channel_USD, category, product_type
+):
+    product.description_plaintext = "red big red product"
+    product.save()
+
+    product_2 = product_list[1]
+    product_2.name = "red product"
+    product_2.save()
+    product_1 = product_list[0]
+    product_1.description_plaintext = "some red product"
+    product_1.save()
+
+    variables = {
+        "filters": {
+            "search": "red",
+        },
+        "channel": channel_USD.slug,
+    }
+    response = user_api_client.post_graphql(SEARCH_PRODUCTS_QUERY, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["products"]["edges"]
+
+    assert data[0]["node"]["name"] == product_2.name
+    assert data[1]["node"]["name"] == product.name
+    assert data[2]["node"]["name"] == product_1.name
 
 
 @freeze_time("2020-03-18 12:00:00")
@@ -2652,6 +2992,7 @@ def test_create_product_with_file_attribute(
                     "slug": f"{existing_value.slug}-2",
                     "file": {"url": existing_value.file_url, "contentType": None},
                     "reference": None,
+                    "richText": None,
                 }
             ],
         },
@@ -2719,6 +3060,7 @@ def test_create_product_with_page_reference_attribute(
                     "slug": f"{product_id}_{page.id}",
                     "name": page.title,
                     "file": None,
+                    "richText": None,
                     "reference": reference,
                 }
             ],
@@ -2787,6 +3129,7 @@ def test_create_product_with_product_reference_attribute(
                     "slug": f"{product_id}_{product.id}",
                     "name": product.name,
                     "file": None,
+                    "richText": None,
                     "reference": reference,
                 }
             ],
@@ -2855,6 +3198,7 @@ def test_create_product_with_product_reference_attribute_values_saved_in_order(
             "slug": f"{product_id}_{product.id}",
             "name": product.name,
             "file": None,
+            "richText": None,
             "reference": reference,
         }
         for product, reference in zip(reference_instances, reference_ids)
@@ -2926,6 +3270,7 @@ def test_create_product_with_file_attribute_new_attribute_value(
                     "name": non_existing_value,
                     "slug": slugify(non_existing_value, allow_unicode=True),
                     "reference": None,
+                    "richText": None,
                     "file": {
                         "url": "http://testserver/media/" + non_existing_value,
                         "contentType": None,
@@ -3983,7 +4328,9 @@ MUTATION_UPDATE_PRODUCT = """
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_created")
 def test_update_product(
+    created_webhook_mock,
     updated_webhook_mock,
     staff_api_client,
     category,
@@ -3995,6 +4342,9 @@ def test_update_product(
     color_attribute,
 ):
     query = MUTATION_UPDATE_PRODUCT
+    expected_other_description_json = other_description_json
+    text = expected_other_description_json["blocks"][0]["data"]["text"]
+    expected_other_description_json["blocks"][0]["data"]["text"] = strip_tags(text)
     other_description_json = json.dumps(other_description_json)
 
     product_id = graphene.Node.to_global_id("Product", product.pk)
@@ -4034,7 +4384,7 @@ def test_update_product(
     assert data["productErrors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
-    assert data["product"]["description"] == other_description_json
+    assert data["product"]["description"] == json.dumps(expected_other_description_json)
     assert data["product"]["chargeTaxes"] == product_charge_taxes
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert not data["product"]["category"]["name"] == category.name
@@ -4049,6 +4399,7 @@ def test_update_product(
     assert attributes[0]["values"][0]["slug"] == "rainbow"
 
     updated_webhook_mock.assert_called_once_with(product)
+    created_webhook_mock.assert_not_called()
 
 
 def test_update_and_search_product_by_description(
@@ -4124,7 +4475,7 @@ def test_update_product_without_description_clear_description_plaintext(
     assert not data["productErrors"]
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
-    assert data["product"]["description"] == "{}"
+    assert data["product"]["description"] is None
 
     product.refresh_from_db()
     assert product.description_plaintext == ""
@@ -5239,7 +5590,13 @@ DELETE_PRODUCT_MUTATION = """
 """
 
 
-def test_delete_product(staff_api_client, product, permission_manage_products):
+@patch("saleor.order.tasks.recalculate_orders_task.delay")
+def test_delete_product(
+    mocked_recalculate_orders_task,
+    staff_api_client,
+    product,
+    permission_manage_products,
+):
     query = DELETE_PRODUCT_MUTATION
     node_id = graphene.Node.to_global_id("Product", product.id)
     variables = {"id": node_id}
@@ -5252,9 +5609,46 @@ def test_delete_product(staff_api_client, product, permission_manage_products):
     with pytest.raises(product._meta.model.DoesNotExist):
         product.refresh_from_db()
     assert node_id == data["product"]["id"]
+    mocked_recalculate_orders_task.assert_called_once_with(set())
 
 
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+@patch("saleor.order.tasks.recalculate_orders_task.delay")
+def test_delete_product_trigger_webhook(
+    mocked_recalculate_orders_task,
+    mocked_webhook_trigger,
+    staff_api_client,
+    product,
+    permission_manage_products,
+    settings,
+):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    query = DELETE_PRODUCT_MUTATION
+    node_id = graphene.Node.to_global_id("Product", product.id)
+    variants_id = list(product.variants.all().values_list("id", flat=True))
+    variables = {"id": node_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productDelete"]
+    assert data["product"]["name"] == product.name
+    with pytest.raises(product._meta.model.DoesNotExist):
+        product.refresh_from_db()
+    assert node_id == data["product"]["id"]
+
+    expected_data = generate_product_deleted_payload(product, variants_id)
+
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.PRODUCT_DELETED, expected_data
+    )
+    mocked_recalculate_orders_task.assert_called_once_with(set())
+
+
+@patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_product_variant_in_draft_order(
+    mocked_recalculate_orders_task,
     staff_api_client,
     product_with_two_variants,
     permission_manage_products,
@@ -5320,6 +5714,7 @@ def test_delete_product_variant_in_draft_order(
     assert not OrderLine.objects.filter(pk__in=draft_order_lines_pks).exists()
 
     assert OrderLine.objects.filter(pk__in=not_draft_order_lines_pks).exists()
+    mocked_recalculate_orders_task.assert_called_once_with({draft_order.id})
 
 
 def test_product_type(user_api_client, product_type, channel_USD):
@@ -5368,7 +5763,6 @@ PRODUCT_TYPE_QUERY = """
                     }
                 }
             }
-            taxRate
             taxType {
                 taxCode
                 description
@@ -5528,7 +5922,6 @@ PRODUCT_TYPE_CREATE_MUTATION = """
             productType {
                 name
                 slug
-                taxRate
                 isShippingRequired
                 hasVariants
                 variantAttributes {
@@ -5541,6 +5934,7 @@ PRODUCT_TYPE_CREATE_MUTATION = """
                     name
                     values {
                         name
+                        richText
                     }
                 }
             }
@@ -5617,6 +6011,62 @@ def test_product_type_create_mutation(
     new_instance = ProductType.objects.latest("pk")
     tax_code = manager.get_tax_code_from_object_meta(new_instance).code
     assert tax_code == "wine"
+
+
+def test_create_product_type_with_rich_text_attribute(
+    staff_api_client,
+    product_type,
+    permission_manage_product_types_and_attributes,
+    rich_text_attribute,
+):
+    query = PRODUCT_TYPE_CREATE_MUTATION
+    product_type_name = "test type"
+    slug = "test-type"
+
+    product_type.product_attributes.add(rich_text_attribute)
+    product_attributes_ids = [
+        graphene.Node.to_global_id("Attribute", attr.id)
+        for attr in product_type.product_attributes.all()
+    ]
+
+    variables = {
+        "name": product_type_name,
+        "slug": slug,
+        "productAttributes": product_attributes_ids,
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productTypeCreate"]["productType"]
+    errors = content["data"]["productTypeCreate"]["productErrors"]
+
+    assert not errors
+    assert data["name"] == product_type_name
+    assert data["slug"] == slug
+    expected_attributes = [
+        {
+            "name": "Color",
+            "values": [
+                {"name": "Red", "richText": None},
+                {"name": "Blue", "richText": None},
+            ],
+        },
+        {
+            "name": "Text",
+            "values": [
+                {
+                    "name": "Rich text attribute content.",
+                    "richText": json.dumps(
+                        rich_text_attribute.values.first().rich_text
+                    ),
+                }
+            ],
+        },
+    ]
+    for attribute in data["productAttributes"]:
+        assert attribute in expected_attributes
 
 
 @pytest.mark.parametrize(
@@ -6159,18 +6609,39 @@ def test_product_type_delete_mutation_variants_in_draft_order(
     assert OrderLine.objects.filter(pk=order_line_not_in_draft.pk).exists()
 
 
-def test_product_image_create_mutation(
-    monkeypatch, staff_api_client, product, permission_manage_products, media_root
-):
-    query = """
-    mutation createProductImage($image: Upload!, $product: ID!) {
-        productImageCreate(input: {image: $image, product: $product}) {
-            image {
-                id
+PRODUCT_MEDIA_CREATE_QUERY = """
+    mutation createProductMedia(
+        $product: ID!,
+        $image: Upload,
+        $mediaUrl: String,
+        $alt: String
+    ) {
+        productMediaCreate(input: {
+            product: $product,
+            mediaUrl: $mediaUrl,
+            alt: $alt,
+            image: $image
+        }) {
+            product {
+                media {
+                    url
+                    alt
+                    type
+                    oembedData
+                }
+            }
+            productErrors {
+                code
+                field
             }
         }
     }
     """
+
+
+def test_product_media_create_mutation(
+    monkeypatch, staff_api_client, product, permission_manage_products, media_root
+):
     mock_create_thumbnails = Mock(return_value=None)
     monkeypatch.setattr(
         (
@@ -6183,55 +6654,153 @@ def test_product_image_create_mutation(
     image_file, image_name = create_image()
     variables = {
         "product": graphene.Node.to_global_id("Product", product.id),
+        "alt": "",
         "image": image_name,
     }
-    body = get_multipart_request_body(query, variables, image_file, image_name)
+    body = get_multipart_request_body(
+        PRODUCT_MEDIA_CREATE_QUERY, variables, image_file, image_name
+    )
     response = staff_api_client.post_multipart(
         body, permissions=[permission_manage_products]
     )
     get_graphql_content(response)
     product.refresh_from_db()
-    product_image = product.images.last()
+    product_image = product.media.last()
     assert product_image.image.file
 
     # The image creation should have triggered a warm-up
     mock_create_thumbnails.assert_called_once_with(product_image.pk)
 
 
-def test_product_image_create_mutation_without_file(
+def test_product_media_create_mutation_without_file(
     monkeypatch, staff_api_client, product, permission_manage_products, media_root
 ):
-    query = """
-    mutation createProductImage($image: Upload!, $product: ID!) {
-        productImageCreate(input: {image: $image, product: $product}) {
-            productErrors {
-                code
-                field
-            }
-        }
-    }
-    """
     variables = {
         "product": graphene.Node.to_global_id("Product", product.id),
         "image": "image name",
     }
-    body = get_multipart_request_body(query, variables, file="", file_name="name")
+    body = get_multipart_request_body(
+        PRODUCT_MEDIA_CREATE_QUERY, variables, file="", file_name="name"
+    )
     response = staff_api_client.post_multipart(
         body, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
-    errors = content["data"]["productImageCreate"]["productErrors"]
+
+    errors = content["data"]["productMediaCreate"]["productErrors"]
     assert errors[0]["field"] == "image"
     assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
 
 
-def test_invalid_product_image_create_mutation(
+@pytest.mark.vcr
+def test_product_media_create_mutation_with_media_url(
+    monkeypatch, staff_api_client, product, permission_manage_products, media_root
+):
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product.id),
+        "mediaUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        "alt": "",
+    }
+    body = get_multipart_request_body(
+        PRODUCT_MEDIA_CREATE_QUERY, variables, file="", file_name="name"
+    )
+    response = staff_api_client.post_multipart(
+        body, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+
+    media = content["data"]["productMediaCreate"]["product"]["media"]
+    assert len(media) == 1
+    assert media[0]["url"] == "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+    assert media[0]["alt"] == "Rick Astley - Never Gonna Give You Up (Video)"
+    assert media[0]["type"] == ProductMediaTypes.VIDEO
+
+    oembed_data = json.loads(media[0]["oembedData"])
+    assert oembed_data["url"] == "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+    assert oembed_data["type"] == "video"
+    assert oembed_data["html"] is not None
+    assert oembed_data["thumbnail_url"] == (
+        "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg"
+    )
+
+
+def test_product_media_create_mutation_without_url_or_image(
+    monkeypatch, staff_api_client, product, permission_manage_products, media_root
+):
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product.id),
+        "alt": "Test Alt Text",
+    }
+    body = get_multipart_request_body(
+        PRODUCT_MEDIA_CREATE_QUERY, variables, file="", file_name="name"
+    )
+
+    response = staff_api_client.post_multipart(
+        body, permissions=[permission_manage_products]
+    )
+
+    content = get_graphql_content(response)
+    errors = content["data"]["productMediaCreate"]["productErrors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
+    assert errors[0]["field"] == "input"
+
+
+def test_product_media_create_mutation_with_both_url_and_image(
+    monkeypatch, staff_api_client, product, permission_manage_products, media_root
+):
+    image_file, image_name = create_image()
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product.id),
+        "mediaUrl": "https://www.youtube.com/watch?v=SomeVideoID&ab_channel=Test",
+        "image": image_name,
+        "alt": "Test Alt Text",
+    }
+    body = get_multipart_request_body(
+        PRODUCT_MEDIA_CREATE_QUERY, variables, image_file, image_name
+    )
+
+    response = staff_api_client.post_multipart(
+        body, permissions=[permission_manage_products]
+    )
+
+    content = get_graphql_content(response)
+    errors = content["data"]["productMediaCreate"]["productErrors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductErrorCode.DUPLICATED_INPUT_ITEM.name
+    assert errors[0]["field"] == "input"
+
+
+def test_product_media_create_mutation_with_unknown_url(
+    monkeypatch, staff_api_client, product, permission_manage_products, media_root
+):
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product.id),
+        "mediaUrl": "https://www.videohosting.com/SomeVideoID",
+        "alt": "Test Alt Text",
+    }
+    body = get_multipart_request_body(
+        PRODUCT_MEDIA_CREATE_QUERY, variables, file="", file_name="name"
+    )
+
+    response = staff_api_client.post_multipart(
+        body, permissions=[permission_manage_products]
+    )
+
+    content = get_graphql_content(response)
+    errors = content["data"]["productMediaCreate"]["productErrors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductErrorCode.UNSUPPORTED_MEDIA_PROVIDER.name
+    assert errors[0]["field"] == "mediaUrl"
+
+
+def test_invalid_product_media_create_mutation(
     staff_api_client, product, permission_manage_products
 ):
     query = """
-    mutation createProductImage($image: Upload!, $product: ID!) {
-        productImageCreate(input: {image: $image, product: $product}) {
-            image {
+    mutation createProductMedia($image: Upload!, $product: ID!) {
+        productMediaCreate(input: {image: $image, product: $product}) {
+            media {
                 id
                 url
                 sortOrder
@@ -6249,24 +6818,26 @@ def test_invalid_product_image_create_mutation(
         "image": image_name,
     }
     body = get_multipart_request_body(query, variables, image_file, image_name)
+
     response = staff_api_client.post_multipart(
         body, permissions=[permission_manage_products]
     )
+
     content = get_graphql_content(response)
-    assert content["data"]["productImageCreate"]["errors"] == [
+    assert content["data"]["productMediaCreate"]["errors"] == [
         {"field": "image", "message": "Invalid file type"}
     ]
     product.refresh_from_db()
-    assert product.images.count() == 0
+    assert product.media.count() == 0
 
 
 def test_product_image_update_mutation(
     monkeypatch, staff_api_client, product_with_image, permission_manage_products
 ):
     query = """
-    mutation updateProductImage($imageId: ID!, $alt: String) {
-        productImageUpdate(id: $imageId, input: {alt: $alt}) {
-            image {
+    mutation updateProductMedia($mediaId: ID!, $alt: String) {
+        productMediaUpdate(id: $mediaId, input: {alt: $alt}) {
+            media {
                 alt
             }
         }
@@ -6282,57 +6853,57 @@ def test_product_image_update_mutation(
         mock_create_thumbnails,
     )
 
-    image_obj = product_with_image.images.first()
+    media_obj = product_with_image.media.first()
     alt = "damage alt"
     variables = {
         "alt": alt,
-        "imageId": graphene.Node.to_global_id("ProductImage", image_obj.id),
+        "mediaId": graphene.Node.to_global_id("ProductMedia", media_obj.id),
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
-    assert content["data"]["productImageUpdate"]["image"]["alt"] == alt
+    assert content["data"]["productMediaUpdate"]["media"]["alt"] == alt
 
     # We did not update the image field,
     # the image should not have triggered a warm-up
     assert mock_create_thumbnails.call_count == 0
 
 
-def test_product_image_delete(
+def test_product_media_delete(
     staff_api_client, product_with_image, permission_manage_products
 ):
     product = product_with_image
     query = """
-            mutation deleteProductImage($id: ID!) {
-                productImageDelete(id: $id) {
-                    image {
+            mutation deleteProductMedia($id: ID!) {
+                productMediaDelete(id: $id) {
+                    media {
                         id
                         url
                     }
                 }
             }
         """
-    image_obj = product.images.first()
-    node_id = graphene.Node.to_global_id("ProductImage", image_obj.id)
+    media_obj = product.media.first()
+    node_id = graphene.Node.to_global_id("ProductMedia", media_obj.id)
     variables = {"id": node_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
-    data = content["data"]["productImageDelete"]
-    assert image_obj.image.url in data["image"]["url"]
-    with pytest.raises(image_obj._meta.model.DoesNotExist):
-        image_obj.refresh_from_db()
-    assert node_id == data["image"]["id"]
+    data = content["data"]["productMediaDelete"]
+    assert media_obj.image.url in data["media"]["url"]
+    with pytest.raises(media_obj._meta.model.DoesNotExist):
+        media_obj.refresh_from_db()
+    assert node_id == data["media"]["id"]
 
 
-def test_reorder_images(
+def test_reorder_media(
     staff_api_client, product_with_images, permission_manage_products
 ):
     query = """
-    mutation reorderImages($product_id: ID!, $images_ids: [ID]!) {
-        productImageReorder(productId: $product_id, imagesIds: $images_ids) {
+    mutation reorderMedia($product_id: ID!, $media_ids: [ID]!) {
+        productMediaReorder(productId: $product_id, mediaIds: $media_ids) {
             product {
                 id
             }
@@ -6340,14 +6911,14 @@ def test_reorder_images(
     }
     """
     product = product_with_images
-    images = product.images.all()
-    image_0 = images[0]
-    image_1 = images[1]
-    image_0_id = graphene.Node.to_global_id("ProductImage", image_0.id)
-    image_1_id = graphene.Node.to_global_id("ProductImage", image_1.id)
+    media = product.media.all()
+    media_0 = media[0]
+    media_1 = media[1]
+    media_0_id = graphene.Node.to_global_id("ProductMedia", media_0.id)
+    media_1_id = graphene.Node.to_global_id("ProductMedia", media_1.id)
     product_id = graphene.Node.to_global_id("Product", product.id)
 
-    variables = {"product_id": product_id, "images_ids": [image_1_id, image_0_id]}
+    variables = {"product_id": product_id, "media_ids": [media_1_id, media_0_id]}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
@@ -6355,16 +6926,16 @@ def test_reorder_images(
 
     # Check if order has been changed
     product.refresh_from_db()
-    reordered_images = product.images.all()
-    reordered_image_0 = reordered_images[0]
-    reordered_image_1 = reordered_images[1]
-    assert image_0.id == reordered_image_1.id
-    assert image_1.id == reordered_image_0.id
+    reordered_media = product.media.all()
+    reordered_media_0 = reordered_media[0]
+    reordered_media_1 = reordered_media[1]
+    assert media_0.id == reordered_media_1.id
+    assert media_1.id == reordered_media_0.id
 
 
 ASSIGN_VARIANT_QUERY = """
-    mutation assignVariantImageMutation($variantId: ID!, $imageId: ID!) {
-        variantImageAssign(variantId: $variantId, imageId: $imageId) {
+    mutation assignVariantMediaMutation($variantId: ID!, $mediaId: ID!) {
+        variantMediaAssign(variantId: $variantId, mediaId: $mediaId) {
             errors {
                 field
                 message
@@ -6377,38 +6948,37 @@ ASSIGN_VARIANT_QUERY = """
 """
 
 
-def test_assign_variant_image(
+def test_assign_variant_media(
     staff_api_client, user_api_client, product_with_image, permission_manage_products
 ):
     query = ASSIGN_VARIANT_QUERY
     variant = product_with_image.variants.first()
-    image = product_with_image.images.first()
+    media_obj = product_with_image.media.first()
 
     variables = {
         "variantId": to_global_id("ProductVariant", variant.pk),
-        "imageId": to_global_id("ProductImage", image.pk),
+        "mediaId": to_global_id("ProductMedia", media_obj.pk),
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
     get_graphql_content(response)
     variant.refresh_from_db()
-    assert variant.images.first() == image
+    assert variant.media.first() == media_obj
 
 
-def test_assign_variant_image_second_time(
+def test_assign_variant_media_second_time(
     staff_api_client, user_api_client, product_with_image, permission_manage_products
 ):
     # given
     query = ASSIGN_VARIANT_QUERY
     variant = product_with_image.variants.first()
-    image = product_with_image.images.first()
-
-    image.variant_images.create(variant=variant)
+    media_obj = product_with_image.media.first()
+    media_obj.variant_media.create(variant=variant)
 
     variables = {
         "variantId": to_global_id("ProductVariant", variant.pk),
-        "imageId": to_global_id("ProductImage", image.pk),
+        "mediaId": to_global_id("ProductMedia", media_obj.pk),
     }
 
     # when
@@ -6425,7 +6995,7 @@ def test_assign_variant_image_second_time(
     )
 
 
-def test_assign_variant_image_from_different_product(
+def test_assign_variant_media_from_different_product(
     staff_api_client, user_api_client, product_with_image, permission_manage_products
 ):
     query = ASSIGN_VARIANT_QUERY
@@ -6434,16 +7004,16 @@ def test_assign_variant_image_from_different_product(
     product_with_image.slug = "product-with-image"
     product_with_image.save()
 
-    image_2 = ProductImage.objects.create(product=product_with_image)
+    media_obj_2 = ProductMedia.objects.create(product=product_with_image)
     variables = {
         "variantId": to_global_id("ProductVariant", variant.pk),
-        "imageId": to_global_id("ProductImage", image_2.pk),
+        "mediaId": to_global_id("ProductMedia", media_obj_2.pk),
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
-    assert content["data"]["variantImageAssign"]["errors"][0]["field"] == "imageId"
+    assert content["data"]["variantMediaAssign"]["errors"][0]["field"] == "mediaId"
 
     # check permissions
     response = user_api_client.post_graphql(query, variables)
@@ -6451,8 +7021,8 @@ def test_assign_variant_image_from_different_product(
 
 
 UNASSIGN_VARIANT_IMAGE_QUERY = """
-    mutation unassignVariantImageMutation($variantId: ID!, $imageId: ID!) {
-        variantImageUnassign(variantId: $variantId, imageId: $imageId) {
+    mutation unassignVariantMediaMutation($variantId: ID!, $mediaId: ID!) {
+        variantMediaUnassign(variantId: $variantId, mediaId: $mediaId) {
             errors {
                 field
                 message
@@ -6465,42 +7035,42 @@ UNASSIGN_VARIANT_IMAGE_QUERY = """
 """
 
 
-def test_unassign_variant_image(
+def test_unassign_variant_media_image(
     staff_api_client, product_with_image, permission_manage_products
 ):
     query = UNASSIGN_VARIANT_IMAGE_QUERY
 
-    image = product_with_image.images.first()
+    media = product_with_image.media.first()
     variant = product_with_image.variants.first()
-    variant.variant_images.create(image=image)
+    variant.variant_media.create(media=media)
 
     variables = {
         "variantId": to_global_id("ProductVariant", variant.pk),
-        "imageId": to_global_id("ProductImage", image.pk),
+        "mediaId": to_global_id("ProductMedia", media.pk),
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
     get_graphql_content(response)
     variant.refresh_from_db()
-    assert variant.images.count() == 0
+    assert variant.media.count() == 0
 
 
-def test_unassign_not_assigned_variant_image(
+def test_unassign_not_assigned_variant_media_image(
     staff_api_client, product_with_image, permission_manage_products
 ):
     query = UNASSIGN_VARIANT_IMAGE_QUERY
     variant = product_with_image.variants.first()
-    image_2 = ProductImage.objects.create(product=product_with_image)
+    media = ProductMedia.objects.create(product=product_with_image)
     variables = {
         "variantId": to_global_id("ProductVariant", variant.pk),
-        "imageId": to_global_id("ProductImage", image_2.pk),
+        "mediaId": to_global_id("ProductMedia", media.pk),
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
-    assert content["data"]["variantImageUnassign"]["errors"][0]["field"] == ("imageId")
+    assert content["data"]["variantMediaUnassign"]["errors"][0]["field"] == ("mediaId")
 
 
 @patch("saleor.product.tasks.update_variants_names.delay")
@@ -6672,10 +7242,10 @@ def test_product_variant_price(
     ).update(price_amount=variant_price_amount)
 
     query = """
-        query getProductVariants($id: ID!, $channel: String) {
+        query getProductVariants($id: ID!, $channel: String, $address: AddressInput) {
             product(id: $id, channel: $channel) {
                 variants {
-                    pricing {
+                    pricing(address: $address) {
                         priceUndiscounted {
                             gross {
                                 amount
@@ -6687,7 +7257,11 @@ def test_product_variant_price(
         }
         """
     product_id = graphene.Node.to_global_id("Product", variant.product.id)
-    variables = {"id": product_id, "channel": channel_USD.slug}
+    variables = {
+        "id": product_id,
+        "channel": channel_USD.slug,
+        "address": {"country": "US"},
+    }
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["product"]

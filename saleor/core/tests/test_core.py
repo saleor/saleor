@@ -8,6 +8,7 @@ from django.core.management import CommandError, call_command
 from django.db.utils import DataError
 from django.templatetags.static import static
 from django.test import RequestFactory, override_settings
+from django_countries.fields import Country
 
 from ...account.models import Address, User
 from ...account.utils import create_superuser
@@ -15,17 +16,15 @@ from ...channel.models import Channel
 from ...discount.models import Sale, SaleChannelListing, Voucher, VoucherChannelListing
 from ...giftcard.models import GiftCard
 from ...order.models import Order
-from ...product.models import ProductImage, ProductType
+from ...product.models import ProductMedia, ProductType
 from ...shipping.models import ShippingZone
 from ..storages import S3MediaStorage
 from ..templatetags.placeholder import placeholder
 from ..utils import (
-    Country,
     build_absolute_uri,
     create_thumbnails,
     generate_unique_slug,
     get_client_ip,
-    get_country_by_ip,
     get_currency_for_country,
     random_data,
 )
@@ -42,24 +41,6 @@ type_schema = {
         "is_shipping_required": True,
     }
 }
-
-
-@pytest.mark.parametrize(
-    "ip_data, expected_country",
-    [
-        ({"country": {"iso_code": "PL"}}, Country("PL")),
-        ({"country": {"iso_code": "UNKNOWN"}}, None),
-        (None, None),
-        ({}, None),
-        ({"country": {}}, None),
-    ],
-)
-def test_get_country_by_ip(ip_data, expected_country, monkeypatch):
-    monkeypatch.setattr(
-        "saleor.core.utils._get_geo_data_by_ip", Mock(return_value=ip_data)
-    )
-    country = get_country_by_ip("127.0.0.1")
-    assert country == expected_country
 
 
 @pytest.mark.parametrize(
@@ -88,7 +69,7 @@ def test_get_client_ip(ip_address, expected_ip):
     [(Country("PL"), "PLN"), (Country("US"), "USD"), (Country("GB"), "GBP")],
 )
 def test_get_currency_for_country(country, expected_currency, monkeypatch):
-    currency = get_currency_for_country(country)
+    currency = get_currency_for_country(country.code)
     assert currency == expected_currency
 
 
@@ -207,7 +188,7 @@ def test_create_gift_card(db):
 def test_create_thumbnails(product_with_image, settings, monkeypatch):
     monkeypatch.setattr("django.core.cache.cache.get", Mock(return_value=None))
     sizeset = settings.VERSATILEIMAGEFIELD_RENDITION_KEY_SETS["products"]
-    product_image = product_with_image.images.first()
+    product_image = product_with_image.media.first()
 
     # There's no way to list images created by versatile prewarmer
     # So we delete all created thumbnails/crops and count them
@@ -218,7 +199,7 @@ def test_create_thumbnails(product_with_image, settings, monkeypatch):
     # Image didn't have any thumbnails/crops created, so there's no log
     assert not log_deleted_images
 
-    create_thumbnails(product_image.pk, ProductImage, "products")
+    create_thumbnails(product_image.pk, ProductMedia, "products")
     log_deleted_images = io.StringIO()
     with redirect_stdout(log_deleted_images):
         product_image.image.delete_all_created_images()

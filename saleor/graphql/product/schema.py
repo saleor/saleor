@@ -1,4 +1,5 @@
 import graphene
+from graphql.error import GraphQLError
 
 from ...account.utils import requestor_is_staff_member_or_app
 from ...core.permissions import ProductPermissions
@@ -23,7 +24,7 @@ from .bulk_mutations.products import (
     CategoryBulkDelete,
     CollectionBulkDelete,
     ProductBulkDelete,
-    ProductImageBulkDelete,
+    ProductMediaBulkDelete,
     ProductTypeBulkDelete,
     ProductVariantBulkCreate,
     ProductVariantBulkDelete,
@@ -69,10 +70,10 @@ from .mutations.products import (
     CollectionUpdate,
     ProductCreate,
     ProductDelete,
-    ProductImageCreate,
-    ProductImageDelete,
-    ProductImageReorder,
-    ProductImageUpdate,
+    ProductMediaCreate,
+    ProductMediaDelete,
+    ProductMediaReorder,
+    ProductMediaUpdate,
     ProductTypeCreate,
     ProductTypeDelete,
     ProductTypeUpdate,
@@ -82,8 +83,8 @@ from .mutations.products import (
     ProductVariantReorder,
     ProductVariantSetDefault,
     ProductVariantUpdate,
-    VariantImageAssign,
-    VariantImageUnassign,
+    VariantMediaAssign,
+    VariantMediaUnassign,
 )
 from .resolvers import (
     resolve_categories,
@@ -105,6 +106,7 @@ from .sorters import (
     CategorySortingInput,
     CollectionSortingInput,
     ProductOrder,
+    ProductOrderField,
     ProductTypeSortingInput,
 )
 from .types import (
@@ -311,6 +313,17 @@ class ProductQueries(graphene.ObjectType):
         return ChannelContext(node=product, channel_slug=channel) if product else None
 
     def resolve_products(self, info, channel=None, **kwargs):
+        # sort by RANK can be used only with search filter
+        if "sort_by" in kwargs and ProductOrderField.RANK == kwargs["sort_by"].get(
+            "field"
+        ):
+            if (
+                "filter" not in kwargs
+                or kwargs["filter"].get("search") is None
+                or not kwargs["filter"]["search"].strip()
+            ):
+                raise GraphQLError("Sorting by Rank is available only with searching.")
+
         requestor = get_user_or_app_from_context(info.context)
         if channel is None and not requestor_is_staff_member_or_app(requestor):
             channel = get_default_channel_slug_or_graphql_error()
@@ -395,12 +408,12 @@ class ProductMutations(graphene.ObjectType):
 
     product_channel_listing_update = ProductChannelListingUpdate.Field()
 
-    product_image_create = ProductImageCreate.Field()
+    product_media_create = ProductMediaCreate.Field()
     product_variant_reorder = ProductVariantReorder.Field()
-    product_image_delete = ProductImageDelete.Field()
-    product_image_bulk_delete = ProductImageBulkDelete.Field()
-    product_image_reorder = ProductImageReorder.Field()
-    product_image_update = ProductImageUpdate.Field()
+    product_media_delete = ProductMediaDelete.Field()
+    product_media_bulk_delete = ProductMediaBulkDelete.Field()
+    product_media_reorder = ProductMediaReorder.Field()
+    product_media_update = ProductMediaUpdate.Field()
 
     product_type_create = ProductTypeCreate.Field()
     product_type_delete = ProductTypeDelete.Field()
@@ -430,5 +443,5 @@ class ProductMutations(graphene.ObjectType):
         ProductVariantReorderAttributeValues.Field()
     )
 
-    variant_image_assign = VariantImageAssign.Field()
-    variant_image_unassign = VariantImageUnassign.Field()
+    variant_media_assign = VariantMediaAssign.Field()
+    variant_media_unassign = VariantMediaUnassign.Field()

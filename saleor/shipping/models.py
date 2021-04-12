@@ -15,8 +15,8 @@ from ..core.permissions import ShippingPermissions
 from ..core.units import WeightUnits
 from ..core.utils.translations import TranslationProxy
 from ..core.weight import convert_weight, get_default_weight_unit, zero_weight
-from . import ShippingMethodType
-from .zip_codes import check_shipping_method_for_zip_code
+from . import PostalCodeRuleInclusionType, ShippingMethodType
+from .postal_codes import filter_shipping_methods_by_postal_code_rules
 
 if TYPE_CHECKING:
     # flake8: noqa
@@ -27,10 +27,13 @@ if TYPE_CHECKING:
 def _applicable_weight_based_methods(weight, qs):
     """Return weight based shipping methods that are applicable for the total weight."""
     qs = qs.weight_based()
-    min_weight_matched = Q(minimum_order_weight__lte=weight)
-    no_weight_limit = Q(maximum_order_weight__isnull=True)
-    max_weight_matched = Q(maximum_order_weight__gte=weight)
-    return qs.filter(min_weight_matched & (no_weight_limit | max_weight_matched))
+    min_weight_matched = Q(minimum_order_weight__lte=weight) | Q(
+        minimum_order_weight__isnull=True
+    )
+    max_weight_matched = Q(maximum_order_weight__gte=weight) | Q(
+        maximum_order_weight__isnull=True
+    )
+    return qs.filter(min_weight_matched & max_weight_matched)
 
 
 def _applicable_price_based_methods(price: Money, qs, channel_id):
@@ -77,7 +80,7 @@ class ShippingZone(ModelWithMetadata):
     def __str__(self):
         return self.name
 
-    class Meta:
+    class Meta(ModelWithMetadata.Meta):
         permissions = (
             (ShippingPermissions.MANAGE_SHIPPING.codename, "Manage shipping."),
         )
@@ -158,15 +161,11 @@ class ShippingMethodQueryset(models.QuerySet):
             weight=instance.get_total_weight(lines),
             country_code=country_code or instance.shipping_address.country.code,
             product_ids=instance_product_ids,
-        ).prefetch_related("zip_code_rules")
+        ).prefetch_related("postal_code_rules")
 
-        excluded_methods_by_zip_code = []
-        for method in applicable_methods:
-            if check_shipping_method_for_zip_code(instance.shipping_address, method):
-                excluded_methods_by_zip_code.append(method.pk)
-        if excluded_methods_by_zip_code:
-            return applicable_methods.exclude(pk__in=excluded_methods_by_zip_code)
-        return applicable_methods
+        return filter_shipping_methods_by_postal_code_rules(
+            applicable_methods, instance.shipping_address
+        )
 
 
 class ShippingMethod(ModelWithMetadata):
@@ -197,7 +196,7 @@ class ShippingMethod(ModelWithMetadata):
     objects = ShippingMethodQueryset.as_manager()
     translated = TranslationProxy()
 
-    class Meta:
+    class Meta(ModelWithMetadata.Meta):
         ordering = ("pk",)
 
     def __str__(self):
@@ -214,12 +213,17 @@ class ShippingMethod(ModelWithMetadata):
         )
 
 
-class ShippingMethodZipCodeRule(models.Model):
+class ShippingMethodPostalCodeRule(models.Model):
     shipping_method = models.ForeignKey(
-        ShippingMethod, on_delete=models.CASCADE, related_name="zip_code_rules"
+        ShippingMethod, on_delete=models.CASCADE, related_name="postal_code_rules"
     )
     start = models.CharField(max_length=32)
     end = models.CharField(max_length=32, blank=True, null=True)
+    inclusion_type = models.CharField(
+        max_length=32,
+        choices=PostalCodeRuleInclusionType.CHOICES,
+        default=PostalCodeRuleInclusionType.EXCLUDE,
+    )
 
     class Meta:
         unique_together = ("shipping_method", "start", "end")

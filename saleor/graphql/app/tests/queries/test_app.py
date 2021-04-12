@@ -3,12 +3,10 @@ import pytest
 from freezegun import freeze_time
 
 from .....core.jwt import create_access_token_for_app
-from .....webhook.event_types import WebhookEventType
-from .....webhook.models import Webhook
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 QUERY_APP = """
-    query ($id: ID! ){
+    query ($id: ID){
         app(id: $id){
             id
             created
@@ -46,14 +44,14 @@ def test_app_query(
     permission_manage_staff,
     app,
     external_app,
+    webhook,
 ):
     app = app if app_type == "custom" else external_app
     app.permissions.add(permission_manage_staff)
 
-    webhook = Webhook.objects.create(
-        name="Simple webhook", app=app, target_url="http://www.example.com/test"
-    )
-    webhook.events.create(event_type=WebhookEventType.ORDER_CREATED)
+    webhook = webhook
+    webhook.app = app
+    webhook.save()
 
     id = graphene.Node.to_global_id("App", app.id)
     variables = {"id": id}
@@ -131,3 +129,96 @@ def test_app_with_access_to_resources(
         query, permissions=[permission_manage_orders]
     )
     get_graphql_content(response)
+
+
+def test_app_without_id_as_staff(
+    staff_api_client, app, permission_manage_apps, order_with_lines, webhook
+):
+    response = staff_api_client.post_graphql(
+        QUERY_APP, permissions=[permission_manage_apps]
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["app"] is None
+
+
+def test_own_app_without_id(
+    app_api_client, app, permission_manage_orders, order_with_lines, webhook
+):
+    response = app_api_client.post_graphql(
+        QUERY_APP,
+    )
+    content = get_graphql_content(response)
+
+    tokens = app.tokens.all()
+    app_data = content["data"]["app"]
+    tokens_data = app_data["tokens"]
+    assert tokens.count() == 1
+    assert tokens_data[0]["authToken"] == tokens.first().auth_token[-4:]
+
+    assert app_data["isActive"] == app.is_active
+    assert len(app_data["webhooks"]) == 1
+    assert app_data["webhooks"][0]["name"] == webhook.name
+    assert app_data["type"] == app.type.upper()
+    assert app_data["aboutApp"] == app.about_app
+    assert app_data["dataPrivacy"] == app.data_privacy
+    assert app_data["dataPrivacyUrl"] == app.data_privacy_url
+    assert app_data["homepageUrl"] == app.homepage_url
+    assert app_data["supportUrl"] == app.support_url
+    assert app_data["configurationUrl"] == app.configuration_url
+    assert app_data["appUrl"] == app.app_url
+
+
+def test_app_query_without_permission(
+    app_api_client,
+    app,
+    order_with_lines,
+):
+    id = graphene.Node.to_global_id("App", app.id)
+    variables = {"id": id}
+    response = app_api_client.post_graphql(
+        QUERY_APP,
+        variables,
+    )
+    assert_no_permission(response)
+
+
+def test_app_query_without_permission_and_id(
+    staff_api_client,
+    app,
+    order_with_lines,
+):
+    response = staff_api_client.post_graphql(
+        QUERY_APP,
+    )
+    assert_no_permission(response)
+
+
+def test_app_query_with_permission(
+    app_api_client, permission_manage_apps, app, external_app, webhook
+):
+    app.permissions.add(permission_manage_apps)
+    id = graphene.Node.to_global_id("App", app.id)
+    variables = {"id": id}
+    response = app_api_client.post_graphql(
+        QUERY_APP,
+        variables,
+    )
+    content = get_graphql_content(response)
+
+    tokens = app.tokens.all()
+    app_data = content["data"]["app"]
+    tokens_data = app_data["tokens"]
+    assert tokens.count() == 1
+    assert tokens_data[0]["authToken"] == tokens.first().auth_token[-4:]
+
+    assert app_data["isActive"] == app.is_active
+    assert len(app_data["webhooks"]) == 1
+    assert app_data["webhooks"][0]["name"] == webhook.name
+    assert app_data["type"] == app.type.upper()
+    assert app_data["aboutApp"] == app.about_app
+    assert app_data["dataPrivacy"] == app.data_privacy
+    assert app_data["dataPrivacyUrl"] == app.data_privacy_url
+    assert app_data["homepageUrl"] == app.homepage_url
+    assert app_data["supportUrl"] == app.support_url
+    assert app_data["configurationUrl"] == app.configuration_url
+    assert app_data["appUrl"] == app.app_url

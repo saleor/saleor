@@ -25,6 +25,7 @@ color_pattern = re.compile(COLOR_PATTERN)
 class AttributeValue(CountableDjangoObjectType):
     name = graphene.String(description=AttributeValueDescriptions.NAME)
     slug = graphene.String(description=AttributeValueDescriptions.SLUG)
+    value = graphene.String(description=AttributeValueDescriptions.VALUE)
     translation = TranslationField(
         AttributeValueTranslation, type_name="attribute value"
     )
@@ -32,6 +33,9 @@ class AttributeValue(CountableDjangoObjectType):
     reference = graphene.ID(description="The ID of the attribute reference.")
     file = graphene.Field(
         File, description=AttributeValueDescriptions.FILE, required=False
+    )
+    rich_text = graphene.JSONString(
+        description=AttributeValueDescriptions.RICH_TEXT, required=False
     )
 
     class Meta:
@@ -194,4 +198,7 @@ class AttributeValueInput(graphene.InputObjectType):
         graphene.NonNull(graphene.ID),
         description="List of entity IDs that will be used as references.",
         required=False,
+    )
+    rich_text = graphene.JSONString(
+        required=False, description="Text content in JSON format."
     )

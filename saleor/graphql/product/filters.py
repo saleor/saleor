@@ -4,6 +4,7 @@ from typing import Dict, Iterable, List, Optional
 
 import django_filters
 import graphene
+from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db.models import Exists, F, FloatField, OuterRef, Q, Subquery, Sum
 from django.db.models.functions import Cast, Coalesce
 from graphene_django.filter import GlobalIDFilter, GlobalIDMultipleChoiceFilter
@@ -18,7 +19,12 @@ from ...attribute.models import (
 from ...product.models import Category, Collection, Product, ProductType, ProductVariant
 from ...warehouse.models import Stock
 from ..channel.filters import get_channel_slug_from_filter_data
-from ..core.filters import EnumFilter, ListObjectTypeFilter, ObjectTypeFilter
+from ..core.filters import (
+    EnumFilter,
+    ListObjectTypeFilter,
+    MetadataFilterBase,
+    ObjectTypeFilter,
+)
 from ..core.types import ChannelFilterInputObjectType, FilterInputObjectType
 from ..core.types.common import IntRangeInput, PriceRangeInput
 from ..utils import get_nodes, resolve_global_ids_to_primary_keys
@@ -46,15 +52,6 @@ def filter_attributes(qs, _, value):
                 value_range_list.append((slug, v["values_range"]))
         qs = filter_products_by_attributes(qs, value_list, value_range_list)
     return qs
-
-
-def filter_products_by_attributes(qs, filter_values, filter_range_values):
-    queries: Dict[int, List[Optional[int]]] = defaultdict(list)
-    if filter_values:
-        _clean_product_attributes_filter_input(filter_values, queries)
-    if filter_range_values:
-        _clean_product_attributes_range_filter_input(filter_range_values, queries)
-    return filter_products_by_attributes_values(qs, queries)
 
 
 def _clean_product_attributes_filter_input(filter_value, queries):
@@ -131,6 +128,18 @@ def filter_products_by_attributes_values(qs, queries: T_PRODUCT_FILTER_QUERIES):
     ]
 
     return qs.filter(*filters)
+
+
+def filter_products_by_attributes(qs, filter_values, filter_range_values):
+    queries: Dict[int, List[Optional[int]]] = defaultdict(list)
+    try:
+        if filter_values:
+            _clean_product_attributes_filter_input(filter_values, queries)
+        if filter_range_values:
+            _clean_product_attributes_range_filter_input(filter_range_values, queries)
+    except ValueError:
+        return Product.objects.none()
+    return filter_products_by_attributes_values(qs, queries)
 
 
 def filter_products_by_variant_price(qs, channel_slug, price_lte=None, price_gte=None):
@@ -251,14 +260,21 @@ def product_search(phrase):
         phrase (str): searched phrase
 
     """
-    ft_in_description_or_name = Q(search_vector=phrase)
+    query = SearchQuery(phrase, config="english")
+    vector = F("search_vector")
+    ft_in_description_or_name = Q(search_vector=query)
+
     ft_by_sku = Q(variants__sku__search=phrase)
-    return Product.objects.filter((ft_in_description_or_name | ft_by_sku))
+    return (
+        Product.objects.annotate(rank=SearchRank(vector, query))
+        .filter((ft_in_description_or_name | ft_by_sku))
+        .order_by("-rank")
+    )
 
 
 def filter_search(qs, _, value):
     if value:
-        qs = qs.distinct() & product_search(value).distinct()
+        qs = product_search(value).distinct() & qs.distinct()
     return qs
 
 
@@ -336,7 +352,7 @@ class ProductStockFilterInput(graphene.InputObjectType):
     quantity = graphene.Field(IntRangeInput, required=False)
 
 
-class ProductFilter(django_filters.FilterSet):
+class ProductFilter(MetadataFilterBase):
     is_published = django_filters.BooleanFilter(method="filter_is_published")
     collections = GlobalIDMultipleChoiceFilter(method=filter_collections)
     categories = GlobalIDMultipleChoiceFilter(method=filter_categories)
@@ -387,7 +403,7 @@ class ProductFilter(django_filters.FilterSet):
         return _filter_is_published(queryset, name, value, channel_slug)
 
 
-class ProductVariantFilter(django_filters.FilterSet):
+class ProductVariantFilter(MetadataFilterBase):
     search = django_filters.CharFilter(
         method=filter_fields_containing_value("name", "product__name", "sku")
     )
@@ -398,7 +414,7 @@ class ProductVariantFilter(django_filters.FilterSet):
         fields = ["search", "sku"]
 
 
-class CollectionFilter(django_filters.FilterSet):
+class CollectionFilter(MetadataFilterBase):
     published = EnumFilter(
         input_class=CollectionPublished, method="filter_is_published"
     )
@@ -420,7 +436,7 @@ class CollectionFilter(django_filters.FilterSet):
         return queryset
 
 
-class CategoryFilter(django_filters.FilterSet):
+class CategoryFilter(MetadataFilterBase):
     search = django_filters.CharFilter(
         method=filter_fields_containing_value("slug", "name", "description")
     )
@@ -431,7 +447,7 @@ class CategoryFilter(django_filters.FilterSet):
         fields = ["search"]
 
 
-class ProductTypeFilter(django_filters.FilterSet):
+class ProductTypeFilter(MetadataFilterBase):
     search = django_filters.CharFilter(
         method=filter_fields_containing_value("name", "slug")
     )

@@ -1,13 +1,15 @@
 import re
 import warnings
+from typing import Dict, Optional
 
+from django.utils.html import strip_tags
 from urllib3.util import parse_url
 
 BLACKLISTED_URL_SCHEMES = ("javascript",)
 HYPERLINK_TAG_WITH_URL_PATTERN = r"(.*?<a\s+href=\\?\")(\w+://\S+[^\\])(\\?\">)"
 
 
-def clean_editor_js(definitions: dict, *, to_string: bool = False):
+def clean_editor_js(definitions: Optional[Dict], *, to_string: bool = False):
     """Sanitize a given EditorJS JSON definitions.
 
     Look for not allowed URLs, replaced them with `invalid` value, and clean valid ones.
@@ -16,6 +18,10 @@ def clean_editor_js(definitions: dict, *, to_string: bool = False):
      instead of returning json object.
     """
     string = ""
+
+    if definitions is None:
+        return string if to_string else definitions
+
     blocks = definitions.get("blocks")
 
     if not blocks or not isinstance(blocks, list):
@@ -33,7 +39,7 @@ def clean_editor_js(definitions: dict, *, to_string: bool = False):
                     continue
                 new_text = clean_text_data(item)
                 if to_string:
-                    string += new_text
+                    string += strip_tags(new_text)
                 else:
                     blocks[index]["data"]["items"][item_index] = new_text
         else:
@@ -42,7 +48,7 @@ def clean_editor_js(definitions: dict, *, to_string: bool = False):
                 continue
             new_text = clean_text_data(text)
             if to_string:
-                string += new_text
+                string += strip_tags(new_text)
             else:
                 blocks[index]["data"]["text"] = new_text
 

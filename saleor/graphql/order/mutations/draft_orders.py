@@ -8,18 +8,16 @@ from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError, zero_taxed_money
 from ....core.utils.url import validate_storefront_url
-from ....order import OrderStatus, events, models
+from ....order import OrderLineData, OrderStatus, events, models
 from ....order.actions import order_created
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import (
-    add_variant_to_draft_order,
-    change_order_line_quantity,
-    delete_order_line,
+    add_variant_to_order,
     get_order_country,
     recalculate_order,
     update_order_prices,
 )
-from ....warehouse.management import allocate_stock
+from ....warehouse.management import allocate_stocks
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...channel.types import Channel
@@ -27,8 +25,9 @@ from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
 from ...product.types import ProductVariant
-from ..types import Order, OrderLine
+from ..types import Order
 from ..utils import (
+    prepare_insufficient_stock_order_validation_errors,
     validate_draft_order,
     validate_product_is_published_in_channel,
     validate_variant_channel_listings,
@@ -164,6 +163,15 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                     field_name = "channel"
                 raise ValidationError({field_name: error})
             quantities = [line.get("quantity") for line in lines]
+            if not all(quantity > 0 for quantity in quantities):
+                raise ValidationError(
+                    {
+                        "quantity": ValidationError(
+                            "Ensure this value is greater than 0.",
+                            code=OrderErrorCode.ZERO_QUANTITY,
+                        )
+                    }
+                )
             cleaned_input["variants"] = variants
             cleaned_input["quantities"] = quantities
 
@@ -217,10 +225,12 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             lines = []
             for variant, quantity in zip(variants, quantities):
                 lines.append((quantity, variant))
-                add_variant_to_draft_order(instance, variant, quantity)
+                add_variant_to_order(
+                    instance, variant, quantity, info.context.user, info.context.plugins
+                )
 
             # New event
-            events.draft_order_added_products_event(
+            events.order_added_products_event(
                 order=instance, user=info.context.user, order_lines=lines
             )
 
@@ -242,10 +252,18 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             return
         shipping_address = cleaned_input.get("shipping_address")
         if shipping_address and instance.is_shipping_required():
-            update_order_prices(instance, info.context.discounts)
+            update_order_prices(
+                instance,
+                info.context.plugins,
+                info.context.site.settings.include_taxes_in_prices,
+            )
         billing_address = cleaned_input.get("billing_address")
         if billing_address and not instance.is_shipping_required():
-            update_order_prices(instance, info.context.discounts)
+            update_order_prices(
+                instance,
+                info.context.plugins,
+                info.context.site.settings.include_taxes_in_prices,
+            )
 
     @classmethod
     @transaction.atomic
@@ -294,7 +312,9 @@ class DraftOrderUpdate(DraftOrderCreate):
 
     @classmethod
     def get_instance(cls, info, **data):
-        instance = super().get_instance(info, **data)
+        instance = super().get_instance(
+            info, qs=models.Order.objects.prefetch_related("lines"), **data
+        )
         if instance.status != OrderStatus.DRAFT:
             raise ValidationError(
                 {
@@ -361,199 +381,18 @@ class DraftOrderComplete(BaseMutation):
 
         order.save()
 
-        for line in order:
+        for line in order.lines.all():
             if line.variant.track_inventory:
+                line_data = OrderLineData(
+                    line=line, quantity=line.quantity, variant=line.variant
+                )
                 try:
-                    allocate_stock(line, country, line.quantity)
+                    allocate_stocks([line_data], country)
                 except InsufficientStock as exc:
-                    raise ValidationError(
-                        {
-                            "lines": ValidationError(
-                                f"Insufficient product stock: {exc.item}",
-                                code=OrderErrorCode.INSUFFICIENT_STOCK,
-                            )
-                        }
-                    )
-        order_created(order, user=info.context.user, from_draft=True)
+                    errors = prepare_insufficient_stock_order_validation_errors(exc)
+                    raise ValidationError({"lines": errors})
+        order_created(
+            order, user=info.context.user, manager=info.context.plugins, from_draft=True
+        )
 
         return DraftOrderComplete(order=order)
-
-
-class DraftOrderLinesCreate(BaseMutation):
-    order = graphene.Field(Order, description="A related draft order.")
-    order_lines = graphene.List(
-        graphene.NonNull(OrderLine), description="List of newly added order lines."
-    )
-
-    class Arguments:
-        id = graphene.ID(
-            required=True, description="ID of the draft order to add the lines to."
-        )
-        input = graphene.List(
-            OrderLineCreateInput,
-            required=True,
-            description="Fields required to add order lines.",
-        )
-
-    class Meta:
-        description = "Create order lines for a draft order."
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
-        error_type_class = OrderError
-        error_type_field = "order_errors"
-
-    @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
-        if order.status != OrderStatus.DRAFT:
-            raise ValidationError(
-                {
-                    "id": ValidationError(
-                        "Only draft orders can be edited.",
-                        code=OrderErrorCode.NOT_EDITABLE,
-                    )
-                }
-            )
-
-        lines_to_add = []
-        for input_line in data.get("input"):
-            variant_id = input_line["variant_id"]
-            variant = cls.get_node_or_error(
-                info, variant_id, "variant_id", only_type=ProductVariant
-            )
-            quantity = input_line["quantity"]
-            if quantity > 0:
-                if variant:
-                    lines_to_add.append((quantity, variant))
-            else:
-                raise ValidationError(
-                    {
-                        "quantity": ValidationError(
-                            "Ensure this value is greater than 0.",
-                            code=OrderErrorCode.ZERO_QUANTITY,
-                        )
-                    }
-                )
-        variants = [line[1] for line in lines_to_add]
-        try:
-            channel = order.channel
-            validate_product_is_published_in_channel(variants, channel)
-            validate_variant_channel_listings(variants, channel)
-        except ValidationError as error:
-            raise ValidationError({"input": error})
-        # Add the lines
-        try:
-            lines = [
-                add_variant_to_draft_order(order, variant, quantity)
-                for quantity, variant in lines_to_add
-            ]
-        except TaxError as tax_error:
-            raise ValidationError(
-                "Unable to calculate taxes - %s" % str(tax_error),
-                code=OrderErrorCode.TAX_ERROR.value,
-            )
-
-        # Create the event
-        events.draft_order_added_products_event(
-            order=order, user=info.context.user, order_lines=lines_to_add
-        )
-
-        recalculate_order(order)
-        return DraftOrderLinesCreate(order=order, order_lines=lines)
-
-
-class DraftOrderLineDelete(BaseMutation):
-    order = graphene.Field(Order, description="A related draft order.")
-    order_line = graphene.Field(
-        OrderLine, description="An order line that was deleted."
-    )
-
-    class Arguments:
-        id = graphene.ID(description="ID of the order line to delete.", required=True)
-
-    class Meta:
-        description = "Deletes an order line from a draft order."
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
-        error_type_class = OrderError
-        error_type_field = "order_errors"
-
-    @classmethod
-    def perform_mutation(cls, _root, info, id):
-        line = cls.get_node_or_error(info, id, only_type=OrderLine)
-        order = line.order
-        if order.status != OrderStatus.DRAFT:
-            raise ValidationError(
-                {
-                    "id": ValidationError(
-                        "Only draft orders can be edited.",
-                        code=OrderErrorCode.NOT_EDITABLE,
-                    )
-                }
-            )
-
-        db_id = line.id
-        delete_order_line(line)
-        line.id = db_id
-
-        # Create the removal event
-        events.draft_order_removed_products_event(
-            order=order, user=info.context.user, order_lines=[(line.quantity, line)]
-        )
-
-        recalculate_order(order)
-        return DraftOrderLineDelete(order=order, order_line=line)
-
-
-class DraftOrderLineUpdate(ModelMutation):
-    order = graphene.Field(Order, description="A related draft order.")
-
-    class Arguments:
-        id = graphene.ID(description="ID of the order line to update.", required=True)
-        input = OrderLineInput(
-            required=True, description="Fields required to update an order line."
-        )
-
-    class Meta:
-        description = "Updates an order line of a draft order."
-        model = models.OrderLine
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
-        error_type_class = OrderError
-        error_type_field = "order_errors"
-
-    @classmethod
-    def clean_input(cls, info, instance, data):
-        instance.old_quantity = instance.quantity
-        cleaned_input = super().clean_input(info, instance, data)
-        if instance.order.status != OrderStatus.DRAFT:
-            raise ValidationError(
-                {
-                    "id": ValidationError(
-                        "Only draft orders can be edited.",
-                        code=OrderErrorCode.NOT_EDITABLE,
-                    )
-                }
-            )
-
-        quantity = data["quantity"]
-        if quantity <= 0:
-            raise ValidationError(
-                {
-                    "quantity": ValidationError(
-                        "Ensure this value is greater than 0.",
-                        code=OrderErrorCode.ZERO_QUANTITY,
-                    )
-                }
-            )
-        return cleaned_input
-
-    @classmethod
-    def save(cls, info, instance, cleaned_input):
-        change_order_line_quantity(
-            info.context.user, instance, instance.old_quantity, instance.quantity
-        )
-        recalculate_order(instance.order)
-
-    @classmethod
-    def success_response(cls, instance):
-        response = super().success_response(instance)
-        response.order = instance.order
-        return response

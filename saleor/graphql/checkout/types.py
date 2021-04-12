@@ -1,7 +1,7 @@
 import graphene
 from promise import Promise
 
-from ...checkout import CheckoutLineInfo, calculations, models
+from ...checkout import calculations, models
 from ...checkout.utils import get_valid_shipping_methods_for_checkout
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
@@ -11,18 +11,17 @@ from ..account.utils import requestor_has_access
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByCheckoutLineIDLoader, ChannelByIdLoader
 from ..core.connection import CountableDjangoObjectType
+from ..core.enums import LanguageCodeEnum
 from ..core.scalars import UUID
 from ..core.types.money import TaxedMoney
+from ..core.utils import str_to_enum
 from ..discount.dataloaders import DiscountsByDateTimeLoader
 from ..giftcard.types import GiftCard
 from ..meta.types import ObjectWithMetadata
 from ..product.dataloaders import (
-    CollectionsByVariantIdLoader,
-    ProductByVariantIdLoader,
     ProductTypeByProductIdLoader,
     ProductTypeByVariantIdLoader,
     ProductVariantByIdLoader,
-    VariantChannelListingByVariantIdAndChannelSlugLoader,
 )
 from ..shipping.dataloaders import (
     ShippingMethodByIdLoader,
@@ -32,6 +31,7 @@ from ..shipping.types import ShippingMethod
 from ..utils import get_user_or_app_from_context
 from .dataloaders import (
     CheckoutByTokenLoader,
+    CheckoutInfoByCheckoutTokenLoader,
     CheckoutLinesByCheckoutTokenLoader,
     CheckoutLinesInfoByCheckoutTokenLoader,
 )
@@ -94,68 +94,45 @@ class CheckoutLine(CountableDjangoObjectType):
     @staticmethod
     def resolve_total_price(root, info):
         def with_checkout(checkout):
-            def with_channel(channel):
-                address_id = checkout.shipping_address_id or checkout.billing_address_id
-                address = (
-                    AddressByIdLoader(info.context).load(address_id)
-                    if address_id
-                    else None
-                )
-                variant = ProductVariantByIdLoader(info.context).load(root.variant_id)
-                channel_listing = VariantChannelListingByVariantIdAndChannelSlugLoader(
-                    info.context
-                ).load((root.variant_id, channel.slug))
-                product = ProductByVariantIdLoader(info.context).load(root.variant_id)
-                collections = CollectionsByVariantIdLoader(info.context).load(
-                    root.variant_id
-                )
-                discounts = DiscountsByDateTimeLoader(info.context).load(
-                    info.context.request_time
-                )
-                return Promise.all(
-                    [
-                        checkout,
-                        address,
-                        variant,
-                        channel_listing,
-                        product,
-                        collections,
-                        channel,
-                        discounts,
-                    ]
-                ).then(calculate_line_total_price)
-
-            return (
-                ChannelByCheckoutLineIDLoader(info.context)
-                .load(root.id)
-                .then(with_channel)
+            discounts = DiscountsByDateTimeLoader(info.context).load(
+                info.context.request_time
+            )
+            checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(
+                checkout.token
+            )
+            lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(
+                checkout.token
             )
 
-        def calculate_line_total_price(data):
-            (
-                checkout,
-                address,
-                variant,
-                channel_listing,
-                product,
-                collections,
-                channel,
-                discounts,
-            ) = data
-            line_info = CheckoutLineInfo(
-                line=root,
-                variant=variant,
-                channel_listing=channel_listing,
-                product=product,
-                collections=collections,
-            )
-            return info.context.plugins.calculate_checkout_line_total(
-                checkout=checkout,
-                checkout_line_info=line_info,
-                address=address,
-                channel=channel,
-                discounts=discounts,
-            )
+            def calculate_line_total_price(data):
+                (
+                    discounts,
+                    checkout_info,
+                    lines,
+                ) = data
+                line_info = None
+                for line_info in lines:
+                    if line_info.line.pk == root.pk:
+                        address = (
+                            checkout_info.shipping_address
+                            or checkout_info.billing_address
+                        )
+                        return info.context.plugins.calculate_checkout_line_total(
+                            checkout_info=checkout_info,
+                            lines=lines,
+                            checkout_line_info=line_info,
+                            address=address,
+                            discounts=discounts,
+                        )
+                return None
+
+            return Promise.all(
+                [
+                    discounts,
+                    checkout_info,
+                    lines,
+                ]
+            ).then(calculate_line_total_price)
 
         return (
             CheckoutByTokenLoader(info.context)
@@ -219,6 +196,9 @@ class Checkout(CountableDjangoObjectType):
             "The sum of the the checkout line prices, with all the taxes,"
             "shipping costs, and discounts included."
         ),
+    )
+    language_code = graphene.Field(
+        LanguageCodeEnum, required=True, description="Checkout language code."
     )
 
     class Meta:
@@ -288,11 +268,11 @@ class Checkout(CountableDjangoObjectType):
     # TODO: We should optimize it in/after PR#5819
     def resolve_total_price(root: models.Checkout, info):
         def calculate_total_price(data):
-            address, lines, discounts = data
+            address, lines, checkout_info, discounts = data
             taxed_total = (
                 calculations.checkout_total(
                     manager=info.context.plugins,
-                    checkout=root,
+                    checkout_info=checkout_info,
                     lines=lines,
                     address=address,
                     discounts=discounts,
@@ -306,19 +286,22 @@ class Checkout(CountableDjangoObjectType):
             AddressByIdLoader(info.context).load(address_id) if address_id else None
         )
         lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
+        checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )
-        return Promise.all([address, lines, discounts]).then(calculate_total_price)
+        return Promise.all([address, lines, checkout_info, discounts]).then(
+            calculate_total_price
+        )
 
     @staticmethod
     # TODO: We should optimize it in/after PR#5819
     def resolve_subtotal_price(root: models.Checkout, info):
         def calculate_subtotal_price(data):
-            address, lines, discounts = data
+            address, lines, checkout_info, discounts = data
             return calculations.checkout_subtotal(
                 manager=info.context.plugins,
-                checkout=root,
+                checkout_info=checkout_info,
                 lines=lines,
                 address=address,
                 discounts=discounts,
@@ -329,19 +312,22 @@ class Checkout(CountableDjangoObjectType):
             AddressByIdLoader(info.context).load(address_id) if address_id else None
         )
         lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
+        checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )
-        return Promise.all([address, lines, discounts]).then(calculate_subtotal_price)
+        return Promise.all([address, lines, checkout_info, discounts]).then(
+            calculate_subtotal_price
+        )
 
     @staticmethod
     # TODO: We should optimize it in/after PR#5819
     def resolve_shipping_price(root: models.Checkout, info):
         def calculate_shipping_price(data):
-            address, lines, discounts = data
+            address, lines, checkout_info, discounts = data
             return calculations.checkout_shipping_price(
                 manager=info.context.plugins,
-                checkout=root,
+                checkout_info=checkout_info,
                 lines=lines,
                 address=address,
                 discounts=discounts,
@@ -353,10 +339,13 @@ class Checkout(CountableDjangoObjectType):
             else None
         )
         lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
+        checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )
-        return Promise.all([address, lines, discounts]).then(calculate_shipping_price)
+        return Promise.all([address, lines, checkout_info, discounts]).then(
+            calculate_shipping_price
+        )
 
     @staticmethod
     def resolve_lines(root: models.Checkout, info):
@@ -366,19 +355,18 @@ class Checkout(CountableDjangoObjectType):
     # TODO: We should optimize it in/after PR#5819
     def resolve_available_shipping_methods(root: models.Checkout, info):
         def calculate_available_shipping_methods(data):
-            address, lines, discounts, channel = data
+            address, lines, checkout_info, discounts, channel = data
             channel_slug = channel.slug
             display_gross = info.context.site.settings.display_gross_prices
             manager = info.context.plugins
             subtotal = manager.calculate_checkout_subtotal(
-                root, lines, address, discounts
+                checkout_info, lines, address, discounts
             )
             if not address:
                 return []
             available = get_valid_shipping_methods_for_checkout(
-                root,
+                checkout_info,
                 lines,
-                discounts,
                 subtotal=subtotal,
                 country_code=address.country.code,
             )
@@ -432,16 +420,19 @@ class Checkout(CountableDjangoObjectType):
             else None
         )
         lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
+        checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )
-        return Promise.all([address, lines, discounts, channel]).then(
+        return Promise.all([address, lines, checkout_info, discounts, channel]).then(
             calculate_available_shipping_methods
         )
 
     @staticmethod
     def resolve_available_payment_gateways(root: models.Checkout, info):
-        return info.context.plugins.checkout_available_payment_gateways(checkout=root)
+        return info.context.plugins.list_payment_gateways(
+            currency=root.currency, checkout=root
+        )
 
     @staticmethod
     def resolve_gift_cards(root: models.Checkout, _info):
@@ -466,3 +457,7 @@ class Checkout(CountableDjangoObjectType):
             .load(root.token)
             .then(is_shipping_required)
         )
+
+    @staticmethod
+    def resolve_language_code(root, _info, **_kwargs):
+        return LanguageCodeEnum[str_to_enum(root.language_code)]

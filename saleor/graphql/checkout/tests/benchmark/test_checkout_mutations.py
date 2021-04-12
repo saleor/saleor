@@ -2,8 +2,8 @@ import pytest
 from graphene import Node
 
 from .....checkout import calculations
+from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
-from .....checkout.utils import fetch_checkout_lines
 from .....plugins.manager import get_plugins_manager
 from ....tests.utils import get_graphql_content
 
@@ -491,11 +491,15 @@ def test_checkout_payment_charge(
         }
     """
 
+    manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_billing_address)
+    checkout_info = fetch_checkout_info(
+        checkout_with_billing_address, lines, [], manager
+    )
     manager = get_plugins_manager()
     total = calculations.checkout_total(
         manager=manager,
-        checkout=checkout_with_billing_address,
+        checkout_info=checkout_info,
         lines=lines,
         address=checkout_with_billing_address.shipping_address,
     )
@@ -512,30 +516,129 @@ def test_checkout_payment_charge(
     assert not response["data"]["checkoutPaymentCreate"]["errors"]
 
 
+ORDER_PRICE_FRAGMENT = """
+fragment OrderPrice on TaxedMoney {
+  gross {
+    amount
+    currency
+    __typename
+  }
+  net {
+    amount
+    currency
+    __typename
+  }
+  __typename
+}
+"""
+
+
+FRAGMENT_ORDER_DETAIL = (
+    FRAGMENT_ADDRESS
+    + FRAGMENT_PRODUCT_VARIANT
+    + ORDER_PRICE_FRAGMENT
+    + """
+  fragment OrderDetail on Order {
+    userEmail
+    paymentStatus
+    paymentStatusDisplay
+    status
+    statusDisplay
+    id
+    token
+    number
+    shippingAddress {
+      ...Address
+      __typename
+    }
+    lines {
+      productName
+      quantity
+      variant {
+        ...ProductVariant
+        __typename
+      }
+      unitPrice {
+        currency
+        ...OrderPrice
+        __typename
+      }
+      totalPrice {
+        currency
+        ...OrderPrice
+        __typename
+      }
+      __typename
+    }
+    subtotal {
+      ...OrderPrice
+      __typename
+    }
+    total {
+      ...OrderPrice
+      __typename
+    }
+    shippingPrice {
+      ...OrderPrice
+      __typename
+    }
+    __typename
+  }
+  """
+)
+
+
+COMPLETE_CHECKOUT_MUTATION = (
+    FRAGMENT_ORDER_DETAIL
+    + """
+    mutation completeCheckout($checkoutId: ID!) {
+      checkoutComplete(checkoutId: $checkoutId) {
+        checkoutErrors {
+          code
+          field
+          message
+        }
+        order {
+          ...OrderDetail
+          __typename
+        }
+        confirmationNeeded
+        confirmationData
+      }
+    }
+"""
+)
+
+
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
 def test_complete_checkout(api_client, checkout_with_charged_payment, count_queries):
-    query = """
-        mutation completeCheckout($checkoutId: ID!) {
-          checkoutComplete(checkoutId: $checkoutId) {
-            errors {
-              field
-              message
-            }
-            order {
-              id
-              token
-            }
-          }
-        }
-    """
+    query = COMPLETE_CHECKOUT_MUTATION
 
     variables = {
         "checkoutId": Node.to_global_id("Checkout", checkout_with_charged_payment.pk),
     }
 
     response = get_graphql_content(api_client.post_graphql(query, variables))
-    assert not response["data"]["checkoutComplete"]["errors"]
+    assert not response["data"]["checkoutComplete"]["checkoutErrors"]
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_complete_checkout_with_single_line(
+    api_client, checkout_with_charged_payment, count_queries
+):
+    query = COMPLETE_CHECKOUT_MUTATION
+    checkout_with_charged_payment.lines.set(
+        [checkout_with_charged_payment.lines.first()]
+    )
+
+    variables = {
+        "checkoutId": Node.to_global_id("Checkout", checkout_with_charged_payment.pk),
+    }
+
+    response = get_graphql_content(api_client.post_graphql(query, variables))
+    assert not response["data"]["checkoutComplete"]["checkoutErrors"]
 
 
 @pytest.mark.django_db
@@ -543,20 +646,7 @@ def test_complete_checkout(api_client, checkout_with_charged_payment, count_quer
 def test_customer_complete_checkout(
     api_client, checkout_with_charged_payment, count_queries, customer_user
 ):
-    query = """
-        mutation completeCheckout($checkoutId: ID!) {
-          checkoutComplete(checkoutId: $checkoutId) {
-            errors {
-              field
-              message
-            }
-            order {
-              id
-              token
-            }
-          }
-        }
-    """
+    query = COMPLETE_CHECKOUT_MUTATION
     checkout = checkout_with_charged_payment
     checkout.user = customer_user
     checkout.save()
@@ -565,4 +655,4 @@ def test_customer_complete_checkout(
     }
 
     response = get_graphql_content(api_client.post_graphql(query, variables))
-    assert not response["data"]["checkoutComplete"]["errors"]
+    assert not response["data"]["checkoutComplete"]["checkoutErrors"]

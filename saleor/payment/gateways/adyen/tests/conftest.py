@@ -3,7 +3,7 @@ from unittest import mock
 import pytest
 
 from .....checkout import calculations
-from .....checkout.utils import fetch_checkout_lines
+from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....plugins.manager import get_plugins_manager
 from .... import TransactionKind
 from ....models import Transaction
@@ -73,8 +73,9 @@ def payment_adyen_for_checkout(checkout_with_items, address, shipping_method):
     checkout_with_items.save()
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_items)
+    checkout_info = fetch_checkout_info(checkout_with_items, lines, [], manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_with_items, lines, address
+        manager, checkout_info, lines, address
     )
     payment = create_payment(
         gateway=AdyenGatewayPlugin.PLUGIN_ID,
@@ -171,4 +172,32 @@ def adyen_payment_method():
         "encryptedExpiryMonth": "test_03",
         "encryptedExpiryYear": "test_2030",
         "encryptedSecurityCode": "test_737",
+    }
+
+
+@pytest.fixture
+def adyen_additional_data_for_3ds():
+    user_agent = (
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko)",
+        "Chrome/89.0.4389.90 Safari/537.36",
+    )
+    return {
+        "paymentMethod": {
+            "type": "scheme",
+            "encryptedCardNumber": "test_4917610000000000",
+            "encryptedExpiryMonth": "test_03",
+            "encryptedExpiryYear": "test_2030",
+            "encryptedSecurityCode": "test_737",
+            "brand": "visa",
+        },
+        "browserInfo": {
+            "acceptHeader": "*/*",
+            "colorDepth": 24,
+            "language": "en-US",
+            "javaEnabled": False,
+            "screenHeight": 1080,
+            "screenWidth": 1920,
+            "userAgent": user_agent,
+            "timeZoneOffset": -120,
+        },
     }

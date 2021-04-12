@@ -6,6 +6,7 @@ class AttributeInputType:
     FILE = "file"
     REFERENCE = "reference"
     NUMERIC = "numeric"
+    RICH_TEXT = "rich-text"
 
     CHOICES = [
         (DROPDOWN, "Dropdown"),
@@ -13,6 +14,7 @@ class AttributeInputType:
         (FILE, "File"),
         (REFERENCE, "Reference"),
         (NUMERIC, "Numeric"),
+        (RICH_TEXT, "Rich Text"),
     ]
     # list of the input types that can be used in variant selection
     ALLOWED_IN_VARIANT_SELECTION = [DROPDOWN, NUMERIC]

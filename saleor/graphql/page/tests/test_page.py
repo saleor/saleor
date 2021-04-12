@@ -24,6 +24,8 @@ PAGE_QUERY = """
             pageType {
                 id
             }
+            content
+            contentJson
             attributes {
                 attribute {
                     slug
@@ -56,6 +58,11 @@ def test_query_published_page(user_api_client, page):
     response = user_api_client.post_graphql(PAGE_QUERY, variables)
     content = get_graphql_content(response)
     page_data = content["data"]["page"]
+    assert (
+        page_data["content"]
+        == page_data["contentJson"]
+        == dummy_editorjs("Test content.", True)
+    )
     assert page_data["title"] == page.title
     assert page_data["slug"] == page.slug
     assert page_data["pageType"]["id"] == graphene.Node.to_global_id(

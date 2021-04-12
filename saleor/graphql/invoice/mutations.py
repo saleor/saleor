@@ -4,9 +4,8 @@ from django.core.exceptions import ValidationError
 from ...core import JobStatus
 from ...core.permissions import OrderPermissions
 from ...invoice import events, models
-from ...invoice.emails import send_invoice
 from ...invoice.error_codes import InvoiceErrorCode
-from ...order import OrderStatus
+from ...invoice.notifications import send_invoice
 from ...order import events as order_events
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types.common import InvoiceError
@@ -35,7 +34,7 @@ class InvoiceRequest(ModelMutation):
 
     @staticmethod
     def clean_order(order):
-        if order.status in (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED):
+        if order.is_draft() or order.is_unconfirmed():
             raise ValidationError(
                 {
                     "orderId": ValidationError(
@@ -121,7 +120,7 @@ class InvoiceCreate(ModelMutation):
 
     @classmethod
     def clean_order(cls, info, order):
-        if order.status in (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED):
+        if order.is_draft() or order.is_unconfirmed():
             raise ValidationError(
                 {
                     "orderId": ValidationError(
@@ -268,12 +267,12 @@ class InvoiceUpdate(ModelMutation):
         return InvoiceUpdate(invoice=instance)
 
 
-class InvoiceSendEmail(ModelMutation):
+class InvoiceSendNotification(ModelMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of an invoice to be sent.")
 
     class Meta:
-        description = "Send an invoice by email."
+        description = "Send an invoice notification to the customer."
         model = models.Invoice
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = InvoiceError
@@ -310,10 +309,5 @@ class InvoiceSendEmail(ModelMutation):
     def perform_mutation(cls, _root, info, **data):
         instance = cls.get_instance(info, **data)
         cls.clean_instance(info, instance)
-        send_invoice.delay(instance.pk, info.context.user.pk)
-        order_events.invoice_sent_event(
-            order=instance.order,
-            user=info.context.user,
-            email=instance.order.get_customer_email(),
-        )
-        return InvoiceSendEmail(invoice=instance)
+        send_invoice(instance, info.context.user, info.context.plugins)
+        return InvoiceSendNotification(invoice=instance)

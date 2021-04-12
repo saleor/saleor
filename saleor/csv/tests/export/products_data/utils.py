@@ -1,4 +1,5 @@
 from .....attribute import AttributeInputType
+from .....core.utils.editorjs import clean_editor_js
 
 
 def add_product_attribute_data_to_expected_data(data, product, attribute_ids, pk=None):
@@ -39,6 +40,8 @@ def get_attribute_value(assigned_attribute):
         value = f"{value_instance.name}"
         if attribute.unit:
             value += f" {attribute.unit}"
+    elif attribute.input_type == AttributeInputType.RICH_TEXT:
+        value = clean_editor_js(value_instance.rich_text, to_string=True)
     else:
         value = value_instance.slug
     return value

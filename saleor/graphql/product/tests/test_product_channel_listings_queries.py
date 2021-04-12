@@ -3,10 +3,10 @@ import graphene
 from ...tests.utils import get_graphql_content
 
 QUERY_PRICING_ON_PRODUCT_CHANNEL_LISTING = """
-query FetchProduct($id: ID, $channel: String) {
+query FetchProduct($id: ID, $channel: String, $address: AddressInput) {
   product(id: $id, channel: $channel) {
     id
-    pricing {
+    pricing(address: $address) {
       priceRangeUndiscounted {
         start {
           gross {
@@ -26,7 +26,7 @@ query FetchProduct($id: ID, $channel: String) {
       channel {
         slug
       }
-      pricing {
+      pricing(address: $address) {
         priceRangeUndiscounted {
           start {
             gross {
@@ -55,6 +55,7 @@ def test_product_channel_listing_pricing_field(
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),
         "channel": channel_USD.slug,
+        "address": {"country": "US"},
     }
     product.channel_listings.exclude(channel__slug=channel_USD.slug).delete()
 

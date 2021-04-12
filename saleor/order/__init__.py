@@ -1,7 +1,8 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
+    from ..product.models import ProductVariant
     from .models import FulfillmentLine, OrderLine
 
 
@@ -61,8 +62,8 @@ class OrderEvents:
     DRAFT_CREATED = "draft_created"
     DRAFT_CREATED_FROM_REPLACE = "draft_created_from_replace"
 
-    DRAFT_ADDED_PRODUCTS = "draft_added_products"
-    DRAFT_REMOVED_PRODUCTS = "draft_removed_products"
+    ADDED_PRODUCTS = "added_products"
+    REMOVED_PRODUCTS = "removed_products"
 
     PLACED = "placed"
     PLACED_FROM_DRAFT = "placed_from_draft"
@@ -73,6 +74,13 @@ class OrderEvents:
     ORDER_MARKED_AS_PAID = "order_marked_as_paid"
     ORDER_FULLY_PAID = "order_fully_paid"
     ORDER_REPLACEMENT_CREATED = "order_replacement_created"
+
+    ORDER_DISCOUNT_ADDED = "order_discount_added"
+    ORDER_DISCOUNT_AUTOMATICALLY_UPDATED = "order_discount_automatically_updated"
+    ORDER_DISCOUNT_UPDATED = "order_discount_updated"
+    ORDER_DISCOUNT_DELETED = "order_discount_deleted"
+    ORDER_LINE_DISCOUNT_UPDATED = "order_line_discount_updated"
+    ORDER_LINE_DISCOUNT_REMOVED = "order_line_discount_removed"
 
     UPDATED_ADDRESS = "updated_address"
 
@@ -105,8 +113,8 @@ class OrderEvents:
     CHOICES = [
         (DRAFT_CREATED, "The draft order was created"),
         (DRAFT_CREATED_FROM_REPLACE, "The draft order with replace lines was created"),
-        (DRAFT_ADDED_PRODUCTS, "Some products were added to the draft order"),
-        (DRAFT_REMOVED_PRODUCTS, "Some products were removed from the draft order"),
+        (ADDED_PRODUCTS, "Some products were added to the order"),
+        (REMOVED_PRODUCTS, "Some products were removed from the order"),
         (PLACED, "The order was placed"),
         (PLACED_FROM_DRAFT, "The draft order was placed"),
         (OVERSOLD_ITEMS, "The draft order was placed with oversold items"),
@@ -114,6 +122,15 @@ class OrderEvents:
         (ORDER_MARKED_AS_PAID, "The order was manually marked as fully paid"),
         (ORDER_FULLY_PAID, "The order was fully paid"),
         (ORDER_REPLACEMENT_CREATED, "The draft order was created based on this order."),
+        (ORDER_DISCOUNT_ADDED, "New order discount applied to this order."),
+        (
+            ORDER_DISCOUNT_AUTOMATICALLY_UPDATED,
+            "Order discount was automatically updated after the changes in order.",
+        ),
+        (ORDER_DISCOUNT_UPDATED, "Order discount was updated for this order."),
+        (ORDER_DISCOUNT_DELETED, "Order discount was deleted for this order."),
+        (ORDER_LINE_DISCOUNT_UPDATED, "Order line was discounted."),
+        (ORDER_LINE_DISCOUNT_REMOVED, "The discount for order line was removed."),
         (UPDATED_ADDRESS, "The address from the placed order was updated"),
         (EMAIL_SENT, "The email was sent"),
         (CONFIRMED, "Order was confirmed"),
@@ -169,7 +186,9 @@ class OrderEventsEmails:
 class OrderLineData:
     line: "OrderLine"
     quantity: int
+    variant: Optional["ProductVariant"] = None
     replace: bool = False
+    warehouse_pk: Optional[str] = None
 
 
 @dataclass

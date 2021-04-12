@@ -1,8 +1,21 @@
+import json
 from unittest import mock
+from urllib.parse import urlencode
 
+import graphene
 import pytest
+from django.contrib.auth.tokens import default_token_generator
+from freezegun import freeze_time
 
+from ....account.notifications import (
+    get_default_user_payload,
+    send_account_confirmation,
+)
 from ....app.models import App
+from ....core.notifications import get_site_context
+from ....core.notify_events import NotifyEventType
+from ....core.utils.json_serializer import CustomJsonEncoder
+from ....core.utils.url import prepare_url
 from ....webhook.event_types import WebhookEventType
 from ....webhook.payloads import (
     generate_checkout_payload,
@@ -10,7 +23,9 @@ from ....webhook.payloads import (
     generate_invoice_payload,
     generate_order_payload,
     generate_page_payload,
+    generate_product_deleted_payload,
     generate_product_payload,
+    generate_product_variant_payload,
 )
 from ...manager import get_plugins_manager
 from ...webhook.tasks import trigger_webhooks_for_event
@@ -113,6 +128,18 @@ def test_customer_created(mocked_webhook_trigger, settings, customer_user):
 
 
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_customer_updated(mocked_webhook_trigger, settings, customer_user):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.customer_updated(customer_user)
+
+    expected_data = generate_customer_payload(customer_user)
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.CUSTOMER_UPDATED, expected_data
+    )
+
+
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_order_fully_paid(mocked_webhook_trigger, settings, order_with_lines):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
@@ -149,6 +176,69 @@ def test_product_updated(mocked_webhook_trigger, settings, product):
 
 
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_product_deleted(mocked_webhook_trigger, settings, product):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+
+    product = product
+    variants_id = list(product.variants.all().values_list("id", flat=True))
+    product_id = product.id
+    product.delete()
+    product.id = product_id
+    variant_global_ids = [
+        graphene.Node.to_global_id("ProductVariant", pk) for pk in variants_id
+    ]
+    manager.product_deleted(product, variants_id)
+
+    expected_data = generate_product_deleted_payload(product, variants_id)
+
+    expected_data_dict = json.loads(expected_data)[0]
+    assert expected_data_dict["id"] is not None
+    assert expected_data_dict["variants"] is not None
+    assert variant_global_ids == expected_data_dict["variants"]
+
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.PRODUCT_DELETED, expected_data
+    )
+
+
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_product_variant_created(mocked_webhook_trigger, settings, variant):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.product_variant_created(variant)
+
+    expected_data = generate_product_variant_payload(variant)
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.PRODUCT_VARIANT_CREATED, expected_data
+    )
+
+
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_product_variant_updated(mocked_webhook_trigger, settings, variant):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.product_variant_updated(variant)
+
+    expected_data = generate_product_variant_payload(variant)
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.PRODUCT_VARIANT_UPDATED, expected_data
+    )
+
+
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_product_variant_deleted(mocked_webhook_trigger, settings, variant):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.product_variant_deleted(variant)
+
+    expected_data = generate_product_variant_payload(variant)
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.PRODUCT_VARIANT_DELETED, expected_data
+    )
+
+
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_order_updated(mocked_webhook_trigger, settings, order_with_lines):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
@@ -169,20 +259,6 @@ def test_order_cancelled(mocked_webhook_trigger, settings, order_with_lines):
     expected_data = generate_order_payload(order_with_lines)
     mocked_webhook_trigger.assert_called_once_with(
         WebhookEventType.ORDER_CANCELLED, expected_data
-    )
-
-
-@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
-def test_checkout_quantity_changed(
-    mocked_webhook_trigger, settings, checkout_with_items
-):
-    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
-    manager = get_plugins_manager()
-    manager.checkout_quantity_changed(checkout_with_items)
-
-    expected_data = generate_checkout_payload(checkout_with_items)
-    mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.CHECKOUT_QUANTITY_CHANGED, expected_data
     )
 
 
@@ -283,4 +359,34 @@ def test_invoice_sent(mocked_webhook_trigger, settings, fulfilled_order):
     expected_data = generate_invoice_payload(invoice)
     mocked_webhook_trigger.assert_called_once_with(
         WebhookEventType.INVOICE_SENT, expected_data
+    )
+
+
+@freeze_time("2020-03-18 12:00:00")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_notify_user(mocked_webhook_trigger, settings, customer_user):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+
+    redirect_url = "http://redirect.com/"
+    send_account_confirmation(customer_user, redirect_url, manager)
+
+    token = default_token_generator.make_token(customer_user)
+    params = urlencode({"email": customer_user.email, "token": token})
+    confirm_url = prepare_url(params, redirect_url)
+
+    payload = {
+        "user": get_default_user_payload(customer_user),
+        "recipient_email": customer_user.email,
+        "token": token,
+        "confirm_url": confirm_url,
+        **get_site_context(),
+    }
+
+    expected_data = {
+        "notify_event": NotifyEventType.ACCOUNT_CONFIRMATION,
+        "payload": payload,
+    }
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.NOTIFY_USER, json.dumps(expected_data, cls=CustomJsonEncoder)
     )

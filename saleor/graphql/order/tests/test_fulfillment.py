@@ -1,9 +1,9 @@
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 import graphene
 from django.contrib.auth.models import AnonymousUser
 
-from ....core.exceptions import InsufficientStock
+from ....core.exceptions import InsufficientStock, InsufficientStockData
 from ....order import OrderStatus
 from ....order.error_codes import OrderErrorCode
 from ....order.events import OrderEvents
@@ -77,7 +77,7 @@ def test_order_fulfill(
         ]
     }
     mock_create_fulfillments.assert_called_once_with(
-        staff_user, order, fulfillment_lines_for_warehouses, True
+        staff_user, order, fulfillment_lines_for_warehouses, ANY, True
     )
 
 
@@ -127,7 +127,7 @@ def test_order_fulfill_as_app(
         ]
     }
     mock_create_fulfillments.assert_called_once_with(
-        AnonymousUser(), order, fulfillment_lines_for_warehouses, True
+        AnonymousUser(), order, fulfillment_lines_for_warehouses, ANY, True
     )
 
 
@@ -186,7 +186,7 @@ def test_order_fulfill_many_warehouses(
     }
 
     mock_create_fulfillments.assert_called_once_with(
-        staff_user, order, fulfillment_lines_for_warehouses, True
+        staff_user, order, fulfillment_lines_for_warehouses, ANY, True
     )
 
 
@@ -228,7 +228,7 @@ def test_order_fulfill_without_notification(
         str(warehouse.pk): [{"order_line": order_line, "quantity": 1}]
     }
     mock_create_fulfillments.assert_called_once_with(
-        staff_user, order, fulfillment_lines_for_warehouses, False
+        staff_user, order, fulfillment_lines_for_warehouses, ANY, False
     )
 
 
@@ -286,7 +286,7 @@ def test_order_fulfill_lines_with_empty_quantity(
         str(warehouse.pk): [{"order_line": order_line2, "quantity": 2}]
     }
     mock_create_fulfillments.assert_called_once_with(
-        staff_user, order, fulfillment_lines_for_warehouses, True
+        staff_user, order, fulfillment_lines_for_warehouses, ANY, True
     )
 
 
@@ -398,12 +398,14 @@ def test_order_fulfill_warehouse_with_insufficient_stock_exception(
         },
     }
 
-    error_context = {
-        "order_line": order_line,
-        "warehouse_pk": str(warehouse_no_shipping_zone.pk),
-    }
     mock_create_fulfillments.side_effect = InsufficientStock(
-        order_line.variant, error_context
+        [
+            InsufficientStockData(
+                variant=order_line.variant,
+                order_line=order_line,
+                warehouse_pk=warehouse_no_shipping_zone.pk,
+            )
+        ]
     )
 
     response = staff_api_client.post_graphql(
@@ -504,7 +506,7 @@ def test_order_fulfill_warehouse_duplicated_order_line_id(
     mock_create_fulfillments.assert_not_called()
 
 
-@patch("saleor.order.emails.send_fulfillment_update.delay")
+@patch("saleor.plugins.manager.PluginsManager.notify")
 def test_fulfillment_update_tracking(
     send_fulfillment_update_mock,
     staff_api_client,
@@ -546,7 +548,7 @@ FULFILLMENT_UPDATE_TRACKING_WITH_SEND_NOTIFICATION_QUERY = """
     """
 
 
-@patch("saleor.order.emails.send_fulfillment_update.delay")
+@patch("saleor.graphql.order.mutations.fulfillments.send_fulfillment_update")
 def test_fulfillment_update_tracking_send_notification_true(
     send_fulfillment_update_mock,
     staff_api_client,
@@ -565,11 +567,11 @@ def test_fulfillment_update_tracking_send_notification_true(
     data = content["data"]["orderFulfillmentUpdateTracking"]["fulfillment"]
     assert data["trackingNumber"] == tracking
     send_fulfillment_update_mock.assert_called_once_with(
-        fulfillment.order.pk, fulfillment.pk
+        fulfillment.order, fulfillment, ANY
     )
 
 
-@patch("saleor.order.emails.send_fulfillment_update.delay")
+@patch("saleor.order.notifications.send_fulfillment_update")
 def test_fulfillment_update_tracking_send_notification_false(
     send_fulfillment_update_mock,
     staff_api_client,
