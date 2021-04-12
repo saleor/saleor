@@ -1,0 +1,63 @@
+interactions:
+- request:
+    body: '{"amount": {"value": "8000", "currency": "USD"}, "reference": "UGF5bWVudDo1NzU=",
+      "paymentMethod": {"type": "klarna_account"}, "returnUrl": "http://mirumee.com/plugins/mirumee.payments.adyen/additional-actions?payment=UGF5bWVudDo1NzU%3D&checkout=7eaddd6c-e06f-4deb-bc3e-02162cb3ac10",
+      "merchantAccount": "SaleorECOM", "browserInfo": {"acceptHeader": "*/*", "colorDepth":
+      24, "language": "en-US", "javaEnabled": false, "screenHeight": 1080, "screenWidth":
+      1920, "userAgent": ["Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML,
+      like Gecko)", "Chrome/89.0.4389.90 Safari/537.36"], "timeZoneOffset": -120},
+      "channel": "web", "shopperEmail": "", "shopperLocale": "en_US", "shopperReference":
+      "", "countryCode": "US", "lineItems": [{"quantity": 2, "amountExcludingTax":
+      "1000", "taxPercentage": 0, "description": "Test product, ", "id": "123", "taxAmount":
+      "0", "amountIncludingTax": "1000"}, {"quantity": 1, "amountExcludingTax": "1000",
+      "taxPercentage": 0, "description": "Test product 1, ", "id": "d04373e383314c1b84e131da9758676e",
+      "taxAmount": "0", "amountIncludingTax": "1000"}, {"quantity": 1, "amountExcludingTax":
+      "2000", "taxPercentage": 0, "description": "Test product 2, ", "id": "70e61111f589431c914905a079bd07e8",
+      "taxAmount": "0", "amountIncludingTax": "2000"}, {"quantity": 1, "amountExcludingTax":
+      "3000", "taxPercentage": 0, "description": "Test product 3, ", "id": "f05ce7f70c9441feb75aa05c4f0ab82c",
+      "taxAmount": "0", "amountIncludingTax": "3000"}, {"quantity": 1, "amountExcludingTax":
+      "1000", "taxPercentage": 0, "description": "Shipping - DHL", "id": "Shipping:3137",
+      "taxAmount": "0", "amountIncludingTax": "1000"}], "applicationInfo": {"adyenLibrary":
+      {"name": "adyen-python-api-library", "version": "4.0.0"}}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1738'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - adyen-python-api-library/4.0.0
+      x-api-key:
+      - test_key
+    method: POST
+    uri: https://checkout-test.adyen.com/v64/payments
+  response:
+    body:
+      string: '{"resultCode":"RedirectShopper","action":{"paymentData":"Ab02b4c0!BQABAgAA76AO+anrthj\/B9KKYMWsHCZsmr1Jdvwxx9XFf3VdZfejwNjgAD9v19LJTHPpe4ANzhYoWzPKy3KvHexH7BLQLHaJ8Q4xSQ0l4DsrecLnJGUqJScsxbIErcB05tCNvXINtVd88EP9U6Eyq7oFLN1S8VXXaEuc5F2jcCuLm7VDYf+ZCAJXuutAcQT6h15iLRyr84ey2PtgKRDBQJu3MOzAOrYhvBEZHNxh+WXA0chmEDmz\/V\/+AVvbgWOmv9LEmfcjsM09cePNEltaA+F7qIPnHXO4Zz3LDKn\/mhOYyYbLsJM5CuPt\/lfARt8uvCoW9JsSf5RU1nRjV9ZiQmOVcY5aFLTvogya6Al\/vpetBXJsmXanJfRZCqAWYR6QMUlqNjUqlHGY6Jssa340xdfAQ2bcsSd16HhRqan3tUigqvmqbX8P9O6HmZXOL81EXJcVt4ZwkQ90Vp8OU5DTvfgK6vTIQZhf7FHqPzskWrS40e5ZvRLkvdwJFYVVct5OoAgcHuuy2bb0VH\/oa5xbXY4xDnZr1n\/ijFCX7xEI3aemcVjhFj\/hUCS2EjDwzGiosUgxGTe321D8HnGFmV2rflBUhqOU\/IDKcb5ubdMPt67UBmnm2bzfT9dj+QW5KGju2sgY+D0Ri+ztlxv3KPU9xrSOlkxlw+HEOD073dMr7I+\/9AMXzRDaNOhrFiOqNiMFnK1jEOsLAEp7ImtleSI6IkFGMEFBQTEwM0NBNTM3RUFFRDg3QzI0REQ1MzkwOUI4MEE3OEE5MjNFMzgyM0Q2OERBQ0M5NEI5RkY4MzA1REMifTe\/b8fJiynX+INPiS4wJMmgjt5P7uYKE1DwL\/Mz6dDAvFeumx1ixD\/ZUSLsaBJEt0DefJK0xbRJcfrglH3qubR9q09W8YLMKgtAjcaXotQr9RRqKKz0bje3VrvsFQsjDDN5aSGM8ZFHYYPlNOP2jTevD0zvF26SMntqkCQndnxGlQh53ILnmwDZc4g8Il1lRqJYm+75T+eL3qIgvDDZCPTHNrbO5KCxwwUmG4xkYtA8qT7fdJiKP9fypo4oi5ORpaovYYpBlVgohRtruNvMgLA0sXoSsQHvI10i+MhIFbrnlSIELUeUaJSMqXKqcIsNKvMAkw5FNdO3eACmVnRgHbETQl5NQj2vh+WoUBD38lLsTvLqoJOT3qWV9s7eopFP5gTdbsnxCCKvifgFg7rS1hDmgHqdONbT+AB9Q8W7mmz9WBesE4eOXpt2nRVkq40lU7e5CcWY5NS+EO633m9pvHE3RUhRS5jznSMJDRM6LGMfMBF7890IzVnhVpNQ7Z9Ogxcqi3K9BEC+OT4oo0Vb8LXwX2mj1xgkFhTsHGGUDCnaZnXYSELlVCq6gBYoIWLrg0l5pJDT4PzHFupnOW5FJSNVHQyzkOY2BpKNuIIobYS9mAFyEwzfP0G3sciup7uBxzIwR9sZvNmraaW2Iu0PcaUQLHGFL9YMosJC2sFKauhwUTLBS08NbhwgEfU5S403qe0bQxrUGGlVl92rqyLwm2DBF+QbZHeyGWfbldnEOsk0CrzGhEE\/KN8CWyL94\/BNFYwKnpFss7UqQUsvT\/Fp9xZumQUxaMkeGs0pXEoKYHWc0r4Y08Su7Do+AA3s\/xchuccmo0wIYv3Gqpl6td2tECFV2\/MPqntEbtcMPzA3tjTHsIJzSwKehshZD3ZrqHKC+8\/8ZeU\/Y9fyIpipHorOW21O3xJdCC3Mn1M23hnB34gTVBLsWGvtbthNGxtDCdA7+\/kFWuRhq\/VA9J2RQnTRv97x5olHUfkTNBEAz+dz9JtSMCI0YPPSp6PQodRyZUREVzjKJ\/kzqSdvVLaXkF1O1fO+u+j6gQ0IiNADC\/4VQddFmv98kjgiSZALNI\/NF+TUt2BFYsDZ4C5KQMYZJTFZqJCHzgYV+RSmoTm0+7hDSeWmhs+M62De5Td\/tytWTqwNP1RcW\/HZWldR24qV8iCtxTOzdam3bXYCTxq2aZcgoH+wtz5ixPhVxPfRS3gECzicFAoNoEjajlqDf1WQkE778KQF4UYyIDv+xSb+AOPBy7+VVG3DAlmUOo53BSe+gDw4IQmnVZPV2RNY\/3OlAxYhUDwaaD+KIPfmezv1ryzehukIaUoJT9zc01vvQHnyjUfx\/Utt+bFFn3c1++ALJ7kL9c6ofoyqHRSpTBb1ceGjM5X0\/gvNj0Tz5t+96htq6LFPnEDSRdpClbnrhzhJdN47eOEVnoGEqwQM0JH+2oPTNcc92nRRRJh+ZUivehTdqZSRiqtQM6hl1u6900Hr6RQ4DDXHmZ3XKK77viHe+\/z3tWSpqHGcPFtIktt+hO2B3Nn9mMR5CcmH6MaNflFqx08ysUZmeQZ5EL1\/kRuZyYxzuOmOL5jyHoYkFqZD\/UsshgEyNEqTXfZ9+Cn2cj+uVDMKqbXsuWtxO8hdS9D25fveDN+P18znUEdPu\/\/kX+f58ZI0ryAvJQmA1iOs7q8lOJlPOZn5CxR9YWb0XRvEnKgVx20TrEa6+t9w7b4o0bFbuRIC7C5hO+MO2DBse4rEghkhu8bDHt+Z\/GC49lSPlwQBlya7x\/MOI3EXCxgdTroWiF81XydQjeqO6RmgfrLNxJH+4x13cFQlKHB6ZfWDAarSsjKeXCUu\/LYGgECHshAWtx7O+Ols19uQAtG51Iu7IyJ0uvc3+KtH++akbq87DpXfBongb1q9SwreSEK7eS2+CUlTdZ5nkgsjktrG7bevQ83Al7YFidxZUa23fh7S2p6jlCJtC07u04N7K387wKCFHcO8\/WnyuzFHgn\/ljkrZFFYu0JOYqqY8D\/+RMmonheT7HklFdn3i\/mOnaBHP6ULcLqKyq1OkYM3x1LK9OGBSW7wvPxVbJGvl8ljL+MiOtIJOH8qBIdcQ7GeF+aORXqlEx9+OBy64SL9wbr8LZqh8+UjfzGocqeYsQVvipDxxFtlihKqQRdinZiH0FnogX2MTNvjItjJnETq4FQWWvN+CL4Ixr8dh1HYZM0CO8fkiqBWP\/sozp2Lf2Hs8CpFWUiTQRV1HnKc2qqQFDon4iK44sg3CYG+LF23ZmBINFOIbQhbEFjMQOCyzpd2WGVllbhDbFjIk\/81DakFAUejAOLm9HwOOpKs7c5QmmwgRa+BRfmkdNhO\/LUCstWhzoahl58idEibzL0\/EIRiKsLEnzkSWo6LfLkLW1xIloB1ruE3k375\/hf+a62n5v9+Azo9uV0efiGKRwHslDo2XippkBP2Ah+OsJVVZtNHd8OWEXKkLAfzbz+sLiRl6XG+w+BuWQZXnUGx6TNoxM1ujKIM4m2Ac17nK0f2udFF0H\/seKwqV4j04NfpuJD1kxUcGkObDLAYcenSOXryCdcYHnSRJ3f\/pSaA+5O4neIs7i8zWP17iXYz\/DxyXJBL4\/sfpoLxTH9ok","paymentMethodType":"klarna_account","url":"https:\/\/checkoutshopper-test.adyen.com\/checkoutshopper\/checkoutPaymentRedirect?redirectData=X6XtfGC3%21eyJHbHVlcGFnZURhdGEiOnsiYnJhbmRDb2RlIjoia2xhcm5hX2FjY291bnQiLCJtZXJjaGFudEFjY291bnQiOiJTYWxlb3JFQ09NIiwicmVkaXJlY3RVcmwiOiJodHRwczpcL1wvcGF5LnBsYXlncm91bmQua2xhcm5hLmNvbVwvbmFcLzhjeXRWOWsiLCJyZXR1cm5VcmwiOiJodHRwOlwvXC9taXJ1bWVlLmNvbVwvcGx1Z2luc1wvbWlydW1lZS5wYXltZW50cy5hZHllblwvYWRkaXRpb25hbC1hY3Rpb25zP3BheW1lbnQ9VUdGNWJXVnVkRG8xTnpVJTNEJmNoZWNrb3V0PTdlYWRkZDZjLWUwNmYtNGRlYi1iYzNlLTAyMTYyY2IzYWMxMCJ9fQ%3D%3DcG7JT5J23o%2FBUhXODtb1brDG%2FH7Ys%2Fl3nbssvr%2B4Ijs%3D","method":"GET","type":"redirect"},"details":[{"key":"redirectResult","type":"text"}],"paymentData":"Ab02b4c0!BQABAgAA76AO+anrthj\/B9KKYMWsHCZsmr1Jdvwxx9XFf3VdZfejwNjgAD9v19LJTHPpe4ANzhYoWzPKy3KvHexH7BLQLHaJ8Q4xSQ0l4DsrecLnJGUqJScsxbIErcB05tCNvXINtVd88EP9U6Eyq7oFLN1S8VXXaEuc5F2jcCuLm7VDYf+ZCAJXuutAcQT6h15iLRyr84ey2PtgKRDBQJu3MOzAOrYhvBEZHNxh+WXA0chmEDmz\/V\/+AVvbgWOmv9LEmfcjsM09cePNEltaA+F7qIPnHXO4Zz3LDKn\/mhOYyYbLsJM5CuPt\/lfARt8uvCoW9JsSf5RU1nRjV9ZiQmOVcY5aFLTvogya6Al\/vpetBXJsmXanJfRZCqAWYR6QMUlqNjUqlHGY6Jssa340xdfAQ2bcsSd16HhRqan3tUigqvmqbX8P9O6HmZXOL81EXJcVt4ZwkQ90Vp8OU5DTvfgK6vTIQZhf7FHqPzskWrS40e5ZvRLkvdwJFYVVct5OoAgcHuuy2bb0VH\/oa5xbXY4xDnZr1n\/ijFCX7xEI3aemcVjhFj\/hUCS2EjDwzGiosUgxGTe321D8HnGFmV2rflBUhqOU\/IDKcb5ubdMPt67UBmnm2bzfT9dj+QW5KGju2sgY+D0Ri+ztlxv3KPU9xrSOlkxlw+HEOD073dMr7I+\/9AMXzRDaNOhrFiOqNiMFnK1jEOsLAEp7ImtleSI6IkFGMEFBQTEwM0NBNTM3RUFFRDg3QzI0REQ1MzkwOUI4MEE3OEE5MjNFMzgyM0Q2OERBQ0M5NEI5RkY4MzA1REMifTe\/b8fJiynX+INPiS4wJMmgjt5P7uYKE1DwL\/Mz6dDAvFeumx1ixD\/ZUSLsaBJEt0DefJK0xbRJcfrglH3qubR9q09W8YLMKgtAjcaXotQr9RRqKKz0bje3VrvsFQsjDDN5aSGM8ZFHYYPlNOP2jTevD0zvF26SMntqkCQndnxGlQh53ILnmwDZc4g8Il1lRqJYm+75T+eL3qIgvDDZCPTHNrbO5KCxwwUmG4xkYtA8qT7fdJiKP9fypo4oi5ORpaovYYpBlVgohRtruNvMgLA0sXoSsQHvI10i+MhIFbrnlSIELUeUaJSMqXKqcIsNKvMAkw5FNdO3eACmVnRgHbETQl5NQj2vh+WoUBD38lLsTvLqoJOT3qWV9s7eopFP5gTdbsnxCCKvifgFg7rS1hDmgHqdONbT+AB9Q8W7mmz9WBesE4eOXpt2nRVkq40lU7e5CcWY5NS+EO633m9pvHE3RUhRS5jznSMJDRM6LGMfMBF7890IzVnhVpNQ7Z9Ogxcqi3K9BEC+OT4oo0Vb8LXwX2mj1xgkFhTsHGGUDCnaZnXYSELlVCq6gBYoIWLrg0l5pJDT4PzHFupnOW5FJSNVHQyzkOY2BpKNuIIobYS9mAFyEwzfP0G3sciup7uBxzIwR9sZvNmraaW2Iu0PcaUQLHGFL9YMosJC2sFKauhwUTLBS08NbhwgEfU5S403qe0bQxrUGGlVl92rqyLwm2DBF+QbZHeyGWfbldnEOsk0CrzGhEE\/KN8CWyL94\/BNFYwKnpFss7UqQUsvT\/Fp9xZumQUxaMkeGs0pXEoKYHWc0r4Y08Su7Do+AA3s\/xchuccmo0wIYv3Gqpl6td2tECFV2\/MPqntEbtcMPzA3tjTHsIJzSwKehshZD3ZrqHKC+8\/8ZeU\/Y9fyIpipHorOW21O3xJdCC3Mn1M23hnB34gTVBLsWGvtbthNGxtDCdA7+\/kFWuRhq\/VA9J2RQnTRv97x5olHUfkTNBEAz+dz9JtSMCI0YPPSp6PQodRyZUREVzjKJ\/kzqSdvVLaXkF1O1fO+u+j6gQ0IiNADC\/4VQddFmv98kjgiSZALNI\/NF+TUt2BFYsDZ4C5KQMYZJTFZqJCHzgYV+RSmoTm0+7hDSeWmhs+M62De5Td\/tytWTqwNP1RcW\/HZWldR24qV8iCtxTOzdam3bXYCTxq2aZcgoH+wtz5ixPhVxPfRS3gECzicFAoNoEjajlqDf1WQkE778KQF4UYyIDv+xSb+AOPBy7+VVG3DAlmUOo53BSe+gDw4IQmnVZPV2RNY\/3OlAxYhUDwaaD+KIPfmezv1ryzehukIaUoJT9zc01vvQHnyjUfx\/Utt+bFFn3c1++ALJ7kL9c6ofoyqHRSpTBb1ceGjM5X0\/gvNj0Tz5t+96htq6LFPnEDSRdpClbnrhzhJdN47eOEVnoGEqwQM0JH+2oPTNcc92nRRRJh+ZUivehTdqZSRiqtQM6hl1u6900Hr6RQ4DDXHmZ3XKK77viHe+\/z3tWSpqHGcPFtIktt+hO2B3Nn9mMR5CcmH6MaNflFqx08ysUZmeQZ5EL1\/kRuZyYxzuOmOL5jyHoYkFqZD\/UsshgEyNEqTXfZ9+Cn2cj+uVDMKqbXsuWtxO8hdS9D25fveDN+P18znUEdPu\/\/kX+f58ZI0ryAvJQmA1iOs7q8lOJlPOZn5CxR9YWb0XRvEnKgVx20TrEa6+t9w7b4o0bFbuRIC7C5hO+MO2DBse4rEghkhu8bDHt+Z\/GC49lSPlwQBlya7x\/MOI3EXCxgdTroWiF81XydQjeqO6RmgfrLNxJH+4x13cFQlKHB6ZfWDAarSsjKeXCUu\/LYGgECHshAWtx7O+Ols19uQAtG51Iu7IyJ0uvc3+KtH++akbq87DpXfBongb1q9SwreSEK7eS2+CUlTdZ5nkgsjktrG7bevQ83Al7YFidxZUa23fh7S2p6jlCJtC07u04N7K387wKCFHcO8\/WnyuzFHgn\/ljkrZFFYu0JOYqqY8D\/+RMmonheT7HklFdn3i\/mOnaBHP6ULcLqKyq1OkYM3x1LK9OGBSW7wvPxVbJGvl8ljL+MiOtIJOH8qBIdcQ7GeF+aORXqlEx9+OBy64SL9wbr8LZqh8+UjfzGocqeYsQVvipDxxFtlihKqQRdinZiH0FnogX2MTNvjItjJnETq4FQWWvN+CL4Ixr8dh1HYZM0CO8fkiqBWP\/sozp2Lf2Hs8CpFWUiTQRV1HnKc2qqQFDon4iK44sg3CYG+LF23ZmBINFOIbQhbEFjMQOCyzpd2WGVllbhDbFjIk\/81DakFAUejAOLm9HwOOpKs7c5QmmwgRa+BRfmkdNhO\/LUCstWhzoahl58idEibzL0\/EIRiKsLEnzkSWo6LfLkLW1xIloB1ruE3k375\/hf+a62n5v9+Azo9uV0efiGKRwHslDo2XippkBP2Ah+OsJVVZtNHd8OWEXKkLAfzbz+sLiRl6XG+w+BuWQZXnUGx6TNoxM1ujKIM4m2Ac17nK0f2udFF0H\/seKwqV4j04NfpuJD1kxUcGkObDLAYcenSOXryCdcYHnSRJ3f\/pSaA+5O4neIs7i8zWP17iXYz\/DxyXJBL4\/sfpoLxTH9ok","redirect":{"method":"GET","url":"https:\/\/checkoutshopper-test.adyen.com\/checkoutshopper\/checkoutPaymentRedirect?redirectData=X6XtfGC3%21eyJHbHVlcGFnZURhdGEiOnsiYnJhbmRDb2RlIjoia2xhcm5hX2FjY291bnQiLCJtZXJjaGFudEFjY291bnQiOiJTYWxlb3JFQ09NIiwicmVkaXJlY3RVcmwiOiJodHRwczpcL1wvcGF5LnBsYXlncm91bmQua2xhcm5hLmNvbVwvbmFcLzhjeXRWOWsiLCJyZXR1cm5VcmwiOiJodHRwOlwvXC9taXJ1bWVlLmNvbVwvcGx1Z2luc1wvbWlydW1lZS5wYXltZW50cy5hZHllblwvYWRkaXRpb25hbC1hY3Rpb25zP3BheW1lbnQ9VUdGNWJXVnVkRG8xTnpVJTNEJmNoZWNrb3V0PTdlYWRkZDZjLWUwNmYtNGRlYi1iYzNlLTAyMTYyY2IzYWMxMCJ9fQ%3D%3DcG7JT5J23o%2FBUhXODtb1brDG%2FH7Ys%2Fl3nbssvr%2B4Ijs%3D"}}'
+    headers:
+      Connection:
+      - Keep-Alive
+      Content-Type:
+      - application/json;charset=UTF-8
+      Date:
+      - Mon, 12 Apr 2021 12:27:32 GMT
+      Keep-Alive:
+      - timeout=15, max=100
+      Server:
+      - Apache
+      Set-Cookie:
+      - JSESSIONID=8440B0ACF5E10F5E3413D31678BAE570.test103e; Path=/checkout; Secure;
+        HttpOnly
+      Transfer-Encoding:
+      - chunked
+      pspReference:
+      - 881618230452065H
+    status:
+      code: 200
+      message: '200'
+version: 1
