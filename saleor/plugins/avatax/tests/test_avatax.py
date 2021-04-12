@@ -1218,7 +1218,7 @@ def test_get_order_shipping_tax_rate_skip_plugin(
     assert tax_rate == Decimal("0.25")
 
 
-def test_get_plugin_configuration(settings):
+def test_get_plugin_configuration(settings, channel_USD):
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
     manager = get_plugins_manager()
     plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID)
@@ -1234,12 +1234,13 @@ def test_get_plugin_configuration(settings):
 
 
 @patch("saleor.plugins.avatax.plugin.api_get_request")
-def test_save_plugin_configuration(api_get_request_mock, settings):
+def test_save_plugin_configuration(api_get_request_mock, settings, channel_USD):
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
     api_get_request_mock.return_value = {"authenticated": True}
     manager = get_plugins_manager()
     manager.save_plugin_configuration(
         AvataxPlugin.PLUGIN_ID,
+        channel_USD.slug,
         {
             "active": True,
             "configuration": [
@@ -1248,7 +1249,9 @@ def test_save_plugin_configuration(api_get_request_mock, settings):
             ],
         },
     )
-    manager.save_plugin_configuration(AvataxPlugin.PLUGIN_ID, {"active": True})
+    manager.save_plugin_configuration(
+        AvataxPlugin.PLUGIN_ID, channel_USD.slug, {"active": True}
+    )
     plugin_configuration = PluginConfiguration.objects.get(
         identifier=AvataxPlugin.PLUGIN_ID
     )
@@ -1257,7 +1260,7 @@ def test_save_plugin_configuration(api_get_request_mock, settings):
 
 @patch("saleor.plugins.avatax.plugin.api_get_request")
 def test_save_plugin_configuration_authentication_failed(
-    api_get_request_mock, settings
+    api_get_request_mock, settings, channel_USD
 ):
     # given
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
@@ -1268,6 +1271,7 @@ def test_save_plugin_configuration_authentication_failed(
     with pytest.raises(ValidationError) as e:
         manager.save_plugin_configuration(
             AvataxPlugin.PLUGIN_ID,
+            channel_USD.slug,
             {
                 "active": True,
                 "configuration": [
@@ -1286,13 +1290,15 @@ def test_save_plugin_configuration_authentication_failed(
 
 
 def test_save_plugin_configuration_cannot_be_enabled_without_config(
-    settings, plugin_configuration
+    settings, plugin_configuration, channel_USD
 ):
     plugin_configuration(None, None)
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
     manager = get_plugins_manager()
     with pytest.raises(ValidationError):
-        manager.save_plugin_configuration(AvataxPlugin.PLUGIN_ID, {"active": True})
+        manager.save_plugin_configuration(
+            AvataxPlugin.PLUGIN_ID, channel_USD.slug, {"active": True}
+        )
 
 
 def test_show_taxes_on_storefront(plugin_configuration):

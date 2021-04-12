@@ -23,7 +23,7 @@ def resolve_plugins(manager, sort_by=None, **kwargs):
     search_query = plugin_filter.get("search")
     filter_active = plugin_filter.get("active")
 
-    plugins = manager.plugins
+    plugins = manager.all_plugins
 
     if filter_active is not None:
         plugins = [plugin for plugin in plugins if plugin.active is filter_active]

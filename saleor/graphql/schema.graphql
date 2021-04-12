@@ -2694,7 +2694,7 @@ type Mutation {
   paymentCapture(amount: PositiveDecimal, paymentId: ID!): PaymentCapture
   paymentRefund(amount: PositiveDecimal, paymentId: ID!): PaymentRefund
   paymentVoid(paymentId: ID!): PaymentVoid
-  paymentInitialize(gateway: String!, paymentData: JSONString): PaymentInitialize
+  paymentInitialize(channel: String, gateway: String!, paymentData: JSONString): PaymentInitialize
   pageCreate(input: PageCreateInput!): PageCreate
   pageDelete(id: ID!): PageDelete
   pageBulkDelete(ids: [ID]!): PageBulkDelete
@@ -2763,7 +2763,7 @@ type Mutation {
   giftCardCreate(input: GiftCardCreateInput!): GiftCardCreate
   giftCardDeactivate(id: ID!): GiftCardDeactivate
   giftCardUpdate(id: ID!, input: GiftCardUpdateInput!): GiftCardUpdate
-  pluginUpdate(id: ID!, input: PluginUpdateInput!): PluginUpdate
+  pluginUpdate(channel: String, id: ID!, input: PluginUpdateInput!): PluginUpdate
   saleCreate(input: SaleInput!): SaleCreate
   saleDelete(id: ID!): SaleDelete
   saleBulkDelete(ids: [ID]!): SaleBulkDelete
@@ -3759,6 +3759,7 @@ enum PaymentErrorCode {
   SHIPPING_METHOD_NOT_SET
   PAYMENT_ERROR
   NOT_SUPPORTED_GATEWAY
+  CHANNEL_INACTIVE
 }
 
 input PaymentFilterInput {
@@ -3900,6 +3901,7 @@ input PermissionGroupUpdateInput {
 type Plugin implements Node {
   id: ID!
   name: String!
+  channel: Channel
   description: String!
   active: Boolean!
   configuration: [ConfigurationItem]
@@ -5096,7 +5098,7 @@ input ShippingZoneUpdateInput {
 }
 
 type Shop {
-  availablePaymentGateways(currency: String): [PaymentGateway!]!
+  availablePaymentGateways(currency: String, channel: String): [PaymentGateway!]!
   availableExternalAuthentications: [ExternalAuthentication!]!
   availableShippingMethods(channel: String!, address: AddressInput): [ShippingMethod]
   countries(languageCode: LanguageCodeEnum): [CountryDisplay!]!
@@ -5521,7 +5523,7 @@ type User implements Node & ObjectWithMetadata {
   editableGroups: [Group]
   avatar(size: Int): Image
   events: [CustomerEvent]
-  storedPaymentSources: [PaymentSource]
+  storedPaymentSources(channel: String): [PaymentSource]
   languageCode: LanguageCodeEnum!
 }
 

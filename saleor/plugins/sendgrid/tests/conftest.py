@@ -31,6 +31,7 @@ def sendgrid_email_plugin(settings):
         manager = get_plugins_manager()
         manager.save_plugin_configuration(
             SendgridEmailPlugin.PLUGIN_ID,
+            None,
             {
                 "active": active,
                 "configuration": [
@@ -97,6 +98,6 @@ def sendgrid_email_plugin(settings):
             },
         )
         manager = get_plugins_manager()
-        return manager.plugins[0]
+        return manager.all_plugins[0]
 
     return fun
