@@ -1209,7 +1209,7 @@ def product_with_collections(
 
 
 @pytest.fixture
-def product_available_in_many_channels(product, channel_PLN):
+def product_available_in_many_channels(product, channel_PLN, channel_USD):
     ProductChannelListing.objects.create(
         product=product,
         channel=channel_PLN,
@@ -1585,7 +1585,7 @@ def variant_with_many_stocks_different_shipping_zones(
 
 
 @pytest.fixture
-def product_variant_list(product, channel_USD):
+def product_variant_list(product, channel_USD, channel_PLN):
     variants = list(
         ProductVariant.objects.bulk_create(
             [
@@ -1613,10 +1613,10 @@ def product_variant_list(product, channel_USD):
             ),
             ProductVariantChannelListing(
                 variant=variants[2],
-                channel=channel_USD,
+                channel=channel_PLN,
                 cost_price_amount=Decimal(1),
                 price_amount=Decimal(10),
-                currency=channel_USD.currency_code,
+                currency=channel_PLN.currency_code,
             ),
         ]
     )
