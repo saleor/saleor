@@ -7,6 +7,7 @@ from urllib.parse import urljoin
 import opentracing
 import opentracing.tags
 from django.core.exceptions import ValidationError
+from django_countries import countries
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from ...checkout import base_calculations
@@ -61,6 +62,11 @@ class AvataxPlugin(BasePlugin):
         {"name": "Use sandbox", "value": True},
         {"name": "Company name", "value": "DEFAULT"},
         {"name": "Autocommit", "value": False},
+        {"name": "from_street_address", "value": None},
+        {"name": "from_city", "value": None},
+        {"name": "from_country", "value": None},
+        {"name": "from_country_area", "value": None},
+        {"name": "from_postal_code", "value": None},
     ]
     CONFIG_STRUCTURE = {
         "Username or account": {
@@ -92,18 +98,53 @@ class AvataxPlugin(BasePlugin):
             "should be committed by default.",
             "label": "Autocommit",
         },
+        "from_street_address": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "To calculate taxes we need to provide `ship from` details.",
+            "label": "Ship from - street",
+        },
+        "from_city": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "To calculate taxes we need to provide `ship from` details.",
+            "label": "Ship from - city",
+        },
+        "from_country": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "To calculate taxes we need to provide `ship from` details. "
+            "Country code in ISO format. ",
+            "label": "Ship from - country",
+        },
+        "from_country_area": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "To calculate taxes we need to provide `ship from` details.",
+            "label": "Ship from - country area",
+        },
+        "from_postal_code": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "To calculate taxes we need to provide `ship from` details.",
+            "label": "Ship from - postal code",
+        },
     }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Convert to dict to easier take config elements
         configuration = {item["name"]: item["value"] for item in self.configuration}
+
+        if from_country := configuration["from_country"]:
+            from_country = countries.alpha2(from_country.strip())
+
         self.config = AvataxConfiguration(
             username_or_account=configuration["Username or account"],
             password_or_license=configuration["Password or license"],
             use_sandbox=configuration["Use sandbox"],
             company_name=configuration["Company name"],
             autocommit=configuration["Autocommit"],
+            from_street_address=configuration["from_street_address"],
+            from_city=configuration["from_city"],
+            from_country=from_country,
+            from_country_area=configuration["from_country_area"],
+            from_postal_code=configuration["from_postal_code"],
         )
 
     def _skip_plugin(
@@ -655,6 +696,19 @@ class AvataxPlugin(BasePlugin):
             missing_fields.append("Username or account")
         if not configuration["Password or license"]:
             missing_fields.append("Password or license")
+
+        required_from_address_fields = [
+            "from_street_address",
+            "from_city",
+            "from_country",
+            "from_postal_code",
+        ]
+
+        all_address_fields = all(
+            [configuration[field] for field in required_from_address_fields]
+        )
+        if not all_address_fields:
+            missing_fields.extend(required_from_address_fields)
 
         if plugin_configuration.active:
             if missing_fields:
