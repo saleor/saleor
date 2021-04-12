@@ -334,6 +334,7 @@ def get_prices_of_discounted_specific_product(
         line_total = calculations.checkout_line_total(
             manager=manager,
             checkout_info=checkout_info,
+            lines=lines,
             checkout_line_info=line_info,
             discounts=discounts,
         ).gross
@@ -341,6 +342,7 @@ def get_prices_of_discounted_specific_product(
             line_total,
             line.quantity,
             checkout_info,
+            lines,
             line_info,
             address,
             discounts,
@@ -584,7 +586,7 @@ def get_valid_shipping_methods_for_checkout(
         checkout_info.checkout,
         channel_id=checkout_info.checkout.channel_id,
         price=subtotal.gross,
-        country_code=country_code,
+        country_code=country_code,  # type: ignore
         lines=lines,
     )
 

@@ -3,13 +3,13 @@ name: TEST-ENV-DEPLOYMENT
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, labeled]
+    types: [reopened, synchronize, labeled]
     branches: ["*"]
 
 jobs:
   deploy:
     name: Deploy test environment for labeled pull requests
-    if: ${{ contains(github.event.pull_request.labels.*.name, 'test deployment') }}
+    if: ${{ ((github.event.action == 'labeled') && (github.event.label.name == 'test deployment')) || ((github.event.action != 'labeled') && contains(github.event.pull_request.labels.*.name, 'test deployment')) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

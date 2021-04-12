@@ -151,3 +151,227 @@ def test_retrieve_collection_channel_listings(
             check_no_permissions=False,
         )
     )
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_create_collection(
+    settings,
+    staff_api_client,
+    product_list_with_many_channels,
+    permission_manage_products,
+    count_queries,
+):
+    query = """
+        mutation createCollection(
+                $name: String!, $slug: String,
+                $description: JSONString, $products: [ID],
+                $backgroundImage: Upload, $backgroundImageAlt: String) {
+            collectionCreate(
+                input: {
+                    name: $name,
+                    slug: $slug,
+                    description: $description,
+                    products: $products,
+                    backgroundImage: $backgroundImage,
+                    backgroundImageAlt: $backgroundImageAlt}) {
+                collection {
+                    name
+                    slug
+                    description
+                    products {
+                        totalCount
+                    }
+                    backgroundImage{
+                        alt
+                    }
+                }
+                collectionErrors {
+                    field
+                    message
+                    code
+                }
+            }
+        }
+    """
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    product_ids = [
+        graphene.Node.to_global_id("Product", product.pk)
+        for product in product_list_with_many_channels
+    ]
+    name = "test-name"
+    slug = "test-slug"
+    variables = {
+        "name": name,
+        "slug": slug,
+        "products": product_ids,
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    errors = content["data"]["collectionCreate"]["collectionErrors"]
+    assert not errors
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_delete_collection(
+    settings,
+    staff_api_client,
+    collection_with_products,
+    permission_manage_products,
+    count_queries,
+):
+    query = """
+        mutation deleteCollection($id: ID!) {
+            collectionDelete(id: $id) {
+                collection {
+                    name
+                }
+                collectionErrors {
+                    field
+                    message
+                    code
+                }
+            }
+        }
+    """
+    collection = collection_with_products[0].collections.first()
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    collection_id = graphene.Node.to_global_id("Collection", collection.id)
+
+    variables = {
+        "id": collection_id,
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    errors = content["data"]["collectionDelete"]["collectionErrors"]
+    assert not errors
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_collection_add_products(
+    staff_api_client,
+    collection,
+    product_list,
+    permission_manage_products,
+    settings,
+    count_queries,
+):
+    query = """
+        mutation collectionAddProducts(
+            $id: ID!, $products: [ID]!) {
+            collectionAddProducts(collectionId: $id, products: $products) {
+                collection {
+                    products {
+                        totalCount
+                    }
+                }
+                collectionErrors {
+                    field
+                    message
+                    code
+                }
+            }
+        }
+    """
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    collection_id = graphene.Node.to_global_id("Collection", collection.id)
+    product_ids = [
+        graphene.Node.to_global_id("Product", product.pk) for product in product_list
+    ]
+    variables = {"id": collection_id, "products": product_ids}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    errors = content["data"]["collectionAddProducts"]["collectionErrors"]
+    assert not errors
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_remove_products_from_collection(
+    staff_api_client,
+    collection_with_products,
+    permission_manage_products,
+    settings,
+    count_queries,
+):
+    query = """
+        mutation collectionRemoveProducts(
+            $id: ID!, $products: [ID]!) {
+            collectionRemoveProducts(collectionId: $id, products: $products) {
+                collection {
+                    products {
+                        totalCount
+                    }
+                }
+                collectionErrors {
+                    field
+                    message
+                    code
+                }
+            }
+        }
+    """
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    collection = collection_with_products[0].collections.first()
+    collection_id = graphene.Node.to_global_id("Collection", collection.id)
+    product_ids = [
+        graphene.Node.to_global_id("Product", product.pk)
+        for product in collection_with_products
+    ]
+    variables = {"id": collection_id, "products": product_ids}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    content = get_graphql_content(response)
+    errors = content["data"]["collectionRemoveProducts"]["collectionErrors"]
+    assert not errors
+
+
+def test_collection_bulk_delete(
+    staff_api_client,
+    collection_list,
+    product_list,
+    permission_manage_products,
+    count_queries,
+    settings,
+):
+    query = """
+    mutation collectionBulkDelete($ids: [ID]!) {
+        collectionBulkDelete(ids: $ids) {
+            count
+            collectionErrors {
+                field
+                message
+                code
+            }
+        }
+    }
+    """
+    for collection in collection_list:
+        collection.products.add(*product_list)
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("Collection", collection.id)
+            for collection in collection_list
+        ]
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+
+    assert not content["data"]["collectionBulkDelete"]["collectionErrors"]

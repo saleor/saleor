@@ -44,6 +44,9 @@ if TYPE_CHECKING:
     from .base_plugin import BasePlugin
 
 
+NotifyEventTypeChoice = str
+
+
 class PluginsManager(PaymentInterface):
     """Base manager for handling plugins logic."""
 
@@ -150,24 +153,17 @@ class PluginsManager(PaymentInterface):
         line_totals = [
             self.calculate_checkout_line_total(
                 checkout_info,
+                lines,
                 line_info,
                 address,
                 discounts,
             )
             for line_info in lines
         ]
-        default_value = base_calculations.base_checkout_subtotal(
-            line_totals, checkout_info.checkout.currency
-        )
+        currency = checkout_info.checkout.currency
+        total = sum(line_totals, zero_taxed_money(currency))
         return quantize_price(
-            self.__run_method_on_plugins(
-                "calculate_checkout_subtotal",
-                default_value,
-                checkout_info,
-                lines,
-                address,
-                discounts,
-            ),
+            total,
             checkout_info.checkout.currency,
         )
 
@@ -237,6 +233,7 @@ class PluginsManager(PaymentInterface):
     def calculate_checkout_line_total(
         self,
         checkout_info: "CheckoutInfo",
+        lines: Iterable["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
@@ -251,6 +248,7 @@ class PluginsManager(PaymentInterface):
                 "calculate_checkout_line_total",
                 default_value,
                 checkout_info,
+                lines,
                 checkout_line_info,
                 address,
                 discounts,
@@ -263,6 +261,7 @@ class PluginsManager(PaymentInterface):
         total_line_price: TaxedMoney,
         quantity: int,
         checkout_info: "CheckoutInfo",
+        lines: Iterable["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
@@ -275,6 +274,7 @@ class PluginsManager(PaymentInterface):
                 "calculate_checkout_line_unit_price",
                 default_value,
                 checkout_info,
+                lines,
                 checkout_line_info,
                 address,
                 discounts,
@@ -306,6 +306,7 @@ class PluginsManager(PaymentInterface):
     def get_checkout_line_tax_rate(
         self,
         checkout_info: "CheckoutInfo",
+        lines: Iterable["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
@@ -316,6 +317,7 @@ class PluginsManager(PaymentInterface):
             "get_checkout_line_tax_rate",
             default_value,
             checkout_info,
+            lines,
             checkout_line_info,
             address,
             discounts,
@@ -325,12 +327,13 @@ class PluginsManager(PaymentInterface):
         self,
         order: "Order",
         product: "Product",
+        variant: "ProductVariant",
         address: Optional["Address"],
         unit_price: TaxedMoney,
     ) -> Decimal:
         default_value = base_calculations.base_tax_rate(unit_price)
         return self.__run_method_on_plugins(
-            "get_order_line_tax_rate", default_value, order, product, address
+            "get_order_line_tax_rate", default_value, order, product, variant, address
         ).quantize(Decimal(".0001"))
 
     def get_tax_rate_type_choices(self) -> List[TaxType]:
@@ -586,15 +589,20 @@ class PluginsManager(PaymentInterface):
         }
 
     def list_payment_gateways(
-        self, currency: Optional[str] = None, active_only: bool = True
+        self,
+        currency: Optional[str] = None,
+        checkout: Optional["Checkout"] = None,
+        active_only: bool = True,
     ) -> List["PaymentGateway"]:
         payment_plugins = self.list_payment_plugin(active_only=active_only)
         # if currency is given return only gateways which support given currency
         gateways = []
         for plugin in payment_plugins.values():
-            gateway = plugin.get_payment_gateway(currency=currency, previous_value=None)
-            if gateway:
-                gateways.append(gateway)
+            gateways.extend(
+                plugin.get_payment_gateways(
+                    currency=currency, checkout=checkout, previous_value=None
+                )
+            )
         return gateways
 
     def list_external_authentications(self, active_only: bool = True) -> List[dict]:
@@ -607,20 +615,6 @@ class PluginsManager(PaymentInterface):
             for plugin in plugins
             if auth_basic_method in type(plugin).__dict__
         ]
-
-    def checkout_available_payment_gateways(
-        self,
-        checkout: "Checkout",
-    ) -> List["PaymentGateway"]:
-        payment_plugins = self.list_payment_plugin(active_only=True)
-        gateways = []
-        for plugin in payment_plugins.values():
-            gateway = plugin.get_payment_gateway_for_checkout(
-                checkout, previous_value=None
-            )
-            if gateway:
-                gateways.append(gateway)
-        return gateways
 
     def __run_payment_method(
         self,
@@ -718,6 +712,10 @@ class PluginsManager(PaymentInterface):
         return self.__run_method_on_single_plugin(
             plugin, "webhook", default_value, request, path
         )
+
+    def notify(self, event: "NotifyEventTypeChoice", payload: dict):
+        default_value = None
+        return self.__run_method_on_plugins("notify", default_value, event, payload)
 
     def external_obtain_access_tokens(
         self, plugin_id: str, data: dict, request: WSGIRequest

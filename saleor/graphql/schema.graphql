@@ -74,6 +74,7 @@ input AccountInput {
   lastName: String
   defaultBillingAddress: AddressInput
   defaultShippingAddress: AddressInput
+  languageCode: LanguageCodeEnum
 }
 
 type AccountRegister {
@@ -87,6 +88,7 @@ input AccountRegisterInput {
   email: String!
   password: String!
   redirectUrl: String
+  languageCode: LanguageCodeEnum
 }
 
 type AccountRequestDeletion {
@@ -479,6 +481,7 @@ input AttributeFilterInput {
   filterableInStorefront: Boolean
   filterableInDashboard: Boolean
   availableInGrid: Boolean
+  metadata: [MetadataInput]
   search: String
   ids: [ID]
   type: AttributeTypeEnum
@@ -498,6 +501,7 @@ enum AttributeInputTypeEnum {
   MULTISELECT
   FILE
   REFERENCE
+  RICH_TEXT
 }
 
 type AttributeReorderValues {
@@ -571,10 +575,12 @@ type AttributeValue implements Node {
   id: ID!
   name: String
   slug: String
+  value: String
   translation(languageCode: LanguageCodeEnum!): AttributeValueTranslation
   inputType: AttributeInputTypeEnum
   reference: ID
   file: File
+  richText: JSONString
 }
 
 type AttributeValueBulkDelete {
@@ -592,6 +598,8 @@ type AttributeValueCreate {
 
 input AttributeValueCreateInput {
   name: String!
+  value: String
+  richText: JSONString
 }
 
 type AttributeValueDelete {
@@ -607,6 +615,7 @@ input AttributeValueInput {
   file: String
   contentType: String
   references: [ID!]
+  richText: JSONString
 }
 
 type AttributeValueTranslatableContent implements Node {
@@ -625,7 +634,13 @@ type AttributeValueTranslate {
 type AttributeValueTranslation implements Node {
   id: ID!
   name: String!
+  richText: JSONString
   language: LanguageDisplay!
+}
+
+input AttributeValueTranslationInput {
+  name: String
+  richText: JSONString
 }
 
 type AttributeValueUpdate {
@@ -717,6 +732,7 @@ type CategoryDelete {
 
 input CategoryFilterInput {
   search: String
+  metadata: [MetadataInput]
   ids: [ID]
 }
 
@@ -881,6 +897,7 @@ type Checkout implements Node & ObjectWithMetadata {
   subtotalPrice: TaxedMoney
   token: UUID!
   totalPrice: TaxedMoney
+  languageCode: LanguageCodeEnum!
 }
 
 type CheckoutAddPromoCode {
@@ -927,6 +944,7 @@ input CheckoutCreateInput {
   email: String
   shippingAddress: AddressInput
   billingAddress: AddressInput
+  languageCode: LanguageCodeEnum
 }
 
 type CheckoutCustomerAttach {
@@ -978,6 +996,12 @@ enum CheckoutErrorCode {
   MISSING_CHANNEL_SLUG
   CHANNEL_INACTIVE
   UNAVAILABLE_VARIANT_IN_CHANNEL
+}
+
+type CheckoutLanguageCodeUpdate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  checkout: Checkout
+  checkoutErrors: [CheckoutError!]!
 }
 
 type CheckoutLine implements Node {
@@ -1077,7 +1101,7 @@ type CollectionAddProducts {
 type CollectionBulkDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   count: Int!
-  productErrors: [ProductError!]!
+  collectionErrors: [CollectionError!]!
 }
 
 type CollectionChannelListing implements Node {
@@ -1162,6 +1186,7 @@ enum CollectionErrorCode {
 input CollectionFilterInput {
   published: CollectionPublished
   search: String
+  metadata: [MetadataInput]
   ids: [ID]
   channel: String
 }
@@ -1255,6 +1280,7 @@ input ConfigurationItemInput {
 
 enum ConfigurationTypeFieldEnum {
   STRING
+  MULTILINE
   BOOLEAN
   SECRET
   PASSWORD
@@ -1609,6 +1635,7 @@ input CustomerInput {
   email: String
   isActive: Boolean
   note: String
+  languageCode: LanguageCodeEnum
 }
 
 type CustomerUpdate {
@@ -1813,30 +1840,9 @@ input DraftOrderInput {
   redirectUrl: String
 }
 
-type DraftOrderLineDelete {
-  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  order: Order
-  orderLine: OrderLine
-  orderErrors: [OrderError!]!
-}
-
-type DraftOrderLineUpdate {
-  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  order: Order
-  orderErrors: [OrderError!]!
-  orderLine: OrderLine
-}
-
 type DraftOrderLinesBulkDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   count: Int!
-  orderErrors: [OrderError!]!
-}
-
-type DraftOrderLinesCreate {
-  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  order: Order
-  orderLines: [OrderLine!]
   orderErrors: [OrderError!]!
 }
 
@@ -2250,7 +2256,7 @@ type InvoiceRequestDelete {
   invoice: Invoice
 }
 
-type InvoiceSendEmail {
+type InvoiceSendNotification {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   invoiceErrors: [InvoiceError!]!
   invoice: Invoice
@@ -2433,6 +2439,7 @@ enum MenuErrorCode {
 input MenuFilterInput {
   search: String
   slug: [String]
+  metadata: [MetadataInput]
 }
 
 input MenuInput {
@@ -2497,6 +2504,7 @@ type MenuItemDelete {
 
 input MenuItemFilterInput {
   search: String
+  metadata: [MetadataInput]
 }
 
 input MenuItemInput {
@@ -2713,9 +2721,6 @@ type Mutation {
   draftOrderDelete(id: ID!): DraftOrderDelete
   draftOrderBulkDelete(ids: [ID]!): DraftOrderBulkDelete
   draftOrderLinesBulkDelete(ids: [ID]!): DraftOrderLinesBulkDelete
-  draftOrderLinesCreate(id: ID!, input: [OrderLineCreateInput]!): DraftOrderLinesCreate
-  draftOrderLineDelete(id: ID!): DraftOrderLineDelete
-  draftOrderLineUpdate(id: ID!, input: OrderLineInput!): DraftOrderLineUpdate
   draftOrderUpdate(id: ID!, input: DraftOrderInput!): DraftOrderUpdate
   orderAddNote(order: ID!, input: OrderAddNoteInput!): OrderAddNote
   orderCancel(id: ID!): OrderCancel
@@ -2726,6 +2731,9 @@ type Mutation {
   orderFulfillmentUpdateTracking(id: ID!, input: FulfillmentUpdateTrackingInput!): FulfillmentUpdateTracking
   orderFulfillmentRefundProducts(input: OrderRefundProductsInput!, order: ID!): FulfillmentRefundProducts
   orderFulfillmentReturnProducts(input: OrderReturnProductsInput!, order: ID!): FulfillmentReturnProducts
+  orderLinesCreate(id: ID!, input: [OrderLineCreateInput]!): OrderLinesCreate
+  orderLineDelete(id: ID!): OrderLineDelete
+  orderLineUpdate(id: ID!, input: OrderLineInput!): OrderLineUpdate
   orderDiscountAdd(input: OrderDiscountCommonInput!, orderId: ID!): OrderDiscountAdd
   orderDiscountUpdate(discountId: ID!, input: OrderDiscountCommonInput!): OrderDiscountUpdate
   orderDiscountDelete(discountId: ID!): OrderDiscountDelete
@@ -2757,7 +2765,7 @@ type Mutation {
   invoiceCreate(input: InvoiceCreateInput!, orderId: ID!): InvoiceCreate
   invoiceDelete(id: ID!): InvoiceDelete
   invoiceUpdate(id: ID!, input: UpdateInvoiceInput!): InvoiceUpdate
-  invoiceSendEmail(id: ID!): InvoiceSendEmail
+  invoiceSendNotification(id: ID!): InvoiceSendNotification
   giftCardActivate(id: ID!): GiftCardActivate
   giftCardCreate(input: GiftCardCreateInput!): GiftCardCreate
   giftCardDeactivate(id: ID!): GiftCardDeactivate
@@ -2795,6 +2803,7 @@ type Mutation {
   checkoutPaymentCreate(checkoutId: ID!, input: PaymentInput!): CheckoutPaymentCreate
   checkoutShippingAddressUpdate(checkoutId: ID!, shippingAddress: AddressInput!): CheckoutShippingAddressUpdate
   checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!): CheckoutShippingMethodUpdate
+  checkoutLanguageCodeUpdate(checkoutId: ID!, languageCode: LanguageCodeEnum!): CheckoutLanguageCodeUpdate
   channelCreate(input: ChannelCreateInput!): ChannelCreate
   channelUpdate(id: ID!, input: ChannelUpdateInput!): ChannelUpdate
   channelDelete(id: ID!, input: ChannelDeleteInput): ChannelDelete
@@ -2809,7 +2818,7 @@ type Mutation {
   attributeValueCreate(attribute: ID!, input: AttributeValueCreateInput!): AttributeValueCreate
   attributeValueDelete(id: ID!): AttributeValueDelete
   attributeValueUpdate(id: ID!, input: AttributeValueCreateInput!): AttributeValueUpdate
-  attributeValueTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): AttributeValueTranslate
+  attributeValueTranslate(id: ID!, input: AttributeValueTranslationInput!, languageCode: LanguageCodeEnum!): AttributeValueTranslate
   attributeReorderValues(attributeId: ID!, moves: [ReorderInput]!): AttributeReorderValues
   appCreate(input: AppInput!): AppCreate
   appUpdate(id: ID!, input: AppInput!): AppUpdate
@@ -2894,7 +2903,6 @@ type Order implements Node & ObjectWithMetadata {
   created: DateTime!
   status: OrderStatus!
   user: User
-  languageCode: String!
   trackingClientId: String!
   billingAddress: Address
   shippingAddress: Address
@@ -2933,6 +2941,8 @@ type Order implements Node & ObjectWithMetadata {
   totalBalance: Money!
   userEmail: String
   isShippingRequired: Boolean!
+  languageCode: String! @deprecated(reason: "Use the `languageCodeEnum` field to fetch the language code. This field will be removed in Saleor 4.0.")
+  languageCodeEnum: LanguageCodeEnum!
   discount: Money @deprecated(reason: "Use discounts field. This field will be removed in Saleor 4.0.")
   discountName: String @deprecated(reason: "Use discounts field. This field will be removed in Saleor 4.0.")
   translatedDiscountName: String @deprecated(reason: "Use discounts field. This field will be removed in Saleor 4.0.")
@@ -3041,6 +3051,7 @@ input OrderDraftFilterInput {
   customer: String
   created: DateRangeInput
   search: String
+  metadata: [MetadataInput]
   channels: [ID]
 }
 
@@ -3153,8 +3164,8 @@ enum OrderEventsEmailsEnum {
 enum OrderEventsEnum {
   DRAFT_CREATED
   DRAFT_CREATED_FROM_REPLACE
-  DRAFT_ADDED_PRODUCTS
-  DRAFT_REMOVED_PRODUCTS
+  ADDED_PRODUCTS
+  REMOVED_PRODUCTS
   PLACED
   PLACED_FROM_DRAFT
   OVERSOLD_ITEMS
@@ -3198,6 +3209,7 @@ input OrderFilterInput {
   customer: String
   created: DateRangeInput
   search: String
+  metadata: [MetadataInput]
   channels: [ID]
 }
 
@@ -3252,6 +3264,13 @@ input OrderLineCreateInput {
   variantId: ID!
 }
 
+type OrderLineDelete {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  order: Order
+  orderLine: OrderLine
+  orderErrors: [OrderError!]!
+}
+
 type OrderLineDiscountRemove {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   orderLine: OrderLine
@@ -3268,6 +3287,20 @@ type OrderLineDiscountUpdate {
 
 input OrderLineInput {
   quantity: Int!
+}
+
+type OrderLineUpdate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  order: Order
+  orderErrors: [OrderError!]!
+  orderLine: OrderLine
+}
+
+type OrderLinesCreate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  order: Order
+  orderLines: [OrderLine!]
+  orderErrors: [OrderError!]!
 }
 
 type OrderMarkAsPaid {
@@ -3501,6 +3534,7 @@ enum PageErrorCode {
 
 input PageFilterInput {
   search: String
+  metadata: [MetadataInput]
 }
 
 type PageInfo {
@@ -3673,6 +3707,7 @@ type Payment implements Node {
   token: String!
   checkout: Checkout
   order: Order
+  paymentMethodType: String!
   customerIpAddress: String
   chargeStatus: PaymentChargeStatusEnum!
   actions: [OrderAction]!
@@ -3731,6 +3766,10 @@ enum PaymentErrorCode {
   SHIPPING_METHOD_NOT_SET
   PAYMENT_ERROR
   NOT_SUPPORTED_GATEWAY
+}
+
+input PaymentFilterInput {
+  checkouts: [ID]
 }
 
 type PaymentGateway {
@@ -4121,10 +4160,10 @@ enum ProductFieldEnum {
   PRODUCT_WEIGHT
   COLLECTIONS
   CHARGE_TAXES
-  PRODUCT_IMAGES
+  PRODUCT_MEDIA
   VARIANT_SKU
   VARIANT_WEIGHT
-  VARIANT_IMAGES
+  VARIANT_MEDIA
 }
 
 input ProductFilterInput {
@@ -4137,6 +4176,7 @@ input ProductFilterInput {
   productType: ID
   stocks: ProductStockFilterInput
   search: String
+  metadata: [MetadataInput]
   price: PriceRangeInput
   minimalPrice: PriceRangeInput
   productTypes: [ID]
@@ -4351,6 +4391,7 @@ input ProductTypeFilterInput {
   search: String
   configurable: ProductTypeConfigurable
   productType: ProductTypeEnum
+  metadata: [MetadataInput]
   ids: [ID]
 }
 
@@ -4496,6 +4537,7 @@ type ProductVariantDelete {
 input ProductVariantFilterInput {
   search: String
   sku: [String]
+  metadata: [MetadataInput]
 }
 
 input ProductVariantInput {
@@ -4600,7 +4642,7 @@ type Query {
   productVariants(ids: [ID], channel: String, filter: ProductVariantFilterInput, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   reportProductSales(period: ReportingPeriod!, channel: String!, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   payment(id: ID!): Payment
-  payments(before: String, after: String, first: Int, last: Int): PaymentCountableConnection
+  payments(filter: PaymentFilterInput, before: String, after: String, first: Int, last: Int): PaymentCountableConnection
   page(id: ID, slug: String): Page
   pages(sortBy: PageSortingInput, filter: PageFilterInput, before: String, after: String, first: Int, last: Int): PageCountableConnection
   pageType(id: ID!): PageType
@@ -5322,7 +5364,7 @@ input StockFilterInput {
 
 input StockInput {
   warehouse: ID!
-  quantity: Int
+  quantity: Int!
 }
 
 enum TaxRateType {
@@ -5377,21 +5419,9 @@ type Transaction implements Node {
   token: String!
   kind: TransactionKind!
   isSuccess: Boolean!
-  error: TransactionError
+  error: String
+  gatewayResponse: JSONString!
   amount: Money
-}
-
-enum TransactionError {
-  TRANSACTIONERROR_INCORRECT_NUMBER
-  TRANSACTIONERROR_INVALID_NUMBER
-  TRANSACTIONERROR_INCORRECT_CVV
-  TRANSACTIONERROR_INVALID_CVV
-  TRANSACTIONERROR_INCORRECT_ZIP
-  TRANSACTIONERROR_INCORRECT_ADDRESS
-  TRANSACTIONERROR_INVALID_EXPIRY_DATE
-  TRANSACTIONERROR_EXPIRED
-  TRANSACTIONERROR_PROCESSING_ERROR
-  TRANSACTIONERROR_DECLINED
 }
 
 enum TransactionKind {
@@ -5510,6 +5540,7 @@ type User implements Node & ObjectWithMetadata {
   avatar(size: Int): Image
   events: [CustomerEvent]
   storedPaymentSources: [PaymentSource]
+  languageCode: LanguageCodeEnum!
 }
 
 type UserAvatarDelete {
@@ -5549,6 +5580,7 @@ input UserCreateInput {
   email: String
   isActive: Boolean
   note: String
+  languageCode: LanguageCodeEnum
   redirectUrl: String
 }
 
@@ -5963,6 +5995,7 @@ enum WebhookEventTypeEnum {
   CHECKOUT_CREATED
   CHECKOUT_UPDATED
   FULFILLMENT_CREATED
+  NOTIFY_USER
   PAGE_CREATED
   PAGE_UPDATED
   PAGE_DELETED
@@ -5989,6 +6022,7 @@ enum WebhookSampleEventTypeEnum {
   CHECKOUT_CREATED
   CHECKOUT_UPDATED
   FULFILLMENT_CREATED
+  NOTIFY_USER
   PAGE_CREATED
   PAGE_UPDATED
   PAGE_DELETED

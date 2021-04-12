@@ -70,6 +70,13 @@ def filter_status(qs, _, value):
     return qs.filter(status=value)
 
 
+def filter_metadata(qs, _, value):
+    for metadata_item in value:
+        qs = qs.filter(metadata__contains={metadata_item.key: metadata_item.value})
+
+    return qs
+
+
 class BaseJobFilter(django_filters.FilterSet):
     created_at = ObjectTypeFilter(
         input_class=DateTimeRangeInput, method=filter_created_at
@@ -78,3 +85,16 @@ class BaseJobFilter(django_filters.FilterSet):
         input_class=DateTimeRangeInput, method=filter_updated_at
     )
     status = EnumFilter(input_class=JobStatusEnum, method=filter_status)
+
+
+class MetadataFilter(ListObjectTypeFilter):
+    def __init__(self, *args, **kwargs):
+        input_class = "saleor.graphql.meta.mutations.MetadataInput"
+        super().__init__(input_class, method=filter_metadata, *args, **kwargs)
+
+
+class MetadataFilterBase(django_filters.FilterSet):
+    metadata = MetadataFilter()
+
+    class Meta:
+        abstract = True

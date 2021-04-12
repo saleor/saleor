@@ -1,6 +1,10 @@
 {
   "name": "saleor",
   "version": "3.0.0-a.0",
+  "engines": {
+    "node": ">=14 <15",
+    "npm": ">=6.11.0 <7"
+  },
   "repository": {
     "type": "git",
     "url": "git://github.com/mirumee/saleor.git"
@@ -13,10 +17,11 @@
   "homepage": "http://saleor.io/",
   "dependencies": {},
   "devDependencies": {
-    "mjml": "^4.7.1"
+    "@release-it/bumper": "^2.0.0",
+    "release-it": "^14.5.0"
   },
   "scripts": {
     "build-schema": "python manage.py get_graphql_schema > saleor/graphql/schema.graphql",
-    "build-emails": "mjml -c.useMjmlConfigOptions -c.beautify false -l skip \"templates/templated_email/source/*.mjml\" -o templates/templated_email/compiled"
+    "release": "release-it"
   }
 }

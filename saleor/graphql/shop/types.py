@@ -10,13 +10,12 @@ from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 from ... import __version__
 from ...account import models as account_models
 from ...core.permissions import SitePermissions, get_permissions
-from ...plugins.manager import get_plugins_manager
 from ...site import models as site_models
 from ..account.types import Address, AddressInput, StaffNotificationRecipient
 from ..channel import ChannelContext
 from ..checkout.types import PaymentGateway
 from ..core.connection import CountableDjangoObjectType
-from ..core.enums import WeightUnitsEnum
+from ..core.enums import LanguageCodeEnum, WeightUnitsEnum
 from ..core.types.common import CountryDisplay, LanguageDisplay, Permission
 from ..core.utils import str_to_enum
 from ..decorators import (
@@ -27,7 +26,6 @@ from ..decorators import (
 from ..menu.dataloaders import MenuByIdLoader
 from ..menu.types import Menu
 from ..shipping.types import ShippingMethod
-from ..translations.enums import LanguageCodeEnum
 from ..translations.fields import TranslationField
 from ..translations.resolvers import resolve_translation
 from ..translations.types import ShopTranslation
@@ -209,8 +207,8 @@ class Shop(graphene.ObjectType):
         )
 
     @staticmethod
-    def resolve_available_payment_gateways(_, _info, currency: Optional[str] = None):
-        return get_plugins_manager().list_payment_gateways(currency=currency)
+    def resolve_available_payment_gateways(_, info, currency: Optional[str] = None):
+        return info.context.plugins.list_payment_gateways(currency=currency)
 
     @staticmethod
     def resolve_available_external_authentications(_, info):

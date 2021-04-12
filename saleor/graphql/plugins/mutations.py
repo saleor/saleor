@@ -3,7 +3,6 @@ from django.core.exceptions import ValidationError
 
 from ...core.permissions import PluginsPermissions
 from ...plugins.error_codes import PluginErrorCode
-from ...plugins.manager import get_plugins_manager
 from ..core.mutations import BaseMutation
 from ..core.types.common import PluginError
 from .types import Plugin
@@ -47,7 +46,7 @@ class PluginUpdate(BaseMutation):
     def perform_mutation(cls, root, info, **data):
         plugin_id = data.get("id")
         data = data.get("input")
-        manager = get_plugins_manager()
+        manager = info.context.plugins
         plugin = manager.get_plugin(plugin_id)
         if not plugin:
             raise ValidationError(

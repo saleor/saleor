@@ -5,7 +5,6 @@ from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils.encoding import smart_text
-from django.utils.translation import get_language
 from prices import TaxedMoney
 
 from ..account.error_codes import AccountErrorCode
@@ -29,8 +28,8 @@ from ..graphql.checkout.utils import (
 )
 from ..order import OrderLineData, OrderStatus
 from ..order.actions import order_created
-from ..order.emails import send_order_confirmation, send_staff_order_confirmation
 from ..order.models import Order, OrderLine
+from ..order.notifications import send_order_confirmation
 from ..payment import PaymentError, gateway
 from ..payment.models import Payment, Transaction
 from ..payment.utils import store_customer_id
@@ -101,14 +100,11 @@ def _process_user_data_for_order(checkout_info: "CheckoutInfo", manager):
     """Fetch, process and return shipping data from checkout."""
     billing_address = checkout_info.billing_address
 
-    if checkout_info.user:
+    if checkout_info.user and billing_address:
         store_user_address(
             checkout_info.user, billing_address, AddressType.BILLING, manager=manager
         )
-        if (
-            billing_address
-            and checkout_info.user.addresses.filter(pk=billing_address.pk).exists()
-        ):
+        if checkout_info.user.addresses.filter(pk=billing_address.pk).exists():
             billing_address = billing_address.get_copy()
 
     return {
@@ -132,6 +128,7 @@ def _validate_gift_cards(checkout: Checkout):
 def _create_line_for_order(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
     discounts: Iterable[DiscountInfo],
     products_translation: Dict[int, Optional[str]],
@@ -163,6 +160,7 @@ def _create_line_for_order(
 
     total_line_price = manager.calculate_checkout_line_total(
         checkout_info,
+        lines,
         checkout_line_info,
         address,
         discounts,
@@ -171,12 +169,13 @@ def _create_line_for_order(
         total_line_price,
         quantity,
         checkout_info,
+        lines,
         checkout_line_info,
         address,
         discounts,
     )
     tax_rate = manager.get_checkout_line_tax_rate(
-        checkout_info, checkout_line_info, address, discounts, unit_price
+        checkout_info, lines, checkout_line_info, address, discounts, unit_price
     )
 
     line = OrderLine(
@@ -208,8 +207,9 @@ def _create_lines_for_order(
 
     :raises InsufficientStock: when there is not enough items in stock for this variant.
     """
-    translation_language_code = get_language()
+    translation_language_code = checkout_info.checkout.language_code
     country_code = checkout_info.get_country()
+
     variants = []
     quantities = []
     products = []
@@ -242,6 +242,7 @@ def _create_lines_for_order(
         _create_line_for_order(
             manager,
             checkout_info,
+            lines,
             checkout_line_info,
             discounts,
             product_translations,
@@ -294,7 +295,7 @@ def _prepare_order_data(
     order_data.update(_process_user_data_for_order(checkout_info, manager))
     order_data.update(
         {
-            "language_code": get_language(),
+            "language_code": checkout.language_code,
             "tracking_client_id": checkout.tracking_code or "",
             "total": taxed_total,
             "undiscounted_total": undiscounted_total,
@@ -326,7 +327,12 @@ def _prepare_order_data(
 
 @transaction.atomic
 def _create_order(
-    *, checkout_info: "CheckoutInfo", order_data: dict, user: User, site_settings=None
+    *,
+    checkout_info: "CheckoutInfo",
+    order_data: dict,
+    user: User,
+    manager: "PluginsManager",
+    site_settings=None
 ) -> Order:
     """Create an order from the checkout.
 
@@ -401,14 +407,13 @@ def _create_order(
     order.private_metadata = checkout.private_metadata
     order.save()
 
-    transaction.on_commit(lambda: order_created(order=order, user=user))
+    transaction.on_commit(
+        lambda: order_created(order=order, user=user, manager=manager)
+    )
 
     # Send the order confirmation email
     transaction.on_commit(
-        lambda: send_order_confirmation.delay(order.pk, checkout.redirect_url, user.pk)
-    )
-    transaction.on_commit(
-        lambda: send_staff_order_confirmation.delay(order.pk, checkout.redirect_url)
+        lambda: send_order_confirmation(order, checkout.redirect_url, manager)
     )
 
     return order
@@ -508,19 +513,19 @@ def _process_payment(
     store_source: bool,
     payment_data: Optional[dict],
     order_data: dict,
-    plugin_manager: "PluginsManager",
+    manager: "PluginsManager",
 ) -> Transaction:
     """Process the payment assigned to checkout."""
     try:
         if payment.to_confirm:
-            txn = gateway.confirm(payment, additional_data=payment_data)
+            txn = gateway.confirm(payment, manager, additional_data=payment_data)
         else:
             txn = gateway.process_payment(
                 payment=payment,
                 token=payment.token,
+                manager=manager,
                 store_source=store_source,
                 additional_data=payment_data,
-                plugin_manager=plugin_manager,
             )
         payment.refresh_from_db()
         if not txn.is_success:
@@ -564,7 +569,7 @@ def complete_checkout(
     try:
         order_data = _get_order_data(manager, checkout_info, lines, discounts)
     except ValidationError as exc:
-        gateway.payment_refund_or_void(payment)
+        gateway.payment_refund_or_void(payment, manager)
         raise exc
 
     txn = _process_payment(
@@ -572,7 +577,7 @@ def complete_checkout(
         store_source=store_source,
         payment_data=payment_data,
         order_data=order_data,
-        plugin_manager=manager,
+        manager=manager,
     )
 
     if txn.customer_id and user.is_authenticated:
@@ -588,13 +593,14 @@ def complete_checkout(
                 checkout_info=checkout_info,
                 order_data=order_data,
                 user=user,  # type: ignore
+                manager=manager,
                 site_settings=site_settings,
             )
             # remove checkout after order is successfully created
             checkout.delete()
         except InsufficientStock as e:
             release_voucher_usage(order_data)
-            gateway.payment_refund_or_void(payment)
+            gateway.payment_refund_or_void(payment, manager)
             error = prepare_insufficient_stock_checkout_validation_error(e)
             raise error
     return order, action_required, action_data

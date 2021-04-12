@@ -3,6 +3,7 @@ from unittest.mock import patch
 from .....attribute.models import Attribute, AttributeValue
 from .....attribute.utils import associate_attribute_values_to_instance
 from .....product.models import Product, ProductMedia, ProductVariant, VariantMedia
+from .....tests.utils import dummy_editorjs
 from .....warehouse.models import Warehouse
 from ....utils import ProductExportFields
 from ....utils.products_data import (
@@ -287,6 +288,29 @@ def test_prepare_products_relations_data_only_channel_ids(
     )
 
     assert result == expected_result
+
+
+def test_prepare_products_relations_data_attribute_without_values(
+    product,
+    channel_USD,
+    channel_PLN,
+):
+    # given
+    pk = product.pk
+
+    attribute_product = product.attributes.first()
+    attribute_product.values.clear()
+    attribute = attribute_product.assignment.attribute
+
+    qs = Product.objects.all()
+    fields = {"name"}
+    attribute_ids = [str(attribute.pk)]
+
+    # when
+    result = prepare_products_relations_data(qs, fields, attribute_ids, [])
+
+    # then
+    assert result == {pk: {f"{attribute.slug} (product attribute)": ""}}
 
 
 @patch("saleor.csv.utils.products_data.prepare_variants_relations_data")
@@ -768,7 +792,12 @@ def test_add_attribute_info_to_data(product):
     slug = "test_attribute_slug"
     value = "test value"
     attribute_data = AttributeData(
-        slug=slug, value=value, file_url=None, input_type="dropdown", entity_type=None
+        slug=slug,
+        value=value,
+        file_url=None,
+        input_type="dropdown",
+        entity_type=None,
+        rich_text=None,
     )
     input_data = {pk: {}}
 
@@ -790,7 +819,12 @@ def test_add_attribute_info_to_data_update_attribute_data(product):
     expected_header = f"{slug} (variant attribute)"
 
     attribute_data = AttributeData(
-        slug=slug, value=value, file_url=None, input_type="dropdown", entity_type=None
+        slug=slug,
+        value=value,
+        file_url=None,
+        input_type="dropdown",
+        entity_type=None,
+        rich_text=None,
     )
     input_data = {pk: {expected_header: {"value1"}}}
 
@@ -807,7 +841,12 @@ def test_add_attribute_info_to_data_no_slug(product):
     # given
     pk = product.pk
     attribute_data = AttributeData(
-        slug=None, value=None, file_url=None, input_type="dropdown", entity_type=None
+        slug=None,
+        value=None,
+        file_url=None,
+        input_type="dropdown",
+        entity_type=None,
+        rich_text=None,
     )
     input_data = {pk: {}}
 
@@ -820,13 +859,42 @@ def test_add_attribute_info_to_data_no_slug(product):
     assert result == input_data
 
 
+def test_add_attribute_info_when_no_value(product):
+    # given
+    pk = product.pk
+    slug = "test_attribute_slug"
+    attribute_data = AttributeData(
+        slug=slug,
+        value=None,
+        file_url=None,
+        input_type="dropdown",
+        entity_type=None,
+        rich_text=None,
+    )
+    input_data = {pk: {}}
+
+    # when
+    result = add_attribute_info_to_data(
+        product.pk, attribute_data, "product attribute", input_data
+    )
+
+    # then
+    expected_header = f"{slug} (product attribute)"
+    assert result[pk][expected_header] == {""}
+
+
 def test_add_file_attribute_info_to_data(product):
     # given
     pk = product.pk
     slug = "testtxt"
     test_url = "test.txt"
     attribute_data = AttributeData(
-        slug=slug, value=None, file_url=test_url, input_type="file", entity_type=None
+        slug=slug,
+        value=None,
+        file_url=test_url,
+        input_type="file",
+        entity_type=None,
+        rich_text=None,
     )
     input_data = {pk: {}}
 
@@ -840,6 +908,30 @@ def test_add_file_attribute_info_to_data(product):
     assert result[pk][expected_header] == {"http://mirumee.com/media/" + test_url}
 
 
+def test_add_rich_text_attribute_info_to_data(product):
+    # given
+    pk = product.pk
+    slug = "testtxt"
+    attribute_data = AttributeData(
+        slug=slug,
+        value=None,
+        file_url=None,
+        input_type="rich-text",
+        entity_type=None,
+        rich_text=dummy_editorjs("Dummy"),
+    )
+    input_data = {pk: {}}
+
+    # when
+    result = add_attribute_info_to_data(
+        product.pk, attribute_data, "product attribute", input_data
+    )
+
+    # then
+    expected_header = f"{slug} (product attribute)"
+    assert result[pk][expected_header] == {"Dummy"}
+
+
 def test_add_reference_attribute_info_to_data(product, page):
     # given
     pk = product.pk
@@ -851,6 +943,7 @@ def test_add_reference_attribute_info_to_data(product, page):
         file_url=None,
         input_type="reference",
         entity_type="Page",
+        rich_text="None",
     )
     input_data = {pk: {}}
 
@@ -878,6 +971,7 @@ def test_add_reference_info_to_data_update_attribute_data(product, page):
         file_url=None,
         input_type="reference",
         entity_type="Page",
+        rich_text=None,
     )
     input_data = {pk: {expected_header: values}}
 
