@@ -58,8 +58,8 @@ class PaymentsByOrderIdLoader(DataLoader):
     def batch_load(self, keys):
         payments = Payment.objects.filter(order_id__in=keys).order_by("pk")
         payment_map = defaultdict(list)
-        for line in payments.iterator():
-            payment_map[line.order_id].append(line)
+        for payment in payments.iterator():
+            payment_map[payment.order_id].append(payment)
         return [payment_map.get(order_id, []) for order_id in keys]
 
 
