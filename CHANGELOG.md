@@ -43,11 +43,13 @@ All notable, unreleased changes to this project will be documented in this file.
 - Remove html tags from product description_plaintext - #7094 by @d-wysocki
 - Performance upgrade on orders query with shipping and billing addresses - #7083 by @tomaszszymanski129
 - Performance upgrade on orders query with payment status - #7125 by @tomaszszymanski129
+- Performance upgrade on orders query with events - #7120 by @tomaszszymanski129
 - Performance upgrade on orders query with `user` and `userEmail` fields - #7091 by @tomaszszymanski129
 - Fix dataloader for fetching checkout info - #7084 by @IKarbowiak
 - Update also draft order line total price after getting the unit price from plugin - #7080 by @IKarbowiak
 - Fix failing product tasks when instances are removed - #7092 by @IKarbowiak
 - Update GraphQL endpoint to only match exactly `/graphql/` without trailing characters - #7117 by @IKarbowiak
+- Fix failing export when exporting attribute without values - #7131 by @IKarbowiak
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
