@@ -185,7 +185,7 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         checkout_data = generate_checkout_payload(checkout)
         trigger_webhooks_for_event.delay(
-            WebhookEventType.CHECKOUT_UPADTED, checkout_data
+            WebhookEventType.CHECKOUT_UPDATED, checkout_data
         )
 
     def notify(self, event: "NotifyEventType", payload: dict, previous_value) -> Any:

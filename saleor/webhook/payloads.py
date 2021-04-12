@@ -430,7 +430,7 @@ def _generate_sample_order_payload(event_name):
 
 def generate_sample_payload(event_name: str) -> Optional[dict]:
     checkout_events = [
-        WebhookEventType.CHECKOUT_UPADTED,
+        WebhookEventType.CHECKOUT_UPDATED,
         WebhookEventType.CHECKOUT_CREATED,
     ]
     pages_events = [

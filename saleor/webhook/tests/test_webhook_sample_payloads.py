@@ -148,7 +148,7 @@ def _remove_anonymized_checkout_data(checkout_data: dict) -> dict:
 
 def test_generate_sample_checkout_payload(user_checkout_with_items):
     checkout = user_checkout_with_items
-    payload = generate_sample_payload(WebhookEventType.CHECKOUT_UPADTED)
+    payload = generate_sample_payload(WebhookEventType.CHECKOUT_UPDATED)
     checkout_payload = json.loads(generate_checkout_payload(checkout))
     # Check anonymized data differ
     assert checkout.token != payload[0]["token"]
