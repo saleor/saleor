@@ -180,36 +180,41 @@ class ProductVariantsByProductIdLoader(DataLoader):
         return [variant_map.get(product_id, []) for product_id in keys]
 
 
-class AvailableProductVariantsByProductVariantIdAndChannel(
-    DataLoader[VariantIdAndChannelSlug, ProductVariantChannelListing]
-):
-    context_key = "available_productvariant_by_variant_and_channel"
-    field = "slug"
+class ProductVariantsByProductIdAndChannel(DataLoader):
+    context_key = "productvariant_by_product_and_channel"
 
     def batch_load(self, keys):
-        # Split the list of keys by channel first. A typical query will only touch
-        # a handful of unique countries but may access thousands of product variants
-        # so it's cheaper to execute one query per channel.
-        available_variants_by_channel: DefaultDict[str, List[int]] = defaultdict(list)
-        for variants, channel in keys:
-            # For each channel execute a single query for all product variants.
-            available_variants = self.batch_load_available(channel, variants)
-            available_variants_by_channel[channel] = available_variants
-        return [available_variants_by_channel[key] for _, key in keys]
+        product_ids = [key[0] for key in keys]
+        channel_slugs = [key[1] for key in keys]
+        variants_filter = self.get_variants_filter(product_ids, channel_slugs)
 
-    def batch_load_available(
-        self, channel: str, variant_ids: Iterable[int]
-    ) -> Iterable[int]:
-        filter = {
-            f"channel__{self.field}": channel,
-            "variant_id__in": variant_ids,
-            "price_amount__isnull": False,
+        variants = ProductVariant.objects.filter(**variants_filter).annotate(
+            channel_slug=F("channel_listings__channel__slug")
+        )
+        variant_map = defaultdict(list)
+        for variant in variants.iterator():
+            variant_map[(variant.product_id, variant.channel_slug)].append(variant)
+
+        return [variant_map.get(key, []) for key in keys]
+
+    def get_variants_filter(self, products_ids, channel_slugs):
+        return {
+            "product_id__in": products_ids,
+            "channel_listings__channel__slug__in": channel_slugs,
         }
-        available_variants = ProductVariantChannelListing.objects.filter(
-            **filter
-        ).values_list("variant__id", flat=True)
 
-        return list(available_variants)
+
+class AvailableProductVariantsByProductIdAndChannel(
+    ProductVariantsByProductIdAndChannel
+):
+    context_key = "available_productvariant_by_product_and_channel"
+
+    def get_variants_filter(self, products_ids, channel_slugs):
+        return {
+            "product_id__in": products_ids,
+            "channel_listings__channel__slug__in": channel_slugs,
+            "channel_listings__price_amount__isnull": False,
+        }
 
 
 class ProductVariantChannelListingByIdLoader(DataLoader):

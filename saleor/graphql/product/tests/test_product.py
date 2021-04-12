@@ -136,6 +136,9 @@ QUERY_FETCH_ALL_PRODUCTS = """
                 node {
                     id
                     name
+                    variants {
+                        id
+                    }
                 }
             }
         }
@@ -1069,6 +1072,51 @@ def test_fetch_all_products_available_as_staff_user(
     num_products = Product.objects.count()
     assert content["data"]["products"]["totalCount"] == num_products
     assert len(content["data"]["products"]["edges"]) == num_products
+
+
+def test_fetch_all_product_variants_available_as_staff_user_with_channel(
+    staff_api_client, permission_manage_products, product_variant_list, channel_USD
+):
+    variables = {"channel": channel_USD.slug}
+    response = staff_api_client.post_graphql(
+        QUERY_FETCH_ALL_PRODUCTS,
+        variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+    num_products = Product.objects.count()
+    num_variants = ProductVariant.objects.count()
+    assert num_variants > 1
+
+    content = get_graphql_content(response)
+    products = content["data"]["products"]
+    variants = products["edges"][0]["node"]["variants"]
+
+    assert products["totalCount"] == num_products
+    assert len(products["edges"]) == num_products
+    assert len(variants) == num_variants - 1
+
+
+def test_fetch_all_product_variants_available_as_staff_user_without_channel(
+    staff_api_client, permission_manage_products, product_variant_list, channel_USD
+):
+    response = staff_api_client.post_graphql(
+        QUERY_FETCH_ALL_PRODUCTS,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+
+    num_products = Product.objects.count()
+    num_variants = ProductVariant.objects.count()
+    assert num_variants > 1
+
+    content = get_graphql_content(response)
+    products = content["data"]["products"]
+    variants = products["edges"][0]["node"]["variants"]
+
+    assert products["totalCount"] == num_products
+    assert len(products["edges"]) == num_products
+    assert len(variants) == num_variants
 
 
 def test_fetch_all_products_not_available_as_staff_user(
@@ -7530,10 +7578,10 @@ def test_product_variant_without_price_as_staff(
     stock,
     channel_USD,
 ):
-    product = variant.product
-    ProductVariantChannelListing.objects.filter(
-        channel=channel_USD, variant__product_id=product.pk
-    ).update(price_amount=None)
+
+    variant_channel_listing = variant.channel_listings.first()
+    variant_channel_listing.price_amount = None
+    variant_channel_listing.save()
 
     query = """
         query getProductVariants($id: ID!, $channel: String, $address: AddressInput) {
@@ -7561,8 +7609,12 @@ def test_product_variant_without_price_as_staff(
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     variants_data = content["data"]["product"]["variants"]
+
+    assert variants_data[0]["pricing"] is not None
+
     assert variants_data[1]["id"] == variant_id
     assert variants_data[1]["pricing"] is None
+
     assert len(variants_data) == 2
 
 
