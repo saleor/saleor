@@ -29,8 +29,8 @@ Saleor version:
 - [ ] 2.11
 - [ ] 2.10
 
-Operating system: 
+Operating system:
 - [ ] Windows
 - [ ] Linux
 - [ ] MacOS
-- [ ] Other 
+- [ ] Other
