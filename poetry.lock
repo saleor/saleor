@@ -1865,7 +1865,7 @@ testing = ["fields", "hunter", "process-tests (==2.0.2)", "six", "pytest-xdist",
 
 [[package]]
 name = "pytest-django"
-version = "4.1.0"
+version = "4.2.0"
 description = "A Django plugin for pytest."
 category = "dev"
 optional = false
@@ -2581,7 +2581,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "b4c4e3ee65e059e5a4332e6e3ffd1ad7a927334671624830897b741fe9f7a700"
+content-hash = "1f2c295795692ef1000cf43bdac7be2630a83aeeb1281f27aa1c18aa7d373a8b"
 
 [metadata.files]
 adyen = [
@@ -3593,8 +3593,8 @@ pytest-cov = [
     {file = "pytest_cov-2.11.1-py2.py3-none-any.whl", hash = "sha256:bdb9fdb0b85a7cc825269a4c56b48ccaa5c7e365054b6038772c32ddcdc969da"},
 ]
 pytest-django = [
-    {file = "pytest-django-4.1.0.tar.gz", hash = "sha256:26f02c16d36fd4c8672390deebe3413678d89f30720c16efb8b2a6bf63b9041f"},
-    {file = "pytest_django-4.1.0-py3-none-any.whl", hash = "sha256:10e384e6b8912ded92db64c58be8139d9ae23fb8361e5fc139d8e4f8fc601bc2"},
+    {file = "pytest-django-4.2.0.tar.gz", hash = "sha256:80f8875226ec4dc0b205f0578072034563879d98d9b1bec143a80b9045716cb0"},
+    {file = "pytest_django-4.2.0-py3-none-any.whl", hash = "sha256:a51150d8962200250e850c6adcab670779b9c2aa07271471059d1fb92a843fa9"},
 ]
 pytest-django-queries = [
     {file = "pytest-django-queries-1.2.0.tar.gz", hash = "sha256:7d683d06af711c4f3ac049b3a7035070ce3888a3575ce8ae4b8a41b7b7869f1c"},
