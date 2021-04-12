@@ -65,7 +65,7 @@ def description(enum):
     elif enum == WebhookEventTypeEnum.INVOICE_DELETED:
         return "An invoice is deleted."
     elif enum == WebhookEventTypeEnum.INVOICE_SENT:
-        return "Invoice has been send."
+        return "Invoice has been sent."
     elif enum == WebhookEventTypeEnum.ANY_EVENTS:
         return "All the events."
     return None
