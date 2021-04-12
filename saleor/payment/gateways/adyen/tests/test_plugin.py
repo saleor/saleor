@@ -175,6 +175,48 @@ def test_process_payment_with_3ds_redirect(
     )
 
 
+@pytest.mark.vcr
+def test_process_payment_with_klarna(
+    payment_adyen_for_checkout,
+    adyen_additional_data_for_klarna,
+    checkout_with_items,
+    address_usa,
+    adyen_plugin,
+):
+    payment_adyen_for_checkout.extra_data = ""
+    payment_adyen_for_checkout.save(update_fields=["extra_data"])
+    checkout_with_items.billing_address = address_usa
+    checkout_with_items.shipping_address = address_usa
+    checkout_with_items.save(update_fields=["billing_address", "shipping_address"])
+
+    line = checkout_with_items.lines.first()
+    line.quantity = 2
+    line.save(update_fields=["quantity"])
+
+    payment_info = create_payment_information(
+        payment_adyen_for_checkout, additional_data=adyen_additional_data_for_klarna
+    )
+    adyen_plugin = adyen_plugin(auto_capture=True)
+    response = adyen_plugin.process_payment(payment_info, None)
+    assert response.is_success is True
+    assert response.action_required is True
+    assert response.kind == TransactionKind.AUTH
+    assert response.amount == Decimal("80.00")
+    assert response.currency == checkout_with_items.currency
+    assert response.error is None
+
+    action_required_data = response.action_required_data
+    assert action_required_data["type"] == "redirect"
+    assert action_required_data["paymentMethodType"] == "klarna_account"
+    assert action_required_data["paymentData"]
+
+    payment_data = action_required_data["paymentData"]
+    payment_adyen_for_checkout.refresh_from_db()
+    assert payment_adyen_for_checkout.extra_data == json.dumps(
+        [{"payment_data": payment_data, "parameters": ["redirectResult"]}]
+    )
+
+
 @mock.patch("saleor.payment.gateways.adyen.plugin.api_call")
 def test_process_payment_additional_action(
     api_call_mock, payment_adyen_for_checkout, checkout_with_items, adyen_plugin

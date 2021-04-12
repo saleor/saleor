@@ -201,3 +201,26 @@ def adyen_additional_data_for_3ds():
             "timeZoneOffset": -120,
         },
     }
+
+
+@pytest.fixture
+def adyen_additional_data_for_klarna():
+    user_agent = (
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko)",
+        "Chrome/89.0.4389.90 Safari/537.36",
+    )
+    return {
+        "paymentMethod": {
+            "type": "klarna_account",
+        },
+        "browserInfo": {
+            "acceptHeader": "*/*",
+            "colorDepth": 24,
+            "language": "en-US",
+            "javaEnabled": False,
+            "screenHeight": 1080,
+            "screenWidth": 1920,
+            "userAgent": user_agent,
+            "timeZoneOffset": -120,
+        },
+    }
