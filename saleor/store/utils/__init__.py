@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, Dict, Iterable, List, Union
 
 from django.db import transaction
-from ..models import Store
+from ..models import Store, StoreType
 
 
 if TYPE_CHECKING:
@@ -22,5 +22,14 @@ def delete_stores(stores_ids: List[str]):
     """
     stores = Store.objects.select_for_update().filter(pk__in=stores_ids)
     stores.delete()
+
+@transaction.atomic
+def delete_stores_types(stores_types_ids: List[str]):
+    """Delete stores types and perform all necessary actions.
+
+    Set products of deleted stores as unpublished.
+    """
+    storesTypes = StoreType.objects.select_for_update().filter(pk__in=stores_types_ids)
+    storesTypes.delete()
 
 

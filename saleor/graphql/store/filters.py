@@ -1,6 +1,7 @@
 import django_filters
 from ...store.models import Store
 from ..utils.filters import filter_by_query_param, filter_range_field
+from ..core.types import FilterInputObjectType
 
 def filter_store_type(qs, _, value):
     return filter_range_field(qs, "store_type", value)
