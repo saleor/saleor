@@ -253,7 +253,7 @@ def test_calculate_checkout_total(
     )
 
 
-def test_calculate_checkout_total_from_source_country(
+def test_calculate_checkout_total_from_origin_country(
     vatlayer_plugin,
     checkout_with_item,
     address,
@@ -261,7 +261,7 @@ def test_calculate_checkout_total_from_source_country(
     discount_info,
 ):
     plugin = vatlayer_plugin(
-        source_country="DE", countries_to_calculate_taxes_from_source="PL,FR"
+        origin_country="DE", countries_to_calculate_taxes_from_origin="PL,FR"
     )
     manager = get_plugins_manager()
 
@@ -298,7 +298,7 @@ def test_calculate_checkout_total_with_excluded_country(
     shipping_zone,
     discount_info,
 ):
-    plugin = vatlayer_plugin(source_country="PL", excluded_countries="PL,FR")
+    plugin = vatlayer_plugin(origin_country="PL", excluded_countries="PL,FR")
     manager = get_plugins_manager()
 
     checkout_with_item.shipping_address = address
@@ -374,7 +374,7 @@ def test_calculate_checkout_subtotal(
     )
 
 
-def test_calculate_checkout_subtotal_from_source_country(
+def test_calculate_checkout_subtotal_from_origin_country(
     site_settings,
     vatlayer_plugin,
     checkout_with_item,
@@ -383,7 +383,7 @@ def test_calculate_checkout_subtotal_from_source_country(
     discount_info,
 ):
     plugin = vatlayer_plugin(
-        source_country="DE", countries_to_calculate_taxes_from_source="PL,FR"
+        origin_country="DE", countries_to_calculate_taxes_from_origin="PL,FR"
     )
     manager = get_plugins_manager()
 
@@ -421,7 +421,7 @@ def test_calculate_checkout_subtotal_with_excluded_country(
     shipping_zone,
     discount_info,
 ):
-    plugin = vatlayer_plugin(source_country="DE", excluded_countries="PL,FR")
+    plugin = vatlayer_plugin(origin_country="DE", excluded_countries="PL,FR")
     manager = get_plugins_manager()
 
     checkout_with_item.shipping_address = address
@@ -461,11 +461,11 @@ def test_calculate_order_shipping(vatlayer, order_line, shipping_zone, site_sett
     assert price == TaxedMoney(net=Money("8.13", "USD"), gross=Money("10.00", "USD"))
 
 
-def test_calculate_order_shipping_from_source_country(
+def test_calculate_order_shipping_from_origin_country(
     vatlayer_plugin, order_line, shipping_zone, site_settings
 ):
     vatlayer_plugin(
-        source_country="DE", countries_to_calculate_taxes_from_source="PL,FR"
+        origin_country="DE", countries_to_calculate_taxes_from_origin="PL,FR"
     )
     manager = get_plugins_manager()
 
@@ -489,7 +489,7 @@ def test_calculate_order_shipping_from_source_country(
 def test_calculate_order_shipping_with_excluded_country(
     vatlayer_plugin, order_line, shipping_zone, site_settings
 ):
-    vatlayer_plugin(source_country="DE", excluded_countries="PL,FR")
+    vatlayer_plugin(origin_country="DE", excluded_countries="PL,FR")
     manager = get_plugins_manager()
 
     order = order_line.order
@@ -544,11 +544,11 @@ def test_calculate_order_line_unit(vatlayer, order_line, shipping_zone, site_set
     )
 
 
-def test_calculate_order_line_unit_from_source_country(
+def test_calculate_order_line_unit_from_origin_country(
     vatlayer_plugin, order_line, shipping_zone, site_settings
 ):
     vatlayer_plugin(
-        source_country="DE", countries_to_calculate_taxes_from_source="PL,FR"
+        origin_country="DE", countries_to_calculate_taxes_from_origin="PL,FR"
     )
     manager = get_plugins_manager()
 
@@ -581,7 +581,7 @@ def test_calculate_order_line_unit_from_source_country(
 def test_calculate_order_line_unit_with_excluded_country(
     vatlayer_plugin, order_line, shipping_zone, site_settings
 ):
-    vatlayer_plugin(source_country="DE", excluded_countries="PL,FR")
+    vatlayer_plugin(origin_country="DE", excluded_countries="PL,FR")
     manager = get_plugins_manager()
 
     order_line.unit_price = TaxedMoney(
@@ -647,11 +647,11 @@ def test_calculate_checkout_line_total(
     )
 
 
-def test_calculate_checkout_line_total_from_source_country(
+def test_calculate_checkout_line_total_from_origin_country(
     vatlayer_plugin, checkout_with_item, shipping_zone, address, site_settings
 ):
     vatlayer_plugin(
-        source_country="DE", countries_to_calculate_taxes_from_source="PL,FR"
+        origin_country="DE", countries_to_calculate_taxes_from_origin="PL,FR"
     )
     manager = get_plugins_manager()
 
@@ -691,7 +691,7 @@ def test_calculate_checkout_line_total_from_source_country(
 def test_calculate_checkout_line_total_with_excluded_country(
     vatlayer_plugin, checkout_with_item, shipping_zone, address, site_settings
 ):
-    vatlayer_plugin(source_country="DE", excluded_countries="PL,FR")
+    vatlayer_plugin(origin_country="DE", excluded_countries="PL,FR")
     manager = get_plugins_manager()
 
     line = checkout_with_item.lines.first()
@@ -775,11 +775,11 @@ def test_get_tax_rate_percentage_value(
     assert tax_rate == Decimal("23")
 
 
-def test_get_tax_rate_percentage_value_from_source_country(
+def test_get_tax_rate_percentage_value_from_origin_country(
     vatlayer_plugin, order_line, shipping_zone, site_settings, product
 ):
     vatlayer_plugin(
-        source_country="DE", countries_to_calculate_taxes_from_source="PL,FR"
+        origin_country="DE", countries_to_calculate_taxes_from_origin="PL,FR"
     )
     manager = get_plugins_manager()
 
@@ -792,7 +792,7 @@ def test_get_tax_rate_percentage_value_from_source_country(
 def test_get_tax_rate_percentage_value_with_excluded_country(
     vatlayer_plugin, order_line, shipping_zone, site_settings, product
 ):
-    vatlayer_plugin(source_country="DE", excluded_countries="PL,FR")
+    vatlayer_plugin(origin_country="DE", excluded_countries="PL,FR")
     manager = get_plugins_manager()
 
     country = Country("PL")
@@ -869,11 +869,11 @@ def test_apply_taxes_to_product(
     assert price == TaxedMoney(net=Money("4.07", "USD"), gross=Money("5.00", "USD"))
 
 
-def test_apply_taxes_to_product_from_source_country(
+def test_apply_taxes_to_product_from_origin_country(
     vatlayer_plugin, settings, variant, discount_info, channel_USD
 ):
     vatlayer_plugin(
-        source_country="DE", countries_to_calculate_taxes_from_source="PL,FR"
+        origin_country="DE", countries_to_calculate_taxes_from_origin="PL,FR"
     )
     manager = get_plugins_manager()
 
@@ -899,7 +899,7 @@ def test_apply_taxes_to_product_from_source_country(
 def test_apply_taxes_to_product_with_excluded_country(
     vatlayer_plugin, settings, variant, discount_info, channel_USD
 ):
-    vatlayer_plugin(source_country="DE", excluded_countries="PL,FR")
+    vatlayer_plugin(origin_country="DE", excluded_countries="PL,FR")
     manager = get_plugins_manager()
 
     country = Country("PL")
@@ -1049,7 +1049,7 @@ def test_get_checkout_line_tax_rate(
     assert tax_rate == Decimal("0.230")
 
 
-def test_get_checkout_line_tax_rate_from_source_country(
+def test_get_checkout_line_tax_rate_from_origin_country(
     site_settings,
     vatlayer_plugin,
     checkout_with_item,
@@ -1057,7 +1057,7 @@ def test_get_checkout_line_tax_rate_from_source_country(
     shipping_zone,
 ):
     vatlayer_plugin(
-        source_country="DE", countries_to_calculate_taxes_from_source="PL,FR"
+        origin_country="DE", countries_to_calculate_taxes_from_origin="PL,FR"
     )
     manager = get_plugins_manager()
 
@@ -1097,7 +1097,7 @@ def test_get_checkout_line_tax_rate_with_excluded_country(
     address,
     shipping_zone,
 ):
-    vatlayer_plugin(source_country="DE", excluded_countries="PL,FR")
+    vatlayer_plugin(origin_country="DE", excluded_countries="PL,FR")
     manager = get_plugins_manager()
 
     checkout_with_item.shipping_address = address
@@ -1162,7 +1162,7 @@ def test_get_checkout_line_tax_rate_order_not_valid(
     assert tax_rate == Decimal("0.25")
 
 
-def test_get_order_line_tax_rate_from_source_country(
+def test_get_order_line_tax_rate_from_origin_country(
     site_settings,
     vatlayer_plugin,
     order_line,
@@ -1170,7 +1170,7 @@ def test_get_order_line_tax_rate_from_source_country(
     shipping_zone,
 ):
     vatlayer_plugin(
-        source_country="DE", countries_to_calculate_taxes_from_source="PL,FR"
+        origin_country="DE", countries_to_calculate_taxes_from_origin="PL,FR"
     )
     manager = get_plugins_manager()
 
@@ -1205,7 +1205,7 @@ def test_get_order_line_tax_rate_with_excluded_country(
     address,
     shipping_zone,
 ):
-    vatlayer_plugin(source_country="DE", excluded_countries="PL,FR")
+    vatlayer_plugin(origin_country="DE", excluded_countries="PL,FR")
     manager = get_plugins_manager()
 
     order = order_line.order
@@ -1326,7 +1326,7 @@ def test_get_checkout_shipping_tax_rate(
     assert tax_rate == Decimal("0.230")
 
 
-def test_get_checkout_shipping_tax_rate_from_source_country(
+def test_get_checkout_shipping_tax_rate_from_origin_country(
     site_settings,
     vatlayer_plugin,
     checkout_with_item,
@@ -1334,7 +1334,7 @@ def test_get_checkout_shipping_tax_rate_from_source_country(
     shipping_zone,
 ):
     vatlayer_plugin(
-        source_country="DE", countries_to_calculate_taxes_from_source="PL,FR"
+        origin_country="DE", countries_to_calculate_taxes_from_origin="PL,FR"
     )
     manager = get_plugins_manager()
 
@@ -1373,7 +1373,7 @@ def test_get_checkout_shipping_tax_rate_with_excluded_country(
     address,
     shipping_zone,
 ):
-    vatlayer_plugin(source_country="DE", excluded_countries="PL,FR")
+    vatlayer_plugin(origin_country="DE", excluded_countries="PL,FR")
     manager = get_plugins_manager()
 
     checkout_with_item.shipping_address = address
@@ -1504,7 +1504,7 @@ def test_get_order_shipping_tax_rate(
     assert tax_rate == Decimal("0.230")
 
 
-def test_get_order_shipping_tax_rate_from_source_country(
+def test_get_order_shipping_tax_rate_from_origin_country(
     site_settings,
     vatlayer_plugin,
     order_line,
@@ -1512,7 +1512,7 @@ def test_get_order_shipping_tax_rate_from_source_country(
     shipping_zone,
 ):
     vatlayer_plugin(
-        source_country="DE", countries_to_calculate_taxes_from_source="PL,FR"
+        origin_country="DE", countries_to_calculate_taxes_from_origin="PL,FR"
     )
     manager = get_plugins_manager()
 
@@ -1545,7 +1545,7 @@ def test_get_order_shipping_tax_rate_with_excluded_country(
     address,
     shipping_zone,
 ):
-    vatlayer_plugin(source_country="DE", excluded_countries="PL,FR")
+    vatlayer_plugin(origin_country="DE", excluded_countries="PL,FR")
     manager = get_plugins_manager()
 
     order = order_line.order

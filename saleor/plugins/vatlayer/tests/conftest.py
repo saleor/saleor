@@ -11,8 +11,8 @@ def vatlayer_plugin(settings, vatlayer):
     def fun(
         active=True,
         access_key="key",
-        source_country=None,
-        countries_to_calculate_taxes_from_source=None,
+        origin_country=None,
+        countries_to_calculate_taxes_from_origin=None,
         excluded_countries=None,
     ):
         settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
@@ -24,10 +24,10 @@ def vatlayer_plugin(settings, vatlayer):
                     "active": active,
                     "configuration": [
                         {"name": "Access key", "value": access_key},
-                        {"name": "source_country", "value": source_country},
+                        {"name": "origin_country", "value": origin_country},
                         {
-                            "name": "countries_to_calculate_taxes_from_source",
-                            "value": countries_to_calculate_taxes_from_source,
+                            "name": "countries_to_calculate_taxes_from_origin",
+                            "value": countries_to_calculate_taxes_from_origin,
                         },
                         {"name": "excluded_countries", "value": excluded_countries},
                     ],
