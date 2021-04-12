@@ -70,8 +70,8 @@ DEFAULT_TAX_RATE_NAME = TaxRateType.STANDARD
 class VatlayerConfiguration:
     access_key: str
     excluded_countries: Optional[List[str]]
-    countries_from_source: Optional[List[str]]
-    source_country: Optional[str]
+    countries_from_origin: Optional[List[str]]
+    origin_country: Optional[str]
 
 
 def _convert_to_naive_taxed_money(base, taxes, rate_name):

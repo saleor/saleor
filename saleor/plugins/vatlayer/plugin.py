@@ -2,6 +2,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Iterable, List, Optional, Union
 
 from django.conf import settings
+from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django_countries import countries
 from django_countries.fields import Country
@@ -52,33 +53,34 @@ class VatlayerPlugin(BasePlugin):
 
     DEFAULT_CONFIGURATION = [
         {"name": "Access key", "value": None},
-        {"name": "source_country", "value": None},
-        {"name": "countries_to_calculate_taxes_from_source", "value": None},
+        {"name": "origin_country", "value": None},
+        {"name": "countries_to_calculate_taxes_from_origin", "value": None},
         {"name": "excluded_countries", "value": None},
     ]
 
     CONFIG_STRUCTURE = {
-        "source_country": {
+        "origin_country": {
             "type": ConfigurationTypeField.STRING,
             "help_test": (
                 "Country code in ISO format, required to calculate taxes for countries "
-                "from `Calculate taxes based on source country`."
+                "from `Countries for which taxes will be calculated from origin "
+                "country`."
             ),
-            "label": "Source country",
+            "label": "Origin country",
         },
-        "countries_to_calculate_taxes_from_source": {
+        "countries_to_calculate_taxes_from_origin": {
             "type": ConfigurationTypeField.STRING,
             "help_text": (
-                "List of destination countries (separated by comma), in ISO format which "
-                "will use source country to calculate taxes."
+                "List of destination countries (separated by comma), in ISO format "
+                "which will use origin country to calculate taxes."
             ),
-            "label": "Countries for which taxes will be calculated from source country",
+            "label": "Countries for which taxes will be calculated from origin country",
         },
         "excluded_countries": {
             "type": ConfigurationTypeField.STRING,
             "help_text": (
-                "List of countries (separated by comma), in ISO format for which no VAT "
-                "should be added."
+                "List of countries (separated by comma), in ISO format for which no "
+                "VAT should be added."
             ),
             "label": "Countries for which no VAT will be added.",
         },
@@ -94,17 +96,17 @@ class VatlayerPlugin(BasePlugin):
         # Convert to dict to easier take config elements
         configuration = {item["name"]: item["value"] for item in self.configuration}
 
-        source_country = configuration["source_country"] or ""
-        source_country = countries.alpha2(source_country.strip())
+        origin_country = configuration["origin_country"] or ""
+        origin_country = countries.alpha2(origin_country.strip())
 
-        countries_from_source = configuration[
-            "countries_to_calculate_taxes_from_source"
+        countries_from_origin = configuration[
+            "countries_to_calculate_taxes_from_origin"
         ]
-        countries_from_source = countries_from_source or ""
-        countries_from_source = [
-            countries.alpha2(c.strip()) for c in countries_from_source.split(",")
+        countries_from_origin = countries_from_origin or ""
+        countries_from_origin = [
+            countries.alpha2(c.strip()) for c in countries_from_origin.split(",")
         ]
-        countries_from_source = list(filter(None, countries_from_source))
+        countries_from_origin = list(filter(None, countries_from_origin))
 
         excluded_countries = configuration["excluded_countries"] or ""
         excluded_countries = [
@@ -114,9 +116,9 @@ class VatlayerPlugin(BasePlugin):
 
         self.config = VatlayerConfiguration(
             access_key=configuration["Access key"],
-            source_country=source_country,
+            origin_country=origin_country,
             excluded_countries=excluded_countries,
-            countries_from_source=countries_from_source,
+            countries_from_origin=countries_from_origin,
         )
         self._cached_taxes = {}
 
@@ -174,12 +176,20 @@ class VatlayerPlugin(BasePlugin):
         from cache or db.
         """
         if not country:
-            source_country_code = self.config.source_country or settings.DEFAULT_COUNTRY
-            country = Country(source_country_code)
+            origin_country_code = self.config.origin_country
+            if not origin_country_code:
+                company_address = Site.objects.get_current().settings.company_address
+                origin_country_code = (
+                    company_address.country
+                    if company_address
+                    else settings.DEFAULT_COUNTRY
+                )
+
+            country = Country(origin_country_code)
         country_code = country.code
 
-        if country_code in self.config.countries_from_source:
-            country_code = self.config.source_country
+        if country_code in self.config.countries_from_origin:
+            country_code = self.config.origin_country
 
         if country_code in self.config.excluded_countries:
             return None
@@ -524,16 +534,16 @@ class VatlayerPlugin(BasePlugin):
                         )
                     }
                 )
-        countries_from_source = configuration.get(
-            "countries_to_calculate_taxes_from_source"
+        countries_from_origin = configuration.get(
+            "countries_to_calculate_taxes_from_origin"
         )
-        source_country = configuration.get("source_country")
-        if countries_from_source and not source_country:
+        origin_country = configuration.get("origin_country")
+        if countries_from_origin and not origin_country:
             raise ValidationError(
                 {
-                    "source_country": ValidationError(
+                    "origin_country": ValidationError(
                         "Source country required when `Countries for which taxes will "
-                        "be calculated from source country` provided.",
+                        "be calculated from origin country` provided.",
                         code=PluginErrorCode.INVALID.value,
                     )
                 }
