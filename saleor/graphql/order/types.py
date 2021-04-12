@@ -15,11 +15,11 @@ from ...core.permissions import AccountPermissions, OrderPermissions, ProductPer
 from ...core.taxes import display_gross_prices
 from ...discount import OrderDiscountType
 from ...graphql.utils import get_user_or_app_from_context
+from ...graphql.warehouse.dataloaders import WarehouseByIdLoader
 from ...order import OrderStatus, models
 from ...order.models import FulfillmentStatus
 from ...order.utils import get_order_country, get_valid_shipping_methods_for_order
 from ...product.product_images import get_product_image_thumbnail
-from ...warehouse import models as warehouse_models
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..account.types import User
 from ..account.utils import requestor_has_access
@@ -49,6 +49,7 @@ from ..warehouse.types import Allocation, Warehouse
 from .dataloaders import (
     AllocationsByOrderLineIdLoader,
     OrderByIdLoader,
+    OrderEventsByOrderIdLoader,
     OrderLineByIdLoader,
     OrderLinesByOrderIdLoader,
 )
@@ -266,9 +267,10 @@ class OrderEvent(CountableDjangoObjectType):
         return models.FulfillmentLine.objects.filter(pk__in=lines)
 
     @staticmethod
-    def resolve_warehouse(root: models.OrderEvent, _info):
-        warehouse = root.parameters.get("warehouse")
-        return warehouse_models.Warehouse.objects.filter(pk=warehouse).first()
+    def resolve_warehouse(root: models.OrderEvent, info):
+        if warehouse_pk := root.parameters.get("warehouse"):
+            return WarehouseByIdLoader(info.context).load(warehouse_pk)
+        return None
 
     @staticmethod
     def resolve_transaction_reference(root: models.OrderEvent, _info):
@@ -804,7 +806,7 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_events(root: models.Order, _info):
-        return root.events.prefetch_related("user").all().order_by("pk")
+        return OrderEventsByOrderIdLoader(_info.context).load(root.id)
 
     @staticmethod
     def resolve_is_paid(root: models.Order, _info):
