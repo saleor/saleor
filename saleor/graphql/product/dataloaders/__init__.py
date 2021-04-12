@@ -5,7 +5,7 @@ from .attributes import (
     VariantAttributesByProductTypeIdLoader,
 )
 from .products import (
-    AvailableProductVariantsByProductVariantIdAndChannel,
+    AvailableProductVariantsByProductIdAndChannel,
     CategoryByIdLoader,
     CollectionByIdLoader,
     CollectionChannelListingByCollectionIdAndChannelSlugLoader,
@@ -28,6 +28,7 @@ from .products import (
     ProductTypeByVariantIdLoader,
     ProductVariantByIdLoader,
     ProductVariantChannelListingByIdLoader,
+    ProductVariantsByProductIdAndChannel,
     ProductVariantsByProductIdLoader,
     VariantChannelListingByVariantIdAndChannelIdLoader,
     VariantChannelListingByVariantIdAndChannelSlugLoader,
@@ -67,5 +68,6 @@ __all__ = [
     "VariantChannelListingByVariantIdAndChannelIdLoader",
     "VariantChannelListingByVariantIdLoader",
     "VariantsChannelListingByProductIdAndChannelSlugLoader",
-    "AvailableProductVariantsByProductVariantIdAndChannel",
+    "ProductVariantsByProductIdAndChannel",
+    "AvailableProductVariantsByProductIdAndChannel",
 ]
