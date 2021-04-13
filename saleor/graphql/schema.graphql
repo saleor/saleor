@@ -75,7 +75,7 @@ input AccountInput {
   defaultBillingAddress: AddressInput
   defaultShippingAddress: AddressInput
   languageCode: LanguageCodeEnum
-  metadata: [MetadataInput]
+  metadata: [MetadataInput!]
 }
 
 type AccountRegister {
@@ -90,7 +90,7 @@ input AccountRegisterInput {
   password: String!
   redirectUrl: String
   languageCode: LanguageCodeEnum
-  metadata: [MetadataInput]
+  metadata: [MetadataInput!]
 }
 
 type AccountRequestDeletion {

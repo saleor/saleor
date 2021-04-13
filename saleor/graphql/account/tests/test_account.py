@@ -958,7 +958,7 @@ ACCOUNT_REGISTER_MUTATION = """
         $email: String!,
         $redirectUrl: String,
         $languageCode: LanguageCodeEnum
-        $metadata: [MetadataInput]
+        $metadata: [MetadataInput!]
     ) {
         accountRegister(
             input: {
@@ -1444,7 +1444,7 @@ ACCOUNT_UPDATE_QUERY = """
         $firstName: String,
         $lastName: String
         $languageCode: LanguageCodeEnum
-        $metadata: [MetadataInput]
+        $metadata: [MetadataInput!]
     ) {
         accountUpdate(
           input: {

@@ -40,7 +40,9 @@ class AccountRegisterInput(graphene.InputObjectType):
         LanguageCodeEnum, required=False, description="User language code."
     )
     metadata = graphene.List(
-        MetadataInput, description="User public metadata.", required=False
+        graphene.NonNull(MetadataInput),
+        description="User public metadata.",
+        required=False,
     )
 
 
@@ -70,7 +72,7 @@ class AccountRegister(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
         data["metadata"] = {
-            item["key"]: item["value"] for item in data.get("metadata", [])
+            item["key"]: item["value"] for item in data.get("metadata") or []
         }
         if not settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL:
             return super().clean_input(info, instance, data, input_cls=None)
@@ -131,7 +133,9 @@ class AccountInput(graphene.InputObjectType):
         LanguageCodeEnum, required=False, description="User language code."
     )
     metadata = graphene.List(
-        MetadataInput, description="User public metadata.", required=False
+        graphene.NonNull(MetadataInput),
+        description="User public metadata.",
+        required=False,
     )
 
 
@@ -155,9 +159,9 @@ class AccountUpdate(BaseCustomerCreate):
 
     @classmethod
     def clean_input(cls, info, instance, data):
-        data["metadata"] = {
-            item["key"]: item["value"] for item in data.get("metadata", [])
-        }
+        metadata = data.pop("metadata", [])
+        if metadata is not None:
+            data["metadata"] = {item["key"]: item["value"] for item in metadata}
         return super().clean_input(info, instance, data)
 
     @classmethod
