@@ -41,6 +41,15 @@ def validate_shipping_method(order):
                 )
             }
         )
+    if not order.shipping_method.shipping_zone.channels.filter(id=order.channel_id):
+        raise ValidationError(
+            {
+                "shipping": ValidationError(
+                    "Shipping method not available in given channel.",
+                    code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE,
+                )
+            }
+        )
 
 
 def validate_billing_address(order):
