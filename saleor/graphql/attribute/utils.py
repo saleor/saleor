@@ -137,20 +137,58 @@ class AttributeAssignmentMixin:
     ):
         """Lazy-retrieve or create the database objects from the supplied raw values."""
         get_or_create = attribute.values.get_or_create
-        is_numeric_attr = attribute.input_type == AttributeInputType.NUMERIC
-
-        def get_slug_value(value):
-            slug_value = value if not is_numeric_attr else value.replace(".", "_")
-            return slugify(slug_value, allow_unicode=True)
 
         return tuple(
             get_or_create(
                 attribute=attribute,
-                slug=get_slug_value(value),
+                slug=slugify(value, allow_unicode=True),
                 defaults={"name": value},
             )[0]
             for value in attr_values.values
         )
+
+    @classmethod
+    def _pre_save_numeric_values(
+        cls,
+        instance: T_INSTANCE,
+        attribute: attribute_models.Attribute,
+        attr_values: AttrValuesInput,
+    ):
+        defaults = {
+            "name": attr_values.values[0],
+        }
+        return cls._update_or_create_value(instance, attribute, defaults)
+
+    @classmethod
+    def _pre_save_rich_text_values(
+        cls,
+        instance: T_INSTANCE,
+        attribute: attribute_models.Attribute,
+        attr_values: AttrValuesInput,
+    ):
+        defaults = {
+            "rich_text": attr_values.rich_text,
+            "name": truncatechars(
+                clean_editor_js(attr_values.rich_text, to_string=True), 50
+            ),
+        }
+        return cls._update_or_create_value(instance, attribute, defaults)
+
+    @classmethod
+    def _update_or_create_value(
+        cls,
+        instance: T_INSTANCE,
+        attribute: attribute_models.Attribute,
+        value_defaults: dict,
+    ):
+        update_or_create = attribute.values.update_or_create
+        slug = slugify(f"{instance.id}_{attribute.id}", allow_unicode=True)
+        value, _created = update_or_create(
+            attribute=attribute,
+            slug=slug,
+            defaults=value_defaults,
+        )
+        return (value,)
 
     @classmethod
     def _pre_save_reference_values(
@@ -264,29 +302,6 @@ class AttributeAssignmentMixin:
 
         if errors:
             raise ValidationError(errors)
-
-    @classmethod
-    def _pre_save_rich_text_values(
-        cls,
-        instance: T_INSTANCE,
-        attribute: attribute_models.Attribute,
-        attr_values: AttrValuesInput,
-    ):
-        """Lazy-retrieve or create the database object from the supplied raw value."""
-        value_model = attribute.values.model
-        slug = slugify(f"{instance.id}_{attribute.id}", allow_unicode=True)
-        value = value_model.objects.update_or_create(
-            attribute=attribute,
-            slug=slug,
-            defaults={
-                "rich_text": attr_values.rich_text,
-                "name": truncatechars(
-                    clean_editor_js(attr_values.rich_text, to_string=True), 50
-                ),
-            },
-        )[0]
-
-        return (value,)
 
     @classmethod
     def clean_input(
@@ -407,19 +422,16 @@ class AttributeAssignmentMixin:
         :param instance: the product or variant to associate the attribute against.
         :param cleaned_input: the cleaned user input (refer to clean_attributes)
         """
+        pre_save_methods_mapping = {
+            AttributeInputType.FILE: cls._pre_save_file_value,
+            AttributeInputType.REFERENCE: cls._pre_save_reference_values,
+            AttributeInputType.RICH_TEXT: cls._pre_save_rich_text_values,
+            AttributeInputType.NUMERIC: cls._pre_save_numeric_values,
+        }
         for attribute, attr_values in cleaned_input:
-            if attribute.input_type == AttributeInputType.FILE:
-                attribute_values = cls._pre_save_file_value(
-                    instance, attribute, attr_values
-                )
-            elif attribute.input_type == AttributeInputType.REFERENCE:
-                attribute_values = cls._pre_save_reference_values(
-                    instance, attribute, attr_values
-                )
-            elif attribute.input_type == AttributeInputType.RICH_TEXT:
-                attribute_values = cls._pre_save_rich_text_values(
-                    instance, attribute, attr_values
-                )
+            if (input_type := attribute.input_type) in pre_save_methods_mapping:
+                pre_save_func = pre_save_methods_mapping[input_type]
+                attribute_values = pre_save_func(instance, attribute, attr_values)
             else:
                 attribute_values = cls._pre_save_values(attribute, attr_values)
 
