@@ -52,7 +52,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Extend Vatlayer functionalities - #7101 by @korycins:
     - Allow users to enter a list of exceptions (country ISO codes) that will use the source country rather than the destination country for tax purposes.
     - Allow users to enter a list of countries for which no VAT will be added.
-- Allow passing metadata to `accountUpdate` and `accountRegister` mutations - #7152 by @piotrgrundas
+- Allow passing metadata to `accountRegister` mutation - #7152 by @piotrgrundas
 - Fix incorrect payment data for klarna - #7150 by @IKarbowiak
 
 ### Breaking

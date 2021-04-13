@@ -1444,7 +1444,6 @@ ACCOUNT_UPDATE_QUERY = """
         $firstName: String,
         $lastName: String
         $languageCode: LanguageCodeEnum
-        $metadata: [MetadataInput!]
     ) {
         accountUpdate(
           input: {
@@ -1453,7 +1452,6 @@ ACCOUNT_UPDATE_QUERY = """
             firstName: $firstName,
             lastName: $lastName,
             languageCode: $languageCode
-            metadata: $metadata
         }) {
             errors {
                 field
@@ -1470,10 +1468,6 @@ ACCOUNT_UPDATE_QUERY = """
                     id
                 }
                 languageCode
-                metadata {
-                    key
-                    value
-                }
             }
         }
     }
@@ -1547,21 +1541,6 @@ def test_logged_customer_update_anonymous_user(api_client):
     query = ACCOUNT_UPDATE_QUERY
     response = api_client.post_graphql(query, {})
     assert_no_permission(response)
-
-
-def test_logged_customer_updates_metadata(user_api_client):
-    user = user_api_client.user
-    assert user.metadata == {}
-    variables = {"metadata": [{"key": "meta", "value": "data"}]}
-
-    response = user_api_client.post_graphql(ACCOUNT_UPDATE_QUERY, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["accountUpdate"]
-
-    assert not data["errors"]
-    assert data["user"]["metadata"] == variables["metadata"]
-    user.refresh_from_db()
-    assert user.metadata == {"meta": "data"}
 
 
 ACCOUNT_REQUEST_DELETION_MUTATION = """

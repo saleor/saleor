@@ -75,7 +75,6 @@ input AccountInput {
   defaultBillingAddress: AddressInput
   defaultShippingAddress: AddressInput
   languageCode: LanguageCodeEnum
-  metadata: [MetadataInput!]
 }
 
 type AccountRegister {

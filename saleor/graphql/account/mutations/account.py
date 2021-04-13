@@ -132,11 +132,6 @@ class AccountInput(graphene.InputObjectType):
     language_code = graphene.Argument(
         LanguageCodeEnum, required=False, description="User language code."
     )
-    metadata = graphene.List(
-        graphene.NonNull(MetadataInput),
-        description="User public metadata.",
-        required=False,
-    )
 
 
 class AccountUpdate(BaseCustomerCreate):
@@ -156,13 +151,6 @@ class AccountUpdate(BaseCustomerCreate):
     @classmethod
     def check_permissions(cls, context):
         return context.user.is_authenticated
-
-    @classmethod
-    def clean_input(cls, info, instance, data):
-        metadata = data.pop("metadata", [])
-        if metadata is not None:
-            data["metadata"] = {item["key"]: item["value"] for item in metadata}
-        return super().clean_input(info, instance, data)
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
