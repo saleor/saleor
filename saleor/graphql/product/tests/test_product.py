@@ -5249,7 +5249,7 @@ def test_delete_product(
     with pytest.raises(product._meta.model.DoesNotExist):
         product.refresh_from_db()
     assert node_id == data["product"]["id"]
-    mocked_recalculate_orders_task.assert_called_once_with(set())
+    assert not mocked_recalculate_orders_task.called
 
 
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
@@ -5283,7 +5283,7 @@ def test_delete_product_trigger_webhook(
     mocked_webhook_trigger.assert_called_once_with(
         WebhookEventType.PRODUCT_DELETED, expected_data
     )
-    mocked_recalculate_orders_task.assert_called_once_with(set())
+    assert not mocked_recalculate_orders_task.called
 
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
@@ -5354,7 +5354,7 @@ def test_delete_product_variant_in_draft_order(
     assert not OrderLine.objects.filter(pk__in=draft_order_lines_pks).exists()
 
     assert OrderLine.objects.filter(pk__in=not_draft_order_lines_pks).exists()
-    mocked_recalculate_orders_task.assert_called_once_with({draft_order.id})
+    mocked_recalculate_orders_task.assert_called_once_with([draft_order.id])
 
 
 def test_product_type(user_api_client, product_type, channel_USD):
