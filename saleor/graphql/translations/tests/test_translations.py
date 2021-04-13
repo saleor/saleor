@@ -1966,6 +1966,7 @@ QUERY_TRANSLATION_SHIPPING_METHOD = """
             ...on ShippingMethodTranslatableContent{
                 id
                 name
+                description
                 translation(languageCode: $languageCode){
                     name
                 }
@@ -2009,6 +2010,7 @@ def test_translation_query_shipping_method(
     content = get_graphql_content(response, ignore_errors=True)
     data = content["data"]["translation"]
     assert data["name"] == shipping_method.name
+    assert data["description"] == shipping_method.description
     assert data["translation"]["name"] == shipping_method_translation_fr.name
     if return_shipping_method:
         assert data["shippingMethod"]["name"] == shipping_method.name
