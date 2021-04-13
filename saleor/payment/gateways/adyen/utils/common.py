@@ -206,23 +206,33 @@ def append_klarna_data(payment_information: "PaymentData", payment_data: dict):
             checkout_line_info=line_info,
             discounts=discounts,
         )
-        total_gross = total.gross.amount
-        total_net = total.net.amount
-        tax_amount = total.tax.amount
+        address = checkout_info.shipping_address or checkout_info.billing_address
+        unit_price = manager.calculate_checkout_line_unit_price(
+            total,
+            line_info.line.quantity,
+            checkout_info,
+            lines,
+            line_info,
+            address,
+            discounts,
+        )
+        unit_gross = unit_price.gross.amount
+        unit_net = unit_price.net.amount
+        tax_amount = unit_price.tax.amount
         tax_percentage_in_adyen_format = get_tax_percentage_in_adyen_format(
-            total_gross, total_net
+            unit_gross, unit_net
         )
 
         line_data = {
             "quantity": line_info.line.quantity,
-            "amountExcludingTax": to_adyen_price(total_net, currency),
+            "amountExcludingTax": to_adyen_price(unit_net, currency),
             "taxPercentage": tax_percentage_in_adyen_format,
             "description": (
                 f"{line_info.variant.product.name}, {line_info.variant.name}"
             ),
             "id": line_info.variant.sku,
             "taxAmount": to_adyen_price(tax_amount, currency),
-            "amountIncludingTax": to_adyen_price(total_gross, currency),
+            "amountIncludingTax": to_adyen_price(unit_gross, currency),
         }
         line_items.append(line_data)
 
