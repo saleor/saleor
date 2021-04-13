@@ -149,3 +149,8 @@ def generate_unique_slug(
         unique_slug = f"{slug}-{extension}"
 
     return unique_slug
+
+
+def delete_versatile_image(image):
+    image.delete_all_created_images()
+    image.delete(save=False)
