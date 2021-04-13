@@ -1312,6 +1312,7 @@ class ProductMediaCreate(BaseMutation):
             )
 
         product = ChannelContext(node=product, channel_slug=None)
+        info.context.plugins.product_updated(product)
         return ProductMediaCreate(product=product, media=media)
 
 
@@ -1344,6 +1345,7 @@ class ProductMediaUpdate(BaseMutation):
             media.alt = alt
             media.save(update_fields=["alt"])
         product = ChannelContext(node=product, channel_slug=None)
+        info.context.plugins.product_updated(product.node)
         return ProductMediaUpdate(product=product, media=media)
 
 
@@ -1405,6 +1407,7 @@ class ProductMediaReorder(BaseMutation):
             media.save(update_fields=["sort_order"])
 
         product = ChannelContext(node=product, channel_slug=None)
+        info.context.plugins.product_updated(product)
         return ProductMediaReorder(product=product, media=ordered_media)
 
 
@@ -1549,6 +1552,7 @@ class ProductMediaDelete(BaseMutation):
         media_obj.delete()
         media_obj.id = media_id
         product = ChannelContext(node=media_obj.product, channel_slug=None)
+        info.context.plugins.product_updated(product)
         return ProductMediaDelete(product=product, media=media_obj)
 
 

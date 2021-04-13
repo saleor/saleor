@@ -265,7 +265,18 @@ def generate_product_payload(product: "Product"):
             ),
         },
         extra_dict_data={
-            "attributes": serialize_product_or_variant_attributes(product)
+            "attributes": serialize_product_or_variant_attributes(product),
+            "media": [
+                {
+                    "alt": media_obj.alt,
+                    "url": (
+                        build_absolute_uri(media_obj.image.url)
+                        if media_obj.type == ProductMediaTypes.IMAGE
+                        else media_obj.external_url
+                    ),
+                }
+                for media_obj in product.media.all()
+            ],
         },
     )
     return product_payload
