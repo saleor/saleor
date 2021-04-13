@@ -327,7 +327,7 @@ def test_delete_products(
     assert not OrderLine.objects.filter(pk__in=draft_order_lines_pks).exists()
 
     assert OrderLine.objects.filter(pk__in=not_draft_order_lines_pks).exists()
-    mocked_recalculate_orders_task.assert_called_once_with({draft_order.id})
+    mocked_recalculate_orders_task.assert_called_once_with([draft_order.id])
 
 
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
@@ -358,7 +358,7 @@ def test_delete_products_trigger_webhook(
 
     assert content["data"]["productBulkDelete"]["count"] == 3
     assert mocked_webhook_trigger.called
-    mocked_recalculate_orders_task.assert_called_once_with(set())
+    assert not mocked_recalculate_orders_task.called
 
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
@@ -387,7 +387,7 @@ def test_delete_products_variants_in_draft_order(
     assert content["data"]["productBulkDelete"]["count"] == 2
     assert not Product.objects.filter(id__in=products_id).exists()
     assert not ProductChannelListing.objects.filter(product_id__in=products_id).exists()
-    mocked_recalculate_orders_task.assert_called_once_with({draft_order.id})
+    mocked_recalculate_orders_task.assert_called_once_with([draft_order.id])
 
 
 def test_delete_product_media(
@@ -492,7 +492,7 @@ def test_delete_product_variants(
         product_variant_deleted_webhook_mock.call_count
         == content["data"]["productVariantBulkDelete"]["count"]
     )
-    mocked_recalculate_orders_task.assert_called_once_with(set())
+    assert not mocked_recalculate_orders_task.called
 
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
@@ -588,7 +588,7 @@ def test_delete_product_variants_in_draft_orders(
         second_draft_order.refresh_from_db()
 
     assert OrderLine.objects.filter(pk=order_line_not_in_draft_pk).exists()
-    mocked_recalculate_orders_task.assert_called_once_with({draft_order.id})
+    mocked_recalculate_orders_task.assert_called_once_with([draft_order.id])
 
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
@@ -639,7 +639,7 @@ def test_delete_product_variants_delete_default_variant(
 
     product.refresh_from_db()
     assert product.default_variant.pk == new_default_variant.pk
-    mocked_recalculate_orders_task.assert_called_once_with(set())
+    assert not mocked_recalculate_orders_task.called
 
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
@@ -689,7 +689,7 @@ def test_delete_product_variants_delete_all_product_variants(
 
     product.refresh_from_db()
     assert product.default_variant is None
-    mocked_recalculate_orders_task.assert_called_once_with(set())
+    assert not mocked_recalculate_orders_task.called
 
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
@@ -741,4 +741,4 @@ def test_delete_product_variants_from_different_products(
 
     assert product_1.default_variant is None
     assert product_2.default_variant.pk == product_2_second_variant.pk
-    mocked_recalculate_orders_task.assert_called_once_with(set())
+    assert not mocked_recalculate_orders_task.called
