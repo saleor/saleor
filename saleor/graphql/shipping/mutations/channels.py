@@ -8,6 +8,9 @@ from django.db import transaction
 from ....core.permissions import ShippingPermissions
 from ....shipping.error_codes import ShippingErrorCode
 from ....shipping.models import ShippingMethodChannelListing
+from ....shipping.tasks import (
+    drop_invalid_shipping_methods_relations_for_given_channels,
+)
 from ...channel import ChannelContext
 from ...channel.mutations import BaseChannelListingMutation
 from ...core.scalars import PositiveDecimal
@@ -99,6 +102,9 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
         ShippingMethodChannelListing.objects.filter(
             shipping_method=shipping_method, channel_id__in=remove_channels
         ).delete()
+        drop_invalid_shipping_methods_relations_for_given_channels.delay(
+            [shipping_method.id], remove_channels
+        )
 
     @classmethod
     @transaction.atomic()

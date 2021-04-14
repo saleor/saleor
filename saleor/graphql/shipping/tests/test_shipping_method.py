@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import graphene
 import pytest
 
@@ -453,7 +455,12 @@ def test_update_shipping_zone_add_channels(
     assert {channel["id"] for channel in data["channels"]} == set(channel_ids)
 
 
+@patch(
+    "saleor.graphql.shipping.mutations.shippings."
+    "drop_invalid_shipping_methods_relations_for_given_channels.delay"
+)
 def test_update_shipping_zone_remove_channels(
+    mocked_drop_invalid_shipping_methods_relations,
     staff_api_client,
     shipping_zone,
     channel_USD,
@@ -464,8 +471,12 @@ def test_update_shipping_zone_remove_channels(
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.pk)
 
-    assert ShippingMethodChannelListing.objects.filter(
+    shipping_listing = ShippingMethodChannelListing.objects.filter(
         shipping_method__shipping_zone=shipping_zone, channel=channel_USD
+    )
+    assert shipping_listing
+    shipping_method_ids = list(
+        shipping_listing.values_list("shipping_method_id", flat=True)
     )
 
     variables = {
@@ -486,6 +497,9 @@ def test_update_shipping_zone_remove_channels(
     )
     assert not ShippingMethodChannelListing.objects.filter(
         shipping_method__shipping_zone=shipping_zone, channel=channel_USD
+    )
+    mocked_drop_invalid_shipping_methods_relations.assert_called_once_with(
+        shipping_method_ids, [channel_USD.pk]
     )
 
 
