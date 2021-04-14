@@ -2187,6 +2187,18 @@ def test_can_finalize_order(staff_api_client, permission_manage_orders, draft_or
     assert content["data"]["order"]["canFinalize"] is True
 
 
+def test_can_finalize_order_invalid_shipping_method_set(
+    staff_api_client, permission_manage_orders, draft_order
+):
+    order_id = graphene.Node.to_global_id("Order", draft_order.id)
+    draft_order.channel.shipping_zones.clear()
+    variables = {"id": order_id}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDER_CAN_FINALIZE_QUERY, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["order"]["canFinalize"] is False
+
+
 def test_can_finalize_order_no_order_lines(
     staff_api_client, permission_manage_orders, order
 ):
@@ -2515,8 +2527,11 @@ def test_draft_order_complete_channel_without_shipping_zones(
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]
     assert len(data["orderErrors"]) == 1
-    assert data["orderErrors"][0]["code"] == OrderErrorCode.INSUFFICIENT_STOCK.name
-    assert data["orderErrors"][0]["field"] == "lines"
+    assert (
+        data["orderErrors"][0]["code"]
+        == OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
+    )
+    assert data["orderErrors"][0]["field"] == "shipping"
 
 
 def test_draft_order_complete_product_without_inventory_tracking(
@@ -2564,6 +2579,43 @@ def test_draft_order_complete_product_without_inventory_tracking(
     assert matching_events.count() == 2
     assert matching_events[0].type != matching_events[1].type
     assert not OrderEvent.objects.exclude(**event_params).exists()
+
+
+def test_draft_order_complete_not_available_shipping_method(
+    staff_api_client,
+    permission_manage_orders,
+    staff_user,
+    draft_order,
+):
+    # given
+    order = draft_order
+    order.channel.shipping_zones.clear()
+
+    # Ensure no events were created
+    assert not OrderEvent.objects.exists()
+
+    # Ensure no allocation were created
+    assert not Allocation.objects.filter(order_line__order=order).exists()
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderComplete"]["order"]
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderComplete"]
+    assert len(data["orderErrors"]) == 1
+    assert (
+        data["orderErrors"][0]["code"]
+        == OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
+    )
+    assert data["orderErrors"][0]["field"] == "shipping"
 
 
 def test_draft_order_complete_out_of_stock_variant(
