@@ -76,7 +76,7 @@ class StoreCreate(ModelMutation):
     @classmethod
     def perform_mutation(cls, root, info, **data):
         store_type_id = data.pop("store_type_id", None)
-        data["input"]["store_type_id"] = store_type_id
+        data["input"]["storetype_id"] = store_type_id
         return super().perform_mutation(root, info, **data)
 
     @classmethod
