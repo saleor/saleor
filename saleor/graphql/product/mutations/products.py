@@ -737,7 +737,8 @@ class ProductDelete(ModelDeleteMutation):
         response = super().perform_mutation(_root, info, **data)
         # delete order lines for deleted variant
         order_models.OrderLine.objects.filter(pk__in=line_pks).delete()
-        recalculate_orders_task.delay(orders_id)
+        if orders_id:
+            recalculate_orders_task.delay(list(orders_id))
         info.context.plugins.product_deleted(instance, variants_id)
 
         return response
@@ -1052,7 +1053,8 @@ class ProductVariantDelete(ModelDeleteMutation):
 
         # delete order lines for deleted variant
         order_models.OrderLine.objects.filter(pk__in=line_pks).delete()
-        recalculate_orders_task.delay(orders_id)
+        if orders_id:
+            recalculate_orders_task.delay(list(orders_id))
 
         transaction.on_commit(
             lambda: info.context.plugins.product_variant_deleted(variant)
