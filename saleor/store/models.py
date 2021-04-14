@@ -57,7 +57,7 @@ class Store(models.Model):
     name = models.CharField(max_length=250)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
-    type = models.ForeignKey(
+    storetype = models.ForeignKey(
         StoreType,
         related_name="stores",
         on_delete=models.SET_NULL,
