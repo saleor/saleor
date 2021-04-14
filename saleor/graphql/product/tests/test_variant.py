@@ -2025,7 +2025,7 @@ def test_delete_variant(
     assert data["productVariant"]["sku"] == variant.sku
     with pytest.raises(variant._meta.model.DoesNotExist):
         variant.refresh_from_db()
-    mocked_recalculate_orders_task.assert_called_once_with(set())
+    mocked_recalculate_orders_task.assert_not_called
 
 
 @patch("saleor.product.signals.delete_versatile_image")
@@ -2058,7 +2058,7 @@ def test_delete_variant_with_image(
     assert data["productVariant"]["sku"] == variant.sku
     with pytest.raises(variant._meta.model.DoesNotExist):
         variant.refresh_from_db()
-    mocked_recalculate_orders_task.assert_called_once_with(set())
+    mocked_recalculate_orders_task.assert_not_called
     delete_versatile_image_mock.assert_not_called()
 
 
@@ -2125,9 +2125,10 @@ def test_delete_variant_in_draft_order(
         order_line.refresh_from_db()
 
     assert OrderLine.objects.filter(pk=order_line_not_in_draft_pk).exists()
-    mocked_recalculate_orders_task.assert_called_once_with(
-        {draft_order.id, second_draft_order.id}
-    )
+    expected_call_args = sorted([second_draft_order.id, draft_order.id])
+    result_call_args = sorted(mocked_recalculate_orders_task.mock_calls[0].args[0])
+
+    assert result_call_args == expected_call_args
 
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
@@ -2166,7 +2167,7 @@ def test_delete_default_variant(
 
     product.refresh_from_db()
     assert product.default_variant.pk == second_variant.pk
-    mocked_recalculate_orders_task.assert_called_once_with(set())
+    mocked_recalculate_orders_task.assert_not_called
 
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
@@ -2205,7 +2206,7 @@ def test_delete_not_default_variant_left_default_variant_unchanged(
 
     product.refresh_from_db()
     assert product.default_variant.pk == default_variant.pk
-    mocked_recalculate_orders_task.assert_called_once_with(set())
+    mocked_recalculate_orders_task.assert_not_called
 
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
@@ -2242,7 +2243,7 @@ def test_delete_default_all_product_variant_left_product_default_variant_unset(
 
     product.refresh_from_db()
     assert not product.default_variant
-    mocked_recalculate_orders_task.assert_called_once_with(set())
+    mocked_recalculate_orders_task.assert_not_called
 
 
 def _fetch_all_variants(client, variables={}, permissions=None):
