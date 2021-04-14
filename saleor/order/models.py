@@ -72,7 +72,7 @@ class OrderQueryset(models.QuerySet):
         return qs.distinct()
 
     def ready_to_confirm(self):
-        """Return unconfirmed_orders."""
+        """Return unconfirmed orders."""
         return self.filter(status=OrderStatus.UNCONFIRMED)
 
 
@@ -305,6 +305,9 @@ class Order(ModelWithMetadata):
 
     def is_draft(self):
         return self.status == OrderStatus.DRAFT
+
+    def is_unconfirmed(self):
+        return self.status == OrderStatus.UNCONFIRMED
 
     def is_open(self):
         statuses = {OrderStatus.UNFULFILLED, OrderStatus.PARTIALLY_FULFILLED}

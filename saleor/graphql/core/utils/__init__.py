@@ -102,9 +102,9 @@ def validate_required_string_field(cleaned_input, field_name: str):
 def from_global_id_or_error(
     id: str, only_type: Union[ObjectType, str] = None, field: str = "id"
 ):
-    """Resolve id from global or raise ValidationError.
+    """Resolve database ID from global ID or raise ValidationError.
 
-    Optional validate object type.
+    Optionally validate the object type, if `only_type` is provided.
     """
     try:
         _type, _id = graphene.Node.from_global_id(id)

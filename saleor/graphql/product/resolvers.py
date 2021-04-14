@@ -117,7 +117,8 @@ def resolve_product_variants(
     qs = models.ProductVariant.objects.filter(product__id__in=visible_products)
     if ids:
         db_ids = [
-            from_global_id_or_error(node_id, "ProductVariant")[1] for node_id in ids
+            from_global_id_or_error(node_id, only_type="ProductVariant")[1]
+            for node_id in ids
         ]
         qs = qs.filter(pk__in=db_ids)
     return ChannelQsContext(qs=qs, channel_slug=channel_slug)

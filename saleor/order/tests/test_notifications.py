@@ -17,7 +17,7 @@ from ..notifications import (
     get_default_order_payload,
     get_order_line_payload,
 )
-from ..utils import add_variant_to_draft_order
+from ..utils import add_variant_to_order
 
 
 def test_get_order_line_payload(order_line):
@@ -261,14 +261,18 @@ def test_send_email_order_confirmation(mocked_notify, order, site_settings):
 def test_send_confirmation_emails_without_addresses_for_payment(
     mocked_notify,
     site_settings,
+    info,
     digital_content,
     payment_dummy,
 ):
     order = payment_dummy.order
-    manager = get_plugins_manager()
 
-    line = add_variant_to_draft_order(
-        order, digital_content.product_variant, quantity=1, manager=manager
+    line = add_variant_to_order(
+        order,
+        digital_content.product_variant,
+        quantity=1,
+        user=info.context.user,
+        manager=info.context.plugins,
     )
     DigitalContentUrl.objects.create(content=digital_content, line=line)
 
@@ -277,7 +281,7 @@ def test_send_confirmation_emails_without_addresses_for_payment(
     order.billing_address = None
     order.save(update_fields=["shipping_address", "shipping_method", "billing_address"])
 
-    notifications.send_payment_confirmation(order, manager)
+    notifications.send_payment_confirmation(order, info.context.plugins)
 
     expected_payload = {
         "order": get_default_order_payload(order),
@@ -300,14 +304,17 @@ def test_send_confirmation_emails_without_addresses_for_payment(
 
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_send_confirmation_emails_without_addresses_for_order(
-    mocked_notify, order, site_settings, digital_content
+    mocked_notify, order, site_settings, digital_content, info
 ):
 
     assert not order.lines.count()
-    manager = get_plugins_manager()
 
-    line = add_variant_to_draft_order(
-        order, digital_content.product_variant, quantity=1, manager=manager
+    line = add_variant_to_order(
+        order,
+        digital_content.product_variant,
+        quantity=1,
+        user=info.context.user,
+        manager=info.context.plugins,
     )
     DigitalContentUrl.objects.create(content=digital_content, line=line)
 
@@ -318,7 +325,7 @@ def test_send_confirmation_emails_without_addresses_for_order(
 
     redirect_url = "https://www.example.com"
 
-    notifications.send_order_confirmation(order, redirect_url, manager)
+    notifications.send_order_confirmation(order, redirect_url, info.context.plugins)
 
     expected_payload = {
         "order": get_default_order_payload(order, redirect_url),

@@ -6,7 +6,6 @@ from ...core.permissions import OrderPermissions
 from ...invoice import events, models
 from ...invoice.error_codes import InvoiceErrorCode
 from ...invoice.notifications import send_invoice
-from ...order import OrderStatus
 from ...order import events as order_events
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types.common import InvoiceError
@@ -35,7 +34,7 @@ class InvoiceRequest(ModelMutation):
 
     @staticmethod
     def clean_order(order):
-        if order.status in (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED):
+        if order.is_draft() or order.is_unconfirmed():
             raise ValidationError(
                 {
                     "orderId": ValidationError(
@@ -121,7 +120,7 @@ class InvoiceCreate(ModelMutation):
 
     @classmethod
     def clean_order(cls, info, order):
-        if order.status in (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED):
+        if order.is_draft() or order.is_unconfirmed():
             raise ValidationError(
                 {
                     "orderId": ValidationError(

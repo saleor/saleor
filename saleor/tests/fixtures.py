@@ -18,6 +18,7 @@ from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
 from django.forms import ModelForm
+from django.template.defaultfilters import truncatechars
 from django.test.utils import CaptureQueriesContext as BaseCaptureQueriesContext
 from django.utils import timezone
 from django_countries import countries
@@ -39,6 +40,7 @@ from ..checkout.models import Checkout
 from ..checkout.utils import add_variant_to_checkout
 from ..core import JobStatus
 from ..core.payments import PaymentInterface
+from ..core.utils.editorjs import clean_editor_js
 from ..csv.events import ExportEvents
 from ..csv.models import ExportEvent, ExportFile
 from ..discount import DiscountInfo, DiscountValueType, VoucherType
@@ -57,8 +59,8 @@ from ..order import OrderLineData, OrderStatus
 from ..order.actions import cancel_fulfillment, fulfill_order_lines
 from ..order.events import (
     OrderEvents,
-    draft_order_added_products_event,
     fulfillment_refunded_event,
+    order_added_products_event,
 )
 from ..order.models import FulfillmentStatus, Order, OrderEvent, OrderLine
 from ..order.utils import recalculate_order
@@ -759,7 +761,7 @@ def shipping_method_channel_PLN(shipping_zone, channel_PLN):
 
 
 @pytest.fixture
-def color_attribute(db):  # pylint: disable=W0613
+def color_attribute(db):
     attribute = Attribute.objects.create(
         slug="color",
         name="Color",
@@ -770,6 +772,27 @@ def color_attribute(db):  # pylint: disable=W0613
     )
     AttributeValue.objects.create(attribute=attribute, name="Red", slug="red")
     AttributeValue.objects.create(attribute=attribute, name="Blue", slug="blue")
+    return attribute
+
+
+@pytest.fixture
+def rich_text_attribute(db):
+    attribute = Attribute.objects.create(
+        slug="text",
+        name="Text",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.RICH_TEXT,
+        filterable_in_storefront=False,
+        filterable_in_dashboard=False,
+        available_in_grid=False,
+    )
+    text = "Rich text attribute content."
+    AttributeValue.objects.create(
+        attribute=attribute,
+        name=truncatechars(clean_editor_js(dummy_editorjs(text), to_string=True), 50),
+        slug=f"instance_{attribute.id}",
+        rich_text=dummy_editorjs(text),
+    )
     return attribute
 
 
@@ -2351,6 +2374,19 @@ def order_with_lines(
 
 
 @pytest.fixture
+def lines_info(order_with_lines):
+    return [
+        OrderLineData(
+            line=line,
+            quantity=line.quantity,
+            variant=line.variant,
+            warehouse_pk=line.allocations.first().stock.warehouse.pk,
+        )
+        for line in order_with_lines.lines.all()
+    ]
+
+
+@pytest.fixture
 def order_with_lines_and_events(order_with_lines, staff_user):
     events = []
     for event_type, _ in OrderEvents.CHOICES:
@@ -2369,7 +2405,7 @@ def order_with_lines_and_events(order_with_lines, staff_user):
         amount=Decimal("10.0"),
         shipping_costs_included=False,
     )
-    draft_order_added_products_event(
+    order_added_products_event(
         order=order_with_lines,
         user=staff_user,
         order_lines=[(1, order_with_lines.lines.first())],
