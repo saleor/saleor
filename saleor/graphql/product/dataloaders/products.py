@@ -184,8 +184,7 @@ class ProductVariantsByProductIdAndChannel(DataLoader):
     context_key = "productvariant_by_product_and_channel"
 
     def batch_load(self, keys):
-        product_ids = [key[0] for key in keys]
-        channel_slugs = [key[1] for key in keys]
+        product_ids, channel_slugs = zip(*keys)
         variants_filter = self.get_variants_filter(product_ids, channel_slugs)
 
         variants = ProductVariant.objects.filter(**variants_filter).annotate(
