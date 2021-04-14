@@ -2,11 +2,13 @@ import graphene
 
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AppPermission
+from ...core.tracing import traced_resolver
 from ...webhook import models, payloads
 from ...webhook.event_types import WebhookEventType
 from .types import Webhook, WebhookEvent
 
 
+@traced_resolver
 def resolve_webhooks(info, **_kwargs):
     app = info.context.app
     if app:
@@ -19,6 +21,7 @@ def resolve_webhooks(info, **_kwargs):
     return qs
 
 
+@traced_resolver
 def resolve_webhook(info, webhook_id):
     app = info.context.app
     if app:
@@ -37,6 +40,7 @@ def resolve_webhook_events():
     ]
 
 
+@traced_resolver
 def resolve_sample_payload(info, event_name):
     app = info.context.app
     required_permission = WebhookEventType.PERMISSIONS.get(event_name)

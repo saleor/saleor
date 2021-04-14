@@ -1,6 +1,8 @@
 import graphene
 from graphql.error import GraphQLError
 
+from saleor.core.tracing import traced_resolver
+
 from ...account.utils import requestor_is_staff_member_or_app
 from ...core.permissions import ProductPermissions
 from ..channel import ChannelContext
@@ -252,6 +254,7 @@ class ProductQueries(graphene.ObjectType):
     def resolve_categories(self, info, level=None, **kwargs):
         return resolve_categories(info, level=level, **kwargs)
 
+    @traced_resolver
     def resolve_category(self, info, id=None, slug=None, **kwargs):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
         if id:
@@ -259,6 +262,7 @@ class ProductQueries(graphene.ObjectType):
         if slug:
             return resolve_category_by_slug(slug=slug)
 
+    @traced_resolver
     def resolve_collection(self, info, id=None, slug=None, channel=None, **_kwargs):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
         requestor = get_user_or_app_from_context(info.context)
@@ -294,6 +298,7 @@ class ProductQueries(graphene.ObjectType):
     def resolve_digital_contents(self, info, **_kwargs):
         return resolve_digital_contents(info)
 
+    @traced_resolver
     def resolve_product(self, info, id=None, slug=None, channel=None, **_kwargs):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
         requestor = get_user_or_app_from_context(info.context)
@@ -312,6 +317,7 @@ class ProductQueries(graphene.ObjectType):
             )
         return ChannelContext(node=product, channel_slug=channel) if product else None
 
+    @traced_resolver
     def resolve_products(self, info, channel=None, **kwargs):
         # sort by RANK can be used only with search filter
         if "sort_by" in kwargs and ProductOrderField.RANK == kwargs["sort_by"].get(
@@ -335,6 +341,7 @@ class ProductQueries(graphene.ObjectType):
     def resolve_product_types(self, info, **kwargs):
         return resolve_product_types(info, **kwargs)
 
+    @traced_resolver
     def resolve_product_variant(
         self,
         info,
@@ -376,6 +383,7 @@ class ProductQueries(graphene.ObjectType):
         )
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
+    @traced_resolver
     def resolve_report_product_sales(self, *_args, period, channel, **_kwargs):
         return resolve_report_product_sales(period, channel_slug=channel)
 

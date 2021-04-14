@@ -13,6 +13,7 @@ from ...core.anonymize import obfuscate_address, obfuscate_email
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions, OrderPermissions, ProductPermissions
 from ...core.taxes import display_gross_prices
+from ...core.tracing import traced_resolver
 from ...discount import OrderDiscountType
 from ...graphql.utils import get_user_or_app_from_context
 from ...order import OrderStatus, models
@@ -167,6 +168,7 @@ class OrderEvent(CountableDjangoObjectType):
         only_fields = ["id"]
 
     @staticmethod
+    @traced_resolver
     def resolve_user(root: models.OrderEvent, info):
         user = info.context.user
         if (
@@ -224,6 +226,7 @@ class OrderEvent(CountableDjangoObjectType):
         return root.parameters.get("invoice_number")
 
     @staticmethod
+    @traced_resolver
     def resolve_lines(root: models.OrderEvent, info):
         raw_lines = root.parameters.get("lines", None)
 
@@ -261,11 +264,13 @@ class OrderEvent(CountableDjangoObjectType):
         )
 
     @staticmethod
+    @traced_resolver
     def resolve_fulfilled_items(root: models.OrderEvent, _info):
         lines = root.parameters.get("fulfilled_items", [])
         return models.FulfillmentLine.objects.filter(pk__in=lines)
 
     @staticmethod
+    @traced_resolver
     def resolve_warehouse(root: models.OrderEvent, _info):
         warehouse = root.parameters.get("warehouse")
         return warehouse_models.Warehouse.objects.filter(pk=warehouse).first()
@@ -286,6 +291,7 @@ class OrderEvent(CountableDjangoObjectType):
         return OrderByIdLoader(info.context).load(order_pk)
 
     @staticmethod
+    @traced_resolver
     def resolve_discount(root: models.OrderEvent, info):
         discount_obj = root.parameters.get("discount")
         if not discount_obj:
@@ -303,6 +309,7 @@ class FulfillmentLine(CountableDjangoObjectType):
         only_fields = ["id", "quantity"]
 
     @staticmethod
+    @traced_resolver
     def resolve_order_line(root: models.FulfillmentLine, _info):
         return root.order_line
 
@@ -331,14 +338,17 @@ class Fulfillment(CountableDjangoObjectType):
         ]
 
     @staticmethod
+    @traced_resolver
     def resolve_lines(root: models.Fulfillment, _info):
         return root.lines.all()
 
     @staticmethod
+    @traced_resolver
     def resolve_status_display(root: models.Fulfillment, _info):
         return root.get_status_display()
 
     @staticmethod
+    @traced_resolver
     def resolve_warehouse(root: models.Fulfillment, _info):
         line = root.lines.first()
         return line.stock.warehouse if line and line.stock else None
@@ -417,6 +427,7 @@ class OrderLine(CountableDjangoObjectType):
         ]
 
     @staticmethod
+    @traced_resolver
     def resolve_thumbnail(root: models.OrderLine, info, *, size=255):
         if not root.variant:
             return None
@@ -460,6 +471,7 @@ class OrderLine(CountableDjangoObjectType):
         return root.translated_variant_name
 
     @staticmethod
+    @traced_resolver
     def resolve_variant(root: models.OrderLine, info):
         context = info.context
         if not root.variant_id:
@@ -640,10 +652,12 @@ class Order(CountableDjangoObjectType):
         ]
 
     @staticmethod
+    @traced_resolver
     def resolve_discounts(root: models.Order, info):
         return OrderDiscountsByOrderIDLoader(info.context).load(root.id)
 
     @staticmethod
+    @traced_resolver
     def resolve_discount(root: models.Order, info):
         def return_voucher_discount(discounts) -> Optional[Money]:
             if not discounts:
@@ -660,6 +674,7 @@ class Order(CountableDjangoObjectType):
         )
 
     @staticmethod
+    @traced_resolver
     def resolve_discount_name(root: models.Order, info):
         def return_voucher_name(discounts) -> Optional[Money]:
             if not discounts:
@@ -676,6 +691,7 @@ class Order(CountableDjangoObjectType):
         )
 
     @staticmethod
+    @traced_resolver
     def resolve_translated_discount_name(root: models.Order, info):
         def return_voucher_translated_name(discounts) -> Optional[Money]:
             if not discounts:
@@ -692,6 +708,7 @@ class Order(CountableDjangoObjectType):
         )
 
     @staticmethod
+    @traced_resolver
     def resolve_billing_address(root: models.Order, info):
         def _resolve_billing_address(data):
             if isinstance(data, Address):
@@ -719,6 +736,7 @@ class Order(CountableDjangoObjectType):
         )
 
     @staticmethod
+    @traced_resolver
     def resolve_shipping_address(root: models.Order, info):
         def _resolve_shipping_address(data):
             if isinstance(data, Address):
@@ -749,6 +767,7 @@ class Order(CountableDjangoObjectType):
         return root.shipping_price
 
     @staticmethod
+    @traced_resolver
     def resolve_actions(root: models.Order, _info):
         actions = []
         payment = root.get_last_payment()
@@ -763,6 +782,7 @@ class Order(CountableDjangoObjectType):
         return actions
 
     @staticmethod
+    @traced_resolver
     def resolve_subtotal(root: models.Order, _info):
         return root.get_subtotal()
 
@@ -789,6 +809,7 @@ class Order(CountableDjangoObjectType):
         return root.total_balance
 
     @staticmethod
+    @traced_resolver
     def resolve_fulfillments(root: models.Order, info):
         user = info.context.user
         if user.is_staff:
@@ -798,15 +819,18 @@ class Order(CountableDjangoObjectType):
         return qs.order_by("pk")
 
     @staticmethod
+    @traced_resolver
     def resolve_lines(root: models.Order, info):
         return OrderLinesByOrderIdLoader(info.context).load(root.id)
 
     @staticmethod
     @permission_required(OrderPermissions.MANAGE_ORDERS)
+    @traced_resolver
     def resolve_events(root: models.Order, _info):
         return root.events.prefetch_related("user").all().order_by("pk")
 
     @staticmethod
+    @traced_resolver
     def resolve_is_paid(root: models.Order, _info):
         return root.is_fully_paid()
 
@@ -815,22 +839,27 @@ class Order(CountableDjangoObjectType):
         return str(root.pk)
 
     @staticmethod
+    @traced_resolver
     def resolve_payment_status(root: models.Order, _info):
         return root.get_payment_status()
 
     @staticmethod
+    @traced_resolver
     def resolve_payment_status_display(root: models.Order, _info):
         return root.get_payment_status_display()
 
     @staticmethod
+    @traced_resolver
     def resolve_payments(root: models.Order, _info):
         return root.payments.all()
 
     @staticmethod
+    @traced_resolver
     def resolve_status_display(root: models.Order, _info):
         return root.get_status_display()
 
     @staticmethod
+    @traced_resolver
     def resolve_can_finalize(root: models.Order, _info):
         if root.status == OrderStatus.DRAFT:
             country = get_order_country(root)
@@ -841,6 +870,7 @@ class Order(CountableDjangoObjectType):
         return True
 
     @staticmethod
+    @traced_resolver
     def resolve_user_email(root: models.Order, info):
         def _resolve_user_email(user):
             requester = get_user_or_app_from_context(info.context)
@@ -858,6 +888,7 @@ class Order(CountableDjangoObjectType):
         )
 
     @staticmethod
+    @traced_resolver
     def resolve_user(root: models.Order, info):
         def _resolve_user(user):
             requester = get_user_or_app_from_context(info.context)
@@ -871,6 +902,7 @@ class Order(CountableDjangoObjectType):
         return UserByUserIdLoader(info.context).load(root.user_id).then(_resolve_user)
 
     @staticmethod
+    @traced_resolver
     def resolve_shipping_method(root: models.Order, info):
         if not root.shipping_method_id:
             return None
@@ -889,6 +921,7 @@ class Order(CountableDjangoObjectType):
         )
 
     @staticmethod
+    @traced_resolver
     # TODO: We should optimize it in/after PR#5819
     def resolve_available_shipping_methods(root: models.Order, info):
         available = get_valid_shipping_methods_for_order(root)
@@ -922,6 +955,7 @@ class Order(CountableDjangoObjectType):
         return instances
 
     @staticmethod
+    @traced_resolver
     def resolve_invoices(root: models.Order, info):
         requester = get_user_or_app_from_context(info.context)
         if requestor_has_access(requester, root.user, OrderPermissions.MANAGE_ORDERS):
@@ -929,14 +963,17 @@ class Order(CountableDjangoObjectType):
         raise PermissionDenied()
 
     @staticmethod
+    @traced_resolver
     def resolve_is_shipping_required(root: models.Order, _info):
         return root.is_shipping_required()
 
     @staticmethod
+    @traced_resolver
     def resolve_gift_cards(root: models.Order, _info):
         return root.gift_cards.all()
 
     @staticmethod
+    @traced_resolver
     def resolve_voucher(root: models.Order, info):
         if not root.voucher_id:
             return None
@@ -951,5 +988,6 @@ class Order(CountableDjangoObjectType):
         return Promise.all([voucher, channel]).then(wrap_voucher_with_channel_context)
 
     @staticmethod
+    @traced_resolver
     def resolve_language_code_enum(root, _info, **_kwargs):
         return LanguageCodeEnum[str_to_enum(root.language_code)]
