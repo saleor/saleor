@@ -48,6 +48,11 @@ class StoreQueries(graphene.ObjectType):
         description="Look up a store type by ID or slug.",
     )
 
+    store_types = FilterInputConnectionField(
+        StoreType,        
+        description="List of the shop's categories.",
+    )
+
     def resolve_store(self, info, id=None, slug=None):
         return resolve_store(info, id, slug)
 

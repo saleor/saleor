@@ -21,7 +21,12 @@ class StoreType(ModelWithMetadata, MPTTModel, SeoModel):
         "self", null=True, blank=True, related_name="children", on_delete=models.CASCADE
     )
 
+    objects = models.Manager()
+    tree = TreeManager()
     translated = TranslationProxy()
+
+    def __str__(self) -> str:
+        return self.name
 
     def __str__(self) -> str:
         return self.name
@@ -96,5 +101,3 @@ class StoreTranslation(models.Model):
             self.name,
             self.store_id,
         )
-
-
