@@ -47,6 +47,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Update also draft order line total price after getting the unit price from plugin - #7080 by @IKarbowiak
 - Fix failing product tasks when instances are removed - #7092 by @IKarbowiak
 - Update GraphQL endpoint to only match exactly `/graphql/` without trailing characters - #7117 by @IKarbowiak
+- Introduce traced_resolver decorator instead of graphene middleware - #7159 by @tomaszszymanski129
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
