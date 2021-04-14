@@ -33,6 +33,11 @@ class StoreType(CountableDjangoObjectType):
         required=True,
     )
 
+    description = graphene.String(
+        description="The store description.",
+        required=True,
+    )
+
     class Meta:
         description = (
             "Represents a type of page. It defines what attributes are available to "

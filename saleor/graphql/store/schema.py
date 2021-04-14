@@ -42,6 +42,12 @@ class StoreQueries(graphene.ObjectType):
         description="List of the store.",
     )
 
+    store_type = graphene.Field(
+        StoreType,
+        id=graphene.Argument(graphene.ID, description="ID of the store type."),
+        description="Look up a store type by ID or slug.",
+    )
+
     def resolve_store(self, info, id=None, slug=None):
         return resolve_store(info, id, slug)
 

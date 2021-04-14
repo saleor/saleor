@@ -17,6 +17,10 @@ class StoreType(ModelWithMetadata, MPTTModel, SeoModel):
     name = models.CharField(max_length=250)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
+    parent = models.ForeignKey(
+        "self", null=True, blank=True, related_name="children", on_delete=models.CASCADE
+    )
+
     translated = TranslationProxy()
 
     def __str__(self) -> str:
@@ -42,7 +46,6 @@ class StoreTypeTranslation(SeoModelTranslation):
             class_.__name__,
             self.pk,
             self.name,
-            self.category_id,
         )
 
 class Store(models.Model):

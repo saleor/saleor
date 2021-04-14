@@ -147,18 +147,19 @@ class StoreTypeCreate(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)        
-        store_type_id = data["store_type_id"]
+        #store_type_id = data["store_type_id"]
         
         return cleaned_input
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
+        parent_id = data.pop("parent_id", None)
+        data["input"]["parent_id"] = parent_id
         return super().perform_mutation(root, info, **data)
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
         instance.save()
-
 
 class StoreTypeUpdate(StoreTypeCreate):
     class Arguments:
