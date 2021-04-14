@@ -3,9 +3,10 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 
 from ....account.models import User
+from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
-from ....core.taxes import zero_taxed_money
-from ....order import OrderStatus, events, models
+from ....core.taxes import TaxError, zero_taxed_money
+from ....order import OrderLineData, OrderStatus, events, models
 from ....order.actions import (
     cancel_order,
     clean_mark_order_as_paid,
@@ -17,7 +18,14 @@ from ....order.actions import (
     order_voided,
 )
 from ....order.error_codes import OrderErrorCode
-from ....order.utils import get_valid_shipping_methods_for_order, update_order_prices
+from ....order.utils import (
+    add_variant_to_order,
+    change_order_line_quantity,
+    delete_order_line,
+    get_valid_shipping_methods_for_order,
+    recalculate_order,
+    update_order_prices,
+)
 from ....payment import PaymentError, TransactionKind, gateway
 from ....shipping import models as shipping_models
 from ...account.types import AddressInput
@@ -25,9 +33,20 @@ from ...core.mutations import BaseMutation, ModelMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
 from ...core.utils import validate_required_string_field
-from ...order.mutations.draft_orders import DraftOrderCreate
-from ...order.types import Order, OrderEvent
+from ...order.mutations.draft_orders import (
+    DraftOrderCreate,
+    OrderLineCreateInput,
+    OrderLineInput,
+)
+from ...product.types import ProductVariant
 from ...shipping.types import ShippingMethod
+from ..types import Order, OrderEvent, OrderLine
+from ..utils import (
+    validate_product_is_published_in_channel,
+    validate_variant_channel_listings,
+)
+
+ORDER_EDITABLE_STATUS = (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED)
 
 
 def clean_order_update_shipping(order, method):
@@ -188,6 +207,11 @@ class OrderUpdate(DraftOrderCreate):
             user = User.objects.filter(email=instance.user_email).first()
             instance.user = user
         instance.save()
+        update_order_prices(
+            instance,
+            info.context.plugins,
+            info.context.site.settings.include_taxes_in_prices,
+        )
         info.context.plugins.order_updated(instance)
 
 
@@ -549,12 +573,21 @@ class OrderConfirm(ModelMutation):
     @classmethod
     def get_instance(cls, info, **data):
         instance = super().get_instance(info, **data)
-        if instance.status != OrderStatus.UNCONFIRMED:
+        if not instance.is_unconfirmed():
             raise ValidationError(
                 {
                     "id": ValidationError(
                         "Provided order id belongs to an order with status "
                         "different than unconfirmed.",
+                        code=OrderErrorCode.INVALID,
+                    )
+                }
+            )
+        if not instance.lines.exists():
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Provided order id belongs to an order without products.",
                         code=OrderErrorCode.INVALID,
                     )
                 }
@@ -574,3 +607,232 @@ class OrderConfirm(ModelMutation):
             order_captured(order, info.context.user, payment.total, payment, manager)
         order_confirmed(order, info.context.user, manager, send_confirmation_email=True)
         return OrderConfirm(order=order)
+
+
+class EditableOrderValidationMixin:
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def validate_order(cls, order):
+        if order.status not in ORDER_EDITABLE_STATUS:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Only draft and unconfirmed orders can be edited.",
+                        code=OrderErrorCode.NOT_EDITABLE,
+                    )
+                }
+            )
+
+
+class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
+    order = graphene.Field(Order, description="Related order.")
+    order_lines = graphene.List(
+        graphene.NonNull(OrderLine), description="List of added order lines."
+    )
+
+    class Arguments:
+        id = graphene.ID(
+            required=True, description="ID of the order to add the lines to."
+        )
+        input = graphene.List(
+            OrderLineCreateInput,
+            required=True,
+            description="Fields required to add order lines.",
+        )
+
+    class Meta:
+        description = "Create order lines for an order."
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
+
+    @classmethod
+    def validate_lines(cls, info, data):
+        lines_to_add = []
+        invalid_ids = []
+        for input_line in data.get("input"):
+            variant_id = input_line["variant_id"]
+            variant = cls.get_node_or_error(
+                info, variant_id, "variant_id", only_type=ProductVariant
+            )
+            quantity = input_line["quantity"]
+            if quantity > 0:
+                lines_to_add.append((quantity, variant))
+            else:
+                invalid_ids.append(variant_id)
+        if invalid_ids:
+            raise ValidationError(
+                {
+                    "quantity": ValidationError(
+                        "Variants quantity must be greater than 0.",
+                        code=OrderErrorCode.ZERO_QUANTITY,
+                        params={"variants": invalid_ids},
+                    ),
+                }
+            )
+        return lines_to_add
+
+    @staticmethod
+    def validate_variants(order, variants):
+        try:
+            channel = order.channel
+            validate_product_is_published_in_channel(variants, channel)
+            validate_variant_channel_listings(variants, channel)
+        except ValidationError as error:
+            raise ValidationError({"input": error})
+
+    @staticmethod
+    def add_lines_to_order(order, lines_to_add, user, manager):
+        try:
+            return [
+                add_variant_to_order(
+                    order,
+                    variant,
+                    quantity,
+                    user,
+                    manager,
+                    allocate_stock=order.is_unconfirmed(),
+                )
+                for quantity, variant in lines_to_add
+            ]
+        except TaxError as tax_error:
+            raise ValidationError(
+                "Unable to calculate taxes - %s" % str(tax_error),
+                code=OrderErrorCode.TAX_ERROR.value,
+            )
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
+        cls.validate_order(order)
+        lines_to_add = cls.validate_lines(info, data)
+        variants = [line[1] for line in lines_to_add]
+        cls.validate_variants(order, variants)
+
+        lines = cls.add_lines_to_order(
+            order, lines_to_add, info.context.user, info.context.plugins
+        )
+
+        # Create the products added event
+        events.order_added_products_event(
+            order=order, user=info.context.user, order_lines=lines_to_add
+        )
+
+        recalculate_order(order)
+        return OrderLinesCreate(order=order, order_lines=lines)
+
+
+class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
+    order = graphene.Field(Order, description="A related order.")
+    order_line = graphene.Field(
+        OrderLine, description="An order line that was deleted."
+    )
+
+    class Arguments:
+        id = graphene.ID(description="ID of the order line to delete.", required=True)
+
+    class Meta:
+        description = "Deletes an order line from an order."
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, id):
+        line = cls.get_node_or_error(
+            info,
+            id,
+            only_type=OrderLine,
+        )
+        order = line.order
+        cls.validate_order(line.order)
+
+        db_id = line.id
+        warehouse_pk = (
+            line.allocations.first().stock.warehouse.pk
+            if order.is_unconfirmed()
+            else None
+        )
+        line_info = OrderLineData(
+            line=line,
+            quantity=line.quantity,
+            variant=line.variant,
+            warehouse_pk=warehouse_pk,
+        )
+        delete_order_line(line_info)
+        line.id = db_id
+
+        # Create the removal event
+        events.order_removed_products_event(
+            order=order, user=info.context.user, order_lines=[(line.quantity, line)]
+        )
+
+        recalculate_order(order)
+        return OrderLineDelete(order=order, order_line=line)
+
+
+class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
+    order = graphene.Field(Order, description="Related order.")
+
+    class Arguments:
+        id = graphene.ID(description="ID of the order line to update.", required=True)
+        input = OrderLineInput(
+            required=True, description="Fields required to update an order line."
+        )
+
+    class Meta:
+        description = "Updates an order line of an order."
+        model = models.OrderLine
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
+
+    @classmethod
+    def clean_input(cls, info, instance, data):
+        instance.old_quantity = instance.quantity
+        cleaned_input = super().clean_input(info, instance, data)
+        cls.validate_order(instance.order)
+
+        quantity = data["quantity"]
+        if quantity <= 0:
+            raise ValidationError(
+                {
+                    "quantity": ValidationError(
+                        "Ensure this value is greater than 0.",
+                        code=OrderErrorCode.ZERO_QUANTITY,
+                    )
+                }
+            )
+        return cleaned_input
+
+    @classmethod
+    def save(cls, info, instance, cleaned_input):
+        warehouse_pk = (
+            instance.allocations.first().stock.warehouse.pk
+            if instance.order.is_unconfirmed()
+            else None
+        )
+        line_info = OrderLineData(
+            line=instance,
+            quantity=instance.quantity,
+            variant=instance.variant,
+            warehouse_pk=warehouse_pk,
+        )
+        try:
+            change_order_line_quantity(
+                info.context.user, line_info, instance.old_quantity, instance.quantity
+            )
+        except InsufficientStock:
+            raise ValidationError(
+                "Cannot set new quantity because of insufficient stock.",
+                code=OrderErrorCode.INSUFFICIENT_STOCK,
+            )
+        recalculate_order(instance.order)
+
+    @classmethod
+    def success_response(cls, instance):
+        response = super().success_response(instance)
+        response.order = instance.order
+        return response

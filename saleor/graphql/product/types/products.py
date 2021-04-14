@@ -746,7 +746,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     def resolve_media_by_id(root: ChannelContext[models.Product], info, id):
-        _type, pk = from_global_id_or_error(id, "ProductMedia")
+        _type, pk = from_global_id_or_error(id, only_type="ProductMedia")
         try:
             return root.node.media.get(pk=pk)
         except models.ProductMedia.DoesNotExist:
@@ -754,7 +754,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     def resolve_image_by_id(root: ChannelContext[models.Product], info, id):
-        _type, pk = from_global_id_or_error(id, "ProductMedia")
+        _type, pk = from_global_id_or_error(id, only_type="ProductMedia")
         try:
             return root.node.media.get(pk=pk)
         except models.ProductMedia.DoesNotExist:

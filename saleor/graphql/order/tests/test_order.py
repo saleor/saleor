@@ -14,6 +14,7 @@ from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
 from ....account.models import CustomerEvent
+from ....core.anonymize import obfuscate_email
 from ....core.notify_events import NotifyEventType
 from ....core.prices import quantize_price
 from ....core.taxes import TaxError, zero_taxed_money
@@ -849,6 +850,26 @@ def test_order_confirm_unfulfilled(staff_api_client, order, permission_manage_or
     assert errors[0]["code"] == OrderErrorCode.INVALID.name
 
 
+def test_order_confirm_no_products_in_order(
+    staff_api_client, order_unconfirmed, permission_manage_orders
+):
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    order_unconfirmed.lines.set([])
+    response = staff_api_client.post_graphql(
+        ORDER_CONFIRM_MUTATION,
+        {"id": graphene.Node.to_global_id("Order", order_unconfirmed.id)},
+    )
+    content = get_graphql_content(response)["data"]["orderConfirm"]
+    errors = content["orderErrors"]
+
+    order_unconfirmed.refresh_from_db()
+    assert order_unconfirmed.is_unconfirmed()
+    assert content["order"] is None
+    assert len(errors) == 1
+    assert errors[0]["field"] == "id"
+    assert errors[0]["code"] == OrderErrorCode.INVALID.name
+
+
 @patch("saleor.payment.gateway.capture")
 def test_order_confirm_wont_call_capture_for_non_active_payment(
     capture_mock,
@@ -1421,9 +1442,9 @@ def test_draft_order_create_variant_with_0_price(
     assert created_draft_event.parameters == {}
 
 
-@patch("saleor.graphql.order.mutations.draft_orders.add_variant_to_draft_order")
+@patch("saleor.graphql.order.mutations.draft_orders.add_variant_to_order")
 def test_draft_order_create_tax_error(
-    add_variant_to_draft_order_mock,
+    add_variant_to_order_mock,
     staff_api_client,
     permission_manage_orders,
     staff_user,
@@ -1437,7 +1458,7 @@ def test_draft_order_create_tax_error(
 ):
     variant_0 = variant
     err_msg = "Test error"
-    add_variant_to_draft_order_mock.side_effect = TaxError(err_msg)
+    add_variant_to_order_mock.side_effect = TaxError(err_msg)
     query = DRAFT_ORDER_CREATE_MUTATION
     # Ensure no events were created yet
     assert not OrderEvent.objects.exists()
@@ -1645,6 +1666,47 @@ def test_draft_order_create_without_channel(
     error = content["data"]["draftOrderCreate"]["orderErrors"][0]
     assert error["code"] == OrderErrorCode.REQUIRED.name
     assert error["field"] == "channel"
+
+
+def test_draft_order_create_with_negative_quantity_line(
+    staff_api_client,
+    permission_manage_orders,
+    staff_user,
+    customer_user,
+    product_without_shipping,
+    shipping_method,
+    channel_USD,
+    variant,
+    voucher,
+    graphql_address_data,
+):
+    variant_0 = variant
+    query = DRAFT_ORDER_CREATE_MUTATION
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
+    variant_1 = product_without_shipping.variants.first()
+    variant_1.quantity = 2
+    variant_1.save()
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+
+    variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
+    variant_list = [
+        {"variantId": variant_0_id, "quantity": -2},
+        {"variantId": variant_1_id, "quantity": 1},
+    ]
+    variables = {
+        "user": user_id,
+        "lines": variant_list,
+        "channel": channel_id,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    error = content["data"]["draftOrderCreate"]["orderErrors"][0]
+    assert error["code"] == OrderErrorCode.ZERO_QUANTITY.name
+    assert error["field"] == "quantity"
 
 
 def test_draft_order_create_with_channel_with_unpublished_product(
@@ -2584,9 +2646,9 @@ def test_draft_order_complete_unavailable_for_purchase(
     assert error["code"] == OrderErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE.name
 
 
-DRAFT_ORDER_LINES_CREATE_MUTATION = """
-    mutation DraftOrderLinesCreate($orderId: ID!, $variantId: ID!, $quantity: Int!) {
-        draftOrderLinesCreate(id: $orderId,
+ORDER_LINES_CREATE_MUTATION = """
+    mutation OrderLinesCreate($orderId: ID!, $variantId: ID!, $quantity: Int!) {
+        orderLinesCreate(id: $orderId,
                 input: [{variantId: $variantId, quantity: $quantity}]) {
 
             orderErrors {
@@ -2612,11 +2674,60 @@ DRAFT_ORDER_LINES_CREATE_MUTATION = """
 """
 
 
-def test_draft_order_lines_create(
-    draft_order, permission_manage_orders, staff_api_client
+@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+def test_order_lines_create(
+    status,
+    order_with_lines,
+    permission_manage_orders,
+    staff_api_client,
+    variant_with_many_stocks,
 ):
-    query = DRAFT_ORDER_LINES_CREATE_MUTATION
-    order = draft_order
+    query = ORDER_LINES_CREATE_MUTATION
+    order = order_with_lines
+    order.status = status
+    order.save(update_fields=["status"])
+    variant = variant_with_many_stocks
+    quantity = 1
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variables = {"orderId": order_id, "variantId": variant_id, "quantity": quantity}
+
+    # mutation should fail without proper permissions
+    response = staff_api_client.post_graphql(query, variables)
+    assert_no_permission(response)
+    assert not OrderEvent.objects.exists()
+
+    # assign permissions
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(query, variables)
+    assert OrderEvent.objects.count() == 1
+    assert OrderEvent.objects.last().type == order_events.OrderEvents.ADDED_PRODUCTS
+    content = get_graphql_content(response)
+    data = content["data"]["orderLinesCreate"]
+    assert data["orderLines"][0]["productSku"] == variant.sku
+    assert data["orderLines"][0]["quantity"] == quantity
+
+    # mutation should fail when quantity is lower than 1
+    variables = {"orderId": order_id, "variantId": variant_id, "quantity": 0}
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["orderLinesCreate"]
+    assert data["orderErrors"]
+    assert data["orderErrors"][0]["field"] == "quantity"
+    assert data["orderErrors"][0]["variants"] == [variant_id]
+
+
+@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+def test_order_lines_create_with_existing_variant(
+    status,
+    order_with_lines,
+    permission_manage_orders,
+    staff_api_client,
+):
+    query = ORDER_LINES_CREATE_MUTATION
+    order = order_with_lines
+    order.status = status
+    order.save(update_fields=["status"])
     line = order.lines.first()
     variant = line.variant
     old_quantity = line.quantity
@@ -2628,29 +2739,27 @@ def test_draft_order_lines_create(
     # mutation should fail without proper permissions
     response = staff_api_client.post_graphql(query, variables)
     assert_no_permission(response)
+    assert not OrderEvent.objects.exists()
 
     # assign permissions
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(query, variables)
+    assert OrderEvent.objects.count() == 1
+    assert OrderEvent.objects.last().type == order_events.OrderEvents.ADDED_PRODUCTS
     content = get_graphql_content(response)
-    data = content["data"]["draftOrderLinesCreate"]
+    data = content["data"]["orderLinesCreate"]
     assert data["orderLines"][0]["productSku"] == variant.sku
     assert data["orderLines"][0]["quantity"] == old_quantity + quantity
 
-    # mutation should fail when quantity is lower than 1
-    variables = {"orderId": order_id, "variantId": variant_id, "quantity": 0}
-    response = staff_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["draftOrderLinesCreate"]
-    assert data["orderErrors"]
-    assert data["orderErrors"][0]["field"] == "quantity"
 
-
-def test_draft_order_lines_create_with_product_and_variant_not_assigned_to_channel(
-    draft_order, permission_manage_orders, staff_api_client, variant
+@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+def test_order_lines_create_with_product_and_variant_not_assigned_to_channel(
+    status, order_with_lines, permission_manage_orders, staff_api_client, variant
 ):
-    query = DRAFT_ORDER_LINES_CREATE_MUTATION
-    order = draft_order
+    query = ORDER_LINES_CREATE_MUTATION
+    order = order_with_lines
+    order.status = status
+    order.save(update_fields=["status"])
     line = order.lines.first()
     assert variant != line.variant
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -2663,14 +2772,16 @@ def test_draft_order_lines_create_with_product_and_variant_not_assigned_to_chann
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    error = content["data"]["draftOrderLinesCreate"]["orderErrors"][0]
+    error = content["data"]["orderLinesCreate"]["orderErrors"][0]
     assert error["code"] == OrderErrorCode.PRODUCT_NOT_PUBLISHED.name
     assert error["field"] == "input"
     assert error["variants"] == [variant_id]
 
 
-def test_draft_order_lines_create_with_variant_not_assigned_to_channel(
-    draft_order,
+@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+def test_order_lines_create_with_variant_not_assigned_to_channel(
+    status,
+    order_with_lines,
     staff_api_client,
     permission_manage_orders,
     customer_user,
@@ -2679,8 +2790,10 @@ def test_draft_order_lines_create_with_variant_not_assigned_to_channel(
     channel_USD,
     graphql_address_data,
 ):
-    query = DRAFT_ORDER_LINES_CREATE_MUTATION
-    order = draft_order
+    query = ORDER_LINES_CREATE_MUTATION
+    order = order_with_lines
+    order.status = status
+    order.save(update_fields=["status"])
     line = order.lines.first()
     assert variant != line.variant
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -2692,16 +2805,16 @@ def test_draft_order_lines_create_with_variant_not_assigned_to_channel(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    error = content["data"]["draftOrderLinesCreate"]["orderErrors"][0]
+    error = content["data"]["orderLinesCreate"]["orderErrors"][0]
     assert error["code"] == OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.name
     assert error["field"] == "input"
     assert error["variants"] == [variant_id]
 
 
-def test_require_draft_order_when_creating_lines(
+def test_invalid_order_when_creating_lines(
     order_with_lines, staff_api_client, permission_manage_orders
 ):
-    query = DRAFT_ORDER_LINES_CREATE_MUTATION
+    query = ORDER_LINES_CREATE_MUTATION
     order = order_with_lines
     line = order.lines.first()
     variant = line.variant
@@ -2712,13 +2825,13 @@ def test_require_draft_order_when_creating_lines(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    data = content["data"]["draftOrderLinesCreate"]
+    data = content["data"]["orderLinesCreate"]
     assert data["orderErrors"]
 
 
-DRAFT_ORDER_LINE_UPDATE_MUTATION = """
-    mutation DraftOrderLineUpdate($lineId: ID!, $quantity: Int!) {
-        draftOrderLineUpdate(id: $lineId, input: {quantity: $quantity}) {
+ORDER_LINE_UPDATE_MUTATION = """
+    mutation OrderLineUpdate($lineId: ID!, $quantity: Int!) {
+        orderLineUpdate(id: $lineId, input: {quantity: $quantity}) {
             errors {
                 field
                 message
@@ -2739,11 +2852,18 @@ DRAFT_ORDER_LINE_UPDATE_MUTATION = """
 """
 
 
-def test_draft_order_line_update(
-    draft_order, permission_manage_orders, staff_api_client, staff_user
+@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+def test_order_line_update(
+    status,
+    order_with_lines,
+    permission_manage_orders,
+    staff_api_client,
+    staff_user,
 ):
-    query = DRAFT_ORDER_LINE_UPDATE_MUTATION
-    order = draft_order
+    query = ORDER_LINE_UPDATE_MUTATION
+    order = order_with_lines
+    order.status = status
+    order.save(update_fields=["status"])
     line = order.lines.first()
     new_quantity = 1
     removed_quantity = 2
@@ -2764,11 +2884,11 @@ def test_draft_order_line_update(
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-    data = content["data"]["draftOrderLineUpdate"]
+    data = content["data"]["orderLineUpdate"]
     assert data["orderLine"]["quantity"] == new_quantity
 
     removed_items_event = OrderEvent.objects.last()  # type: OrderEvent
-    assert removed_items_event.type == order_events.OrderEvents.DRAFT_REMOVED_PRODUCTS
+    assert removed_items_event.type == order_events.OrderEvents.REMOVED_PRODUCTS
     assert removed_items_event.user == staff_user
     assert removed_items_event.parameters == {
         "lines": [{"quantity": removed_quantity, "line_pk": line.pk, "item": str(line)}]
@@ -2778,15 +2898,15 @@ def test_draft_order_line_update(
     variables = {"lineId": line_id, "quantity": 0}
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-    data = content["data"]["draftOrderLineUpdate"]
+    data = content["data"]["orderLineUpdate"]
     assert data["errors"]
     assert data["errors"][0]["field"] == "quantity"
 
 
-def test_require_draft_order_when_updating_lines(
+def test_invalid_order_when_updating_lines(
     order_with_lines, staff_api_client, permission_manage_orders
 ):
-    query = DRAFT_ORDER_LINE_UPDATE_MUTATION
+    query = ORDER_LINE_UPDATE_MUTATION
     order = order_with_lines
     line = order.lines.first()
     line_id = graphene.Node.to_global_id("OrderLine", line.id)
@@ -2795,7 +2915,7 @@ def test_require_draft_order_when_updating_lines(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    data = content["data"]["draftOrderLineUpdate"]
+    data = content["data"]["orderLineUpdate"]
     assert data["errors"]
 
 
@@ -2830,7 +2950,7 @@ def test_retrieving_event_lines_with_deleted_line(
     quantities_per_lines = [(line.quantity, line) for line in lines]
 
     # Create the test event
-    order_events.draft_order_added_products_event(
+    order_events.order_added_products_event(
         order=order, user=staff_user, order_lines=quantities_per_lines
     )
 
@@ -2869,7 +2989,7 @@ def test_retrieving_event_lines_with_missing_line_pk_in_data(
     quantities_per_lines = [(line.quantity, line)]
 
     # Create the test event
-    event = order_events.draft_order_added_products_event(
+    event = order_events.order_added_products_event(
         order=order, user=staff_user, order_lines=quantities_per_lines
     )
     del event.parameters["lines"][0]["line_pk"]
@@ -2889,9 +3009,9 @@ def test_retrieving_event_lines_with_missing_line_pk_in_data(
     assert received_line["orderLine"] is None
 
 
-DRAFT_ORDER_LINE_DELETE_MUTATION = """
-    mutation DraftOrderLineDelete($id: ID!) {
-        draftOrderLineDelete(id: $id) {
+ORDER_LINE_DELETE_MUTATION = """
+    mutation OrderLineDelete($id: ID!) {
+        orderLineDelete(id: $id) {
             errors {
                 field
                 message
@@ -2907,11 +3027,14 @@ DRAFT_ORDER_LINE_DELETE_MUTATION = """
 """
 
 
-def test_draft_order_line_remove(
-    draft_order, permission_manage_orders, staff_api_client
+@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+def test_order_line_remove(
+    status, order_with_lines, permission_manage_orders, staff_api_client
 ):
-    query = DRAFT_ORDER_LINE_DELETE_MUTATION
-    order = draft_order
+    query = ORDER_LINE_DELETE_MUTATION
+    order = order_with_lines
+    order.status = status
+    order.save(update_fields=["status"])
     line = order.lines.first()
     line_id = graphene.Node.to_global_id("OrderLine", line.id)
     variables = {"id": line_id}
@@ -2920,15 +3043,17 @@ def test_draft_order_line_remove(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    data = content["data"]["draftOrderLineDelete"]
+    data = content["data"]["orderLineDelete"]
+    assert OrderEvent.objects.count() == 1
+    assert OrderEvent.objects.last().type == order_events.OrderEvents.REMOVED_PRODUCTS
     assert data["orderLine"]["id"] == line_id
     assert line not in order.lines.all()
 
 
-def test_require_draft_order_when_removing_lines(
+def test_invalid_order_when_removing_lines(
     staff_api_client, order_with_lines, permission_manage_orders
 ):
-    query = DRAFT_ORDER_LINE_DELETE_MUTATION
+    query = ORDER_LINE_DELETE_MUTATION
     order = order_with_lines
     line = order.lines.first()
     line_id = graphene.Node.to_global_id("OrderLine", line.id)
@@ -2937,7 +3062,7 @@ def test_require_draft_order_when_removing_lines(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    data = content["data"]["draftOrderLineDelete"]
+    data = content["data"]["orderLineDelete"]
     assert data["errors"]
 
 
@@ -3979,6 +4104,7 @@ def test_order_by_token_query_by_anonymous_user(api_client, order):
     assert data["billingAddress"]["phone"] == str(order.billing_address.phone)[
         :3
     ] + "." * (len(str(order.billing_address.phone)) - 3)
+    assert data["userEmail"] == obfuscate_email(order.user_email)
 
 
 def test_order_by_token_query_by_order_owner(user_api_client, order):
@@ -4347,7 +4473,7 @@ def test_query_draft_order_by_token_as_anonymous_customer(api_client, draft_orde
     assert not content["data"]["orderByToken"]
 
 
-def test_query_order_without_addresess(order, user_api_client, channel_USD):
+def test_query_order_without_addresses(order, user_api_client, channel_USD):
     # given
     query = ORDER_BY_TOKEN_QUERY
 
@@ -4366,6 +4492,27 @@ def test_query_order_without_addresess(order, user_api_client, channel_USD):
     assert data["userEmail"] == user_api_client.user.email
     assert data["billingAddress"] is None
     assert data["shippingAddress"] is None
+
+
+def test_order_query_address_without_order_user(
+    staff_api_client, permission_manage_orders, channel_USD, address
+):
+    query = ORDER_BY_TOKEN_QUERY
+    shipping_address = address.get_copy()
+    billing_address = address.get_copy()
+    token = str(uuid.uuid4())
+    Order.objects.create(
+        channel=channel_USD,
+        shipping_address=shipping_address,
+        billing_address=billing_address,
+        token=token,
+    )
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(query, {"token": token})
+    content = get_graphql_content(response)
+    order = content["data"]["orderByToken"]
+    assert order["shippingAddress"] is not None
+    assert order["billingAddress"] is not None
 
 
 MUTATION_ORDER_BULK_CANCEL = """

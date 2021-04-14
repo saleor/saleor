@@ -295,3 +295,25 @@ def test_from_global_id_or_error(product):
         from_global_id_or_error(invalid_id)
 
     assert error.value.error_dict["id"][0].message == message
+
+
+def test_from_global_id_or_error_wth_invalid_type(product):
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    message = "Must receive a ProductVariant id."
+
+    with pytest.raises(ValidationError) as error:
+        from_global_id_or_error(product_id, "ProductVariant")
+
+    assert error.value.error_dict["id"][0].message == message
+
+
+def test_from_global_id_or_error_wth_type(product):
+    expected_product_type = str(Product)
+    expected_product_id = graphene.Node.to_global_id(expected_product_type, product.id)
+
+    product_type, product_id = from_global_id_or_error(
+        expected_product_id, expected_product_type
+    )
+
+    assert product_id == str(product.id)
+    assert product_type == expected_product_type

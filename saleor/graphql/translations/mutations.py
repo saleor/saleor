@@ -44,6 +44,10 @@ class NameTranslationInput(graphene.InputObjectType):
     name = graphene.String()
 
 
+class AttributeValueTranslationInput(NameTranslationInput):
+    rich_text = graphene.JSONString()
+
+
 class SeoTranslationInput(graphene.InputObjectType):
     seo_title = graphene.String()
     seo_description = graphene.String()
@@ -91,7 +95,7 @@ class ProductTranslate(BaseTranslateMutation):
                 {"id": ValidationError("This field is required", code="required")}
             )
 
-        _type, product_pk = from_global_id_or_error(data["id"], Product, field="id")
+        _type, product_pk = from_global_id_or_error(data["id"], only_type=Product)
         product = product_models.Product.objects.get(pk=product_pk)
         product.translations.update_or_create(
             language_code=data["language_code"], defaults=data["input"]
@@ -146,7 +150,7 @@ class ProductVariantTranslate(BaseTranslateMutation):
             )
 
         _type, variant_pk = from_global_id_or_error(
-            data["id"], ProductVariant, field="id"
+            data["id"], only_type=ProductVariant
         )
         variant = product_models.ProductVariant.objects.prefetched_for_webhook().get(
             pk=variant_pk
@@ -185,7 +189,7 @@ class AttributeValueTranslate(BaseTranslateMutation):
         language_code = graphene.Argument(
             LanguageCodeEnum, required=True, description="Translation language code."
         )
-        input = NameTranslationInput(required=True)
+        input = AttributeValueTranslationInput(required=True)
 
     class Meta:
         description = "Creates/Updates translations for attribute value."
