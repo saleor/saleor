@@ -330,6 +330,42 @@ def test_order_fulfill_zero_quantity(
     mock_create_fulfillments.assert_not_called()
 
 
+def test_order_fulfill_channel_without_shipping_zones(
+    staff_api_client,
+    order_with_lines,
+    permission_manage_orders,
+    warehouse,
+):
+    order = order_with_lines
+    order.channel.shipping_zones.clear()
+    query = ORDER_FULFILL_QUERY
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    order_line = order.lines.first()
+    order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    variables = {
+        "order": order_id,
+        "input": {
+            "notifyCustomer": True,
+            "lines": [
+                {
+                    "orderLineId": order_line_id,
+                    "stocks": [{"quantity": 3, "warehouse": warehouse_id}],
+                },
+            ],
+        },
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfill"]
+    assert len(data["orderErrors"]) == 1
+    error = data["orderErrors"][0]
+    assert error["field"] == "stocks"
+    assert error["code"] == OrderErrorCode.INSUFFICIENT_STOCK.name
+
+
 @patch("saleor.graphql.order.mutations.fulfillments.create_fulfillments")
 def test_order_fulfill_fulfilled_order(
     mock_create_fulfillments,

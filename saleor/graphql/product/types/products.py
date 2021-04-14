@@ -50,6 +50,10 @@ from ...order.dataloaders import (
     OrderByIdLoader,
     OrderLinesByVariantIdAndChannelIdLoader,
 )
+from ...product.dataloaders.products import (
+    AvailableProductVariantsByProductIdAndChannel,
+    ProductVariantsByProductIdAndChannel,
+)
 from ...translations.fields import TranslationField
 from ...translations.types import (
     CategoryTranslation,
@@ -64,8 +68,8 @@ from ...utils import (
 )
 from ...utils.filters import reporting_period_to_date
 from ...warehouse.dataloaders import (
-    AvailableQuantityByProductVariantIdAndCountryCodeLoader,
-    StocksWithAvailableQuantityByProductVariantIdAndCountryCodeLoader,
+    AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader,
+    StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChanneLoader,
 )
 from ...warehouse.types import Stock
 from ..dataloaders import (
@@ -90,7 +94,7 @@ from ..dataloaders import (
     VariantAttributesByProductTypeIdLoader,
     VariantChannelListingByVariantIdAndChannelSlugLoader,
     VariantChannelListingByVariantIdLoader,
-    VariantsChannelListingByProductIdAndChanneSlugLoader,
+    VariantsChannelListingByProductIdAndChannelSlugLoader,
 )
 from ..enums import VariantAttributeScope
 from ..filters import ProductFilterInput
@@ -272,9 +276,9 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                 address, info.context.site.settings.company_address
             )
 
-        return StocksWithAvailableQuantityByProductVariantIdAndCountryCodeLoader(
+        return StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChanneLoader(
             info.context
-        ).load((root.node.id, country_code))
+        ).load((root.node.id, country_code, root.channel_slug))
 
     @staticmethod
     def resolve_quantity_available(
@@ -291,9 +295,9 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         if not root.node.track_inventory:
             return settings.MAX_CHECKOUT_LINE_QUANTITY
 
-        return AvailableQuantityByProductVariantIdAndCountryCodeLoader(
+        return AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
             info.context
-        ).load((root.node.id, country_code))
+        ).load((root.node.id, country_code, root.channel_slug))
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
@@ -666,9 +670,11 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             context
         ).load((root.node.id, channel_slug))
         variants = ProductVariantsByProductIdLoader(context).load(root.node.id)
-        variants_channel_listing = VariantsChannelListingByProductIdAndChanneSlugLoader(
-            context
-        ).load((root.node.id, channel_slug))
+        variants_channel_listing = (
+            VariantsChannelListingByProductIdAndChannelSlugLoader(context).load(
+                (root.node.id, channel_slug)
+            )
+        )
         collections = CollectionsByProductIdLoader(context).load(root.node.id)
         channel = ChannelBySlugLoader(context).load(channel_slug)
 
@@ -731,7 +737,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         )
 
         def calculate_is_available(product_channel_listing):
-            in_stock = is_product_in_stock(root.node, country_code)
+            in_stock = is_product_in_stock(root.node, country_code, channel_slug)
             is_visible = False
             if product_channel_listing:
                 is_visible = product_channel_listing.is_available_for_purchase()
@@ -773,16 +779,26 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     def resolve_variants(root: ChannelContext[models.Product], info, **_kwargs):
-        return (
-            ProductVariantsByProductIdLoader(info.context)
-            .load(root.node.id)
-            .then(
-                lambda variants: [
-                    ChannelContext(node=variant, channel_slug=root.channel_slug)
-                    for variant in variants
-                ]
+        requestor = get_user_or_app_from_context(info.context)
+        is_staff = requestor_is_staff_member_or_app(requestor)
+        if is_staff and not root.channel_slug:
+            variants = ProductVariantsByProductIdLoader(info.context).load(root.node.id)
+        elif is_staff and root.channel_slug:
+            variants = ProductVariantsByProductIdAndChannel(info.context).load(
+                (root.node.id, root.channel_slug)
             )
-        )
+        else:
+            variants = AvailableProductVariantsByProductIdAndChannel(info.context).load(
+                (root.node.id, root.channel_slug)
+            )
+
+        def map_channel_context(variants):
+            return [
+                ChannelContext(node=variant, channel_slug=root.channel_slug)
+                for variant in variants
+            ]
+
+        return variants.then(map_channel_context)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
