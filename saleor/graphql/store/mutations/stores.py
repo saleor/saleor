@@ -31,11 +31,10 @@ from ...core.utils import (
 
 class StoreInput(graphene.InputObjectType):
     name = graphene.String(description="Store name.")
-    description = graphene.String(description="Store full description.")
+    description = graphene.JSONString(description="Store full description (JSON).")
     phone = graphene.String(description="Phone number.")
     acreage = graphene.Float( description="Store acreage")
     latlong = graphene.String( description="latlong has format lat,long")
-
     seo = SeoInput(description="Search engine optimization fields.")
     background_image = Upload(description="Background image file.")
     background_image_alt = graphene.String(description="Alt text for a stores media.")
@@ -128,8 +127,8 @@ class StoreDelete(ModelDeleteMutation):
 
 class StoreTypeInput(graphene.InputObjectType):
     name = graphene.String(description="Store type name.")
-    description = graphene.String(description="Store type full description.")
-
+    description = graphene.JSONString(description="Store type full description (JSON).")
+    #seo = SeoInput(description="Search engine optimization fields.")
 
 class StoreTypeCreate(ModelMutation):
     class Arguments:
@@ -146,19 +145,20 @@ class StoreTypeCreate(ModelMutation):
 
     @classmethod
     def clean_input(cls, info, instance, data):
-        cleaned_input = super().clean_input(info, instance, data)        
-        store_type_id = data["store_type_id"]
+        cleaned_input = super().clean_input(info, instance, data)
+        #store_type_id = data["store_type_id"]
         
         return cleaned_input
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
+        #parent_id = data.pop("parent_id", None)
+        #data["input"]["parent_id"] = parent_id
         return super().perform_mutation(root, info, **data)
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
         instance.save()
-
 
 class StoreTypeUpdate(StoreTypeCreate):
     class Arguments:

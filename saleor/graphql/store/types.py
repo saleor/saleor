@@ -3,12 +3,35 @@ import graphene
 from ...store import models
 from ..core.connection import CountableDjangoObjectType
 from ..meta.types import ObjectWithMetadata
+from ..core.types import Image
 
 
 class Store(CountableDjangoObjectType):
+    name = graphene.String(
+        description="The store name.",
+        required=True,
+    )
     description = graphene.String(
         description="The store description.",
         required=True,
+    )
+    phone = graphene.String(
+        description="The store phone.",
+        required=True,
+    )
+    acreage = graphene.Float(
+        description="The store acreage.",
+        required=True,
+    )
+    latlong = graphene.String(
+        description="The store latlong.",
+        required=True,
+    )
+    url = graphene.String(
+        description="The store's URL.",
+    )
+    background_image = graphene.Field(
+        Image, size=graphene.Int(description="Size of the image.")
     )
 
     class Meta:
@@ -30,6 +53,10 @@ class Store(CountableDjangoObjectType):
 class StoreType(CountableDjangoObjectType):
     name = graphene.String(
         description="The store name.",
+        required=True,
+    )
+    description = graphene.String(
+        description="The store description.",
         required=True,
     )
 
