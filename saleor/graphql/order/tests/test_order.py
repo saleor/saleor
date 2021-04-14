@@ -361,10 +361,12 @@ def test_order_query(
     assert order_data["canFinalize"] is True
     assert order_data["status"] == order.status.upper()
     assert order_data["statusDisplay"] == order.get_status_display()
-    payment_status = PaymentChargeStatusEnum.get(order.get_payment_status()).name
-    assert order_data["paymentStatus"] == payment_status
-    payment_status_display = order.get_payment_status_display()
-    assert order_data["paymentStatusDisplay"] == payment_status_display
+    payment_charge_status = PaymentChargeStatusEnum.NOT_CHARGED
+    assert order_data["paymentStatus"] == payment_charge_status.name
+    assert (
+        order_data["paymentStatusDisplay"]
+        == dict(ChargeStatus.CHOICES)[payment_charge_status.value]
+    )
     assert order_data["isPaid"] == order.is_fully_paid()
     assert order_data["userEmail"] == order.user_email
     assert order_data["languageCodeEnum"] == order.language_code.upper()
@@ -504,10 +506,12 @@ def test_order_query_in_pln_channel(
     assert order_data["canFinalize"] is True
     assert order_data["status"] == order.status.upper()
     assert order_data["statusDisplay"] == order.get_status_display()
-    payment_status = PaymentChargeStatusEnum.get(order.get_payment_status()).name
-    assert order_data["paymentStatus"] == payment_status
-    payment_status_display = order.get_payment_status_display()
-    assert order_data["paymentStatusDisplay"] == payment_status_display
+    payment_charge_status = PaymentChargeStatusEnum.NOT_CHARGED
+    assert order_data["paymentStatus"] == payment_charge_status.name
+    assert (
+        order_data["paymentStatusDisplay"]
+        == dict(ChargeStatus.CHOICES)[payment_charge_status.value]
+    )
     assert order_data["isPaid"] == order.is_fully_paid()
     assert order_data["userEmail"] == order.user_email
     expected_price = Money(

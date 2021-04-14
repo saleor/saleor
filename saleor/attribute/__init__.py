@@ -1,3 +1,6 @@
+default_app_config = "saleor.attribute.app.AttributeAppConfig"
+
+
 class AttributeInputType:
     """The type that we expect to render the attribute's values as."""
 

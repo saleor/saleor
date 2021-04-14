@@ -4,6 +4,7 @@ from unittest.mock import Mock, patch
 from urllib.parse import urljoin
 
 import pytest
+from django.core.files.storage import default_storage
 from django.core.management import CommandError, call_command
 from django.db.utils import DataError
 from django.templatetags.static import static
@@ -23,6 +24,7 @@ from ..templatetags.placeholder import placeholder
 from ..utils import (
     build_absolute_uri,
     create_thumbnails,
+    delete_versatile_image,
     generate_unique_slug,
     get_client_ip,
     get_currency_for_country,
@@ -339,3 +341,23 @@ def test_cleardb_preserves_data(admin_user, app, site_settings, staff_user):
     app.refresh_from_db()
     site_settings.refresh_from_db()
     staff_user.refresh_from_db()
+
+
+def test_delete_versatile_image(product_with_image, media_root):
+    # given
+    media = product_with_image.media.first()
+    thumb_200x200 = media.image.thumbnail["200x200"].name
+    thumb_400x400 = media.image.thumbnail["400x400"].name
+    img_name = media.image.name
+
+    assert default_storage.exists(img_name)
+    assert default_storage.exists(thumb_200x200)
+    assert default_storage.exists(thumb_400x400)
+
+    # when
+    delete_versatile_image(media.image)
+
+    # then
+    assert not default_storage.exists(img_name)
+    assert not default_storage.exists(thumb_400x400)
+    assert not default_storage.exists(thumb_400x400)

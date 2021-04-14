@@ -768,8 +768,12 @@ MUTATION_CATEGORY_DELETE = """
 """
 
 
+@patch("saleor.product.signals.delete_versatile_image")
 def test_category_delete_mutation(
-    staff_api_client, category, permission_manage_products
+    delete_versatile_image_mock,
+    staff_api_client,
+    category,
+    permission_manage_products,
 ):
     variables = {"id": graphene.Node.to_global_id("Category", category.id)}
     response = staff_api_client.post_graphql(
@@ -780,6 +784,30 @@ def test_category_delete_mutation(
     assert data["category"]["name"] == category.name
     with pytest.raises(category._meta.model.DoesNotExist):
         category.refresh_from_db()
+
+    delete_versatile_image_mock.assert_not_called()
+
+
+@patch("saleor.product.signals.delete_versatile_image")
+def test_delete_category_with_background_image(
+    delete_versatile_image_mock,
+    staff_api_client,
+    category_with_image,
+    permission_manage_products,
+    media_root,
+):
+    """Ensure deleting category deletes background image from storage."""
+    category = category_with_image
+    variables = {"id": graphene.Node.to_global_id("Category", category.id)}
+    response = staff_api_client.post_graphql(
+        MUTATION_CATEGORY_DELETE, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["categoryDelete"]
+    assert data["category"]["name"] == category.name
+    with pytest.raises(category._meta.model.DoesNotExist):
+        category.refresh_from_db()
+    delete_versatile_image_mock.assert_called_once_with(category.background_image)
 
 
 @patch("saleor.product.utils.update_products_discounted_prices_task")

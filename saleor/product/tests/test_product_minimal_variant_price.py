@@ -26,6 +26,25 @@ def test_update_product_discounted_price(product, channel_USD):
     assert product_channel_listing.discounted_price == variant_channel_listing.price
 
 
+def test_update_product_discounted_price_without_price(
+    product, channel_USD, channel_PLN
+):
+    variant = product.variants.first()
+    variant_channel_listing = variant.channel_listings.get(channel_id=channel_USD.id)
+    product_channel_listing = product.channel_listings.get(channel_id=channel_USD.id)
+    second_product_channel_listing = product.channel_listings.create(
+        channel=channel_PLN
+    )
+
+    assert product_channel_listing.discounted_price == Money("10", "USD")
+
+    update_product_discounted_price(product)
+
+    product_channel_listing.refresh_from_db()
+    assert product_channel_listing.discounted_price == variant_channel_listing.price
+    assert second_product_channel_listing.discounted_price is None
+
+
 def test_update_products_discounted_prices_of_catalogues_for_product(
     product, channel_USD
 ):

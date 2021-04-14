@@ -1038,6 +1038,21 @@ def image():
 
 
 @pytest.fixture
+def image_list():
+    img_data_1 = BytesIO()
+    image_1 = Image.new("RGB", size=(1, 1))
+    image_1.save(img_data_1, format="JPEG")
+
+    img_data_2 = BytesIO()
+    image_2 = Image.new("RGB", size=(1, 1))
+    image_2.save(img_data_2, format="JPEG")
+    return [
+        SimpleUploadedFile("image1.jpg", img_data_1.getvalue()),
+        SimpleUploadedFile("image2.jpg", img_data_2.getvalue()),
+    ]
+
+
+@pytest.fixture
 def category(db):  # pylint: disable=W0613
     return Category.objects.create(name="Default", slug="default")
 
@@ -1564,6 +1579,13 @@ def variant(product, channel_USD) -> ProductVariant:
         currency=channel_USD.currency_code,
     )
     return product_variant
+
+
+@pytest.fixture
+def variant_with_image(variant, image_list, media_root):
+    media = ProductMedia.objects.create(product=variant.product, image=image_list[0])
+    VariantMedia.objects.create(variant=variant, media=media)
+    return variant
 
 
 @pytest.fixture
