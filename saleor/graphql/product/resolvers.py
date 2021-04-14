@@ -68,7 +68,7 @@ def resolve_products(
 ) -> ChannelQsContext:
     qs = models.Product.objects.visible_to_user(requestor, channel_slug)
     if stock_availability:
-        qs = filter_products_by_stock_availability(qs, stock_availability)
+        qs = filter_products_by_stock_availability(qs, stock_availability, channel_slug)
     if not requestor_is_staff_member_or_app(requestor):
         qs = qs.annotate_visible_in_listings(channel_slug).exclude(
             visible_in_listings=False
@@ -76,11 +76,15 @@ def resolve_products(
     return ChannelQsContext(qs=qs.distinct(), channel_slug=channel_slug)
 
 
-def resolve_variant_by_id(info, id, channel_slug, requestor):
+def resolve_variant_by_id(
+    info, id, channel_slug, requestor, requestor_has_access_to_all
+):
     visible_products = models.Product.objects.visible_to_user(
         requestor, channel_slug
     ).values_list("pk", flat=True)
     qs = models.ProductVariant.objects.filter(product__id__in=visible_products)
+    if not requestor_has_access_to_all:
+        qs = qs.available_in_channel(channel_slug)
     return qs.filter(pk=id).first()
 
 
@@ -92,28 +96,26 @@ def resolve_product_variant_by_sku(
     info, sku, channel_slug, requestor, requestor_has_access_to_all
 ):
     visible_products = models.Product.objects.visible_to_user(requestor, channel_slug)
+    qs = models.ProductVariant.objects.filter(product__id__in=visible_products)
     if not requestor_has_access_to_all:
         visible_products = visible_products.annotate_visible_in_listings(
             channel_slug
         ).exclude(visible_in_listings=False)
-
-    return (
-        models.ProductVariant.objects.filter(product__id__in=visible_products)
-        .filter(sku=sku)
-        .first()
-    )
+        qs = qs.filter(product__in=visible_products).available_in_channel(channel_slug)
+    return qs.filter(sku=sku).first()
 
 
 def resolve_product_variants(
     info, requestor_has_access_to_all, requestor, ids=None, channel_slug=None
 ) -> ChannelQsContext:
     visible_products = models.Product.objects.visible_to_user(requestor, channel_slug)
+    qs = models.ProductVariant.objects.filter(product__id__in=visible_products)
+
     if not requestor_has_access_to_all:
         visible_products = visible_products.annotate_visible_in_listings(
             channel_slug
         ).exclude(visible_in_listings=False)
-
-    qs = models.ProductVariant.objects.filter(product__id__in=visible_products)
+        qs = qs.filter(product__in=visible_products).available_in_channel(channel_slug)
     if ids:
         db_ids = [get_database_id(info, node_id, "ProductVariant") for node_id in ids]
         qs = qs.filter(pk__in=db_ids)
