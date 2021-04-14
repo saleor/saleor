@@ -1,4 +1,7 @@
+from unittest.mock import patch
+
 import graphene
+import pytest
 
 from ....shipping.error_codes import ShippingErrorCode
 from ....shipping.models import ShippingMethodChannelListing
@@ -555,3 +558,55 @@ def test_shipping_method_channel_listing_create_channel_not_valid(
     assert data["shippingErrors"][0]["field"] == "addChannels"
     assert data["shippingErrors"][0]["code"] == ShippingErrorCode.INVALID.name
     assert data["shippingErrors"][0]["channels"] == [channel_id]
+
+
+@patch(
+    "saleor.graphql.shipping.mutations.channels."
+    "drop_invalid_shipping_methods_relations_for_given_channels.delay"
+)
+def test_shipping_method_channel_listing_update_remove_channels(
+    mocked_drop_invalid_shipping_methods_relations,
+    staff_api_client,
+    shipping_method,
+    permission_manage_shipping,
+    channel_USD,
+):
+    # given
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method.pk
+    )
+    assert shipping_method.channel_listings.count() == 1
+    channel_listing = shipping_method.channel_listings.first()
+    channel = channel_listing.channel
+    channel_id = graphene.Node.to_global_id("Channel", channel.id)
+
+    variables = {
+        "id": shipping_method_id,
+        "input": {"removeChannels": [channel_id]},
+    }
+
+    assert channel_listing.price.amount == 10
+    assert channel_listing.minimum_order_price.amount == 0
+    assert channel_listing.maximum_order_price is None
+
+    # when
+    response = staff_api_client.post_graphql(
+        SHIPPING_METHOD_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_shipping,),
+    )
+    content = get_graphql_content(response)
+
+    data = content["data"]["shippingMethodChannelListingUpdate"]
+    shipping_method_data = data["shippingMethod"]
+    assert not data["shippingErrors"]
+    assert shipping_method_data["name"] == shipping_method.name
+
+    # then
+    assert not shipping_method_data["channelListings"]
+    with pytest.raises(channel_listing._meta.model.DoesNotExist):
+        channel_listing.refresh_from_db()
+
+    mocked_drop_invalid_shipping_methods_relations.assert_called_once_with(
+        [shipping_method.pk], [str(channel.pk)]
+    )
