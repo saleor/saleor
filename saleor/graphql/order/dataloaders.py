@@ -3,6 +3,7 @@ from collections import defaultdict
 from django.db.models import F
 
 from ...order.models import Order, OrderEvent, OrderLine
+from ...payment.models import Payment
 from ...warehouse.models import Allocation
 from ..core.dataloaders import DataLoader
 
@@ -49,6 +50,17 @@ class OrderLinesByOrderIdLoader(DataLoader):
         for line in lines.iterator():
             line_map[line.order_id].append(line)
         return [line_map.get(order_id, []) for order_id in keys]
+
+
+class PaymentsByOrderIdLoader(DataLoader):
+    context_key = "payments_by_order"
+
+    def batch_load(self, keys):
+        payments = Payment.objects.filter(order_id__in=keys).order_by("pk")
+        payment_map = defaultdict(list)
+        for payment in payments.iterator():
+            payment_map[payment.order_id].append(payment)
+        return [payment_map.get(order_id, []) for order_id in keys]
 
 
 class OrderEventsByOrderIdLoader(DataLoader):
