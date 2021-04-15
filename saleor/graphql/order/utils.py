@@ -5,6 +5,7 @@ from ...core.exceptions import InsufficientStock
 from ...order.error_codes import OrderErrorCode
 from ...product.models import Product, ProductVariant, ProductVariantChannelListing
 from ...warehouse.availability import check_stock_quantity
+from ..core.validators import validate_variants_available_in_channel
 
 
 def validate_total_quantity(order):
@@ -97,10 +98,15 @@ def validate_order_lines(order, country):
                 raise ValidationError({"lines": errors})
 
 
+def validate_variants_is_available(order):
+    variants_ids = {line.variant_id for line in order.lines.all()}
+    validate_variants_available_in_channel(
+        variants_ids, order.channel_id, OrderErrorCode
+    )
+
+
 def validate_product_is_published(order):
-    variant_ids = []
-    for line in order.lines.all():
-        variant_ids.append(line.variant_id)
+    variant_ids = [line.variant_id for line in order.lines.all()]
     unpublished_product = Product.objects.filter(
         variants__id__in=variant_ids
     ).not_published(order.channel.slug)
@@ -219,9 +225,10 @@ def validate_draft_order(order, country):
         validate_shipping_method(order)
     validate_total_quantity(order)
     validate_order_lines(order, country)
+    validate_channel_is_active(order.channel)
     validate_product_is_published(order)
     validate_product_is_available_for_purchase(order)
-    validate_channel_is_active(order.channel)
+    validate_variants_is_available(order)
 
 
 def prepare_insufficient_stock_order_validation_errors(exc):

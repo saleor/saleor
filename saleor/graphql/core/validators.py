@@ -1,8 +1,11 @@
 from typing import TYPE_CHECKING, Optional
 
+import graphene
 from django.core.exceptions import ValidationError
 from django_prices.utils.formatting import get_currency_fraction
 from graphql.error import GraphQLError
+
+from ...product.models import ProductVariantChannelListing
 
 if TYPE_CHECKING:
     from decimal import Decimal
@@ -41,4 +44,31 @@ def validate_price_precision(value: Optional["Decimal"], currency: str):
     if value.as_tuple().exponent < -currency_fraction:
         raise ValidationError(
             f"Value cannot have more than {currency_fraction} decimal places."
+        )
+
+
+def validate_variants_available_in_channel(
+    variants_id,
+    channel_id,
+    error_class,
+):
+    """Validate available variants in specific channel."""
+
+    available_variants = ProductVariantChannelListing.objects.filter(
+        variant__id__in=variants_id, channel_id=channel_id, price_amount__isnull=False
+    ).values_list("variant_id", flat=True)
+    not_available_variants = variants_id - set(available_variants)
+    if not_available_variants:
+        not_available_variants_ids = {
+            graphene.Node.to_global_id("ProductVariant", pk)
+            for pk in not_available_variants
+        }
+        raise ValidationError(
+            {
+                "lines": ValidationError(
+                    "Cannot add lines with unavailable variants.",
+                    code=error_class.UNAVAILABLE_VARIANT_IN_CHANNEL.value,
+                    params={"variants": not_available_variants_ids},
+                )
+            }
         )
