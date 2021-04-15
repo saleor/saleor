@@ -57,7 +57,7 @@ class TranslationInput(NameTranslationInput, SeoTranslationInput):
     description = graphene.JSONString()
 
 
-class DescriptionTranslationInput(NameTranslationInput):
+class ShippingPriceTranslationInput(NameTranslationInput):
     description = graphene.JSONString(
         description="Translated shipping method description (JSON)."
     )
@@ -255,7 +255,7 @@ class ShippingPriceTranslate(BaseTranslateMutation):
         language_code = graphene.Argument(
             LanguageCodeEnum, required=True, description="Translation language code."
         )
-        input = DescriptionTranslationInput(required=True)
+        input = ShippingPriceTranslationInput(required=True)
 
     class Meta:
         description = "Creates/Updates translations for shipping method."
