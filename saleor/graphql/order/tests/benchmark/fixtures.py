@@ -7,7 +7,7 @@ from prices import Money, TaxedMoney
 
 from .....account.models import User
 from .....order import OrderEvents
-from .....order.models import Order, OrderEvent
+from .....order.models import Fulfillment, Order, OrderEvent
 from .....payment import ChargeStatus
 from .....payment.models import Payment
 
@@ -37,6 +37,13 @@ def _prepare_payments_for_order(order):
             charge_status=ChargeStatus.FULLY_CHARGED,
             captured_amount=Decimal("10.0"),
         ),
+    ]
+
+
+def _prepare_events_for_order(order):
+    return [
+        OrderEvent(order=order, type=random.choice(OrderEvents.CHOICES)[0])
+        for _ in range(EVENTS_PER_ORDER)
     ]
 
 
@@ -72,15 +79,18 @@ def orders_for_benchmarks(channel_USD, address, payment_dummy, users_for_benchma
     created_orders = Order.objects.bulk_create(orders)
 
     payments = []
+    events = []
+    fulfillments = []
+
     for order in created_orders:
         new_payments = _prepare_payments_for_order(order)
+        new_events = _prepare_events_for_order(order)
+        fulfillments.append(Fulfillment(order=order, fulfillment_order=order.id))
         payments.extend(new_payments)
-    Payment.objects.bulk_create(payments)
+        events.extend(new_events)
 
-    events = [
-        OrderEvent(order=order, type=random.choice(OrderEvents.CHOICES)[0])
-        for order in created_orders
-    ]
+    Payment.objects.bulk_create(payments)
     OrderEvent.objects.bulk_create(events)
+    Fulfillment.objects.bulk_create(fulfillments)
 
     return created_orders
