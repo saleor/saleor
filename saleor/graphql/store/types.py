@@ -46,10 +46,6 @@ class Store(CountableDjangoObjectType):
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.Store
 
-    @staticmethod
-    def resolve_page_description(root: models.Store, info):
-        return "name"
-
 class StoreType(CountableDjangoObjectType):
     name = graphene.String(
         description="The store name.",

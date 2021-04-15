@@ -74,6 +74,9 @@ class SitePermissions(BasePermissionEnum):
 class StorePermissions(BasePermissionEnum):
     MANAGE_STORES = "store.manage_stores"
 
+class PostPermissions(BasePermissionEnum):
+    MANAGE_POSTS = "post.manage_posts"
+
 PERMISSIONS_ENUMS = [
     AccountPermissions,
     AppPermission,
@@ -91,6 +94,7 @@ PERMISSIONS_ENUMS = [
     SitePermissions,
     CheckoutPermissions,
     StorePermissions,
+    PostPermissions,
 ]
 
 
