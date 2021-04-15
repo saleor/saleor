@@ -26,6 +26,7 @@ from ..discount import DiscountValueType
 from ..discount.models import Voucher
 from ..giftcard.models import GiftCard
 from ..payment import ChargeStatus, TransactionKind
+from ..payment.utils import get_total_authorized
 from ..shipping.models import ShippingMethod
 from . import FulfillmentStatus, OrderEvents, OrderStatus
 
@@ -342,10 +343,7 @@ class Order(ModelWithMetadata):
 
     @property
     def total_authorized(self):
-        payment = self.get_last_payment()
-        if payment:
-            return payment.get_authorized_amount()
-        return zero_money(self.currency)
+        return get_total_authorized(self.payments.all(), self.currency)
 
     @property
     def total_captured(self):
