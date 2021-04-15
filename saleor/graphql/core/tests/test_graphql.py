@@ -4,11 +4,13 @@ from unittest.mock import Mock, patch
 import graphene
 import pytest
 from django.contrib.auth.models import AnonymousUser
+from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.shortcuts import reverse
 from graphql.error import GraphQLError
 from graphql_relay import to_global_id
 
+from ...core.utils import from_global_id_or_error
 from ...product.types import Product
 from ...tests.utils import get_graphql_content
 from ...utils import get_nodes
@@ -283,3 +285,35 @@ def test_filter_by_query_param(qs):
         q_objects |= Q(**{q: test_kwargs[q]})
     # FIXME: django 1.11 fails on called_once_with(q_objects)
     qs.filter.call_count == 1
+
+
+def test_from_global_id_or_error(product):
+    invalid_id = "invalid"
+    message = f"Couldn't resolve id: {invalid_id}."
+
+    with pytest.raises(ValidationError) as error:
+        from_global_id_or_error(invalid_id)
+
+    assert error.value.error_dict["id"][0].message == message
+
+
+def test_from_global_id_or_error_wth_invalid_type(product):
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    message = "Must receive a ProductVariant id."
+
+    with pytest.raises(ValidationError) as error:
+        from_global_id_or_error(product_id, "ProductVariant")
+
+    assert error.value.error_dict["id"][0].message == message
+
+
+def test_from_global_id_or_error_wth_type(product):
+    expected_product_type = str(Product)
+    expected_product_id = graphene.Node.to_global_id(expected_product_type, product.id)
+
+    product_type, product_id = from_global_id_or_error(
+        expected_product_id, expected_product_type
+    )
+
+    assert product_id == str(product.id)
+    assert product_type == expected_product_type
