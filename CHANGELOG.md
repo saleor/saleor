@@ -4,6 +4,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+# 2.11.9
+
 - Fix total count on connection resolver without first or last - #6976 by @fowczarek
 - Fix available shipping methods for weight based methods - #7097 by @IKarbowiak
 
