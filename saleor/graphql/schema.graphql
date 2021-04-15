@@ -572,6 +572,7 @@ type AttributeUpdate {
 input AttributeUpdateInput {
   name: String
   slug: String
+  unit: MeasurementUnitsEnum
   removeValues: [ID]
   addValues: [AttributeValueCreateInput]
   valueRequired: Boolean
