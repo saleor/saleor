@@ -905,10 +905,14 @@ def test_create_variant_with_numeric_attribute(
     content = get_graphql_content(response)["data"]["productVariantCreate"]
     assert not content["productErrors"]
     data = content["productVariant"]
+    variant_pk = graphene.Node.from_global_id(data["id"])[1]
     assert data["name"] == variant_value
     assert data["sku"] == sku
     assert data["attributes"][0]["attribute"]["slug"] == variant_slug
-    assert data["attributes"][0]["values"][0]["slug"] == variant_value.replace(".", "_")
+    assert (
+        data["attributes"][0]["values"][0]["slug"]
+        == f"{variant_pk}_{numeric_attribute.pk}"
+    )
     assert data["weight"]["unit"] == WeightUnitsEnum.KG.name
     assert data["weight"]["value"] == weight
     assert len(data["stocks"]) == 1
@@ -2670,7 +2674,7 @@ def test_product_variant_bulk_create_with_numeric_attribute(
         attribute_value_2.name,
     }
     assert product_variant_count + 2 == ProductVariant.objects.count()
-    assert attribute_value_count == numeric_attribute.values.count()
+    assert attribute_value_count + 2 == numeric_attribute.values.count()
     product_variant = ProductVariant.objects.get(sku=sku)
     product.refresh_from_db()
     assert product.default_variant == product_variant

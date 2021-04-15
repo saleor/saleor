@@ -3575,6 +3575,7 @@ def test_create_product_with_numeric_attribute_new_attribute_value(
     content = get_graphql_content(response)
     data = content["data"]["productCreate"]
     assert data["productErrors"] == []
+    product_pk = graphene.Node.from_global_id(data["product"]["id"])[1]
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
     assert data["product"]["productType"]["name"] == product_type.name
@@ -3586,7 +3587,7 @@ def test_create_product_with_numeric_attribute_new_attribute_value(
     values = data["product"]["attributes"][0]["values"]
     assert len(values) == 1
     assert values[0]["name"] == expected_name
-    assert values[0]["slug"] == expected_slug
+    assert values[0]["slug"] == f"{product_pk}_{numeric_attribute.id}"
 
     numeric_attribute.refresh_from_db()
     assert numeric_attribute.values.count() == values_count + 1
@@ -3630,6 +3631,7 @@ def test_create_product_with_numeric_attribute_existing_value(
     content = get_graphql_content(response)
     data = content["data"]["productCreate"]
     assert data["productErrors"] == []
+    product_pk = graphene.Node.from_global_id(data["product"]["id"])[1]
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
     assert data["product"]["productType"]["name"] == product_type.name
@@ -3641,10 +3643,10 @@ def test_create_product_with_numeric_attribute_existing_value(
     values = data["product"]["attributes"][0]["values"]
     assert len(values) == 1
     assert values[0]["name"] == existing_value.name
-    assert values[0]["slug"] == existing_value.slug
+    assert values[0]["slug"] == f"{product_pk}_{numeric_attribute.id}"
 
     numeric_attribute.refresh_from_db()
-    assert numeric_attribute.values.count() == values_count
+    assert numeric_attribute.values.count() == values_count + 1
 
 
 def test_create_product_with_numeric_attribute_not_numeric_value_given(
@@ -4645,13 +4647,80 @@ def test_update_product_with_numeric_attribute_value(
             {
                 "id": ANY,
                 "name": new_value,
-                "slug": slugify(new_value.replace(".", "_")),
+                "slug": slugify(
+                    f"{product.id}_{numeric_attribute.id}", allow_unicode=True
+                ),
                 "reference": None,
                 "file": None,
             }
         ],
     }
     assert expected_att_data in attributes
+
+    updated_webhook_mock.assert_called_once_with(product)
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_with_numeric_attribute_value_new_value_is_not_created(
+    updated_webhook_mock,
+    staff_api_client,
+    numeric_attribute,
+    product,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    attribute_id = graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
+    product_type.product_attributes.add(numeric_attribute)
+    slug_value = slugify(f"{product.id}_{numeric_attribute.id}", allow_unicode=True)
+    value = AttributeValue.objects.create(
+        attribute=numeric_attribute, slug=slug_value, name="20.0"
+    )
+    associate_attribute_values_to_instance(product, numeric_attribute, value)
+
+    value_count = AttributeValue.objects.count()
+
+    new_value = "45.2"
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "values": [new_value]}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["productErrors"] == []
+
+    attributes = data["product"]["attributes"]
+
+    assert len(attributes) == 2
+    expected_att_data = {
+        "attribute": {"id": attribute_id, "name": numeric_attribute.name},
+        "values": [
+            {
+                "id": ANY,
+                "name": new_value,
+                "slug": slug_value,
+                "reference": None,
+                "file": None,
+            }
+        ],
+    }
+    assert expected_att_data in attributes
+
+    assert AttributeValue.objects.count() == value_count
+    value.refresh_from_db()
+    assert value.name == new_value
 
     updated_webhook_mock.assert_called_once_with(product)
 
