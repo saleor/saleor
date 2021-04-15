@@ -50,6 +50,7 @@ from ..shipping.types import ShippingMethod
 from ..warehouse.types import Allocation, Warehouse
 from .dataloaders import (
     AllocationsByOrderLineIdLoader,
+    FulfillmentsByOrderIdLoader,
     OrderByIdLoader,
     OrderEventsByOrderIdLoader,
     OrderLineByIdLoader,
@@ -795,12 +796,20 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_fulfillments(root: models.Order, info):
-        user = info.context.user
-        if user.is_staff:
-            qs = root.fulfillments.all()
-        else:
-            qs = root.fulfillments.exclude(status=FulfillmentStatus.CANCELED)
-        return qs.order_by("pk")
+        def _resolve_fulfillments(fulfillments):
+            user = info.context.user
+            if user.is_staff:
+                return fulfillments
+            return filter(
+                lambda fulfillment: fulfillment.status != FulfillmentStatus.CANCELED,
+                fulfillments,
+            )
+
+        return (
+            FulfillmentsByOrderIdLoader(info.context)
+            .load(root.id)
+            .then(_resolve_fulfillments)
+        )
 
     @staticmethod
     def resolve_lines(root: models.Order, info):
