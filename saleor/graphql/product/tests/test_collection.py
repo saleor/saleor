@@ -346,6 +346,7 @@ def test_filter_collection_products_by_multiple_attributes(
 
     filters = {
         "attributes": [{"slug": "modes", "values": ["eco"]}],
+        "channel": channel_USD.slug,
     }
     variables = {
         "id": graphene.Node.to_global_id("Collection", published_collection.pk),
@@ -841,16 +842,25 @@ def test_update_collection_slug_and_name(
         assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
 
 
-def test_delete_collection(staff_api_client, collection, permission_manage_products):
-    query = """
-        mutation deleteCollection($id: ID!) {
-            collectionDelete(id: $id) {
-                collection {
-                    name
-                }
+DELETE_COLLECTION_MUTATION = """
+    mutation deleteCollection($id: ID!) {
+        collectionDelete(id: $id) {
+            collection {
+                name
             }
         }
-    """
+    }
+"""
+
+
+@patch("saleor.product.signals.delete_versatile_image")
+def test_delete_collection(
+    delete_versatile_image_mock,
+    staff_api_client,
+    collection,
+    permission_manage_products,
+):
+    query = DELETE_COLLECTION_MUTATION
     collection_id = to_global_id("Collection", collection.id)
     variables = {"id": collection_id}
     response = staff_api_client.post_graphql(
@@ -861,6 +871,29 @@ def test_delete_collection(staff_api_client, collection, permission_manage_produ
     assert data["name"] == collection.name
     with pytest.raises(collection._meta.model.DoesNotExist):
         collection.refresh_from_db()
+    delete_versatile_image_mock.assert_not_called()
+
+
+@patch("saleor.product.signals.delete_versatile_image")
+def test_delete_collection_with_background_image(
+    delete_versatile_image_mock,
+    staff_api_client,
+    collection_with_image,
+    permission_manage_products,
+):
+    query = DELETE_COLLECTION_MUTATION
+    collection = collection_with_image
+    collection_id = to_global_id("Collection", collection.id)
+    variables = {"id": collection_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["collectionDelete"]["collection"]
+    assert data["name"] == collection.name
+    with pytest.raises(collection._meta.model.DoesNotExist):
+        collection.refresh_from_db()
+    delete_versatile_image_mock.assert_called_once_with(collection.background_image)
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")

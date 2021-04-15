@@ -1770,20 +1770,7 @@ def test_account_delete_other_customer_token(user_api_client):
     assert User.objects.filter(pk=other_user.id).exists()
 
 
-@patch(
-    "saleor.graphql.account.utils.account_events.staff_user_deleted_a_customer_event"
-)
-def test_customer_delete(
-    mocked_deletion_event,
-    staff_api_client,
-    staff_user,
-    customer_user,
-    permission_manage_users,
-):
-    """Ensure deleting a customer actually deletes the customer and creates proper
-    related events"""
-
-    query = """
+CUSTOMER_DELETE_MUTATION = """
     mutation CustomerDelete($id: ID!) {
         customerDelete(id: $id){
             errors {
@@ -1795,8 +1782,30 @@ def test_customer_delete(
             }
         }
     }
-    """
+"""
+
+
+@patch("saleor.account.signals.delete_versatile_image")
+@patch(
+    "saleor.graphql.account.utils.account_events.staff_user_deleted_a_customer_event"
+)
+def test_customer_delete(
+    mocked_deletion_event,
+    delete_versatile_image_mock,
+    staff_api_client,
+    staff_user,
+    customer_user,
+    image,
+    permission_manage_users,
+    media_root,
+):
+    """Ensure deleting a customer actually deletes the customer and creates proper
+    related events"""
+
+    query = CUSTOMER_DELETE_MUTATION
     customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+    customer_user.avatar = image
+    customer_user.save(update_fields=["avatar"])
     variables = {"id": customer_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_users]
@@ -1811,6 +1820,7 @@ def test_customer_delete(
     mocked_deletion_event.assert_called_once_with(
         staff_user=staff_user, deleted_count=1
     )
+    delete_versatile_image_mock.assert_called_once_with(customer_user.avatar)
 
 
 def test_customer_delete_errors(customer_user, admin_user, staff_user):
@@ -2605,6 +2615,31 @@ def test_staff_delete(staff_api_client, permission_manage_staff):
     data = content["data"]["staffDelete"]
     assert data["staffErrors"] == []
     assert not User.objects.filter(pk=staff_user.id).exists()
+
+
+@patch("saleor.account.signals.delete_versatile_image")
+def test_staff_delete_with_avatar(
+    delete_versatile_image_mock,
+    staff_api_client,
+    image,
+    permission_manage_staff,
+    media_root,
+):
+    query = STAFF_DELETE_MUTATION
+    staff_user = User.objects.create(
+        email="staffuser@example.com", avatar=image, is_staff=True
+    )
+    user_id = graphene.Node.to_global_id("User", staff_user.id)
+    variables = {"id": user_id}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_staff]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["staffDelete"]
+    assert data["staffErrors"] == []
+    assert not User.objects.filter(pk=staff_user.id).exists()
+    delete_versatile_image_mock.assert_called_once_with(staff_user.avatar)
 
 
 def test_staff_delete_app_no_permission(app_api_client, permission_manage_staff):

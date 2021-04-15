@@ -19,6 +19,8 @@ from saleor.payment.gateways.adyen.utils.common import (
 )
 from saleor.payment.interface import PaymentMethodInfo
 
+from ......plugins.manager import get_plugins_manager
+
 
 @pytest.mark.parametrize(
     "country_code, shopper_locale", [("JP", "ja_JP"), ("ZZ", "en_US"), ("US", "en_US")]
@@ -50,7 +52,7 @@ def test_append_klarna_data(
     variant_channel_listing = line.variant.channel_listings.get(channel_id=channel_id)
     variant_price = variant_channel_listing.price_amount
     variant_currency = variant_channel_listing.currency
-    total = to_adyen_price(variant_price * line.quantity, variant_currency)
+    price = to_adyen_price(variant_price, variant_currency)
     assert result == {
         "reference": "test",
         "shopperLocale": get_shopper_locale_value(country_code),
@@ -63,8 +65,8 @@ def test_append_klarna_data(
                 "id": line.variant.sku,
                 "taxAmount": "0",
                 "taxPercentage": 0,
-                "amountExcludingTax": total,
-                "amountIncludingTax": total,
+                "amountExcludingTax": price,
+                "amountIncludingTax": price,
             },
             {
                 "amountExcludingTax": "1000",
@@ -79,9 +81,11 @@ def test_append_klarna_data(
     }
 
 
+@mock.patch("saleor.payment.gateways.adyen.utils.common.get_plugins_manager")
 @mock.patch("saleor.payment.gateways.adyen.utils.common.checkout_line_total")
 def test_append_klarna_data_tax_included(
     mocked_checkout_line_total,
+    mocked_plugins_manager,
     dummy_payment_data,
     payment_dummy,
     checkout_ready_to_complete,
@@ -93,6 +97,11 @@ def test_append_klarna_data_tax_included(
     mocked_checkout_line_total.return_value = quantize_price(
         TaxedMoney(net=net, gross=gross), "USD"
     )
+    manager = get_plugins_manager()
+    unit_price = mock.MagicMock()
+    unit_price.return_value = quantize_price(TaxedMoney(net=net, gross=gross), "USD")
+    manager.calculate_checkout_line_unit_price = unit_price
+    mocked_plugins_manager.return_value = manager
     country_code = checkout_ready_to_complete.get_country()
 
     checkout_ready_to_complete.payments.add(payment_dummy)

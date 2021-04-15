@@ -1,4 +1,5 @@
 from decimal import Decimal
+from operator import attrgetter
 from typing import Optional
 
 import graphene
@@ -16,11 +17,12 @@ from ...core.taxes import display_gross_prices
 from ...core.tracing import traced_resolver
 from ...discount import OrderDiscountType
 from ...graphql.utils import get_user_or_app_from_context
+from ...graphql.warehouse.dataloaders import WarehouseByIdLoader
 from ...order import OrderStatus, models
 from ...order.models import FulfillmentStatus
 from ...order.utils import get_order_country, get_valid_shipping_methods_for_order
+from ...payment import ChargeStatus
 from ...product.product_images import get_product_image_thumbnail
-from ...warehouse import models as warehouse_models
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..account.types import User
 from ..account.utils import requestor_has_access
@@ -50,8 +52,10 @@ from ..warehouse.types import Allocation, Warehouse
 from .dataloaders import (
     AllocationsByOrderLineIdLoader,
     OrderByIdLoader,
+    OrderEventsByOrderIdLoader,
     OrderLineByIdLoader,
     OrderLinesByOrderIdLoader,
+    PaymentsByOrderIdLoader,
 )
 from .enums import OrderEventsEmailsEnum, OrderEventsEnum
 from .utils import validate_draft_order
@@ -271,9 +275,10 @@ class OrderEvent(CountableDjangoObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_warehouse(root: models.OrderEvent, _info):
-        warehouse = root.parameters.get("warehouse")
-        return warehouse_models.Warehouse.objects.filter(pk=warehouse).first()
+    def resolve_warehouse(root: models.OrderEvent, info):
+        if warehouse_pk := root.parameters.get("warehouse"):
+            return WarehouseByIdLoader(info.context).load(warehouse_pk)
+        return None
 
     @staticmethod
     def resolve_transaction_reference(root: models.OrderEvent, _info):
@@ -827,7 +832,7 @@ class Order(CountableDjangoObjectType):
     @permission_required(OrderPermissions.MANAGE_ORDERS)
     @traced_resolver
     def resolve_events(root: models.Order, _info):
-        return root.events.prefetch_related("user").all().order_by("pk")
+        return OrderEventsByOrderIdLoader(_info.context).load(root.id)
 
     @staticmethod
     @traced_resolver
@@ -840,13 +845,31 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_payment_status(root: models.Order, _info):
-        return root.get_payment_status()
+    def resolve_payment_status(root: models.Order, info):
+        def _resolve_payment_status(payments):
+            if last_payment := max(payments, default=None, key=attrgetter("pk")):
+                return last_payment.charge_status
+            return ChargeStatus.NOT_CHARGED
+
+        return (
+            PaymentsByOrderIdLoader(info.context)
+            .load(root.id)
+            .then(_resolve_payment_status)
+        )
 
     @staticmethod
     @traced_resolver
-    def resolve_payment_status_display(root: models.Order, _info):
-        return root.get_payment_status_display()
+    def resolve_payment_status_display(root: models.Order, info):
+        def _resolve_payment_status(payments):
+            if last_payment := max(payments, default=None, key=attrgetter("pk")):
+                return last_payment.get_charge_status_display()
+            return dict(ChargeStatus.CHOICES).get(ChargeStatus.NOT_CHARGED)
+
+        return (
+            PaymentsByOrderIdLoader(info.context)
+            .load(root.id)
+            .then(_resolve_payment_status)
+        )
 
     @staticmethod
     @traced_resolver

@@ -24,7 +24,7 @@ from ..dataloaders import (
     ProductByIdLoader,
     ProductVariantsByProductIdLoader,
     VariantChannelListingByVariantIdAndChannelSlugLoader,
-    VariantsChannelListingByProductIdAndChanneSlugLoader,
+    VariantsChannelListingByProductIdAndChannelSlugLoader,
 )
 
 
@@ -197,7 +197,7 @@ class ProductChannelListing(CountableDjangoObjectType):
                             )
 
                         return (
-                            VariantsChannelListingByProductIdAndChanneSlugLoader(
+                            VariantsChannelListingByProductIdAndChannelSlugLoader(
                                 context
                             )
                             .load((root.product_id, channel.slug))

@@ -259,18 +259,6 @@ class Order(ModelWithMetadata):
     def get_last_payment(self):
         return max(self.payments.all(), default=None, key=attrgetter("pk"))
 
-    def get_payment_status(self):
-        last_payment = self.get_last_payment()
-        if last_payment:
-            return last_payment.charge_status
-        return ChargeStatus.NOT_CHARGED
-
-    def get_payment_status_display(self):
-        last_payment = self.get_last_payment()
-        if last_payment:
-            return last_payment.get_charge_status_display()
-        return dict(ChargeStatus.CHOICES).get(ChargeStatus.NOT_CHARGED)
-
     def is_pre_authorized(self):
         return (
             self.payments.filter(
