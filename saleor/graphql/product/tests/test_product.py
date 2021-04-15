@@ -6279,8 +6279,14 @@ PRODUCT_MEDIA_CREATE_QUERY = """
     """
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_product_media_create_mutation(
-    monkeypatch, staff_api_client, product, permission_manage_products, media_root
+    product_updated_mock,
+    monkeypatch,
+    staff_api_client,
+    product,
+    permission_manage_products,
+    media_root,
 ):
     mock_create_thumbnails = Mock(return_value=None)
     monkeypatch.setattr(
@@ -6310,6 +6316,7 @@ def test_product_media_create_mutation(
 
     # The image creation should have triggered a warm-up
     mock_create_thumbnails.assert_called_once_with(product_image.pk)
+    product_updated_mock.assert_called_once_with(product)
 
 
 def test_product_media_create_mutation_without_file(
@@ -6471,8 +6478,13 @@ def test_invalid_product_media_create_mutation(
     assert product.media.count() == 0
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_product_image_update_mutation(
-    monkeypatch, staff_api_client, product_with_image, permission_manage_products
+    product_updated_mock,
+    monkeypatch,
+    staff_api_client,
+    product_with_image,
+    permission_manage_products,
 ):
     query = """
     mutation updateProductMedia($mediaId: ID!, $alt: String) {
@@ -6508,10 +6520,15 @@ def test_product_image_update_mutation(
     # We did not update the image field,
     # the image should not have triggered a warm-up
     assert mock_create_thumbnails.call_count == 0
+    product_updated_mock.assert_called_once_with(product_with_image)
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_product_media_delete(
-    staff_api_client, product_with_image, permission_manage_products
+    product_updated_mock,
+    staff_api_client,
+    product_with_image,
+    permission_manage_products,
 ):
     product = product_with_image
     query = """
@@ -6536,10 +6553,15 @@ def test_product_media_delete(
     with pytest.raises(media_obj._meta.model.DoesNotExist):
         media_obj.refresh_from_db()
     assert node_id == data["media"]["id"]
+    product_updated_mock.assert_called_once_with(product)
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_reorder_media(
-    staff_api_client, product_with_images, permission_manage_products
+    product_updated_mock,
+    staff_api_client,
+    product_with_images,
+    permission_manage_products,
 ):
     query = """
     mutation reorderMedia($product_id: ID!, $media_ids: [ID]!) {
@@ -6569,8 +6591,10 @@ def test_reorder_media(
     reordered_media = product.media.all()
     reordered_media_0 = reordered_media[0]
     reordered_media_1 = reordered_media[1]
+
     assert media_0.id == reordered_media_1.id
     assert media_1.id == reordered_media_0.id
+    product_updated_mock.assert_called_once_with(product)
 
 
 ASSIGN_VARIANT_QUERY = """
