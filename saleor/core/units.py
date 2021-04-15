@@ -45,7 +45,7 @@ class VolumeUnits:
     CUBIC_YARD = "cubic_yard"
     QT = "qt"
     PINT = "pint"
-    OZ = "oz"
+    FL_OZ = "fl_oz"
     ACRE_IN = "acre_in"
     ACRE_FT = "acre_ft"
 
@@ -60,7 +60,7 @@ class VolumeUnits:
         (CUBIC_YARD, "Cubic yard"),
         (QT, "Quart"),
         (PINT, "Pint"),
-        (OZ, "Ounce"),
+        (FL_OZ, "Fluid ounce"),
         (ACRE_IN, "Acre inch"),
         (ACRE_FT, "Acre feet"),
     ]

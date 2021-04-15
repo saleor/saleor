@@ -572,6 +572,7 @@ type AttributeUpdate {
 input AttributeUpdateInput {
   name: String
   slug: String
+  unit: MeasurementUnitsEnum
   removeValues: [ID]
   addValues: [AttributeValueCreateInput]
   valueRequired: Boolean
@@ -2411,11 +2412,12 @@ enum MeasurementUnitsEnum {
   CUBIC_YARD
   QT
   PINT
-  OZ
+  FL_OZ
   ACRE_IN
   ACRE_FT
   G
   LB
+  OZ
   KG
   TONNE
 }
@@ -5691,7 +5693,7 @@ enum VolumeUnitsEnum {
   CUBIC_YARD
   QT
   PINT
-  OZ
+  FL_OZ
   ACRE_IN
   ACRE_FT
 }

@@ -228,6 +228,7 @@ class AttributeCreateInput(graphene.InputObjectType):
 class AttributeUpdateInput(graphene.InputObjectType):
     name = graphene.String(description=AttributeDescriptions.NAME)
     slug = graphene.String(description=AttributeDescriptions.SLUG)
+    unit = MeasurementUnitsEnum(description=AttributeDescriptions.UNIT, required=False)
     remove_values = graphene.List(
         graphene.ID,
         name="removeValues",
