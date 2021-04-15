@@ -16,7 +16,7 @@ from ..core.enums import LanguageCodeEnum
 from ..core.fields import PrefetchingConnectionField
 from ..core.scalars import UUID
 from ..core.types import CountryDisplay, Image, Permission
-from ..core.utils import from_global_id_strict_type, str_to_enum
+from ..core.utils import from_global_id_or_error, str_to_enum
 from ..decorators import one_of_permissions_required, permission_required
 from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display
@@ -182,7 +182,7 @@ class UserPermission(Permission):
     )
 
     def resolve_source_permission_groups(root: Permission, _info, user_id, **_kwargs):
-        user_id = from_global_id_strict_type(user_id, only_type="User", field="pk")
+        _type, user_id = from_global_id_or_error(user_id, only_type="User", field="pk")
         groups = auth_models.Group.objects.filter(
             user__pk=user_id, permissions__name=root.name
         )

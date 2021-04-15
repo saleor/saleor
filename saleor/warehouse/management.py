@@ -17,7 +17,9 @@ StockData = namedtuple("StockData", ["pk", "quantity"])
 
 
 @transaction.atomic
-def allocate_stocks(order_lines_info: Iterable["OrderLineData"], country_code: str):
+def allocate_stocks(
+    order_lines_info: Iterable["OrderLineData"], country_code: str, channel_slug: str
+):
     """Allocate stocks for given `order_lines` in given country.
 
     Function lock for update all stocks and allocations for variants in
@@ -37,7 +39,7 @@ def allocate_stocks(order_lines_info: Iterable["OrderLineData"], country_code: s
 
     stocks = list(
         Stock.objects.select_for_update(of=("self",))
-        .for_country(country_code)
+        .for_country_and_channel(country_code, channel_slug)
         .filter(product_variant__in=variants)
         .order_by("pk")
         .values("id", "product_variant", "pk", "quantity")
@@ -219,7 +221,7 @@ def increase_stock(
 
 
 @transaction.atomic
-def increase_allocations(lines_info: Iterable["OrderLineData"]):
+def increase_allocations(lines_info: Iterable["OrderLineData"], channel_slug: str):
     """Increase allocation for order lines with appropriate quantity."""
     line_pks = [info.line.pk for info in lines_info]
     allocations = list(
@@ -244,6 +246,7 @@ def increase_allocations(lines_info: Iterable["OrderLineData"]):
     allocate_stocks(
         lines_info,
         lines_info[0].line.order.shipping_address.country.code,  # type: ignore
+        channel_slug,
     )
 
 

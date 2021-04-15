@@ -686,7 +686,10 @@ def test_products_pagination_for_products_with_the_same_names_one_page(
     "filter_by, products_order",
     [
         ({"hasCategory": True}, ["Product1", "Product2"]),
-        ({"stockAvailability": "OUT_OF_STOCK"}, ["ProductProduct1", "ProductProduct2"]),
+        (
+            {"stockAvailability": "OUT_OF_STOCK", "channel": "main"},
+            ["ProductProduct1", "ProductProduct2"],
+        ),
     ],
 )
 def test_products_pagination_with_filtering(
@@ -695,9 +698,11 @@ def test_products_pagination_with_filtering(
     staff_api_client,
     permission_manage_products,
     products_for_pagination,
+    channel_USD,
 ):
     page_size = 2
 
+    filter_by["channel"] = channel_USD.slug
     variables = {"first": page_size, "after": None, "filter": filter_by}
     response = staff_api_client.post_graphql(
         QUERY_PRODUCTS_PAGINATION,
@@ -749,7 +754,10 @@ def test_products_pagination_with_filtering_by_attribute(
 ):
     page_size = 2
     products_order = ["Product2", "ProductProduct1"]
-    filter_by = {"attributes": [{"slug": "color", "values": ["red", "blue"]}]}
+    filter_by = {
+        "attributes": [{"slug": "color", "values": ["red", "blue"]}],
+        "channel": channel_USD.slug,
+    }
 
     variables = {"first": page_size, "after": None, "filter": filter_by}
     response = staff_api_client.post_graphql(

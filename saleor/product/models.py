@@ -157,7 +157,9 @@ class ProductsQueryset(models.QuerySet):
     def published_with_variants(self, channel_slug: str):
         published = self.published(channel_slug)
         query = ProductVariantChannelListing.objects.filter(
-            variant_id=OuterRef("variants__id"), channel__slug=str(channel_slug)
+            variant_id=OuterRef("variants__id"),
+            channel__slug=str(channel_slug),
+            price_amount__isnull=False,
         ).values_list("variant", flat=True)
         return published.filter(variants__in=query).distinct()
 
@@ -304,12 +306,14 @@ class ProductsQueryset(models.QuerySet):
             return self.prefetch_related(
                 "attributes__values",
                 "attributes__assignment__attribute",
+                "media",
             )
         return self.prefetch_related(
             "attributes__values",
             "attributes__assignment__attribute",
             "collections",
             "variants__stocks__allocations",
+            "media",
             "category",
         )
 
@@ -419,6 +423,12 @@ class ProductVariantQueryset(models.QuerySet):
             quantity_allocated=Coalesce(
                 Sum("stocks__allocations__quantity_allocated"), 0
             ),
+        )
+
+    def available_in_channel(self, channel_slug):
+        return self.filter(
+            channel_listings__price_amount__isnull=False,
+            channel_listings__channel__slug=channel_slug,
         )
 
     def prefetched_for_webhook(self):
@@ -582,6 +592,8 @@ class ProductVariantChannelListing(models.Model):
     price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        blank=True,
+        null=True,
     )
     price = MoneyField(amount_field="price_amount", currency_field="currency")
 

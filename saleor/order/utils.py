@@ -303,18 +303,18 @@ def add_variant_to_order(
 
     Returns an order line the variant was added to.
     """
+    channel = order.channel
     try:
         line = order.lines.get(variant=variant)
         old_quantity = line.quantity
         new_quantity = old_quantity + quantity
         line_info = OrderLineData(line=line, quantity=old_quantity)
         change_order_line_quantity(
-            user, line_info, old_quantity, new_quantity, send_event=False
+            user, line_info, old_quantity, new_quantity, channel.slug, send_event=False
         )
     except OrderLine.DoesNotExist:
         product = variant.product
         collections = product.collections.all()
-        channel = order.channel
         channel_listing = variant.channel_listings.get(channel=channel)
         unit_price = variant.get_price(
             product, collections, channel, channel_listing, discounts
@@ -368,7 +368,8 @@ def add_variant_to_order(
                     variant=variant,
                     warehouse_pk=None,
                 )
-            ]
+            ],
+            channel.slug,
         )
 
     return line
@@ -393,7 +394,7 @@ def add_gift_card_to_order(order, gift_card, total_price_left):
 
 
 def _update_allocations_for_line(
-    line_info: OrderLineData, old_quantity: int, new_quantity: int
+    line_info: OrderLineData, old_quantity: int, new_quantity: int, channel_slug: str
 ):
     if old_quantity == new_quantity:
         return
@@ -403,20 +404,27 @@ def _update_allocations_for_line(
 
     if old_quantity < new_quantity:
         line_info.quantity = new_quantity - old_quantity
-        increase_allocations([line_info])
+        increase_allocations([line_info], channel_slug)
     else:
         line_info.quantity = old_quantity - new_quantity
         decrease_allocations([line_info])
 
 
 def change_order_line_quantity(
-    user, line_info, old_quantity: int, new_quantity: int, send_event=True
+    user,
+    line_info,
+    old_quantity: int,
+    new_quantity: int,
+    channel_slug: str,
+    send_event=True,
 ):
     """Change the quantity of ordered items in a order line."""
     line = line_info.line
     if new_quantity:
         if line.order.is_unconfirmed():
-            _update_allocations_for_line(line_info, old_quantity, new_quantity)
+            _update_allocations_for_line(
+                line_info, old_quantity, new_quantity, channel_slug
+            )
         line.quantity = new_quantity
         total_price_net_amount = line.quantity * line.unit_price_net_amount
         total_price_gross_amount = line.quantity * line.unit_price_gross_amount

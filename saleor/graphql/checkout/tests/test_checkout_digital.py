@@ -143,8 +143,12 @@ def test_checkout_update_shipping_method(
     content = get_graphql_content(response)
     data = content["data"]["checkoutShippingMethodUpdate"]
 
-    assert data["errors"] == [
-        {"field": "shippingMethod", "message": "This checkout doesn't need shipping"}
+    assert data["checkoutErrors"] == [
+        {
+            "field": "shippingMethod",
+            "message": "This checkout doesn't need shipping",
+            "code": CheckoutErrorCode.SHIPPING_NOT_REQUIRED.name,
+        }
     ]
 
     # Ensure the shipping method was unchanged
@@ -178,7 +182,8 @@ def test_checkout_lines_update_remove_shipping_if_removed_product_with_shipping(
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.save()
-    add_variant_to_checkout(checkout, digital_variant, 1)
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, digital_variant, 1)
     line = checkout.lines.first()
     variant = line.variant
 
@@ -207,7 +212,8 @@ def test_checkout_line_delete_remove_shipping_if_removed_product_with_shipping(
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.save()
-    add_variant_to_checkout(checkout, digital_variant, 1)
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    add_variant_to_checkout(checkout_info, digital_variant, 1)
     line = checkout.lines.first()
 
     line_id = graphene.Node.to_global_id("CheckoutLine", line.pk)

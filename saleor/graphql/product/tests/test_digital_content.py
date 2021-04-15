@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import graphene
 
 from ....product.error_codes import ProductErrorCode
@@ -168,10 +170,7 @@ def test_digital_content_create_mutation_removes_old_content(
     assert not DigitalContent.objects.filter(id=d_content.id).exists()
 
 
-def test_digital_content_delete_mutation(
-    monkeypatch, staff_api_client, variant, digital_content, permission_manage_products
-):
-    query = """
+DIGITAL_CONTENT_DELETE_MUTATION = """
     mutation digitalDelete($variant: ID!){
         digitalContentDelete(variantId:$variant){
             variant{
@@ -179,10 +178,24 @@ def test_digital_content_delete_mutation(
             }
         }
     }
-    """
+"""
+
+
+@patch("saleor.product.signals.delete_from_storage_task.delay")
+def test_digital_content_delete_mutation(
+    delete_from_storage_task_mock,
+    monkeypatch,
+    staff_api_client,
+    variant,
+    digital_content,
+    permission_manage_products,
+):
+    query = DIGITAL_CONTENT_DELETE_MUTATION
 
     variant.digital_content = digital_content
     variant.digital_content.save()
+
+    path = digital_content.content_file.path
 
     assert hasattr(variant, "digital_content")
     variables = {"variant": graphene.Node.to_global_id("ProductVariant", variant.id)}
@@ -193,6 +206,7 @@ def test_digital_content_delete_mutation(
     get_graphql_content(response)
     variant = ProductVariant.objects.get(id=variant.id)
     assert not hasattr(variant, "digital_content")
+    delete_from_storage_task_mock.assert_called_once_with(path)
 
 
 def test_digital_content_update_mutation(

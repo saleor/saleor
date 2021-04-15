@@ -41,6 +41,15 @@ def validate_shipping_method(order):
                 )
             }
         )
+    if not order.shipping_method.shipping_zone.channels.filter(id=order.channel_id):
+        raise ValidationError(
+            {
+                "shipping": ValidationError(
+                    "Shipping method not available in given channel.",
+                    code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE,
+                )
+            }
+        )
 
 
 def validate_billing_address(order):
@@ -80,7 +89,9 @@ def validate_order_lines(order, country):
             )
         if line.variant.track_inventory:
             try:
-                check_stock_quantity(line.variant, country, line.quantity)
+                check_stock_quantity(
+                    line.variant, country, order.channel.slug, line.quantity
+                )
             except InsufficientStock as exc:
                 errors = prepare_insufficient_stock_order_validation_errors(exc)
                 raise ValidationError({"lines": errors})
@@ -138,7 +149,7 @@ def validate_variant_channel_listings(variants, channel):
         )
     variant_ids = set([variant.id for variant in variants])
     variant_channel_listings = ProductVariantChannelListing.objects.filter(
-        channel=channel, variant_id__in=variant_ids
+        channel=channel, variant_id__in=variant_ids, price_amount__isnull=False
     )
     variant_ids_in_channel = set(
         [

@@ -16,6 +16,7 @@ from ....product.models import (
     ProductType,
     ProductVariant,
     ProductVariantChannelListing,
+    VariantMedia,
 )
 from ....tests.utils import flush_post_commit_hooks
 from ...tests.utils import get_graphql_content
@@ -64,6 +65,44 @@ def test_delete_categories(staff_api_client, category_list, permission_manage_pr
     assert not Category.objects.filter(
         id__in=[category.id for category in category_list]
     ).exists()
+
+
+@patch("saleor.product.signals.delete_versatile_image")
+def test_delete_categories_with_images(
+    delete_versatile_image_mock,
+    staff_api_client,
+    category_list,
+    image_list,
+    permission_manage_products,
+    media_root,
+):
+    category_list[0].background_image = image_list[0]
+    category_list[0].save(update_fields=["background_image"])
+
+    category_list[1].background_image = image_list[1]
+    category_list[1].save(update_fields=["background_image"])
+
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("Category", category.id)
+            for category in category_list
+        ]
+    }
+    response = staff_api_client.post_graphql(
+        MUTATION_CATEGORY_BULK_DELETE,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    assert content["data"]["categoryBulkDelete"]["count"] == 3
+    assert not Category.objects.filter(
+        id__in=[category.id for category in category_list]
+    ).exists()
+    assert delete_versatile_image_mock.call_count == 2
+    assert {
+        call_args.args[0] for call_args in delete_versatile_image_mock.call_args_list
+    } == {category_list[0].background_image, category_list[1].background_image}
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
@@ -180,16 +219,19 @@ def test_delete_categories_with_subcategories_and_products(
     assert product_channel_listings.count() == 3
 
 
-def test_delete_collections(
-    staff_api_client, collection_list, permission_manage_products
-):
-    query = """
+MUTATION_COLLECTION_BULK_DELETE = """
     mutation collectionBulkDelete($ids: [ID]!) {
         collectionBulkDelete(ids: $ids) {
             count
         }
     }
-    """
+"""
+
+
+def test_delete_collections(
+    staff_api_client, collection_list, permission_manage_products
+):
+    query = MUTATION_COLLECTION_BULK_DELETE
 
     variables = {
         "ids": [
@@ -206,6 +248,44 @@ def test_delete_collections(
     assert not Collection.objects.filter(
         id__in=[collection.id for collection in collection_list]
     ).exists()
+
+
+@patch("saleor.product.signals.delete_versatile_image")
+def test_delete_collections_with_images(
+    delete_versatile_image_mock,
+    staff_api_client,
+    collection_list,
+    image_list,
+    permission_manage_products,
+    media_root,
+):
+    query = MUTATION_COLLECTION_BULK_DELETE
+
+    collection_list[0].background_image = image_list[0]
+    collection_list[0].save(update_fields=["background_image"])
+
+    collection_list[1].background_image = image_list[1]
+    collection_list[1].save(update_fields=["background_image"])
+
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("Collection", collection.id)
+            for collection in collection_list
+        ]
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+
+    assert content["data"]["collectionBulkDelete"]["count"] == 3
+    assert not Collection.objects.filter(
+        id__in=[collection.id for collection in collection_list]
+    ).exists()
+    assert delete_versatile_image_mock.call_count == 2
+    assert {
+        call_args.args[0] for call_args in delete_versatile_image_mock.call_args_list
+    } == {collection_list[0].background_image, collection_list[1].background_image}
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
@@ -327,7 +407,43 @@ def test_delete_products(
     assert not OrderLine.objects.filter(pk__in=draft_order_lines_pks).exists()
 
     assert OrderLine.objects.filter(pk__in=not_draft_order_lines_pks).exists()
-    mocked_recalculate_orders_task.assert_called_once_with({draft_order.id})
+    mocked_recalculate_orders_task.assert_called_once_with([draft_order.id])
+
+
+@patch("saleor.product.signals.delete_versatile_image")
+@patch("saleor.order.tasks.recalculate_orders_task.delay")
+def test_delete_products_with_images(
+    mocked_recalculate_orders_task,
+    delete_versatile_image_mock,
+    staff_api_client,
+    product_list,
+    image_list,
+    permission_manage_products,
+    channel_USD,
+    media_root,
+):
+    # given
+    media1 = ProductMedia.objects.create(product=product_list[0], image=image_list[0])
+    media2 = ProductMedia.objects.create(product=product_list[1], image=image_list[1])
+
+    query = DELETE_PRODUCTS_MUTATION
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("Product", product.id)
+            for product in product_list
+        ]
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+
+    assert content["data"]["productBulkDelete"]["count"] == 3
+    assert delete_versatile_image_mock.call_count == 2
+    assert {
+        call_args.args[0] for call_args in delete_versatile_image_mock.call_args_list
+    } == {media1.image, media2.image}
+    mocked_recalculate_orders_task.assert_not_called
 
 
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
@@ -358,7 +474,7 @@ def test_delete_products_trigger_webhook(
 
     assert content["data"]["productBulkDelete"]["count"] == 3
     assert mocked_webhook_trigger.called
-    mocked_recalculate_orders_task.assert_called_once_with(set())
+    mocked_recalculate_orders_task.assert_not_called
 
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
@@ -387,7 +503,7 @@ def test_delete_products_variants_in_draft_order(
     assert content["data"]["productBulkDelete"]["count"] == 2
     assert not Product.objects.filter(id__in=products_id).exists()
     assert not ProductChannelListing.objects.filter(product_id__in=products_id).exists()
-    mocked_recalculate_orders_task.assert_called_once_with({draft_order.id})
+    mocked_recalculate_orders_task.assert_called_once_with([draft_order.id])
 
 
 def test_delete_product_media(
@@ -492,7 +608,60 @@ def test_delete_product_variants(
         product_variant_deleted_webhook_mock.call_count
         == content["data"]["productVariantBulkDelete"]["count"]
     )
-    mocked_recalculate_orders_task.assert_called_once_with(set())
+    mocked_recalculate_orders_task.assert_not_called
+
+
+@patch("saleor.product.signals.delete_versatile_image")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_deleted")
+@patch("saleor.order.tasks.recalculate_orders_task.delay")
+def test_delete_product_variants_with_images(
+    mocked_recalculate_orders_task,
+    product_variant_deleted_webhook_mock,
+    delete_versatile_image_mock,
+    staff_api_client,
+    product_variant_list,
+    image_list,
+    permission_manage_products,
+    media_root,
+):
+    query = PRODUCT_VARIANT_BULK_DELETE_MUTATION
+
+    assert ProductVariantChannelListing.objects.filter(
+        variant_id__in=[variant.id for variant in product_variant_list]
+    ).exists()
+
+    media1 = ProductMedia.objects.create(
+        product=product_variant_list[0].product, image=image_list[0]
+    )
+    media2 = ProductMedia.objects.create(
+        product=product_variant_list[1].product, image=image_list[1]
+    )
+
+    VariantMedia.objects.create(variant=product_variant_list[0], media=media1)
+    VariantMedia.objects.create(variant=product_variant_list[1], media=media2)
+
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("ProductVariant", variant.id)
+            for variant in product_variant_list
+        ]
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    flush_post_commit_hooks()
+
+    assert content["data"]["productVariantBulkDelete"]["count"] == 3
+    assert not ProductVariant.objects.filter(
+        id__in=[variant.id for variant in product_variant_list]
+    ).exists()
+    assert (
+        product_variant_deleted_webhook_mock.call_count
+        == content["data"]["productVariantBulkDelete"]["count"]
+    )
+    mocked_recalculate_orders_task.assert_not_called
+    delete_versatile_image_mock.assert_not_called()
 
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
@@ -588,7 +757,7 @@ def test_delete_product_variants_in_draft_orders(
         second_draft_order.refresh_from_db()
 
     assert OrderLine.objects.filter(pk=order_line_not_in_draft_pk).exists()
-    mocked_recalculate_orders_task.assert_called_once_with({draft_order.id})
+    mocked_recalculate_orders_task.assert_called_once_with([draft_order.id])
 
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
@@ -639,7 +808,7 @@ def test_delete_product_variants_delete_default_variant(
 
     product.refresh_from_db()
     assert product.default_variant.pk == new_default_variant.pk
-    mocked_recalculate_orders_task.assert_called_once_with(set())
+    mocked_recalculate_orders_task.assert_not_called
 
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
@@ -689,7 +858,7 @@ def test_delete_product_variants_delete_all_product_variants(
 
     product.refresh_from_db()
     assert product.default_variant is None
-    mocked_recalculate_orders_task.assert_called_once_with(set())
+    mocked_recalculate_orders_task.assert_not_called
 
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
@@ -741,4 +910,4 @@ def test_delete_product_variants_from_different_products(
 
     assert product_1.default_variant is None
     assert product_2.default_variant.pk == product_2_second_variant.pk
-    mocked_recalculate_orders_task.assert_called_once_with(set())
+    mocked_recalculate_orders_task.assert_not_called

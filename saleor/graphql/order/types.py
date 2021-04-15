@@ -1,4 +1,5 @@
 from decimal import Decimal
+from operator import attrgetter
 from typing import Optional
 
 import graphene
@@ -19,6 +20,7 @@ from ...graphql.warehouse.dataloaders import WarehouseByIdLoader
 from ...order import OrderStatus, models
 from ...order.models import FulfillmentStatus
 from ...order.utils import get_order_country, get_valid_shipping_methods_for_order
+from ...payment import ChargeStatus
 from ...product.product_images import get_product_image_thumbnail
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..account.types import User
@@ -52,6 +54,7 @@ from .dataloaders import (
     OrderEventsByOrderIdLoader,
     OrderLineByIdLoader,
     OrderLinesByOrderIdLoader,
+    PaymentsByOrderIdLoader,
 )
 from .enums import OrderEventsEmailsEnum, OrderEventsEnum
 from .utils import validate_draft_order
@@ -817,12 +820,30 @@ class Order(CountableDjangoObjectType):
         return str(root.pk)
 
     @staticmethod
-    def resolve_payment_status(root: models.Order, _info):
-        return root.get_payment_status()
+    def resolve_payment_status(root: models.Order, info):
+        def _resolve_payment_status(payments):
+            if last_payment := max(payments, default=None, key=attrgetter("pk")):
+                return last_payment.charge_status
+            return ChargeStatus.NOT_CHARGED
+
+        return (
+            PaymentsByOrderIdLoader(info.context)
+            .load(root.id)
+            .then(_resolve_payment_status)
+        )
 
     @staticmethod
-    def resolve_payment_status_display(root: models.Order, _info):
-        return root.get_payment_status_display()
+    def resolve_payment_status_display(root: models.Order, info):
+        def _resolve_payment_status(payments):
+            if last_payment := max(payments, default=None, key=attrgetter("pk")):
+                return last_payment.get_charge_status_display()
+            return dict(ChargeStatus.CHOICES).get(ChargeStatus.NOT_CHARGED)
+
+        return (
+            PaymentsByOrderIdLoader(info.context)
+            .load(root.id)
+            .then(_resolve_payment_status)
+        )
 
     @staticmethod
     def resolve_payments(root: models.Order, _info):
