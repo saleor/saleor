@@ -787,7 +787,6 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_total_captured(root: models.Order, info):
-        # FIXME adjust to multiple payments in the future
         def _resolve_total_captured(payments):
             return get_total_captured(payments, root.currency)
 

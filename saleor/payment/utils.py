@@ -375,6 +375,7 @@ def get_last_payment(payments: List[Payment]):
 
 
 def get_total_captured(payments: List[Payment], fallback_currency: str):
+    # FIXME adjust to multiple payments in the future
     if last_payment := get_last_payment(payments):
         if last_payment.charge_status in (  # type: ignore
             ChargeStatus.PARTIALLY_CHARGED,
