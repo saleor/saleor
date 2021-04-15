@@ -21,6 +21,7 @@ from ...order import OrderStatus, models
 from ...order.models import FulfillmentStatus
 from ...order.utils import get_order_country, get_valid_shipping_methods_for_order
 from ...payment import ChargeStatus
+from ...payment.utils import get_total_captured
 from ...product.product_images import get_product_image_thumbnail
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..account.types import User
@@ -785,9 +786,16 @@ class Order(CountableDjangoObjectType):
         return root.total_authorized
 
     @staticmethod
-    def resolve_total_captured(root: models.Order, _info):
+    def resolve_total_captured(root: models.Order, info):
         # FIXME adjust to multiple payments in the future
-        return root.total_captured
+        def _resolve_total_captured(payments):
+            return get_total_captured(payments, root.currency)
+
+        return (
+            PaymentsByOrderIdLoader(info.context)
+            .load(root.id)
+            .then(_resolve_total_captured)
+        )
 
     @staticmethod
     def resolve_total_balance(root: models.Order, _info):

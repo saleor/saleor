@@ -1,21 +1,24 @@
 import json
 import logging
 from decimal import Decimal
-from typing import TYPE_CHECKING, Dict, Optional
+from operator import attrgetter
+from typing import TYPE_CHECKING, Dict, List, Optional
 
 import graphene
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import transaction
+from prices import Money
 
 from ..account.models import User
 from ..checkout.models import Checkout
-from ..order.models import Order
+from ..core.taxes import zero_money
 from . import ChargeStatus, GatewayError, PaymentError, TransactionKind
 from .error_codes import PaymentErrorCode
 from .interface import AddressData, GatewayResponse, PaymentData
 from .models import Payment, Transaction
 
 if TYPE_CHECKING:
+    from ..order.models import Order
     from ..plugins.manager import PluginsManager
 
 logger = logging.getLogger(__name__)
@@ -78,7 +81,7 @@ def create_payment(
     payment_token: Optional[str] = "",
     extra_data: Dict = None,
     checkout: Checkout = None,
-    order: Order = None,
+    order: "Order" = None,
     return_url: str = None,
 ) -> Payment:
     """Create a payment instance.
@@ -365,3 +368,20 @@ def is_currency_supported(currency: str, gateway_id: str, manager: "PluginsManag
     """Return true if the given gateway supports given currency."""
     available_gateways = manager.list_payment_gateways(currency=currency)
     return any([gateway.id == gateway_id for gateway in available_gateways])
+
+
+def get_last_payment(payments: List[Payment]):
+    return max(payments, default=None, key=attrgetter("pk"))
+
+
+def get_total_captured(payments: List[Payment], fallback_currency: str):
+    if last_payment := get_last_payment(payments):
+        if last_payment.charge_status in (  # type: ignore
+            ChargeStatus.PARTIALLY_CHARGED,
+            ChargeStatus.FULLY_CHARGED,
+            ChargeStatus.PARTIALLY_REFUNDED,
+        ):
+            return Money(
+                last_payment.captured_amount, last_payment.currency  # type: ignore
+            )
+    return zero_money(fallback_currency)
