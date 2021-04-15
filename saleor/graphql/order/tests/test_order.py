@@ -28,7 +28,7 @@ from ....order.notifications import get_default_order_payload
 from ....payment import ChargeStatus, PaymentError
 from ....payment.models import Payment
 from ....plugins.manager import PluginsManager
-from ....shipping.models import ShippingMethod
+from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ....warehouse.models import Allocation, Stock
 from ....warehouse.tests.utils import get_available_quantity_for_stock
 from ...order.mutations.orders import (
@@ -399,6 +399,34 @@ def test_order_query(
         method["minimumOrderPrice"]["amount"]
     )
     assert expected_method.type.upper() == method["type"]
+
+
+def test_order_query_shipping_method_channel_listing_does_not_exist(
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
+):
+    # given
+    order = order_with_lines
+    order.status = OrderStatus.UNFULFILLED
+    order.save()
+
+    shipping_method = order.shipping_method
+    ShippingMethodChannelListing.objects.filter(
+        shipping_method=shipping_method, channel=order.channel
+    ).delete()
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    assert order_data["shippingMethod"]["id"] == graphene.Node.to_global_id(
+        "ShippingMethod", order.shipping_method.id
+    )
 
 
 def test_order_discounts_query(
