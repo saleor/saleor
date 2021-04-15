@@ -11,6 +11,7 @@ from ..core.fields import (
     FilterInputConnectionField,
     PrefetchingConnectionField,
 )
+from ..core.utils import from_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_query
 from ..decorators import permission_required
 from ..translations.mutations import (
@@ -267,7 +268,7 @@ class ProductQueries(graphene.ObjectType):
         if channel is None and not is_staff:
             channel = get_default_channel_slug_or_graphql_error()
         if id:
-            _, id = graphene.Node.from_global_id(id)
+            _, id = from_global_id_or_error(id)
             collection = resolve_collection_by_id(info, id, channel, requestor)
         else:
             collection = resolve_collection_by_slug(
@@ -302,7 +303,7 @@ class ProductQueries(graphene.ObjectType):
         if channel is None and not is_staff:
             channel = get_default_channel_slug_or_graphql_error()
         if id:
-            _, id = graphene.Node.from_global_id(id)
+            _type, id = from_global_id_or_error(id, only_type="Product")
             product = resolve_product_by_id(
                 info, id, channel_slug=channel, requestor=requestor
             )
@@ -348,7 +349,7 @@ class ProductQueries(graphene.ObjectType):
         if channel is None and not is_staff:
             channel = get_default_channel_slug_or_graphql_error()
         if id:
-            _, id = graphene.Node.from_global_id(id)
+            _, id = from_global_id_or_error(id)
             variant = resolve_variant_by_id(
                 info,
                 id,

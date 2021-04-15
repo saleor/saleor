@@ -4,6 +4,7 @@ from ...core.exceptions import PermissionDenied
 from ...core.permissions import AppPermission
 from ...webhook import models, payloads
 from ...webhook.event_types import WebhookEventType
+from ..core.utils import from_global_id_or_error
 from .types import Webhook, WebhookEvent
 
 
@@ -22,7 +23,7 @@ def resolve_webhooks(info, **_kwargs):
 def resolve_webhook(info, webhook_id):
     app = info.context.app
     if app:
-        _, webhook_id = graphene.Node.from_global_id(webhook_id)
+        _, webhook_id = from_global_id_or_error(webhook_id)
         return app.webhooks.filter(id=webhook_id).first()
     user = info.context.user
     if user.has_perm(AppPermission.MANAGE_APPS):

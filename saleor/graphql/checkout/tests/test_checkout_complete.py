@@ -596,9 +596,7 @@ def test_checkout_complete_invalid_checkout_id(user_api_client):
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
-    assert (
-        data["checkoutErrors"][0]["message"] == "Couldn't resolve to a node: invalidId"
-    )
+    assert data["checkoutErrors"][0]["message"] == "Couldn't resolve id: invalidId."
     assert data["checkoutErrors"][0]["field"] == "checkoutId"
     assert orders_count == Order.objects.count()
 
