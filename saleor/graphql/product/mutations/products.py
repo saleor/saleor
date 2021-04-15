@@ -1344,8 +1344,8 @@ class ProductMediaUpdate(BaseMutation):
         if alt is not None:
             media.alt = alt
             media.save(update_fields=["alt"])
+        info.context.plugins.product_updated(product)
         product = ChannelContext(node=product, channel_slug=None)
-        info.context.plugins.product_updated(product.node)
         return ProductMediaUpdate(product=product, media=media)
 
 
