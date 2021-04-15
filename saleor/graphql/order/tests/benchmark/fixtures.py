@@ -1,5 +1,6 @@
 import random
 import uuid
+from decimal import Decimal
 
 import pytest
 from prices import Money, TaxedMoney
@@ -12,7 +13,6 @@ from .....payment.models import Payment
 
 ORDER_COUNT_IN_BENCHMARKS = 10
 EVENTS_PER_ORDER = 5
-PAYMENTS_PER_ORDER = 3
 
 
 def _prepare_payments_for_order(order):
@@ -21,9 +21,22 @@ def _prepare_payments_for_order(order):
             gateway="mirumee.payments.dummy",
             order=order,
             is_active=True,
-            charge_status=random.choice(ChargeStatus.CHOICES)[0],
-        )
-        for _ in range(PAYMENTS_PER_ORDER)
+            charge_status=ChargeStatus.NOT_CHARGED,
+        ),
+        Payment(
+            gateway="mirumee.payments.dummy",
+            order=order,
+            is_active=True,
+            charge_status=ChargeStatus.PARTIALLY_CHARGED,
+            captured_amount=Decimal("6.0"),
+        ),
+        Payment(
+            gateway="mirumee.payments.dummy",
+            order=order,
+            is_active=True,
+            charge_status=ChargeStatus.FULLY_CHARGED,
+            captured_amount=Decimal("10.0"),
+        ),
     ]
 
 
