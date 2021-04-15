@@ -1371,7 +1371,7 @@ def test_shipping_method_create_translation(
 ):
     query = """
     mutation shippingPriceTranslate(
-        $shippingMethodId: ID!, $input: DescriptionTranslationInput!
+        $shippingMethodId: ID!, $input: ShippingPriceTranslationInput!
     ) {
         shippingPriceTranslate(
                 id: $shippingMethodId, languageCode: PL,

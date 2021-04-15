@@ -107,7 +107,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - `ShippingMethod` was extended with `description` field.
   - `ShippingPriceInput` was extended with `description` field
   - Extended `shippingPriceUpdate`, `shippingPriceCreate` mutation to add/edit description
-  - Input field in `shippingPriceTranslate` changed to `DescriptionTranslationInput`
+  - Input field in `shippingPriceTranslate` changed to `ShippingPriceTranslationInput`
 
 ### Other
 
