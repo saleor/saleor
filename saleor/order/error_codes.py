@@ -31,3 +31,4 @@ class OrderErrorCode(Enum):
     DUPLICATED_INPUT_ITEM = "duplicated_input_item"
     NOT_AVAILABLE_IN_CHANNEL = "not_available_in_channel"
     CHANNEL_INACTIVE = "channel_inactive"
+    UNAVAILABLE_VARIANT_IN_CHANNEL = "unavailable_variant_in_channel"
