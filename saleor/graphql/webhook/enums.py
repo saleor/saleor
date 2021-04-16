@@ -12,7 +12,7 @@ def description(enum):
     elif enum == WebhookEventTypeEnum.CHECKOUT_UPDATED:
         return (
             "A checkout is updated. "
-            "Also triggers for all updates related to a checkout."
+            "It also triggers all updates related to the checkout."
         )
     elif enum == WebhookEventTypeEnum.CUSTOMER_CREATED:
         return "A new customer account is created."
@@ -25,9 +25,9 @@ def description(enum):
     elif enum == WebhookEventTypeEnum.ORDER_CONFIRMED:
         return (
             "An order is confirmed (status change unconfirmed -> unfulfilled) "
-            "by staff user using OrderConfirm mutation. "
-            "Also triggers when user finish checkout and shop setting "
-            "`automatically_confirm_all_new_orders` is enabled."
+            "by a staff user using the OrderConfirm mutation. "
+            "It also triggers when the user completes the checkout and the shop "
+            "setting `automatically_confirm_all_new_orders` is enabled."
         )
     elif enum == WebhookEventTypeEnum.ORDER_FULLY_PAID:
         return "Payment is made and an order is fully paid."
