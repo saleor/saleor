@@ -6,10 +6,9 @@ from ....core.enums import PermissionEnum
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 APP_UPDATE_MUTATION = """
-mutation AppUpdate($id: ID!, $is_active: Boolean,
-                                $permissions: [PermissionEnum]){
+mutation AppUpdate($id: ID!, $permissions: [PermissionEnum]){
     appUpdate(id: $id,
-        input:{isActive: $is_active, permissions:$permissions}){
+        input:{permissions:$permissions}){
         app{
             isActive
             id
@@ -47,7 +46,6 @@ def test_app_update_mutation(
 
     variables = {
         "id": id,
-        "is_active": False,
         "permissions": [
             PermissionEnum.MANAGE_PRODUCTS.name,
             PermissionEnum.MANAGE_USERS.name,
@@ -64,7 +62,6 @@ def test_app_update_mutation(
     tokens = app.tokens.all()
 
     assert app_data["isActive"] == app.is_active
-    assert app.is_active is False
     assert len(tokens_data) == 1
     assert tokens_data[0]["authToken"] == tokens.get().auth_token[-4:]
     assert set(app.permissions.all()) == {
@@ -97,7 +94,6 @@ def test_app_update_mutation_for_app(
 
     variables = {
         "id": id,
-        "is_active": False,
         "permissions": [
             PermissionEnum.MANAGE_PRODUCTS.name,
             PermissionEnum.MANAGE_USERS.name,
@@ -112,7 +108,6 @@ def test_app_update_mutation_for_app(
     tokens = app.tokens.all()
 
     assert app_data["isActive"] == app.is_active
-    assert app.is_active is False
     assert len(tokens_data) == 1
     assert tokens_data[0]["authToken"] == tokens.get().auth_token[-4:]
     assert set(app.permissions.all()) == {
@@ -136,7 +131,6 @@ def test_app_update_mutation_out_of_scope_permissions(
 
     variables = {
         "id": id,
-        "is_active": False,
         "permissions": [
             PermissionEnum.MANAGE_PRODUCTS.name,
             PermissionEnum.MANAGE_USERS.name,
@@ -169,7 +163,6 @@ def test_app_update_mutation_superuser_can_add_any_permissions_to_app(
 
     variables = {
         "id": id,
-        "is_active": False,
         "permissions": [
             PermissionEnum.MANAGE_PRODUCTS.name,
             PermissionEnum.MANAGE_USERS.name,
@@ -186,7 +179,6 @@ def test_app_update_mutation_superuser_can_add_any_permissions_to_app(
     tokens = app.tokens.all()
 
     assert app_data["isActive"] == app.is_active
-    assert app.is_active is False
     assert len(tokens_data) == 1
     assert tokens_data[0]["authToken"] == tokens.get().auth_token[-4:]
     assert set(app.permissions.all()) == {
@@ -215,7 +207,6 @@ def test_app_update_mutation_for_app_out_of_scope_permissions(
 
     variables = {
         "id": id,
-        "is_active": False,
         "permissions": [
             PermissionEnum.MANAGE_PRODUCTS.name,
             PermissionEnum.MANAGE_USERS.name,
@@ -255,7 +246,6 @@ def test_app_update_mutation_out_of_scope_app(
 
     variables = {
         "id": id,
-        "is_active": False,
         "permissions": [
             PermissionEnum.MANAGE_PRODUCTS.name,
             PermissionEnum.MANAGE_USERS.name,
@@ -289,7 +279,6 @@ def test_app_update_mutation_superuser_can_update_any_app(
 
     variables = {
         "id": id,
-        "is_active": False,
         "permissions": [
             PermissionEnum.MANAGE_PRODUCTS.name,
             PermissionEnum.MANAGE_USERS.name,
@@ -306,7 +295,6 @@ def test_app_update_mutation_superuser_can_update_any_app(
     tokens = app.tokens.all()
 
     assert app_data["isActive"] == app.is_active
-    assert app.is_active is False
     assert len(tokens_data) == 1
     assert tokens_data[0]["authToken"] == tokens.get().auth_token[-4:]
     assert set(app.permissions.all()) == {
@@ -335,7 +323,6 @@ def test_app_update_mutation_for_app_out_of_scope_app(
 
     variables = {
         "id": id,
-        "is_active": False,
         "permissions": [
             PermissionEnum.MANAGE_PRODUCTS.name,
             PermissionEnum.MANAGE_USERS.name,
@@ -358,7 +345,6 @@ def test_app_update_no_permission(app, staff_api_client, staff_user):
     id = graphene.Node.to_global_id("App", app.id)
     variables = {
         "id": id,
-        "is_active": False,
         "permissions": [PermissionEnum.MANAGE_PRODUCTS.name],
     }
     response = staff_api_client.post_graphql(query, variables=variables)

@@ -2053,9 +2053,8 @@ def test_checkout_customer_attach(
     assert checkout.user is None
 
     query = """
-        mutation checkoutCustomerAttach($checkoutId: ID!, $customerId: ID!) {
-            checkoutCustomerAttach(
-                    checkoutId: $checkoutId, customerId: $customerId) {
+        mutation checkoutCustomerAttach($checkoutId: ID!) {
+            checkoutCustomerAttach(checkoutId: $checkoutId) {
                 checkout {
                     token
                 }
@@ -2081,12 +2080,6 @@ def test_checkout_customer_attach(
     assert not data["errors"]
     checkout.refresh_from_db()
     assert checkout.user == customer_user
-
-    # Mutation with ID of a different user should fail as well
-    other_customer = User.objects.create_user("othercustomer@example.com", "password")
-    variables["customerId"] = graphene.Node.to_global_id("User", other_customer.pk)
-    response = user_api_client.post_graphql(query, variables)
-    assert_no_permission(response)
 
 
 MUTATION_CHECKOUT_CUSTOMER_DETACH = """

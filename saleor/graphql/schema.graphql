@@ -299,7 +299,6 @@ input AppFilterInput {
 
 input AppInput {
   name: String
-  isActive: Boolean
   permissions: [PermissionEnum]
 }
 
@@ -493,7 +492,6 @@ input AttributeFilterInput {
 
 input AttributeInput {
   slug: String!
-  value: String
   values: [String]
 }
 
@@ -2792,7 +2790,7 @@ type Mutation {
   checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID!): CheckoutBillingAddressUpdate
   checkoutComplete(checkoutId: ID!, paymentData: JSONString, redirectUrl: String, storeSource: Boolean = false): CheckoutComplete
   checkoutCreate(input: CheckoutCreateInput!): CheckoutCreate
-  checkoutCustomerAttach(checkoutId: ID!, customerId: ID): CheckoutCustomerAttach
+  checkoutCustomerAttach(checkoutId: ID!): CheckoutCustomerAttach
   checkoutCustomerDetach(checkoutId: ID!): CheckoutCustomerDetach
   checkoutEmailUpdate(checkoutId: ID, email: String!): CheckoutEmailUpdate
   checkoutLineDelete(checkoutId: ID!, lineId: ID): CheckoutLineDelete

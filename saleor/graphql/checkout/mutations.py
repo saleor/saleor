@@ -557,14 +557,6 @@ class CheckoutCustomerAttach(BaseMutation):
 
     class Arguments:
         checkout_id = graphene.ID(required=True, description="ID of the checkout.")
-        customer_id = graphene.ID(
-            required=False,
-            description=(
-                "[Deprecated] The ID of the customer. To identify a customer you "
-                "should authenticate with JWT. This field will be removed after "
-                "2020-07-31."
-            ),
-        )
 
     class Meta:
         description = "Sets the customer as the owner of the checkout."
@@ -580,14 +572,6 @@ class CheckoutCustomerAttach(BaseMutation):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
-
-        # Check if provided customer_id matches with the authenticated user and raise
-        # error if it doesn't. This part can be removed when `customer_id` field is
-        # removed.
-        if customer_id:
-            current_user_id = graphene.Node.to_global_id("User", info.context.user.id)
-            if current_user_id != customer_id:
-                raise PermissionDenied()
 
         checkout.user = info.context.user
         checkout.save(update_fields=["user", "last_change"])

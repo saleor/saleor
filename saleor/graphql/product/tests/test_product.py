@@ -1603,7 +1603,7 @@ def test_products_query_with_filter_attributes(
 
     variables = {
         "filter": {
-            "attributes": [{"slug": attribute.slug, "value": attr_value.slug}],
+            "attributes": [{"slug": attribute.slug, "values": [attr_value.slug]}],
             "channel": channel_USD.slug,
         }
     }
@@ -2336,10 +2336,10 @@ def test_filter_products_by_wrong_attributes(user_api_client, product, channel_U
         product.product_type.variant_attributes.get(slug="size").values.first().id
     )
     query = """
-    query ($channel: String){
+    query ($channel: String, $attributesFilter: [AttributeInput]){
         products(
             filter: {
-                attributes: {slug: "%(slug)s", value: "%(value)s"},
+                attributes: $attributesFilter,
                 channel: $channel
             },
             first: 1,
@@ -2352,12 +2352,12 @@ def test_filter_products_by_wrong_attributes(user_api_client, product, channel_U
             }
         }
     }
-    """ % {
-        "slug": product_attr.slug,
-        "value": attr_value,
-    }
+    """
 
-    variables = {"channel": channel_USD.slug}
+    variables = {
+        "channel": channel_USD.slug,
+        "attributesFilter": [{"slug": product_attr.slug, "values": [attr_value]}],
+    }
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     products = content["data"]["products"]["edges"]
@@ -2391,7 +2391,7 @@ def test_filter_products_with_unavailable_variants_attributes_as_user(
     variables = {
         "channel": channel_USD.slug,
         "attributesFilter": [
-            {"slug": f"{product_attr.slug}", "value": f"{attr_value.slug}"}
+            {"slug": f"{product_attr.slug}", "values": [f"{attr_value.slug}"]}
         ],
     }
     product_list[0].variants.first().channel_listings.filter(
@@ -2432,7 +2432,7 @@ def test_filter_products_with_unavailable_variants_attributes_as_staff(
     variables = {
         "channel": channel_USD.slug,
         "attributesFilter": [
-            {"slug": f"{product_attr.slug}", "value": f"{attr_value.slug}"}
+            {"slug": f"{product_attr.slug}", "values": [f"{attr_value.slug}"]}
         ],
     }
     product_list[0].variants.first().channel_listings.filter(

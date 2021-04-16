@@ -211,7 +211,7 @@ def test_real_query(user_api_client, product, channel_USD):
         "sortBy": {"field": "NAME", "direction": "ASC"},
         "first": 1,
         "attributesFilter": [
-            {"slug": f"{product_attr.slug}", "value": f"{attr_value.slug}"}
+            {"slug": f"{product_attr.slug}", "values": [f"{attr_value.slug}"]}
         ],
         "channel": channel_USD.slug,
     }
