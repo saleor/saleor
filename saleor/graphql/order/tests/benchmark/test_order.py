@@ -192,6 +192,21 @@ MULTIPLE_ORDER_ADDRESS_DETAILS_QUERY = """
           events {
             id
           }
+          totalCaptured {
+            amount
+          }
+          totalAuthorized {
+            amount
+          }
+          actions
+          subtotal {
+            net {
+              amount
+            }
+          }
+          fulfillments {
+            id
+          }
         }
       }
     }
