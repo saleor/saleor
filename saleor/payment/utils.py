@@ -11,14 +11,14 @@ from prices import Money
 
 from ..account.models import User
 from ..checkout.models import Checkout
-from ..core.taxes import zero_money
+from ..core.taxes import zero_money, zero_taxed_money
 from . import ChargeStatus, GatewayError, PaymentError, TransactionKind
 from .error_codes import PaymentErrorCode
 from .interface import AddressData, GatewayResponse, PaymentData
 from .models import Payment, Transaction
 
 if TYPE_CHECKING:
-    from ..order.models import Order
+    from ..order.models import Order, OrderLine
     from ..plugins.manager import PluginsManager
 
 logger = logging.getLogger(__name__)
@@ -386,3 +386,8 @@ def get_total_captured(payments: List[Payment], fallback_currency: str):
                 last_payment.captured_amount, last_payment.currency  # type: ignore
             )
     return zero_money(fallback_currency)
+
+
+def get_subtotal(order_lines: List["OrderLine"], fallback_currency: str):
+    subtotal_iterator = (line.total_price for line in order_lines)
+    return sum(subtotal_iterator, zero_taxed_money(currency=fallback_currency))

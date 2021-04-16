@@ -21,7 +21,7 @@ from ...order import OrderStatus, models
 from ...order.models import FulfillmentStatus
 from ...order.utils import get_order_country, get_valid_shipping_methods_for_order
 from ...payment import ChargeStatus
-from ...payment.utils import get_total_captured
+from ...payment.utils import get_subtotal, get_total_captured
 from ...product.product_images import get_product_image_thumbnail
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..account.types import User
@@ -769,8 +769,15 @@ class Order(CountableDjangoObjectType):
         return actions
 
     @staticmethod
-    def resolve_subtotal(root: models.Order, _info):
-        return root.get_subtotal()
+    def resolve_subtotal(root: models.Order, info):
+        def _resolve_subtotal(order_lines):
+            return get_subtotal(order_lines, root.currency)
+
+        return (
+            OrderLinesByOrderIdLoader(info.context)
+            .load(root.id)
+            .then(_resolve_subtotal)
+        )
 
     @staticmethod
     def resolve_total(root: models.Order, _info):
