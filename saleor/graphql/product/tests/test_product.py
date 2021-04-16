@@ -1449,7 +1449,6 @@ def test_fetch_product_from_category_query(
                     node {
                         id
                         name
-                        url
                         slug
                         thumbnail{
                             url
@@ -1487,12 +1486,10 @@ def test_fetch_product_from_category_query(
                                     gross {
                                         amount
                                         currency
-                                        localized
                                     }
                                     net {
                                         amount
                                         currency
-                                        localized
                                     }
                                     currency
                                 }
@@ -1517,7 +1514,6 @@ def test_fetch_product_from_category_query(
     assert len(product_edges_data) == category.products.count()
     product_data = product_edges_data[0]["node"]
     assert product_data["name"] == product.name
-    assert product_data["url"] == ""
     assert product_data["slug"] == product.slug
 
     variant = product.variants.first()

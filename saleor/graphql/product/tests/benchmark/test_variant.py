@@ -41,28 +41,24 @@ def test_retrieve_variant_list(
               currency
               gross {
                 amount
-                localized
               }
             }
             price {
               currency
               gross {
                 amount
-                localized
               }
             }
             priceUndiscounted {
               currency
               gross {
                 amount
-                localized
               }
             }
             priceLocalCurrency {
               currency
               gross {
                 amount
-                localized
               }
             }
           }
@@ -229,7 +225,6 @@ def test_product_variant_create(
                     costPrice {
                         currency
                         amount
-                        localized
                     }
                     weight {
                         value

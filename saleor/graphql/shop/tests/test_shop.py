@@ -169,28 +169,6 @@ def test_query_permissions(staff_api_client):
         assert code in [str_to_enum(code) for code in permissions_codenames]
 
 
-def test_query_navigation(user_api_client, site_settings):
-    query = """
-    query {
-        shop {
-            navigation {
-                main {
-                    name
-                }
-                secondary {
-                    name
-                }
-            }
-        }
-    }
-    """
-    response = user_api_client.post_graphql(query)
-    content = get_graphql_content(response)
-    navigation_data = content["data"]["shop"]["navigation"]
-    assert navigation_data["main"]["name"] == site_settings.top_menu.name
-    assert navigation_data["secondary"]["name"] == site_settings.bottom_menu.name
-
-
 def test_query_charge_taxes_on_shipping(api_client, site_settings):
     query = """
     query {

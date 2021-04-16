@@ -90,10 +90,6 @@ def test_query_staff_user(
                 avatar {
                     url
                 }
-                permissions {
-                    code
-                    name
-                }
                 userPermissions {
                     code
                     name
@@ -147,9 +143,6 @@ def test_staff_create(
                     isStaff
                     isActive
                     userPermissions {
-                        code
-                    }
-                    permissions {
                         code
                     }
                     permissionGroups {
@@ -215,9 +208,6 @@ def test_staff_update_groups_and_permissions(
                     userPermissions {
                         code
                     }
-                    permissions {
-                        code
-                    }
                     permissionGroups {
                         name
                     }
@@ -274,13 +264,6 @@ def test_staff_update_groups_and_permissions(
     assert {group["name"] for group in data["user"]["permissionGroups"]} == {
         group2.name,
         group3.name,
-    }
-    # deprecated, to remove in #5389
-    assert len(data["user"]["permissions"]) == 3
-    assert {perm["code"].lower() for perm in data["user"]["permissions"]} == {
-        permission_manage_orders.codename,
-        permission_manage_products.codename,
-        permission_manage_staff.codename,
     }
 
 

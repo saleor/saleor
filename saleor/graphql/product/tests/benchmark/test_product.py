@@ -34,28 +34,24 @@ def test_product_details(product_with_image, api_client, count_queries, channel_
               currency
               gross {
                 amount
-                localized
               }
             }
             price {
               currency
               gross {
                 amount
-                localized
               }
             }
             priceUndiscounted {
               currency
               gross {
                 amount
-                localized
               }
             }
             priceLocalCurrency {
               currency
               gross {
                 amount
-                localized
               }
             }
           }
@@ -104,14 +100,12 @@ def test_product_details(product_with_image, api_client, count_queries, channel_
                           currency
                           gross {
                             amount
-                            localized
                           }
                         }
                         stop{
                           currency
                           gross {
                             amount
-                            localized
                           }
                         }
                       }
@@ -120,14 +114,12 @@ def test_product_details(product_with_image, api_client, count_queries, channel_
                           currency
                           gross {
                             amount
-                            localized
                           }
                         }
                         stop{
                           currency
                           gross {
                             amount
-                            localized
                           }
                         }
                       }
@@ -136,14 +128,12 @@ def test_product_details(product_with_image, api_client, count_queries, channel_
                           currency
                           gross {
                             amount
-                            localized
                           }
                         }
                         stop{
                           currency
                           gross {
                             amount
-                            localized
                           }
                         }
                       }

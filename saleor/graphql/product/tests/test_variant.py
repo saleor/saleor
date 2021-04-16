@@ -366,7 +366,6 @@ CREATE_VARIANT_MUTATION = """
                         costPrice {
                             currency
                             amount
-                            localized
                         }
                         weight {
                             value
@@ -1287,7 +1286,6 @@ def test_update_product_variant(
                         costPrice {
                             currency
                             amount
-                            localized
                         }
                     }
                 }

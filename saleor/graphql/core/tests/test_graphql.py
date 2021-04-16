@@ -106,13 +106,11 @@ def test_real_query(user_api_client, product, channel_USD):
     fragment CategoryPageFragmentQuery on Category {
         id
         name
-        url
         ancestors(first: 20) {
             edges {
                 node {
                     name
                     id
-                    url
                     __typename
                 }
             }
@@ -122,7 +120,6 @@ def test_real_query(user_api_client, product, channel_USD):
                 node {
                     name
                     id
-                    url
                     slug
                     __typename
                 }
@@ -160,7 +157,6 @@ def test_real_query(user_api_client, product, channel_USD):
         thumbnailUrl2x:     thumbnail(size: 510){
             url
         }
-        url
         __typename
     }
 
@@ -178,7 +174,6 @@ def test_real_query(user_api_client, product, channel_USD):
                 gross {
                     amount
                     currency
-                    localized
                     __typename
                 }
                 currency
@@ -188,7 +183,6 @@ def test_real_query(user_api_client, product, channel_USD):
                 gross {
                     amount
                     currency
-                    localized
                     __typename
                 }
                 currency
