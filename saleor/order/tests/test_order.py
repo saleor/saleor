@@ -634,8 +634,10 @@ def test_order_weight_add_new_variant(order_with_lines, product, info):
 def test_order_weight_change_line_quantity(staff_user, lines_info):
     line_info = lines_info[0]
     new_quantity = line_info.quantity + 2
-    change_order_line_quantity(staff_user, line_info, new_quantity, line_info.quantity)
     order = line_info.line.order
+    change_order_line_quantity(
+        staff_user, line_info, new_quantity, line_info.quantity, order.channel.slug
+    )
     assert order.weight == _calculate_order_weight_from_lines(order)
 
 
@@ -922,8 +924,12 @@ def test_category_voucher_checkout_discount_raises_not_applicable(
 def test_ordered_item_change_quantity(staff_user, transactional_db, lines_info):
     order = lines_info[0].line.order
     assert not order.events.count()
-    change_order_line_quantity(staff_user, lines_info[1], lines_info[1].quantity, 0)
-    change_order_line_quantity(staff_user, lines_info[0], lines_info[0].quantity, 0)
+    change_order_line_quantity(
+        staff_user, lines_info[1], lines_info[1].quantity, 0, order.channel.slug
+    )
+    change_order_line_quantity(
+        staff_user, lines_info[0], lines_info[0].quantity, 0, order.channel.slug
+    )
     assert order.get_total_quantity() == 0
 
 
@@ -934,7 +940,9 @@ def test_change_order_line_quantity_changes_total_prices(
     assert not order.events.count()
     line_info = lines_info[0]
     new_quantity = line_info.quantity + 1
-    change_order_line_quantity(staff_user, line_info, line_info.quantity, new_quantity)
+    change_order_line_quantity(
+        staff_user, line_info, line_info.quantity, new_quantity, order.channel.slug
+    )
     assert line_info.line.total_price == line_info.line.unit_price * new_quantity
 
 

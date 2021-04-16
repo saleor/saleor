@@ -26,14 +26,6 @@ REVERSED_DIRECTION = {
 }
 
 
-def get_database_id(info, node_id, only_type):
-    """Get a database ID from a node ID of given type."""
-    _type, _id = graphene.relay.Node.from_global_id(node_id)
-    if _type != str(only_type):
-        raise AssertionError("Must receive a %s id." % str(only_type))
-    return _id
-
-
 def resolve_global_ids_to_primary_keys(ids, graphene_type=None):
     pks = []
     invalid_ids = []

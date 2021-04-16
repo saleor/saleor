@@ -822,7 +822,11 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
         )
         try:
             change_order_line_quantity(
-                info.context.user, line_info, instance.old_quantity, instance.quantity
+                info.context.user,
+                line_info,
+                instance.old_quantity,
+                instance.quantity,
+                instance.order.channel.slug,
             )
         except InsufficientStock:
             raise ValidationError(
