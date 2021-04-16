@@ -234,7 +234,9 @@ def _create_lines_for_order(
         for variant_translation in variants_translation
     }
 
-    check_stock_quantity_bulk(variants, country_code, quantities)
+    check_stock_quantity_bulk(
+        variants, country_code, quantities, checkout_info.channel.slug
+    )
 
     return [
         _create_line_for_order(
@@ -390,7 +392,7 @@ def _create_order(
     OrderLine.objects.bulk_create(order_lines)
 
     country_code = checkout_info.get_country()
-    allocate_stocks(order_lines_info, country_code)
+    allocate_stocks(order_lines_info, country_code, checkout_info.channel.slug)
 
     # Add gift cards to the order
     for gift_card in checkout.gift_cards.select_for_update():

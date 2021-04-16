@@ -290,6 +290,29 @@ def test_prepare_products_relations_data_only_channel_ids(
     assert result == expected_result
 
 
+def test_prepare_products_relations_data_attribute_without_values(
+    product,
+    channel_USD,
+    channel_PLN,
+):
+    # given
+    pk = product.pk
+
+    attribute_product = product.attributes.first()
+    attribute_product.values.clear()
+    attribute = attribute_product.assignment.attribute
+
+    qs = Product.objects.all()
+    fields = {"name"}
+    attribute_ids = [str(attribute.pk)]
+
+    # when
+    result = prepare_products_relations_data(qs, fields, attribute_ids, [])
+
+    # then
+    assert result == {pk: {f"{attribute.slug} (product attribute)": ""}}
+
+
 @patch("saleor.csv.utils.products_data.prepare_variants_relations_data")
 def test_get_variants_relations_data(prepare_variants_data_mocked, product_list):
     # given
@@ -837,6 +860,31 @@ def test_add_attribute_info_to_data_no_slug(product):
 
     # then
     assert result == input_data
+
+
+def test_add_attribute_info_when_no_value(product):
+    # given
+    pk = product.pk
+    slug = "test_attribute_slug"
+    attribute_data = AttributeData(
+        slug=slug,
+        value=None,
+        file_url=None,
+        input_type="dropdown",
+        entity_type=None,
+        rich_text=None,
+        unit=None,
+    )
+    input_data = {pk: {}}
+
+    # when
+    result = add_attribute_info_to_data(
+        product.pk, attribute_data, "product attribute", input_data
+    )
+
+    # then
+    expected_header = f"{slug} (product attribute)"
+    assert result[pk][expected_header] == {""}
 
 
 def test_add_file_attribute_info_to_data(product):

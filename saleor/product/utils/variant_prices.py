@@ -13,7 +13,7 @@ from ..models import Product, ProductChannelListing, ProductVariantChannelListin
 def _get_variant_prices_in_channels_dict(product):
     prices_dict = defaultdict(list)
     for variant_channel_listing in ProductVariantChannelListing.objects.filter(
-        variant__product_id=product
+        variant__product_id=product, price_amount__isnull=False
     ):
         channel_id = variant_channel_listing.channel_id
         prices_dict[channel_id].append(variant_channel_listing.price)
@@ -44,7 +44,9 @@ def update_product_discounted_price(product, discounts=None):
     changed_products_channels_to_update = []
     for product_channel_listing in product.channel_listings.all():
         channel_id = product_channel_listing.channel_id
-        variant_prices_dict = variant_prices_in_channels_dict[channel_id]
+        variant_prices_dict = variant_prices_in_channels_dict.get(channel_id)
+        if not variant_prices_dict:
+            continue
         product_discounted_price = _get_product_discounted_price(
             variant_prices_dict,
             product,

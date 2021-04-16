@@ -282,7 +282,7 @@ def test_checkout_updated(mocked_webhook_trigger, settings, checkout_with_items)
 
     expected_data = generate_checkout_payload(checkout_with_items)
     mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.CHECKOUT_UPADTED, expected_data
+        WebhookEventType.CHECKOUT_UPDATED, expected_data
     )
 
 

@@ -124,7 +124,8 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
 
         # delete order lines for deleted variants
         order_models.OrderLine.objects.filter(pk__in=line_pks).delete()
-        recalculate_orders_task.delay(orders_id)
+        if orders_id:
+            recalculate_orders_task.delay(list(orders_id))
 
         return response
 
@@ -542,7 +543,8 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
 
         # delete order lines for deleted variants
         order_models.OrderLine.objects.filter(pk__in=line_pks).delete()
-        recalculate_orders_task.delay(orders_id)
+        if orders_id:
+            recalculate_orders_task.delay(list(orders_id))
 
         # set new product default variant if any has been removed
         products = models.Product.objects.filter(

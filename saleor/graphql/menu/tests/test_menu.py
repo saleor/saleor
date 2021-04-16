@@ -1218,7 +1218,7 @@ def test_menu_cannot_pass_an_invalid_menu_item_node_type(
     assert json.loads(response.content) == {
         "data": {
             "menuItemMove": {
-                "errors": [{"field": "item", "message": "Must receive a MenuItem id"}],
+                "errors": [{"field": "item", "message": "Must receive a MenuItem id."}],
                 "menu": None,
             }
         }

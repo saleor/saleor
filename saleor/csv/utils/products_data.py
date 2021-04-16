@@ -401,7 +401,7 @@ def add_attribute_info_to_data(
         elif input_type == AttributeInputType.RICH_TEXT:
             value = clean_editor_js(attribute_data.rich_text, to_string=True)
         else:
-            value = attribute_data.value
+            value = attribute_data.value if attribute_data.value else ""
         if header in result_data[pk]:
             result_data[pk][header].add(value)  # type: ignore
         else:

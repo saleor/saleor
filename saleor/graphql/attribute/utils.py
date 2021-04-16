@@ -8,7 +8,6 @@ from django.db.models import Q
 from django.template.defaultfilters import truncatechars
 from django.utils.text import slugify
 from graphql.error import GraphQLError
-from graphql_relay import from_global_id
 
 from ...attribute import AttributeEntityType, AttributeInputType, AttributeType
 from ...attribute import models as attribute_models
@@ -19,6 +18,7 @@ from ...page import models as page_models
 from ...page.error_codes import PageErrorCode
 from ...product import models as product_models
 from ...product.error_codes import ProductErrorCode
+from ..core.utils import from_global_id_or_error
 from ..utils import get_nodes
 
 if TYPE_CHECKING:
@@ -118,12 +118,9 @@ class AttributeAssignmentMixin:
     @classmethod
     def _resolve_attribute_global_id(cls, error_class, global_id: str) -> int:
         """Resolve an Attribute global ID into an internal ID (int)."""
-        graphene_type, internal_id = from_global_id(global_id)  # type: str, str
-        if graphene_type != "Attribute":
-            raise ValidationError(
-                f"Must receive an Attribute id, got {graphene_type}.",
-                code=error_class.INVALID.value,
-            )
+        graphene_type, internal_id = from_global_id_or_error(
+            global_id, only_type="Attribute"
+        )
         if not internal_id.isnumeric():
             raise ValidationError(
                 f"An invalid ID value was passed: {global_id}",
