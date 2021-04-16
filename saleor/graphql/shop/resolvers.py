@@ -5,9 +5,7 @@ from ..channel import ChannelContext
 
 
 def resolve_available_shipping_methods(info, channel_slug: str, address):
-    available = ShippingMethod.objects.filter(
-        channel_listings__channel__slug=channel_slug
-    )
+    available = ShippingMethod.objects.for_channel(channel_slug)
     if address and address.country:
         available = available.filter(
             shipping_zone__countries__contains=address.country,

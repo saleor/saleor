@@ -1,4 +1,4 @@
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import django_filters
 import graphene
@@ -11,9 +11,8 @@ from graphene import InputField
 from ....core.utils.validators import get_oembed_data
 from ....product import ProductMediaTypes
 from ....product.models import Category, Product, ProductChannelListing
-from ...product import types as product_types
 from ...tests.utils import get_graphql_content, get_graphql_content_from_response
-from ...utils import get_database_id, requestor_is_superuser
+from ...utils import requestor_is_superuser
 from ...utils.filters import filter_range_field, reporting_period_to_date
 from ..enums import ReportingPeriod
 from ..filters import EnumFilter
@@ -60,17 +59,6 @@ def test_user_error_field_name_for_related_object(
     assert data is None
     error = content["data"]["categoryCreate"]["errors"][0]
     assert error["field"] == "parent"
-
-
-def test_get_database_id(product):
-    info = Mock(
-        schema=Mock(
-            get_type=Mock(return_value=Mock(graphene_type=product_types.Product))
-        )
-    )
-    node_id = graphene.Node.to_global_id("Product", product.pk)
-    pk = get_database_id(info, node_id, product_types.Product)
-    assert int(pk) == product.pk
 
 
 def test_snake_to_camel_case():

@@ -6,7 +6,7 @@ from ...order.models import Order
 from ..channel.types import Channel
 from ..core.filters import ListObjectTypeFilter, MetadataFilterBase, ObjectTypeFilter
 from ..core.types.common import DateRangeInput
-from ..core.utils import from_global_id_strict_type
+from ..core.utils import from_global_id_or_error
 from ..payment.enums import PaymentChargeStatusEnum
 from ..utils import resolve_global_ids_to_primary_keys
 from ..utils.filters import filter_by_query_param, filter_range_field
@@ -21,7 +21,7 @@ def filter_payment_status(qs, _, value):
 
 def get_payment_id_from_query(value):
     try:
-        return from_global_id_strict_type(value, only_type="Payment", field="pk")
+        return from_global_id_or_error(value, only_type="Payment", field="pk")[1]
     except Exception:
         return None
 

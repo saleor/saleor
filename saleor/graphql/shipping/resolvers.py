@@ -1,16 +1,12 @@
 from prices import MoneyRange
 
 from ...shipping import models
-from ..channel.types import ChannelContext
+from ..channel import ChannelQsContext
 
 
 def resolve_shipping_zones(channel_slug):
     instances = models.ShippingZone.objects.all()
-    shipping_zones = [
-        ChannelContext(node=shipping_zone, channel_slug=channel_slug)
-        for shipping_zone in instances
-    ]
-    return shipping_zones
+    return ChannelQsContext(qs=instances, channel_slug=channel_slug)
 
 
 def resolve_price_range(channel_slug):

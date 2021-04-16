@@ -80,6 +80,7 @@ class ShippingZone(ModelWithMetadata):
     countries = CountryField(multiple=True, default=[], blank=True)
     default = models.BooleanField(default=False)
     description = models.TextField(blank=True)
+    channels = models.ManyToManyField(Channel, related_name="shipping_zones")
 
     def __str__(self):
         return self.name
@@ -96,6 +97,12 @@ class ShippingMethodQueryset(models.QuerySet):
 
     def weight_based(self):
         return self.filter(type=ShippingMethodType.WEIGHT_BASED)
+
+    def for_channel(self, channel_slug: str):
+        return self.filter(
+            shipping_zone__channels__slug=channel_slug,
+            channel_listings__channel__slug=channel_slug,
+        )
 
     @staticmethod
     def applicable_shipping_methods_by_channel(shipping_methods, channel_id):
@@ -122,6 +129,7 @@ class ShippingMethodQueryset(models.QuerySet):
         """
         qs = self.filter(
             shipping_zone__countries__contains=country_code,
+            shipping_zone__channels__id=channel_id,
             channel_listings__currency=price.currency,
             channel_listings__channel_id=channel_id,
         )

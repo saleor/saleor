@@ -1,7 +1,6 @@
 from itertools import chain
 from typing import Optional
 
-import graphene
 from django.contrib.auth import models as auth_models
 from i18naddress import get_validation_rules
 
@@ -10,6 +9,7 @@ from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
 from ...payment import gateway
 from ...payment.utils import fetch_customer_id
+from ..core.utils import from_global_id_or_error
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from ..utils.filters import filter_by_query_param
 from .types import AddressValidationData, ChoiceValue
@@ -55,7 +55,7 @@ def resolve_user(info, id=None, email=None):
     if requester:
         filter_kwargs = {}
         if id:
-            _model, filter_kwargs["pk"] = graphene.Node.from_global_id(id)
+            _model, filter_kwargs["pk"] = from_global_id_or_error(id)
         if email:
             filter_kwargs["email"] = email
         if requester.has_perms(
@@ -151,7 +151,7 @@ def prepare_graphql_payment_sources_type(payment_sources):
 def resolve_address(info, id):
     user = info.context.user
     app = info.context.app
-    _model, address_pk = graphene.Node.from_global_id(id)
+    _model, address_pk = from_global_id_or_error(id)
     if app and app.has_perm(AccountPermissions.MANAGE_USERS):
         return models.Address.objects.filter(pk=address_pk).first()
     if user and not user.is_anonymous:

@@ -45,6 +45,7 @@ def test_shipping_method_channel_listing_create_as_staff_user(
     channel_PLN,
 ):
     # given
+    shipping_method.shipping_zone.channels.add(channel_PLN)
     shipping_method_id = graphene.Node.to_global_id(
         "ShippingMethod", shipping_method.pk
     )
@@ -172,6 +173,7 @@ def test_shipping_method_channel_listing_update_with_negative_price(
     channel_PLN,
 ):
     # given
+    shipping_method.shipping_zone.channels.add(channel_PLN)
     staff_api_client.user.user_permissions.add(permission_manage_shipping)
     shipping_method_id = graphene.Node.to_global_id(
         "ShippingMethod", shipping_method.pk
@@ -212,6 +214,7 @@ def test_shipping_method_channel_listing_update_with_negative_min_value(
     channel_PLN,
 ):
     # given
+    shipping_method.shipping_zone.channels.add(channel_PLN)
     staff_api_client.user.user_permissions.add(permission_manage_shipping)
     shipping_method_id = graphene.Node.to_global_id(
         "ShippingMethod", shipping_method.pk
@@ -252,6 +255,7 @@ def test_shipping_method_channel_listing_update_with_negative_max_value(
     channel_PLN,
 ):
     # given
+    shipping_method.shipping_zone.channels.add(channel_PLN)
     staff_api_client.user.user_permissions.add(permission_manage_shipping)
     shipping_method_id = graphene.Node.to_global_id(
         "ShippingMethod", shipping_method.pk
@@ -290,6 +294,7 @@ def test_shipping_method_channel_listing_update_with_max_less_than_min(
     channel_PLN,
 ):
     # given
+    shipping_method.shipping_zone.channels.add(channel_PLN)
     shipping_method_id = graphene.Node.to_global_id(
         "ShippingMethod", shipping_method.pk
     )
@@ -334,6 +339,7 @@ def test_shipping_method_channel_listing_create_without_price(
     channel_PLN,
 ):
     # given
+    shipping_method.shipping_zone.channels.add(channel_PLN)
     shipping_method_id = graphene.Node.to_global_id(
         "ShippingMethod", shipping_method.pk
     )
@@ -376,6 +382,7 @@ def test_shipping_method_channel_listing_update_with_to_many_decimal_places_in_p
     channel_PLN,
 ):
     # given
+    shipping_method.shipping_zone.channels.add(channel_PLN)
     shipping_method_id = graphene.Node.to_global_id(
         "ShippingMethod", shipping_method.pk
     )
@@ -420,6 +427,7 @@ def test_shipping_method_channel_listing_update_with_to_many_decimal_places_in_m
     channel_PLN,
 ):
     # given
+    shipping_method.shipping_zone.channels.add(channel_PLN)
     shipping_method_id = graphene.Node.to_global_id(
         "ShippingMethod", shipping_method.pk
     )
@@ -464,6 +472,7 @@ def test_shipping_method_channel_listing_update_with_to_many_decimal_places_in_m
     channel_PLN,
 ):
     # given
+    shipping_method.shipping_zone.channels.add(channel_PLN)
     shipping_method_id = graphene.Node.to_global_id(
         "ShippingMethod", shipping_method.pk
     )
@@ -497,5 +506,52 @@ def test_shipping_method_channel_listing_update_with_to_many_decimal_places_in_m
 
     # then
     assert data["shippingErrors"][0]["field"] == "maximumOrderPrice"
+    assert data["shippingErrors"][0]["code"] == ShippingErrorCode.INVALID.name
+    assert data["shippingErrors"][0]["channels"] == [channel_id]
+
+
+def test_shipping_method_channel_listing_create_channel_not_valid(
+    staff_api_client,
+    shipping_method,
+    permission_manage_shipping,
+    channel_PLN,
+):
+    # given
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method.pk
+    )
+    channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+    price = 1
+    min_value = 2
+    max_value = 3
+
+    variables = {
+        "id": shipping_method_id,
+        "input": {
+            "addChannels": [
+                {
+                    "channelId": channel_id,
+                    "price": price,
+                    "minimumOrderPrice": min_value,
+                    "maximumOrderPrice": max_value,
+                }
+            ]
+        },
+    }
+
+    # when
+
+    response = staff_api_client.post_graphql(
+        SHIPPING_METHOD_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_shipping,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["shippingMethodChannelListingUpdate"]
+
+    # then
+    assert data["shippingErrors"][0]["field"] == "addChannels"
     assert data["shippingErrors"][0]["code"] == ShippingErrorCode.INVALID.name
     assert data["shippingErrors"][0]["channels"] == [channel_id]
