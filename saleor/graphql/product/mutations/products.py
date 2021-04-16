@@ -40,7 +40,7 @@ from ...core.types import SeoInput, Upload
 from ...core.types.common import CollectionError, ProductError
 from ...core.utils import (
     clean_seo_fields,
-    from_global_id_strict_type,
+    from_global_id_or_error,
     get_duplicated_values,
     validate_image_file,
     validate_slug_and_generate_if_needed,
@@ -332,7 +332,7 @@ class CollectionReorderProducts(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, collection_id, moves):
-        pk = from_global_id_strict_type(
+        _type, pk = from_global_id_or_error(
             collection_id, only_type=Collection, field="collection_id"
         )
 
@@ -356,7 +356,7 @@ class CollectionReorderProducts(BaseMutation):
 
         # Resolve the products
         for move_info in moves:
-            product_pk = from_global_id_strict_type(
+            _type, product_pk = from_global_id_or_error(
                 move_info.product_id, only_type=Product, field="moves"
             )
 
@@ -737,7 +737,8 @@ class ProductDelete(ModelDeleteMutation):
         response = super().perform_mutation(_root, info, **data)
         # delete order lines for deleted variant
         order_models.OrderLine.objects.filter(pk__in=line_pks).delete()
-        recalculate_orders_task.delay(orders_id)
+        if orders_id:
+            recalculate_orders_task.delay(list(orders_id))
         info.context.plugins.product_deleted(instance, variants_id)
 
         return response
@@ -1052,7 +1053,8 @@ class ProductVariantDelete(ModelDeleteMutation):
 
         # delete order lines for deleted variant
         order_models.OrderLine.objects.filter(pk__in=line_pks).delete()
-        recalculate_orders_task.delay(orders_id)
+        if orders_id:
+            recalculate_orders_task.delay(list(orders_id))
 
         transaction.on_commit(
             lambda: info.context.plugins.product_variant_deleted(variant)
@@ -1208,7 +1210,9 @@ class ProductTypeDelete(ModelDeleteMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         node_id = data.get("id")
-        product_type_pk = from_global_id_strict_type(node_id, ProductType, field="pk")
+        _type, product_type_pk = from_global_id_or_error(
+            node_id, only_type=ProductType, field="pk"
+        )
         variants_pks = models.Product.objects.filter(
             product_type__pk=product_type_pk
         ).values_list("variants__pk", flat=True)
@@ -1485,7 +1489,7 @@ class ProductVariantReorder(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, product_id, moves):
-        pk = from_global_id_strict_type(product_id, only_type=Product, field="id")
+        _type, pk = from_global_id_or_error(product_id, only_type=Product)
 
         try:
             product = models.Product.objects.prefetched_for_webhook().get(pk=pk)
@@ -1503,7 +1507,7 @@ class ProductVariantReorder(BaseMutation):
         operations = {}
 
         for move_info in moves:
-            variant_pk = from_global_id_strict_type(
+            _type, variant_pk = from_global_id_or_error(
                 move_info.id, only_type=ProductVariant, field="moves"
             )
 

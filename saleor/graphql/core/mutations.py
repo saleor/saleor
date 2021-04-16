@@ -20,7 +20,7 @@ from ..decorators import staff_member_or_app_required
 from ..utils import get_nodes
 from .types import Error, File, Upload
 from .types.common import UploadError
-from .utils import from_global_id_strict_type, snake_to_camel_case
+from .utils import from_global_id_or_error, snake_to_camel_case
 from .utils.error_codes import get_error_code_from_error
 
 registry = get_global_registry()
@@ -156,16 +156,12 @@ class BaseMutation(graphene.Mutation):
             return None
 
         try:
-            if only_type is not None:
-                pk = from_global_id_strict_type(node_id, only_type, field=field)
-            else:
-                # FIXME: warn when supplied only_type is None?
-                only_type, pk = graphene.Node.from_global_id(node_id)
+            object_type, pk = from_global_id_or_error(node_id, only_type, field=field)
 
-            if isinstance(only_type, str):
-                only_type = info.schema.get_type(only_type).graphene_type
+            if isinstance(object_type, str):
+                object_type = info.schema.get_type(object_type).graphene_type
 
-            node = cls.get_node_by_pk(info, graphene_type=only_type, pk=pk, qs=qs)
+            node = cls.get_node_by_pk(info, graphene_type=object_type, pk=pk, qs=qs)
         except (AssertionError, GraphQLError) as e:
             raise ValidationError(
                 {field: ValidationError(str(e), code="graphql_error")}
