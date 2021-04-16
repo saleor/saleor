@@ -114,6 +114,7 @@ class ShippingMethod(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             "maximum_delivery_days",
             "minimum_delivery_days",
             "name",
+            "description",
         ]
 
     @staticmethod

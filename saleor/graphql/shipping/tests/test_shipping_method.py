@@ -4,6 +4,7 @@ import pytest
 from ....shipping.error_codes import ShippingErrorCode
 from ....shipping.models import ShippingMethodChannelListing
 from ....shipping.utils import get_countries_without_shipping_zone
+from ....tests.utils import dummy_editorjs
 from ...core.enums import WeightUnitsEnum
 from ...tests.utils import get_graphql_content
 from ..types import PostalCodeRuleInclusionTypeEnum, ShippingMethodTypeEnum
@@ -575,6 +576,7 @@ PRICE_BASED_SHIPPING_QUERY = """
     mutation createShippingPrice(
         $type: ShippingMethodTypeEnum,
         $name: String!,
+        $description: JSONString,
         $shippingZone: ID!,
         $maximumDeliveryDays: Int,
         $minimumDeliveryDays: Int,
@@ -589,7 +591,7 @@ PRICE_BASED_SHIPPING_QUERY = """
             minimumDeliveryDays: $minimumDeliveryDays,
             addPostalCodeRules: $addPostalCodeRules,
             deletePostalCodeRules: $deletePostalCodeRules,
-            inclusionType: $inclusionType,
+            inclusionType: $inclusionType, description: $description
         }) {
         shippingErrors {
             field
@@ -601,6 +603,7 @@ PRICE_BASED_SHIPPING_QUERY = """
         shippingMethod {
             id
             name
+            description
             channelListings {
             price {
                 amount
@@ -642,9 +645,11 @@ def test_create_shipping_method(
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     max_del_days = 10
     min_del_days = 3
+    description = dummy_editorjs("description", True)
     variables = {
         "shippingZone": shipping_zone_id,
         "name": name,
+        "description": description,
         "type": ShippingMethodTypeEnum.PRICE.name,
         "maximumDeliveryDays": max_del_days,
         "minimumDeliveryDays": min_del_days,
@@ -660,6 +665,7 @@ def test_create_shipping_method(
     errors = data["shippingErrors"]
     assert not errors
     assert data["shippingMethod"]["name"] == name
+    assert data["shippingMethod"]["description"] == description
     assert data["shippingMethod"]["type"] == ShippingMethodTypeEnum.PRICE.name
     assert data["shippingZone"]["id"] == shipping_zone_id
     assert data["shippingMethod"]["minimumDeliveryDays"] == min_del_days
@@ -956,6 +962,7 @@ UPDATE_SHIPPING_PRICE_MUTATION = """
     mutation updateShippingPrice(
         $id: ID!,
         $shippingZone: ID!,
+        $description: JSONString,
         $type: ShippingMethodTypeEnum!,
         $maximumDeliveryDays: Int,
         $minimumDeliveryDays: Int,
@@ -969,6 +976,7 @@ UPDATE_SHIPPING_PRICE_MUTATION = """
             id: $id, input: {
                 shippingZone: $shippingZone,
                 type: $type,
+                description: $description,
                 maximumDeliveryDays: $maximumDeliveryDays,
                 minimumDeliveryDays: $minimumDeliveryDays,
                 minimumOrderWeight:$minimumOrderWeight,
@@ -985,6 +993,7 @@ UPDATE_SHIPPING_PRICE_MUTATION = """
                 id
             }
             shippingMethod {
+                description
                 type
                 minimumDeliveryDays
                 maximumDeliveryDays
@@ -1009,9 +1018,11 @@ def test_update_shipping_method(
     )
     max_del_days = 8
     min_del_days = 2
+    description = dummy_editorjs("description", True)
     variables = {
         "shippingZone": shipping_zone_id,
         "id": shipping_method_id,
+        "description": description,
         "type": ShippingMethodTypeEnum.PRICE.name,
         "maximumDeliveryDays": max_del_days,
         "minimumDeliveryDays": min_del_days,
@@ -1022,6 +1033,7 @@ def test_update_shipping_method(
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceUpdate"]
     assert data["shippingZone"]["id"] == shipping_zone_id
+    assert data["shippingMethod"]["description"] == description
     assert data["shippingMethod"]["minimumDeliveryDays"] == min_del_days
     assert data["shippingMethod"]["maximumDeliveryDays"] == max_del_days
 
