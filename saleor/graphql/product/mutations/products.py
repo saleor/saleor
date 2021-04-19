@@ -491,6 +491,7 @@ class ProductInput(graphene.InputObjectType):
     seo = SeoInput(description="Search engine optimization fields.")
     weight = WeightScalar(description="Weight of the Product.", required=False)
     rating = graphene.Float(description="Defines the product rating value.")
+    store = graphene.ID(description="ID of the store.", name="store")
 
 
 class StockInput(graphene.InputObjectType):
