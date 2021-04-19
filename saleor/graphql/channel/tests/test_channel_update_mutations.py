@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import graphene
 from django.utils.text import slugify
 
@@ -248,8 +250,16 @@ def test_channel_update_mutation_add_shipping_zone(
     assert [zone["id"] for zone in channel_data["shippingZones"]] == [shipping_zone_id]
 
 
+@patch(
+    "saleor.graphql.channel.mutations."
+    "drop_invalid_shipping_methods_relations_for_given_channels.delay"
+)
 def test_channel_update_mutation_remove_shipping_zone(
-    permission_manage_channels, staff_api_client, channel_USD, shipping_zones
+    mocked_drop_invalid_shipping_methods_relations,
+    permission_manage_channels,
+    staff_api_client,
+    channel_USD,
+    shipping_zones,
 ):
     # given
     channel_USD.shipping_zones.add(*shipping_zones)
@@ -257,8 +267,9 @@ def test_channel_update_mutation_remove_shipping_zone(
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     name = "newName"
     slug = "new_slug"
-    shipping_zone = shipping_zones[0].pk
-    remove_shipping_zone = graphene.Node.to_global_id("ShippingZone", shipping_zone)
+    shipping_zone = shipping_zones[0]
+    shipping_method_ids = shipping_zone.shipping_methods.values_list("id", flat=True)
+    remove_shipping_zone = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     variables = {
         "id": channel_id,
         "input": {
@@ -292,6 +303,9 @@ def test_channel_update_mutation_remove_shipping_zone(
     assert remove_shipping_zone not in zones
     assert not channel_USD.shipping_method_listings.filter(
         shipping_method__shipping_zone=shipping_zone
+    )
+    mocked_drop_invalid_shipping_methods_relations.assert_called_once_with(
+        list(shipping_method_ids), [channel_USD.id]
     )
 
 
