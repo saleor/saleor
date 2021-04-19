@@ -106,7 +106,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Make `order` property of invoice webhook payload contain order instead of order lines - #7081 by @pdblaszczyk
   - Affected webhook events: `INVOICE_REQUESTED`, `INVOICE_SENT`, `INVOICE_DELETED`
 - Make quantity field on `StockInput` required - #7082 by @IKarbowiak
-- Extend plugins manager to configure plugins for each plugins:
+- Extend plugins manager to configure plugins for each plugins - #7198 by @korycins:
   - Introduce changes in API:
     - `paymentInitialize` - add `channel` parameter. Optional when only one  channel exists.
     - `pluginUpdate` - add `channel` parameter.
