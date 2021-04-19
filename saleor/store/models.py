@@ -5,13 +5,19 @@ from versatileimagefield.fields import PPOIField, VersatileImageField
 
 from ..core.utils.translations import TranslationProxy
 from django.conf import settings
-from ..account.models import PossiblePhoneNumberField
+from phonenumber_field.modelfields import PhoneNumberField
+from ..account.validators import validate_possible_number
 from mptt.managers import TreeManager
 from ..core.utils.editorjs import clean_editor_js
 from ..core.db.fields import SanitizedJSONField
 from ..core.models import ModelWithMetadata, SortableModel
 from ..seo.models import SeoModel, SeoModelTranslation
 
+
+class PossiblePhoneNumberField(PhoneNumberField):
+    """Less strict field for phone numbers written to database."""
+
+    default_validators = [validate_possible_number]
 
 class StoreType(ModelWithMetadata, MPTTModel, SeoModel):
     name = models.CharField(max_length=250)

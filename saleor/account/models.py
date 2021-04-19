@@ -23,6 +23,7 @@ from ..core.permissions import AccountPermissions, BasePermissionEnum, get_permi
 from ..core.utils.json_serializer import CustomJsonEncoder
 from . import CustomerEvents
 from .validators import validate_possible_number
+from ..store.models import Store
 
 
 class PossiblePhoneNumberField(PhoneNumberField):
@@ -152,6 +153,13 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
     )
     avatar = VersatileImageField(upload_to="user-avatars", blank=True, null=True)
     jwt_token_key = models.CharField(max_length=12, default=get_random_string)
+    store = models.ForeignKey(
+        Store,
+        related_name="users",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
 
     USERNAME_FIELD = "email"
 
