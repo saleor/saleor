@@ -114,6 +114,7 @@ destination_address_argument = graphene.Argument(
         "`settings.DEFAULT_COUNTRY` configuration."
     ),
 )
+from ...store.types import Store
 
 
 class Margin(graphene.ObjectType):
@@ -574,6 +575,12 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     is_available_for_purchase = graphene.Boolean(
         description="Whether the product is available for purchase."
     )
+    store = graphene.Field(
+        Store,
+        id=graphene.Argument(graphene.ID, description="ID of the store."),
+        slug=graphene.Argument(graphene.String, description="Slug of the store"),
+        description="Look up a category by ID or slug.",
+    )
 
     class Meta:
         default_resolver = ChannelContextType.resolver_with_context
@@ -594,6 +601,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             "weight",
             "default_variant",
             "rating",
+            "store",
         ]
 
     @staticmethod
