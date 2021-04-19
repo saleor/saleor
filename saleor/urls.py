@@ -1,7 +1,8 @@
 from django.conf import settings
-from django.conf.urls import include, url
+from django.conf.urls import include
 from django.conf.urls.static import static
 from django.contrib.staticfiles.views import serve
+from django.urls import path, re_path
 from django.views.decorators.csrf import csrf_exempt
 
 from .graphql.api import schema
@@ -10,17 +11,9 @@ from .plugins.views import handle_plugin_webhook
 from .product.views import digital_product
 
 urlpatterns = [
-    url(r"^graphql/$", csrf_exempt(GraphQLView.as_view(schema=schema)), name="api"),
-    url(
-        r"^digital-download/(?P<token>[0-9A-Za-z_\-]+)/$",
-        digital_product,
-        name="digital-product",
-    ),
-    url(
-        r"plugins/(?P<plugin_id>[.0-9A-Za-z_\-]+)/",
-        handle_plugin_webhook,
-        name="plugins",
-    ),
+    path("graphql/", csrf_exempt(GraphQLView.as_view(schema=schema)), name="api"),
+    path("digital-download/<slug:token>/", digital_product, name="digital-product"),
+    path("plugins/<slug:plugin_id>/", handle_plugin_webhook, name="plugins"),
 ]
 
 if settings.DEBUG:
@@ -37,10 +30,10 @@ if settings.DEBUG:
         )
     else:
         urlpatterns += [
-            url(r"^__debug__/", include(debug_toolbar.urls))  # type: ignore
+            path("__debug__/", include(debug_toolbar.urls))  # type: ignore
         ]
 
     urlpatterns += static("/media/", document_root=settings.MEDIA_ROOT) + [
-        url(r"^static/(?P<path>.*)$", serve),
-        url(r"^", views.home, name="home"),
+        re_path(r"^static/(?P<path>.*)$", serve),
+        path("", views.home, name="home"),
     ]
