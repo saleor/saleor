@@ -306,12 +306,14 @@ class ProductsQueryset(models.QuerySet):
             return self.prefetch_related(
                 "attributes__values",
                 "attributes__assignment__attribute",
+                "media",
             )
         return self.prefetch_related(
             "attributes__values",
             "attributes__assignment__attribute",
             "collections",
             "variants__stocks__allocations",
+            "media",
             "category",
         )
 
