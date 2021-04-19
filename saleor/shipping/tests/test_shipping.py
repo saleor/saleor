@@ -265,6 +265,7 @@ def test_use_default_shipping_zone(shipping_zone, channel_USD):
     default_zone.countries = get_countries_without_shipping_zone()
     default_zone.save(update_fields=["countries"])
 
+    default_zone.channels.add(channel_USD)
     weight_method = default_zone.shipping_methods.create(
         minimum_order_weight=Weight(kg=1),
         maximum_order_weight=Weight(kg=10),

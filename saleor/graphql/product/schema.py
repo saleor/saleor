@@ -1,6 +1,8 @@
 import graphene
 from graphql.error import GraphQLError
 
+from saleor.core.tracing import traced_resolver
+
 from ...account.utils import requestor_is_staff_member_or_app
 from ...core.permissions import ProductPermissions
 from ..channel import ChannelContext
@@ -11,6 +13,7 @@ from ..core.fields import (
     FilterInputConnectionField,
     PrefetchingConnectionField,
 )
+from ..core.utils import from_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_query
 from ..decorators import permission_required
 from ..translations.mutations import (
@@ -252,6 +255,7 @@ class ProductQueries(graphene.ObjectType):
     def resolve_categories(self, info, level=None, **kwargs):
         return resolve_categories(info, level=level, **kwargs)
 
+    @traced_resolver
     def resolve_category(self, info, id=None, slug=None, **kwargs):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
         if id:
@@ -259,6 +263,7 @@ class ProductQueries(graphene.ObjectType):
         if slug:
             return resolve_category_by_slug(slug=slug)
 
+    @traced_resolver
     def resolve_collection(self, info, id=None, slug=None, channel=None, **_kwargs):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
         requestor = get_user_or_app_from_context(info.context)
@@ -267,7 +272,7 @@ class ProductQueries(graphene.ObjectType):
         if channel is None and not is_staff:
             channel = get_default_channel_slug_or_graphql_error()
         if id:
-            _, id = graphene.Node.from_global_id(id)
+            _, id = from_global_id_or_error(id)
             collection = resolve_collection_by_id(info, id, channel, requestor)
         else:
             collection = resolve_collection_by_slug(
@@ -294,6 +299,7 @@ class ProductQueries(graphene.ObjectType):
     def resolve_digital_contents(self, info, **_kwargs):
         return resolve_digital_contents(info)
 
+    @traced_resolver
     def resolve_product(self, info, id=None, slug=None, channel=None, **_kwargs):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
         requestor = get_user_or_app_from_context(info.context)
@@ -302,7 +308,7 @@ class ProductQueries(graphene.ObjectType):
         if channel is None and not is_staff:
             channel = get_default_channel_slug_or_graphql_error()
         if id:
-            _, id = graphene.Node.from_global_id(id)
+            _type, id = from_global_id_or_error(id, only_type="Product")
             product = resolve_product_by_id(
                 info, id, channel_slug=channel, requestor=requestor
             )
@@ -312,6 +318,7 @@ class ProductQueries(graphene.ObjectType):
             )
         return ChannelContext(node=product, channel_slug=channel) if product else None
 
+    @traced_resolver
     def resolve_products(self, info, channel=None, **kwargs):
         # sort by RANK can be used only with search filter
         if "sort_by" in kwargs and ProductOrderField.RANK == kwargs["sort_by"].get(
@@ -335,6 +342,7 @@ class ProductQueries(graphene.ObjectType):
     def resolve_product_types(self, info, **kwargs):
         return resolve_product_types(info, **kwargs)
 
+    @traced_resolver
     def resolve_product_variant(
         self,
         info,
@@ -348,9 +356,13 @@ class ProductQueries(graphene.ObjectType):
         if channel is None and not is_staff:
             channel = get_default_channel_slug_or_graphql_error()
         if id:
-            _, id = graphene.Node.from_global_id(id)
+            _, id = from_global_id_or_error(id)
             variant = resolve_variant_by_id(
-                info, id, channel_slug=channel, requestor=requestor
+                info,
+                id,
+                channel_slug=channel,
+                requestor=requestor,
+                requestor_has_access_to_all=is_staff,
             )
         else:
             variant = resolve_product_variant_by_sku(
@@ -376,6 +388,7 @@ class ProductQueries(graphene.ObjectType):
         )
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
+    @traced_resolver
     def resolve_report_product_sales(self, *_args, period, channel, **_kwargs):
         return resolve_report_product_sales(period, channel_slug=channel)
 

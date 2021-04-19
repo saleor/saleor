@@ -1,13 +1,13 @@
 from ...account.models import Address
+from ...core.tracing import traced_resolver
 from ...shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ...shipping.postal_codes import filter_shipping_methods_by_postal_code_rules
 from ..channel import ChannelContext
 
 
+@traced_resolver
 def resolve_available_shipping_methods(info, channel_slug: str, address):
-    available = ShippingMethod.objects.filter(
-        channel_listings__channel__slug=channel_slug
-    )
+    available = ShippingMethod.objects.for_channel(channel_slug)
     if address and address.country:
         available = available.filter(
             shipping_zone__countries__contains=address.country,

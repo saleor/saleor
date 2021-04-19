@@ -1,11 +1,13 @@
 import graphene
 
 from ...core.permissions import ShippingPermissions
+from ...core.tracing import traced_resolver
 from ..channel.types import ChannelContext
-from ..core.fields import PrefetchingConnectionField
+from ..core.fields import ChannelContextFilterConnectionField
 from ..decorators import permission_required
 from ..translations.mutations import ShippingPriceTranslate
 from .bulk_mutations import ShippingPriceBulkDelete, ShippingZoneBulkDelete
+from .filters import ShippingZoneFilterInput
 from .mutations.channels import ShippingMethodChannelListingUpdate
 from .mutations.shippings import (
     ShippingPriceCreate,
@@ -32,8 +34,11 @@ class ShippingQueries(graphene.ObjectType):
         ),
         description="Look up a shipping zone by ID.",
     )
-    shipping_zones = PrefetchingConnectionField(
+    shipping_zones = ChannelContextFilterConnectionField(
         ShippingZone,
+        filter=ShippingZoneFilterInput(
+            description="Filtering options for shipping zones."
+        ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
@@ -41,11 +46,13 @@ class ShippingQueries(graphene.ObjectType):
     )
 
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
+    @traced_resolver
     def resolve_shipping_zone(self, info, id, channel=None):
         instance = graphene.Node.get_node_from_global_id(info, id, ShippingZone)
         return ChannelContext(node=instance, channel_slug=channel) if instance else None
 
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
+    @traced_resolver
     def resolve_shipping_zones(self, info, channel=None, **_kwargs):
         return resolve_shipping_zones(channel)
 

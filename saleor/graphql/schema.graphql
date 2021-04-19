@@ -89,6 +89,7 @@ input AccountRegisterInput {
   password: String!
   redirectUrl: String
   languageCode: LanguageCodeEnum
+  metadata: [MetadataInput!]
 }
 
 type AccountRequestDeletion {
@@ -797,6 +798,7 @@ type Channel implements Node {
   slug: String!
   currencyCode: String!
   hasOrders: Boolean!
+  shippingZones: [ShippingZone!]!
 }
 
 type ChannelActivate {
@@ -816,6 +818,7 @@ input ChannelCreateInput {
   name: String!
   slug: String!
   currencyCode: String!
+  addShippingZones: [ID!]
 }
 
 type ChannelDeactivate {
@@ -838,6 +841,7 @@ type ChannelError {
   field: String
   message: String
   code: ChannelErrorCode!
+  shippingZones: [ID!]
 }
 
 enum ChannelErrorCode {
@@ -850,6 +854,7 @@ enum ChannelErrorCode {
   CHANNEL_TARGET_ID_MUST_BE_DIFFERENT
   CHANNELS_CURRENCY_MUST_BE_THE_SAME
   CHANNEL_WITH_ORDERS
+  DUPLICATED_INPUT_ITEM
 }
 
 type ChannelUpdate {
@@ -862,6 +867,8 @@ input ChannelUpdateInput {
   isActive: Boolean
   name: String
   slug: String
+  addShippingZones: [ID!]
+  removeShippingZones: [ID!]
 }
 
 type Checkout implements Node & ObjectWithMetadata {
@@ -989,6 +996,7 @@ enum CheckoutErrorCode {
   ZERO_QUANTITY
   MISSING_CHANNEL_SLUG
   CHANNEL_INACTIVE
+  UNAVAILABLE_VARIANT_IN_CHANNEL
 }
 
 type CheckoutLanguageCodeUpdate {
@@ -2632,7 +2640,7 @@ type Mutation {
   shippingPriceDelete(id: ID!): ShippingPriceDelete
   shippingPriceBulkDelete(ids: [ID]!): ShippingPriceBulkDelete
   shippingPriceUpdate(id: ID!, input: ShippingPriceInput!): ShippingPriceUpdate
-  shippingPriceTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): ShippingPriceTranslate
+  shippingPriceTranslate(id: ID!, input: ShippingPriceTranslationInput!, languageCode: LanguageCodeEnum!): ShippingPriceTranslate
   shippingPriceExcludeProducts(id: ID!, input: ShippingPriceExcludeProductsInput!): ShippingPriceExcludeProducts
   shippingPriceRemoveProductFromExclude(id: ID!, products: [ID]!): ShippingPriceRemoveProductFromExclude
   shippingZoneCreate(input: ShippingZoneCreateInput!): ShippingZoneCreate
@@ -4060,6 +4068,8 @@ input ProductChannelListingAddInput {
   visibleInListings: Boolean
   isAvailableForPurchase: Boolean
   availableForPurchaseDate: Date
+  addVariants: [ID!]
+  removeVariants: [ID!]
 }
 
 type ProductChannelListingError {
@@ -4069,6 +4079,7 @@ type ProductChannelListingError {
   attributes: [ID!]
   values: [ID!]
   channels: [ID!]
+  variants: [ID!]
 }
 
 type ProductChannelListingUpdate {
@@ -4078,7 +4089,7 @@ type ProductChannelListingUpdate {
 }
 
 input ProductChannelListingUpdateInput {
-  addChannels: [ProductChannelListingAddInput!]
+  updateChannels: [ProductChannelListingAddInput!]
   removeChannels: [ID!]
 }
 
@@ -4624,7 +4635,7 @@ type Query {
   shop: Shop!
   orderSettings: OrderSettings
   shippingZone(id: ID!, channel: String): ShippingZone
-  shippingZones(channel: String, before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
+  shippingZones(filter: ShippingZoneFilterInput, channel: String, before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
   digitalContent(id: ID!): DigitalContent
   digitalContents(before: String, after: String, first: Int, last: Int): DigitalContentCountableConnection
   categories(filter: CategoryFilterInput, sortBy: CategorySortingInput, level: Int, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
@@ -4903,6 +4914,7 @@ enum ShippingErrorCode {
 type ShippingMethod implements Node & ObjectWithMetadata {
   id: ID!
   name: String!
+  description: JSONString
   minimumOrderWeight: Weight
   maximumOrderWeight: Weight
   maximumDeliveryDays: Int
@@ -4955,6 +4967,7 @@ type ShippingMethodPostalCodeRule implements Node {
 type ShippingMethodTranslatableContent implements Node {
   id: ID!
   name: String!
+  description: JSONString
   translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
   shippingMethod: ShippingMethod
 }
@@ -4962,6 +4975,7 @@ type ShippingMethodTranslatableContent implements Node {
 type ShippingMethodTranslation implements Node {
   id: ID!
   name: String
+  description: JSONString
   language: LanguageDisplay!
 }
 
@@ -5007,6 +5021,7 @@ input ShippingPriceExcludeProductsInput {
 
 input ShippingPriceInput {
   name: String
+  description: JSONString
   minimumOrderWeight: WeightScalar
   maximumOrderWeight: WeightScalar
   maximumDeliveryDays: Int
@@ -5030,6 +5045,11 @@ type ShippingPriceTranslate {
   shippingMethod: ShippingMethod
 }
 
+input ShippingPriceTranslationInput {
+  name: String
+  description: JSONString
+}
+
 type ShippingPriceUpdate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   shippingZone: ShippingZone
@@ -5046,7 +5066,8 @@ type ShippingZone implements Node & ObjectWithMetadata {
   priceRange: MoneyRange
   countries: [CountryDisplay]
   shippingMethods: [ShippingMethod]
-  warehouses: [Warehouse]
+  warehouses: [Warehouse!]!
+  channels: [Channel!]!
   description: String
 }
 
@@ -5079,12 +5100,17 @@ input ShippingZoneCreateInput {
   countries: [String]
   default: Boolean
   addWarehouses: [ID]
+  addChannels: [ID!]
 }
 
 type ShippingZoneDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   shippingErrors: [ShippingError!]!
   shippingZone: ShippingZone
+}
+
+input ShippingZoneFilterInput {
+  search: String
 }
 
 type ShippingZoneUpdate {
@@ -5099,7 +5125,9 @@ input ShippingZoneUpdateInput {
   countries: [String]
   default: Boolean
   addWarehouses: [ID]
+  addChannels: [ID!]
   removeWarehouses: [ID]
+  removeChannels: [ID!]
 }
 
 type Shop {

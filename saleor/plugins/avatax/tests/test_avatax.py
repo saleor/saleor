@@ -9,7 +9,12 @@ from django.test import override_settings
 from prices import Money, TaxedMoney
 from requests import RequestException
 
-from ....checkout.fetch import CheckoutInfo, fetch_checkout_info, fetch_checkout_lines
+from ....checkout.fetch import (
+    CheckoutInfo,
+    fetch_checkout_info,
+    fetch_checkout_lines,
+    get_valid_shipping_method_list_for_checkout_info,
+)
 from ....checkout.utils import add_variant_to_checkout
 from ....core.prices import quantize_price
 from ....core.taxes import TaxError, TaxType
@@ -145,13 +150,11 @@ def test_calculate_checkout_total_uses_default_calculation(
     product_with_single_variant.charge_taxes = False
     product_with_single_variant.category = non_default_category
     product_with_single_variant.save()
-    add_variant_to_checkout(
-        checkout_with_item, product_with_single_variant.variants.get()
-    )
-
     discounts = [discount_info] if with_discount else None
+    checkout_info = fetch_checkout_info(checkout_with_item, [], discounts, manager)
+    add_variant_to_checkout(checkout_info, product_with_single_variant.variants.get())
     lines = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts, manager)
+
     total = manager.calculate_checkout_total(checkout_info, lines, address, discounts)
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
@@ -216,13 +219,10 @@ def test_calculate_checkout_total(
     product_with_single_variant.charge_taxes = False
     product_with_single_variant.category = non_default_category
     product_with_single_variant.save()
-    add_variant_to_checkout(
-        checkout_with_item, product_with_single_variant.variants.get()
-    )
-
     discounts = [discount_info] if with_discount else None
+    checkout_info = fetch_checkout_info(checkout_with_item, [], discounts, manager)
+    add_variant_to_checkout(checkout_info, product_with_single_variant.variants.get())
     lines = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts, manager)
     total = manager.calculate_checkout_total(
         checkout_info, lines, ship_to_pl_address, discounts
     )
@@ -311,9 +311,10 @@ def test_calculate_checkout_subtotal(
     checkout_with_item.save()
 
     discounts = [discount_info] if with_discount else None
-    add_variant_to_checkout(checkout_with_item, variant, 2)
+
+    checkout_info = fetch_checkout_info(checkout_with_item, [], discounts, manager)
+    add_variant_to_checkout(checkout_info, variant, 2)
     lines = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts, manager)
     total = manager.calculate_checkout_subtotal(
         checkout_info, lines, address, discounts
     )
@@ -354,11 +355,16 @@ def test_calculate_checkout_subtotal_for_product_without_tax(
     checkout.save()
 
     quantity = 2
-    add_variant_to_checkout(checkout, variant, quantity)
+    checkout_info = fetch_checkout_info(checkout, [], [], manager)
+    add_variant_to_checkout(checkout_info, variant, quantity)
+
     lines = fetch_checkout_lines(checkout)
     assert len(lines) == 1
+    valid_methods = get_valid_shipping_method_list_for_checkout_info(
+        checkout_info, ship_to_pl_address, lines, [], manager
+    )
+    checkout_info.valid_shipping_methods = valid_methods
 
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     total = manager.calculate_checkout_subtotal(checkout_info, lines, address, [])
     total = quantize_price(total, total.currency)
     expected_total = variant.channel_listings.first().price_amount * quantity
@@ -771,10 +777,6 @@ def test_get_checkout_line_tax_rate_for_product_type_with_non_taxable_product(
     checkout_with_item.save(update_fields=["shipping_address", "shipping_method"])
 
     variant2 = product2.variants.first()
-    add_variant_to_checkout(checkout_with_item, variant2, 1)
-
-    assert checkout_with_item.lines.count() == 2
-
     checkout_info = CheckoutInfo(
         checkout=checkout_with_item,
         shipping_method=checkout_with_item.shipping_method,
@@ -785,6 +787,10 @@ def test_get_checkout_line_tax_rate_for_product_type_with_non_taxable_product(
         shipping_method_channel_listings=None,
         valid_shipping_methods=[],
     )
+    add_variant_to_checkout(checkout_info, variant2, 1)
+
+    assert checkout_with_item.lines.count() == 2
+
     lines = fetch_checkout_lines(checkout_with_item)
     order = [checkout_with_item.lines.first().variant.pk, variant2.pk]
     lines.sort(key=lambda line: order.index(line.variant.pk))

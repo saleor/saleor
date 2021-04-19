@@ -1,14 +1,8 @@
-from typing import TYPE_CHECKING, Optional
-
 import graphene
 
 from ..channel.types import Channel
 from ..core.connection import CountableConnection
 from .enums import ConfigurationTypeFieldEnum
-
-if TYPE_CHECKING:
-    # flake8: noqa
-    from ...plugins.base_plugin import PluginConfigurationType
 
 
 class ConfigurationItem(graphene.ObjectType):

@@ -107,7 +107,7 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
         cls.remove_channels(shipping_method, cleaned_input.get("remove_channels", []))
 
     @classmethod
-    def get_shipping_method_channel_listing_to_create(
+    def get_shipping_method_channel_listing_to_update(
         cls,
         shipping_method_id,
         input,
@@ -123,10 +123,11 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
         ]
 
     @classmethod
-    def clean_input(cls, data, shipping_method_id, errors):
+    def clean_input(cls, data, shipping_method, errors):
         cleaned_input = data.get("add_channels")
-        channel_listing_to_update = cls.get_shipping_method_channel_listing_to_create(
-            shipping_method_id, cleaned_input
+        cls.clean_add_channels(shipping_method, cleaned_input)
+        channel_listing_to_update = cls.get_shipping_method_channel_listing_to_update(
+            shipping_method.id, cleaned_input
         )
         for channel_input in cleaned_input:
             channel_id = channel_input.get("channel_id")
@@ -201,6 +202,29 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
         return data
 
     @classmethod
+    def clean_add_channels(cls, shipping_method, input):
+        """Ensure that only channels allowed in the method's shipping zone are added."""
+        channels = {data.get("channel").id for data in input}
+        available_channels = set(
+            shipping_method.shipping_zone.channels.values_list("id", flat=True)
+        )
+        not_valid_channels = channels - available_channels
+        if not_valid_channels:
+            channel_ids = [
+                graphene.Node.to_global_id("Channel", id) for id in not_valid_channels
+            ]
+            raise ValidationError(
+                {
+                    "add_channels": ValidationError(
+                        "Cannot add channels that are not assigned "
+                        "to the method's shipping zone.",
+                        code=ShippingErrorCode.INVALID.value,
+                        params={"channels": channel_ids},
+                    )
+                }
+            )
+
+    @classmethod
     def perform_mutation(cls, _root, info, id, input):
         shipping_method = cls.get_node_or_error(
             info, id, only_type=ShippingMethod, field="id"
@@ -209,7 +233,7 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
         clean_channels = cls.clean_channels(
             info, input, errors, ShippingErrorCode.DUPLICATED_INPUT_ITEM.value
         )
-        cleaned_input = cls.clean_input(clean_channels, shipping_method.id, errors)
+        cleaned_input = cls.clean_input(clean_channels, shipping_method, errors)
 
         if errors:
             raise ValidationError(errors)

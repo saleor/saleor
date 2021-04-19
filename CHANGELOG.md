@@ -48,13 +48,17 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix dataloader for fetching checkout info - #7084 by @IKarbowiak
 - Update also draft order line total price after getting the unit price from plugin - #7080 by @IKarbowiak
 - Fix failing product tasks when instances are removed - #7092 by @IKarbowiak
+- Catch invalid object ID and raise ValidationError - #7114 by @d-wysocki
 - Update GraphQL endpoint to only match exactly `/graphql/` without trailing characters - #7117 by @IKarbowiak
+- Introduce traced_resolver decorator instead of graphene middleware - #7159 by @tomaszszymanski129
 - Fix failing export when exporting attribute without values - #7131 by @IKarbowiak
 - Extend Vatlayer functionalities - #7101 by @korycins:
     - Allow users to enter a list of exceptions (country ISO codes) that will use the source country rather than the destination country for tax purposes.
     - Allow users to enter a list of countries for which no VAT will be added.
+- Allow passing metadata to `accountRegister` mutation - #7152 by @piotrgrundas
 - Fix incorrect payment data for klarna - #7150 by @IKarbowiak
 - Drop deleted images from storage - #7129 by @IKarbowiak
+- Fix core sorting on related fields - #7195 by @tomaszszymanski129
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -112,6 +116,11 @@ All notable, unreleased changes to this project will be documented in this file.
       - add `globalConfiguration` field for storing configuration when a plugin is globally configured
       - add `channelConfigurations` field for storing plugin configuration for each channel
       - removed `configuration` field, use `globalConfiguration` and `channelConfigurations` instead
+- Add description to shipping method - #7116 by @IKarbowiak
+  - `ShippingMethod` was extended with `description` field.
+  - `ShippingPriceInput` was extended with `description` field
+  - Extended `shippingPriceUpdate`, `shippingPriceCreate` mutation to add/edit description
+  - Input field in `shippingPriceTranslate` changed to `ShippingPriceTranslationInput`
 
 ### Other
 
