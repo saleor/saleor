@@ -3,6 +3,7 @@ from urllib.parse import urljoin
 import graphene
 from django.conf import settings
 
+from ....core.tracing import traced_resolver
 from ....product.product_images import get_thumbnail
 from ..enums import (
     AccountErrorCode,
@@ -369,6 +370,7 @@ class File(graphene.ObjectType):
     )
 
     @staticmethod
+    @traced_resolver
     def resolve_url(root, info):
         return info.context.build_absolute_uri(urljoin(settings.MEDIA_URL, root.url))
 
@@ -413,6 +415,7 @@ class Job(graphene.Interface):
     message = graphene.String(description="Job message.")
 
     @classmethod
+    @traced_resolver
     def resolve_type(cls, instance, _info):
         """Map a data object to a Graphene type."""
         MODEL_TO_TYPE_MAP = {

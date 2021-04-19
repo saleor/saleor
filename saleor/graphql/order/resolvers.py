@@ -1,6 +1,7 @@
 import graphene
 
 from ...channel.models import Channel
+from ...core.tracing import traced_resolver
 from ...order import OrderStatus, models
 from ...order.events import OrderEvents
 from ...order.models import OrderEvent
@@ -32,6 +33,7 @@ def filter_orders(qs, info, created, status):
     return qs
 
 
+@traced_resolver
 def resolve_orders(info, created, status, channel_slug, **_kwargs):
     qs = models.Order.objects.non_draft()
     if channel_slug:
@@ -39,11 +41,13 @@ def resolve_orders(info, created, status, channel_slug, **_kwargs):
     return filter_orders(qs, info, created, status)
 
 
+@traced_resolver
 def resolve_draft_orders(info, created, **_kwargs):
     qs = models.Order.objects.drafts()
     return filter_orders(qs, info, created, None)
 
 
+@traced_resolver
 def resolve_orders_total(_info, period, channel_slug):
     if channel_slug is None:
         channel_slug = get_default_channel_slug_or_graphql_error()
@@ -59,6 +63,7 @@ def resolve_orders_total(_info, period, channel_slug):
     return sum_order_totals(qs, channel.currency_code)
 
 
+@traced_resolver
 def resolve_order(info, order_id):
     return graphene.Node.get_node_from_global_id(info, order_id, Order)
 

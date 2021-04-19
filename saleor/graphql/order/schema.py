@@ -1,6 +1,7 @@
 import graphene
 
 from ...core.permissions import OrderPermissions
+from ...core.tracing import traced_resolver
 from ..core.enums import ReportingPeriod
 from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
 from ..core.scalars import UUID
@@ -131,6 +132,7 @@ class OrderQueries(graphene.ObjectType):
     )
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)
+    @traced_resolver
     def resolve_homepage_events(self, *_args, **_kwargs):
         return resolve_homepage_events()
 
@@ -150,6 +152,7 @@ class OrderQueries(graphene.ObjectType):
     def resolve_orders_total(self, info, period, channel=None, **_kwargs):
         return resolve_orders_total(info, period, channel)
 
+    @traced_resolver
     def resolve_order_by_token(self, _info, token):
         return resolve_order_by_token(token)
 

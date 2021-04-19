@@ -50,6 +50,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix failing product tasks when instances are removed - #7092 by @IKarbowiak
 - Catch invalid object ID and raise ValidationError - #7114 by @d-wysocki
 - Update GraphQL endpoint to only match exactly `/graphql/` without trailing characters - #7117 by @IKarbowiak
+- Introduce traced_resolver decorator instead of graphene middleware - #7159 by @tomaszszymanski129
 - Fix failing export when exporting attribute without values - #7131 by @IKarbowiak
 - Extend Vatlayer functionalities - #7101 by @korycins:
     - Allow users to enter a list of exceptions (country ISO codes) that will use the source country rather than the destination country for tax purposes.
