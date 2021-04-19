@@ -4626,7 +4626,7 @@ type Query {
   collection(id: ID, slug: String, channel: String): Collection
   collections(filter: CollectionFilterInput, sortBy: CollectionSortingInput, channel: String, before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   product(id: ID, slug: String, channel: String): Product
-  products(filter: ProductFilterInput, sortBy: ProductOrder, stockAvailability: StockAvailability, channel: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  products(filter: ProductFilterInput, sortBy: ProductOrder, channel: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   productType(id: ID!): ProductType
   productTypes(filter: ProductTypeFilterInput, sortBy: ProductTypeSortingInput, before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
   productVariant(id: ID, sku: String, channel: String): ProductVariant
@@ -4640,8 +4640,8 @@ type Query {
   pageTypes(sortBy: PageTypeSortingInput, filter: PageTypeFilterInput, before: String, after: String, first: Int, last: Int): PageTypeCountableConnection
   homepageEvents(before: String, after: String, first: Int, last: Int): OrderEventCountableConnection
   order(id: ID!): Order
-  orders(sortBy: OrderSortingInput, filter: OrderFilterInput, created: ReportingPeriod, status: OrderStatusFilter, channel: String, before: String, after: String, first: Int, last: Int): OrderCountableConnection
-  draftOrders(sortBy: OrderSortingInput, filter: OrderDraftFilterInput, created: ReportingPeriod, before: String, after: String, first: Int, last: Int): OrderCountableConnection
+  orders(sortBy: OrderSortingInput, filter: OrderFilterInput, channel: String, before: String, after: String, first: Int, last: Int): OrderCountableConnection
+  draftOrders(sortBy: OrderSortingInput, filter: OrderDraftFilterInput, before: String, after: String, first: Int, last: Int): OrderCountableConnection
   ordersTotal(period: ReportingPeriod, channel: String): TaxedMoney
   orderByToken(token: UUID!): Order
   menu(channel: String, id: ID, name: String, slug: String): Menu

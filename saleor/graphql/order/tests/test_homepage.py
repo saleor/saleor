@@ -1,3 +1,5 @@
+from datetime import date, timedelta
+
 from prices import Money
 
 from ...core.enums import ReportingPeriod
@@ -182,11 +184,11 @@ def test_orders_total_as_anonymous(
 
 
 QUERY_ORDER_TODAY_COUNT = """
-query OrdersToday($created: ReportingPeriod, $channel: String) {
-    orders(created: $created, channel: $channel ) {
-        totalCount
+    query OrdersToday($created: DateRangeInput, $channel: String) {
+        orders(filter: {created: $created}, channel: $channel ) {
+            totalCount
+        }
     }
-}
 """
 
 
@@ -198,7 +200,12 @@ def test_orders_total_count_without_channel(
     channel_USD,
 ):
     # given
-    variables = {"created": ReportingPeriod.TODAY.name}
+    variables = {
+        "created": {
+            "gte": str(date.today() - timedelta(days=3)),
+            "lte": str(date.today()),
+        }
+    }
 
     # when
     response = staff_api_client.post_graphql(
@@ -218,7 +225,13 @@ def test_orders_total_count_channel_USD(
     channel_USD,
 ):
     # given
-    variables = {"created": ReportingPeriod.TODAY.name, "channel": channel_USD.slug}
+    variables = {
+        "created": {
+            "gte": str(date.today() - timedelta(days=3)),
+            "lte": str(date.today()),
+        },
+        "channel": channel_USD.slug,
+    }
 
     # when
     response = staff_api_client.post_graphql(
@@ -238,7 +251,13 @@ def test_orders_total_count_channel_PLN(
     channel_PLN,
 ):
     # given
-    variables = {"created": ReportingPeriod.TODAY.name, "channel": channel_PLN.slug}
+    variables = {
+        "created": {
+            "gte": str(date.today() - timedelta(days=3)),
+            "lte": str(date.today()),
+        },
+        "channel": channel_PLN.slug,
+    }
 
     # when
     response = staff_api_client.post_graphql(
@@ -258,7 +277,13 @@ def test_orders_total_count_as_staff(
     channel_USD,
 ):
     # given
-    variables = {"created": ReportingPeriod.TODAY.name, "channel": channel_USD.slug}
+    variables = {
+        "created": {
+            "gte": str(date.today() - timedelta(days=3)),
+            "lte": str(date.today()),
+        },
+        "channel": channel_USD.slug,
+    }
 
     # when
     response = staff_api_client.post_graphql(
@@ -278,7 +303,13 @@ def test_orders_total_count_as_app(
     channel_USD,
 ):
     # given
-    variables = {"created": ReportingPeriod.TODAY.name, "channel": channel_USD.slug}
+    variables = {
+        "created": {
+            "gte": str(date.today() - timedelta(days=3)),
+            "lte": str(date.today()),
+        },
+        "channel": channel_USD.slug,
+    }
 
     # when
     response = app_api_client.post_graphql(
@@ -297,7 +328,13 @@ def test_orders_total_count_as_customer(
     channel_USD,
 ):
     # given
-    variables = {"created": ReportingPeriod.TODAY.name, "channel": channel_USD.slug}
+    variables = {
+        "created": {
+            "gte": str(date.today() - timedelta(days=3)),
+            "lte": str(date.today()),
+        },
+        "channel": channel_USD.slug,
+    }
 
     # when
     response = user_api_client.post_graphql(QUERY_ORDER_TODAY_COUNT, variables)
@@ -313,7 +350,13 @@ def test_orders_total_count_as_anonymous(
     channel_USD,
 ):
     # given
-    variables = {"created": ReportingPeriod.TODAY.name, "channel": channel_USD.slug}
+    variables = {
+        "created": {
+            "gte": str(date.today() - timedelta(days=3)),
+            "lte": str(date.today()),
+        },
+        "channel": channel_USD.slug,
+    }
 
     # when
     response = api_client.post_graphql(QUERY_ORDER_TODAY_COUNT, variables)
