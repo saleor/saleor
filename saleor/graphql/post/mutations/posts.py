@@ -45,7 +45,6 @@ class PostCreateInput(PostInput):
         description="ID of the store that post belongs to.", required=True
     )
 
-
 class PostCreate(ModelMutation):
     class Arguments:
         input = PostCreateInput(
