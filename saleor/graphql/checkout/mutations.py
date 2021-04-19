@@ -109,10 +109,11 @@ def update_checkout_shipping_method_if_invalid(
         checkout.save(update_fields=["shipping_method", "last_change"])
 
 
-def check_lines_quantity(variants, quantities, country, channel_slug):
+def check_lines_quantity(variants, quantities, country, channel_slug, new_line=True):
     """Clean quantities and check if stock is sufficient for each checkout line."""
+
     for quantity in quantities:
-        if quantity < 0:
+        if new_line and quantity <= 0:
             raise ValidationError(
                 {
                     "quantity": ValidationError(
@@ -121,6 +122,17 @@ def check_lines_quantity(variants, quantities, country, channel_slug):
                     )
                 }
             )
+
+        elif not new_line and quantity < 0:
+            raise ValidationError(
+                {
+                    "quantity": ValidationError(
+                        "The quantity should be higher or equal zero.",
+                        code=CheckoutErrorCode.ZERO_QUANTITY,
+                    )
+                }
+            )
+
         if quantity > settings.MAX_CHECKOUT_LINE_QUANTITY:
             raise ValidationError(
                 {
@@ -452,20 +464,14 @@ class CheckoutLinesAdd(BaseMutation):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id, lines, replace=False):
-        checkout = cls.get_node_or_error(
-            info, checkout_id, only_type=Checkout, field="checkout_id"
-        )
-        discounts = info.context.discounts
-        manager = info.context.plugins
+    def validate_checkout_lines(cls, variants, quantities, country, channel_slug):
+        check_lines_quantity(variants, quantities, country, channel_slug)
 
-        variant_ids = [line.get("variant_id") for line in lines]
-        variants = cls.get_nodes_or_error(variant_ids, "variant_id", ProductVariant)
-        quantities = [line.get("quantity") for line in lines]
-
-        checkout_info = fetch_checkout_info(checkout, [], discounts, manager)
-
-        check_lines_quantity(
+    @classmethod
+    def clean_input(
+        cls, checkout, variants, quantities, checkout_info, manager, discounts, replace
+    ):
+        cls.validate_checkout_lines(
             variants, quantities, checkout.get_country(), checkout_info.channel.slug
         )
         validate_variants_available_for_purchase(variants, checkout.channel_id)
@@ -493,6 +499,30 @@ class CheckoutLinesAdd(BaseMutation):
             )
         )
 
+    @classmethod
+    def perform_mutation(cls, _root, info, checkout_id, lines, replace=False):
+        checkout = cls.get_node_or_error(
+            info, checkout_id, only_type=Checkout, field="checkout_id"
+        )
+        discounts = info.context.discounts
+        manager = info.context.plugins
+
+        variant_ids = [line.get("variant_id") for line in lines]
+        variants = cls.get_nodes_or_error(variant_ids, "variant_id", ProductVariant)
+        quantities = [line.get("quantity") for line in lines]
+
+        checkout_info = fetch_checkout_info(checkout, [], discounts, manager)
+        cls.clean_input(
+            checkout, variants, quantities, checkout_info, manager, discounts, replace
+        )
+
+        lines = fetch_checkout_lines(checkout)
+        checkout_info.valid_shipping_methods = (
+            get_valid_shipping_method_list_for_checkout_info(
+                checkout_info, checkout_info.shipping_address, lines, discounts, manager
+            )
+        )
+
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
         recalculate_checkout_discount(
             manager, checkout_info, lines, info.context.discounts
@@ -508,6 +538,12 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
         description = "Updates checkout line in the existing checkout."
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
+
+    @classmethod
+    def validate_checkout_lines(cls, variants, quantities, country, channel_slug):
+        check_lines_quantity(
+            variants, quantities, country, channel_slug, new_line=False
+        )
 
     @classmethod
     def perform_mutation(cls, root, info, checkout_id, lines):

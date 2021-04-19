@@ -219,6 +219,31 @@ def test_checkout_create_with_inactive_channel(
     assert error["code"] == CheckoutErrorCode.CHANNEL_INACTIVE.name
 
 
+def test_checkout_create_with_zero_quantity(
+    api_client, stock, graphql_address_data, channel_USD
+):
+
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    test_email = "test@example.com"
+    shipping_address = graphql_address_data
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+            "lines": [{"quantity": 0, "variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": shipping_address,
+        }
+    }
+
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+
+    error = get_graphql_content(response)["data"]["checkoutCreate"]["checkoutErrors"][0]
+
+    assert error["field"] == "quantity"
+    assert error["code"] == CheckoutErrorCode.ZERO_QUANTITY.name
+
+
 def test_checkout_create_with_unavailable_variant(
     api_client, stock, graphql_address_data, channel_USD
 ):
@@ -1515,6 +1540,26 @@ def test_checkout_lines_add_with_unavailable_variant(
     assert errors[0]["code"] == CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
     assert errors[0]["field"] == "lines"
     assert errors[0]["variants"] == [variant_id]
+
+
+def test_checkout_lines_add_with_zero_quantity(
+    user_api_client, checkout_with_item, stock
+):
+    variant = stock.product_variant
+    checkout = checkout_with_item
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    variables = {
+        "checkoutId": checkout_id,
+        "lines": [{"variantId": variant_id, "quantity": 0}],
+        "channelSlug": checkout.channel.slug,
+    }
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+    content = get_graphql_content(response)
+    errors = content["data"]["checkoutLinesAdd"]["checkoutErrors"]
+    assert errors[0]["code"] == CheckoutErrorCode.ZERO_QUANTITY.name
+    assert errors[0]["field"] == "quantity"
 
 
 def test_checkout_lines_add_no_channel_shipping_zones(
