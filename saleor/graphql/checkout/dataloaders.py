@@ -192,6 +192,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                     shipping_method_channel_listing_map = {
                         (listing.shipping_method_id, listing.channel_id): listing
                         for listing in channel_listings
+                        if listing
                     }
 
                     checkout_info_map = {}
