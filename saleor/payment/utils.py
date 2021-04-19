@@ -1,8 +1,7 @@
 import json
 import logging
 from decimal import Decimal
-from operator import attrgetter
-from typing import TYPE_CHECKING, Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, Optional
 
 import graphene
 from django.core.serializers.json import DjangoJSONEncoder
@@ -10,7 +9,6 @@ from django.db import transaction
 
 from ..account.models import User
 from ..checkout.models import Checkout
-from ..core.taxes import zero_money
 from . import ChargeStatus, GatewayError, PaymentError, TransactionKind
 from .error_codes import PaymentErrorCode
 from .interface import AddressData, GatewayResponse, PaymentData
@@ -367,14 +365,3 @@ def is_currency_supported(currency: str, gateway_id: str, manager: "PluginsManag
     """Return true if the given gateway supports given currency."""
     available_gateways = manager.list_payment_gateways(currency=currency)
     return any([gateway.id == gateway_id for gateway in available_gateways])
-
-
-def get_last_payment(payments: List[Payment]):
-    return max(payments, default=None, key=attrgetter("pk"))
-
-
-def get_total_authorized(payments: List[Payment], fallback_currency: str):
-    # FIXME adjust to multiple payments in the future
-    if last_payment := get_last_payment(payments):
-        return last_payment.get_authorized_amount()
-    return zero_money(fallback_currency)

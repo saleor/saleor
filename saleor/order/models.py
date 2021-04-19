@@ -13,20 +13,20 @@ from django.utils.timezone import now
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField, TaxedMoneyField
 from measurement.measures import Weight
-from prices import Money, TaxedMoney
+from prices import TaxedMoney
 
 from ..account.models import Address
 from ..channel.models import Channel
 from ..core.models import ModelWithMetadata
 from ..core.permissions import OrderPermissions
-from ..core.taxes import zero_money, zero_taxed_money
+from ..core.taxes import zero_taxed_money
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.weight import WeightUnits, zero_weight
 from ..discount import DiscountValueType
 from ..discount.models import Voucher
 from ..giftcard.models import GiftCard
 from ..payment import ChargeStatus, TransactionKind
-from ..payment.utils import get_total_authorized
+from ..payment.model_helpers import get_total_authorized, get_total_captured
 from ..shipping.models import ShippingMethod
 from . import FulfillmentStatus, OrderEvents, OrderStatus
 
@@ -347,14 +347,7 @@ class Order(ModelWithMetadata):
 
     @property
     def total_captured(self):
-        payment = self.get_last_payment()
-        if payment and payment.charge_status in (
-            ChargeStatus.PARTIALLY_CHARGED,
-            ChargeStatus.FULLY_CHARGED,
-            ChargeStatus.PARTIALLY_REFUNDED,
-        ):
-            return Money(payment.captured_amount, payment.currency)
-        return zero_money(self.currency)
+        return get_total_captured(self.payments.all(), self.currency)
 
     @property
     def total_balance(self):
