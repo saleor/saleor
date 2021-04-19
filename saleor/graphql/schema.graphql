@@ -89,6 +89,7 @@ input AccountRegisterInput {
   password: String!
   redirectUrl: String
   languageCode: LanguageCodeEnum
+  metadata: [MetadataInput!]
 }
 
 type AccountRequestDeletion {
@@ -2639,7 +2640,7 @@ type Mutation {
   shippingPriceDelete(id: ID!): ShippingPriceDelete
   shippingPriceBulkDelete(ids: [ID]!): ShippingPriceBulkDelete
   shippingPriceUpdate(id: ID!, input: ShippingPriceInput!): ShippingPriceUpdate
-  shippingPriceTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): ShippingPriceTranslate
+  shippingPriceTranslate(id: ID!, input: ShippingPriceTranslationInput!, languageCode: LanguageCodeEnum!): ShippingPriceTranslate
   shippingPriceExcludeProducts(id: ID!, input: ShippingPriceExcludeProductsInput!): ShippingPriceExcludeProducts
   shippingPriceRemoveProductFromExclude(id: ID!, products: [ID]!): ShippingPriceRemoveProductFromExclude
   shippingZoneCreate(input: ShippingZoneCreateInput!): ShippingZoneCreate
@@ -4906,6 +4907,7 @@ enum ShippingErrorCode {
 type ShippingMethod implements Node & ObjectWithMetadata {
   id: ID!
   name: String!
+  description: JSONString
   minimumOrderWeight: Weight
   maximumOrderWeight: Weight
   maximumDeliveryDays: Int
@@ -4958,6 +4960,7 @@ type ShippingMethodPostalCodeRule implements Node {
 type ShippingMethodTranslatableContent implements Node {
   id: ID!
   name: String!
+  description: JSONString
   translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
   shippingMethod: ShippingMethod
 }
@@ -4965,6 +4968,7 @@ type ShippingMethodTranslatableContent implements Node {
 type ShippingMethodTranslation implements Node {
   id: ID!
   name: String
+  description: JSONString
   language: LanguageDisplay!
 }
 
@@ -5010,6 +5014,7 @@ input ShippingPriceExcludeProductsInput {
 
 input ShippingPriceInput {
   name: String
+  description: JSONString
   minimumOrderWeight: WeightScalar
   maximumOrderWeight: WeightScalar
   maximumDeliveryDays: Int
@@ -5031,6 +5036,11 @@ type ShippingPriceTranslate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   translationErrors: [TranslationError!]!
   shippingMethod: ShippingMethod
+}
+
+input ShippingPriceTranslationInput {
+  name: String
+  description: JSONString
 }
 
 type ShippingPriceUpdate {

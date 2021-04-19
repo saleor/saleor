@@ -1,5 +1,6 @@
 import graphene
 
+from ...core.tracing import traced_resolver
 from ..core.fields import FilterInputConnectionField
 from ..translations.mutations import AttributeTranslate, AttributeValueTranslate
 from .bulk_mutations import AttributeBulkDelete, AttributeValueBulkDelete
@@ -35,6 +36,7 @@ class AttributeQueries(graphene.ObjectType):
     def resolve_attributes(self, info, **kwargs):
         return resolve_attributes(info, **kwargs)
 
+    @traced_resolver
     def resolve_attribute(self, info, id=None, slug=None):
         if id:
             return graphene.Node.get_node_from_global_id(info, id, Attribute)
