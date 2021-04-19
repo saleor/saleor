@@ -9,13 +9,13 @@ from django.db import transaction
 
 from ..account.models import User
 from ..checkout.models import Checkout
+from ..order.models import Order
 from . import ChargeStatus, GatewayError, PaymentError, TransactionKind
 from .error_codes import PaymentErrorCode
 from .interface import AddressData, GatewayResponse, PaymentData
 from .models import Payment, Transaction
 
 if TYPE_CHECKING:
-    from ..order.models import Order
     from ..plugins.manager import PluginsManager
 
 logger = logging.getLogger(__name__)
@@ -78,7 +78,7 @@ def create_payment(
     payment_token: Optional[str] = "",
     extra_data: Dict = None,
     checkout: Checkout = None,
-    order: "Order" = None,
+    order: Order = None,
     return_url: str = None,
 ) -> Payment:
     """Create a payment instance.
