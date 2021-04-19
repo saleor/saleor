@@ -13,7 +13,7 @@ def resolve_store(info, global_page_id=None, slug=None):
         store = models.Store.objects.visible_to_user(user).filter(slug=slug).first()
     else:
         _type, store_pk = graphene.Node.from_global_id(global_page_id)
-        store = models.Store.objects.visible_to_user(user).filter(pk=store_pk).first()
+        store = models.Store.objects.all().filter(pk=store_pk).first()
     return store
 
 
