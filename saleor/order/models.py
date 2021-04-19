@@ -26,7 +26,7 @@ from ..discount import DiscountValueType
 from ..discount.models import Voucher
 from ..giftcard.models import GiftCard
 from ..payment import ChargeStatus, TransactionKind
-from ..payment.utils import get_subtotal, get_total_captured
+from ..payment.model_helpers import get_subtotal, get_total_captured
 from ..shipping.models import ShippingMethod
 from . import FulfillmentStatus, OrderEvents, OrderStatus
 

@@ -494,8 +494,10 @@ def test_order_query_in_pln_channel(
     staff_api_client,
     permission_manage_orders,
     order_with_lines_channel_PLN,
+    shipping_zone,
     channel_PLN,
 ):
+    shipping_zone.channels.add(channel_PLN)
     order = order_with_lines_channel_PLN
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(ORDERS_QUERY)
@@ -629,6 +631,35 @@ def test_order_available_shipping_methods_weight_method_with_higher_minimal_weig
         method["name"] for method in order_data["availableShippingMethods"]
     ]
     assert shipping_method.name not in shipping_methods
+
+
+def test_order_query_shipping_zones_with_available_shipping_methods(
+    staff_api_client,
+    permission_manage_orders,
+    fulfilled_order,
+    shipping_zone,
+):
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDERS_QUERY_SHIPPING_METHODS)
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    assert len(order_data["availableShippingMethods"]) == 1
+
+
+def test_order_query_shipping_zones_without_channel(
+    staff_api_client,
+    permission_manage_orders,
+    fulfilled_order,
+    shipping_zone,
+    channel_USD,
+):
+    channel_USD.shipping_zones.clear()
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDERS_QUERY_SHIPPING_METHODS)
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+
+    assert len(order_data["availableShippingMethods"]) == 0
 
 
 def test_order_query_shipping_methods_excluded_postal_codes(
@@ -2160,6 +2191,18 @@ def test_can_finalize_order(staff_api_client, permission_manage_orders, draft_or
     assert content["data"]["order"]["canFinalize"] is True
 
 
+def test_can_finalize_order_invalid_shipping_method_set(
+    staff_api_client, permission_manage_orders, draft_order
+):
+    order_id = graphene.Node.to_global_id("Order", draft_order.id)
+    draft_order.channel.shipping_zones.clear()
+    variables = {"id": order_id}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDER_CAN_FINALIZE_QUERY, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["order"]["canFinalize"] is False
+
+
 def test_can_finalize_order_no_order_lines(
     staff_api_client, permission_manage_orders, order
 ):
@@ -2465,6 +2508,36 @@ def test_draft_order_complete_with_inactive_channel(
     assert data["orderErrors"][0]["field"] == "channel"
 
 
+def test_draft_order_complete_channel_without_shipping_zones(
+    staff_api_client,
+    permission_manage_orders,
+    staff_user,
+    draft_order,
+):
+    order = draft_order
+    order.channel.shipping_zones.clear()
+
+    # Ensure no events were created
+    assert not OrderEvent.objects.exists()
+
+    # Ensure no allocation were created
+    assert not Allocation.objects.filter(order_line__order=order).exists()
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+    response = staff_api_client.post_graphql(
+        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderComplete"]
+    assert len(data["orderErrors"]) == 1
+    assert (
+        data["orderErrors"][0]["code"]
+        == OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
+    )
+    assert data["orderErrors"][0]["field"] == "shipping"
+
+
 def test_draft_order_complete_product_without_inventory_tracking(
     staff_api_client,
     shipping_method,
@@ -2510,6 +2583,43 @@ def test_draft_order_complete_product_without_inventory_tracking(
     assert matching_events.count() == 2
     assert matching_events[0].type != matching_events[1].type
     assert not OrderEvent.objects.exclude(**event_params).exists()
+
+
+def test_draft_order_complete_not_available_shipping_method(
+    staff_api_client,
+    permission_manage_orders,
+    staff_user,
+    draft_order,
+):
+    # given
+    order = draft_order
+    order.channel.shipping_zones.clear()
+
+    # Ensure no events were created
+    assert not OrderEvent.objects.exists()
+
+    # Ensure no allocation were created
+    assert not Allocation.objects.filter(order_line__order=order).exists()
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderComplete"]["order"]
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderComplete"]
+    assert len(data["orderErrors"]) == 1
+    assert (
+        data["orderErrors"][0]["code"]
+        == OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
+    )
+    assert data["orderErrors"][0]["field"] == "shipping"
 
 
 def test_draft_order_complete_out_of_stock_variant(
@@ -2719,6 +2829,30 @@ def test_order_lines_create(
     assert data["orderErrors"]
     assert data["orderErrors"][0]["field"] == "quantity"
     assert data["orderErrors"][0]["variants"] == [variant_id]
+
+
+def test_order_lines_create_with_unavailable_variant(
+    draft_order, permission_manage_orders, staff_api_client
+):
+    query = ORDER_LINES_CREATE_MUTATION
+    order = draft_order
+    channel = order.channel
+    line = order.lines.first()
+    variant = line.variant
+    variant.channel_listings.filter(channel=channel).update(price_amount=None)
+    quantity = 1
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variables = {"orderId": order_id, "variantId": variant_id, "quantity": quantity}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    error = content["data"]["orderLinesCreate"]["orderErrors"][0]
+    assert error["code"] == OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.name
+    assert error["field"] == "input"
+    assert error["variants"] == [variant_id]
 
 
 @pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
@@ -3798,8 +3932,9 @@ ORDER_UPDATE_SHIPPING_QUERY = """
     mutation orderUpdateShipping($order: ID!, $shippingMethod: ID) {
         orderUpdateShipping(
                 order: $order, input: {shippingMethod: $shippingMethod}) {
-            errors {
+            orderErrors {
                 field
+                code
                 message
             }
             order {
@@ -3918,8 +4053,8 @@ def test_order_update_shipping_shipping_required(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]
-    assert data["errors"][0]["field"] == "shippingMethod"
-    assert data["errors"][0]["message"] == (
+    assert data["orderErrors"][0]["field"] == "shippingMethod"
+    assert data["orderErrors"][0]["message"] == (
         "Shipping method is required for this order."
     )
 
@@ -3943,8 +4078,8 @@ def test_order_update_shipping_no_shipping_address(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]
-    assert data["errors"][0]["field"] == "order"
-    assert data["errors"][0]["message"] == (
+    assert data["orderErrors"][0]["field"] == "order"
+    assert data["orderErrors"][0]["message"] == (
         "Cannot choose a shipping method for an order without" " the shipping address."
     )
 
@@ -3970,10 +4105,34 @@ def test_order_update_shipping_incorrect_shipping_method(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]
-    assert data["errors"][0]["field"] == "shippingMethod"
-    assert data["errors"][0]["message"] == (
+    assert data["orderErrors"][0]["field"] == "shippingMethod"
+    assert data["orderErrors"][0]["message"] == (
         "Shipping method cannot be used with this order."
     )
+
+
+def test_order_update_shipping_shipping_zone_without_channels(
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
+    shipping_method,
+    staff_user,
+):
+    order = order_with_lines
+    order.channel.shipping_zones.clear()
+    query = ORDER_UPDATE_SHIPPING_QUERY
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    variables = {"order": order_id, "shippingMethod": method_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderUpdateShipping"]
+    errors = data["orderErrors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "shippingMethod"
+    assert errors[0]["code"] == OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
 
 
 def test_order_update_shipping_excluded_shipping_method_postal_code(
@@ -4004,8 +4163,8 @@ def test_order_update_shipping_excluded_shipping_method_postal_code(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]
-    assert data["errors"][0]["field"] == "shippingMethod"
-    assert data["errors"][0]["message"] == (
+    assert data["orderErrors"][0]["field"] == "shippingMethod"
+    assert data["orderErrors"][0]["message"] == (
         "Shipping method cannot be used with this order."
     )
 
@@ -4938,14 +5097,14 @@ QUERY_ORDER_WITH_SORT = """
 @pytest.mark.parametrize(
     "order_sort, result_order",
     [
-        ({"field": "NUMBER", "direction": "ASC"}, [0, 1, 2]),
-        ({"field": "NUMBER", "direction": "DESC"}, [2, 1, 0]),
-        ({"field": "CREATION_DATE", "direction": "ASC"}, [1, 0, 2]),
-        ({"field": "CREATION_DATE", "direction": "DESC"}, [2, 0, 1]),
-        ({"field": "CUSTOMER", "direction": "ASC"}, [2, 0, 1]),
-        ({"field": "CUSTOMER", "direction": "DESC"}, [1, 0, 2]),
-        ({"field": "FULFILLMENT_STATUS", "direction": "ASC"}, [2, 1, 0]),
-        ({"field": "FULFILLMENT_STATUS", "direction": "DESC"}, [0, 1, 2]),
+        ({"field": "NUMBER", "direction": "ASC"}, [0, 1, 2, 3]),
+        ({"field": "NUMBER", "direction": "DESC"}, [3, 2, 1, 0]),
+        ({"field": "CREATION_DATE", "direction": "ASC"}, [1, 0, 2, 3]),
+        ({"field": "CREATION_DATE", "direction": "DESC"}, [3, 2, 0, 1]),
+        ({"field": "CUSTOMER", "direction": "ASC"}, [2, 0, 1, 3]),
+        ({"field": "CUSTOMER", "direction": "DESC"}, [3, 1, 0, 2]),
+        ({"field": "FULFILLMENT_STATUS", "direction": "ASC"}, [2, 1, 0, 3]),
+        ({"field": "FULFILLMENT_STATUS", "direction": "DESC"}, [3, 0, 1, 2]),
     ],
 )
 def test_query_orders_with_sort(
@@ -4989,6 +5148,15 @@ def test_query_orders_with_sort(
             billing_address=address3,
             status=OrderStatus.CANCELED,
             total=TaxedMoney(net=Money(20, "USD"), gross=Money(26, "USD")),
+            channel=channel_USD,
+        )
+    )
+    created_orders.append(
+        Order.objects.create(
+            token=str(uuid.uuid4()),
+            billing_address=None,
+            status=OrderStatus.UNCONFIRMED,
+            total=TaxedMoney(net=Money(60, "USD"), gross=Money(80, "USD")),
             channel=channel_USD,
         )
     )
