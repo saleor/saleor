@@ -32,17 +32,18 @@ def get_model_name(model):
     return model_name[:1].lower() + model_name[1:]
 
 
-def get_error_fields(error_type_class, error_type_field):
-    return {
-        error_type_field: graphene.Field(
-            graphene.List(
-                graphene.NonNull(error_type_class),
-                description="List of errors that occurred executing the mutation.",
-            ),
-            default_value=[],
-            required=True,
-        )
-    }
+def get_error_fields(error_type_class, error_type_field, deprecation_reason=None):
+    error_field = graphene.Field(
+        graphene.List(
+            graphene.NonNull(error_type_class),
+            description="List of errors that occurred executing the mutation.",
+        ),
+        default_value=[],
+        required=True,
+    )
+    if deprecation_reason is not None:
+        error_field.deprecation_reason = deprecation_reason
+    return {error_type_field: error_field}
 
 
 def validation_error_to_error_type(validation_error: ValidationError) -> list:
@@ -80,16 +81,6 @@ class ModelMutationOptions(MutationOptions):
 
 
 class BaseMutation(graphene.Mutation):
-    errors = graphene.List(
-        graphene.NonNull(Error),
-        description="List of errors that occurred executing the mutation.",
-        deprecation_reason=(
-            "Use typed errors with error codes. This field will be removed after "
-            "2020-07-31."
-        ),
-        required=True,
-    )
-
     class Meta:
         abstract = True
 
@@ -110,6 +101,9 @@ class BaseMutation(graphene.Mutation):
         if not description:
             raise ImproperlyConfigured("No description provided in Meta")
 
+        if not error_type_class:
+            raise ImproperlyConfigured("No error_type_class provided in Meta.")
+
         if isinstance(permissions, str):
             permissions = (permissions,)
 
@@ -125,10 +119,18 @@ class BaseMutation(graphene.Mutation):
         super().__init_subclass_with_meta__(
             description=description, _meta=_meta, **options
         )
-        if error_type_class and error_type_field:
-            cls._meta.fields.update(
-                get_error_fields(error_type_class, error_type_field)
+        if error_type_field:
+            deprecated_msg = (
+                "Use errors field instead. This field will be removed in Saleor 4.0."
             )
+            cls._meta.fields.update(
+                get_error_fields(
+                    error_type_class,
+                    error_type_field,
+                    deprecated_msg,
+                )
+            )
+        cls._meta.fields.update(get_error_fields(error_type_class, "errors"))
 
     @classmethod
     def _update_mutation_arguments_and_fields(cls, arguments, fields):

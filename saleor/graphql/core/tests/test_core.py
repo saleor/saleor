@@ -24,6 +24,7 @@ from ..utils import (
     snake_to_camel_case,
     validate_slug_and_generate_if_needed,
 )
+from . import ErrorTest
 
 
 def test_clean_seo_fields():
@@ -170,7 +171,9 @@ def test_filter_input():
 def test_mutation_invalid_permission_in_meta(_mocked, should_fail, permissions_value):
     def _run_test():
         BaseMutation.__init_subclass_with_meta__(
-            description="dummy", permissions=permissions_value
+            description="dummy",
+            error_type_class=ErrorTest,
+            permissions=permissions_value,
         )
 
     if not should_fail:
