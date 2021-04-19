@@ -958,6 +958,7 @@ ACCOUNT_REGISTER_MUTATION = """
         $email: String!,
         $redirectUrl: String,
         $languageCode: LanguageCodeEnum
+        $metadata: [MetadataInput!]
     ) {
         accountRegister(
             input: {
@@ -965,6 +966,7 @@ ACCOUNT_REGISTER_MUTATION = """
                 email: $email,
                 redirectUrl: $redirectUrl,
                 languageCode: $languageCode,
+                metadata: $metadata
             }
         ) {
             accountErrors {
@@ -994,6 +996,7 @@ def test_customer_register(mocked_notify, mocked_generator, api_client):
         "password": "Password",
         "redirectUrl": redirect_url,
         "languageCode": "PL",
+        "metadata": [{"key": "meta", "value": "data"}],
     }
     query = ACCOUNT_REGISTER_MUTATION
     mutation_name = "accountRegister"
@@ -1013,6 +1016,7 @@ def test_customer_register(mocked_notify, mocked_generator, api_client):
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
     }
+    assert new_user.metadata == {"meta": "data"}
     assert new_user.language_code == "pl"
     assert not data["accountErrors"]
     mocked_notify.assert_called_once_with(
@@ -1435,8 +1439,12 @@ def test_customer_update_without_any_changes_generates_no_event(
 
 ACCOUNT_UPDATE_QUERY = """
     mutation accountUpdate(
-            $billing: AddressInput, $shipping: AddressInput, $firstName: String,
-            $lastName: String, $languageCode: LanguageCodeEnum) {
+        $billing: AddressInput
+        $shipping: AddressInput
+        $firstName: String,
+        $lastName: String
+        $languageCode: LanguageCodeEnum
+    ) {
         accountUpdate(
           input: {
             defaultBillingAddress: $billing,
