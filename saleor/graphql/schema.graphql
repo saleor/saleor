@@ -3898,12 +3898,17 @@ input PermissionGroupUpdateInput {
   removeUsers: [ID!]
 }
 
-type Plugin implements Node {
+type Plugin {
   id: ID!
   name: String!
-  channel: Channel
   description: String!
+  globalConfiguration: PluginConfiguration
+  channelConfigurations: [PluginConfiguration!]!
+}
+
+type PluginConfiguration {
   active: Boolean!
+  channel: Channel
   configuration: [ConfigurationItem]
 }
 

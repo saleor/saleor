@@ -5,6 +5,7 @@ from ...core.permissions import PluginsPermissions
 from ...plugins.error_codes import PluginErrorCode
 from ..core.mutations import BaseMutation
 from ..core.types.common import PluginError
+from .resolvers import resolve_plugin
 from .types import Plugin
 
 
@@ -52,14 +53,33 @@ class PluginUpdate(BaseMutation):
         channel_slug = data.get("channel")
         data = data.get("input")
         manager = info.context.plugins
-        plugin = manager.get_plugin(plugin_id)
+        plugin = manager.get_plugin(plugin_id, channel_slug)
         if not plugin:
             raise ValidationError(
                 {
                     "id": ValidationError(
-                        "Plugin doesn't exist", code=PluginErrorCode.NOT_FOUND
+                        "Plugin doesn't exist.", code=PluginErrorCode.NOT_FOUND.value
                     )
                 }
             )
-        instance = manager.save_plugin_configuration(plugin_id, channel_slug, data)
-        return PluginUpdate(plugin=instance)
+
+        if plugin in manager.global_plugins and channel_slug:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Plugin doesn't support configuration per channel.",
+                        code=PluginErrorCode.INVALID.value,
+                    )
+                }
+            )
+        elif plugin not in manager.global_plugins and not channel_slug:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Plugin requires to specify channel slug.",
+                        code=PluginErrorCode.NOT_FOUND.value,
+                    )
+                }
+            )
+        manager.save_plugin_configuration(plugin_id, channel_slug, data)
+        return PluginUpdate(plugin=resolve_plugin(plugin_id, manager))

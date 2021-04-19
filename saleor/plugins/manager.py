@@ -66,17 +66,23 @@ class PluginsManager(PaymentInterface):
     global_plugins: List["BasePlugin"] = []
     all_plugins: List["BasePlugin"] = []
 
-    def _load_plugin(self, PluginClass: Type["BasePlugin"], config) -> "BasePlugin":
+    def _load_plugin(
+        self,
+        PluginClass: Type["BasePlugin"],
+        config,
+        channel: Optional["Channel"] = None,
+    ) -> "BasePlugin":
 
         if PluginClass.PLUGIN_ID in config:
             existing_config = config[PluginClass.PLUGIN_ID]
             plugin_config = existing_config.configuration
             active = existing_config.active
+            channel = existing_config.channel
         else:
             plugin_config = PluginClass.DEFAULT_CONFIGURATION
             active = PluginClass.get_default_active()
 
-        return PluginClass(configuration=plugin_config, active=active)
+        return PluginClass(configuration=plugin_config, active=active, channel=channel)
 
     def __init__(self, plugins: List[str]):
         with opentracing.global_tracer().start_active_span("PluginsManager.__init__"):
@@ -99,7 +105,9 @@ class PluginsManager(PaymentInterface):
                     else:
                         for channel in channels:
                             channel_configs = self._configs_per_channel.get(channel, {})
-                            plugin = self._load_plugin(PluginClass, channel_configs)
+                            plugin = self._load_plugin(
+                                PluginClass, channel_configs, channel
+                            )
                             self.plugins_per_channel[channel.slug].append(plugin)
                             self.all_plugins.append(plugin)
 
@@ -858,6 +866,8 @@ class PluginsManager(PaymentInterface):
                 )
                 configuration.name = plugin.PLUGIN_NAME
                 configuration.description = plugin.PLUGIN_DESCRIPTION
+                plugin.active = configuration.active
+                plugin.configuration = configuration.configuration
                 return configuration
 
     def get_plugin(
