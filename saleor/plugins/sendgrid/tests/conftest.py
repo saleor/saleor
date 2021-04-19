@@ -5,7 +5,7 @@ from ..plugin import SendgridEmailPlugin
 
 
 @pytest.fixture
-def sendgrid_email_plugin(settings):
+def sendgrid_email_plugin(settings, channel_USD):
     def fun(
         active=True,
         sender_name=None,
@@ -31,7 +31,7 @@ def sendgrid_email_plugin(settings):
         manager = get_plugins_manager()
         manager.save_plugin_configuration(
             SendgridEmailPlugin.PLUGIN_ID,
-            None,
+            channel_USD.slug,
             {
                 "active": active,
                 "configuration": [
@@ -98,6 +98,6 @@ def sendgrid_email_plugin(settings):
             },
         )
         manager = get_plugins_manager()
-        return manager.all_plugins[0]
+        return manager.plugins_per_channel[channel_USD.slug][0]
 
     return fun
