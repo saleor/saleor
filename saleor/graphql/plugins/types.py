@@ -39,18 +39,19 @@ class PluginConfiguration(graphene.ObjectType):
 
 
 class Plugin(graphene.ObjectType):
-    id = graphene.Field(
-        type=graphene.String, required=True, description="Identifier of the plugin."
+    id = graphene.ID(required=True, description="Identifier of the plugin.")
+    name = graphene.String(description="Name of the plugin.", required=True)
+    description = graphene.String(
+        description="Description of the plugin.", required=True
     )
-    name = graphene.String(description="Name of the plugin.")
-    description = graphene.String(description="Description of the plugin.")
     global_configuration = graphene.Field(
         PluginConfiguration,
-        description="Configuration for plugins which configuration is not channel-specific.",
+        description="Global configuration of the plugin (not channel-specific).",
     )
     channel_configurations = graphene.List(
         graphene.NonNull(PluginConfiguration),
-        description="Configuration of plugins for each existing channel.",
+        description="Channel-specific plugin configuration.",
+        required=True,
     )
 
     class Meta:
@@ -74,7 +75,7 @@ class Plugin(graphene.ObjectType):
 
     @staticmethod
     def resolve_channel_configurations(root: "Plugin", _info):
-        return root.channel_configurations
+        return root.channel_configurations or []
 
 
 class PluginCountableConnection(CountableConnection):

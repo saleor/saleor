@@ -3899,11 +3899,11 @@ input PermissionGroupUpdateInput {
 }
 
 type Plugin {
-  id: String!
-  name: String
-  description: String
+  id: ID!
+  name: String!
+  description: String!
   globalConfiguration: PluginConfiguration
-  channelConfigurations: [PluginConfiguration!]
+  channelConfigurations: [PluginConfiguration!]!
 }
 
 type PluginConfiguration {
