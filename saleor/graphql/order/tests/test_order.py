@@ -2557,8 +2557,7 @@ def test_draft_order_complete_with_unavailable_variant(
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]
     assert (
-        data["orderErrors"][0]["code"]
-        == OrderErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
+        data["orderErrors"][0]["code"] == OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.name
     )
     assert data["orderErrors"][0]["field"] == "lines"
     assert data["orderErrors"][0]["variants"] == [variant_id]

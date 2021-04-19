@@ -50,7 +50,7 @@ def validate_price_precision(value: Optional["Decimal"], currency: str):
 def validate_variants_available_in_channel(
     variants_id,
     channel_id,
-    error_class,
+    error_code,
 ):
     """Validate available variants in specific channel."""
 
@@ -67,7 +67,7 @@ def validate_variants_available_in_channel(
             {
                 "lines": ValidationError(
                     "Cannot add lines with unavailable variants.",
-                    code=error_class.UNAVAILABLE_VARIANT_IN_CHANNEL.value,
+                    code=error_code,
                     params={"variants": not_available_variants_ids},
                 )
             }

@@ -648,6 +648,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
+        errors_mapping = {"lines": "input", "channel": "input"}
 
     @classmethod
     def validate_lines(cls, info, data):
@@ -675,14 +676,15 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
             )
         return lines_to_add
 
-    @staticmethod
-    def validate_variants(order, variants):
+    @classmethod
+    def validate_variants(cls, order, variants):
         try:
             channel = order.channel
             validate_product_is_published_in_channel(variants, channel)
             validate_variant_channel_listings(variants, channel)
         except ValidationError as error:
-            raise ValidationError({"input": error})
+            cls.remap_error_fields(error, cls._meta.errors_mapping)
+            raise ValidationError(error)
 
     @staticmethod
     def add_lines_to_order(order, lines_to_add, user, manager):
