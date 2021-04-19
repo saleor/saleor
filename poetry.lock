@@ -194,7 +194,7 @@ crt = ["awscrt (==0.10.8)"]
 
 [[package]]
 name = "braintree"
-version = "4.7.0"
+version = "4.8.0"
 description = "Braintree Python Library"
 category = "main"
 optional = false
@@ -2582,7 +2582,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "e44732cb984ceb33f98c71146e3c68a666978f1cbddea6cc2d9bbe8e7e5f2d62"
+content-hash = "4620d2d0deb9a3c4bab8a31b6877a8927b010df2035427b47a21856e24bd4e9e"
 
 [metadata.files]
 adyen = [
@@ -2652,8 +2652,8 @@ botocore = [
     {file = "botocore-1.20.49.tar.gz", hash = "sha256:f7f103fa0651c69dd360c7d0ecd874854303de5cc0869e0cbc2818a52baacc69"},
 ]
 braintree = [
-    {file = "braintree-4.7.0-py2.py3-none-any.whl", hash = "sha256:a7e04e3b7cc53b691d5edb31ce4c6022c336b0f38f6bb3f35a0042de29dfe2be"},
-    {file = "braintree-4.7.0.tar.gz", hash = "sha256:25a95f95acb7f180b37f8dcf4df7efa84ae0ba6ad9dc4ba0e724e2cc534c3483"},
+    {file = "braintree-4.8.0-py2.py3-none-any.whl", hash = "sha256:a9b3507801c1609dee08b4c91627fe4535bebb474afce739b1eb00a551cf8116"},
+    {file = "braintree-4.8.0.tar.gz", hash = "sha256:bb14ea25b62aa3e7ead1b4824256f0c0f78ea07f08573e4e42b6252112d480f8"},
 ]
 cachetools = [
     {file = "cachetools-4.2.1-py3-none-any.whl", hash = "sha256:1d9d5f567be80f7c07d765e21b814326d78c61eb0c3a637dffc0e5d1796cb2e2"},
