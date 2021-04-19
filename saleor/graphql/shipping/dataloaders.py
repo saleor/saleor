@@ -39,7 +39,7 @@ class ShippingMethodsByShippingZoneIdLoader(DataLoader):
                 shipping_method.shipping_zone_id
             ].append(shipping_method)
         return [
-            shipping_methods_by_shipping_zone_map[shipping_zone_id]
+            shipping_methods_by_shipping_zone_map.get(shipping_zone_id, [])
             for shipping_zone_id in keys
         ]
 
@@ -56,7 +56,8 @@ class PostalCodeRulesByShippingMethodIdLoader(DataLoader):
         for postal_code in postal_code_rules:
             postal_code_rules_map[postal_code.shipping_method_id].append(postal_code)
         return [
-            postal_code_rules_map[shipping_method_id] for shipping_method_id in keys
+            postal_code_rules_map.get(shipping_method_id, [])
+            for shipping_method_id in keys
         ]
 
 
@@ -74,7 +75,10 @@ class ShippingMethodsByShippingZoneIdAndChannelSlugLoader(DataLoader):
             shipping_methods_by_shipping_zone_and_channel_map[key].append(
                 shipping_method
             )
-        return [shipping_methods_by_shipping_zone_and_channel_map[key] for key in keys]
+        return [
+            shipping_methods_by_shipping_zone_and_channel_map.get(key, [])
+            for key in keys
+        ]
 
 
 class ShippingMethodChannelListingByShippingMethodIdLoader(DataLoader):
@@ -90,7 +94,9 @@ class ShippingMethodChannelListingByShippingMethodIdLoader(DataLoader):
                 shipping_method_channel_listing.shipping_method_id
             ].append(shipping_method_channel_listing)
         return [
-            shipping_method_channel_listings_by_shipping_method_map[shipping_method_id]
+            shipping_method_channel_listings_by_shipping_method_map.get(
+                shipping_method_id, []
+            )
             for shipping_method_id in keys
         ]
 
@@ -114,7 +120,7 @@ class ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader(DataLoa
                 key
             ] = shipping_method_channel_listing
         return [
-            shipping_method_channel_listings_by_shipping_method_and_channel_map[key]
+            shipping_method_channel_listings_by_shipping_method_and_channel_map.get(key)
             for key in keys
         ]
 
@@ -137,7 +143,7 @@ class ChannelsByShippingZoneIdLoader(DataLoader):
             return [
                 [
                     channel_map[channel_id]
-                    for channel_id in shipping_zone_channel_map[zone_id]
+                    for channel_id in shipping_zone_channel_map.get(zone_id, [])
                 ]
                 for zone_id in keys
             ]

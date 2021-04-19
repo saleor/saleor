@@ -221,7 +221,24 @@ class OrderUpdateShippingInput(graphene.InputObjectType):
     )
 
 
-class OrderUpdateShipping(BaseMutation):
+class EditableOrderValidationMixin:
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def validate_order(cls, order):
+        if order.status not in ORDER_EDITABLE_STATUS:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Only draft and unconfirmed orders can be edited.",
+                        code=OrderErrorCode.NOT_EDITABLE,
+                    )
+                }
+            )
+
+
+class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
     order = graphene.Field(Order, description="Order with updated shipping method.")
 
     class Arguments:
@@ -248,6 +265,7 @@ class OrderUpdateShipping(BaseMutation):
             only_type=Order,
             qs=models.Order.objects.prefetch_related("lines"),
         )
+        cls.validate_order(order)
         data = data.get("input")
 
         if not data["shipping_method"]:
@@ -607,23 +625,6 @@ class OrderConfirm(ModelMutation):
             order_captured(order, info.context.user, payment.total, payment, manager)
         order_confirmed(order, info.context.user, manager, send_confirmation_email=True)
         return OrderConfirm(order=order)
-
-
-class EditableOrderValidationMixin:
-    class Meta:
-        abstract = True
-
-    @classmethod
-    def validate_order(cls, order):
-        if order.status not in ORDER_EDITABLE_STATUS:
-            raise ValidationError(
-                {
-                    "id": ValidationError(
-                        "Only draft and unconfirmed orders can be edited.",
-                        code=OrderErrorCode.NOT_EDITABLE,
-                    )
-                }
-            )
 
 
 class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
