@@ -32,7 +32,7 @@ def get_field_value(instance: DjangoModel, field_name: str):
     field_path = field_name.split("__")
     attr = instance
     for elem in field_path:
-        attr = getattr(attr, elem)
+        attr = getattr(attr, elem, None)
 
     if callable(attr):
         return "%s" % attr()
