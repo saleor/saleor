@@ -9,6 +9,9 @@ from ....core.permissions import ShippingPermissions
 from ....product import models as product_models
 from ....shipping import models
 from ....shipping.error_codes import ShippingErrorCode
+from ....shipping.tasks import (
+    drop_invalid_shipping_methods_relations_for_given_channels,
+)
 from ....shipping.utils import (
     default_shipping_zone_exists,
     get_countries_without_shipping_zone,
@@ -175,9 +178,19 @@ class ShippingZoneMixin:
         remove_channels = cleaned_data.get("remove_channels")
         if remove_channels:
             instance.channels.remove(*remove_channels)
-            models.ShippingMethodChannelListing.objects.filter(
-                shipping_method__shipping_zone=instance, channel__in=remove_channels
-            ).delete()
+            shipping_channel_listings = (
+                models.ShippingMethodChannelListing.objects.filter(
+                    shipping_method__shipping_zone=instance, channel__in=remove_channels
+                )
+            )
+            shipping_method_ids = list(
+                shipping_channel_listings.values_list("shipping_method_id", flat=True)
+            )
+            shipping_channel_listings.delete()
+            channel_ids = [channel.id for channel in remove_channels]
+            drop_invalid_shipping_methods_relations_for_given_channels.delay(
+                shipping_method_ids, channel_ids
+            )
 
 
 class ShippingZoneCreate(ShippingZoneMixin, ModelMutation):
