@@ -3,6 +3,7 @@ from django.conf import settings
 
 from ...attribute import models as attribute_models
 from ...core.permissions import DiscountPermissions, ShippingPermissions
+from ...core.tracing import traced_resolver
 from ...discount import models as discount_models
 from ...menu import models as menu_models
 from ...page import models as page_models
@@ -36,6 +37,7 @@ class BaseTranslationType(CountableDjangoObjectType):
         abstract = True
 
     @staticmethod
+    @traced_resolver
     def resolve_language(root, *_args):
         try:
             language = next(
@@ -213,6 +215,7 @@ class CollectionTranslatableContent(CountableDjangoObjectType):
         only_fields = EXTENDED_TRANSLATABLE_FIELDS
 
     @staticmethod
+    @traced_resolver
     def resolve_collection(root: product_models.Collection, info):
         collection = product_models.Collection.objects.all().filter(pk=root.id).first()
         return (
@@ -325,6 +328,7 @@ class PageTranslatableContent(CountableDjangoObjectType):
         ]
 
     @staticmethod
+    @traced_resolver
     def resolve_page(root: page_models.Page, info):
         return (
             page_models.Page.objects.visible_to_user(info.context.user)

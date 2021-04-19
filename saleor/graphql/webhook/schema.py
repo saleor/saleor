@@ -1,6 +1,7 @@
 import graphene
 
 from ...core.permissions import AppPermission
+from ...core.tracing import traced_resolver
 from ..decorators import permission_required
 from .enums import WebhookSampleEventTypeEnum
 from .mutations import WebhookCreate, WebhookDelete, WebhookUpdate
@@ -42,6 +43,7 @@ class WebhookQueries(graphene.ObjectType):
 
     @staticmethod
     @permission_required(AppPermission.MANAGE_APPS)
+    @traced_resolver
     def resolve_webhook_events(_, *_args, **_data):
         return resolve_webhook_events()
 

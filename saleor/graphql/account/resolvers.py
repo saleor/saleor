@@ -7,6 +7,7 @@ from i18naddress import get_validation_rules
 from ...account import models
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
+from ...core.tracing import traced_resolver
 from ...payment import gateway
 from ...payment.utils import fetch_customer_id
 from ..core.utils import from_global_id_or_error
@@ -30,6 +31,7 @@ USER_SEARCH_FIELDS = (
 )
 
 
+@traced_resolver
 def resolve_customers(info, query, **_kwargs):
     qs = models.User.objects.customers()
     qs = filter_by_query_param(
@@ -38,10 +40,12 @@ def resolve_customers(info, query, **_kwargs):
     return qs.distinct()
 
 
+@traced_resolver
 def resolve_permission_groups(info, **_kwargs):
     return auth_models.Group.objects.all()
 
 
+@traced_resolver
 def resolve_staff_users(info, query, **_kwargs):
     qs = models.User.objects.staff()
     qs = filter_by_query_param(
@@ -50,6 +54,7 @@ def resolve_staff_users(info, query, **_kwargs):
     return qs.distinct()
 
 
+@traced_resolver
 def resolve_user(info, id=None, email=None):
     requester = get_user_or_app_from_context(info.context)
     if requester:
@@ -69,6 +74,7 @@ def resolve_user(info, id=None, email=None):
     return PermissionDenied()
 
 
+@traced_resolver
 def resolve_address_validation_rules(
     info,
     country_code: str,
@@ -111,6 +117,7 @@ def resolve_address_validation_rules(
     )
 
 
+@traced_resolver
 def resolve_payment_sources(info, user: models.User):
     manager = info.context.plugins
     stored_customer_accounts = (
@@ -148,6 +155,7 @@ def prepare_graphql_payment_sources_type(payment_sources):
     return sources
 
 
+@traced_resolver
 def resolve_address(info, id):
     user = info.context.user
     app = info.context.app
