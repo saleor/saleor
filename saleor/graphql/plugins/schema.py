@@ -1,6 +1,7 @@
 import graphene
 
 from ...core.permissions import PluginsPermissions
+from ...core.tracing import traced_resolver
 from ..core.fields import BaseDjangoConnectionField
 from ..decorators import permission_required
 from .filters import PluginFilterInput
@@ -30,6 +31,7 @@ class PluginsQueries(graphene.ObjectType):
         return resolve_plugin(info, data.get("id"), info.context.plugins)
 
     @permission_required(PluginsPermissions.MANAGE_PLUGINS)
+    @traced_resolver
     def resolve_plugins(self, info, **kwargs):
         return resolve_plugins(info.context.plugins, **kwargs)
 

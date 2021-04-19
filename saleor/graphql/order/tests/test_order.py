@@ -5097,14 +5097,14 @@ QUERY_ORDER_WITH_SORT = """
 @pytest.mark.parametrize(
     "order_sort, result_order",
     [
-        ({"field": "NUMBER", "direction": "ASC"}, [0, 1, 2]),
-        ({"field": "NUMBER", "direction": "DESC"}, [2, 1, 0]),
-        ({"field": "CREATION_DATE", "direction": "ASC"}, [1, 0, 2]),
-        ({"field": "CREATION_DATE", "direction": "DESC"}, [2, 0, 1]),
-        ({"field": "CUSTOMER", "direction": "ASC"}, [2, 0, 1]),
-        ({"field": "CUSTOMER", "direction": "DESC"}, [1, 0, 2]),
-        ({"field": "FULFILLMENT_STATUS", "direction": "ASC"}, [2, 1, 0]),
-        ({"field": "FULFILLMENT_STATUS", "direction": "DESC"}, [0, 1, 2]),
+        ({"field": "NUMBER", "direction": "ASC"}, [0, 1, 2, 3]),
+        ({"field": "NUMBER", "direction": "DESC"}, [3, 2, 1, 0]),
+        ({"field": "CREATION_DATE", "direction": "ASC"}, [1, 0, 2, 3]),
+        ({"field": "CREATION_DATE", "direction": "DESC"}, [3, 2, 0, 1]),
+        ({"field": "CUSTOMER", "direction": "ASC"}, [2, 0, 1, 3]),
+        ({"field": "CUSTOMER", "direction": "DESC"}, [3, 1, 0, 2]),
+        ({"field": "FULFILLMENT_STATUS", "direction": "ASC"}, [2, 1, 0, 3]),
+        ({"field": "FULFILLMENT_STATUS", "direction": "DESC"}, [3, 0, 1, 2]),
     ],
 )
 def test_query_orders_with_sort(
@@ -5148,6 +5148,15 @@ def test_query_orders_with_sort(
             billing_address=address3,
             status=OrderStatus.CANCELED,
             total=TaxedMoney(net=Money(20, "USD"), gross=Money(26, "USD")),
+            channel=channel_USD,
+        )
+    )
+    created_orders.append(
+        Order.objects.create(
+            token=str(uuid.uuid4()),
+            billing_address=None,
+            status=OrderStatus.UNCONFIRMED,
+            total=TaxedMoney(net=Money(60, "USD"), gross=Money(80, "USD")),
             channel=channel_USD,
         )
     )

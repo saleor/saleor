@@ -1,16 +1,12 @@
 from typing import Optional
 
-import opentracing
-import opentracing.tags
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import AnonymousUser
 from django.utils.functional import SimpleLazyObject
-from graphql import ResolveInfo
 
 from ..app.models import App
 from ..core.exceptions import ReadOnlyException
-from ..core.tracing import should_trace
 from .views import API_PATH, GraphQLView
 
 
@@ -29,20 +25,6 @@ class JWTMiddleware:
 
         request.user = SimpleLazyObject(lambda: user())
         return next(root, info, **kwargs)
-
-
-class OpentracingGrapheneMiddleware:
-    @staticmethod
-    def resolve(next_, root, info: ResolveInfo, **kwargs):
-        if not should_trace(info):
-            return next_(root, info, **kwargs)
-        operation = f"{info.parent_type.name}.{info.field_name}"
-        with opentracing.global_tracer().start_active_span(operation) as scope:
-            span = scope.span
-            span.set_tag(opentracing.tags.COMPONENT, "graphql")
-            span.set_tag("graphql.parent_type", info.parent_type.name)
-            span.set_tag("graphql.field_name", info.field_name)
-            return next_(root, info, **kwargs)
 
 
 def get_app(auth_token) -> Optional[App]:

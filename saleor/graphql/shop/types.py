@@ -10,6 +10,7 @@ from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 from ... import __version__
 from ...account import models as account_models
 from ...core.permissions import SitePermissions, get_permissions
+from ...core.tracing import traced_resolver
 from ...site import models as site_models
 from ..account.types import Address, AddressInput, StaffNotificationRecipient
 from ..channel import ChannelContext
@@ -207,18 +208,22 @@ class Shop(graphene.ObjectType):
         )
 
     @staticmethod
+    @traced_resolver
     def resolve_available_payment_gateways(_, info, currency: Optional[str] = None):
         return info.context.plugins.list_payment_gateways(currency=currency)
 
     @staticmethod
+    @traced_resolver
     def resolve_available_external_authentications(_, info):
         return info.context.plugins.list_external_authentications(active_only=True)
 
     @staticmethod
+    @traced_resolver
     def resolve_available_shipping_methods(_, info, channel, address=None):
         return resolve_available_shipping_methods(info, channel, address)
 
     @staticmethod
+    @traced_resolver
     def resolve_countries(_, _info, language_code=None):
         taxes = {vat.country_code: vat for vat in VAT.objects.all()}
         with translation.override(language_code):
@@ -230,6 +235,7 @@ class Shop(graphene.ObjectType):
             ]
 
     @staticmethod
+    @traced_resolver
     def resolve_domain(_, info):
         site = info.context.site
         return Domain(
@@ -243,6 +249,7 @@ class Shop(graphene.ObjectType):
         return info.context.site.settings.description
 
     @staticmethod
+    @traced_resolver
     def resolve_languages(_, _info):
         return [
             LanguageDisplay(
@@ -256,6 +263,7 @@ class Shop(graphene.ObjectType):
         return info.context.site.name
 
     @staticmethod
+    @traced_resolver
     def resolve_navigation(_, info):
         site_settings = info.context.site.settings
         main = None
@@ -276,6 +284,7 @@ class Shop(graphene.ObjectType):
         return Navigation(main=main, secondary=secondary)
 
     @staticmethod
+    @traced_resolver
     def resolve_permissions(_, _info):
         permissions = get_permissions()
         return format_permissions_for_display(permissions)
@@ -309,6 +318,7 @@ class Shop(graphene.ObjectType):
         return info.context.site.settings.default_weight_unit
 
     @staticmethod
+    @traced_resolver
     def resolve_default_country(_, _info):
         default_country_code = settings.DEFAULT_COUNTRY
         default_country_name = countries.countries.get(default_country_code)
@@ -361,6 +371,7 @@ class Shop(graphene.ObjectType):
 
     @staticmethod
     @permission_required(SitePermissions.MANAGE_SETTINGS)
+    @traced_resolver
     def resolve_staff_notification_recipients(_, info):
         return account_models.StaffNotificationRecipient.objects.all()
 

@@ -13,10 +13,13 @@ import sentry_sdk
 import sentry_sdk.utils
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.utils import get_random_secret_key
+from graphql.utils import schema_printer
 from pytimeparse import parse
 from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.logging import ignore_logger
+
+from . import patched_print_object
 
 
 def get_list(text):
@@ -513,7 +516,6 @@ GRAPHENE = {
     "RELAY_CONNECTION_ENFORCE_FIRST_OR_LAST": True,
     "RELAY_CONNECTION_MAX_LIMIT": 100,
     "MIDDLEWARE": [
-        "saleor.graphql.middleware.OpentracingGrapheneMiddleware",
         "saleor.graphql.middleware.JWTMiddleware",
         "saleor.graphql.middleware.app_middleware",
     ],
@@ -598,3 +600,13 @@ JWT_TTL_REFRESH = timedelta(seconds=parse(os.environ.get("JWT_TTL_REFRESH", "30 
 JWT_TTL_REQUEST_EMAIL_CHANGE = timedelta(
     seconds=parse(os.environ.get("JWT_TTL_REQUEST_EMAIL_CHANGE", "1 hour")),
 )
+
+# Support multiple interface notation in schema for Apollo tooling.
+
+# In `graphql-core` V2 separator for interaces is `,`.
+# Apollo tooling to generate TypeScript types using `&` as interfaces separator.
+# https://github.com/graphql-python/graphql-core-legacy/pull/258
+# https://github.com/graphql-python/graphql-core-legacy/issues/176
+
+assert hasattr(schema_printer, "_print_object")
+schema_printer._print_object = patched_print_object
