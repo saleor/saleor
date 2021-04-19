@@ -2462,6 +2462,7 @@ DRAFT_ORDER_COMPLETE_MUTATION = """
             orderErrors {
                 field
                 code
+                variants
             }
             order {
                 status
@@ -2534,6 +2535,32 @@ def test_draft_order_complete_with_inactive_channel(
     data = content["data"]["draftOrderComplete"]
     assert data["orderErrors"][0]["code"] == OrderErrorCode.CHANNEL_INACTIVE.name
     assert data["orderErrors"][0]["field"] == "channel"
+
+
+def test_draft_order_complete_with_unavailable_variant(
+    staff_api_client,
+    permission_manage_orders,
+    staff_user,
+    draft_order,
+):
+    order = draft_order
+    variant = order.lines.first().variant
+    variant.channel_listings.filter(channel=order.channel).delete()
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    variables = {"id": order_id}
+    response = staff_api_client.post_graphql(
+        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderComplete"]
+    assert (
+        data["orderErrors"][0]["code"] == OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.name
+    )
+    assert data["orderErrors"][0]["field"] == "lines"
+    assert data["orderErrors"][0]["variants"] == [variant_id]
 
 
 def test_draft_order_complete_channel_without_shipping_zones(
