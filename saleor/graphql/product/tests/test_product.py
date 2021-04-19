@@ -1632,35 +1632,6 @@ def test_products_query_filter_by_non_existing_attribute(
     assert len(products) == 0
 
 
-def test_products_query_with_filter_product_type(
-    query_products_with_filter, staff_api_client, product, permission_manage_products
-):
-    product_type = ProductType.objects.create(
-        name="Custom Type",
-        slug="custom-type",
-        has_variants=True,
-        is_shipping_required=True,
-    )
-    second_product = product
-    second_product.id = None
-    second_product.product_type = product_type
-    second_product.slug = "second-product"
-    second_product.save()
-
-    product_type_id = graphene.Node.to_global_id("ProductType", product_type.id)
-    variables = {"filter": {"productType": product_type_id}}
-
-    staff_api_client.user.user_permissions.add(permission_manage_products)
-    response = staff_api_client.post_graphql(query_products_with_filter, variables)
-    content = get_graphql_content(response)
-    second_product_id = graphene.Node.to_global_id("Product", second_product.id)
-    products = content["data"]["products"]["edges"]
-
-    assert len(products) == 1
-    assert products[0]["node"]["id"] == second_product_id
-    assert products[0]["node"]["name"] == second_product.name
-
-
 def test_products_query_with_filter_category(
     query_products_with_filter, staff_api_client, product, permission_manage_products
 ):

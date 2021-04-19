@@ -4164,7 +4164,6 @@ input ProductFilterInput {
   hasCategory: Boolean
   attributes: [AttributeInput]
   stockAvailability: StockAvailability
-  productType: ID
   stocks: ProductStockFilterInput
   search: String
   metadata: [MetadataInput]
