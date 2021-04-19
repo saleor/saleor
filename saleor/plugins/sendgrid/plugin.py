@@ -94,7 +94,7 @@ class SendgridEmailPlugin(BasePlugin):
     PLUGIN_ID = "mirumee.notifications.sendgrid_email"
     PLUGIN_NAME = "Sendgrid"
     DEFAULT_ACTIVE = False
-    CONFIGURATION_PER_CHANNEL = False
+    CONFIGURATION_PER_CHANNEL = True
 
     DEFAULT_CONFIGURATION = [
         {"name": "sender_name", "value": ""},
