@@ -26,6 +26,7 @@ from .resolvers import (
 )
 from .sorters import PageSortingInput, PageTypeSortingInput
 from .types import Page, PageType
+from ..store.types import Store
 
 
 class PageQueries(graphene.ObjectType):
@@ -53,6 +54,12 @@ class PageQueries(graphene.ObjectType):
         sort_by=PageTypeSortingInput(description="Sort page types."),
         filter=PageTypeFilterInput(description="Filtering options for page types."),
         description="List of the page types.",
+    )
+    store = graphene.Field(
+        Store,
+        id=graphene.Argument(graphene.ID, description="ID of the store."),
+        slug=graphene.Argument(graphene.String, description="Slug of the store"),
+        description="Look up a store by ID or slug.",
     )
 
     def resolve_page(self, info, id=None, slug=None):
