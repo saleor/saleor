@@ -3,8 +3,9 @@ from django.core.exceptions import ValidationError
 
 from ...core.exceptions import InsufficientStock
 from ...order.error_codes import OrderErrorCode
-from ...product.models import Product, ProductVariant, ProductVariantChannelListing
+from ...product.models import Product, ProductVariant
 from ...warehouse.availability import check_stock_quantity
+from ..core.validators import validate_variants_available_in_channel
 
 
 def validate_total_quantity(order):
@@ -97,10 +98,15 @@ def validate_order_lines(order, country):
                 raise ValidationError({"lines": errors})
 
 
+def validate_variants_is_available(order):
+    variants_ids = {line.variant_id for line in order.lines.all()}
+    validate_variants_available_in_channel(
+        variants_ids, order.channel_id, OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL
+    )
+
+
 def validate_product_is_published(order):
-    variant_ids = []
-    for line in order.lines.all():
-        variant_ids.append(line.variant_id)
+    variant_ids = [line.variant_id for line in order.lines.all()]
     unpublished_product = Product.objects.filter(
         variants__id__in=variant_ids
     ).not_published(order.channel.slug)
@@ -118,8 +124,12 @@ def validate_product_is_published(order):
 def validate_product_is_published_in_channel(variants, channel):
     if not channel:
         raise ValidationError(
-            "Can't add product variant for draft order without channel",
-            code=OrderErrorCode.REQUIRED,
+            {
+                "channel": ValidationError(
+                    "Can't add product variant for draft order without channel",
+                    code=OrderErrorCode.REQUIRED,
+                )
+            }
         )
     variant_ids = [variant.id for variant in variants]
     unpublished_product = list(
@@ -134,41 +144,32 @@ def validate_product_is_published_in_channel(variants, channel):
             for unpublished_variant in unpublished_variants
         ]
         raise ValidationError(
-            "Can't add product variant that are not published in "
-            "the channel associated with this draft order.",
-            code=OrderErrorCode.PRODUCT_NOT_PUBLISHED,
-            params={"variants": unpublished_variants_global_ids},
+            {
+                "lines": ValidationError(
+                    "Can't add product variant that are not published in "
+                    "the channel associated with this draft order.",
+                    code=OrderErrorCode.PRODUCT_NOT_PUBLISHED,
+                    params={"variants": unpublished_variants_global_ids},
+                )
+            }
         )
 
 
 def validate_variant_channel_listings(variants, channel):
     if not channel:
         raise ValidationError(
-            "Can't add product variant for draft order without channel",
-            code=OrderErrorCode.REQUIRED,
+            {
+                "channel": ValidationError(
+                    "Can't add product variant for draft order without channel",
+                    code=OrderErrorCode.REQUIRED,
+                )
+            }
         )
-    variant_ids = set([variant.id for variant in variants])
-    variant_channel_listings = ProductVariantChannelListing.objects.filter(
-        channel=channel, variant_id__in=variant_ids, price_amount__isnull=False
+
+    variant_ids = {variant.id for variant in variants}
+    validate_variants_available_in_channel(
+        variant_ids, channel.id, OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL
     )
-    variant_ids_in_channel = set(
-        [
-            variant_channel_listing.variant_id
-            for variant_channel_listing in variant_channel_listings
-        ]
-    )
-    missing_variant_ids_in_channel = variant_ids - variant_ids_in_channel
-    if missing_variant_ids_in_channel:
-        missing_variant_global_ids = [
-            graphene.Node.to_global_id("ProductVariant", missing_variant_id_in_channel)
-            for missing_variant_id_in_channel in missing_variant_ids_in_channel
-        ]
-        raise ValidationError(
-            "Can't add product variant that are don't have price in"
-            "the channel associated with this draft order.",
-            code=OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL,
-            params={"variants": missing_variant_global_ids},
-        )
 
 
 def validate_product_is_available_for_purchase(order):
@@ -219,9 +220,10 @@ def validate_draft_order(order, country):
         validate_shipping_method(order)
     validate_total_quantity(order)
     validate_order_lines(order, country)
+    validate_channel_is_active(order.channel)
     validate_product_is_published(order)
     validate_product_is_available_for_purchase(order)
-    validate_channel_is_active(order.channel)
+    validate_variants_is_available(order)
 
 
 def prepare_insufficient_stock_order_validation_errors(exc):
