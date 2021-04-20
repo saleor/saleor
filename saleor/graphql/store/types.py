@@ -5,6 +5,25 @@ from ..core.connection import CountableDjangoObjectType
 from ..meta.types import ObjectWithMetadata
 from ..core.types import Image
 
+class StoreType(CountableDjangoObjectType):
+    name = graphene.String(
+        description="The store name.",
+        required=True,
+    )
+    description = graphene.String(
+        description="The store description.",
+        required=True,
+    )
+
+    class Meta:
+        description = (
+            "Represents a type of page. It defines what attributes are available to "
+            "pages of this type."
+        )
+        interfaces = [graphene.relay.Node, ObjectWithMetadata]
+        model = models.StoreType
+        only_fields = ["id", "name"]
+
 
 class Store(CountableDjangoObjectType):
     name = graphene.String(
@@ -30,6 +49,11 @@ class Store(CountableDjangoObjectType):
     url = graphene.String(
         description="The store's URL.",
     )
+    store_type = graphene.Field(
+        StoreType,
+        id=graphene.Argument(graphene.ID, description="ID of the store type."),
+        description="Look up a store type by ID",
+    )
     background_image = graphene.Field(
         Image, size=graphene.Int(description="Size of the image.")
     )
@@ -41,27 +65,9 @@ class Store(CountableDjangoObjectType):
         )
         only_fields = [
             "name",
-            "description"
+            "description",
+            "store_type"
         ]
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.Store
-
-class StoreType(CountableDjangoObjectType):
-    name = graphene.String(
-        description="The store name.",
-        required=True,
-    )
-    description = graphene.String(
-        description="The store description.",
-        required=True,
-    )
-
-    class Meta:
-        description = (
-            "Represents a type of page. It defines what attributes are available to "
-            "pages of this type."
-        )
-        interfaces = [graphene.relay.Node, ObjectWithMetadata]
-        model = models.StoreType
-        only_fields = ["id", "name"]
 
