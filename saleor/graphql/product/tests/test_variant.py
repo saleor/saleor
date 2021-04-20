@@ -1571,6 +1571,47 @@ def test_update_product_variant_with_new_attribute(
     assert variant.attributes.last().values.first().slug == "big"
 
 
+def test_update_product_variant_clear_attributes(
+    staff_api_client,
+    product,
+    permission_manage_products,
+):
+    variant = product.variants.first()
+    sku = str(uuid4())[:12]
+    assert not variant.sku == sku
+
+    variant_attr = variant.attributes.first()
+    attribute = variant_attr.assignment.attribute
+    attribute.input_type = AttributeInputType.MULTISELECT
+    attribute.value_required = False
+    attribute.save(update_fields=["value_required", "input_type"])
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.pk)
+
+    variables = {
+        "id": variant_id,
+        "sku": sku,
+        "attributes": [
+            {"id": attribute_id, "values": []},
+        ],
+    }
+
+    response = staff_api_client.post_graphql(
+        QUERY_UPDATE_VARIANT_ATTRIBUTES,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    data = content["data"]["productVariantUpdate"]
+    assert not data["errors"]
+    variant.refresh_from_db()
+    assert not data["productVariant"]["attributes"][0]["values"]
+    with pytest.raises(variant_attr._meta.model.DoesNotExist):
+        variant_attr.refresh_from_db()
+
+
 def test_update_product_variant_with_duplicated_attribute(
     staff_api_client,
     product_with_variant_with_two_attributes,
