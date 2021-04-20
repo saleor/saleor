@@ -18,7 +18,7 @@ from .dataloaders import (
     PageTypeByIdLoader,
     SelectedAttributesByPageIdLoader,
 )
-
+from ..store.types import Store
 
 class Page(CountableDjangoObjectType):
     content_json = graphene.JSONString(
@@ -33,6 +33,12 @@ class Page(CountableDjangoObjectType):
         graphene.NonNull(SelectedAttribute),
         required=True,
         description="List of attributes assigned to this product.",
+    )
+    store = graphene.Field(
+        Store,
+        id=graphene.Argument(graphene.ID, description="ID of the store."),
+        slug=graphene.Argument(graphene.String, description="Slug of the store"),
+        description="Look up a store by ID or slug.",
     )
 
     class Meta:
@@ -51,6 +57,7 @@ class Page(CountableDjangoObjectType):
             "seo_title",
             "slug",
             "title",
+            "store",
         ]
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.Page
