@@ -28,7 +28,7 @@ from ....order.notifications import get_default_order_payload
 from ....payment import ChargeStatus, PaymentError
 from ....payment.models import Payment
 from ....plugins.manager import PluginsManager
-from ....shipping.models import ShippingMethod
+from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ....warehouse.models import Allocation, Stock
 from ....warehouse.tests.utils import get_available_quantity_for_stock
 from ...order.mutations.orders import (
@@ -399,6 +399,34 @@ def test_order_query(
         method["minimumOrderPrice"]["amount"]
     )
     assert expected_method.type.upper() == method["type"]
+
+
+def test_order_query_shipping_method_channel_listing_does_not_exist(
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
+):
+    # given
+    order = order_with_lines
+    order.status = OrderStatus.UNFULFILLED
+    order.save()
+
+    shipping_method = order.shipping_method
+    ShippingMethodChannelListing.objects.filter(
+        shipping_method=shipping_method, channel=order.channel
+    ).delete()
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    assert order_data["shippingMethod"]["id"] == graphene.Node.to_global_id(
+        "ShippingMethod", order.shipping_method.id
+    )
 
 
 def test_order_discounts_query(
@@ -3945,7 +3973,9 @@ ORDER_UPDATE_SHIPPING_QUERY = """
 """
 
 
+@pytest.mark.parametrize("status", [OrderStatus.UNCONFIRMED, OrderStatus.DRAFT])
 def test_order_update_shipping(
+    status,
     staff_api_client,
     permission_manage_orders,
     order_with_lines,
@@ -3953,6 +3983,9 @@ def test_order_update_shipping(
     staff_user,
 ):
     order = order_with_lines
+    order.status = status
+    order.save()
+    assert order.shipping_method != shipping_method
     query = ORDER_UPDATE_SHIPPING_QUERY
     order_id = graphene.Node.to_global_id("Order", order.id)
     method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
@@ -3969,7 +4002,7 @@ def test_order_update_shipping(
         channel_id=order.channel_id
     ).get_total()
     shipping_price = TaxedMoney(shipping_total, shipping_total)
-    assert order.status == OrderStatus.UNFULFILLED
+    assert order.status == status
     assert order.shipping_method == shipping_method
     assert order.shipping_price_net == shipping_price.net
     assert order.shipping_price_gross == shipping_price.gross
@@ -3986,6 +4019,9 @@ def test_order_update_shipping_tax_included(
     vatlayer,
 ):
     order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status"])
+
     address = order_with_lines.shipping_address
     address.country = "DE"
     address.save()
@@ -4005,7 +4041,7 @@ def test_order_update_shipping_tax_included(
     shipping_total = shipping_method.channel_listings.get(
         channel_id=order.channel_id
     ).get_total()
-    assert order.status == OrderStatus.UNFULFILLED
+    assert order.status == OrderStatus.UNCONFIRMED
     assert order.shipping_method == shipping_method
     assert order.shipping_price_gross == shipping_total
     assert order.shipping_tax_rate == Decimal("0.19")
@@ -4016,6 +4052,9 @@ def test_order_update_shipping_clear_shipping_method(
     staff_api_client, permission_manage_orders, order, staff_user, shipping_method
 ):
     order.shipping_method = shipping_method
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status"])
+
     shipping_total = shipping_method.channel_listings.get(
         channel_id=order.channel_id,
     ).get_total()
@@ -4045,6 +4084,9 @@ def test_order_update_shipping_shipping_required(
     staff_api_client, permission_manage_orders, order_with_lines, staff_user
 ):
     order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status"])
+
     query = ORDER_UPDATE_SHIPPING_QUERY
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"order": order_id, "shippingMethod": None}
@@ -4059,6 +4101,41 @@ def test_order_update_shipping_shipping_required(
     )
 
 
+@pytest.mark.parametrize(
+    "status",
+    [
+        OrderStatus.UNFULFILLED,
+        OrderStatus.FULFILLED,
+        OrderStatus.PARTIALLY_RETURNED,
+        OrderStatus.RETURNED,
+        OrderStatus.CANCELED,
+    ],
+)
+def test_order_update_shipping_not_editable_order(
+    status,
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
+    shipping_method,
+    staff_user,
+):
+    order = order_with_lines
+    order.status = status
+    order.save()
+    assert order.shipping_method != shipping_method
+    query = ORDER_UPDATE_SHIPPING_QUERY
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    variables = {"order": order_id, "shippingMethod": method_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderUpdateShipping"]
+    assert data["orderErrors"][0]["field"] == "id"
+    assert data["orderErrors"][0]["code"] == OrderErrorCode.NOT_EDITABLE.name
+
+
 def test_order_update_shipping_no_shipping_address(
     staff_api_client,
     permission_manage_orders,
@@ -4067,6 +4144,9 @@ def test_order_update_shipping_no_shipping_address(
     staff_user,
 ):
     order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status"])
+
     order.shipping_address = None
     order.save()
     query = ORDER_UPDATE_SHIPPING_QUERY
@@ -4092,6 +4172,9 @@ def test_order_update_shipping_incorrect_shipping_method(
     staff_user,
 ):
     order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status"])
+
     zone = shipping_method.shipping_zone
     zone.countries = ["DE"]
     zone.save()
@@ -4119,6 +4202,8 @@ def test_order_update_shipping_shipping_zone_without_channels(
     staff_user,
 ):
     order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status"])
     order.channel.shipping_zones.clear()
     query = ORDER_UPDATE_SHIPPING_QUERY
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -4138,10 +4223,11 @@ def test_order_update_shipping_shipping_zone_without_channels(
 def test_order_update_shipping_excluded_shipping_method_postal_code(
     staff_api_client,
     permission_manage_orders,
-    order,
+    order_unconfirmed,
     staff_user,
     shipping_method_excluded_by_postal_code,
 ):
+    order = order_unconfirmed
     order.shipping_method = shipping_method_excluded_by_postal_code
     shipping_total = shipping_method_excluded_by_postal_code.channel_listings.get(
         channel_id=order.channel_id,
@@ -5097,14 +5183,14 @@ QUERY_ORDER_WITH_SORT = """
 @pytest.mark.parametrize(
     "order_sort, result_order",
     [
-        ({"field": "NUMBER", "direction": "ASC"}, [0, 1, 2]),
-        ({"field": "NUMBER", "direction": "DESC"}, [2, 1, 0]),
-        ({"field": "CREATION_DATE", "direction": "ASC"}, [1, 0, 2]),
-        ({"field": "CREATION_DATE", "direction": "DESC"}, [2, 0, 1]),
-        ({"field": "CUSTOMER", "direction": "ASC"}, [2, 0, 1]),
-        ({"field": "CUSTOMER", "direction": "DESC"}, [1, 0, 2]),
-        ({"field": "FULFILLMENT_STATUS", "direction": "ASC"}, [2, 1, 0]),
-        ({"field": "FULFILLMENT_STATUS", "direction": "DESC"}, [0, 1, 2]),
+        ({"field": "NUMBER", "direction": "ASC"}, [0, 1, 2, 3]),
+        ({"field": "NUMBER", "direction": "DESC"}, [3, 2, 1, 0]),
+        ({"field": "CREATION_DATE", "direction": "ASC"}, [1, 0, 2, 3]),
+        ({"field": "CREATION_DATE", "direction": "DESC"}, [3, 2, 0, 1]),
+        ({"field": "CUSTOMER", "direction": "ASC"}, [2, 0, 1, 3]),
+        ({"field": "CUSTOMER", "direction": "DESC"}, [3, 1, 0, 2]),
+        ({"field": "FULFILLMENT_STATUS", "direction": "ASC"}, [2, 1, 0, 3]),
+        ({"field": "FULFILLMENT_STATUS", "direction": "DESC"}, [3, 0, 1, 2]),
     ],
 )
 def test_query_orders_with_sort(
@@ -5148,6 +5234,15 @@ def test_query_orders_with_sort(
             billing_address=address3,
             status=OrderStatus.CANCELED,
             total=TaxedMoney(net=Money(20, "USD"), gross=Money(26, "USD")),
+            channel=channel_USD,
+        )
+    )
+    created_orders.append(
+        Order.objects.create(
+            token=str(uuid.uuid4()),
+            billing_address=None,
+            status=OrderStatus.UNCONFIRMED,
+            total=TaxedMoney(net=Money(60, "USD"), gross=Money(80, "USD")),
             channel=channel_USD,
         )
     )

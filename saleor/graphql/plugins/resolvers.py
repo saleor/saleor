@@ -1,9 +1,11 @@
+from ...core.tracing import traced_resolver
 from ...plugins.base_plugin import BasePlugin
 from ...plugins.models import PluginConfiguration
 from .filters import filter_plugin_search
 from .sorters import sort_plugins
 
 
+@traced_resolver
 def resolve_plugin(info, plugin_id, manager):
     plugin: BasePlugin = manager.get_plugin(plugin_id)
     if not plugin:

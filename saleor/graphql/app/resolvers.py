@@ -3,18 +3,22 @@ import graphene
 from ...app import models
 from ...core.jwt import create_access_token_for_app
 from ...core.permissions import AppPermission
+from ...core.tracing import traced_resolver
 from ..decorators import permission_required
 from .enums import AppTypeEnum
 
 
+@traced_resolver
 def resolve_apps_installations(info, **_kwargs):
     return models.AppInstallation.objects.all()
 
 
+@traced_resolver
 def resolve_apps(info, **_kwargs):
     return models.App.objects.all()
 
 
+@traced_resolver
 def resolve_access_token(info, root, **_kwargs):
     if root.type != AppTypeEnum.THIRDPARTY.value:
         return None

@@ -17,6 +17,7 @@ from ...account.types import Address, AddressInput, User
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types.common import AccountError
+from ...meta.mutations import MetadataInput
 from ..i18n import I18nMixin
 from .base import (
     INVALID_TOKEN,
@@ -37,6 +38,11 @@ class AccountRegisterInput(graphene.InputObjectType):
     )
     language_code = graphene.Argument(
         LanguageCodeEnum, required=False, description="User language code."
+    )
+    metadata = graphene.List(
+        graphene.NonNull(MetadataInput),
+        description="User public metadata.",
+        required=False,
     )
 
 
@@ -65,6 +71,9 @@ class AccountRegister(ModelMutation):
 
     @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
+        data["metadata"] = {
+            item["key"]: item["value"] for item in data.get("metadata") or []
+        }
         if not settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL:
             return super().clean_input(info, instance, data, input_cls=None)
         elif not data.get("redirect_url"):

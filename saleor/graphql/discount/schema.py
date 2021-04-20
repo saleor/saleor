@@ -1,6 +1,7 @@
 import graphene
 
 from ...core.permissions import DiscountPermissions
+from ...core.tracing import traced_resolver
 from ..channel import ChannelContext
 from ..core.fields import ChannelContextFilterConnectionField
 from ..core.types import FilterInputObjectType
@@ -78,6 +79,7 @@ class DiscountQueries(graphene.ObjectType):
     )
 
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
+    @traced_resolver
     def resolve_sale(self, info, id, channel=None):
         sale = graphene.Node.get_node_from_global_id(info, id, Sale)
         return ChannelContext(node=sale, channel_slug=channel) if sale else None
@@ -87,6 +89,7 @@ class DiscountQueries(graphene.ObjectType):
         return resolve_sales(info, query, channel_slug=channel, **kwargs)
 
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
+    @traced_resolver
     def resolve_voucher(self, info, id, channel=None):
         voucher = graphene.Node.get_node_from_global_id(info, id, Voucher)
         return ChannelContext(node=voucher, channel_slug=channel) if voucher else None
