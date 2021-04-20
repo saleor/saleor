@@ -154,14 +154,8 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         if lines:
             variant_ids = [line.get("variant_id") for line in lines]
             variants = cls.get_nodes_or_error(variant_ids, "variants", ProductVariant)
-            try:
-                validate_product_is_published_in_channel(variants, channel)
-                validate_variant_channel_listings(variants, channel)
-            except ValidationError as error:
-                field_name = "lines"
-                if error.code == OrderErrorCode.REQUIRED:
-                    field_name = "channel"
-                raise ValidationError({field_name: error})
+            validate_product_is_published_in_channel(variants, channel)
+            validate_variant_channel_listings(variants, channel)
             quantities = [line.get("quantity") for line in lines]
             if not all(quantity > 0 for quantity in quantities):
                 raise ValidationError(
