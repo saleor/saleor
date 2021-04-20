@@ -342,6 +342,42 @@ def test_product_query_by_id_available_as_app(
     assert product_data["name"] == product.name
 
 
+def test_product_query_by_id_as_user(
+    user_api_client, permission_manage_products, product
+):
+    query = """
+        query ($id: ID){
+            product(id: $id) {
+                id
+                variants {
+                    id
+                }
+            }
+        }
+    """
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.pk),
+    }
+
+    response = user_api_client.post_graphql(
+        query,
+        variables=variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+    assert product_data is not None
+    expected_variants = [
+        {
+            "id": graphene.Node.to_global_id(
+                "ProductVariant", product.variants.first().pk
+            )
+        }
+    ]
+    assert product_data["variants"] == expected_variants
+
+
 def test_product_query_by_id_not_available_as_app(
     app_api_client, permission_manage_products, product, channel_USD
 ):
