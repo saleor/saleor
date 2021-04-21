@@ -183,6 +183,7 @@ MULTIPLE_ORDER_ADDRESS_DETAILS_QUERY = """
           billingAddress {
             id
           }
+          customerName
           user {
             id
           }

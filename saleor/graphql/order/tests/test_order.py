@@ -261,6 +261,7 @@ query OrdersQuery {
                 channel {
                     slug
                 }
+                customerName
                 languageCodeEnum
                 statusDisplay
                 paymentStatus
@@ -356,8 +357,13 @@ def test_order_query(
 
     # then
     order_data = content["data"]["orders"]["edges"][0]["node"]
+    billing_address = order.billing_address
     assert order_data["number"] == str(order.pk)
     assert order_data["channel"]["slug"] == order.channel.slug
+    assert (
+        order_data["customerName"]
+        == f"{billing_address.first_name} {billing_address.last_name}"
+    )
     assert order_data["canFinalize"] is True
     assert order_data["status"] == order.status.upper()
     assert order_data["statusDisplay"] == order.get_status_display()
@@ -399,6 +405,25 @@ def test_order_query(
         method["minimumOrderPrice"]["amount"]
     )
     assert expected_method.type.upper() == method["type"]
+
+
+def test_order_query_customer_name_no_billing_address(
+    staff_api_client, permission_manage_orders, fulfilled_order, shipping_zone
+):
+    # given
+    order = fulfilled_order
+    order.billing_address = None
+    order.save(update_fields=["billing_address"])
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    assert order_data["customerName"] is None
 
 
 def test_order_query_shipping_method_channel_listing_does_not_exist(

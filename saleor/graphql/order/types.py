@@ -538,6 +538,11 @@ class Order(CountableDjangoObjectType):
     invoices = graphene.List(
         Invoice, required=False, description="List of order invoices."
     )
+    customer_name = graphene.String(
+        description=(
+            "Customer name from billing address, in format `{firstName} {lastName}`."
+        )
+    )
     number = graphene.String(description="User-friendly number of an order.")
     is_paid = graphene.Boolean(
         description="Informs if an order is fully paid.", required=True
@@ -635,6 +640,7 @@ class Order(CountableDjangoObjectType):
         model = models.Order
         only_fields = [
             "billing_address",
+            "customer_name",
             "created",
             "customer_note",
             "channel",
@@ -662,6 +668,21 @@ class Order(CountableDjangoObjectType):
     @traced_resolver
     def resolve_discounts(root: models.Order, info):
         return OrderDiscountsByOrderIDLoader(info.context).load(root.id)
+
+    @staticmethod
+    @traced_resolver
+    def resolve_customer_name(root: models.Order, info):
+        if not root.billing_address_id:
+            return None
+
+        def _resolve_customer_name(address):
+            return f"{address.first_name} {address.last_name}"
+
+        return (
+            AddressByIdLoader(info.context)
+            .load(root.billing_address_id)
+            .then(_resolve_customer_name)
+        )
 
     @staticmethod
     @traced_resolver
