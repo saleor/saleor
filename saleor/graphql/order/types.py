@@ -25,6 +25,7 @@ from ...payment import ChargeStatus
 from ...payment.dataloaders import PaymentsByOrderIdLoader
 from ...payment.model_helpers import (
     get_last_payment,
+    get_subtotal,
     get_total_authorized,
     get_total_captured,
 )
@@ -799,8 +800,15 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_subtotal(root: models.Order, _info):
-        return root.get_subtotal()
+    def resolve_subtotal(root: models.Order, info):
+        def _resolve_subtotal(order_lines):
+            return get_subtotal(order_lines, root.currency)
+
+        return (
+            OrderLinesByOrderIdLoader(info.context)
+            .load(root.id)
+            .then(_resolve_subtotal)
+        )
 
     @staticmethod
     def resolve_total(root: models.Order, _info):
