@@ -25,4 +25,4 @@ def test_get_variant_selection_attributes(
     result = get_variant_selection_attributes(attrs)
 
     # then
-    assert result == product_type_attribute_list[1:] + [numeric_attribute]
+    assert result == product_type_attribute_list[1:]
