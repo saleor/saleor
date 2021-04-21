@@ -282,17 +282,19 @@ def test_export_products_by_app(
 
 
 def test_get_filename_csv():
-    with freeze_time("2000-02-09"):
+    with freeze_time("2000-02-09 03:21:34"):
         file_name = get_filename("test", FileTypes.CSV)
 
-        assert file_name == "test_data_09_02_2000.csv"
+        assert file_name.startswith("test_data_09_02_2000_03_21_34")
+        assert file_name.endswith(".csv")
 
 
 def test_get_filename_xlsx():
-    with freeze_time("2000-02-09"):
+    with freeze_time("2000-02-09 05:22:44"):
         file_name = get_filename("test", FileTypes.XLSX)
 
-        assert file_name == "test_data_09_02_2000.xlsx"
+        assert file_name.startswith("test_data_09_02_2000_05_22_44")
+        assert file_name.endswith(".xlsx")
 
 
 def test_get_product_queryset_all(product_list):
