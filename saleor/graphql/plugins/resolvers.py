@@ -2,7 +2,11 @@ from collections import defaultdict
 from typing import Dict, List, Tuple
 
 from ...plugins.base_plugin import BasePlugin, ConfigurationTypeField
-from .filters import filter_plugin_is_active, filter_plugin_search
+from .filters import (
+    filter_plugin_by_type,
+    filter_plugin_search,
+    filter_plugin_status_in_channels,
+)
 from .sorters import sort_plugins
 from .types import Plugin
 
@@ -66,7 +70,8 @@ def resolve_plugins(manager, sort_by=None, **kwargs):
     global_plugins, plugins_per_channel = aggregate_plugins_configuration(manager)
     plugin_filter = kwargs.get("filter", {})
     search_query = plugin_filter.get("search")
-    filter_active = plugin_filter.get("active")
+    filter_status_in_channel = plugin_filter.get("status_in_channels")
+    filter_plugin_type = plugin_filter.get("type")
 
     plugins = [
         Plugin(
@@ -92,8 +97,10 @@ def resolve_plugins(manager, sort_by=None, **kwargs):
         ]
     )
 
-    if filter_active is not None:
-        plugins = filter_plugin_is_active(plugins, filter_active)
+    if filter_status_in_channel is not None:
+        plugins = filter_plugin_status_in_channels(plugins, filter_status_in_channel)
+    if filter_plugin_type is not None:
+        plugins = filter_plugin_by_type(plugins, filter_plugin_type)
     plugins = filter_plugin_search(plugins, search_query)
     plugins = sort_plugins(plugins, sort_by)
 
