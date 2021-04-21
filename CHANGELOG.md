@@ -55,6 +55,7 @@ All notable, unreleased changes to this project will be documented in this file.
     - Allow users to enter a list of countries for which no VAT will be added.
 - Fix incorrect payment data for klarna - #7150 by @IKarbowiak
 - Drop deleted images from storage - #7129 by @IKarbowiak
+- Fix export with empty assignment values - #7214 by @IKarbowiak
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
