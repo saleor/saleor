@@ -78,12 +78,14 @@ def get_attributes_headers(export_info: Dict[str, list]) -> List[str]:
 
     products_headers = (
         attributes.filter(product_types__isnull=False)
+        .distinct()
         .annotate(header=Concat("slug", V(" (product attribute)")))
         .values_list("header", flat=True)
     )
 
     variant_headers = (
         attributes.filter(product_variant_types__isnull=False)
+        .distinct()
         .annotate(header=Concat("slug", V(" (variant attribute)")))
         .values_list("header", flat=True)
     )

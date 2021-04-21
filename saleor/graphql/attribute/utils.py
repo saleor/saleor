@@ -398,6 +398,7 @@ class AttributeAssignmentMixin:
         :param instance: the product or variant to associate the attribute against.
         :param cleaned_input: the cleaned user input (refer to clean_attributes)
         """
+        clean_assignment = []
         for attribute, attr_values in cleaned_input:
             if attribute.input_type == AttributeInputType.FILE:
                 attribute_values = cls._pre_save_file_value(
@@ -417,6 +418,14 @@ class AttributeAssignmentMixin:
             associate_attribute_values_to_instance(
                 instance, attribute, *attribute_values
             )
+            if not attribute_values:
+                clean_assignment.append(attribute.pk)
+
+        # drop attribute assignment model when values are unassigned from instance
+        if clean_assignment:
+            instance.attributes.filter(
+                assignment__attribute_id__in=clean_assignment
+            ).delete()
 
 
 def get_variant_selection_attributes(qs: "QuerySet"):

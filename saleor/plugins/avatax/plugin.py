@@ -134,7 +134,7 @@ class AvataxPlugin(BasePlugin):
         discounts: Iterable[DiscountInfo],
     ):
         for line_info in lines:
-            if line_info.variant.product.charge_taxes:
+            if line_info.product.charge_taxes:
                 continue
             line_price = base_calculations.base_checkout_line_total(
                 line_info,

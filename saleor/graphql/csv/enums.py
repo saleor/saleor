@@ -30,7 +30,6 @@ class ProductFieldEnum(graphene.Enum):
     DESCRIPTION = "description"
     PRODUCT_TYPE = "product type"
     CATEGORY = "category"
-    VISIBLE = "visible"
     PRODUCT_WEIGHT = "product weight"
     COLLECTIONS = "collections"
     CHARGE_TAXES = "charge taxes"
