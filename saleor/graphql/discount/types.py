@@ -2,6 +2,7 @@ import graphene
 from graphene import relay
 
 from ...core.permissions import DiscountPermissions, OrderPermissions
+from ...core.tracing import traced_resolver
 from ...discount import models
 from ..channel.dataloaders import ChannelByIdLoader
 from ..channel.types import ChannelContext, ChannelContextType
@@ -35,6 +36,7 @@ class SaleChannelListing(CountableDjangoObjectType):
         only_fields = ["id", "channel", "discount_value", "currency"]
 
     @staticmethod
+    @traced_resolver
     def resolve_channel(root: models.SaleChannelListing, info, **_kwargs):
         return ChannelByIdLoader(info.context).load(root.channel_id)
 
@@ -72,27 +74,32 @@ class Sale(ChannelContextType, CountableDjangoObjectType):
         only_fields = ["end_date", "id", "name", "start_date", "type"]
 
     @staticmethod
+    @traced_resolver
     def resolve_categories(root: ChannelContext[models.Sale], *_args, **_kwargs):
         return root.node.categories.all()
 
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
+    @traced_resolver
     def resolve_channel_listings(root: ChannelContext[models.Sale], info, **_kwargs):
         return SaleChannelListingBySaleIdLoader(info.context).load(root.node.id)
 
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
+    @traced_resolver
     def resolve_collections(root: ChannelContext[models.Sale], info, *_args, **_kwargs):
         qs = root.node.collections.all()
         return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
 
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
+    @traced_resolver
     def resolve_products(root: ChannelContext[models.Sale], info, **_kwargs):
         qs = root.node.products.all()
         return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
 
     @staticmethod
+    @traced_resolver
     def resolve_discount_value(root: ChannelContext[models.Sale], info, **_kwargs):
         if not root.channel_slug:
             return None
@@ -108,6 +115,7 @@ class Sale(ChannelContextType, CountableDjangoObjectType):
         )
 
     @staticmethod
+    @traced_resolver
     def resolve_currency(root: ChannelContext[models.Sale], info, **_kwargs):
         if not root.channel_slug:
             return None
@@ -131,6 +139,7 @@ class VoucherChannelListing(CountableDjangoObjectType):
         only_fields = ["id", "channel", "discount_value", "currency", "min_spent"]
 
     @staticmethod
+    @traced_resolver
     def resolve_channel(root: models.VoucherChannelListing, info, **_kwargs):
         return ChannelByIdLoader(info.context).load(root.channel_id)
 
@@ -194,11 +203,13 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
         model = models.Voucher
 
     @staticmethod
+    @traced_resolver
     def resolve_categories(root: ChannelContext[models.Voucher], *_args, **_kwargs):
         return root.node.categories.all()
 
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
+    @traced_resolver
     def resolve_collections(
         root: ChannelContext[models.Voucher], _info, *_args, **_kwargs
     ):
@@ -207,11 +218,13 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
+    @traced_resolver
     def resolve_products(root: ChannelContext[models.Voucher], info, **_kwargs):
         qs = root.node.products.all()
         return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
 
     @staticmethod
+    @traced_resolver
     def resolve_countries(root: ChannelContext[models.Voucher], *_args, **_kwargs):
         return [
             types.CountryDisplay(code=country.code, country=country.name)
@@ -219,6 +232,7 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
         ]
 
     @staticmethod
+    @traced_resolver
     def resolve_discount_value(root: ChannelContext[models.Voucher], info, **_kwargs):
         if not root.channel_slug:
             return None
@@ -234,6 +248,7 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
         )
 
     @staticmethod
+    @traced_resolver
     def resolve_currency(root: ChannelContext[models.Voucher], info, **_kwargs):
         if not root.channel_slug:
             return None
@@ -249,6 +264,7 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
         )
 
     @staticmethod
+    @traced_resolver
     def resolve_min_spent(root: ChannelContext[models.Voucher], info, **_kwargs):
         if not root.channel_slug:
             return None
@@ -265,6 +281,7 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
+    @traced_resolver
     def resolve_channel_listings(root: ChannelContext[models.Voucher], info, **_kwargs):
         return VoucherChannelListingByVoucherIdLoader(info.context).load(root.node.id)
 

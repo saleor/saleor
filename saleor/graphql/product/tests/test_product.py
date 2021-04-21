@@ -4982,16 +4982,15 @@ def test_update_product_with_file_attribute_value_new_value_is_not_created(
 def test_update_product_with_numeric_attribute_value(
     updated_webhook_mock,
     staff_api_client,
-    numeric_attribute,
     product,
     product_type,
+    numeric_attribute,
     permission_manage_products,
 ):
     # given
     query = MUTATION_UPDATE_PRODUCT
 
     product_id = graphene.Node.to_global_id("Product", product.pk)
-
     attribute_id = graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
     product_type.product_attributes.add(numeric_attribute)
 
@@ -5013,7 +5012,6 @@ def test_update_product_with_numeric_attribute_value(
     assert data["productErrors"] == []
 
     attributes = data["product"]["attributes"]
-
     assert len(attributes) == 2
     expected_att_data = {
         "attribute": {"id": attribute_id, "name": numeric_attribute.name},
@@ -5095,6 +5093,49 @@ def test_update_product_with_numeric_attribute_value_new_value_is_not_created(
     assert AttributeValue.objects.count() == value_count
     value.refresh_from_db()
     assert value.name == new_value
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_clear_attribute_values(
+    updated_webhook_mock,
+    staff_api_client,
+    product,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    product_attr = product.attributes.first()
+    attribute = product_attr.assignment.attribute
+    attribute.value_required = False
+    attribute.save(update_fields=["value_required"])
+
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.pk)
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "values": []}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["productErrors"] == []
+
+    attributes = data["product"]["attributes"]
+
+    assert len(attributes) == 1
+    assert not attributes[0]["values"]
+    with pytest.raises(product_attr._meta.model.DoesNotExist):
+        product_attr.refresh_from_db()
 
     updated_webhook_mock.assert_called_once_with(product)
 
@@ -7150,8 +7191,14 @@ PRODUCT_MEDIA_CREATE_QUERY = """
     """
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_product_media_create_mutation(
-    monkeypatch, staff_api_client, product, permission_manage_products, media_root
+    product_updated_mock,
+    monkeypatch,
+    staff_api_client,
+    product,
+    permission_manage_products,
+    media_root,
 ):
     mock_create_thumbnails = Mock(return_value=None)
     monkeypatch.setattr(
@@ -7181,6 +7228,7 @@ def test_product_media_create_mutation(
 
     # The image creation should have triggered a warm-up
     mock_create_thumbnails.assert_called_once_with(product_image.pk)
+    product_updated_mock.assert_called_once_with(product)
 
 
 def test_product_media_create_mutation_without_file(
@@ -7342,8 +7390,13 @@ def test_invalid_product_media_create_mutation(
     assert product.media.count() == 0
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_product_image_update_mutation(
-    monkeypatch, staff_api_client, product_with_image, permission_manage_products
+    product_updated_mock,
+    monkeypatch,
+    staff_api_client,
+    product_with_image,
+    permission_manage_products,
 ):
     query = """
     mutation updateProductMedia($mediaId: ID!, $alt: String) {
@@ -7379,11 +7432,14 @@ def test_product_image_update_mutation(
     # We did not update the image field,
     # the image should not have triggered a warm-up
     assert mock_create_thumbnails.call_count == 0
+    product_updated_mock.assert_called_once_with(product_with_image)
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
 @patch("saleor.product.signals.delete_versatile_image")
 def test_product_media_delete(
     delete_versatile_image_mock,
+    product_updated_mock,
     staff_api_client,
     product_with_image,
     permission_manage_products,
@@ -7411,11 +7467,16 @@ def test_product_media_delete(
     with pytest.raises(media_obj._meta.model.DoesNotExist):
         media_obj.refresh_from_db()
     assert node_id == data["media"]["id"]
+    product_updated_mock.assert_called_once_with(product)
     delete_versatile_image_mock.assert_called_once_with(media_obj.image.name)
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_reorder_media(
-    staff_api_client, product_with_images, permission_manage_products
+    product_updated_mock,
+    staff_api_client,
+    product_with_images,
+    permission_manage_products,
 ):
     query = """
     mutation reorderMedia($product_id: ID!, $media_ids: [ID]!) {
@@ -7445,8 +7506,10 @@ def test_reorder_media(
     reordered_media = product.media.all()
     reordered_media_0 = reordered_media[0]
     reordered_media_1 = reordered_media[1]
+
     assert media_0.id == reordered_media_1.id
     assert media_1.id == reordered_media_0.id
+    product_updated_mock.assert_called_once_with(product)
 
 
 ASSIGN_VARIANT_QUERY = """

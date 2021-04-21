@@ -10,9 +10,11 @@ from measurement.measures import Weight
 from prices import Money
 
 from ..channel.models import Channel
+from ..core.db.fields import SanitizedJSONField
 from ..core.models import ModelWithMetadata
 from ..core.permissions import ShippingPermissions
 from ..core.units import WeightUnits
+from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.translations import TranslationProxy
 from ..core.weight import convert_weight, get_default_weight_unit, zero_weight
 from . import PostalCodeRuleInclusionType, ShippingMethodType
@@ -200,6 +202,7 @@ class ShippingMethod(ModelWithMetadata):
     )  # type: ignore
     maximum_delivery_days = models.PositiveIntegerField(null=True, blank=True)
     minimum_delivery_days = models.PositiveIntegerField(null=True, blank=True)
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
     objects = ShippingMethodQueryset.as_manager()
     translated = TranslationProxy()
@@ -295,6 +298,7 @@ class ShippingMethodTranslation(models.Model):
     shipping_method = models.ForeignKey(
         ShippingMethod, related_name="translations", on_delete=models.CASCADE
     )
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
     class Meta:
         unique_together = (("language_code", "shipping_method"),)

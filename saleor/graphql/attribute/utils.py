@@ -425,6 +425,7 @@ class AttributeAssignmentMixin:
             AttributeInputType.RICH_TEXT: cls._pre_save_rich_text_values,
             AttributeInputType.NUMERIC: cls._pre_save_numeric_values,
         }
+        clean_assignment = []
         for attribute, attr_values in cleaned_input:
             if (input_type := attribute.input_type) in pre_save_methods_mapping:
                 pre_save_func = pre_save_methods_mapping[input_type]
@@ -435,6 +436,14 @@ class AttributeAssignmentMixin:
             associate_attribute_values_to_instance(
                 instance, attribute, *attribute_values
             )
+            if not attribute_values:
+                clean_assignment.append(attribute.pk)
+
+        # drop attribute assignment model when values are unassigned from instance
+        if clean_assignment:
+            instance.attributes.filter(
+                assignment__attribute_id__in=clean_assignment
+            ).delete()
 
 
 def get_variant_selection_attributes(qs: "QuerySet"):

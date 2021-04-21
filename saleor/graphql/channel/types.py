@@ -4,6 +4,7 @@ from graphene_django import DjangoObjectType
 
 from ...channel import models
 from ...core.permissions import ChannelPermissions
+from ...core.tracing import traced_resolver
 from ..core.connection import CountableDjangoObjectType
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
@@ -78,6 +79,7 @@ class Channel(CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(ChannelPermissions.MANAGE_CHANNELS)
+    @traced_resolver
     def resolve_has_orders(root: models.Channel, info):
         return (
             ChannelWithHasOrdersByIdLoader(info.context)
@@ -86,6 +88,7 @@ class Channel(CountableDjangoObjectType):
         )
 
     @staticmethod
+    @traced_resolver
     def resolve_shipping_zones(root: models.Channel, info, **_kwargs):
         return (
             ShippingZonesByChannelIdLoader(info.context)

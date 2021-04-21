@@ -30,6 +30,8 @@ def add_variant_attribute_data_to_expected_data(data, variant, attribute_ids, pk
 
 def get_attribute_value(assigned_attribute):
     value_instance = assigned_attribute.values.first()
+    if not value_instance:
+        return ""
     attribute = assigned_attribute.attribute
     if attribute.input_type == AttributeInputType.FILE:
         value = value_instance.file_url

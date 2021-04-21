@@ -234,6 +234,7 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
     product_with_image,
     product_with_variant_with_two_attributes,
     rich_text_attribute,
+    color_attribute,
     variant_with_many_stocks,
 ):
     # given
@@ -314,6 +315,13 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
         variant_with_many_stocks, numeric_attribute, numeric_value_1
     )
     associate_attribute_values_to_instance(product, numeric_attribute, numeric_value_2)
+
+    # create assigned product without values
+    associate_attribute_values_to_instance(
+        product, color_attribute, color_attribute.values.first()
+    )
+    assigned_product = product.attributes.get(assignment__attribute=color_attribute)
+    assigned_product.values.clear()
 
     products = Product.objects.all()
     export_fields = {"id", "variants__sku"}
