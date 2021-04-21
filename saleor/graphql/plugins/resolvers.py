@@ -2,7 +2,7 @@ from collections import defaultdict
 from typing import Dict, List, Tuple
 
 from ...plugins.base_plugin import BasePlugin, ConfigurationTypeField
-from .filters import filter_plugin_search
+from .filters import filter_plugin_is_active, filter_plugin_search
 from .sorters import sort_plugins
 from .types import Plugin
 
@@ -52,6 +52,7 @@ def resolve_plugin(plugin_id, manager):
     plugin: BasePlugin = manager.get_plugin(plugin_id)
     if not plugin:
         return None
+
     return Plugin(
         id=plugin.PLUGIN_ID,
         global_configuration=global_plugins.get(plugin.PLUGIN_ID),
@@ -62,26 +63,38 @@ def resolve_plugin(plugin_id, manager):
 
 
 def resolve_plugins(manager, sort_by=None, **kwargs):
-    global_configs, configs_per_channel = aggregate_plugins_configuration(manager)
+    global_plugins, plugins_per_channel = aggregate_plugins_configuration(manager)
     plugin_filter = kwargs.get("filter", {})
     search_query = plugin_filter.get("search")
     filter_active = plugin_filter.get("active")
 
-    plugins = manager.all_plugins
-
-    if filter_active is not None:
-        plugins = [plugin for plugin in plugins if plugin.active is filter_active]
-
-    plugins = filter_plugin_search(plugins, search_query)
-    plugins = sort_plugins(plugins, sort_by)
-
-    return [
+    plugins = [
         Plugin(
             id=plugin.PLUGIN_ID,
-            global_configuration=global_configs.get(plugin.PLUGIN_ID),
-            channel_configurations=configs_per_channel.get(plugin.PLUGIN_ID),
+            global_configuration=plugin,
+            channel_configurations=None,
             description=plugin.PLUGIN_DESCRIPTION,
             name=plugin.PLUGIN_NAME,
         )
-        for plugin in plugins
+        for plugin_id, plugin in global_plugins.items()
     ]
+
+    plugins.extend(
+        [
+            Plugin(
+                id=plugin_id,
+                global_configuration=None,
+                channel_configurations=plugins,
+                description=plugins[0].PLUGIN_DESCRIPTION,
+                name=plugins[0].PLUGIN_NAME,
+            )
+            for plugin_id, plugins in plugins_per_channel.items()
+        ]
+    )
+
+    if filter_active is not None:
+        plugins = filter_plugin_is_active(plugins, filter_active)
+    plugins = filter_plugin_search(plugins, search_query)
+    plugins = sort_plugins(plugins, sort_by)
+
+    return plugins

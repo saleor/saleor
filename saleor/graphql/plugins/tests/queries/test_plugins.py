@@ -59,7 +59,7 @@ def test_query_plugin_configurations(staff_api_client_can_manage_plugins, settin
     plugin = plugins[0]["node"]
     manager = get_plugins_manager()
     sample_plugin = manager.get_plugin(PluginSample.PLUGIN_ID)
-    confiugration_structure = PluginSample.CONFIG_STRUCTURE
+    configuration_structure = PluginSample.CONFIG_STRUCTURE
 
     assert plugin["id"] == sample_plugin.PLUGIN_ID
     assert plugin["name"] == sample_plugin.PLUGIN_NAME
@@ -71,7 +71,7 @@ def test_query_plugin_configurations(staff_api_client_can_manage_plugins, settin
         assert configuration_item["name"] == sample_plugin.configuration[index]["name"]
 
         if (
-            confiugration_structure[configuration_item["name"]]["type"]
+            configuration_structure[configuration_item["name"]]["type"]
             == ConfigurationTypeField.STRING
         ):
             assert (

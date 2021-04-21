@@ -1,16 +1,25 @@
-from typing import TYPE_CHECKING, List, Optional
+from typing import List, Optional
 
 import graphene
 
-if TYPE_CHECKING:
-    # flake8: noqa
-    from ...plugins.base_plugin import BasePlugin
+from .types import Plugin
 
 
-def filter_plugin_search(
-    plugins: List["BasePlugin"], value: Optional[str]
-) -> List["BasePlugin"]:
-    plugin_fields = ["PLUGIN_NAME", "PLUGIN_DESCRIPTION"]
+def filter_plugin_is_active(plugins: List[Plugin], is_active) -> List[Plugin]:
+    filtered_plugins = []
+    for plugin in plugins:
+        if plugin.global_configuration:
+            if plugin.global_configuration.active is is_active:
+                filtered_plugins.append(plugin)
+        elif any(
+            [config.active is is_active for config in plugin.channel_configurations]
+        ):
+            filtered_plugins.append(plugin)
+    return filtered_plugins
+
+
+def filter_plugin_search(plugins: List[Plugin], value: Optional[str]) -> List[Plugin]:
+    plugin_fields = ["name", "description"]
     if value is not None:
         return [
             plugin

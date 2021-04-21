@@ -228,7 +228,7 @@ class ChannelPluginSample(PluginSample):
 
 
 class PluginInactive(BasePlugin):
-    PLUGIN_ID = "plugin.inactive"
+    PLUGIN_ID = "mirumee.taxes.plugin.inactive"
     PLUGIN_NAME = "PluginInactive"
     PLUGIN_DESCRIPTION = "Test plugin description_2"
     CONFIGURATION_PER_CHANNEL = False
@@ -242,7 +242,7 @@ class PluginInactive(BasePlugin):
 
 
 class ActivePlugin(BasePlugin):
-    PLUGIN_ID = "plugin.active"
+    PLUGIN_ID = "mirumee.x.plugin.active"
     PLUGIN_NAME = "Active"
     PLUGIN_DESCRIPTION = "Not working"
     DEFAULT_ACTIVE = True
@@ -250,7 +250,7 @@ class ActivePlugin(BasePlugin):
 
 
 class ActivePaymentGateway(BasePlugin):
-    PLUGIN_ID = "gateway.active"
+    PLUGIN_ID = "mirumee.gateway.active"
     CLIENT_CONFIG = [
         {"field": "foo", "value": "bar"},
     ]
