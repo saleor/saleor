@@ -338,8 +338,10 @@ class Order(ModelWithMetadata):
             return False
         return payment.can_refund()
 
-    def can_mark_as_paid(self):
-        return len(self.payments.all()) == 0
+    def can_mark_as_paid(self, payments=None):
+        if not payments:
+            payments = self.payments.all()
+        return len(payments) == 0
 
     @property
     def total_authorized(self):
