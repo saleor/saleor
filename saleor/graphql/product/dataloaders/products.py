@@ -199,7 +199,9 @@ class ProductVariantsByProductIdAndChannel(DataLoader):
     def get_variants_filter(self, products_ids, channel_slugs):
         return {
             "product_id__in": products_ids,
-            "channel_listings__channel__slug__in": channel_slugs,
+            "channel_listings__channel__slug__in": [
+                str(slug) for slug in channel_slugs
+            ],
         }
 
 
@@ -211,7 +213,9 @@ class AvailableProductVariantsByProductIdAndChannel(
     def get_variants_filter(self, products_ids, channel_slugs):
         return {
             "product_id__in": products_ids,
-            "channel_listings__channel__slug__in": channel_slugs,
+            "channel_listings__channel__slug__in": [
+                str(slug) for slug in channel_slugs
+            ],
             "channel_listings__price_amount__isnull": False,
         }
 
