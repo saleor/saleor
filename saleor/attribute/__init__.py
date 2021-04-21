@@ -20,7 +20,7 @@ class AttributeInputType:
         (RICH_TEXT, "Rich Text"),
     ]
     # list of the input types that can be used in variant selection
-    ALLOWED_IN_VARIANT_SELECTION = [DROPDOWN, NUMERIC]
+    ALLOWED_IN_VARIANT_SELECTION = [DROPDOWN]
 
 
 # list of input types that are allowed for given attribute property
