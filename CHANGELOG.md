@@ -59,6 +59,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix incorrect payment data for klarna - #7150 by @IKarbowiak
 - Drop deleted images from storage - #7129 by @IKarbowiak
 - Fix core sorting on related fields - #7195 by @tomaszszymanski129
+- Performance upgrade on orders query with `totalAuthorized` field - #7170 by @tomaszszymanski129
 - Fix export with empty assignment values - #7207 by @IKarbowiak
 
 ### Breaking

@@ -28,7 +28,7 @@ from ....order.notifications import get_default_order_payload
 from ....payment import ChargeStatus, PaymentError
 from ....payment.models import Payment
 from ....plugins.manager import PluginsManager
-from ....shipping.models import ShippingMethod
+from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ....warehouse.models import Allocation, Stock
 from ....warehouse.tests.utils import get_available_quantity_for_stock
 from ...order.mutations.orders import (
@@ -399,6 +399,34 @@ def test_order_query(
         method["minimumOrderPrice"]["amount"]
     )
     assert expected_method.type.upper() == method["type"]
+
+
+def test_order_query_shipping_method_channel_listing_does_not_exist(
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
+):
+    # given
+    order = order_with_lines
+    order.status = OrderStatus.UNFULFILLED
+    order.save()
+
+    shipping_method = order.shipping_method
+    ShippingMethodChannelListing.objects.filter(
+        shipping_method=shipping_method, channel=order.channel
+    ).delete()
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    assert order_data["shippingMethod"]["id"] == graphene.Node.to_global_id(
+        "ShippingMethod", order.shipping_method.id
+    )
 
 
 def test_order_discounts_query(
@@ -2434,6 +2462,7 @@ DRAFT_ORDER_COMPLETE_MUTATION = """
             orderErrors {
                 field
                 code
+                variants
             }
             order {
                 status
@@ -2506,6 +2535,32 @@ def test_draft_order_complete_with_inactive_channel(
     data = content["data"]["draftOrderComplete"]
     assert data["orderErrors"][0]["code"] == OrderErrorCode.CHANNEL_INACTIVE.name
     assert data["orderErrors"][0]["field"] == "channel"
+
+
+def test_draft_order_complete_with_unavailable_variant(
+    staff_api_client,
+    permission_manage_orders,
+    staff_user,
+    draft_order,
+):
+    order = draft_order
+    variant = order.lines.first().variant
+    variant.channel_listings.filter(channel=order.channel).delete()
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    variables = {"id": order_id}
+    response = staff_api_client.post_graphql(
+        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderComplete"]
+    assert (
+        data["orderErrors"][0]["code"] == OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.name
+    )
+    assert data["orderErrors"][0]["field"] == "lines"
+    assert data["orderErrors"][0]["variants"] == [variant_id]
 
 
 def test_draft_order_complete_channel_without_shipping_zones(
@@ -3945,7 +4000,9 @@ ORDER_UPDATE_SHIPPING_QUERY = """
 """
 
 
+@pytest.mark.parametrize("status", [OrderStatus.UNCONFIRMED, OrderStatus.DRAFT])
 def test_order_update_shipping(
+    status,
     staff_api_client,
     permission_manage_orders,
     order_with_lines,
@@ -3953,6 +4010,9 @@ def test_order_update_shipping(
     staff_user,
 ):
     order = order_with_lines
+    order.status = status
+    order.save()
+    assert order.shipping_method != shipping_method
     query = ORDER_UPDATE_SHIPPING_QUERY
     order_id = graphene.Node.to_global_id("Order", order.id)
     method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
@@ -3969,7 +4029,7 @@ def test_order_update_shipping(
         channel_id=order.channel_id
     ).get_total()
     shipping_price = TaxedMoney(shipping_total, shipping_total)
-    assert order.status == OrderStatus.UNFULFILLED
+    assert order.status == status
     assert order.shipping_method == shipping_method
     assert order.shipping_price_net == shipping_price.net
     assert order.shipping_price_gross == shipping_price.gross
@@ -3986,6 +4046,9 @@ def test_order_update_shipping_tax_included(
     vatlayer,
 ):
     order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status"])
+
     address = order_with_lines.shipping_address
     address.country = "DE"
     address.save()
@@ -4005,7 +4068,7 @@ def test_order_update_shipping_tax_included(
     shipping_total = shipping_method.channel_listings.get(
         channel_id=order.channel_id
     ).get_total()
-    assert order.status == OrderStatus.UNFULFILLED
+    assert order.status == OrderStatus.UNCONFIRMED
     assert order.shipping_method == shipping_method
     assert order.shipping_price_gross == shipping_total
     assert order.shipping_tax_rate == Decimal("0.19")
@@ -4016,6 +4079,9 @@ def test_order_update_shipping_clear_shipping_method(
     staff_api_client, permission_manage_orders, order, staff_user, shipping_method
 ):
     order.shipping_method = shipping_method
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status"])
+
     shipping_total = shipping_method.channel_listings.get(
         channel_id=order.channel_id,
     ).get_total()
@@ -4045,6 +4111,9 @@ def test_order_update_shipping_shipping_required(
     staff_api_client, permission_manage_orders, order_with_lines, staff_user
 ):
     order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status"])
+
     query = ORDER_UPDATE_SHIPPING_QUERY
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"order": order_id, "shippingMethod": None}
@@ -4059,6 +4128,41 @@ def test_order_update_shipping_shipping_required(
     )
 
 
+@pytest.mark.parametrize(
+    "status",
+    [
+        OrderStatus.UNFULFILLED,
+        OrderStatus.FULFILLED,
+        OrderStatus.PARTIALLY_RETURNED,
+        OrderStatus.RETURNED,
+        OrderStatus.CANCELED,
+    ],
+)
+def test_order_update_shipping_not_editable_order(
+    status,
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
+    shipping_method,
+    staff_user,
+):
+    order = order_with_lines
+    order.status = status
+    order.save()
+    assert order.shipping_method != shipping_method
+    query = ORDER_UPDATE_SHIPPING_QUERY
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    variables = {"order": order_id, "shippingMethod": method_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderUpdateShipping"]
+    assert data["orderErrors"][0]["field"] == "id"
+    assert data["orderErrors"][0]["code"] == OrderErrorCode.NOT_EDITABLE.name
+
+
 def test_order_update_shipping_no_shipping_address(
     staff_api_client,
     permission_manage_orders,
@@ -4067,6 +4171,9 @@ def test_order_update_shipping_no_shipping_address(
     staff_user,
 ):
     order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status"])
+
     order.shipping_address = None
     order.save()
     query = ORDER_UPDATE_SHIPPING_QUERY
@@ -4092,6 +4199,9 @@ def test_order_update_shipping_incorrect_shipping_method(
     staff_user,
 ):
     order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status"])
+
     zone = shipping_method.shipping_zone
     zone.countries = ["DE"]
     zone.save()
@@ -4119,6 +4229,8 @@ def test_order_update_shipping_shipping_zone_without_channels(
     staff_user,
 ):
     order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status"])
     order.channel.shipping_zones.clear()
     query = ORDER_UPDATE_SHIPPING_QUERY
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -4138,10 +4250,11 @@ def test_order_update_shipping_shipping_zone_without_channels(
 def test_order_update_shipping_excluded_shipping_method_postal_code(
     staff_api_client,
     permission_manage_orders,
-    order,
+    order_unconfirmed,
     staff_user,
     shipping_method_excluded_by_postal_code,
 ):
+    order = order_unconfirmed
     order.shipping_method = shipping_method_excluded_by_postal_code
     shipping_total = shipping_method_excluded_by_postal_code.channel_listings.get(
         channel_id=order.channel_id,
