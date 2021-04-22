@@ -86,7 +86,7 @@ class StoreCreate(ModelMutation):
             create_store_background_image_thumbnails.delay(instance.pk)
 
 
-class StoreUpdate(StoreCreate):
+class StoreUpdate(StoreCreateInput):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a store to update.")
         input = StoreInput(
