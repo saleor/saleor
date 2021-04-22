@@ -7,12 +7,13 @@ from prices import Money, TaxedMoney
 
 from .....account.models import User
 from .....order import OrderEvents
-from .....order.models import Fulfillment, Order, OrderEvent
+from .....order.models import Fulfillment, Order, OrderEvent, OrderLine
 from .....payment import ChargeStatus
 from .....payment.models import Payment
 
 ORDER_COUNT_IN_BENCHMARKS = 10
 EVENTS_PER_ORDER = 5
+LINES_PER_ORDER = 3
 
 
 def _prepare_payments_for_order(order):
@@ -47,6 +48,23 @@ def _prepare_events_for_order(order):
     ]
 
 
+def _prepare_lines_for_order(order, variant_with_image):
+    price = TaxedMoney(
+        net=Money(amount=5, currency="USD"), gross=Money(amount=5, currency="USD")
+    )
+    return [
+        OrderLine(
+            order=order,
+            variant=variant_with_image,
+            quantity=5,
+            is_shipping_required=False,
+            unit_price=price,
+            total_price=price,
+        )
+        for _ in range(LINES_PER_ORDER)
+    ]
+
+
 @pytest.fixture
 def users_for_benchmarks(address):
     users = [
@@ -64,7 +82,9 @@ def users_for_benchmarks(address):
 
 
 @pytest.fixture
-def orders_for_benchmarks(channel_USD, address, payment_dummy, users_for_benchmarks):
+def orders_for_benchmarks(
+    channel_USD, address, payment_dummy, users_for_benchmarks, variant_with_image
+):
     orders = [
         Order(
             token=str(uuid.uuid4()),
@@ -81,16 +101,20 @@ def orders_for_benchmarks(channel_USD, address, payment_dummy, users_for_benchma
     payments = []
     events = []
     fulfillments = []
+    lines = []
 
     for order in created_orders:
         new_payments = _prepare_payments_for_order(order)
         new_events = _prepare_events_for_order(order)
-        fulfillments.append(Fulfillment(order=order, fulfillment_order=order.id))
+        new_lines = _prepare_lines_for_order(order, variant_with_image)
         payments.extend(new_payments)
         events.extend(new_events)
+        lines.extend(new_lines)
+        fulfillments.append(Fulfillment(order=order, fulfillment_order=order.id))
 
     Payment.objects.bulk_create(payments)
     OrderEvent.objects.bulk_create(events)
     Fulfillment.objects.bulk_create(fulfillments)
+    OrderLine.objects.bulk_create(lines)
 
     return created_orders
