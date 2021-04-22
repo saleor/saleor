@@ -116,6 +116,11 @@ All notable, unreleased changes to this project will be documented in this file.
       - add `globalConfiguration` field for storing configuration when a plugin is globally configured
       - add `channelConfigurations` field for storing plugin configuration for each channel
       - removed `configuration` field, use `globalConfiguration` and `channelConfigurations` instead
+    - change structure of input `PluginFilterInput`:
+      - add `statusInChannels` field
+      - add `type` field
+      - removed `active` field. Use `statusInChannels` instead
+
 - Add description to shipping method - #7116 by @IKarbowiak
   - `ShippingMethod` was extended with `description` field.
   - `ShippingPriceInput` was extended with `description` field
