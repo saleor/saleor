@@ -16,6 +16,7 @@ from ....core.utils.editorjs import clean_editor_js
 from ....core.utils.validators import get_oembed_data
 from ....order import OrderStatus
 from ....order import models as order_models
+from ....order.tasks import recalculate_orders_task
 from ....product import ProductMediaTypes, models
 from ....product.error_codes import CollectionErrorCode, ProductErrorCode
 from ....product.tasks import (
@@ -39,7 +40,7 @@ from ...core.types import SeoInput, Upload
 from ...core.types.common import CollectionError, ProductError
 from ...core.utils import (
     clean_seo_fields,
-    from_global_id_strict_type,
+    from_global_id_or_error,
     get_duplicated_values,
     validate_image_file,
     validate_slug_and_generate_if_needed,
@@ -160,7 +161,7 @@ class CategoryDelete(ModelDeleteMutation):
 
         db_id = instance.id
 
-        delete_categories([db_id])
+        delete_categories([db_id], manager=info.context.plugins)
 
         instance.id = db_id
         return cls.success_response(instance)
@@ -229,6 +230,12 @@ class CollectionCreate(ModelMutation):
             create_collection_background_image_thumbnails.delay(instance.pk)
 
     @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        products = instance.products.prefetched_for_webhook(single_object=False)
+        for product in products:
+            info.context.plugins.product_updated(product)
+
+    @classmethod
     def perform_mutation(cls, _root, info, **kwargs):
         result = super().perform_mutation(_root, info, **kwargs)
         return CollectionCreate(
@@ -251,6 +258,11 @@ class CollectionUpdate(CollectionCreate):
         error_type_field = "collection_errors"
 
     @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        """Override this method with `pass` to avoid triggering product webhook."""
+        pass
+
+    @classmethod
     def save(cls, info, instance, cleaned_input):
         if cleaned_input.get("background_image"):
             create_collection_background_image_thumbnails.delay(instance.pk)
@@ -270,7 +282,14 @@ class CollectionDelete(ModelDeleteMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **kwargs):
+        node_id = kwargs.get("id")
+
+        instance = cls.get_node_or_error(info, node_id, only_type=Collection)
+        products = list(instance.products.prefetched_for_webhook(single_object=False))
+
         result = super().perform_mutation(_root, info, **kwargs)
+        for product in products:
+            info.context.plugins.product_updated(product)
         return CollectionDelete(
             collection=ChannelContext(node=result.collection, channel_slug=None)
         )
@@ -313,7 +332,7 @@ class CollectionReorderProducts(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, collection_id, moves):
-        pk = from_global_id_strict_type(
+        _type, pk = from_global_id_or_error(
             collection_id, only_type=Collection, field="collection_id"
         )
 
@@ -337,7 +356,7 @@ class CollectionReorderProducts(BaseMutation):
 
         # Resolve the products
         for move_info in moves:
-            product_pk = from_global_id_strict_type(
+            _type, product_pk = from_global_id_or_error(
                 move_info.product_id, only_type=Product, field="moves"
             )
 
@@ -385,7 +404,12 @@ class CollectionAddProducts(BaseMutation):
         collection = cls.get_node_or_error(
             info, collection_id, field="collection_id", only_type=Collection
         )
-        products = cls.get_nodes_or_error(products, "products", Product)
+        products = cls.get_nodes_or_error(
+            products,
+            "products",
+            Product,
+            qs=models.Product.objects.prefetched_for_webhook(single_object=False),
+        )
         cls.clean_products(products)
         collection.products.add(*products)
         if collection.sale_set.exists():
@@ -393,6 +417,11 @@ class CollectionAddProducts(BaseMutation):
             update_products_discounted_prices_of_catalogues_task.delay(
                 product_ids=[pq.pk for pq in products]
             )
+        transaction.on_commit(
+            lambda: [
+                info.context.plugins.product_updated(product) for product in products
+            ]
+        )
         return CollectionAddProducts(
             collection=ChannelContext(node=collection, channel_slug=None)
         )
@@ -437,8 +466,15 @@ class CollectionRemoveProducts(BaseMutation):
         collection = cls.get_node_or_error(
             info, collection_id, field="collection_id", only_type=Collection
         )
-        products = cls.get_nodes_or_error(products, "products", only_type=Product)
+        products = cls.get_nodes_or_error(
+            products,
+            "products",
+            only_type=Product,
+            qs=models.Product.objects.prefetched_for_webhook(single_object=False),
+        )
         collection.products.remove(*products)
+        for product in products:
+            info.context.plugins.product_updated(product)
         if collection.sale_set.exists():
             # Updated the db entries, recalculating discounts of affected products
             update_products_discounted_prices_of_catalogues_task.delay(
@@ -469,6 +505,9 @@ class AttributeValueInput(InputObjectType):
         description="List of entity IDs that will be used as references.",
         required=False,
     )
+    rich_text = graphene.JSONString(
+        required=False, description="Text content in JSON format."
+    )
 
 
 class ProductInput(graphene.InputObjectType):
@@ -497,7 +536,9 @@ class StockInput(graphene.InputObjectType):
     warehouse = graphene.ID(
         required=True, description="Warehouse in which stock is located."
     )
-    quantity = graphene.Int(description="Quantity of items available for sell.")
+    quantity = graphene.Int(
+        required=True, description="Quantity of items available for sell."
+    )
 
 
 class ProductCreateInput(ProductInput):
@@ -688,14 +729,16 @@ class ProductDelete(ModelDeleteMutation):
         instance = cls.get_node_or_error(info, node_id, only_type=Product)
         variants_id = list(instance.variants.all().values_list("id", flat=True))
         # get draft order lines for variant
-        line_pks = list(
-            order_models.OrderLine.objects.filter(
-                variant_id__in=variants_id, order__status=OrderStatus.DRAFT
-            ).values_list("pk", flat=True)
-        )
+        lines_id_and_orders_id = order_models.OrderLine.objects.filter(
+            variant__id__in=variants_id, order__status=OrderStatus.DRAFT
+        ).values("pk", "order_id")
+        line_pks = {line["pk"] for line in lines_id_and_orders_id}
+        orders_id = {line["order_id"] for line in lines_id_and_orders_id}
         response = super().perform_mutation(_root, info, **data)
         # delete order lines for deleted variant
         order_models.OrderLine.objects.filter(pk__in=line_pks).delete()
+        if orders_id:
+            recalculate_orders_task.delay(list(orders_id))
         info.context.plugins.product_deleted(instance, variants_id)
 
         return response
@@ -993,11 +1036,11 @@ class ProductVariantDelete(ModelDeleteMutation):
         instance = cls.get_node_or_error(info, node_id, only_type=ProductVariant)
 
         # get draft order lines for variant
-        line_pks = list(
-            order_models.OrderLine.objects.filter(
-                variant__pk=instance.pk, order__status=OrderStatus.DRAFT
-            ).values_list("pk", flat=True)
-        )
+        lines_id_and_orders_id = order_models.OrderLine.objects.filter(
+            variant__pk=instance.pk, order__status=OrderStatus.DRAFT
+        ).values("pk", "order_id")
+        line_pks = {line["pk"] for line in lines_id_and_orders_id}
+        orders_id = {line["order_id"] for line in lines_id_and_orders_id}
 
         # Get cached variant with related fields to fully populate webhook payload.
         variant = (
@@ -1010,6 +1053,8 @@ class ProductVariantDelete(ModelDeleteMutation):
 
         # delete order lines for deleted variant
         order_models.OrderLine.objects.filter(pk__in=line_pks).delete()
+        if orders_id:
+            recalculate_orders_task.delay(list(orders_id))
 
         transaction.on_commit(
             lambda: info.context.plugins.product_variant_deleted(variant)
@@ -1165,7 +1210,9 @@ class ProductTypeDelete(ModelDeleteMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         node_id = data.get("id")
-        product_type_pk = from_global_id_strict_type(node_id, ProductType, field="pk")
+        _type, product_type_pk = from_global_id_or_error(
+            node_id, only_type=ProductType, field="pk"
+        )
         variants_pks = models.Product.objects.filter(
             product_type__pk=product_type_pk
         ).values_list("variants__pk", flat=True)
@@ -1268,6 +1315,7 @@ class ProductMediaCreate(BaseMutation):
                 oembed_data=oembed_data,
             )
 
+        info.context.plugins.product_updated(product)
         product = ChannelContext(node=product, channel_slug=None)
         return ProductMediaCreate(product=product, media=media)
 
@@ -1300,6 +1348,7 @@ class ProductMediaUpdate(BaseMutation):
         if alt is not None:
             media.alt = alt
             media.save(update_fields=["alt"])
+        info.context.plugins.product_updated(product)
         product = ChannelContext(node=product, channel_slug=None)
         return ProductMediaUpdate(product=product, media=media)
 
@@ -1361,6 +1410,7 @@ class ProductMediaReorder(BaseMutation):
             media.sort_order = order
             media.save(update_fields=["sort_order"])
 
+        info.context.plugins.product_updated(product)
         product = ChannelContext(node=product, channel_slug=None)
         return ProductMediaReorder(product=product, media=ordered_media)
 
@@ -1389,8 +1439,9 @@ class ProductVariantSetDefault(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, product_id, variant_id):
+        qs = models.Product.objects.prefetched_for_webhook()
         product = cls.get_node_or_error(
-            info, product_id, field="product_id", only_type=Product
+            info, product_id, field="product_id", only_type=Product, qs=qs
         )
         variant = cls.get_node_or_error(
             info,
@@ -1441,10 +1492,10 @@ class ProductVariantReorder(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, product_id, moves):
-        pk = from_global_id_strict_type(product_id, only_type=Product, field="id")
+        _type, pk = from_global_id_or_error(product_id, only_type=Product)
 
         try:
-            product = models.Product.objects.prefetch_related("variants").get(pk=pk)
+            product = models.Product.objects.prefetched_for_webhook().get(pk=pk)
         except ObjectDoesNotExist:
             raise ValidationError(
                 {
@@ -1459,7 +1510,7 @@ class ProductVariantReorder(BaseMutation):
         operations = {}
 
         for move_info in moves:
-            variant_pk = from_global_id_strict_type(
+            _type, variant_pk = from_global_id_or_error(
                 move_info.id, only_type=ProductVariant, field="moves"
             )
 
@@ -1504,7 +1555,9 @@ class ProductMediaDelete(BaseMutation):
         media_id = media_obj.id
         media_obj.delete()
         media_obj.id = media_id
-        product = ChannelContext(node=media_obj.product, channel_slug=None)
+        product = media_obj.product
+        info.context.plugins.product_updated(product)
+        product = ChannelContext(node=product, channel_slug=None)
         return ProductMediaDelete(product=product, media=media_obj)
 
 
@@ -1530,8 +1583,9 @@ class VariantMediaAssign(BaseMutation):
         media = cls.get_node_or_error(
             info, media_id, field="media_id", only_type=ProductMedia
         )
+        qs = models.ProductVariant.objects.prefetched_for_webhook()
         variant = cls.get_node_or_error(
-            info, variant_id, field="variant_id", only_type=ProductVariant
+            info, variant_id, field="variant_id", only_type=ProductVariant, qs=qs
         )
         if media and variant:
             # check if the given image and variant can be matched together
@@ -1577,8 +1631,9 @@ class VariantMediaUnassign(BaseMutation):
         media = cls.get_node_or_error(
             info, media_id, field="image_id", only_type=ProductMedia
         )
+        qs = models.ProductVariant.objects.prefetched_for_webhook()
         variant = cls.get_node_or_error(
-            info, variant_id, field="variant_id", only_type=ProductVariant
+            info, variant_id, field="variant_id", only_type=ProductVariant, qs=qs
         )
 
         try:

@@ -2,7 +2,7 @@ from collections import defaultdict
 
 from django.db.models import F
 
-from ...order.models import Order, OrderLine
+from ...order.models import Fulfillment, Order, OrderEvent, OrderLine
 from ...warehouse.models import Allocation
 from ..core.dataloaders import DataLoader
 
@@ -51,6 +51,17 @@ class OrderLinesByOrderIdLoader(DataLoader):
         return [line_map.get(order_id, []) for order_id in keys]
 
 
+class OrderEventsByOrderIdLoader(DataLoader):
+    context_key = "orderevents_by_order"
+
+    def batch_load(self, keys):
+        events = OrderEvent.objects.filter(order_id__in=keys).order_by("pk")
+        events_map = defaultdict(list)
+        for event in events.iterator():
+            events_map[event.order_id].append(event)
+        return [events_map.get(order_id, []) for order_id in keys]
+
+
 class AllocationsByOrderLineIdLoader(DataLoader):
     context_key = "allocations_by_orderline_id"
 
@@ -62,3 +73,14 @@ class AllocationsByOrderLineIdLoader(DataLoader):
             order_lines_to_allocations[allocation.order_line_id].append(allocation)
 
         return [order_lines_to_allocations[order_line_id] for order_line_id in keys]
+
+
+class FulfillmentsByOrderIdLoader(DataLoader):
+    context_key = "fulfillments_by_order"
+
+    def batch_load(self, keys):
+        fulfillments = Fulfillment.objects.filter(order_id__in=keys).order_by("pk")
+        fulfillments_map = defaultdict(list)
+        for fulfillment in fulfillments.iterator():
+            fulfillments_map[fulfillment.order_id].append(fulfillment)
+        return [fulfillments_map.get(order_id, []) for order_id in keys]

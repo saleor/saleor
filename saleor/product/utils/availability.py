@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union
 
 import opentracing
+from django.conf import settings
 from django_countries.fields import Country
 from prices import MoneyRange, TaxedMoney, TaxedMoneyRange
 
@@ -149,6 +150,7 @@ def get_product_availability(
     country: Optional[Country] = None,
     local_currency: Optional[str] = None,
 ) -> ProductAvailability:
+    country = country or Country(settings.DEFAULT_COUNTRY)
     with opentracing.global_tracer().start_active_span("get_product_availability"):
         discounted = None
         discounted_net_range = get_product_price_range(
@@ -224,6 +226,7 @@ def get_variant_availability(
     country: Optional[Country] = None,
     local_currency: Optional[str] = None,
 ) -> VariantAvailability:
+    country = country or Country(settings.DEFAULT_COUNTRY)
     with opentracing.global_tracer().start_active_span("get_variant_availability"):
         discounted = plugins.apply_taxes_to_product(
             product,

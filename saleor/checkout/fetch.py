@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from ..product.models import (
         Collection,
         Product,
+        ProductType,
         ProductVariant,
         ProductVariantChannelListing,
     )
@@ -24,6 +25,7 @@ class CheckoutLineInfo:
     variant: "ProductVariant"
     channel_listing: "ProductVariantChannelListing"
     product: "Product"
+    product_type: "ProductType"
     collections: List["Collection"]
 
 
@@ -60,6 +62,7 @@ def fetch_checkout_lines(checkout: "Checkout") -> Iterable[CheckoutLineInfo]:
     for line in lines:
         variant = line.variant
         product = variant.product
+        product_type = product.product_type
         collections = list(product.collections.all())
 
         variant_channel_listing = None
@@ -78,6 +81,7 @@ def fetch_checkout_lines(checkout: "Checkout") -> Iterable[CheckoutLineInfo]:
                 variant=variant,
                 channel_listing=variant_channel_listing,
                 product=product,
+                product_type=product_type,
                 collections=collections,
             )
         )

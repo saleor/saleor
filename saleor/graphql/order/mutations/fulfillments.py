@@ -15,12 +15,12 @@ from ....order.actions import (
     create_refund_fulfillment,
     fulfillment_tracking_updated,
 )
-from ....order.emails import send_fulfillment_update
 from ....order.error_codes import OrderErrorCode
+from ....order.notifications import send_fulfillment_update
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
-from ...core.utils import from_global_id_strict_type, get_duplicated_values
+from ...core.utils import from_global_id_or_error, get_duplicated_values
 from ...utils import get_user_or_app_from_context
 from ...warehouse.types import Warehouse
 from ..types import Fulfillment, FulfillmentLine, Order, OrderLine
@@ -190,7 +190,7 @@ class OrderFulfill(BaseMutation):
         for line, order_line in zip(lines, order_lines):
             for stock in line["stocks"]:
                 if stock["quantity"] > 0:
-                    warehouse_pk = from_global_id_strict_type(
+                    _type, warehouse_pk = from_global_id_or_error(
                         stock["warehouse"], only_type=Warehouse, field="warehouse"
                     )
                     lines_for_warehouses[warehouse_pk].append(
@@ -261,7 +261,7 @@ class FulfillmentUpdateTracking(BaseMutation):
         input_data = data.get("input", {})
         notify_customer = input_data.get("notify_customer")
         if notify_customer:
-            send_fulfillment_update.delay(order.pk, fulfillment.pk)
+            send_fulfillment_update(order, fulfillment, info.context.plugins)
         return FulfillmentUpdateTracking(fulfillment=fulfillment, order=order)
 
 

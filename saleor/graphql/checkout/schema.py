@@ -1,6 +1,7 @@
 import graphene
 
 from ...core.permissions import CheckoutPermissions
+from ...core.tracing import traced_resolver
 from ..core.fields import BaseDjangoConnectionField, PrefetchingConnectionField
 from ..core.scalars import UUID
 from ..decorators import permission_required
@@ -13,6 +14,7 @@ from .mutations import (
     CheckoutCustomerAttach,
     CheckoutCustomerDetach,
     CheckoutEmailUpdate,
+    CheckoutLanguageCodeUpdate,
     CheckoutLineDelete,
     CheckoutLinesAdd,
     CheckoutLinesUpdate,
@@ -51,6 +53,7 @@ class CheckoutQueries(graphene.ObjectType):
         return resolve_checkout(info, token)
 
     @permission_required(CheckoutPermissions.MANAGE_CHECKOUTS)
+    @traced_resolver
     def resolve_checkouts(self, *_args, channel=None, **_kwargs):
         return resolve_checkouts(channel)
 
@@ -58,6 +61,7 @@ class CheckoutQueries(graphene.ObjectType):
         return graphene.Node.get_node_from_global_id(info, id, CheckoutLine)
 
     @permission_required(CheckoutPermissions.MANAGE_CHECKOUTS)
+    @traced_resolver
     def resolve_checkout_lines(self, *_args, **_kwargs):
         return resolve_checkout_lines()
 
@@ -77,3 +81,4 @@ class CheckoutMutations(graphene.ObjectType):
     checkout_payment_create = CheckoutPaymentCreate.Field()
     checkout_shipping_address_update = CheckoutShippingAddressUpdate.Field()
     checkout_shipping_method_update = CheckoutShippingMethodUpdate.Field()
+    checkout_language_code_update = CheckoutLanguageCodeUpdate.Field()

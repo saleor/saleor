@@ -1,3 +1,4 @@
+import secrets
 from tempfile import NamedTemporaryFile
 from typing import IO, TYPE_CHECKING, Any, Dict, List, Set, Union
 
@@ -6,7 +7,7 @@ from django.utils import timezone
 
 from ...product.models import Product
 from .. import FileTypes
-from ..emails import send_email_with_link_to_download_file
+from ..notifications import send_export_download_link_notification
 from .product_headers import get_export_fields_and_headers_info
 from .products_data import get_products_data
 
@@ -49,15 +50,13 @@ def export_products(
     save_csv_file_in_export_file(export_file, temporary_file, file_name)
     temporary_file.close()
 
-    if export_file.user:
-        send_email_with_link_to_download_file(
-            export_file, export_file.user.email, "export_products_success"
-        )
+    send_export_download_link_notification(export_file)
 
 
 def get_filename(model_name: str, file_type: str) -> str:
-    return "{}_data_{}.{}".format(
-        model_name, timezone.now().strftime("%d_%m_%Y"), file_type
+    hash = secrets.token_hex(nbytes=3)
+    return "{}_data_{}_{}.{}".format(
+        model_name, timezone.now().strftime("%d_%m_%Y_%H_%M_%S"), hash, file_type
     )
 
 

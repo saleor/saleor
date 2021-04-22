@@ -32,10 +32,10 @@ def customer_email_change_request_event(
 
 
 def customer_email_changed_event(
-    *, user: User, parameters: dict
+    *, user_id: int, parameters: dict
 ) -> Optional[CustomerEvent]:
     return CustomerEvent.objects.create(
-        user=user, type=CustomerEvents.EMAIL_CHANGED, parameters=parameters
+        user_id=user_id, type=CustomerEvents.EMAIL_CHANGED, parameters=parameters
     )
 
 

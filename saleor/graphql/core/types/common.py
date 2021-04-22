@@ -3,8 +3,8 @@ from urllib.parse import urljoin
 import graphene
 from django.conf import settings
 
-from ....product.templatetags.product_images import get_thumbnail
-from ...translations.enums import LanguageCodeEnum
+from ....core.tracing import traced_resolver
+from ....product.product_images import get_thumbnail
 from ..enums import (
     AccountErrorCode,
     AppErrorCode,
@@ -17,6 +17,7 @@ from ..enums import (
     GiftCardErrorCode,
     InvoiceErrorCode,
     JobStatusEnum,
+    LanguageCodeEnum,
     MenuErrorCode,
     MetadataErrorCode,
     OrderErrorCode,
@@ -114,6 +115,11 @@ class StaffError(AccountError):
 
 class ChannelError(Error):
     code = ChannelErrorCode(description="The error code.", required=True)
+    shipping_zones = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of shipping zone IDs which causes the error.",
+        required=False,
+    )
 
 
 class CheckoutError(Error):
@@ -214,6 +220,11 @@ class ProductChannelListingError(ProductError):
     channels = graphene.List(
         graphene.NonNull(graphene.ID),
         description="List of channels IDs which causes the error.",
+        required=False,
+    )
+    variants = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of variants IDs which causes the error.",
         required=False,
     )
 
@@ -359,6 +370,7 @@ class File(graphene.ObjectType):
     )
 
     @staticmethod
+    @traced_resolver
     def resolve_url(root, info):
         return info.context.build_absolute_uri(urljoin(settings.MEDIA_URL, root.url))
 
@@ -403,6 +415,7 @@ class Job(graphene.Interface):
     message = graphene.String(description="Job message.")
 
     @classmethod
+    @traced_resolver
     def resolve_type(cls, instance, _info):
         """Map a data object to a Graphene type."""
         MODEL_TO_TYPE_MAP = {

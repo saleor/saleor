@@ -8,14 +8,16 @@ from ...account import models
 from ...checkout.utils import get_user_checkout
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions, OrderPermissions
+from ...core.tracing import traced_resolver
 from ...order import models as order_models
 from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUserLoader
 from ..checkout.types import Checkout
 from ..core.connection import CountableDjangoObjectType
+from ..core.enums import LanguageCodeEnum
 from ..core.fields import PrefetchingConnectionField
 from ..core.scalars import UUID
 from ..core.types import CountryDisplay, Image, Permission
-from ..core.utils import from_global_id_strict_type
+from ..core.utils import from_global_id_or_error, str_to_enum
 from ..decorators import one_of_permissions_required, permission_required
 from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display
@@ -70,10 +72,12 @@ class Address(CountableDjangoObjectType):
         ]
 
     @staticmethod
+    @traced_resolver
     def resolve_country(root: models.Address, _info):
         return CountryDisplay(code=root.country.code, country=root.country.name)
 
     @staticmethod
+    @traced_resolver
     def resolve_is_default_shipping_address(root: models.Address, _info):
         """Look if the address is the default shipping address of the user.
 
@@ -93,6 +97,7 @@ class Address(CountableDjangoObjectType):
         return False
 
     @staticmethod
+    @traced_resolver
     def resolve_is_default_billing_address(root: models.Address, _info):
         """Look if the address is the default billing address of the user.
 
@@ -138,6 +143,7 @@ class CustomerEvent(CountableDjangoObjectType):
         only_fields = ["id"]
 
     @staticmethod
+    @traced_resolver
     def resolve_user(root: models.CustomerEvent, info):
         user = info.context.user
         if (
@@ -157,6 +163,7 @@ class CustomerEvent(CountableDjangoObjectType):
         return root.parameters.get("count", None)
 
     @staticmethod
+    @traced_resolver
     def resolve_order_line(root: models.CustomerEvent, info):
         if "order_line_pk" in root.parameters:
             try:
@@ -180,8 +187,9 @@ class UserPermission(Permission):
         required=False,
     )
 
+    @traced_resolver
     def resolve_source_permission_groups(root: Permission, _info, user_id, **_kwargs):
-        user_id = from_global_id_strict_type(user_id, only_type="User", field="pk")
+        _type, user_id = from_global_id_or_error(user_id, only_type="User", field="pk")
         groups = auth_models.Group.objects.filter(
             user__pk=user_id, permissions__name=root.name
         )
@@ -241,6 +249,9 @@ class User(CountableDjangoObjectType):
         "saleor.graphql.payment.types.PaymentSource",
         description="List of stored payment sources.",
     )
+    language_code = graphene.Field(
+        LanguageCodeEnum, description="User language code.", required=True
+    )
 
     class Meta:
         description = "Represents user data."
@@ -261,14 +272,17 @@ class User(CountableDjangoObjectType):
         ]
 
     @staticmethod
+    @traced_resolver
     def resolve_addresses(root: models.User, _info, **_kwargs):
         return root.addresses.annotate_default(root).all()
 
     @staticmethod
+    @traced_resolver
     def resolve_checkout(root: models.User, _info, **_kwargs):
         return get_user_checkout(root)
 
     @staticmethod
+    @traced_resolver
     def resolve_checkout_tokens(root: models.User, info, channel=None, **_kwargs):
         def return_checkout_tokens(checkouts):
             if not checkouts:
@@ -291,10 +305,12 @@ class User(CountableDjangoObjectType):
         )
 
     @staticmethod
+    @traced_resolver
     def resolve_gift_cards(root: models.User, info, **_kwargs):
         return root.gift_cards.all()
 
     @staticmethod
+    @traced_resolver
     def resolve_permissions(root: models.User, _info, **_kwargs):
         # deprecated, to remove in #5389
         from .resolvers import resolve_permissions
@@ -302,16 +318,19 @@ class User(CountableDjangoObjectType):
         return resolve_permissions(root)
 
     @staticmethod
+    @traced_resolver
     def resolve_user_permissions(root: models.User, _info, **_kwargs):
         from .resolvers import resolve_permissions
 
         return resolve_permissions(root)
 
     @staticmethod
+    @traced_resolver
     def resolve_permission_groups(root: models.User, _info, **_kwargs):
         return root.groups.all()
 
     @staticmethod
+    @traced_resolver
     def resolve_editable_groups(root: models.User, _info, **_kwargs):
         return get_groups_which_user_can_manage(root)
 
@@ -326,10 +345,12 @@ class User(CountableDjangoObjectType):
     @one_of_permissions_required(
         [AccountPermissions.MANAGE_USERS, AccountPermissions.MANAGE_STAFF]
     )
+    @traced_resolver
     def resolve_events(root: models.User, info):
         return root.events.all()
 
     @staticmethod
+    @traced_resolver
     def resolve_orders(root: models.User, info, **_kwargs):
         viewer = info.context.user
         if viewer.has_perm(OrderPermissions.MANAGE_ORDERS):
@@ -337,6 +358,7 @@ class User(CountableDjangoObjectType):
         return root.orders.non_draft()
 
     @staticmethod
+    @traced_resolver
     def resolve_avatar(root: models.User, info, size=None, **_kwargs):
         if root.avatar:
             return Image.get_adjusted(
@@ -348,6 +370,7 @@ class User(CountableDjangoObjectType):
             )
 
     @staticmethod
+    @traced_resolver
     def resolve_stored_payment_sources(root: models.User, info):
         from .resolvers import resolve_payment_sources
 
@@ -356,6 +379,7 @@ class User(CountableDjangoObjectType):
         raise PermissionDenied()
 
     @staticmethod
+    @traced_resolver
     def resolve_wishlist(root: models.User, info, **_kwargs):
         return resolve_wishlist_items_from_user(root)
 
@@ -364,6 +388,11 @@ class User(CountableDjangoObjectType):
         if root.id is not None:
             return graphene.Node.get_node_from_global_id(_info, root.id)
         return get_user_model().objects.get(email=root.email)
+
+    @staticmethod
+    @traced_resolver
+    def resolve_language_code(root, _info, **_kwargs):
+        return LanguageCodeEnum[str_to_enum(root.language_code)]
 
 
 class ChoiceValue(graphene.ObjectType):
@@ -416,6 +445,7 @@ class StaffNotificationRecipient(CountableDjangoObjectType):
         only_fields = ["user", "active"]
 
     @staticmethod
+    @traced_resolver
     def resolve_user(root: models.StaffNotificationRecipient, info):
         user = info.context.user
         if user == root.user or user.has_perm(AccountPermissions.MANAGE_STAFF):
@@ -423,6 +453,7 @@ class StaffNotificationRecipient(CountableDjangoObjectType):
         raise PermissionDenied()
 
     @staticmethod
+    @traced_resolver
     def resolve_email(root: models.StaffNotificationRecipient, _info):
         return root.get_email()
 
@@ -446,10 +477,12 @@ class Group(CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(AccountPermissions.MANAGE_STAFF)
+    @traced_resolver
     def resolve_users(root: auth_models.Group, _info):
         return root.user_set.all()
 
     @staticmethod
+    @traced_resolver
     def resolve_permissions(root: auth_models.Group, _info):
         permissions = root.permissions.prefetch_related("content_type").order_by(
             "codename"
@@ -457,6 +490,7 @@ class Group(CountableDjangoObjectType):
         return format_permissions_for_display(permissions)
 
     @staticmethod
+    @traced_resolver
     def resolve_user_can_manage(root: auth_models.Group, info):
         user = info.context.user
         return can_user_manage_group(user, root)

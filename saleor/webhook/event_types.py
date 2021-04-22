@@ -34,7 +34,9 @@ class WebhookEventType:
     PRODUCT_VARIANT_DELETED = "product_variant_deleted"
 
     CHECKOUT_CREATED = "checkout_created"
-    CHECKOUT_UPADTED = "checkout_updated"
+    CHECKOUT_UPDATED = "checkout_updated"
+
+    NOTIFY_USER = "notify_user"
 
     PAGE_CREATED = "page_created"
     PAGE_UPDATED = "page_updated"
@@ -68,8 +70,9 @@ class WebhookEventType:
         PRODUCT_VARIANT_UPDATED: "Product variant updated",
         PRODUCT_VARIANT_DELETED: "Product variant deleted",
         CHECKOUT_CREATED: "Checkout created",
-        CHECKOUT_UPADTED: "Checkout updated",
+        CHECKOUT_UPDATED: "Checkout updated",
         FULFILLMENT_CREATED: "Fulfillment_created",
+        NOTIFY_USER: "Notify user",
         PAGE_CREATED: "Page Created",
         PAGE_UPDATED: "Page Updated",
         PAGE_DELETED: "Page Deleted",
@@ -102,8 +105,9 @@ class WebhookEventType:
         (PRODUCT_VARIANT_UPDATED, DISPLAY_LABELS[PRODUCT_VARIANT_UPDATED]),
         (PRODUCT_VARIANT_DELETED, DISPLAY_LABELS[PRODUCT_VARIANT_DELETED]),
         (CHECKOUT_CREATED, DISPLAY_LABELS[CHECKOUT_CREATED]),
-        (CHECKOUT_UPADTED, DISPLAY_LABELS[CHECKOUT_UPADTED]),
+        (CHECKOUT_UPDATED, DISPLAY_LABELS[CHECKOUT_UPDATED]),
         (FULFILLMENT_CREATED, DISPLAY_LABELS[FULFILLMENT_CREATED]),
+        (NOTIFY_USER, DISPLAY_LABELS[NOTIFY_USER]),
         (PAGE_CREATED, DISPLAY_LABELS[PAGE_CREATED]),
         (PAGE_UPDATED, DISPLAY_LABELS[PAGE_UPDATED]),
         (PAGE_DELETED, DISPLAY_LABELS[PAGE_DELETED]),
@@ -145,8 +149,9 @@ class WebhookEventType:
         PRODUCT_VARIANT_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
         PRODUCT_VARIANT_DELETED: ProductPermissions.MANAGE_PRODUCTS,
         CHECKOUT_CREATED: CheckoutPermissions.MANAGE_CHECKOUTS,
-        CHECKOUT_UPADTED: CheckoutPermissions.MANAGE_CHECKOUTS,
+        CHECKOUT_UPDATED: CheckoutPermissions.MANAGE_CHECKOUTS,
         FULFILLMENT_CREATED: OrderPermissions.MANAGE_ORDERS,
+        NOTIFY_USER: AccountPermissions.MANAGE_USERS,
         PAGE_CREATED: PagePermissions.MANAGE_PAGES,
         PAGE_UPDATED: PagePermissions.MANAGE_PAGES,
         PAGE_DELETED: PagePermissions.MANAGE_PAGES,

@@ -1,5 +1,6 @@
 import graphene
 
+from ...core.tracing import traced_resolver
 from .mutations import FileUpload
 from .types.common import TaxType
 
@@ -9,6 +10,7 @@ class CoreQueries(graphene.ObjectType):
         TaxType, description="List of all tax rates available from tax gateway."
     )
 
+    @traced_resolver
     def resolve_tax_types(self, info):
         manager = info.context.plugins
         return [

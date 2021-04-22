@@ -30,6 +30,7 @@ MUTATION_CHECKOUT_COMPLETE = """
             checkoutErrors {
                 field,
                 message,
+                variants,
                 code
             }
             confirmationNeeded
@@ -243,6 +244,41 @@ def test_checkout_complete(
     order_confirmed_mock.assert_called_once_with(order)
 
 
+def test_checkout_complete_with_unavailable_variant(
+    site_settings,
+    user_api_client,
+    checkout_with_item,
+    gift_card,
+    payment_dummy,
+    address,
+    shipping_method,
+):
+
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    checkout_line = checkout.lines.first()
+    checkout_line_variant = checkout_line.variant
+    checkout_line_variant.channel_listings.filter(channel=checkout.channel).update(
+        price_amount=None
+    )
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variant_id = graphene.Node.to_global_id("ProductVariant", checkout_line_variant.pk)
+    redirect_url = "https://www.example.com"
+    variables = {"checkoutId": checkout_id, "redirectUrl": redirect_url}
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    content = get_graphql_content(response)
+    errors = content["data"]["checkoutComplete"]["checkoutErrors"]
+    assert errors[0]["code"] == CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
+    assert errors[0]["field"] == "lines"
+    assert errors[0]["variants"] == [variant_id]
+
+
 @patch("saleor.plugins.manager.PluginsManager.order_confirmed")
 def test_checkout_complete_requires_confirmation(
     order_confirmed_mock,
@@ -268,7 +304,7 @@ def test_checkout_complete_requires_confirmation(
         )[1]
     )
     order = Order.objects.get(pk=order_id)
-    assert order.status == OrderStatus.UNCONFIRMED
+    assert order.is_unconfirmed()
     order_confirmed_mock.assert_not_called()
 
 
@@ -560,9 +596,7 @@ def test_checkout_complete_invalid_checkout_id(user_api_client):
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
-    assert (
-        data["checkoutErrors"][0]["message"] == "Couldn't resolve to a node: invalidId"
-    )
+    assert data["checkoutErrors"][0]["message"] == "Couldn't resolve id: invalidId."
     assert data["checkoutErrors"][0]["field"] == "checkoutId"
     assert orders_count == Order.objects.count()
 

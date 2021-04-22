@@ -10,7 +10,6 @@ from django.db import transaction
 from ..account.models import User
 from ..core import analytics
 from ..core.exceptions import AllocationError, InsufficientStock, InsufficientStockData
-from ..order.emails import send_order_confirmed
 from ..payment import (
     ChargeStatus,
     CustomPaymentChoices,
@@ -32,15 +31,8 @@ from . import (
     FulfillmentStatus,
     OrderLineData,
     OrderStatus,
-    emails,
     events,
     utils,
-)
-from .emails import (
-    send_fulfillment_confirmation_to_customer,
-    send_order_canceled_confirmation,
-    send_order_refunded_confirmation,
-    send_payment_confirmation,
 )
 from .events import (
     draft_order_created_from_replace_event,
@@ -50,6 +42,13 @@ from .events import (
     order_returned_event,
 )
 from .models import Fulfillment, FulfillmentLine, Order, OrderLine
+from .notifications import (
+    send_fulfillment_confirmation_to_customer,
+    send_order_canceled_confirmation,
+    send_order_confirmed,
+    send_order_refunded_confirmation,
+    send_payment_confirmation,
+)
 from .utils import (
     order_line_needs_automatic_fulfillment,
     recalculate_order,
@@ -109,22 +108,18 @@ def order_confirmed(
     events.order_confirmed_event(order=order, user=user)
     manager.order_confirmed(order)
     if send_confirmation_email:
-        send_order_confirmed.delay(order.pk, user.pk)
+        send_order_confirmed(order, user, manager)
 
 
 def handle_fully_paid_order(
     manager: "PluginsManager", order: "Order", user: Optional["User"] = None
 ):
     events.order_fully_paid_event(order=order, user=user)
-
     if order.get_customer_email():
-        events.email_sent_event(
-            order=order, user=user, email_type=events.OrderEventsEmails.PAYMENT
-        )
-        send_payment_confirmation.delay(order.pk)
+        send_payment_confirmation(order, manager)
 
         if utils.order_needs_automatic_fulfillment(order):
-            automatically_fulfill_digital_lines(order)
+            automatically_fulfill_digital_lines(order, manager)
     try:
         analytics.report_order(order.tracking_client_id, order)
     except Exception:
@@ -150,7 +145,7 @@ def cancel_order(order: "Order", user: Optional["User"], manager: "PluginsManage
     manager.order_cancelled(order)
     manager.order_updated(order)
 
-    send_order_canceled_confirmation(order, user)
+    send_order_canceled_confirmation(order, user, manager)
 
 
 def order_refunded(
@@ -165,7 +160,7 @@ def order_refunded(
     )
     manager.order_updated(order)
 
-    send_order_refunded_confirmation(order, user, amount, payment.currency)
+    send_order_refunded_confirmation(order, user, amount, payment.currency, manager)
 
 
 def order_voided(
@@ -209,7 +204,7 @@ def order_fulfilled(
 
     if notify_customer:
         for fulfillment in fulfillments:
-            send_fulfillment_confirmation_to_customer(order, fulfillment, user)
+            send_fulfillment_confirmation_to_customer(order, fulfillment, user, manager)
 
 
 def order_shipping_updated(order: "Order", manager: "PluginsManager"):
@@ -355,7 +350,7 @@ def fulfill_order_lines(order_lines_info: Iterable["OrderLineData"]):
 
 
 @transaction.atomic
-def automatically_fulfill_digital_lines(order: "Order"):
+def automatically_fulfill_digital_lines(order: "Order", manager: "PluginsManager"):
     """Fulfill all digital lines which have enabled automatic fulfillment setting.
 
     Send confirmation email afterward.
@@ -395,14 +390,17 @@ def automatically_fulfill_digital_lines(order: "Order"):
     FulfillmentLine.objects.bulk_create(fulfillments)
     fulfill_order_lines(lines_info)
 
-    emails.send_fulfillment_confirmation_to_customer(
-        order, fulfillment, user=order.user
+    send_fulfillment_confirmation_to_customer(
+        order, fulfillment, user=order.user, manager=manager
     )
     update_order_status(order)
 
 
 def _create_fulfillment_lines(
-    fulfillment: Fulfillment, warehouse_pk: str, lines_data: List[Dict]
+    fulfillment: Fulfillment,
+    warehouse_pk: str,
+    lines_data: List[Dict],
+    channel_slug: str,
 ) -> List[FulfillmentLine]:
     """Modify stocks and allocations. Return list of unsaved FulfillmentLines.
 
@@ -418,6 +416,7 @@ def _create_fulfillment_lines(
                     },
                     ...
                 ]
+        channel_slug (str): Channel for which fulfillment lines should be created.
 
     Return:
         List[FulfillmentLine]: Unsaved fulfillmet lines created for this fulfillment
@@ -429,9 +428,11 @@ def _create_fulfillment_lines(
     """
     lines = [line_data["order_line"] for line_data in lines_data]
     variants = [line.variant for line in lines]
-    stocks = Stock.objects.filter(
-        warehouse_id=warehouse_pk, product_variant__in=variants
-    ).select_related("product_variant")
+    stocks = (
+        Stock.objects.for_channel(channel_slug)
+        .filter(warehouse_id=warehouse_pk, product_variant__in=variants)
+        .select_related("product_variant")
+    )
 
     variant_to_stock: Dict[str, List[Stock]] = defaultdict(list)
     for stock in stocks:
@@ -532,6 +533,7 @@ def create_fulfillments(
                 fulfillment,
                 warehouse_pk,
                 fulfillment_lines_for_warehouses[warehouse_pk],
+                order.channel.slug,
             )
         )
 

@@ -18,7 +18,13 @@ from ..order import FulfillmentStatus, OrderLineData, OrderStatus
 from ..order.models import Order, OrderLine
 from ..product.utils.digital_products import get_default_digital_content_settings
 from ..shipping.models import ShippingMethod
-from ..warehouse.management import deallocate_stock, increase_stock
+from ..warehouse.management import (
+    deallocate_stock,
+    decrease_allocations,
+    get_order_lines_with_track_inventory,
+    increase_allocations,
+    increase_stock,
+)
 from ..warehouse.models import Warehouse
 from . import events
 
@@ -171,7 +177,7 @@ def recalculate_order(order: Order, **kwargs):
 def recalculate_order_weight(order):
     """Recalculate order weights."""
     weight = zero_weight()
-    for line in order:
+    for line in order.lines.all():
         if line.variant:
             weight += line.variant.get_weight() * line.quantity
     order.weight = weight
@@ -290,19 +296,25 @@ def update_order_status(order):
 
 
 @transaction.atomic
-def add_variant_to_draft_order(order, variant, quantity, manager, discounts=None):
+def add_variant_to_order(
+    order, variant, quantity, user, manager, discounts=None, allocate_stock=False
+):
     """Add total_quantity of variant to order.
 
     Returns an order line the variant was added to.
     """
+    channel = order.channel
     try:
         line = order.lines.get(variant=variant)
-        line.quantity += quantity
-        line.save(update_fields=["quantity"])
+        old_quantity = line.quantity
+        new_quantity = old_quantity + quantity
+        line_info = OrderLineData(line=line, quantity=old_quantity)
+        change_order_line_quantity(
+            user, line_info, old_quantity, new_quantity, channel.slug, send_event=False
+        )
     except OrderLine.DoesNotExist:
         product = variant.product
         collections = product.collections.all()
-        channel = order.channel
         channel_listing = variant.channel_listings.get(channel=channel)
         unit_price = variant.get_price(
             product, collections, channel, channel_listing, discounts
@@ -331,16 +343,33 @@ def add_variant_to_draft_order(order, variant, quantity, manager, discounts=None
         )
         unit_price = manager.calculate_order_line_unit(order, line, variant, product)
         line.unit_price = unit_price
+        line.total_price = unit_price * quantity
         line.tax_rate = manager.get_order_line_tax_rate(
             order, product, variant, None, unit_price
         )
+        line.total_price = unit_price * quantity
         line.save(
             update_fields=[
                 "currency",
                 "unit_price_net_amount",
                 "unit_price_gross_amount",
+                "total_price_net_amount",
+                "total_price_gross_amount",
                 "tax_rate",
             ]
+        )
+
+    if allocate_stock:
+        increase_allocations(
+            [
+                OrderLineData(
+                    line=line,
+                    quantity=quantity,
+                    variant=variant,
+                    warehouse_pk=None,
+                )
+            ],
+            channel.slug,
         )
 
     return line
@@ -364,9 +393,38 @@ def add_gift_card_to_order(order, gift_card, total_price_left):
     return total_price_left
 
 
-def change_order_line_quantity(user, line, old_quantity, new_quantity):
+def _update_allocations_for_line(
+    line_info: OrderLineData, old_quantity: int, new_quantity: int, channel_slug: str
+):
+    if old_quantity == new_quantity:
+        return
+
+    if not get_order_lines_with_track_inventory([line_info]):
+        return
+
+    if old_quantity < new_quantity:
+        line_info.quantity = new_quantity - old_quantity
+        increase_allocations([line_info], channel_slug)
+    else:
+        line_info.quantity = old_quantity - new_quantity
+        decrease_allocations([line_info])
+
+
+def change_order_line_quantity(
+    user,
+    line_info,
+    old_quantity: int,
+    new_quantity: int,
+    channel_slug: str,
+    send_event=True,
+):
     """Change the quantity of ordered items in a order line."""
+    line = line_info.line
     if new_quantity:
+        if line.order.is_unconfirmed():
+            _update_allocations_for_line(
+                line_info, old_quantity, new_quantity, channel_slug
+            )
         line.quantity = new_quantity
         total_price_net_amount = line.quantity * line.unit_price_net_amount
         total_price_gross_amount = line.quantity * line.unit_price_gross_amount
@@ -382,24 +440,30 @@ def change_order_line_quantity(user, line, old_quantity, new_quantity):
             ]
         )
     else:
-        delete_order_line(line)
+        delete_order_line(line_info)
 
     quantity_diff = old_quantity - new_quantity
 
-    # Create the removal event
+    if send_event:
+        create_order_event(line, user, quantity_diff)
+
+
+def create_order_event(line, user, quantity_diff):
     if quantity_diff > 0:
-        events.draft_order_removed_products_event(
+        events.order_removed_products_event(
             order=line.order, user=user, order_lines=[(quantity_diff, line)]
         )
     elif quantity_diff < 0:
-        events.draft_order_added_products_event(
+        events.order_added_products_event(
             order=line.order, user=user, order_lines=[(quantity_diff * -1, line)]
         )
 
 
-def delete_order_line(line):
+def delete_order_line(line_info):
     """Delete an order line from an order."""
-    line.delete()
+    if line_info.line.order.is_unconfirmed():
+        decrease_allocations([line_info])
+    line_info.line.delete()
 
 
 def restock_order_lines(order):
@@ -410,7 +474,7 @@ def restock_order_lines(order):
     ).first()
 
     dellocating_stock_lines: List[OrderLineData] = []
-    for line in order:
+    for line in order.lines.all():
         if line.variant and line.variant.track_inventory:
             if line.quantity_unfulfilled > 0:
                 dellocating_stock_lines.append(

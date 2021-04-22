@@ -1,10 +1,12 @@
 from django.db.models import Sum
 
 from ...account.utils import requestor_is_staff_member_or_app
+from ...core.tracing import traced_resolver
 from ...order import OrderStatus
 from ...product import models
 from ..channel import ChannelQsContext
-from ..utils import get_database_id, get_user_or_app_from_context
+from ..core.utils import from_global_id_or_error
+from ..utils import get_user_or_app_from_context
 from ..utils.filters import filter_by_period
 from .filters import filter_products_by_stock_availability
 
@@ -13,6 +15,7 @@ def resolve_category_by_slug(slug):
     return models.Category.objects.filter(slug=slug).first()
 
 
+@traced_resolver
 def resolve_categories(_info, level=None, **_kwargs):
     qs = models.Category.objects.prefetch_related("children")
     if level is not None:
@@ -20,6 +23,7 @@ def resolve_categories(_info, level=None, **_kwargs):
     return qs.distinct()
 
 
+@traced_resolver
 def resolve_collection_by_id(info, id, channel_slug, requestor):
     return (
         models.Collection.objects.visible_to_user(requestor, channel_slug=channel_slug)
@@ -28,6 +32,7 @@ def resolve_collection_by_id(info, id, channel_slug, requestor):
     )
 
 
+@traced_resolver
 def resolve_collection_by_slug(info, slug, channel_slug, requestor):
     return (
         models.Collection.objects.visible_to_user(requestor, channel_slug)
@@ -36,6 +41,7 @@ def resolve_collection_by_slug(info, slug, channel_slug, requestor):
     )
 
 
+@traced_resolver
 def resolve_collections(info, channel_slug):
     requestor = get_user_or_app_from_context(info.context)
     qs = models.Collection.objects.visible_to_user(requestor, channel_slug)
@@ -43,10 +49,12 @@ def resolve_collections(info, channel_slug):
     return ChannelQsContext(qs=qs, channel_slug=channel_slug)
 
 
+@traced_resolver
 def resolve_digital_contents(_info):
     return models.DigitalContent.objects.all()
 
 
+@traced_resolver
 def resolve_product_by_id(info, id, channel_slug, requestor):
     return (
         models.Product.objects.visible_to_user(requestor, channel_slug=channel_slug)
@@ -55,6 +63,7 @@ def resolve_product_by_id(info, id, channel_slug, requestor):
     )
 
 
+@traced_resolver
 def resolve_product_by_slug(info, product_slug, channel_slug, requestor):
     return (
         models.Product.objects.visible_to_user(requestor, channel_slug=channel_slug)
@@ -63,12 +72,13 @@ def resolve_product_by_slug(info, product_slug, channel_slug, requestor):
     )
 
 
+@traced_resolver
 def resolve_products(
     info, requestor, stock_availability=None, channel_slug=None, **_kwargs
 ) -> ChannelQsContext:
     qs = models.Product.objects.visible_to_user(requestor, channel_slug)
     if stock_availability:
-        qs = filter_products_by_stock_availability(qs, stock_availability)
+        qs = filter_products_by_stock_availability(qs, stock_availability, channel_slug)
     if not requestor_is_staff_member_or_app(requestor):
         qs = qs.annotate_visible_in_listings(channel_slug).exclude(
             visible_in_listings=False
@@ -76,46 +86,55 @@ def resolve_products(
     return ChannelQsContext(qs=qs.distinct(), channel_slug=channel_slug)
 
 
-def resolve_variant_by_id(info, id, channel_slug, requestor):
+@traced_resolver
+def resolve_variant_by_id(
+    info, id, channel_slug, requestor, requestor_has_access_to_all
+):
     visible_products = models.Product.objects.visible_to_user(
         requestor, channel_slug
     ).values_list("pk", flat=True)
     qs = models.ProductVariant.objects.filter(product__id__in=visible_products)
+    if not requestor_has_access_to_all:
+        qs = qs.available_in_channel(channel_slug)
     return qs.filter(pk=id).first()
 
 
+@traced_resolver
 def resolve_product_types(_info, **_kwargs):
     return models.ProductType.objects.all()
 
 
+@traced_resolver
 def resolve_product_variant_by_sku(
     info, sku, channel_slug, requestor, requestor_has_access_to_all
 ):
     visible_products = models.Product.objects.visible_to_user(requestor, channel_slug)
+    qs = models.ProductVariant.objects.filter(product__id__in=visible_products)
     if not requestor_has_access_to_all:
         visible_products = visible_products.annotate_visible_in_listings(
             channel_slug
         ).exclude(visible_in_listings=False)
-
-    return (
-        models.ProductVariant.objects.filter(product__id__in=visible_products)
-        .filter(sku=sku)
-        .first()
-    )
+        qs = qs.filter(product__in=visible_products).available_in_channel(channel_slug)
+    return qs.filter(sku=sku).first()
 
 
+@traced_resolver
 def resolve_product_variants(
     info, requestor_has_access_to_all, requestor, ids=None, channel_slug=None
 ) -> ChannelQsContext:
     visible_products = models.Product.objects.visible_to_user(requestor, channel_slug)
+    qs = models.ProductVariant.objects.filter(product__id__in=visible_products)
+
     if not requestor_has_access_to_all:
         visible_products = visible_products.annotate_visible_in_listings(
             channel_slug
         ).exclude(visible_in_listings=False)
-
-    qs = models.ProductVariant.objects.filter(product__id__in=visible_products)
+        qs = qs.filter(product__in=visible_products).available_in_channel(channel_slug)
     if ids:
-        db_ids = [get_database_id(info, node_id, "ProductVariant") for node_id in ids]
+        db_ids = [
+            from_global_id_or_error(node_id, only_type="ProductVariant")[1]
+            for node_id in ids
+        ]
         qs = qs.filter(pk__in=db_ids)
     return ChannelQsContext(qs=qs, channel_slug=channel_slug)
 

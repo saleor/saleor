@@ -1,9 +1,11 @@
+import datetime
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
 
 import graphene
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
+from django.db.models import Q
 
 from ...channel.exceptions import ChannelNotDefined
 from ...channel.models import Channel
@@ -15,6 +17,7 @@ from ...checkout.fetch import (
     CheckoutLineInfo,
     fetch_checkout_info,
     fetch_checkout_lines,
+    get_valid_shipping_method_list_for_checkout_info,
     update_checkout_info_shipping_method,
 )
 from ...checkout.utils import (
@@ -34,13 +37,16 @@ from ...core.exceptions import InsufficientStock, PermissionDenied, ProductNotPu
 from ...core.transactions import transaction_with_commit_on_errors
 from ...order import models as order_models
 from ...product import models as product_models
+from ...product.models import ProductChannelListing
 from ...shipping import models as shipping_models
 from ...warehouse.availability import check_stock_quantity_bulk
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
+from ..core.enums import LanguageCodeEnum
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.types.common import CheckoutError
-from ..core.utils import from_global_id_strict_type
+from ..core.utils import from_global_id_or_error
+from ..core.validators import validate_variants_available_in_channel
 from ..order.types import Order
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
@@ -107,7 +113,7 @@ def update_checkout_shipping_method_if_invalid(
         checkout.save(update_fields=["shipping_method", "last_change"])
 
 
-def check_lines_quantity(variants, quantities, country):
+def check_lines_quantity(variants, quantities, country, channel_slug):
     """Clean quantities and check if stock is sufficient for each checkout line."""
     for quantity in quantities:
         if quantity < 0:
@@ -130,7 +136,7 @@ def check_lines_quantity(variants, quantities, country):
                 }
             )
     try:
-        check_stock_quantity_bulk(variants, country, quantities)
+        check_stock_quantity_bulk(variants, country, quantities, channel_slug)
     except InsufficientStock as e:
         errors = [
             ValidationError(
@@ -143,28 +149,28 @@ def check_lines_quantity(variants, quantities, country):
         raise ValidationError({"quantity": errors})
 
 
-def validate_variants_available_for_purchase(variants, channel_id):
-    not_available_variants = []
-    for variant in variants:
-        product_channel_listing = variant.product.channel_listings.filter(
-            channel_id=channel_id
-        ).first()
-        if not (
-            product_channel_listing
-            and product_channel_listing.is_available_for_purchase()
-        ):
-            not_available_variants.append(variant.pk)
-
+def validate_variants_available_for_purchase(variants_id: set, channel_id: int):
+    today = datetime.date.today()
+    is_available_for_purchase = Q(
+        available_for_purchase__lte=today,
+        product__variants__id__in=variants_id,
+        channel_id=channel_id,
+    )
+    available_variants = ProductChannelListing.objects.filter(
+        is_available_for_purchase
+    ).values_list("product__variants__id", flat=True)
+    not_available_variants = variants_id.difference(set(available_variants))
     if not_available_variants:
         variant_ids = [
             graphene.Node.to_global_id("ProductVariant", pk)
             for pk in not_available_variants
         ]
+        error_code = CheckoutErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE
         raise ValidationError(
             {
                 "lines": ValidationError(
                     "Cannot add lines for unavailable for purchase variants.",
-                    code=CheckoutErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE,
+                    code=error_code,  # type: ignore
                     params={"variants": variant_ids},
                 )
             }
@@ -197,6 +203,9 @@ class CheckoutCreateInput(graphene.InputObjectType):
         )
     )
     billing_address = AddressInput(description="Billing address of the customer.")
+    language_code = graphene.Argument(
+        LanguageCodeEnum, required=False, description="Checkout language code."
+    )
 
 
 class CheckoutCreate(ModelMutation, I18nMixin):
@@ -223,7 +232,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def clean_checkout_lines(
-        cls, lines, country, channel_id
+        cls, lines, country, channel
     ) -> Tuple[List[product_models.ProductVariant], List[int]]:
         variant_ids = [line["variant_id"] for line in lines]
         variants = cls.get_nodes_or_error(
@@ -236,8 +245,12 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         )
 
         quantities = [line["quantity"] for line in lines]
-        validate_variants_available_for_purchase(variants, channel_id)
-        check_lines_quantity(variants, quantities, country)
+        variant_db_ids = {variant.id for variant in variants}
+        validate_variants_available_for_purchase(variant_db_ids, channel.id)
+        validate_variants_available_in_channel(
+            variant_db_ids, channel.id, CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL
+        )
+        check_lines_quantity(variants, quantities, country, channel.slug)
         return variants, quantities
 
     @classmethod
@@ -320,12 +333,15 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             (
                 cleaned_input["variants"],
                 cleaned_input["quantities"],
-            ) = cls.clean_checkout_lines(lines, country, cleaned_input["channel"].id)
+            ) = cls.clean_checkout_lines(lines, country, cleaned_input["channel"])
 
         # Use authenticated user's email as default email
         if user.is_authenticated:
             email = data.pop("email", None)
             cleaned_input["email"] = email or user.email
+
+        language_code = data.get("language_code", settings.LANGUAGE_CODE)
+        cleaned_input["language_code"] = language_code
 
         cleaned_input["shipping_address"] = shipping_address
         cleaned_input["billing_address"] = billing_address
@@ -335,6 +351,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
     @classmethod
     @transaction.atomic()
     def save(cls, info, instance: models.Checkout, cleaned_input):
+        channel = cleaned_input["channel"]
         # Create the checkout object
         instance.save()
 
@@ -347,7 +364,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         quantities = cleaned_input.get("quantities")
         if variants and quantities:
             try:
-                add_variants_to_checkout(instance, variants, quantities)
+                add_variants_to_checkout(instance, variants, quantities, channel.slug)
             except InsufficientStock as exc:
                 error = prepare_insufficient_stock_checkout_validation_error(exc)
                 raise ValidationError({"lines": error})
@@ -424,19 +441,31 @@ class CheckoutLinesAdd(BaseMutation):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
+        discounts = info.context.discounts
+        manager = info.context.plugins
 
         variant_ids = [line.get("variant_id") for line in lines]
         variants = cls.get_nodes_or_error(variant_ids, "variant_id", ProductVariant)
         quantities = [line.get("quantity") for line in lines]
 
-        check_lines_quantity(variants, quantities, checkout.get_country())
-        validate_variants_available_for_purchase(variants, checkout.channel_id)
+        checkout_info = fetch_checkout_info(checkout, [], discounts, manager)
+
+        check_lines_quantity(
+            variants, quantities, checkout.get_country(), checkout_info.channel.slug
+        )
+        variants_db_ids = {variant.id for variant in variants}
+        validate_variants_available_for_purchase(variants_db_ids, checkout.channel_id)
+        validate_variants_available_in_channel(
+            variants_db_ids,
+            checkout.channel_id,
+            CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL,
+        )
 
         if variants and quantities:
             for variant, quantity in zip(variants, quantities):
                 try:
                     checkout = add_variant_to_checkout(
-                        checkout, variant, quantity, replace=replace
+                        checkout_info, variant, quantity, replace=replace
                     )
                 except InsufficientStock as exc:
                     error = prepare_insufficient_stock_checkout_validation_error(exc)
@@ -447,10 +476,11 @@ class CheckoutLinesAdd(BaseMutation):
                         code=exc.code,
                     )
 
-        manager = info.context.plugins
         lines = fetch_checkout_lines(checkout)
-        checkout_info = fetch_checkout_info(
-            checkout, lines, info.context.discounts, manager
+        checkout_info.valid_shipping_methods = (
+            get_valid_shipping_method_list_for_checkout_info(
+                checkout_info, checkout_info.shipping_address, lines, discounts, manager
+            )
         )
 
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
@@ -605,7 +635,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
 
     @classmethod
     def process_checkout_lines(
-        cls, lines: Iterable["CheckoutLineInfo"], country: str
+        cls, lines: Iterable["CheckoutLineInfo"], country: str, channel_slug: str
     ) -> None:
         variant_ids = [line_info.variant.id for line_info in lines]
         variants = list(
@@ -614,11 +644,13 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             ).prefetch_related("product__product_type")
         )  # FIXME: is this prefetch needed?
         quantities = [line_info.line.quantity for line_info in lines]
-        check_lines_quantity(variants, quantities, country)
+        check_lines_quantity(variants, quantities, country, channel_slug)
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, shipping_address):
-        pk = from_global_id_strict_type(checkout_id, Checkout, field="checkout_id")
+        _type, pk = from_global_id_or_error(
+            checkout_id, only_type=Checkout, field="checkout_id"
+        )
 
         try:
             checkout = models.Checkout.objects.prefetch_related(
@@ -662,7 +694,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
 
         # Resolve and process the lines, validating variants quantities
         if lines:
-            cls.process_checkout_lines(lines, country)
+            cls.process_checkout_lines(lines, country, checkout_info.channel.slug)
 
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
 
@@ -704,6 +736,31 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
             change_billing_address_in_checkout(checkout, billing_address)
             info.context.plugins.checkout_updated(checkout)
         return CheckoutBillingAddressUpdate(checkout=checkout)
+
+
+class CheckoutLanguageCodeUpdate(BaseMutation):
+    checkout = graphene.Field(Checkout, description="An updated checkout.")
+
+    class Arguments:
+        checkout_id = graphene.ID(required=True, description="ID of the checkout.")
+        language_code = graphene.Argument(
+            LanguageCodeEnum, required=True, description="New language code."
+        )
+
+    class Meta:
+        description = "Update language code in the existing checkout."
+        error_type_class = CheckoutError
+        error_type_field = "checkout_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, checkout_id, language_code):
+        checkout = cls.get_node_or_error(
+            info, checkout_id, only_type=Checkout, field="checkout_id"
+        )
+        checkout.language_code = language_code
+        checkout.save(update_fields=["language_code", "last_change"])
+        info.context.plugins.checkout_updated(checkout)
+        return CheckoutLanguageCodeUpdate(checkout=checkout)
 
 
 class CheckoutEmailUpdate(BaseMutation):
@@ -860,8 +917,8 @@ class CheckoutComplete(BaseMutation):
                     field="checkout_id",
                 )
             except ValidationError as e:
-                checkout_token = from_global_id_strict_type(
-                    checkout_id, Checkout, field="checkout_id"
+                _type, checkout_token = from_global_id_or_error(
+                    checkout_id, only_type=Checkout, field="checkout_id"
                 )
 
                 order = order_models.Order.objects.get_by_checkout_token(checkout_token)
@@ -885,6 +942,12 @@ class CheckoutComplete(BaseMutation):
 
             manager = info.context.plugins
             lines = fetch_checkout_lines(checkout)
+            variants_id = {line.variant.id for line in lines}
+            validate_variants_available_in_channel(
+                variants_id,
+                checkout.channel,
+                CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL,
+            )
             checkout_info = fetch_checkout_info(
                 checkout, lines, info.context.discounts, manager
             )
