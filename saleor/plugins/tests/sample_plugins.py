@@ -213,8 +213,8 @@ class PluginSample(BasePlugin):
 
 class ChannelPluginSample(PluginSample):
     PLUGIN_ID = "channel.plugin.sample"
-    PLUGIN_NAME = "ChannelPluginSample"
-    PLUGIN_DESCRIPTION = "Test channel plugin description"
+    PLUGIN_NAME = "Channel Plugin"
+    PLUGIN_DESCRIPTION = "Test channel plugin"
     DEFAULT_ACTIVE = True
     CONFIGURATION_PER_CHANNEL = True
     DEFAULT_CONFIGURATION = [{"name": "input-per-channel", "value": None}]
@@ -232,6 +232,7 @@ class PluginInactive(BasePlugin):
     PLUGIN_NAME = "PluginInactive"
     PLUGIN_DESCRIPTION = "Test plugin description_2"
     CONFIGURATION_PER_CHANNEL = False
+    DEFAULT_ACTIVE = False
 
     def external_obtain_access_tokens(
         self, data: dict, request: WSGIRequest, previous_value
