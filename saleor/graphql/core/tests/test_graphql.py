@@ -234,7 +234,7 @@ def test_get_nodes(product_list):
     assert products == product_list
 
     # Raise an error if requested id has no related database object
-    nonexistent_item = Mock(type="Product", pk=123)
+    nonexistent_item = Mock(type="Product", pk=-1)
     nonexistent_item_global_id = to_global_id(
         nonexistent_item.type, nonexistent_item.pk
     )
@@ -249,7 +249,7 @@ def test_get_nodes(product_list):
     global_ids.pop()
 
     # Raise an error if one of the node is of wrong type
-    invalid_item = Mock(type="test", pk=123)
+    invalid_item = Mock(type="test", pk=-1)
     invalid_item_global_id = to_global_id(invalid_item.type, invalid_item.pk)
     global_ids.append(invalid_item_global_id)
     with pytest.raises(GraphQLError) as exc:

@@ -245,7 +245,6 @@ def test_sale_applies_to_correct_products(product_type, category, channel_USD):
         name="Test Product",
         slug="test-product",
         description={},
-        pk=111,
         product_type=product_type,
         category=category,
     )
@@ -263,7 +262,7 @@ def test_sale_applies_to_correct_products(product_type, category, channel_USD):
         product_type=product_type,
         category=category,
     )
-    sec_variant = ProductVariant.objects.create(product=product2, sku="secvar", pk=111)
+    sec_variant = ProductVariant.objects.create(product=product2, sku="secvar")
     ProductVariantChannelListing.objects.create(
         variant=sec_variant,
         channel=channel_USD,
