@@ -24,11 +24,6 @@ from ...channel import ChannelContext
 from ....product.thumbnails import (
     create_store_background_image_thumbnails,
 )
-from ....product.thumbnails import (
-    create_category_background_image_thumbnails,
-    create_collection_background_image_thumbnails,
-    create_product_thumbnails,
-)
 from ...core.utils import (
     clean_seo_fields,
     from_global_id_strict_type,
@@ -179,11 +174,10 @@ class PostMediaCreate(BaseMutation):
             validate_image_file(image_data, "image")
             media = post.media.create(
                 image=image_data, alt=alt, type=ProductMediaTypes.IMAGE
-            )
-            create_product_thumbnails.delay(media.pk)        
+            )            
 
         post = ChannelContext(node=post, channel_slug=None)
-        return PostMediaCreate(product=post, media=media)
+        return PostMediaCreate(post=post, media=media)
 
 
 class PostMediaUpdateInput(graphene.InputObjectType):

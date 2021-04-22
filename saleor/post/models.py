@@ -32,7 +32,7 @@ class Post(ModelWithMetadata, SeoModel):
     translated = TranslationProxy()
 
     def __str__(self) -> str:
-        return self.name
+        return self.title
 
     class Meta:
         app_label = "post"

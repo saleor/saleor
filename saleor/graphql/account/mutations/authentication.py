@@ -146,7 +146,7 @@ class CreateZaloToken(BaseMutation):
         url = "https://openapi.zalo.me/v2.0/oa/getprofile?access_token=%s&data={\"user_id\":\"%s\"}" % (zalotoken, zalouser)
         response = requests.get(url)
         json_response = response.json()
-        print(json_response)
+        print("zalo request url", url, json_response)
         user = models.User.objects.filter(email=zalouser, is_active=True).first()
         if not user:
             user = models.User()
