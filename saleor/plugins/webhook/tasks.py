@@ -68,7 +68,6 @@ def trigger_webhook_sync(event_type, data, webhooks_qs=None):
         # raise Exception("Payment webhook not available")
         return None
 
-    print("TRIGGER webhook: ", webhook, webhook.app)
     response = send_webhook_request_sync(
         webhook.target_url, webhook.secret_key, event_type, data
     )

@@ -67,13 +67,17 @@ def webhook_response_to_gateway_response(
     return GatewayResponse(
         action_required=response_json.get("action_required", False),
         action_required_data=response_json.get("action_required_data"),
-        amount=payment_information.amount,
+        amount=response_json.get("amount", payment_information.amount),
         currency=payment_information.currency,
         customer_id=response_json.get("customer_id"),
         error=error,
         is_success=is_success,
-        kind=transaction_kind,
-        transaction_id=response_json.get("transaction_id"),
+        kind=response_json.get("kind", transaction_kind),
         payment_method_info=payment_method_info,
         raw_response=response_json,
+        searchable_key=response_json.get("searchable_key"),
+        transaction_id=response_json.get("transaction_id", ""),
+        transaction_already_processed=response_json.get(
+            "transaction_already_processed", False
+        ),
     )
