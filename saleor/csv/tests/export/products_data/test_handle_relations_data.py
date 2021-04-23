@@ -985,6 +985,80 @@ def test_add_reference_info_to_data_update_attribute_data(product, page):
     assert result[pk][expected_header] == values
 
 
+def test_add_attribute_info_to_data_no_file_url_for_file_attribute(product):
+    # given
+    pk = product.pk
+    slug = "test_attribute_slug"
+    value = "test value"
+    attribute_data = AttributeData(
+        slug=slug,
+        value=value,
+        file_url=None,
+        input_type="file",
+        entity_type=None,
+        rich_text=None,
+    )
+    input_data = {pk: {}}
+
+    # when
+    result = add_attribute_info_to_data(
+        product.pk, attribute_data, "product attribute", input_data
+    )
+
+    # then
+    expected_header = f"{slug} (product attribute)"
+    assert result[pk][expected_header] == {""}
+
+
+def test_add_attribute_info_to_data_no_rich_text_for_rich_text_attribute(product):
+    # given
+    pk = product.pk
+    slug = "test_attribute_slug"
+    value = "test value"
+    attribute_data = AttributeData(
+        slug=slug,
+        value=value,
+        file_url=None,
+        input_type="rich-text",
+        entity_type=None,
+        rich_text=None,
+    )
+    input_data = {pk: {}}
+
+    # when
+    result = add_attribute_info_to_data(
+        product.pk, attribute_data, "product attribute", input_data
+    )
+
+    # then
+    expected_header = f"{slug} (product attribute)"
+    assert result[pk][expected_header] == {""}
+
+
+def test_add_attribute_info_to_data_no_value_for_reference_attribute(product):
+    # given
+    pk = product.pk
+    slug = "test_attribute_slug"
+    attribute_data = AttributeData(
+        slug=slug,
+        value=None,
+        file_url=None,
+        input_type="reference",
+        entity_type=None,
+        rich_text=None,
+    )
+    input_data = {pk: {}}
+
+    # when
+    result = add_attribute_info_to_data(
+        product.pk, attribute_data, "product attribute", input_data
+    )
+
+    # then
+    expected_header = f"{slug} (product attribute)"
+    assert result[pk][expected_header] == {""}
+
+
 def test_add_warehouse_info_to_data(product):
     # given
     pk = product.pk

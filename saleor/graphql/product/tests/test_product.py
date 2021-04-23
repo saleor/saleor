@@ -342,6 +342,42 @@ def test_product_query_by_id_available_as_app(
     assert product_data["name"] == product.name
 
 
+def test_product_query_by_id_as_user(
+    user_api_client, permission_manage_products, product
+):
+    query = """
+        query ($id: ID){
+            product(id: $id) {
+                id
+                variants {
+                    id
+                }
+            }
+        }
+    """
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.pk),
+    }
+
+    response = user_api_client.post_graphql(
+        query,
+        variables=variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+    assert product_data is not None
+    expected_variants = [
+        {
+            "id": graphene.Node.to_global_id(
+                "ProductVariant", product.variants.first().pk
+            )
+        }
+    ]
+    assert product_data["variants"] == expected_variants
+
+
 def test_product_query_by_id_not_available_as_app(
     app_api_client, permission_manage_products, product, channel_USD
 ):
@@ -4636,6 +4672,51 @@ def test_update_product_with_file_attribute_value_new_value_is_not_created(
 
     file_attribute.refresh_from_db()
     assert file_attribute.values.count() == values_count
+
+    updated_webhook_mock.assert_called_once_with(product)
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_clear_attribute_values(
+    updated_webhook_mock,
+    staff_api_client,
+    product,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    product_attr = product.attributes.first()
+    attribute = product_attr.assignment.attribute
+    attribute.value_required = False
+    attribute.save(update_fields=["value_required"])
+
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.pk)
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "values": []}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["errors"] == []
+
+    attributes = data["product"]["attributes"]
+
+    assert len(attributes) == 1
+    assert not attributes[0]["values"]
+    with pytest.raises(product_attr._meta.model.DoesNotExist):
+        product_attr.refresh_from_db()
 
     updated_webhook_mock.assert_called_once_with(product)
 

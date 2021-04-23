@@ -22,6 +22,13 @@ from ...order import OrderStatus, models
 from ...order.models import FulfillmentStatus
 from ...order.utils import get_order_country, get_valid_shipping_methods_for_order
 from ...payment import ChargeStatus
+from ...payment.dataloaders import PaymentsByOrderIdLoader
+from ...payment.model_helpers import (
+    get_last_payment,
+    get_subtotal,
+    get_total_authorized,
+    get_total_captured,
+)
 from ...product.product_images import get_product_image_thumbnail
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..account.types import User
@@ -56,7 +63,6 @@ from .dataloaders import (
     OrderEventsByOrderIdLoader,
     OrderLineByIdLoader,
     OrderLinesByOrderIdLoader,
-    PaymentsByOrderIdLoader,
 )
 from .enums import OrderEventsEmailsEnum, OrderEventsEnum
 from .utils import validate_draft_order
@@ -774,23 +780,35 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_actions(root: models.Order, _info):
-        actions = []
-        payment = root.get_last_payment()
-        if root.can_capture(payment):
-            actions.append(OrderAction.CAPTURE)
-        if root.can_mark_as_paid():
-            actions.append(OrderAction.MARK_AS_PAID)
-        if root.can_refund(payment):
-            actions.append(OrderAction.REFUND)
-        if root.can_void(payment):
-            actions.append(OrderAction.VOID)
-        return actions
+    def resolve_actions(root: models.Order, info):
+        def _resolve_actions(payments):
+            actions = []
+            payment = get_last_payment(payments)
+            if root.can_capture(payment):
+                actions.append(OrderAction.CAPTURE)
+            if root.can_mark_as_paid(payments):
+                actions.append(OrderAction.MARK_AS_PAID)
+            if root.can_refund(payment):
+                actions.append(OrderAction.REFUND)
+            if root.can_void(payment):
+                actions.append(OrderAction.VOID)
+            return actions
+
+        return (
+            PaymentsByOrderIdLoader(info.context).load(root.id).then(_resolve_actions)
+        )
 
     @staticmethod
     @traced_resolver
-    def resolve_subtotal(root: models.Order, _info):
-        return root.get_subtotal()
+    def resolve_subtotal(root: models.Order, info):
+        def _resolve_subtotal(order_lines):
+            return get_subtotal(order_lines, root.currency)
+
+        return (
+            OrderLinesByOrderIdLoader(info.context)
+            .load(root.id)
+            .then(_resolve_subtotal)
+        )
 
     @staticmethod
     def resolve_total(root: models.Order, _info):
@@ -801,14 +819,26 @@ class Order(CountableDjangoObjectType):
         return root.undiscounted_total
 
     @staticmethod
-    def resolve_total_authorized(root: models.Order, _info):
-        # FIXME adjust to multiple payments in the future
-        return root.total_authorized
+    def resolve_total_authorized(root: models.Order, info):
+        def _resolve_total_get_total_authorized(payments):
+            return get_total_authorized(payments, root.currency)
+
+        return (
+            PaymentsByOrderIdLoader(info.context)
+            .load(root.id)
+            .then(_resolve_total_get_total_authorized)
+        )
 
     @staticmethod
-    def resolve_total_captured(root: models.Order, _info):
-        # FIXME adjust to multiple payments in the future
-        return root.total_captured
+    def resolve_total_captured(root: models.Order, info):
+        def _resolve_total_captured(payments):
+            return get_total_captured(payments, root.currency)
+
+        return (
+            PaymentsByOrderIdLoader(info.context)
+            .load(root.id)
+            .then(_resolve_total_captured)
+        )
 
     @staticmethod
     def resolve_total_balance(root: models.Order, _info):

@@ -387,10 +387,13 @@ def add_attribute_info_to_data(
         header = f"{slug} ({attribute_owner})"
         input_type = attribute_data.input_type
         if input_type == AttributeInputType.FILE:
-            value = build_absolute_uri(
-                urljoin(settings.MEDIA_URL, attribute_data.file_url)
+            file_url = attribute_data.file_url
+            value = (
+                build_absolute_uri(urljoin(settings.MEDIA_URL, file_url))
+                if file_url
+                else ""
             )
-        elif input_type == AttributeInputType.REFERENCE:
+        elif input_type == AttributeInputType.REFERENCE and attribute_data.value:
             reference_id = attribute_data.value.split("_")[1]
             value = f"{attribute_data.entity_type}_{reference_id}"
         elif input_type == AttributeInputType.RICH_TEXT:

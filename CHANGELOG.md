@@ -59,6 +59,12 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix incorrect payment data for klarna - #7150 by @IKarbowiak
 - Drop deleted images from storage - #7129 by @IKarbowiak
 - Fix core sorting on related fields - #7195 by @tomaszszymanski129
+- Fix variants dataloaders when querying with default channel - #7206 by @tomaszszymanski129
+- Performance upgrade on orders query with `subtotal` field - #7174 by @tomaszszymanski129
+- Performance upgrade on orders query with `actions` field - #7175 by @tomaszszymanski129
+- Performance upgrade on orders query with `totalAuthorized` field - #7170 by @tomaszszymanski129
+- Fix export with empty assignment values - #7207 by @IKarbowiak
+- Change exported file name - #7218 by @IKarbowiak
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
