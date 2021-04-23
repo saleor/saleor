@@ -57,7 +57,7 @@ def _prepare_lines_for_order(order, variant_with_image):
             order=order,
             variant=variant_with_image,
             quantity=5,
-            is_shipping_required=False,
+            is_shipping_required=True,
             unit_price=price,
             total_price=price,
         )
@@ -83,7 +83,12 @@ def users_for_benchmarks(address):
 
 @pytest.fixture
 def orders_for_benchmarks(
-    channel_USD, address, payment_dummy, users_for_benchmarks, variant_with_image
+    channel_USD,
+    address,
+    payment_dummy,
+    users_for_benchmarks,
+    variant_with_image,
+    shipping_method,
 ):
     orders = [
         Order(
@@ -91,6 +96,7 @@ def orders_for_benchmarks(
             channel=channel_USD,
             billing_address=address.get_copy(),
             shipping_address=address.get_copy(),
+            shipping_method=shipping_method,
             user=users_for_benchmarks[i],
             total=TaxedMoney(net=Money(i, "USD"), gross=Money(i, "USD")),
         )
