@@ -396,7 +396,7 @@ def test_product_create(
                     }
                 }
             }
-            productErrors {
+            errors {
                 field
                 code
                 message
@@ -453,7 +453,7 @@ def test_product_create(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
-    assert not content["data"]["productCreate"]["productErrors"]
+    assert not content["data"]["productCreate"]["errors"]
 
 
 @pytest.mark.django_db
@@ -509,7 +509,7 @@ def test_update_product(
                         }
                     }
                 }
-                productErrors {
+                errors {
                     message
                     field
                     code
@@ -554,4 +554,4 @@ def test_update_product(
     )
     content = get_graphql_content(response)
     data = content["data"]["productUpdate"]
-    assert not data["productErrors"]
+    assert not data["errors"]

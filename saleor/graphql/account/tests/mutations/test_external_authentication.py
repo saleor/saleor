@@ -7,7 +7,7 @@ MUTATION_EXTERNAL_AUTHENTICATION = """
     mutation externalAuthenticationUrl($pluginId: String!, $input: JSONString!){
         externalAuthenticationUrl(pluginId: $pluginId, input: $input){
             authenticationData
-            accountErrors{
+            errors{
                 field
                 message
             }

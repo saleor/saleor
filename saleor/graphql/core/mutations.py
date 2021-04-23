@@ -311,26 +311,24 @@ class BaseMutation(graphene.Mutation):
     @classmethod
     def handle_typed_errors(cls, errors: list, **extra):
         """Return class instance with errors."""
-        if (
-            cls._meta.error_type_class is not None
-            and cls._meta.error_type_field is not None
-        ):
-            typed_errors = []
-            error_class_fields = set(cls._meta.error_type_class._meta.fields.keys())
-            for e, code, params in errors:
-                error_instance = cls._meta.error_type_class(
-                    field=e.field, message=e.message, code=code
-                )
-                if params:
-                    # If some of the params key overlap with error class fields
-                    # attach param value to the error
-                    error_fields_in_params = set(params.keys()) & error_class_fields
-                    for error_field in error_fields_in_params:
-                        setattr(error_instance, error_field, params[error_field])
-                typed_errors.append(error_instance)
 
+        typed_errors = []
+        error_class_fields = set(cls._meta.error_type_class._meta.fields.keys())
+        for e, code, params in errors:
+            error_instance = cls._meta.error_type_class(
+                field=e.field, message=e.message, code=code
+            )
+            if params:
+                # If some of the params key overlap with error class fields
+                # attach param value to the error
+                error_fields_in_params = set(params.keys()) & error_class_fields
+                for error_field in error_fields_in_params:
+                    setattr(error_instance, error_field, params[error_field])
+            typed_errors.append(error_instance)
+
+        if cls._meta.error_type_field is not None:
             extra.update({cls._meta.error_type_field: typed_errors})
-        return cls(errors=[e[0] for e in errors], **extra)
+        return cls(errors=typed_errors, **extra)
 
 
 class ModelMutation(BaseMutation):

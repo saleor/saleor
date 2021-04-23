@@ -50,7 +50,7 @@ mutation OrderFulfillmentReturnProducts(
             id
             status
         }
-        orderErrors {
+        errors {
             field
             code
             message
@@ -75,7 +75,7 @@ def test_fulfillment_return_products_order_without_payment(
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentReturnProducts"]
     fulfillment = data["returnFulfillment"]
-    errors = data["orderErrors"]
+    errors = data["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "order"
     assert errors[0]["code"] == OrderErrorCode.CANNOT_REFUND.name
@@ -188,7 +188,7 @@ def test_fulfillment_return_products_order_lines(
     return_fulfillment = data["returnFulfillment"]
     replace_fulfillment = data["replaceFulfillment"]
     replace_order = data["replaceOrder"]
-    errors = data["orderErrors"]
+    errors = data["errors"]
 
     assert not errors
     assert (
@@ -240,7 +240,7 @@ def test_fulfillment_return_products_order_lines_quantity_bigger_than_total(
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentReturnProducts"]
     return_fulfillment = data["returnFulfillment"]
-    errors = data["orderErrors"]
+    errors = data["errors"]
 
     assert len(errors) == 1
     assert errors[0]["field"] == "orderLineId"
@@ -271,7 +271,7 @@ def test_fulfillment_return_products_order_lines_quantity_bigger_than_unfulfille
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentReturnProducts"]
     return_fulfillment = data["returnFulfillment"]
-    errors = data["orderErrors"]
+    errors = data["errors"]
 
     assert len(errors) == 1
     assert errors[0]["field"] == "orderLineId"
@@ -309,7 +309,7 @@ def test_fulfillment_return_products_order_lines_custom_amount(
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentReturnProducts"]
     return_fulfillment = data["returnFulfillment"]
-    errors = data["orderErrors"]
+    errors = data["errors"]
     assert not errors
     assert (
         return_fulfillment["status"] == FulfillmentStatus.REFUNDED_AND_RETURNED.upper()
@@ -401,7 +401,7 @@ def test_fulfillment_return_products_fulfillment_lines(
 
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentReturnProducts"]
-    errors = data["orderErrors"]
+    errors = data["errors"]
     return_fulfillment = data["returnFulfillment"]
     replace_fulfillment = data["replaceFulfillment"]
     replace_order = data["replaceOrder"]
@@ -465,7 +465,7 @@ def test_fulfillment_return_products_fulfillment_lines_quantity_bigger_than_tota
     data = content["data"]["orderFulfillmentReturnProducts"]
     return_fulfillment = data["returnFulfillment"]
 
-    errors = data["orderErrors"]
+    errors = data["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "fulfillmentLineId"
     assert errors[0]["code"] == OrderErrorCode.INVALID_QUANTITY.name
@@ -501,7 +501,7 @@ def test_fulfillment_return_products_amount_bigger_than_captured_amount(
     data = content["data"]["orderFulfillmentReturnProducts"]
     return_fulfillment = data["returnFulfillment"]
 
-    errors = data["orderErrors"]
+    errors = data["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "amountToRefund"
     assert errors[0]["code"] == OrderErrorCode.CANNOT_REFUND.name
@@ -540,7 +540,7 @@ def test_fulfillment_return_products_lines_with_incorrect_status(
     data = content["data"]["orderFulfillmentReturnProducts"]
     return_fulfillment = data["returnFulfillment"]
 
-    errors = data["orderErrors"]
+    errors = data["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "amountToRefund"
     assert errors[0]["code"] == OrderErrorCode.CANNOT_REFUND.name
@@ -583,7 +583,7 @@ def test_fulfillment_return_products_fulfillment_lines_include_shipping_costs(
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentReturnProducts"]
     return_fulfillment = data["returnFulfillment"]
-    errors = data["orderErrors"]
+    errors = data["errors"]
 
     assert not errors
     assert (
@@ -665,7 +665,7 @@ def test_fulfillment_return_products_fulfillment_lines_and_order_lines(
 
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentReturnProducts"]
-    errors = data["orderErrors"]
+    errors = data["errors"]
     return_fulfillment = data["returnFulfillment"]
     replace_fulfillment = data["replaceFulfillment"]
     replace_order = data["replaceOrder"]

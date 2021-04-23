@@ -21,7 +21,7 @@ mutation AppUpdate($id: ID!, $permissions: [PermissionEnum]){
             }
             name
         }
-        appErrors{
+        errors{
             field
             message
             code
@@ -141,7 +141,7 @@ def test_app_update_mutation_out_of_scope_permissions(
     content = get_graphql_content(response)
 
     data = content["data"]["appUpdate"]
-    errors = data["appErrors"]
+    errors = data["errors"]
     assert not data["app"]
     assert len(errors) == 1
     error = errors[0]
@@ -216,7 +216,7 @@ def test_app_update_mutation_for_app_out_of_scope_permissions(
     content = get_graphql_content(response)
 
     data = content["data"]["appUpdate"]
-    errors = data["appErrors"]
+    errors = data["errors"]
     assert not data["app"]
     assert len(errors) == 1
     error = errors[0]
@@ -256,7 +256,7 @@ def test_app_update_mutation_out_of_scope_app(
     content = get_graphql_content(response)
 
     data = content["data"]["appUpdate"]
-    errors = data["appErrors"]
+    errors = data["errors"]
     assert not data["app"]
     assert len(errors) == 1
     error = errors[0]
@@ -332,7 +332,7 @@ def test_app_update_mutation_for_app_out_of_scope_app(
     content = get_graphql_content(response)
 
     data = content["data"]["appUpdate"]
-    errors = data["appErrors"]
+    errors = data["errors"]
     assert not data["app"]
     assert len(errors) == 1
     error = errors[0]

@@ -130,7 +130,7 @@ def test_staff_create(
             ) {
             staffCreate(input: {email: $email, redirectUrl: $redirect_url,
                     addGroups: $add_groups }) {
-                staffErrors {
+                errors {
                     field
                     code
                     permissions
@@ -175,7 +175,7 @@ def test_staff_create(
 
     assert User.objects.filter(is_staff=True).count() == staff_count + 1
     assert data["user"]
-    assert not data["staffErrors"]
+    assert not data["errors"]
 
 
 @pytest.mark.django_db
@@ -196,7 +196,7 @@ def test_staff_update_groups_and_permissions(
             staffUpdate(
                     id: $id,
                     input: $input) {
-                staffErrors {
+                errors {
                     field
                     code
                     message
@@ -252,7 +252,7 @@ def test_staff_update_groups_and_permissions(
     )
     content = get_graphql_content(response)
     data = content["data"]["staffUpdate"]
-    assert data["staffErrors"] == []
+    assert data["errors"] == []
     assert len(data["user"]["userPermissions"]) == 3
     assert {perm["code"].lower() for perm in data["user"]["userPermissions"]} == {
         permission_manage_orders.codename,
@@ -281,7 +281,7 @@ def test_delete_staff_members(
         mutation staffBulkDelete($ids: [ID]!) {
             staffBulkDelete(ids: $ids) {
                 count
-                staffErrors{
+                errors{
                     code
                     field
                     permissions
@@ -321,7 +321,7 @@ def test_delete_staff_members(
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["staffBulkDelete"]
-    errors = data["staffErrors"]
+    errors = data["errors"]
 
     assert not errors
     assert data["count"] == 2

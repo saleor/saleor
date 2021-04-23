@@ -22,7 +22,7 @@ APP_CREATE_MUTATION = """
                     authToken
                 }
             }
-            appErrors{
+            errors{
                 field
                 message
                 code
@@ -107,7 +107,7 @@ def test_app_create_mutation_out_of_scope_permissions(
     content = get_graphql_content(response)
     data = content["data"]["appCreate"]
 
-    errors = data["appErrors"]
+    errors = data["errors"]
     assert not data["app"]
     assert len(errors) == 1
     error = errors[0]
@@ -158,7 +158,7 @@ def test_app_create_mutation_for_app_out_of_scope_permissions(
     content = get_graphql_content(response)
     data = content["data"]["appCreate"]
 
-    errors = data["appErrors"]
+    errors = data["errors"]
     assert not data["app"]
     assert len(errors) == 1
     error = errors[0]

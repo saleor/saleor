@@ -7,7 +7,7 @@ PAGE_TYPE_BULK_DELETE_MUTATION = """
     mutation PageTypeBulkDelete($ids: [ID!]!) {
         pageTypeBulkDelete(ids: $ids) {
             count
-            pageErrors {
+            errors {
                 code
                 field
                 message
@@ -45,7 +45,7 @@ def test_page_type_bulk_delete_by_staff(
     content = get_graphql_content(response)
     data = content["data"]["pageTypeBulkDelete"]
 
-    assert not data["pageErrors"]
+    assert not data["errors"]
     assert data["count"] == page_type_count
 
     assert not Page.objects.filter(pk__in=pages_pks)
@@ -95,7 +95,7 @@ def test_page_type_bulk_delete_by_app(
     content = get_graphql_content(response)
     data = content["data"]["pageTypeBulkDelete"]
 
-    assert not data["pageErrors"]
+    assert not data["errors"]
     assert data["count"] == page_type_count
 
     assert not Page.objects.filter(pk__in=pages_pks)

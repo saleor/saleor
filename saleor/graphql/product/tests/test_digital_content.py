@@ -276,7 +276,7 @@ def test_digital_content_update_mutation_missing_content(
                 field
                 message
             }
-            productErrors {
+            errors {
                 field
                 message
                 code
@@ -304,7 +304,7 @@ def test_digital_content_update_mutation_missing_content(
     assert len(errors) == 1
     assert errors[0]["field"] == "variantId"
 
-    product_errors = content["data"]["digitalContentUpdate"]["productErrors"]
+    product_errors = content["data"]["digitalContentUpdate"]["errors"]
     assert product_errors[0]["code"] == ProductErrorCode.VARIANT_NO_DIGITAL_CONTENT.name
 
 

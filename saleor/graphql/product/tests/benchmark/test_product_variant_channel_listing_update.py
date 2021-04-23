@@ -25,7 +25,7 @@ def test_variant_channel_listing_update(
             $input: [ProductVariantChannelListingAddInput!]!
         ) {
             productVariantChannelListingUpdate(id: $id, input: $input) {
-                productChannelListingErrors {
+                errors {
                     field
                     message
                     code
@@ -90,4 +90,4 @@ def test_variant_channel_listing_update(
 
     # then
     data = content["data"]["productVariantChannelListingUpdate"]
-    assert not data["productChannelListingErrors"]
+    assert not data["errors"]

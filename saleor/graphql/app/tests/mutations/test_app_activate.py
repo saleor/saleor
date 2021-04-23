@@ -10,7 +10,7 @@ APP_ACTIVATE_MUTATION = """
           id
           isActive
         }
-        appErrors{
+        errors{
           field
           message
           code
@@ -129,7 +129,7 @@ def test_app_has_more_permission_than_user_requestor(
     # then
     content = get_graphql_content(response)
     app_data = content["data"]["appActivate"]["app"]
-    app_errors = content["data"]["appActivate"]["appErrors"]
+    app_errors = content["data"]["appActivate"]["errors"]
     app.refresh_from_db()
 
     assert not app_errors
@@ -158,7 +158,7 @@ def test_app_has_more_permission_than_app_requestor(
     # then
     content = get_graphql_content(response)
     app_data = content["data"]["appActivate"]["app"]
-    app_errors = content["data"]["appActivate"]["appErrors"]
+    app_errors = content["data"]["appActivate"]["errors"]
     app.refresh_from_db()
 
     assert not app_errors
