@@ -539,11 +539,6 @@ class ProductVariant(SortableModel, ModelWithMetadata):
         )
         return smart_text(product_display)
 
-    def get_first_image(self) -> "ProductMedia":
-        all_media = self.media.all()
-        images = [media for media in all_media if media.type == ProductMediaTypes.IMAGE]
-        return images[0] if images else self.product.get_first_image()
-
     def get_ordering_queryset(self):
         return self.product.variants.all()
 
