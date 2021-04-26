@@ -239,7 +239,7 @@ def test_void_duplicate(authorize_net_payment, authorize_net_gateway_config):
 @pytest.mark.integration
 @pytest.mark.vcr()
 def test_void_failure(authorize_net_payment, authorize_net_gateway_config):
-    """ Tess with invalid transaction id """
+    """Test with invalid transaction id"""
     payment_data = PaymentData(
         None,
         None,

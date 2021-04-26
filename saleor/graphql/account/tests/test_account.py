@@ -3815,7 +3815,7 @@ USER_AVATAR_UPDATE_MUTATION = """
 
 
 def test_user_avatar_update_mutation_permission(api_client):
-    """ Should raise error if user is not staff. """
+    """Should raise error if user is not staff."""
 
     query = USER_AVATAR_UPDATE_MUTATION
 
@@ -3897,7 +3897,7 @@ USER_AVATAR_DELETE_MUTATION = """
 
 
 def test_user_avatar_delete_mutation_permission(api_client):
-    """ Should raise error if user is not staff. """
+    """Should raise error if user is not staff."""
 
     query = USER_AVATAR_DELETE_MUTATION
 
