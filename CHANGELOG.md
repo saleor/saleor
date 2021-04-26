@@ -112,6 +112,10 @@ All notable, unreleased changes to this project will be documented in this file.
     - `pluginUpdate` - add `channel` parameter.
     - `availablePaymentGateways` - add `channel` parameter.
     - `storedPaymentSources` - add `channel` parameter.
+    - `requestPasswordReset` - add `channel` parameter.
+    - `requestEmailChange` - add `channel` parameter.
+    - `confirmEmailChange` - add `channel` parameter.
+    - `accountRequestDeletion` - add `channel` parameter.
     - change structure of type `Plugin`:
       - add `globalConfiguration` field for storing configuration when a plugin is globally configured
       - add `channelConfigurations` field for storing plugin configuration for each channel
