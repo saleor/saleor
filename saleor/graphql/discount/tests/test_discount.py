@@ -433,7 +433,7 @@ mutation  voucherCreate(
                 startDate: $startDate, endDate: $endDate, usageLimit: $usageLimit
                 applyOncePerOrder: $applyOncePerOrder,
                 applyOncePerCustomer: $applyOncePerCustomer}) {
-            discountErrors {
+            errors {
                 field
                 code
                 message
@@ -531,8 +531,8 @@ def test_create_voucher_with_existing_gift_card_code(
         CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
     )
     content = get_graphql_content(response)
-    assert content["data"]["voucherCreate"]["discountErrors"]
-    errors = content["data"]["voucherCreate"]["discountErrors"]
+    assert content["data"]["voucherCreate"]["errors"]
+    errors = content["data"]["voucherCreate"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "code"
     assert errors[0]["code"] == DiscountErrorCode.ALREADY_EXISTS.name
@@ -558,8 +558,8 @@ def test_create_voucher_with_existing_voucher_code(
         CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
     )
     content = get_graphql_content(response)
-    assert content["data"]["voucherCreate"]["discountErrors"]
-    errors = content["data"]["voucherCreate"]["discountErrors"]
+    assert content["data"]["voucherCreate"]["errors"]
+    errors = content["data"]["voucherCreate"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "code"
     assert errors
@@ -575,7 +575,7 @@ def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):
                 applyOncePerOrder: $applyOncePerOrder,
                 minCheckoutItemsQuantity: $minCheckoutItemsQuantity
                 }) {
-                discountErrors {
+                errors {
                     field
                     code
                     message
@@ -623,7 +623,7 @@ def test_voucher_delete_mutation(
                     name
                     id
                 }
-                discountErrors {
+                errors {
                     field
                     code
                     message
@@ -657,7 +657,7 @@ def test_voucher_add_catalogues(
                 voucher {
                     name
                 }
-                discountErrors {
+                errors {
                     field
                     code
                     message
@@ -683,7 +683,7 @@ def test_voucher_add_catalogues(
     content = get_graphql_content(response)
     data = content["data"]["voucherCataloguesAdd"]
 
-    assert not data["discountErrors"]
+    assert not data["errors"]
     assert product in voucher.products.all()
     assert category in voucher.categories.all()
     assert collection in voucher.collections.all()
@@ -703,7 +703,7 @@ def test_voucher_add_catalogues_with_product_without_variant(
                 voucher {
                     name
                 }
-                discountErrors {
+                errors {
                     field
                     code
                     message
@@ -728,7 +728,7 @@ def test_voucher_add_catalogues_with_product_without_variant(
         query, variables, permissions=[permission_manage_discounts]
     )
     content = get_graphql_content(response)
-    error = content["data"]["voucherCataloguesAdd"]["discountErrors"][0]
+    error = content["data"]["voucherCataloguesAdd"]["errors"][0]
 
     assert error["code"] == DiscountErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT.name
     assert error["message"] == "Cannot manage products without variants."
@@ -752,7 +752,7 @@ def test_voucher_remove_catalogues(
                 voucher {
                     name
                 }
-                discountErrors {
+                errors {
                     field
                     code
                     message
@@ -778,7 +778,7 @@ def test_voucher_remove_catalogues(
     content = get_graphql_content(response)
     data = content["data"]["voucherCataloguesRemove"]
 
-    assert not data["discountErrors"]
+    assert not data["errors"]
     assert product not in voucher.products.all()
     assert category not in voucher.categories.all()
     assert collection not in voucher.collections.all()
@@ -793,7 +793,7 @@ def test_voucher_add_no_catalogues(
                 voucher {
                     name
                 }
-                discountErrors {
+                errors {
                     field
                     code
                     message
@@ -811,7 +811,7 @@ def test_voucher_add_no_catalogues(
     content = get_graphql_content(response)
     data = content["data"]["voucherCataloguesAdd"]
 
-    assert not data["discountErrors"]
+    assert not data["errors"]
     assert not voucher.products.exists()
     assert not voucher.categories.exists()
     assert not voucher.collections.exists()
@@ -835,7 +835,7 @@ def test_voucher_remove_no_catalogues(
                 voucher {
                     name
                 }
-                discountErrors {
+                errors {
                     field
                     code
                     message
@@ -853,7 +853,7 @@ def test_voucher_remove_no_catalogues(
     content = get_graphql_content(response)
     data = content["data"]["voucherCataloguesAdd"]
 
-    assert not data["discountErrors"]
+    assert not data["errors"]
     assert voucher.products.exists()
     assert voucher.categories.exists()
     assert voucher.collections.exists()
@@ -873,7 +873,7 @@ def test_create_sale(staff_api_client, permission_manage_discounts):
                 startDate
                 endDate
             }
-            discountErrors {
+            errors {
                 field
                 code
                 message
@@ -906,7 +906,7 @@ def test_update_sale(staff_api_client, sale, permission_manage_discounts):
     query = """
     mutation  saleUpdate($type: DiscountValueTypeEnum, $id: ID!) {
             saleUpdate(id: $id, input: {type: $type}) {
-                discountErrors {
+                errors {
                     field
                     code
                     message
@@ -941,7 +941,7 @@ def test_sale_delete_mutation(staff_api_client, sale, permission_manage_discount
                     name
                     id
                 }
-                discountErrors {
+                errors {
                     field
                     code
                     message
@@ -970,7 +970,7 @@ def test_sale_add_catalogues(
                 sale {
                     name
                 }
-                discountErrors {
+                errors {
                     field
                     code
                     message
@@ -996,7 +996,7 @@ def test_sale_add_catalogues(
     content = get_graphql_content(response)
     data = content["data"]["saleCataloguesAdd"]
 
-    assert not data["discountErrors"]
+    assert not data["errors"]
     assert product in sale.products.all()
     assert category in sale.categories.all()
     assert collection in sale.collections.all()
@@ -1011,7 +1011,7 @@ def test_sale_add_catalogues_with_product_without_variants(
                 sale {
                     name
                 }
-                discountErrors {
+                errors {
                     field
                     code
                     message
@@ -1036,7 +1036,7 @@ def test_sale_add_catalogues_with_product_without_variants(
         query, variables, permissions=[permission_manage_discounts]
     )
     content = get_graphql_content(response)
-    error = content["data"]["saleCataloguesAdd"]["discountErrors"][0]
+    error = content["data"]["saleCataloguesAdd"]["errors"][0]
 
     assert error["code"] == DiscountErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT.name
     assert error["message"] == "Cannot manage products without variants."
@@ -1055,7 +1055,7 @@ def test_sale_remove_catalogues(
                 sale {
                     name
                 }
-                discountErrors {
+                errors {
                     field
                     code
                     message
@@ -1081,7 +1081,7 @@ def test_sale_remove_catalogues(
     content = get_graphql_content(response)
     data = content["data"]["saleCataloguesRemove"]
 
-    assert not data["discountErrors"]
+    assert not data["errors"]
     assert product not in sale.products.all()
     assert category not in sale.categories.all()
     assert collection not in sale.collections.all()
@@ -1096,7 +1096,7 @@ def test_sale_add_no_catalogues(
                 sale {
                     name
                 }
-                discountErrors {
+                errors {
                     field
                     code
                     message
@@ -1114,7 +1114,7 @@ def test_sale_add_no_catalogues(
     content = get_graphql_content(response)
     data = content["data"]["saleCataloguesAdd"]
 
-    assert not data["discountErrors"]
+    assert not data["errors"]
     assert not new_sale.products.exists()
     assert not new_sale.categories.exists()
     assert not new_sale.collections.exists()
@@ -1133,7 +1133,7 @@ def test_sale_remove_no_catalogues(
                 sale {
                     name
                 }
-                discountErrors {
+                errors {
                     field
                     code
                     message
@@ -1151,7 +1151,7 @@ def test_sale_remove_no_catalogues(
     content = get_graphql_content(response)
     data = content["data"]["saleCataloguesAdd"]
 
-    assert not data["discountErrors"]
+    assert not data["errors"]
     assert sale.products.exists()
     assert sale.categories.exists()
     assert sale.collections.exists()

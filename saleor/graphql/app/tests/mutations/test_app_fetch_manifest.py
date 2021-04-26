@@ -24,7 +24,7 @@ mutation AppFetchManifest($manifest_url: String!){
         code
       }
     }
-    appErrors{
+    errors{
       field
       message
       code
@@ -47,7 +47,7 @@ def test_app_fetch_manifest(staff_api_client, staff_user, permission_manage_apps
         variables=variables,
     )
     content = get_graphql_content(response)
-    errors = content["data"]["appFetchManifest"]["appErrors"]
+    errors = content["data"]["appFetchManifest"]["errors"]
     manifest = content["data"]["appFetchManifest"]["manifest"]
     assert not errors
     assert manifest["identifier"] == "app2"
@@ -95,7 +95,7 @@ def test_app_fetch_manifest_incorrect_permission_in_manifest(
         variables=variables,
     )
     content = get_graphql_content(response)
-    errors = content["data"]["appFetchManifest"]["appErrors"]
+    errors = content["data"]["appFetchManifest"]["errors"]
     manifest = content["data"]["appFetchManifest"]["manifest"]
     assert len(errors) == 1
     assert errors[0] == {
@@ -121,7 +121,7 @@ def test_app_fetch_manifest_unable_to_connect(
         variables=variables,
     )
     content = get_graphql_content(response)
-    errors = content["data"]["appFetchManifest"]["appErrors"]
+    errors = content["data"]["appFetchManifest"]["errors"]
 
     assert len(errors) == 1
     assert errors[0] == {
@@ -146,7 +146,7 @@ def test_app_fetch_manifest_wrong_format_of_response(
         variables=variables,
     )
     content = get_graphql_content(response)
-    errors = content["data"]["appFetchManifest"]["appErrors"]
+    errors = content["data"]["appFetchManifest"]["errors"]
 
     assert len(errors) == 1
     assert errors[0] == {
@@ -174,7 +174,7 @@ def test_app_fetch_manifest_handle_exception(
         variables=variables,
     )
     content = get_graphql_content(response)
-    errors = content["data"]["appFetchManifest"]["appErrors"]
+    errors = content["data"]["appFetchManifest"]["errors"]
 
     assert len(errors) == 1
     assert errors[0] == {

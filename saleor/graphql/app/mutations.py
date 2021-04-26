@@ -29,10 +29,6 @@ from .utils import ensure_can_manage_permissions
 
 class AppInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the app.")
-    is_active = graphene.Boolean(
-        description="DEPRECATED: Use the `appActivate` and `appDeactivate` mutations "
-        "instead. This field will be removed after 2020-07-31.",
-    )
     permissions = graphene.List(
         PermissionEnum,
         description="List of permission code names to assign to this app.",

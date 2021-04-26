@@ -21,7 +21,7 @@ INVOICE_CREATE_MUTATION = """
                 number
                 url
             }
-            invoiceErrors {
+            errors {
                 field
                 code
             }
@@ -81,7 +81,7 @@ def test_create_invoice_no_billing_address(
     )
     content = get_graphql_content(response)
     assert not Invoice.objects.filter(order_id=order.pk, number=number).exists()
-    error = content["data"]["invoiceCreate"]["invoiceErrors"][0]
+    error = content["data"]["invoiceCreate"]["errors"][0]
     assert error["field"] == "orderId"
     assert error["code"] == InvoiceErrorCode.NOT_READY.name
     assert not order.events.filter(type=OrderEvents.INVOICE_GENERATED).exists()
@@ -105,7 +105,7 @@ def test_create_invoice_invalid_order_status(
     )
     content = get_graphql_content(response)
     assert not Invoice.objects.filter(order_id=order.pk, number=number).exists()
-    error = content["data"]["invoiceCreate"]["invoiceErrors"][0]
+    error = content["data"]["invoiceCreate"]["errors"][0]
     assert error["field"] == "orderId"
     assert error["code"] == InvoiceErrorCode.INVALID_STATUS.name
     assert not order.events.filter(type=OrderEvents.INVOICE_GENERATED).exists()
@@ -121,7 +121,7 @@ def test_create_invoice_invalid_id(staff_api_client, permission_manage_orders):
         INVOICE_CREATE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    error = content["data"]["invoiceCreate"]["invoiceErrors"][0]
+    error = content["data"]["invoiceCreate"]["errors"][0]
     assert error["code"] == InvoiceErrorCode.NOT_FOUND.name
     assert error["field"] == "orderId"
 
@@ -136,7 +136,7 @@ def test_create_invoice_empty_params(staff_api_client, permission_manage_orders,
         INVOICE_CREATE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    errors = content["data"]["invoiceCreate"]["invoiceErrors"]
+    errors = content["data"]["invoiceCreate"]["errors"]
     assert errors[0] == {
         "field": "url",
         "code": InvoiceErrorCode.REQUIRED.name,
