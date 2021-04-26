@@ -65,6 +65,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Performance upgrade on orders query with `totalAuthorized` field - #7170 by @tomaszszymanski129
 - Fix export with empty assignment values - #7207 by @IKarbowiak
 - Change exported file name - #7218 by @IKarbowiak
+- Performance upgrade on `OrderLine` type with `thumbnail` field - #7224 by @tomaszszymanski129
+- Use GraphQL IDs instead of database IDs in export - #7240 by @IKarbowiak
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -117,6 +119,21 @@ All notable, unreleased changes to this project will be documented in this file.
   - `ShippingPriceInput` was extended with `description` field
   - Extended `shippingPriceUpdate`, `shippingPriceCreate` mutation to add/edit description
   - Input field in `shippingPriceTranslate` changed to `ShippingPriceTranslationInput`
+- Drop deprecated queries and mutations - #7199 by @IKarbowiak
+  - drop `url` field from `Category` type
+  - drop `url` field from `Category` type
+  - drop `url` field from `Product` type
+  - drop `localized` fild from `Money` type
+  - drop `permissions` field from `User` type
+  - drop `navigation` field from `Shop` type
+  - drop `isActive` from `AppInput`
+  - drop `value` from `AttributeInput`
+  - drop `customerId` from `checkoutCustomerAttach`
+  - drop `stockAvailability` argument from `products` query
+  - drop `created` and `status` arguments from `orders` query
+  - drop `created` argument from `draftOrders` query
+  - drop `productType` from `ProductFilter`
+  - deprecate mutations' `<name>Errors`, typed `errors` fields and remove deprecation
 
 ### Other
 

@@ -20,7 +20,7 @@ PAGE_TYPE_REORDER_ATTRIBUTES_MUTATION = """
                     slug
                 }
             }
-            pageErrors {
+            errors {
                 code
                 field
                 message
@@ -73,7 +73,7 @@ def test_reorder_page_type_attributes_by_staff(
     # then
     content = get_graphql_content(response)
     data = content["data"]["pageTypeReorderAttributes"]
-    errors = data["pageErrors"]
+    errors = data["errors"]
     page_type_data = data["pageType"]
 
     assert not errors
@@ -168,7 +168,7 @@ def test_reorder_page_type_attributes_by_app(
     # then
     content = get_graphql_content(response)
     data = content["data"]["pageTypeReorderAttributes"]
-    errors = data["pageErrors"]
+    errors = data["errors"]
     page_type_data = data["pageType"]
 
     assert not errors
@@ -251,7 +251,7 @@ def test_reorder_page_type_attributes_invalid_page_type(
     # then
     content = get_graphql_content(response)
     data = content["data"]["pageTypeReorderAttributes"]
-    errors = data["pageErrors"]
+    errors = data["errors"]
     page_type_data = data["pageType"]
 
     assert not page_type_data
@@ -296,7 +296,7 @@ def test_reorder_page_type_attributes_invalid_attribute_id(
     # then
     content = get_graphql_content(response)
     data = content["data"]["pageTypeReorderAttributes"]
-    errors = data["pageErrors"]
+    errors = data["errors"]
     page_type_data = data["pageType"]
 
     assert not page_type_data

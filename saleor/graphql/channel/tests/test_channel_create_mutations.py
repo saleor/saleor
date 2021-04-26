@@ -17,7 +17,7 @@ CHANNEL_CREATE_MUTATION = """
                     id
                 }
             }
-            channelErrors{
+            errors{
                 field
                 code
                 message
@@ -47,7 +47,7 @@ def test_channel_create_mutation_as_staff_user(
 
     # then
     data = content["data"]["channelCreate"]
-    assert not data["channelErrors"]
+    assert not data["errors"]
     channel_data = data["channel"]
     channel = Channel.objects.get()
     assert channel_data["name"] == channel.name == name
@@ -75,7 +75,7 @@ def test_channel_create_mutation_as_app(
 
     # then
     data = content["data"]["channelCreate"]
-    assert not data["channelErrors"]
+    assert not data["errors"]
     channel_data = data["channel"]
     channel = Channel.objects.get()
     assert channel_data["name"] == channel.name == name
@@ -160,7 +160,7 @@ def test_channel_create_mutation_with_duplicated_slug(
     content = get_graphql_content(response)
 
     # then
-    error = content["data"]["channelCreate"]["channelErrors"][0]
+    error = content["data"]["channelCreate"]["errors"][0]
     assert error["field"] == "slug"
     assert error["code"] == ChannelErrorCode.UNIQUE.name
 
@@ -196,7 +196,7 @@ def test_channel_create_mutation_with_shipping_zones(
 
     # then
     data = content["data"]["channelCreate"]
-    assert not data["channelErrors"]
+    assert not data["errors"]
     channel_data = data["channel"]
     channel = Channel.objects.get(
         id=graphene.Node.from_global_id(channel_data["id"])[1]

@@ -13,7 +13,7 @@ MUTATION_EXTERNAL_REFRESH = """
             user{
                 email
             }
-            accountErrors{
+            errors{
                 field
                 message
             }

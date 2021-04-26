@@ -13,7 +13,6 @@ from ...core.permissions import SitePermissions, get_permissions
 from ...core.tracing import traced_resolver
 from ...site import models as site_models
 from ..account.types import Address, AddressInput, StaffNotificationRecipient
-from ..channel import ChannelContext
 from ..checkout.types import PaymentGateway
 from ..core.connection import CountableDjangoObjectType
 from ..core.enums import LanguageCodeEnum, WeightUnitsEnum
@@ -24,22 +23,12 @@ from ..decorators import (
     staff_member_or_app_required,
     staff_member_required,
 )
-from ..menu.dataloaders import MenuByIdLoader
-from ..menu.types import Menu
 from ..shipping.types import ShippingMethod
 from ..translations.fields import TranslationField
 from ..translations.resolvers import resolve_translation
 from ..translations.types import ShopTranslation
 from ..utils import format_permissions_for_display
 from .resolvers import resolve_available_shipping_methods
-
-
-class Navigation(graphene.ObjectType):
-    main = graphene.Field(Menu, description="Main navigation bar.")
-    secondary = graphene.Field(Menu, description="Secondary navigation bar.")
-
-    class Meta:
-        description = "Represents shop's navigation menus."
 
 
 class Domain(graphene.ObjectType):
@@ -147,11 +136,6 @@ class Shop(graphene.ObjectType):
         required=True,
     )
     name = graphene.String(description="Shop's name.", required=True)
-    navigation = graphene.Field(
-        Navigation,
-        description="Shop's navigation.",
-        deprecation_reason="Fetch menus using the `menu` query with `slug` parameter.",
-    )
     permissions = graphene.List(
         Permission, description="List of available permissions.", required=True
     )
@@ -261,27 +245,6 @@ class Shop(graphene.ObjectType):
     @staticmethod
     def resolve_name(_, info):
         return info.context.site.name
-
-    @staticmethod
-    @traced_resolver
-    def resolve_navigation(_, info):
-        site_settings = info.context.site.settings
-        main = None
-        if site_settings.top_menu_id:
-            main = (
-                MenuByIdLoader(info.context)
-                .load(site_settings.top_menu_id)
-                .then(lambda menu: ChannelContext(node=menu, channel_slug=None))
-            )
-        secondary = None
-        if site_settings.bottom_menu_id:
-            secondary = (
-                MenuByIdLoader(info.context)
-                .load(site_settings.bottom_menu_id)
-                .then(lambda menu: ChannelContext(node=menu, channel_slug=None))
-            )
-
-        return Navigation(main=main, secondary=secondary)
 
     @staticmethod
     @traced_resolver

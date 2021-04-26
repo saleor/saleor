@@ -7,7 +7,7 @@ MUTATION_EXTERNAL_LOGOUT = """
     mutation externalLogout($pluginId: String!, $input: JSONString!){
         externalLogout(pluginId: $pluginId, input: $input){
             logoutData
-            accountErrors{
+            errors{
                 field
                 message
             }
