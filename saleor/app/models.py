@@ -9,6 +9,11 @@ from ..core.permissions import AppPermission
 from .types import AppType
 
 
+class AppQueryset(models.QuerySet):
+    def for_event_type(self, event_type: str):
+        return self.filter(is_active=True, webhooks__events__event_type=event_type)
+
+
 class App(ModelWithMetadata):
     name = models.CharField(max_length=60)
     created = models.DateTimeField(auto_now_add=True)
@@ -32,6 +37,8 @@ class App(ModelWithMetadata):
     configuration_url = models.URLField(blank=True, null=True)
     app_url = models.URLField(blank=True, null=True)
     version = models.CharField(max_length=60, blank=True, null=True)
+
+    objects = AppQueryset.as_manager()
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("name", "pk")

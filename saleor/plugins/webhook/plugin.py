@@ -239,8 +239,9 @@ class WebhookPlugin(BasePlugin):
         app = None
         app_pk = kwargs.get("payment_app")
         if app_pk is not None:
-            app = App.objects.filter(pk=app_pk).first()
+            app = App.objects.for_event_type().filter(pk=app_pk).first()
         if not app:
+            # App not found or app doesn't support give event_type.
             raise Exception("App not found")
 
         webhook_payload = generate_payment_payload(payment_information)
@@ -257,9 +258,9 @@ class WebhookPlugin(BasePlugin):
         **kwargs
     ) -> List["PaymentGateway"]:
         gateways = []
-        apps = App.objects.filter(
-            webhooks__events__event_type="payment_list_gateways"
-        ).prefetch_related("webhooks")
+        apps = App.objects.for_event_type("payment_list_gateways").prefetch_related(
+            "webhooks"
+        )
         for app in apps:
             response = trigger_webhook_sync(
                 event_type=WebhookEventType.PAYMENT_LIST_GATEWAYS,
