@@ -871,6 +871,7 @@ def test_order_confirm(
     mocked_notify.assert_called_once_with(
         NotifyEventType.ORDER_CONFIRMED,
         expected_payload,
+        channel_slug=order_unconfirmed.channel.slug,
     )
 
 
@@ -3584,7 +3585,9 @@ def test_order_capture(
     }
 
     mocked_notify.assert_called_once_with(
-        NotifyEventType.ORDER_PAYMENT_CONFIRMATION, expected_payment_payload
+        NotifyEventType.ORDER_PAYMENT_CONFIRMATION,
+        expected_payment_payload,
+        channel_slug=order.channel.slug,
     )
 
 

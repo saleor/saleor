@@ -24,6 +24,7 @@ from .base import (
     BaseAddressDelete,
     BaseAddressUpdate,
     BaseCustomerCreate,
+    clean_channel,
 )
 
 
@@ -43,6 +44,12 @@ class AccountRegisterInput(graphene.InputObjectType):
         graphene.NonNull(MetadataInput),
         description="User public metadata.",
         required=False,
+    )
+    channel = graphene.String(
+        description=(
+            "Slug of a channel which will be used for notify user. Optional when "
+            "only one channel exists."
+        )
     )
 
 
@@ -96,11 +103,14 @@ class AccountRegister(ModelMutation):
                 }
             )
 
+        data["channel"] = clean_channel(data.get("channel")).slug
+
         password = data["password"]
         try:
             password_validation.validate_password(password, instance)
         except ValidationError as error:
             raise ValidationError({"password": error})
+
         data["language_code"] = data.get("language_code", settings.LANGUAGE_CODE)
         return super().clean_input(info, instance, data, input_cls=None)
 
@@ -112,7 +122,10 @@ class AccountRegister(ModelMutation):
             user.is_active = False
             user.save()
             notifications.send_account_confirmation(
-                user, cleaned_input["redirect_url"], info.context.plugins
+                user,
+                cleaned_input["redirect_url"],
+                info.context.plugins,
+                channel_slug=cleaned_input["channel"],
             )
         else:
             user.save()
@@ -168,6 +181,12 @@ class AccountRequestDeletion(BaseMutation):
                 "delete their account. URL in RFC 1808 format."
             ),
         )
+        channel = graphene.String(
+            description=(
+                "Slug of a channel which will be used for notify user. Optional when "
+                "only one channel exists."
+            )
+        )
 
     class Meta:
         description = (
@@ -190,8 +209,9 @@ class AccountRequestDeletion(BaseMutation):
             raise ValidationError(
                 {"redirect_url": error}, code=AccountErrorCode.INVALID
             )
+        channel_slug = clean_channel(data.get("channel")).slug
         notifications.send_account_delete_confirmation_notification(
-            redirect_url, user, info.context.plugins
+            redirect_url, user, info.context.plugins, channel_slug=channel_slug
         )
         return AccountRequestDeletion()
 
@@ -372,6 +392,12 @@ class RequestEmailChange(BaseMutation):
                 "update the email address. URL in RFC 1808 format."
             ),
         )
+        channel = graphene.String(
+            description=(
+                "Slug of a channel which will be used for notify user. Optional when "
+                "only one channel exists."
+            )
+        )
 
     class Meta:
         description = "Request email change of the logged in user."
@@ -412,6 +438,8 @@ class RequestEmailChange(BaseMutation):
             raise ValidationError(
                 {"redirect_url": error}, code=AccountErrorCode.INVALID
             )
+
+        channel_slug = clean_channel(data.get("channel")).slug
         token_payload = {
             "old_email": user.email,
             "new_email": new_email,
@@ -419,7 +447,12 @@ class RequestEmailChange(BaseMutation):
         }
         token = create_token(token_payload, JWT_TTL_REQUEST_EMAIL_CHANGE)
         notifications.send_request_user_change_email_notification(
-            redirect_url, user, new_email, token, info.context.plugins
+            redirect_url,
+            user,
+            new_email,
+            token,
+            info.context.plugins,
+            channel_slug=channel_slug,
         )
         return RequestEmailChange(user=user)
 
@@ -430,6 +463,12 @@ class ConfirmEmailChange(BaseMutation):
     class Arguments:
         token = graphene.String(
             description="A one-time token required to change the email.", required=True
+        )
+        channel = graphene.String(
+            description=(
+                "Slug of a channel which will be used for notify user. Optional when "
+                "only one channel exists."
+            )
         )
 
     class Meta:
@@ -476,8 +515,10 @@ class ConfirmEmailChange(BaseMutation):
 
         user.email = new_email
         user.save(update_fields=["email"])
+
+        channel_slug = clean_channel(data.get("channel")).slug
         notifications.send_user_change_email_notification(
-            old_email, user, info.context.plugins
+            old_email, user, info.context.plugins, channel_slug=channel_slug
         )
         info.context.plugins.customer_updated(user)
         return ConfirmEmailChange(user=user)

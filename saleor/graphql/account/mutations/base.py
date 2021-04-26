@@ -11,6 +11,9 @@ from ....account.notifications import (
     send_password_reset_notification,
     send_set_password_notification,
 )
+from ....channel.exceptions import ChannelNotDefined
+from ....channel.models import Channel
+from ....channel.utils import get_default_channel
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions
 from ....core.utils.url import validate_storefront_url
@@ -43,6 +46,48 @@ def can_edit_address(user, address):
         user.has_perm(AccountPermissions.MANAGE_USERS)
         or user.addresses.filter(pk=address.pk).exists()
     )
+
+
+def validate_channel(channel_slug):
+    try:
+        channel = Channel.objects.get(slug=channel_slug)
+    except Channel.DoesNotExist:
+        raise ValidationError(
+            {
+                "channel": ValidationError(
+                    f"Channel with '{channel_slug}' slug does not exist.",
+                    code=AccountErrorCode.NOT_FOUND.value,
+                )
+            }
+        )
+    if not channel.is_active:
+        raise ValidationError(
+            {
+                "channel": ValidationError(
+                    f"Channel with '{channel_slug}' is inactive.",
+                    code=AccountErrorCode.CHANNEL_INACTIVE.value,
+                )
+            }
+        )
+    return channel
+
+
+def clean_channel(channel_slug):
+    if channel_slug is not None:
+        channel = validate_channel(channel_slug)
+    else:
+        try:
+            channel = get_default_channel()
+        except ChannelNotDefined:
+            raise ValidationError(
+                {
+                    "channel": ValidationError(
+                        "You need to provide channel slug.",
+                        code=AccountErrorCode.MISSING_CHANNEL_SLUG.value,
+                    )
+                }
+            )
+    return channel
 
 
 class SetPassword(CreateToken):
@@ -112,6 +157,12 @@ class RequestPasswordReset(BaseMutation):
                 "reset the password. URL in RFC 1808 format."
             ),
         )
+        channel = graphene.String(
+            description=(
+                "Slug of a channel which will be used for notify user. Optional when "
+                "only one channel exists."
+            )
+        )
 
     class Meta:
         description = "Sends an email with the account password modification link."
@@ -119,9 +170,8 @@ class RequestPasswordReset(BaseMutation):
         error_type_field = "account_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        email = data["email"]
-        redirect_url = data["redirect_url"]
+    def clean_user(cls, email, redirect_url):
+
         try:
             validate_storefront_url(redirect_url)
         except ValidationError as error:
@@ -149,8 +199,26 @@ class RequestPasswordReset(BaseMutation):
                     )
                 }
             )
+        return user
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        email = data["email"]
+        redirect_url = data["redirect_url"]
+        channel_slug = data.get("channel_slug")
+        user = cls.clean_user(email, redirect_url)
+
+        if not user.is_staff:
+            channel_slug = clean_channel(channel_slug).slug
+        elif channel_slug is not None:
+            channel_slug = validate_channel(channel_slug).slug
+
         send_password_reset_notification(
-            redirect_url, user, info.context.plugins, staff=user.is_staff
+            redirect_url,
+            user,
+            info.context.plugins,
+            channel_slug=channel_slug,
+            staff=user.is_staff,
         )
         return RequestPasswordReset()
 
@@ -371,6 +439,12 @@ class UserCreateInput(CustomerInput):
             "set the password. URL in RFC 1808 format."
         )
     )
+    channel = graphene.String(
+        description=(
+            "Slug of a channel which will be used for notify user. Optional when "
+            "only one channel exists."
+        )
+    )
 
 
 class BaseCustomerCreate(ModelMutation, I18nMixin):
@@ -446,6 +520,14 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
             info.context.plugins.customer_updated(instance)
 
         if cleaned_input.get("redirect_url"):
+            channel_slug = cleaned_input.get("channel")
+            if not instance.is_staff:
+                channel_slug = clean_channel(channel_slug).slug
+            elif channel_slug is not None:
+                channel_slug = validate_channel(channel_slug).slug
             send_set_password_notification(
-                cleaned_input.get("redirect_url"), instance, info.context.plugins
+                cleaned_input.get("redirect_url"),
+                instance,
+                info.context.plugins,
+                channel_slug,
             )
