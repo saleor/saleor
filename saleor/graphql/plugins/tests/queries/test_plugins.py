@@ -1,5 +1,6 @@
 import copy
 
+import graphene
 import pytest
 
 from .....plugins.base_plugin import ConfigurationTypeField
@@ -266,23 +267,43 @@ def test_query_plugin_configurations_as_customer_user(user_api_client, settings)
 
 
 @pytest.mark.parametrize(
-    "plugin_filter, count",
+    "plugin_filter_fields, count",
     [
         ({"search": "PluginSample"}, 1),
         ({"search": "description"}, 2),
-        ({"active": True}, 2),
-        ({"search": "Plugin"}, 2),
-        ({"active": "False", "search": "Plugin"}, 1),
+        ({"active": True}, 3),
+        ({"search": "Plugin"}, 3),
+        ({"active": False, "search": "Plugin"}, 1),
+        ({"type": "GLOBAL"}, 3),
+        ({"active": False, "type": "GLOBAL"}, 1),
+        ({"active": True, "type": "GLOBAL"}, 2),
+        ({"type": "PER_CHANNEL"}, 1),
+        ({"active": False, "type": "PER_CHANNEL"}, 0),
+        ({"active": True, "type": "PER_CHANNEL"}, 1),
     ],
 )
 def test_plugins_query_with_filter(
-    plugin_filter, count, staff_api_client_can_manage_plugins, settings
+    plugin_filter_fields,
+    count,
+    staff_api_client_can_manage_plugins,
+    settings,
+    channel_PLN,
 ):
     settings.PLUGINS = [
         "saleor.plugins.tests.sample_plugins.PluginSample",
         "saleor.plugins.tests.sample_plugins.PluginInactive",
         "saleor.plugins.tests.sample_plugins.ActivePlugin",
+        "saleor.plugins.tests.sample_plugins.ChannelPluginSample",
     ]
+    plugin_filter = {
+        "search": plugin_filter_fields.get("search"),
+        "type": plugin_filter_fields.get("type"),
+    }
+    if plugin_filter_fields.get("active") is not None:
+        plugin_filter["statusInChannels"] = {
+            "active": plugin_filter_fields.get("active"),
+            "channels": [graphene.Node.to_global_id("Channel", channel_PLN.id)],
+        }
     query = """
         query ($filter: PluginFilterInput) {
             plugins(first: 5, filter:$filter) {

@@ -1,5 +1,6 @@
 import copy
 
+import graphene
 import pytest
 
 from ....plugins.error_codes import PluginErrorCode
@@ -13,12 +14,12 @@ PLUGIN_UPDATE_MUTATION = """
     mutation pluginUpdate(
         $id: ID!
         $active: Boolean
-        $channel: String
+        $channel: ID
         $configuration: [ConfigurationItemInput]
     ) {
         pluginUpdate(
             id: $id
-            channel: $channel
+            channelId: $channel
             input: { active: $active, configuration: $configuration }
         ) {
             plugin {
@@ -135,7 +136,7 @@ def test_plugin_configuration_update_for_channel_configurations(
     variables = {
         "id": plugin.PLUGIN_ID,
         "active": active,
-        "channel": channel_PLN.slug,
+        "channel": graphene.Node.to_global_id("Channel", channel_PLN.id),
         "configuration": [{"name": "input-per-channel", "value": "update-value"}],
     }
     response = staff_api_client_can_manage_plugins.post_graphql(
@@ -204,7 +205,7 @@ def test_plugin_configuration_update_unneeded_channel_slug(
     variables = {
         "id": plugin.PLUGIN_ID,
         "active": True,
-        "channel": channel_PLN.slug,
+        "channel": graphene.Node.to_global_id("Channel", channel_PLN.id),
         "configuration": [{"name": "input-per-channel", "value": "update-value"}],
     }
 

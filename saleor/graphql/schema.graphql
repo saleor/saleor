@@ -2771,7 +2771,7 @@ type Mutation {
   giftCardCreate(input: GiftCardCreateInput!): GiftCardCreate
   giftCardDeactivate(id: ID!): GiftCardDeactivate
   giftCardUpdate(id: ID!, input: GiftCardUpdateInput!): GiftCardUpdate
-  pluginUpdate(channel: String, id: ID!, input: PluginUpdateInput!): PluginUpdate
+  pluginUpdate(channelId: ID, id: ID!, input: PluginUpdateInput!): PluginUpdate
   saleCreate(input: SaleInput!): SaleCreate
   saleDelete(id: ID!): SaleDelete
   saleBulkDelete(ids: [ID]!): SaleBulkDelete
@@ -3920,6 +3920,11 @@ type PluginConfiguration {
   configuration: [ConfigurationItem]
 }
 
+enum PluginConfigurationType {
+  PER_CHANNEL
+  GLOBAL
+}
+
 type PluginCountableConnection {
   pageInfo: PageInfo!
   edges: [PluginCountableEdge!]!
@@ -3947,8 +3952,9 @@ enum PluginErrorCode {
 }
 
 input PluginFilterInput {
-  active: Boolean
+  statusInChannels: PluginStatusInChannelsInput
   search: String
+  type: PluginConfigurationType
 }
 
 enum PluginSortField {
@@ -3959,6 +3965,11 @@ enum PluginSortField {
 input PluginSortingInput {
   direction: OrderDirection!
   field: PluginSortField!
+}
+
+input PluginStatusInChannelsInput {
+  active: Boolean!
+  channels: [ID!]!
 }
 
 type PluginUpdate {
