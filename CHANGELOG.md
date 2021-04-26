@@ -66,6 +66,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix export with empty assignment values - #7207 by @IKarbowiak
 - Change exported file name - #7218 by @IKarbowiak
 - Performance upgrade on `OrderLine` type with `thumbnail` field - #7224 by @tomaszszymanski129
+- Use GraphQL IDs instead of database IDs in export - #7240 by @IKarbowiak
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
