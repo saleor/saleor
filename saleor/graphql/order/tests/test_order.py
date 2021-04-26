@@ -2587,7 +2587,7 @@ def test_validate_draft_order_with_unpublished_product(draft_order):
     error = e.value.error_dict["lines"][0]
 
     assert error.message == msg
-    assert error.code == OrderErrorCode.PRODUCT_NOT_PUBLISHED
+    assert error.code == OrderErrorCode.PRODUCT_NOT_PUBLISHED.value
 
 
 def test_validate_draft_order_with_unavailable_for_purchase_product(draft_order):
@@ -2603,7 +2603,7 @@ def test_validate_draft_order_with_unavailable_for_purchase_product(draft_order)
     error = e.value.error_dict["lines"][0]
 
     assert error.message == msg
-    assert error.code == OrderErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE
+    assert error.code == OrderErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE.value
 
 
 def test_validate_draft_order_with_product_available_for_purchase_in_future(
@@ -2623,7 +2623,7 @@ def test_validate_draft_order_with_product_available_for_purchase_in_future(
     error = e.value.error_dict["lines"][0]
 
     assert error.message == msg
-    assert error.code == OrderErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE
+    assert error.code == OrderErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE.value
 
 
 def test_validate_draft_order_out_of_stock_variant(draft_order):
@@ -2649,7 +2649,7 @@ def test_validate_draft_order_no_shipping_address(draft_order):
         validate_draft_order(order, "US")
     error = e.value.error_dict["order"][0]
     assert error.message == "Can't finalize draft with no shipping address."
-    assert error.code.value == OrderErrorCode.ORDER_NO_SHIPPING_ADDRESS.value
+    assert error.code == OrderErrorCode.ORDER_NO_SHIPPING_ADDRESS.value
 
 
 def test_validate_draft_order_no_billing_address(draft_order):
@@ -2660,7 +2660,7 @@ def test_validate_draft_order_no_billing_address(draft_order):
         validate_draft_order(order, "US")
     error = e.value.error_dict["order"][0]
     assert error.message == "Can't finalize draft with no billing address."
-    assert error.code.value == OrderErrorCode.BILLING_ADDRESS_NOT_SET.value
+    assert error.code == OrderErrorCode.BILLING_ADDRESS_NOT_SET.value
 
 
 def test_validate_draft_order_no_shipping_method(draft_order):
@@ -2671,7 +2671,7 @@ def test_validate_draft_order_no_shipping_method(draft_order):
         validate_draft_order(order, "US")
     error = e.value.error_dict["shipping"][0]
     assert error.message == "Shipping method is required."
-    assert error.code.value == OrderErrorCode.SHIPPING_METHOD_REQUIRED.value
+    assert error.code == OrderErrorCode.SHIPPING_METHOD_REQUIRED.value
 
 
 def test_validate_draft_order_no_shipping_method_shipping_not_required(draft_order):
@@ -2870,11 +2870,13 @@ def test_draft_order_complete_channel_without_shipping_zones(
     )
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]
-    assert len(data["errors"]) == 1
-    assert (
-        data["errors"][0]["code"] == OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
-    )
-    assert data["errors"][0]["field"] == "shipping"
+
+    assert len(data["errors"]) == 3
+    assert {error["code"] for error in data["errors"]} == {
+        OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name,
+        OrderErrorCode.INSUFFICIENT_STOCK.name,
+    }
+    assert {error["field"] for error in data["errors"]} == {"shipping", "lines"}
 
 
 def test_draft_order_complete_product_without_inventory_tracking(
@@ -2954,11 +2956,13 @@ def test_draft_order_complete_not_available_shipping_method(
     data = content["data"]["draftOrderComplete"]["order"]
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]
-    assert len(data["errors"]) == 1
-    assert (
-        data["errors"][0]["code"] == OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
-    )
-    assert data["errors"][0]["field"] == "shipping"
+
+    assert len(data["errors"]) == 3
+    assert {error["code"] for error in data["errors"]} == {
+        OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name,
+        OrderErrorCode.INSUFFICIENT_STOCK.name,
+    }
+    assert {error["field"] for error in data["errors"]} == {"shipping", "lines"}
 
 
 def test_draft_order_complete_out_of_stock_variant(
