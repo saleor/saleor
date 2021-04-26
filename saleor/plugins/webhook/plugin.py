@@ -20,10 +20,7 @@ from ...webhook.payloads import (
 )
 from ..base_plugin import BasePlugin
 from .tasks import trigger_webhook_sync, trigger_webhooks_for_event
-from .utils import (
-    webhook_response_to_gateway_response,
-    webhook_response_to_payment_gateways,
-)
+from .utils import parse_list_payment_gateways_response, parse_payment_action_response
 
 if TYPE_CHECKING:
     from ...account.models import User
@@ -245,9 +242,11 @@ class WebhookPlugin(BasePlugin):
             raise Exception("App not found")
 
         webhook_payload = generate_payment_payload(payment_information)
-        response = trigger_webhook_sync(event_type, webhook_payload, app.webhooks.all())
-        return webhook_response_to_gateway_response(
-            payment_information, response, transaction_kind
+        response_data = trigger_webhook_sync(
+            event_type, webhook_payload, app.webhooks.all()
+        )
+        return parse_payment_action_response(
+            payment_information, response_data, transaction_kind
         )
 
     def get_payment_gateways(
@@ -262,13 +261,13 @@ class WebhookPlugin(BasePlugin):
             "webhooks"
         )
         for app in apps:
-            response = trigger_webhook_sync(
+            response_data = trigger_webhook_sync(
                 event_type=WebhookEventType.PAYMENT_LIST_GATEWAYS,
                 data=generate_list_gateways_payload(currency, checkout),
                 webhooks_qs=app.webhooks.all(),
             )
-            if response:
-                app_gateways = webhook_response_to_payment_gateways(response, app)
+            if response_data:
+                app_gateways = parse_list_payment_gateways_response(response_data, app)
                 gateways.extend(app_gateways)
         return gateways
 

@@ -1,5 +1,6 @@
 import logging
 from enum import Enum
+from json import JSONDecodeError
 from urllib.parse import urlparse, urlunparse
 
 import boto3
@@ -68,10 +69,9 @@ def trigger_webhook_sync(event_type, data, webhooks_qs=None):
         # raise Exception("Payment webhook not available")
         return None
 
-    response = send_webhook_request_sync(
+    return send_webhook_request_sync(
         webhook.target_url, webhook.secret_key, event_type, data
     )
-    return response
 
 
 def send_webhook_using_http(target_url, message, domain, signature, event_type):
@@ -167,7 +167,7 @@ def send_webhook_request_sync(target_url, secret, event_type, data):
     message = data.encode("utf-8")
     signature = signature_for_payload(message, secret)
 
-    response = None
+    response_data = None
     if parts.scheme.lower() in [WebhookSchemes.HTTP, WebhookSchemes.HTTPS]:
         logger.debug(
             "[Webhook] Sending payload to %r for event %r.", target_url, event_type
@@ -176,10 +176,15 @@ def send_webhook_request_sync(target_url, secret, event_type, data):
             response = send_webhook_using_http(
                 target_url, message, domain, signature, event_type
             )
+            response_data = response.json()
         except RequestException as e:
-            logger.debug("[Webhook] Failed request to %r : %r.", target_url, e)
+            logger.debug("[Webhook] Failed request to %r: %r.", target_url, e)
+        except JSONDecodeError as e:
+            logger.debug(
+                "[Webhook] Failed parsing JSON response from %r: %r.", target_url, e
+            )
         else:
             logger.warning("[Webhook] Success response from %r.", target_url)
     else:
         raise ValueError("Unknown webhook scheme: %r" % (parts.scheme,))
-    return response
+    return response_data

@@ -1,11 +1,9 @@
 import re
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Any, List, Optional
 
 from ...payment.interface import GatewayResponse, PaymentGateway, PaymentMethodInfo
 
 if TYPE_CHECKING:
-    from requests.models import Response as RequestsResponse
-
     from ...app.models import App
     from ...payment.interface import PaymentData
 
@@ -23,12 +21,11 @@ def from_payment_app_id(app_gateway_id: str) -> Optional["int"]:
     return int(app_pk) if app_pk else None
 
 
-def webhook_response_to_payment_gateways(
-    response: "RequestsResponse", app: "App"
+def parse_list_payment_gateways_response(
+    response_data: Any, app: "App"
 ) -> List["PaymentGateway"]:
-    response_json = response.json()
     gateways = []
-    for gateway_data in response_json:
+    for gateway_data in response_data:
         gateway_id = gateway_data.get("id")
         gateway_name = gateway_data.get("name")
         gateway_currencies = gateway_data.get("currencies")
@@ -45,39 +42,37 @@ def webhook_response_to_payment_gateways(
     return gateways
 
 
-def webhook_response_to_gateway_response(
+def parse_payment_action_response(
     payment_information: "PaymentData",
-    response: "RequestsResponse",
+    response_data: Any,
     transaction_kind: "str",
 ) -> "GatewayResponse":
-    response_json = response.json()
-
-    error = response_json.get("error")
-    is_success = response.status_code == 200 and not error
+    error = response_data.get("error")
+    is_success = not error
 
     payment_method_info = PaymentMethodInfo(
-        brand=response_json.get("payment_method_brand"),
-        exp_month=response_json.get("payment_method_exp_month"),
-        exp_year=response_json.get("payment_method_exp_year"),
-        last_4=response_json.get("payment_method_last_4"),
-        name=response_json.get("payment_method_name"),
-        type=response_json.get("payment_method_type"),
+        brand=response_data.get("payment_method_brand"),
+        exp_month=response_data.get("payment_method_exp_month"),
+        exp_year=response_data.get("payment_method_exp_year"),
+        last_4=response_data.get("payment_method_last_4"),
+        name=response_data.get("payment_method_name"),
+        type=response_data.get("payment_method_type"),
     )
 
     return GatewayResponse(
-        action_required=response_json.get("action_required", False),
-        action_required_data=response_json.get("action_required_data"),
-        amount=response_json.get("amount", payment_information.amount),
+        action_required=response_data.get("action_required", False),
+        action_required_data=response_data.get("action_required_data"),
+        amount=response_data.get("amount", payment_information.amount),
         currency=payment_information.currency,
-        customer_id=response_json.get("customer_id"),
+        customer_id=response_data.get("customer_id"),
         error=error,
         is_success=is_success,
-        kind=response_json.get("kind", transaction_kind),
+        kind=response_data.get("kind", transaction_kind),
         payment_method_info=payment_method_info,
-        raw_response=response_json,
-        searchable_key=response_json.get("searchable_key"),
-        transaction_id=response_json.get("transaction_id", ""),
-        transaction_already_processed=response_json.get(
+        raw_response=response_data,
+        searchable_key=response_data.get("searchable_key"),
+        transaction_id=response_data.get("transaction_id", ""),
+        transaction_already_processed=response_data.get(
             "transaction_already_processed", False
         ),
     )
