@@ -1,4 +1,3 @@
-from enum import Enum
 from unittest.mock import Mock
 
 import graphene
@@ -7,7 +6,7 @@ from django.core.exceptions import ImproperlyConfigured
 
 from ...product import types as product_types
 from ..mutations import BaseMutation
-from ..types.common import Error
+from . import ErrorTest
 
 
 class Mutation(BaseMutation):
@@ -19,6 +18,7 @@ class Mutation(BaseMutation):
 
     class Meta:
         description = "Base mutation"
+        error_type_class = ErrorTest
 
     @classmethod
     def perform_mutation(cls, _root, info, product_id, channel):
@@ -29,17 +29,6 @@ class Mutation(BaseMutation):
             info, product_id, field="product_id", only_type=product_types.Product
         )
         return Mutation(name=product.name)
-
-
-class ErrorCodeTest(Enum):
-    INVALID = "invalid"
-
-
-ErrorCodeTest = graphene.Enum.from_enum(ErrorCodeTest)
-
-
-class ErrorTest(Error):
-    code = ErrorCodeTest()
 
 
 class MutationWithCustomErrors(Mutation):
@@ -64,6 +53,17 @@ def test_mutation_without_description_raises_error():
 
         class MutationNoDescription(BaseMutation):
             name = graphene.Field(graphene.String)
+
+            class Arguments:
+                product_id = graphene.ID(required=True)
+
+
+def test_mutation_without_error_type_class_raises_error():
+    with pytest.raises(ImproperlyConfigured):
+
+        class MutationNoDescription(BaseMutation):
+            name = graphene.Field(graphene.String)
+            description = "Base mutation with custom errors"
 
             class Arguments:
                 product_id = graphene.ID(required=True)

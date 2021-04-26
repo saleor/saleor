@@ -14,7 +14,7 @@ mutation fileUpload($file: Upload!) {
             url
             contentType
         }
-        uploadErrors {
+        errors {
             code
         }
     }
@@ -36,7 +36,7 @@ def test_file_upload_by_staff(staff_api_client, site_settings, media_root):
     # then
     content = get_graphql_content(response)
     data = content["data"]["fileUpload"]
-    errors = data["uploadErrors"]
+    errors = data["errors"]
 
     expected_path = "http://testserver/media/" + image_file._name
     assert not errors
@@ -74,7 +74,7 @@ def test_file_upload_by_app(app_api_client, media_root):
     # then
     content = get_graphql_content(response)
     data = content["data"]["fileUpload"]
-    errors = data["uploadErrors"]
+    errors = data["errors"]
 
     expected_path = "http://testserver/media/" + image_file._name
     assert not errors
@@ -97,7 +97,7 @@ def test_file_upload_by_superuser(superuser_api_client, media_root):
     # then
     content = get_graphql_content(response)
     data = content["data"]["fileUpload"]
-    errors = data["uploadErrors"]
+    errors = data["errors"]
 
     expected_path = "http://testserver/media/" + image_file._name
     assert not errors
@@ -132,7 +132,7 @@ def test_file_upload_file_with_the_same_name_already_exists(
     # then
     content = get_graphql_content(response)
     data = content["data"]["fileUpload"]
-    errors = data["uploadErrors"]
+    errors = data["errors"]
 
     assert not errors
     assert data["uploadedFile"]["contentType"] == "image/png"

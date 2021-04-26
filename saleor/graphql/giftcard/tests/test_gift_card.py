@@ -243,7 +243,7 @@ mutation giftCardCreate(
                 field
                 message
             }
-            giftCardErrors {
+            errors {
                 field
                 message
                 code
@@ -374,7 +374,7 @@ def test_create_gift_card_with_existing_voucher_code(
     assert len(errors) == 1
     assert errors[0]["field"] == "promoCode"
 
-    gift_card_errors = content["data"]["giftCardCreate"]["giftCardErrors"]
+    gift_card_errors = content["data"]["giftCardCreate"]["errors"]
     assert gift_card_errors[0]["code"] == GiftCardErrorCode.ALREADY_EXISTS.name
 
 
@@ -394,7 +394,7 @@ def test_create_gift_card_with_existing_gift_card_code(
     assert len(errors) == 1
     assert errors[0]["field"] == "promoCode"
 
-    gift_card_errors = content["data"]["giftCardCreate"]["giftCardErrors"]
+    gift_card_errors = content["data"]["giftCardCreate"]["errors"]
     assert gift_card_errors[0]["code"] == GiftCardErrorCode.ALREADY_EXISTS.name
 
 
@@ -453,7 +453,7 @@ def test_create_gift_card_with_incorrect_user_email(
     assert errors[0]["field"] == "email"
     assert errors[0]["message"] == "Customer with this email doesn't exist."
 
-    gift_card_errors = content["data"]["giftCardCreate"]["giftCardErrors"]
+    gift_card_errors = content["data"]["giftCardCreate"]["errors"]
     assert gift_card_errors[0]["code"] == GiftCardErrorCode.NOT_FOUND.name
 
 
@@ -492,7 +492,7 @@ def test_create_gift_card_with_to_many_decimal_places_in_amount(
         permissions=[permission_manage_gift_card, permission_manage_users],
     )
     content = get_graphql_content(response)
-    errors = content["data"]["giftCardCreate"]["giftCardErrors"]
+    errors = content["data"]["giftCardCreate"]["errors"]
     data = content["data"]["giftCardCreate"]["giftCard"]
 
     assert not data

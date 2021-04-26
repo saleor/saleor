@@ -204,6 +204,7 @@ class User(CountableDjangoObjectType):
         Checkout,
         description="Returns the last open checkout of this user.",
         deprecation_reason=(
+            "Will be removed in Saleor 4.0. "
             "Use the `checkout_tokens` field to fetch the user checkouts."
         ),
     )
@@ -221,14 +222,6 @@ class User(CountableDjangoObjectType):
     note = graphene.String(description="A note about the customer.")
     orders = PrefetchingConnectionField(
         "saleor.graphql.order.types.Order", description="List of user's orders."
-    )
-    # deprecated, to remove in #5389
-    permissions = graphene.List(
-        Permission,
-        description="List of user's permissions.",
-        deprecation_reason=(
-            "Will be removed in Saleor 2.11." "Use the `userPermissions` instead."
-        ),
     )
     user_permissions = graphene.List(
         UserPermission, description="List of user's permissions."
@@ -308,14 +301,6 @@ class User(CountableDjangoObjectType):
     @traced_resolver
     def resolve_gift_cards(root: models.User, info, **_kwargs):
         return root.gift_cards.all()
-
-    @staticmethod
-    @traced_resolver
-    def resolve_permissions(root: models.User, _info, **_kwargs):
-        # deprecated, to remove in #5389
-        from .resolvers import resolve_permissions
-
-        return resolve_permissions(root)
 
     @staticmethod
     @traced_resolver
