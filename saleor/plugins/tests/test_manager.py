@@ -7,6 +7,7 @@ from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from ...core.prices import quantize_price
 from ...core.taxes import TaxType
 from ...payment.interface import PaymentGateway
 from ...product.models import Product
@@ -133,6 +134,23 @@ def test_manager_calculates_checkout_line_total(
         [discount_info],
     )
     assert TaxedMoney(expected_total, expected_total) == taxed_total
+
+
+@pytest.mark.parametrize(
+    "plugins",
+    [["saleor.plugins.tests.sample_plugins.PluginSample"], []],
+)
+def test_manager_calculates_order_line_total(order_line, plugins):
+    currency = order_line.order.currency
+    expected_total = (
+        TaxedMoney(Money("1.0", currency), Money("1.0", currency))
+        if plugins
+        else quantize_price(order_line.unit_price * order_line.quantity, currency)
+    )
+    taxed_total = PluginsManager(plugins=plugins).calculate_order_line_total(
+        order_line.order, order_line, order_line.variant, order_line.variant.product
+    )
+    assert expected_total == taxed_total
 
 
 def test_manager_get_checkout_line_tax_rate_sample_plugin(
