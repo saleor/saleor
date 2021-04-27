@@ -12,7 +12,7 @@ INVOICE_REQUEST_DELETE_MUTATION = """
         invoiceRequestDelete(
             id: $id
         ) {
-            invoiceErrors {
+            errors {
                 field
                 code
             }
@@ -55,7 +55,7 @@ def test_invoice_request_delete_invalid_id(
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(INVOICE_REQUEST_DELETE_MUTATION, variables)
     content = get_graphql_content(response)
-    error = content["data"]["invoiceRequestDelete"]["invoiceErrors"][0]
+    error = content["data"]["invoiceRequestDelete"]["errors"][0]
     assert error["code"] == InvoiceErrorCode.NOT_FOUND.name
     assert error["field"] == "id"
     plugin_mock.assert_not_called()

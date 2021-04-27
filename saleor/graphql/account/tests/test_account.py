@@ -2,7 +2,7 @@ import re
 import uuid
 from collections import defaultdict
 from datetime import timedelta
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import ANY, MagicMock, Mock, patch
 from urllib.parse import urlencode
 
 import graphene
@@ -136,9 +136,6 @@ FULL_USER_QUERY = """
             }
             avatar {
                 url
-            }
-            permissions {
-                code
             }
             userPermissions {
                 code
@@ -418,12 +415,6 @@ def test_query_staff_user(
         source_groups = {group.name for group in perm.group_set.filter(user=staff_user)}
         expected_data = {"code": perm.codename, "groups": source_groups}
         assert expected_data in formated_user_permissions_result
-
-    # deprecated, to remove in #5389
-    assert len(data["permissions"]) == 4
-    assert {perm["code"].lower() for perm in data["permissions"]} == set(
-        all_permissions.values_list("codename", flat=True)
-    )
 
 
 def test_query_staff_user_with_order_and_without_manage_orders_perm(
@@ -969,7 +960,7 @@ ACCOUNT_REGISTER_MUTATION = """
                 metadata: $metadata
             }
         ) {
-            accountErrors {
+            errors {
                 field
                 message
                 code
@@ -1018,7 +1009,7 @@ def test_customer_register(mocked_notify, mocked_generator, api_client):
     }
     assert new_user.metadata == {"meta": "data"}
     assert new_user.language_code == "pl"
-    assert not data["accountErrors"]
+    assert not data["errors"]
     mocked_notify.assert_called_once_with(
         NotifyEventType.ACCOUNT_CONFIRMATION, payload=expected_payload
     )
@@ -1026,9 +1017,9 @@ def test_customer_register(mocked_notify, mocked_generator, api_client):
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"][mutation_name]
-    assert data["accountErrors"]
-    assert data["accountErrors"][0]["field"] == "email"
-    assert data["accountErrors"][0]["code"] == AccountErrorCode.UNIQUE.name
+    assert data["errors"]
+    assert data["errors"][0]["field"] == "email"
+    assert data["errors"][0]["code"] == AccountErrorCode.UNIQUE.name
 
     customer_creation_event = account_events.CustomerEvent.objects.get()
     assert customer_creation_event.type == account_events.CustomerEvents.ACCOUNT_CREATED
@@ -1041,7 +1032,7 @@ def test_customer_register_disabled_email_confirmation(mocked_notify, api_client
     email = "customer@example.com"
     variables = {"email": email, "password": "Password"}
     response = api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
-    errors = response.json()["data"]["accountRegister"]["accountErrors"]
+    errors = response.json()["data"]["accountRegister"]["errors"]
 
     assert errors == []
     created_user = User.objects.get()
@@ -1056,7 +1047,7 @@ def test_customer_register_disabled_email_confirmation(mocked_notify, api_client
 def test_customer_register_no_redirect_url(mocked_notify, api_client):
     variables = {"email": "customer@example.com", "password": "Password"}
     response = api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
-    errors = response.json()["data"]["accountRegister"]["accountErrors"]
+    errors = response.json()["data"]["accountRegister"]["errors"]
     assert "redirectUrl" in map(lambda error: error["field"], errors)
     mocked_notify.assert_not_called()
 
@@ -1078,11 +1069,8 @@ CUSTOMER_CREATE_MUTATION = """
         }) {
             errors {
                 field
-                message
-            }
-            accountErrors {
-                field
                 code
+                message
             }
             user {
                 id
@@ -1232,9 +1220,10 @@ def test_customer_create_with_invalid_url(staff_api_client, permission_manage_us
     )
     content = get_graphql_content(response)
     data = content["data"]["customerCreate"]
-    assert data["accountErrors"][0] == {
+    assert data["errors"][0] == {
         "field": "redirectUrl",
         "code": AccountErrorCode.INVALID.name,
+        "message": ANY,
     }
     staff_user = User.objects.filter(email=email)
     assert not staff_user
@@ -1250,9 +1239,10 @@ def test_customer_create_with_not_allowed_url(
     )
     content = get_graphql_content(response)
     data = content["data"]["customerCreate"]
-    assert data["accountErrors"][0] == {
+    assert data["errors"][0] == {
         "field": "redirectUrl",
         "code": AccountErrorCode.INVALID.name,
+        "message": ANY,
     }
     staff_user = User.objects.filter(email=email)
     assert not staff_user
@@ -1550,7 +1540,7 @@ ACCOUNT_REQUEST_DELETION_MUTATION = """
                 field
                 message
             }
-            accountErrors {
+            errors {
                 code
                 field
             }
@@ -1636,9 +1626,10 @@ def test_account_request_deletion_storefront_hosts_not_allowed(
     content = get_graphql_content(response)
     data = content["data"]["accountRequestDeletion"]
     assert len(data["errors"]) == 1
-    assert data["accountErrors"][0] == {
+    assert data["errors"][0] == {
         "field": "redirectUrl",
         "code": AccountErrorCode.INVALID.name,
+        "message": ANY,
     }
     mocked_notify.assert_not_called()
 
@@ -1850,7 +1841,7 @@ STAFF_CREATE_MUTATION = """
         staffCreate(input: {email: $email, redirectUrl: $redirect_url,
             addGroups: $add_groups}
         ) {
-            staffErrors {
+            errors {
                 field
                 code
                 permissions
@@ -1862,9 +1853,6 @@ STAFF_CREATE_MUTATION = """
                 isStaff
                 isActive
                 userPermissions {
-                    code
-                }
-                permissions {
                     code
                 }
                 permissionGroups {
@@ -1910,7 +1898,7 @@ def test_staff_create(
     )
     content = get_graphql_content(response)
     data = content["data"]["staffCreate"]
-    assert data["staffErrors"] == []
+    assert data["errors"] == []
     assert data["user"]["email"] == email
     assert data["user"]["isStaff"]
     assert data["user"]["isActive"]
@@ -1920,10 +1908,6 @@ def test_staff_create(
         permission_manage_users.codename,
     }
     permissions = data["user"]["userPermissions"]
-    assert {perm["code"].lower() for perm in permissions} == expected_perms
-
-    # deprecated, to remove in #5389
-    permissions = data["user"]["permissions"]
     assert {perm["code"].lower() for perm in permissions} == expected_perms
 
     staff_user = User.objects.get(email=email)
@@ -2010,7 +1994,7 @@ def test_staff_create_out_of_scope_group(
     )
     content = get_graphql_content(response)
     data = content["data"]["staffCreate"]
-    errors = data["staffErrors"]
+    errors = data["errors"]
     assert not data["user"]
     assert len(errors) == 1
 
@@ -2030,7 +2014,7 @@ def test_staff_create_out_of_scope_group(
     content = get_graphql_content(response)
     data = content["data"]["staffCreate"]
 
-    assert data["staffErrors"] == []
+    assert data["errors"] == []
     assert data["user"]["email"] == email
     assert data["user"]["isStaff"]
     assert data["user"]["isActive"]
@@ -2039,10 +2023,6 @@ def test_staff_create_out_of_scope_group(
         permission_manage_users.codename,
     }
     permissions = data["user"]["userPermissions"]
-    assert {perm["code"].lower() for perm in permissions} == expected_perms
-
-    # deprecated, to remove in #5389
-    permissions = data["user"]["permissions"]
     assert {perm["code"].lower() for perm in permissions} == expected_perms
 
     staff_user = User.objects.get(email=email)
@@ -2097,7 +2077,7 @@ def test_staff_create_send_password_with_url(
     )
     content = get_graphql_content(response)
     data = content["data"]["staffCreate"]
-    assert not data["staffErrors"]
+    assert not data["errors"]
 
     staff_user = User.objects.get(email=email)
     assert staff_user.is_staff
@@ -2129,7 +2109,7 @@ def test_staff_create_without_send_password(
     )
     content = get_graphql_content(response)
     data = content["data"]["staffCreate"]
-    assert not data["staffErrors"]
+    assert not data["errors"]
     User.objects.get(email=email)
 
 
@@ -2143,7 +2123,7 @@ def test_staff_create_with_invalid_url(
     )
     content = get_graphql_content(response)
     data = content["data"]["staffCreate"]
-    assert data["staffErrors"][0] == {
+    assert data["errors"][0] == {
         "field": "redirectUrl",
         "code": AccountErrorCode.INVALID.name,
         "permissions": None,
@@ -2163,7 +2143,7 @@ def test_staff_create_with_not_allowed_url(
     )
     content = get_graphql_content(response)
     data = content["data"]["staffCreate"]
-    assert data["staffErrors"][0] == {
+    assert data["errors"][0] == {
         "field": "redirectUrl",
         "code": AccountErrorCode.INVALID.name,
         "permissions": None,
@@ -2179,7 +2159,7 @@ STAFF_UPDATE_MUTATIONS = """
         staffUpdate(
                 id: $id,
                 input: $input) {
-            staffErrors {
+            errors {
                 field
                 code
                 message
@@ -2188,9 +2168,6 @@ STAFF_UPDATE_MUTATIONS = """
             }
             user {
                 userPermissions {
-                    code
-                }
-                permissions {
                     code
                 }
                 permissionGroups {
@@ -2215,11 +2192,9 @@ def test_staff_update(staff_api_client, permission_manage_staff, media_root):
     )
     content = get_graphql_content(response)
     data = content["data"]["staffUpdate"]
-    assert data["staffErrors"] == []
+    assert data["errors"] == []
     assert data["user"]["userPermissions"] == []
     assert not data["user"]["isActive"]
-    # deprecated, to remove in #5389
-    assert data["user"]["permissions"] == []
 
 
 def test_staff_update_app_no_permission(
@@ -2276,17 +2251,13 @@ def test_staff_update_groups_and_permissions(
     )
     content = get_graphql_content(response)
     data = content["data"]["staffUpdate"]
-    assert data["staffErrors"] == []
+    assert data["errors"] == []
     assert {perm["code"].lower() for perm in data["user"]["userPermissions"]} == {
         permission_manage_orders.codename,
     }
     assert {group["name"] for group in data["user"]["permissionGroups"]} == {
         group2.name,
         group3.name,
-    }
-    # deprecated, to remove in #5389
-    assert {perm["code"].lower() for perm in data["user"]["permissions"]} == {
-        permission_manage_orders.codename,
     }
 
 
@@ -2313,9 +2284,9 @@ def test_staff_update_out_of_scope_user(
     content = get_graphql_content(response)
     data = content["data"]["staffUpdate"]
     assert not data["user"]
-    assert len(data["staffErrors"]) == 1
-    assert data["staffErrors"][0]["field"] == "id"
-    assert data["staffErrors"][0]["code"] == AccountErrorCode.OUT_OF_SCOPE_USER.name
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "id"
+    assert data["errors"][0]["code"] == AccountErrorCode.OUT_OF_SCOPE_USER.name
 
     # for superuser
     response = superuser_api_client.post_graphql(query, variables)
@@ -2323,7 +2294,7 @@ def test_staff_update_out_of_scope_user(
     data = content["data"]["staffUpdate"]
     assert data["user"]["email"] == staff_user.email
     assert data["user"]["isActive"] is False
-    assert not data["staffErrors"]
+    assert not data["errors"]
 
 
 def test_staff_update_out_of_scope_groups(
@@ -2374,7 +2345,7 @@ def test_staff_update_out_of_scope_groups(
     )
     content = get_graphql_content(response)
     data = content["data"]["staffUpdate"]
-    errors = data["staffErrors"]
+    errors = data["errors"]
     assert not data["user"]
     assert len(errors) == 2
 
@@ -2400,7 +2371,7 @@ def test_staff_update_out_of_scope_groups(
     response = superuser_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["staffUpdate"]
-    errors = data["staffErrors"]
+    errors = data["errors"]
     assert not errors
     assert data["user"]["email"] == staff_user.email
     assert {group["name"] for group in data["user"]["permissionGroups"]} == {
@@ -2449,7 +2420,7 @@ def test_staff_update_duplicated_input_items(
     )
     content = get_graphql_content(response)
     data = content["data"]["staffUpdate"]
-    errors = data["staffErrors"]
+    errors = data["errors"]
 
     assert len(errors) == 1
     assert errors[0]["field"] is None
@@ -2480,7 +2451,7 @@ def test_staff_update_doesnt_change_existing_avatar(
     )
     content = get_graphql_content(response)
     data = content["data"]["staffUpdate"]
-    assert data["staffErrors"] == []
+    assert data["errors"] == []
 
     staff_user.refresh_from_db()
     assert not staff_user.avatar
@@ -2528,7 +2499,7 @@ def test_staff_update_deactivate_with_manage_staff_left_not_manageable_perms(
     )
     content = get_graphql_content(response)
     data = content["data"]["staffUpdate"]
-    errors = data["staffErrors"]
+    errors = data["errors"]
 
     assert not data["user"]
     assert len(errors) == 1
@@ -2541,7 +2512,7 @@ def test_staff_update_deactivate_with_manage_staff_left_not_manageable_perms(
     response = superuser_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["staffUpdate"]
-    errors = data["staffErrors"]
+    errors = data["errors"]
 
     staff_user1.refresh_from_db()
     assert data["user"]["email"] == staff_user1.email
@@ -2586,7 +2557,7 @@ def test_staff_update_deactivate_with_manage_staff_all_perms_manageable(
     )
     content = get_graphql_content(response)
     data = content["data"]["staffUpdate"]
-    errors = data["staffErrors"]
+    errors = data["errors"]
 
     staff_user1.refresh_from_db()
     assert not errors
@@ -2596,7 +2567,7 @@ def test_staff_update_deactivate_with_manage_staff_all_perms_manageable(
 STAFF_DELETE_MUTATION = """
         mutation DeleteStaff($id: ID!) {
             staffDelete(id: $id) {
-                staffErrors {
+                errors {
                     field
                     code
                     message
@@ -2621,7 +2592,7 @@ def test_staff_delete(staff_api_client, permission_manage_staff):
     )
     content = get_graphql_content(response)
     data = content["data"]["staffDelete"]
-    assert data["staffErrors"] == []
+    assert data["errors"] == []
     assert not User.objects.filter(pk=staff_user.id).exists()
 
 
@@ -2645,7 +2616,7 @@ def test_staff_delete_with_avatar(
     )
     content = get_graphql_content(response)
     data = content["data"]["staffDelete"]
-    assert data["staffErrors"] == []
+    assert data["errors"] == []
     assert not User.objects.filter(pk=staff_user.id).exists()
     delete_versatile_image_mock.assert_called_once_with(staff_user.avatar)
 
@@ -2686,16 +2657,16 @@ def test_staff_delete_out_of_scope_user(
     content = get_graphql_content(response)
     data = content["data"]["staffDelete"]
     assert not data["user"]
-    assert len(data["staffErrors"]) == 1
-    assert data["staffErrors"][0]["field"] == "id"
-    assert data["staffErrors"][0]["code"] == AccountErrorCode.OUT_OF_SCOPE_USER.name
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "id"
+    assert data["errors"][0]["code"] == AccountErrorCode.OUT_OF_SCOPE_USER.name
 
     # for superuser
     response = superuser_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["staffDelete"]
 
-    assert data["staffErrors"] == []
+    assert data["errors"] == []
     assert not User.objects.filter(pk=staff_user.id).exists()
 
 
@@ -2739,7 +2710,7 @@ def test_staff_delete_left_not_manageable_permissions(
     )
     content = get_graphql_content(response)
     data = content["data"]["staffDelete"]
-    errors = data["staffErrors"]
+    errors = data["errors"]
 
     assert len(errors) == 1
     assert errors[0]["field"] == "id"
@@ -2755,7 +2726,7 @@ def test_staff_delete_left_not_manageable_permissions(
     response = superuser_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["staffDelete"]
-    errors = data["staffErrors"]
+    errors = data["errors"]
 
     assert not errors
     assert not User.objects.filter(pk=staff_user1.id).exists()
@@ -2796,7 +2767,7 @@ def test_staff_delete_all_permissions_manageable(
     )
     content = get_graphql_content(response)
     data = content["data"]["staffDelete"]
-    errors = data["staffErrors"]
+    errors = data["errors"]
 
     assert len(errors) == 0
     assert not User.objects.filter(pk=staff_user1.id).exists()
@@ -2865,7 +2836,7 @@ SET_PASSWORD_MUTATION = """
                 field
                 message
             }
-            accountErrors {
+            errors {
                 field
                 message
                 code
@@ -2907,7 +2878,7 @@ def test_set_password_invalid_token(user_api_client, customer_user):
     errors = content["data"]["setPassword"]["errors"]
     assert errors[0]["message"] == INVALID_TOKEN
 
-    account_errors = content["data"]["setPassword"]["accountErrors"]
+    account_errors = content["data"]["setPassword"]["errors"]
     assert account_errors[0]["message"] == INVALID_TOKEN
     assert account_errors[0]["code"] == AccountErrorCode.INVALID.name
 
@@ -2920,7 +2891,7 @@ def test_set_password_invalid_email(user_api_client):
     assert len(errors) == 1
     assert errors[0]["field"] == "email"
 
-    account_errors = content["data"]["setPassword"]["accountErrors"]
+    account_errors = content["data"]["setPassword"]["errors"]
     assert len(account_errors) == 1
     assert account_errors[0]["field"] == "email"
     assert account_errors[0]["code"] == AccountErrorCode.NOT_FOUND.name
@@ -2948,7 +2919,7 @@ def test_set_password_invalid_password(user_api_client, customer_user, settings)
     )
     assert errors[1]["message"] == "This password is entirely numeric."
 
-    account_errors = content["data"]["setPassword"]["accountErrors"]
+    account_errors = content["data"]["setPassword"]["errors"]
     assert account_errors[0]["code"] == str_to_enum("password_too_short")
     assert account_errors[1]["code"] == str_to_enum("password_entirely_numeric")
 
@@ -3407,7 +3378,7 @@ REQUEST_PASSWORD_RESET_MUTATION = """
 CONFIRM_ACCOUNT_MUTATION = """
     mutation ConfirmAccount($email: String!, $token: String!) {
         confirmAccount(email: $email, token: $token) {
-            accountErrors {
+            errors {
                 field
                 code
             }
@@ -3460,7 +3431,7 @@ def test_account_confirmation(
     }
     response = api_client.post_graphql(CONFIRM_ACCOUNT_MUTATION, variables)
     content = get_graphql_content(response)
-    assert not content["data"]["confirmAccount"]["accountErrors"]
+    assert not content["data"]["confirmAccount"]["errors"]
     assert content["data"]["confirmAccount"]["user"]["email"] == customer_user.email
     customer_user.refresh_from_db()
     match_orders_with_new_user_mock.assert_called_once_with(customer_user)
@@ -3478,9 +3449,9 @@ def test_account_confirmation_invalid_user(
     }
     response = user_api_client.post_graphql(CONFIRM_ACCOUNT_MUTATION, variables)
     content = get_graphql_content(response)
-    assert content["data"]["confirmAccount"]["accountErrors"][0]["field"] == "email"
+    assert content["data"]["confirmAccount"]["errors"][0]["field"] == "email"
     assert (
-        content["data"]["confirmAccount"]["accountErrors"][0]["code"]
+        content["data"]["confirmAccount"]["errors"][0]["code"]
         == AccountErrorCode.NOT_FOUND.name
     )
     match_orders_with_new_user_mock.assert_not_called()
@@ -3493,9 +3464,9 @@ def test_account_confirmation_invalid_token(
     variables = {"email": customer_user.email, "token": "invalid_token"}
     response = user_api_client.post_graphql(CONFIRM_ACCOUNT_MUTATION, variables)
     content = get_graphql_content(response)
-    assert content["data"]["confirmAccount"]["accountErrors"][0]["field"] == "token"
+    assert content["data"]["confirmAccount"]["errors"][0]["field"] == "token"
     assert (
-        content["data"]["confirmAccount"]["accountErrors"][0]["code"]
+        content["data"]["confirmAccount"]["errors"][0]["code"]
         == AccountErrorCode.INVALID.name
     )
     match_orders_with_new_user_mock.assert_not_called()
@@ -3844,7 +3815,7 @@ USER_AVATAR_UPDATE_MUTATION = """
 
 
 def test_user_avatar_update_mutation_permission(api_client):
-    """ Should raise error if user is not staff. """
+    """Should raise error if user is not staff."""
 
     query = USER_AVATAR_UPDATE_MUTATION
 
@@ -3926,7 +3897,7 @@ USER_AVATAR_DELETE_MUTATION = """
 
 
 def test_user_avatar_delete_mutation_permission(api_client):
-    """ Should raise error if user is not staff. """
+    """Should raise error if user is not staff."""
 
     query = USER_AVATAR_DELETE_MUTATION
 
@@ -4515,7 +4486,7 @@ mutation requestEmailChange(
         user {
             email
         }
-        accountErrors {
+        errors {
             code
             message
             field
@@ -4551,7 +4522,7 @@ def test_request_email_change_to_existing_email(
     content = get_graphql_content(response)
     data = content["data"]["requestEmailChange"]
     assert not data["user"]
-    assert data["accountErrors"] == [
+    assert data["errors"] == [
         {
             "code": "UNIQUE",
             "message": "Email is used by other user.",
@@ -4573,7 +4544,7 @@ def test_request_email_change_with_invalid_redirect_url(
     content = get_graphql_content(response)
     data = content["data"]["requestEmailChange"]
     assert not data["user"]
-    assert data["accountErrors"] == [
+    assert data["errors"] == [
         {
             "code": "INVALID",
             "message": "Invalid URL. Please check if URL is in RFC 1808 format.",
@@ -4592,8 +4563,8 @@ def test_request_email_change_with_invalid_password(user_api_client, customer_us
     content = get_graphql_content(response)
     data = content["data"]["requestEmailChange"]
     assert not data["user"]
-    assert data["accountErrors"][0]["code"] == AccountErrorCode.INVALID_CREDENTIALS.name
-    assert data["accountErrors"][0]["field"] == "password"
+    assert data["errors"][0]["code"] == AccountErrorCode.INVALID_CREDENTIALS.name
+    assert data["errors"][0]["field"] == "password"
 
 
 EMAIL_UPDATE_QUERY = """
@@ -4602,7 +4573,7 @@ mutation emailUpdate($token: String!) {
         user {
             email
         }
-        accountErrors {
+        errors {
             code
             message
             field
@@ -4642,7 +4613,7 @@ def test_email_update_to_existing_email(user_api_client, customer_user, staff_us
     content = get_graphql_content(response)
     data = content["data"]["confirmEmailChange"]
     assert not data["user"]
-    assert data["accountErrors"] == [
+    assert data["errors"] == [
         {
             "code": "UNIQUE",
             "message": "Email is used by other user.",

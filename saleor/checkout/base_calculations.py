@@ -17,6 +17,7 @@ from .fetch import CheckoutLineInfo
 if TYPE_CHECKING:
     from ..channel.models import Channel
     from ..checkout.fetch import CheckoutInfo
+    from ..order.models import OrderLine
 
 
 def base_checkout_shipping_price(
@@ -72,6 +73,11 @@ def base_checkout_line_total(
     amount = checkout_line_info.line.quantity * variant_price
     price = quantize_price(amount, amount.currency)
     return TaxedMoney(net=price, gross=price)
+
+
+def base_order_line_total(order_line: "OrderLine"):
+    unit_price = order_line.unit_price * order_line.quantity
+    return quantize_price(unit_price, unit_price.currency)
 
 
 def base_tax_rate(price: TaxedMoney):

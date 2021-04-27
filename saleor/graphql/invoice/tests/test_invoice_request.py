@@ -24,7 +24,7 @@ INVOICE_REQUEST_MUTATION = """
                 number
                 url
             }
-            invoiceErrors {
+            errors {
                 field
                 code
             }
@@ -94,7 +94,7 @@ def test_invoice_request_invalid_order_status(
     )
     content = get_graphql_content(response)
     assert not Invoice.objects.filter(number=number, order=order.pk).exists()
-    error = content["data"]["invoiceRequest"]["invoiceErrors"][0]
+    error = content["data"]["invoiceRequest"]["errors"][0]
     assert error["field"] == "orderId"
     assert error["code"] == InvoiceErrorCode.INVALID_STATUS.name
     assert not OrderEvent.objects.filter(type=OrderEvents.INVOICE_REQUESTED).exists()
@@ -115,7 +115,7 @@ def test_invoice_request_no_billing_address(
     )
     content = get_graphql_content(response)
     assert not Invoice.objects.filter(number=number, order=order.pk).exists()
-    error = content["data"]["invoiceRequest"]["invoiceErrors"][0]
+    error = content["data"]["invoiceRequest"]["errors"][0]
     assert error["field"] == "orderId"
     assert error["code"] == InvoiceErrorCode.NOT_READY.name
     assert not OrderEvent.objects.filter(type=OrderEvents.INVOICE_REQUESTED).exists()
@@ -137,6 +137,6 @@ def test_invoice_request_invalid_id(staff_api_client, permission_manage_orders):
         INVOICE_REQUEST_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    error = content["data"]["invoiceRequest"]["invoiceErrors"][0]
+    error = content["data"]["invoiceRequest"]["errors"][0]
     assert error["code"] == InvoiceErrorCode.NOT_FOUND.name
     assert error["field"] == "orderId"

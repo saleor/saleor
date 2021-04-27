@@ -2,6 +2,7 @@ from collections import defaultdict, namedtuple
 from typing import TYPE_CHECKING, Dict, List, Optional, Set, Union
 from urllib.parse import urljoin
 
+import graphene
 from django.conf import settings
 from django.db.models import Case, CharField
 from django.db.models import Value as V
@@ -77,6 +78,7 @@ def get_products_data(
             variant_pk, {}
         )
 
+        product_data["id"] = graphene.Node.to_global_id("Product", pk)
         data = {**product_data, **product_relations_data, **variant_relations_data}
 
         products_with_variants_data.append(data)

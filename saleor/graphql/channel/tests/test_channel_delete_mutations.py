@@ -15,7 +15,7 @@ CHANNEL_DELETE_MUTATION = """
                 slug
                 currencyCode
             }
-            channelErrors{
+            errors{
                 field
                 code
                 message
@@ -71,7 +71,7 @@ def test_channel_delete_mutation_with_the_same_channel_and_target_channel_id(
         permissions=(permission_manage_channels,),
     )
     content = get_graphql_content(response)
-    error = content["data"]["channelDelete"]["channelErrors"][0]
+    error = content["data"]["channelDelete"]["errors"][0]
 
     assert error["field"] == "targetChannel"
     assert error["code"] == ChannelErrorCode.CHANNEL_TARGET_ID_MUST_BE_DIFFERENT.name
@@ -100,7 +100,7 @@ def test_channel_delete_mutation_without_migration_channel_with_orders(
     content = get_graphql_content(response)
 
     # then
-    error = content["data"]["channelDelete"]["channelErrors"][0]
+    error = content["data"]["channelDelete"]["errors"][0]
     assert error["field"] == "id"
     assert error["code"] == ChannelErrorCode.CHANNEL_WITH_ORDERS.name
     assert Channel.objects.filter(slug=channel_USD.slug).exists()
@@ -128,7 +128,7 @@ def test_channel_delete_mutation_without_orders_in_channel(
     content = get_graphql_content(response)
 
     # then
-    assert not content["data"]["channelDelete"]["channelErrors"]
+    assert not content["data"]["channelDelete"]["errors"]
     assert Checkout.objects.first() is None
     assert not Channel.objects.filter(slug=channel_USD.slug).exists()
 
@@ -148,7 +148,7 @@ def test_channel_delete_mutation_with_different_currency(
         permissions=(permission_manage_channels,),
     )
     content = get_graphql_content(response)
-    error = content["data"]["channelDelete"]["channelErrors"][0]
+    error = content["data"]["channelDelete"]["errors"][0]
 
     assert error["field"] == "targetChannel"
     assert error["code"] == ChannelErrorCode.CHANNELS_CURRENCY_MUST_BE_THE_SAME.name

@@ -11,7 +11,7 @@ CHANNEL_ACTIVATE_MUTATION = """
                 name
                 isActive
             }
-            channelErrors{
+            errors{
                 field
                 code
                 message
@@ -40,7 +40,7 @@ def test_channel_activate_mutation(
 
     # then
     data = content["data"]["channelActivate"]
-    assert not data["channelErrors"]
+    assert not data["errors"]
     assert data["channel"]["name"] == channel_USD.name
     assert data["channel"]["isActive"] is True
 
@@ -62,8 +62,8 @@ def test_channel_activate_mutation_on_activated_channel(
 
     # then
     data = content["data"]["channelActivate"]
-    assert data["channelErrors"][0]["field"] == "id"
-    assert data["channelErrors"][0]["code"] == ChannelErrorCode.INVALID.name
+    assert data["errors"][0]["field"] == "id"
+    assert data["errors"][0]["code"] == ChannelErrorCode.INVALID.name
 
 
 CHANNEL_DEACTIVATE_MUTATION = """
@@ -74,7 +74,7 @@ CHANNEL_DEACTIVATE_MUTATION = """
                 name
                 isActive
             }
-            channelErrors{
+            errors{
                 field
                 code
                 message
@@ -101,7 +101,7 @@ def test_channel_deactivate_mutation(
 
     # then
     data = content["data"]["channelDeactivate"]
-    assert not data["channelErrors"]
+    assert not data["errors"]
     assert data["channel"]["name"] == channel_USD.name
     assert data["channel"]["isActive"] is False
 
@@ -125,5 +125,5 @@ def test_channel_deactivate_mutation_on_deactivated_channel(
 
     # then
     data = content["data"]["channelDeactivate"]
-    assert data["channelErrors"][0]["field"] == "id"
-    assert data["channelErrors"][0]["code"] == ChannelErrorCode.INVALID.name
+    assert data["errors"][0]["field"] == "id"
+    assert data["errors"][0]["code"] == ChannelErrorCode.INVALID.name

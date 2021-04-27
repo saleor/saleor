@@ -15,7 +15,7 @@ mutation UpdateProductChannelListing(
     $input: ProductChannelListingUpdateInput!
 ) {
     productChannelListingUpdate(id: $id, input: $input) {
-        productChannelListingErrors {
+        errors {
             field
             message
             code
@@ -82,9 +82,7 @@ def test_product_channel_listing_update_duplicated_ids_in_add_and_remove(
     content = get_graphql_content(response)
 
     # then
-    errors = content["data"]["productChannelListingUpdate"][
-        "productChannelListingErrors"
-    ]
+    errors = content["data"]["productChannelListingUpdate"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "input"
     assert errors[0]["code"] == ProductErrorCode.DUPLICATED_INPUT_ITEM.name
@@ -116,9 +114,7 @@ def test_product_channel_listing_update_duplicated_channel_in_add(
     content = get_graphql_content(response)
 
     # then
-    errors = content["data"]["productChannelListingUpdate"][
-        "productChannelListingErrors"
-    ]
+    errors = content["data"]["productChannelListingUpdate"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "updateChannels"
     assert errors[0]["code"] == ProductErrorCode.DUPLICATED_INPUT_ITEM.name
@@ -145,9 +141,7 @@ def test_product_channel_listing_update_duplicated_channel_in_remove(
     content = get_graphql_content(response)
 
     # then
-    errors = content["data"]["productChannelListingUpdate"][
-        "productChannelListingErrors"
-    ]
+    errors = content["data"]["productChannelListingUpdate"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "removeChannels"
     assert errors[0]["code"] == ProductErrorCode.DUPLICATED_INPUT_ITEM.name
@@ -173,9 +167,7 @@ def test_product_channel_listing_update_with_empty_input(
     content = get_graphql_content(response)
 
     # then
-    errors = content["data"]["productChannelListingUpdate"][
-        "productChannelListingErrors"
-    ]
+    errors = content["data"]["productChannelListingUpdate"]["errors"]
     assert not errors
 
 
@@ -198,9 +190,7 @@ def test_product_channel_listing_update_with_empty_lists_in_input(
     content = get_graphql_content(response)
 
     # then
-    errors = content["data"]["productChannelListingUpdate"][
-        "productChannelListingErrors"
-    ]
+    errors = content["data"]["productChannelListingUpdate"]["errors"]
     assert not errors
 
 
@@ -245,7 +235,7 @@ def test_product_channel_listing_update_as_staff_user(
     purchase_cost, margin = get_product_costs_data(
         variant_channel_listing, True, channel_USD.currency_code
     )
-    assert not data["productChannelListingErrors"]
+    assert not data["errors"]
     assert product_data["slug"] == product.slug
     assert product_data["channelListings"][0]["isPublished"] is True
     assert product_data["channelListings"][0]["publicationDate"] is None
@@ -354,7 +344,7 @@ def test_product_channel_listing_update_as_app(
     # then
     data = content["data"]["productChannelListingUpdate"]
     product_data = data["product"]
-    assert not data["productChannelListingErrors"]
+    assert not data["errors"]
     assert product_data["slug"] == product.slug
     assert product_data["channelListings"][0]["isPublished"] is True
     assert product_data["channelListings"][0]["publicationDate"] is None
@@ -452,7 +442,7 @@ def test_product_channel_listing_update_add_channel(
     # then
     data = content["data"]["productChannelListingUpdate"]
     product_data = data["product"]
-    assert not data["productChannelListingErrors"]
+    assert not data["errors"]
     assert product_data["slug"] == product.slug
     assert product_data["channelListings"][0]["isPublished"] is True
     assert product_data["channelListings"][0]["publicationDate"] is None
@@ -494,7 +484,7 @@ def test_product_channel_listing_update_add_channel_without_publication_date(
     # then
     data = content["data"]["productChannelListingUpdate"]
     product_data = data["product"]
-    assert not data["productChannelListingErrors"]
+    assert not data["errors"]
     assert product_data["slug"] == product.slug
     assert product_data["channelListings"][0]["isPublished"] is True
     assert product_data["channelListings"][0]["publicationDate"] is None
@@ -530,7 +520,7 @@ def test_product_channel_listing_update_unpublished(
     # then
     data = content["data"]["productChannelListingUpdate"]
     product_data = data["product"]
-    assert not data["productChannelListingErrors"]
+    assert not data["errors"]
     assert product_data["slug"] == product.slug
     assert product_data["channelListings"][0]["isPublished"] is False
     assert (
@@ -570,7 +560,7 @@ def test_product_channel_listing_update_publish_without_publication_date(
     # then
     data = content["data"]["productChannelListingUpdate"]
     product_data = data["product"]
-    assert not data["productChannelListingErrors"]
+    assert not data["errors"]
     assert product_data["slug"] == product.slug
     assert product_data["channelListings"][0]["isPublished"] is True
     assert (
@@ -605,7 +595,7 @@ def test_product_channel_listing_update_remove_publication_date(
     # then
     data = content["data"]["productChannelListingUpdate"]
     product_data = data["product"]
-    assert not data["productChannelListingErrors"]
+    assert not data["errors"]
     assert product_data["slug"] == product.slug
     assert product_data["channelListings"][0]["isPublished"] is True
     assert product_data["channelListings"][0]["publicationDate"] is None
@@ -642,7 +632,7 @@ def test_product_channel_listing_update_visible_in_listings(
     # then
     data = content["data"]["productChannelListingUpdate"]
     product_data = data["product"]
-    assert not data["productChannelListingErrors"]
+    assert not data["errors"]
     assert product_data["slug"] == product.slug
     assert product_data["channelListings"][0]["isPublished"] is True
     assert product_data["channelListings"][0]["publicationDate"] is None
@@ -686,7 +676,7 @@ def test_product_channel_listing_update_update_publication_data(
     # then
     data = content["data"]["productChannelListingUpdate"]
     product_data = data["product"]
-    assert not data["productChannelListingErrors"]
+    assert not data["errors"]
     assert product_data["slug"] == product.slug
     assert product_data["channelListings"][0]["isPublished"] is False
     assert (
@@ -728,7 +718,7 @@ def test_product_channel_listing_update_update_is_available_for_purchase_false(
     # then
     data = content["data"]["productChannelListingUpdate"]
     product_data = data["product"]
-    assert not data["productChannelListingErrors"]
+    assert not data["errors"]
     assert product_data["slug"] == product.slug
     assert product_data["channelListings"][0]["isPublished"] is True
     assert not product_data["channelListings"][0]["publicationDate"]
@@ -764,7 +754,7 @@ def test_product_channel_listing_update_update_is_available_for_purchase_without
     # then
     data = content["data"]["productChannelListingUpdate"]
     product_data = data["product"]
-    assert not data["productChannelListingErrors"]
+    assert not data["errors"]
     assert product_data["slug"] == product.slug
     assert product_data["channelListings"][0]["isPublished"] is True
     assert not product_data["channelListings"][0]["publicationDate"]
@@ -808,7 +798,7 @@ def test_product_channel_listing_update_update_is_available_for_purchase_past_da
     # then
     data = content["data"]["productChannelListingUpdate"]
     product_data = data["product"]
-    assert not data["productChannelListingErrors"]
+    assert not data["errors"]
     assert product_data["slug"] == product.slug
     assert product_data["channelListings"][0]["isPublished"] is True
     assert not product_data["channelListings"][0]["publicationDate"]
@@ -852,7 +842,7 @@ def test_product_channel_listing_update_update_is_available_for_purchase_future_
     # then
     data = content["data"]["productChannelListingUpdate"]
     product_data = data["product"]
-    assert not data["productChannelListingErrors"]
+    assert not data["errors"]
     assert product_data["slug"] == product.slug
     assert product_data["channelListings"][0]["isPublished"] is True
     assert not product_data["channelListings"][0]["publicationDate"]
@@ -895,7 +885,7 @@ def test_product_channel_listing_update_update_is_available_for_purchase_false_a
 
     # then
     data = content["data"]["productChannelListingUpdate"]
-    errors = data["productChannelListingErrors"]
+    errors = data["errors"]
     assert errors[0]["field"] == "availableForPurchaseDate"
     assert errors[0]["code"] == ProductErrorCode.INVALID.name
     assert errors[0]["channels"] == [channel_id]
@@ -932,7 +922,7 @@ def test_product_channel_listing_update_remove_channel(
     # then
     data = content["data"]["productChannelListingUpdate"]
     product_data = data["product"]
-    assert not data["productChannelListingErrors"]
+    assert not data["errors"]
     assert product_data["slug"] == product.slug
     assert len(product_data["channelListings"]) == 1
     assert product.channel_listings.get() == product_channel_listing_pln
@@ -961,7 +951,7 @@ def test_product_channel_listing_update_remove_not_assigned_channel(
     # then
     data = content["data"]["productChannelListingUpdate"]
     product_data = data["product"]
-    assert not data["productChannelListingErrors"]
+    assert not data["errors"]
     assert product_data["slug"] == product.slug
     assert product_data["channelListings"][0]["isPublished"] is True
     assert product_data["channelListings"][0]["publicationDate"] is None
@@ -998,7 +988,7 @@ def test_product_channel_listing_update_publish_product_without_category(
 
     # then
     data = content["data"]["productChannelListingUpdate"]
-    errors = data["productChannelListingErrors"]
+    errors = data["errors"]
     assert errors[0]["field"] == "isPublished"
     assert errors[0]["code"] == ProductErrorCode.PRODUCT_WITHOUT_CATEGORY.name
     assert errors[0]["channels"] == [channel_usd_id]
@@ -1037,7 +1027,7 @@ def test_product_channel_listing_add_variant_as_staff_user(
     data = content["data"]["productChannelListingUpdate"]
     variant_data = data["product"]["variants"]
 
-    assert not data["productChannelListingErrors"]
+    assert not data["errors"]
     assert variant_data[0]["channelListings"][0]["channel"]["slug"] == channel_USD.slug
     assert variant_data[1]["channelListings"][0]["channel"]["slug"] == channel_USD.slug
 
@@ -1074,7 +1064,7 @@ def test_product_channel_listing_add_variant_as_app(
     data = content["data"]["productChannelListingUpdate"]
     variant_data = data["product"]["variants"]
 
-    assert not data["productChannelListingErrors"]
+    assert not data["errors"]
     assert variant_data[0]["channelListings"][0]["channel"]["slug"] == channel_USD.slug
     assert variant_data[1]["channelListings"][0]["channel"]["slug"] == channel_USD.slug
 
@@ -1109,7 +1099,7 @@ def test_product_channel_listing_remove_variant_as_staff_user(
 
     # then
     data = content["data"]["productChannelListingUpdate"]
-    assert not data["productChannelListingErrors"]
+    assert not data["errors"]
 
     assert len(variant.channel_listings.all()) == 1
 
@@ -1144,7 +1134,7 @@ def test_product_channel_listing_remove_variant_as_app(
 
     # then
     data = content["data"]["productChannelListingUpdate"]
-    assert not data["productChannelListingErrors"]
+    assert not data["errors"]
 
     assert len(variant.channel_listings.all()) == 1
 
@@ -1181,9 +1171,7 @@ def test_product_channel_listing_add_variant_duplicated_ids_in_add_and_remove(
     content = get_graphql_content(response)
 
     # then
-    errors = content["data"]["productChannelListingUpdate"][
-        "productChannelListingErrors"
-    ]
+    errors = content["data"]["productChannelListingUpdate"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "addVariants"
     assert errors[0]["code"] == ProductErrorCode.DUPLICATED_INPUT_ITEM.name
@@ -1221,9 +1209,7 @@ def test_product_channel_listing_add_variant_with_existing_channel_listing(
     content = get_graphql_content(response)
 
     # then
-    errors = content["data"]["productChannelListingUpdate"][
-        "productChannelListingErrors"
-    ]
+    errors = content["data"]["productChannelListingUpdate"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "addVariants"
     assert errors[0]["code"] == ProductErrorCode.ALREADY_EXISTS.name
@@ -1262,5 +1248,5 @@ def test_product_channel_listing_remove_last_variant_channel_listing(
 
     # then
     data = content["data"]["productChannelListingUpdate"]
-    assert not data["productChannelListingErrors"]
+    assert not data["errors"]
     assert not product.channel_listings.filter(channel=channel_USD).exists()

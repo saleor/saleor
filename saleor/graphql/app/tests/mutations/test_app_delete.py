@@ -7,7 +7,7 @@ from ....tests.utils import get_graphql_content
 APP_DELETE_MUTATION = """
     mutation appDelete($id: ID!){
       appDelete(id: $id){
-        appErrors{
+        errors{
           field
           message
           code
@@ -40,7 +40,7 @@ def test_app_delete(
 
     data = content["data"]["appDelete"]
     assert data["app"]
-    assert not data["appErrors"]
+    assert not data["errors"]
     assert not App.objects.filter(id=app.id)
 
 
@@ -64,7 +64,7 @@ def test_app_delete_for_app(
 
     data = content["data"]["appDelete"]
     assert data["app"]
-    assert not data["appErrors"]
+    assert not data["errors"]
     assert not App.objects.filter(id=app.id).exists()
 
 
@@ -88,7 +88,7 @@ def test_app_delete_out_of_scope_app(
     content = get_graphql_content(response)
 
     data = content["data"]["appDelete"]
-    errors = data["appErrors"]
+    errors = data["errors"]
     assert not data["app"]
     assert len(errors) == 1
     error = errors[0]
@@ -114,7 +114,7 @@ def test_app_delete_superuser_can_delete_any_app(
 
     data = content["data"]["appDelete"]
     assert data["app"]
-    assert not data["appErrors"]
+    assert not data["errors"]
     assert not App.objects.filter(id=app.id).exists()
 
 
@@ -135,7 +135,7 @@ def test_app_delete_for_app_out_of_scope_app(
     content = get_graphql_content(response)
 
     data = content["data"]["appDelete"]
-    errors = data["appErrors"]
+    errors = data["errors"]
     assert not data["app"]
     assert len(errors) == 1
     error = errors[0]
