@@ -1,5 +1,6 @@
 from ...checkout import models
 from ...core.permissions import CheckoutPermissions
+from ...core.tracing import traced_resolver
 from ..utils import get_user_or_app_from_context
 
 
@@ -15,6 +16,7 @@ def resolve_checkouts(channel_slug):
     return queryset
 
 
+@traced_resolver
 def resolve_checkout(info, token):
     checkout = models.Checkout.objects.filter(token=token).first()
 

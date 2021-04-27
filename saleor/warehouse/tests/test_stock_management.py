@@ -11,6 +11,7 @@ from ..management import (
     deallocate_stock,
     deallocate_stock_for_order,
     decrease_stock,
+    increase_allocations,
     increase_stock,
 )
 from ..models import Allocation
@@ -18,13 +19,13 @@ from ..models import Allocation
 COUNTRY_CODE = "US"
 
 
-def test_allocate_stocks(order_line, stock):
+def test_allocate_stocks(order_line, stock, channel_USD):
     stock.quantity = 100
     stock.save(update_fields=["quantity"])
 
     line_data = OrderLineData(line=order_line, variant=order_line.variant, quantity=50)
 
-    allocate_stocks([line_data], COUNTRY_CODE)
+    allocate_stocks([line_data], COUNTRY_CODE, channel_USD.slug)
 
     stock.refresh_from_db()
     assert stock.quantity == 100
@@ -32,7 +33,7 @@ def test_allocate_stocks(order_line, stock):
     assert allocation.quantity_allocated == 50
 
 
-def test_allocate_stocks_multiply_lines(order_line, order, product, stock):
+def test_allocate_stocks_multiple_lines(order_line, order, product, stock, channel_USD):
     stock.quantity = 100
     stock.save(update_fields=["quantity"])
 
@@ -56,7 +57,7 @@ def test_allocate_stocks_multiply_lines(order_line, order, product, stock):
         line=order_line_2, variant=variant_2, quantity=quantity_2
     )
 
-    allocate_stocks([line_data_1, line_data_2], COUNTRY_CODE)
+    allocate_stocks([line_data_1, line_data_2], COUNTRY_CODE, channel_USD.slug)
 
     stock.refresh_from_db()
     assert stock.quantity == 100
@@ -68,12 +69,12 @@ def test_allocate_stocks_multiply_lines(order_line, order, product, stock):
     assert allocation.quantity_allocated == quantity_2
 
 
-def test_allocate_stock_many_stocks(order_line, variant_with_many_stocks):
+def test_allocate_stock_many_stocks(order_line, variant_with_many_stocks, channel_USD):
     variant = variant_with_many_stocks
     stocks = variant.stocks.all()
 
     line_data = OrderLineData(line=order_line, variant=order_line.variant, quantity=5)
-    allocate_stocks([line_data], COUNTRY_CODE)
+    allocate_stocks([line_data], COUNTRY_CODE, channel_USD.slug)
 
     allocations = Allocation.objects.filter(order_line=order_line, stock__in=stocks)
     assert allocations[0].quantity_allocated == 4
@@ -84,13 +85,14 @@ def test_allocate_stock_many_stocks_partially_allocated(
     order_line,
     order_line_with_allocation_in_many_stocks,
     order_line_with_one_allocation,
+    channel_USD,
 ):
     allocated_line = order_line_with_allocation_in_many_stocks
     variant = allocated_line.variant
     stocks = variant.stocks.all()
 
     line_data = OrderLineData(line=order_line, variant=order_line.variant, quantity=3)
-    allocate_stocks([line_data], COUNTRY_CODE)
+    allocate_stocks([line_data], COUNTRY_CODE, channel_USD.slug)
 
     allocations = Allocation.objects.filter(order_line=order_line, stock__in=stocks)
     assert allocations[0].quantity_allocated == 1
@@ -98,7 +100,7 @@ def test_allocate_stock_many_stocks_partially_allocated(
 
 
 def test_allocate_stock_partially_allocated_insufficient_stocks(
-    order_line, order_line_with_allocation_in_many_stocks
+    order_line, order_line_with_allocation_in_many_stocks, channel_USD
 ):
     allocated_line = order_line_with_allocation_in_many_stocks
     variant = allocated_line.variant
@@ -106,28 +108,41 @@ def test_allocate_stock_partially_allocated_insufficient_stocks(
 
     line_data = OrderLineData(line=order_line, variant=order_line.variant, quantity=6)
     with pytest.raises(InsufficientStock):
-        allocate_stocks([line_data], COUNTRY_CODE)
+        allocate_stocks([line_data], COUNTRY_CODE, channel_USD.slug)
 
     assert not Allocation.objects.filter(
         order_line=order_line, stock__in=stocks
     ).exists()
 
 
-def test_allocate_stock_insufficient_stocks(order_line, variant_with_many_stocks):
+def test_allocate_stocks_no_channel_shipping_zones(order_line, stock, channel_USD):
+    channel_USD.shipping_zones.clear()
+
+    stock.quantity = 100
+    stock.save(update_fields=["quantity"])
+
+    line_data = OrderLineData(line=order_line, variant=order_line.variant, quantity=50)
+    with pytest.raises(InsufficientStock):
+        allocate_stocks([line_data], COUNTRY_CODE, channel_USD.slug)
+
+
+def test_allocate_stock_insufficient_stocks(
+    order_line, variant_with_many_stocks, channel_USD
+):
     variant = variant_with_many_stocks
     stocks = variant.stocks.all()
 
     line_data = OrderLineData(line=order_line, variant=order_line.variant, quantity=10)
     with pytest.raises(InsufficientStock):
-        allocate_stocks([line_data], COUNTRY_CODE)
+        allocate_stocks([line_data], COUNTRY_CODE, channel_USD.slug)
 
     assert not Allocation.objects.filter(
         order_line=order_line, stock__in=stocks
     ).exists()
 
 
-def test_allocate_stock_insufficient_stocks_for_multiply_lines(
-    order_line, variant_with_many_stocks, product
+def test_allocate_stock_insufficient_stocks_for_multiple_lines(
+    order_line, variant_with_many_stocks, product, channel_USD
 ):
     variant = variant_with_many_stocks
     stocks = variant.stocks.all()
@@ -152,7 +167,7 @@ def test_allocate_stock_insufficient_stocks_for_multiply_lines(
     )
 
     with pytest.raises(InsufficientStock) as exc:
-        allocate_stocks([line_data_1, line_data_2], COUNTRY_CODE)
+        allocate_stocks([line_data_1, line_data_2], COUNTRY_CODE, channel_USD.slug)
 
     assert set(item.variant for item in exc._excinfo[1].items) == {variant, variant_2}
 
@@ -274,6 +289,62 @@ def test_increase_stock_with_new_allocation(order_line, stock):
     assert allocation.quantity_allocated == 50
 
 
+@pytest.mark.parametrize("quantity", (19, 20))
+def test_increase_allocations(quantity, allocation):
+    order_line = allocation.order_line
+    order_line_info = OrderLineData(
+        line=order_line,
+        quantity=quantity,
+        variant=order_line.variant,
+        warehouse_pk=allocation.stock.warehouse.pk,
+    )
+    stock = allocation.stock
+    stock.quantity = 100
+    stock.save(update_fields=["quantity"])
+    initially_allocated = 80
+    allocation.quantity_allocated = initially_allocated
+    allocation.save(update_fields=["quantity_allocated"])
+
+    increase_allocations([order_line_info], order_line.order.channel.slug)
+
+    stock.refresh_from_db()
+    assert stock.quantity == 100
+    assert (
+        order_line.allocations.all().aggregate(Sum("quantity_allocated"))[
+            "quantity_allocated__sum"
+        ]
+        == initially_allocated + quantity
+    )
+
+
+def test_increase_allocation_insufficient_stock(allocation):
+    order_line = allocation.order_line
+    order_line_info = OrderLineData(
+        line=order_line,
+        quantity=21,
+        variant=order_line.variant,
+        warehouse_pk=allocation.stock.warehouse.pk,
+    )
+    stock = allocation.stock
+    stock.quantity = 100
+    stock.save(update_fields=["quantity"])
+    initially_allocated = 80
+    allocation.quantity_allocated = initially_allocated
+    allocation.save(update_fields=["quantity_allocated"])
+
+    with pytest.raises(InsufficientStock):
+        increase_allocations([order_line_info], order_line.order.channel.slug)
+
+    stock.refresh_from_db()
+    assert stock.quantity == 100
+    assert (
+        order_line.allocations.all().aggregate(Sum("quantity_allocated"))[
+            "quantity_allocated__sum"
+        ]
+        == initially_allocated
+    )
+
+
 def test_decrease_stock(allocation):
     stock = allocation.stock
     stock.quantity = 100
@@ -299,7 +370,34 @@ def test_decrease_stock(allocation):
     assert allocation.quantity_allocated == 30
 
 
-def test_decrease_stock_multiply_lines(allocations):
+@pytest.mark.parametrize("quantity, expected_allocated", ((50, 30), (200, 0)))
+def test_decrease_stock_without_stock_update(quantity, expected_allocated, allocation):
+    stock = allocation.stock
+    stock.quantity = 100
+    stock.save(update_fields=["quantity"])
+    allocation.quantity_allocated = 80
+    allocation.save(update_fields=["quantity_allocated"])
+    warehouse_pk = allocation.stock.warehouse.pk
+
+    decrease_stock(
+        [
+            OrderLineData(
+                line=allocation.order_line,
+                quantity=quantity,
+                variant=stock.product_variant,
+                warehouse_pk=warehouse_pk,
+            )
+        ],
+        update_stocks=False,
+    )
+
+    stock.refresh_from_db()
+    assert stock.quantity == 100
+    allocation.refresh_from_db()
+    assert allocation.quantity_allocated == expected_allocated
+
+
+def test_decrease_stock_multiple_lines(allocations):
     allocation_1 = allocations[0]
     allocation_2 = allocations[0]
 

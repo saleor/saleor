@@ -1,3 +1,6 @@
+default_app_config = "saleor.product.app.ProductAppConfig"
+
+
 class ProductMediaTypes:
     IMAGE = "IMAGE"
     VIDEO = "VIDEO"

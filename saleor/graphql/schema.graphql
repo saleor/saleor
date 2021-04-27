@@ -89,6 +89,7 @@ input AccountRegisterInput {
   password: String!
   redirectUrl: String
   languageCode: LanguageCodeEnum
+  metadata: [MetadataInput!]
 }
 
 type AccountRequestDeletion {
@@ -501,6 +502,7 @@ enum AttributeInputTypeEnum {
   MULTISELECT
   FILE
   REFERENCE
+  RICH_TEXT
 }
 
 type AttributeReorderValues {
@@ -579,6 +581,7 @@ type AttributeValue implements Node {
   inputType: AttributeInputTypeEnum
   reference: ID
   file: File
+  richText: JSONString
 }
 
 type AttributeValueBulkDelete {
@@ -597,6 +600,7 @@ type AttributeValueCreate {
 input AttributeValueCreateInput {
   name: String!
   value: String
+  richText: JSONString
 }
 
 type AttributeValueDelete {
@@ -612,6 +616,7 @@ input AttributeValueInput {
   file: String
   contentType: String
   references: [ID!]
+  richText: JSONString
 }
 
 type AttributeValueTranslatableContent implements Node {
@@ -630,7 +635,13 @@ type AttributeValueTranslate {
 type AttributeValueTranslation implements Node {
   id: ID!
   name: String!
+  richText: JSONString
   language: LanguageDisplay!
+}
+
+input AttributeValueTranslationInput {
+  name: String
+  richText: JSONString
 }
 
 type AttributeValueUpdate {
@@ -787,6 +798,7 @@ type Channel implements Node {
   slug: String!
   currencyCode: String!
   hasOrders: Boolean!
+  shippingZones: [ShippingZone!]!
 }
 
 type ChannelActivate {
@@ -806,6 +818,7 @@ input ChannelCreateInput {
   name: String!
   slug: String!
   currencyCode: String!
+  addShippingZones: [ID!]
 }
 
 type ChannelDeactivate {
@@ -828,6 +841,7 @@ type ChannelError {
   field: String
   message: String
   code: ChannelErrorCode!
+  shippingZones: [ID!]
 }
 
 enum ChannelErrorCode {
@@ -840,6 +854,7 @@ enum ChannelErrorCode {
   CHANNEL_TARGET_ID_MUST_BE_DIFFERENT
   CHANNELS_CURRENCY_MUST_BE_THE_SAME
   CHANNEL_WITH_ORDERS
+  DUPLICATED_INPUT_ITEM
 }
 
 type ChannelUpdate {
@@ -852,6 +867,8 @@ input ChannelUpdateInput {
   isActive: Boolean
   name: String
   slug: String
+  addShippingZones: [ID!]
+  removeShippingZones: [ID!]
 }
 
 type Checkout implements Node & ObjectWithMetadata {
@@ -979,6 +996,7 @@ enum CheckoutErrorCode {
   ZERO_QUANTITY
   MISSING_CHANNEL_SLUG
   CHANNEL_INACTIVE
+  UNAVAILABLE_VARIANT_IN_CHANNEL
 }
 
 type CheckoutLanguageCodeUpdate {
@@ -1823,30 +1841,9 @@ input DraftOrderInput {
   redirectUrl: String
 }
 
-type DraftOrderLineDelete {
-  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  order: Order
-  orderLine: OrderLine
-  orderErrors: [OrderError!]!
-}
-
-type DraftOrderLineUpdate {
-  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  order: Order
-  orderErrors: [OrderError!]!
-  orderLine: OrderLine
-}
-
 type DraftOrderLinesBulkDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   count: Int!
-  orderErrors: [OrderError!]!
-}
-
-type DraftOrderLinesCreate {
-  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  order: Order
-  orderLines: [OrderLine!]
   orderErrors: [OrderError!]!
 }
 
@@ -2643,7 +2640,7 @@ type Mutation {
   shippingPriceDelete(id: ID!): ShippingPriceDelete
   shippingPriceBulkDelete(ids: [ID]!): ShippingPriceBulkDelete
   shippingPriceUpdate(id: ID!, input: ShippingPriceInput!): ShippingPriceUpdate
-  shippingPriceTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): ShippingPriceTranslate
+  shippingPriceTranslate(id: ID!, input: ShippingPriceTranslationInput!, languageCode: LanguageCodeEnum!): ShippingPriceTranslate
   shippingPriceExcludeProducts(id: ID!, input: ShippingPriceExcludeProductsInput!): ShippingPriceExcludeProducts
   shippingPriceRemoveProductFromExclude(id: ID!, products: [ID]!): ShippingPriceRemoveProductFromExclude
   shippingZoneCreate(input: ShippingZoneCreateInput!): ShippingZoneCreate
@@ -2725,9 +2722,6 @@ type Mutation {
   draftOrderDelete(id: ID!): DraftOrderDelete
   draftOrderBulkDelete(ids: [ID]!): DraftOrderBulkDelete
   draftOrderLinesBulkDelete(ids: [ID]!): DraftOrderLinesBulkDelete
-  draftOrderLinesCreate(id: ID!, input: [OrderLineCreateInput]!): DraftOrderLinesCreate
-  draftOrderLineDelete(id: ID!): DraftOrderLineDelete
-  draftOrderLineUpdate(id: ID!, input: OrderLineInput!): DraftOrderLineUpdate
   draftOrderUpdate(id: ID!, input: DraftOrderInput!): DraftOrderUpdate
   orderAddNote(order: ID!, input: OrderAddNoteInput!): OrderAddNote
   orderCancel(id: ID!): OrderCancel
@@ -2738,6 +2732,9 @@ type Mutation {
   orderFulfillmentUpdateTracking(id: ID!, input: FulfillmentUpdateTrackingInput!): FulfillmentUpdateTracking
   orderFulfillmentRefundProducts(input: OrderRefundProductsInput!, order: ID!): FulfillmentRefundProducts
   orderFulfillmentReturnProducts(input: OrderReturnProductsInput!, order: ID!): FulfillmentReturnProducts
+  orderLinesCreate(id: ID!, input: [OrderLineCreateInput]!): OrderLinesCreate
+  orderLineDelete(id: ID!): OrderLineDelete
+  orderLineUpdate(id: ID!, input: OrderLineInput!): OrderLineUpdate
   orderDiscountAdd(input: OrderDiscountCommonInput!, orderId: ID!): OrderDiscountAdd
   orderDiscountUpdate(discountId: ID!, input: OrderDiscountCommonInput!): OrderDiscountUpdate
   orderDiscountDelete(discountId: ID!): OrderDiscountDelete
@@ -2822,7 +2819,7 @@ type Mutation {
   attributeValueCreate(attribute: ID!, input: AttributeValueCreateInput!): AttributeValueCreate
   attributeValueDelete(id: ID!): AttributeValueDelete
   attributeValueUpdate(id: ID!, input: AttributeValueCreateInput!): AttributeValueUpdate
-  attributeValueTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): AttributeValueTranslate
+  attributeValueTranslate(id: ID!, input: AttributeValueTranslationInput!, languageCode: LanguageCodeEnum!): AttributeValueTranslate
   attributeReorderValues(attributeId: ID!, moves: [ReorderInput]!): AttributeReorderValues
   appCreate(input: AppInput!): AppCreate
   appUpdate(id: ID!, input: AppInput!): AppUpdate
@@ -3168,8 +3165,8 @@ enum OrderEventsEmailsEnum {
 enum OrderEventsEnum {
   DRAFT_CREATED
   DRAFT_CREATED_FROM_REPLACE
-  DRAFT_ADDED_PRODUCTS
-  DRAFT_REMOVED_PRODUCTS
+  ADDED_PRODUCTS
+  REMOVED_PRODUCTS
   PLACED
   PLACED_FROM_DRAFT
   OVERSOLD_ITEMS
@@ -3268,6 +3265,13 @@ input OrderLineCreateInput {
   variantId: ID!
 }
 
+type OrderLineDelete {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  order: Order
+  orderLine: OrderLine
+  orderErrors: [OrderError!]!
+}
+
 type OrderLineDiscountRemove {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   orderLine: OrderLine
@@ -3284,6 +3288,20 @@ type OrderLineDiscountUpdate {
 
 input OrderLineInput {
   quantity: Int!
+}
+
+type OrderLineUpdate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  order: Order
+  orderErrors: [OrderError!]!
+  orderLine: OrderLine
+}
+
+type OrderLinesCreate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  order: Order
+  orderLines: [OrderLine!]
+  orderErrors: [OrderError!]!
 }
 
 type OrderMarkAsPaid {
@@ -4043,6 +4061,8 @@ input ProductChannelListingAddInput {
   visibleInListings: Boolean
   isAvailableForPurchase: Boolean
   availableForPurchaseDate: Date
+  addVariants: [ID!]
+  removeVariants: [ID!]
 }
 
 type ProductChannelListingError {
@@ -4052,6 +4072,7 @@ type ProductChannelListingError {
   attributes: [ID!]
   values: [ID!]
   channels: [ID!]
+  variants: [ID!]
 }
 
 type ProductChannelListingUpdate {
@@ -4061,7 +4082,7 @@ type ProductChannelListingUpdate {
 }
 
 input ProductChannelListingUpdateInput {
-  addChannels: [ProductChannelListingAddInput!]
+  updateChannels: [ProductChannelListingAddInput!]
   removeChannels: [ID!]
 }
 
@@ -4136,14 +4157,13 @@ enum ProductFieldEnum {
   DESCRIPTION
   PRODUCT_TYPE
   CATEGORY
-  VISIBLE
   PRODUCT_WEIGHT
   COLLECTIONS
   CHARGE_TAXES
-  PRODUCT_IMAGES
+  PRODUCT_MEDIA
   VARIANT_SKU
   VARIANT_WEIGHT
-  VARIANT_IMAGES
+  VARIANT_MEDIA
 }
 
 input ProductFilterInput {
@@ -4607,7 +4627,7 @@ type Query {
   shop: Shop!
   orderSettings: OrderSettings
   shippingZone(id: ID!, channel: String): ShippingZone
-  shippingZones(channel: String, before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
+  shippingZones(filter: ShippingZoneFilterInput, channel: String, before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
   digitalContent(id: ID!): DigitalContent
   digitalContents(before: String, after: String, first: Int, last: Int): DigitalContentCountableConnection
   categories(filter: CategoryFilterInput, sortBy: CategorySortingInput, level: Int, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
@@ -4886,6 +4906,7 @@ enum ShippingErrorCode {
 type ShippingMethod implements Node & ObjectWithMetadata {
   id: ID!
   name: String!
+  description: JSONString
   minimumOrderWeight: Weight
   maximumOrderWeight: Weight
   maximumDeliveryDays: Int
@@ -4938,6 +4959,7 @@ type ShippingMethodPostalCodeRule implements Node {
 type ShippingMethodTranslatableContent implements Node {
   id: ID!
   name: String!
+  description: JSONString
   translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
   shippingMethod: ShippingMethod
 }
@@ -4945,6 +4967,7 @@ type ShippingMethodTranslatableContent implements Node {
 type ShippingMethodTranslation implements Node {
   id: ID!
   name: String
+  description: JSONString
   language: LanguageDisplay!
 }
 
@@ -4990,6 +5013,7 @@ input ShippingPriceExcludeProductsInput {
 
 input ShippingPriceInput {
   name: String
+  description: JSONString
   minimumOrderWeight: WeightScalar
   maximumOrderWeight: WeightScalar
   maximumDeliveryDays: Int
@@ -5013,6 +5037,11 @@ type ShippingPriceTranslate {
   shippingMethod: ShippingMethod
 }
 
+input ShippingPriceTranslationInput {
+  name: String
+  description: JSONString
+}
+
 type ShippingPriceUpdate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   shippingZone: ShippingZone
@@ -5029,7 +5058,8 @@ type ShippingZone implements Node & ObjectWithMetadata {
   priceRange: MoneyRange
   countries: [CountryDisplay]
   shippingMethods: [ShippingMethod]
-  warehouses: [Warehouse]
+  warehouses: [Warehouse!]!
+  channels: [Channel!]!
   description: String
 }
 
@@ -5062,12 +5092,17 @@ input ShippingZoneCreateInput {
   countries: [String]
   default: Boolean
   addWarehouses: [ID]
+  addChannels: [ID!]
 }
 
 type ShippingZoneDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   shippingErrors: [ShippingError!]!
   shippingZone: ShippingZone
+}
+
+input ShippingZoneFilterInput {
+  search: String
 }
 
 type ShippingZoneUpdate {
@@ -5082,7 +5117,9 @@ input ShippingZoneUpdateInput {
   countries: [String]
   default: Boolean
   addWarehouses: [ID]
+  addChannels: [ID!]
   removeWarehouses: [ID]
+  removeChannels: [ID!]
 }
 
 type Shop {
@@ -5336,7 +5373,7 @@ input StockFilterInput {
 
 input StockInput {
   warehouse: ID!
-  quantity: Int
+  quantity: Int!
 }
 
 enum TaxRateType {

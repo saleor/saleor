@@ -9,7 +9,7 @@ from ..attribute.enums import AttributeTypeEnum
 from ..channel.filters import get_channel_slug_from_filter_data
 from ..core.filters import EnumFilter, MetadataFilterBase
 from ..core.types import ChannelFilterInputObjectType
-from ..core.utils import from_global_id_strict_type
+from ..core.utils import from_global_id_or_error
 from ..utils import get_user_or_app_from_context
 from ..utils.filters import filter_fields_containing_value
 
@@ -21,7 +21,7 @@ def filter_attributes_by_product_types(qs, field, value, requestor, channel_slug
     product_qs = Product.objects.visible_to_user(requestor, channel_slug)
 
     if field == "in_category":
-        category_id = from_global_id_strict_type(
+        _type, category_id = from_global_id_or_error(
             value, only_type="Category", field=field
         )
         category = Category.objects.filter(pk=category_id).first()
@@ -38,7 +38,7 @@ def filter_attributes_by_product_types(qs, field, value, requestor, channel_slug
             )
 
     elif field == "in_collection":
-        collection_id = from_global_id_strict_type(
+        _type, collection_id = from_global_id_or_error(
             value, only_type="Collection", field=field
         )
         product_qs = product_qs.filter(collections__id=collection_id)

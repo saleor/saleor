@@ -2,11 +2,13 @@ import graphene
 from graphene import relay
 
 from ...core.permissions import ShippingPermissions
+from ...core.tracing import traced_resolver
 from ...core.weight import convert_weight_to_default_weight_unit
 from ...shipping import models
 from ..channel import ChannelQsContext
 from ..channel.dataloaders import ChannelByIdLoader
 from ..channel.types import (
+    Channel,
     ChannelContext,
     ChannelContextType,
     ChannelContextTypeWithMetadata,
@@ -21,6 +23,7 @@ from ..translations.fields import TranslationField
 from ..translations.types import ShippingMethodTranslation
 from ..warehouse.types import Warehouse
 from .dataloaders import (
+    ChannelsByShippingZoneIdLoader,
     PostalCodeRulesByShippingMethodIdLoader,
     ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
     ShippingMethodChannelListingByShippingMethodIdLoader,
@@ -44,6 +47,7 @@ class ShippingMethodChannelListing(CountableDjangoObjectType):
         ]
 
     @staticmethod
+    @traced_resolver
     def resolve_channel(root: models.ShippingMethodChannelListing, info, **_kwargs):
         return ChannelByIdLoader(info.context).load(root.channel_id)
 
@@ -112,9 +116,11 @@ class ShippingMethod(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             "maximum_delivery_days",
             "minimum_delivery_days",
             "name",
+            "description",
         ]
 
     @staticmethod
+    @traced_resolver
     def resolve_price(root: ChannelContext[models.ShippingMethod], info, **_kwargs):
         # Price field are dynamically generated in available_shipping_methods resolver
         price = getattr(root.node, "price", None)
@@ -133,6 +139,7 @@ class ShippingMethod(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         )
 
     @staticmethod
+    @traced_resolver
     def resolve_maximum_order_price(
         root: ChannelContext[models.ShippingMethod], info, **_kwargs
     ):
@@ -148,6 +155,7 @@ class ShippingMethod(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         )
 
     @staticmethod
+    @traced_resolver
     def resolve_minimum_order_price(
         root: ChannelContext[models.ShippingMethod], info, **_kwargs
     ):
@@ -163,18 +171,21 @@ class ShippingMethod(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         )
 
     @staticmethod
+    @traced_resolver
     def resolve_maximum_order_weight(
         root: ChannelContext[models.ShippingMethod], *_args
     ):
         return convert_weight_to_default_weight_unit(root.node.maximum_order_weight)
 
     @staticmethod
+    @traced_resolver
     def resolve_postal_code_rules(
         root: ChannelContext[models.ShippingMethod], info, **_kwargs
     ):
         return PostalCodeRulesByShippingMethodIdLoader(info.context).load(root.node.id)
 
     @staticmethod
+    @traced_resolver
     def resolve_minimum_order_weight(
         root: ChannelContext[models.ShippingMethod], *_args
     ):
@@ -182,6 +193,7 @@ class ShippingMethod(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
+    @traced_resolver
     def resolve_channel_listings(
         root: ChannelContext[models.ShippingMethod], info, **_kwargs
     ):
@@ -191,6 +203,7 @@ class ShippingMethod(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
+    @traced_resolver
     def resolve_excluded_products(
         root: ChannelContext[models.ShippingMethod], _info, **_kwargs
     ):
@@ -212,7 +225,14 @@ class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         ),
     )
     warehouses = graphene.List(
-        Warehouse, description="List of warehouses for shipping zone."
+        graphene.NonNull(Warehouse),
+        description="List of warehouses for shipping zone.",
+        required=True,
+    )
+    channels = graphene.List(
+        graphene.NonNull(Channel),
+        description="List of channels for shipping zone.",
+        required=True,
     )
     description = graphene.String(description="Description of a shipping zone.")
 
@@ -228,10 +248,12 @@ class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         only_fields = ["default", "id", "name"]
 
     @staticmethod
+    @traced_resolver
     def resolve_price_range(root: ChannelContext[models.ShippingZone], *_args):
         return resolve_price_range(root.channel_slug)
 
     @staticmethod
+    @traced_resolver
     def resolve_countries(root: ChannelContext[models.ShippingZone], *_args):
         return [
             CountryDisplay(code=country.code, country=country.name)
@@ -239,6 +261,7 @@ class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         ]
 
     @staticmethod
+    @traced_resolver
     def resolve_shipping_methods(
         root: ChannelContext[models.ShippingZone], info, **_kwargs
     ):
@@ -264,5 +287,10 @@ class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         )
 
     @staticmethod
+    @traced_resolver
     def resolve_warehouses(root: ChannelContext[models.ShippingZone], *_args):
         return root.node.warehouses.all()
+
+    @staticmethod
+    def resolve_channels(root: ChannelContext[models.ShippingZone], info, **_kwargs):
+        return ChannelsByShippingZoneIdLoader(info.context).load(root.node.id)

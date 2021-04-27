@@ -86,6 +86,8 @@ from ...warehouse.management import increase_stock
 from ...warehouse.models import Stock, Warehouse
 
 fake = Factory.create()
+fake.seed(0)
+
 PRODUCTS_LIST_DIR = "products-list/"
 
 DUMMY_STAFF_PASSWORD = "password"
@@ -627,7 +629,7 @@ def create_order_lines(order, discounts, how_many=10):
 
 
 def create_fulfillments(order):
-    for line in order:
+    for line in order.lines.all():
         if random.choice([False, True]):
             fulfillment, _ = Fulfillment.objects.get_or_create(order=order)
             quantity = random.randrange(0, line.quantity) + 1
@@ -695,7 +697,7 @@ def create_fake_order(discounts, max_order_lines=5):
     lines = create_order_lines(order, discounts, random.randrange(1, max_order_lines))
     order.total = sum([line.total_price for line in lines], shipping_price)
     weight = Weight(kg=0)
-    for line in order:
+    for line in order.lines.all():
         weight += line.variant.get_weight()
     order.weight = weight
     order.save()
@@ -870,7 +872,8 @@ def create_shipping_zone(shipping_methods_names, countries, shipping_zone_name):
             for name in shipping_methods_names
         ]
     )
-    for channel in Channel.objects.all():
+    channels = Channel.objects.all()
+    for channel in channels:
         ShippingMethodChannelListing.objects.bulk_create(
             [
                 ShippingMethodChannelListing(
@@ -884,6 +887,7 @@ def create_shipping_zone(shipping_methods_names, countries, shipping_zone_name):
                 for shipping_method in shipping_methods
             ]
         )
+    shipping_zone.channels.add(*channels)
     return "Shipping Zone: %s" % shipping_zone
 
 

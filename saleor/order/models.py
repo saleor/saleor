@@ -13,19 +13,24 @@ from django.utils.timezone import now
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField, TaxedMoneyField
 from measurement.measures import Weight
-from prices import Money, TaxedMoney
+from prices import TaxedMoney
 
 from ..account.models import Address
 from ..channel.models import Channel
 from ..core.models import ModelWithMetadata
 from ..core.permissions import OrderPermissions
-from ..core.taxes import zero_money, zero_taxed_money
+from ..core.taxes import zero_taxed_money
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.weight import WeightUnits, zero_weight
 from ..discount import DiscountValueType
 from ..discount.models import Voucher
 from ..giftcard.models import GiftCard
 from ..payment import ChargeStatus, TransactionKind
+from ..payment.model_helpers import (
+    get_subtotal,
+    get_total_authorized,
+    get_total_captured,
+)
 from ..shipping.models import ShippingMethod
 from . import FulfillmentStatus, OrderEvents, OrderStatus
 
@@ -72,7 +77,7 @@ class OrderQueryset(models.QuerySet):
         return qs.distinct()
 
     def ready_to_confirm(self):
-        """Return unconfirmed_orders."""
+        """Return unconfirmed orders."""
         return self.filter(status=OrderStatus.UNCONFIRMED)
 
 
@@ -250,9 +255,6 @@ class Order(ModelWithMetadata):
     def _index_shipping_phone(self):
         return self.shipping_address.phone
 
-    def __iter__(self):
-        return iter(self.lines.all())
-
     def __repr__(self):
         return "<Order #%r>" % (self.id,)
 
@@ -261,18 +263,6 @@ class Order(ModelWithMetadata):
 
     def get_last_payment(self):
         return max(self.payments.all(), default=None, key=attrgetter("pk"))
-
-    def get_payment_status(self):
-        last_payment = self.get_last_payment()
-        if last_payment:
-            return last_payment.charge_status
-        return ChargeStatus.NOT_CHARGED
-
-    def get_payment_status_display(self):
-        last_payment = self.get_last_payment()
-        if last_payment:
-            return last_payment.get_charge_status_display()
-        return dict(ChargeStatus.CHOICES).get(ChargeStatus.NOT_CHARGED)
 
     def is_pre_authorized(self):
         return (
@@ -297,17 +287,19 @@ class Order(ModelWithMetadata):
         )
 
     def is_shipping_required(self):
-        return any(line.is_shipping_required for line in self)
+        return any(line.is_shipping_required for line in self.lines.all())
 
     def get_subtotal(self):
-        subtotal_iterator = (line.total_price for line in self)
-        return sum(subtotal_iterator, zero_taxed_money(currency=self.currency))
+        return get_subtotal(self.lines.all(), self.currency)
 
     def get_total_quantity(self):
-        return sum([line.quantity for line in self])
+        return sum([line.quantity for line in self.lines.all()])
 
     def is_draft(self):
         return self.status == OrderStatus.DRAFT
+
+    def is_unconfirmed(self):
+        return self.status == OrderStatus.UNCONFIRMED
 
     def is_open(self):
         statuses = {OrderStatus.UNFULFILLED, OrderStatus.PARTIALLY_FULFILLED}
@@ -349,26 +341,18 @@ class Order(ModelWithMetadata):
             return False
         return payment.can_refund()
 
-    def can_mark_as_paid(self):
-        return len(self.payments.all()) == 0
+    def can_mark_as_paid(self, payments=None):
+        if not payments:
+            payments = self.payments.all()
+        return len(payments) == 0
 
     @property
     def total_authorized(self):
-        payment = self.get_last_payment()
-        if payment:
-            return payment.get_authorized_amount()
-        return zero_money(self.currency)
+        return get_total_authorized(self.payments.all(), self.currency)
 
     @property
     def total_captured(self):
-        payment = self.get_last_payment()
-        if payment and payment.charge_status in (
-            ChargeStatus.PARTIALLY_CHARGED,
-            ChargeStatus.FULLY_CHARGED,
-            ChargeStatus.PARTIALLY_REFUNDED,
-        ):
-            return Money(payment.captured_amount, payment.currency)
-        return zero_money(self.currency)
+        return get_total_captured(self.payments.all(), self.currency)
 
     @property
     def total_balance(self):
@@ -559,7 +543,7 @@ class Fulfillment(ModelWithMetadata):
         return self.status != FulfillmentStatus.CANCELED
 
     def get_total_quantity(self):
-        return sum([line.quantity for line in self])
+        return sum([line.quantity for line in self.lines.all()])
 
     @property
     def is_tracking_number_url(self):

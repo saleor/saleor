@@ -10,7 +10,6 @@ from prices import Money
 
 from ..checkout.models import Checkout
 from ..core.taxes import zero_money
-from ..order.models import Order
 from . import ChargeStatus, CustomPaymentChoices, TransactionKind
 
 
@@ -56,7 +55,7 @@ class Payment(models.Model):
         Checkout, null=True, related_name="payments", on_delete=models.SET_NULL
     )
     order = models.ForeignKey(
-        Order, null=True, related_name="payments", on_delete=models.PROTECT
+        "order.Order", null=True, related_name="payments", on_delete=models.PROTECT
     )
 
     billing_email = models.EmailField(blank=True)

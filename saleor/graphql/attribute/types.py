@@ -3,6 +3,7 @@ import re
 import graphene
 
 from ...attribute import AttributeInputType, models
+from ...core.tracing import traced_resolver
 from ..core.connection import CountableDjangoObjectType
 from ..core.types import File
 from ..decorators import (
@@ -32,6 +33,9 @@ class AttributeValue(CountableDjangoObjectType):
     file = graphene.Field(
         File, description=AttributeValueDescriptions.FILE, required=False
     )
+    rich_text = graphene.JSONString(
+        description=AttributeValueDescriptions.RICH_TEXT, required=False
+    )
 
     class Meta:
         description = "Represents a value of an attribute."
@@ -40,17 +44,20 @@ class AttributeValue(CountableDjangoObjectType):
         model = models.AttributeValue
 
     @staticmethod
+    @traced_resolver
     @check_attribute_value_required_permissions()
     def resolve_input_type(root: models.AttributeValue, *_args):
         return root.input_type
 
     @staticmethod
+    @traced_resolver
     def resolve_file(root: models.AttributeValue, *_args):
         if not root.file_url:
             return
         return File(url=root.file_url, content_type=root.content_type)
 
     @staticmethod
+    @traced_resolver
     def resolve_reference(root: models.AttributeValue, info, **_kwargs):
         def prepare_reference(attribute):
             if attribute.input_type != AttributeInputType.REFERENCE:
@@ -112,6 +119,7 @@ class Attribute(CountableDjangoObjectType):
         model = models.Attribute
 
     @staticmethod
+    @traced_resolver
     def resolve_values(root: models.Attribute, info):
         return AttributeValuesByAttributeIdLoader(info.context).load(root.id)
 

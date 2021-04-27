@@ -507,16 +507,17 @@ def test_create_order_insufficient_stock(
     checkout, customer_user, product_without_shipping
 ):
     variant = product_without_shipping.variants.get()
-    add_variant_to_checkout(checkout, variant, 10, check_quantity=False)
+    manager = get_plugins_manager()
+    checkout_info = fetch_checkout_info(checkout, [], [], manager)
+
+    add_variant_to_checkout(checkout_info, variant, 10, check_quantity=False)
     checkout.user = customer_user
     checkout.billing_address = customer_user.default_billing_address
     checkout.shipping_address = customer_user.default_billing_address
     checkout.tracking_code = "tracking_code"
     checkout.save()
 
-    manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     with pytest.raises(InsufficientStock):
         _prepare_order_data(
             manager=manager,
@@ -755,12 +756,11 @@ def test_create_order_with_variant_tracking_false(
     checkout.tracking_code = ""
     checkout.redirect_url = "https://www.example.com"
     checkout.save()
-    add_variant_to_checkout(checkout, variant, 10, check_quantity=False)
-
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, [], [], manager)
+    add_variant_to_checkout(checkout_info, variant, 10, check_quantity=False)
 
+    lines = fetch_checkout_lines(checkout)
     order_data = _prepare_order_data(
         manager=manager, checkout_info=checkout_info, lines=lines, discounts=None
     )

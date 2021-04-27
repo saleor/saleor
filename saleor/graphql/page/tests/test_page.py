@@ -1312,6 +1312,41 @@ def test_update_page_with_file_attribute_new_value_is_not_created(
     assert updated_attribute in data["page"]["attributes"]
 
 
+def test_update_page_clear_values(staff_api_client, permission_manage_pages, page):
+    # given
+    query = UPDATE_PAGE_MUTATION
+
+    page_attr = page.attributes.first()
+    attribute = page_attr.assignment.attribute
+    attribute.value_required = False
+    attribute.save(update_fields=["value_required"])
+
+    page_file_attribute_id = graphene.Node.to_global_id("Attribute", attribute.pk)
+
+    page_id = graphene.Node.to_global_id("Page", page.id)
+
+    variables = {
+        "id": page_id,
+        "input": {"attributes": [{"id": page_file_attribute_id, "file": ""}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_pages]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["pageUpdate"]
+
+    assert not data["pageErrors"]
+    assert data["page"]
+    assert not data["page"]["attributes"][0]["values"]
+
+    with pytest.raises(page_attr._meta.model.DoesNotExist):
+        page_attr.refresh_from_db()
+
+
 def test_update_page_with_page_reference_attribute_new_value(
     staff_api_client,
     permission_manage_pages,

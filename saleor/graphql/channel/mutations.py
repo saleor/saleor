@@ -10,10 +10,12 @@ from ...channel import models
 from ...checkout.models import Checkout
 from ...core.permissions import ChannelPermissions
 from ...order.models import Order
+from ...shipping.tasks import drop_invalid_shipping_methods_relations_for_given_channels
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import ChannelError, ChannelErrorCode
 from ..core.utils import get_duplicated_values, get_duplicates_ids
 from ..utils import resolve_global_ids_to_primary_keys
+from ..utils.validators import check_for_duplicates
 from .types import Channel
 
 
@@ -26,6 +28,11 @@ class ChannelCreateInput(ChannelInput):
     slug = graphene.String(description="Slug of the channel.", required=True)
     currency_code = graphene.String(
         description="Currency of the channel.", required=True
+    )
+    add_shipping_zones = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of shipping zones to assign to the channel.",
+        required=False,
     )
 
 
@@ -55,10 +62,28 @@ class ChannelCreate(ModelMutation):
 
         return cleaned_input
 
+    @classmethod
+    @transaction.atomic
+    def _save_m2m(cls, info, instance, cleaned_data):
+        super()._save_m2m(info, instance, cleaned_data)
+        shipping_zones = cleaned_data.get("add_shipping_zones")
+        if shipping_zones:
+            instance.shipping_zones.add(*shipping_zones)
+
 
 class ChannelUpdateInput(ChannelInput):
     name = graphene.String(description="Name of the channel.")
     slug = graphene.String(description="Slug of the channel.")
+    add_shipping_zones = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of shipping zones to assign to the channel.",
+        required=False,
+    )
+    remove_shipping_zones = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of shipping zones to unassign from the channel.",
+        required=False,
+    )
 
 
 class ChannelUpdate(ModelMutation):
@@ -77,12 +102,40 @@ class ChannelUpdate(ModelMutation):
 
     @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
+        error = check_for_duplicates(
+            data, "add_shipping_zones", "remove_shipping_zones", "shipping_zones"
+        )
+        if error:
+            error.code = ChannelErrorCode.DUPLICATED_INPUT_ITEM.value
+            raise ValidationError({"shipping_zones": error})
+
         cleaned_input = super().clean_input(info, instance, data)
         slug = cleaned_input.get("slug")
         if slug:
             cleaned_input["slug"] = slugify(slug)
 
         return cleaned_input
+
+    @classmethod
+    @transaction.atomic
+    def _save_m2m(cls, info, instance, cleaned_data):
+        super()._save_m2m(info, instance, cleaned_data)
+        add_shipping_zones = cleaned_data.get("add_shipping_zones")
+        if add_shipping_zones:
+            instance.shipping_zones.add(*add_shipping_zones)
+        remove_shipping_zones = cleaned_data.get("remove_shipping_zones")
+        if remove_shipping_zones:
+            instance.shipping_zones.remove(*remove_shipping_zones)
+            shipping_channel_listings = instance.shipping_method_listings.filter(
+                shipping_method__shipping_zone__in=remove_shipping_zones
+            )
+            shipping_method_ids = list(
+                shipping_channel_listings.values_list("shipping_method_id", flat=True)
+            )
+            shipping_channel_listings.delete()
+            drop_invalid_shipping_methods_relations_for_given_channels.delay(
+                shipping_method_ids, [instance.id]
+            )
 
 
 class ChannelDeleteInput(graphene.InputObjectType):
@@ -230,15 +283,17 @@ class BaseChannelListingMutation(BaseMutation):
             )
 
     @classmethod
-    def clean_channels(cls, info, input, errors: ErrorType, error_code) -> Dict:
-        add_channels = input.get("add_channels", [])
+    def clean_channels(
+        cls, info, input, errors: ErrorType, error_code, input_source="add_channels"
+    ) -> Dict:
+        add_channels = input.get(input_source, [])
         add_channels_ids = [channel["channel_id"] for channel in add_channels]
         remove_channels_ids = input.get("remove_channels", [])
         cls.validate_duplicated_channel_ids(
             add_channels_ids, remove_channels_ids, errors, error_code
         )
         cls.validate_duplicated_channel_values(
-            add_channels_ids, "add_channels", errors, error_code
+            add_channels_ids, input_source, errors, error_code
         )
         cls.validate_duplicated_channel_values(
             remove_channels_ids, "remove_channels", errors, error_code
@@ -255,17 +310,17 @@ class BaseChannelListingMutation(BaseMutation):
             remove_channels_ids, Channel
         )
 
-        cleaned_input = {"add_channels": [], "remove_channels": remove_channels_pks}
+        cleaned_input = {input_source: [], "remove_channels": remove_channels_pks}
 
         for channel_listing, channel in zip(add_channels, channels_to_add):
             channel_listing["channel"] = channel
-            cleaned_input["add_channels"].append(channel_listing)
+            cleaned_input[input_source].append(channel_listing)
 
         return cleaned_input
 
     @classmethod
-    def clean_publication_date(cls, cleaned_input):
-        for add_channel in cleaned_input.get("add_channels", []):
+    def clean_publication_date(cls, cleaned_input, input_source="add_channels"):
+        for add_channel in cleaned_input.get(input_source, []):
             is_published = add_channel.get("is_published")
             publication_date = add_channel.get("publication_date")
             if is_published and not publication_date:

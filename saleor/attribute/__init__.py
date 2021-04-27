@@ -1,3 +1,6 @@
+default_app_config = "saleor.attribute.app.AttributeAppConfig"
+
+
 class AttributeInputType:
     """The type that we expect to render the attribute's values as."""
 
@@ -5,12 +8,14 @@ class AttributeInputType:
     MULTISELECT = "multiselect"
     FILE = "file"
     REFERENCE = "reference"
+    RICH_TEXT = "rich-text"
 
     CHOICES = [
         (DROPDOWN, "Dropdown"),
         (MULTISELECT, "Multi Select"),
         (FILE, "File"),
         (REFERENCE, "Reference"),
+        (RICH_TEXT, "Rich Text"),
     ]
     # list of the input types that can be used in variant selection
     ALLOWED_IN_VARIANT_SELECTION = [DROPDOWN]

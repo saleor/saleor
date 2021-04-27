@@ -1,6 +1,7 @@
 import graphene
 
 from ...core.permissions import ProductPermissions
+from ...core.tracing import traced_resolver
 from ...csv import models
 from ..core.fields import FilterInputConnectionField
 from ..decorators import permission_required
@@ -26,10 +27,12 @@ class CsvQueries(graphene.ObjectType):
     )
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
+    @traced_resolver
     def resolve_export_file(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, ExportFile)
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
+    @traced_resolver
     def resolve_export_files(self, info, query=None, sort_by=None, **kwargs):
         return models.ExportFile.objects.all()
 

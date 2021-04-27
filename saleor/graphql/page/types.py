@@ -3,6 +3,7 @@ from graphene_federation import key
 
 from ...attribute import models as attribute_models
 from ...core.permissions import PagePermissions
+from ...core.tracing import traced_resolver
 from ...page import models
 from ..attribute.filters import AttributeFilterInput
 from ..attribute.types import Attribute, SelectedAttribute
@@ -56,15 +57,18 @@ class Page(CountableDjangoObjectType):
         model = models.Page
 
     @staticmethod
+    @traced_resolver
     def resolve_page_type(root: models.Page, info):
         return PageTypeByIdLoader(info.context).load(root.page_type_id)
 
     @staticmethod
+    @traced_resolver
     def resolve_content_json(root: models.Page, info):
         content = root.content
         return content if content is not None else {}
 
     @staticmethod
+    @traced_resolver
     def resolve_attributes(root: models.Page, info):
         return SelectedAttributesByPageIdLoader(info.context).load(root.id)
 
@@ -91,11 +95,13 @@ class PageType(CountableDjangoObjectType):
         only_fields = ["id", "name", "slug"]
 
     @staticmethod
+    @traced_resolver
     def resolve_attributes(root: models.PageType, info):
         return PageAttributesByPageTypeIdLoader(info.context).load(root.pk)
 
     @staticmethod
     @permission_required(PagePermissions.MANAGE_PAGES)
+    @traced_resolver
     def resolve_available_attributes(root: models.PageType, info, **kwargs):
         return attribute_models.Attribute.objects.get_unassigned_page_type_attributes(
             root.pk
@@ -103,6 +109,7 @@ class PageType(CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(PagePermissions.MANAGE_PAGES)
+    @traced_resolver
     def resolve_has_pages(root: models.PageType, info, **kwargs):
         return (
             PagesByPageTypeIdLoader(info.context)

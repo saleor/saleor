@@ -5,18 +5,20 @@ from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple, Union
 import graphene
 from django.core.exceptions import ValidationError
 from django.db.models import Q
+from django.template.defaultfilters import truncatechars
 from django.utils.text import slugify
 from graphql.error import GraphQLError
-from graphql_relay import from_global_id
 
 from ...attribute import AttributeEntityType, AttributeInputType, AttributeType
 from ...attribute import models as attribute_models
 from ...attribute.utils import associate_attribute_values_to_instance
 from ...core.utils import generate_unique_slug
+from ...core.utils.editorjs import clean_editor_js
 from ...page import models as page_models
 from ...page.error_codes import PageErrorCode
 from ...product import models as product_models
 from ...product.error_codes import ProductErrorCode
+from ..core.utils import from_global_id_or_error
 from ..utils import get_nodes
 
 if TYPE_CHECKING:
@@ -32,6 +34,7 @@ class AttrValuesInput:
     references: Union[List[str], List[page_models.Page]]
     file_url: Optional[str] = None
     content_type: Optional[str] = None
+    rich_text: Optional[dict] = None
 
 
 T_INSTANCE = Union[
@@ -115,12 +118,9 @@ class AttributeAssignmentMixin:
     @classmethod
     def _resolve_attribute_global_id(cls, error_class, global_id: str) -> int:
         """Resolve an Attribute global ID into an internal ID (int)."""
-        graphene_type, internal_id = from_global_id(global_id)  # type: str, str
-        if graphene_type != "Attribute":
-            raise ValidationError(
-                f"Must receive an Attribute id, got {graphene_type}.",
-                code=error_class.INVALID.value,
-            )
+        graphene_type, internal_id = from_global_id_or_error(
+            global_id, only_type="Attribute"
+        )
         if not internal_id.isnumeric():
             raise ValidationError(
                 f"An invalid ID value was passed: {global_id}",
@@ -186,9 +186,9 @@ class AttributeAssignmentMixin:
         if not file_url:
             return tuple()
         name = file_url.split("/")[-1]
-        # don't create ne value when assignment already exists
+        # don't create new value when assignment already exists
         value = cls._get_assigned_attribute_value_if_exists(
-            instance, attribute, attr_value.file_url
+            instance, attribute, "file_url", attr_value.file_url
         )
         if value is None:
             value = attribute_models.AttributeValue(
@@ -203,15 +203,19 @@ class AttributeAssignmentMixin:
 
     @classmethod
     def _get_assigned_attribute_value_if_exists(
-        cls, instance: T_INSTANCE, attribute: attribute_models.Attribute, file_url
+        cls,
+        instance: T_INSTANCE,
+        attribute: attribute_models.Attribute,
+        lookup_field: str,
+        value,
     ):
         assignment = instance.attributes.filter(
-            assignment__attribute=attribute, values__file_url=file_url
+            assignment__attribute=attribute, **{f"values__{lookup_field}": value}
         ).first()
         return (
             None
             if assignment is None
-            else assignment.values.filter(file_url=file_url).first()
+            else assignment.values.filter(**{lookup_field: value}).first()
         )
 
     @classmethod
@@ -253,6 +257,29 @@ class AttributeAssignmentMixin:
             raise ValidationError(errors)
 
     @classmethod
+    def _pre_save_rich_text_values(
+        cls,
+        instance: T_INSTANCE,
+        attribute: attribute_models.Attribute,
+        attr_values: AttrValuesInput,
+    ):
+        """Lazy-retrieve or create the database object from the supplied raw value."""
+        value_model = attribute.values.model
+        slug = slugify(f"{instance.id}_{attribute.id}", allow_unicode=True)
+        value = value_model.objects.update_or_create(
+            attribute=attribute,
+            slug=slug,
+            defaults={
+                "rich_text": attr_values.rich_text,
+                "name": truncatechars(
+                    clean_editor_js(attr_values.rich_text, to_string=True), 50
+                ),
+            },
+        )[0]
+
+        return (value,)
+
+    @classmethod
     def clean_input(
         cls,
         raw_input: dict,
@@ -290,6 +317,7 @@ class AttributeAssignmentMixin:
                 file_url=attribute_input.get("file"),
                 content_type=attribute_input.get("content_type"),
                 references=attribute_input.get("references", []),
+                rich_text=attribute_input.get("rich_text"),
             )
 
             if global_id:
@@ -370,6 +398,7 @@ class AttributeAssignmentMixin:
         :param instance: the product or variant to associate the attribute against.
         :param cleaned_input: the cleaned user input (refer to clean_attributes)
         """
+        clean_assignment = []
         for attribute, attr_values in cleaned_input:
             if attribute.input_type == AttributeInputType.FILE:
                 attribute_values = cls._pre_save_file_value(
@@ -379,11 +408,24 @@ class AttributeAssignmentMixin:
                 attribute_values = cls._pre_save_reference_values(
                     instance, attribute, attr_values
                 )
+            elif attribute.input_type == AttributeInputType.RICH_TEXT:
+                attribute_values = cls._pre_save_rich_text_values(
+                    instance, attribute, attr_values
+                )
             else:
                 attribute_values = cls._pre_save_values(attribute, attr_values)
+
             associate_attribute_values_to_instance(
                 instance, attribute, *attribute_values
             )
+            if not attribute_values:
+                clean_assignment.append(attribute.pk)
+
+        # drop attribute assignment model when values are unassigned from instance
+        if clean_assignment:
+            instance.attributes.filter(
+                assignment__attribute_id__in=clean_assignment
+            ).delete()
 
 
 def get_variant_selection_attributes(qs: "QuerySet"):
@@ -425,6 +467,12 @@ class AttributeInputErrors:
         "REQUIRED",
     )
 
+    # text errors
+    ERROR_MAX_LENGTH = (
+        "Attribute value length is exceeded.",
+        "INVALID",
+    )
+
 
 def validate_attributes_input(
     input_data: List[Tuple["Attribute", "AttrValuesInput"]],
@@ -452,6 +500,8 @@ def validate_attributes_input(
             validate_file_attributes_input(*attrs)
         elif attribute.input_type == AttributeInputType.REFERENCE:
             validate_reference_attributes_input(*attrs)
+        elif attribute.input_type == AttributeInputType.RICH_TEXT:
+            validate_rich_text_attributes_input(*attrs)
         # validation for other input types
         else:
             validate_standard_attributes_input(*attrs)
@@ -503,6 +553,19 @@ def validate_reference_attributes_input(
             )
 
 
+def validate_rich_text_attributes_input(
+    attribute: "Attribute",
+    attr_values: "AttrValuesInput",
+    attribute_errors: T_ERROR_DICT,
+    variant_validation: bool,
+):
+    attribute_id = attr_values.global_id
+    text = clean_editor_js(attr_values.rich_text or {}, to_string=True)
+
+    if not text.strip() and attribute.value_required:
+        attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(attribute_id)
+
+
 def validate_standard_attributes_input(
     attribute: "Attribute",
     attr_values: "AttrValuesInput",
@@ -510,6 +573,8 @@ def validate_standard_attributes_input(
     variant_validation: bool,
 ):
     attribute_id = attr_values.global_id
+    name_field = attribute.values.model.name.field  # type: ignore
+
     if not attr_values.values:
         if attribute.value_required or (
             variant_validation and is_variant_selection_attribute(attribute)
@@ -524,11 +589,14 @@ def validate_standard_attributes_input(
         attribute_errors[
             AttributeInputErrors.ERROR_DROPDOWN_GET_MORE_THAN_ONE_VALUE
         ].append(attribute_id)
+
     for value in attr_values.values:
         if value is None or not value.strip():
             attribute_errors[AttributeInputErrors.ERROR_BLANK_VALUE].append(
                 attribute_id
             )
+        elif len(value) > name_field.max_length:
+            attribute_errors[AttributeInputErrors.ERROR_MAX_LENGTH].append(attribute_id)
 
 
 def is_variant_selection_attribute(attribute: attribute_models.Attribute):

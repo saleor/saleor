@@ -1,3 +1,5 @@
+import json
+
 import graphene
 import pytest
 from django.contrib.auth.models import Permission
@@ -403,7 +405,9 @@ def test_attribute_translation(user_api_client, color_attribute):
 
 
 def test_attribute_value_translation(user_api_client, pink_attribute_value):
-    pink_attribute_value.translations.create(language_code="pl", name="Różowy")
+    pink_attribute_value.translations.create(
+        language_code="pl", name="Różowy", rich_text=dummy_editorjs("Pink")
+    )
 
     query = """
     query {
@@ -413,6 +417,7 @@ def test_attribute_value_translation(user_api_client, pink_attribute_value):
                     values {
                         translation(languageCode: PL) {
                             name
+                            richText
                             language {
                                 code
                             }
@@ -434,6 +439,9 @@ def test_attribute_value_translation(user_api_client, pink_attribute_value):
 
     attribute_value = data["attributes"]["edges"][0]["node"]["values"][-1]
     assert attribute_value["translation"]["name"] == "Różowy"
+    assert attribute_value["translation"]["richText"] == json.dumps(
+        dummy_editorjs("Pink")
+    )
     assert attribute_value["translation"]["language"]["code"] == "PL"
 
 
@@ -1362,13 +1370,16 @@ def test_shipping_method_create_translation(
     staff_api_client, shipping_method, permission_manage_translations
 ):
     query = """
-    mutation shippingPriceTranslate($shippingMethodId: ID!) {
+    mutation shippingPriceTranslate(
+        $shippingMethodId: ID!, $input: ShippingPriceTranslationInput!
+    ) {
         shippingPriceTranslate(
                 id: $shippingMethodId, languageCode: PL,
-                input: {name: "DHL PL"}) {
+                input: $input) {
             shippingMethod {
                 translation(languageCode: PL) {
                     name
+                    description
                     language {
                         code
                     }
@@ -1381,14 +1392,20 @@ def test_shipping_method_create_translation(
     shipping_method_id = graphene.Node.to_global_id(
         "ShippingMethod", shipping_method.id
     )
+    description = dummy_editorjs("description", True)
+    variables = {
+        "shippingMethodId": shipping_method_id,
+        "input": {"name": "DHL PL", "description": description},
+    }
     response = staff_api_client.post_graphql(
         query,
-        {"shippingMethodId": shipping_method_id},
+        variables,
         permissions=[permission_manage_translations],
     )
     data = get_graphql_content(response)["data"]["shippingPriceTranslate"]
 
     assert data["shippingMethod"]["translation"]["name"] == "DHL PL"
+    assert data["shippingMethod"]["translation"]["description"] == description
     assert data["shippingMethod"]["translation"]["language"]["code"] == "PL"
 
 
@@ -1949,6 +1966,7 @@ QUERY_TRANSLATION_SHIPPING_METHOD = """
             ...on ShippingMethodTranslatableContent{
                 id
                 name
+                description
                 translation(languageCode: $languageCode){
                     name
                 }
@@ -1992,6 +2010,7 @@ def test_translation_query_shipping_method(
     content = get_graphql_content(response, ignore_errors=True)
     data = content["data"]["translation"]
     assert data["name"] == shipping_method.name
+    assert data["description"] == shipping_method.description
     assert data["translation"]["name"] == shipping_method_translation_fr.name
     if return_shipping_method:
         assert data["shippingMethod"]["name"] == shipping_method.name

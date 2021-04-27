@@ -265,7 +265,18 @@ def generate_product_payload(product: "Product"):
             ),
         },
         extra_dict_data={
-            "attributes": serialize_product_or_variant_attributes(product)
+            "attributes": serialize_product_or_variant_attributes(product),
+            "media": [
+                {
+                    "alt": media_obj.alt,
+                    "url": (
+                        build_absolute_uri(media_obj.image.url)
+                        if media_obj.type == ProductMediaTypes.IMAGE
+                        else media_obj.external_url
+                    ),
+                }
+                for media_obj in product.media.all()
+            ],
         },
     )
     return product_payload
@@ -354,7 +365,8 @@ def generate_fulfillment_payload(fulfillment: Fulfillment):
 
     # fulfillment fields to serialize
     fulfillment_fields = ("status", "tracking_code", "order__user_email")
-    order_country = get_order_country(fulfillment.order)
+    order = fulfillment.order
+    order_country = get_order_country(order)
     fulfillment_line = fulfillment.lines.first()
     if fulfillment_line and fulfillment_line.stock:
         warehouse = fulfillment_line.stock.warehouse
@@ -430,7 +442,7 @@ def _generate_sample_order_payload(event_name):
 
 def generate_sample_payload(event_name: str) -> Optional[dict]:
     checkout_events = [
-        WebhookEventType.CHECKOUT_UPADTED,
+        WebhookEventType.CHECKOUT_UPDATED,
         WebhookEventType.CHECKOUT_CREATED,
     ]
     pages_events = [
