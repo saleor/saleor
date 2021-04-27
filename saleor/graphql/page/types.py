@@ -20,6 +20,18 @@ from .dataloaders import (
 )
 from ..store.types import Store
 
+@key(fields="id")
+class PageMedia(CountableDjangoObjectType):
+    class Meta:
+        description = "Represents a product media."
+        fields = ["alt", "id", "sort_order", "type"]
+        interfaces = [graphene.relay.Node]
+        model = models.PageMedia
+
+    @staticmethod
+    def __resolve_reference(root, _info, **_kwargs):
+        return graphene.Node.get_node_from_global_id(_info, root.id)
+
 class Page(CountableDjangoObjectType):
     content_json = graphene.JSONString(
         description="Content of the page (JSON).",
@@ -33,6 +45,11 @@ class Page(CountableDjangoObjectType):
         graphene.NonNull(SelectedAttribute),
         required=True,
         description="List of attributes assigned to this product.",
+    )
+    media_by_id = graphene.Field(
+        graphene.NonNull(lambda: PageMedia),
+        id=graphene.Argument(graphene.ID, description="ID of a page media."),
+        description="Get a single page media by ID.",
     )
     store = graphene.Field(
         Store,

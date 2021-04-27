@@ -20,9 +20,10 @@ class Post(CountableDjangoObjectType):
         description="The post content.",
         required=True,
     )
-    media = graphene.List(
+    media_by_id = graphene.Field(
         graphene.NonNull(lambda: PostMedia),
-        description="List of media for the post.",
+        id=graphene.Argument(graphene.ID, description="ID of a page media."),
+        description="Get a single page media by ID.",
     )
 
     class Meta:
@@ -38,28 +39,11 @@ class Post(CountableDjangoObjectType):
 
 @key(fields="id")
 class PostMedia(CountableDjangoObjectType):
-    url = graphene.String(
-        required=True,
-        description="The URL of the media.",
-        size=graphene.Int(description="Size of the image."),
-    )
-
     class Meta:
         description = "Represents a product media."
         fields = ["alt", "id", "sort_order", "type"]
         interfaces = [graphene.relay.Node]
         model = models.PostMedia
-
-    @staticmethod
-    def resolve_url(root: models.PostMedia, info, *, size=None):
-        if root.external_url:
-            return root.external_url
-
-        if size:
-            url = get_thumbnail(root.image, size, method="thumbnail")
-        else:
-            url = root.image.url
-        return info.context.build_absolute_uri(url)
 
     @staticmethod
     def __resolve_reference(root, _info, **_kwargs):

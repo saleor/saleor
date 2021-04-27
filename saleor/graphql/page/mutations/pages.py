@@ -11,11 +11,22 @@ from ....core.permissions import PagePermissions, PageTypePermissions
 from ....page import models
 from ....page.error_codes import PageErrorCode
 from ...attribute.utils import AttributeAssignmentMixin
-from ...core.mutations import ModelDeleteMutation, ModelMutation
+from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types.common import PageError, SeoInput
 from ...core.utils import clean_seo_fields, validate_slug_and_generate_if_needed
 from ...product.mutations.products import AttributeValueInput
 from ...utils.validators import check_for_duplicates
+from ...core.types import SeoInput, Upload
+from ....product import ProductMediaTypes
+from ..types import Page, PageMedia
+from ...channel import ChannelContext
+from ...core.utils import (
+    clean_seo_fields,
+    from_global_id_strict_type,
+    get_duplicated_values,
+    validate_image_file,
+)
+
 
 if TYPE_CHECKING:
     from ....attribute.models import Attribute
@@ -300,3 +311,161 @@ class PageTypeDelete(ModelDeleteMutation):
         permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
         error_type_class = PageError
         error_type_field = "page_errors"
+
+class PageMediaCreateInput(graphene.InputObjectType):
+    alt = graphene.String(description="Alt text for a page media.")
+    image = Upload(
+        required=False, description="Represents an image file in a multipart request."
+    )
+    page = graphene.ID(
+        required=True, description="ID of a page.", name="page"
+    )
+
+
+class PageMediaCreate(BaseMutation):
+    page = graphene.Field(Page)
+    media = graphene.Field(PageMedia)
+
+    class Arguments:
+        input = PageMediaCreateInput(
+            required=True, description="Fields required to create a product media."
+        )
+
+    class Meta:
+        description = (
+            "Create a media object (image or video URL) associated with product. "
+            "For image, this mutation must be sent as a `multipart` request. "
+            "More detailed specs of the upload format can be found here: "
+            "https://github.com/jaydenseric/graphql-multipart-request-spec"
+        )
+        permissions = (PagePermissions.MANAGE_PAGES,)
+        error_type_class = PageError
+        error_type_field = "page_errors"
+
+    @classmethod
+    def validate_input(cls, data):
+        image = data.get("image")
+        
+        if not image:
+            raise ValidationError(
+                {
+                    "input": ValidationError(
+                        "Image is required.",
+                        code=PageErrorCode.REQUIRED,
+                    )
+                }
+            )
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        data = data.get("input")
+        cls.validate_input(data)
+        page = cls.get_node_or_error(
+            info, data["page"], field="page", only_type=Page
+        )
+
+        alt = data.get("alt", "")
+        image = data.get("image")
+
+        if image:
+            image_data = info.context.FILES.get(image)
+            validate_image_file(image_data, "image")
+            media = page.media.create(
+                image=image_data, alt=alt, type=ProductMediaTypes.IMAGE
+            )            
+
+        page = ChannelContext(node=page, channel_slug=None)
+        return PageMediaCreate(page=page, media=media)
+
+
+class PageMediaUpdateInput(graphene.InputObjectType):
+    alt = graphene.String(description="Alt text for a page media.")
+
+
+class PageMediaUpdate(BaseMutation):
+    page = graphene.Field(Page)
+    media = graphene.Field(PageMedia)
+
+    class Arguments:
+        id = graphene.ID(required=True, description="ID of a page media to update.")
+        input = PageMediaUpdateInput(
+            required=True, description="Fields required to update a page media."
+        )
+
+    class Meta:
+        description = "Updates a page media."
+        permissions = (PagePermissions.MANAGE_PAGES,)
+        error_type_class = PageError
+        error_type_field = "page_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        media = cls.get_node_or_error(info, data.get("id"), only_type=PageMedia)
+        page = media.page
+        alt = data.get("input").get("alt")
+        if alt is not None:
+            media.alt = alt
+            media.save(update_fields=["alt"])
+        page = ChannelContext(node=page, channel_slug=None)
+        return PageMediaUpdate(product=page, media=media)
+
+
+class PageMediaReorder(BaseMutation):
+    page = graphene.Field(Page)
+    media = graphene.List(graphene.NonNull(PageMedia))
+
+    class Arguments:
+        page_id = graphene.ID(
+            required=True,
+            description="ID of page that media order will be altered.",
+        )
+        media_ids = graphene.List(
+            graphene.ID,
+            required=True,
+            description="IDs of a product media in the desired order.",
+        )
+
+    class Meta:
+        description = "Changes ordering of the product media."
+        permissions = (PagePermissions.MANAGE_PAGES,)
+        error_type_class = PageError
+        error_type_field = "page_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, post_id, media_ids):
+        page = cls.get_node_or_error(
+            info, post_id, field="post_id", only_type=Page
+        )
+        if len(media_ids) != page.media.count():
+            raise ValidationError(
+                {
+                    "order": ValidationError(
+                        "Incorrect number of media IDs provided.",
+                        code=PageErrorCode.INVALID,
+                    )
+                }
+            )
+
+        ordered_media = []
+        for media_id in media_ids:
+            media = cls.get_node_or_error(
+                info, media_id, field="order", only_type=PageMedia
+            )
+            if media and media.page != page:
+                raise ValidationError(
+                    {
+                        "order": ValidationError(
+                            "Media %(media_id)s does not belong to this product.",
+                            code=PageErrorCode.INVALID,
+                            params={"media_id": media_id},
+                        )
+                    }
+                )
+            ordered_media.append(media)
+
+        for order, media in enumerate(ordered_media):
+            media.sort_order = order
+            media.save(update_fields=["sort_order"])
+
+        page = ChannelContext(node=page, channel_slug=None)
+        return PageMediaReorder(page=page, media=ordered_media)

@@ -17,6 +17,9 @@ from .mutations.pages import (
     PageTypeDelete,
     PageTypeUpdate,
     PageUpdate,
+    PageMediaCreate,
+    PageMediaUpdate,
+    PageMediaReorder,
 )
 from .resolvers import (
     resolve_page,
@@ -95,3 +98,8 @@ class PageMutations(graphene.ObjectType):
     page_attribute_unassign = PageAttributeUnassign.Field()
     page_type_reorder_attributes = PageTypeReorderAttributes.Field()
     page_reorder_attribute_values = PageReorderAttributeValues.Field()
+
+    # page media mutations
+    page_media_create = PageMediaCreate.Field()
+    page_media_update = PageMediaUpdate.Field()
+    page_media_reorder = PageMediaReorder.Field()
