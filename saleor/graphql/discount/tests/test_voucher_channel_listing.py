@@ -7,7 +7,7 @@ from ...tests.utils import assert_no_permission, get_graphql_content
 VOUCHER_CHANNEL_LISTING_UPDATE_MUTATION = """
 mutation UpdateVoucherChannelListing($id: ID!, $input: VoucherChannelListingInput!) {
     voucherChannelListingUpdate(id: $id, input: $input) {
-        discountErrors {
+        errors {
             field
             message
             code
@@ -57,7 +57,7 @@ def test_voucher_channel_listing_create_as_staff(
 
     # then
     data = content["data"]["voucherChannelListingUpdate"]["voucher"]
-    assert not content["data"]["voucherChannelListingUpdate"]["discountErrors"]
+    assert not content["data"]["voucherChannelListingUpdate"]["errors"]
     channel_listing = data["channelListings"]
     assert channel_listing[0]["channel"]["slug"] == channel_USD.slug
     assert channel_listing[0]["discountValue"] == discount_value
@@ -89,7 +89,7 @@ def test_voucher_channel_listing_update_as_app(
 
     # then
     data = content["data"]["voucherChannelListingUpdate"]["voucher"]
-    assert not content["data"]["voucherChannelListingUpdate"]["discountErrors"]
+    assert not content["data"]["voucherChannelListingUpdate"]["errors"]
     channel_listing = data["channelListings"]
     assert channel_listing[0]["channel"]["slug"] == channel_USD.slug
     assert channel_listing[0]["discountValue"] == discount_value
@@ -184,7 +184,7 @@ def test_voucher_channel_listing_create_many_channel(
 
     # then
     data = content["data"]["voucherChannelListingUpdate"]["voucher"]
-    assert not content["data"]["voucherChannelListingUpdate"]["discountErrors"]
+    assert not content["data"]["voucherChannelListingUpdate"]["errors"]
     channel_listing = data["channelListings"]
     assert channel_listing[0]["channel"]["slug"] == channel_USD.slug
     assert channel_listing[0]["discountValue"] == discount_value
@@ -233,7 +233,7 @@ def test_voucher_channel_listing_create_and_remove(
 
     # then
     data = content["data"]["voucherChannelListingUpdate"]["voucher"]
-    assert not content["data"]["voucherChannelListingUpdate"]["discountErrors"]
+    assert not content["data"]["voucherChannelListingUpdate"]["errors"]
     channel_listing = data["channelListings"]
     assert len(channel_listing) == 1
     assert channel_listing[0]["channel"]["slug"] == channel_PLN.slug
@@ -277,7 +277,7 @@ def test_voucher_channel_listing_update(
 
     # then
     data = content["data"]["voucherChannelListingUpdate"]["voucher"]
-    assert not content["data"]["voucherChannelListingUpdate"]["discountErrors"]
+    assert not content["data"]["voucherChannelListingUpdate"]["errors"]
     channel_listing = data["channelListings"]
     assert len(channel_listing) == 1
     assert channel_listing[0]["channel"]["slug"] == channel_USD.slug
@@ -315,7 +315,7 @@ def test_voucher_channel_listing_update_without_discount_value(
 
     # then
     data = content["data"]["voucherChannelListingUpdate"]["voucher"]
-    assert not content["data"]["voucherChannelListingUpdate"]["discountErrors"]
+    assert not content["data"]["voucherChannelListingUpdate"]["errors"]
     channel_listing = data["channelListings"]
     assert len(channel_listing) == 1
     assert channel_listing[0]["channel"]["slug"] == channel_USD.slug
@@ -348,7 +348,7 @@ def test_voucher_channel_listing_remove_channel(
 
     # then
     data = content["data"]["voucherChannelListingUpdate"]["voucher"]
-    assert not content["data"]["voucherChannelListingUpdate"]["discountErrors"]
+    assert not content["data"]["voucherChannelListingUpdate"]["errors"]
     channel_listing = data["channelListings"]
     assert len(channel_listing) == 0
 
@@ -384,7 +384,7 @@ def test_voucher_channel_listing_update_with_null_as_discount_value(
     content = get_graphql_content(response)
 
     # then
-    errors = content["data"]["voucherChannelListingUpdate"]["discountErrors"]
+    errors = content["data"]["voucherChannelListingUpdate"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "discountValue"
     assert errors[0]["code"] == DiscountErrorCode.REQUIRED.name
@@ -423,7 +423,7 @@ def test_voucher_channel_listing_create_with_null_as_discount_value(
     content = get_graphql_content(response)
 
     # then
-    errors = content["data"]["voucherChannelListingUpdate"]["discountErrors"]
+    errors = content["data"]["voucherChannelListingUpdate"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "discountValue"
     assert errors[0]["code"] == DiscountErrorCode.REQUIRED.name
@@ -463,7 +463,7 @@ def test_voucher_channel_listing_create_with_invalid_percentage_value(
     content = get_graphql_content(response)
 
     # then
-    errors = content["data"]["voucherChannelListingUpdate"]["discountErrors"]
+    errors = content["data"]["voucherChannelListingUpdate"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "discountValue"
     assert errors[0]["code"] == DiscountErrorCode.INVALID.name
@@ -494,7 +494,7 @@ def test_voucher_channel_listing_create_without_discount_value(
     content = get_graphql_content(response)
 
     # then
-    errors = content["data"]["voucherChannelListingUpdate"]["discountErrors"]
+    errors = content["data"]["voucherChannelListingUpdate"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "discountValue"
     assert errors[0]["code"] == DiscountErrorCode.REQUIRED.name
@@ -529,7 +529,7 @@ def test_voucher_channel_listing_update_duplicates_in_add(
     content = get_graphql_content(response)
 
     # then
-    errors = content["data"]["voucherChannelListingUpdate"]["discountErrors"]
+    errors = content["data"]["voucherChannelListingUpdate"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "addChannels"
     assert errors[0]["code"] == DiscountErrorCode.DUPLICATED_INPUT_ITEM.name
@@ -559,7 +559,7 @@ def test_voucher_channel_listing_update_duplicates_in_remove(
     content = get_graphql_content(response)
 
     # then
-    errors = content["data"]["voucherChannelListingUpdate"]["discountErrors"]
+    errors = content["data"]["voucherChannelListingUpdate"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "removeChannels"
     assert errors[0]["code"] == DiscountErrorCode.DUPLICATED_INPUT_ITEM.name
@@ -592,7 +592,7 @@ def test_voucher_channel_listing_update_duplicates_in_add_and_remove(
     content = get_graphql_content(response)
 
     # then
-    errors = content["data"]["voucherChannelListingUpdate"]["discountErrors"]
+    errors = content["data"]["voucherChannelListingUpdate"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "input"
     assert errors[0]["code"] == DiscountErrorCode.DUPLICATED_INPUT_ITEM.name
@@ -630,7 +630,7 @@ def test_voucher_channel_listing_update_invalid_precision_discount_value(
     content = get_graphql_content(response)
 
     # then
-    errors = content["data"]["voucherChannelListingUpdate"]["discountErrors"]
+    errors = content["data"]["voucherChannelListingUpdate"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "discountValue"
     assert errors[0]["code"] == DiscountErrorCode.INVALID.name
@@ -668,7 +668,7 @@ def test_voucher_channel_listing_update_invalid_precision_min_amount_spent(
     content = get_graphql_content(response)
 
     # then
-    errors = content["data"]["voucherChannelListingUpdate"]["discountErrors"]
+    errors = content["data"]["voucherChannelListingUpdate"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "minAmountSpent"
     assert errors[0]["code"] == DiscountErrorCode.INVALID.name

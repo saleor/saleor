@@ -13,7 +13,7 @@ mutation UpdateSaleChannelListing(
     $input: SaleChannelListingInput!
 ) {
     saleChannelListingUpdate(id: $id, input: $input) {
-        discountErrors {
+        errors {
             field
             message
             code
@@ -68,7 +68,7 @@ def test_sale_channel_listing_create_as_staff_user(
     # then
     data = content["data"]["saleChannelListingUpdate"]
     shipping_method_data = data["sale"]
-    assert not data["discountErrors"]
+    assert not data["errors"]
     assert shipping_method_data["name"] == sale.name
 
     assert shipping_method_data["channelListings"][1]["discountValue"] == discounted
@@ -120,7 +120,7 @@ def test_sale_channel_listing_update_as_staff_user(
     # then
     data = content["data"]["saleChannelListingUpdate"]
     shipping_method_data = data["sale"]
-    assert not data["discountErrors"]
+    assert not data["errors"]
 
     assert shipping_method_data["channelListings"][0]["discountValue"] == discounted
     mock_update_discounted_prices_of_discount_task.delay.assert_called_once_with(
@@ -186,7 +186,7 @@ def test_sale_channel_listing_update_duplicated_ids_in_add_and_remove(
     content = get_graphql_content(response)
 
     # then
-    errors = content["data"]["saleChannelListingUpdate"]["discountErrors"]
+    errors = content["data"]["saleChannelListingUpdate"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "input"
     assert errors[0]["code"] == DiscountErrorCode.DUPLICATED_INPUT_ITEM.name
@@ -219,7 +219,7 @@ def test_sale_channel_listing_update_duplicated_channel_in_add(
     content = get_graphql_content(response)
 
     # then
-    errors = content["data"]["saleChannelListingUpdate"]["discountErrors"]
+    errors = content["data"]["saleChannelListingUpdate"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "addChannels"
     assert errors[0]["code"] == DiscountErrorCode.DUPLICATED_INPUT_ITEM.name
@@ -246,7 +246,7 @@ def test_sale_channel_listing_update_duplicated_channel_in_remove(
     content = get_graphql_content(response)
 
     # then
-    errors = content["data"]["saleChannelListingUpdate"]["discountErrors"]
+    errors = content["data"]["saleChannelListingUpdate"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "removeChannels"
     assert errors[0]["code"] == DiscountErrorCode.DUPLICATED_INPUT_ITEM.name
@@ -275,7 +275,7 @@ def test_sale_channel_listing_update_with_invalid_decimal_places(
     )
     content = get_graphql_content(response)
     # then
-    errors = content["data"]["saleChannelListingUpdate"]["discountErrors"]
+    errors = content["data"]["saleChannelListingUpdate"]["errors"]
 
     assert len(errors) == 1
     assert errors[0]["code"] == DiscountErrorCode.INVALID.name
@@ -308,7 +308,7 @@ def test_sale_channel_listing_update_with_invalid_percentage_value(
     )
     content = get_graphql_content(response)
     # then
-    errors = content["data"]["saleChannelListingUpdate"]["discountErrors"]
+    errors = content["data"]["saleChannelListingUpdate"]["errors"]
 
     assert len(errors) == 1
     assert errors[0]["code"] == DiscountErrorCode.INVALID.name

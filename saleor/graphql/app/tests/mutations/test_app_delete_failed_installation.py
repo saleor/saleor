@@ -8,7 +8,7 @@ from ....tests.utils import get_graphql_content
 DELETE_FAILED_INSTALLATION_MUTATION = """
     mutation AppDeleteFailedInstallation($id: ID!){
         appDeleteFailedInstallation(id:$id){
-            appErrors{
+            errors{
                 field
                 message
                 code
@@ -166,9 +166,7 @@ def test_cannot_drop_installation_if_status_is_different_than_failed(
     content = get_graphql_content(response)
 
     AppInstallation.objects.get()
-    app_installation_errors = content["data"]["appDeleteFailedInstallation"][
-        "appErrors"
-    ]
+    app_installation_errors = content["data"]["appDeleteFailedInstallation"]["errors"]
 
     assert len(app_installation_errors) == 1
     assert app_installation_errors[0]["field"] == "id"

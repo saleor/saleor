@@ -16,7 +16,7 @@ MUTATION_TOKEN_VERIFY = """
                 code
               }
             }
-            accountErrors{
+            errors{
               code
             }
         }
@@ -68,7 +68,7 @@ def test_verify_token_incorrect_token(api_client):
     response = api_client.post_graphql(MUTATION_TOKEN_VERIFY, variables)
     content = get_graphql_content(response)
     data = content["data"]["tokenVerify"]
-    errors = data["accountErrors"]
+    errors = data["errors"]
     assert len(errors) == 1
     assert errors[0]["code"] == AccountErrorCode.JWT_DECODE_ERROR.name
     assert data["isValid"] is False
@@ -82,7 +82,7 @@ def test_verify_token_invalidated_by_user(api_client, customer_user):
     response = api_client.post_graphql(MUTATION_TOKEN_VERIFY, variables)
     content = get_graphql_content(response)
     data = content["data"]["tokenVerify"]
-    errors = data["accountErrors"]
+    errors = data["errors"]
 
     assert data["isValid"] is False
     assert len(errors) == 1

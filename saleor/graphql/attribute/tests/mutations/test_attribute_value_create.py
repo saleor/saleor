@@ -30,7 +30,7 @@ CREATE_ATTRIBUTE_VALUE_MUTATION = """
         $attributeId: ID!, $name: String!, $value: String) {
     attributeValueCreate(
         attribute: $attributeId, input: {name: $name, value: $value}) {
-        attributeErrors {
+        errors {
             field
             message
             code
@@ -69,7 +69,7 @@ def test_create_attribute_value(
     # then
     content = get_graphql_content(response)
     data = content["data"]["attributeValueCreate"]
-    assert not data["attributeErrors"]
+    assert not data["errors"]
 
     attr_data = data["attributeValue"]
     assert attr_data["name"] == name
@@ -96,9 +96,9 @@ def test_create_attribute_value_not_unique_name(
     # then
     content = get_graphql_content(response)
     data = content["data"]["attributeValueCreate"]
-    assert data["attributeErrors"]
-    assert data["attributeErrors"][0]["code"] == AttributeErrorCode.ALREADY_EXISTS.name
-    assert data["attributeErrors"][0]["field"] == "name"
+    assert data["errors"]
+    assert data["errors"][0]["code"] == AttributeErrorCode.ALREADY_EXISTS.name
+    assert data["errors"][0]["field"] == "name"
 
 
 def test_create_attribute_value_capitalized_name(
@@ -119,6 +119,6 @@ def test_create_attribute_value_capitalized_name(
     # then
     content = get_graphql_content(response)
     data = content["data"]["attributeValueCreate"]
-    assert data["attributeErrors"]
-    assert data["attributeErrors"][0]["code"] == AttributeErrorCode.ALREADY_EXISTS.name
-    assert data["attributeErrors"][0]["field"] == "name"
+    assert data["errors"]
+    assert data["errors"][0]["code"] == AttributeErrorCode.ALREADY_EXISTS.name
+    assert data["errors"][0]["field"] == "name"

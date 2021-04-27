@@ -9,7 +9,7 @@ mutation checkoutLanguageCodeUpdate($checkoutId: ID!, $languageCode: LanguageCod
       id
       languageCode
     }
-    checkoutErrors{
+    errors{
       field
       message
     }
@@ -33,7 +33,7 @@ def test_checkout_update_language_code(
 
     content = get_graphql_content(response)
     data = content["data"]["checkoutLanguageCodeUpdate"]
-    assert not data["checkoutErrors"]
+    assert not data["errors"]
 
     assert data["checkout"]["languageCode"] == language_code
     checkout.refresh_from_db()

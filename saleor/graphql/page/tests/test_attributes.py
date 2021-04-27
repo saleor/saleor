@@ -8,7 +8,7 @@ from ...tests.utils import assert_no_permission, get_graphql_content
 PAGE_ASSIGN_ATTR_QUERY = """
     mutation assign($pageTypeId: ID!, $attributeIds: [ID!]!) {
       pageAttributeAssign(pageTypeId: $pageTypeId, attributeIds: $attributeIds) {
-        pageErrors {
+        errors {
           field
           code
           message
@@ -52,7 +52,7 @@ def test_assign_attributes_to_page_type_by_staff(
     # then
     content = get_graphql_content(response)
     data = content["data"]["pageAttributeAssign"]
-    errors = data["pageErrors"]
+    errors = data["errors"]
 
     assert not errors
     assert len(data["pageType"]["attributes"]) == page_type_attr_count + 1
@@ -88,7 +88,7 @@ def test_assign_attributes_to_page_type_by_app(
     # then
     content = get_graphql_content(response)
     data = content["data"]["pageAttributeAssign"]
-    errors = data["pageErrors"]
+    errors = data["errors"]
 
     assert not errors
     assert len(data["pageType"]["attributes"]) == page_type_attr_count + 1
@@ -172,7 +172,7 @@ def test_assign_attributes_to_page_type_not_page_attribute(
     # then
     content = get_graphql_content(response)
     data = content["data"]["pageAttributeAssign"]
-    errors = data["pageErrors"]
+    errors = data["errors"]
 
     assert not data["pageType"]
     page_type.refresh_from_db()
@@ -213,7 +213,7 @@ def test_assign_attributes_to_page_type_attribute_already_assigned(
     # then
     content = get_graphql_content(response)
     data = content["data"]["pageAttributeAssign"]
-    errors = data["pageErrors"]
+    errors = data["errors"]
 
     assert not data["pageType"]
     page_type.refresh_from_db()
@@ -232,7 +232,7 @@ def test_assign_attributes_to_page_type_multiple_error_returned(
     author_page_attribute,
     color_attribute,
 ):
-    """Ensure that when multiple errors ocurred all will br returned. """
+    """Ensure that when multiple errors ocurred all will br returned."""
     # given
     staff_user = staff_api_client.user
     staff_user.user_permissions.add(permission_manage_page_types_and_attributes)
@@ -257,7 +257,7 @@ def test_assign_attributes_to_page_type_multiple_error_returned(
     # then
     content = get_graphql_content(response)
     data = content["data"]["pageAttributeAssign"]
-    errors = data["pageErrors"]
+    errors = data["errors"]
 
     assert not data["pageType"]
     page_type.refresh_from_db()
@@ -295,7 +295,7 @@ PAGE_UNASSIGN_ATTR_QUERY = """
                     id
                 }
             }
-            pageErrors {
+            errors {
                 field
                 code
                 message
@@ -328,7 +328,7 @@ def test_unassign_attributes_from_page_type_by_staff(
     # then
     content = get_graphql_content(response)
     data = content["data"]["pageAttributeUnassign"]
-    errors = data["pageErrors"]
+    errors = data["errors"]
 
     assert not errors
     assert len(data["pageType"]["attributes"]) == attr_count - 1
@@ -378,7 +378,7 @@ def test_unassign_attributes_from_page_type_by_app(
     # then
     content = get_graphql_content(response)
     data = content["data"]["pageAttributeUnassign"]
-    errors = data["pageErrors"]
+    errors = data["errors"]
 
     assert not errors
     assert len(data["pageType"]["attributes"]) == attr_count - 1

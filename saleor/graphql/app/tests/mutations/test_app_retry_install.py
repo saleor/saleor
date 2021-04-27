@@ -17,7 +17,7 @@ RETRY_INSTALL_APP_MUTATION = """
                 appName
                 manifestUrl
             }
-            appErrors{
+            errors{
                 field
                 message
                 code
@@ -131,7 +131,7 @@ def test_retry_install_app_mutation_app_has_more_permission_than_user_requestor(
     content = get_graphql_content(response)
     data = content["data"]["appRetryInstall"]
 
-    errors = data["appErrors"]
+    errors = data["errors"]
     assert not errors
 
     app_installation = AppInstallation.objects.get()
@@ -173,7 +173,7 @@ def test_retry_install_app_mutation_app_has_more_permission_than_app_requestor(
     content = get_graphql_content(response)
     data = content["data"]["appRetryInstall"]
 
-    errors = data["appErrors"]
+    errors = data["errors"]
     assert not errors
 
     app_installation = AppInstallation.objects.get()
@@ -215,7 +215,7 @@ def test_cannot_retry_installation_if_status_is_different_than_failed(
 
     AppInstallation.objects.get()
     app_installation_data = content["data"]["appRetryInstall"]["appInstallation"]
-    app_installation_errors = content["data"]["appRetryInstall"]["appErrors"]
+    app_installation_errors = content["data"]["appRetryInstall"]["errors"]
     assert not app_installation_data
     assert len(app_installation_errors) == 1
     assert app_installation_errors[0]["field"] == "id"

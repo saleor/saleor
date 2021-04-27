@@ -19,7 +19,7 @@ INSTALL_APP_MUTATION = """
                 appName
                 manifestUrl
             }
-            appErrors{
+            errors{
                 field
                 message
                 code
@@ -109,7 +109,7 @@ def test_app_install_mutation_out_of_scope_permissions(
     content = get_graphql_content(response)
     data = content["data"]["appInstall"]
 
-    errors = data["appErrors"]
+    errors = data["errors"]
     assert not data["appInstallation"]
     assert len(errors) == 1
     error = errors[0]
@@ -136,7 +136,7 @@ def test_install_app_mutation_by_app_out_of_scope_permissions(
     content = get_graphql_content(response)
     data = content["data"]["appInstall"]
 
-    errors = data["appErrors"]
+    errors = data["errors"]
     assert not data["appInstallation"]
     assert len(errors) == 1
     error = errors[0]

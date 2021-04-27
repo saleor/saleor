@@ -17,8 +17,11 @@ from ..core.utils import from_global_id_or_error
 from ..product.types import Product, ProductVariant
 from ..shop.types import Shop
 
-# discount types need to be imported to get Voucher in the graphene registry
+# discount and menu types need to be imported to get
+# Voucher and Menu in the graphene registry
 from ..discount import types  # noqa # pylint: disable=unused-import, isort:skip
+
+from ..menu import types  # type: ignore # noqa # pylint: disable=unused-import, isort:skip
 
 
 class BaseTranslateMutation(ModelMutation):
