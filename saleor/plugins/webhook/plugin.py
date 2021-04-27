@@ -236,7 +236,7 @@ class WebhookPlugin(BasePlugin):
         app = None
         app_pk = kwargs.get("payment_app")
         if app_pk is not None:
-            app = App.objects.for_event_type().filter(pk=app_pk).first()
+            app = App.objects.for_event_type(event_type).filter(pk=app_pk).first()
         if not app:
             # App not found or app doesn't support give event_type.
             raise Exception("App not found")
