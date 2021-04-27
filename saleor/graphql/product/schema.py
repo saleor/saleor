@@ -35,7 +35,6 @@ from .bulk_mutations.products import (
     ProductVariantStocksDelete,
     ProductVariantStocksUpdate,
 )
-from .enums import StockAvailability
 from .filters import (
     CategoryFilterInput,
     CollectionFilterInput,
@@ -186,13 +185,6 @@ class ProductQueries(graphene.ObjectType):
         Product,
         filter=ProductFilterInput(description="Filtering options for products."),
         sort_by=ProductOrder(description="Sort products."),
-        stock_availability=graphene.Argument(
-            StockAvailability,
-            description=(
-                "[Deprecated] Filter products by stock availability. Use the `filter` "
-                "field instead. This field will be removed after 2020-07-31."
-            ),
-        ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),

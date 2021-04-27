@@ -11,7 +11,7 @@ CREATE_ATTRIBUTE_MUTATION = """
         $input: AttributeCreateInput!
     ){
         attributeCreate(input: $input) {
-            attributeErrors {
+            errors {
                 field
                 message
                 code
@@ -76,7 +76,7 @@ def test_create_attribute_and_attribute_values(
 
     # then
     content = get_graphql_content(response)
-    assert not content["data"]["attributeCreate"]["attributeErrors"]
+    assert not content["data"]["attributeCreate"]["errors"]
     data = content["data"]["attributeCreate"]
 
     # Check if the attribute was correctly created
@@ -131,7 +131,7 @@ def test_create_numeric_attribute_and_attribute_values(
 
     # then
     content = get_graphql_content(response)
-    assert not content["data"]["attributeCreate"]["attributeErrors"]
+    assert not content["data"]["attributeCreate"]["errors"]
     data = content["data"]["attributeCreate"]
 
     # Check if the attribute was correctly created
@@ -192,7 +192,7 @@ def test_create_numeric_attribute_and_attribute_values_not_numeric_value_provide
     # then
     content = get_graphql_content(response)
     data = content["data"]["attributeCreate"]
-    errors = content["data"]["attributeCreate"]["attributeErrors"]
+    errors = content["data"]["attributeCreate"]["errors"]
 
     assert not data["attribute"]
     assert len(errors) == 1
@@ -229,7 +229,7 @@ def test_create_attribute_with_file_input_type(
 
     # then
     content = get_graphql_content(response)
-    assert not content["data"]["attributeCreate"]["attributeErrors"]
+    assert not content["data"]["attributeCreate"]["errors"]
     data = content["data"]["attributeCreate"]
 
     # Check if the attribute was correctly created
@@ -282,7 +282,7 @@ def test_create_attribute_with_reference_input_type(
 
     # then
     content = get_graphql_content(response)
-    assert not content["data"]["attributeCreate"]["attributeErrors"]
+    assert not content["data"]["attributeCreate"]["errors"]
     data = content["data"]["attributeCreate"]
 
     # Check if the attribute was correctly created
@@ -331,7 +331,7 @@ def test_create_attribute_with_reference_input_type_entity_type_not_given(
     # then
     content = get_graphql_content(response)
     data = content["data"]["attributeCreate"]
-    errors = data["attributeErrors"]
+    errors = data["errors"]
 
     assert not data["attribute"]
     assert len(errors) == 1
@@ -369,7 +369,7 @@ def test_create_page_attribute_and_attribute_values(
 
     # then
     content = get_graphql_content(response)
-    assert not content["data"]["attributeCreate"]["attributeErrors"]
+    assert not content["data"]["attributeCreate"]["errors"]
     data = content["data"]["attributeCreate"]
 
     # Check if the attribute was correctly created
@@ -424,7 +424,7 @@ def test_create_attribute_with_file_input_type_and_values(
     # then
     content = get_graphql_content(response)
     data = content["data"]["attributeCreate"]
-    errors = data["attributeErrors"]
+    errors = data["errors"]
 
     assert not data["attribute"]
     assert len(errors) == 1
@@ -465,7 +465,7 @@ def test_create_attribute_with_file_input_type_correct_attribute_settings(
 
     # then
     content = get_graphql_content(response)
-    assert not content["data"]["attributeCreate"]["attributeErrors"]
+    assert not content["data"]["attributeCreate"]["errors"]
     data = content["data"]["attributeCreate"]
 
     # Check if the attribute was correctly created
@@ -517,7 +517,7 @@ def test_create_attribute_with_file_input_type_and_invalid_settings(
     # then
     content = get_graphql_content(response)
     data = content["data"]["attributeCreate"]
-    errors = data["attributeErrors"]
+    errors = data["errors"]
 
     assert not data["attribute"]
     assert len(errors) == 4
@@ -570,7 +570,7 @@ def test_create_attribute_with_reference_input_type_invalid_settings(
     # then
     content = get_graphql_content(response)
     data = content["data"]["attributeCreate"]
-    errors = data["attributeErrors"]
+    errors = data["errors"]
 
     assert not data["attribute"]
     assert len(errors) == 4
@@ -625,7 +625,7 @@ def test_create_attribute_with_file_input_type_and_invalid_one_settings_value(
     # then
     content = get_graphql_content(response)
     data = content["data"]["attributeCreate"]
-    errors = data["attributeErrors"]
+    errors = data["errors"]
 
     assert not data["attribute"]
     assert len(errors) == 1
@@ -676,7 +676,7 @@ def test_create_attribute_with_reference_input_type_invalid_one_settings_value(
     # then
     content = get_graphql_content(response)
     data = content["data"]["attributeCreate"]
-    errors = data["attributeErrors"]
+    errors = data["errors"]
 
     assert not data["attribute"]
     assert len(errors) == 1
@@ -721,7 +721,7 @@ def test_create_attribute_with_reference_input_type_values_given(
     # then
     content = get_graphql_content(response)
     data = content["data"]["attributeCreate"]
-    errors = data["attributeErrors"]
+    errors = data["errors"]
 
     assert not data["attribute"]
     assert len(errors) == 1
@@ -753,7 +753,7 @@ def test_create_attribute_with_given_slug(
         mutation createAttribute(
             $name: String!, $slug: String, $type: AttributeTypeEnum!) {
         attributeCreate(input: {name: $name, slug: $slug, type: $type}) {
-            attributeErrors {
+            errors {
                 field
                 message
                 code
@@ -776,7 +776,7 @@ def test_create_attribute_with_given_slug(
     content = get_graphql_content(staff_api_client.post_graphql(query, variables))
 
     # then
-    assert not content["data"]["attributeCreate"]["attributeErrors"]
+    assert not content["data"]["attributeCreate"]["errors"]
     assert content["data"]["attributeCreate"]["attribute"]["slug"] == expected_slug
 
 
@@ -810,7 +810,7 @@ def test_create_attribute_value_name_and_slug_with_unicode(
     # then
     content = get_graphql_content(response)
     data = content["data"]["attributeCreate"]
-    assert not data["attributeErrors"]
+    assert not data["errors"]
     assert data["attribute"]["name"] == name
     assert data["attribute"]["slug"] == slug
 
@@ -864,7 +864,7 @@ def test_create_attribute_and_attribute_values_errors(
 
     # then
     content = get_graphql_content(response)
-    errors = content["data"]["attributeCreate"]["attributeErrors"]
+    errors = content["data"]["attributeCreate"]["errors"]
     assert errors
     assert errors[0]["field"] == "values"
     assert errors[0]["message"] == error_msg

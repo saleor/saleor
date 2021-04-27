@@ -5,7 +5,7 @@ import graphene
 import pytest
 from freezegun import freeze_time
 
-from ....product.models import Product, ProductChannelListing
+from ....product.models import CollectionProduct, Product, ProductChannelListing
 from ...tests.utils import get_graphql_content
 
 COLLECTION_RESORT_QUERY = """
@@ -92,13 +92,26 @@ def test_sort_products_within_collection(
     collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
 
     products = collection_with_products
-    product = graphene.Node.to_global_id("Product", products[0].pk)
-    second_product = graphene.Node.to_global_id("Product", products[1].pk)
-    third_product = graphene.Node.to_global_id("Product", products[2].pk)
+    collection = products[0].collections.first()
+    collection_products = list(collection.collectionproduct.all())
+
+    collection_prod_1 = collection_products[0]
+    collection_prod_2 = collection_products[1]
+    collection_prod_3 = collection_products[2]
+
+    collection_prod_1.sort_order = 0
+    collection_prod_2.sort_order = 1
+    collection_prod_3.sort_order = 2
+
+    CollectionProduct.objects.bulk_update(collection_products, ["sort_order"])
+
+    product = graphene.Node.to_global_id("Product", collection_prod_1.product_id)
+    second_product = graphene.Node.to_global_id("Product", collection_prod_2.product_id)
+    third_product = graphene.Node.to_global_id("Product", collection_prod_3.product_id)
 
     variables = {
         "collectionId": collection_id,
-        "moves": [{"productId": product, "sortOrder": -1}],
+        "moves": [{"productId": third_product, "sortOrder": -1}],
     }
 
     content = get_graphql_content(

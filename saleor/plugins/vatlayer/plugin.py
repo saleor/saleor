@@ -267,6 +267,27 @@ class VatlayerPlugin(BasePlugin):
             else previous_value
         )
 
+    def calculate_order_line_total(
+        self,
+        order: "Order",
+        order_line: "OrderLine",
+        variant: "ProductVariant",
+        product: "Product",
+        previous_value: TaxedMoney,
+    ) -> TaxedMoney:
+        unit_price = self.__calculate_order_line_unit(
+            order,
+            order_line,
+            variant,
+            product,
+            previous_value,
+        )
+        return (
+            unit_price * order_line.quantity
+            if unit_price is not None
+            else previous_value
+        )
+
     def calculate_checkout_line_unit_price(
         self,
         checkout_info: "CheckoutInfo",
@@ -316,13 +337,26 @@ class VatlayerPlugin(BasePlugin):
         product: "Product",
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
+        unit_price = self.__calculate_order_line_unit(
+            order, order_line, variant, product, previous_value
+        )
+        return unit_price if unit_price is not None else previous_value
+
+    def __calculate_order_line_unit(
+        self,
+        order: "Order",
+        order_line: "OrderLine",
+        variant: "ProductVariant",
+        product: "Product",
+        previous_value: TaxedMoney,
+    ):
         if self._skip_plugin(previous_value):
-            return previous_value
+            return
 
         address = order.shipping_address or order.billing_address
         country = address.country if address else None
         if not variant:
-            return previous_value
+            return
         return self.__apply_taxes_to_product(product, order_line.unit_price, country)
 
     def get_checkout_line_tax_rate(

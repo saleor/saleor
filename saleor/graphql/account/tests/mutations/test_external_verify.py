@@ -11,7 +11,7 @@ MUTATION_EXTERNAL_VERIFY = """
                email
             }
             isValid
-            accountErrors{
+            errors{
                 field
                 message
             }

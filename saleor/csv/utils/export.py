@@ -1,3 +1,4 @@
+import secrets
 from tempfile import NamedTemporaryFile
 from typing import IO, TYPE_CHECKING, Any, Dict, List, Set, Union
 
@@ -53,8 +54,9 @@ def export_products(
 
 
 def get_filename(model_name: str, file_type: str) -> str:
-    return "{}_data_{}.{}".format(
-        model_name, timezone.now().strftime("%d_%m_%Y"), file_type
+    hash = secrets.token_hex(nbytes=3)
+    return "{}_data_{}_{}.{}".format(
+        model_name, timezone.now().strftime("%d_%m_%Y_%H_%M_%S"), hash, file_type
     )
 
 

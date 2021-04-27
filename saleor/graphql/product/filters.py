@@ -7,7 +7,7 @@ import graphene
 from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db.models import Exists, F, FloatField, OuterRef, Q, Subquery, Sum
 from django.db.models.functions import Cast, Coalesce
-from graphene_django.filter import GlobalIDFilter, GlobalIDMultipleChoiceFilter
+from graphene_django.filter import GlobalIDMultipleChoiceFilter
 
 from ...attribute import AttributeInputType
 from ...attribute.models import (
@@ -376,7 +376,6 @@ class ProductFilter(MetadataFilterBase):
     stock_availability = EnumFilter(
         input_class=StockAvailability, method="filter_stock_availability"
     )
-    product_type = GlobalIDFilter()  # Deprecated
     product_types = GlobalIDMultipleChoiceFilter(field_name="product_type")
     stocks = ObjectTypeFilter(input_class=ProductStockFilterInput, method=filter_stocks)
     search = django_filters.CharFilter(method=filter_search)
@@ -391,7 +390,6 @@ class ProductFilter(MetadataFilterBase):
             "has_category",
             "attributes",
             "stock_availability",
-            "product_type",
             "stocks",
             "search",
         ]

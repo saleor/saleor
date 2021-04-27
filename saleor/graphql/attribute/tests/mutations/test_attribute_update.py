@@ -13,7 +13,7 @@ UPDATE_ATTRIBUTE_MUTATION = """
     attributeUpdate(
             id: $id,
             input: $input) {
-        attributeErrors {
+        errors {
             field
             message
             code
@@ -96,7 +96,7 @@ def test_update_attribute_remove_and_add_values(
     content = get_graphql_content(response)
     attribute.refresh_from_db()
     data = content["data"]["attributeUpdate"]
-    assert not data["attributeErrors"]
+    assert not data["errors"]
     assert data["attribute"]["name"] == name == attribute.name
     assert not attribute.values.filter(pk=attribute_value_id).exists()
     assert attribute.values.filter(name=attribute_value_name).exists()
@@ -159,7 +159,7 @@ def test_update_attribute_with_file_input_type(
     content = get_graphql_content(response)
     attribute.refresh_from_db()
     data = content["data"]["attributeUpdate"]
-    assert not data["attributeErrors"]
+    assert not data["errors"]
     assert data["attribute"]["name"] == name == attribute.name
 
 
@@ -190,7 +190,7 @@ def test_update_attribute_with_numeric_input_type(
     content = get_graphql_content(response)
     attribute.refresh_from_db()
     data = content["data"]["attributeUpdate"]
-    assert not data["attributeErrors"]
+    assert not data["errors"]
     assert data["attribute"]["name"] == name
     assert data["attribute"]["slug"] == slug
     assert data["attribute"]["unit"] == unit
@@ -226,7 +226,7 @@ def test_update_attribute_with_file_input_type_and_values(
     content = get_graphql_content(response)
     attribute.refresh_from_db()
     data = content["data"]["attributeUpdate"]
-    errors = data["attributeErrors"]
+    errors = data["errors"]
     assert not data["attribute"]
     assert len(errors) == 1
     assert errors[0]["field"] == "addValues"
@@ -266,7 +266,7 @@ def test_update_attribute_with_file_input_type_invalid_settings(
     content = get_graphql_content(response)
     attribute.refresh_from_db()
     data = content["data"]["attributeUpdate"]
-    errors = data["attributeErrors"]
+    errors = data["errors"]
     assert not data["attribute"]
     assert len(errors) == 4
     assert {error["field"] for error in errors} == {
@@ -285,7 +285,7 @@ UPDATE_ATTRIBUTE_SLUG_MUTATION = """
             id: $id,
             input: {
                 slug: $slug}) {
-        attributeErrors {
+        errors {
             field
             message
             code
@@ -336,7 +336,7 @@ def test_update_attribute_slug(
     content = get_graphql_content(response)
     attribute.refresh_from_db()
     data = content["data"]["attributeUpdate"]
-    errors = data["attributeErrors"]
+    errors = data["errors"]
     if not error_message:
         assert data["attribute"]["name"] == name == attribute.name
         assert data["attribute"]["slug"] == input_slug == attribute.slug
@@ -378,7 +378,7 @@ def test_update_attribute_slug_exists(
     content = get_graphql_content(response)
     attribute.refresh_from_db()
     data = content["data"]["attributeUpdate"]
-    errors = data["attributeErrors"]
+    errors = data["errors"]
 
     assert errors
     assert data["attribute"] is None
@@ -415,7 +415,7 @@ def test_update_attribute_slug_and_name(
                 id: $id,
                 input: {
                     slug: $slug, name: $name}) {
-            attributeErrors {
+            errors {
                 field
                 message
                 code
@@ -447,7 +447,7 @@ def test_update_attribute_slug_and_name(
     content = get_graphql_content(response)
     attribute.refresh_from_db()
     data = content["data"]["attributeUpdate"]
-    errors = data["attributeErrors"]
+    errors = data["errors"]
     if not error_message:
         assert data["attribute"]["name"] == input_name == attribute.name
         assert data["attribute"]["slug"] == input_slug == attribute.slug
@@ -503,7 +503,7 @@ def test_update_attribute_and_add_attribute_values_errors(
 
     # then
     content = get_graphql_content(response)
-    errors = content["data"]["attributeUpdate"]["attributeErrors"]
+    errors = content["data"]["attributeUpdate"]["errors"]
     assert errors
     assert errors[0]["field"] == "addValues"
     assert errors[0]["message"] == error_msg
@@ -534,7 +534,7 @@ def test_update_attribute_and_remove_others_attribute_value(
 
     # then
     content = get_graphql_content(response)
-    errors = content["data"]["attributeUpdate"]["attributeErrors"]
+    errors = content["data"]["attributeUpdate"]["errors"]
     assert errors
     assert errors[0]["field"] == "removeValues"
     assert errors[0]["code"] == AttributeErrorCode.INVALID.name

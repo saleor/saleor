@@ -174,7 +174,7 @@ def test_category_delete(
                 category {
                     name
                 }
-                productErrors {
+                errors {
                     field
                     message
                 }
@@ -188,5 +188,5 @@ def test_category_delete(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
-    errors = content["data"]["categoryDelete"]["productErrors"]
+    errors = content["data"]["categoryDelete"]["errors"]
     assert not errors

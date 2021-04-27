@@ -27,7 +27,11 @@ from ..discount import DiscountValueType
 from ..discount.models import Voucher
 from ..giftcard.models import GiftCard
 from ..payment import ChargeStatus, TransactionKind
-from ..payment.model_helpers import get_total_authorized, get_total_captured
+from ..payment.model_helpers import (
+    get_subtotal,
+    get_total_authorized,
+    get_total_captured,
+)
 from ..shipping.models import ShippingMethod
 from . import FulfillmentStatus, OrderEvents, OrderStatus
 
@@ -289,8 +293,7 @@ class Order(ModelWithMetadata):
         return any(line.is_shipping_required for line in self.lines.all())
 
     def get_subtotal(self):
-        subtotal_iterator = (line.total_price for line in self.lines.all())
-        return sum(subtotal_iterator, zero_taxed_money(currency=self.currency))
+        return get_subtotal(self.lines.all(), self.currency)
 
     def get_total_quantity(self):
         return sum([line.quantity for line in self.lines.all()])

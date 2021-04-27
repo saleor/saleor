@@ -282,17 +282,19 @@ def test_export_products_by_app(
 
 
 def test_get_filename_csv():
-    with freeze_time("2000-02-09"):
+    with freeze_time("2000-02-09 03:21:34"):
         file_name = get_filename("test", FileTypes.CSV)
 
-        assert file_name == "test_data_09_02_2000.csv"
+        assert file_name.startswith("test_data_09_02_2000_03_21_34")
+        assert file_name.endswith(".csv")
 
 
 def test_get_filename_xlsx():
-    with freeze_time("2000-02-09"):
+    with freeze_time("2000-02-09 05:22:44"):
         file_name = get_filename("test", FileTypes.XLSX)
 
-        assert file_name == "test_data_09_02_2000.xlsx"
+        assert file_name.startswith("test_data_09_02_2000_05_22_44")
+        assert file_name.endswith(".xlsx")
 
 
 def test_get_product_queryset_all(product_list):
@@ -494,7 +496,8 @@ def test_export_products_in_batches_for_csv(
     expected_data = []
     for product in qs.order_by("pk"):
         product_data = []
-        product_data.append(str(product.pk))
+        id = graphene.Node.to_global_id("Product", product.pk)
+        product_data.append(id)
         product_data.append(product.name)
 
         for variant in product.variants.all():
@@ -562,7 +565,8 @@ def test_export_products_in_batches_for_xlsx(
     expected_data = []
     for product in qs.order_by("pk"):
         product_data = []
-        product_data.append(product.pk)
+        id = graphene.Node.to_global_id("Product", product.pk)
+        product_data.append(id)
         product_data.append(product.name)
         product_data.append(json.dumps(product.description))
 

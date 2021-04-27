@@ -12,7 +12,7 @@ DELETE_PAGE_TYPE_MUTATION = """
                 name
                 slug
             }
-            pageErrors {
+            errors {
                 field
                 code
                 message
@@ -45,7 +45,7 @@ def test_page_type_delete_by_staff(
     content = get_graphql_content(response)
     data = content["data"]["pageTypeDelete"]
 
-    assert not data["pageErrors"]
+    assert not data["errors"]
     assert data["pageType"]["id"] == page_type_id
 
     with pytest.raises(page_type._meta.model.DoesNotExist):
@@ -91,7 +91,7 @@ def test_page_type_delete_by_app(
     content = get_graphql_content(response)
     data = content["data"]["pageTypeDelete"]
 
-    assert not data["pageErrors"]
+    assert not data["errors"]
     assert data["pageType"]["id"] == page_type_id
 
     with pytest.raises(page_type._meta.model.DoesNotExist):
