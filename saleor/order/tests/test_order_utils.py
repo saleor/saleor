@@ -1,12 +1,18 @@
+from decimal import Decimal
+from unittest.mock import Mock
+
 import pytest
+from prices import Money, TaxedMoney
 
 from .. import OrderLineData, OrderStatus
 from ..events import OrderEvents
 from ..models import Order, OrderEvent
 from ..utils import (
+    add_variant_to_order,
     change_order_line_quantity,
     get_valid_shipping_methods_for_order,
     match_orders_with_new_user,
+    update_taxes_for_order_lines,
 )
 
 
@@ -173,3 +179,46 @@ def test_get_valid_shipping_methods_for_order_shipping_not_required(
 
     # then
     assert valid_shipping_methods is None
+
+
+def test_update_taxes_for_order_lines(order_with_lines):
+    # given
+    unit_price = TaxedMoney(net=Money("10.23", "USD"), gross=Money("15.80", "USD"))
+    total_price = TaxedMoney(net=Money("30.34", "USD"), gross=Money("36.49", "USD"))
+    tax_rate = Decimal("0.23")
+    manager = Mock(
+        calculate_order_line_unit=Mock(return_value=unit_price),
+        calculate_order_line_total=Mock(return_value=total_price),
+        get_order_line_tax_rate=Mock(return_value=tax_rate),
+    )
+
+    # when
+    update_taxes_for_order_lines(
+        order_with_lines.lines.all(), order_with_lines, manager, True
+    )
+
+    # then
+    for line in order_with_lines.lines.all():
+        assert line.unit_price == unit_price
+        assert line.total_price == total_price
+        assert line.tax_rate == tax_rate
+
+
+def test_add_variant_to_order(order, customer_user, variant):
+    # given
+    unit_price = TaxedMoney(net=Money("10.23", "USD"), gross=Money("15.80", "USD"))
+    total_price = TaxedMoney(net=Money("30.34", "USD"), gross=Money("36.49", "USD"))
+    tax_rate = Decimal("0.23")
+    manager = Mock(
+        calculate_order_line_unit=Mock(return_value=unit_price),
+        calculate_order_line_total=Mock(return_value=total_price),
+        get_order_line_tax_rate=Mock(return_value=tax_rate),
+    )
+
+    # when
+    line = add_variant_to_order(order, variant, 4, customer_user, manager)
+
+    # then
+    assert line.unit_price == unit_price
+    assert line.total_price == total_price
+    assert line.tax_rate == tax_rate

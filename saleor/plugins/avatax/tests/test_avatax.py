@@ -97,6 +97,97 @@ def test_calculate_checkout_line_total(
     )
 
 
+@pytest.mark.vcr()
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_order_line_total(
+    order_line,
+    address,
+    ship_to_pl_address,
+    shipping_zone,
+    site_settings,
+    monkeypatch,
+    plugin_configuration,
+):
+    plugin_configuration()
+    manager = get_plugins_manager()
+
+    site_settings.company_address = address
+    site_settings.save(update_fields=["company_address"])
+
+    order = order_line.order
+    order.shipping_address = ship_to_pl_address
+    order.shipping_method = shipping_zone.shipping_methods.get()
+    order.save(update_fields=["shipping_address", "shipping_method"])
+
+    variant = order_line.variant
+    product = variant.product
+    product.metadata = {}
+    product.charge_taxes = True
+    product.save()
+    product.product_type.save()
+
+    channel = order_line.order.channel
+    channel_listing = variant.channel_listings.get(channel=channel)
+
+    net = variant.get_price(product, [], channel, channel_listing)
+    unit_price = TaxedMoney(net=net, gross=net)
+    order_line.unit_price = unit_price
+    total_price = unit_price * order_line.quantity
+    order_line.total_price = total_price
+    order_line.save(update_fields=["unit_price", "total_price"])
+
+    total = manager.calculate_order_line_total(
+        order_line.order,
+        order_line,
+        variant,
+        product,
+    )
+    total = quantize_price(total, total.currency)
+    assert total == TaxedMoney(net=Money("30.00", "USD"), gross=Money("36.90", "USD"))
+
+
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_order_line_total_order_not_valid(
+    order_line,
+    address,
+    site_settings,
+    monkeypatch,
+    plugin_configuration,
+):
+    plugin_configuration()
+    manager = get_plugins_manager()
+
+    site_settings.company_address = address
+    site_settings.save(update_fields=["company_address"])
+
+    variant = order_line.variant
+    product = variant.product
+    product.metadata = {}
+    product.charge_taxes = True
+    product.save()
+    product.product_type.save()
+
+    order = order_line.order
+    channel = order.channel
+    channel_listing = variant.channel_listings.get(channel=channel)
+
+    net = variant.get_price(product, [], channel, channel_listing)
+    unit_price = TaxedMoney(net=net, gross=net)
+    order_line.unit_price = unit_price
+    total_price = unit_price * order_line.quantity
+    order_line.total_price = total_price
+    order_line.save(update_fields=["unit_price", "total_price"])
+
+    total = manager.calculate_order_line_total(
+        order_line.order,
+        order_line,
+        variant,
+        product,
+    )
+    total = quantize_price(total, total.currency)
+    assert total == TaxedMoney(net=Money("0.00", "USD"), gross=Money("0.00", "USD"))
+
+
 @pytest.mark.vcr
 @pytest.mark.parametrize(
     "with_discount, expected_net, expected_gross, voucher_amount, taxes_in_prices",
