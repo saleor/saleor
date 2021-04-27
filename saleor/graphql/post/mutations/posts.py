@@ -124,7 +124,7 @@ class PostMediaCreateInput(graphene.InputObjectType):
     )
 
 
-class PostMediaCreate(BaseMutation):
+class PostMediaCreate(ModelMutation):
     post = graphene.Field(Post)
     media = graphene.Field(PostMedia)
 
@@ -141,6 +141,7 @@ class PostMediaCreate(BaseMutation):
             "https://github.com/jaydenseric/graphql-multipart-request-spec"
         )
         permissions = (PostPermissions.MANAGE_POSTS,)
+        model = models.PostMedia
         error_type_class = PostError
         error_type_field = "post_errors"
 
@@ -177,7 +178,7 @@ class PostMediaCreate(BaseMutation):
             )            
 
         post = ChannelContext(node=post, channel_slug=None)
-        return PostMediaCreate(post=post, media=media)
+        return super().success_response(post)
 
 
 class PostMediaUpdateInput(graphene.InputObjectType):

@@ -46,7 +46,7 @@ class PostMedia(CountableDjangoObjectType):
 
     class Meta:
         description = "Represents a product media."
-        fields = ["alt", "id", "sort_order", "type"]
+        fields = ["alt", "id", "type"]
         interfaces = [graphene.relay.Node]
         model = models.PostMedia
 
