@@ -167,7 +167,8 @@ def test_calculate_order_line_total_order_not_valid(
     product.save()
     product.product_type.save()
 
-    channel = order_line.order.channel
+    order = order_line.order
+    channel = order.channel
     channel_listing = variant.channel_listings.get(channel=channel)
 
     net = variant.get_price(product, [], channel, channel_listing)

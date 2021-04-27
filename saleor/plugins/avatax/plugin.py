@@ -320,7 +320,7 @@ class AvataxPlugin(BasePlugin):
         if self._skip_plugin(previous_value):
             return previous_value
 
-        if product.charge_taxes:
+        if not product.charge_taxes:
             return previous_value
 
         if not _validate_order(order):
