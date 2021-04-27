@@ -15,7 +15,7 @@ from prices import Money, TaxedMoney
 
 from ....account.models import User
 from ....channel.utils import DEPRECATION_WARNING_MESSAGE
-from ....checkout import calculations
+from ....checkout import AddressType, calculations
 from ....checkout.checkout_cleaner import (
     clean_checkout_payment,
     clean_checkout_shipping,
@@ -124,6 +124,7 @@ MUTATION_CHECKOUT_CREATE = """
           message
           code
           variants
+          addressType
         }
       }
     }
@@ -744,6 +745,7 @@ def test_checkout_create_cannot_add_invalid_quantities(
             "message": expected_error_message,
             "code": error_code.name,
             "variants": None,
+            "addressType": None,
         }
     ]
 
@@ -821,6 +823,7 @@ def test_checkout_create_required_country_shipping_address(
     checkout_errors = content["data"]["checkoutCreate"]["errors"]
     assert checkout_errors[0]["field"] == "country"
     assert checkout_errors[0]["code"] == CheckoutErrorCode.REQUIRED.name
+    assert checkout_errors[0]["addressType"] == AddressType.SHIPPING.upper()
 
 
 def test_checkout_create_required_country_billing_address(
@@ -845,6 +848,7 @@ def test_checkout_create_required_country_billing_address(
     checkout_errors = content["data"]["checkoutCreate"]["errors"]
     assert checkout_errors[0]["field"] == "country"
     assert checkout_errors[0]["code"] == CheckoutErrorCode.REQUIRED.name
+    assert checkout_errors[0]["addressType"] == AddressType.BILLING.upper()
 
 
 def test_checkout_create_default_email_for_logged_in_customer(

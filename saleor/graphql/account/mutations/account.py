@@ -280,7 +280,7 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
         cleaned_input = cls.clean_input(
             info=info, instance=Address(), data=data.get("input")
         )
-        address = cls.validate_address(cleaned_input)
+        address = cls.validate_address(cleaned_input, address_type=address_type)
         cls.clean_instance(info, address)
         cls.save(info, address, cleaned_input)
         cls._save_m2m(info, address, cleaned_input)

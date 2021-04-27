@@ -34,6 +34,7 @@ type AccountError {
   field: String
   message: String
   code: AccountErrorCode!
+  addressType: AddressTypeEnum
 }
 
 enum AccountErrorCode {
@@ -968,6 +969,7 @@ type CheckoutError {
   message: String
   code: CheckoutErrorCode!
   variants: [ID!]
+  addressType: AddressTypeEnum
 }
 
 enum CheckoutErrorCode {
@@ -3049,6 +3051,7 @@ type OrderError {
   warehouse: ID
   orderLine: ID
   variants: [ID!]
+  addressType: AddressTypeEnum
 }
 
 enum OrderErrorCode {
@@ -5248,6 +5251,7 @@ type StaffError {
   field: String
   message: String
   code: AccountErrorCode!
+  addressType: AddressTypeEnum
   permissions: [PermissionEnum!]
   groups: [ID!]
   users: [ID!]
