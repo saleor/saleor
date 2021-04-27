@@ -1717,7 +1717,6 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
         Product.objects.bulk_create(
             [
                 Product(
-                    pk=1486,
                     name="Test product 1",
                     slug="test-product-a",
                     description_plaintext="big blue product",
@@ -1725,7 +1724,6 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
                     product_type=product_type,
                 ),
                 Product(
-                    pk=1487,
                     name="Test product 2",
                     slug="test-product-b",
                     description_plaintext="big orange product",
@@ -1733,7 +1731,6 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
                     product_type=product_type,
                 ),
                 Product(
-                    pk=1489,
                     name="Test product 3",
                     slug="test-product-c",
                     description_plaintext="small red",
@@ -1836,21 +1833,18 @@ def product_list_with_variants_many_channel(
         Product.objects.bulk_create(
             [
                 Product(
-                    pk=1486,
                     name="Test product 1",
                     slug="test-product-a",
                     category=category,
                     product_type=product_type,
                 ),
                 Product(
-                    pk=1487,
                     name="Test product 2",
                     slug="test-product-b",
                     category=category,
                     product_type=product_type,
                 ),
                 Product(
-                    pk=1489,
                     name="Test product 3",
                     slug="test-product-c",
                     category=category,

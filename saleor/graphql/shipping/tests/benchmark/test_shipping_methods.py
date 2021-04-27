@@ -92,7 +92,7 @@ EXCLUDE_PRODUCTS_MUTATION = """
         shippingPriceExcludeProducts(
             id: $id
             input: $input) {
-            shippingErrors {
+            errors {
                 field
                 code
             }
@@ -190,7 +190,7 @@ REMOVE_PRODUCTS_FROM_EXCLUDED_PRODUCTS_MUTATION = """
         shippingPriceRemoveProductFromExclude(
             id: $id
             products: $products) {
-            shippingErrors {
+            errors {
                 field
                 code
             }

@@ -496,7 +496,8 @@ def test_export_products_in_batches_for_csv(
     expected_data = []
     for product in qs.order_by("pk"):
         product_data = []
-        product_data.append(str(product.pk))
+        id = graphene.Node.to_global_id("Product", product.pk)
+        product_data.append(id)
         product_data.append(product.name)
 
         for variant in product.variants.all():
@@ -564,7 +565,8 @@ def test_export_products_in_batches_for_xlsx(
     expected_data = []
     for product in qs.order_by("pk"):
         product_data = []
-        product_data.append(product.pk)
+        id = graphene.Node.to_global_id("Product", product.pk)
+        product_data.append(id)
         product_data.append(product.name)
         product_data.append(json.dumps(product.description))
 

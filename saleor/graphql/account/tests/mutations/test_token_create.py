@@ -26,7 +26,7 @@ MUTATION_CREATE_TOKEN = """
                 field
                 message
             }
-            accountErrors {
+            errors {
                 field
                 message
                 code
@@ -46,7 +46,7 @@ def test_create_token(api_client, customer_user, settings):
 
     user_email = data["user"]["email"]
     assert customer_user.email == user_email
-    assert content["data"]["tokenCreate"]["accountErrors"] == []
+    assert content["data"]["tokenCreate"]["errors"] == []
 
     token = data["token"]
     refreshToken = data["refreshToken"]
@@ -96,7 +96,7 @@ def test_create_token_invalid_password(api_client, customer_user):
     expected_error_code = AccountErrorCode.INVALID_CREDENTIALS.value.upper()
     response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
     content = get_graphql_content(response)
-    response_error = content["data"]["tokenCreate"]["accountErrors"][0]
+    response_error = content["data"]["tokenCreate"]["errors"][0]
     assert response_error["code"] == expected_error_code
     assert response_error["field"] == "email"
 
@@ -106,6 +106,6 @@ def test_create_token_invalid_email(api_client, customer_user):
     expected_error_code = AccountErrorCode.INVALID_CREDENTIALS.value.upper()
     response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
     content = get_graphql_content(response)
-    response_error = content["data"]["tokenCreate"]["accountErrors"][0]
+    response_error = content["data"]["tokenCreate"]["errors"][0]
     assert response_error["code"] == expected_error_code
     assert response_error["field"] == "email"

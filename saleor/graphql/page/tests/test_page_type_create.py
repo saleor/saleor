@@ -17,7 +17,7 @@ PAGE_TYPE_CREATE_MUTATION = """
                     slug
                 }
             }
-            pageErrors {
+            errors {
                 code
                 field
                 message
@@ -58,7 +58,7 @@ def test_page_type_create_as_staff(
     content = get_graphql_content(response)
     data = content["data"]["pageTypeCreate"]
     page_type_data = data["pageType"]
-    errors = data["pageErrors"]
+    errors = data["errors"]
 
     assert not errors
     assert page_type_data["name"] == name
@@ -118,7 +118,7 @@ def test_page_type_create_as_app(
     content = get_graphql_content(response)
     data = content["data"]["pageTypeCreate"]
     page_type_data = data["pageType"]
-    errors = data["pageErrors"]
+    errors = data["errors"]
 
     assert not errors
     assert page_type_data["name"] == name
@@ -181,7 +181,7 @@ def test_page_type_create_unique_slug_generated(
     content = get_graphql_content(response)
     data = content["data"]["pageTypeCreate"]
     page_type_data = data["pageType"]
-    errors = data["pageErrors"]
+    errors = data["errors"]
 
     assert not errors
     assert PageType.objects.count() == 2
@@ -229,7 +229,7 @@ def test_page_type_create_duplicated_slug(
     content = get_graphql_content(response)
     data = content["data"]["pageTypeCreate"]
     page_type_data = data["pageType"]
-    errors = data["pageErrors"]
+    errors = data["errors"]
 
     assert not page_type_data
     assert len(errors) == 1
@@ -268,7 +268,7 @@ def test_page_type_create_not_valid_attributes(
     content = get_graphql_content(response)
     data = content["data"]["pageTypeCreate"]
     page_type_data = data["pageType"]
-    errors = data["pageErrors"]
+    errors = data["errors"]
 
     assert not page_type_data
     assert len(errors) == 1

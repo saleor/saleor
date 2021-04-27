@@ -13,7 +13,7 @@ mutation UpdateShippingMethodChannelListing(
     $input: ShippingMethodChannelListingInput!
 ) {
     shippingMethodChannelListingUpdate(id: $id, input: $input) {
-        shippingErrors {
+        errors {
             field
             message
             code
@@ -83,7 +83,7 @@ def test_shipping_method_channel_listing_create_as_staff_user(
     # then
     data = content["data"]["shippingMethodChannelListingUpdate"]
     shipping_method_data = data["shippingMethod"]
-    assert not data["shippingErrors"]
+    assert not data["errors"]
     assert shipping_method_data["name"] == shipping_method.name
 
     assert shipping_method_data["channelListings"][1]["price"]["amount"] == price
@@ -145,7 +145,7 @@ def test_shipping_method_channel_listing_update_as_staff_user(
 
     data = content["data"]["shippingMethodChannelListingUpdate"]
     shipping_method_data = data["shippingMethod"]
-    assert not data["shippingErrors"]
+    assert not data["errors"]
     assert shipping_method_data["name"] == shipping_method.name
 
     # then
@@ -330,9 +330,9 @@ def test_shipping_method_channel_listing_update_with_max_less_than_min(
     data = content["data"]["shippingMethodChannelListingUpdate"]
 
     # then
-    assert data["shippingErrors"][0]["field"] == "maximumOrderPrice"
-    assert data["shippingErrors"][0]["code"] == ShippingErrorCode.MAX_LESS_THAN_MIN.name
-    assert data["shippingErrors"][0]["channels"] == [channel_id]
+    assert data["errors"][0]["field"] == "maximumOrderPrice"
+    assert data["errors"][0]["code"] == ShippingErrorCode.MAX_LESS_THAN_MIN.name
+    assert data["errors"][0]["channels"] == [channel_id]
 
 
 def test_shipping_method_channel_listing_create_without_price(
@@ -373,9 +373,9 @@ def test_shipping_method_channel_listing_create_without_price(
     data = content["data"]["shippingMethodChannelListingUpdate"]
 
     # then
-    assert data["shippingErrors"][0]["field"] == "price"
-    assert data["shippingErrors"][0]["code"] == ShippingErrorCode.REQUIRED.name
-    assert data["shippingErrors"][0]["channels"] == [channel_id]
+    assert data["errors"][0]["field"] == "price"
+    assert data["errors"][0]["code"] == ShippingErrorCode.REQUIRED.name
+    assert data["errors"][0]["channels"] == [channel_id]
 
 
 def test_shipping_method_channel_listing_update_with_to_many_decimal_places_in_price(
@@ -418,9 +418,9 @@ def test_shipping_method_channel_listing_update_with_to_many_decimal_places_in_p
     data = content["data"]["shippingMethodChannelListingUpdate"]
 
     # then
-    assert data["shippingErrors"][0]["field"] == "price"
-    assert data["shippingErrors"][0]["code"] == ShippingErrorCode.INVALID.name
-    assert data["shippingErrors"][0]["channels"] == [channel_id]
+    assert data["errors"][0]["field"] == "price"
+    assert data["errors"][0]["code"] == ShippingErrorCode.INVALID.name
+    assert data["errors"][0]["channels"] == [channel_id]
 
 
 def test_shipping_method_channel_listing_update_with_to_many_decimal_places_in_min_val(
@@ -463,9 +463,9 @@ def test_shipping_method_channel_listing_update_with_to_many_decimal_places_in_m
     data = content["data"]["shippingMethodChannelListingUpdate"]
 
     # then
-    assert data["shippingErrors"][0]["field"] == "minimumOrderPrice"
-    assert data["shippingErrors"][0]["code"] == ShippingErrorCode.INVALID.name
-    assert data["shippingErrors"][0]["channels"] == [channel_id]
+    assert data["errors"][0]["field"] == "minimumOrderPrice"
+    assert data["errors"][0]["code"] == ShippingErrorCode.INVALID.name
+    assert data["errors"][0]["channels"] == [channel_id]
 
 
 def test_shipping_method_channel_listing_update_with_to_many_decimal_places_in_max_val(
@@ -508,9 +508,9 @@ def test_shipping_method_channel_listing_update_with_to_many_decimal_places_in_m
     data = content["data"]["shippingMethodChannelListingUpdate"]
 
     # then
-    assert data["shippingErrors"][0]["field"] == "maximumOrderPrice"
-    assert data["shippingErrors"][0]["code"] == ShippingErrorCode.INVALID.name
-    assert data["shippingErrors"][0]["channels"] == [channel_id]
+    assert data["errors"][0]["field"] == "maximumOrderPrice"
+    assert data["errors"][0]["code"] == ShippingErrorCode.INVALID.name
+    assert data["errors"][0]["channels"] == [channel_id]
 
 
 def test_shipping_method_channel_listing_create_channel_not_valid(
@@ -555,9 +555,9 @@ def test_shipping_method_channel_listing_create_channel_not_valid(
     data = content["data"]["shippingMethodChannelListingUpdate"]
 
     # then
-    assert data["shippingErrors"][0]["field"] == "addChannels"
-    assert data["shippingErrors"][0]["code"] == ShippingErrorCode.INVALID.name
-    assert data["shippingErrors"][0]["channels"] == [channel_id]
+    assert data["errors"][0]["field"] == "addChannels"
+    assert data["errors"][0]["code"] == ShippingErrorCode.INVALID.name
+    assert data["errors"][0]["channels"] == [channel_id]
 
 
 @patch(
@@ -599,7 +599,7 @@ def test_shipping_method_channel_listing_update_remove_channels(
 
     data = content["data"]["shippingMethodChannelListingUpdate"]
     shipping_method_data = data["shippingMethod"]
-    assert not data["shippingErrors"]
+    assert not data["errors"]
     assert shipping_method_data["name"] == shipping_method.name
 
     # then
