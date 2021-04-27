@@ -306,12 +306,14 @@ class ProductsQueryset(models.QuerySet):
             return self.prefetch_related(
                 "attributes__values",
                 "attributes__assignment__attribute",
+                "media",
             )
         return self.prefetch_related(
             "attributes__values",
             "attributes__assignment__attribute",
             "collections",
             "variants__stocks__allocations",
+            "media",
             "category",
         )
 
@@ -536,11 +538,6 @@ class ProductVariant(SortableModel, ModelWithMetadata):
             f"{product} ({variant_display})" if variant_display else str(product)
         )
         return smart_text(product_display)
-
-    def get_first_image(self) -> "ProductMedia":
-        all_media = self.media.all()
-        images = [media for media in all_media if media.type == ProductMediaTypes.IMAGE]
-        return images[0] if images else self.product.get_first_image()
 
     def get_ordering_queryset(self):
         return self.product.variants.all()

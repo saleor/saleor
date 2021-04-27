@@ -10,6 +10,7 @@ from ..core.dataloaders import DataLoader
 from ..product.dataloaders import (
     CollectionsByVariantIdLoader,
     ProductByVariantIdLoader,
+    ProductTypeByVariantIdLoader,
     ProductVariantByIdLoader,
     VariantChannelListingByVariantIdAndChannelIdLoader,
 )
@@ -42,9 +43,16 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
             channel_pks = [checkout.channel_id for checkout in checkouts]
 
             def with_variants_products_collections(results):
-                variants, products, collections, channel_listings = results
+                (
+                    variants,
+                    products,
+                    product_types,
+                    collections,
+                    channel_listings,
+                ) = results
                 variants_map = dict(zip(variants_pks, variants))
                 products_map = dict(zip(variants_pks, products))
+                product_types_map = dict(zip(variants_pks, product_types))
                 collections_map = dict(zip(variants_pks, collections))
                 channel_listings_map = dict(
                     zip(variant_ids_channel_ids, channel_listings)
@@ -61,6 +69,7 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
                                     (line.variant_id, checkout.channel_id)
                                 ],
                                 product=products_map[line.variant_id],
+                                product_type=product_types_map[line.variant_id],
                                 collections=collections_map[line.variant_id],
                             )
                             for line in lines
@@ -70,6 +79,9 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
 
             variants = ProductVariantByIdLoader(self.context).load_many(variants_pks)
             products = ProductByVariantIdLoader(self.context).load_many(variants_pks)
+            product_types = ProductTypeByVariantIdLoader(self.context).load_many(
+                variants_pks
+            )
             collections = CollectionsByVariantIdLoader(self.context).load_many(
                 variants_pks
             )
@@ -84,7 +96,7 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
                 self.context
             ).load_many(variant_ids_channel_ids)
             return Promise.all(
-                [variants, products, collections, channel_listings]
+                [variants, products, product_types, collections, channel_listings]
             ).then(with_variants_products_collections)
 
         checkouts = CheckoutByTokenLoader(self.context).load_many(keys)

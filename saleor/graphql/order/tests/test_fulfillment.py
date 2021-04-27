@@ -19,7 +19,7 @@ mutation fulfillOrder(
         order: $order,
         input: $input
     ) {
-        orderErrors {
+        errors {
             field
             code
             message
@@ -68,7 +68,7 @@ def test_order_fulfill(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
-    assert not data["orderErrors"]
+    assert not data["errors"]
 
     fulfillment_lines_for_warehouses = {
         str(warehouse.pk): [
@@ -118,7 +118,7 @@ def test_order_fulfill_as_app(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
-    assert not data["orderErrors"]
+    assert not data["errors"]
 
     fulfillment_lines_for_warehouses = {
         str(warehouse.pk): [
@@ -175,7 +175,7 @@ def test_order_fulfill_many_warehouses(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
-    assert not data["orderErrors"]
+    assert not data["errors"]
 
     fulfillment_lines_for_warehouses = {
         str(warehouse1.pk): [
@@ -222,7 +222,7 @@ def test_order_fulfill_without_notification(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
-    assert not data["orderErrors"]
+    assert not data["errors"]
 
     fulfillment_lines_for_warehouses = {
         str(warehouse.pk): [{"order_line": order_line, "quantity": 1}]
@@ -280,7 +280,7 @@ def test_order_fulfill_lines_with_empty_quantity(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
-    assert not data["orderErrors"]
+    assert not data["errors"]
 
     fulfillment_lines_for_warehouses = {
         str(warehouse.pk): [{"order_line": order_line2, "quantity": 2}]
@@ -320,8 +320,8 @@ def test_order_fulfill_zero_quantity(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
-    assert data["orderErrors"]
-    error = data["orderErrors"][0]
+    assert data["errors"]
+    error = data["errors"][0]
     assert error["field"] == "lines"
     assert error["code"] == OrderErrorCode.ZERO_QUANTITY.name
     assert not error["orderLine"]
@@ -360,8 +360,8 @@ def test_order_fulfill_channel_without_shipping_zones(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
-    assert len(data["orderErrors"]) == 1
-    error = data["orderErrors"][0]
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
     assert error["field"] == "stocks"
     assert error["code"] == OrderErrorCode.INSUFFICIENT_STOCK.name
 
@@ -396,8 +396,8 @@ def test_order_fulfill_fulfilled_order(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
-    assert data["orderErrors"]
-    error = data["orderErrors"][0]
+    assert data["errors"]
+    error = data["errors"][0]
     assert error["field"] == "orderLineId"
     assert error["code"] == OrderErrorCode.FULFILL_ORDER_LINE.name
     assert error["orderLine"] == order_line_id
@@ -449,8 +449,8 @@ def test_order_fulfill_warehouse_with_insufficient_stock_exception(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
-    assert data["orderErrors"]
-    error = data["orderErrors"][0]
+    assert data["errors"]
+    error = data["errors"][0]
     assert error["field"] == "stocks"
     assert error["code"] == OrderErrorCode.INSUFFICIENT_STOCK.name
     assert error["orderLine"] == order_line_id
@@ -490,8 +490,8 @@ def test_order_fulfill_warehouse_duplicated_warehouse_id(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
-    assert data["orderErrors"]
-    error = data["orderErrors"][0]
+    assert data["errors"]
+    error = data["errors"][0]
     assert error["field"] == "warehouse"
     assert error["code"] == OrderErrorCode.DUPLICATED_INPUT_ITEM.name
     assert not error["orderLine"]
@@ -533,8 +533,8 @@ def test_order_fulfill_warehouse_duplicated_order_line_id(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
-    assert data["orderErrors"]
-    error = data["orderErrors"][0]
+    assert data["errors"]
+    error = data["errors"][0]
     assert error["field"] == "orderLineId"
     assert error["code"] == OrderErrorCode.DUPLICATED_INPUT_ITEM.name
     assert error["orderLine"] == order_line_id

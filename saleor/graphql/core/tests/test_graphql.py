@@ -4,11 +4,13 @@ from unittest.mock import Mock, patch
 import graphene
 import pytest
 from django.contrib.auth.models import AnonymousUser
+from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.shortcuts import reverse
 from graphql.error import GraphQLError
 from graphql_relay import to_global_id
 
+from ...core.utils import from_global_id_or_error
 from ...product.types import Product
 from ...tests.utils import get_graphql_content
 from ...utils import get_nodes
@@ -104,13 +106,11 @@ def test_real_query(user_api_client, product, channel_USD):
     fragment CategoryPageFragmentQuery on Category {
         id
         name
-        url
         ancestors(first: 20) {
             edges {
                 node {
                     name
                     id
-                    url
                     __typename
                 }
             }
@@ -120,7 +120,6 @@ def test_real_query(user_api_client, product, channel_USD):
                 node {
                     name
                     id
-                    url
                     slug
                     __typename
                 }
@@ -158,7 +157,6 @@ def test_real_query(user_api_client, product, channel_USD):
         thumbnailUrl2x:     thumbnail(size: 510){
             url
         }
-        url
         __typename
     }
 
@@ -176,7 +174,6 @@ def test_real_query(user_api_client, product, channel_USD):
                 gross {
                     amount
                     currency
-                    localized
                     __typename
                 }
                 currency
@@ -186,7 +183,6 @@ def test_real_query(user_api_client, product, channel_USD):
                 gross {
                     amount
                     currency
-                    localized
                     __typename
                 }
                 currency
@@ -215,7 +211,7 @@ def test_real_query(user_api_client, product, channel_USD):
         "sortBy": {"field": "NAME", "direction": "ASC"},
         "first": 1,
         "attributesFilter": [
-            {"slug": f"{product_attr.slug}", "value": f"{attr_value.slug}"}
+            {"slug": f"{product_attr.slug}", "values": [f"{attr_value.slug}"]}
         ],
         "channel": channel_USD.slug,
     }
@@ -232,7 +228,7 @@ def test_get_nodes(product_list):
     assert products == product_list
 
     # Raise an error if requested id has no related database object
-    nonexistent_item = Mock(type="Product", pk=123)
+    nonexistent_item = Mock(type="Product", pk=-1)
     nonexistent_item_global_id = to_global_id(
         nonexistent_item.type, nonexistent_item.pk
     )
@@ -247,7 +243,7 @@ def test_get_nodes(product_list):
     global_ids.pop()
 
     # Raise an error if one of the node is of wrong type
-    invalid_item = Mock(type="test", pk=123)
+    invalid_item = Mock(type="test", pk=-1)
     invalid_item_global_id = to_global_id(invalid_item.type, invalid_item.pk)
     global_ids.append(invalid_item_global_id)
     with pytest.raises(GraphQLError) as exc:
@@ -283,3 +279,35 @@ def test_filter_by_query_param(qs):
         q_objects |= Q(**{q: test_kwargs[q]})
     # FIXME: django 1.11 fails on called_once_with(q_objects)
     qs.filter.call_count == 1
+
+
+def test_from_global_id_or_error(product):
+    invalid_id = "invalid"
+    message = f"Couldn't resolve id: {invalid_id}."
+
+    with pytest.raises(ValidationError) as error:
+        from_global_id_or_error(invalid_id)
+
+    assert error.value.error_dict["id"][0].message == message
+
+
+def test_from_global_id_or_error_wth_invalid_type(product):
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    message = "Must receive a ProductVariant id."
+
+    with pytest.raises(ValidationError) as error:
+        from_global_id_or_error(product_id, "ProductVariant")
+
+    assert error.value.error_dict["id"][0].message == message
+
+
+def test_from_global_id_or_error_wth_type(product):
+    expected_product_type = str(Product)
+    expected_product_id = graphene.Node.to_global_id(expected_product_type, product.id)
+
+    product_type, product_id = from_global_id_or_error(
+        expected_product_id, expected_product_type
+    )
+
+    assert product_id == str(product.id)
+    assert product_type == expected_product_type

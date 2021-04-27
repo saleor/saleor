@@ -17,6 +17,7 @@ from ...checkout import base_calculations
 from ...checkout.utils import is_shipping_required
 from ...core.taxes import TaxError
 from ...order.utils import get_total_order_discount
+from ...shipping.models import ShippingMethodChannelListing
 
 if TYPE_CHECKING:
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
@@ -211,14 +212,15 @@ def append_line_to_data(
     )
 
 
-def append_shipping_to_data(data: List[Dict], shipping_method, channel_id):
+def append_shipping_to_data(
+    data: List[Dict],
+    shipping_method_channel_listings: Optional["ShippingMethodChannelListing"],
+):
     charge_taxes_on_shipping = (
         Site.objects.get_current().settings.charge_taxes_on_shipping
     )
-    if charge_taxes_on_shipping and shipping_method:
-        shipping_price = shipping_method.channel_listings.get(
-            channel_id=channel_id
-        ).price
+    if charge_taxes_on_shipping and shipping_method_channel_listings:
+        shipping_price = shipping_method_channel_listings.price
         append_line_to_data(
             data,
             quantity=1,
@@ -238,7 +240,7 @@ def get_checkout_lines_data(
     for line_info in lines_info:
         product = line_info.product
         name = product.name
-        product_type = product.product_type
+        product_type = line_info.product_type
         tax_code = retrieve_tax_code_from_meta(product, default=None)
         tax_code = tax_code or retrieve_tax_code_from_meta(product_type)
         append_line_to_data(
@@ -255,7 +257,8 @@ def get_checkout_lines_data(
         )
 
     append_shipping_to_data(
-        data, checkout_info.shipping_method, checkout_info.channel.id
+        data,
+        checkout_info.shipping_method_channel_listings,
     )
     return data
 
@@ -307,7 +310,10 @@ def get_order_lines_data(
             name="Order discount",
             tax_included=True,  # Voucher should be always applied as a gross amount
         )
-    append_shipping_to_data(data, order.shipping_method, order.channel_id)
+    shipping_method_channel_listing = ShippingMethodChannelListing.objects.filter(
+        shipping_method=order.shipping_method_id, channel=order.channel_id
+    ).first()
+    append_shipping_to_data(data, shipping_method_channel_listing)
     return data
 
 

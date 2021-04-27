@@ -14,7 +14,7 @@ INVOICE_SEND_EMAIL_MUTATION = """
         invoiceSendNotification(
             id: $id
         ) {
-            invoiceErrors {
+            errors {
                 field
                 code
             }
@@ -46,7 +46,7 @@ def test_invoice_send_notification(
     }
 
     mock_notify.assert_called_once_with(NotifyEventType.INVOICE_READY, expected_payload)
-    assert not content["data"]["invoiceSendNotification"]["invoiceErrors"]
+    assert not content["data"]["invoiceSendNotification"]["errors"]
 
 
 @patch("saleor.plugins.manager.PluginsManager.notify")
@@ -61,7 +61,7 @@ def test_invoice_send_notification_pending(
         INVOICE_SEND_EMAIL_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    errors = content["data"]["invoiceSendNotification"]["invoiceErrors"]
+    errors = content["data"]["invoiceSendNotification"]["errors"]
     assert errors == [
         {"field": "invoice", "code": "NOT_READY"},
         {"field": "url", "code": "URL_NOT_SET"},
@@ -83,7 +83,7 @@ def test_invoice_send_notification_without_url_and_number(
         INVOICE_SEND_EMAIL_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    errors = content["data"]["invoiceSendNotification"]["invoiceErrors"]
+    errors = content["data"]["invoiceSendNotification"]["errors"]
     assert errors == [
         {"field": "url", "code": "URL_NOT_SET"},
         {"field": "number", "code": "NUMBER_NOT_SET"},
@@ -111,6 +111,6 @@ def test_invoice_send_email_without_email(
     content = get_graphql_content(response)
     mock_notify.assert_not_called()
     assert order_mock.called
-    errors = content["data"]["invoiceSendNotification"]["invoiceErrors"]
+    errors = content["data"]["invoiceSendNotification"]["errors"]
     assert errors == [{"field": "order", "code": "EMAIL_NOT_SET"}]
     assert not order.events.filter(type=OrderEvents.INVOICE_SENT).exists()

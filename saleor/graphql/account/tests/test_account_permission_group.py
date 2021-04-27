@@ -24,7 +24,7 @@ PERMISSION_GROUP_CREATE_MUTATION = """
                     email
                 }
             }
-            permissionGroupErrors{
+            errors{
                 field
                 code
                 permissions
@@ -86,7 +86,7 @@ def test_permission_group_create_mutation(
         == {user.email for user in staff_users}
         == set(group.user_set.all().values_list("email", flat=True))
     )
-    assert data["permissionGroupErrors"] == []
+    assert data["errors"] == []
 
 
 def test_permission_group_create_app_no_permission(
@@ -209,7 +209,7 @@ def test_permission_group_create_mutation_lack_of_permission(
     )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupCreate"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
 
     assert len(errors) == 1
     assert errors[0]["field"] == "addPermissions"
@@ -224,7 +224,7 @@ def test_permission_group_create_mutation_lack_of_permission(
     response = superuser_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupCreate"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
 
     assert not errors
     group = Group.objects.get()
@@ -265,7 +265,7 @@ def test_permission_group_create_mutation_group_exists(
     )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupCreate"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
     permission_group_data = data["group"]
 
     assert permission_group_data is None
@@ -319,7 +319,7 @@ def test_permission_group_create_mutation_add_customer_user(
     )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupCreate"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
 
     assert errors
     assert len(errors) == 1
@@ -333,7 +333,7 @@ def test_permission_group_create_mutation_add_customer_user(
     response = superuser_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupCreate"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
 
     assert errors
     assert len(errors) == 1
@@ -373,7 +373,7 @@ def test_permission_group_create_mutation_lack_of_permission_and_customer_user(
     )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupCreate"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
 
     assert errors
     assert len(errors) == 2
@@ -422,7 +422,7 @@ def test_permission_group_create_mutation_requestor_does_not_have_all_users_perm
     )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupCreate"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
 
     assert not errors
     group_name = variables["input"]["name"]
@@ -460,7 +460,7 @@ PERMISSION_GROUP_UPDATE_MUTATION = """
                     email
                 }
             }
-            permissionGroupErrors{
+            errors{
                 field
                 code
                 permissions
@@ -530,7 +530,7 @@ def test_permission_group_update_mutation(
         == permissions_codes
     )
     assert set(group1.user_set.all().values_list("email", flat=True)) == users
-    assert data["permissionGroupErrors"] == []
+    assert data["errors"] == []
 
 
 def test_permission_group_update_mutation_removing_perm_left_not_manageable_perms(
@@ -562,7 +562,7 @@ def test_permission_group_update_mutation_removing_perm_left_not_manageable_perm
     )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupUpdate"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
 
     assert not data["group"]
     assert len(errors) == 1
@@ -626,7 +626,7 @@ def test_permission_group_update_mutation_superuser_can_remove_any_perms(
         == permissions_codes
     )
     assert set(group.user_set.all().values_list("email", flat=True)) == users
-    assert data["permissionGroupErrors"] == []
+    assert data["errors"] == []
 
 
 def test_permission_group_update_mutation_app_no_permission(
@@ -686,7 +686,7 @@ def test_permission_group_update_mutation_remove_me_from_last_group(
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupUpdate"]
     permission_group_data = data["group"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
 
     assert not permission_group_data
     assert len(errors) == 1
@@ -735,7 +735,7 @@ def test_permission_group_update_mutation_remove_me_from_not_last_group(
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupUpdate"]
     permission_group_data = data["group"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
 
     assert not errors
     assert staff_user_id not in permission_group_data["users"]
@@ -780,7 +780,7 @@ def test_permission_group_update_mutation_remove_last_user_from_group(
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupUpdate"]
     permission_group_data = data["group"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
 
     assert not errors
     assert staff_user.groups.count() == 0
@@ -829,7 +829,7 @@ def test_permission_group_update_mutation_only_name(
         set(group.permissions.all().values_list("codename", flat=True))
         == permissions_codes
     )
-    assert data["permissionGroupErrors"] == []
+    assert data["errors"] == []
 
 
 def test_permission_group_update_mutation_only_name_other_fields_with_none(
@@ -880,7 +880,7 @@ def test_permission_group_update_mutation_only_name_other_fields_with_none(
         set(group.permissions.all().values_list("codename", flat=True))
         == permissions_codes
     )
-    assert data["permissionGroupErrors"] == []
+    assert data["errors"] == []
 
 
 def test_permission_group_update_mutation_with_name_which_exists(
@@ -909,7 +909,7 @@ def test_permission_group_update_mutation_with_name_which_exists(
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupUpdate"]
     permission_group_data = data["group"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
 
     group.refresh_from_db()
     assert not permission_group_data
@@ -953,7 +953,7 @@ def test_permission_group_update_mutation_only_permissions(
         permission["name"] for permission in permission_group_data["permissions"]
     }
     assert set(group.permissions.all().values_list("name", flat=True)) == permissions
-    assert data["permissionGroupErrors"] == []
+    assert data["errors"] == []
 
 
 def test_permission_group_update_mutation_no_input_data(
@@ -972,7 +972,7 @@ def test_permission_group_update_mutation_no_input_data(
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupUpdate"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
     permission_group_data = data["group"]
 
     assert errors == []
@@ -1013,7 +1013,7 @@ def test_permission_group_update_mutation_user_cannot_manage_group(
     )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupUpdate"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
 
     assert len(errors) == 1
     assert errors[0]["code"] == PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.name
@@ -1023,7 +1023,7 @@ def test_permission_group_update_mutation_user_cannot_manage_group(
     response = superuser_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupUpdate"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
 
     group_name = variables["input"]["name"]
     group = Group.objects.get(name=group_name)
@@ -1073,7 +1073,7 @@ def test_permission_group_update_mutation_user_in_list_to_add_and_remove(
     )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupUpdate"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
 
     assert len(errors) == 1
     assert errors[0]["code"] == PermissionGroupErrorCode.DUPLICATED_INPUT_ITEM.name
@@ -1120,7 +1120,7 @@ def test_permission_group_update_mutation_permissions_in_list_to_add_and_remove(
     )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupUpdate"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
 
     assert len(errors) == 1
     assert errors[0]["code"] == PermissionGroupErrorCode.DUPLICATED_INPUT_ITEM.name
@@ -1174,7 +1174,7 @@ def test_permission_group_update_mutation_permissions_and_users_duplicated(
     )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupUpdate"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
 
     assert len(errors) == 2
     assert {error["code"] for error in errors} == {
@@ -1224,7 +1224,7 @@ def test_permission_group_update_mutation_user_add_customer_user(
     )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupUpdate"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
 
     assert len(errors) == 1
     assert errors[0]["code"] == PermissionGroupErrorCode.ASSIGN_NON_STAFF_MEMBER.name
@@ -1236,7 +1236,7 @@ def test_permission_group_update_mutation_user_add_customer_user(
     response = superuser_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupUpdate"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
 
     assert len(errors) == 1
     assert errors[0]["code"] == PermissionGroupErrorCode.ASSIGN_NON_STAFF_MEMBER.name
@@ -1278,7 +1278,7 @@ def test_permission_group_update_mutation_lack_of_permission(
     )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupUpdate"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
 
     assert len(errors) == 1
     assert errors[0]["code"] == PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.name
@@ -1290,7 +1290,7 @@ def test_permission_group_update_mutation_lack_of_permission(
     response = superuser_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupUpdate"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
 
     assert not errors
     group_name = variables["input"]["name"]
@@ -1358,7 +1358,7 @@ def test_permission_group_update_mutation_out_of_scope_users(
     )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupUpdate"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
 
     assert errors
     assert data["group"] is None
@@ -1373,7 +1373,7 @@ def test_permission_group_update_mutation_out_of_scope_users(
     response = superuser_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupUpdate"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
 
     assert not errors
     group = Group.objects.get()
@@ -1434,7 +1434,7 @@ def test_permission_group_update_mutation_multiple_errors(
     )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupUpdate"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
 
     assert len(errors) == 3
     expected_errors = [
@@ -1504,7 +1504,7 @@ def test_permission_group_update_mutation_remove_all_users_manageable_perms(
     )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupUpdate"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
 
     assert not errors
     assert data["group"]
@@ -1555,7 +1555,7 @@ def test_permission_group_update_mutation_remove_all_group_users_not_manageable_
     )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupUpdate"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
 
     assert not data["group"]
     assert len(errors) == 1
@@ -1570,7 +1570,7 @@ def test_permission_group_update_mutation_remove_all_group_users_not_manageable_
     response = superuser_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupUpdate"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
 
     assert not errors
     group1.refresh_from_db()
@@ -1617,7 +1617,7 @@ def test_permission_group_update_mutation_remove_group_users_add_with_manage_stu
     )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupUpdate"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
     group_data = data["group"]
 
     assert not errors
@@ -1655,7 +1655,7 @@ def test_group_update_mutation_remove_some_users_from_group_with_manage_stuff(
     )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupUpdate"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
     group_data = data["group"]
 
     assert not errors
@@ -1699,7 +1699,7 @@ def test_group_update_mutation_remove_some_users_from_group_user_with_manage_stu
     )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupUpdate"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
     group_data = data["group"]
 
     assert not errors
@@ -1746,7 +1746,7 @@ def test_permission_group_update_mutation_remove_user_with_manage_staff(
     )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupUpdate"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
 
     assert not data["group"]
     assert len(errors) == 1
@@ -1797,7 +1797,7 @@ def test_permission_group_update_mutation_remove_user_with_manage_staff_add_user
     )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupUpdate"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
     group_data = data["group"]
 
     assert not errors
@@ -1822,7 +1822,7 @@ PERMISSION_GROUP_DELETE_MUTATION = """
                     code
                 }
             }
-            permissionGroupErrors{
+            errors{
                 field
                 code
                 users
@@ -1865,7 +1865,7 @@ def test_group_delete_mutation(
     )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupDelete"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
     permission_group_data = data["group"]
 
     assert errors == []
@@ -1927,7 +1927,7 @@ def test_group_delete_mutation_out_of_scope_permission(
     )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupDelete"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
     permission_group_data = data["group"]
 
     assert not permission_group_data
@@ -1938,7 +1938,7 @@ def test_group_delete_mutation_out_of_scope_permission(
     response = superuser_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupDelete"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
     permission_group_data = data["group"]
 
     assert not errors
@@ -1992,7 +1992,7 @@ def test_group_delete_mutation_left_not_manageable_permission(
     )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupDelete"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
 
     assert not data["group"]
     assert len(errors) == 1
@@ -2007,7 +2007,7 @@ def test_group_delete_mutation_left_not_manageable_permission(
     response = superuser_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupDelete"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
 
     assert not errors
     assert not Group.objects.filter(pk=group1.pk).exists()
@@ -2031,7 +2031,7 @@ def test_group_delete_mutation_delete_last_group(
     )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupDelete"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
 
     assert not data["group"]
     assert len(errors) == 1
@@ -2069,7 +2069,7 @@ def test_group_delete_mutation_delete_last_group_with_manage_staff(
     )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupDelete"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
 
     assert not data["group"]
     assert len(errors) == 1
@@ -2113,7 +2113,7 @@ def test_group_delete_mutation_cannot_remove_requestor_last_group(
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupDelete"]
-    errors = data["permissionGroupErrors"]
+    errors = data["errors"]
 
     assert errors[0]["field"] == "id"
     assert (

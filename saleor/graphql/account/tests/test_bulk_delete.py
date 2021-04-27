@@ -62,7 +62,7 @@ STAFF_BULK_DELETE_MUTATION = """
     mutation staffBulkDelete($ids: [ID]!) {
         staffBulkDelete(ids: $ids) {
             count
-            staffErrors{
+            errors{
                 code
                 field
                 permissions
@@ -92,7 +92,7 @@ def test_delete_staff_members(
     content = get_graphql_content(response)
     data = content["data"]["staffBulkDelete"]
     assert data["count"] == 2
-    assert not data["staffErrors"]
+    assert not data["errors"]
     assert not User.objects.filter(
         id__in=[user.id for user in [staff_1, staff_2]]
     ).exists()
@@ -159,7 +159,7 @@ def test_delete_staff_members_left_not_manageable_permissions(
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["staffBulkDelete"]
-    errors = data["staffErrors"]
+    errors = data["errors"]
 
     assert len(errors) == 1
     assert data["count"] == 0
@@ -213,7 +213,7 @@ def test_delete_staff_members_superuser_can_delete_when_delete_left_notmanageabl
     response = superuser_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["staffBulkDelete"]
-    errors = data["staffErrors"]
+    errors = data["errors"]
 
     assert not errors
     assert data["count"] == 2
@@ -262,7 +262,7 @@ def test_delete_staff_members_all_permissions_manageable(
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["staffBulkDelete"]
-    errors = data["staffErrors"]
+    errors = data["errors"]
 
     assert not errors
     assert data["count"] == 2
@@ -315,7 +315,7 @@ def test_delete_staff_members_out_of_scope_users(
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["staffBulkDelete"]
-    errors = data["staffErrors"]
+    errors = data["errors"]
 
     assert len(errors) == 1
     assert data["count"] == 0
@@ -375,7 +375,7 @@ def test_delete_staff_members_superuser_can_delete__out_of_scope_users(
     response = superuser_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["staffBulkDelete"]
-    errors = data["staffErrors"]
+    errors = data["errors"]
 
     assert not errors
     assert data["count"] == 2

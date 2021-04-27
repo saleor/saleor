@@ -1,6 +1,7 @@
 import graphene
 
 from ...core.permissions import OrderPermissions
+from ...core.tracing import traced_resolver
 from ..core.enums import ReportingPeriod
 from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
 from ..core.scalars import UUID
@@ -8,7 +9,6 @@ from ..core.types import FilterInputObjectType, TaxedMoney
 from ..decorators import permission_required
 from .bulk_mutations.draft_orders import DraftOrderBulkDelete, DraftOrderLinesBulkDelete
 from .bulk_mutations.orders import OrderBulkCancel
-from .enums import OrderStatusFilter
 from .filters import DraftOrderFilter, OrderFilter
 from .mutations.discount_order import (
     OrderDiscountAdd,
@@ -83,20 +83,6 @@ class OrderQueries(graphene.ObjectType):
         Order,
         sort_by=OrderSortingInput(description="Sort orders."),
         filter=OrderFilterInput(description="Filtering options for orders."),
-        created=graphene.Argument(
-            ReportingPeriod,
-            description=(
-                "[Deprecated] Filter orders from a selected timespan. Use the `filter` "
-                "field instead. This field will be removed after 2020-07-31."
-            ),
-        ),
-        status=graphene.Argument(
-            OrderStatusFilter,
-            description=(
-                "[Deprecated] Filter order by status. Use the `filter` field instead. "
-                "This field will be removed after 2020-07-31."
-            ),
-        ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
@@ -106,13 +92,6 @@ class OrderQueries(graphene.ObjectType):
         Order,
         sort_by=OrderSortingInput(description="Sort draft orders."),
         filter=OrderDraftFilterInput(description="Filtering options for draft orders."),
-        created=graphene.Argument(
-            ReportingPeriod,
-            description=(
-                "[Deprecated] Filter draft orders from a selected timespan. Use the "
-                "`filter` field instead. This field will be removed after 2020-07-31."
-            ),
-        ),
         description="List of draft orders.",
     )
     orders_total = graphene.Field(
@@ -131,6 +110,7 @@ class OrderQueries(graphene.ObjectType):
     )
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)
+    @traced_resolver
     def resolve_homepage_events(self, *_args, **_kwargs):
         return resolve_homepage_events()
 
@@ -139,17 +119,18 @@ class OrderQueries(graphene.ObjectType):
         return resolve_order(info, data.get("id"))
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)
-    def resolve_orders(self, info, created=None, status=None, channel=None, **_kwargs):
-        return resolve_orders(info, created, status, channel)
+    def resolve_orders(self, info, channel=None, **_kwargs):
+        return resolve_orders(info, channel)
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)
-    def resolve_draft_orders(self, info, created=None, **_kwargs):
-        return resolve_draft_orders(info, created)
+    def resolve_draft_orders(self, info, **_kwargs):
+        return resolve_draft_orders(info)
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_orders_total(self, info, period, channel=None, **_kwargs):
         return resolve_orders_total(info, period, channel)
 
+    @traced_resolver
     def resolve_order_by_token(self, _info, token):
         return resolve_order_by_token(token)
 

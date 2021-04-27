@@ -10,9 +10,9 @@ from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 from ... import __version__
 from ...account import models as account_models
 from ...core.permissions import SitePermissions, get_permissions
+from ...core.tracing import traced_resolver
 from ...site import models as site_models
 from ..account.types import Address, AddressInput, StaffNotificationRecipient
-from ..channel import ChannelContext
 from ..checkout.types import PaymentGateway
 from ..core.connection import CountableDjangoObjectType
 from ..core.enums import LanguageCodeEnum, WeightUnitsEnum
@@ -23,22 +23,12 @@ from ..decorators import (
     staff_member_or_app_required,
     staff_member_required,
 )
-from ..menu.dataloaders import MenuByIdLoader
-from ..menu.types import Menu
 from ..shipping.types import ShippingMethod
 from ..translations.fields import TranslationField
 from ..translations.resolvers import resolve_translation
 from ..translations.types import ShopTranslation
 from ..utils import format_permissions_for_display
 from .resolvers import resolve_available_shipping_methods
-
-
-class Navigation(graphene.ObjectType):
-    main = graphene.Field(Menu, description="Main navigation bar.")
-    secondary = graphene.Field(Menu, description="Secondary navigation bar.")
-
-    class Meta:
-        description = "Represents shop's navigation menus."
 
 
 class Domain(graphene.ObjectType):
@@ -146,11 +136,6 @@ class Shop(graphene.ObjectType):
         required=True,
     )
     name = graphene.String(description="Shop's name.", required=True)
-    navigation = graphene.Field(
-        Navigation,
-        description="Shop's navigation.",
-        deprecation_reason="Fetch menus using the `menu` query with `slug` parameter.",
-    )
     permissions = graphene.List(
         Permission, description="List of available permissions.", required=True
     )
@@ -207,18 +192,22 @@ class Shop(graphene.ObjectType):
         )
 
     @staticmethod
+    @traced_resolver
     def resolve_available_payment_gateways(_, info, currency: Optional[str] = None):
         return info.context.plugins.list_payment_gateways(currency=currency)
 
     @staticmethod
+    @traced_resolver
     def resolve_available_external_authentications(_, info):
         return info.context.plugins.list_external_authentications(active_only=True)
 
     @staticmethod
+    @traced_resolver
     def resolve_available_shipping_methods(_, info, channel, address=None):
         return resolve_available_shipping_methods(info, channel, address)
 
     @staticmethod
+    @traced_resolver
     def resolve_countries(_, _info, language_code=None):
         taxes = {vat.country_code: vat for vat in VAT.objects.all()}
         with translation.override(language_code):
@@ -230,6 +219,7 @@ class Shop(graphene.ObjectType):
             ]
 
     @staticmethod
+    @traced_resolver
     def resolve_domain(_, info):
         site = info.context.site
         return Domain(
@@ -243,6 +233,7 @@ class Shop(graphene.ObjectType):
         return info.context.site.settings.description
 
     @staticmethod
+    @traced_resolver
     def resolve_languages(_, _info):
         return [
             LanguageDisplay(
@@ -256,26 +247,7 @@ class Shop(graphene.ObjectType):
         return info.context.site.name
 
     @staticmethod
-    def resolve_navigation(_, info):
-        site_settings = info.context.site.settings
-        main = None
-        if site_settings.top_menu_id:
-            main = (
-                MenuByIdLoader(info.context)
-                .load(site_settings.top_menu_id)
-                .then(lambda menu: ChannelContext(node=menu, channel_slug=None))
-            )
-        secondary = None
-        if site_settings.bottom_menu_id:
-            secondary = (
-                MenuByIdLoader(info.context)
-                .load(site_settings.bottom_menu_id)
-                .then(lambda menu: ChannelContext(node=menu, channel_slug=None))
-            )
-
-        return Navigation(main=main, secondary=secondary)
-
-    @staticmethod
+    @traced_resolver
     def resolve_permissions(_, _info):
         permissions = get_permissions()
         return format_permissions_for_display(permissions)
@@ -309,6 +281,7 @@ class Shop(graphene.ObjectType):
         return info.context.site.settings.default_weight_unit
 
     @staticmethod
+    @traced_resolver
     def resolve_default_country(_, _info):
         default_country_code = settings.DEFAULT_COUNTRY
         default_country_name = countries.countries.get(default_country_code)
@@ -361,6 +334,7 @@ class Shop(graphene.ObjectType):
 
     @staticmethod
     @permission_required(SitePermissions.MANAGE_SETTINGS)
+    @traced_resolver
     def resolve_staff_notification_recipients(_, info):
         return account_models.StaffNotificationRecipient.objects.all()
 
