@@ -441,7 +441,11 @@ class PluginsManager(PaymentInterface):
         )
         return quantize_price(
             self.__run_method_on_plugins(
-                "apply_taxes_to_shipping", default_value, price, shipping_address
+                "apply_taxes_to_shipping",
+                default_value,
+                price,
+                shipping_address,
+                channel_slug=channel_slug,
             ),
             price.currency,
         )
@@ -898,9 +902,16 @@ class PluginsManager(PaymentInterface):
             plugin, "webhook", default_value, request, path
         )
 
-    def notify(self, event: "NotifyEventTypeChoice", payload: dict):
+    def notify(
+        self,
+        event: "NotifyEventTypeChoice",
+        payload: dict,
+        channel_slug: Optional[str] = None,
+    ):
         default_value = None
-        return self.__run_method_on_plugins("notify", default_value, event, payload)
+        return self.__run_method_on_plugins(
+            "notify", default_value, event, payload, channel_slug=channel_slug
+        )
 
     def external_obtain_access_tokens(
         self, plugin_id: str, data: dict, request: WSGIRequest

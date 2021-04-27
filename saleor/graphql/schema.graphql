@@ -67,6 +67,8 @@ enum AccountErrorCode {
   JWT_DECODE_ERROR
   JWT_MISSING_TOKEN
   JWT_INVALID_CSRF_TOKEN
+  CHANNEL_INACTIVE
+  MISSING_CHANNEL_SLUG
 }
 
 input AccountInput {
@@ -90,6 +92,7 @@ input AccountRegisterInput {
   redirectUrl: String
   languageCode: LanguageCodeEnum
   metadata: [MetadataInput!]
+  channel: String
 }
 
 type AccountRequestDeletion {
@@ -2842,19 +2845,19 @@ type Mutation {
   externalRefresh(input: JSONString!, pluginId: String!): ExternalRefresh
   externalLogout(input: JSONString!, pluginId: String!): ExternalLogout
   externalVerify(input: JSONString!, pluginId: String!): ExternalVerify
-  requestPasswordReset(email: String!, redirectUrl: String!): RequestPasswordReset
+  requestPasswordReset(channel: String, email: String!, redirectUrl: String!): RequestPasswordReset
   confirmAccount(email: String!, token: String!): ConfirmAccount
   setPassword(email: String!, password: String!, token: String!): SetPassword
   passwordChange(newPassword: String!, oldPassword: String!): PasswordChange
-  requestEmailChange(newEmail: String!, password: String!, redirectUrl: String!): RequestEmailChange
-  confirmEmailChange(token: String!): ConfirmEmailChange
+  requestEmailChange(channel: String, newEmail: String!, password: String!, redirectUrl: String!): RequestEmailChange
+  confirmEmailChange(channel: String, token: String!): ConfirmEmailChange
   accountAddressCreate(input: AddressInput!, type: AddressTypeEnum): AccountAddressCreate
   accountAddressUpdate(id: ID!, input: AddressInput!): AccountAddressUpdate
   accountAddressDelete(id: ID!): AccountAddressDelete
   accountSetDefaultAddress(id: ID!, type: AddressTypeEnum!): AccountSetDefaultAddress
   accountRegister(input: AccountRegisterInput!): AccountRegister
   accountUpdate(input: AccountInput!): AccountUpdate
-  accountRequestDeletion(redirectUrl: String!): AccountRequestDeletion
+  accountRequestDeletion(channel: String, redirectUrl: String!): AccountRequestDeletion
   accountDelete(token: String!): AccountDelete
   addressCreate(input: AddressInput!, userId: ID!): AddressCreate
   addressUpdate(id: ID!, input: AddressInput!): AddressUpdate
@@ -5610,6 +5613,7 @@ input UserCreateInput {
   note: String
   languageCode: LanguageCodeEnum
   redirectUrl: String
+  channel: String
 }
 
 type UserPermission {
