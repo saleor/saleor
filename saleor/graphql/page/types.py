@@ -46,10 +46,9 @@ class Page(CountableDjangoObjectType):
         required=True,
         description="List of attributes assigned to this product.",
     )
-    media_by_id = graphene.Field(
+    media = graphene.List(
         graphene.NonNull(lambda: PageMedia),
-        id=graphene.Argument(graphene.ID, description="ID of a page media."),
-        description="Get a single page media by ID.",
+        description="List of media for the page.",
     )
     store = graphene.Field(
         Store,
@@ -91,6 +90,10 @@ class Page(CountableDjangoObjectType):
     @staticmethod
     def resolve_attributes(root: models.Page, info):
         return SelectedAttributesByPageIdLoader(info.context).load(root.id)
+
+    @staticmethod
+    def resolve_media(self, info, page=None, slug=None, channel=None, **_kwargs):
+        return models.PageMedia.objects.filter(page_id=self.pk)    
 
 
 @key(fields="id")

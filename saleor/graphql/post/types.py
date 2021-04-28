@@ -20,10 +20,9 @@ class Post(CountableDjangoObjectType):
         description="The post content.",
         required=True,
     )
-    media_by_id = graphene.Field(
+    media = graphene.List(
         graphene.NonNull(lambda: PostMedia),
-        id=graphene.Argument(graphene.ID, description="ID of a page media."),
-        description="Get a single page media by ID.",
+        description="List of media for the post.",
     )
 
     class Meta:
@@ -36,6 +35,10 @@ class Post(CountableDjangoObjectType):
         ]
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.Post
+
+    @staticmethod
+    def resolve_media(self, info, post=None, slug=None, channel=None, **_kwargs):
+        return models.PostMedia.objects.filter(post_id=self.pk)
 
 @key(fields="id")
 class PostMedia(CountableDjangoObjectType):
