@@ -1,11 +1,13 @@
 from django.db import models
 
 from ..core.db.fields import SanitizedJSONField
-from ..core.models import ModelWithMetadata, PublishableModel
+from ..core.models import ModelWithMetadata, PublishableModel, SortableModel
 from ..core.permissions import PagePermissions, PageTypePermissions
 from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.translations import TranslationProxy
 from ..seo.models import SeoModel, SeoModelTranslation
+from versatileimagefield.fields import PPOIField, VersatileImageField
+from ..product import ProductMediaTypes
 
 
 class Page(ModelWithMetadata, SeoModel, PublishableModel):
@@ -64,3 +66,23 @@ class PageType(ModelWithMetadata):
                 "Manage page types and attributes.",
             ),
         )
+
+class PageMedia(SortableModel):
+    page = models.ForeignKey(Page, related_name="media", on_delete=models.CASCADE)
+    image = VersatileImageField(
+        upload_to="pages", ppoi_field="ppoi", blank=True, null=True
+    )
+    ppoi = PPOIField()
+    alt = models.CharField(max_length=128, blank=True)
+    type = models.CharField(
+        max_length=32,
+        choices=ProductMediaTypes.CHOICES,
+        default=ProductMediaTypes.IMAGE,
+    )
+
+    class Meta:
+        ordering = ("sort_order", "pk")
+        app_label = "page"
+
+    def get_ordering_queryset(self):
+        return self.page.media.all()
