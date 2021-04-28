@@ -109,10 +109,6 @@ def test_checkout_update_shipping_address(
     data = content["data"]["checkoutShippingAddressUpdate"]
 
     assert data["errors"] == [
-        {"field": "shippingAddress", "message": "This checkout doesn't need shipping"}
-    ]
-
-    assert data["checkoutErrors"] == [
         {
             "field": "shippingAddress",
             "message": "This checkout doesn't need shipping",
@@ -143,7 +139,7 @@ def test_checkout_update_shipping_method(
     content = get_graphql_content(response)
     data = content["data"]["checkoutShippingMethodUpdate"]
 
-    assert data["checkoutErrors"] == [
+    assert data["errors"] == [
         {
             "field": "shippingMethod",
             "message": "This checkout doesn't need shipping",
@@ -198,7 +194,7 @@ def test_checkout_lines_update_remove_shipping_if_removed_product_with_shipping(
     content = get_graphql_content(response)
 
     data = content["data"]["checkoutLinesUpdate"]
-    assert not data["checkoutErrors"]
+    assert not data["errors"]
     checkout.refresh_from_db()
     assert checkout.lines.count() == 1
     assert not checkout.shipping_method

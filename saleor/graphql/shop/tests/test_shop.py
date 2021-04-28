@@ -169,28 +169,6 @@ def test_query_permissions(staff_api_client):
         assert code in [str_to_enum(code) for code in permissions_codenames]
 
 
-def test_query_navigation(user_api_client, site_settings):
-    query = """
-    query {
-        shop {
-            navigation {
-                main {
-                    name
-                }
-                secondary {
-                    name
-                }
-            }
-        }
-    }
-    """
-    response = user_api_client.post_graphql(query)
-    content = get_graphql_content(response)
-    navigation_data = content["data"]["shop"]["navigation"]
-    assert navigation_data["main"]["name"] == site_settings.top_menu.name
-    assert navigation_data["secondary"]["name"] == site_settings.bottom_menu.name
-
-
 def test_query_charge_taxes_on_shipping(api_client, site_settings):
     query = """
     query {
@@ -503,7 +481,7 @@ MUTATION_CUSTOMER_SET_PASSWORD_URL_UPDATE = """
             shop {
                 customerSetPasswordUrl
             }
-            shopErrors {
+            errors {
                 message
                 field
                 code
@@ -526,7 +504,7 @@ def test_shop_customer_set_password_url_update(
     )
     content = get_graphql_content(response)
     data = content["data"]["shopSettingsUpdate"]
-    assert not data["shopErrors"]
+    assert not data["errors"]
     site_settings = Site.objects.get_current().settings
     assert site_settings.customer_set_password_url == customer_set_password_url
 
@@ -554,7 +532,7 @@ def test_shop_customer_set_password_url_update_invalid_url(
     )
     content = get_graphql_content(response)
     data = content["data"]["shopSettingsUpdate"]
-    assert data["shopErrors"][0] == {
+    assert data["errors"][0] == {
         "field": "customerSetPasswordUrl",
         "code": ShopErrorCode.INVALID.name,
         "message": ANY,
@@ -980,7 +958,7 @@ MUTATION_STAFF_NOTIFICATION_RECIPIENT_CREATE = """
                     email
                 }
             }
-            shopErrors {
+            errors {
                 field
                 message
                 code
@@ -1013,7 +991,7 @@ def test_staff_notification_create_mutation(
                 "email": staff_user.email,
             },
         },
-        "shopErrors": [],
+        "errors": [],
     }
 
 
@@ -1040,7 +1018,7 @@ def test_staff_notification_create_mutation_with_staffs_email(
                 "email": staff_user.email,
             },
         },
-        "shopErrors": [],
+        "errors": [],
     }
 
 
@@ -1058,7 +1036,7 @@ def test_staff_notification_create_mutation_with_customer_user(
 
     assert content["data"]["staffNotificationRecipientCreate"] == {
         "staffNotificationRecipient": None,
-        "shopErrors": [
+        "errors": [
             {"code": "INVALID", "field": "user", "message": "User has to be staff user"}
         ],
     }
@@ -1082,7 +1060,7 @@ def test_staff_notification_create_mutation_with_email(
             "email": staff_email,
             "user": None,
         },
-        "shopErrors": [],
+        "errors": [],
     }
 
 
@@ -1100,7 +1078,7 @@ def test_staff_notification_create_mutation_with_empty_email(
 
     assert content["data"]["staffNotificationRecipientCreate"] == {
         "staffNotificationRecipient": None,
-        "shopErrors": [
+        "errors": [
             {
                 "code": "INVALID",
                 "field": "staffNotification",
@@ -1125,7 +1103,7 @@ MUTATION_STAFF_NOTIFICATION_RECIPIENT_UPDATE = """
                     email
                 }
             }
-            shopErrors {
+            errors {
                 field
                 message
                 code
@@ -1177,7 +1155,7 @@ def test_staff_notification_update_mutation_with_empty_user(
     staff_notification_recipient.refresh_from_db()
     assert content["data"]["staffNotificationRecipientUpdate"] == {
         "staffNotificationRecipient": None,
-        "shopErrors": [
+        "errors": [
             {
                 "code": "INVALID",
                 "field": "staffNotification",
@@ -1207,7 +1185,7 @@ def test_staff_notification_update_mutation_with_empty_email(
     staff_notification_recipient.refresh_from_db()
     assert content["data"]["staffNotificationRecipientUpdate"] == {
         "staffNotificationRecipient": None,
-        "shopErrors": [
+        "errors": [
             {
                 "code": "INVALID",
                 "field": "staffNotification",

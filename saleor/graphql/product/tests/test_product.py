@@ -342,6 +342,42 @@ def test_product_query_by_id_available_as_app(
     assert product_data["name"] == product.name
 
 
+def test_product_query_by_id_as_user(
+    user_api_client, permission_manage_products, product
+):
+    query = """
+        query ($id: ID){
+            product(id: $id) {
+                id
+                variants {
+                    id
+                }
+            }
+        }
+    """
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.pk),
+    }
+
+    response = user_api_client.post_graphql(
+        query,
+        variables=variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+    assert product_data is not None
+    expected_variants = [
+        {
+            "id": graphene.Node.to_global_id(
+                "ProductVariant", product.variants.first().pk
+            )
+        }
+    ]
+    assert product_data["variants"] == expected_variants
+
+
 def test_product_query_by_id_not_available_as_app(
     app_api_client, permission_manage_products, product, channel_USD
 ):
@@ -1449,7 +1485,6 @@ def test_fetch_product_from_category_query(
                     node {
                         id
                         name
-                        url
                         slug
                         thumbnail{
                             url
@@ -1487,12 +1522,10 @@ def test_fetch_product_from_category_query(
                                     gross {
                                         amount
                                         currency
-                                        localized
                                     }
                                     net {
                                         amount
                                         currency
-                                        localized
                                     }
                                     currency
                                 }
@@ -1517,7 +1550,6 @@ def test_fetch_product_from_category_query(
     assert len(product_edges_data) == category.products.count()
     product_data = product_edges_data[0]["node"]
     assert product_data["name"] == product.name
-    assert product_data["url"] == ""
     assert product_data["slug"] == product.slug
 
     variant = product.variants.first()
@@ -1607,7 +1639,7 @@ def test_products_query_with_filter_attributes(
 
     variables = {
         "filter": {
-            "attributes": [{"slug": attribute.slug, "value": attr_value.slug}],
+            "attributes": [{"slug": attribute.slug, "values": [attr_value.slug]}],
             "channel": channel_USD.slug,
         }
     }
@@ -1634,35 +1666,6 @@ def test_products_query_filter_by_non_existing_attribute(
     content = get_graphql_content(response)
     products = content["data"]["products"]["edges"]
     assert len(products) == 0
-
-
-def test_products_query_with_filter_product_type(
-    query_products_with_filter, staff_api_client, product, permission_manage_products
-):
-    product_type = ProductType.objects.create(
-        name="Custom Type",
-        slug="custom-type",
-        has_variants=True,
-        is_shipping_required=True,
-    )
-    second_product = product
-    second_product.id = None
-    second_product.product_type = product_type
-    second_product.slug = "second-product"
-    second_product.save()
-
-    product_type_id = graphene.Node.to_global_id("ProductType", product_type.id)
-    variables = {"filter": {"productType": product_type_id}}
-
-    staff_api_client.user.user_permissions.add(permission_manage_products)
-    response = staff_api_client.post_graphql(query_products_with_filter, variables)
-    content = get_graphql_content(response)
-    second_product_id = graphene.Node.to_global_id("Product", second_product.id)
-    products = content["data"]["products"]["edges"]
-
-    assert len(products) == 1
-    assert products[0]["node"]["id"] == second_product_id
-    assert products[0]["node"]["name"] == second_product.name
 
 
 def test_products_query_with_filter_category(
@@ -2340,10 +2343,10 @@ def test_filter_products_by_wrong_attributes(user_api_client, product, channel_U
         product.product_type.variant_attributes.get(slug="size").values.first().id
     )
     query = """
-    query ($channel: String){
+    query ($channel: String, $attributesFilter: [AttributeInput]){
         products(
             filter: {
-                attributes: {slug: "%(slug)s", value: "%(value)s"},
+                attributes: $attributesFilter,
                 channel: $channel
             },
             first: 1,
@@ -2356,12 +2359,12 @@ def test_filter_products_by_wrong_attributes(user_api_client, product, channel_U
             }
         }
     }
-    """ % {
-        "slug": product_attr.slug,
-        "value": attr_value,
-    }
+    """
 
-    variables = {"channel": channel_USD.slug}
+    variables = {
+        "channel": channel_USD.slug,
+        "attributesFilter": [{"slug": product_attr.slug, "values": [attr_value]}],
+    }
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     products = content["data"]["products"]["edges"]
@@ -2395,7 +2398,7 @@ def test_filter_products_with_unavailable_variants_attributes_as_user(
     variables = {
         "channel": channel_USD.slug,
         "attributesFilter": [
-            {"slug": f"{product_attr.slug}", "value": f"{attr_value.slug}"}
+            {"slug": f"{product_attr.slug}", "values": [f"{attr_value.slug}"]}
         ],
     }
     product_list[0].variants.first().channel_listings.filter(
@@ -2436,7 +2439,7 @@ def test_filter_products_with_unavailable_variants_attributes_as_staff(
     variables = {
         "channel": channel_USD.slug,
         "attributesFilter": [
-            {"slug": f"{product_attr.slug}", "value": f"{attr_value.slug}"}
+            {"slug": f"{product_attr.slug}", "values": [f"{attr_value.slug}"]}
         ],
     }
     product_list[0].variants.first().channel_listings.filter(
@@ -2771,7 +2774,7 @@ CREATE_PRODUCT_MUTATION = """
                                 }
                             }
                           }
-                          productErrors {
+                          errors {
                             field
                             code
                             message
@@ -2845,7 +2848,7 @@ def test_create_product(
     )
     content = get_graphql_content(response)
     data = content["data"]["productCreate"]
-    assert data["productErrors"] == []
+    assert data["errors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
     assert data["product"]["description"] == description_json
@@ -2909,7 +2912,7 @@ def test_create_product_description_plaintext(
     )
     content = get_graphql_content(response)
     data = content["data"]["productCreate"]
-    assert not data["productErrors"]
+    assert not data["errors"]
 
     product = Product.objects.all().first()
     assert product.description_plaintext == description
@@ -2959,7 +2962,7 @@ def test_create_product_with_rich_text_attribute(
     )
     content = get_graphql_content(response)
     data = content["data"]["productCreate"]
-    assert data["productErrors"] == []
+    assert data["errors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
     assert data["product"]["productType"]["name"] == product_type.name
@@ -3167,7 +3170,7 @@ def test_create_product_with_rating(
     )
     content = get_graphql_content(response)
     data = content["data"]["productCreate"]
-    assert data["productErrors"] == []
+    assert data["errors"] == []
     assert data["product"]["rating"] == expected_rating
     assert Product.objects.get().rating == expected_rating
 
@@ -3210,7 +3213,7 @@ def test_create_product_with_file_attribute(
     )
     content = get_graphql_content(response)
     data = content["data"]["productCreate"]
-    assert data["productErrors"] == []
+    assert data["errors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
     assert data["product"]["productType"]["name"] == product_type.name
@@ -3279,7 +3282,7 @@ def test_create_product_with_page_reference_attribute(
     )
     content = get_graphql_content(response)
     data = content["data"]["productCreate"]
-    assert data["productErrors"] == []
+    assert data["errors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
     assert data["product"]["productType"]["name"] == product_type.name
@@ -3348,7 +3351,7 @@ def test_create_product_with_product_reference_attribute(
     )
     content = get_graphql_content(response)
     data = content["data"]["productCreate"]
-    assert data["productErrors"] == []
+    assert data["errors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
     assert data["product"]["productType"]["name"] == product_type.name
@@ -3421,7 +3424,7 @@ def test_create_product_with_product_reference_attribute_values_saved_in_order(
     )
     content = get_graphql_content(response)
     data = content["data"]["productCreate"]
-    assert data["productErrors"] == []
+    assert data["errors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
     assert data["product"]["productType"]["name"] == product_type.name
@@ -3489,7 +3492,7 @@ def test_create_product_with_file_attribute_new_attribute_value(
     )
     content = get_graphql_content(response)
     data = content["data"]["productCreate"]
-    assert data["productErrors"] == []
+    assert data["errors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
     assert data["product"]["productType"]["name"] == product_type.name
@@ -3558,7 +3561,7 @@ def test_create_product_with_file_attribute_not_required_no_file_url_given(
     )
     content = get_graphql_content(response)
     data = content["data"]["productCreate"]
-    assert data["productErrors"] == []
+    assert data["errors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
     assert data["product"]["productType"]["name"] == product_type.name
@@ -3611,7 +3614,7 @@ def test_create_product_with_file_attribute_required_no_file_url_given(
     )
     content = get_graphql_content(response)
     data = content["data"]["productCreate"]
-    errors = data["productErrors"]
+    errors = data["errors"]
     assert not data["product"]
     assert len(errors) == 1
     assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
@@ -3660,7 +3663,7 @@ def test_create_product_with_page_reference_attribute_required_no_references(
     )
     content = get_graphql_content(response)
     data = content["data"]["productCreate"]
-    errors = data["productErrors"]
+    errors = data["errors"]
     assert not data["product"]
     assert len(errors) == 1
     assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
@@ -3711,7 +3714,7 @@ def test_create_product_with_product_reference_attribute_required_no_references(
     )
     content = get_graphql_content(response)
     data = content["data"]["productCreate"]
-    errors = data["productErrors"]
+    errors = data["errors"]
     assert not data["product"]
     assert len(errors) == 1
     assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
@@ -3756,7 +3759,7 @@ def test_create_product_no_values_given(
     )
     content = get_graphql_content(response)
     data = content["data"]["productCreate"]
-    assert data["productErrors"] == []
+    assert data["errors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
     assert data["product"]["productType"]["name"] == product_type.name
@@ -3773,7 +3776,7 @@ PRODUCT_VARIANT_SET_DEFAULT_MUTATION = """
                     id
                 }
             }
-            productErrors {
+            errors {
                 code
                 field
             }
@@ -3785,7 +3788,7 @@ PRODUCT_VARIANT_SET_DEFAULT_MUTATION = """
 REORDER_PRODUCT_VARIANTS_MUTATION = """
     mutation ProductVariantReorder($product: ID!, $moves: [ReorderInput]!) {
         productVariantReorder(productId: $product, moves: $moves) {
-            productErrors {
+            errors {
                 code
                 field
             }
@@ -3821,7 +3824,7 @@ def test_product_variant_set_default(
     assert product_with_two_variants.default_variant == first_variant
     content = get_graphql_content(response)
     data = content["data"]["productVariantSetDefault"]
-    assert not data["productErrors"]
+    assert not data["errors"]
     assert data["product"]["defaultVariant"]["id"] == first_variant_id
 
 
@@ -3848,8 +3851,8 @@ def test_product_variant_set_default_invalid_id(
     assert not product_with_two_variants.default_variant
     content = get_graphql_content(response)
     data = content["data"]["productVariantSetDefault"]
-    assert data["productErrors"][0]["code"] == ProductErrorCode.INVALID.name
-    assert data["productErrors"][0]["field"] == "variantId"
+    assert data["errors"][0]["code"] == ProductErrorCode.INVALID.name
+    assert data["errors"][0]["field"] == "variantId"
 
 
 def test_product_variant_set_default_not_products_variant(
@@ -3878,10 +3881,8 @@ def test_product_variant_set_default_not_products_variant(
     assert not product_with_two_variants.default_variant
     content = get_graphql_content(response)
     data = content["data"]["productVariantSetDefault"]
-    assert (
-        data["productErrors"][0]["code"] == ProductErrorCode.NOT_PRODUCTS_VARIANT.name
-    )
-    assert data["productErrors"][0]["field"] == "variantId"
+    assert data["errors"][0]["code"] == ProductErrorCode.NOT_PRODUCTS_VARIANT.name
+    assert data["errors"][0]["field"] == "variantId"
 
 
 def test_reorder_variants(
@@ -3910,7 +3911,7 @@ def test_reorder_variants(
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantReorder"]
-    assert not data["productErrors"]
+    assert not data["errors"]
     assert list(product_with_two_variants.variants.all()) == new_variants
 
 
@@ -3941,8 +3942,8 @@ def test_reorder_variants_invalid_variants(
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantReorder"]
-    assert data["productErrors"][0]["field"] == "moves"
-    assert data["productErrors"][0]["code"] == ProductErrorCode.NOT_FOUND.name
+    assert data["errors"][0]["field"] == "moves"
+    assert data["errors"][0]["code"] == ProductErrorCode.NOT_FOUND.name
 
 
 @pytest.mark.parametrize("input_slug", ["", None])
@@ -3987,7 +3988,7 @@ def test_create_product_no_slug_in_input(
     )
     content = get_graphql_content(response)
     data = content["data"]["productCreate"]
-    assert data["productErrors"] == []
+    assert data["errors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == "test-name"
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
@@ -4029,7 +4030,7 @@ def test_create_product_no_category_id(
     )
     content = get_graphql_content(response)
     data = content["data"]["productCreate"]
-    assert data["productErrors"] == []
+    assert data["errors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == input_slug
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
@@ -4066,7 +4067,7 @@ def test_create_product_with_negative_weight(
     )
     content = get_graphql_content(response)
     data = content["data"]["productCreate"]
-    error = data["productErrors"][0]
+    error = data["errors"][0]
     assert error["field"] == "weight"
     assert error["code"] == ProductErrorCode.INVALID.name
 
@@ -4101,7 +4102,7 @@ def test_create_product_with_unicode_in_slug_and_name(
     )
     content = get_graphql_content(response)
     data = content["data"]["productCreate"]
-    error = data["productErrors"]
+    error = data["errors"]
     assert not error
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == slug
@@ -4175,7 +4176,7 @@ def test_create_product_invalid_product_attributes(
     )
     content = get_graphql_content(response)
     data = content["data"]["productCreate"]
-    errors = data["productErrors"]
+    errors = data["errors"]
 
     assert not data["product"]
     assert len(errors) == 2
@@ -4390,7 +4391,7 @@ MUTATION_UPDATE_PRODUCT = """
                         }
                     }
                 }
-                productErrors {
+                errors {
                     message
                     field
                     code
@@ -4454,7 +4455,7 @@ def test_update_product(
     )
     content = get_graphql_content(response)
     data = content["data"]["productUpdate"]
-    assert data["productErrors"] == []
+    assert data["errors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
     assert data["product"]["description"] == json.dumps(expected_other_description_json)
@@ -4507,7 +4508,7 @@ def test_update_and_search_product_by_description(
     )
     content = get_graphql_content(response)
     data = content["data"]["productUpdate"]
-    assert not data["productErrors"]
+    assert not data["errors"]
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
     assert data["product"]["description"] == other_description_json
@@ -4545,7 +4546,7 @@ def test_update_product_without_description_clear_description_plaintext(
     )
     content = get_graphql_content(response)
     data = content["data"]["productUpdate"]
-    assert not data["productErrors"]
+    assert not data["errors"]
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
     assert data["product"]["description"] is None
@@ -4586,7 +4587,7 @@ def test_update_product_with_file_attribute_value(
     # then
     content = get_graphql_content(response)
     data = content["data"]["productUpdate"]
-    assert data["productErrors"] == []
+    assert data["errors"] == []
 
     attributes = data["product"]["attributes"]
 
@@ -4647,7 +4648,7 @@ def test_update_product_with_file_attribute_value_new_value_is_not_created(
     # then
     content = get_graphql_content(response)
     data = content["data"]["productUpdate"]
-    assert data["productErrors"] == []
+    assert data["errors"] == []
 
     attributes = data["product"]["attributes"]
 
@@ -4675,6 +4676,51 @@ def test_update_product_with_file_attribute_value_new_value_is_not_created(
     updated_webhook_mock.assert_called_once_with(product)
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_clear_attribute_values(
+    updated_webhook_mock,
+    staff_api_client,
+    product,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    product_attr = product.attributes.first()
+    attribute = product_attr.assignment.attribute
+    attribute.value_required = False
+    attribute.save(update_fields=["value_required"])
+
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.pk)
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "values": []}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["errors"] == []
+
+    attributes = data["product"]["attributes"]
+
+    assert len(attributes) == 1
+    assert not attributes[0]["values"]
+    with pytest.raises(product_attr._meta.model.DoesNotExist):
+        product_attr.refresh_from_db()
+
+    updated_webhook_mock.assert_called_once_with(product)
+
+
 @freeze_time("2020-03-18 12:00:00")
 def test_update_product_rating(
     staff_api_client,
@@ -4694,7 +4740,7 @@ def test_update_product_rating(
     )
     content = get_graphql_content(response)
     data = content["data"]["productUpdate"]
-    assert data["productErrors"] == []
+    assert data["errors"] == []
     assert data["product"]["rating"] == expected_rating
     product.refresh_from_db()
     assert product.rating == expected_rating
@@ -4737,7 +4783,7 @@ def test_update_product_with_page_reference_attribute_value(
     # then
     content = get_graphql_content(response)
     data = content["data"]["productUpdate"]
-    assert data["productErrors"] == []
+    assert data["errors"] == []
 
     attributes = data["product"]["attributes"]
 
@@ -4810,7 +4856,7 @@ def test_update_product_with_page_reference_attribute_existing_value(
     # then
     content = get_graphql_content(response)
     data = content["data"]["productUpdate"]
-    assert data["productErrors"] == []
+    assert data["errors"] == []
 
     attributes = data["product"]["attributes"]
 
@@ -4873,7 +4919,7 @@ def test_update_product_with_page_reference_attribute_value_not_given(
     # then
     content = get_graphql_content(response)
     data = content["data"]["productUpdate"]
-    errors = data["productErrors"]
+    errors = data["errors"]
 
     assert not data["product"]
     assert len(errors) == 1
@@ -4921,7 +4967,7 @@ def test_update_product_with_product_reference_attribute_value(
     # then
     content = get_graphql_content(response)
     data = content["data"]["productUpdate"]
-    assert data["productErrors"] == []
+    assert data["errors"] == []
 
     attributes = data["product"]["attributes"]
 
@@ -4995,7 +5041,7 @@ def test_update_product_with_product_reference_attribute_existing_value(
     # then
     content = get_graphql_content(response)
     data = content["data"]["productUpdate"]
-    assert data["productErrors"] == []
+    assert data["errors"] == []
 
     attributes = data["product"]["attributes"]
 
@@ -5058,7 +5104,7 @@ def test_update_product_with_product_reference_attribute_value_not_given(
     # then
     content = get_graphql_content(response)
     data = content["data"]["productUpdate"]
-    errors = data["productErrors"]
+    errors = data["errors"]
 
     assert not data["product"]
     assert len(errors) == 1
@@ -5132,7 +5178,7 @@ def test_update_product_change_values_ordering(
     # then
     content = get_graphql_content(response)
     data = content["data"]["productUpdate"]
-    assert data["productErrors"] == []
+    assert data["errors"] == []
 
     attributes = data["product"]["attributes"]
 
@@ -5165,7 +5211,7 @@ UPDATE_PRODUCT_SLUG_MUTATION = """
                 name
                 slug
             }
-            productErrors {
+            errors {
                 field
                 message
                 code
@@ -5203,7 +5249,7 @@ def test_update_product_slug(
     )
     content = get_graphql_content(response)
     data = content["data"]["productUpdate"]
-    errors = data["productErrors"]
+    errors = data["errors"]
     if not error_message:
         assert not errors
         assert data["product"]["slug"] == expected_slug
@@ -5233,7 +5279,7 @@ def test_update_product_slug_exists(
     )
     content = get_graphql_content(response)
     data = content["data"]["productUpdate"]
-    errors = data["productErrors"]
+    errors = data["errors"]
     assert errors
     assert errors[0]["field"] == "slug"
     assert errors[0]["code"] == ProductErrorCode.UNIQUE.name
@@ -5273,7 +5319,7 @@ def test_update_product_slug_and_name(
                     name
                     slug
                 }
-                productErrors {
+                errors {
                     field
                     message
                     code
@@ -5296,7 +5342,7 @@ def test_update_product_slug_and_name(
     content = get_graphql_content(response)
     product.refresh_from_db()
     data = content["data"]["productUpdate"]
-    errors = data["productErrors"]
+    errors = data["errors"]
     if not error_message:
         assert data["product"]["name"] == input_name == product.name
         assert data["product"]["slug"] == input_slug == product.slug
@@ -5309,7 +5355,7 @@ def test_update_product_slug_and_name(
 SET_ATTRIBUTES_TO_PRODUCT_QUERY = """
     mutation updateProduct($productId: ID!, $attributes: [AttributeValueInput!]) {
       productUpdate(id: $productId, input: { attributes: $attributes }) {
-        productErrors {
+        errors {
           message
           field
           code
@@ -5345,7 +5391,7 @@ def test_update_product_can_only_assign_multiple_values_to_valid_input_types(
     data = get_graphql_content(
         staff_api_client.post_graphql(SET_ATTRIBUTES_TO_PRODUCT_QUERY, variables)
     )["data"]["productUpdate"]
-    assert data["productErrors"] == [
+    assert data["errors"] == [
         {
             "field": "attributes",
             "code": ProductErrorCode.INVALID.name,
@@ -5359,7 +5405,7 @@ def test_update_product_can_only_assign_multiple_values_to_valid_input_types(
     data = get_graphql_content(
         staff_api_client.post_graphql(SET_ATTRIBUTES_TO_PRODUCT_QUERY, variables)
     )["data"]["productUpdate"]
-    assert not data["productErrors"]
+    assert not data["errors"]
 
 
 def test_update_product_with_existing_attribute_value(
@@ -5383,7 +5429,7 @@ def test_update_product_with_existing_attribute_value(
     data = get_graphql_content(
         staff_api_client.post_graphql(SET_ATTRIBUTES_TO_PRODUCT_QUERY, variables)
     )["data"]["productUpdate"]
-    assert not data["productErrors"]
+    assert not data["errors"]
 
     assert (
         color_attribute.values.count() == expected_attribute_values_count
@@ -5419,7 +5465,7 @@ def test_update_product_without_supplying_required_product_attribute(
     data = get_graphql_content(
         staff_api_client.post_graphql(SET_ATTRIBUTES_TO_PRODUCT_QUERY, variables)
     )["data"]["productUpdate"]
-    assert data["productErrors"] == [
+    assert data["errors"] == [
         {
             "field": "attributes",
             "code": ProductErrorCode.REQUIRED.name,
@@ -5451,7 +5497,7 @@ def test_update_product_with_non_existing_attribute(
     data = get_graphql_content(
         staff_api_client.post_graphql(SET_ATTRIBUTES_TO_PRODUCT_QUERY, variables)
     )["data"]["productUpdate"]
-    assert data["productErrors"] == [
+    assert data["errors"] == [
         {
             "field": "attributes",
             "code": ProductErrorCode.NOT_FOUND.name,
@@ -5477,7 +5523,7 @@ def test_update_product_with_no_attribute_slug_or_id(
     data = get_graphql_content(
         staff_api_client.post_graphql(SET_ATTRIBUTES_TO_PRODUCT_QUERY, variables)
     )["data"]["productUpdate"]
-    assert data["productErrors"] == [
+    assert data["errors"] == [
         {
             "field": "attributes",
             "code": ProductErrorCode.REQUIRED.name,
@@ -5504,7 +5550,7 @@ def test_update_product_with_negative_weight(
                 product {
                     id
                 }
-                productErrors {
+                errors {
                     field
                     message
                     code
@@ -5522,7 +5568,7 @@ def test_update_product_with_negative_weight(
     )
     content = get_graphql_content(response)
     data = content["data"]["productUpdate"]
-    error = data["productErrors"][0]
+    error = data["errors"][0]
     assert error["field"] == "weight"
     assert error["code"] == ProductErrorCode.INVALID.name
 
@@ -6002,7 +6048,7 @@ PRODUCT_TYPE_CREATE_MUTATION = """
                     }
                 }
             }
-            productErrors {
+            errors {
                 field
                 message
                 code
@@ -6104,7 +6150,7 @@ def test_create_product_type_with_rich_text_attribute(
     )
     content = get_graphql_content(response)
     data = content["data"]["productTypeCreate"]["productType"]
-    errors = content["data"]["productTypeCreate"]["productErrors"]
+    errors = content["data"]["productTypeCreate"]["errors"]
 
     assert not errors
     assert data["name"] == product_type_name
@@ -6156,7 +6202,7 @@ def test_create_product_type_with_given_slug(
     )
     content = get_graphql_content(response)
     data = content["data"]["productTypeCreate"]
-    assert not data["productErrors"]
+    assert not data["errors"]
     assert data["productType"]["slug"] == expected_slug
 
 
@@ -6171,7 +6217,7 @@ def test_create_product_type_with_unicode_in_name(
     )
     content = get_graphql_content(response)
     data = content["data"]["productTypeCreate"]
-    assert not data["productErrors"]
+    assert not data["errors"]
     assert data["productType"]["name"] == name
     assert data["productType"]["slug"] == "わたし-わ-にっぽん-です"
 
@@ -6187,7 +6233,7 @@ def test_create_product_type_create_with_negative_weight(
     )
     content = get_graphql_content(response)
     data = content["data"]["productTypeCreate"]
-    error = data["productErrors"][0]
+    error = data["errors"][0]
     assert error["field"] == "weight"
     assert error["code"] == ProductErrorCode.INVALID.name
 
@@ -6242,7 +6288,7 @@ def test_product_type_create_mutation_not_valid_attributes(
     # then
     content = get_graphql_content(response)
     data = content["data"]["productTypeCreate"]
-    errors = data["productErrors"]
+    errors = data["errors"]
 
     assert len(errors) == 2
     expected_errors = [
@@ -6297,7 +6343,7 @@ mutation updateProductType(
                     id
                 }
             }
-            productErrors {
+            errors {
                 code
                 field
                 attributes
@@ -6384,7 +6430,7 @@ def test_product_type_update_mutation_not_valid_attributes(
     # then
     content = get_graphql_content(response)
     data = content["data"]["productTypeUpdate"]
-    errors = data["productErrors"]
+    errors = data["errors"]
 
     assert len(errors) == 1
     assert errors[0]["field"] == "productAttributes"
@@ -6404,7 +6450,7 @@ UPDATE_PRODUCT_TYPE_SLUG_MUTATION = """
                 name
                 slug
             }
-            productErrors {
+            errors {
                 field
                 message
                 code
@@ -6442,7 +6488,7 @@ def test_update_product_type_slug(
     )
     content = get_graphql_content(response)
     data = content["data"]["productTypeUpdate"]
-    errors = data["productErrors"]
+    errors = data["errors"]
     if not error_message:
         assert not errors
         assert data["productType"]["slug"] == expected_slug
@@ -6472,7 +6518,7 @@ def test_update_product_type_slug_exists(
     )
     content = get_graphql_content(response)
     data = content["data"]["productTypeUpdate"]
-    errors = data["productErrors"]
+    errors = data["errors"]
     assert errors
     assert errors[0]["field"] == "slug"
     assert errors[0]["code"] == ProductErrorCode.UNIQUE.name
@@ -6512,7 +6558,7 @@ def test_update_product_type_slug_and_name(
                     name
                     slug
                 }
-                productErrors {
+                errors {
                     field
                     message
                     code
@@ -6535,7 +6581,7 @@ def test_update_product_type_slug_and_name(
     content = get_graphql_content(response)
     product_type.refresh_from_db()
     data = content["data"]["productTypeUpdate"]
-    errors = data["productErrors"]
+    errors = data["errors"]
     if not error_message:
         assert data["productType"]["name"] == input_name == product_type.name
         assert data["productType"]["slug"] == input_slug == product_type.slug
@@ -6561,7 +6607,7 @@ def test_update_product_type_with_negative_weight(
                 productType{
                     name
                 }
-                productErrors {
+                errors {
                     field
                     message
                     code
@@ -6578,7 +6624,7 @@ def test_update_product_type_with_negative_weight(
     content = get_graphql_content(response)
     product_type.refresh_from_db()
     data = content["data"]["productTypeUpdate"]
-    error = data["productErrors"][0]
+    error = data["errors"][0]
     assert error["field"] == "weight"
     assert error["code"] == ProductErrorCode.INVALID.name
 
@@ -6717,7 +6763,7 @@ PRODUCT_MEDIA_CREATE_QUERY = """
                     oembedData
                 }
             }
-            productErrors {
+            errors {
                 code
                 field
             }
@@ -6781,7 +6827,7 @@ def test_product_media_create_mutation_without_file(
     )
     content = get_graphql_content(response)
 
-    errors = content["data"]["productMediaCreate"]["productErrors"]
+    errors = content["data"]["productMediaCreate"]["errors"]
     assert errors[0]["field"] == "image"
     assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
 
@@ -6834,7 +6880,7 @@ def test_product_media_create_mutation_without_url_or_image(
     )
 
     content = get_graphql_content(response)
-    errors = content["data"]["productMediaCreate"]["productErrors"]
+    errors = content["data"]["productMediaCreate"]["errors"]
     assert len(errors) == 1
     assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
     assert errors[0]["field"] == "input"
@@ -6859,7 +6905,7 @@ def test_product_media_create_mutation_with_both_url_and_image(
     )
 
     content = get_graphql_content(response)
-    errors = content["data"]["productMediaCreate"]["productErrors"]
+    errors = content["data"]["productMediaCreate"]["errors"]
     assert len(errors) == 1
     assert errors[0]["code"] == ProductErrorCode.DUPLICATED_INPUT_ITEM.name
     assert errors[0]["field"] == "input"
@@ -6882,7 +6928,7 @@ def test_product_media_create_mutation_with_unknown_url(
     )
 
     content = get_graphql_content(response)
-    errors = content["data"]["productMediaCreate"]["productErrors"]
+    errors = content["data"]["productMediaCreate"]["errors"]
     assert len(errors) == 1
     assert errors[0]["code"] == ProductErrorCode.UNSUPPORTED_MEDIA_PROVIDER.name
     assert errors[0]["field"] == "mediaUrl"
@@ -8559,7 +8605,7 @@ mutation createProduct(
                     quantityAvailable(countryCode: $country)
                 }
             }
-            productErrors {
+            errors {
                 message
                 field
                 code
@@ -8675,7 +8721,7 @@ mutation createProduct(
                     unit
                 }
             }
-            productErrors {
+            errors {
                 message
                 field
                 code
@@ -8773,7 +8819,7 @@ def test_create_product_with_weight_input(
                         unit
                     }}
                 }}
-                productErrors {{
+                errors {{
                     message
                     field
                     code

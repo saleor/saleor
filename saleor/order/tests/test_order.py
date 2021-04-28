@@ -101,9 +101,11 @@ def test_add_variant_to_draft_order_adds_line_for_new_variant_with_tax(
     variant = product.variants.get()
     lines_before = order.lines.count()
     settings.LANGUAGE_CODE = "fr"
-    price = TaxedMoney(net=Money(8, "USD"), gross=Money(10, "USD"))
+    unit_price = TaxedMoney(net=Money(8, "USD"), gross=Money(10, "USD"))
+    total_price = TaxedMoney(net=Money("30.34", "USD"), gross=Money("36.49", "USD"))
     manager = Mock(
-        calculate_order_line_unit=Mock(return_value=price),
+        calculate_order_line_unit=Mock(return_value=unit_price),
+        calculate_order_line_total=Mock(return_value=total_price),
         get_order_line_tax_rate=Mock(return_value=0.25),
     )
 
@@ -113,8 +115,8 @@ def test_add_variant_to_draft_order_adds_line_for_new_variant_with_tax(
     assert order.lines.count() == lines_before + 1
     assert line.product_sku == variant.sku
     assert line.quantity == 1
-    assert line.unit_price == price
-    assert line.total_price == price
+    assert line.unit_price == unit_price
+    assert line.total_price == total_price
     assert line.translated_product_name == str(variant.product.translated)
     assert line.variant_name == str(variant)
     assert line.product_name == str(variant.product)

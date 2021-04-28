@@ -10,6 +10,7 @@ from ...channel import models
 from ...checkout.models import Checkout
 from ...core.permissions import ChannelPermissions
 from ...order.models import Order
+from ...shipping.tasks import drop_invalid_shipping_methods_relations_for_given_channels
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import ChannelError, ChannelErrorCode
 from ..core.utils import get_duplicated_values, get_duplicates_ids
@@ -125,9 +126,16 @@ class ChannelUpdate(ModelMutation):
         remove_shipping_zones = cleaned_data.get("remove_shipping_zones")
         if remove_shipping_zones:
             instance.shipping_zones.remove(*remove_shipping_zones)
-            instance.shipping_method_listings.filter(
+            shipping_channel_listings = instance.shipping_method_listings.filter(
                 shipping_method__shipping_zone__in=remove_shipping_zones
-            ).delete()
+            )
+            shipping_method_ids = list(
+                shipping_channel_listings.values_list("shipping_method_id", flat=True)
+            )
+            shipping_channel_listings.delete()
+            drop_invalid_shipping_methods_relations_for_given_channels.delay(
+                shipping_method_ids, [instance.id]
+            )
 
 
 class ChannelDeleteInput(graphene.InputObjectType):

@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import graphene
 import pytest
 
@@ -28,7 +30,7 @@ CREATE_SHIPPING_ZONE_QUERY = """
                 addChannels: $addChannels
             }
         ) {
-            shippingErrors {
+            errors {
                 field
                 code
                 message
@@ -71,7 +73,7 @@ def test_create_shipping_zone(
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneCreate"]
     zone = data["shippingZone"]
-    assert not data["shippingErrors"]
+    assert not data["errors"]
     assert zone["name"] == "test shipping"
     assert zone["description"] == "test description"
     assert zone["countries"] == [{"code": "PL"}]
@@ -95,7 +97,7 @@ def test_create_shipping_zone_with_empty_warehouses(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneCreate"]
-    assert not data["shippingErrors"]
+    assert not data["errors"]
     zone = data["shippingZone"]
     assert zone["name"] == "test shipping"
     assert zone["countries"] == [{"code": "PL"}]
@@ -115,7 +117,7 @@ def test_create_shipping_zone_without_warehouses_and_channels(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneCreate"]
-    assert not data["shippingErrors"]
+    assert not data["errors"]
     zone = data["shippingZone"]
     assert zone["name"] == "test shipping"
     assert zone["countries"] == [{"code": "PL"}]
@@ -139,7 +141,7 @@ def test_create_default_shipping_zone(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneCreate"]
-    assert not data["shippingErrors"]
+    assert not data["errors"]
     zone = data["shippingZone"]
     assert zone["name"] == "test shipping"
     assert zone["warehouses"][0]["name"] == warehouse.name
@@ -165,9 +167,9 @@ def test_create_duplicated_default_shipping_zone(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneCreate"]
-    assert data["shippingErrors"]
-    assert data["shippingErrors"][0]["field"] == "default"
-    assert data["shippingErrors"][0]["code"] == ShippingErrorCode.ALREADY_EXISTS.name
+    assert data["errors"]
+    assert data["errors"][0]["field"] == "default"
+    assert data["errors"][0]["code"] == ShippingErrorCode.ALREADY_EXISTS.name
 
 
 UPDATE_SHIPPING_ZONE_QUERY = """
@@ -206,7 +208,7 @@ UPDATE_SHIPPING_ZONE_QUERY = """
                     id
                 }
             }
-            shippingErrors {
+            errors {
                 field
                 code
                 warehouses
@@ -234,7 +236,7 @@ def test_update_shipping_zone(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
-    assert not data["shippingErrors"]
+    assert not data["errors"]
     data = content["data"]["shippingZoneUpdate"]["shippingZone"]
     assert data["name"] == name
     assert data["description"] == description
@@ -256,8 +258,8 @@ def test_update_shipping_zone_default_exists(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
-    assert data["shippingErrors"][0]["field"] == "default"
-    assert data["shippingErrors"][0]["code"] == ShippingErrorCode.ALREADY_EXISTS.name
+    assert data["errors"][0]["field"] == "default"
+    assert data["errors"][0]["code"] == ShippingErrorCode.ALREADY_EXISTS.name
 
 
 def test_update_shipping_zone_add_warehouses(
@@ -283,7 +285,7 @@ def test_update_shipping_zone_add_warehouses(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
-    assert not data["shippingErrors"]
+    assert not data["errors"]
     data = content["data"]["shippingZoneUpdate"]["shippingZone"]
     for response_warehouse in data["warehouses"]:
         assert response_warehouse["name"] in warehouse_names
@@ -311,7 +313,7 @@ def test_update_shipping_zone_add_second_warehouses(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
-    assert not data["shippingErrors"]
+    assert not data["errors"]
     data = content["data"]["shippingZoneUpdate"]["shippingZone"]
     assert data["warehouses"][1]["slug"] == warehouse.slug
     assert data["warehouses"][0]["slug"] == warehouse_no_shipping_zone.slug
@@ -335,7 +337,7 @@ def test_update_shipping_zone_remove_warehouses(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
-    assert not data["shippingErrors"]
+    assert not data["errors"]
     data = content["data"]["shippingZoneUpdate"]["shippingZone"]
     assert not data["warehouses"]
 
@@ -360,7 +362,7 @@ def test_update_shipping_zone_remove_one_warehouses(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
-    assert not data["shippingErrors"]
+    assert not data["errors"]
     data = content["data"]["shippingZoneUpdate"]["shippingZone"]
     assert data["warehouses"][0]["name"] == warehouses[1].name
     assert len(data["warehouses"]) == 1
@@ -391,7 +393,7 @@ def test_update_shipping_zone_replace_warehouse(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
-    assert not data["shippingErrors"]
+    assert not data["errors"]
     data = content["data"]["shippingZoneUpdate"]["shippingZone"]
     assert data["warehouses"][0]["name"] == warehouse_no_shipping_zone.name
     assert len(data["warehouses"]) == 1
@@ -416,13 +418,10 @@ def test_update_shipping_zone_same_warehouse_id_in_add_and_remove(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
-    assert data["shippingErrors"]
-    assert data["shippingErrors"][0]["field"] == "warehouses"
-    assert (
-        data["shippingErrors"][0]["code"]
-        == ShippingErrorCode.DUPLICATED_INPUT_ITEM.name
-    )
-    assert data["shippingErrors"][0]["warehouses"][0] == warehouse_id
+    assert data["errors"]
+    assert data["errors"][0]["field"] == "warehouses"
+    assert data["errors"][0]["code"] == ShippingErrorCode.DUPLICATED_INPUT_ITEM.name
+    assert data["errors"][0]["warehouses"][0] == warehouse_id
 
 
 def test_update_shipping_zone_add_channels(
@@ -448,13 +447,18 @@ def test_update_shipping_zone_add_channels(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
-    assert not data["shippingErrors"]
+    assert not data["errors"]
     data = content["data"]["shippingZoneUpdate"]["shippingZone"]
     assert len(data["channels"]) == len(channel_ids)
     assert {channel["id"] for channel in data["channels"]} == set(channel_ids)
 
 
+@patch(
+    "saleor.graphql.shipping.mutations.shippings."
+    "drop_invalid_shipping_methods_relations_for_given_channels.delay"
+)
 def test_update_shipping_zone_remove_channels(
+    mocked_drop_invalid_shipping_methods_relations,
     staff_api_client,
     shipping_zone,
     channel_USD,
@@ -465,8 +469,12 @@ def test_update_shipping_zone_remove_channels(
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.pk)
 
-    assert ShippingMethodChannelListing.objects.filter(
+    shipping_listing = ShippingMethodChannelListing.objects.filter(
         shipping_method__shipping_zone=shipping_zone, channel=channel_USD
+    )
+    assert shipping_listing
+    shipping_method_ids = list(
+        shipping_listing.values_list("shipping_method_id", flat=True)
     )
 
     variables = {
@@ -479,7 +487,7 @@ def test_update_shipping_zone_remove_channels(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
-    assert not data["shippingErrors"]
+    assert not data["errors"]
     data = content["data"]["shippingZoneUpdate"]["shippingZone"]
     assert len(data["channels"]) == 1
     assert data["channels"][0]["id"] == graphene.Node.to_global_id(
@@ -487,6 +495,9 @@ def test_update_shipping_zone_remove_channels(
     )
     assert not ShippingMethodChannelListing.objects.filter(
         shipping_method__shipping_zone=shipping_zone, channel=channel_USD
+    )
+    mocked_drop_invalid_shipping_methods_relations.assert_called_once_with(
+        shipping_method_ids, [channel_USD.pk]
     )
 
 
@@ -513,7 +524,7 @@ def test_update_shipping_zone_add_and_remove_channels(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
-    assert not data["shippingErrors"]
+    assert not data["errors"]
     data = content["data"]["shippingZoneUpdate"]["shippingZone"]
     assert len(data["channels"]) == 1
     assert data["channels"][0]["id"] == add_channel_id
@@ -542,7 +553,7 @@ def test_update_shipping_zone_same_channel_id_in_add_and_remove_list(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
-    assert not data["shippingErrors"]
+    assert not data["errors"]
     data = content["data"]["shippingZoneUpdate"]["shippingZone"]
     assert len(data["channels"]) == 1
     assert data["channels"][0]["id"] == add_channel_id
@@ -593,7 +604,7 @@ PRICE_BASED_SHIPPING_QUERY = """
             deletePostalCodeRules: $deletePostalCodeRules,
             inclusionType: $inclusionType, description: $description
         }) {
-        shippingErrors {
+        errors {
             field
             code
         }
@@ -662,7 +673,7 @@ def test_create_shipping_method(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceCreate"]
-    errors = data["shippingErrors"]
+    errors = data["errors"]
     assert not errors
     assert data["shippingMethod"]["name"] == name
     assert data["shippingMethod"]["description"] == description
@@ -694,7 +705,7 @@ def test_create_shipping_method_minimum_delivery_days_higher_than_maximum(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceCreate"]
-    errors = data["shippingErrors"]
+    errors = data["errors"]
     assert not data["shippingMethod"]
     assert len(errors) == 1
     assert errors[0]["code"] == ShippingErrorCode.INVALID.name
@@ -722,7 +733,7 @@ def test_create_shipping_method_minimum_delivery_days_below_0(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceCreate"]
-    errors = data["shippingErrors"]
+    errors = data["errors"]
     assert not data["shippingMethod"]
     assert len(errors) == 1
     assert errors[0]["code"] == ShippingErrorCode.INVALID.name
@@ -750,7 +761,7 @@ def test_create_shipping_method_maximum_delivery_days_below_0(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceCreate"]
-    errors = data["shippingErrors"]
+    errors = data["errors"]
     assert not data["shippingMethod"]
     assert len(errors) == 1
     assert errors[0]["code"] == ShippingErrorCode.INVALID.name
@@ -784,7 +795,7 @@ def test_create_shipping_method_postal_code_duplicate_entry(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceCreate"]
-    errors = data["shippingErrors"]
+    errors = data["errors"]
     assert not data["shippingMethod"]
     assert len(errors) == 1
     assert errors[0]["code"] == ShippingErrorCode.ALREADY_EXISTS.name
@@ -816,7 +827,7 @@ def test_create_shipping_method_postal_code_missing_inclusion_type(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceCreate"]
-    errors = data["shippingErrors"]
+    errors = data["errors"]
     assert not data["shippingMethod"]
     assert len(errors) == 1
     assert errors[0]["code"] == ShippingErrorCode.REQUIRED.name
@@ -838,7 +849,7 @@ WEIGHT_BASED_SHIPPING_QUERY = """
                 maximumOrderWeight: $maximumOrderWeight,
                 type: $type
             }) {
-            shippingErrors {
+            errors {
                 field
                 code
             }
@@ -915,7 +926,7 @@ def test_create_weight_shipping_method_errors(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceCreate"]
-    assert data["shippingErrors"][0]["code"] == ShippingErrorCode.MAX_LESS_THAN_MIN.name
+    assert data["errors"][0]["code"] == ShippingErrorCode.MAX_LESS_THAN_MIN.name
 
 
 def test_create_shipping_method_with_negative_min_weight(
@@ -933,7 +944,7 @@ def test_create_shipping_method_with_negative_min_weight(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceCreate"]
-    error = data["shippingErrors"][0]
+    error = data["errors"][0]
     assert error["field"] == "minimumOrderWeight"
     assert error["code"] == ShippingErrorCode.INVALID.name
 
@@ -953,7 +964,7 @@ def test_create_shipping_method_with_negative_max_weight(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceCreate"]
-    error = data["shippingErrors"][0]
+    error = data["errors"][0]
     assert error["field"] == "maximumOrderWeight"
     assert error["code"] == ShippingErrorCode.INVALID.name
 
@@ -985,7 +996,7 @@ UPDATE_SHIPPING_PRICE_MUTATION = """
                 deletePostalCodeRules: $deletePostalCodeRules,
                 inclusionType: $inclusionType,
             }) {
-            shippingErrors {
+            errors {
                 field
                 code
             }
@@ -1104,7 +1115,7 @@ def test_update_shipping_method_minimum_delivery_days_higher_than_maximum(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceUpdate"]
-    errors = data["shippingErrors"]
+    errors = data["errors"]
     assert not data["shippingMethod"]
     assert len(errors) == 1
     assert errors[0]["code"] == ShippingErrorCode.INVALID.name
@@ -1137,7 +1148,7 @@ def test_update_shipping_method_minimum_delivery_days_below_0(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceUpdate"]
-    errors = data["shippingErrors"]
+    errors = data["errors"]
     assert not data["shippingMethod"]
     assert len(errors) == 1
     assert errors[0]["code"] == ShippingErrorCode.INVALID.name
@@ -1170,7 +1181,7 @@ def test_update_shipping_method_maximum_delivery_days_below_0(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceUpdate"]
-    errors = data["shippingErrors"]
+    errors = data["errors"]
     assert not data["shippingMethod"]
     assert len(errors) == 1
     assert errors[0]["code"] == ShippingErrorCode.INVALID.name
@@ -1203,7 +1214,7 @@ def test_update_shipping_method_minimum_delivery_days_higher_than_max_from_insta
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceUpdate"]
-    errors = data["shippingErrors"]
+    errors = data["errors"]
     assert not data["shippingMethod"]
     assert len(errors) == 1
     assert errors[0]["code"] == ShippingErrorCode.INVALID.name
@@ -1236,7 +1247,7 @@ def test_update_shipping_method_maximum_delivery_days_lower_than_min_from_instan
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceUpdate"]
-    errors = data["shippingErrors"]
+    errors = data["errors"]
     assert not data["shippingMethod"]
     assert len(errors) == 1
     assert errors[0]["code"] == ShippingErrorCode.INVALID.name
@@ -1271,7 +1282,7 @@ def test_update_shipping_method_multiple_errors(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceUpdate"]
-    errors = data["shippingErrors"]
+    errors = data["errors"]
     assert not data["shippingMethod"]
     assert len(errors) == 3
     expected_errors = [
@@ -1322,7 +1333,7 @@ def test_update_shipping_method_delivery_days_without_value(
     content = get_graphql_content(response)
     shipping_method.refresh_from_db()
 
-    assert not content["data"]["shippingPriceUpdate"]["shippingErrors"]
+    assert not content["data"]["shippingPriceUpdate"]["errors"]
     assert shipping_method.minimum_delivery_days == min_delivery_days
     assert shipping_method.maximum_delivery_days == max_delivery_days
 
@@ -1367,7 +1378,7 @@ EXCLUDE_PRODUCTS_MUTATION = """
         shippingPriceExcludeProducts(
             id: $id
             input: $input) {
-            shippingErrors {
+            errors {
                 field
                 code
             }
@@ -1452,7 +1463,7 @@ REMOVE_PRODUCTS_FROM_EXCLUDED_PRODUCTS_MUTATION = """
         shippingPriceRemoveProductFromExclude(
             id: $id
             products: $products) {
-            shippingErrors {
+            errors {
                 field
                 code
             }

@@ -25,7 +25,7 @@ mutation UpdatePublicMetadata($id: ID!, $input: [MetadataInput!]!) {
         id: $id
         input: $input
     ) {
-        metadataErrors{
+        errors{
             field
             code
             message
@@ -236,7 +236,7 @@ def test_staff_update_metadata_empty_key(
 
     # then
     data = response["data"]["updateMetadata"]
-    errors = data["metadataErrors"]
+    errors = data["errors"]
 
     assert not data["item"]
     assert len(errors) == 1
@@ -680,7 +680,7 @@ def test_update_public_metadata_for_non_exist_item(api_client):
     )
 
     # then
-    errors = response["data"]["updateMetadata"]["metadataErrors"]
+    errors = response["data"]["updateMetadata"]["errors"]
     assert errors[0]["field"] == "id"
     assert errors[0]["code"] == MetadataErrorCode.NOT_FOUND.name
 
@@ -698,7 +698,7 @@ def test_update_public_metadata_for_item_without_meta(api_client, address):
     )
 
     # then
-    errors = response["data"]["updateMetadata"]["metadataErrors"]
+    errors = response["data"]["updateMetadata"]["errors"]
     assert errors[0]["field"] == "id"
     assert errors[0]["code"] == MetadataErrorCode.NOT_FOUND.name
 
@@ -709,7 +709,7 @@ mutation DeletePublicMetadata($id: ID!, $keys: [String!]!) {
         id: $id
         keys: $keys
     ) {
-        metadataErrors{
+        errors{
             field
             code
         }
@@ -1326,7 +1326,7 @@ def test_delete_public_metadata_for_non_exist_item(api_client):
     )
 
     # then
-    errors = response["data"]["deleteMetadata"]["metadataErrors"]
+    errors = response["data"]["deleteMetadata"]["errors"]
     assert errors[0]["field"] == "id"
     assert errors[0]["code"] == MetadataErrorCode.NOT_FOUND.name
 
@@ -1344,7 +1344,7 @@ def test_delete_public_metadata_for_item_without_meta(api_client, address):
     )
 
     # then
-    errors = response["data"]["deleteMetadata"]["metadataErrors"]
+    errors = response["data"]["deleteMetadata"]["errors"]
     assert errors[0]["field"] == "id"
     assert errors[0]["code"] == MetadataErrorCode.NOT_FOUND.name
 
@@ -1397,7 +1397,7 @@ mutation UpdatePrivateMetadata($id: ID!, $input: [MetadataInput!]!) {
         id: $id
         input: $input
     ) {
-        metadataErrors{
+        errors{
             field
             code
         }
@@ -1625,7 +1625,7 @@ def test_staff_update_private_metadata_empty_key(
 
     # then
     data = response["data"]["updatePrivateMetadata"]
-    errors = data["metadataErrors"]
+    errors = data["errors"]
 
     assert not data["item"]
     assert len(errors) == 1
@@ -2047,7 +2047,7 @@ def test_update_private_metadata_for_non_exist_item(
     )
 
     # then
-    errors = response["data"]["updatePrivateMetadata"]["metadataErrors"]
+    errors = response["data"]["updatePrivateMetadata"]["errors"]
     assert errors[0]["field"] == "id"
     assert errors[0]["code"] == MetadataErrorCode.NOT_FOUND.name
 
@@ -2065,7 +2065,7 @@ def test_update_private_metadata_for_item_without_meta(api_client, address):
     )
 
     # then
-    errors = response["data"]["updatePrivateMetadata"]["metadataErrors"]
+    errors = response["data"]["updatePrivateMetadata"]["errors"]
     assert errors[0]["field"] == "id"
     assert errors[0]["code"] == MetadataErrorCode.NOT_FOUND.name
 
@@ -2076,7 +2076,7 @@ mutation DeletePrivateMetadata($id: ID!, $keys: [String!]!) {
         id: $id
         keys: $keys
     ) {
-        metadataErrors{
+        errors{
             field
             code
         }
@@ -2715,7 +2715,7 @@ def test_delete_private_metadata_for_non_exist_item(
     )
 
     # then
-    errors = response["data"]["deletePrivateMetadata"]["metadataErrors"]
+    errors = response["data"]["deletePrivateMetadata"]["errors"]
     assert errors[0]["field"] == "id"
     assert errors[0]["code"] == MetadataErrorCode.NOT_FOUND.name
 
@@ -2733,7 +2733,7 @@ def test_delete_private_metadata_for_item_without_meta(api_client, address):
     )
 
     # then
-    errors = response["data"]["deletePrivateMetadata"]["metadataErrors"]
+    errors = response["data"]["deletePrivateMetadata"]["errors"]
     assert errors[0]["field"] == "id"
     assert errors[0]["code"] == MetadataErrorCode.NOT_FOUND.name
 

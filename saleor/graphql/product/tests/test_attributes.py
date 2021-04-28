@@ -269,7 +269,7 @@ def test_resolve_assigned_attribute_without_values(
 PRODUCT_ASSIGN_ATTR_QUERY = """
     mutation assign($productTypeId: ID!, $operations: [ProductAttributeAssignInput]!) {
       productAttributeAssign(productTypeId: $productTypeId, operations: $operations) {
-        productErrors {
+        errors {
           field
           code
           message
@@ -321,7 +321,7 @@ def test_assign_attributes_to_product_type(
             permissions=[permission_manage_product_types_and_attributes],
         )
     )["data"]["productAttributeAssign"]
-    assert not content["productErrors"], "Should have succeeded"
+    assert not content["errors"], "Should have succeeded"
 
     assert content["productType"]["id"] == product_type_global_id
     assert len(content["productType"]["productAttributes"]) == len(
@@ -362,9 +362,9 @@ def test_assign_non_existing_attributes_to_product_type(
     )
     content = get_graphql_content(response)
     content = content["data"]["productAttributeAssign"]
-    assert content["productErrors"][0]["code"] == ProductErrorCode.NOT_FOUND.name
-    assert content["productErrors"][0]["field"] == "operations"
-    assert content["productErrors"][0]["attributes"] == [attribute_id]
+    assert content["errors"][0]["code"] == ProductErrorCode.NOT_FOUND.name
+    assert content["errors"][0]["field"] == "operations"
+    assert content["errors"][0]["attributes"] == [attribute_id]
 
 
 def test_assign_variant_attribute_to_product_type_with_disabled_variants(
@@ -394,13 +394,12 @@ def test_assign_variant_attribute_to_product_type_with_disabled_variants(
     content = get_graphql_content(staff_api_client.post_graphql(query, variables))[
         "data"
     ]["productAttributeAssign"]
-    assert content["productErrors"][0]["field"] == "operations"
+    assert content["errors"][0]["field"] == "operations"
     assert (
-        content["productErrors"][0]["message"]
-        == "Variants are disabled in this product type."
+        content["errors"][0]["message"] == "Variants are disabled in this product type."
     )
     assert (
-        content["productErrors"][0]["code"]
+        content["errors"][0]["code"]
         == ProductErrorCode.ATTRIBUTE_VARIANTS_DISABLED.name
     )
 
@@ -434,7 +433,7 @@ def test_assign_variant_attribute_having_multiselect_input_type(
     content = get_graphql_content(staff_api_client.post_graphql(query, variables))[
         "data"
     ]["productAttributeAssign"]
-    assert not content["productErrors"]
+    assert not content["errors"]
     assert content["productType"]["id"] == product_type_global_id
     assert len(content["productType"]["variantAttributes"]) == 1
     assert content["productType"]["variantAttributes"][0]["id"] == attr_id
@@ -486,14 +485,13 @@ def test_assign_attribute_to_product_type_having_already_that_attribute(
     content = get_graphql_content(staff_api_client.post_graphql(query, variables))[
         "data"
     ]["productAttributeAssign"]
-    assert content["productErrors"][0]["field"] == "operations"
+    assert content["errors"][0]["field"] == "operations"
     assert (
-        content["productErrors"][0]["message"]
+        content["errors"][0]["message"]
         == "Color (color) have already been assigned to this product type."
     )
     assert (
-        content["productErrors"][0]["code"]
-        == ProductErrorCode.ATTRIBUTE_ALREADY_ASSIGNED.name
+        content["errors"][0]["code"] == ProductErrorCode.ATTRIBUTE_ALREADY_ASSIGNED.name
     )
 
 
@@ -523,7 +521,7 @@ def test_assign_page_attribute_to_product_type(
     # then
     content = get_graphql_content(response)
     data = content["data"]["productAttributeAssign"]
-    errors = data["productErrors"]
+    errors = data["errors"]
 
     assert not data["productType"]
     assert len(errors) == 1
@@ -575,7 +573,7 @@ def test_assign_attribute_to_product_type_multiple_errors_returned(
     # then
     content = get_graphql_content(response)
     data = content["data"]["productAttributeAssign"]
-    errors = data["productErrors"]
+    errors = data["errors"]
 
     assert not data["productType"]
     assert len(errors) == 2
@@ -604,7 +602,7 @@ PRODUCT_UNASSIGN_ATTR_QUERY = """
       productAttributeUnassign(
           productTypeId: $productTypeId, attributeIds: $attributeIds
       ) {
-        productErrors {
+        errors {
           field
           message
         }
@@ -653,7 +651,7 @@ def test_unassign_attributes_from_product_type(
             permissions=[permission_manage_product_types_and_attributes],
         )
     )["data"]["productAttributeUnassign"]
-    assert not content["productErrors"]
+    assert not content["errors"]
 
     assert content["productType"]["id"] == product_type_global_id
     assert len(content["productType"]["productAttributes"]) == 1
@@ -691,7 +689,7 @@ def test_unassign_attributes_not_in_product_type(
     content = get_graphql_content(staff_api_client.post_graphql(query, variables))[
         "data"
     ]["productAttributeUnassign"]
-    assert not content["productErrors"]
+    assert not content["errors"]
 
     assert content["productType"]["id"] == product_type_global_id
     assert len(content["productType"]["productAttributes"]) == 0
@@ -752,7 +750,7 @@ ATTRIBUTES_RESORT_QUERY = """
           }
         }
 
-        productErrors {
+        errors {
           field
           message
           code
@@ -785,7 +783,7 @@ def test_sort_attributes_within_product_type_invalid_product_type(
         )
     )["data"]["productTypeReorderAttributes"]
 
-    assert content["productErrors"] == [
+    assert content["errors"] == [
         {
             "field": "productTypeId",
             "code": ProductErrorCode.NOT_FOUND.name,
@@ -819,7 +817,7 @@ def test_sort_attributes_within_product_type_invalid_id(
         )
     )["data"]["productTypeReorderAttributes"]
 
-    assert content["productErrors"] == [
+    assert content["errors"] == [
         {
             "field": "moves",
             "message": "Couldn't resolve to an attribute.",
@@ -881,7 +879,7 @@ def test_sort_attributes_within_product_type(
     content = get_graphql_content(
         staff_api_client.post_graphql(ATTRIBUTES_RESORT_QUERY, variables)
     )["data"]["productTypeReorderAttributes"]
-    assert not content["productErrors"]
+    assert not content["errors"]
 
     assert (
         content["productType"]["id"] == product_type_id
@@ -920,7 +918,7 @@ PRODUCT_REORDER_ATTRIBUTE_VALUES_MUTATION = """
           }
         }
 
-        productErrors {
+        errors {
           field
           message
           code
@@ -993,7 +991,7 @@ def test_sort_product_attribute_values(
             PRODUCT_REORDER_ATTRIBUTE_VALUES_MUTATION, variables
         )
     )["data"]["productReorderAttributeValues"]
-    assert not content["productErrors"]
+    assert not content["errors"]
 
     assert content["product"]["id"] == product_id, "Did not return the correct product"
 
@@ -1054,7 +1052,7 @@ def test_sort_product_attribute_values_invalid_attribute_id(
             PRODUCT_REORDER_ATTRIBUTE_VALUES_MUTATION, variables
         )
     )["data"]["productReorderAttributeValues"]
-    errors = content["productErrors"]
+    errors = content["errors"]
     assert not content["product"]
     assert len(errors) == 1
     assert errors[0]["code"] == ProductErrorCode.NOT_FOUND.name
@@ -1122,7 +1120,7 @@ def test_sort_product_attribute_values_invalid_value_id(
             PRODUCT_REORDER_ATTRIBUTE_VALUES_MUTATION, variables
         )
     )["data"]["productReorderAttributeValues"]
-    errors = content["productErrors"]
+    errors = content["errors"]
     assert not content["product"]
     assert len(errors) == 1
     assert errors[0]["code"] == ProductErrorCode.NOT_FOUND.name
@@ -1154,7 +1152,7 @@ PRODUCT_VARIANT_REORDER_ATTRIBUTE_VALUES_MUTATION = """
           }
         }
 
-        productErrors {
+        errors {
           field
           message
           code
@@ -1228,7 +1226,7 @@ def test_sort_product_variant_attribute_values(
             PRODUCT_VARIANT_REORDER_ATTRIBUTE_VALUES_MUTATION, variables
         )
     )["data"]["productVariantReorderAttributeValues"]
-    assert not content["productErrors"]
+    assert not content["errors"]
 
     assert (
         content["productVariant"]["id"] == variant_id
@@ -1292,7 +1290,7 @@ def test_sort_product_variant_attribute_values_invalid_attribute_id(
             PRODUCT_VARIANT_REORDER_ATTRIBUTE_VALUES_MUTATION, variables
         )
     )["data"]["productVariantReorderAttributeValues"]
-    errors = content["productErrors"]
+    errors = content["errors"]
     assert not content["productVariant"]
     assert len(errors) == 1
     assert errors[0]["code"] == ProductErrorCode.NOT_FOUND.name
@@ -1361,7 +1359,7 @@ def test_sort_product_variant_attribute_values_invalid_value_id(
             PRODUCT_VARIANT_REORDER_ATTRIBUTE_VALUES_MUTATION, variables
         )
     )["data"]["productVariantReorderAttributeValues"]
-    errors = content["productErrors"]
+    errors = content["errors"]
     assert not content["productVariant"]
     assert len(errors) == 1
     assert errors[0]["code"] == ProductErrorCode.NOT_FOUND.name

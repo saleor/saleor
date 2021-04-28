@@ -41,28 +41,24 @@ def test_retrieve_variant_list(
               currency
               gross {
                 amount
-                localized
               }
             }
             price {
               currency
               gross {
                 amount
-                localized
               }
             }
             priceUndiscounted {
               currency
               gross {
                 amount
-                localized
               }
             }
             priceLocalCurrency {
               currency
               gross {
                 amount
-                localized
               }
             }
           }
@@ -134,7 +130,7 @@ def test_product_variant_bulk_create(
         $variants: [ProductVariantBulkCreateInput]!, $productId: ID!
     ) {
         productVariantBulkCreate(variants: $variants, product: $productId) {
-            bulkProductErrors {
+            errors {
                 field
                 message
                 code
@@ -167,7 +163,7 @@ def test_product_variant_bulk_create(
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["productVariantBulkCreate"]
-    assert not data["bulkProductErrors"]
+    assert not data["errors"]
     assert data["count"] == 1
     assert product_variant_count + 1 == ProductVariant.objects.count()
 
@@ -202,7 +198,7 @@ def test_product_variant_create(
                     weight: $weight
                 }
             ) {
-                productErrors {
+                errors {
                     field
                     message
                     attributes
@@ -229,7 +225,6 @@ def test_product_variant_create(
                     costPrice {
                         currency
                         amount
-                        localized
                     }
                     weight {
                         value
@@ -274,7 +269,7 @@ def test_product_variant_create(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)["data"]["productVariantCreate"]
-    assert not content["productErrors"]
+    assert not content["errors"]
 
 
 @pytest.mark.django_db

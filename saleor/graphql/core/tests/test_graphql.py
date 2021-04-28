@@ -106,13 +106,11 @@ def test_real_query(user_api_client, product, channel_USD):
     fragment CategoryPageFragmentQuery on Category {
         id
         name
-        url
         ancestors(first: 20) {
             edges {
                 node {
                     name
                     id
-                    url
                     __typename
                 }
             }
@@ -122,7 +120,6 @@ def test_real_query(user_api_client, product, channel_USD):
                 node {
                     name
                     id
-                    url
                     slug
                     __typename
                 }
@@ -160,7 +157,6 @@ def test_real_query(user_api_client, product, channel_USD):
         thumbnailUrl2x:     thumbnail(size: 510){
             url
         }
-        url
         __typename
     }
 
@@ -178,7 +174,6 @@ def test_real_query(user_api_client, product, channel_USD):
                 gross {
                     amount
                     currency
-                    localized
                     __typename
                 }
                 currency
@@ -188,7 +183,6 @@ def test_real_query(user_api_client, product, channel_USD):
                 gross {
                     amount
                     currency
-                    localized
                     __typename
                 }
                 currency
@@ -217,7 +211,7 @@ def test_real_query(user_api_client, product, channel_USD):
         "sortBy": {"field": "NAME", "direction": "ASC"},
         "first": 1,
         "attributesFilter": [
-            {"slug": f"{product_attr.slug}", "value": f"{attr_value.slug}"}
+            {"slug": f"{product_attr.slug}", "values": [f"{attr_value.slug}"]}
         ],
         "channel": channel_USD.slug,
     }
@@ -234,7 +228,7 @@ def test_get_nodes(product_list):
     assert products == product_list
 
     # Raise an error if requested id has no related database object
-    nonexistent_item = Mock(type="Product", pk=123)
+    nonexistent_item = Mock(type="Product", pk=-1)
     nonexistent_item_global_id = to_global_id(
         nonexistent_item.type, nonexistent_item.pk
     )
@@ -249,7 +243,7 @@ def test_get_nodes(product_list):
     global_ids.pop()
 
     # Raise an error if one of the node is of wrong type
-    invalid_item = Mock(type="test", pk=123)
+    invalid_item = Mock(type="test", pk=-1)
     invalid_item_global_id = to_global_id(invalid_item.type, invalid_item.pk)
     global_ids.append(invalid_item_global_id)
     with pytest.raises(GraphQLError) as exc:

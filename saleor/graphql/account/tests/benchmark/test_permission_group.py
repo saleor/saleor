@@ -34,7 +34,7 @@ def test_permission_group_create(
                     email
                 }
             }
-            permissionGroupErrors{
+            errors{
                 field
                 code
                 permissions
@@ -61,7 +61,7 @@ def test_permission_group_create(
     data = content["data"]["permissionGroupCreate"]
 
     groups = Group.objects.all()
-    assert data["permissionGroupErrors"] == []
+    assert data["errors"] == []
     assert len(groups) == group_count + 1
 
 
@@ -91,7 +91,7 @@ def test_permission_group_update(
                     code
                 }
             }
-            permissionGroupErrors{
+            errors{
                 field
                 code
                 permissions
@@ -134,7 +134,7 @@ def test_permission_group_update(
     data = content["data"]["permissionGroupUpdate"]
 
     groups = Group.objects.all()
-    assert data["permissionGroupErrors"] == []
+    assert data["errors"] == []
     assert len(groups) == group_count
 
 
@@ -167,7 +167,7 @@ def test_permission_group_update_remove_users_with_manage_staff(
                     email
                 }
             }
-            permissionGroupErrors{
+            errors{
                 field
                 code
                 permissions
@@ -236,7 +236,7 @@ def test_permission_group_delete(
                     code
                 }
             }
-            permissionGroupErrors{
+            errors{
                 field
                 code
                 users

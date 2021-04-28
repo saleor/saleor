@@ -1,5 +1,6 @@
 import json
 
+import graphene
 from measurement.measures import Weight
 
 from .....attribute.models import Attribute, AttributeValue
@@ -66,8 +67,9 @@ def test_get_products_data(product, product_with_image, collection, image, chann
     # then
     expected_data = []
     for product in products.order_by("pk"):
+        id = graphene.Node.to_global_id("Product", product.pk)
         product_data = {
-            "id": product.id,
+            "id": id,
             "name": product.name,
             "description_as_str": json.dumps(product.description),
             "category__slug": product.category.slug,
@@ -141,7 +143,8 @@ def test_get_products_data_for_specified_attributes(
     # then
     expected_data = []
     for product in products.order_by("pk"):
-        product_data = {"id": product.pk}
+        id = graphene.Node.to_global_id("Product", product.pk)
+        product_data = {"id": id}
 
         product_data = add_product_attribute_data_to_expected_data(
             product_data, product, attribute_ids
@@ -180,7 +183,8 @@ def test_get_products_data_for_specified_warehouses(
     # then
     expected_data = []
     for product in products.order_by("pk"):
-        product_data = {"id": product.pk}
+        id = graphene.Node.to_global_id("Product", product.pk)
+        product_data = {"id": id}
 
         for variant in product.variants.all():
             data = {"variants__sku": variant.sku}
@@ -214,7 +218,8 @@ def test_get_products_data_for_product_without_channel(
     # then
     expected_data = []
     for product in products.order_by("pk"):
-        product_data = {"id": product.pk}
+        id = graphene.Node.to_global_id("Product", product.pk)
+        product_data = {"id": id}
 
         for variant in product.variants.all():
             data = {"variants__sku": variant.sku}
@@ -237,6 +242,7 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
     product_with_image,
     product_with_variant_with_two_attributes,
     rich_text_attribute,
+    color_attribute,
     variant_with_many_stocks,
 ):
     # given
@@ -315,6 +321,13 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
         product, product_type_product_reference_attribute, product_product_ref_value
     )
 
+    # create assigned product without values
+    associate_attribute_values_to_instance(
+        product, color_attribute, color_attribute.values.first()
+    )
+    assigned_product = product.attributes.get(assignment__attribute=color_attribute)
+    assigned_product.values.clear()
+
     products = Product.objects.all()
     export_fields = {"id", "variants__sku"}
     warehouse_ids = [str(warehouse.pk) for warehouse in Warehouse.objects.all()]
@@ -329,7 +342,8 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
     # then
     expected_data = []
     for product in products.order_by("pk"):
-        product_data = {"id": product.id}
+        id = graphene.Node.to_global_id("Product", product.pk)
+        product_data = {"id": id}
 
         product_data = add_product_attribute_data_to_expected_data(
             product_data, product, attribute_ids
