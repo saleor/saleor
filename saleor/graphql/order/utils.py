@@ -172,6 +172,7 @@ def validate_variant_channel_listings(
 
 
 def validate_product_is_available_for_purchase(order: "Order", errors: T_ERRORS):
+    invalid_lines = []
     for line in order.lines.all():
         if not line.variant:
             continue
@@ -182,12 +183,15 @@ def validate_product_is_available_for_purchase(order: "Order", errors: T_ERRORS)
             product_channel_listing
             and product_channel_listing.is_available_for_purchase()
         ):
-            errors["lines"].append(
-                ValidationError(
-                    "Can't finalize draft with product unavailable for purchase.",
-                    code=OrderErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE.value,
-                )
+            invalid_lines.append(graphene.Node.to_global_id("OrderLine", line.pk))
+    if invalid_lines:
+        errors["lines"].append(
+            ValidationError(
+                "Can't finalize draft with product unavailable for purchase.",
+                code=OrderErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE.value,
+                params={"order_lines": invalid_lines},
             )
+        )
 
 
 def validate_channel_is_active(channel: "Channel", errors: T_ERRORS):

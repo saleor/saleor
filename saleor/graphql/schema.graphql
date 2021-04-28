@@ -3023,6 +3023,7 @@ type Order implements Node & ObjectWithMetadata {
   discountName: String @deprecated(reason: "Use discounts field. This field will be removed in Saleor 4.0.")
   translatedDiscountName: String @deprecated(reason: "Use discounts field. This field will be removed in Saleor 4.0.")
   discounts: [OrderDiscount!]
+  errors: [OrderError!]!
 }
 
 enum OrderAction {
@@ -3139,6 +3140,7 @@ type OrderError {
   orderLine: ID
   variants: [ID!]
   addressType: AddressTypeEnum
+  orderLines: [ID!]
 }
 
 enum OrderErrorCode {

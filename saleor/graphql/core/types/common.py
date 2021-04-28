@@ -188,6 +188,10 @@ class OrderError(Error):
     address_type = AddressTypeEnum(
         description="A type of address that causes the error.", required=False
     )
+    order_lines = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of order line IDs that cause the error.",
+    )
 
 
 class InvoiceError(Error):
