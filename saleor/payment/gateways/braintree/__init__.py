@@ -141,28 +141,75 @@ def authorize(
         raise BraintreeException(DEFAULT_ERROR_MESSAGE)
 
     gateway_response = extract_gateway_response(result)
+
     error = get_error_for_client(gateway_response["errors"])
     kind = TransactionKind.CAPTURE if config.auto_capture else TransactionKind.AUTH
     credit_card = gateway_response.get("credit_card", {})
+
+    if(error):
+        print('error occured')
+        return GatewayResponse(
+            is_success=result.is_success,
+            action_required=False,
+            kind=kind,
+            amount=gateway_response.get("amount", payment_information.amount),
+            currency=gateway_response.get("currency", payment_information.currency),
+            transaction_id=gateway_response.get(
+                "transaction_id", payment_information.token
+            ),
+            error=error,
+            raw_response=gateway_response,
+        )
+    if(result.transaction.payment_instrument_type == braintree_sdk.PaymentInstrumentType.PayPalAccount):
+        return GatewayResponse(
+            is_success=result.is_success,
+            action_required=False,
+            kind=kind,
+            amount=gateway_response.get("amount", payment_information.amount),
+            currency=gateway_response.get("currency", payment_information.currency),
+            customer_id=gateway_response.get("customer_id"),
+            transaction_id=gateway_response.get(
+                "transaction_id", payment_information.token
+            ),
+            error=error,
+            payment_method_info=PaymentMethodInfo(
+                type="paypal",
+            ),
+            raw_response=gateway_response,
+        )
+    if(result.transaction.payment_instrument_type == braintree_sdk.PaymentInstrumentType.CreditCard):
+        return GatewayResponse(
+            is_success=result.is_success,
+            action_required=False,
+            kind=kind,
+            amount=gateway_response.get("amount", payment_information.amount),
+            currency=gateway_response.get("currency", payment_information.currency),
+            customer_id=gateway_response.get("customer_id"),
+            transaction_id=gateway_response.get(
+                "transaction_id", payment_information.token
+            ),
+            error=error,
+            payment_method_info=PaymentMethodInfo(
+                last_4=credit_card.get("last_4"),
+                exp_year=credit_card.get("expiration_year"),
+                exp_month=credit_card.get("expiration_month"),
+                brand=credit_card.get("card_type", "").lower(),
+                name=credit_card.get("cardholder_name"),
+                type="card",
+            ),
+            raw_response=gateway_response,
+        )
+    # unsafe TODO: uncapture payment
     return GatewayResponse(
         is_success=result.is_success,
         action_required=False,
         kind=kind,
         amount=gateway_response.get("amount", payment_information.amount),
         currency=gateway_response.get("currency", payment_information.currency),
-        customer_id=gateway_response.get("customer_id"),
         transaction_id=gateway_response.get(
             "transaction_id", payment_information.token
         ),
         error=error,
-        payment_method_info=PaymentMethodInfo(
-            last_4=credit_card.get("last_4"),
-            exp_year=credit_card.get("expiration_year"),
-            exp_month=credit_card.get("expiration_month"),
-            brand=credit_card.get("card_type", "").lower(),
-            name=credit_card.get("cardholder_name"),
-            type="card",
-        ),
         raw_response=gateway_response,
     )
 
