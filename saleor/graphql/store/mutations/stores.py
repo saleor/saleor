@@ -54,7 +54,7 @@ class StoreCreate(ModelMutation):
     class Meta:
         description = "Creates a new store."
         model = models.Store
-        permissions = (StorePermissions.MANAGE_STORES,)
+        #permissions = (StorePermissions.MANAGE_STORES,)
         error_type_class = StoreError
         error_type_field = "store_errors"
     
@@ -77,7 +77,13 @@ class StoreCreate(ModelMutation):
     def perform_mutation(cls, root, info, **data):
         store_type_id = data.pop("store_type_id", None)
         data["input"]["store_type_id"] = store_type_id
-        return super().perform_mutation(root, info, **data)
+        retval = super().perform_mutation(root, info, **data)
+        user = info.context.user
+        user.store_id = retval.store.id
+        if user.is_authenticated:
+            user.save()
+            
+        return retval
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
