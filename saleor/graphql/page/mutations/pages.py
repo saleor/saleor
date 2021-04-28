@@ -374,7 +374,7 @@ class PageMediaCreate(BaseMutation):
                 image=image_data, alt=alt, type=ProductMediaTypes.IMAGE
             )            
 
-        page = ChannelContext(node=page, channel_slug=None)
+        ChannelContext(node=page, channel_slug=None)
         return PageMediaCreate(page=page, media=media)
 
 
@@ -406,7 +406,7 @@ class PageMediaUpdate(BaseMutation):
         if alt is not None:
             media.alt = alt
             media.save(update_fields=["alt"])
-        page = ChannelContext(node=page, channel_slug=None)
+        ChannelContext(node=page, channel_slug=None)
         return PageMediaUpdate(product=page, media=media)
 
 
@@ -467,5 +467,5 @@ class PageMediaReorder(BaseMutation):
             media.sort_order = order
             media.save(update_fields=["sort_order"])
 
-        page = ChannelContext(node=page, channel_slug=None)
+        ChannelContext(node=page, channel_slug=None)
         return PageMediaReorder(page=page, media=ordered_media)

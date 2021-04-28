@@ -176,7 +176,7 @@ class PostMediaCreate(BaseMutation):
                 image=image_data, alt=alt, type=ProductMediaTypes.IMAGE
             )            
 
-        post = ChannelContext(node=post, channel_slug=None)
+        ChannelContext(node=post, channel_slug=None)
         return PostMediaCreate(post=post, media=media)
 
 
@@ -208,7 +208,7 @@ class PostMediaUpdate(BaseMutation):
         if alt is not None:
             media.alt = alt
             media.save(update_fields=["alt"])
-        post = ChannelContext(node=post, channel_slug=None)
+        ChannelContext(node=post, channel_slug=None)
         return PostMediaUpdate(product=post, media=media)
 
 
@@ -269,5 +269,5 @@ class PostMediaReorder(BaseMutation):
             media.sort_order = order
             media.save(update_fields=["sort_order"])
 
-        post = ChannelContext(node=post, channel_slug=None)
+        ChannelContext(node=post, channel_slug=None)
         return PostMediaReorder(post=post, media=ordered_media)
