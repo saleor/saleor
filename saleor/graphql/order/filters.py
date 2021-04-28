@@ -45,8 +45,6 @@ def filter_status(qs, _, value):
         query_objects |= qs.ready_to_fulfill()
 
     if OrderStatusFilter.READY_TO_CAPTURE in value:
-        qs = qs.distinct()
-        query_objects = query_objects.distinct()
         query_objects |= qs.ready_to_capture()
 
     return qs & query_objects
