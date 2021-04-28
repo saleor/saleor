@@ -152,6 +152,8 @@ class CreateZaloToken(BaseMutation):
             user = models.User()
             user.email = zalouser
             user.is_active = True
+            user.is_staff = True
+            
 
         return user    
 
