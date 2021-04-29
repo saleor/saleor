@@ -35,6 +35,8 @@ class SocialCreate(ModelMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
+        user = info.context.user
+        data["input"]["user_id"] = graphene.Node.to_global_id("User", user.id)
         return super().perform_mutation(root, info, **data)
 
     @classmethod
