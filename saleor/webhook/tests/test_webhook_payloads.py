@@ -206,7 +206,7 @@ def test_generate_invoice_payload(fulfilled_order):
             "shipping_tax_rate": "0.0000",
             "total_net_amount": "80.000",
             "total_gross_amount": "98.400",
-            "weight": "0.0:kg",
+            "weight": "0.0:g",
         },
         "number": "01/12/2020/TEST",
         "created": ANY,

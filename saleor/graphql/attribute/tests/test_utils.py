@@ -1,4 +1,5 @@
 import graphene
+import pytest
 
 from ....attribute import AttributeInputType
 from ....page.error_codes import PageErrorCode
@@ -1077,4 +1078,146 @@ def test_validate_attributes_with_file_input_type_for_product_empty_file_value(
     assert error.code == ProductErrorCode.REQUIRED.value
     assert set(error.params["attributes"]) == {
         graphene.Node.to_global_id("Attribute", file_attribute.pk)
+    }
+
+
+def test_validate_numeric_attributes_input_for_product(numeric_attribute, product_type):
+    # given
+    numeric_attribute.value_required = True
+    numeric_attribute.save(update_fields=["value_required"])
+
+    input_data = [
+        (
+            numeric_attribute,
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", numeric_attribute.pk),
+                values=["12.34"],
+                file_url=None,
+                content_type=None,
+                references=[],
+            ),
+        ),
+    ]
+
+    # when
+    errors = validate_attributes_input(
+        input_data,
+        product_type.product_attributes.all(),
+        is_page_attributes=False,
+        variant_validation=False,
+    )
+
+    # then
+    assert not errors
+
+
+@pytest.mark.parametrize("value", ["qvd", "12.se", "  "])
+def test_validate_numeric_attributes_input_for_product_not_numeric_value_given(
+    value, numeric_attribute, product_type
+):
+    # given
+    numeric_attribute.value_required = True
+    numeric_attribute.save(update_fields=["value_required"])
+
+    input_data = [
+        (
+            numeric_attribute,
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", numeric_attribute.pk),
+                values=[value],
+                file_url=None,
+                content_type=None,
+                references=[],
+            ),
+        ),
+    ]
+
+    # when
+    errors = validate_attributes_input(
+        input_data,
+        product_type.product_attributes.all(),
+        is_page_attributes=False,
+        variant_validation=False,
+    )
+
+    # then
+    assert len(errors) == 1
+    error = errors[0]
+    assert error.code == ProductErrorCode.INVALID.value
+    assert set(error.params["attributes"]) == {
+        graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
+    }
+
+
+def test_validate_numeric_attributes_input_for_product_blank_value(
+    numeric_attribute, product_type
+):
+    # given
+    numeric_attribute.value_required = True
+    numeric_attribute.save(update_fields=["value_required"])
+
+    input_data = [
+        (
+            numeric_attribute,
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", numeric_attribute.pk),
+                values=[None],
+                file_url=None,
+                content_type=None,
+                references=[],
+            ),
+        ),
+    ]
+
+    # when
+    errors = validate_attributes_input(
+        input_data,
+        product_type.product_attributes.all(),
+        is_page_attributes=False,
+        variant_validation=False,
+    )
+
+    # then
+    assert len(errors) == 1
+    error = errors[0]
+    assert error.code == ProductErrorCode.REQUIRED.value
+    assert set(error.params["attributes"]) == {
+        graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
+    }
+
+
+def test_validate_numeric_attributes_input_for_product_more_than_one_value_given(
+    numeric_attribute, product_type
+):
+    # given
+    numeric_attribute.value_required = True
+    numeric_attribute.save(update_fields=["value_required"])
+
+    input_data = [
+        (
+            numeric_attribute,
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", numeric_attribute.pk),
+                values=["12", 1, 123],
+                file_url=None,
+                content_type=None,
+                references=[],
+            ),
+        ),
+    ]
+
+    # when
+    errors = validate_attributes_input(
+        input_data,
+        product_type.product_attributes.all(),
+        is_page_attributes=False,
+        variant_validation=False,
+    )
+
+    # then
+    assert len(errors) == 1
+    error = errors[0]
+    assert error.code == ProductErrorCode.INVALID.value
+    assert set(error.params["attributes"]) == {
+        graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
     }

@@ -293,7 +293,7 @@ def add_image_uris_to_data(
 
 AttributeData = namedtuple(
     "AttributeData",
-    ["slug", "file_url", "value", "input_type", "entity_type", "rich_text"],
+    ["slug", "file_url", "value", "input_type", "entity_type", "unit", "rich_text"],
 )
 
 
@@ -312,6 +312,7 @@ def handle_attribute_data(
         file_url=data.pop(attribute_fields["file_url"], None),
         value=data.pop(attribute_fields["value"], None),
         entity_type=data.pop(attribute_fields["entity_type"], None),
+        unit=data.pop(attribute_fields["unit"], None),
         rich_text=data.pop(attribute_fields["rich_text"], None),
     )
 
@@ -398,6 +399,10 @@ def add_attribute_info_to_data(
         elif input_type == AttributeInputType.REFERENCE and attribute_data.value:
             reference_id = attribute_data.value.split("_")[1]
             value = f"{attribute_data.entity_type}_{reference_id}"
+        elif input_type == AttributeInputType.NUMERIC:
+            value = f"{attribute_data.value}"
+            if attribute_data.unit:
+                value += f" {attribute_data.unit}"
         elif input_type == AttributeInputType.RICH_TEXT:
             value = clean_editor_js(attribute_data.rich_text, to_string=True)
         else:
