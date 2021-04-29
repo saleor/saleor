@@ -299,7 +299,7 @@ CATEGORY_CREATE_MUTATION = """
                         alt
                     }
                 }
-                productErrors {
+                errors {
                     field
                     code
                     message
@@ -343,7 +343,7 @@ def test_category_create_mutation(
     )
     content = get_graphql_content(response)
     data = content["data"]["categoryCreate"]
-    assert data["productErrors"] == []
+    assert data["errors"] == []
     assert data["category"]["name"] == category_name
     assert data["category"]["description"] == category_description
     assert not data["category"]["parent"]
@@ -363,7 +363,7 @@ def test_category_create_mutation(
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["categoryCreate"]
-    assert data["productErrors"] == []
+    assert data["errors"] == []
     assert data["category"]["parent"]["id"] == parent_id
 
 
@@ -387,7 +387,7 @@ def test_create_category_with_given_slug(
     )
     content = get_graphql_content(response)
     data = content["data"]["categoryCreate"]
-    assert not data["productErrors"]
+    assert not data["errors"]
     assert data["category"]["slug"] == expected_slug
 
 
@@ -402,7 +402,7 @@ def test_create_category_name_with_unicode(
     )
     content = get_graphql_content(response)
     data = content["data"]["categoryCreate"]
-    assert not data["productErrors"]
+    assert not data["errors"]
     assert data["category"]["name"] == name
     assert data["category"]["slug"] == "わたし-わ-にっぽん-です"
 
@@ -434,7 +434,7 @@ def test_category_create_mutation_without_background_image(
     )
     content = get_graphql_content(response)
     data = content["data"]["categoryCreate"]
-    assert data["productErrors"] == []
+    assert data["errors"] == []
     assert mock_create_thumbnails.call_count == 0
 
 
@@ -612,7 +612,7 @@ UPDATE_CATEGORY_SLUG_MUTATION = """
                 name
                 slug
             }
-            productErrors {
+            errors {
                 field
                 message
                 code
@@ -650,7 +650,7 @@ def test_update_category_slug(
     )
     content = get_graphql_content(response)
     data = content["data"]["categoryUpdate"]
-    errors = data["productErrors"]
+    errors = data["errors"]
     if not error_message:
         assert not errors
         assert data["category"]["slug"] == expected_slug
@@ -680,7 +680,7 @@ def test_update_category_slug_exists(
     )
     content = get_graphql_content(response)
     data = content["data"]["categoryUpdate"]
-    errors = data["productErrors"]
+    errors = data["errors"]
     assert errors
     assert errors[0]["field"] == "slug"
     assert errors[0]["code"] == ProductErrorCode.UNIQUE.name
@@ -720,7 +720,7 @@ def test_update_category_slug_and_name(
                     name
                     slug
                 }
-                productErrors {
+                errors {
                     field
                     message
                     code
@@ -743,7 +743,7 @@ def test_update_category_slug_and_name(
     content = get_graphql_content(response)
     category.refresh_from_db()
     data = content["data"]["categoryUpdate"]
-    errors = data["productErrors"]
+    errors = data["errors"]
     if not error_message:
         assert data["category"]["name"] == input_name == category.name
         assert data["category"]["slug"] == input_slug == category.slug

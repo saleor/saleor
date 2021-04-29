@@ -13,12 +13,15 @@ from ..channel import ChannelContext
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import BaseMutation, ModelMutation, registry
 from ..core.types.common import TranslationError
-from ..core.utils import from_global_id_strict_type
+from ..core.utils import from_global_id_or_error
 from ..product.types import Product, ProductVariant
 from ..shop.types import Shop
 
-# discount types need to be imported to get Voucher in the graphene registry
+# discount and menu types need to be imported to get
+# Voucher and Menu in the graphene registry
 from ..discount import types  # noqa # pylint: disable=unused-import, isort:skip
+
+from ..menu import types  # type: ignore # noqa # pylint: disable=unused-import, isort:skip
 
 
 class BaseTranslateMutation(ModelMutation):
@@ -55,6 +58,12 @@ class SeoTranslationInput(graphene.InputObjectType):
 
 class TranslationInput(NameTranslationInput, SeoTranslationInput):
     description = graphene.JSONString()
+
+
+class ShippingPriceTranslationInput(NameTranslationInput):
+    description = graphene.JSONString(
+        description="Translated shipping method description (JSON)."
+    )
 
 
 class CategoryTranslate(BaseTranslateMutation):
@@ -95,7 +104,7 @@ class ProductTranslate(BaseTranslateMutation):
                 {"id": ValidationError("This field is required", code="required")}
             )
 
-        product_pk = from_global_id_strict_type(data["id"], Product, field="id")
+        _type, product_pk = from_global_id_or_error(data["id"], only_type=Product)
         product = product_models.Product.objects.get(pk=product_pk)
         product.translations.update_or_create(
             language_code=data["language_code"], defaults=data["input"]
@@ -149,7 +158,9 @@ class ProductVariantTranslate(BaseTranslateMutation):
                 {"id": ValidationError("This field is required", code="required")}
             )
 
-        variant_pk = from_global_id_strict_type(data["id"], ProductVariant, field="id")
+        _type, variant_pk = from_global_id_or_error(
+            data["id"], only_type=ProductVariant
+        )
         variant = product_models.ProductVariant.objects.prefetched_for_webhook().get(
             pk=variant_pk
         )
@@ -247,7 +258,7 @@ class ShippingPriceTranslate(BaseTranslateMutation):
         language_code = graphene.Argument(
             LanguageCodeEnum, required=True, description="Translation language code."
         )
-        input = NameTranslationInput(required=True)
+        input = ShippingPriceTranslationInput(required=True)
 
     class Meta:
         description = "Creates/Updates translations for shipping method."

@@ -134,7 +134,7 @@ class AvataxPlugin(BasePlugin):
         discounts: Iterable[DiscountInfo],
     ):
         for line_info in lines:
-            if line_info.variant.product.charge_taxes:
+            if line_info.product.charge_taxes:
                 continue
             line_price = base_calculations.base_checkout_line_total(
                 line_info,
@@ -305,19 +305,50 @@ class AvataxPlugin(BasePlugin):
             return base_total
 
         taxes_data = get_checkout_tax_data(checkout_info, lines, discounts, self.config)
+        return self._calculate_line_total_price(
+            taxes_data, checkout_line_info.variant.sku, previous_value
+        )
+
+    def calculate_order_line_total(
+        self,
+        order: "Order",
+        order_line: "OrderLine",
+        variant: "ProductVariant",
+        product: "Product",
+        previous_value: TaxedMoney,
+    ) -> TaxedMoney:
+        if self._skip_plugin(previous_value):
+            return previous_value
+
+        if not product.charge_taxes:
+            return previous_value
+
+        if not _validate_order(order):
+            return zero_taxed_money(order.total.currency)
+
+        taxes_data = self._get_order_tax_data(order, previous_value)
+        return self._calculate_line_total_price(taxes_data, variant.sku, previous_value)
+
+    @staticmethod
+    def _calculate_line_total_price(
+        taxes_data: Dict[str, Any],
+        item_code: str,
+        base_value: TaxedMoney,
+    ):
         if not taxes_data or "error" in taxes_data:
-            return base_total
+            return base_value
 
         currency = taxes_data.get("currencyCode")
         for line in taxes_data.get("lines", []):
-            if line.get("itemCode") == checkout_line_info.variant.sku:
+            if line.get("itemCode") == item_code:
                 tax = Decimal(line.get("tax", 0.0))
-                line_net = Decimal(line["lineAmount"])
-                line_gross = Money(amount=line_net + tax, currency=currency)
-                line_net = Money(amount=line_net, currency=currency)
+                net = Decimal(line["lineAmount"])
+
+                line_gross = Money(amount=net + tax, currency=currency)
+                line_net = Money(amount=net, currency=currency)
                 return TaxedMoney(net=line_net, gross=line_gross)
 
-        return base_total
+        return base_value
 
     def calculate_checkout_line_unit_price(
         self,

@@ -164,7 +164,7 @@ def test_webhook_create_by_staff_without_permission(staff_api_client, app):
 WEBHOOK_DELETE_BY_APP = """
     mutation webhookDelete($id: ID!){
       webhookDelete(id: $id){
-        webhookErrors{
+        errors{
           field
           message
           code
@@ -208,7 +208,7 @@ def test_webhook_delete_by_app_and_missing_webhook(app_api_client, webhook):
 
     response = app_api_client.post_graphql(query, variables=variables)
     content = get_graphql_content(response)
-    errors = content["data"]["webhookDelete"]["webhookErrors"]
+    errors = content["data"]["webhookDelete"]["errors"]
     assert errors[0]["code"] == "GRAPHQL_ERROR"
 
 

@@ -37,7 +37,7 @@ def test_fulfillment_refund_products_order_lines(
                         }
                     }
                 }
-                orderErrors {
+                errors {
                     field
                     code
                     message
@@ -116,7 +116,7 @@ def test_fulfillment_return_products_order_lines(
                 id
                 status
             }
-            orderErrors {
+            errors {
                 field
                 code
                 message

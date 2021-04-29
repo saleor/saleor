@@ -2,6 +2,7 @@ from collections import defaultdict, namedtuple
 from typing import TYPE_CHECKING, Dict, List, Optional, Set, Union
 from urllib.parse import urljoin
 
+import graphene
 from django.conf import settings
 from django.db.models import Case, CharField
 from django.db.models import Value as V
@@ -77,6 +78,7 @@ def get_products_data(
             variant_pk, {}
         )
 
+        product_data["id"] = graphene.Node.to_global_id("Product", pk)
         data = {**product_data, **product_relations_data, **variant_relations_data}
 
         products_with_variants_data.append(data)
@@ -387,10 +389,13 @@ def add_attribute_info_to_data(
         header = f"{slug} ({attribute_owner})"
         input_type = attribute_data.input_type
         if input_type == AttributeInputType.FILE:
-            value = build_absolute_uri(
-                urljoin(settings.MEDIA_URL, attribute_data.file_url)
+            file_url = attribute_data.file_url
+            value = (
+                build_absolute_uri(urljoin(settings.MEDIA_URL, file_url))
+                if file_url
+                else ""
             )
-        elif input_type == AttributeInputType.REFERENCE:
+        elif input_type == AttributeInputType.REFERENCE and attribute_data.value:
             reference_id = attribute_data.value.split("_")[1]
             value = f"{attribute_data.entity_type}_{reference_id}"
         elif input_type == AttributeInputType.RICH_TEXT:

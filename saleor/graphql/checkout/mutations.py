@@ -46,7 +46,7 @@ from ..account.types import AddressInput
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.types.common import CheckoutError
-from ..core.utils import from_global_id_strict_type
+from ..core.utils import from_global_id_or_error
 from ..core.validators import validate_variants_available_in_channel
 from ..order.types import Order
 from ..product.types import ProductVariant
@@ -159,7 +159,7 @@ def validate_variants_available_for_purchase(variants_id: set, channel_id: int):
         channel_id=channel_id,
     )
     available_variants = ProductChannelListing.objects.filter(
-        Q(is_available_for_purchase)
+        is_available_for_purchase
     ).values_list("product__variants__id", flat=True)
     not_available_variants = variants_id.difference(set(available_variants))
     if not_available_variants:
@@ -548,14 +548,6 @@ class CheckoutCustomerAttach(BaseMutation):
 
     class Arguments:
         checkout_id = graphene.ID(required=True, description="ID of the checkout.")
-        customer_id = graphene.ID(
-            required=False,
-            description=(
-                "[Deprecated] The ID of the customer. To identify a customer you "
-                "should authenticate with JWT. This field will be removed after "
-                "2020-07-31."
-            ),
-        )
 
     class Meta:
         description = "Sets the customer as the owner of the checkout."
@@ -571,14 +563,6 @@ class CheckoutCustomerAttach(BaseMutation):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
-
-        # Check if provided customer_id matches with the authenticated user and raise
-        # error if it doesn't. This part can be removed when `customer_id` field is
-        # removed.
-        if customer_id:
-            current_user_id = graphene.Node.to_global_id("User", info.context.user.id)
-            if current_user_id != customer_id:
-                raise PermissionDenied()
 
         checkout.user = info.context.user
         checkout.save(update_fields=["user", "last_change"])
@@ -649,7 +633,9 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, shipping_address):
-        pk = from_global_id_strict_type(checkout_id, Checkout, field="checkout_id")
+        _type, pk = from_global_id_or_error(
+            checkout_id, only_type=Checkout, field="checkout_id"
+        )
 
         try:
             checkout = models.Checkout.objects.prefetch_related(
@@ -915,8 +901,8 @@ class CheckoutComplete(BaseMutation):
                     field="checkout_id",
                 )
             except ValidationError as e:
-                checkout_token = from_global_id_strict_type(
-                    checkout_id, Checkout, field="checkout_id"
+                _type, checkout_token = from_global_id_or_error(
+                    checkout_id, only_type=Checkout, field="checkout_id"
                 )
 
                 order = order_models.Order.objects.get_by_checkout_token(checkout_token)

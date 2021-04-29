@@ -199,7 +199,9 @@ class ProductVariantsByProductIdAndChannel(DataLoader):
     def get_variants_filter(self, products_ids, channel_slugs):
         return {
             "product_id__in": products_ids,
-            "channel_listings__channel__slug__in": channel_slugs,
+            "channel_listings__channel__slug__in": [
+                str(slug) for slug in channel_slugs
+            ],
         }
 
 
@@ -211,7 +213,9 @@ class AvailableProductVariantsByProductIdAndChannel(
     def get_variants_filter(self, products_ids, channel_slugs):
         return {
             "product_id__in": products_ids,
-            "channel_listings__channel__slug__in": channel_slugs,
+            "channel_listings__channel__slug__in": [
+                str(slug) for slug in channel_slugs
+            ],
             "channel_listings__price_amount__isnull": False,
         }
 
@@ -376,6 +380,19 @@ class ProductImageByIdLoader(DataLoader):
     def batch_load(self, keys):
         images = ProductMedia.objects.filter(type=ProductMediaTypes.IMAGE).in_bulk(keys)
         return [images.get(product_image_id) for product_image_id in keys]
+
+
+class ProductImageByProductIdLoader(DataLoader):
+    context_key = "product_image_by_product_id"
+
+    def batch_load(self, keys):
+        medias = ProductMedia.objects.filter(
+            type=ProductMediaTypes.IMAGE, product_id__in=keys
+        )
+        product_id_medias_map = defaultdict(list)
+        for media in medias:
+            product_id_medias_map[media.product_id].append(media)
+        return [product_id_medias_map.get(product_id, []) for product_id in keys]
 
 
 class MediaByProductVariantIdLoader(DataLoader):

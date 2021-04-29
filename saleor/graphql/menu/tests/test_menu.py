@@ -651,7 +651,7 @@ UPDATE_MENU_WITH_SLUG_MUTATION = """
                 name
                 slug
             }
-            menuErrors {
+            errors {
                 field
                 code
             }
@@ -668,7 +668,7 @@ def test_update_menu(staff_api_client, menu, permission_manage_menus):
                     name
                     slug
                 }
-                menuErrors {
+                errors {
                     field
                     code
                 }
@@ -713,7 +713,7 @@ def test_update_menu_with_slug_already_exists(
         UPDATE_MENU_WITH_SLUG_MUTATION, variables, permissions=[permission_manage_menus]
     )
     content = get_graphql_content(response)
-    error = content["data"]["menuUpdate"]["menuErrors"][0]
+    error = content["data"]["menuUpdate"]["errors"][0]
     assert error["field"] == "slug"
     assert error["code"] == MenuErrorCode.UNIQUE.name
 
@@ -1218,7 +1218,7 @@ def test_menu_cannot_pass_an_invalid_menu_item_node_type(
     assert json.loads(response.content) == {
         "data": {
             "menuItemMove": {
-                "errors": [{"field": "item", "message": "Must receive a MenuItem id"}],
+                "errors": [{"field": "item", "message": "Must receive a MenuItem id."}],
                 "menu": None,
             }
         }
