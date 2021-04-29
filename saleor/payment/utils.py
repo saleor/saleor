@@ -308,6 +308,8 @@ def gateway_postprocess(transaction, payment):
         payment.save(update_fields=changed_fields)
     transaction.already_processed = True
     transaction.save(update_fields=["already_processed"])
+    if order := payment.order:
+        order.update_total_paid()
 
 
 def fetch_customer_id(user: User, gateway: str):

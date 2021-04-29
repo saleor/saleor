@@ -27,7 +27,6 @@ from ...payment.model_helpers import (
     get_last_payment,
     get_subtotal,
     get_total_authorized,
-    get_total_captured,
 )
 from ...product import ProductMediaTypes
 from ...product.product_images import get_product_image_thumbnail
@@ -593,6 +592,7 @@ class Order(CountableDjangoObjectType):
     total = graphene.Field(
         TaxedMoney, description="Total amount of the order.", required=True
     )
+    total_paid = graphene.Field(Money, description="Total amount of money paid.")
     undiscounted_total = graphene.Field(
         TaxedMoney, description="Undiscounted total amount of the order.", required=True
     )
@@ -851,6 +851,10 @@ class Order(CountableDjangoObjectType):
         return root.total
 
     @staticmethod
+    def resolve_total_paid(root: models.Order, _info):
+        return root.total_paid
+
+    @staticmethod
     def resolve_undiscounted_total(root: models.Order, _info):
         return root.undiscounted_total
 
@@ -867,14 +871,7 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_total_captured(root: models.Order, info):
-        def _resolve_total_captured(payments):
-            return get_total_captured(payments, root.currency)
-
-        return (
-            PaymentsByOrderIdLoader(info.context)
-            .load(root.id)
-            .then(_resolve_total_captured)
-        )
+        return root.total_paid
 
     @staticmethod
     def resolve_total_balance(root: models.Order, _info):

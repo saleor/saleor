@@ -324,6 +324,7 @@ def mark_order_as_paid(
     )
     manager.order_fully_paid(order)
     manager.order_updated(order)
+    order.update_total_paid()
 
 
 def clean_mark_order_as_paid(order: "Order"):

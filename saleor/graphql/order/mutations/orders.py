@@ -141,7 +141,7 @@ def clean_refund_payment(payment):
 
 def try_payment_action(order, user, payment, func, *args, **kwargs):
     try:
-        return func(*args, **kwargs)
+        result = func(*args, **kwargs)
     except (PaymentError, ValueError) as e:
         message = str(e)
         events.payment_failed_event(
@@ -150,6 +150,9 @@ def try_payment_action(order, user, payment, func, *args, **kwargs):
         raise ValidationError(
             {"payment": ValidationError(message, code=OrderErrorCode.PAYMENT_ERROR)}
         )
+    else:
+        order.update_total_paid()
+        return result
 
 
 class OrderUpdateInput(graphene.InputObjectType):
@@ -440,6 +443,7 @@ class OrderMarkAsPaid(BaseMutation):
         mark_order_as_paid(
             order, info.context.user, info.context.plugins, transaction_reference
         )
+        order.save()
         return OrderMarkAsPaid(order=order)
 
 
