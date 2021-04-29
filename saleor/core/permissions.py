@@ -77,6 +77,9 @@ class StorePermissions(BasePermissionEnum):
 class PostPermissions(BasePermissionEnum):
     MANAGE_POSTS = "post.manage_posts"
 
+class SocialPermissions(BasePermissionEnum):
+    MANAGE_SOCIALS = "social.manage_socials"
+
 PERMISSIONS_ENUMS = [
     AccountPermissions,
     AppPermission,
@@ -95,6 +98,7 @@ PERMISSIONS_ENUMS = [
     CheckoutPermissions,
     StorePermissions,
     PostPermissions,
+    SocialPermissions,
 ]
 
 

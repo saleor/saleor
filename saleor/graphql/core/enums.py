@@ -27,6 +27,7 @@ from ...wishlist import error_codes as wishlist_error_codes
 from ..shop import error_codes as shop_error_codes
 from ...store import error_codes as store_error_codes
 from ...post import error_codes as post_error_codes
+from ...social import error_codes as social_error_codes
 from .utils import str_to_enum
 
 # FIXME CoreTaxRateType should be removed after we will drop old api fields dedicated
@@ -124,3 +125,4 @@ WishlistErrorCode = graphene.Enum.from_enum(wishlist_error_codes.WishlistErrorCo
 TranslationErrorCode = graphene.Enum.from_enum(core_error_codes.TranslationErrorCode)
 StoreErrorCode = graphene.Enum.from_enum(store_error_codes.StoreErrorCode)
 PostErrorCode = graphene.Enum.from_enum(post_error_codes.PostErrorCode)
+SocialErrorCode= graphene.Enum.from_enum(social_error_codes.SocialErrorCode)

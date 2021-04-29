@@ -254,6 +254,7 @@ INSTALLED_APPS = [
     "saleor.app",
     "saleor.store",
     "saleor.post",
+    "saleor.social",
     # External apps
     "versatileimagefield",
     "django_measurement",
