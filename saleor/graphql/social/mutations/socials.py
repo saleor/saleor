@@ -1,38 +1,20 @@
-from collections import defaultdict
-from datetime import date
-
 import graphene
-from django.core.exceptions import ValidationError
-from django.db import transaction
 
-from ....attribute import AttributeType
 from ....social import models
-from ...attribute.utils import AttributeAssignmentMixin
-from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
+from ...core.mutations import ModelMutation
 from ...core.types.common import SocialError
-from ...core.utils import clean_seo_fields, validate_slug_and_generate_if_needed
-from ...core.types import SeoInput, Upload
-from ...utils.validators import check_for_duplicates
 from ....core.permissions import SocialPermissions
-from ....core.exceptions import PermissionDenied
-from ..types import Social
-from ....social.error_codes import SocialErrorCode
-from ....product import ProductMediaTypes
-from ...channel import ChannelContext
-from ....product.thumbnails import (
-    create_store_background_image_thumbnails,
-)
-from ...core.utils import (
-    clean_seo_fields,
-    from_global_id_strict_type,
-    get_duplicated_values,
-    validate_image_file,
-)
+from ...store.types import Store
 
 class SocialInput(graphene.InputObjectType):
     follow = graphene.Boolean(description="follow/unfollow action.")
+    store = graphene.ID(
+        required=True, description="ID of a following store.", name="store"
+    )    
 
 class SocialCreate(ModelMutation):
+    store = graphene.Field(Store)
+
     class Arguments:
         input = SocialInput(
             required=True, description="Fields required to follow/unfollow."
