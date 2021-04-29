@@ -10,11 +10,11 @@ from ....attribute import AttributeType
 from ....core.permissions import PagePermissions, PageTypePermissions
 from ....page import models
 from ....page.error_codes import PageErrorCode
+from ...attribute.types import AttributeValueInput
 from ...attribute.utils import AttributeAssignmentMixin
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types.common import PageError, SeoInput
 from ...core.utils import clean_seo_fields, validate_slug_and_generate_if_needed
-from ...product.mutations.products import AttributeValueInput
 from ...utils.validators import check_for_duplicates
 
 if TYPE_CHECKING:

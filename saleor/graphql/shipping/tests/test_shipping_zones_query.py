@@ -2,7 +2,7 @@ import graphene
 import pytest
 from measurement.measures import Weight
 
-from ....core.weight import WeightUnits
+from ....core.units import WeightUnits
 from ...shipping.resolvers import resolve_price_range
 from ...tests.utils import get_graphql_content
 
@@ -94,7 +94,7 @@ def test_shipping_zone_query_weights_returned_in_default_unit(
     shipping_method.maximum_order_weight = Weight(kg=10)
     shipping_method.save(update_fields=["minimum_order_weight", "maximum_order_weight"])
 
-    site_settings.default_weight_unit = WeightUnits.GRAM
+    site_settings.default_weight_unit = WeightUnits.G
     site_settings.save(update_fields=["default_weight_unit"])
 
     query = SHIPPING_ZONE_QUERY
@@ -120,12 +120,12 @@ def test_shipping_zone_query_weights_returned_in_default_unit(
     assert shipping_data["shippingMethods"][0]["minimumOrderWeight"]["value"] == 1000
     assert (
         shipping_data["shippingMethods"][0]["minimumOrderWeight"]["unit"]
-        == WeightUnits.GRAM.upper()
+        == WeightUnits.G.upper()
     )
     assert shipping_data["shippingMethods"][0]["maximumOrderWeight"]["value"] == 10000
     assert (
         shipping_data["shippingMethods"][0]["maximumOrderWeight"]["unit"]
-        == WeightUnits.GRAM.upper()
+        == WeightUnits.G.upper()
     )
 
 
