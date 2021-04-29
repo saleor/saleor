@@ -46,6 +46,9 @@ class PageInput(graphene.InputObjectType):
         description="Publication date. ISO 8601 standard."
     )
     seo = SeoInput(description="Search engine optimization fields.")
+    store = graphene.ID(
+        description="ID of the store that post belongs to.", required=True
+    )
 
 
 class PageCreateInput(PageInput):
