@@ -7,7 +7,7 @@ from prices import Money, TaxedMoney
 from ....core.prices import quantize_price
 from ....order.error_codes import OrderErrorCode
 from ....order.models import FulfillmentStatus
-from ....payment import ChargeStatus
+from ....payment import ChargeStatus, PaymentError
 from ....warehouse.models import Stock
 from ...tests.utils import get_graphql_content
 
@@ -83,6 +83,40 @@ def test_fulfillment_refund_products_amount_and_shipping_costs(
     mocked_refund.assert_called_with(
         payment_dummy, ANY, quantize_price(amount_to_refund, fulfilled_order.currency)
     )
+
+
+@patch("saleor.order.actions.gateway.refund")
+def test_fulfillment_refund_products_refund_raising_payment_error(
+    mocked_refund,
+    staff_api_client,
+    permission_manage_orders,
+    fulfilled_order,
+    payment_dummy,
+):
+    # given
+    mocked_refund.side_effect = PaymentError("Error")
+
+    payment_dummy.captured_amount = payment_dummy.total
+    payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_dummy.save()
+    fulfilled_order.payments.add(payment_dummy)
+    order_id = graphene.Node.to_global_id("Order", fulfilled_order.pk)
+    amount_to_refund = Decimal("11.00")
+    variables = {
+        "order": order_id,
+        "input": {"amountToRefund": amount_to_refund, "includeShippingCosts": True},
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_FULFILL_REFUND_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfillmentRefundProducts"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == OrderErrorCode.CANNOT_REFUND.name
 
 
 @patch("saleor.order.actions.gateway.refund")
