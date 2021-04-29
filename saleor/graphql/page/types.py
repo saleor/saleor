@@ -23,8 +23,8 @@ from ..store.types import Store
 @key(fields="id")
 class PageMedia(CountableDjangoObjectType):
     class Meta:
-        description = "Represents a product media."
-        fields = ["alt", "id", "sort_order", "type"]
+        description = "Represents a page media."
+        fields = ["alt", "id", "image", "sort_order", "type"]
         interfaces = [graphene.relay.Node]
         model = models.PageMedia
 
