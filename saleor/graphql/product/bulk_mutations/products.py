@@ -99,6 +99,7 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
         error_type_field = "product_errors"
 
     @classmethod
+    @transaction.atomic
     def perform_mutation(cls, _root, info, ids, **data):
         _, pks = resolve_global_ids_to_primary_keys(ids, Product)
         product_to_variant = list(
@@ -114,6 +115,7 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
         ).values("pk", "order_id")
         line_pks = {line["pk"] for line in lines_id_and_orders_id}
         orders_id = {line["order_id"] for line in lines_id_and_orders_id}
+
         response = super().perform_mutation(
             _root,
             info,
@@ -531,7 +533,6 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
                 "variant_media",
             )
         )
-
         response = super().perform_mutation(_root, info, ids, **data)
 
         transaction.on_commit(

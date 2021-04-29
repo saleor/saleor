@@ -40,7 +40,7 @@ def test_product_variant_delete_updates_discounted_price(
     assert data["errors"] == []
 
     mock_update_product_discounted_price_task.delay.assert_called_once_with(product.pk)
-    mocked_recalculate_orders_task.assert_not_called
+    mocked_recalculate_orders_task.assert_not_called()
 
 
 @patch("saleor.product.utils.update_products_discounted_prices_task")

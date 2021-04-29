@@ -244,7 +244,7 @@ def test_checkout_complete(
     order_confirmed_mock.assert_called_once_with(order)
 
 
-def test_checkout_complete_with_unavailable_variant(
+def test_checkout_complete_with_variant_without_price(
     site_settings,
     user_api_client,
     checkout_with_item,
