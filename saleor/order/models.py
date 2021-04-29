@@ -62,11 +62,12 @@ class OrderQueryset(models.QuerySet):
         """
         statuses = {OrderStatus.UNFULFILLED, OrderStatus.PARTIALLY_FULFILLED}
         payments = Payment.objects.filter(is_active=True).values("id")
-        qs = self.annotate(
-            matching=Exists(payments.filter(order_id=OuterRef("id")))
-        ).filter(matching=True)
-        qs = qs.annotate(amount_paid=Sum("payments__captured_amount"))
-        return qs.filter(status__in=statuses, total_gross_amount__lte=F("amount_paid"))
+        qs = self.annotate(amount_paid=Sum("payments__captured_amount"))
+        return qs.filter(
+            Exists(payments.filter(order_id=OuterRef("id"))),
+            status__in=statuses,
+            total_gross_amount__lte=F("amount_paid"),
+        )
 
     def ready_to_capture(self):
         """Return orders with payments to capture.
@@ -78,10 +79,7 @@ class OrderQueryset(models.QuerySet):
         payments = Payment.objects.filter(
             is_active=True, charge_status=ChargeStatus.NOT_CHARGED
         ).values("id")
-        qs = self.annotate(
-            matching=Exists(payments.filter(order_id=OuterRef("id")))
-        ).filter(matching=True)
-
+        qs = self.filter(Exists(payments.filter(order_id=OuterRef("id"))))
         return qs.exclude(status={OrderStatus.DRAFT, OrderStatus.CANCELED})
 
     def ready_to_confirm(self):
