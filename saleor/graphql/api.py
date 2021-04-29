@@ -24,6 +24,7 @@ from .warehouse.schema import StockQueries, WarehouseMutations, WarehouseQueries
 from .webhook.schema import WebhookMutations, WebhookQueries
 from .store.schema import StoreQueries, StoreMutations
 from .post.schema import PostQueries, PostMutations
+from .social.schema import SocialQueries, SocialMutations
 
 
 class Query(
@@ -50,6 +51,7 @@ class Query(
     WebhookQueries,
     StoreQueries,
     PostQueries,
+    SocialQueries,
 ):
     pass
 
@@ -78,6 +80,7 @@ class Mutation(
     WebhookMutations,
     StoreMutations,
     PostMutations,
+    SocialMutations,
 ):
     pass
 

@@ -38,6 +38,7 @@ from ..enums import (
     WishlistErrorCode,
     StoreErrorCode,
     PostErrorCode,
+    SocialErrorCode,
 )
 from .money import VAT
 
@@ -279,7 +280,10 @@ class StoreError(Error):
     code = StoreErrorCode(description="The error code.", required=True)
 
 class PostError(Error):
-    code = PostErrorCode(description="The error code.", required=True)    
+    code = PostErrorCode(description="The error code.", required=True)
+
+class SocialError(Error):
+    code = SocialErrorCode(description="The error code.", required=True)
 
 class PaymentError(Error):
     code = PaymentErrorCode(description="The error code.", required=True)
