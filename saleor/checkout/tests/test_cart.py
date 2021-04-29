@@ -7,7 +7,7 @@ from ...plugins.manager import get_plugins_manager
 from ...product.models import Category
 from .. import calculations, utils
 from ..models import Checkout
-from ..utils import add_variant_to_checkout
+from ..utils import add_variant_to_checkout, calculate_checkout_quantity
 
 
 @pytest.fixture()
@@ -35,11 +35,12 @@ def test_adding_same_variant(checkout, product):
     checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
     add_variant_to_checkout(checkout_info, variant, 1)
     add_variant_to_checkout(checkout_info, variant, 2)
+    lines = fetch_checkout_lines(checkout)
+    checkout_quantity = calculate_checkout_quantity(lines)
     assert checkout.lines.count() == 1
-    assert checkout.quantity == 3
+    assert checkout_quantity == 3
     subtotal = TaxedMoney(Money("30.00", "USD"), Money("30.00", "USD"))
     manager = get_plugins_manager()
-    lines = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     manager = get_plugins_manager()
     assert (
@@ -58,8 +59,9 @@ def test_replacing_same_variant(checkout, product):
     checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
     add_variant_to_checkout(checkout_info, variant, 1, replace=True)
     add_variant_to_checkout(checkout_info, variant, 2, replace=True)
+    lines = fetch_checkout_lines(checkout)
     assert checkout.lines.count() == 1
-    assert checkout.quantity == 2
+    assert calculate_checkout_quantity(lines) == 2
 
 
 def test_adding_invalid_quantity(checkout, product):
@@ -241,14 +243,6 @@ def test_get_prices_of_discounted_specific_product_all_products(
     ]
 
     assert prices == excepted_value
-
-
-def test_checkout_repr():
-    checkout = Checkout()
-    assert repr(checkout) == "Checkout(quantity=0)"
-
-    checkout.quantity = 1
-    assert repr(checkout) == "Checkout(quantity=1)"
 
 
 def test_checkout_line_repr(product, checkout_with_single_item):
