@@ -9,8 +9,8 @@ from django.core.validators import MaxLengthValidator, RegexValidator
 from django.db import models
 
 from ..core.permissions import SitePermissions
+from ..core.units import WeightUnits
 from ..core.utils.translations import TranslationProxy
-from ..core.weight import WeightUnits
 from .error_codes import SiteErrorCode
 from .patch_sites import patch_contrib_sites
 
@@ -44,7 +44,9 @@ class SiteSettings(models.Model):
     charge_taxes_on_shipping = models.BooleanField(default=True)
     track_inventory_by_default = models.BooleanField(default=True)
     default_weight_unit = models.CharField(
-        max_length=10, choices=WeightUnits.CHOICES, default=WeightUnits.KILOGRAM
+        max_length=30,
+        choices=WeightUnits.CHOICES,  # type: ignore
+        default=WeightUnits.KG,  # type: ignore
     )
     automatic_fulfillment_digital_products = models.BooleanField(default=False)
     default_digital_max_downloads = models.IntegerField(blank=True, null=True)

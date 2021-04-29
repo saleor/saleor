@@ -81,9 +81,7 @@ def test_get_products_data(product, product_with_image, collection, image, chann
                 else product.collections.first().slug
             ),
             "product_weight": (
-                "{} g".format(int(product.weight.value * 1000))
-                if product.weight
-                else ""
+                "{} g".format(int(product.weight.value)) if product.weight else ""
             ),
             "media__image": (
                 ""
@@ -108,9 +106,7 @@ def test_get_products_data(product, product_with_image, collection, image, chann
                     else "http://mirumee.com{}".format(variant.media.first().image.url)
                 ),
                 "variant_weight": (
-                    "{} g".foramt(int(variant.weight.value * 1000))
-                    if variant.weight
-                    else ""
+                    "{} g".foramt(int(variant.weight.value)) if variant.weight else ""
                 ),
             }
             data.update(product_data)
@@ -239,6 +235,7 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
     product,
     product_type_page_reference_attribute,
     product_type_product_reference_attribute,
+    numeric_attribute,
     product_with_image,
     product_with_variant_with_two_attributes,
     rich_text_attribute,
@@ -251,21 +248,15 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
         file_attribute,
         product_type_page_reference_attribute,
         product_type_product_reference_attribute,
+        numeric_attribute,
         rich_text_attribute,
     )
     product.product_type.product_attributes.add(
         file_attribute,
         product_type_page_reference_attribute,
         product_type_product_reference_attribute,
+        numeric_attribute,
         rich_text_attribute,
-    )
-
-    # add file attribute
-    associate_attribute_values_to_instance(
-        variant_with_many_stocks, file_attribute, file_attribute.values.first()
-    )
-    associate_attribute_values_to_instance(
-        product, file_attribute, file_attribute.values.first()
     )
 
     # add rich text attribute
@@ -320,6 +311,15 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
     associate_attribute_values_to_instance(
         product, product_type_product_reference_attribute, product_product_ref_value
     )
+
+    # add numeric attribute
+    numeric_value_1 = numeric_attribute.values.first()
+    numeric_value_2 = numeric_attribute.values.last()
+
+    associate_attribute_values_to_instance(
+        variant_with_many_stocks, numeric_attribute, numeric_value_1
+    )
+    associate_attribute_values_to_instance(product, numeric_attribute, numeric_value_2)
 
     # create assigned product without values
     associate_attribute_values_to_instance(
