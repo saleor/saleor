@@ -8,7 +8,7 @@ from ..core.utils.translations import TranslationProxy
 from ..seo.models import SeoModel, SeoModelTranslation
 from versatileimagefield.fields import PPOIField, VersatileImageField
 from ..product import ProductMediaTypes
-
+from ..store.models import Store
 
 class Page(ModelWithMetadata, SeoModel, PublishableModel):
     slug = models.SlugField(unique=True, max_length=255)
@@ -18,6 +18,14 @@ class Page(ModelWithMetadata, SeoModel, PublishableModel):
     )
     content = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
     created = models.DateTimeField(auto_now_add=True)
+
+    store = models.ForeignKey(
+        Store,
+        related_name="pages",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
 
     translated = TranslationProxy()
 
