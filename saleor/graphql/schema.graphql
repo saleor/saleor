@@ -382,6 +382,15 @@ type AppUpdate {
   app: App
 }
 
+enum AreaUnitsEnum {
+  SQ_CM
+  SQ_M
+  SQ_KM
+  SQ_FT
+  SQ_YD
+  SQ_INCH
+}
+
 type AssignNavigation {
   menu: Menu
   menuErrors: [MenuError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
@@ -399,6 +408,7 @@ type Attribute implements Node & ObjectWithMetadata {
   name: String
   slug: String
   type: AttributeTypeEnum
+  unit: MeasurementUnitsEnum
   values: [AttributeValue]
   valueRequired: Boolean!
   visibleInStorefront: Boolean!
@@ -438,6 +448,7 @@ input AttributeCreateInput {
   name: String!
   slug: String
   type: AttributeTypeEnum!
+  unit: MeasurementUnitsEnum
   values: [AttributeValueCreateInput]
   valueRequired: Boolean
   isVariantOnly: Boolean
@@ -493,6 +504,7 @@ input AttributeFilterInput {
 input AttributeInput {
   slug: String!
   values: [String]
+  valuesRange: IntRangeInput
 }
 
 enum AttributeInputTypeEnum {
@@ -500,6 +512,7 @@ enum AttributeInputTypeEnum {
   MULTISELECT
   FILE
   REFERENCE
+  NUMERIC
   RICH_TEXT
 }
 
@@ -559,6 +572,7 @@ type AttributeUpdate {
 input AttributeUpdateInput {
   name: String
   slug: String
+  unit: MeasurementUnitsEnum
   removeValues: [ID]
   addValues: [AttributeValueCreateInput]
   valueRequired: Boolean
@@ -1781,6 +1795,15 @@ enum DiscountValueTypeEnum {
   PERCENTAGE
 }
 
+enum DistanceUnitsEnum {
+  CM
+  M
+  KM
+  FT
+  YD
+  INCH
+}
+
 type Domain {
   host: String!
   sslEnabled: Boolean!
@@ -2365,6 +2388,39 @@ type Manifest {
 type Margin {
   start: Int
   stop: Int
+}
+
+enum MeasurementUnitsEnum {
+  CM
+  M
+  KM
+  FT
+  YD
+  INCH
+  SQ_CM
+  SQ_M
+  SQ_KM
+  SQ_FT
+  SQ_YD
+  SQ_INCH
+  CUBIC_MILLIMETER
+  CUBIC_CENTIMETER
+  CUBIC_DECIMETER
+  CUBIC_METER
+  LITER
+  CUBIC_FOOT
+  CUBIC_INCH
+  CUBIC_YARD
+  QT
+  PINT
+  FL_OZ
+  ACRE_IN
+  ACRE_FT
+  G
+  LB
+  OZ
+  KG
+  TONNE
 }
 
 type Menu implements Node & ObjectWithMetadata {
@@ -5637,6 +5693,22 @@ type VerifyToken {
   errors: [AccountError!]!
 }
 
+enum VolumeUnitsEnum {
+  CUBIC_MILLIMETER
+  CUBIC_CENTIMETER
+  CUBIC_DECIMETER
+  CUBIC_METER
+  LITER
+  CUBIC_FOOT
+  CUBIC_INCH
+  CUBIC_YARD
+  QT
+  PINT
+  FL_OZ
+  ACRE_IN
+  ACRE_FT
+}
+
 type Voucher implements Node {
   id: ID!
   name: String
@@ -6043,10 +6115,11 @@ type Weight {
 scalar WeightScalar
 
 enum WeightUnitsEnum {
-  KG
+  G
   LB
   OZ
-  G
+  KG
+  TONNE
 }
 
 scalar _Any

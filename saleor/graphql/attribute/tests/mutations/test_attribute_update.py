@@ -3,6 +3,7 @@ import pytest
 
 from .....attribute.error_codes import AttributeErrorCode
 from .....attribute.models import Attribute
+from ....core.enums import MeasurementUnitsEnum
 from ....tests.utils import get_graphql_content
 
 UPDATE_ATTRIBUTE_MUTATION = """
@@ -20,6 +21,7 @@ UPDATE_ATTRIBUTE_MUTATION = """
         attribute {
             name
             slug
+            unit
             values {
                 name
                 slug
@@ -159,6 +161,39 @@ def test_update_attribute_with_file_input_type(
     data = content["data"]["attributeUpdate"]
     assert not data["errors"]
     assert data["attribute"]["name"] == name == attribute.name
+
+
+def test_update_attribute_with_numeric_input_type(
+    staff_api_client,
+    numeric_attribute,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    query = UPDATE_ATTRIBUTE_MUTATION
+    attribute = numeric_attribute
+    node_id = graphene.Node.to_global_id("Attribute", attribute.id)
+
+    name = "Weight"
+    slug = "weight"
+    unit = MeasurementUnitsEnum.G.name
+    variables = {
+        "id": node_id,
+        "input": {"name": name, "slug": slug, "unit": unit},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    attribute.refresh_from_db()
+    data = content["data"]["attributeUpdate"]
+    assert not data["errors"]
+    assert data["attribute"]["name"] == name
+    assert data["attribute"]["slug"] == slug
+    assert data["attribute"]["unit"] == unit
 
 
 def test_update_attribute_with_file_input_type_and_values(
