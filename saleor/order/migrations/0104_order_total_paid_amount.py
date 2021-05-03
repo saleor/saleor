@@ -6,7 +6,6 @@ from django.db.models.functions import Coalesce
 
 def update_orders_total_paid_in_db(apps, schema_editor):
     Order = apps.get_model("order", "Order")
-    # Order.objects.update(total_paid_amount=models.Sum("payments__captured_amount"))
     Order.objects.update(
         total_paid_amount=models.Subquery(
             Order.objects.filter(id=models.OuterRef("id"))

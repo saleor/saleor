@@ -2974,7 +2974,6 @@ type Order implements Node & ObjectWithMetadata {
   paymentStatusDisplay: String!
   payments: [Payment]
   total: TaxedMoney!
-  totalPaid: Money
   undiscountedTotal: TaxedMoney!
   subtotal: TaxedMoney!
   statusDisplay: String

@@ -592,7 +592,6 @@ class Order(CountableDjangoObjectType):
     total = graphene.Field(
         TaxedMoney, description="Total amount of the order.", required=True
     )
-    total_paid = graphene.Field(Money, description="Total amount of money paid.")
     undiscounted_total = graphene.Field(
         TaxedMoney, description="Undiscounted total amount of the order.", required=True
     )
@@ -849,10 +848,6 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     def resolve_total(root: models.Order, _info):
         return root.total
-
-    @staticmethod
-    def resolve_total_paid(root: models.Order, _info):
-        return root.total_paid
 
     @staticmethod
     def resolve_undiscounted_total(root: models.Order, _info):
