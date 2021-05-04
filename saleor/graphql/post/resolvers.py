@@ -13,7 +13,7 @@ def resolve_post(info, global_page_id=None, slug=None):
         post = models.Post.objects.visible_to_user(user).filter(slug=slug).first()
     else:
         _type, post_pk = graphene.Node.from_global_id(global_page_id)
-        post = models.Post.objects.visible_to_user(user).filter(user=user).first()
+        post = models.Post.objects.visible_to_user(user).filter(pk=post_pk).first()
     return post
 
 

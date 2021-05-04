@@ -11,22 +11,18 @@ from .resolvers import (
 )
 
 class SocialQueries(graphene.ObjectType):
-    social = graphene.Field(
+    social = FilterInputConnectionField(
         Social,
-        id=graphene.Argument(
-            graphene.ID,
-            description="ID of the post.",
-        ),
-        description="Look up a post by ID.",
+        description="List of the follow by user.",
     )
 
     socials = FilterInputConnectionField(
         Social,
-        description="List of the post.",
-    )    
+        description="List all of the follow.",
+    )
 
-    def resolve_social(self, info, slug=None):
-        return resolve_social(info, slug)
+    def resolve_social(self, info, id=None, slug=None):
+        return resolve_social(info, id, slug)
 
     def resolve_socials(self, info, **kwargs):
         return resolve_socials(info, **kwargs)
