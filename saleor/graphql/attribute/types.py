@@ -5,7 +5,9 @@ import graphene
 from ...attribute import AttributeInputType, models
 from ...core.tracing import traced_resolver
 from ..core.connection import CountableDjangoObjectType
+from ..core.enums import MeasurementUnitsEnum
 from ..core.types import File
+from ..core.types.common import IntRangeInput
 from ..decorators import (
     check_attribute_required_permissions,
     check_attribute_value_required_permissions,
@@ -84,6 +86,7 @@ class Attribute(CountableDjangoObjectType):
     name = graphene.String(description=AttributeDescriptions.NAME)
     slug = graphene.String(description=AttributeDescriptions.SLUG)
     type = AttributeTypeEnum(description=AttributeDescriptions.TYPE)
+    unit = MeasurementUnitsEnum(description=AttributeDescriptions.UNIT)
 
     values = graphene.List(AttributeValue, description=AttributeDescriptions.VALUES)
 
@@ -171,13 +174,36 @@ class SelectedAttribute(graphene.ObjectType):
 
 class AttributeInput(graphene.InputObjectType):
     slug = graphene.String(required=True, description=AttributeDescriptions.SLUG)
-    value = graphene.String(
-        required=False,
-        description=(
-            "[Deprecated] Internal representation of a value (unique per attribute). "
-            "This field will be removed after 2020-07-31."
-        ),
-    )  # deprecated
     values = graphene.List(
         graphene.String, required=False, description=AttributeValueDescriptions.SLUG
+    )
+    values_range = graphene.Field(
+        IntRangeInput,
+        required=False,
+        description=AttributeValueDescriptions.VALUES_RANGE,
+    )
+
+
+class AttributeValueInput(graphene.InputObjectType):
+    id = graphene.ID(description="ID of the selected attribute.")
+    values = graphene.List(
+        graphene.String,
+        required=False,
+        description=(
+            "The value or slug of an attribute to resolve. "
+            "If the passed value is non-existent, it will be created."
+        ),
+    )
+    file = graphene.String(
+        required=False,
+        description="URL of the file attribute. Every time, a new value is created.",
+    )
+    content_type = graphene.String(required=False, description="File content type.")
+    references = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of entity IDs that will be used as references.",
+        required=False,
+    )
+    rich_text = graphene.JSONString(
+        required=False, description="Text content in JSON format."
     )

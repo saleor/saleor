@@ -41,6 +41,7 @@ from ..checkout.models import Checkout
 from ..checkout.utils import add_variant_to_checkout
 from ..core import JobStatus
 from ..core.payments import PaymentInterface
+from ..core.units import MeasurementUnits
 from ..core.utils.editorjs import clean_editor_js
 from ..csv.events import ExportEvents
 from ..csv.models import ExportEvent, ExportFile
@@ -861,6 +862,23 @@ def weight_attribute(db):
     AttributeValue.objects.create(
         attribute=attribute, name="Poliester", slug="poliester"
     )
+    return attribute
+
+
+@pytest.fixture
+def numeric_attribute(db):
+    attribute = Attribute.objects.create(
+        slug="length",
+        name="Length",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.NUMERIC,
+        unit=MeasurementUnits.CM,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
+    )
+    AttributeValue.objects.create(attribute=attribute, name="10", slug="10")
+    AttributeValue.objects.create(attribute=attribute, name="15", slug="15")
     return attribute
 
 
@@ -1717,7 +1735,6 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
         Product.objects.bulk_create(
             [
                 Product(
-                    pk=1486,
                     name="Test product 1",
                     slug="test-product-a",
                     description_plaintext="big blue product",
@@ -1725,7 +1742,6 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
                     product_type=product_type,
                 ),
                 Product(
-                    pk=1487,
                     name="Test product 2",
                     slug="test-product-b",
                     description_plaintext="big orange product",
@@ -1733,7 +1749,6 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
                     product_type=product_type,
                 ),
                 Product(
-                    pk=1489,
                     name="Test product 3",
                     slug="test-product-c",
                     description_plaintext="small red",
@@ -1836,21 +1851,18 @@ def product_list_with_variants_many_channel(
         Product.objects.bulk_create(
             [
                 Product(
-                    pk=1486,
                     name="Test product 1",
                     slug="test-product-a",
                     category=category,
                     product_type=product_type,
                 ),
                 Product(
-                    pk=1487,
                     name="Test product 2",
                     slug="test-product-b",
                     category=category,
                     product_type=product_type,
                 ),
                 Product(
-                    pk=1489,
                     name="Test product 3",
                     slug="test-product-c",
                     category=category,

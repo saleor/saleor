@@ -23,7 +23,7 @@ def test_product_variants_stocks_create(
                     }
                 }
             }
-            bulkStockErrors{
+            errors{
                 code
                 field
                 message
@@ -58,7 +58,7 @@ def test_product_variants_stocks_create(
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantStocksCreate"]
-    assert not data["bulkStockErrors"]
+    assert not data["errors"]
     assert (
         len(data["productVariant"]["stocks"])
         == variant.stocks.count()
@@ -84,7 +84,7 @@ def test_product_variants_stocks_update(
                         }
                     }
                 }
-                bulkStockErrors{
+                errors{
                     code
                     field
                     message
@@ -122,7 +122,7 @@ def test_product_variants_stocks_update(
     content = get_graphql_content(response)
     data = content["data"]["productVariantStocksUpdate"]
 
-    assert not data["bulkStockErrors"]
+    assert not data["errors"]
     assert len(data["productVariant"]["stocks"]) == len(stocks)
     assert variant.stocks.count() == stocks_count + 1
 

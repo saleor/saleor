@@ -39,11 +39,12 @@ from ..channel.models import Channel
 from ..core.db.fields import SanitizedJSONField
 from ..core.models import ModelWithMetadata, PublishableModel, SortableModel
 from ..core.permissions import ProductPermissions, ProductTypePermissions
+from ..core.units import WeightUnits
 from ..core.utils import build_absolute_uri
 from ..core.utils.draftjs import json_content_to_raw_text
 from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.translations import TranslationProxy
-from ..core.weight import WeightUnits, zero_weight
+from ..core.weight import zero_weight
 from ..discount import DiscountInfo
 from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel, SeoModelTranslation
@@ -109,7 +110,9 @@ class ProductType(ModelWithMetadata):
     is_shipping_required = models.BooleanField(default=True)
     is_digital = models.BooleanField(default=False)
     weight = MeasurementField(
-        measurement=Weight, unit_choices=WeightUnits.CHOICES, default=zero_weight
+        measurement=Weight,
+        unit_choices=WeightUnits.CHOICES,  # type: ignore
+        default=zero_weight,
     )
 
     class Meta(ModelWithMetadata.Meta):
@@ -338,7 +341,10 @@ class Product(SeoModel, ModelWithMetadata):
     updated_at = models.DateTimeField(auto_now=True, null=True)
     charge_taxes = models.BooleanField(default=True)
     weight = MeasurementField(
-        measurement=Weight, unit_choices=WeightUnits.CHOICES, blank=True, null=True
+        measurement=Weight,
+        unit_choices=WeightUnits.CHOICES,  # type: ignore
+        blank=True,
+        null=True,
     )
     default_variant = models.OneToOneField(
         "ProductVariant",
@@ -488,7 +494,10 @@ class ProductVariant(SortableModel, ModelWithMetadata):
     track_inventory = models.BooleanField(default=True)
 
     weight = MeasurementField(
-        measurement=Weight, unit_choices=WeightUnits.CHOICES, blank=True, null=True
+        measurement=Weight,
+        unit_choices=WeightUnits.CHOICES,  # type: ignore
+        blank=True,
+        null=True,
     )
 
     objects = ProductVariantQueryset.as_manager()
@@ -538,11 +547,6 @@ class ProductVariant(SortableModel, ModelWithMetadata):
             f"{product} ({variant_display})" if variant_display else str(product)
         )
         return smart_text(product_display)
-
-    def get_first_image(self) -> "ProductMedia":
-        all_media = self.media.all()
-        images = [media for media in all_media if media.type == ProductMediaTypes.IMAGE]
-        return images[0] if images else self.product.get_first_image()
 
     def get_ordering_queryset(self):
         return self.product.variants.all()

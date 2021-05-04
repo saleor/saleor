@@ -399,7 +399,7 @@ CREATE_COLLECTION_MUTATION = """
                         alt
                     }
                 }
-                collectionErrors {
+                errors {
                     field
                     message
                     code
@@ -529,7 +529,7 @@ def test_create_collection_with_given_slug(
     )
     content = get_graphql_content(response)
     data = content["data"]["collectionCreate"]
-    assert not data["collectionErrors"]
+    assert not data["errors"]
     assert data["collection"]["slug"] == expected_slug
 
 
@@ -544,7 +544,7 @@ def test_create_collection_name_with_unicode(
     )
     content = get_graphql_content(response)
     data = content["data"]["collectionCreate"]
-    assert not data["collectionErrors"]
+    assert not data["errors"]
     assert data["collection"]["name"] == name
     assert data["collection"]["slug"] == "わたし-わ-にっぽん-です"
 
@@ -700,7 +700,7 @@ UPDATE_COLLECTION_SLUG_MUTATION = """
                 name
                 slug
             }
-            collectionErrors {
+            errors {
                 field
                 message
                 code
@@ -738,7 +738,7 @@ def test_update_collection_slug(
     )
     content = get_graphql_content(response)
     data = content["data"]["collectionUpdate"]
-    errors = data["collectionErrors"]
+    errors = data["errors"]
     if not error_message:
         assert not errors
         assert data["collection"]["slug"] == expected_slug
@@ -769,7 +769,7 @@ def test_update_collection_slug_exists(
     )
     content = get_graphql_content(response)
     data = content["data"]["collectionUpdate"]
-    errors = data["collectionErrors"]
+    errors = data["errors"]
     assert errors
     assert errors[0]["field"] == "slug"
     assert errors[0]["code"] == ProductErrorCode.UNIQUE.name
@@ -809,7 +809,7 @@ def test_update_collection_slug_and_name(
                     name
                     slug
                 }
-                collectionErrors {
+                errors {
                     field
                     message
                     code
@@ -832,7 +832,7 @@ def test_update_collection_slug_and_name(
     content = get_graphql_content(response)
     collection.refresh_from_db()
     data = content["data"]["collectionUpdate"]
-    errors = data["collectionErrors"]
+    errors = data["errors"]
     if not error_message:
         assert data["collection"]["name"] == input_name == collection.name
         assert data["collection"]["slug"] == input_slug == collection.slug
@@ -999,7 +999,7 @@ def test_add_products_to_collection_with_product_without_variants(
                         totalCount
                     }
                 }
-                collectionErrors {
+                errors {
                     field
                     message
                     code
@@ -1015,7 +1015,7 @@ def test_add_products_to_collection_with_product_without_variants(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
-    error = content["data"]["collectionAddProducts"]["collectionErrors"][0]
+    error = content["data"]["collectionAddProducts"]["errors"][0]
 
     assert (
         error["code"] == CollectionErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT.name

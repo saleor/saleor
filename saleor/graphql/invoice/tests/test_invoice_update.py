@@ -23,7 +23,7 @@ INVOICE_UPDATE_MUTATION = """
                     value
                 }
             }
-            invoiceErrors {
+            errors {
                 field
                 code
             }
@@ -90,7 +90,7 @@ def test_invoice_update_missing_number(
     )
     content = get_graphql_content(response)
     invoice.refresh_from_db()
-    error = content["data"]["invoiceUpdate"]["invoiceErrors"][0]
+    error = content["data"]["invoiceUpdate"]["errors"][0]
     assert error["code"] == InvoiceErrorCode.NUMBER_NOT_SET.name
     assert error["field"] == "number"
     assert invoice.url is None
@@ -103,6 +103,6 @@ def test_invoice_update_invalid_id(staff_api_client, permission_manage_orders):
         INVOICE_UPDATE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    error = content["data"]["invoiceUpdate"]["invoiceErrors"][0]
+    error = content["data"]["invoiceUpdate"]["errors"][0]
     assert error["code"] == InvoiceErrorCode.NOT_FOUND.name
     assert error["field"] == "id"

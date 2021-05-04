@@ -1,17 +1,20 @@
+import math
 from collections import defaultdict
 from typing import Dict, Iterable, List, Optional
 
 import django_filters
 import graphene
 from django.contrib.postgres.search import SearchQuery, SearchRank
-from django.db.models import Exists, F, OuterRef, Q, Subquery, Sum
-from django.db.models.functions import Coalesce
-from graphene_django.filter import GlobalIDFilter, GlobalIDMultipleChoiceFilter
+from django.db.models import Exists, F, FloatField, OuterRef, Q, Subquery, Sum
+from django.db.models.functions import Cast, Coalesce
+from graphene_django.filter import GlobalIDMultipleChoiceFilter
 
+from ...attribute import AttributeInputType
 from ...attribute.models import (
     AssignedProductAttribute,
     AssignedVariantAttribute,
     Attribute,
+    AttributeValue,
 )
 from ...product.models import Category, Collection, Product, ProductType, ProductVariant
 from ...warehouse.models import Stock
@@ -34,10 +37,10 @@ from .enums import (
     StockAvailability,
 )
 
+T_PRODUCT_FILTER_QUERIES = Dict[int, Iterable[int]]
 
-def _clean_product_attributes_filter_input(
-    filter_value,
-) -> Dict[int, List[Optional[int]]]:
+
+def _clean_product_attributes_filter_input(filter_value, queries):
     attributes = Attribute.objects.prefetch_related("values")
     attributes_map: Dict[str, int] = {
         attribute.slug: attribute.pk for attribute in attributes
@@ -46,7 +49,7 @@ def _clean_product_attributes_filter_input(
         attr.slug: {value.slug: value.pk for value in attr.values.all()}
         for attr in attributes
     }
-    queries: Dict[int, List[Optional[int]]] = defaultdict(list)
+
     # Convert attribute:value pairs into a dictionary where
     # attributes are keys and values are grouped in lists
     for attr_name, val_slugs in filter_value:
@@ -60,10 +63,34 @@ def _clean_product_attributes_filter_input(
         ]
         queries[attr_pk] += attr_val_pk
 
-    return queries
 
+def _clean_product_attributes_range_filter_input(filter_value, queries):
+    values = (
+        AttributeValue.objects.filter(attribute__input_type=AttributeInputType.NUMERIC)
+        .annotate(numeric_value=Cast("name", FloatField()))
+        .select_related("attribute")
+    )
 
-T_PRODUCT_FILTER_QUERIES = Dict[int, Iterable[int]]
+    attributes_map: Dict[str, int] = {}
+    values_map: Dict[str, Dict[str, int]] = defaultdict(dict)
+    for value_data in values.values_list(
+        "attribute_id", "attribute__slug", "pk", "numeric_value"
+    ):
+        attr_pk, attr_slug, pk, numeric_value = value_data
+        attributes_map[attr_slug] = attr_pk
+        values_map[attr_slug][numeric_value] = pk
+
+    for attr_name, val_range in filter_value:
+        if attr_name not in attributes_map:
+            raise ValueError("Unknown numeric attribute name: %r" % (attr_name,))
+        gte, lte = val_range.get("gte", 0), val_range.get("lte", math.inf)
+        attr_pk = attributes_map[attr_name]
+        attr_values = values_map[attr_name]
+        matching_values = [
+            value for value in attr_values.keys() if gte <= value and lte >= value
+        ]
+        attr_val_pks = [attr_values[value] for value in matching_values]
+        queries[attr_pk] += attr_val_pks
 
 
 def filter_products_by_attributes_values(qs, queries: T_PRODUCT_FILTER_QUERIES):
@@ -88,9 +115,13 @@ def filter_products_by_attributes_values(qs, queries: T_PRODUCT_FILTER_QUERIES):
     return qs.filter(*filters)
 
 
-def filter_products_by_attributes(qs, filter_value):
+def filter_products_by_attributes(qs, filter_values, filter_range_values):
+    queries: Dict[int, List[Optional[int]]] = defaultdict(list)
     try:
-        queries = _clean_product_attributes_filter_input(filter_value)
+        if filter_values:
+            _clean_product_attributes_filter_input(filter_values, queries)
+        if filter_range_values:
+            _clean_product_attributes_range_filter_input(filter_range_values, queries)
     except ValueError:
         return Product.objects.none()
     return filter_products_by_attributes_values(qs, queries)
@@ -167,11 +198,14 @@ def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
 def _filter_attributes(qs, _, value):
     if value:
         value_list = []
+        value_range_list = []
         for v in value:
             slug = v["slug"]
-            values = [v["value"]] if "value" in v else v.get("values", [])
-            value_list.append((slug, values))
-        qs = filter_products_by_attributes(qs, value_list)
+            if "values" in v:
+                value_list.append((slug, v["values"]))
+            elif "values_range" in v:
+                value_range_list.append((slug, v["values_range"]))
+        qs = filter_products_by_attributes(qs, value_list, value_range_list)
     return qs
 
 
@@ -342,7 +376,6 @@ class ProductFilter(MetadataFilterBase):
     stock_availability = EnumFilter(
         input_class=StockAvailability, method="filter_stock_availability"
     )
-    product_type = GlobalIDFilter()  # Deprecated
     product_types = GlobalIDMultipleChoiceFilter(field_name="product_type")
     stocks = ObjectTypeFilter(input_class=ProductStockFilterInput, method=filter_stocks)
     search = django_filters.CharFilter(method=filter_search)
@@ -357,7 +390,6 @@ class ProductFilter(MetadataFilterBase):
             "has_category",
             "attributes",
             "stock_availability",
-            "product_type",
             "stocks",
             "search",
         ]

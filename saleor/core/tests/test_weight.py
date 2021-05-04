@@ -1,8 +1,8 @@
 import pytest
 from measurement.measures import Weight
 
+from ..units import WeightUnits
 from ..weight import (
-    WeightUnits,
     convert_weight,
     convert_weight_to_default_weight_unit,
     get_default_weight_unit,
@@ -15,7 +15,7 @@ def test_convert_weight():
     expected_result = Weight(g=1000)
 
     # when
-    result = convert_weight(weight, WeightUnits.GRAM)
+    result = convert_weight(weight, WeightUnits.G)
 
     # then
     assert result == expected_result
@@ -32,10 +32,10 @@ def test_get_default_weight_unit(site_settings):
 @pytest.mark.parametrize(
     "default_weight_unit, expected_value",
     [
-        (WeightUnits.KILOGRAM, Weight(kg=1)),
-        (WeightUnits.GRAM, Weight(g=1000)),
-        (WeightUnits.POUND, Weight(lb=2.205)),
-        (WeightUnits.OUNCE, Weight(oz=35.274)),
+        (WeightUnits.KG, Weight(kg=1)),
+        (WeightUnits.G, Weight(g=1000)),
+        (WeightUnits.LB, Weight(lb=2.205)),
+        (WeightUnits.OZ, Weight(oz=35.274)),
     ],
 )
 def test_convert_weight_to_default_weight_unit(

@@ -23,7 +23,13 @@ from ...order.models import FulfillmentStatus
 from ...order.utils import get_order_country, get_valid_shipping_methods_for_order
 from ...payment import ChargeStatus
 from ...payment.dataloaders import PaymentsByOrderIdLoader
-from ...payment.model_helpers import get_total_captured
+from ...payment.model_helpers import (
+    get_last_payment,
+    get_subtotal,
+    get_total_authorized,
+    get_total_captured,
+)
+from ...product import ProductMediaTypes
 from ...product.product_images import get_product_image_thumbnail
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..account.types import User
@@ -44,7 +50,10 @@ from ..invoice.types import Invoice
 from ..meta.types import ObjectWithMetadata
 from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
 from ..product.dataloaders import (
+    MediaByProductVariantIdLoader,
+    ProductByVariantIdLoader,
     ProductChannelListingByProductIdAndChannelSlugLoader,
+    ProductImageByProductIdLoader,
     ProductVariantByIdLoader,
 )
 from ..product.types import ProductVariant
@@ -436,14 +445,46 @@ class OrderLine(CountableDjangoObjectType):
     @staticmethod
     @traced_resolver
     def resolve_thumbnail(root: models.OrderLine, info, *, size=255):
-        if not root.variant:
+        if not root.variant_id:
             return None
-        image = root.variant.get_first_image()
-        if image:
+
+        def _get_image_from_media(image):
             url = get_product_image_thumbnail(image, size, method="thumbnail")
             alt = image.alt
             return Image(alt=alt, url=info.context.build_absolute_uri(url))
-        return None
+
+        def _get_first_variant_image(all_medias):
+            if image := next(
+                (
+                    media
+                    for media in all_medias
+                    if media.type == ProductMediaTypes.IMAGE
+                ),
+                None,
+            ):
+                return image
+
+        def _get_first_product_image(images):
+            return _get_image_from_media(images[0]) if images else None
+
+        def _resolve_thumbnail(result):
+            product, variant_medias = result
+
+            if image := _get_first_variant_image(variant_medias):
+                return _get_image_from_media(image)
+
+            # we failed to get image from variant, lets use first from product
+            return (
+                ProductImageByProductIdLoader(info.context)
+                .load(product.id)
+                .then(_get_first_product_image)
+            )
+
+        variants_product = ProductByVariantIdLoader(info.context).load(root.variant_id)
+        variant_medias = MediaByProductVariantIdLoader(info.context).load(
+            root.variant_id
+        )
+        return Promise.all([variants_product, variant_medias]).then(_resolve_thumbnail)
 
     @staticmethod
     def resolve_unit_price(root: models.OrderLine, _info):
@@ -775,23 +816,35 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_actions(root: models.Order, _info):
-        actions = []
-        payment = root.get_last_payment()
-        if root.can_capture(payment):
-            actions.append(OrderAction.CAPTURE)
-        if root.can_mark_as_paid():
-            actions.append(OrderAction.MARK_AS_PAID)
-        if root.can_refund(payment):
-            actions.append(OrderAction.REFUND)
-        if root.can_void(payment):
-            actions.append(OrderAction.VOID)
-        return actions
+    def resolve_actions(root: models.Order, info):
+        def _resolve_actions(payments):
+            actions = []
+            payment = get_last_payment(payments)
+            if root.can_capture(payment):
+                actions.append(OrderAction.CAPTURE)
+            if root.can_mark_as_paid(payments):
+                actions.append(OrderAction.MARK_AS_PAID)
+            if root.can_refund(payment):
+                actions.append(OrderAction.REFUND)
+            if root.can_void(payment):
+                actions.append(OrderAction.VOID)
+            return actions
+
+        return (
+            PaymentsByOrderIdLoader(info.context).load(root.id).then(_resolve_actions)
+        )
 
     @staticmethod
     @traced_resolver
-    def resolve_subtotal(root: models.Order, _info):
-        return root.get_subtotal()
+    def resolve_subtotal(root: models.Order, info):
+        def _resolve_subtotal(order_lines):
+            return get_subtotal(order_lines, root.currency)
+
+        return (
+            OrderLinesByOrderIdLoader(info.context)
+            .load(root.id)
+            .then(_resolve_subtotal)
+        )
 
     @staticmethod
     def resolve_total(root: models.Order, _info):
@@ -802,9 +855,15 @@ class Order(CountableDjangoObjectType):
         return root.undiscounted_total
 
     @staticmethod
-    def resolve_total_authorized(root: models.Order, _info):
-        # FIXME adjust to multiple payments in the future
-        return root.total_authorized
+    def resolve_total_authorized(root: models.Order, info):
+        def _resolve_total_get_total_authorized(payments):
+            return get_total_authorized(payments, root.currency)
+
+        return (
+            PaymentsByOrderIdLoader(info.context)
+            .load(root.id)
+            .then(_resolve_total_get_total_authorized)
+        )
 
     @staticmethod
     def resolve_total_captured(root: models.Order, info):

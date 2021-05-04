@@ -29,7 +29,7 @@ PAGE_REORDER_ATTRIBUTE_VALUES_MUTATION = """
           }
         }
 
-        pageErrors {
+        errors {
           field
           message
           code
@@ -100,7 +100,7 @@ def test_sort_page_attribute_values(
     content = get_graphql_content(
         staff_api_client.post_graphql(PAGE_REORDER_ATTRIBUTE_VALUES_MUTATION, variables)
     )["data"]["pageReorderAttributeValues"]
-    assert not content["pageErrors"]
+    assert not content["errors"]
 
     assert content["page"]["id"] == page_id, "Did not return the correct page"
 
@@ -159,7 +159,7 @@ def test_sort_page_attribute_values_invalid_attribute_id(
     content = get_graphql_content(
         staff_api_client.post_graphql(PAGE_REORDER_ATTRIBUTE_VALUES_MUTATION, variables)
     )["data"]["pageReorderAttributeValues"]
-    errors = content["pageErrors"]
+    errors = content["errors"]
     assert not content["page"]
     assert len(errors) == 1
     assert errors[0]["code"] == PageErrorCode.NOT_FOUND.name
@@ -225,7 +225,7 @@ def test_sort_page_attribute_values_invalid_value_id(
     content = get_graphql_content(
         staff_api_client.post_graphql(PAGE_REORDER_ATTRIBUTE_VALUES_MUTATION, variables)
     )["data"]["pageReorderAttributeValues"]
-    errors = content["pageErrors"]
+    errors = content["errors"]
     assert not content["page"]
     assert len(errors) == 1
     assert errors[0]["code"] == PageErrorCode.NOT_FOUND.name

@@ -797,6 +797,7 @@ def test_add_attribute_info_to_data(product):
         file_url=None,
         input_type="dropdown",
         entity_type=None,
+        unit=None,
         rich_text=None,
     )
     input_data = {pk: {}}
@@ -824,6 +825,7 @@ def test_add_attribute_info_to_data_update_attribute_data(product):
         file_url=None,
         input_type="dropdown",
         entity_type=None,
+        unit=None,
         rich_text=None,
     )
     input_data = {pk: {expected_header: {"value1"}}}
@@ -846,6 +848,7 @@ def test_add_attribute_info_to_data_no_slug(product):
         file_url=None,
         input_type="dropdown",
         entity_type=None,
+        unit=None,
         rich_text=None,
     )
     input_data = {pk: {}}
@@ -870,6 +873,7 @@ def test_add_attribute_info_when_no_value(product):
         input_type="dropdown",
         entity_type=None,
         rich_text=None,
+        unit=None,
     )
     input_data = {pk: {}}
 
@@ -894,6 +898,7 @@ def test_add_file_attribute_info_to_data(product):
         file_url=test_url,
         input_type="file",
         entity_type=None,
+        unit=None,
         rich_text=None,
     )
     input_data = {pk: {}}
@@ -918,6 +923,7 @@ def test_add_rich_text_attribute_info_to_data(product):
         file_url=None,
         input_type="rich-text",
         entity_type=None,
+        unit=None,
         rich_text=dummy_editorjs("Dummy"),
     )
     input_data = {pk: {}}
@@ -943,6 +949,7 @@ def test_add_reference_attribute_info_to_data(product, page):
         file_url=None,
         input_type="reference",
         entity_type="Page",
+        unit=None,
         rich_text="None",
     )
     input_data = {pk: {}}
@@ -971,6 +978,7 @@ def test_add_reference_info_to_data_update_attribute_data(product, page):
         file_url=None,
         input_type="reference",
         entity_type="Page",
+        unit=None,
         rich_text=None,
     )
     input_data = {pk: {expected_header: values}}
@@ -983,6 +991,133 @@ def test_add_reference_info_to_data_update_attribute_data(product, page):
     # then
     values.add(f"Page_{page.id}")
     assert result[pk][expected_header] == values
+
+
+def test_add_numeric_attribute_info_to_data(product, numeric_attribute):
+    # given
+    pk = product.pk
+    value = "12.3"
+    attribute_data = AttributeData(
+        slug=numeric_attribute.slug,
+        value=value,
+        file_url=None,
+        input_type="numeric",
+        entity_type=None,
+        unit=numeric_attribute.unit,
+        rich_text=None,
+    )
+    input_data = {pk: {}}
+
+    # when
+    result = add_attribute_info_to_data(
+        product.pk, attribute_data, "product attribute", input_data
+    )
+
+    # then
+    expected_header = f"{numeric_attribute.slug} (product attribute)"
+    assert result[pk][expected_header] == {f"{value} {numeric_attribute.unit}"}
+
+
+def test_add_numeric_attribute_info_to_data_no_unit(product, numeric_attribute):
+    # given
+    pk = product.pk
+    value = "12.3"
+    attribute_data = AttributeData(
+        slug=numeric_attribute.slug,
+        value=value,
+        file_url=None,
+        input_type="numeric",
+        entity_type=None,
+        unit=None,
+        rich_text=None,
+    )
+    input_data = {pk: {}}
+
+    # when
+    result = add_attribute_info_to_data(
+        product.pk, attribute_data, "product attribute", input_data
+    )
+
+    # then
+    expected_header = f"{numeric_attribute.slug} (product attribute)"
+    assert result[pk][expected_header] == {value}
+
+
+def test_add_attribute_info_to_data_no_file_url_for_file_attribute(product):
+    # given
+    pk = product.pk
+    slug = "test_attribute_slug"
+    value = "test value"
+    attribute_data = AttributeData(
+        slug=slug,
+        value=value,
+        file_url=None,
+        input_type="file",
+        entity_type=None,
+        rich_text=None,
+        unit=None,
+    )
+    input_data = {pk: {}}
+
+    # when
+    result = add_attribute_info_to_data(
+        product.pk, attribute_data, "product attribute", input_data
+    )
+
+    # then
+    expected_header = f"{slug} (product attribute)"
+    assert result[pk][expected_header] == {""}
+
+
+def test_add_attribute_info_to_data_no_rich_text_for_rich_text_attribute(product):
+    # given
+    pk = product.pk
+    slug = "test_attribute_slug"
+    value = "test value"
+    attribute_data = AttributeData(
+        slug=slug,
+        value=value,
+        file_url=None,
+        input_type="rich-text",
+        entity_type=None,
+        rich_text=None,
+        unit=None,
+    )
+    input_data = {pk: {}}
+
+    # when
+    result = add_attribute_info_to_data(
+        product.pk, attribute_data, "product attribute", input_data
+    )
+
+    # then
+    expected_header = f"{slug} (product attribute)"
+    assert result[pk][expected_header] == {""}
+
+
+def test_add_attribute_info_to_data_no_value_for_reference_attribute(product):
+    # given
+    pk = product.pk
+    slug = "test_attribute_slug"
+    attribute_data = AttributeData(
+        slug=slug,
+        value=None,
+        file_url=None,
+        input_type="reference",
+        entity_type=None,
+        rich_text=None,
+        unit=None,
+    )
+    input_data = {pk: {}}
+
+    # when
+    result = add_attribute_info_to_data(
+        product.pk, attribute_data, "product attribute", input_data
+    )
+
+    # then
+    expected_header = f"{slug} (product attribute)"
+    assert result[pk][expected_header] == {""}
 
 
 def test_add_warehouse_info_to_data(product):

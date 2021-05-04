@@ -1,9 +1,11 @@
+import datetime
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
 
 import graphene
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
+from django.db.models import Q
 
 from ...channel.exceptions import ChannelNotDefined
 from ...channel.models import Channel
@@ -35,6 +37,7 @@ from ...core.exceptions import InsufficientStock, PermissionDenied, ProductNotPu
 from ...core.transactions import transaction_with_commit_on_errors
 from ...order import models as order_models
 from ...product import models as product_models
+from ...product.models import ProductChannelListing
 from ...shipping import models as shipping_models
 from ...warehouse.availability import check_stock_quantity_bulk
 from ..account.i18n import I18nMixin
@@ -43,6 +46,7 @@ from ..core.enums import LanguageCodeEnum
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.types.common import CheckoutError
 from ..core.utils import from_global_id_or_error
+from ..core.validators import validate_variants_available_in_channel
 from ..order.types import Order
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
@@ -157,51 +161,29 @@ def check_lines_quantity(variants, quantities, country, channel_slug, new_line=T
         raise ValidationError({"quantity": errors})
 
 
-def validate_variants_available_for_purchase(variants, channel_id):
-    not_available_variants = []
-    for variant in variants:
-        product_channel_listing = variant.product.channel_listings.filter(
-            channel_id=channel_id
-        ).first()
-        if not (
-            product_channel_listing
-            and product_channel_listing.is_available_for_purchase()
-        ):
-            not_available_variants.append(variant.pk)
-
+def validate_variants_available_for_purchase(variants_id: set, channel_id: int):
+    today = datetime.date.today()
+    is_available_for_purchase = Q(
+        available_for_purchase__lte=today,
+        product__variants__id__in=variants_id,
+        channel_id=channel_id,
+    )
+    available_variants = ProductChannelListing.objects.filter(
+        is_available_for_purchase
+    ).values_list("product__variants__id", flat=True)
+    not_available_variants = variants_id.difference(set(available_variants))
     if not_available_variants:
         variant_ids = [
             graphene.Node.to_global_id("ProductVariant", pk)
             for pk in not_available_variants
         ]
+        error_code = CheckoutErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE
         raise ValidationError(
             {
                 "lines": ValidationError(
                     "Cannot add lines for unavailable for purchase variants.",
-                    code=CheckoutErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE,
+                    code=error_code,  # type: ignore
                     params={"variants": variant_ids},
-                )
-            }
-        )
-
-
-def validate_variants_available_in_channel(variants, channel_id):
-    variants_id = {variant.id for variant in variants}
-    available_variants = product_models.ProductVariantChannelListing.objects.filter(
-        variant__in=variants_id, channel_id=channel_id, price_amount__isnull=False
-    ).values_list("variant_id", flat=True)
-    not_available_variants = variants_id - set(available_variants)
-    if not_available_variants:
-        not_available_variants_ids = {
-            graphene.Node.to_global_id("ProductVariant", pk)
-            for pk in not_available_variants
-        }
-        raise ValidationError(
-            {
-                "lines": ValidationError(
-                    "Cannot add lines with unavailable variants.",
-                    code=CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL,
-                    params={"variants": not_available_variants_ids},
                 )
             }
         )
@@ -275,8 +257,11 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         )
 
         quantities = [line["quantity"] for line in lines]
-        validate_variants_available_for_purchase(variants, channel.id)
-        validate_variants_available_in_channel(variants, channel.id)
+        variant_db_ids = {variant.id for variant in variants}
+        validate_variants_available_for_purchase(variant_db_ids, channel.id)
+        validate_variants_available_in_channel(
+            variant_db_ids, channel.id, CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL
+        )
         check_lines_quantity(variants, quantities, country, channel.slug)
         return variants, quantities
 
@@ -474,8 +459,13 @@ class CheckoutLinesAdd(BaseMutation):
         cls.validate_checkout_lines(
             variants, quantities, checkout.get_country(), checkout_info.channel.slug
         )
-        validate_variants_available_for_purchase(variants, checkout.channel_id)
-        validate_variants_available_in_channel(variants, checkout.channel_id)
+        variants_db_ids = {variant.id for variant in variants}
+        validate_variants_available_for_purchase(variants_db_ids, checkout.channel_id)
+        validate_variants_available_in_channel(
+            variants_db_ids,
+            checkout.channel_id,
+            CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL,
+        )
 
         if variants and quantities:
             for variant, quantity in zip(variants, quantities):
@@ -593,14 +583,6 @@ class CheckoutCustomerAttach(BaseMutation):
 
     class Arguments:
         checkout_id = graphene.ID(required=True, description="ID of the checkout.")
-        customer_id = graphene.ID(
-            required=False,
-            description=(
-                "[Deprecated] The ID of the customer. To identify a customer you "
-                "should authenticate with JWT. This field will be removed after "
-                "2020-07-31."
-            ),
-        )
 
     class Meta:
         description = "Sets the customer as the owner of the checkout."
@@ -616,14 +598,6 @@ class CheckoutCustomerAttach(BaseMutation):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
-
-        # Check if provided customer_id matches with the authenticated user and raise
-        # error if it doesn't. This part can be removed when `customer_id` field is
-        # removed.
-        if customer_id:
-            current_user_id = graphene.Node.to_global_id("User", info.context.user.id)
-            if current_user_id != customer_id:
-                raise PermissionDenied()
 
         checkout.user = info.context.user
         checkout.save(update_fields=["user", "last_change"])
@@ -988,8 +962,12 @@ class CheckoutComplete(BaseMutation):
 
             manager = info.context.plugins
             lines = fetch_checkout_lines(checkout)
-            variants = [line.variant for line in lines]
-            validate_variants_available_in_channel(variants, checkout.channel)
+            variants_id = {line.variant.id for line in lines}
+            validate_variants_available_in_channel(
+                variants_id,
+                checkout.channel,
+                CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL,
+            )
             checkout_info = fetch_checkout_info(
                 checkout, lines, info.context.discounts, manager
             )

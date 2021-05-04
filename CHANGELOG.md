@@ -59,6 +59,16 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix incorrect payment data for klarna - #7150 by @IKarbowiak
 - Drop deleted images from storage - #7129 by @IKarbowiak
 - Fix core sorting on related fields - #7195 by @tomaszszymanski129
+- Fix variants dataloaders when querying with default channel - #7206 by @tomaszszymanski129
+- Performance upgrade on orders query with `subtotal` field - #7174 by @tomaszszymanski129
+- Performance upgrade on orders query with `actions` field - #7175 by @tomaszszymanski129
+- Performance upgrade on orders query with `totalAuthorized` field - #7170 by @tomaszszymanski129
+- Fix export with empty assignment values - #7207 by @IKarbowiak
+- Change exported file name - #7218 by @IKarbowiak
+- Performance upgrade on `OrderLine` type with `thumbnail` field - #7224 by @tomaszszymanski129
+- Use GraphQL IDs instead of database IDs in export - #7240 by @IKarbowiak
+- Fix draft order tax mismatch - #7226 by @IKarbowiak
+  - Introduce `calculate_order_line_total` plugin method
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -111,6 +121,21 @@ All notable, unreleased changes to this project will be documented in this file.
   - `ShippingPriceInput` was extended with `description` field
   - Extended `shippingPriceUpdate`, `shippingPriceCreate` mutation to add/edit description
   - Input field in `shippingPriceTranslate` changed to `ShippingPriceTranslationInput`
+- Drop deprecated queries and mutations - #7199 by @IKarbowiak
+  - drop `url` field from `Category` type
+  - drop `url` field from `Category` type
+  - drop `url` field from `Product` type
+  - drop `localized` fild from `Money` type
+  - drop `permissions` field from `User` type
+  - drop `navigation` field from `Shop` type
+  - drop `isActive` from `AppInput`
+  - drop `value` from `AttributeInput`
+  - drop `customerId` from `checkoutCustomerAttach`
+  - drop `stockAvailability` argument from `products` query
+  - drop `created` and `status` arguments from `orders` query
+  - drop `created` argument from `draftOrders` query
+  - drop `productType` from `ProductFilter`
+  - deprecate mutations' `<name>Errors`, typed `errors` fields and remove deprecation
 
 ### Other
 
@@ -140,6 +165,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Introduce product reference attributes - #6711 by @IKarbowiak
 - Add metadata to warehouse - #6727 by @d-wysocki
 - Add page webhooks: `PAGE_CREATED`, `PAGE_UPDATED` and `PAGE_DELETED` - #6787 by @d-wysocki
+- Introduce numeric attributes - #6790 by @IKarbowiak
 - Add `PRODUCT_DELETED` webhook - #6794 by @d-wysocki
 - Fix `product_updated` and `product_created` webhooks - #6798 by @d-wysocki
 - Add interface for integrating the auth plugins - #6799 by @korycins

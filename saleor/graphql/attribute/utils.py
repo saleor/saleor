@@ -134,6 +134,7 @@ class AttributeAssignmentMixin:
     ):
         """Lazy-retrieve or create the database objects from the supplied raw values."""
         get_or_create = attribute.values.get_or_create
+
         return tuple(
             get_or_create(
                 attribute=attribute,
@@ -142,6 +143,49 @@ class AttributeAssignmentMixin:
             )[0]
             for value in attr_values.values
         )
+
+    @classmethod
+    def _pre_save_numeric_values(
+        cls,
+        instance: T_INSTANCE,
+        attribute: attribute_models.Attribute,
+        attr_values: AttrValuesInput,
+    ):
+        defaults = {
+            "name": attr_values.values[0],
+        }
+        return cls._update_or_create_value(instance, attribute, defaults)
+
+    @classmethod
+    def _pre_save_rich_text_values(
+        cls,
+        instance: T_INSTANCE,
+        attribute: attribute_models.Attribute,
+        attr_values: AttrValuesInput,
+    ):
+        defaults = {
+            "rich_text": attr_values.rich_text,
+            "name": truncatechars(
+                clean_editor_js(attr_values.rich_text, to_string=True), 50
+            ),
+        }
+        return cls._update_or_create_value(instance, attribute, defaults)
+
+    @classmethod
+    def _update_or_create_value(
+        cls,
+        instance: T_INSTANCE,
+        attribute: attribute_models.Attribute,
+        value_defaults: dict,
+    ):
+        update_or_create = attribute.values.update_or_create
+        slug = slugify(f"{instance.id}_{attribute.id}", allow_unicode=True)
+        value, _created = update_or_create(
+            attribute=attribute,
+            slug=slug,
+            defaults=value_defaults,
+        )
+        return (value,)
 
     @classmethod
     def _pre_save_reference_values(
@@ -255,29 +299,6 @@ class AttributeAssignmentMixin:
 
         if errors:
             raise ValidationError(errors)
-
-    @classmethod
-    def _pre_save_rich_text_values(
-        cls,
-        instance: T_INSTANCE,
-        attribute: attribute_models.Attribute,
-        attr_values: AttrValuesInput,
-    ):
-        """Lazy-retrieve or create the database object from the supplied raw value."""
-        value_model = attribute.values.model
-        slug = slugify(f"{instance.id}_{attribute.id}", allow_unicode=True)
-        value = value_model.objects.update_or_create(
-            attribute=attribute,
-            slug=slug,
-            defaults={
-                "rich_text": attr_values.rich_text,
-                "name": truncatechars(
-                    clean_editor_js(attr_values.rich_text, to_string=True), 50
-                ),
-            },
-        )[0]
-
-        return (value,)
 
     @classmethod
     def clean_input(
@@ -398,25 +419,31 @@ class AttributeAssignmentMixin:
         :param instance: the product or variant to associate the attribute against.
         :param cleaned_input: the cleaned user input (refer to clean_attributes)
         """
+        pre_save_methods_mapping = {
+            AttributeInputType.FILE: cls._pre_save_file_value,
+            AttributeInputType.REFERENCE: cls._pre_save_reference_values,
+            AttributeInputType.RICH_TEXT: cls._pre_save_rich_text_values,
+            AttributeInputType.NUMERIC: cls._pre_save_numeric_values,
+        }
+        clean_assignment = []
         for attribute, attr_values in cleaned_input:
-            if attribute.input_type == AttributeInputType.FILE:
-                attribute_values = cls._pre_save_file_value(
-                    instance, attribute, attr_values
-                )
-            elif attribute.input_type == AttributeInputType.REFERENCE:
-                attribute_values = cls._pre_save_reference_values(
-                    instance, attribute, attr_values
-                )
-            elif attribute.input_type == AttributeInputType.RICH_TEXT:
-                attribute_values = cls._pre_save_rich_text_values(
-                    instance, attribute, attr_values
-                )
+            if (input_type := attribute.input_type) in pre_save_methods_mapping:
+                pre_save_func = pre_save_methods_mapping[input_type]
+                attribute_values = pre_save_func(instance, attribute, attr_values)
             else:
                 attribute_values = cls._pre_save_values(attribute, attr_values)
 
             associate_attribute_values_to_instance(
                 instance, attribute, *attribute_values
             )
+            if not attribute_values:
+                clean_assignment.append(attribute.pk)
+
+        # drop attribute assignment model when values are unassigned from instance
+        if clean_assignment:
+            instance.attributes.filter(
+                assignment__attribute_id__in=clean_assignment
+            ).delete()
 
 
 def get_variant_selection_attributes(qs: "QuerySet"):
@@ -432,23 +459,26 @@ class AttributeInputErrors:
     All used error codes must be specified in PageErrorCode and ProductErrorCode.
     """
 
-    ERROR_NO_VALUE_GIVEN = ("Attribute expects a value but none were given", "REQUIRED")
-    ERROR_DROPDOWN_GET_MORE_THAN_ONE_VALUE = (
-        "Attribute must take only one value",
+    ERROR_NO_VALUE_GIVEN = (
+        "Attribute expects a value but none were given.",
+        "REQUIRED",
+    )
+    ERROR_MORE_THAN_ONE_VALUE_GIVEN = (
+        "Attribute must take only one value.",
         "INVALID",
     )
     ERROR_BLANK_VALUE = (
-        "Attribute values cannot be blank",
+        "Attribute values cannot be blank.",
         "REQUIRED",
     )
 
     # file errors
     ERROR_NO_FILE_GIVEN = (
-        "Attribute file url cannot be blank",
+        "Attribute file url cannot be blank.",
         "REQUIRED",
     )
     ERROR_BLANK_FILE_VALUE = (
-        "Attribute expects a file url but none were given",
+        "Attribute expects a file url but none were given.",
         "REQUIRED",
     )
 
@@ -456,6 +486,12 @@ class AttributeInputErrors:
     ERROR_NO_REFERENCE_GIVEN = (
         "Attribute expects an reference but none were given.",
         "REQUIRED",
+    )
+
+    # numeric errors
+    ERROR_NUMERIC_VALUE_REQUIRED = (
+        "Numeric value is required.",
+        "INVALID",
     )
 
     # text errors
@@ -517,9 +553,7 @@ def validate_file_attributes_input(
     attribute_id = attr_values.global_id
     value = attr_values.file_url
     if not value:
-        if attribute.value_required or (
-            variant_validation and is_variant_selection_attribute(attribute)
-        ):
+        if is_value_required(attribute, variant_validation):
             attribute_errors[AttributeInputErrors.ERROR_NO_FILE_GIVEN].append(
                 attribute_id
             )
@@ -538,7 +572,7 @@ def validate_reference_attributes_input(
     attribute_id = attr_values.global_id
     references = attr_values.references
     if not references:
-        if attribute.value_required or variant_validation:
+        if is_value_required(attribute, variant_validation):
             attribute_errors[AttributeInputErrors.ERROR_NO_REFERENCE_GIVEN].append(
                 attribute_id
             )
@@ -564,12 +598,9 @@ def validate_standard_attributes_input(
     variant_validation: bool,
 ):
     attribute_id = attr_values.global_id
-    name_field = attribute.values.model.name.field  # type: ignore
 
     if not attr_values.values:
-        if attribute.value_required or (
-            variant_validation and is_variant_selection_attribute(attribute)
-        ):
+        if is_value_required(attribute, variant_validation):
             attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(
                 attribute_id
             )
@@ -577,17 +608,46 @@ def validate_standard_attributes_input(
         attribute.input_type != AttributeInputType.MULTISELECT
         and len(attr_values.values) != 1
     ):
-        attribute_errors[
-            AttributeInputErrors.ERROR_DROPDOWN_GET_MORE_THAN_ONE_VALUE
-        ].append(attribute_id)
+        attribute_errors[AttributeInputErrors.ERROR_MORE_THAN_ONE_VALUE_GIVEN].append(
+            attribute_id
+        )
 
-    for value in attr_values.values:
-        if value is None or not value.strip():
+    validate_values(
+        attribute_id,
+        attribute,
+        attr_values.values,
+        attribute_errors,
+    )
+
+
+def validate_values(
+    attribute_id: str,
+    attribute: "Attribute",
+    values: list,
+    attribute_errors: T_ERROR_DICT,
+):
+    name_field = attribute.values.model.name.field  # type: ignore
+    is_numeric = attribute.input_type == AttributeInputType.NUMERIC
+    for value in values:
+        if value is None or (not is_numeric and not value.strip()):
             attribute_errors[AttributeInputErrors.ERROR_BLANK_VALUE].append(
                 attribute_id
             )
-        elif len(value) > name_field.max_length:
+        elif not is_numeric and len(value) > name_field.max_length:
             attribute_errors[AttributeInputErrors.ERROR_MAX_LENGTH].append(attribute_id)
+        elif is_numeric:
+            try:
+                float(value)
+            except ValueError:
+                attribute_errors[
+                    AttributeInputErrors.ERROR_NUMERIC_VALUE_REQUIRED
+                ].append(attribute_id)
+
+
+def is_value_required(attribute: attribute_models.Attribute, variant_validation: bool):
+    return attribute.value_required or (
+        variant_validation and is_variant_selection_attribute(attribute)
+    )
 
 
 def is_variant_selection_attribute(attribute: attribute_models.Attribute):

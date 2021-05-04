@@ -835,7 +835,7 @@ def test_order_query_shows_non_draft_orders(
 ORDER_CONFIRM_MUTATION = """
     mutation orderConfirm($id: ID!) {
         orderConfirm(id: $id) {
-            orderErrors {
+            errors {
                 field
                 code
             }
@@ -903,7 +903,7 @@ def test_order_confirm_unfulfilled(staff_api_client, order, permission_manage_or
         ORDER_CONFIRM_MUTATION, {"id": graphene.Node.to_global_id("Order", order.id)}
     )
     content = get_graphql_content(response)["data"]["orderConfirm"]
-    errors = content["orderErrors"]
+    errors = content["errors"]
 
     order.refresh_from_db()
     assert order.status == OrderStatus.UNFULFILLED
@@ -923,7 +923,7 @@ def test_order_confirm_no_products_in_order(
         {"id": graphene.Node.to_global_id("Order", order_unconfirmed.id)},
     )
     content = get_graphql_content(response)["data"]["orderConfirm"]
-    errors = content["orderErrors"]
+    errors = content["errors"]
 
     order_unconfirmed.refresh_from_db()
     assert order_unconfirmed.is_unconfirmed()
@@ -1260,7 +1260,7 @@ DRAFT_ORDER_CREATE_MUTATION = """
                 channel: $channel,
                 redirectUrl: $redirectUrl,
                 customerNote: $customerNote}) {
-                    orderErrors {
+                    errors {
                         field
                         code
                         variants
@@ -1339,7 +1339,7 @@ def test_draft_order_create(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    assert not content["data"]["draftOrderCreate"]["orderErrors"]
+    assert not content["data"]["draftOrderCreate"]["errors"]
     data = content["data"]["draftOrderCreate"]["order"]
     assert data["status"] == OrderStatus.DRAFT.upper()
     assert data["voucher"]["code"] == voucher.code
@@ -1415,7 +1415,7 @@ def test_draft_order_create_with_inactive_channel(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    assert not content["data"]["draftOrderCreate"]["orderErrors"]
+    assert not content["data"]["draftOrderCreate"]["errors"]
     data = content["data"]["draftOrderCreate"]["order"]
     assert data["status"] == OrderStatus.DRAFT.upper()
     assert data["voucher"]["code"] == voucher.code
@@ -1482,7 +1482,7 @@ def test_draft_order_create_variant_with_0_price(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    assert not content["data"]["draftOrderCreate"]["orderErrors"]
+    assert not content["data"]["draftOrderCreate"]["errors"]
     data = content["data"]["draftOrderCreate"]["order"]
     assert data["status"] == OrderStatus.DRAFT.upper()
 
@@ -1557,7 +1557,7 @@ def test_draft_order_create_tax_error(
     )
     content = get_graphql_content(response)
     data = content["data"]["draftOrderCreate"]
-    errors = data["orderErrors"]
+    errors = data["errors"]
     assert not data["order"]
     assert len(errors) == 1
     assert errors[0]["code"] == OrderErrorCode.TAX_ERROR.name
@@ -1607,7 +1607,7 @@ def test_draft_order_create_with_voucher_not_assigned_to_order_channel(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    error = content["data"]["draftOrderCreate"]["orderErrors"][0]
+    error = content["data"]["draftOrderCreate"]["errors"][0]
     assert error["code"] == OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.name
     assert error["field"] == "voucher"
 
@@ -1647,7 +1647,7 @@ def test_draft_order_create_with_product_and_variant_not_assigned_to_order_chann
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    error = content["data"]["draftOrderCreate"]["orderErrors"][0]
+    error = content["data"]["draftOrderCreate"]["errors"][0]
     assert error["code"] == OrderErrorCode.PRODUCT_NOT_PUBLISHED.name
     assert error["field"] == "lines"
     assert error["variants"] == [variant_id]
@@ -1688,7 +1688,7 @@ def test_draft_order_create_with_variant_not_assigned_to_order_channel(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    error = content["data"]["draftOrderCreate"]["orderErrors"][0]
+    error = content["data"]["draftOrderCreate"]["errors"][0]
     assert error["code"] == OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.name
     assert error["field"] == "lines"
     assert error["variants"] == [variant_id]
@@ -1726,7 +1726,7 @@ def test_draft_order_create_without_channel(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    error = content["data"]["draftOrderCreate"]["orderErrors"][0]
+    error = content["data"]["draftOrderCreate"]["errors"][0]
     assert error["code"] == OrderErrorCode.REQUIRED.name
     assert error["field"] == "channel"
 
@@ -1767,7 +1767,7 @@ def test_draft_order_create_with_negative_quantity_line(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    error = content["data"]["draftOrderCreate"]["orderErrors"][0]
+    error = content["data"]["draftOrderCreate"]["errors"][0]
     assert error["code"] == OrderErrorCode.ZERO_QUANTITY.name
     assert error["field"] == "quantity"
 
@@ -1825,7 +1825,7 @@ def test_draft_order_create_with_channel_with_unpublished_product(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    error = content["data"]["draftOrderCreate"]["orderErrors"][0]
+    error = content["data"]["draftOrderCreate"]["errors"][0]
 
     assert error["field"] == "lines"
     assert error["code"] == OrderErrorCode.PRODUCT_NOT_PUBLISHED.name
@@ -1885,7 +1885,7 @@ def test_draft_order_create_with_channel_with_unpublished_product_by_date(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    error = content["data"]["draftOrderCreate"]["orderErrors"][0]
+    error = content["data"]["draftOrderCreate"]["errors"][0]
 
     assert error["field"] == "lines"
     assert error["code"] == "PRODUCT_NOT_PUBLISHED"
@@ -1941,7 +1941,7 @@ def test_draft_order_create_with_channel(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    assert not content["data"]["draftOrderCreate"]["orderErrors"]
+    assert not content["data"]["draftOrderCreate"]["errors"]
     data = content["data"]["draftOrderCreate"]["order"]
     assert data["status"] == OrderStatus.DRAFT.upper()
     assert data["voucher"]["code"] == voucher.code
@@ -1981,7 +1981,7 @@ DRAFT_UPDATE_QUERY = """
                     customerNote: $customerNote
                     channel: $channel
                 }) {
-                orderErrors {
+                errors {
                     field
                     code
                     message
@@ -2015,7 +2015,7 @@ def test_draft_order_update_existing_channel_id(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    error = content["data"]["draftOrderUpdate"]["orderErrors"][0]
+    error = content["data"]["draftOrderUpdate"]["errors"][0]
 
     assert error["code"] == OrderErrorCode.NOT_EDITABLE.name
     assert error["field"] == "channel"
@@ -2041,7 +2041,7 @@ def test_draft_order_update_voucher_not_available(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    error = content["data"]["draftOrderUpdate"]["orderErrors"][0]
+    error = content["data"]["draftOrderUpdate"]["errors"][0]
 
     assert error["code"] == OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.name
     assert error["field"] == "voucher"
@@ -2057,7 +2057,7 @@ DRAFT_ORDER_UPDATE_MUTATION = """
                                 customerNote: $customerNote,
                                 shippingAddress: $shippingAddress,
                             }) {
-            orderErrors {
+            errors {
                 field
                 message
                 code
@@ -2091,7 +2091,7 @@ def test_draft_order_update(
     )
     content = get_graphql_content(response)
     data = content["data"]["draftOrderUpdate"]
-    assert not data["orderErrors"]
+    assert not data["errors"]
     order.refresh_from_db()
     assert order.voucher
     assert order.customer_note == customer_note
@@ -2110,7 +2110,7 @@ def test_draft_order_update_with_non_draft_order(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    error = content["data"]["draftOrderUpdate"]["orderErrors"][0]
+    error = content["data"]["draftOrderUpdate"]["errors"][0]
     assert error["field"] == "id"
     assert error["code"] == OrderErrorCode.INVALID.name
 
@@ -2144,7 +2144,7 @@ def test_draft_order_update_tax_error(
     )
     content = get_graphql_content(response)
     data = content["data"]["draftOrderUpdate"]
-    errors = data["orderErrors"]
+    errors = data["errors"]
     assert len(errors) == 1
     assert errors[0]["code"] == OrderErrorCode.TAX_ERROR.name
     assert errors[0]["message"] == f"Unable to calculate taxes - {err_msg}"
@@ -2459,9 +2459,10 @@ def test_validate_draft_order_no_shipping_address_no_method_shipping_not_require
 DRAFT_ORDER_COMPLETE_MUTATION = """
     mutation draftComplete($id: ID!) {
         draftOrderComplete(id: $id) {
-            orderErrors {
+            errors {
                 field
                 code
+                variants
             }
             order {
                 status
@@ -2532,8 +2533,32 @@ def test_draft_order_complete_with_inactive_channel(
     )
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]
-    assert data["orderErrors"][0]["code"] == OrderErrorCode.CHANNEL_INACTIVE.name
-    assert data["orderErrors"][0]["field"] == "channel"
+    assert data["errors"][0]["code"] == OrderErrorCode.CHANNEL_INACTIVE.name
+    assert data["errors"][0]["field"] == "channel"
+
+
+def test_draft_order_complete_with_unavailable_variant(
+    staff_api_client,
+    permission_manage_orders,
+    staff_user,
+    draft_order,
+):
+    order = draft_order
+    variant = order.lines.first().variant
+    variant.channel_listings.filter(channel=order.channel).delete()
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    variables = {"id": order_id}
+    response = staff_api_client.post_graphql(
+        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderComplete"]
+    assert data["errors"][0]["code"] == OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.name
+    assert data["errors"][0]["field"] == "lines"
+    assert data["errors"][0]["variants"] == [variant_id]
 
 
 def test_draft_order_complete_channel_without_shipping_zones(
@@ -2558,12 +2583,11 @@ def test_draft_order_complete_channel_without_shipping_zones(
     )
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]
-    assert len(data["orderErrors"]) == 1
+    assert len(data["errors"]) == 1
     assert (
-        data["orderErrors"][0]["code"]
-        == OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
+        data["errors"][0]["code"] == OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
     )
-    assert data["orderErrors"][0]["field"] == "shipping"
+    assert data["errors"][0]["field"] == "shipping"
 
 
 def test_draft_order_complete_product_without_inventory_tracking(
@@ -2591,7 +2615,7 @@ def test_draft_order_complete_product_without_inventory_tracking(
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]["order"]
 
-    assert not content["data"]["draftOrderComplete"]["orderErrors"]
+    assert not content["data"]["draftOrderComplete"]["errors"]
 
     order.refresh_from_db()
     assert data["status"] == order.status.upper()
@@ -2642,12 +2666,11 @@ def test_draft_order_complete_not_available_shipping_method(
     data = content["data"]["draftOrderComplete"]["order"]
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]
-    assert len(data["orderErrors"]) == 1
+    assert len(data["errors"]) == 1
     assert (
-        data["orderErrors"][0]["code"]
-        == OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
+        data["errors"][0]["code"] == OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
     )
-    assert data["orderErrors"][0]["field"] == "shipping"
+    assert data["errors"][0]["field"] == "shipping"
 
 
 def test_draft_order_complete_out_of_stock_variant(
@@ -2669,7 +2692,7 @@ def test_draft_order_complete_out_of_stock_variant(
         DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    error = content["data"]["draftOrderComplete"]["orderErrors"][0]
+    error = content["data"]["draftOrderComplete"]["errors"][0]
     order.refresh_from_db()
     assert order.status == OrderStatus.DRAFT
 
@@ -2780,7 +2803,7 @@ def test_draft_order_complete_unavailable_for_purchase(
 
     # then
     content = get_graphql_content(response)
-    error = content["data"]["draftOrderComplete"]["orderErrors"][0]
+    error = content["data"]["draftOrderComplete"]["errors"][0]
     order.refresh_from_db()
     assert order.status == OrderStatus.DRAFT
 
@@ -2793,7 +2816,7 @@ ORDER_LINES_CREATE_MUTATION = """
         orderLinesCreate(id: $orderId,
                 input: [{variantId: $variantId, quantity: $quantity}]) {
 
-            orderErrors {
+            errors {
                 field
                 code
                 message
@@ -2854,9 +2877,9 @@ def test_order_lines_create(
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderLinesCreate"]
-    assert data["orderErrors"]
-    assert data["orderErrors"][0]["field"] == "quantity"
-    assert data["orderErrors"][0]["variants"] == [variant_id]
+    assert data["errors"]
+    assert data["errors"][0]["field"] == "quantity"
+    assert data["errors"][0]["variants"] == [variant_id]
 
 
 def test_order_lines_create_with_unavailable_variant(
@@ -2877,7 +2900,7 @@ def test_order_lines_create_with_unavailable_variant(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    error = content["data"]["orderLinesCreate"]["orderErrors"][0]
+    error = content["data"]["orderLinesCreate"]["errors"][0]
     assert error["code"] == OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.name
     assert error["field"] == "input"
     assert error["variants"] == [variant_id]
@@ -2938,7 +2961,7 @@ def test_order_lines_create_with_product_and_variant_not_assigned_to_channel(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    error = content["data"]["orderLinesCreate"]["orderErrors"][0]
+    error = content["data"]["orderLinesCreate"]["errors"][0]
     assert error["code"] == OrderErrorCode.PRODUCT_NOT_PUBLISHED.name
     assert error["field"] == "input"
     assert error["variants"] == [variant_id]
@@ -2971,7 +2994,7 @@ def test_order_lines_create_with_variant_not_assigned_to_channel(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    error = content["data"]["orderLinesCreate"]["orderErrors"][0]
+    error = content["data"]["orderLinesCreate"]["errors"][0]
     assert error["code"] == OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.name
     assert error["field"] == "input"
     assert error["variants"] == [variant_id]
@@ -2992,7 +3015,7 @@ def test_invalid_order_when_creating_lines(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderLinesCreate"]
-    assert data["orderErrors"]
+    assert data["errors"]
 
 
 ORDER_LINE_UPDATE_MUTATION = """
@@ -3239,7 +3262,7 @@ ORDER_UPDATE_MUTATION = """
                 userEmail: $email,
                 shippingAddress: $address,
                 billingAddress: $address}) {
-            orderErrors {
+            errors {
                 field
                 code
             }
@@ -3272,7 +3295,7 @@ def test_order_update(
         ORDER_UPDATE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    assert not content["data"]["orderUpdate"]["orderErrors"]
+    assert not content["data"]["orderUpdate"]["errors"]
     data = content["data"]["orderUpdate"]["order"]
     assert data["userEmail"] == email
 
@@ -3305,7 +3328,7 @@ def test_order_update_with_draft_order(
         ORDER_UPDATE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    error = content["data"]["orderUpdate"]["orderErrors"][0]
+    error = content["data"]["orderUpdate"]["errors"][0]
     assert error["field"] == "id"
     assert error["code"] == OrderErrorCode.INVALID.name
     assert plugin_mock.called is False
@@ -3400,7 +3423,7 @@ def test_order_update_user_email_existing_user(
 ORDER_ADD_NOTE_MUTATION = """
     mutation addNote($id: ID!, $message: String!) {
         orderAddNote(order: $id, input: {message: $message}) {
-            orderErrors {
+            errors {
                 field
                 message
                 code
@@ -3469,8 +3492,8 @@ def test_order_add_note_fail_on_empty_message(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderAddNote"]
-    assert data["orderErrors"][0]["field"] == "message"
-    assert data["orderErrors"][0]["code"] == OrderErrorCode.REQUIRED.name
+    assert data["errors"][0]["field"] == "message"
+    assert data["errors"][0]["code"] == OrderErrorCode.REQUIRED.name
 
 
 MUTATION_ORDER_CANCEL = """
@@ -3479,7 +3502,7 @@ mutation cancelOrder($id: ID!) {
         order {
             status
         }
-        orderErrors{
+        errors{
             field
             code
         }
@@ -3505,7 +3528,7 @@ def test_order_cancel(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderCancel"]
-    assert not data["orderErrors"]
+    assert not data["errors"]
 
     mock_clean_order_cancel.assert_called_once_with(order)
     mock_cancel_order.assert_called_once_with(
@@ -3530,7 +3553,7 @@ def test_order_cancel_as_app(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderCancel"]
-    assert not data["orderErrors"]
+    assert not data["errors"]
 
     mock_clean_order_cancel.assert_called_once_with(order)
     mock_cancel_order.assert_called_once_with(
@@ -3617,7 +3640,7 @@ MUTATION_MARK_ORDER_AS_PAID = """
                 field
                 message
             }
-            orderErrors {
+            errors {
                 field
                 message
                 code
@@ -3649,7 +3672,7 @@ def test_paid_order_mark_as_paid(
     assert errors[0]["message"] == msg
     assert errors[0]["field"] == "payment"
 
-    order_errors = content["data"]["orderMarkAsPaid"]["orderErrors"]
+    order_errors = content["data"]["orderMarkAsPaid"]["errors"]
     assert order_errors[0]["code"] == OrderErrorCode.PAYMENT_ERROR.name
 
 
@@ -3719,7 +3742,7 @@ def test_order_mark_as_paid_no_billing_address(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    data = content["data"]["orderMarkAsPaid"]["orderErrors"]
+    data = content["data"]["orderMarkAsPaid"]["errors"]
     assert data[0]["code"] == OrderErrorCode.BILLING_ADDRESS_NOT_SET.name
 
 
@@ -3734,7 +3757,7 @@ ORDER_VOID = """
                 field
                 message
             }
-            orderErrors {
+            errors {
                 field
                 message
                 code
@@ -3780,7 +3803,7 @@ def test_order_void_payment_error(
     assert errors[0]["field"] == "payment"
     assert errors[0]["message"] == msg
 
-    order_errors = content["data"]["orderVoid"]["orderErrors"]
+    order_errors = content["data"]["orderVoid"]["errors"]
     assert order_errors[0]["code"] == OrderErrorCode.PAYMENT_ERROR.name
 
     mock_void_payment.assert_called_once()
@@ -3960,7 +3983,7 @@ ORDER_UPDATE_SHIPPING_QUERY = """
     mutation orderUpdateShipping($order: ID!, $shippingMethod: ID) {
         orderUpdateShipping(
                 order: $order, input: {shippingMethod: $shippingMethod}) {
-            orderErrors {
+            errors {
                 field
                 code
                 message
@@ -4095,8 +4118,8 @@ def test_order_update_shipping_shipping_required(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]
-    assert data["orderErrors"][0]["field"] == "shippingMethod"
-    assert data["orderErrors"][0]["message"] == (
+    assert data["errors"][0]["field"] == "shippingMethod"
+    assert data["errors"][0]["message"] == (
         "Shipping method is required for this order."
     )
 
@@ -4132,8 +4155,8 @@ def test_order_update_shipping_not_editable_order(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]
-    assert data["orderErrors"][0]["field"] == "id"
-    assert data["orderErrors"][0]["code"] == OrderErrorCode.NOT_EDITABLE.name
+    assert data["errors"][0]["field"] == "id"
+    assert data["errors"][0]["code"] == OrderErrorCode.NOT_EDITABLE.name
 
 
 def test_order_update_shipping_no_shipping_address(
@@ -4158,8 +4181,8 @@ def test_order_update_shipping_no_shipping_address(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]
-    assert data["orderErrors"][0]["field"] == "order"
-    assert data["orderErrors"][0]["message"] == (
+    assert data["errors"][0]["field"] == "order"
+    assert data["errors"][0]["message"] == (
         "Cannot choose a shipping method for an order without" " the shipping address."
     )
 
@@ -4188,8 +4211,8 @@ def test_order_update_shipping_incorrect_shipping_method(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]
-    assert data["orderErrors"][0]["field"] == "shippingMethod"
-    assert data["orderErrors"][0]["message"] == (
+    assert data["errors"][0]["field"] == "shippingMethod"
+    assert data["errors"][0]["message"] == (
         "Shipping method cannot be used with this order."
     )
 
@@ -4214,7 +4237,7 @@ def test_order_update_shipping_shipping_zone_without_channels(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]
-    errors = data["orderErrors"]
+    errors = data["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "shippingMethod"
     assert errors[0]["code"] == OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
@@ -4249,8 +4272,8 @@ def test_order_update_shipping_excluded_shipping_method_postal_code(
     )
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]
-    assert data["orderErrors"][0]["field"] == "shippingMethod"
-    assert data["orderErrors"][0]["message"] == (
+    assert data["errors"][0]["field"] == "shippingMethod"
+    assert data["errors"][0]["message"] == (
         "Shipping method cannot be used with this order."
     )
 
@@ -4768,7 +4791,7 @@ MUTATION_ORDER_BULK_CANCEL = """
 mutation CancelManyOrders($ids: [ID]!) {
     orderBulkCancel(ids: $ids) {
         count
-        orderErrors{
+        errors{
             field
             code
         }
@@ -4798,7 +4821,7 @@ def test_order_bulk_cancel(
     content = get_graphql_content(response)
     data = content["data"]["orderBulkCancel"]
     assert data["count"] == expected_count
-    assert not data["orderErrors"]
+    assert not data["errors"]
 
     calls = [
         call(order=order, user=staff_api_client.user, manager=ANY) for order in orders
@@ -4829,7 +4852,7 @@ def test_order_bulk_cancel_as_app(
     content = get_graphql_content(response)
     data = content["data"]["orderBulkCancel"]
     assert data["count"] == expected_count
-    assert not data["orderErrors"]
+    assert not data["errors"]
 
     calls = [call(order=order, user=AnonymousUser(), manager=ANY) for order in orders]
 

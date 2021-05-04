@@ -18,7 +18,7 @@ MUTATION_TOKEN_REFRESH = """
     mutation tokenRefresh($token: String, $csrf_token: String){
         tokenRefresh(refreshToken: $token, csrfToken: $csrf_token){
             token
-            accountErrors{
+            errors{
               code
             }
         }
@@ -37,7 +37,7 @@ def test_refresh_token_get_token_from_cookie(api_client, customer_user, settings
     content = get_graphql_content(response)
 
     data = content["data"]["tokenRefresh"]
-    errors = data["accountErrors"]
+    errors = data["errors"]
 
     assert not errors
     token = data.get("token")
@@ -62,7 +62,7 @@ def test_refresh_token_get_token_from_input(api_client, customer_user, settings)
     content = get_graphql_content(response)
 
     data = content["data"]["tokenRefresh"]
-    errors = data["accountErrors"]
+    errors = data["errors"]
 
     assert not errors
     token = data.get("token")
@@ -83,7 +83,7 @@ def test_refresh_token_get_token_missing_token(api_client, customer_user):
     content = get_graphql_content(response)
 
     data = content["data"]["tokenRefresh"]
-    errors = data["accountErrors"]
+    errors = data["errors"]
 
     token = data.get("token")
     assert not token
@@ -101,7 +101,7 @@ def test_access_token_used_as_a_refresh_token(api_client, customer_user):
     content = get_graphql_content(response)
 
     data = content["data"]["tokenRefresh"]
-    errors = data["accountErrors"]
+    errors = data["errors"]
 
     token = data.get("token")
     assert not token
@@ -119,7 +119,7 @@ def test_access_app_token_used_as_a_refresh_token(api_client, app, customer_user
     content = get_graphql_content(response)
 
     data = content["data"]["tokenRefresh"]
-    errors = data["accountErrors"]
+    errors = data["errors"]
 
     token = data.get("token")
     assert not token
@@ -138,7 +138,7 @@ def test_refresh_token_get_token_incorrect_csrf_token(api_client, customer_user)
     content = get_graphql_content(response)
 
     data = content["data"]["tokenRefresh"]
-    errors = data["accountErrors"]
+    errors = data["errors"]
 
     token = data.get("token")
     assert not token
@@ -161,7 +161,7 @@ def test_refresh_token_when_expired(api_client, customer_user):
     content = get_graphql_content(response)
 
     data = content["data"]["tokenRefresh"]
-    errors = data["accountErrors"]
+    errors = data["errors"]
 
     token = data.get("token")
     assert not token
@@ -183,7 +183,7 @@ def test_refresh_token_when_incorrect_token(api_client, customer_user):
     content = get_graphql_content(response)
 
     data = content["data"]["tokenRefresh"]
-    errors = data["accountErrors"]
+    errors = data["errors"]
 
     token = data.get("token")
     assert not token
@@ -205,7 +205,7 @@ def test_refresh_token_when_user_deactivated_token(api_client, customer_user):
     content = get_graphql_content(response)
 
     data = content["data"]["tokenRefresh"]
-    errors = data["accountErrors"]
+    errors = data["errors"]
 
     assert not data["token"]
     assert len(errors) == 1

@@ -19,14 +19,19 @@ from ..account.models import Address
 from ..channel.models import Channel
 from ..core.models import ModelWithMetadata
 from ..core.permissions import OrderPermissions
-from ..core.taxes import zero_money, zero_taxed_money
+from ..core.taxes import zero_taxed_money
+from ..core.units import WeightUnits
 from ..core.utils.json_serializer import CustomJsonEncoder
-from ..core.weight import WeightUnits, zero_weight
+from ..core.weight import zero_weight
 from ..discount import DiscountValueType
 from ..discount.models import Voucher
 from ..giftcard.models import GiftCard
 from ..payment import ChargeStatus, TransactionKind
-from ..payment.model_helpers import get_total_captured
+from ..payment.model_helpers import (
+    get_subtotal,
+    get_total_authorized,
+    get_total_captured,
+)
 from ..shipping.models import ShippingMethod
 from . import FulfillmentStatus, OrderEvents, OrderStatus
 
@@ -206,7 +211,9 @@ class Order(ModelWithMetadata):
     display_gross_prices = models.BooleanField(default=True)
     customer_note = models.TextField(blank=True, default="")
     weight = MeasurementField(
-        measurement=Weight, unit_choices=WeightUnits.CHOICES, default=zero_weight
+        measurement=Weight,
+        unit_choices=WeightUnits.CHOICES,  # type: ignore
+        default=zero_weight,
     )
     redirect_url = models.URLField(blank=True, null=True)
     objects = OrderQueryset.as_manager()
@@ -286,8 +293,7 @@ class Order(ModelWithMetadata):
         return any(line.is_shipping_required for line in self.lines.all())
 
     def get_subtotal(self):
-        subtotal_iterator = (line.total_price for line in self.lines.all())
-        return sum(subtotal_iterator, zero_taxed_money(currency=self.currency))
+        return get_subtotal(self.lines.all(), self.currency)
 
     def get_total_quantity(self):
         return sum([line.quantity for line in self.lines.all()])
@@ -338,15 +344,14 @@ class Order(ModelWithMetadata):
             return False
         return payment.can_refund()
 
-    def can_mark_as_paid(self):
-        return len(self.payments.all()) == 0
+    def can_mark_as_paid(self, payments=None):
+        if not payments:
+            payments = self.payments.all()
+        return len(payments) == 0
 
     @property
     def total_authorized(self):
-        payment = self.get_last_payment()
-        if payment:
-            return payment.get_authorized_amount()
-        return zero_money(self.currency)
+        return get_total_authorized(self.payments.all(), self.currency)
 
     @property
     def total_captured(self):

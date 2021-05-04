@@ -7,7 +7,7 @@ from ....tests.utils import assert_no_permission, get_graphql_content
 APP_TOKEN_DELETE_MUTATION = """
     mutation appTokenDelete($id: ID!){
       appTokenDelete(id: $id){
-        appErrors{
+        errors{
           field
           message
           code
@@ -98,7 +98,7 @@ def test_app_token_delete_out_of_scope_app(
     content = get_graphql_content(response)
 
     data = content["data"]["appTokenDelete"]
-    errors = data["appErrors"]
+    errors = data["errors"]
 
     assert not data["appToken"]
     assert len(errors) == 1
@@ -126,7 +126,7 @@ def test_app_token_delete_superuser_can_delete_token_for_any_app(
     content = get_graphql_content(response)
 
     data = content["data"]["appTokenDelete"]
-    errors = data["appErrors"]
+    errors = data["errors"]
 
     assert data["appToken"]
     assert not errors
@@ -151,7 +151,7 @@ def test_app_token_delete_for_app_out_of_scope_app(
     content = get_graphql_content(response)
 
     data = content["data"]["appTokenDelete"]
-    errors = data["appErrors"]
+    errors = data["errors"]
 
     assert not data["appToken"]
     assert len(errors) == 1

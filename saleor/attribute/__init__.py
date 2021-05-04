@@ -8,6 +8,7 @@ class AttributeInputType:
     MULTISELECT = "multiselect"
     FILE = "file"
     REFERENCE = "reference"
+    NUMERIC = "numeric"
     RICH_TEXT = "rich-text"
 
     CHOICES = [
@@ -15,10 +16,35 @@ class AttributeInputType:
         (MULTISELECT, "Multi Select"),
         (FILE, "File"),
         (REFERENCE, "Reference"),
+        (NUMERIC, "Numeric"),
         (RICH_TEXT, "Rich Text"),
     ]
     # list of the input types that can be used in variant selection
     ALLOWED_IN_VARIANT_SELECTION = [DROPDOWN]
+
+
+# list of input types that are allowed for given attribute property
+ATTRIBUTE_PROPERTIES_CONFIGURATION = {
+    "filterable_in_storefront": [
+        AttributeInputType.DROPDOWN,
+        AttributeInputType.MULTISELECT,
+        AttributeInputType.NUMERIC,
+    ],
+    "filterable_in_dashboard": [
+        AttributeInputType.DROPDOWN,
+        AttributeInputType.MULTISELECT,
+        AttributeInputType.NUMERIC,
+    ],
+    "available_in_grid": [
+        AttributeInputType.DROPDOWN,
+        AttributeInputType.MULTISELECT,
+        AttributeInputType.NUMERIC,
+    ],
+    "storefront_search_position": [
+        AttributeInputType.DROPDOWN,
+        AttributeInputType.MULTISELECT,
+    ],
+}
 
 
 class AttributeType:

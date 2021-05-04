@@ -5,9 +5,9 @@ from ....tests.utils import assert_no_permission, get_graphql_content
 
 APP_CREATE_MUTATION = """
     mutation AppCreate(
-        $name: String, $is_active: Boolean $permissions: [PermissionEnum]){
+        $name: String, $permissions: [PermissionEnum]){
         appCreate(input:
-            {name: $name, isActive: $is_active, permissions: $permissions})
+            {name: $name, permissions: $permissions})
         {
             authToken
             app{
@@ -22,7 +22,7 @@ APP_CREATE_MUTATION = """
                     authToken
                 }
             }
-            appErrors{
+            errors{
                 field
                 message
                 code
@@ -44,7 +44,6 @@ def test_app_create_mutation(
 
     variables = {
         "name": "New integration",
-        "is_active": True,
         "permissions": [PermissionEnum.MANAGE_PRODUCTS.name],
     }
     response = staff_api_client.post_graphql(
@@ -73,7 +72,6 @@ def test_app_create_mutation_for_app(
 
     variables = {
         "name": "New integration",
-        "is_active": True,
         "permissions": [PermissionEnum.MANAGE_PRODUCTS.name],
     }
     response = app_api_client.post_graphql(query, variables=variables)
@@ -102,7 +100,6 @@ def test_app_create_mutation_out_of_scope_permissions(
 
     variables = {
         "name": "New integration",
-        "is_active": True,
         "permissions": [PermissionEnum.MANAGE_PRODUCTS.name],
     }
 
@@ -110,7 +107,7 @@ def test_app_create_mutation_out_of_scope_permissions(
     content = get_graphql_content(response)
     data = content["data"]["appCreate"]
 
-    errors = data["appErrors"]
+    errors = data["errors"]
     assert not data["app"]
     assert len(errors) == 1
     error = errors[0]
@@ -129,7 +126,6 @@ def test_app_create_mutation_superuser_can_create_app_with_any_perms(
 
     variables = {
         "name": "New integration",
-        "is_active": True,
         "permissions": [PermissionEnum.MANAGE_PRODUCTS.name],
     }
 
@@ -154,7 +150,6 @@ def test_app_create_mutation_for_app_out_of_scope_permissions(
 
     variables = {
         "name": "New integration",
-        "is_active": True,
         "permissions": [PermissionEnum.MANAGE_PRODUCTS.name],
     }
     response = app_api_client.post_graphql(
@@ -163,7 +158,7 @@ def test_app_create_mutation_for_app_out_of_scope_permissions(
     content = get_graphql_content(response)
     data = content["data"]["appCreate"]
 
-    errors = data["appErrors"]
+    errors = data["errors"]
     assert not data["app"]
     assert len(errors) == 1
     error = errors[0]
@@ -181,7 +176,6 @@ def test_app_create_mutation_no_permissions(
     query = APP_CREATE_MUTATION
     variables = {
         "name": "New integration",
-        "is_active": True,
         "permissions": [PermissionEnum.MANAGE_PRODUCTS.name],
     }
     response = staff_api_client.post_graphql(query, variables=variables)

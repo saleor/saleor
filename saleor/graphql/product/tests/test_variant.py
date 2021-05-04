@@ -11,7 +11,7 @@ from prices import Money, TaxedMoney
 from ....attribute import AttributeInputType
 from ....attribute.models import AttributeValue
 from ....attribute.utils import associate_attribute_values_to_instance
-from ....core.weight import WeightUnits
+from ....core.units import WeightUnits
 from ....order import OrderStatus
 from ....order.models import OrderLine
 from ....product.error_codes import ProductErrorCode
@@ -95,7 +95,7 @@ def test_fetch_variant(
     variant.weight = Weight(kg=10)
     variant.save(update_fields=["weight"])
 
-    site_settings.default_weight_unit = WeightUnits.GRAM
+    site_settings.default_weight_unit = WeightUnits.G
     site_settings.save(update_fields=["default_weight_unit"])
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
@@ -338,7 +338,7 @@ CREATE_VARIANT_MUTATION = """
                         trackInventory: $trackInventory,
                         weight: $weight
                     }) {
-                    productErrors {
+                    errors {
                       field
                       message
                       attributes
@@ -366,7 +366,6 @@ CREATE_VARIANT_MUTATION = """
                         costPrice {
                             currency
                             amount
-                            localized
                         }
                         weight {
                             value
@@ -426,7 +425,7 @@ def test_create_variant(
     content = get_graphql_content(response)["data"]["productVariantCreate"]
     flush_post_commit_hooks()
 
-    assert not content["productErrors"]
+    assert not content["errors"]
     data = content["productVariant"]
     assert data["name"] == variant_value
     assert data["sku"] == sku
@@ -484,7 +483,7 @@ def test_create_variant_with_file_attribute(
     content = get_graphql_content(response)["data"]["productVariantCreate"]
     flush_post_commit_hooks()
 
-    assert not content["productErrors"]
+    assert not content["errors"]
     data = content["productVariant"]
     assert data["name"] == sku
     assert data["sku"] == sku
@@ -550,7 +549,7 @@ def test_create_variant_with_file_attribute_new_value(
     content = get_graphql_content(response)["data"]["productVariantCreate"]
     flush_post_commit_hooks()
 
-    assert not content["productErrors"]
+    assert not content["errors"]
     data = content["productVariant"]
     assert data["name"] == sku
     assert data["sku"] == sku
@@ -614,7 +613,7 @@ def test_create_variant_with_file_attribute_no_file_url_given(
     content = get_graphql_content(response)["data"]["productVariantCreate"]
     flush_post_commit_hooks()
 
-    errors = content["productErrors"]
+    errors = content["errors"]
     data = content["productVariant"]
     assert not errors
     assert data["name"] == sku
@@ -679,7 +678,7 @@ def test_create_variant_with_page_reference_attribute(
     content = get_graphql_content(response)["data"]["productVariantCreate"]
     flush_post_commit_hooks()
 
-    assert not content["productErrors"]
+    assert not content["errors"]
     data = content["productVariant"]
     assert data["sku"] == sku
     variant_id = data["id"]
@@ -732,6 +731,9 @@ def test_create_variant_with_page_reference_attribute_no_references_given(
     product_id = graphene.Node.to_global_id("Product", product.pk)
     sku = "1"
 
+    product_type_page_reference_attribute.value_required = True
+    product_type_page_reference_attribute.save(update_fields=["value_required"])
+
     product_type.variant_attributes.clear()
     product_type.variant_attributes.add(product_type_page_reference_attribute)
     ref_attr_id = graphene.Node.to_global_id(
@@ -759,7 +761,7 @@ def test_create_variant_with_page_reference_attribute_no_references_given(
     )
     content = get_graphql_content(response)["data"]["productVariantCreate"]
     flush_post_commit_hooks()
-    errors = content["productErrors"]
+    errors = content["errors"]
     data = content["productVariant"]
 
     assert not data
@@ -789,6 +791,9 @@ def test_create_variant_with_product_reference_attribute(
     query = CREATE_VARIANT_MUTATION
     product_id = graphene.Node.to_global_id("Product", product.pk)
     sku = "1"
+
+    product_type_product_reference_attribute.value_required = True
+    product_type_product_reference_attribute.save(update_fields=["value_required"])
 
     product_type.variant_attributes.clear()
     product_type.variant_attributes.add(product_type_product_reference_attribute)
@@ -823,7 +828,7 @@ def test_create_variant_with_product_reference_attribute(
     content = get_graphql_content(response)["data"]["productVariantCreate"]
     flush_post_commit_hooks()
 
-    assert not content["productErrors"]
+    assert not content["errors"]
     data = content["productVariant"]
     assert data["sku"] == sku
     variant_id = data["id"]
@@ -876,6 +881,9 @@ def test_create_variant_with_product_reference_attribute_no_references_given(
     product_id = graphene.Node.to_global_id("Product", product.pk)
     sku = "1"
 
+    product_type_product_reference_attribute.value_required = True
+    product_type_product_reference_attribute.save(update_fields=["value_required"])
+
     product_type.variant_attributes.clear()
     product_type.variant_attributes.add(product_type_product_reference_attribute)
     ref_attr_id = graphene.Node.to_global_id(
@@ -903,7 +911,7 @@ def test_create_variant_with_product_reference_attribute_no_references_given(
     )
     content = get_graphql_content(response)["data"]["productVariantCreate"]
     flush_post_commit_hooks()
-    errors = content["productErrors"]
+    errors = content["errors"]
     data = content["productVariant"]
 
     assert not data
@@ -916,6 +924,106 @@ def test_create_variant_with_product_reference_attribute_no_references_given(
     assert product_type_product_reference_attribute.values.count() == values_count
 
     created_webhook_mock.assert_not_called()
+    updated_webhook_mock.assert_not_called()
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_created")
+def test_create_variant_with_numeric_attribute(
+    created_webhook_mock,
+    staff_api_client,
+    product,
+    product_type,
+    permission_manage_products,
+    warehouse,
+    numeric_attribute,
+):
+    query = CREATE_VARIANT_MUTATION
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    sku = "1"
+    weight = 10.22
+    product_type.variant_attributes.set([numeric_attribute])
+    variant_slug = numeric_attribute.slug
+    variant_id = graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
+    variant_value = "22.31"
+    stocks = [
+        {
+            "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
+            "quantity": 20,
+        }
+    ]
+
+    variables = {
+        "productId": product_id,
+        "sku": sku,
+        "stocks": stocks,
+        "weight": weight,
+        "attributes": [{"id": variant_id, "values": [variant_value]}],
+        "trackInventory": True,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)["data"]["productVariantCreate"]
+    assert not content["errors"]
+    data = content["productVariant"]
+    variant_pk = graphene.Node.from_global_id(data["id"])[1]
+    assert data["name"] == sku
+    assert data["sku"] == sku
+    assert data["attributes"][0]["attribute"]["slug"] == variant_slug
+    assert (
+        data["attributes"][0]["values"][0]["slug"]
+        == f"{variant_pk}_{numeric_attribute.pk}"
+    )
+    assert data["weight"]["unit"] == WeightUnitsEnum.KG.name
+    assert data["weight"]["value"] == weight
+    assert len(data["stocks"]) == 1
+    assert data["stocks"][0]["quantity"] == stocks[0]["quantity"]
+    assert data["stocks"][0]["warehouse"]["slug"] == warehouse.slug
+    created_webhook_mock.assert_called_once_with(product.variants.last())
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_create_variant_with_numeric_attribute_not_numeric_value_given(
+    updated_webhook_mock,
+    staff_api_client,
+    product,
+    product_type,
+    permission_manage_products,
+    warehouse,
+    numeric_attribute,
+):
+    query = CREATE_VARIANT_MUTATION
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    sku = "1"
+    weight = 10.22
+    product_type.variant_attributes.set([numeric_attribute])
+    variant_id = graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
+    variant_value = "abd"
+    stocks = [
+        {
+            "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
+            "quantity": 20,
+        }
+    ]
+
+    variables = {
+        "productId": product_id,
+        "sku": sku,
+        "stocks": stocks,
+        "weight": weight,
+        "attributes": [{"id": variant_id, "values": [variant_value]}],
+        "trackInventory": True,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantCreate"]
+    error = data["errors"][0]
+    assert not data["productVariant"]
+    assert error["field"] == "attributes"
+    assert error["code"] == ProductErrorCode.INVALID.name
+
     updated_webhook_mock.assert_not_called()
 
 
@@ -940,7 +1048,7 @@ def test_create_product_variant_with_negative_weight(
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantCreate"]
-    error = data["productErrors"][0]
+    error = data["errors"][0]
     assert error["field"] == "weight"
     assert error["code"] == ProductErrorCode.INVALID.name
 
@@ -966,7 +1074,7 @@ def test_create_product_variant_without_attributes(
     # then
     content = get_graphql_content(response)
     data = content["data"]["productVariantCreate"]
-    error = data["productErrors"][0]
+    error = data["errors"][0]
 
     assert error["field"] == "attributes"
     assert error["code"] == ProductErrorCode.REQUIRED.name
@@ -993,8 +1101,8 @@ def test_create_product_variant_not_all_attributes(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
-    assert content["data"]["productVariantCreate"]["productErrors"]
-    assert content["data"]["productVariantCreate"]["productErrors"][0] == {
+    assert content["data"]["productVariantCreate"]["errors"]
+    assert content["data"]["productVariantCreate"]["errors"][0] == {
         "field": "attributes",
         "code": ProductErrorCode.REQUIRED.name,
         "message": ANY,
@@ -1028,8 +1136,8 @@ def test_create_product_variant_duplicated_attributes(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
-    assert content["data"]["productVariantCreate"]["productErrors"]
-    assert content["data"]["productVariantCreate"]["productErrors"][0] == {
+    assert content["data"]["productVariantCreate"]["errors"]
+    assert content["data"]["productVariantCreate"]["errors"][0] == {
         "field": "attributes",
         "code": ProductErrorCode.DUPLICATED_INPUT_ITEM.name,
         "message": ANY,
@@ -1103,7 +1211,7 @@ def test_create_variant_invalid_variant_attributes(
     content = get_graphql_content(response)
 
     data = content["data"]["productVariantCreate"]
-    errors = data["productErrors"]
+    errors = data["errors"]
 
     assert not data["productVariant"]
     assert len(errors) == 3
@@ -1177,7 +1285,7 @@ def test_create_variant_with_rich_text_attribute(
     flush_post_commit_hooks()
     data = content["productVariant"]
 
-    assert not content["productErrors"]
+    assert not content["errors"]
     assert data["name"] == sku
     assert data["sku"] == sku
     assert data["attributes"][-1]["values"][0]["richText"] == rich_text
@@ -1287,7 +1395,6 @@ def test_update_product_variant(
                         costPrice {
                             currency
                             amount
-                            localized
                         }
                     }
                 }
@@ -1339,7 +1446,7 @@ def test_update_product_variant_with_negative_weight(
                 productVariant {
                     name
                 }
-                productErrors {
+                errors {
                     field
                     message
                     code
@@ -1356,7 +1463,7 @@ def test_update_product_variant_with_negative_weight(
     variant.refresh_from_db()
     content = get_graphql_content(response)
     data = content["data"]["productVariantUpdate"]
-    error = data["productErrors"][0]
+    error = data["errors"][0]
     assert error["field"] == "weight"
     assert error["code"] == ProductErrorCode.INVALID.name
 
@@ -1393,11 +1500,8 @@ QUERY_UPDATE_VARIANT_ATTRIBUTES = """
                 }
                 errors {
                     field
-                    message
-                }
-                productErrors {
-                    field
                     code
+                    message
                 }
             }
         }
@@ -1436,6 +1540,7 @@ def test_update_product_variant_not_all_attributes(
     assert content["data"]["productVariantUpdate"]["errors"][0] == {
         "field": "attributes",
         "message": "All variant selection attributes must take a value.",
+        "code": ProductErrorCode.REQUIRED.name,
     }
     assert not product.variants.filter(sku=sku).exists()
 
@@ -1521,7 +1626,7 @@ def test_update_variant_with_rich_text_attribute(
     variant.refresh_from_db()
     data = content["productVariant"]
 
-    assert not content["productErrors"]
+    assert not content["errors"]
     assert data["sku"] == sku
     assert data["attributes"][-1]["attribute"]["slug"] == rich_text_attribute.slug
     assert data["attributes"][-1]["values"][0]["richText"] == rich_text
@@ -1571,6 +1676,47 @@ def test_update_product_variant_with_new_attribute(
     assert variant.attributes.last().values.first().slug == "big"
 
 
+def test_update_product_variant_clear_attributes(
+    staff_api_client,
+    product,
+    permission_manage_products,
+):
+    variant = product.variants.first()
+    sku = str(uuid4())[:12]
+    assert not variant.sku == sku
+
+    variant_attr = variant.attributes.first()
+    attribute = variant_attr.assignment.attribute
+    attribute.input_type = AttributeInputType.MULTISELECT
+    attribute.value_required = False
+    attribute.save(update_fields=["value_required", "input_type"])
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.pk)
+
+    variables = {
+        "id": variant_id,
+        "sku": sku,
+        "attributes": [
+            {"id": attribute_id, "values": []},
+        ],
+    }
+
+    response = staff_api_client.post_graphql(
+        QUERY_UPDATE_VARIANT_ATTRIBUTES,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    data = content["data"]["productVariantUpdate"]
+    assert not data["errors"]
+    variant.refresh_from_db()
+    assert not data["productVariant"]["attributes"][0]["values"]
+    with pytest.raises(variant_attr._meta.model.DoesNotExist):
+        variant_attr.refresh_from_db()
+
+
 def test_update_product_variant_with_duplicated_attribute(
     staff_api_client,
     product_with_variant_with_two_attributes,
@@ -1617,9 +1763,10 @@ def test_update_product_variant_with_duplicated_attribute(
     content = get_graphql_content(response)
 
     data = content["data"]["productVariantUpdate"]
-    assert data["productErrors"][0] == {
+    assert data["errors"][0] == {
         "field": "attributes",
         "code": ProductErrorCode.DUPLICATED_INPUT_ITEM.name,
+        "message": ANY,
     }
 
 
@@ -1713,9 +1860,10 @@ def test_update_product_variant_with_duplicated_file_attribute(
     content = get_graphql_content(response)
 
     data = content["data"]["productVariantUpdate"]
-    assert data["productErrors"][0] == {
+    assert data["errors"][0] == {
         "field": "attributes",
         "code": ProductErrorCode.DUPLICATED_INPUT_ITEM.name,
+        "message": ANY,
     }
 
 
@@ -1945,7 +2093,7 @@ def test_update_product_variant_change_attribute_values_ordering(
     # then
     content = get_graphql_content(response)
     data = content["data"]["productVariantUpdate"]
-    assert data["productErrors"] == []
+    assert data["errors"] == []
 
     attributes = data["productVariant"]["attributes"]
 
@@ -1965,16 +2113,22 @@ def test_update_product_variant_change_attribute_values_ordering(
 
 
 @pytest.mark.parametrize(
-    "values, message",
+    "values, message, code",
     (
-        ([], "Attribute expects a value but none were given"),
-        (["one", "two"], "Attribute must take only one value"),
-        (["   "], "Attribute values cannot be blank"),
-        ([None], "Attribute values cannot be blank"),
+        ([], "Attribute expects a value but none were given.", "REQUIRED"),
+        (["one", "two"], "Attribute must take only one value.", "INVALID"),
+        (["   "], "Attribute values cannot be blank.", "REQUIRED"),
+        ([None], "Attribute values cannot be blank.", "REQUIRED"),
     ),
 )
 def test_update_product_variant_requires_values(
-    staff_api_client, variant, product_type, permission_manage_products, values, message
+    staff_api_client,
+    variant,
+    product_type,
+    permission_manage_products,
+    values,
+    message,
+    code,
 ):
     """Ensures updating a variant with invalid values raise an error.
 
@@ -2009,6 +2163,7 @@ def test_update_product_variant_requires_values(
     assert content["data"]["productVariantUpdate"]["errors"][0] == {
         "field": "attributes",
         "message": message,
+        "code": code,
     }
     assert not variant.product.variants.filter(sku=sku).exists()
 
@@ -2026,7 +2181,7 @@ def test_update_product_variant_with_price_does_not_raise_price_validation_error
             productVariant {
                 id
             }
-            productErrors {
+            errors {
                 field
                 code
             }
@@ -2048,7 +2203,7 @@ def test_update_product_variant_with_price_does_not_raise_price_validation_error
 
     # then mutation passes without validation errors
     content = get_graphql_content(response)
-    assert not content["data"]["productVariantUpdate"]["productErrors"]
+    assert not content["data"]["productVariantUpdate"]["errors"]
 
 
 DELETE_VARIANT_MUTATION = """
@@ -2541,7 +2696,7 @@ PRODUCT_VARIANT_BULK_CREATE_MUTATION = """
         $variants: [ProductVariantBulkCreateInput]!, $productId: ID!
     ) {
         productVariantBulkCreate(variants: $variants, product: $productId) {
-            bulkProductErrors {
+            errors {
                 field
                 message
                 code
@@ -2611,7 +2766,7 @@ def test_product_variant_bulk_create_by_attribute_id(
     flush_post_commit_hooks()
     data = content["data"]["productVariantBulkCreate"]
 
-    assert not data["bulkProductErrors"]
+    assert not data["errors"]
     assert data["count"] == 1
     assert data["productVariants"][0]["name"] == attribute_value.name
     assert product_variant_count + 1 == ProductVariant.objects.count()
@@ -2655,7 +2810,7 @@ def test_product_variant_bulk_create_only_not_variant_selection_attributes(
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantBulkCreate"]
-    assert not data["bulkProductErrors"]
+    assert not data["errors"]
     assert data["count"] == 1
     assert data["productVariants"][0]["name"] == sku
     assert product_variant_count + 1 == ProductVariant.objects.count()
@@ -2679,7 +2834,7 @@ def test_product_variant_bulk_create_empty_attribute(
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantBulkCreate"]
-    assert not data["bulkProductErrors"]
+    assert not data["errors"]
     assert data["count"] == 1
     assert product_variant_count + 1 == ProductVariant.objects.count()
 
@@ -2710,7 +2865,7 @@ def test_product_variant_bulk_create_with_new_attribute_value(
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantBulkCreate"]
-    assert not data["bulkProductErrors"]
+    assert not data["errors"]
     assert data["count"] == 2
     assert product_variant_count + 2 == ProductVariant.objects.count()
     assert attribute_value_count + 1 == size_attribute.values.count()
@@ -2751,7 +2906,7 @@ def test_product_variant_bulk_create_variant_selection_and_other_attributes(
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantBulkCreate"]
-    assert not data["bulkProductErrors"]
+    assert not data["errors"]
     assert data["count"] == 1
     assert product_variant_count + 1 == ProductVariant.objects.count()
     assert attribute_value_count == size_attribute.values.count()
@@ -2808,7 +2963,7 @@ def test_product_variant_bulk_create_stocks_input(
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantBulkCreate"]
-    assert not data["bulkProductErrors"]
+    assert not data["errors"]
     assert data["count"] == 2
     assert product_variant_count + 2 == ProductVariant.objects.count()
     assert attribute_value_count + 1 == size_attribute.values.count()
@@ -2882,7 +3037,7 @@ def test_product_variant_bulk_create_duplicated_warehouses(
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantBulkCreate"]
-    errors = data["bulkProductErrors"]
+    errors = data["errors"]
 
     assert not data["productVariants"]
     assert len(errors) == 1
@@ -2948,7 +3103,7 @@ def test_product_variant_bulk_create_channel_listings_input(
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantBulkCreate"]
-    assert not data["bulkProductErrors"]
+    assert not data["errors"]
     assert data["count"] == 2
     assert product_variant_count + 2 == ProductVariant.objects.count()
     assert attribute_value_count + 1 == size_attribute.values.count()
@@ -3043,8 +3198,8 @@ def test_product_variant_bulk_create_duplicated_channels(
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantBulkCreate"]
-    assert len(data["bulkProductErrors"]) == 1
-    error = data["bulkProductErrors"][0]
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
     assert error["field"] == "channelListings"
     assert error["code"] == ProductErrorCode.DUPLICATED_INPUT_ITEM.name
     assert error["index"] == 0
@@ -3085,8 +3240,8 @@ def test_product_variant_bulk_create_too_many_decimal_places_in_price(
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantBulkCreate"]
-    assert len(data["bulkProductErrors"]) == 4
-    errors = data["bulkProductErrors"]
+    assert len(data["errors"]) == 4
+    errors = data["errors"]
     assert errors[0]["field"] == "price"
     assert errors[0]["code"] == ProductErrorCode.INVALID.name
     assert errors[0]["index"] == 0
@@ -3137,8 +3292,8 @@ def test_product_variant_bulk_create_product_not_assigned_to_channel(
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantBulkCreate"]
-    assert len(data["bulkProductErrors"]) == 1
-    error = data["bulkProductErrors"][0]
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
     assert error["field"] == "channelId"
     assert error["code"] == ProductErrorCode.PRODUCT_NOT_ASSIGNED_TO_CHANNEL.name
     assert error["index"] == 0
@@ -3177,8 +3332,8 @@ def test_product_variant_bulk_create_duplicated_sku(
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantBulkCreate"]
-    assert len(data["bulkProductErrors"]) == 2
-    errors = data["bulkProductErrors"]
+    assert len(data["errors"]) == 2
+    errors = data["errors"]
     for index, error in enumerate(errors):
         assert error["field"] == "sku"
         assert error["code"] == ProductErrorCode.UNIQUE.name
@@ -3211,8 +3366,8 @@ def test_product_variant_bulk_create_duplicated_sku_in_input(
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantBulkCreate"]
-    assert len(data["bulkProductErrors"]) == 1
-    error = data["bulkProductErrors"][0]
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
     assert error["field"] == "sku"
     assert error["code"] == ProductErrorCode.UNIQUE.name
     assert error["index"] == 1
@@ -3256,8 +3411,8 @@ def test_product_variant_bulk_create_many_errors(
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantBulkCreate"]
-    assert len(data["bulkProductErrors"]) == 2
-    errors = data["bulkProductErrors"]
+    assert len(data["errors"]) == 2
+    errors = data["errors"]
     expected_errors = [
         {
             "field": "sku",
@@ -3309,8 +3464,8 @@ def test_product_variant_bulk_create_two_variants_duplicated_attribute_value(
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantBulkCreate"]
-    assert len(data["bulkProductErrors"]) == 1
-    error = data["bulkProductErrors"][0]
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
     assert error["field"] == "attributes"
     assert error["code"] == ProductErrorCode.DUPLICATED_INPUT_ITEM.name
     assert error["index"] == 0
@@ -3344,8 +3499,8 @@ def test_product_variant_bulk_create_two_variants_duplicated_attribute_value_in_
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantBulkCreate"]
-    assert len(data["bulkProductErrors"]) == 1
-    error = data["bulkProductErrors"][0]
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
     assert error["field"] == "attributes"
     assert error["code"] == ProductErrorCode.DUPLICATED_INPUT_ITEM.name
     assert error["index"] == 1
@@ -3380,7 +3535,7 @@ def test_product_variant_bulk_create_two_variants_duplicated_one_attribute_value
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantBulkCreate"]
-    assert not data["bulkProductErrors"]
+    assert not data["errors"]
     assert data["count"] == 1
     assert product_variant_count + 1 == ProductVariant.objects.count()
 
@@ -3399,7 +3554,7 @@ VARIANT_STOCKS_CREATE_MUTATION = """
                     }
                 }
             }
-            bulkStockErrors{
+            errors{
                 code
                 field
                 message
@@ -3450,7 +3605,7 @@ def test_variant_stocks_create(
             "warehouse": {"slug": second_warehouse.slug},
         },
     ]
-    assert not data["bulkStockErrors"]
+    assert not data["errors"]
     assert len(data["productVariant"]["stocks"]) == len(stocks)
     result = []
     for stock in data["productVariant"]["stocks"]:
@@ -3474,7 +3629,7 @@ def test_variant_stocks_create_empty_stock_input(
     content = get_graphql_content(response)
     data = content["data"]["productVariantStocksCreate"]
 
-    assert not data["bulkStockErrors"]
+    assert not data["errors"]
     assert len(data["productVariant"]["stocks"]) == variant.stocks.count()
     assert data["productVariant"]["id"] == variant_id
 
@@ -3508,7 +3663,7 @@ def test_variant_stocks_create_stock_already_exists(
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantStocksCreate"]
-    errors = data["bulkStockErrors"]
+    errors = data["errors"]
 
     assert errors
     assert errors[0]["code"] == StockErrorCode.UNIQUE.name
@@ -3543,7 +3698,7 @@ def test_variant_stocks_create_stock_duplicated_warehouse(
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantStocksCreate"]
-    errors = data["bulkStockErrors"]
+    errors = data["errors"]
 
     assert errors
     assert errors[0]["code"] == StockErrorCode.UNIQUE.name
@@ -3582,7 +3737,7 @@ def test_variant_stocks_create_stock_duplicated_warehouse_and_warehouse_already_
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantStocksCreate"]
-    errors = data["bulkStockErrors"]
+    errors = data["errors"]
 
     assert len(errors) == 3
     assert {error["code"] for error in errors} == {
@@ -3607,7 +3762,7 @@ VARIANT_STOCKS_UPDATE_MUTATIONS = """
                     }
                 }
             }
-            bulkStockErrors{
+            errors{
                 code
                 field
                 message
@@ -3660,7 +3815,7 @@ def test_product_variant_stocks_update(
             "warehouse": {"slug": second_warehouse.slug},
         },
     ]
-    assert not data["bulkStockErrors"]
+    assert not data["errors"]
     assert len(data["productVariant"]["stocks"]) == len(stocks)
     result = []
     for stock in data["productVariant"]["stocks"]:
@@ -3684,7 +3839,7 @@ def test_product_variant_stocks_update_with_empty_stock_list(
     content = get_graphql_content(response)
     data = content["data"]["productVariantStocksUpdate"]
 
-    assert not data["bulkStockErrors"]
+    assert not data["errors"]
     assert len(data["productVariant"]["stocks"]) == len(stocks)
 
 
@@ -3721,7 +3876,7 @@ def test_variant_stocks_update_stock_duplicated_warehouse(
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantStocksUpdate"]
-    errors = data["bulkStockErrors"]
+    errors = data["errors"]
 
     assert errors
     assert errors[0]["code"] == StockErrorCode.UNIQUE.name

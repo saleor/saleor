@@ -13,7 +13,7 @@ mutation appTokenCreate($input: AppTokenInput!) {
       authToken
       id
     }
-    appErrors{
+    errors{
       field
       message
       code
@@ -98,7 +98,7 @@ def test_app_token_create_out_of_scope_app(
     content = get_graphql_content(response)
 
     data = content["data"]["appTokenCreate"]
-    errors = data["appErrors"]
+    errors = data["errors"]
     assert not data["appToken"]
     assert len(errors) == 1
     error = errors[0]
@@ -149,7 +149,7 @@ def test_app_token_create_as_app_out_of_scope_app(
     )
     content = get_graphql_content(response)
     data = content["data"]["appTokenCreate"]
-    errors = data["appErrors"]
+    errors = data["errors"]
     assert not data["appToken"]
     assert len(errors) == 1
     error = errors[0]
