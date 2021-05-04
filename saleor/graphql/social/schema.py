@@ -31,8 +31,8 @@ class SocialQueries(graphene.ObjectType):
         description="List of the post.",
     )    
 
-    def resolve_social(self, info, id=None, slug=None):
-        return resolve_social(info, id, slug)
+    def resolve_social(self, info, slug=None):
+        return resolve_social(info, slug)
 
     def resolve_socials(self, info, **kwargs):
         return resolve_socials(info, **kwargs)
