@@ -1,13 +1,7 @@
 import graphene
 
-from ...core.permissions import StorePermissions
-from ..channel.types import ChannelContext
-from ..core.fields import PrefetchingConnectionField
-from ..decorators import permission_required
-
 from .types import Social
 from ..core.fields import FilterInputConnectionField
-from ..core.types import FilterInputObjectType
 from .mutations.socials import (
     SocialCreate,
 )
