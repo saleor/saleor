@@ -17,7 +17,7 @@ from .mutations.posts import (
     PostUpdate,
     PostMediaCreate,
     PostMediaUpdate,
-    PostMediaReorder,    
+    PostMediaReorder,
 )
 from .resolvers import (
     resolve_post,
