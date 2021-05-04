@@ -1,8 +1,9 @@
 from django.db import models
 from django.conf import settings
 from ..store.models import Store
+from ..core.models import ModelWithMetadata
 
-class Social(models.Model):
+class Social(ModelWithMetadata):
     follow = models.BooleanField(default=True)
     store = models.ForeignKey(
         Store,

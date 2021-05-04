@@ -5,6 +5,7 @@ from ...social import models
 from ..core.connection import CountableDjangoObjectType
 from ..store.types import Store
 from ..account.types import User
+from ..meta.types import ObjectWithMetadata
 
 
 class Social(CountableDjangoObjectType):
@@ -22,6 +23,7 @@ class Social(CountableDjangoObjectType):
         id=graphene.Argument(graphene.ID, description="ID of the store."),
         description="Look up a store type by ID",
     )
+    interfaces = [graphene.relay.Node, ObjectWithMetadata]
     
     class Meta:
         description = (

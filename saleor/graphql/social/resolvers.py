@@ -5,7 +5,7 @@ from ..core.validators import validate_one_of_args_is_in_query
 from .types import Social
 
 
-def resolve_social(info, slug=None):
+def resolve_social(info, global_page_id=None, slug=None):
     user = info.context.user
 
     if slug is not None:

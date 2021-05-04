@@ -5,6 +5,7 @@ from ...core.mutations import ModelMutation
 from ...core.types.common import SocialError
 from ....core.permissions import SocialPermissions
 from ...store.types import Store
+from ...account.types import User
 
 class SocialInput(graphene.InputObjectType):
     follow = graphene.Boolean(description="follow/unfollow action.")
@@ -14,6 +15,7 @@ class SocialInput(graphene.InputObjectType):
 
 class SocialCreate(ModelMutation):
     store = graphene.Field(Store)
+    user = graphene.Field(User)
 
     class Arguments:
         input = SocialInput(
@@ -36,10 +38,18 @@ class SocialCreate(ModelMutation):
     @classmethod
     def perform_mutation(cls, root, info, **data):
         user = info.context.user
-        data["input"]["user_id"] = graphene.Node.to_global_id("User", user.id)
-        return super().perform_mutation(root, info, **data)
+        instance = cls.get_instance(info, **data)
+        instance.user = user
+
+        instance.save()
+        return cls.success_response(instance)
 
     @classmethod
-    def save(cls, info, instance, cleaned_input):
+    def success_response(cls, instance):
+        """Return a success response."""
+        return cls(**{cls._meta.return_field_name: instance, "errors": []})
+    
+    @classmethod
+    def save(cls, info, instance):
         instance.save()
 
