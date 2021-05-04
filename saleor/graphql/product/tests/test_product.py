@@ -6065,6 +6065,12 @@ DELETE_PRODUCT_MUTATION = """
             product {
                 name
                 id
+                attributes {
+                    values {
+                        value
+                        name
+                    }
+                }
             }
             errors {
                 field
