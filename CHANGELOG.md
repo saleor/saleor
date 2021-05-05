@@ -38,6 +38,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix invalid tax rates for lines - #7058 by @IKarbowiak
 - Allow seeing unconfirmed orders - #7072 by @IKarbowiak
 - Raise GraphQLError when too big integer value is provided - #7076 by @IKarbowiak
+- Do not update draft order addresses when user is changing - #7088 by @IKarbowiak
 - Recalculate draft order when product/variant was deleted - #7085 by @d-wysocki
 - Added validation for `DraftOrderCreate` with negative quantity line - #7085 by @d-wysocki
 - Remove html tags from product description_plaintext - #7094 by @d-wysocki
