@@ -5,6 +5,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple
 
 from django.contrib.sites.models import Site
+from django.core.exceptions import ValidationError
 from django.db import transaction
 
 from ..account.models import User
@@ -34,6 +35,7 @@ from . import (
     events,
     utils,
 )
+from .error_codes import OrderErrorCode
 from .events import (
     draft_order_created_from_replace_event,
     fulfillment_refunded_event,
@@ -1128,7 +1130,13 @@ def _process_refund(
             amount += order.shipping_price_gross_amount
     if amount:
         amount = min(payment.captured_amount, amount)
-        gateway.refund(payment, manager, amount)
+        try:
+            gateway.refund(payment, manager, amount)
+        except PaymentError:
+            raise ValidationError(
+                "The refund operation is not available yet.",
+                code=OrderErrorCode.CANNOT_REFUND.value,
+            )
         order_refunded(order, requester, amount, payment, manager=manager)
 
     fulfillment_refunded_event(
