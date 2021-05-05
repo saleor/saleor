@@ -29,6 +29,7 @@ def filter_plugin_status_in_channels(
                     ]
                 ):
                     filtered_plugins.append(plugin)
+                    break
     return filtered_plugins
 
 
