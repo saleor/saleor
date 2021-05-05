@@ -19,7 +19,7 @@ PLUGIN_UPDATE_MUTATION = """
     ) {
         pluginUpdate(
             id: $id
-            channelId: $channel
+            channel: $channel
             input: { active: $active, configuration: $configuration }
         ) {
             plugin {
