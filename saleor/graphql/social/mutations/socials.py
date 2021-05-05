@@ -28,18 +28,28 @@ class SocialCreate(ModelMutation):
         permissions = (SocialPermissions.MANAGE_SOCIALS,)
         error_type_class = SocialError
         error_type_field = "social_errors"
-    
+
     @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
-        
+
         return cleaned_input
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
         user = info.context.user
-        instance = cls.get_instance(info, **data)
-        instance.user = user
+        data = data.get("input")
+
+        _type, store = graphene.Node.from_global_id(data.store)
+        instance = models.Social.objects.filter(user=user, store_id=store).first()
+        if instance is None:
+            instance = cls.get_instance(info, **data)
+            cleaned_input = cls.clean_input(info, instance, data)
+            instance = cls.construct_instance(instance, cleaned_input)
+            instance.user = user
+
+        else:
+            instance.follow = data.follow
 
         instance.save()
         return cls.success_response(instance)
@@ -48,8 +58,7 @@ class SocialCreate(ModelMutation):
     def success_response(cls, instance):
         """Return a success response."""
         return cls(**{cls._meta.return_field_name: instance, "errors": []})
-    
+
     @classmethod
     def save(cls, info, instance):
         instance.save()
-
