@@ -5674,7 +5674,7 @@ def test_delete_product(
     with pytest.raises(product._meta.model.DoesNotExist):
         product.refresh_from_db()
     assert node_id == data["product"]["id"]
-    mocked_recalculate_orders_task.assert_not_called
+    mocked_recalculate_orders_task.assert_not_called()
 
 
 @patch("saleor.product.signals.delete_versatile_image")
@@ -5719,7 +5719,7 @@ def test_delete_product_with_image(
     assert {
         call_args.args[0] for call_args in delete_versatile_image_mock.call_args_list
     } == set(images)
-    mocked_recalculate_orders_task.assert_not_called
+    mocked_recalculate_orders_task.assert_not_called()
 
 
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
@@ -5753,7 +5753,38 @@ def test_delete_product_trigger_webhook(
     mocked_webhook_trigger.assert_called_once_with(
         WebhookEventType.PRODUCT_DELETED, expected_data
     )
-    mocked_recalculate_orders_task.assert_not_called
+    mocked_recalculate_orders_task.assert_not_called()
+
+
+def test_delete_product_removes_checkout_lines(
+    staff_api_client,
+    checkout_with_items,
+    permission_manage_products,
+    settings,
+):
+    query = DELETE_PRODUCT_MUTATION
+    checkout = checkout_with_items
+    line = checkout.lines.first()
+    product = line.variant.product
+    node_id = graphene.Node.to_global_id("Product", product.id)
+    variables = {"id": node_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productDelete"]
+    assert data["product"]["name"] == product.name
+
+    with pytest.raises(product._meta.model.DoesNotExist):
+        product.refresh_from_db()
+
+    with pytest.raises(line._meta.model.DoesNotExist):
+        line.refresh_from_db()
+    assert checkout.lines.all().exists()
+
+    checkout.refresh_from_db()
+
+    assert node_id == data["product"]["id"]
 
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")

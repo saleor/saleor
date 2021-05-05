@@ -5,8 +5,11 @@ import pytest
 from django.utils import timezone
 from prices import Money, TaxedMoney
 
+from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from ....checkout.utils import add_variant_to_checkout, calculate_checkout_quantity
 from ....order import OrderStatus
 from ....order.models import OrderLine
+from ....plugins.manager import get_plugins_manager
 from ....product.models import (
     Category,
     Collection,
@@ -443,7 +446,7 @@ def test_delete_products_with_images(
     assert {
         call_args.args[0] for call_args in delete_versatile_image_mock.call_args_list
     } == {media1.image, media2.image}
-    mocked_recalculate_orders_task.assert_not_called
+    mocked_recalculate_orders_task.assert_not_called()
 
 
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
@@ -474,7 +477,41 @@ def test_delete_products_trigger_webhook(
 
     assert content["data"]["productBulkDelete"]["count"] == 3
     assert mocked_webhook_trigger.called
-    mocked_recalculate_orders_task.assert_not_called
+    mocked_recalculate_orders_task.assert_not_called()
+
+
+def test_delete_products_removes_checkout_lines(
+    staff_api_client,
+    product_list,
+    checkout_with_items,
+    permission_manage_products,
+    channel_USD,
+    settings,
+):
+    # given
+    checkout = checkout_with_items
+    lines_count = checkout.lines.count()
+    lines = fetch_checkout_lines(checkout)
+    old_quantity = calculate_checkout_quantity(lines)
+
+    query = DELETE_PRODUCTS_MUTATION
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("Product", product.id)
+            for product in product_list
+        ]
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+
+    assert content["data"]["productBulkDelete"]["count"] == 3
+
+    checkout.refresh_from_db()
+    lines = fetch_checkout_lines(checkout)
+    assert checkout.lines.count() == lines_count - 3
+    assert old_quantity == calculate_checkout_quantity(lines) + 3
 
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
@@ -608,7 +645,51 @@ def test_delete_product_variants(
         product_variant_deleted_webhook_mock.call_count
         == content["data"]["productVariantBulkDelete"]["count"]
     )
-    mocked_recalculate_orders_task.assert_not_called
+    mocked_recalculate_orders_task.assert_not_called()
+
+
+def test_delete_product_variants_removes_checkout_lines(
+    staff_api_client,
+    checkout,
+    product_list,
+    permission_manage_products,
+):
+    query = PRODUCT_VARIANT_BULK_DELETE_MUTATION
+
+    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    variant_list = [product.variants.first() for product in product_list][:2]
+    for variant in variant_list:
+        add_variant_to_checkout(checkout_info, variant, 1)
+
+    lines_count = checkout.lines.count()
+    lines = fetch_checkout_lines(checkout)
+    old_quantity = calculate_checkout_quantity(lines)
+
+    assert ProductVariantChannelListing.objects.filter(
+        variant_id__in=[variant.id for variant in variant_list]
+    ).exists()
+
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("ProductVariant", variant.id)
+            for variant in variant_list
+        ]
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    flush_post_commit_hooks()
+
+    assert content["data"]["productVariantBulkDelete"]["count"] == 2
+    assert not ProductVariant.objects.filter(
+        id__in=[variant.id for variant in variant_list]
+    ).exists()
+    checkout.refresh_from_db()
+    lines = fetch_checkout_lines(checkout)
+
+    assert checkout.lines.count() == lines_count - 2
+    assert old_quantity == calculate_checkout_quantity(lines) + 2
 
 
 @patch("saleor.product.signals.delete_versatile_image")
@@ -660,7 +741,7 @@ def test_delete_product_variants_with_images(
         product_variant_deleted_webhook_mock.call_count
         == content["data"]["productVariantBulkDelete"]["count"]
     )
-    mocked_recalculate_orders_task.assert_not_called
+    mocked_recalculate_orders_task.assert_not_called()
     delete_versatile_image_mock.assert_not_called()
 
 
@@ -808,7 +889,7 @@ def test_delete_product_variants_delete_default_variant(
 
     product.refresh_from_db()
     assert product.default_variant.pk == new_default_variant.pk
-    mocked_recalculate_orders_task.assert_not_called
+    mocked_recalculate_orders_task.assert_not_called()
 
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
@@ -858,7 +939,7 @@ def test_delete_product_variants_delete_all_product_variants(
 
     product.refresh_from_db()
     assert product.default_variant is None
-    mocked_recalculate_orders_task.assert_not_called
+    mocked_recalculate_orders_task.assert_not_called()
 
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
@@ -910,4 +991,4 @@ def test_delete_product_variants_from_different_products(
 
     assert product_1.default_variant is None
     assert product_2.default_variant.pk == product_2_second_variant.pk
-    mocked_recalculate_orders_task.assert_not_called
+    mocked_recalculate_orders_task.assert_not_called()
