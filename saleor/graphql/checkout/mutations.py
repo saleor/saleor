@@ -24,13 +24,14 @@ from ...checkout.utils import (
     add_promo_code_to_checkout,
     add_variant_to_checkout,
     add_variants_to_checkout,
+    calculate_checkout_quantity,
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
     get_user_checkout,
     is_shipping_required,
     recalculate_checkout_discount,
     remove_promo_code_from_checkout,
-    update_checkout_quantity,
+    validate_variants_in_checkout_lines,
 )
 from ...core import analytics
 from ...core.exceptions import InsufficientStock, PermissionDenied, ProductNotPublished
@@ -92,8 +93,9 @@ def update_checkout_shipping_method_if_invalid(
     checkout_info: "CheckoutInfo", lines: Iterable[CheckoutLineInfo]
 ):
     checkout = checkout_info.checkout
+    quantity = calculate_checkout_quantity(lines)
     # remove shipping method when empty checkout
-    if checkout.quantity == 0 or not is_shipping_required(lines):
+    if quantity == 0 or not is_shipping_required(lines):
         checkout.shipping_method = None
         checkout_info.shipping_method = None
         checkout_info.shipping_method_channel_listings = None
@@ -538,7 +540,6 @@ class CheckoutLineDelete(BaseMutation):
             checkout, lines, info.context.discounts, manager
         )
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
-        update_checkout_quantity(checkout)
         recalculate_checkout_discount(
             manager, checkout_info, lines, info.context.discounts
         )
@@ -674,7 +675,6 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
 
         discounts = info.context.discounts
         manager = info.context.plugins
-        lines = fetch_checkout_lines(checkout)
         checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
 
         country = get_user_country_context(
@@ -936,12 +936,7 @@ class CheckoutComplete(BaseMutation):
 
             manager = info.context.plugins
             lines = fetch_checkout_lines(checkout)
-            variants_id = {line.variant.id for line in lines}
-            validate_variants_available_in_channel(
-                variants_id,
-                checkout.channel,
-                CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL,
-            )
+            validate_variants_in_checkout_lines(lines)
             checkout_info = fetch_checkout_info(
                 checkout, lines, info.context.discounts, manager
             )
