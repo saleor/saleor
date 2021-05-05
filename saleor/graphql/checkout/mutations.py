@@ -113,11 +113,19 @@ def update_checkout_shipping_method_if_invalid(
         checkout.save(update_fields=["shipping_method", "last_change"])
 
 
-def check_lines_quantity(variants, quantities, country, channel_slug, new_line=True):
-    """Clean quantities and check if stock is sufficient for each checkout line."""
+def check_lines_quantity(
+    variants, quantities, country, channel_slug, allow_zero_quantity=False
+):
+    """Clean quantities and check if stock is sufficient for each checkout line.
+
+    By default, zero quantity is not allowed,
+    but if this validation is used for updating existing checkout lines,
+    allow_zero_quantities can be set to True
+    and checkout lines with this quantity can be later removed.
+    """
 
     for quantity in quantities:
-        if new_line and quantity <= 0:
+        if not allow_zero_quantity and quantity <= 0:
             raise ValidationError(
                 {
                     "quantity": ValidationError(
@@ -127,7 +135,7 @@ def check_lines_quantity(variants, quantities, country, channel_slug, new_line=T
                 }
             )
 
-        elif not new_line and quantity < 0:
+        elif allow_zero_quantity and quantity < 0:
             raise ValidationError(
                 {
                     "quantity": ValidationError(
@@ -532,7 +540,7 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
     @classmethod
     def validate_checkout_lines(cls, variants, quantities, country, channel_slug):
         check_lines_quantity(
-            variants, quantities, country, channel_slug, new_line=False
+            variants, quantities, country, channel_slug, allow_zero_quantity=True
         )
 
     @classmethod
