@@ -1468,7 +1468,9 @@ ACCOUNT_UPDATE_QUERY = """
         }) {
             errors {
                 field
+                code
                 message
+                addressType
             }
             user {
                 firstName
@@ -1548,6 +1550,44 @@ def test_logged_customer_update_addresses(user_api_client, graphql_address_data)
 
     assert user.default_billing_address.first_name == new_first_name
     assert user.default_shipping_address.first_name == new_first_name
+
+
+def test_logged_customer_update_addresses_invalid_shipping_address(
+    user_api_client, graphql_address_data
+):
+    shipping_address = graphql_address_data.copy()
+    del shipping_address["country"]
+
+    query = ACCOUNT_UPDATE_QUERY
+    mutation_name = "accountUpdate"
+    variables = {"billing": graphql_address_data, "shipping": shipping_address}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"][mutation_name]
+    assert len(data["errors"]) == 1
+    errors = data["errors"]
+    assert errors[0]["field"] == "country"
+    assert errors[0]["code"] == AccountErrorCode.REQUIRED.name
+    assert errors[0]["addressType"] == AddressType.SHIPPING.upper()
+
+
+def test_logged_customer_update_addresses_invalid_billing_address(
+    user_api_client, graphql_address_data
+):
+    billing_address = graphql_address_data.copy()
+    del billing_address["country"]
+
+    query = ACCOUNT_UPDATE_QUERY
+    mutation_name = "accountUpdate"
+    variables = {"billing": billing_address, "shipping": graphql_address_data}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"][mutation_name]
+    assert len(data["errors"]) == 1
+    errors = data["errors"]
+    assert errors[0]["field"] == "country"
+    assert errors[0]["code"] == AccountErrorCode.REQUIRED.name
+    assert errors[0]["addressType"] == AddressType.BILLING.upper()
 
 
 def test_logged_customer_update_anonymous_user(api_client):
@@ -3681,6 +3721,11 @@ mutation($addressInput: AddressInput!, $addressType: AddressTypeEnum) {
     user {
         email
     }
+    errors {
+        code
+        field
+        addressType
+    }
   }
 }
 """
@@ -3766,8 +3811,15 @@ def test_address_not_created_after_validation_fails(
 
     address_type = AddressType.SHIPPING.upper()
     variables = {"addressInput": graphql_address_data, "addressType": address_type}
-    user_api_client.post_graphql(query, variables)
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
 
+    data = content["data"]["accountAddressCreate"]
+    assert not data["address"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == AccountErrorCode.INVALID.name
+    assert data["errors"][0]["field"] == "postalCode"
+    assert data["errors"][0]["addressType"] == address_type
     user.refresh_from_db()
     assert user.addresses.count() == nr_of_addresses
 

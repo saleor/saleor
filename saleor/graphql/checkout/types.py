@@ -174,6 +174,7 @@ class Checkout(CountableDjangoObjectType):
     is_shipping_required = graphene.Boolean(
         description="Returns True, if checkout requires shipping.", required=True
     )
+    quantity = graphene.Int(required=True, description="The number of items purchased.")
     lines = graphene.List(
         CheckoutLine,
         description=(
@@ -215,7 +216,6 @@ class Checkout(CountableDjangoObjectType):
             "last_change",
             "channel",
             "note",
-            "quantity",
             "shipping_address",
             "translated_discount_name",
             "user",
@@ -272,6 +272,17 @@ class Checkout(CountableDjangoObjectType):
         return Promise.all([shipping_method, channel]).then(
             wrap_shipping_method_with_channel_context
         )
+
+    @staticmethod
+    def resolve_quantity(root: models.Checkout, info):
+        checkout_info = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(
+            root.token
+        )
+
+        def calculate_quantity(lines):
+            return sum([line_info.line.quantity for line_info in lines])
+
+        return checkout_info.then(calculate_quantity)
 
     @staticmethod
     @traced_resolver

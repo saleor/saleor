@@ -38,6 +38,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix invalid tax rates for lines - #7058 by @IKarbowiak
 - Allow seeing unconfirmed orders - #7072 by @IKarbowiak
 - Raise GraphQLError when too big integer value is provided - #7076 by @IKarbowiak
+- Do not update draft order addresses when user is changing - #7088 by @IKarbowiak
 - Recalculate draft order when product/variant was deleted - #7085 by @d-wysocki
 - Added validation for `DraftOrderCreate` with negative quantity line - #7085 by @d-wysocki
 - Remove html tags from product description_plaintext - #7094 by @d-wysocki
@@ -69,6 +70,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Use GraphQL IDs instead of database IDs in export - #7240 by @IKarbowiak
 - Fix draft order tax mismatch - #7226 by @IKarbowiak
   - Introduce `calculate_order_line_total` plugin method
+- Raise ValidationError when refund cannot be performed - #7260 by @IKarbowiak
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -184,6 +186,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Introduce product reference attributes - #6711 by @IKarbowiak
 - Add metadata to warehouse - #6727 by @d-wysocki
 - Add page webhooks: `PAGE_CREATED`, `PAGE_UPDATED` and `PAGE_DELETED` - #6787 by @d-wysocki
+- Introduce numeric attributes - #6790 by @IKarbowiak
 - Add `PRODUCT_DELETED` webhook - #6794 by @d-wysocki
 - Fix `product_updated` and `product_created` webhooks - #6798 by @d-wysocki
 - Add interface for integrating the auth plugins - #6799 by @korycins
