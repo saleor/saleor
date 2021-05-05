@@ -388,6 +388,9 @@ class PageMediaUpdateInput(graphene.InputObjectType):
 class PageMediaUpdate(BaseMutation):
     page = graphene.Field(Page)
     media = graphene.Field(PageMedia)
+    is_active = graphene.Boolean(
+        required=False, description="Delete image for page."
+    )
 
     class Arguments:
         id = graphene.ID(required=True, description="ID of a page media to update.")
