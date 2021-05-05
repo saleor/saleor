@@ -390,7 +390,7 @@ class PageMediaUpdateInput(graphene.InputObjectType):
 
 class PageMediaUpdate(BaseMutation):
     page = graphene.Field(Page)
-    media = graphene.Field(PageMedia)
+    media = graphene.Field(PageMedia) 
 
     class Arguments:
         id = graphene.ID(required=True, description="ID of a page media to update.")
@@ -409,8 +409,10 @@ class PageMediaUpdate(BaseMutation):
         media = cls.get_node_or_error(info, data.get("id"), only_type=PageMedia)
         page = media.page
         alt = data.get("input").get("alt")
-        if alt is not None:
+        is_active = data.get("input").get("is_active")
+        if alt is not None or is_active is not None:
             media.alt = alt
+            media.is_active = is_active
             media.save(update_fields=["alt"])
         ChannelContext(node=page, channel_slug=None)
         return PageMediaUpdate(page=page, media=media)
