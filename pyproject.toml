@@ -75,7 +75,7 @@ sendgrid = "^6.5.0"
 micawber = "^0.5.2"
 
 [tool.poetry.dev-dependencies]
-black = "21.4b0"
+black = "21.5b0"
 codecov = "^2.1.11"
 coverage = "^5.5"
 django-debug-toolbar = "^3.2"
