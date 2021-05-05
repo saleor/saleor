@@ -156,6 +156,7 @@ def test_get_discount_for_checkout_value_voucher(
             collections=[],
             product=line.variant.product,
             variant=line.variant,
+            product_type=line.variant.product.product_type,
         )
         for line in checkout_with_items.lines.all()
     ]
