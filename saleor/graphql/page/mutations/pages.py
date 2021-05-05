@@ -413,7 +413,7 @@ class PageMediaUpdate(BaseMutation):
             media.alt = alt
             media.save(update_fields=["alt"])
         ChannelContext(node=page, channel_slug=None)
-        return PageMediaUpdate(product=page, media=media)
+        return PageMediaUpdate(page=page, media=media)
 
 
 class PageMediaReorder(BaseMutation):
