@@ -10,7 +10,7 @@ from django.db.models import Q
 from ...channel.exceptions import ChannelNotDefined
 from ...channel.models import Channel
 from ...channel.utils import get_default_channel
-from ...checkout import models
+from ...checkout import AddressType, models
 from ...checkout.complete_checkout import complete_checkout
 from ...checkout.error_codes import CheckoutErrorCode
 from ...checkout.fetch import (
@@ -258,7 +258,9 @@ class CheckoutCreate(ModelMutation, I18nMixin):
     @classmethod
     def retrieve_shipping_address(cls, user, data: dict) -> Optional[models.Address]:
         if data.get("shipping_address") is not None:
-            return cls.validate_address(data["shipping_address"])
+            return cls.validate_address(
+                data["shipping_address"], address_type=AddressType.SHIPPING
+            )
         if user.is_authenticated:
             return user.default_shipping_address
         return None
@@ -266,7 +268,9 @@ class CheckoutCreate(ModelMutation, I18nMixin):
     @classmethod
     def retrieve_billing_address(cls, user, data: dict) -> Optional[models.Address]:
         if data.get("billing_address") is not None:
-            return cls.validate_address(data["billing_address"])
+            return cls.validate_address(
+                data["billing_address"], address_type=AddressType.BILLING
+            )
         if user.is_authenticated:
             return user.default_billing_address
         return None
@@ -663,7 +667,10 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             )
 
         shipping_address = cls.validate_address(
-            shipping_address, instance=checkout.shipping_address, info=info
+            shipping_address,
+            address_type=AddressType.SHIPPING,
+            instance=checkout.shipping_address,
+            info=info,
         )
 
         discounts = info.context.discounts
@@ -713,7 +720,10 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
         billing_address = cls.validate_address(
-            billing_address, instance=checkout.billing_address, info=info
+            billing_address,
+            address_type=AddressType.BILLING,
+            instance=checkout.billing_address,
+            info=info,
         )
         with transaction.atomic():
             billing_address.save()
