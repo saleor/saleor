@@ -383,14 +383,14 @@ class PageMediaCreate(BaseMutation):
 
 class PageMediaUpdateInput(graphene.InputObjectType):
     alt = graphene.String(description="Alt text for a page media.")
+    is_active = graphene.Boolean(
+        required=False, description="Delete image for page."
+    )
 
 
 class PageMediaUpdate(BaseMutation):
     page = graphene.Field(Page)
     media = graphene.Field(PageMedia)
-    is_active = graphene.Boolean(
-        required=False, description="Delete image for page."
-    )
 
     class Arguments:
         id = graphene.ID(required=True, description="ID of a page media to update.")

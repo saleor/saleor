@@ -22,9 +22,12 @@ from ..store.types import Store
 
 @key(fields="id")
 class PageMedia(CountableDjangoObjectType):
+    is_active = graphene.Boolean(
+        required=False, description="Delete image for page."
+    )
     class Meta:
         description = "Represents a page media."
-        fields = ["alt", "id", "image", "sort_order", "type", "is_activate"]
+        fields = ["alt", "id", "image", "sort_order", "type", "is_active"]
         interfaces = [graphene.relay.Node]
         model = models.PageMedia
 
@@ -93,7 +96,7 @@ class Page(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_media(self, info, page=None, slug=None, channel=None, **_kwargs):
-        return models.PageMedia.objects.filter(page_id=self.pk)    
+        return models.PageMedia.objects.filter(page_id=self.pk, is_active=True)
 
 
 @key(fields="id")
