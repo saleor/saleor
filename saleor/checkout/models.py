@@ -47,7 +47,6 @@ class Checkout(ModelWithMetadata):
     )
     email = models.EmailField()
     token = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    quantity = models.PositiveIntegerField(default=0)
     channel = models.ForeignKey(
         Channel,
         related_name="checkouts",
@@ -97,9 +96,6 @@ class Checkout(ModelWithMetadata):
         permissions = (
             (CheckoutPermissions.MANAGE_CHECKOUTS.codename, "Manage checkouts"),
         )
-
-    def __repr__(self):
-        return "Checkout(quantity=%s)" % (self.quantity,)
 
     def __iter__(self):
         return iter(self.lines.all())
