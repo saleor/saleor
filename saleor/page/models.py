@@ -87,6 +87,7 @@ class PageMedia(SortableModel):
         choices=ProductMediaTypes.CHOICES,
         default=ProductMediaTypes.IMAGE,
     )
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         ordering = ("sort_order", "pk")
