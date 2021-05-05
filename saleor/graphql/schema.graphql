@@ -888,7 +888,7 @@ type Checkout implements Node & ObjectWithMetadata {
   availablePaymentGateways: [PaymentGateway!]!
   email: String!
   isShippingRequired: Boolean!
-  quantity: Int
+  quantity: Int!
   lines: [CheckoutLine]
   shippingPrice: TaxedMoney
   shippingMethod: ShippingMethod

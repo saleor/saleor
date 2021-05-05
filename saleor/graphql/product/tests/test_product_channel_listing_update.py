@@ -964,7 +964,7 @@ def test_product_channel_listing_update_remove_channel_removes_checkout_lines(
 
     # then
     data = content["data"]["productChannelListingUpdate"]
-    assert not data["productChannelListingErrors"]
+    assert not data["errors"]
     assert not checkout.lines.all().exists()
 
 
@@ -1218,7 +1218,7 @@ def test_product_channel_listing_remove_variant_removes_checkout_lines(
 
     # then
     data = content["data"]["productChannelListingUpdate"]
-    assert not data["productChannelListingErrors"]
+    assert not data["errors"]
 
     assert len(variant.channel_listings.all()) == 1
 

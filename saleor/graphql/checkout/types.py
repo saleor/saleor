@@ -174,7 +174,7 @@ class Checkout(CountableDjangoObjectType):
     is_shipping_required = graphene.Boolean(
         description="Returns True, if checkout requires shipping.", required=True
     )
-    quantity = graphene.Int(description="The number of items purchased.")
+    quantity = graphene.Int(required=True, description="The number of items purchased.")
     lines = graphene.List(
         CheckoutLine,
         description=(

@@ -5762,7 +5762,6 @@ def test_delete_product_removes_checkout_lines(
     permission_manage_products,
     settings,
 ):
-    # TODO: update test
     query = DELETE_PRODUCT_MUTATION
     checkout = checkout_with_items
     line = checkout.lines.first()

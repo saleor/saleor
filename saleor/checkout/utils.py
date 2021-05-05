@@ -122,7 +122,7 @@ def add_variant_to_checkout(
     return checkout
 
 
-def calculate_checkout_quantity(lines):
+def calculate_checkout_quantity(lines: Iterable["CheckoutLineInfo"]):
     return sum([line_info.line.quantity for line_info in lines])
 
 

@@ -734,13 +734,11 @@ class ProductDelete(ModelDeleteMutation):
         ).values("pk", "order_id")
         line_pks = {line["pk"] for line in lines_id_and_orders_id}
         orders_id = {line["order_id"] for line in lines_id_and_orders_id}
-
         response = super().perform_mutation(_root, info, **data)
         # delete order lines for deleted variant
         order_models.OrderLine.objects.filter(pk__in=line_pks).delete()
         if orders_id:
             recalculate_orders_task.delay(list(orders_id))
-
         info.context.plugins.product_deleted(instance, variants_id)
 
         return response
