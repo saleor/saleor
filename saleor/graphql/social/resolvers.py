@@ -18,4 +18,4 @@ def resolve_social(info, global_page_id=None, slug=None):
 
 def resolve_socials(info, **_kwargs):
     user = info.context.user
-    return models.Social.objects.filter(user=user).all()
+    return models.Social.objects.all().filter(user=user).all()

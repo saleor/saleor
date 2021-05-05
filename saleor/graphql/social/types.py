@@ -20,16 +20,18 @@ class Social(CountableDjangoObjectType):
     )
     user = graphene.Field(
         User,
-        id=graphene.Argument(graphene.ID, description="ID of the store."),
-        description="Look up a store type by ID",
-    )
-    interfaces = [graphene.relay.Node, ObjectWithMetadata]
-    
+        id=graphene.Argument(graphene.ID, description="ID of the user."),
+        description="Look up a user type by ID",
+    )    
+
     class Meta:
         description = (
             "social follow action."
         )
         only_fields = [
-            "follow"
+            "follow",
+            "user",
+            "store"
         ]
         model = models.Social
+        interfaces = [graphene.relay.Node, ObjectWithMetadata]
