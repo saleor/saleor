@@ -341,7 +341,8 @@ class GraphQLView(View):
         exc = error
         while isinstance(exc, GraphQLError) and hasattr(exc, "original_error"):
             exc = exc.original_error
-
+        if isinstance(exc, (AssertionError, ValueError)):
+            exc = GraphQLError(str(exc))
         if isinstance(exc, cls.HANDLED_EXCEPTIONS):
             handled_errors_logger.info("A query had an error", exc_info=exc)
         else:
