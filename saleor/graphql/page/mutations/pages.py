@@ -410,10 +410,11 @@ class PageMediaUpdate(BaseMutation):
         page = media.page
         alt = data.get("input").get("alt")
         is_active = data.get("input").get("is_active")
-        if alt is not None or is_active is not None:
+        if alt is not None:
             media.alt = alt
             media.is_active = is_active
-            media.save(update_fields=["alt"])
+            media.save(update_fields=["alt", "is_active"])
+
         ChannelContext(node=page, channel_slug=None)
         return PageMediaUpdate(page=page, media=media)
 
