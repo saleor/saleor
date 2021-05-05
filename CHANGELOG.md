@@ -71,6 +71,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Use GraphQL IDs instead of database IDs in export - #7240 by @IKarbowiak
 - Fix draft order tax mismatch - #7226 by @IKarbowiak
   - Introduce `calculate_order_line_total` plugin method
+- Raise ValidationError when refund cannot be performed - #7260 by @IKarbowiak
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
