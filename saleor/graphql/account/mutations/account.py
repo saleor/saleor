@@ -25,6 +25,8 @@ from .base import (
     BaseCustomerCreate,
 )
 from ..enums import CountryCodeEnum
+from ....account.utils import store_user_address
+from ....plugins.manager import get_plugins_manager
 
 class AccountRegisterInput(graphene.InputObjectType):
     email = graphene.String(description="The email address of the user.", required=True)
@@ -35,8 +37,8 @@ class AccountRegisterInput(graphene.InputObjectType):
         ),
         required=False,
     )
-    first_name = graphene.String(description="Given name.")
-    last_name = graphene.String(description="Family name.")
+    first_name = graphene.String(description="Given name.", required=True)
+    last_name = graphene.String(description="Family name.", required=True)
     company_name = graphene.String(description="Company or organization.")
     street_address_1 = graphene.String(description="Address.")
     street_address_2 = graphene.String(description="Address.")
@@ -45,8 +47,8 @@ class AccountRegisterInput(graphene.InputObjectType):
     postal_code = graphene.String(description="Postal code.")
     country = CountryCodeEnum(description="Country.")
     country_area = graphene.String(description="State or province.")
-    phone = graphene.String(description="Phone number.")
-    store = graphene.String(description="store name.")
+    phone = graphene.String(description="Phone number.", required=True)
+    store_name = graphene.String(description="store name.")
 
 
 class AccountRegister(ModelMutation):
@@ -108,12 +110,29 @@ class AccountRegister(ModelMutation):
     def save(cls, info, user, cleaned_input):
         password = cleaned_input["password"]
         user.set_password(password)
+        if "store_name" in cleaned_input:
+            store = models.Store(
+                name=cleaned_input["store_name"],
+                acreage=0,
+                phone=cleaned_input["phone"]
+            )
+            store.save()
+            user.store = store
         if settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL:
             user.is_active = False
             user.save()
             emails.send_account_confirmation_email(user, cleaned_input["redirect_url"])
         else:
             user.save()
+        address = models.Address(
+            first_name = cleaned_input["first_name"],
+            last_name = cleaned_input["last_name"],
+        )
+        address.save()
+        manager = get_plugins_manager()
+        store_user_address(user, address, AddressType.BILLING, manager)
+        store_user_address(user, address, AddressType.SHIPPING, manager)
+
         account_events.customer_account_created_event(user=user)
         info.context.plugins.customer_created(customer=user)
 

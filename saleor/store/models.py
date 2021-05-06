@@ -70,15 +70,13 @@ class Store(models.Model):
         null=True,
         blank=True,
     )
-
     phone = PossiblePhoneNumberField(blank=True, default="")
-    acreage = models.FloatField(max_length=250)
-    latlong = models.CharField(max_length=250)
-
+    acreage = models.FloatField(blank=True, null=True, max_length=250)
+    latlong = models.CharField(blank=True, null=True, max_length=250)
     background_image = VersatileImageField(
         upload_to="store-backgrounds", blank=True, null=True
     )
-    background_image_alt = models.CharField(max_length=128, blank=True)
+    background_image_alt = models.CharField(max_length=128, blank=True, null=True)
     translated = TranslationProxy()
 
     def __str__(self) -> str:
