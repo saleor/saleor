@@ -3,6 +3,7 @@ from ..core.permissions import (
     CheckoutPermissions,
     OrderPermissions,
     PagePermissions,
+    PaymentPermissions,
     ProductPermissions,
 )
 
@@ -155,4 +156,11 @@ class WebhookEventType:
         PAGE_CREATED: PagePermissions.MANAGE_PAGES,
         PAGE_UPDATED: PagePermissions.MANAGE_PAGES,
         PAGE_DELETED: PagePermissions.MANAGE_PAGES,
+        PAYMENT_AUTHORIZE: PaymentPermissions.MANAGE_PAYMENTS,
+        PAYMENT_CAPTURE: PaymentPermissions.MANAGE_PAYMENTS,
+        PAYMENT_CONFIRM: PaymentPermissions.MANAGE_PAYMENTS,
+        PAYMENT_LIST_GATEWAYS: PaymentPermissions.MANAGE_PAYMENTS,
+        PAYMENT_PROCESS: PaymentPermissions.MANAGE_PAYMENTS,
+        PAYMENT_REFUND: PaymentPermissions.MANAGE_PAYMENTS,
+        PAYMENT_VOID: PaymentPermissions.MANAGE_PAYMENTS,
     }

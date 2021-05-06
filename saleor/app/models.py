@@ -6,12 +6,21 @@ from oauthlib.common import generate_token
 
 from ..core.models import Job, ModelWithMetadata
 from ..core.permissions import AppPermission
+from ..webhook.event_types import WebhookEventType
 from .types import AppType
 
 
 class AppQueryset(models.QuerySet):
     def for_event_type(self, event_type: str):
-        return self.filter(is_active=True, webhooks__events__event_type=event_type)
+        permissions = {}
+        required_permission = WebhookEventType.PERMISSIONS.get(event_type)
+        if required_permission:
+            app_label, codename = required_permission.value.split(".")
+            permissions["permissions__content_type__app_label"] = app_label
+            permissions["permissions__codename"] = codename
+        return self.filter(
+            is_active=True, webhooks__events__event_type=event_type, **permissions
+        )
 
 
 class App(ModelWithMetadata):

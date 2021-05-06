@@ -9,6 +9,7 @@ from django.db.models import JSONField  # type: ignore
 from prices import Money
 
 from ..checkout.models import Checkout
+from ..core.permissions import PaymentPermissions
 from ..core.taxes import zero_money
 from . import ChargeStatus, CustomPaymentChoices, TransactionKind
 
@@ -88,6 +89,12 @@ class Payment(models.Model):
 
     class Meta:
         ordering = ("pk",)
+        permissions = (
+            (
+                PaymentPermissions.MANAGE_PAYMENTS.codename,
+                "Manage payments",
+            ),
+        )
 
     def __repr__(self):
         return "Payment(gateway=%s, is_active=%s, created=%s, charge_status=%s)" % (

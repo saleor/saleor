@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Any, List, Optional
 
 from ...app.models import App
 from ...core.utils.json_serializer import CustomJsonEncoder
-from ...payment import TransactionKind
+from ...payment import PaymentError, TransactionKind
 from ...webhook.event_types import WebhookEventType
 from ...webhook.payloads import (
     generate_checkout_payload,
@@ -235,11 +235,12 @@ class WebhookPlugin(BasePlugin):
 
         app = None
         app_pk = kwargs.get("payment_app")
+
         if app_pk is not None:
             app = App.objects.for_event_type(event_type).filter(pk=app_pk).first()
+
         if not app:
-            # App not found or app doesn't support give event_type.
-            raise Exception("App not found")
+            raise PaymentError("Selected payment method is not available.")
 
         webhook_payload = generate_payment_payload(payment_information)
         response_data = trigger_webhook_sync(
