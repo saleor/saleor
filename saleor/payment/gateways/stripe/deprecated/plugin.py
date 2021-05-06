@@ -26,7 +26,7 @@ class DeprecatedStripeGatewayPlugin(BasePlugin):
     PLUGIN_ID = "mirumee.payments.stripe"
     PLUGIN_DESCRIPTION = """
     This plugin will be removed in Saleor 4.0. Use the new Stripe plugin which
-    implements webhook support and 3D Secure and SCA.
+    implements webhook support, 3D Secure and SCA.
     """
 
     DEFAULT_CONFIGURATION = [
