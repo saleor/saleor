@@ -248,7 +248,7 @@ class Order(ModelWithMetadata):
         self.total_paid_amount = (
             sum(self.payments.values_list("captured_amount", flat=True)) or 0
         )
-        self.save(update_fields=["total_paid"])
+        self.save(update_fields=["total_paid_amount"])
 
     def _index_billing_phone(self):
         return self.billing_address.phone

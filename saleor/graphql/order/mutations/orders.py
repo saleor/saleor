@@ -142,6 +142,9 @@ def clean_refund_payment(payment):
 def try_payment_action(order, user, payment, func, *args, **kwargs):
     try:
         result = func(*args, **kwargs)
+        # provided order might alter it's total_paid.
+        order.refresh_from_db()
+        return result
     except (PaymentError, ValueError) as e:
         message = str(e)
         events.payment_failed_event(
@@ -150,9 +153,6 @@ def try_payment_action(order, user, payment, func, *args, **kwargs):
         raise ValidationError(
             {"payment": ValidationError(message, code=OrderErrorCode.PAYMENT_ERROR)}
         )
-    else:
-        order.update_total_paid()
-        return result
 
 
 class OrderUpdateInput(graphene.InputObjectType):
