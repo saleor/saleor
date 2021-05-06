@@ -168,10 +168,10 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
             (AccountPermissions.MANAGE_STAFF.codename, "Manage staff."),
         )
         indexes = [
+            *ModelWithMetadata.Meta.indexes,
             # Orders searching index
             GinIndex(fields=["email", "first_name", "last_name"]),
         ]
-        indexes.extend(ModelWithMetadata.Meta.indexes)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

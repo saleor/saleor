@@ -228,8 +228,7 @@ class Order(ModelWithMetadata):
     class Meta:
         ordering = ("-pk",)
         permissions = ((OrderPermissions.MANAGE_ORDERS.codename, "Manage orders."),)
-        indexes = [GinIndex(fields=["user_email"])]
-        indexes.extend(ModelWithMetadata.Meta.indexes)
+        indexes = [*ModelWithMetadata.Meta.indexes, GinIndex(fields=["user_email"])]
 
     def save(self, *args, **kwargs):
         if not self.token:

@@ -31,8 +31,7 @@ def get_payment_id_from_query(value):
 def get_order_id_from_query(value):
     if value.startswith("#"):
         value = value[1:]
-    if value.isnumeric():
-        return value
+    return value if value.isnumeric() else None
 
 
 def filter_order_by_payment(qs, payment_id):
@@ -74,22 +73,20 @@ def filter_created_range(qs, _, value):
 
 
 def filter_order_search(qs, _, value):
-    payment_id = get_payment_id_from_query(value)
-    if payment_id:
+    if payment_id := get_payment_id_from_query(value):
         return filter_order_by_payment(qs, payment_id)
 
-    order_id = get_order_id_from_query(value)
-    if order_id:
+    if order_id := get_order_id_from_query(value):
         return qs.filter(pk=order_id)
 
     transactions = Transaction.objects.filter(searchable_key=value).values("id")
     payments = Payment.objects.filter(
         Exists(transactions.filter(payment_id=OuterRef("id")))
-    )
+    ).values("id")
     discounts = OrderDiscount.objects.filter(
         Q(name__trigram_similar=value) | Q(translated_name__trigram_similar=value)
     ).values("id")
-    qs = qs.filter(
+    return qs.filter(
         Q(user_email__trigram_similar=value)
         | Q(Exists(discounts.filter(order_id=OuterRef("id"))))
         | Q(user__email__trigram_similar=value)
@@ -97,7 +94,6 @@ def filter_order_search(qs, _, value):
         | Q(user__last_name__trigram_similar=value)
         | Q(Exists(payments.filter(order_id=OuterRef("id"))))
     )
-    return qs
 
 
 def filter_channels(qs, _, values):
