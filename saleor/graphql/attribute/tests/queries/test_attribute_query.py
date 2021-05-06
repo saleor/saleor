@@ -66,6 +66,7 @@ query($id: ID!) {
         inputType
         entityType
         type
+        unit
         values {
             slug
             inputType
@@ -294,6 +295,50 @@ def test_get_single_reference_attribute_by_staff(
     assert (
         content["data"]["attribute"]["entityType"]
         == product_type_page_reference_attribute.entity_type.upper()
+    )
+
+
+def test_get_single_numeric_attribute_by_staff(
+    staff_api_client, numeric_attribute, permission_manage_products
+):
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    attribute_gql_id = graphene.Node.to_global_id("Attribute", numeric_attribute.id)
+    query = QUERY_ATTRIBUTE
+    content = get_graphql_content(
+        staff_api_client.post_graphql(query, {"id": attribute_gql_id})
+    )
+
+    assert content["data"]["attribute"], "Should have found an attribute"
+    assert content["data"]["attribute"]["id"] == attribute_gql_id
+    assert content["data"]["attribute"]["slug"] == numeric_attribute.slug
+    assert (
+        content["data"]["attribute"]["inputType"]
+        == numeric_attribute.input_type.upper()
+    )
+    assert content["data"]["attribute"]["unit"] == numeric_attribute.unit.upper()
+    assert (
+        content["data"]["attribute"]["valueRequired"]
+        == numeric_attribute.value_required
+    )
+    assert (
+        content["data"]["attribute"]["visibleInStorefront"]
+        == numeric_attribute.visible_in_storefront
+    )
+    assert (
+        content["data"]["attribute"]["filterableInStorefront"]
+        == numeric_attribute.filterable_in_storefront
+    )
+    assert (
+        content["data"]["attribute"]["filterableInDashboard"]
+        == numeric_attribute.filterable_in_dashboard
+    )
+    assert (
+        content["data"]["attribute"]["availableInGrid"]
+        == numeric_attribute.available_in_grid
+    )
+    assert (
+        content["data"]["attribute"]["storefrontSearchPosition"]
+        == numeric_attribute.storefront_search_position
     )
 
 

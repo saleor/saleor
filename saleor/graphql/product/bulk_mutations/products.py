@@ -99,6 +99,7 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
         error_type_field = "product_errors"
 
     @classmethod
+    @transaction.atomic
     def perform_mutation(cls, _root, info, ids, **data):
         _, pks = resolve_global_ids_to_primary_keys(ids, Product)
         product_to_variant = list(

@@ -212,6 +212,21 @@ class BasePlugin:
         """
         return NotImplemented
 
+    def calculate_order_line_total(
+        self,
+        order: "Order",
+        order_line: "OrderLine",
+        variant: "ProductVariant",
+        product: "Product",
+        previous_value: TaxedMoney,
+    ) -> TaxedMoney:
+        """Calculate order line total.
+
+        Overwrite this method if you need to apply specific logic for the calculation
+        of a order line total. Return TaxedMoney.
+        """
+        return NotImplemented
+
     def calculate_checkout_line_unit_price(
         self,
         checkout_info: "CheckoutInfo",

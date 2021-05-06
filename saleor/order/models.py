@@ -9,6 +9,7 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import JSONField  # type: ignore
 from django.db.models import F, Max, Sum
+from django.db.models.expressions import Exists, OuterRef
 from django.utils.timezone import now
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField, TaxedMoneyField
@@ -20,8 +21,9 @@ from ..channel.models import Channel
 from ..core.models import ModelWithMetadata
 from ..core.permissions import OrderPermissions
 from ..core.taxes import zero_taxed_money
+from ..core.units import WeightUnits
 from ..core.utils.json_serializer import CustomJsonEncoder
-from ..core.weight import WeightUnits, zero_weight
+from ..core.weight import zero_weight
 from ..discount import DiscountValueType
 from ..discount.models import Voucher
 from ..giftcard.models import GiftCard
@@ -31,6 +33,7 @@ from ..payment.model_helpers import (
     get_total_authorized,
     get_total_captured,
 )
+from ..payment.models import Payment
 from ..shipping.models import ShippingMethod
 from . import FulfillmentStatus, OrderEvents, OrderStatus
 
@@ -59,9 +62,13 @@ class OrderQueryset(models.QuerySet):
         fulfilled).
         """
         statuses = {OrderStatus.UNFULFILLED, OrderStatus.PARTIALLY_FULFILLED}
-        qs = self.filter(status__in=statuses, payments__is_active=True)
-        qs = qs.annotate(amount_paid=Sum("payments__captured_amount"))
-        return qs.filter(total_gross_amount__lte=F("amount_paid"))
+        payments = Payment.objects.filter(is_active=True).values("id")
+        qs = self.annotate(amount_paid=Sum("payments__captured_amount"))
+        return qs.filter(
+            Exists(payments.filter(order_id=OuterRef("id"))),
+            status__in=statuses,
+            total_gross_amount__lte=F("amount_paid"),
+        )
 
     def ready_to_capture(self):
         """Return orders with payments to capture.
@@ -70,11 +77,11 @@ class OrderQueryset(models.QuerySet):
         have a preauthorized payment. The preauthorized payment can not
         already be partially or fully captured.
         """
-        qs = self.filter(
-            payments__is_active=True, payments__charge_status=ChargeStatus.NOT_CHARGED
-        )
-        qs = qs.exclude(status={OrderStatus.DRAFT, OrderStatus.CANCELED})
-        return qs.distinct()
+        payments = Payment.objects.filter(
+            is_active=True, charge_status=ChargeStatus.NOT_CHARGED
+        ).values("id")
+        qs = self.filter(Exists(payments.filter(order_id=OuterRef("id"))))
+        return qs.exclude(status={OrderStatus.DRAFT, OrderStatus.CANCELED})
 
     def ready_to_confirm(self):
         """Return unconfirmed orders."""
@@ -210,7 +217,9 @@ class Order(ModelWithMetadata):
     display_gross_prices = models.BooleanField(default=True)
     customer_note = models.TextField(blank=True, default="")
     weight = MeasurementField(
-        measurement=Weight, unit_choices=WeightUnits.CHOICES, default=zero_weight
+        measurement=Weight,
+        unit_choices=WeightUnits.CHOICES,  # type: ignore
+        default=zero_weight,
     )
     redirect_url = models.URLField(blank=True, null=True)
     objects = OrderQueryset.as_manager()
