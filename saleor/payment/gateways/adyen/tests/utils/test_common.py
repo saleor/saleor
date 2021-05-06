@@ -15,8 +15,8 @@ from saleor.payment.gateways.adyen.utils.common import (
     request_data_for_payment,
     update_payment_with_action_required_data,
 )
-from saleor.payment.utils import price_from_minor_unit, price_to_minor_unit
 from saleor.payment.interface import PaymentMethodInfo
+from saleor.payment.utils import price_from_minor_unit, price_to_minor_unit
 
 from ......plugins.manager import get_plugins_manager
 
@@ -50,7 +50,7 @@ def test_append_klarna_data(
     # then
     variant_channel_listing = line.variant.channel_listings.get(channel_id=channel_id)
     variant_price = variant_channel_listing.price_amount
-    variant_currency = variant_channel_listing.currenc
+    variant_currency = variant_channel_listing.currency
     price = price_to_minor_unit(variant_price, variant_currency)
 
     assert result == {

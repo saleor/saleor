@@ -382,7 +382,7 @@ def price_from_minor_unit(value: str, currency: str):
 
 
 def price_to_minor_unit(value: Decimal, currency: str):
-    """Convert decimal value to the smallest unit of currency
+    """Convert decimal value to the smallest unit of currency.
 
     Take the value, discover the precision of currency and multiply value by
     Decimal('10.0'), then change quantization to remove the comma.
