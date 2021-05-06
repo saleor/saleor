@@ -46,6 +46,12 @@ class StaffInput(UserInput):
         description="List of permission group IDs to which user should be assigned.",
         required=False,
     )
+    is_staff = graphene.Boolean(
+        required=True, description="Determine if users will be set staff or not."
+    )
+    is_supplier = graphene.Boolean(
+        required=True, description="Determine if users will be set supplier or not."
+    )
 
 
 class StaffCreateInput(StaffInput):
@@ -193,7 +199,8 @@ class StaffCreate(ModelMutation):
 
         requestor = info.context.user
         # set is_staff to True to create a staff user
-        cleaned_input["is_staff"] = True
+        cleaned_input["is_staff"] = cleaned_input.get("is_staff")
+        cleaned_input["is_supplier"] = cleaned_input.get("is_supplier")
         cls.clean_groups(requestor, cleaned_input, errors)
         cls.clean_is_active(cleaned_input, instance, info.context.user, errors)
 
