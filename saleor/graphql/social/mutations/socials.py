@@ -42,14 +42,13 @@ class SocialCreate(ModelMutation):
 
         _type, store = graphene.Node.from_global_id(data.store)
         instance = models.Social.objects.filter(user=user, store_id=store).first()
-        if instance is None:
+        if instance.exists():
+            instance.follow = data.follow
+        else:
             instance = cls.get_instance(info, **data)
             cleaned_input = cls.clean_input(info, instance, data)
             instance = cls.construct_instance(instance, cleaned_input)
             instance.user = user
-
-        else:
-            instance.follow = data.follow
 
         instance.save()
         return cls.success_response(instance)
