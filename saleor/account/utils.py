@@ -91,7 +91,16 @@ def requestor_is_staff_member_or_app(requestor: Union[User, App]):
     """Return true if requestor is an active app or active staff user."""
     is_staff = False
     if isinstance(requestor, User):
-        is_staff = getattr(requestor, "is_staff")
+        is_staff = getattr(requestor, "is_staff") or getattr(requestor, "is_supplier")
     elif isinstance(requestor, App):
         is_staff = True
     return is_staff and requestor.is_active
+
+def requestor_is_supplier(requestor: Union[User, App]):
+    """Return true if requestor is a."""
+    is_supplier = False
+    if isinstance(requestor, User):
+        is_supplier = getattr(requestor, "is_supplier")
+    elif isinstance(requestor, App):
+        is_supplier = False
+    return is_supplier and requestor.is_active

@@ -56,6 +56,7 @@ def jwt_user_payload(
             "type": token_type,
             "user_id": graphene.Node.to_global_id("User", user.id),
             "is_staff": user.is_staff,
+            "is_supplier": user.is_supplier,
         }
     )
     if additional_payload:
