@@ -24,7 +24,7 @@ from .base import (
     BaseAddressUpdate,
     BaseCustomerCreate,
 )
-
+from ..enums import CountryCodeEnum
 
 class AccountRegisterInput(graphene.InputObjectType):
     email = graphene.String(description="The email address of the user.", required=True)
@@ -35,6 +35,18 @@ class AccountRegisterInput(graphene.InputObjectType):
         ),
         required=False,
     )
+    first_name = graphene.String(description="Given name.")
+    last_name = graphene.String(description="Family name.")
+    company_name = graphene.String(description="Company or organization.")
+    street_address_1 = graphene.String(description="Address.")
+    street_address_2 = graphene.String(description="Address.")
+    city = graphene.String(description="City.")
+    city_area = graphene.String(description="District.")
+    postal_code = graphene.String(description="Postal code.")
+    country = CountryCodeEnum(description="Country.")
+    country_area = graphene.String(description="State or province.")
+    phone = graphene.String(description="Phone number.")
+    store = graphene.String(description="store name.")
 
 
 class AccountRegister(ModelMutation):
