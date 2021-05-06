@@ -10,7 +10,7 @@ from django.db.models import Q
 from ...channel.exceptions import ChannelNotDefined
 from ...channel.models import Channel
 from ...channel.utils import get_default_channel
-from ...checkout import models
+from ...checkout import AddressType, models
 from ...checkout.complete_checkout import complete_checkout
 from ...checkout.error_codes import CheckoutErrorCode
 from ...checkout.fetch import (
@@ -24,13 +24,14 @@ from ...checkout.utils import (
     add_promo_code_to_checkout,
     add_variant_to_checkout,
     add_variants_to_checkout,
+    calculate_checkout_quantity,
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
     get_user_checkout,
     is_shipping_required,
     recalculate_checkout_discount,
     remove_promo_code_from_checkout,
-    update_checkout_quantity,
+    validate_variants_in_checkout_lines,
 )
 from ...core import analytics
 from ...core.exceptions import InsufficientStock, PermissionDenied, ProductNotPublished
@@ -92,8 +93,9 @@ def update_checkout_shipping_method_if_invalid(
     checkout_info: "CheckoutInfo", lines: Iterable[CheckoutLineInfo]
 ):
     checkout = checkout_info.checkout
+    quantity = calculate_checkout_quantity(lines)
     # remove shipping method when empty checkout
-    if checkout.quantity == 0 or not is_shipping_required(lines):
+    if quantity == 0 or not is_shipping_required(lines):
         checkout.shipping_method = None
         checkout_info.shipping_method = None
         checkout_info.shipping_method_channel_listings = None
@@ -113,10 +115,19 @@ def update_checkout_shipping_method_if_invalid(
         checkout.save(update_fields=["shipping_method", "last_change"])
 
 
-def check_lines_quantity(variants, quantities, country, channel_slug):
-    """Clean quantities and check if stock is sufficient for each checkout line."""
+def check_lines_quantity(
+    variants, quantities, country, channel_slug, allow_zero_quantity=False
+):
+    """Clean quantities and check if stock is sufficient for each checkout line.
+
+    By default, zero quantity is not allowed,
+    but if this validation is used for updating existing checkout lines,
+    allow_zero_quantities can be set to True
+    and checkout lines with this quantity can be later removed.
+    """
+
     for quantity in quantities:
-        if quantity < 0:
+        if not allow_zero_quantity and quantity <= 0:
             raise ValidationError(
                 {
                     "quantity": ValidationError(
@@ -125,6 +136,17 @@ def check_lines_quantity(variants, quantities, country, channel_slug):
                     )
                 }
             )
+
+        elif allow_zero_quantity and quantity < 0:
+            raise ValidationError(
+                {
+                    "quantity": ValidationError(
+                        "The quantity should be higher or equal zero.",
+                        code=CheckoutErrorCode.ZERO_QUANTITY,
+                    )
+                }
+            )
+
         if quantity > settings.MAX_CHECKOUT_LINE_QUANTITY:
             raise ValidationError(
                 {
@@ -256,7 +278,9 @@ class CheckoutCreate(ModelMutation, I18nMixin):
     @classmethod
     def retrieve_shipping_address(cls, user, data: dict) -> Optional[models.Address]:
         if data.get("shipping_address") is not None:
-            return cls.validate_address(data["shipping_address"])
+            return cls.validate_address(
+                data["shipping_address"], address_type=AddressType.SHIPPING
+            )
         if user.is_authenticated:
             return user.default_shipping_address
         return None
@@ -264,7 +288,9 @@ class CheckoutCreate(ModelMutation, I18nMixin):
     @classmethod
     def retrieve_billing_address(cls, user, data: dict) -> Optional[models.Address]:
         if data.get("billing_address") is not None:
-            return cls.validate_address(data["billing_address"])
+            return cls.validate_address(
+                data["billing_address"], address_type=AddressType.BILLING
+            )
         if user.is_authenticated:
             return user.default_billing_address
         return None
@@ -437,20 +463,14 @@ class CheckoutLinesAdd(BaseMutation):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id, lines, replace=False):
-        checkout = cls.get_node_or_error(
-            info, checkout_id, only_type=Checkout, field="checkout_id"
-        )
-        discounts = info.context.discounts
-        manager = info.context.plugins
+    def validate_checkout_lines(cls, variants, quantities, country, channel_slug):
+        check_lines_quantity(variants, quantities, country, channel_slug)
 
-        variant_ids = [line.get("variant_id") for line in lines]
-        variants = cls.get_nodes_or_error(variant_ids, "variant_id", ProductVariant)
-        quantities = [line.get("quantity") for line in lines]
-
-        checkout_info = fetch_checkout_info(checkout, [], discounts, manager)
-
-        check_lines_quantity(
+    @classmethod
+    def clean_input(
+        cls, checkout, variants, quantities, checkout_info, manager, discounts, replace
+    ):
+        cls.validate_checkout_lines(
             variants, quantities, checkout.get_country(), checkout_info.channel.slug
         )
         variants_db_ids = {variant.id for variant in variants}
@@ -483,6 +503,30 @@ class CheckoutLinesAdd(BaseMutation):
             )
         )
 
+    @classmethod
+    def perform_mutation(cls, _root, info, checkout_id, lines, replace=False):
+        checkout = cls.get_node_or_error(
+            info, checkout_id, only_type=Checkout, field="checkout_id"
+        )
+        discounts = info.context.discounts
+        manager = info.context.plugins
+
+        variant_ids = [line.get("variant_id") for line in lines]
+        variants = cls.get_nodes_or_error(variant_ids, "variant_id", ProductVariant)
+        quantities = [line.get("quantity") for line in lines]
+
+        checkout_info = fetch_checkout_info(checkout, [], discounts, manager)
+        cls.clean_input(
+            checkout, variants, quantities, checkout_info, manager, discounts, replace
+        )
+
+        lines = fetch_checkout_lines(checkout)
+        checkout_info.valid_shipping_methods = (
+            get_valid_shipping_method_list_for_checkout_info(
+                checkout_info, checkout_info.shipping_address, lines, discounts, manager
+            )
+        )
+
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
         recalculate_checkout_discount(
             manager, checkout_info, lines, info.context.discounts
@@ -498,6 +542,12 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
         description = "Updates checkout line in the existing checkout."
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
+
+    @classmethod
+    def validate_checkout_lines(cls, variants, quantities, country, channel_slug):
+        check_lines_quantity(
+            variants, quantities, country, channel_slug, allow_zero_quantity=True
+        )
 
     @classmethod
     def perform_mutation(cls, root, info, checkout_id, lines):
@@ -534,7 +584,6 @@ class CheckoutLineDelete(BaseMutation):
             checkout, lines, info.context.discounts, manager
         )
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
-        update_checkout_quantity(checkout)
         recalculate_checkout_discount(
             manager, checkout_info, lines, info.context.discounts
         )
@@ -662,12 +711,14 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             )
 
         shipping_address = cls.validate_address(
-            shipping_address, instance=checkout.shipping_address, info=info
+            shipping_address,
+            address_type=AddressType.SHIPPING,
+            instance=checkout.shipping_address,
+            info=info,
         )
 
         discounts = info.context.discounts
         manager = info.context.plugins
-        lines = fetch_checkout_lines(checkout)
         checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
 
         country = get_user_country_context(
@@ -713,7 +764,10 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
         billing_address = cls.validate_address(
-            billing_address, instance=checkout.billing_address, info=info
+            billing_address,
+            address_type=AddressType.BILLING,
+            instance=checkout.billing_address,
+            info=info,
         )
         with transaction.atomic():
             billing_address.save()
@@ -926,12 +980,7 @@ class CheckoutComplete(BaseMutation):
 
             manager = info.context.plugins
             lines = fetch_checkout_lines(checkout)
-            variants_id = {line.variant.id for line in lines}
-            validate_variants_available_in_channel(
-                variants_id,
-                checkout.channel,
-                CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL,
-            )
+            validate_variants_in_checkout_lines(lines)
             checkout_info = fetch_checkout_info(
                 checkout, lines, info.context.discounts, manager
             )
