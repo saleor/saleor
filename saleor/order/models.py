@@ -5,6 +5,7 @@ from typing import Optional
 from uuid import uuid4
 
 from django.conf import settings
+from django.contrib.postgres.indexes import GinIndex
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import JSONField  # type: ignore
@@ -226,9 +227,10 @@ class Order(ModelWithMetadata):
     redirect_url = models.URLField(blank=True, null=True)
     objects = OrderQueryset.as_manager()
 
-    class Meta(ModelWithMetadata.Meta):
+    class Meta:
         ordering = ("-pk",)
         permissions = ((OrderPermissions.MANAGE_ORDERS.codename, "Manage orders."),)
+        indexes = [*ModelWithMetadata.Meta.indexes, GinIndex(fields=["user_email"])]
 
     def save(self, *args, **kwargs):
         if not self.token:
