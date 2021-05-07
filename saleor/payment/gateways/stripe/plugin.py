@@ -17,10 +17,10 @@ from ...utils import price_from_minor_unit
 from ..utils import get_supported_currencies, require_active_plugin
 from .stripe_api import (
     create_payment_intent,
+    delete_webhook,
     is_secret_api_key_valid,
     retrieve_payment_intent,
-    retrieve_webhook,
-    subscribe_to_webhook,
+    subscribe_webhook,
 )
 from .webhooks import handle_webhook
 
@@ -224,61 +224,31 @@ class StripeGatewayPlugin(BasePlugin):
         )
 
     @classmethod
-    def pre_save_for_existing_webhook_configuration(
-        cls, api_key, plugin_configuration: "PluginConfiguration", configuration: dict
-    ) -> Tuple[StripeObject, bool]:
-        # make sure that webhook exists on Stripe side
-        webhook = retrieve_webhook(api_key, configuration["webhook_endpoint_id"])
-
-        new_subscription = False
-
-        # remove the old webhook detail values if we were not able to fetch a
-        # webhook with the id
-        if not webhook:
-            plugin_configuration.configuration.remove(
-                {
-                    "name": "webhook_endpoint_id",
-                    "value": configuration["webhook_endpoint_id"],
-                }
-            )
-            plugin_configuration.configuration.remove(
-                {
-                    "name": "webhook_secret_key",
-                    "value": configuration["webhook_secret_key"],
-                }
-            )
-            webhook = subscribe_to_webhook(api_key)
-            new_subscription = True
-        return webhook, new_subscription
-
-    @classmethod
-    def pre_save_for_non_existing_webhook_configuration(
-        cls, api_key, plugin_configuration: "PluginConfiguration", configuration: dict
-    ) -> StripeObject:
-        # Create new webhook subscription in case when we don't have all webhook
-        # details
-        webhook = subscribe_to_webhook(api_key)
-        if configuration.get("webhook_endpoint_id"):
-            plugin_configuration.configuration.remove(
-                {
-                    "name": "webhook_endpoint_id",
-                    "value": configuration["webhook_endpoint_id"],
-                }
-            )
-        if configuration.get("webhook_secret_key"):
-            plugin_configuration.configuration.remove(
-                {
-                    "name": "webhook_secret_key",
-                    "value": configuration["webhook_secret_key"],
-                }
-            )
-        return webhook
-
-    @classmethod
     def pre_save_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
         configuration = plugin_configuration.configuration
         configuration = {item["name"]: item["value"] for item in configuration}
+
+        api_key = configuration["secret_api_key"]
+        webhook_id = configuration.get("webhook_endpoint_id")
+        webhook_secret = configuration.get("webhook_secret_key")
+
         if not plugin_configuration.active:
+            if webhook_id:
+                # delete all webhook details when we disable a stripe integration.
+                plugin_configuration.configuration.remove(
+                    {
+                        "name": "webhook_endpoint_id",
+                        "value": webhook_id,
+                    }
+                )
+                plugin_configuration.configuration.remove(
+                    {
+                        "name": "webhook_secret_key",
+                        "value": webhook_secret,
+                    }
+                )
+                delete_webhook(api_key, webhook_id)
+
             return
 
         # check saved domain. Make sure that it is not localhost domain. We are not able
@@ -299,26 +269,13 @@ class StripeGatewayPlugin(BasePlugin):
             )
             return
 
-        api_key = configuration["secret_api_key"]
-        webhook_id = configuration.get("webhook_endpoint_id")
-        webhook_secret = configuration.get("webhook_secret_key")
-        if webhook_id and webhook_secret:
-            webhook, new_subscription = cls.pre_save_for_existing_webhook_configuration(
-                api_key, plugin_configuration, configuration
-            )
-        else:
-            webhook = cls.pre_save_for_non_existing_webhook_configuration(
-                api_key, plugin_configuration, configuration
-            )
-            new_subscription = True
-
-        if new_subscription:
-            plugin_configuration.configuration.extend(
-                [
-                    {"name": "webhook_endpoint_id", "value": webhook.id},
-                    {"name": "webhook_secret_key", "value": webhook.secret},
-                ]
-            )
+        webhook = subscribe_webhook(api_key)
+        plugin_configuration.configuration.extend(
+            [
+                {"name": "webhook_endpoint_id", "value": webhook.id},
+                {"name": "webhook_secret_key", "value": webhook.secret},
+            ]
+        )
 
     @classmethod
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):

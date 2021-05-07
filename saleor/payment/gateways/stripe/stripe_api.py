@@ -27,7 +27,7 @@ def is_secret_api_key_valid(api_key: str):
         return False
 
 
-def subscribe_to_webhook(api_key: str) -> StripeObject:
+def subscribe_webhook(api_key: str) -> StripeObject:
     domain = Site.objects.get_current().domain
     api_path = reverse("plugins", kwargs={"plugin_id": PLUGIN_ID})
 
@@ -42,38 +42,8 @@ def subscribe_to_webhook(api_key: str) -> StripeObject:
     )
 
 
-def change_webhook_status(
-    api_key: str, webhook_id: str, disabled: bool
-) -> Optional[StripeObject]:
-    try:
-        return stripe.WebhookEndpoint.modify(
-            webhook_id,
-            disabled=disabled,
-            api_key=api_key,
-        )
-    except StripeError:
-        logger.warning(
-            "Unable to modify a webhook (%s) status to disabled: %s",
-            webhook_id,
-            disabled,
-        )
-        return None
-
-
-def enable_webhook(api_key: str, webhook_id: str) -> StripeObject:
-    return change_webhook_status(api_key, webhook_id, disabled=False)
-
-
-def disable_webhook(api_key: str, webhook_id: str) -> StripeObject:
-    return change_webhook_status(api_key, webhook_id, disabled=True)
-
-
-def retrieve_webhook(api_key: str, webhook_id: str) -> Optional[StripeObject]:
-    try:
-        return stripe.WebhookEndpoint.retrieve(webhook_id, api_key=api_key)
-    except StripeError:
-        logger.warning("Unable to retrieve a webhook (%s)", webhook_id)
-        return None
+def delete_webhook(api_key: str, webhook_id: str):
+    stripe.WebhookEndpoint.delete(webhook_id, api_key=api_key)
 
 
 def create_payment_intent(
