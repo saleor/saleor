@@ -111,7 +111,7 @@ class AccountRegister(ModelMutation):
     def save(cls, info, user, cleaned_input):
         password = cleaned_input["password"]
         user.set_password(password)
-        if "store_name" in cleaned_input and not cleaned_input["store_name"]:
+        if "store_name" in cleaned_input and cleaned_input["store_name"] is not None:
             store = models.Store(
                 name=cleaned_input["store_name"],
                 acreage=0,
