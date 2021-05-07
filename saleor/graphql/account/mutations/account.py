@@ -49,6 +49,7 @@ class AccountRegisterInput(graphene.InputObjectType):
     country_area = graphene.String(description="State or province.")
     phone = graphene.String(description="Phone number.", required=True)
     store_name = graphene.String(description="store name.")
+    is_supplier = graphene.Boolean(description="is supplier")    
 
 
 class AccountRegister(ModelMutation):
@@ -121,6 +122,9 @@ class AccountRegister(ModelMutation):
         if settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL:
             user.is_active = False
             emails.send_account_confirmation_email(user, cleaned_input["redirect_url"])
+
+        if cleaned_input["is_supplier"]:
+            user.is_supplier = True
 
         user.save()
         address = models.Address(
