@@ -28,9 +28,7 @@ def get_default_channel_or_graphql_error() -> Channel:
         return channel
 
 
-def validate_channel(
-    channel_slug, error_for_channel_doesnt_exist, error_for_channel_inactive
-):
+def validate_channel(channel_slug, error_class):
     try:
         channel = Channel.objects.get(slug=channel_slug)
     except Channel.DoesNotExist:
@@ -38,7 +36,7 @@ def validate_channel(
             {
                 "channel": ValidationError(
                     f"Channel with '{channel_slug}' slug does not exist.",
-                    code=error_for_channel_doesnt_exist,
+                    code=error_class.NOT_FOUND.value,
                 )
             }
         )
@@ -47,7 +45,7 @@ def validate_channel(
             {
                 "channel": ValidationError(
                     f"Channel with '{channel_slug}' is inactive.",
-                    code=error_for_channel_inactive,
+                    code=error_class.CHANNEL_INACTIVE.value,
                 )
             }
         )
@@ -56,14 +54,10 @@ def validate_channel(
 
 def clean_channel(
     channel_slug,
-    error_for_channel_doesnt_exist,
-    error_for_channel_inactive,
-    error_channel_not_defined,
+    error_class,
 ):
     if channel_slug is not None:
-        channel = validate_channel(
-            channel_slug, error_for_channel_doesnt_exist, error_for_channel_inactive
-        )
+        channel = validate_channel(channel_slug, error_class)
     else:
         try:
             channel = get_default_channel()
@@ -72,7 +66,7 @@ def clean_channel(
                 {
                     "channel": ValidationError(
                         "You need to provide channel slug.",
-                        code=error_channel_not_defined,
+                        code=error_class.MISSING_CHANNEL_SLUG.value,
                     )
                 }
             )

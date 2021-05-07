@@ -167,16 +167,11 @@ class RequestPasswordReset(BaseMutation):
 
         if not user.is_staff:
             channel_slug = clean_channel(
-                channel_slug,
-                error_channel_not_defined=AccountErrorCode.MISSING_CHANNEL_SLUG,
-                error_for_channel_doesnt_exist=AccountErrorCode.NOT_FOUND,
-                error_for_channel_inactive=AccountErrorCode.CHANNEL_INACTIVE,
+                channel_slug, error_class=AccountErrorCode
             ).slug
         elif channel_slug is not None:
             channel_slug = validate_channel(
-                channel_slug,
-                error_for_channel_doesnt_exist=AccountErrorCode.NOT_FOUND,
-                error_for_channel_inactive=AccountErrorCode.CHANNEL_INACTIVE,
+                channel_slug, error_class=AccountErrorCode
             ).slug
 
         send_password_reset_notification(
@@ -491,16 +486,11 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
             channel_slug = cleaned_input.get("channel")
             if not instance.is_staff:
                 channel_slug = clean_channel(
-                    channel_slug,
-                    error_channel_not_defined=AccountErrorCode.MISSING_CHANNEL_SLUG,
-                    error_for_channel_doesnt_exist=AccountErrorCode.NOT_FOUND,
-                    error_for_channel_inactive=AccountErrorCode.CHANNEL_INACTIVE,
+                    channel_slug, error_class=AccountErrorCode
                 ).slug
             elif channel_slug is not None:
                 channel_slug = validate_channel(
-                    channel_slug,
-                    error_for_channel_doesnt_exist=AccountErrorCode.NOT_FOUND,
-                    error_for_channel_inactive=AccountErrorCode.CHANNEL_INACTIVE,
+                    channel_slug, error_class=AccountErrorCode
                 ).slug
             send_set_password_notification(
                 cleaned_input.get("redirect_url"),

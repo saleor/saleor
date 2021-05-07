@@ -104,10 +104,7 @@ class AccountRegister(ModelMutation):
             )
 
         data["channel"] = clean_channel(
-            data.get("channel"),
-            error_channel_not_defined=AccountErrorCode.MISSING_CHANNEL_SLUG.value,
-            error_for_channel_doesnt_exist=AccountErrorCode.NOT_FOUND.value,
-            error_for_channel_inactive=AccountErrorCode.CHANNEL_INACTIVE.value,
+            data.get("channel"), error_class=AccountErrorCode
         ).slug
 
         password = data["password"]
@@ -215,10 +212,7 @@ class AccountRequestDeletion(BaseMutation):
                 {"redirect_url": error}, code=AccountErrorCode.INVALID
             )
         channel_slug = clean_channel(
-            data.get("channel"),
-            error_channel_not_defined=AccountErrorCode.MISSING_CHANNEL_SLUG.value,
-            error_for_channel_doesnt_exist=AccountErrorCode.NOT_FOUND.value,
-            error_for_channel_inactive=AccountErrorCode.CHANNEL_INACTIVE.value,
+            data.get("channel"), error_class=AccountErrorCode
         ).slug
         notifications.send_account_delete_confirmation_notification(
             redirect_url, user, info.context.plugins, channel_slug=channel_slug
@@ -450,9 +444,7 @@ class RequestEmailChange(BaseMutation):
             )
         channel_slug = clean_channel(
             data.get("channel"),
-            error_channel_not_defined=AccountErrorCode.MISSING_CHANNEL_SLUG.value,
-            error_for_channel_doesnt_exist=AccountErrorCode.NOT_FOUND.value,
-            error_for_channel_inactive=AccountErrorCode.CHANNEL_INACTIVE.value,
+            error_class=AccountErrorCode,
         ).slug
 
         token_payload = {
@@ -532,10 +524,7 @@ class ConfirmEmailChange(BaseMutation):
         user.save(update_fields=["email"])
 
         channel_slug = clean_channel(
-            data.get("channel"),
-            error_channel_not_defined=AccountErrorCode.MISSING_CHANNEL_SLUG.value,
-            error_for_channel_doesnt_exist=AccountErrorCode.NOT_FOUND.value,
-            error_for_channel_inactive=AccountErrorCode.CHANNEL_INACTIVE.value,
+            data.get("channel"), error_class=AccountErrorCode
         ).slug
 
         notifications.send_user_change_email_notification(

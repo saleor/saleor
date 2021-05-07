@@ -373,12 +373,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
     def perform_mutation(cls, _root, info, **data):
         user = info.context.user
         channel_input = data.get("input", {}).get("channel")
-        channel = clean_channel(
-            channel_input,
-            error_channel_not_defined=CheckoutErrorCode.MISSING_CHANNEL_SLUG,
-            error_for_channel_doesnt_exist=CheckoutErrorCode.NOT_FOUND,
-            error_for_channel_inactive=CheckoutErrorCode.CHANNEL_INACTIVE,
-        )
+        channel = clean_channel(channel_input, error_class=CheckoutErrorCode)
         if channel:
             data["input"]["channel"] = channel
 
