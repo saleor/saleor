@@ -120,10 +120,9 @@ class AccountRegister(ModelMutation):
             user.store = store
         if settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL:
             user.is_active = False
-            user.save()
             emails.send_account_confirmation_email(user, cleaned_input["redirect_url"])
-        else:
-            user.save()
+
+        user.save()
         address = models.Address(
             first_name = cleaned_input["first_name"],
             last_name = cleaned_input["last_name"],
