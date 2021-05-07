@@ -66,8 +66,12 @@ class Store(CountableDjangoObjectType):
         only_fields = [
             "name",
             "description",
-            "store_type"
+            "store_type",
+            "date_joined",
+            "latlong",
+            "acreage",
+            "url",
+            "phone"
         ]
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.Store
-

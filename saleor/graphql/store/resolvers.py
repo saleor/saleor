@@ -18,7 +18,8 @@ def resolve_store(info, global_page_id=None, slug=None):
 
 
 def resolve_stores(info, **_kwargs):
-    return models.Store.objects.all()
+    user = info.context.user
+    return models.Store.objects.visible_to_user(user).all()
 
 
 def resolve_store_type(info, global_store_type_id):
