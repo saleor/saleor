@@ -2,6 +2,7 @@ from decimal import Decimal
 from functools import partial
 
 from django.conf import settings
+from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 from django.db.models import F, Q
 from django.utils import timezone
@@ -346,3 +347,7 @@ class OrderDiscount(models.Model):
     name = models.CharField(max_length=255, null=True, blank=True)
     translated_name = models.CharField(max_length=255, null=True, blank=True)
     reason = models.TextField(blank=True, null=True)
+
+    class Meta:
+        # Orders searching index
+        indexes = [GinIndex(fields=["name", "translated_name"])]

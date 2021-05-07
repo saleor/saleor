@@ -8,6 +8,7 @@ from django.contrib.auth.models import (
     Permission,
     PermissionsMixin,
 )
+from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 from django.db.models import JSONField  # type: ignore
 from django.db.models import Q, QuerySet, Value
@@ -160,12 +161,17 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
 
     objects = UserManager()
 
-    class Meta(ModelWithMetadata.Meta):
+    class Meta:
         ordering = ("email",)
         permissions = (
             (AccountPermissions.MANAGE_USERS.codename, "Manage customers."),
             (AccountPermissions.MANAGE_STAFF.codename, "Manage staff."),
         )
+        indexes = [
+            *ModelWithMetadata.Meta.indexes,
+            # Orders searching index
+            GinIndex(fields=["email", "first_name", "last_name"]),
+        ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
