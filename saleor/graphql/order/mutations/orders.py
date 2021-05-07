@@ -443,7 +443,6 @@ class OrderMarkAsPaid(BaseMutation):
         mark_order_as_paid(
             order, info.context.user, info.context.plugins, transaction_reference
         )
-        order.save()
         return OrderMarkAsPaid(order=order)
 
 
