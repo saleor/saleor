@@ -111,7 +111,7 @@ class AccountRegister(ModelMutation):
     def save(cls, info, user, cleaned_input):
         password = cleaned_input["password"]
         user.set_password(password)
-        if "store_name" in cleaned_input:
+        if "store_name" in cleaned_input or not cleaned_input["store_name"]:
             store = models.Store(
                 name=cleaned_input["store_name"],
                 acreage=0,
@@ -123,9 +123,7 @@ class AccountRegister(ModelMutation):
             user.is_active = False
             emails.send_account_confirmation_email(user, cleaned_input["redirect_url"])
 
-        if cleaned_input["is_supplier"]:
-            user.is_supplier = True
-
+        user.is_supplier = cleaned_input["is_supplier"]
         user.save()
         address = models.Address(
             first_name = cleaned_input["first_name"],
