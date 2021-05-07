@@ -57,6 +57,9 @@ class Store(CountableDjangoObjectType):
     background_image = graphene.Field(
         Image, size=graphene.Int(description="Size of the image.")
     )
+    user_name = graphene.String(
+        description="Owner of store",
+    )
 
     class Meta:
         description = (
@@ -66,8 +69,12 @@ class Store(CountableDjangoObjectType):
         only_fields = [
             "name",
             "description",
-            "store_type"
+            "store_type",
+            "date_joined",
+            "latlong",
+            "acreage",
+            "url",
+            "phone"
         ]
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.Store
-

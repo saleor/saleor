@@ -12,11 +12,15 @@ from ..core.utils.editorjs import clean_editor_js
 from ..core.db.fields import SanitizedJSONField
 from ..core.models import ModelWithMetadata, SortableModel
 from ..seo.models import SeoModel, SeoModelTranslation
+from django.utils import timezone
+from typing import TYPE_CHECKING, Union
+
+if TYPE_CHECKING:
+    from ..account.models import User
 
 
 class PossiblePhoneNumberField(PhoneNumberField):
     """Less strict field for phone numbers written to database."""
-
     default_validators = [validate_possible_number]
 
 class StoreType(ModelWithMetadata, MPTTModel, SeoModel):
@@ -59,6 +63,14 @@ class StoreTypeTranslation(SeoModelTranslation):
             self.name,
         )
 
+class StoresQueryset(models.QuerySet):
+    def visible_to_user(self, requestor: Union["User", "App"]):
+        try:
+            store_pk = requestor.store_id
+            return self.filter(pk=store_pk)
+        except:
+            return self.all()
+
 class Store(models.Model):
     name = models.CharField(max_length=250)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
@@ -77,11 +89,14 @@ class Store(models.Model):
         upload_to="store-backgrounds", blank=True, null=True
     )
     background_image_alt = models.CharField(max_length=128, blank=True, null=True)
+    date_joined = models.DateTimeField(default=timezone.now, editable=False)
+
+    objects = StoresQueryset.as_manager()
     translated = TranslationProxy()
+
 
     def __str__(self) -> str:
         return self.name
-
 
 class StoreTranslation(models.Model):
     language_code = models.CharField(max_length=10)
