@@ -49,7 +49,7 @@ class AccountRegisterInput(graphene.InputObjectType):
     country_area = graphene.String(description="State or province.")
     phone = graphene.String(description="Phone number.", required=True)
     store_name = graphene.String(description="store name.")
-    is_supplier = graphene.Boolean(description="is supplier")    
+    is_supplier = graphene.Boolean(description="is supplier", required=True)
 
 
 class AccountRegister(ModelMutation):
