@@ -2,6 +2,7 @@ from decimal import Decimal
 from operator import attrgetter
 
 from django.conf import settings
+from django.contrib.postgres.indexes import GinIndex
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -88,6 +89,10 @@ class Payment(models.Model):
 
     class Meta:
         ordering = ("pk",)
+        indexes = [
+            # Orders filtering by status index
+            GinIndex(fields=["order_id", "is_active", "charge_status"]),
+        ]
 
     def __repr__(self):
         return "Payment(gateway=%s, is_active=%s, created=%s, charge_status=%s)" % (
@@ -216,7 +221,9 @@ class Transaction(models.Model):
     customer_id = models.CharField(max_length=256, null=True)
     gateway_response = JSONField(encoder=DjangoJSONEncoder)
     already_processed = models.BooleanField(default=False)
-    searchable_key = models.CharField(max_length=512, null=True, blank=True)
+    searchable_key = models.CharField(
+        max_length=512, null=True, blank=True, db_index=True
+    )
 
     class Meta:
         ordering = ("pk",)
