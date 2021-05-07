@@ -395,12 +395,11 @@ def test_draft_order_query_pagination_with_filter_created(
 @pytest.mark.parametrize(
     "orders_filter, expected_total_count, orders_order",
     [
-        ({"search": "test_discount"}, 2, [0.0, 0.0]),
-        ({"search": "test_discount1"}, 1, [0.0]),
-        ({"search": "translated_discount1_name"}, 1, [0.0]),
-        ({"search": "user"}, 2, [0.0, 0.0]),
-        ({"search": "user1@example.com"}, 1, [0.0]),
-        ({"search": "test@example.com"}, 1, [0.0]),
+        ({"search": "discount name"}, 2, [0.0, 0.0]),
+        ({"search": "Some other"}, 1, [0.0]),
+        ({"search": "translated"}, 1, [0.0]),
+        ({"search": "user_email"}, 2, [0.0, 0.0]),
+        ({"search": "test@mirumee.com"}, 1, [0.0]),
         ({"search": "Leslie"}, 1, [0.0]),
         ({"search": "Wade"}, 1, [0.0]),
         ({"search": ""}, 6, [0.0, 0.0]),
@@ -421,17 +420,17 @@ def test_orders_query_pagination_with_filter_search(
             Order(
                 user=customer_user,
                 token=str(uuid.uuid4()),
-                user_email="test@example.com",
+                user_email="test@mirumee.com",
                 channel=channel_USD,
             ),
             Order(
                 token=str(uuid.uuid4()),
-                user_email="user1@example.com",
+                user_email="user_email1@example.com",
                 channel=channel_USD,
             ),
             Order(
                 token=str(uuid.uuid4()),
-                user_email="user2@example.com",
+                user_email="user_email2@example.com",
                 channel=channel_USD,
             ),
         ]
@@ -440,17 +439,17 @@ def test_orders_query_pagination_with_filter_search(
         [
             OrderDiscount(
                 order=orders[0],
-                name="test_discount1",
+                name="Some discount name",
                 value=Decimal("1"),
                 amount_value=Decimal("1"),
-                translated_name="translated_discount1_name",
+                translated_name="translated",
             ),
             OrderDiscount(
                 order=orders[2],
-                name="test_discount2",
+                name="Some other discount name",
                 value=Decimal("10"),
                 amount_value=Decimal("10"),
-                translated_name="translated_discount2_name",
+                translated_name="PL_name",
             ),
         ]
     )
@@ -468,26 +467,14 @@ def test_orders_query_pagination_with_filter_search(
         assert orders[i]["node"]["total"]["gross"]["amount"] == orders_order[i]
 
 
-def test_orders_query_pagination_with_filter_search_by_id(
-    order, staff_api_client, permission_manage_orders
-):
-    page_size = 2
-    variables = {"first": page_size, "after": None, "filter": {"search": order.pk}}
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
-    response = staff_api_client.post_graphql(QUERY_ORDERS_WITH_PAGINATION, variables)
-    content = get_graphql_content(response)
-    assert content["data"]["orders"]["totalCount"] == 1
-
-
 @pytest.mark.parametrize(
     "draft_orders_filter, expected_total_count, orders_order",
     [
-        ({"search": "test_discount"}, 2, [0.0, 0.0]),
-        ({"search": "test_discount1"}, 1, [0.0]),
-        ({"search": "translated_discount1_name"}, 1, [0.0]),
-        ({"search": "user"}, 2, [0.0, 0.0]),
-        ({"search": "user1@example.com"}, 1, [0.0]),
-        ({"search": "test@example.com"}, 1, [0.0]),
+        ({"search": "discount name"}, 2, [0.0, 0.0]),
+        ({"search": "Some other"}, 1, [0.0]),
+        ({"search": "translated"}, 1, [0.0]),
+        ({"search": "user_email"}, 2, [0.0, 0.0]),
+        ({"search": "test@mirumee.com"}, 1, [0.0]),
         ({"search": "Leslie"}, 1, [0.0]),
         ({"search": "Wade"}, 1, [0.0]),
         ({"search": ""}, 6, [0.0, 0.0]),
@@ -508,19 +495,19 @@ def test_draft_orders_query_pagination_with_filter_search(
             Order(
                 user=customer_user,
                 token=str(uuid.uuid4()),
-                user_email="test@example.com",
+                user_email="test@mirumee.com",
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
             ),
             Order(
                 token=str(uuid.uuid4()),
-                user_email="user1@example.com",
+                user_email="user_email1@example.com",
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
             ),
             Order(
                 token=str(uuid.uuid4()),
-                user_email="user2@example.com",
+                user_email="user_email2@example.com",
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
             ),
@@ -530,17 +517,17 @@ def test_draft_orders_query_pagination_with_filter_search(
         [
             OrderDiscount(
                 order=orders[0],
-                name="test_discount1",
+                name="Some discount name",
                 value=Decimal("1"),
                 amount_value=Decimal("1"),
-                translated_name="translated_discount1_name",
+                translated_name="translated",
             ),
             OrderDiscount(
                 order=orders[2],
-                name="test_discount2",
+                name="Some other discount name",
                 value=Decimal("10"),
                 amount_value=Decimal("10"),
-                translated_name="translated_discount2_name",
+                translated_name="PL_name",
             ),
         ]
     )
@@ -557,6 +544,17 @@ def test_draft_orders_query_pagination_with_filter_search(
     assert expected_total_count == total_count
     for i in range(total_count if total_count < page_size else page_size):
         assert orders[i]["node"]["total"]["gross"]["amount"] == orders_order[i]
+
+
+def test_orders_query_pagination_with_filter_search_by_id(
+    order, staff_api_client, permission_manage_orders
+):
+    page_size = 2
+    variables = {"first": page_size, "after": None, "filter": {"search": order.pk}}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(QUERY_ORDERS_WITH_PAGINATION, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["orders"]["totalCount"] == 1
 
 
 def test_draft_orders_query_pagination_with_filter_search_by_id(
