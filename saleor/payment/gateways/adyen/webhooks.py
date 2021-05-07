@@ -42,7 +42,12 @@ from ....plugins.manager import get_plugins_manager
 from ... import ChargeStatus, PaymentError, TransactionKind
 from ...gateway import payment_refund_or_void
 from ...interface import GatewayConfig, GatewayResponse
-from ...utils import create_payment_information, create_transaction, gateway_postprocess, price_from_minor_unit
+from ...utils import (
+    create_payment_information,
+    create_transaction,
+    gateway_postprocess,
+    price_from_minor_unit,
+)
 from .utils.common import FAILED_STATUSES, api_call
 
 logger = logging.getLogger(__name__)
@@ -115,7 +120,9 @@ def get_transaction(
 def create_new_transaction(notification, payment, kind):
     transaction_id = notification.get("pspReference")
     currency = notification.get("amount", {}).get("currency")
-    amount = price_from_minor_unit(notification.get("amount", {}).get("value"), currency)
+    amount = price_from_minor_unit(
+        notification.get("amount", {}).get("value"), currency
+    )
     is_success = True if notification.get("success") == "true" else False
 
     gateway_response = GatewayResponse(

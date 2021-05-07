@@ -1,4 +1,3 @@
-
 import pytest
 from graphene import Node
 

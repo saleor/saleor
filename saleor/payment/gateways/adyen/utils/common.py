@@ -9,7 +9,6 @@ import opentracing.tags
 from django.conf import settings
 from django_countries.fields import Country
 
-from ....utils import price_to_minor_unit
 from .....checkout.calculations import (
     checkout_line_total,
     checkout_shipping_price,
@@ -23,6 +22,7 @@ from .....payment.models import Payment
 from .....plugins.manager import get_plugins_manager
 from .... import PaymentError
 from ....interface import PaymentMethodInfo
+from ....utils import price_to_minor_unit
 
 if TYPE_CHECKING:
     from ....interface import PaymentData
