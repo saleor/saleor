@@ -4,6 +4,7 @@ import graphene
 import pytest
 from graphene import Node
 
+from .....attribute.utils import associate_attribute_values_to_instance
 from .....core.taxes import TaxType
 from .....plugins.manager import PluginsManager
 from ....tests.utils import get_graphql_content
@@ -348,8 +349,6 @@ def test_retrive_products_with_product_types_and_attributes(
     get_graphql_content(api_client.post_graphql(query, variables))
 
 
-@pytest.mark.django_db
-@pytest.mark.count_queries(autouse=False)
 def test_product_create(
     settings,
     staff_api_client,
@@ -456,8 +455,6 @@ def test_product_create(
     assert not content["data"]["productCreate"]["errors"]
 
 
-@pytest.mark.django_db
-@pytest.mark.count_queries(autouse=False)
 def test_update_product(
     settings,
     staff_api_client,
@@ -555,3 +552,81 @@ def test_update_product(
     content = get_graphql_content(response)
     data = content["data"]["productUpdate"]
     assert not data["errors"]
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_filter_products_by_attributes(
+    api_client, product_list, channel_USD, count_queries
+):
+    query = """
+      query ($channel: String, $filter: ProductFilterInput){
+          products(
+              channel: $channel,
+              filter: $filter,
+              first: 20,
+          ) {
+              edges {
+                  node {
+                      name
+                  }
+              }
+          }
+      }
+    """
+
+    product = product_list[0]
+    attr_assignment = product.attributes.first()
+    attr = attr_assignment.attribute
+    variables = {
+        "channel": channel_USD.slug,
+        "filter": {
+            "attributes": [
+                {"slug": attr.slug, "values": [attr_assignment.values.first().slug]}
+            ]
+        },
+    }
+    get_graphql_content(api_client.post_graphql(query, variables))
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_filter_products_by_numeric_attributes(
+    api_client, product_list, numeric_attribute, channel_USD, count_queries
+):
+    query = """
+      query ($channel: String,  $filter: ProductFilterInput){
+          products(
+              channel: $channel,
+              filter: $filter,
+              first: 20,
+          ) {
+              edges {
+                  node {
+                      name
+                  }
+              }
+          }
+      }
+    """
+
+    product = product_list[0]
+    product.product_type.product_attributes.add(numeric_attribute)
+    associate_attribute_values_to_instance(
+        product, numeric_attribute, *numeric_attribute.values.all()
+    )
+    variables = {
+        "channel": channel_USD.slug,
+        "filter": {
+            "attributes": [
+                {
+                    "slug": numeric_attribute.slug,
+                    "valuesRange": {
+                        "gte": 10,
+                        "lte": 20,
+                    },
+                }
+            ]
+        },
+    }
+    get_graphql_content(api_client.post_graphql(query, variables))

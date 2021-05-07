@@ -1,8 +1,10 @@
 """Checkout-related utility functions."""
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
 
+import graphene
 from django.core.exceptions import ValidationError
-from django.db.models import Sum
+from django.db.models import Count, F, OuterRef, Subquery, Sum
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 from prices import Money
 
@@ -117,8 +119,11 @@ def add_variant_to_checkout(
         line.quantity = new_quantity
         line.save(update_fields=["quantity"])
 
-    checkout = update_checkout_quantity(checkout)
     return checkout
+
+
+def calculate_checkout_quantity(lines: Iterable["CheckoutLineInfo"]):
+    return sum([line_info.line.quantity for line_info in lines])
 
 
 def add_variants_to_checkout(checkout, variants, quantities, channel_slug):
@@ -151,19 +156,6 @@ def add_variants_to_checkout(checkout, variants, quantities, channel_slug):
             CheckoutLine(checkout=checkout, variant=variant, quantity=quantity)
         )
     checkout.lines.bulk_create(lines)
-    checkout = update_checkout_quantity(checkout)
-    return checkout
-
-
-def update_checkout_quantity(checkout):
-    """Update the total quantity in checkout."""
-    total_lines = checkout.lines.aggregate(total_quantity=Sum("quantity"))[
-        "total_quantity"
-    ]
-    if not total_lines:
-        total_lines = 0
-    checkout.quantity = total_lines
-    checkout.save(update_fields=["quantity"])
     return checkout
 
 
@@ -651,3 +643,28 @@ def is_shipping_required(lines: Iterable["CheckoutLineInfo"]):
     return any(
         line_info.product.product_type.is_shipping_required for line_info in lines
     )
+
+
+def validate_variants_in_checkout_lines(lines: Iterable["CheckoutLineInfo"]):
+    variants_listings_map = {line.variant.id: line.channel_listing for line in lines}
+
+    not_available_variants = [
+        variant_id
+        for variant_id, channel_listing in variants_listings_map.items()
+        if channel_listing is None or channel_listing.price is None
+    ]
+    if not_available_variants:
+        not_available_variants_ids = {
+            graphene.Node.to_global_id("ProductVariant", pk)
+            for pk in not_available_variants
+        }
+        error_code = CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL
+        raise ValidationError(
+            {
+                "lines": ValidationError(
+                    "Cannot add lines with unavailable variants.",
+                    code=error_code,  # type: ignore
+                    params={"variants": not_available_variants_ids},
+                )
+            }
+        )

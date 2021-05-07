@@ -11,6 +11,7 @@ from ....account.notifications import (
     send_password_reset_notification,
     send_set_password_notification,
 )
+from ....checkout import AddressType
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions
 from ....core.utils.url import validate_storefront_url
@@ -393,6 +394,7 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
         if shipping_address_data:
             shipping_address = cls.validate_address(
                 shipping_address_data,
+                address_type=AddressType.SHIPPING,
                 instance=getattr(instance, SHIPPING_ADDRESS_FIELD),
                 info=info,
             )
@@ -401,6 +403,7 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
         if billing_address_data:
             billing_address = cls.validate_address(
                 billing_address_data,
+                address_type=AddressType.BILLING,
                 instance=getattr(instance, BILLING_ADDRESS_FIELD),
                 info=info,
             )
