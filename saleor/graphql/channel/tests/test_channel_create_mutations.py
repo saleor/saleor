@@ -13,9 +13,6 @@ CHANNEL_CREATE_MUTATION = """
                 name
                 slug
                 currencyCode
-                shippingZones{
-                    id
-                }
             }
             errors{
                 field
@@ -174,7 +171,7 @@ def test_channel_create_mutation_with_shipping_zones(
     name = "testName"
     slug = "test_slug"
     currency_code = "USD"
-    shipping_zones = [
+    shipping_zones_ids = [
         graphene.Node.to_global_id("ShippingZone", zone.pk) for zone in shipping_zones
     ]
     variables = {
@@ -182,7 +179,7 @@ def test_channel_create_mutation_with_shipping_zones(
             "name": name,
             "slug": slug,
             "currencyCode": currency_code,
-            "addShippingZones": shipping_zones,
+            "addShippingZones": shipping_zones_ids,
         }
     }
 
@@ -204,4 +201,5 @@ def test_channel_create_mutation_with_shipping_zones(
     assert channel_data["name"] == channel.name == name
     assert channel_data["slug"] == channel.slug == slug
     assert channel_data["currencyCode"] == channel.currency_code == currency_code
-    assert {zone["id"] for zone in channel_data["shippingZones"]} == set(shipping_zones)
+    for shipping_zone in shipping_zones:
+        shipping_zone.channels.get(slug=slug)
