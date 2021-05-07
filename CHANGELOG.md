@@ -157,6 +157,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - drop `created` argument from `draftOrders` query
   - drop `productType` from `ProductFilter`
   - deprecate mutations' `<name>Errors`, typed `errors` fields and remove deprecation
+- Add channel data to Order webhook - #7299 by @krzysztofwolski
 
 ### Other
 

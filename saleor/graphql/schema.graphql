@@ -3584,6 +3584,7 @@ enum PageErrorCode {
 input PageFilterInput {
   search: String
   metadata: [MetadataInput]
+  pageTypes: [ID]
 }
 
 type PageInfo {

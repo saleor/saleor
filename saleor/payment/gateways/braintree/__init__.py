@@ -144,6 +144,9 @@ def authorize(
     error = get_error_for_client(gateway_response["errors"])
     kind = TransactionKind.CAPTURE if config.auto_capture else TransactionKind.AUTH
     credit_card = gateway_response.get("credit_card", {})
+    brand = credit_card.get("card_type", "")
+    brand = brand.lower() if brand is not None else ""
+
     return GatewayResponse(
         is_success=result.is_success,
         action_required=False,
@@ -159,7 +162,7 @@ def authorize(
             last_4=credit_card.get("last_4"),
             exp_year=credit_card.get("expiration_year"),
             exp_month=credit_card.get("expiration_month"),
-            brand=credit_card.get("card_type", "").lower(),
+            brand=brand,
             name=credit_card.get("cardholder_name"),
             type="card",
         ),

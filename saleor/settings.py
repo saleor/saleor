@@ -269,7 +269,6 @@ INSTALLED_APPS = [
     "phonenumber_field",
 ]
 
-
 ENABLE_DJANGO_EXTENSIONS = get_bool_from_env("ENABLE_DJANGO_EXTENSIONS", False)
 if ENABLE_DJANGO_EXTENSIONS:
     INSTALLED_APPS += [
