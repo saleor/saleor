@@ -1,9 +1,9 @@
-import logging
 from enum import Enum
 from urllib.parse import urlparse, urlunparse
 
 import boto3
 import requests
+from celery.utils.log import get_task_logger
 from google.cloud import pubsub_v1
 from requests.exceptions import RequestException
 
@@ -13,7 +13,7 @@ from ...webhook.event_types import WebhookEventType
 from ...webhook.models import Webhook
 from . import signature_for_payload
 
-logger = logging.getLogger(__name__)
+task_logger = get_task_logger(__name__)
 
 WEBHOOK_TIMEOUT = 10
 
@@ -133,7 +133,7 @@ def send_webhook_request(webhook_id, target_url, secret, event_type, data):
         )
     else:
         raise ValueError("Unknown webhook scheme: %r" % (parts.scheme,))
-    logger.debug(
+    task_logger.debug(
         "[Webhook ID:%r] Payload sent to %r for event %r",
         webhook_id,
         target_url,
