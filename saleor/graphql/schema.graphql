@@ -809,7 +809,6 @@ type Channel implements Node {
   slug: String!
   currencyCode: String!
   hasOrders: Boolean!
-  shippingZones: [ShippingZone!]!
 }
 
 type ChannelActivate {
@@ -5143,6 +5142,7 @@ type ShippingZoneDelete {
 
 input ShippingZoneFilterInput {
   search: String
+  channels: [ID]
 }
 
 type ShippingZoneUpdate {
