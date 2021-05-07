@@ -57,6 +57,9 @@ class Store(CountableDjangoObjectType):
     background_image = graphene.Field(
         Image, size=graphene.Int(description="Size of the image.")
     )
+    user_name = graphene.String(
+        description="Owner of store",
+    )
 
     class Meta:
         description = (

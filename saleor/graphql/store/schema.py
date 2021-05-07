@@ -6,6 +6,7 @@ from ..core.fields import PrefetchingConnectionField
 from ..decorators import permission_required
 
 from .types import Store, StoreType
+from ..account.types import User
 from ..core.fields import FilterInputConnectionField
 from ..core.types import FilterInputObjectType
 from .filters import StoreFilterInput
@@ -23,6 +24,7 @@ from .resolvers import (
     resolve_stores,
     resolve_store_type,
     resolve_store_types,
+    resolve_user_name
 )
 
 class StoreQueries(graphene.ObjectType):
@@ -34,23 +36,28 @@ class StoreQueries(graphene.ObjectType):
         ),
         description="Look up a store by ID.",
     )
-
     stores = FilterInputConnectionField(
         Store,
         filter=StoreFilterInput(description="Filtering options for store."),
         sort_by=StoreSortingInput(description="Sort store."),
         description="List of the store.",
     )
-
     store_type = graphene.Field(
         StoreType,
         id=graphene.Argument(graphene.ID, description="ID of the store type."),
         description="Look up a store type by ID or slug.",
     )
-
     store_types = FilterInputConnectionField(
-        StoreType,        
+        StoreType,
         description="List of the shop's categories.",
+    )
+    user = graphene.Field(
+        User,
+        id=graphene.Argument(
+            graphene.ID,
+            description="ID of the owner.",
+        ),
+        description="Look up a owner by ID.",
     )
 
     def resolve_store(self, info, id=None, slug=None):
@@ -65,6 +72,8 @@ class StoreQueries(graphene.ObjectType):
     def resolve_store_types(self, info, **kwargs):
         return resolve_store_types(info, **kwargs)
 
+    def resolve_user(self, info, slug=None):
+        return resolve_user_name(info, slug)
 
 class StoreMutations(graphene.ObjectType):
     # store mutations

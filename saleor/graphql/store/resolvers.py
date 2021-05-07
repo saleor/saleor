@@ -4,6 +4,8 @@ from ...store import models
 from ..core.validators import validate_one_of_args_is_in_query
 from .types import Store, StoreType
 
+def resolve_user_name(info, slug=None):
+    print(info)
 
 def resolve_store(info, global_page_id=None, slug=None):
     validate_one_of_args_is_in_query("id", global_page_id, "slug", slug)
