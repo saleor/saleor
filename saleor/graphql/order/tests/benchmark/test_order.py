@@ -44,6 +44,8 @@ FRAGMENT_ORDER_DETAILS = (
         paymentStatusDisplay
         status
         statusDisplay
+        canFinalize
+        isShippingRequired
         id
         number
         shippingAddress {
@@ -189,6 +191,8 @@ MULTIPLE_ORDER_DETAILS_QUERY = """
           userEmail
           paymentStatus
           paymentStatusDisplay
+          canFinalize
+          isShippingRequired
           events {
             id
           }
@@ -227,6 +231,24 @@ def test_staff_multiple_orders(
     permission_manage_orders,
     permission_manage_users,
     orders_for_benchmarks,
+    count_queries,
+):
+    staff_api_client.user.user_permissions.set(
+        [permission_manage_orders, permission_manage_users]
+    )
+    content = get_graphql_content(
+        staff_api_client.post_graphql(MULTIPLE_ORDER_DETAILS_QUERY)
+    )
+    assert content["data"]["orders"] is not None
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_staff_multiple_draft_orders(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_users,
+    draft_orders_for_benchmarks,
     count_queries,
 ):
     staff_api_client.user.user_permissions.set(
