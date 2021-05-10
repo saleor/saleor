@@ -66,10 +66,13 @@ class StoreTypeTranslation(SeoModelTranslation):
 class StoresQueryset(models.QuerySet):
     def visible_to_user(self, requestor: Union["User", "App"]):
         try:
+            if requestor.is_superuser:
+                return self.all()
+
             store_pk = requestor.store_id
             return self.filter(pk=store_pk)
         except:
-            return self.all()
+            return None
 
 class Store(models.Model):
     name = models.CharField(max_length=250)
