@@ -1911,6 +1911,54 @@ def test_pages_query_with_filter(
     assert content["data"]["pages"]["totalCount"] == count
 
 
+def test_pages_query_with_filter_by_page_type(
+    staff_api_client, permission_manage_pages, page_type, page_type_list
+):
+    query = """
+        query ($filter: PageFilterInput) {
+            pages(first: 5, filter:$filter) {
+                totalCount
+                edges {
+                    node {
+                        id
+                    }
+                }
+            }
+        }
+    """
+    page_type = page_type_list[0]
+    second_page_type = page_type_list[1]
+    page_type_ids = (
+        [
+            graphene.Node.to_global_id("PageType", page_type.id)
+            for page_type in page_type_list[:2]
+        ],
+    )
+    Page.objects.create(
+        title="Page1",
+        slug="slug_page_1",
+        content=dummy_editorjs("Content for page 1"),
+        page_type=page_type,
+    )
+    Page.objects.create(
+        title="Page2",
+        slug="slug_page_2",
+        content=dummy_editorjs("Content for page 2"),
+        page_type=second_page_type,
+    )
+    Page.objects.create(
+        title="About",
+        slug="slug_about",
+        content=dummy_editorjs("About test content"),
+        page_type=page_type_list[2],
+    )
+    variables = {"filter": {"pageTypes": page_type_ids}}
+    staff_api_client.user.user_permissions.add(permission_manage_pages)
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["pages"]["totalCount"] == 2
+
+
 QUERY_PAGE_WITH_SORT = """
     query ($sort_by: PageSortingInput!) {
         pages(first:5, sortBy: $sort_by) {

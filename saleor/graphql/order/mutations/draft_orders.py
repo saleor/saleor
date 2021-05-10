@@ -4,6 +4,7 @@ from django.db import transaction
 from graphene.types import InputObjectType
 
 from ....account.models import User
+from ....checkout import AddressType
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError, zero_taxed_money
@@ -173,16 +174,12 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         display_gross_prices = info.context.site.settings.display_gross_prices
         cleaned_input["display_gross_prices"] = display_gross_prices
 
-        # Set up default addresses if possible
-        user = cleaned_input.get("user")
-        if user and not shipping_address:
-            cleaned_input["shipping_address"] = user.default_shipping_address
-        if user and not billing_address:
-            cleaned_input["billing_address"] = user.default_billing_address
-
         if shipping_address:
             shipping_address = cls.validate_address(
-                shipping_address, instance=instance.shipping_address, info=info
+                shipping_address,
+                address_type=AddressType.SHIPPING,
+                instance=instance.shipping_address,
+                info=info,
             )
             shipping_address = info.context.plugins.change_user_address(
                 shipping_address, "shipping", user=instance
@@ -190,7 +187,10 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             cleaned_input["shipping_address"] = shipping_address
         if billing_address:
             billing_address = cls.validate_address(
-                billing_address, instance=instance.billing_address, info=info
+                billing_address,
+                address_type=AddressType.BILLING,
+                instance=instance.billing_address,
+                info=info,
             )
             billing_address = info.context.plugins.change_user_address(
                 billing_address, "billing", user=instance
