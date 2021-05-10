@@ -14,6 +14,7 @@ from ..core.models import ModelWithMetadata, SortableModel
 from ..seo.models import SeoModel, SeoModelTranslation
 from django.utils import timezone
 from typing import TYPE_CHECKING, Union
+from ..core.permissions import StorePermissions
 
 if TYPE_CHECKING:
     from ..account.models import User
@@ -34,9 +35,6 @@ class StoreType(ModelWithMetadata, MPTTModel, SeoModel):
     objects = models.Manager()
     tree = TreeManager()
     translated = TranslationProxy()
-
-    def __str__(self) -> str:
-        return self.name
 
     def __str__(self) -> str:
         return self.name
@@ -100,6 +98,16 @@ class Store(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+    class Meta:
+        ordering = ("name", "pk")
+        app_label = "store"
+        permissions = (
+            (
+                StorePermissions.MANAGE_STORES.codename,
+                "Manage store.",
+            ),
+        )
 
 class StoreTranslation(models.Model):
     language_code = models.CharField(max_length=10)

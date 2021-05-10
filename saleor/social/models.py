@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from ..store.models import Store
 from ..core.models import ModelWithMetadata
+from ..core.permissions import SocialPermissions
 
 class Social(ModelWithMetadata):
     follow = models.BooleanField(default=True)
@@ -17,5 +18,11 @@ class Social(ModelWithMetadata):
     )
 
     class Meta:
-        app_label = "social"
         ordering = ("pk",)
+        app_label = "store"
+        permissions = (
+            (
+                SocialPermissions.MANAGE_SOCIALS.codename,
+                "Manage social.",
+            ),
+        )
