@@ -72,7 +72,7 @@ class StoresQueryset(models.QuerySet):
         except:
             return None
 
-class Store(models.Model):
+class Store(ModelWithMetadata, SeoModel):
     name = models.CharField(max_length=250)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
@@ -109,7 +109,7 @@ class Store(models.Model):
             ),
         )
 
-class StoreTranslation(models.Model):
+class StoreTranslation(SeoModelTranslation):
     language_code = models.CharField(max_length=10)
     store = models.ForeignKey(
         Store, related_name="translations", on_delete=models.CASCADE

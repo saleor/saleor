@@ -229,6 +229,7 @@ INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.postgres",
     # Local apps
+    "saleor.store",
     "saleor.plugins",
     "saleor.account",
     "saleor.discount",
@@ -251,8 +252,7 @@ INSTALLED_APPS = [
     "saleor.warehouse",
     "saleor.webhook",
     "saleor.wishlist",
-    "saleor.app",
-    "saleor.store",
+    "saleor.app",    
     "saleor.post",
     "saleor.social",
     # External apps
