@@ -49,7 +49,7 @@ def test_create_checkout(
         )
     )["data"]["checkoutCreate"]
 
-    # Ensure checkout was created
+    # DEPRECATED; Ensure checkout was created
     assert content["created"] is True, "The checkout should have been created"
 
     # Retrieve the created checkout

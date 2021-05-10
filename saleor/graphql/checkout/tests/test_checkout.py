@@ -180,6 +180,7 @@ def test_checkout_create_with_default_channel(
         response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
         content = get_graphql_content(response)["data"]["checkoutCreate"]
 
+    # DEPRECATED
     assert content["created"] is True
 
     new_checkout = Checkout.objects.first()
@@ -295,6 +296,7 @@ def test_checkout_create_with_inactive_default_channel(
         response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
         content = get_graphql_content(response)["data"]["checkoutCreate"]
 
+    # DEPRECATED
     assert content["created"] is True
 
     new_checkout = Checkout.objects.first()
@@ -329,6 +331,7 @@ def test_checkout_create_with_inactive_and_active_default_channel(
         response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
         content = get_graphql_content(response)["data"]["checkoutCreate"]
 
+    # DEPRECATED
     assert content["created"] is True
 
     new_checkout = Checkout.objects.first()
@@ -460,6 +463,7 @@ def test_checkout_create_with_multiple_channel_with_channel_slug(
 
     content = get_graphql_content(response)["data"]["checkoutCreate"]
 
+    # DEPRECATED
     assert content["created"] is True
 
     new_checkout = Checkout.objects.first()
@@ -494,6 +498,7 @@ def test_checkout_create_with_existing_checkout_in_other_channel(
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
 
     content = get_graphql_content(response)["data"]["checkoutCreate"]
+    # DEPRECATED
     assert content["created"] is True
 
     checkout_data = content["checkout"]
@@ -544,7 +549,7 @@ def test_checkout_create(api_client, stock, graphql_address_data, channel_USD):
     response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
     content = get_graphql_content(response)["data"]["checkoutCreate"]
 
-    # Look at the flag to see whether a new checkout was created or not
+    # DEPRECATED; Look at the flag to see whether a new checkout was created or not
     assert content["created"] is True
 
     new_checkout = Checkout.objects.first()
@@ -643,7 +648,7 @@ def test_checkout_create_multiple_warehouse(
     response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
     content = get_graphql_content(response)["data"]["checkoutCreate"]
 
-    # Look at the flag to see whether a new checkout was created or not
+    # DEPRECATED; Look at the flag to see whether a new checkout was created or not
     assert content["created"] is True
 
     new_checkout = Checkout.objects.first()
@@ -674,7 +679,7 @@ def test_checkout_create_with_null_as_addresses(api_client, stock, channel_USD):
     response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
     content = get_graphql_content(response)["data"]["checkoutCreate"]
 
-    # Look at the flag to see whether a new checkout was created or not
+    # DEPRECATED; Look at the flag to see whether a new checkout was created or not
     assert content["created"] is True
 
     new_checkout = Checkout.objects.first()
@@ -709,7 +714,7 @@ def test_checkout_create_with_variant_without_inventory_tracking(
     response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
     content = get_graphql_content(response)["data"]["checkoutCreate"]
 
-    # Look at the flag to see whether a new checkout was created or not
+    # DEPRECATED; Look at the flag to see whether a new checkout was created or not
     assert content["created"] is True
 
     new_checkout = Checkout.objects.first()
@@ -791,16 +796,13 @@ def test_checkout_create_reuse_checkout(checkout, user_api_client, stock):
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
     content = get_graphql_content(response)["data"]["checkoutCreate"]
 
-    # Look at the flag to see whether a new checkout was created or not
-    assert not content["created"]
+    # DEPRECATED
+    assert content["created"]
 
-    # assert that existing checkout was reused and returned by mutation
     checkout_data = content["checkout"]
-    assert checkout_data["token"] == str(checkout.token)
+    assert checkout_data["token"] != str(checkout.token)
 
-    # if checkout was reused it should be returned unmodified (e.g. without
-    # adding new lines that was passed)
-    assert checkout_data["lines"] == []
+    assert len(checkout_data["lines"]) == 1
 
 
 def test_checkout_create_required_email(api_client, stock, channel_USD):
@@ -1044,6 +1046,7 @@ def test_checkout_create_sets_country_from_shipping_address_country(
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutCreate"]
+    # DEPRECATED
     assert data["created"] is True
     checkout = Checkout.objects.first()
     assert checkout.country == "US"
