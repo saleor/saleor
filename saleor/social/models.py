@@ -19,7 +19,7 @@ class Social(ModelWithMetadata):
 
     class Meta:
         ordering = ("pk",)
-        app_label = "store"
+        app_label = "social"
         permissions = (
             (
                 SocialPermissions.MANAGE_SOCIALS.codename,
