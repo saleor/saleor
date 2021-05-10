@@ -1,4 +1,5 @@
 import json
+import uuid
 from typing import TYPE_CHECKING, Iterable, Optional
 
 import graphene
@@ -410,6 +411,12 @@ def _get_sample_object(qs: QuerySet):
     return random_object
 
 
+def _remove_token_from_checkout(checkout):
+    checkout_data = json.loads(checkout)
+    checkout_data[0]["token"] = str(uuid.UUID(**{"int": 1}))
+    return json.dumps(checkout_data)
+
+
 def _generate_sample_order_payload(event_name):
     order_qs = Order.objects.prefetch_related(
         "payments",
@@ -466,7 +473,8 @@ def generate_sample_payload(event_name: str) -> Optional[dict]:
         )
         if checkout:
             anonymized_checkout = anonymize_checkout(checkout)
-            payload = generate_checkout_payload(anonymized_checkout)
+            checkout_payload = generate_checkout_payload(anonymized_checkout)
+            payload = _remove_token_from_checkout(checkout_payload)
     elif event_name in pages_events:
         page = _get_sample_object(Page.objects.all())
         if page:

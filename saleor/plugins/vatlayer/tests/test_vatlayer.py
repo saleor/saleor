@@ -744,7 +744,6 @@ def test_calculate_order_line_total(vatlayer, order_line, site_settings):
     order_line.unit_price = unit_price
     total_price = unit_price * order_line.quantity
     order_line.total_price = total_price
-    order_line.save(update_fields=["unit_price", "total_price"])
 
     line_price = manager.calculate_order_line_total(
         order_line.order,
