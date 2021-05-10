@@ -496,7 +496,7 @@ python-versions = "*"
 
 [[package]]
 name = "django-countries"
-version = "7.1"
+version = "7.2"
 description = "Provides a country field for Django models."
 category = "main"
 optional = false
@@ -2834,8 +2834,8 @@ django-cache-url = [
     {file = "django_cache_url-3.2.3-py2.py3-none-any.whl", hash = "sha256:5514ca3a2075c6b956b3d0a5c540654d32b004e76340d7bdabf6661135b5f218"},
 ]
 django-countries = [
-    {file = "django-countries-7.1.tar.gz", hash = "sha256:058e3cd82705ebf8ef680fb623b1da2d47bc03b816a71589a8279d2e5a7a5389"},
-    {file = "django_countries-7.1-py3-none-any.whl", hash = "sha256:94170e99465f7ea504da828c8e64f36d94440a86907fc8ecb56c5336aafae0cd"},
+    {file = "django-countries-7.2.tar.gz", hash = "sha256:86aad1bac149e6037772c8b1a38c1204b92ae051efee97ac604363867fbf9e34"},
+    {file = "django_countries-7.2-py3-none-any.whl", hash = "sha256:434bc31c510a27bdb7ecf9297bad8580f83fc6e14eb93b0c650c79a38f0261bf"},
 ]
 django-debug-toolbar = [
     {file = "django-debug-toolbar-3.2.1.tar.gz", hash = "sha256:a5ff2a54f24bf88286f9872836081078f4baa843dc3735ee88524e89f8821e33"},
