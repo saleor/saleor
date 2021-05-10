@@ -5488,12 +5488,11 @@ def test_query_draft_orders_with_sort(
 @pytest.mark.parametrize(
     "orders_filter, count",
     [
-        ({"search": "test_discount"}, 2),
-        ({"search": "test_discount1"}, 1),
-        ({"search": "translated_discount1_name"}, 1),
-        ({"search": "user"}, 2),
-        ({"search": "user1@example.com"}, 1),
-        ({"search": "test@example.com"}, 1),
+        ({"search": "discount name"}, 2),
+        ({"search": "Some other"}, 1),
+        ({"search": "translated"}, 1),
+        ({"search": "user_email"}, 2),
+        ({"search": "test@mirumee.com"}, 1),
         ({"search": "Leslie"}, 1),
         ({"search": "Wade"}, 1),
         ({"search": ""}, 3),
@@ -5514,17 +5513,17 @@ def test_orders_query_with_filter_search(
             Order(
                 user=customer_user,
                 token=str(uuid.uuid4()),
-                user_email="test@example.com",
+                user_email="test@mirumee.com",
                 channel=channel_USD,
             ),
             Order(
                 token=str(uuid.uuid4()),
-                user_email="user1@example.com",
+                user_email="user_email1@example.com",
                 channel=channel_USD,
             ),
             Order(
                 token=str(uuid.uuid4()),
-                user_email="user2@example.com",
+                user_email="user_email2@example.com",
                 channel=channel_USD,
             ),
         ]
@@ -5534,17 +5533,17 @@ def test_orders_query_with_filter_search(
         [
             OrderDiscount(
                 order=orders[0],
-                name="test_discount1",
+                name="Some discount name",
                 value=Decimal("1"),
                 amount_value=Decimal("1"),
-                translated_name="translated_discount1_name",
+                translated_name="translated",
             ),
             OrderDiscount(
                 order=orders[2],
-                name="test_discount2",
+                name="Some other discount name",
                 value=Decimal("10"),
                 amount_value=Decimal("10"),
-                translated_name="translated_discount2_name",
+                translated_name="PL_name",
             ),
         ]
     )
@@ -5612,15 +5611,24 @@ def test_orders_query_with_filter_search_by_id(
     assert content["data"]["orders"]["totalCount"] == 1
 
 
+def test_orders_query_with_filter_search_by_id_with_hash(
+    orders_query_with_filter, order, staff_api_client, permission_manage_orders
+):
+    variables = {"filter": {"search": f"#{order.pk}"}}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["orders"]["totalCount"] == 1
+
+
 @pytest.mark.parametrize(
     "draft_orders_filter, count",
     [
-        ({"search": "test_discount"}, 2),
-        ({"search": "test_discount1"}, 1),
-        ({"search": "translated_discount1_name"}, 1),
-        ({"search": "user"}, 2),
-        ({"search": "user1@example.com"}, 1),
-        ({"search": "test@example.com"}, 1),
+        ({"search": "discount name"}, 2),
+        ({"search": "Some other"}, 1),
+        ({"search": "translated"}, 1),
+        ({"search": "user_email"}, 2),
+        ({"search": "test@mirumee.com"}, 1),
         ({"search": "Leslie"}, 1),
         ({"search": "Wade"}, 1),
         ({"search": ""}, 3),
@@ -5640,19 +5648,19 @@ def test_draft_orders_query_with_filter_search(
             Order(
                 user=customer_user,
                 token=str(uuid.uuid4()),
-                user_email="test@example.com",
+                user_email="test@mirumee.com",
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
             ),
             Order(
                 token=str(uuid.uuid4()),
-                user_email="user1@example.com",
+                user_email="user_email1@example.com",
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
             ),
             Order(
                 token=str(uuid.uuid4()),
-                user_email="user2@example.com",
+                user_email="user_email2@example.com",
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
             ),
@@ -5662,17 +5670,17 @@ def test_draft_orders_query_with_filter_search(
         [
             OrderDiscount(
                 order=orders[0],
-                name="test_discount1",
+                name="Some discount name",
                 value=Decimal("1"),
                 amount_value=Decimal("1"),
-                translated_name="translated_discount1_name",
+                translated_name="translated",
             ),
             OrderDiscount(
                 order=orders[2],
-                name="test_discount2",
+                name="Some other discount name",
                 value=Decimal("10"),
                 amount_value=Decimal("10"),
-                translated_name="translated_discount2_name",
+                translated_name="PL_name",
             ),
         ]
     )
@@ -5690,6 +5698,19 @@ def test_draft_orders_query_with_filter_search_by_id(
     permission_manage_orders,
 ):
     variables = {"filter": {"search": draft_order.pk}}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(draft_orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["draftOrders"]["totalCount"] == 1
+
+
+def test_draft_orders_query_with_filter_search_by_id_with_hash(
+    draft_orders_query_with_filter,
+    draft_order,
+    staff_api_client,
+    permission_manage_orders,
+):
+    variables = {"filter": {"search": f"#{draft_order.pk}"}}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(draft_orders_query_with_filter, variables)
     content = get_graphql_content(response)

@@ -405,6 +405,7 @@ def _create_order(
     order.metadata = checkout.metadata
     order.redirect_url = checkout.redirect_url
     order.private_metadata = checkout.private_metadata
+    order.update_total_paid()
     order.save()
 
     transaction.on_commit(
