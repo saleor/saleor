@@ -11,6 +11,7 @@ from django.db import transaction
 from ..account.models import User
 from ..core import analytics
 from ..core.exceptions import AllocationError, InsufficientStock, InsufficientStockData
+from ..core.transactions import transaction_with_commit_on_errors
 from ..payment import (
     ChargeStatus,
     CustomPaymentChoices,
@@ -176,11 +177,9 @@ def order_returned(
     order: "Order",
     user: Optional["User"],
     returned_lines: List[Tuple[QuantityType, OrderLine]],
-    manager: "PluginsManager",
 ):
     order_returned_event(order=order, user=user, returned_lines=returned_lines)
     update_order_status(order)
-    manager.order_updated(order)
 
 
 @transaction.atomic
@@ -712,18 +711,18 @@ def create_refund_fulfillment(
     unfulfilled lines will be deallocated.
     """
 
-    _process_refund(
-        requester=requester,
-        order=order,
-        payment=payment,
-        order_lines_to_refund=order_lines_to_refund,
-        fulfillment_lines_to_refund=fulfillment_lines_to_refund,
-        amount=amount,
-        refund_shipping_costs=refund_shipping_costs,
-        manager=manager,
-    )
+    with transaction_with_commit_on_errors():
+        _process_refund(
+            requester=requester,
+            order=order,
+            payment=payment,
+            order_lines_to_refund=order_lines_to_refund,
+            fulfillment_lines_to_refund=fulfillment_lines_to_refund,
+            amount=amount,
+            refund_shipping_costs=refund_shipping_costs,
+            manager=manager,
+        )
 
-    with transaction.atomic():
         refunded_fulfillment = Fulfillment.objects.create(
             status=FulfillmentStatus.REFUNDED, order=order
         )
@@ -739,6 +738,7 @@ def create_refund_fulfillment(
         )
 
         Fulfillment.objects.filter(order=order, lines=None).delete()
+        transaction.on_commit(lambda: manager.order_updated(order))
 
     return refunded_fulfillment
 
@@ -908,7 +908,6 @@ def create_return_fulfillment(
     order: "Order",
     order_lines: List[OrderLineData],
     fulfillment_lines: List[FulfillmentLineData],
-    manager: "PluginsManager",
     refund: bool = False,
 ) -> Fulfillment:
     status = FulfillmentStatus.RETURNED
@@ -945,7 +944,6 @@ def create_return_fulfillment(
                 order,
                 user=requester,
                 returned_lines=returned_lines_list,
-                manager=manager,
             )
         )
 
@@ -1025,19 +1023,20 @@ def create_fulfillments_for_returned_products(
     """
     return_order_lines = [data for data in order_lines if not data.replace]
     return_fulfillment_lines = [data for data in fulfillment_lines if not data.replace]
-    if refund and payment:
-        _process_refund(
-            requester=requester,
-            order=order,
-            payment=payment,
-            order_lines_to_refund=return_order_lines,
-            fulfillment_lines_to_refund=return_fulfillment_lines,
-            amount=amount,
-            refund_shipping_costs=refund_shipping_costs,
-            manager=manager,
-        )
 
     with transaction.atomic():
+        if refund and payment:
+            _process_refund(
+                requester=requester,
+                order=order,
+                payment=payment,
+                order_lines_to_refund=return_order_lines,
+                fulfillment_lines_to_refund=return_fulfillment_lines,
+                amount=amount,
+                refund_shipping_costs=refund_shipping_costs,
+                manager=manager,
+            )
+
         replace_order_lines = [data for data in order_lines if data.replace]
         replace_fulfillment_lines = [data for data in fulfillment_lines if data.replace]
 
@@ -1054,10 +1053,11 @@ def create_fulfillments_for_returned_products(
             order=order,
             order_lines=return_order_lines,
             fulfillment_lines=return_fulfillment_lines,
-            manager=manager,
             refund=refund,
         )
         Fulfillment.objects.filter(order=order, lines=None).delete()
+
+        transaction.on_commit(lambda: manager.order_updated(order))
     return return_fulfillment, replace_fulfillment, new_order
 
 
@@ -1094,6 +1094,7 @@ def _calculate_refund_amount(
     return refund_amount
 
 
+@transaction_with_commit_on_errors()
 def _process_refund(
     requester: Optional["User"],
     order: "Order",
@@ -1123,12 +1124,26 @@ def _process_refund(
                 "The refund operation is not available yet.",
                 code=OrderErrorCode.CANNOT_REFUND.value,
             )
-        order_refunded(order, requester, amount, payment, manager=manager)
+        transaction.on_commit(
+            lambda: events.payment_refunded_event(
+                order=order,
+                user=requester,
+                amount=amount,  # type: ignore
+                payment=payment,
+            )
+        )
+        transaction.on_commit(
+            lambda: send_order_refunded_confirmation(
+                order, requester, amount, payment.currency, manager  # type: ignore
+            )
+        )
 
-    fulfillment_refunded_event(
-        order=order,
-        user=requester,
-        refunded_lines=list(lines_to_refund.values()),
-        amount=amount,
-        shipping_costs_included=refund_shipping_costs,
+    transaction.on_commit(
+        lambda: fulfillment_refunded_event(
+            order=order,
+            user=requester,
+            refunded_lines=list(lines_to_refund.values()),
+            amount=amount,  # type: ignore
+            shipping_costs_included=refund_shipping_costs,
+        )
     )
