@@ -26,7 +26,7 @@ from ..discount.utils import (
 from ..graphql.checkout.utils import (
     prepare_insufficient_stock_checkout_validation_error,
 )
-from ..order import OrderLineData, OrderStatus
+from ..order import OrderLineData, OrderOrigin, OrderStatus
 from ..order.actions import order_created
 from ..order.models import Order, OrderLine
 from ..order.notifications import send_order_confirmation
@@ -367,6 +367,7 @@ def _create_order(
         **order_data,
         checkout_token=checkout.token,
         status=status,
+        origin=OrderOrigin.CHECKOUT,
         channel=checkout_info.channel,
     )
     if checkout.discount:
