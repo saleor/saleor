@@ -1,10 +1,10 @@
 import django_filters
-from django.db.models import Count
+from django.db.models import Count, Q
 
 from ...account.models import User
 from ..core.filters import EnumFilter, ObjectTypeFilter
 from ..core.types.common import DateRangeInput, IntRangeInput
-from ..utils.filters import filter_by_query_param, filter_range_field
+from ..utils.filters import filter_range_field
 from .enums import StaffMemberStatus
 
 
@@ -29,26 +29,24 @@ def filter_status(qs, _, value):
     return qs
 
 
-def filter_staff_search(qs, _, value):
-    search_fields = (
-        "email",
-        "first_name",
-        "last_name",
-        "default_shipping_address__first_name",
-        "default_shipping_address__last_name",
-        "default_shipping_address__city",
-        "default_shipping_address__country",
-        "default_shipping_address__phone",
-    )
+def filter_user_search(qs, _, value):
     if value:
-        qs = filter_by_query_param(qs, value, search_fields)
+        return qs.filter(
+            Q(email__trigram_similar=value)
+            | Q(first_name__trigram_similar=value)
+            | Q(last_name__trigram_similar=value)
+            | Q(default_shipping_address__first_name__trigram_similar=value)
+            | Q(default_shipping_address__last_name__trigram_similar=value)
+            | Q(default_shipping_address__city__trigram_similar=value)
+            | Q(default_shipping_address__country__trigram_similar=value)
+            | Q(default_shipping_address__phone__trigram_similar=value)
+        )
     return qs
 
 
 def filter_search(qs, _, value):
-    search_fields = ("name",)
     if value:
-        qs = filter_by_query_param(qs, value, search_fields)
+        return qs.filter(name__trigram_similar=value)
     return qs
 
 
@@ -62,7 +60,7 @@ class CustomerFilter(django_filters.FilterSet):
     placed_orders = ObjectTypeFilter(
         input_class=DateRangeInput, method=filter_placed_orders
     )
-    search = django_filters.CharFilter(method=filter_staff_search)
+    search = django_filters.CharFilter(method=filter_user_search)
 
     class Meta:
         model = User
@@ -80,8 +78,7 @@ class PermissionGroupFilter(django_filters.FilterSet):
 
 class StaffUserFilter(django_filters.FilterSet):
     status = EnumFilter(input_class=StaffMemberStatus, method=filter_status)
-    search = django_filters.CharFilter(method=filter_staff_search)
-
+    search = django_filters.CharFilter(method=filter_user_search)
     # TODO - Figure out after permision types
     # department = ObjectTypeFilter
 
