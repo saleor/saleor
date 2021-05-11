@@ -14,3 +14,4 @@ class PaymentErrorCode(Enum):
     SHIPPING_METHOD_NOT_SET = "shipping_method_not_set"
     PAYMENT_ERROR = "payment_error"
     NOT_SUPPORTED_GATEWAY = "not_supported_gateway"
+    CHANNEL_INACTIVE = "channel_inactive"

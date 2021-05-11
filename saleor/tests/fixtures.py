@@ -194,10 +194,11 @@ def assert_max_num_queries(capture_queries):
 
 
 @pytest.fixture
-def setup_vatlayer(settings):
+def setup_vatlayer(settings, channel_USD):
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
     data = {
         "active": True,
+        "channel": channel_USD,
         "configuration": [
             {"name": "Access key", "value": "vatlayer_access_key"},
         ],
