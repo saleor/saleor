@@ -35,6 +35,18 @@ class OrderStatus:
     ]
 
 
+class OrderOrigin:
+    CHECKOUT = "checkout"  # order created from checkout
+    DRAFT = "draft"  # order created from draft order
+    REISSUE = "reissue"  # order created from reissue existing one
+
+    CHOICES = [
+        (CHECKOUT, "Checkout"),
+        (DRAFT, "Draft"),
+        (REISSUE, "Reissue"),
+    ]
+
+
 class FulfillmentStatus:
     FULFILLED = "fulfilled"  # group of products in an order marked as fulfilled
     REFUNDED = "refunded"  # group of refunded products
