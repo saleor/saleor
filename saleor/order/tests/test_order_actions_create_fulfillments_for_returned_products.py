@@ -6,7 +6,13 @@ from prices import Money, TaxedMoney
 from ...plugins.manager import get_plugins_manager
 from ...tests.utils import flush_post_commit_hooks
 from ...warehouse.models import Allocation, Stock
-from .. import FulfillmentLineData, FulfillmentStatus, OrderEvents, OrderLineData
+from .. import (
+    FulfillmentLineData,
+    FulfillmentStatus,
+    OrderEvents,
+    OrderLineData,
+    OrderOrigin,
+)
 from ..actions import create_fulfillments_for_returned_products
 from ..models import Fulfillment, FulfillmentLine
 
@@ -273,6 +279,8 @@ def test_create_return_fulfillment_only_order_lines_with_replace_request(
     replace_order.billing_address.id = None
     order_with_lines.billing_address.id = None
     assert replace_order.billing_address == order_with_lines.billing_address
+    assert replace_order.original == order_with_lines
+    assert replace_order.origin == OrderOrigin.REISSUE
 
     expected_replaced_line = order_lines_to_return[0]
 
