@@ -422,7 +422,6 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
     @classmethod
     @transaction.atomic
     def save(cls, info, instance, cleaned_input):
-        # FIXME: save address in user.addresses as well
         default_shipping_address = cleaned_input.get(SHIPPING_ADDRESS_FIELD)
         if default_shipping_address:
             default_shipping_address = info.context.plugins.change_user_address(
@@ -440,6 +439,10 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
 
         is_creation = instance.pk is None
         super().save(info, instance, cleaned_input)
+        if default_billing_address:
+            instance.addresses.add(default_billing_address)
+        if default_shipping_address:
+            instance.addresses.add(default_shipping_address)
 
         # The instance is a new object in db, create an event
         if is_creation:
