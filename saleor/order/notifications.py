@@ -273,7 +273,9 @@ def send_order_confirmation(order, redirect_url, manager):
         "recipient_email": order.get_customer_email(),
         **get_site_context(),
     }
-    manager.notify(NotifyEventType.ORDER_CONFIRMATION, payload)
+    manager.notify(
+        NotifyEventType.ORDER_CONFIRMATION, payload, channel_slug=order.channel.slug
+    )
 
     # Prepare staff notification for this order
     staff_notifications = StaffNotificationRecipient.objects.filter(
@@ -299,18 +301,28 @@ def send_order_confirmed(order, user, manager):
         "requester_user_id": user.id,
         **get_site_context(),
     }
-    manager.notify(NotifyEventType.ORDER_CONFIRMED, payload)
+    manager.notify(
+        NotifyEventType.ORDER_CONFIRMED, payload, channel_slug=order.channel.slug
+    )
 
 
 def send_fulfillment_confirmation_to_customer(order, fulfillment, user, manager):
     payload = get_default_fulfillment_payload(order, fulfillment)
     payload["requester_user_id"] = user.id if user else None
-    manager.notify(NotifyEventType.ORDER_FULFILLMENT_CONFIRMATION, payload=payload)
+    manager.notify(
+        NotifyEventType.ORDER_FULFILLMENT_CONFIRMATION,
+        payload=payload,
+        channel_slug=order.channel.slug,
+    )
 
 
 def send_fulfillment_update(order, fulfillment, manager):
     payload = get_default_fulfillment_payload(order, fulfillment)
-    manager.notify(NotifyEventType.ORDER_FULFILLMENT_UPDATE, payload)
+    manager.notify(
+        NotifyEventType.ORDER_FULFILLMENT_UPDATE,
+        payload,
+        channel_slug=order.channel.slug,
+    )
 
 
 def send_payment_confirmation(order, manager):
@@ -329,7 +341,11 @@ def send_payment_confirmation(order, manager):
         },
         **get_site_context(),
     }
-    manager.notify(NotifyEventType.ORDER_PAYMENT_CONFIRMATION, payload)
+    manager.notify(
+        NotifyEventType.ORDER_PAYMENT_CONFIRMATION,
+        payload,
+        channel_slug=order.channel.slug,
+    )
 
 
 def send_order_canceled_confirmation(order: "Order", user: Optional["User"], manager):
@@ -339,7 +355,9 @@ def send_order_canceled_confirmation(order: "Order", user: Optional["User"], man
         "recipient_email": order.get_customer_email(),
         **get_site_context(),
     }
-    manager.notify(NotifyEventType.ORDER_CANCELED, payload)
+    manager.notify(
+        NotifyEventType.ORDER_CANCELED, payload, channel_slug=order.channel.slug
+    )
 
 
 def send_order_refunded_confirmation(
@@ -353,4 +371,8 @@ def send_order_refunded_confirmation(
         "currency": currency,
         **get_site_context(),
     }
-    manager.notify(NotifyEventType.ORDER_REFUND_CONFIRMATION, payload)
+    manager.notify(
+        NotifyEventType.ORDER_REFUND_CONFIRMATION,
+        payload,
+        channel_slug=order.channel.slug,
+    )

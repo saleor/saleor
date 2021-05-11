@@ -949,7 +949,8 @@ ACCOUNT_REGISTER_MUTATION = """
         $email: String!,
         $redirectUrl: String,
         $languageCode: LanguageCodeEnum
-        $metadata: [MetadataInput!]
+        $metadata: [MetadataInput!],
+        $channel: String
     ) {
         accountRegister(
             input: {
@@ -957,7 +958,8 @@ ACCOUNT_REGISTER_MUTATION = """
                 email: $email,
                 redirectUrl: $redirectUrl,
                 languageCode: $languageCode,
-                metadata: $metadata
+                metadata: $metadata,
+                channel: $channel
             }
         ) {
             errors {
@@ -978,7 +980,7 @@ ACCOUNT_REGISTER_MUTATION = """
 )
 @patch("saleor.account.notifications.default_token_generator.make_token")
 @patch("saleor.plugins.manager.PluginsManager.notify")
-def test_customer_register(mocked_notify, mocked_generator, api_client):
+def test_customer_register(mocked_notify, mocked_generator, api_client, channel_PLN):
     mocked_generator.return_value = "token"
     email = "customer@example.com"
     redirect_url = "http://localhost:3000"
@@ -988,6 +990,7 @@ def test_customer_register(mocked_notify, mocked_generator, api_client):
         "redirectUrl": redirect_url,
         "languageCode": "PL",
         "metadata": [{"key": "meta", "value": "data"}],
+        "channel": channel_PLN.slug,
     }
     query = ACCOUNT_REGISTER_MUTATION
     mutation_name = "accountRegister"
@@ -1006,12 +1009,15 @@ def test_customer_register(mocked_notify, mocked_generator, api_client):
         "recipient_email": new_user.email,
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
+        "channel_slug": channel_PLN.slug,
     }
     assert new_user.metadata == {"meta": "data"}
     assert new_user.language_code == "pl"
     assert not data["errors"]
     mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_CONFIRMATION, payload=expected_payload
+        NotifyEventType.ACCOUNT_CONFIRMATION,
+        payload=expected_payload,
+        channel_slug=channel_PLN.slug,
     )
 
     response = api_client.post_graphql(query, variables)
@@ -1096,7 +1102,12 @@ CUSTOMER_CREATE_MUTATION = """
 @patch("saleor.account.notifications.default_token_generator.make_token")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_customer_create(
-    mocked_notify, mocked_generator, staff_api_client, address, permission_manage_users
+    mocked_notify,
+    mocked_generator,
+    staff_api_client,
+    address,
+    permission_manage_users,
+    channel_PLN,
 ):
     mocked_generator.return_value = "token"
     email = "api_user@example.com"
@@ -1114,6 +1125,7 @@ def test_customer_create(
         "billing": address_data,
         "redirect_url": redirect_url,
         "languageCode": "PL",
+        "channel": channel_PLN.slug,
     }
 
     response = staff_api_client.post_graphql(
@@ -1151,9 +1163,12 @@ def test_customer_create(
         "recipient_email": new_user.email,
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
+        "channel_slug": channel_PLN.slug,
     }
     mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_SET_CUSTOMER_PASSWORD, payload=expected_payload
+        NotifyEventType.ACCOUNT_SET_CUSTOMER_PASSWORD,
+        payload=expected_payload,
+        channel_slug=channel_PLN.slug,
     )
 
     customer_creation_event = account_events.CustomerEvent.objects.get()
@@ -1168,10 +1183,15 @@ def test_customer_create_send_password_with_url(
     mocked_generator,
     staff_api_client,
     permission_manage_users,
+    channel_PLN,
 ):
     mocked_generator.return_value = "token"
     email = "api_user@example.com"
-    variables = {"email": email, "redirect_url": "https://www.example.com"}
+    variables = {
+        "email": email,
+        "redirect_url": "https://www.example.com",
+        "channel": channel_PLN.slug,
+    }
 
     response = staff_api_client.post_graphql(
         CUSTOMER_CREATE_MUTATION, variables, permissions=[permission_manage_users]
@@ -1192,9 +1212,12 @@ def test_customer_create_send_password_with_url(
         "recipient_email": new_customer.email,
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
+        "channel_slug": channel_PLN.slug,
     }
     mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_SET_CUSTOMER_PASSWORD, payload=expected_payload
+        NotifyEventType.ACCOUNT_SET_CUSTOMER_PASSWORD,
+        payload=expected_payload,
+        channel_slug=channel_PLN.slug,
     )
 
 
@@ -1574,8 +1597,8 @@ def test_logged_customer_update_anonymous_user(api_client):
 
 
 ACCOUNT_REQUEST_DELETION_MUTATION = """
-    mutation accountRequestDeletion($redirectUrl: String!) {
-        accountRequestDeletion(redirectUrl: $redirectUrl) {
+    mutation accountRequestDeletion($redirectUrl: String!, $channel: String) {
+        accountRequestDeletion(redirectUrl: $redirectUrl, channel: $channel) {
             errors {
                 field
                 message
@@ -1591,11 +1614,13 @@ ACCOUNT_REQUEST_DELETION_MUTATION = """
 
 @patch("saleor.account.notifications.default_token_generator.make_token")
 @patch("saleor.plugins.manager.PluginsManager.notify")
-def test_account_request_deletion(mocked_notify, mocked_token, user_api_client):
+def test_account_request_deletion(
+    mocked_notify, mocked_token, user_api_client, channel_PLN
+):
     mocked_token.return_value = "token"
     user = user_api_client.user
     redirect_url = "https://www.example.com"
-    variables = {"redirectUrl": redirect_url}
+    variables = {"redirectUrl": redirect_url, "channel": channel_PLN.slug}
     response = user_api_client.post_graphql(
         ACCOUNT_REQUEST_DELETION_MUTATION, variables
     )
@@ -1611,20 +1636,25 @@ def test_account_request_deletion(mocked_notify, mocked_token, user_api_client):
         "recipient_email": user.email,
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
+        "channel_slug": channel_PLN.slug,
     }
 
     mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_DELETE, payload=expected_payload
+        NotifyEventType.ACCOUNT_DELETE,
+        payload=expected_payload,
+        channel_slug=channel_PLN.slug,
     )
 
 
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
-def test_account_request_deletion_token_validation(mocked_notify, user_api_client):
+def test_account_request_deletion_token_validation(
+    mocked_notify, user_api_client, channel_PLN
+):
     user = user_api_client.user
     token = default_token_generator.make_token(user)
     redirect_url = "https://www.example.com"
-    variables = {"redirectUrl": redirect_url}
+    variables = {"redirectUrl": redirect_url, "channel": channel_PLN.slug}
     response = user_api_client.post_graphql(
         ACCOUNT_REQUEST_DELETION_MUTATION, variables
     )
@@ -1640,10 +1670,13 @@ def test_account_request_deletion_token_validation(mocked_notify, user_api_clien
         "recipient_email": user.email,
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
+        "channel_slug": channel_PLN.slug,
     }
 
     mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_DELETE, payload=expected_payload
+        NotifyEventType.ACCOUNT_DELETE,
+        payload=expected_payload,
+        channel_slug=channel_PLN.slug,
     )
 
 
@@ -1677,13 +1710,13 @@ def test_account_request_deletion_storefront_hosts_not_allowed(
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_account_request_deletion_all_storefront_hosts_allowed(
-    mocked_notify, user_api_client, settings
+    mocked_notify, user_api_client, settings, channel_PLN
 ):
     user = user_api_client.user
     token = default_token_generator.make_token(user)
     settings.ALLOWED_CLIENT_HOSTS = ["*"]
     redirect_url = "https://www.test.com"
-    variables = {"redirectUrl": redirect_url}
+    variables = {"redirectUrl": redirect_url, "channel": channel_PLN.slug}
     response = user_api_client.post_graphql(
         ACCOUNT_REQUEST_DELETION_MUTATION, variables
     )
@@ -1700,21 +1733,26 @@ def test_account_request_deletion_all_storefront_hosts_allowed(
         "recipient_email": user.email,
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
+        "channel_slug": channel_PLN.slug,
     }
 
     mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_DELETE, payload=expected_payload
+        NotifyEventType.ACCOUNT_DELETE,
+        payload=expected_payload,
+        channel_slug=channel_PLN.slug,
     )
 
 
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
-def test_account_request_deletion_subdomain(mocked_notify, user_api_client, settings):
+def test_account_request_deletion_subdomain(
+    mocked_notify, user_api_client, settings, channel_PLN
+):
     user = user_api_client.user
     token = default_token_generator.make_token(user)
     settings.ALLOWED_CLIENT_HOSTS = [".example.com"]
     redirect_url = "https://sub.example.com"
-    variables = {"redirectUrl": redirect_url}
+    variables = {"redirectUrl": redirect_url, "channel": channel_PLN.slug}
     response = user_api_client.post_graphql(
         ACCOUNT_REQUEST_DELETION_MUTATION, variables
     )
@@ -1730,10 +1768,13 @@ def test_account_request_deletion_subdomain(mocked_notify, user_api_client, sett
         "recipient_email": user.email,
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
+        "channel_slug": channel_PLN.slug,
     }
 
     mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_DELETE, payload=expected_payload
+        NotifyEventType.ACCOUNT_DELETE,
+        payload=expected_payload,
+        channel_slug=channel_PLN.slug,
     )
 
 
@@ -1921,6 +1962,7 @@ def test_staff_create(
     permission_manage_products,
     permission_manage_staff,
     permission_manage_users,
+    channel_PLN,
 ):
     group = permission_group_manage_users
     group.permissions.add(permission_manage_products)
@@ -1968,10 +2010,13 @@ def test_staff_create(
         "recipient_email": staff_user.email,
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
+        "channel_slug": None,
     }
 
     mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_SET_STAFF_PASSWORD, payload=expected_payload
+        NotifyEventType.ACCOUNT_SET_STAFF_PASSWORD,
+        payload=expected_payload,
+        channel_slug=None,
     )
 
 
@@ -2011,6 +2056,7 @@ def test_staff_create_out_of_scope_group(
     permission_manage_staff,
     permission_manage_users,
     permission_group_manage_users,
+    channel_PLN,
 ):
     """Ensure user can't create staff with groups which are out of user scope.
     Ensure superuser pass restrictions.
@@ -2093,10 +2139,13 @@ def test_staff_create_out_of_scope_group(
         "recipient_email": staff_user.email,
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
+        "channel_slug": None,
     }
 
     mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_SET_STAFF_PASSWORD, payload=expected_payload
+        NotifyEventType.ACCOUNT_SET_STAFF_PASSWORD,
+        payload=expected_payload,
+        channel_slug=None,
     )
 
 
@@ -2132,10 +2181,13 @@ def test_staff_create_send_password_with_url(
         "recipient_email": staff_user.email,
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
+        "channel_slug": None,
     }
 
     mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_SET_STAFF_PASSWORD, payload=expected_payload
+        NotifyEventType.ACCOUNT_SET_STAFF_PASSWORD,
+        payload=expected_payload,
+        channel_slug=None,
     )
 
 
@@ -3433,7 +3485,9 @@ CONFIRM_ACCOUNT_MUTATION = """
 
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
-def test_account_reset_password(mocked_notify, user_api_client, customer_user):
+def test_account_reset_password(
+    mocked_notify, user_api_client, customer_user, channel_PLN
+):
     redirect_url = "https://www.example.com"
     variables = {"email": customer_user.email, "redirectUrl": redirect_url}
     response = user_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
@@ -3450,10 +3504,13 @@ def test_account_reset_password(mocked_notify, user_api_client, customer_user):
         "recipient_email": customer_user.email,
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
+        "channel_slug": channel_PLN.slug,
     }
 
     mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_PASSWORD_RESET, payload=expected_payload
+        NotifyEventType.ACCOUNT_PASSWORD_RESET,
+        payload=expected_payload,
+        channel_slug=channel_PLN.slug,
     )
 
 
@@ -3531,10 +3588,13 @@ def test_request_password_reset_email_for_staff(mocked_notify, staff_api_client)
         "recipient_email": staff_api_client.user.email,
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
+        "channel_slug": None,
     }
 
     mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_STAFF_RESET_PASSWORD, payload=expected_payload
+        NotifyEventType.ACCOUNT_STAFF_RESET_PASSWORD,
+        payload=expected_payload,
+        channel_slug=None,
     )
 
 
@@ -3588,7 +3648,7 @@ def test_account_reset_password_storefront_hosts_not_allowed(
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_account_reset_password_all_storefront_hosts_allowed(
-    mocked_notify, user_api_client, customer_user, settings
+    mocked_notify, user_api_client, customer_user, settings, channel_PLN
 ):
     settings.ALLOWED_CLIENT_HOSTS = ["*"]
     redirect_url = "https://www.test.com"
@@ -3608,17 +3668,20 @@ def test_account_reset_password_all_storefront_hosts_allowed(
         "recipient_email": customer_user.email,
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
+        "channel_slug": channel_PLN.slug,
     }
 
     mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_PASSWORD_RESET, payload=expected_payload
+        NotifyEventType.ACCOUNT_PASSWORD_RESET,
+        payload=expected_payload,
+        channel_slug=channel_PLN.slug,
     )
 
 
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_account_reset_password_subdomain(
-    mocked_notify, user_api_client, customer_user, settings
+    mocked_notify, user_api_client, customer_user, settings, channel_PLN
 ):
     settings.ALLOWED_CLIENT_HOSTS = [".example.com"]
     redirect_url = "https://sub.example.com"
@@ -3638,10 +3701,13 @@ def test_account_reset_password_subdomain(
         "recipient_email": customer_user.email,
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
+        "channel_slug": channel_PLN.slug,
     }
 
     mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_PASSWORD_RESET, payload=expected_payload
+        NotifyEventType.ACCOUNT_PASSWORD_RESET,
+        payload=expected_payload,
+        channel_slug=channel_PLN.slug,
     )
 
 
@@ -4530,10 +4596,13 @@ def test_address_query_as_anonymous_user(api_client, address_other_country):
 
 REQUEST_EMAIL_CHANGE_QUERY = """
 mutation requestEmailChange(
-    $password: String!, $new_email: String!, $redirect_url: String!
+    $password: String!, $new_email: String!, $redirect_url: String!, $channel:String
 ) {
     requestEmailChange(
-        password: $password, newEmail: $new_email, redirectUrl: $redirect_url
+        password: $password,
+        newEmail: $new_email,
+        redirectUrl: $redirect_url,
+        channel: $channel
     ) {
         user {
             email
@@ -4548,11 +4617,12 @@ mutation requestEmailChange(
 """
 
 
-def test_request_email_change(user_api_client, customer_user):
+def test_request_email_change(user_api_client, customer_user, channel_PLN):
     variables = {
         "password": "password",
         "new_email": "new_email@example.com",
         "redirect_url": "http://www.example.com",
+        "channel": channel_PLN.slug,
     }
 
     response = user_api_client.post_graphql(REQUEST_EMAIL_CHANGE_QUERY, variables)
@@ -4635,7 +4705,7 @@ mutation emailUpdate($token: String!) {
 """
 
 
-def test_email_update(user_api_client, customer_user):
+def test_email_update(user_api_client, customer_user, channel_PLN):
     new_email = "new_email@example.com"
     payload = {
         "old_email": customer_user.email,

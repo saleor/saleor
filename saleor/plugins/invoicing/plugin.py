@@ -15,6 +15,7 @@ class InvoicingPlugin(BasePlugin):
     PLUGIN_NAME = "Invoicing"
     DEFAULT_ACTIVE = True
     PLUGIN_DESCRIPTION = "Built-in saleor plugin that handles invoice creation."
+    CONFIGURATION_PER_CHANNEL = False
 
     def invoice_request(
         self,

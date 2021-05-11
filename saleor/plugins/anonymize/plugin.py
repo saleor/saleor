@@ -19,6 +19,7 @@ class AnonymizePlugin(BasePlugin):
         "Anonymize customer's personal data in the checkout, such as shipping "
         "or billing address, email and phone number."
     )
+    CONFIGURATION_PER_CHANNEL = False
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
