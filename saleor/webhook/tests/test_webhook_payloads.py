@@ -6,6 +6,8 @@ from unittest.mock import ANY
 import graphene
 
 from ...discount import DiscountValueType, OrderDiscountType
+from ...order import OrderOrigin
+from ...order.models import Order
 from ...product.models import ProductVariant
 from ..payloads import (
     ORDER_FIELDS,
@@ -19,6 +21,14 @@ from ..payloads import (
 def test_generate_order_payload(
     order_with_lines, fulfilled_order, payment_txn_captured
 ):
+    new_order = Order.objects.create(
+        channel=order_with_lines.channel,
+        billing_address=order_with_lines.billing_address,
+    )
+    order_with_lines.origin = OrderOrigin.REISSUE
+    order_with_lines.original = new_order
+    order_with_lines.save(update_fields=["origin", "original"])
+
     order_with_lines.discounts.create(
         type=OrderDiscountType.MANUAL,
         value_type=DiscountValueType.PERCENTAGE,
@@ -49,6 +59,7 @@ def test_generate_order_payload(
     assert payload.get("billing_address")
     assert payload.get("fulfillments")
     assert payload.get("discounts")
+    assert payload.get("original") == graphene.Node.to_global_id("Order", new_order.pk)
 
 
 def test_order_lines_have_all_required_fields(order, order_line_with_one_allocation):
@@ -186,6 +197,8 @@ def test_generate_product_variant_deleted_payload(
 
 
 def test_generate_invoice_payload(fulfilled_order):
+    fulfilled_order.origin = OrderOrigin.CHECKOUT
+    fulfilled_order.save(update_fields=["origin"])
     invoice = fulfilled_order.invoices.first()
     payload = json.loads(generate_invoice_payload(invoice))[0]
 
@@ -199,6 +212,7 @@ def test_generate_invoice_payload(fulfilled_order):
             "metadata": {},
             "created": ANY,
             "status": "fulfilled",
+            "origin": OrderOrigin.CHECKOUT,
             "user_email": "test@example.com",
             "shipping_method_name": "DHL",
             "shipping_price_net_amount": "10.000",
