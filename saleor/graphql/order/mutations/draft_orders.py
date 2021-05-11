@@ -171,6 +171,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             cleaned_input["quantities"] = quantities
 
         cleaned_input["status"] = OrderStatus.DRAFT
+        cleaned_input["origin"] = OrderOrigin.DRAFT
         display_gross_prices = info.context.site.settings.display_gross_prices
         cleaned_input["display_gross_prices"] = display_gross_prices
 
@@ -365,9 +366,6 @@ class DraftOrderComplete(BaseMutation):
         validate_draft_order(order, country)
         cls.update_user_fields(order)
         order.status = OrderStatus.UNFULFILLED
-        # leave current origin if it's already set
-        if not order.origin:
-            order.origin = OrderOrigin.DRAFT
 
         if not order.is_shipping_required():
             order.shipping_method_name = None

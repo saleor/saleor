@@ -582,7 +582,7 @@ class Order(CountableDjangoObjectType):
     original = graphene.ID(
         description="The ID of the order that was the base for this order."
     )
-    origin = OrderOriginEnum(description="The order origin.")
+    origin = OrderOriginEnum(description="The order origin.", required=True)
     is_paid = graphene.Boolean(
         description="Informs if an order is fully paid.", required=True
     )

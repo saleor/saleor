@@ -6,8 +6,8 @@ from django.db import migrations, models
 
 def set_origin_and_original_order_values(apps, schema_editor):
     Order = apps.get_model("order", "Order")
-    Order.objects.filter(events__type="placed").update(origin="checkout")
-    Order.objects.filter(events__type="placed_from_draft").update(origin="draft")
+    draft_events = ["placed_from_draft", "draft_created"]
+    Order.objects.filter(events__type__in=draft_events).update(origin="draft")
     orders = []
     for order in Order.objects.filter(
         events__type="draft_created_from_replace"
@@ -18,6 +18,9 @@ def set_origin_and_original_order_values(apps, schema_editor):
         ).parameters.get("related_order_pk")
         orders.append(order)
     Order.objects.bulk_update(orders, ["origin", "original"])
+    Order.objects.exclude(
+        events__type__in=draft_events + ["draft_created_from_replace"]
+    ).update(origin="checkout")
 
 
 class Migration(migrations.Migration):
@@ -53,5 +56,17 @@ class Migration(migrations.Migration):
         ),
         migrations.RunPython(
             set_origin_and_original_order_values, migrations.RunPython.noop
+        ),
+        migrations.AlterField(
+            model_name="order",
+            name="origin",
+            field=models.CharField(
+                choices=[
+                    ("checkout", "Checkout"),
+                    ("draft", "Draft"),
+                    ("reissue", "Reissue"),
+                ],
+                max_length=32,
+            ),
         ),
     ]

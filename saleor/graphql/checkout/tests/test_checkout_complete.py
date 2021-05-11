@@ -86,7 +86,7 @@ def test_checkout_complete_order_already_exists(
     order_data = data["order"]
     assert Order.objects.count() == orders_count
     assert order_with_lines.token == order_data["token"]
-    assert order_data["origin"] == order_with_lines.origin
+    assert order_data["origin"] == order_with_lines.origin.upper()
     assert not order_data["original"]
 
 

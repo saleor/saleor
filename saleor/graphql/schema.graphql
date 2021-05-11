@@ -2972,7 +2972,7 @@ type Order implements Node & ObjectWithMetadata {
   invoices: [Invoice]
   number: String
   original: ID
-  origin: OrderOriginEnum
+  origin: OrderOriginEnum!
   isPaid: Boolean!
   paymentStatus: PaymentChargeStatusEnum!
   paymentStatusDisplay: String!

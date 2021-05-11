@@ -2870,7 +2870,7 @@ def test_draft_order_complete_out_of_stock_variant(
     error = content["data"]["draftOrderComplete"]["errors"][0]
     order.refresh_from_db()
     assert order.status == OrderStatus.DRAFT
-    assert not order.origin
+    assert order.origin == OrderOrigin.DRAFT
 
     assert error["field"] == "lines"
     assert error["code"] == OrderErrorCode.INSUFFICIENT_STOCK.name
@@ -2983,7 +2983,7 @@ def test_draft_order_complete_unavailable_for_purchase(
     error = content["data"]["draftOrderComplete"]["errors"][0]
     order.refresh_from_db()
     assert order.status == OrderStatus.DRAFT
-    assert not order.origin
+    assert order.origin == OrderOrigin.DRAFT
 
     assert error["field"] == "lines"
     assert error["code"] == OrderErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE.name

@@ -110,9 +110,7 @@ class Order(ModelWithMetadata):
     original = models.ForeignKey(
         "self", null=True, blank=True, on_delete=models.SET_NULL
     )
-    origin = models.CharField(
-        max_length=32, choices=OrderOrigin.CHOICES, null=True, blank=True
-    )
+    origin = models.CharField(max_length=32, choices=OrderOrigin.CHOICES)
 
     currency = models.CharField(
         max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
