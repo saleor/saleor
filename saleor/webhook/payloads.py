@@ -2,7 +2,7 @@ import json
 from typing import TYPE_CHECKING, Iterable, Optional
 
 import graphene
-from django.db.models import QuerySet
+from django.db.models import F, QuerySet
 
 from ..account.models import User
 from ..checkout.models import Checkout
@@ -90,6 +90,12 @@ def generate_order_lines_payload(lines: Iterable[OrderLine]):
         extra_dict_data={
             "total_price_net_amount": (lambda l: l.total_price.net.amount),
             "total_price_gross_amount": (lambda l: l.total_price.gross.amount),
+            "allocations": list(
+                lines.values(  # type: ignore
+                    warehouse_id=F("allocations__stock__warehouse_id"),
+                    quantity_allocated=F("allocations__quantity_allocated"),
+                )
+            ),
         },
     )
 

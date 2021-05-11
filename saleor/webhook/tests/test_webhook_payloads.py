@@ -67,6 +67,7 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
     unit_net_amount = line.unit_price_net_amount.quantize(Decimal("0.001"))
     unit_gross_amount = line.unit_price_gross_amount.quantize(Decimal("0.001"))
     unit_discount_amount = line.unit_discount_amount.quantize(Decimal("0.001"))
+    allocation = line.allocations.first()
 
     total_line = line.total_price
     assert line_payload == {
@@ -89,6 +90,12 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
             total_line.gross.amount.quantize(Decimal("0.001"))
         ),
         "tax_rate": str(line.tax_rate.quantize(Decimal("0.0001"))),
+        "allocations": [
+            {
+                "warehouse_id": str(allocation.stock.warehouse_id),
+                "quantity_allocated": allocation.quantity_allocated,
+            }
+        ],
     }
 
 
