@@ -53,6 +53,7 @@ ADDITIONAL_ACTION_PATH = "/additional-actions"
 class AdyenGatewayPlugin(BasePlugin):
     PLUGIN_ID = "mirumee.payments.adyen"
     PLUGIN_NAME = GATEWAY_NAME
+    CONFIGURATION_PER_CHANNEL = True
     DEFAULT_CONFIGURATION = [
         {"name": "merchant-account", "value": None},
         {"name": "api-key", "value": None},

@@ -27,14 +27,21 @@ def test_get_default_user_payload(customer_user):
 
 @freeze_time("2018-05-31 12:00:01")
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
-def test_send_email_request_change(mocked_notify, site_settings, customer_user):
+def test_send_email_request_change(
+    mocked_notify, site_settings, customer_user, channel_PLN
+):
     new_email = "example@example.com"
     redirect_url = "http://localhost:8000/redirect"
     token = "token_example"
 
     manager = get_plugins_manager()
     notifications.send_request_user_change_email_notification(
-        redirect_url, customer_user, new_email, token, manager
+        redirect_url,
+        customer_user,
+        new_email,
+        token,
+        manager,
+        channel_slug=channel_PLN.slug,
     )
 
     expected_payload = {
@@ -46,19 +53,24 @@ def test_send_email_request_change(mocked_notify, site_settings, customer_user):
         "new_email": new_email,
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
+        "channel_slug": channel_PLN.slug,
     }
 
     mocked_notify.assert_called_once_with(
-        UserNotifyEvent.ACCOUNT_CHANGE_EMAIL_REQUEST, payload=expected_payload
+        UserNotifyEvent.ACCOUNT_CHANGE_EMAIL_REQUEST,
+        payload=expected_payload,
+        channel_slug=channel_PLN.slug,
     )
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
-def test_send_email_changed_notification(mocked_notify, site_settings, customer_user):
+def test_send_email_changed_notification(
+    mocked_notify, site_settings, customer_user, channel_PLN
+):
     old_email = "example@example.com"
 
     notifications.send_user_change_email_notification(
-        old_email, customer_user, get_plugins_manager()
+        old_email, customer_user, get_plugins_manager(), channel_slug=channel_PLN.slug
     )
 
     expected_payload = {
@@ -66,10 +78,13 @@ def test_send_email_changed_notification(mocked_notify, site_settings, customer_
         "recipient_email": old_email,
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
+        "channel_slug": channel_PLN.slug,
     }
 
     mocked_notify.assert_called_once_with(
-        UserNotifyEvent.ACCOUNT_CHANGE_EMAIL_CONFIRM, payload=expected_payload
+        UserNotifyEvent.ACCOUNT_CHANGE_EMAIL_CONFIRM,
+        payload=expected_payload,
+        channel_slug=channel_PLN.slug,
     )
 
 
@@ -77,7 +92,7 @@ def test_send_email_changed_notification(mocked_notify, site_settings, customer_
 @mock.patch("saleor.account.notifications.default_token_generator.make_token")
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_send_password_reset_notification(
-    mocked_notify, mocked_generator, is_staff, site_settings, customer_user
+    mocked_notify, mocked_generator, is_staff, site_settings, customer_user, channel_PLN
 ):
     token = "token_example"
     mocked_generator.return_value = token
@@ -86,7 +101,11 @@ def test_send_password_reset_notification(
     reset_url = prepare_url(params, redirect_url)
 
     notifications.send_password_reset_notification(
-        redirect_url, customer_user, get_plugins_manager(), staff=is_staff
+        redirect_url,
+        customer_user,
+        get_plugins_manager(),
+        channel_slug=channel_PLN.slug,
+        staff=is_staff,
     )
 
     expected_payload = {
@@ -96,10 +115,13 @@ def test_send_password_reset_notification(
         "reset_url": reset_url,
         "site_name": "mirumee.com",
         "domain": "mirumee.com",
+        "channel_slug": channel_PLN.slug,
     }
     expected_event = (
         NotifyEventType.ACCOUNT_STAFF_RESET_PASSWORD
         if is_staff
         else NotifyEventType.ACCOUNT_PASSWORD_RESET
     )
-    mocked_notify.assert_called_once_with(expected_event, payload=expected_payload)
+    mocked_notify.assert_called_once_with(
+        expected_event, payload=expected_payload, channel_slug=channel_PLN.slug
+    )

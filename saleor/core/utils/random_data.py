@@ -549,19 +549,19 @@ def create_fake_payment(mock_notify, order):
     manager = get_plugins_manager()
 
     # Create authorization transaction
-    gateway.authorize(payment, payment.token, manager)
+    gateway.authorize(payment, payment.token, manager, order.channel.slug)
     # 20% chance to void the transaction at this stage
     if random.choice([0, 0, 0, 0, 1]):
-        gateway.void(payment, manager)
+        gateway.void(payment, manager, order.channel.slug)
         return payment
     # 25% to end the payment at the authorization stage
     if not random.choice([1, 1, 1, 0]):
         return payment
     # Create capture transaction
-    gateway.capture(payment, manager)
+    gateway.capture(payment, manager, order.channel.slug)
     # 25% to refund the payment
     if random.choice([0, 0, 0, 1]):
-        gateway.refund(payment, manager)
+        gateway.refund(payment, manager, order.channel.slug)
     return payment
 
 
@@ -681,7 +681,9 @@ def create_fake_order(discounts, max_order_lines=5):
     )
     shipping_method = shipping_method_chanel_listing.shipping_method
     shipping_price = shipping_method_chanel_listing.price
-    shipping_price = manager.apply_taxes_to_shipping(shipping_price, address)
+    shipping_price = manager.apply_taxes_to_shipping(
+        shipping_price, address, channel_slug=channel.slug
+    )
     order_data.update(
         {
             "channel": channel,

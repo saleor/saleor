@@ -813,7 +813,9 @@ def test_checkout_complete_insufficient_stock_payment_refunded(
     assert data["errors"][0]["message"] == "Insufficient product stock: 123"
     assert orders_count == Order.objects.count()
 
-    gateway_refund_mock.assert_called_once_with(payment, ANY)
+    gateway_refund_mock.assert_called_once_with(
+        payment, ANY, channel_slug=checkout_info.channel.slug
+    )
 
 
 @patch("saleor.checkout.complete_checkout.gateway.void")
@@ -868,7 +870,9 @@ def test_checkout_complete_insufficient_stock_payment_voided(
     assert data["errors"][0]["message"] == "Insufficient product stock: 123"
     assert orders_count == Order.objects.count()
 
-    gateway_void_mock.assert_called_once_with(payment, ANY)
+    gateway_void_mock.assert_called_once_with(
+        payment, ANY, channel_slug=checkout_info.channel.slug
+    )
 
 
 def test_checkout_complete_without_redirect_url(
@@ -987,7 +991,9 @@ def test_checkout_complete_payment_payment_total_different_than_checkout(
     assert data["errors"][0]["code"] == CheckoutErrorCode.CHECKOUT_NOT_FULLY_PAID.name
     assert orders_count == Order.objects.count()
 
-    gateway_refund_or_void_mock.assert_called_with(payment, ANY)
+    gateway_refund_or_void_mock.assert_called_with(
+        payment, ANY, channel_slug=checkout_info.channel.slug
+    )
 
 
 def test_order_already_exists(

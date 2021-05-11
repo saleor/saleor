@@ -68,6 +68,8 @@ enum AccountErrorCode {
   JWT_DECODE_ERROR
   JWT_MISSING_TOKEN
   JWT_INVALID_CSRF_TOKEN
+  CHANNEL_INACTIVE
+  MISSING_CHANNEL_SLUG
 }
 
 input AccountInput {
@@ -91,6 +93,7 @@ input AccountRegisterInput {
   redirectUrl: String
   languageCode: LanguageCodeEnum
   metadata: [MetadataInput!]
+  channel: String
 }
 
 type AccountRequestDeletion {
@@ -2751,7 +2754,7 @@ type Mutation {
   paymentCapture(amount: PositiveDecimal, paymentId: ID!): PaymentCapture
   paymentRefund(amount: PositiveDecimal, paymentId: ID!): PaymentRefund
   paymentVoid(paymentId: ID!): PaymentVoid
-  paymentInitialize(gateway: String!, paymentData: JSONString): PaymentInitialize
+  paymentInitialize(channel: String, gateway: String!, paymentData: JSONString): PaymentInitialize
   pageCreate(input: PageCreateInput!): PageCreate
   pageDelete(id: ID!): PageDelete
   pageBulkDelete(ids: [ID]!): PageBulkDelete
@@ -2820,7 +2823,7 @@ type Mutation {
   giftCardCreate(input: GiftCardCreateInput!): GiftCardCreate
   giftCardDeactivate(id: ID!): GiftCardDeactivate
   giftCardUpdate(id: ID!, input: GiftCardUpdateInput!): GiftCardUpdate
-  pluginUpdate(id: ID!, input: PluginUpdateInput!): PluginUpdate
+  pluginUpdate(channel: ID, id: ID!, input: PluginUpdateInput!): PluginUpdate
   saleCreate(input: SaleInput!): SaleCreate
   saleDelete(id: ID!): SaleDelete
   saleBulkDelete(ids: [ID]!): SaleBulkDelete
@@ -2891,19 +2894,19 @@ type Mutation {
   externalRefresh(input: JSONString!, pluginId: String!): ExternalRefresh
   externalLogout(input: JSONString!, pluginId: String!): ExternalLogout
   externalVerify(input: JSONString!, pluginId: String!): ExternalVerify
-  requestPasswordReset(email: String!, redirectUrl: String!): RequestPasswordReset
+  requestPasswordReset(channel: String, email: String!, redirectUrl: String!): RequestPasswordReset
   confirmAccount(email: String!, token: String!): ConfirmAccount
   setPassword(email: String!, password: String!, token: String!): SetPassword
   passwordChange(newPassword: String!, oldPassword: String!): PasswordChange
-  requestEmailChange(newEmail: String!, password: String!, redirectUrl: String!): RequestEmailChange
-  confirmEmailChange(token: String!): ConfirmEmailChange
+  requestEmailChange(channel: String, newEmail: String!, password: String!, redirectUrl: String!): RequestEmailChange
+  confirmEmailChange(channel: String, token: String!): ConfirmEmailChange
   accountAddressCreate(input: AddressInput!, type: AddressTypeEnum): AccountAddressCreate
   accountAddressUpdate(id: ID!, input: AddressInput!): AccountAddressUpdate
   accountAddressDelete(id: ID!): AccountAddressDelete
   accountSetDefaultAddress(id: ID!, type: AddressTypeEnum!): AccountSetDefaultAddress
   accountRegister(input: AccountRegisterInput!): AccountRegister
   accountUpdate(input: AccountInput!): AccountUpdate
-  accountRequestDeletion(redirectUrl: String!): AccountRequestDeletion
+  accountRequestDeletion(channel: String, redirectUrl: String!): AccountRequestDeletion
   accountDelete(token: String!): AccountDelete
   addressCreate(input: AddressInput!, userId: ID!): AddressCreate
   addressUpdate(id: ID!, input: AddressInput!): AddressUpdate
@@ -3813,6 +3816,7 @@ enum PaymentErrorCode {
   SHIPPING_METHOD_NOT_SET
   PAYMENT_ERROR
   NOT_SUPPORTED_GATEWAY
+  CHANNEL_INACTIVE
 }
 
 input PaymentFilterInput {
@@ -3951,12 +3955,23 @@ input PermissionGroupUpdateInput {
   removeUsers: [ID!]
 }
 
-type Plugin implements Node {
+type Plugin {
   id: ID!
   name: String!
   description: String!
+  globalConfiguration: PluginConfiguration
+  channelConfigurations: [PluginConfiguration!]!
+}
+
+type PluginConfiguration {
   active: Boolean!
+  channel: Channel
   configuration: [ConfigurationItem]
+}
+
+enum PluginConfigurationType {
+  PER_CHANNEL
+  GLOBAL
 }
 
 type PluginCountableConnection {
@@ -3986,8 +4001,9 @@ enum PluginErrorCode {
 }
 
 input PluginFilterInput {
-  active: Boolean
+  statusInChannels: PluginStatusInChannelsInput
   search: String
+  type: PluginConfigurationType
 }
 
 enum PluginSortField {
@@ -3998,6 +4014,11 @@ enum PluginSortField {
 input PluginSortingInput {
   direction: OrderDirection!
   field: PluginSortField!
+}
+
+input PluginStatusInChannelsInput {
+  active: Boolean!
+  channels: [ID!]!
 }
 
 type PluginUpdate {
@@ -5167,7 +5188,7 @@ input ShippingZoneUpdateInput {
 }
 
 type Shop {
-  availablePaymentGateways(currency: String): [PaymentGateway!]!
+  availablePaymentGateways(currency: String, channel: String): [PaymentGateway!]!
   availableExternalAuthentications: [ExternalAuthentication!]!
   availableShippingMethods(channel: String!, address: AddressInput): [ShippingMethod]
   countries(languageCode: LanguageCodeEnum): [CountryDisplay!]!
@@ -5591,7 +5612,7 @@ type User implements Node & ObjectWithMetadata {
   editableGroups: [Group]
   avatar(size: Int): Image
   events: [CustomerEvent]
-  storedPaymentSources: [PaymentSource]
+  storedPaymentSources(channel: String): [PaymentSource]
   languageCode: LanguageCodeEnum!
 }
 
@@ -5634,6 +5655,7 @@ input UserCreateInput {
   note: String
   languageCode: LanguageCodeEnum
   redirectUrl: String
+  channel: String
 }
 
 type UserPermission {

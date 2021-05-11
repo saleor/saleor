@@ -241,6 +241,9 @@ class User(CountableDjangoObjectType):
     stored_payment_sources = graphene.List(
         "saleor.graphql.payment.types.PaymentSource",
         description="List of stored payment sources.",
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
     )
     language_code = graphene.Field(
         LanguageCodeEnum, description="User language code.", required=True
@@ -356,11 +359,11 @@ class User(CountableDjangoObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_stored_payment_sources(root: models.User, info):
+    def resolve_stored_payment_sources(root: models.User, info, channel=None):
         from .resolvers import resolve_payment_sources
 
         if root == info.context.user:
-            return resolve_payment_sources(info, root)
+            return resolve_payment_sources(info, root, channel_slug=channel)
         raise PermissionDenied()
 
     @staticmethod
