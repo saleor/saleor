@@ -9,7 +9,7 @@ from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError, zero_taxed_money
 from ....core.utils.url import validate_storefront_url
-from ....order import OrderLineData, OrderStatus, events, models
+from ....order import OrderLineData, OrderOrigin, OrderStatus, events, models
 from ....order.actions import order_created
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import (
@@ -365,6 +365,9 @@ class DraftOrderComplete(BaseMutation):
         validate_draft_order(order, country)
         cls.update_user_fields(order)
         order.status = OrderStatus.UNFULFILLED
+        # leave current origin if it's already set
+        if not order.origin:
+            order.origin = OrderOrigin.DRAFT
 
         if not order.is_shipping_required():
             order.shipping_method_name = None
