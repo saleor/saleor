@@ -32,19 +32,15 @@ class Store(CountableDjangoObjectType):
     )
     description = graphene.String(
         description="The store description.",
-        required=True,
     )
     phone = graphene.String(
         description="The store phone.",
-        required=True,
     )
     acreage = graphene.Float(
         description="The store acreage.",
-        required=True,
     )
     latlong = graphene.String(
         description="The store latlong.",
-        required=True,
     )
     url = graphene.String(
         description="The store's URL.",
