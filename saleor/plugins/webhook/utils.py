@@ -50,14 +50,17 @@ def parse_payment_action_response(
     error = response_data.get("error")
     is_success = not error
 
-    payment_method_info = PaymentMethodInfo(
-        brand=response_data.get("payment_method_brand"),
-        exp_month=response_data.get("payment_method_exp_month"),
-        exp_year=response_data.get("payment_method_exp_year"),
-        last_4=response_data.get("payment_method_last_4"),
-        name=response_data.get("payment_method_name"),
-        type=response_data.get("payment_method_type"),
-    )
+    payment_method_info = None
+    payment_method_data = response_data.get("payment_method")
+    if payment_method_data:
+        payment_method_info = PaymentMethodInfo(
+            brand=payment_method_data.get("brand"),
+            exp_month=payment_method_data.get("exp_month"),
+            exp_year=payment_method_data.get("exp_year"),
+            last_4=payment_method_data.get("last_4"),
+            name=payment_method_data.get("name"),
+            type=payment_method_data.get("type"),
+        )
 
     return GatewayResponse(
         action_required=response_data.get("action_required", False),
