@@ -303,12 +303,13 @@ def filter_product_type(qs, _, value):
 def filter_stocks(qs, _, value):
     warehouse_ids = value.get("warehouse_ids")
     quantity = value.get("quantity")
+    # distinct's wil be removed in separated PR
     if warehouse_ids and not quantity:
-        return filter_warehouses(qs, _, warehouse_ids)
+        return filter_warehouses(qs, _, warehouse_ids).distinct()
     if quantity and not warehouse_ids:
-        return filter_quantity(qs, quantity)
+        return filter_quantity(qs, quantity).distinct()
     if quantity and warehouse_ids:
-        return filter_quantity(qs, quantity, warehouse_ids)
+        return filter_quantity(qs, quantity, warehouse_ids).distinct()
     return qs
 
 

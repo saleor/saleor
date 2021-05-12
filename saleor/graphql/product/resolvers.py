@@ -1,6 +1,7 @@
-from django.db.models import Sum
+from django.db.models import Exists, OuterRef, Sum
 
 from ...account.utils import requestor_is_staff_member_or_app
+from ...channel.models import Channel
 from ...core.tracing import traced_resolver
 from ...order import OrderStatus
 from ...product import models
@@ -80,10 +81,15 @@ def resolve_products(
     if stock_availability:
         qs = filter_products_by_stock_availability(qs, stock_availability, channel_slug)
     if not requestor_is_staff_member_or_app(requestor):
-        qs = qs.annotate_visible_in_listings(channel_slug).exclude(
-            visible_in_listings=False
+        channels = Channel.objects.filter(slug=str(channel_slug))
+        product_channel_listings = models.ProductChannelListing.objects.filter(
+            Exists(channels.filter(pk=OuterRef("channel_id"))),
+            visible_in_listings=True,
         )
-    return ChannelQsContext(qs=qs.distinct(), channel_slug=channel_slug)
+        qs = qs.filter(
+            Exists(product_channel_listings.filter(product_id=OuterRef("pk")))
+        )
+    return ChannelQsContext(qs=qs, channel_slug=channel_slug)
 
 
 @traced_resolver
