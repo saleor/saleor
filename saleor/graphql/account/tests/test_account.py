@@ -1171,6 +1171,7 @@ def test_customer_create(
         channel_slug=channel_PLN.slug,
     )
 
+    assert set([shipping_address, billing_address]) == set(new_user.addresses.all())
     customer_creation_event = account_events.CustomerEvent.objects.get()
     assert customer_creation_event.type == account_events.CustomerEvents.ACCOUNT_CREATED
     assert customer_creation_event.user == new_customer
