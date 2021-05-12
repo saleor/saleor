@@ -65,6 +65,20 @@ ORDER_FIELDS = (
 )
 
 
+def prepare_order_lines_allocations_payload(lines: Iterable[OrderLine]):
+    warehouse_id_quantity_allocated_map = list(
+        lines.values(  # type: ignore
+            warehouse_id=F("allocations__stock__warehouse_id"),
+            quantity_allocated=F("allocations__quantity_allocated"),
+        )
+    )
+    for item in warehouse_id_quantity_allocated_map:
+        item["warehouse_id"] = graphene.Node.to_global_id(
+            "Warehouse", item["warehouse_id"]
+        )
+    return warehouse_id_quantity_allocated_map
+
+
 def generate_order_lines_payload(lines: Iterable[OrderLine]):
     line_fields = (
         "product_name",
@@ -90,12 +104,7 @@ def generate_order_lines_payload(lines: Iterable[OrderLine]):
         extra_dict_data={
             "total_price_net_amount": (lambda l: l.total_price.net.amount),
             "total_price_gross_amount": (lambda l: l.total_price.gross.amount),
-            "allocations": list(
-                lines.values(  # type: ignore
-                    warehouse_id=F("allocations__stock__warehouse_id"),
-                    quantity_allocated=F("allocations__quantity_allocated"),
-                )
-            ),
+            "allocations": prepare_order_lines_allocations_payload(lines),
         },
     )
 

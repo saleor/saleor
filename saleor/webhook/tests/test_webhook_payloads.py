@@ -70,6 +70,9 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
     allocation = line.allocations.first()
 
     total_line = line.total_price
+    global_warehouse_id = graphene.Node.to_global_id(
+        "Warehouse", allocation.stock.warehouse_id
+    )
     assert line_payload == {
         "id": line_id,
         "type": "OrderLine",
@@ -92,7 +95,7 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
         "tax_rate": str(line.tax_rate.quantize(Decimal("0.0001"))),
         "allocations": [
             {
-                "warehouse_id": str(allocation.stock.warehouse_id),
+                "warehouse_id": global_warehouse_id,
                 "quantity_allocated": allocation.quantity_allocated,
             }
         ],
