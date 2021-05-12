@@ -9,7 +9,6 @@ from ..channel import ChannelQsContext
 from ..core.utils import from_global_id_or_error
 from ..utils import get_user_or_app_from_context
 from ..utils.filters import filter_by_period
-from .filters import filter_products_by_stock_availability
 
 
 def resolve_category_by_slug(slug):
@@ -74,12 +73,8 @@ def resolve_product_by_slug(info, product_slug, channel_slug, requestor):
 
 
 @traced_resolver
-def resolve_products(
-    info, requestor, stock_availability=None, channel_slug=None, **_kwargs
-) -> ChannelQsContext:
+def resolve_products(info, requestor, channel_slug=None, **_kwargs) -> ChannelQsContext:
     qs = models.Product.objects.visible_to_user(requestor, channel_slug)
-    if stock_availability:
-        qs = filter_products_by_stock_availability(qs, stock_availability, channel_slug)
     if not requestor_is_staff_member_or_app(requestor):
         channels = Channel.objects.filter(slug=str(channel_slug))
         product_channel_listings = models.ProductChannelListing.objects.filter(
