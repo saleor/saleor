@@ -130,6 +130,7 @@ def generate_order_payload(order: "Order"):
         "created",
         "modified",
         "charge_status",
+        "psp_reference",
         "total",
         "captured_amount",
         "currency",

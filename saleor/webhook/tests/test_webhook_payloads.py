@@ -26,6 +26,10 @@ def test_generate_order_payload(
     mocked_fulfillment_lines, order_with_lines, fulfilled_order, payment_txn_captured
 ):
     mocked_fulfillment_lines.return_value = "{}"
+
+    payment_txn_captured.psp_reference = "123"
+    payment_txn_captured.save(update_fields=["psp_reference"])
+
     new_order = Order.objects.create(
         channel=order_with_lines.channel,
         billing_address=order_with_lines.billing_address,
@@ -59,7 +63,6 @@ def test_generate_order_payload(
     for field in ORDER_FIELDS:
         assert payload.get(field) is not None
 
-    assert payload.get("payments")
     assert payload.get("shipping_method")
     assert payload.get("shipping_tax_rate")
     assert payload.get("lines")
@@ -68,6 +71,35 @@ def test_generate_order_payload(
     assert payload.get("fulfillments")
     assert payload.get("discounts")
     assert payload.get("original") == graphene.Node.to_global_id("Order", new_order.pk)
+    assert payload.get("payments")
+    assert len(payload.get("payments")) == 1
+    payments_data = payload.get("payments")[0]
+    assert payments_data == {
+        "id": graphene.Node.to_global_id("Payment", payment_txn_captured.pk),
+        "gateway": payment_txn_captured.gateway,
+        "payment_method_type": payment_txn_captured.payment_method_type,
+        "cc_brand": payment_txn_captured.cc_brand,
+        "is_active": payment_txn_captured.is_active,
+        "created": ANY,
+        "modified": ANY,
+        "charge_status": payment_txn_captured.charge_status,
+        "psp_reference": payment_txn_captured.psp_reference,
+        "total": str(payment_txn_captured.total),
+        "type": "Payment",
+        "captured_amount": str(payment_txn_captured.captured_amount),
+        "currency": payment_txn_captured.currency,
+        "billing_email": payment_txn_captured.billing_email,
+        "billing_first_name": payment_txn_captured.billing_first_name,
+        "billing_last_name": payment_txn_captured.billing_last_name,
+        "billing_company_name": payment_txn_captured.billing_company_name,
+        "billing_address_1": payment_txn_captured.billing_address_1,
+        "billing_address_2": payment_txn_captured.billing_address_2,
+        "billing_city": payment_txn_captured.billing_city,
+        "billing_city_area": payment_txn_captured.billing_city_area,
+        "billing_postal_code": payment_txn_captured.billing_postal_code,
+        "billing_country_code": payment_txn_captured.billing_country_code,
+        "billing_country_area": payment_txn_captured.billing_country_area,
+    }
 
     mocked_fulfillment_lines.assert_called_with(fulfillment)
 
