@@ -10,7 +10,7 @@ from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
 from ....core.exceptions import InsufficientStock, InsufficientStockData
 from ....core.taxes import zero_money
-from ....order import OrderStatus
+from ....order import OrderOrigin, OrderStatus
 from ....order.models import Order
 from ....payment import ChargeStatus, PaymentError, TransactionKind
 from ....payment.gateways.dummy_credit_card import TOKEN_VALIDATION_MAPPING
@@ -26,6 +26,8 @@ MUTATION_CHECKOUT_COMPLETE = """
             order {
                 id,
                 token
+                original
+                origin
             },
             errors {
                 field,
@@ -81,9 +83,11 @@ def test_checkout_complete_order_already_exists(
     data = content["data"]["checkoutComplete"]
     assert not data["errors"]
 
-    order_token = data["order"]["token"]
+    order_data = data["order"]
     assert Order.objects.count() == orders_count
-    assert order_with_lines.token == order_token
+    assert order_with_lines.token == order_data["token"]
+    assert order_data["origin"] == order_with_lines.origin.upper()
+    assert not order_data["original"]
 
 
 def test_checkout_complete_with_inactive_channel_order_already_exists(
@@ -218,6 +222,8 @@ def test_checkout_complete(
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.first()
     assert order.status == OrderStatus.UNFULFILLED
+    assert order.origin == OrderOrigin.CHECKOUT
+    assert not order.original
     assert order.token == order_token
     assert order.redirect_url == redirect_url
     assert order.total.gross == total.gross

@@ -50,6 +50,7 @@ ADDRESS_FIELDS = (
 ORDER_FIELDS = (
     "created",
     "status",
+    "origin",
     "user_email",
     "shipping_method_name",
     "shipping_price_net_amount",
@@ -147,7 +148,10 @@ def generate_order_payload(order: "Order"):
             "fulfillments": (lambda o: o.fulfillments.all(), fulfillment_fields),
             "discounts": (lambda o: o.discounts.all(), discount_fields),
         },
-        extra_dict_data={"lines": json.loads(generate_order_lines_payload(lines))},
+        extra_dict_data={
+            "original": graphene.Node.to_global_id("Order", order.original_id),
+            "lines": json.loads(generate_order_lines_payload(lines)),
+        },
     )
     return order_data
 

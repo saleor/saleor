@@ -71,6 +71,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix draft order tax mismatch - #7226 by @IKarbowiak
   - Introduce `calculate_order_line_total` plugin method
 - Raise ValidationError when refund cannot be performed - #7260 by @IKarbowiak
+- Extend order with origin and original order values - #7326 by @IKarbowiak
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
