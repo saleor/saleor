@@ -194,7 +194,7 @@ class AdyenGatewayPlugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         channel = kwargs["channel"]
         raw_configuration = kwargs["configuration"].copy()
-        self._insert_webhook_enpoint_to_configuration(raw_configuration, channel)
+        self._insert_webhook_endpoint_to_configuration(raw_configuration, channel)
         kwargs["configuration"] = raw_configuration
 
         super().__init__(*args, **kwargs)
@@ -224,7 +224,7 @@ class AdyenGatewayPlugin(BasePlugin):
             xapikey=api_key, live_endpoint_prefix=live_endpoint, platform=platform
         )
 
-    def _insert_webhook_enpoint_to_configuration(self, raw_configuration, channel):
+    def _insert_webhook_endpoint_to_configuration(self, raw_configuration, channel):
         updated = False
         for config in raw_configuration:
             if config["name"] == "webhook-endpoint":
