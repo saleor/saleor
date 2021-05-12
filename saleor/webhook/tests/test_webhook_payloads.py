@@ -120,6 +120,12 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
     unit_gross_amount = line.unit_price_gross_amount.quantize(Decimal("0.001"))
     unit_discount_amount = line.unit_discount_amount.quantize(Decimal("0.001"))
     allocation = line.allocations.first()
+    undiscounted_unit_price_net_amount = (
+        line.undiscounted_unit_price.net.amount.quantize(Decimal("0.001"))
+    )
+    undiscounted_unit_price_gross_amount = (
+        line.undiscounted_unit_price.gross.amount.quantize(Decimal("0.001"))
+    )
 
     total_line = line.total_price
     global_warehouse_id = graphene.Node.to_global_id(
@@ -151,6 +157,10 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
                 "quantity_allocated": allocation.quantity_allocated,
             }
         ],
+        "undiscounted_unit_price_net_amount": str(undiscounted_unit_price_net_amount),
+        "undiscounted_unit_price_gross_amount": str(
+            undiscounted_unit_price_gross_amount
+        ),
     }
 
 
@@ -272,6 +282,12 @@ def test_generate_invoice_payload(fulfilled_order):
             "total_net_amount": "80.000",
             "total_gross_amount": "98.400",
             "weight": "0.0:g",
+            "undiscounted_total_net_amount": str(
+                fulfilled_order.undiscounted_total_net_amount
+            ),
+            "undiscounted_total_gross_amount": str(
+                fulfilled_order.undiscounted_total_gross_amount
+            ),
         },
         "number": "01/12/2020/TEST",
         "created": ANY,

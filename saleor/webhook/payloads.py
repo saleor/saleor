@@ -64,6 +64,8 @@ ORDER_FIELDS = (
     "weight",
     "private_metadata",
     "metadata",
+    "undiscounted_total_net_amount",
+    "undiscounted_total_gross_amount",
 )
 
 
@@ -107,6 +109,12 @@ def generate_order_lines_payload(lines: Iterable[OrderLine]):
             "total_price_net_amount": (lambda l: l.total_price.net.amount),
             "total_price_gross_amount": (lambda l: l.total_price.gross.amount),
             "allocations": prepare_order_lines_allocations_payload(lines),
+            "undiscounted_unit_price_net_amount": (
+                lambda l: l.undiscounted_unit_price.net.amount
+            ),
+            "undiscounted_unit_price_gross_amount": (
+                lambda l: l.undiscounted_unit_price.gross.amount
+            ),
         },
     )
 
