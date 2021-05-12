@@ -837,7 +837,6 @@ class PluginsManager(PaymentInterface):
                         self._global_plugin_configs[pc.identifier] = pc
                     else:
                         self._plugin_configs_per_channel[channel][pc.identifier] = pc
-
             return self._global_plugin_configs, self._plugin_configs_per_channel
 
     # FIXME these methods should be more generic
@@ -907,17 +906,46 @@ class PluginsManager(PaymentInterface):
         default_value = False
         return self.__run_method_on_plugins("fetch_taxes_data", default_value)
 
-    def webhook(self, request: WSGIRequest, plugin_id: str) -> HttpResponse:
+    def webhook_endpoint_without_channel(
+        self, request: WSGIRequest, plugin_id: str
+    ) -> HttpResponse:
+        # This should be removed in 3.0.0-a.25 as we want to give a possibility to have
+        # no downtime between RCs
         split_path = request.path.split(plugin_id, maxsplit=1)
         path = None
         if len(split_path) == 2:
             path = split_path[1]
 
-        # FIXME
         default_value = HttpResponseNotFound()
         plugin = self.get_plugin(plugin_id)
         if not plugin:
             return default_value
+        return self.__run_method_on_single_plugin(
+            plugin, "webhook", default_value, request, path
+        )
+
+    def webhook(
+        self, request: WSGIRequest, plugin_id: str, channel_slug: Optional[str] = None
+    ) -> HttpResponse:
+        split_path = request.path.split(plugin_id, maxsplit=1)
+        path = None
+        if len(split_path) == 2:
+            path = split_path[1]
+
+        default_value = HttpResponseNotFound()
+        plugin = self.get_plugin(plugin_id, channel_slug=channel_slug)
+        if not plugin:
+            return default_value
+
+        if not plugin.active:
+            return default_value
+
+        if plugin.CONFIGURATION_PER_CHANNEL and not channel_slug:
+            return HttpResponseNotFound(
+                "Incorrect endpoint. Use /plugins/channel/<channel_slug>/"
+                f"{plugin.PLUGIN_ID}/"
+            )
+
         return self.__run_method_on_single_plugin(
             plugin, "webhook", default_value, request, path
         )
