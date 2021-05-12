@@ -137,6 +137,10 @@ All notable, unreleased changes to this project will be documented in this file.
       - add `statusInChannels` field
       - add `type` field
       - removed `active` field. Use `statusInChannels` instead
+  - Change plugin webhook endpoint - #7332 by @korycins.
+    - Use /plugins/channel/<channel_slug>/<plugin_id> for plugins with channel configuration
+    - Use /plugins/global/<plugin_id> for plugins with global configuration
+    - Remove /plugin/<plugin_id> endpoint
 
 - Add description to shipping method - #7116 by @IKarbowiak
   - `ShippingMethod` was extended with `description` field.
