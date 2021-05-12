@@ -7,9 +7,6 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.db.models import Q
 
-from ...channel.exceptions import ChannelNotDefined
-from ...channel.models import Channel
-from ...channel.utils import get_default_channel
 from ...checkout import AddressType, models
 from ...checkout.complete_checkout import complete_checkout
 from ...checkout.error_codes import CheckoutErrorCode
@@ -27,7 +24,6 @@ from ...checkout.utils import (
     calculate_checkout_quantity,
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
-    get_user_checkout,
     is_shipping_required,
     recalculate_checkout_discount,
     remove_promo_code_from_checkout,
@@ -43,6 +39,7 @@ from ...shipping import models as shipping_models
 from ...warehouse.availability import check_stock_quantity_bulk
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
+from ..channel.utils import clean_channel
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.types.common import CheckoutError
@@ -237,6 +234,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             "Whether the checkout was created or the current active one was returned. "
             "Refer to checkoutLinesAdd and checkoutLinesUpdate to merge a cart "
             "with an active checkout."
+            "DEPRECATED: Will be removed in Saleor 4.0. Always returns True."
         ),
     )
 
@@ -294,48 +292,6 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         if user.is_authenticated:
             return user.default_billing_address
         return None
-
-    @classmethod
-    def validate_channel(cls, channel_slug):
-        try:
-            channel = Channel.objects.get(slug=channel_slug)
-        except Channel.DoesNotExist:
-            raise ValidationError(
-                {
-                    "channel": ValidationError(
-                        f"Channel with '{channel_slug}' slug does not exist.",
-                        code=CheckoutErrorCode.NOT_FOUND.value,
-                    )
-                }
-            )
-        if not channel.is_active:
-            raise ValidationError(
-                {
-                    "channel": ValidationError(
-                        f"Channel with '{channel_slug}' is inactive.",
-                        code=CheckoutErrorCode.CHANNEL_INACTIVE.value,
-                    )
-                }
-            )
-        return channel
-
-    @classmethod
-    def clean_channel(cls, channel_slug):
-        if channel_slug is not None:
-            channel = cls.validate_channel(channel_slug)
-        else:
-            try:
-                channel = get_default_channel()
-            except ChannelNotDefined:
-                raise ValidationError(
-                    {
-                        "channel": ValidationError(
-                            "You need to provide channel slug.",
-                            code=CheckoutErrorCode.MISSING_CHANNEL_SLUG,
-                        )
-                    }
-                )
-        return channel
 
     @classmethod
     def clean_input(cls, info, instance: models.Checkout, data, input_cls=None):
@@ -414,33 +370,23 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         instance.save()
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def get_instance(cls, info, **data):
+        instance = super().get_instance(info, **data)
         user = info.context.user
+        if user.is_authenticated:
+            instance.user = user
+        return instance
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
         channel_input = data.get("input", {}).get("channel")
-        channel = cls.clean_channel(channel_input)
+        channel = clean_channel(channel_input, error_class=CheckoutErrorCode)
         if channel:
             data["input"]["channel"] = channel
-
-        # `perform_mutation` is overridden to properly get or create a checkout
-        # instance here and abort mutation if needed.
-        if user.is_authenticated:
-            checkout_queryset = models.Checkout.objects.filter(channel=channel)
-            checkout = get_user_checkout(user, checkout_queryset=checkout_queryset)
-
-            if checkout is not None:
-                # If user has an active checkout, return it without any
-                # modifications.
-                return CheckoutCreate(checkout=checkout, created=False)
-            checkout = models.Checkout(user=user)
-        else:
-            checkout = models.Checkout()
-        cleaned_input = cls.clean_input(info, checkout, data.get("input"))
-        checkout = cls.construct_instance(checkout, cleaned_input)
-        cls.clean_instance(info, checkout)
-        cls.save(info, checkout, cleaned_input)
-        cls._save_m2m(info, checkout, cleaned_input)
-        info.context.plugins.checkout_created(checkout)
-        return CheckoutCreate(checkout=checkout, created=True)
+        response = super().perform_mutation(_root, info, **data)
+        info.context.plugins.checkout_created(response.checkout)
+        response.created = True
+        return response
 
 
 class CheckoutLinesAdd(BaseMutation):

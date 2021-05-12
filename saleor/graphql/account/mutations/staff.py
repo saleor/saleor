@@ -246,6 +246,7 @@ class StaffCreate(ModelMutation):
                 redirect_url=cleaned_input.get("redirect_url"),
                 user=user,
                 manager=info.context.plugins,
+                channel_slug=None,
                 staff=True,
             )
 

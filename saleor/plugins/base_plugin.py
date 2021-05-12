@@ -1,4 +1,4 @@
-from copy import copy
+from copy import copy, deepcopy
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Iterable, List, Optional, Tuple, Union
@@ -20,6 +20,7 @@ from .models import PluginConfiguration
 if TYPE_CHECKING:
     # flake8: noqa
     from ..account.models import Address, User
+    from ..channel.models import Channel
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout
     from ..core.notify_events import NotifyEventType
@@ -70,12 +71,20 @@ class BasePlugin:
     PLUGIN_ID = ""
     PLUGIN_DESCRIPTION = ""
     CONFIG_STRUCTURE = None
+    CONFIGURATION_PER_CHANNEL = True
     DEFAULT_CONFIGURATION = []
     DEFAULT_ACTIVE = False
 
-    def __init__(self, *, configuration: PluginConfigurationType, active: bool):
+    def __init__(
+        self,
+        *,
+        configuration: PluginConfigurationType,
+        active: bool,
+        channel: Optional["Channel"] = None
+    ):
         self.configuration = self.get_plugin_configuration(configuration)
         self.active = active
+        self.channel = channel
 
     def __str__(self):
         return self.PLUGIN_NAME
@@ -724,7 +733,7 @@ class BasePlugin:
         for config_field in configuration:
             if config_field["name"] not in desired_config_keys:
                 continue
-            updated_configuration.append(config_field)
+            updated_configuration.append(copy(config_field))
 
         configured_keys = set(d["name"] for d in updated_configuration)
         missing_keys = desired_config_keys - configured_keys

@@ -985,7 +985,9 @@ def test_send_fulfillment_order_lines_mails(
     expected_payload = get_default_fulfillment_payload(order, fulfillment)
     expected_payload["requester_user_id"] = staff_user.id
     mocked_notify.assert_called_once_with(
-        "order_fulfillment_confirmation", payload=expected_payload
+        "order_fulfillment_confirmation",
+        payload=expected_payload,
+        channel_slug=fulfilled_order.channel.slug,
     )
 
 

@@ -343,7 +343,7 @@ class OrderRefundProductsInput(graphene.InputObjectType):
     )
     amount_to_refund = PositiveDecimal(
         required=False,
-        description=("The total amount of refund when the value is provided manually."),
+        description="The total amount of refund when the value is provided manually.",
     )
     include_shipping_costs = graphene.Boolean(
         description=(
