@@ -1,6 +1,6 @@
 import json
 from typing import List, Optional
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urljoin
 
 import Adyen
 import opentracing
@@ -10,6 +10,7 @@ from django.contrib.sites.models import Site
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound
+from django.urls import reverse
 from requests.exceptions import SSLError
 
 from ....checkout.models import Checkout
@@ -67,7 +68,6 @@ class AdyenGatewayPlugin(BasePlugin):
         {"name": "notification-password", "value": ""},
         {"name": "enable-native-3d-secure", "value": False},
         {"name": "apple-pay-cert", "value": None},
-        {"name": "webhook-endpoint", "value": "Test read only value "},
     ]
 
     CONFIG_STRUCTURE = {
@@ -136,8 +136,7 @@ class AdyenGatewayPlugin(BasePlugin):
             "help_text": (
                 "Provide secret key generated on Adyen side."
                 "https://docs.adyen.com/development-resources/webhooks#set-up-notificat"
-                "ions-in-your-customer-area. The Saleor webhook url is "
-                "http(s)://<your-backend-url>/plugins/mirumee.payments.adyen/webhooks/"
+                "ions-in-your-customer-area."
             ),
             "label": "HMAC secret key",
         },
@@ -147,8 +146,6 @@ class AdyenGatewayPlugin(BasePlugin):
                 "Base User provided on the Adyen side to authenticate incoming "
                 "notifications. https://docs.adyen.com/development-resources/webhooks#"
                 "set-up-notifications-in-your-customer-area "
-                "The Saleor webhook url is "
-                "http(s)://<your-backend-url>/plugins/mirumee.payments.adyen/webhooks/"
             ),
             "label": "Notification user",
         },
@@ -158,8 +155,6 @@ class AdyenGatewayPlugin(BasePlugin):
                 "User password provided on the Adyen side for authenticate incoming "
                 "notifications. https://docs.adyen.com/development-resources/webhooks#"
                 "set-up-notifications-in-your-customer-area "
-                "The Saleor webhook url is "
-                "http(s)://<your-backend-url>/plugins/mirumee.payments.adyen/webhooks/"
             ),
             "label": "Notification password",
         },
@@ -197,6 +192,11 @@ class AdyenGatewayPlugin(BasePlugin):
     }
 
     def __init__(self, *args, **kwargs):
+        channel = kwargs["channel"]
+        raw_configuration = kwargs["configuration"].copy()
+        self._insert_webhook_enpoint_to_configuration(raw_configuration, channel)
+        kwargs["configuration"] = raw_configuration
+
         super().__init__(*args, **kwargs)
         configuration = {item["name"]: item["value"] for item in self.configuration}
         self.config = GatewayConfig(
@@ -223,6 +223,28 @@ class AdyenGatewayPlugin(BasePlugin):
         self.adyen = Adyen.Adyen(
             xapikey=api_key, live_endpoint_prefix=live_endpoint, platform=platform
         )
+
+    def _insert_webhook_enpoint_to_configuration(self, raw_configuration, channel):
+        updated = False
+        for config in raw_configuration:
+            if config["name"] == "webhook-endpoint":
+                updated = True
+                config["value"] = self._generate_webhook_url(channel)
+        if not updated:
+            raw_configuration.append(
+                {
+                    "name": "webhook-endpoint",
+                    "value": self._generate_webhook_url(channel),
+                }
+            )
+
+    def _generate_webhook_url(self, channel) -> str:
+        api_path = reverse(
+            "plugins-per-channel",
+            kwargs={"plugin_id": self.PLUGIN_ID, "channel_slug": channel.slug},
+        )
+        base_url = build_absolute_uri(api_path)
+        return urljoin(base_url, "webhooks")  # type: ignore
 
     def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:
         config = self._get_gateway_config()
@@ -325,8 +347,9 @@ class AdyenGatewayPlugin(BasePlugin):
         return_url = prepare_url(
             params,
             build_absolute_uri(
-                f"/plugins/{self.PLUGIN_ID}/additional-actions"
-            ),  # type: ignore
+                f"/plugins/channel/{self.channel.slug}/"  # type: ignore
+                f"{self.PLUGIN_ID}/additional-actions"
+            ),
         )
         request_data = request_data_for_payment(
             payment_information,
