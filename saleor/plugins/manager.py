@@ -1,5 +1,16 @@
+from collections import defaultdict
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+)
 
 import opentracing
 from django.conf import settings
@@ -9,6 +20,7 @@ from django.utils.module_loading import import_string
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
+from ..channel.models import Channel
 from ..checkout import base_calculations
 from ..core.payments import PaymentInterface
 from ..core.prices import quantize_price
@@ -50,34 +62,74 @@ NotifyEventTypeChoice = str
 class PluginsManager(PaymentInterface):
     """Base manager for handling plugins logic."""
 
-    plugins: List["BasePlugin"] = []
+    plugins_per_channel: Dict[str, List["BasePlugin"]] = {}
+    global_plugins: List["BasePlugin"] = []
+    all_plugins: List["BasePlugin"] = []
+
+    def _load_plugin(
+        self,
+        PluginClass: Type["BasePlugin"],
+        config,
+        channel: Optional["Channel"] = None,
+    ) -> "BasePlugin":
+
+        if PluginClass.PLUGIN_ID in config:
+            existing_config = config[PluginClass.PLUGIN_ID]
+            plugin_config = existing_config.configuration
+            active = existing_config.active
+            channel = existing_config.channel
+        else:
+            plugin_config = PluginClass.DEFAULT_CONFIGURATION
+            active = PluginClass.get_default_active()
+
+        return PluginClass(configuration=plugin_config, active=active, channel=channel)
 
     def __init__(self, plugins: List[str]):
         with opentracing.global_tracer().start_active_span("PluginsManager.__init__"):
-            self.plugins = []
-            all_configs = self._get_all_plugin_configs()
+            self.plugins_per_channel = defaultdict(list)
+            self.all_plugins = []
+            (
+                self._global_config,
+                self._configs_per_channel,
+            ) = self._get_all_plugin_configs()
+            self.global_plugins = []
+            channels = Channel.objects.all()
             for plugin_path in plugins:
+
                 with opentracing.global_tracer().start_active_span(f"{plugin_path}"):
                     PluginClass = import_string(plugin_path)
-                    if PluginClass.PLUGIN_ID in all_configs:
-                        existing_config = all_configs[PluginClass.PLUGIN_ID]
-                        plugin_config = existing_config.configuration
-                        active = existing_config.active
+                    if not getattr(PluginClass, "CONFIGURATION_PER_CHANNEL", False):
+                        plugin = self._load_plugin(PluginClass, self._global_config)
+                        self.global_plugins.append(plugin)
+                        self.all_plugins.append(plugin)
                     else:
-                        plugin_config = PluginClass.DEFAULT_CONFIGURATION
-                        active = PluginClass.get_default_active()
-                    plugin = PluginClass(configuration=plugin_config, active=active)
-                self.plugins.append(plugin)
+                        for channel in channels:
+                            channel_configs = self._configs_per_channel.get(channel, {})
+                            plugin = self._load_plugin(
+                                PluginClass, channel_configs, channel
+                            )
+                            self.plugins_per_channel[channel.slug].append(plugin)
+                            self.all_plugins.append(plugin)
+
+            for channel in channels:
+                self.plugins_per_channel[channel.slug].extend(self.global_plugins)
 
     def __run_method_on_plugins(
-        self, method_name: str, default_value: Any, *args, **kwargs
+        self,
+        method_name: str,
+        default_value: Any,
+        *args,
+        channel_slug: Optional[str] = None,
+        **kwargs
     ):
         """Try to run a method with the given name on each declared plugin."""
         with opentracing.global_tracer().start_active_span(
             f"PluginsManager.{method_name}"
         ):
             value = default_value
-            for plugin in self.plugins:
+            plugins = self.get_plugins(channel_slug=channel_slug)
+
+            for plugin in plugins:
                 value = self.__run_method_on_single_plugin(
                     plugin, method_name, value, *args, **kwargs
                 )
@@ -139,6 +191,7 @@ class PluginsManager(PaymentInterface):
                 lines,
                 address,
                 discounts,
+                channel_slug=checkout_info.channel.slug,
             ),
             checkout_info.checkout.currency,
         )
@@ -185,6 +238,7 @@ class PluginsManager(PaymentInterface):
                 lines,
                 address,
                 discounts,
+                channel_slug=checkout_info.channel.slug,
             ),
             checkout_info.checkout.currency,
         )
@@ -201,7 +255,10 @@ class PluginsManager(PaymentInterface):
         )
         return quantize_price(
             self.__run_method_on_plugins(
-                "calculate_order_shipping", default_value, order
+                "calculate_order_shipping",
+                default_value,
+                order,
+                channel_slug=order.channel.slug,
             ),
             order.currency,
         )
@@ -222,12 +279,16 @@ class PluginsManager(PaymentInterface):
             lines,
             address,
             discounts,
+            channel_slug=checkout_info.channel.slug,
         ).quantize(Decimal(".0001"))
 
     def get_order_shipping_tax_rate(self, order: "Order", shipping_price: TaxedMoney):
         default_value = base_calculations.base_tax_rate(shipping_price)
         return self.__run_method_on_plugins(
-            "get_order_shipping_tax_rate", default_value, order
+            "get_order_shipping_tax_rate",
+            default_value,
+            order,
+            channel_slug=order.channel.slug,
         ).quantize(Decimal(".0001"))
 
     def calculate_checkout_line_total(
@@ -252,6 +313,7 @@ class PluginsManager(PaymentInterface):
                 checkout_line_info,
                 address,
                 discounts,
+                channel_slug=checkout_info.channel.slug,
             ),
             checkout_info.checkout.currency,
         )
@@ -298,6 +360,7 @@ class PluginsManager(PaymentInterface):
                 checkout_line_info,
                 address,
                 discounts,
+                channel_slug=checkout_info.channel.slug,
             ),
             total_line_price.currency,
         )
@@ -319,6 +382,7 @@ class PluginsManager(PaymentInterface):
                 order_line,
                 variant,
                 product,
+                channel_slug=order.channel.slug,
             ),
             order_line.currency,
         )
@@ -341,6 +405,7 @@ class PluginsManager(PaymentInterface):
             checkout_line_info,
             address,
             discounts,
+            channel_slug=checkout_info.channel.slug,
         ).quantize(Decimal(".0001"))
 
     def get_order_line_tax_rate(
@@ -353,7 +418,13 @@ class PluginsManager(PaymentInterface):
     ) -> Decimal:
         default_value = base_calculations.base_tax_rate(unit_price)
         return self.__run_method_on_plugins(
-            "get_order_line_tax_rate", default_value, order, product, variant, address
+            "get_order_line_tax_rate",
+            default_value,
+            order,
+            product,
+            variant,
+            address,
+            channel_slug=order.channel.slug,
         ).quantize(Decimal(".0001"))
 
     def get_tax_rate_type_choices(self) -> List[TaxType]:
@@ -365,27 +436,36 @@ class PluginsManager(PaymentInterface):
         return self.__run_method_on_plugins("show_taxes_on_storefront", default_value)
 
     def apply_taxes_to_product(
-        self, product: "Product", price: Money, country: Country
+        self, product: "Product", price: Money, country: Country, channel_slug: str
     ):
         default_value = quantize_price(
             TaxedMoney(net=price, gross=price), price.currency
         )
         return quantize_price(
             self.__run_method_on_plugins(
-                "apply_taxes_to_product", default_value, product, price, country
+                "apply_taxes_to_product",
+                default_value,
+                product,
+                price,
+                country,
+                channel_slug=channel_slug,
             ),
             price.currency,
         )
 
     def apply_taxes_to_shipping(
-        self, price: Money, shipping_address: "Address"
+        self, price: Money, shipping_address: "Address", channel_slug: str
     ) -> TaxedMoney:
         default_value = quantize_price(
             TaxedMoney(net=price, gross=price), price.currency
         )
         return quantize_price(
             self.__run_method_on_plugins(
-                "apply_taxes_to_shipping", default_value, price, shipping_address
+                "apply_taxes_to_shipping",
+                default_value,
+                price,
+                shipping_address,
+                channel_slug=channel_slug,
             ),
             price.currency,
         )
@@ -398,7 +478,12 @@ class PluginsManager(PaymentInterface):
     ):
         default_value = None
         return self.__run_method_on_plugins(
-            "preprocess_order_creation", default_value, checkout_info, discounts, lines
+            "preprocess_order_creation",
+            default_value,
+            checkout_info,
+            discounts,
+            lines,
+            channel_slug=checkout_info.channel.slug,
         )
 
     def customer_created(self, customer: "User"):
@@ -443,59 +528,100 @@ class PluginsManager(PaymentInterface):
 
     def order_created(self, order: "Order"):
         default_value = None
-        return self.__run_method_on_plugins("order_created", default_value, order)
+        return self.__run_method_on_plugins(
+            "order_created", default_value, order, channel_slug=order.channel.slug
+        )
 
     def order_confirmed(self, order: "Order"):
         default_value = None
-        return self.__run_method_on_plugins("order_confirmed", default_value, order)
+        return self.__run_method_on_plugins(
+            "order_confirmed", default_value, order, channel_slug=order.channel.slug
+        )
 
     def invoice_request(
         self, order: "Order", invoice: "Invoice", number: Optional[str]
     ):
         default_value = None
         return self.__run_method_on_plugins(
-            "invoice_request", default_value, order, invoice, number
+            "invoice_request",
+            default_value,
+            order,
+            invoice,
+            number,
+            channel_slug=order.channel.slug,
         )
 
     def invoice_delete(self, invoice: "Invoice"):
         default_value = None
-        return self.__run_method_on_plugins("invoice_delete", default_value, invoice)
+        channel_slug = invoice.order.channel.slug if invoice.order else None
+        return self.__run_method_on_plugins(
+            "invoice_delete",
+            default_value,
+            invoice,
+            channel_slug=channel_slug,
+        )
 
     def invoice_sent(self, invoice: "Invoice", email: str):
         default_value = None
+        channel_slug = invoice.order.channel.slug if invoice.order else None
         return self.__run_method_on_plugins(
-            "invoice_sent", default_value, invoice, email
+            "invoice_sent",
+            default_value,
+            invoice,
+            email,
+            channel_slug=channel_slug,
         )
 
     def order_fully_paid(self, order: "Order"):
         default_value = None
-        return self.__run_method_on_plugins("order_fully_paid", default_value, order)
+        return self.__run_method_on_plugins(
+            "order_fully_paid", default_value, order, channel_slug=order.channel.slug
+        )
 
     def order_updated(self, order: "Order"):
         default_value = None
-        return self.__run_method_on_plugins("order_updated", default_value, order)
+        return self.__run_method_on_plugins(
+            "order_updated", default_value, order, channel_slug=order.channel.slug
+        )
 
     def order_cancelled(self, order: "Order"):
         default_value = None
-        return self.__run_method_on_plugins("order_cancelled", default_value, order)
+        return self.__run_method_on_plugins(
+            "order_cancelled", default_value, order, channel_slug=order.channel.slug
+        )
 
     def order_fulfilled(self, order: "Order"):
         default_value = None
-        return self.__run_method_on_plugins("order_fulfilled", default_value, order)
+        return self.__run_method_on_plugins(
+            "order_fulfilled", default_value, order, channel_slug=order.channel.slug
+        )
 
     def fulfillment_created(self, fulfillment: "Fulfillment"):
         default_value = None
         return self.__run_method_on_plugins(
-            "fulfillment_created", default_value, fulfillment
+            "fulfillment_created",
+            default_value,
+            fulfillment,
+            channel_slug=fulfillment.order.channel.slug,
         )
 
     def checkout_created(self, checkout: "Checkout"):
         default_value = None
-        return self.__run_method_on_plugins("checkout_created", default_value, checkout)
+        return self.__run_method_on_plugins(
+            "checkout_created",
+            default_value,
+            checkout,
+            channel_slug=checkout.channel.slug,
+        )
 
     def checkout_updated(self, checkout: "Checkout"):
         default_value = None
-        return self.__run_method_on_plugins("checkout_updated", default_value, checkout)
+        return self.__run_method_on_plugins(
+            "checkout_updated",
+            default_value,
+            checkout,
+            channel_slug=checkout.channel.slug,
+        )
 
     def page_created(self, page: "Page"):
         default_value = None
@@ -510,11 +636,11 @@ class PluginsManager(PaymentInterface):
         return self.__run_method_on_plugins("page_deleted", default_value, page)
 
     def initialize_payment(
-        self, gateway, payment_data: dict
+        self, gateway, payment_data: dict, channel_slug: str
     ) -> Optional["InitializedPaymentResponse"]:
         method_name = "initialize_payment"
         default_value = None
-        gtw = self.get_plugin(gateway)
+        gtw = self.get_plugin(gateway, channel_slug)
         if not gtw:
             return None
 
@@ -526,45 +652,59 @@ class PluginsManager(PaymentInterface):
         )
 
     def authorize_payment(
-        self, gateway: str, payment_information: "PaymentData"
+        self, gateway: str, payment_information: "PaymentData", channel_slug: str
     ) -> "GatewayResponse":
         method_name = "authorize_payment"
-        return self.__run_payment_method(gateway, method_name, payment_information)
+        return self.__run_payment_method(
+            gateway, method_name, payment_information, channel_slug=channel_slug
+        )
 
     def capture_payment(
-        self, gateway: str, payment_information: "PaymentData"
+        self, gateway: str, payment_information: "PaymentData", channel_slug: str
     ) -> "GatewayResponse":
         method_name = "capture_payment"
-        return self.__run_payment_method(gateway, method_name, payment_information)
+        return self.__run_payment_method(
+            gateway, method_name, payment_information, channel_slug=channel_slug
+        )
 
     def refund_payment(
-        self, gateway: str, payment_information: "PaymentData"
+        self, gateway: str, payment_information: "PaymentData", channel_slug: str
     ) -> "GatewayResponse":
         method_name = "refund_payment"
-        return self.__run_payment_method(gateway, method_name, payment_information)
+        return self.__run_payment_method(
+            gateway, method_name, payment_information, channel_slug=channel_slug
+        )
 
     def void_payment(
-        self, gateway: str, payment_information: "PaymentData"
+        self, gateway: str, payment_information: "PaymentData", channel_slug: str
     ) -> "GatewayResponse":
         method_name = "void_payment"
-        return self.__run_payment_method(gateway, method_name, payment_information)
+        return self.__run_payment_method(
+            gateway, method_name, payment_information, channel_slug=channel_slug
+        )
 
     def confirm_payment(
-        self, gateway: str, payment_information: "PaymentData"
+        self, gateway: str, payment_information: "PaymentData", channel_slug: str
     ) -> "GatewayResponse":
         method_name = "confirm_payment"
-        return self.__run_payment_method(gateway, method_name, payment_information)
+        return self.__run_payment_method(
+            gateway, method_name, payment_information, channel_slug=channel_slug
+        )
 
     def process_payment(
-        self, gateway: str, payment_information: "PaymentData"
+        self, gateway: str, payment_information: "PaymentData", channel_slug: str
     ) -> "GatewayResponse":
         method_name = "process_payment"
-        return self.__run_payment_method(gateway, method_name, payment_information)
+        return self.__run_payment_method(
+            gateway, method_name, payment_information, channel_slug=channel_slug
+        )
 
-    def token_is_required_as_payment_input(self, gateway) -> bool:
+    def token_is_required_as_payment_input(
+        self, gateway: str, channel_slug: str
+    ) -> bool:
         method_name = "token_is_required_as_payment_input"
         default_value = True
-        gtw = self.get_plugin(gateway)
+        gtw = self.get_plugin(gateway, channel_slug=channel_slug)
         if gtw is not None:
             return self.__run_method_on_single_plugin(
                 gtw,
@@ -573,35 +713,53 @@ class PluginsManager(PaymentInterface):
             )
         return default_value
 
-    def get_client_token(self, gateway, token_config: "TokenConfig") -> str:
+    def get_client_token(
+        self,
+        gateway,
+        token_config: "TokenConfig",
+        channel_slug: str,
+    ) -> str:
         method_name = "get_client_token"
         default_value = None
-        gtw = self.get_plugin(gateway)
+        gtw = self.get_plugin(gateway, channel_slug=channel_slug)
         return self.__run_method_on_single_plugin(
             gtw, method_name, default_value, token_config=token_config
         )
 
     def list_payment_sources(
-        self, gateway: str, customer_id: str
+        self,
+        gateway: str,
+        customer_id: str,
+        channel_slug: str,
     ) -> List["CustomerSource"]:
         default_value: list = []
-        gtw = self.get_plugin(gateway)
+        gtw = self.get_plugin(gateway, channel_slug=channel_slug)
         if gtw is not None:
             return self.__run_method_on_single_plugin(
                 gtw, "list_payment_sources", default_value, customer_id=customer_id
             )
         raise Exception(f"Payment plugin {gateway} is inaccessible!")
 
-    def get_active_plugins(self, plugins=None) -> List["BasePlugin"]:
-        if plugins is None:
-            plugins = self.plugins
-        return [plugin for plugin in plugins if plugin.active]
+    def get_plugins(
+        self, channel_slug: Optional[str] = None, active_only=False
+    ) -> List["BasePlugin"]:
+        """Return list of plugins for a given channel."""
+        if channel_slug:
+            plugins = self.plugins_per_channel[channel_slug]
+        else:
+            plugins = self.all_plugins
 
-    def list_payment_plugin(self, active_only: bool = False) -> Dict[str, "BasePlugin"]:
-        payment_method = "process_payment"
-        plugins = self.plugins
         if active_only:
-            plugins = self.get_active_plugins()
+            plugins = [plugin for plugin in plugins if plugin.active]
+        return plugins
+
+    def list_payment_plugin(
+        self, active_only: bool = False, channel_slug: Optional["str"] = None
+    ) -> Dict[str, "BasePlugin"]:
+        payment_method = "process_payment"
+
+        plugins = self.get_plugins(channel_slug=channel_slug, active_only=active_only)
+
         return {
             plugin.PLUGIN_ID: plugin
             for plugin in plugins
@@ -612,9 +770,14 @@ class PluginsManager(PaymentInterface):
         self,
         currency: Optional[str] = None,
         checkout: Optional["Checkout"] = None,
+        channel_slug: Optional[str] = None,
         active_only: bool = True,
     ) -> List["PaymentGateway"]:
-        payment_plugins = self.list_payment_plugin(active_only=active_only)
+        channel_slug = checkout.channel.slug if checkout else channel_slug
+
+        payment_plugins = self.list_payment_plugin(
+            active_only=active_only, channel_slug=channel_slug
+        )
         # if currency is given return only gateways which support given currency
         gateways = []
         for plugin in payment_plugins.values():
@@ -626,10 +789,8 @@ class PluginsManager(PaymentInterface):
         return gateways
 
     def list_external_authentications(self, active_only: bool = True) -> List[dict]:
-        plugins = self.plugins
         auth_basic_method = "external_obtain_access_tokens"
-        if active_only:
-            plugins = self.get_active_plugins()
+        plugins = self.get_plugins(active_only=active_only)
         return [
             {"id": plugin.PLUGIN_ID, "name": plugin.PLUGIN_NAME}
             for plugin in plugins
@@ -641,10 +802,11 @@ class PluginsManager(PaymentInterface):
         gateway: str,
         method_name: str,
         payment_information: "PaymentData",
+        channel_slug: str,
         **kwargs,
     ) -> "GatewayResponse":
         default_value = None
-        gtw = self.get_plugin(gateway)
+        gtw = self.get_plugin(gateway, channel_slug)
         if gtw is not None:
             resp = self.__run_method_on_single_plugin(
                 gtw,
@@ -664,10 +826,19 @@ class PluginsManager(PaymentInterface):
     def _get_all_plugin_configs(self):
         with opentracing.global_tracer().start_active_span("_get_all_plugin_configs"):
             if not hasattr(self, "_plugin_configs"):
-                self._plugin_configs = {
-                    pc.identifier: pc for pc in PluginConfiguration.objects.all()
-                }
-            return self._plugin_configs
+                plugin_configurations = PluginConfiguration.objects.prefetch_related(
+                    "channel"
+                ).all()
+                self._plugin_configs_per_channel = defaultdict(dict)
+                self._global_plugin_configs = {}
+                for pc in plugin_configurations:
+                    channel = pc.channel
+                    if channel is None:
+                        self._global_plugin_configs[pc.identifier] = pc
+                    else:
+                        self._plugin_configs_per_channel[channel][pc.identifier] = pc
+
+            return self._global_plugin_configs, self._plugin_configs_per_channel
 
     # FIXME these methods should be more generic
 
@@ -695,11 +866,23 @@ class PluginsManager(PaymentInterface):
             "get_tax_rate_percentage_value", default_value, obj, country
         ).quantize(Decimal("1."))
 
-    def save_plugin_configuration(self, plugin_id, cleaned_data: dict):
-        for plugin in self.plugins:
+    def save_plugin_configuration(
+        self, plugin_id, channel_slug: Optional[str], cleaned_data: dict
+    ):
+        if channel_slug:
+            plugins = self.get_plugins(channel_slug=channel_slug)
+            channel = Channel.objects.filter(slug=channel_slug).first()
+            if not channel:
+                return None
+        else:
+            channel = None
+            plugins = self.global_plugins
+
+        for plugin in plugins:
             if plugin.PLUGIN_ID == plugin_id:
                 plugin_configuration, _ = PluginConfiguration.objects.get_or_create(
                     identifier=plugin_id,
+                    channel=channel,
                     defaults={"configuration": plugin.configuration},
                 )
                 configuration = plugin.save_plugin_configuration(
@@ -707,10 +890,15 @@ class PluginsManager(PaymentInterface):
                 )
                 configuration.name = plugin.PLUGIN_NAME
                 configuration.description = plugin.PLUGIN_DESCRIPTION
+                plugin.active = configuration.active
+                plugin.configuration = configuration.configuration
                 return configuration
 
-    def get_plugin(self, plugin_id: str) -> Optional["BasePlugin"]:
-        for plugin in self.plugins:
+    def get_plugin(
+        self, plugin_id: str, channel_slug: Optional[str] = None
+    ) -> Optional["BasePlugin"]:
+        plugins = self.get_plugins(channel_slug=channel_slug)
+        for plugin in plugins:
             if plugin.PLUGIN_ID == plugin_id:
                 return plugin
         return None
@@ -725,6 +913,7 @@ class PluginsManager(PaymentInterface):
         if len(split_path) == 2:
             path = split_path[1]
 
+        # FIXME
         default_value = HttpResponseNotFound()
         plugin = self.get_plugin(plugin_id)
         if not plugin:
@@ -733,9 +922,16 @@ class PluginsManager(PaymentInterface):
             plugin, "webhook", default_value, request, path
         )
 
-    def notify(self, event: "NotifyEventTypeChoice", payload: dict):
+    def notify(
+        self,
+        event: "NotifyEventTypeChoice",
+        payload: dict,
+        channel_slug: Optional[str] = None,
+    ):
         default_value = None
-        return self.__run_method_on_plugins("notify", default_value, event, payload)
+        return self.__run_method_on_plugins(
+            "notify", default_value, event, payload, channel_slug=channel_slug
+        )
 
     def external_obtain_access_tokens(
         self, plugin_id: str, data: dict, request: WSGIRequest

@@ -235,7 +235,9 @@ def test_send_email_payment_confirmation(mocked_notify, site_settings, payment_d
     }
     notifications.send_payment_confirmation(order, manager)
     mocked_notify.assert_called_once_with(
-        NotifyEventType.ORDER_PAYMENT_CONFIRMATION, expected_payload
+        NotifyEventType.ORDER_PAYMENT_CONFIRMATION,
+        expected_payload,
+        channel_slug=order.channel.slug,
     )
 
 
@@ -253,7 +255,9 @@ def test_send_email_order_confirmation(mocked_notify, order, site_settings):
         "domain": "mirumee.com",
     }
     mocked_notify.assert_called_once_with(
-        NotifyEventType.ORDER_CONFIRMATION, expected_payload
+        NotifyEventType.ORDER_CONFIRMATION,
+        expected_payload,
+        channel_slug=order.channel.slug,
     )
 
 
@@ -298,7 +302,9 @@ def test_send_confirmation_emails_without_addresses_for_payment(
         "domain": "mirumee.com",
     }
     mocked_notify.assert_called_once_with(
-        NotifyEventType.ORDER_PAYMENT_CONFIRMATION, expected_payload
+        NotifyEventType.ORDER_PAYMENT_CONFIRMATION,
+        expected_payload,
+        channel_slug=order.channel.slug,
     )
 
 
@@ -335,7 +341,9 @@ def test_send_confirmation_emails_without_addresses_for_order(
     }
 
     mocked_notify.assert_called_once_with(
-        NotifyEventType.ORDER_CONFIRMATION, expected_payload
+        NotifyEventType.ORDER_CONFIRMATION,
+        expected_payload,
+        channel_slug=order.channel.slug,
     )
 
 
@@ -358,7 +366,9 @@ def test_send_fulfillment_confirmation(
     expected_payload = get_default_fulfillment_payload(fulfilled_order, fulfillment)
     expected_payload["requester_user_id"] = staff_user.id
     mocked_notify.assert_called_once_with(
-        NotifyEventType.ORDER_FULFILLMENT_CONFIRMATION, payload=expected_payload
+        NotifyEventType.ORDER_FULFILLMENT_CONFIRMATION,
+        payload=expected_payload,
+        channel_slug=fulfilled_order.channel.slug,
     )
 
 
@@ -376,7 +386,9 @@ def test_send_fulfillment_update(mocked_notify, fulfilled_order, site_settings):
     expected_payload = get_default_fulfillment_payload(fulfilled_order, fulfillment)
 
     mocked_notify.assert_called_once_with(
-        NotifyEventType.ORDER_FULFILLMENT_UPDATE, expected_payload
+        NotifyEventType.ORDER_FULFILLMENT_UPDATE,
+        expected_payload,
+        channel_slug=fulfilled_order.channel.slug,
     )
 
 
@@ -397,7 +409,9 @@ def test_send_email_order_canceled(mocked_notify, order, site_settings, staff_us
         "requester_user_id": staff_user.id,
     }
     mocked_notify.assert_called_once_with(
-        NotifyEventType.ORDER_CANCELED, expected_payload
+        NotifyEventType.ORDER_CANCELED,
+        expected_payload,
+        channel_slug=order.channel.slug,
     )
 
 
@@ -424,5 +438,7 @@ def test_send_email_order_refunded(mocked_notify, order, site_settings, staff_us
     }
 
     mocked_notify.assert_called_once_with(
-        NotifyEventType.ORDER_REFUND_CONFIRMATION, expected_payload
+        NotifyEventType.ORDER_REFUND_CONFIRMATION,
+        expected_payload,
+        channel_slug=order.channel.slug,
     )
