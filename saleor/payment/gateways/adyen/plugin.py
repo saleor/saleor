@@ -372,7 +372,7 @@ class AdyenGatewayPlugin(BasePlugin):
             kind = TransactionKind.PENDING
         elif adyen_auto_capture:
             kind = TransactionKind.CAPTURE
-        searchable_key = result.message.get("pspReference", "")
+        psp_reference = result.message.get("pspReference", "")
         action = result.message.get("action")
         error_message = result.message.get("refusalReason")
         if action:
@@ -406,7 +406,7 @@ class AdyenGatewayPlugin(BasePlugin):
             raw_response=result.message,
             action_required_data=action,
             payment_method_info=payment_method_info,
-            searchable_key=searchable_key,
+            psp_reference=psp_reference,
         )
 
     @classmethod
@@ -473,7 +473,7 @@ class AdyenGatewayPlugin(BasePlugin):
             transaction_id=result.message.get("pspReference", ""),
             error=result.message.get("refusalReason"),
             raw_response=result.message,
-            searchable_key=result.message.get("pspReference", ""),
+            psp_reference=result.message.get("pspReference", ""),
             payment_method_info=payment_method_info,
         )
 
@@ -615,7 +615,7 @@ class AdyenGatewayPlugin(BasePlugin):
             transaction_id=result.message.get("pspReference", ""),
             error="",
             raw_response=result.message,
-            searchable_key=result.message.get("pspReference", ""),
+            psp_reference=result.message.get("pspReference", ""),
         )
 
     @require_active_plugin
@@ -645,7 +645,7 @@ class AdyenGatewayPlugin(BasePlugin):
             error="",
             raw_response=result.message,
             payment_method_info=payment_method_info,
-            searchable_key=result.message.get("pspReference", ""),
+            psp_reference=result.message.get("pspReference", ""),
         )
 
     @require_active_plugin
@@ -674,7 +674,7 @@ class AdyenGatewayPlugin(BasePlugin):
             transaction_id=result.message.get("pspReference", ""),
             error="",
             raw_response=result.message,
-            searchable_key=result.message.get("pspReference", ""),
+            psp_reference=result.message.get("pspReference", ""),
         )
 
     @classmethod

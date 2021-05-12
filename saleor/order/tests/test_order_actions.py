@@ -148,11 +148,11 @@ def test_mark_as_paid_with_external_reference(admin_user, draft_order):
     payment = draft_order.payments.last()
     assert payment.charge_status == ChargeStatus.FULLY_CHARGED
     assert payment.captured_amount == draft_order.total.gross.amount
+    assert payment.psp_reference == external_reference
     assert draft_order.events.last().type == (OrderEvents.ORDER_MARKED_AS_PAID)
     transactions = payment.transactions.all()
     assert transactions.count() == 1
     assert transactions[0].kind == TransactionKind.EXTERNAL
-    assert transactions[0].searchable_key == external_reference
     assert transactions[0].token == external_reference
 
 

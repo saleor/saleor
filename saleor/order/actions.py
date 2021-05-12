@@ -305,6 +305,7 @@ def mark_order_as_paid(
         email=order.user_email,
         total=order.total.gross.amount,
         order=order,
+        external_reference=external_reference,
     )
     payment.charge_status = ChargeStatus.FULLY_CHARGED
     payment.captured_amount = order.total.gross.amount
@@ -318,7 +319,6 @@ def mark_order_as_paid(
         is_success=True,
         amount=order.total.gross.amount,
         currency=order.total.gross.currency,
-        searchable_key=external_reference or "",
         gateway_response={},
     )
     events.order_manually_marked_as_paid_event(
