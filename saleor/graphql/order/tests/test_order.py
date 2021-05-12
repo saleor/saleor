@@ -20,7 +20,7 @@ from ....core.notify_events import NotifyEventType
 from ....core.prices import quantize_price
 from ....core.taxes import TaxError, zero_taxed_money
 from ....discount.models import OrderDiscount
-from ....order import FulfillmentStatus, OrderStatus
+from ....order import FulfillmentStatus, OrderOrigin, OrderStatus
 from ....order import events as order_events
 from ....order.error_codes import OrderErrorCode
 from ....order.events import order_replacement_created
@@ -759,7 +759,9 @@ def test_order_available_shipping_methods_query(
     order_data = content["data"]["orders"]["edges"][0]["node"]
     method = order_data["availableShippingMethods"][0]
 
-    apply_taxes_to_shipping_mock.assert_called_once_with(shipping_price, ANY)
+    apply_taxes_to_shipping_mock.assert_called_once_with(
+        shipping_price, ANY, fulfilled_order.channel.slug
+    )
     assert expected_price == method["price"]["amount"]
 
 
@@ -885,7 +887,9 @@ def test_order_confirm(
         parameters__amount=payment_txn_preauth.get_total().amount,
     ).exists()
 
-    capture_mock.assert_called_once_with(payment_txn_preauth, ANY)
+    capture_mock.assert_called_once_with(
+        payment_txn_preauth, ANY, channel_slug=order_unconfirmed.channel.slug
+    )
     expected_payload = {
         "order": get_default_order_payload(order_unconfirmed, ""),
         "recipient_email": order_unconfirmed.user.email,
@@ -894,7 +898,9 @@ def test_order_confirm(
         "domain": "mirumee.com",
     }
     mocked_notify.assert_called_once_with(
-        NotifyEventType.ORDER_CONFIRMED, expected_payload
+        NotifyEventType.ORDER_CONFIRMED,
+        expected_payload,
+        channel_slug=order_unconfirmed.channel.slug,
     )
 
 
@@ -2592,6 +2598,7 @@ DRAFT_ORDER_COMPLETE_MUTATION = """
             }
             order {
                 status
+                origin
             }
         }
     }
@@ -2621,6 +2628,53 @@ def test_draft_order_complete(
     data = content["data"]["draftOrderComplete"]["order"]
     order.refresh_from_db()
     assert data["status"] == order.status.upper()
+    assert data["origin"] == OrderOrigin.DRAFT.upper()
+
+    for line in order.lines.all():
+        allocation = line.allocations.get()
+        assert allocation.quantity_allocated == line.quantity_unfulfilled
+
+    # ensure there are only 2 events with correct types
+    event_params = {
+        "user": staff_user,
+        "type__in": [
+            order_events.OrderEvents.PLACED_FROM_DRAFT,
+            order_events.OrderEvents.CONFIRMED,
+        ],
+        "parameters": {},
+    }
+    matching_events = OrderEvent.objects.filter(**event_params)
+    assert matching_events.count() == 2
+    assert matching_events[0].type != matching_events[1].type
+    assert not OrderEvent.objects.exclude(**event_params).exists()
+
+
+def test_draft_order_from_reissue_complete(
+    staff_api_client,
+    permission_manage_orders,
+    staff_user,
+    draft_order,
+):
+    order = draft_order
+    order.origin = OrderOrigin.REISSUE
+    order.save(update_fields=["origin"])
+
+    # Ensure no events were created
+    assert not OrderEvent.objects.exists()
+
+    # Ensure no allocation were created
+    assert not Allocation.objects.filter(order_line__order=order).exists()
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+    response = staff_api_client.post_graphql(
+        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderComplete"]["order"]
+    order.refresh_from_db()
+    assert data["status"] == order.status.upper()
+    assert data["origin"] == OrderOrigin.REISSUE.upper()
 
     for line in order.lines.all():
         allocation = line.allocations.get()
@@ -2745,6 +2799,7 @@ def test_draft_order_complete_product_without_inventory_tracking(
 
     order.refresh_from_db()
     assert data["status"] == order.status.upper()
+    assert data["origin"] == OrderOrigin.DRAFT.upper()
 
     assert not Allocation.objects.filter(order_line__order=order).exists()
 
@@ -2821,6 +2876,7 @@ def test_draft_order_complete_out_of_stock_variant(
     error = content["data"]["draftOrderComplete"]["errors"][0]
     order.refresh_from_db()
     assert order.status == OrderStatus.DRAFT
+    assert order.origin == OrderOrigin.DRAFT
 
     assert error["field"] == "lines"
     assert error["code"] == OrderErrorCode.INSUFFICIENT_STOCK.name
@@ -2902,6 +2958,7 @@ def test_draft_order_complete_drops_shipping_address(
     order.refresh_from_db()
 
     assert data["status"] == order.status.upper()
+    assert data["origin"] == OrderOrigin.DRAFT.upper()
     assert order.shipping_address is None
 
 
@@ -2932,6 +2989,7 @@ def test_draft_order_complete_unavailable_for_purchase(
     error = content["data"]["draftOrderComplete"]["errors"][0]
     order.refresh_from_db()
     assert order.status == OrderStatus.DRAFT
+    assert order.origin == OrderOrigin.DRAFT
 
     assert error["field"] == "lines"
     assert error["code"] == OrderErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE.name
@@ -3690,6 +3748,7 @@ def test_order_cancel_as_app(
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_order_capture(
     mocked_notify,
+    channel_USD,
     staff_api_client,
     permission_manage_orders,
     payment_txn_preauth,
@@ -3755,7 +3814,9 @@ def test_order_capture(
     }
 
     mocked_notify.assert_called_once_with(
-        NotifyEventType.ORDER_PAYMENT_CONFIRMATION, expected_payment_payload
+        NotifyEventType.ORDER_PAYMENT_CONFIRMATION,
+        expected_payment_payload,
+        channel_slug=order.channel.slug,
     )
 
 

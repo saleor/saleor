@@ -1,9 +1,10 @@
 import json
+import uuid
 from dataclasses import asdict
 from typing import TYPE_CHECKING, Iterable, Optional
 
 import graphene
-from django.db.models import QuerySet
+from django.db.models import F, QuerySet
 
 from ..checkout.models import Checkout
 from ..core.utils import build_absolute_uri
@@ -56,6 +57,7 @@ ADDRESS_FIELDS = (
 ORDER_FIELDS = (
     "created",
     "status",
+    "origin",
     "user_email",
     "shipping_method_name",
     "shipping_price_net_amount",
@@ -69,6 +71,20 @@ ORDER_FIELDS = (
     "private_metadata",
     "metadata",
 )
+
+
+def prepare_order_lines_allocations_payload(lines: Iterable[OrderLine]):
+    warehouse_id_quantity_allocated_map = list(
+        lines.values(  # type: ignore
+            warehouse_id=F("allocations__stock__warehouse_id"),
+            quantity_allocated=F("allocations__quantity_allocated"),
+        )
+    )
+    for item in warehouse_id_quantity_allocated_map:
+        item["warehouse_id"] = graphene.Node.to_global_id(
+            "Warehouse", item["warehouse_id"]
+        )
+    return warehouse_id_quantity_allocated_map
 
 
 def generate_order_lines_payload(lines: Iterable[OrderLine]):
@@ -96,6 +112,7 @@ def generate_order_lines_payload(lines: Iterable[OrderLine]):
         extra_dict_data={
             "total_price_net_amount": (lambda l: l.total_price.net.amount),
             "total_price_gross_amount": (lambda l: l.total_price.gross.amount),
+            "allocations": prepare_order_lines_allocations_payload(lines),
         },
     )
 
@@ -153,7 +170,10 @@ def generate_order_payload(order: "Order"):
             "fulfillments": (lambda o: o.fulfillments.all(), fulfillment_fields),
             "discounts": (lambda o: o.discounts.all(), discount_fields),
         },
-        extra_dict_data={"lines": json.loads(generate_order_lines_payload(lines))},
+        extra_dict_data={
+            "original": graphene.Node.to_global_id("Order", order.original_id),
+            "lines": json.loads(generate_order_lines_payload(lines)),
+        },
     )
     return order_data
 
@@ -438,6 +458,12 @@ def _get_sample_object(qs: QuerySet):
     return random_object
 
 
+def _remove_token_from_checkout(checkout):
+    checkout_data = json.loads(checkout)
+    checkout_data[0]["token"] = str(uuid.UUID(int=1))
+    return json.dumps(checkout_data)
+
+
 def _generate_sample_order_payload(event_name):
     order_qs = Order.objects.prefetch_related(
         "payments",
@@ -494,7 +520,8 @@ def generate_sample_payload(event_name: str) -> Optional[dict]:
         )
         if checkout:
             anonymized_checkout = anonymize_checkout(checkout)
-            payload = generate_checkout_payload(anonymized_checkout)
+            checkout_payload = generate_checkout_payload(anonymized_checkout)
+            payload = _remove_token_from_checkout(checkout_payload)
     elif event_name in pages_events:
         page = _get_sample_object(Page.objects.all())
         if page:

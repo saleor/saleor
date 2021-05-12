@@ -1402,7 +1402,9 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
 
-    apply_taxes_to_shipping_mock.assert_called_once_with(shipping_price, mock.ANY)
+    apply_taxes_to_shipping_mock.assert_called_once_with(
+        shipping_price, mock.ANY, checkout_with_item.channel.slug
+    )
     assert data["availableShippingMethods"] == [
         {"name": "DHL", "price": {"amount": expected_price}}
     ]

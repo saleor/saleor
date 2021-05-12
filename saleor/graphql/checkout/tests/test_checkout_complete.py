@@ -10,7 +10,7 @@ from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
 from ....core.exceptions import InsufficientStock, InsufficientStockData
 from ....core.taxes import zero_money
-from ....order import OrderStatus
+from ....order import OrderOrigin, OrderStatus
 from ....order.models import Order
 from ....payment import ChargeStatus, PaymentError, TransactionKind
 from ....payment.gateways.dummy_credit_card import TOKEN_VALIDATION_MAPPING
@@ -26,6 +26,8 @@ MUTATION_CHECKOUT_COMPLETE = """
             order {
                 id,
                 token
+                original
+                origin
             },
             errors {
                 field,
@@ -81,9 +83,11 @@ def test_checkout_complete_order_already_exists(
     data = content["data"]["checkoutComplete"]
     assert not data["errors"]
 
-    order_token = data["order"]["token"]
+    order_data = data["order"]
     assert Order.objects.count() == orders_count
-    assert order_with_lines.token == order_token
+    assert order_with_lines.token == order_data["token"]
+    assert order_data["origin"] == order_with_lines.origin.upper()
+    assert not order_data["original"]
 
 
 def test_checkout_complete_with_inactive_channel_order_already_exists(
@@ -218,6 +222,8 @@ def test_checkout_complete(
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.first()
     assert order.status == OrderStatus.UNFULFILLED
+    assert order.origin == OrderOrigin.CHECKOUT
+    assert not order.original
     assert order.token == order_token
     assert order.redirect_url == redirect_url
     assert order.total.gross == total.gross
@@ -813,7 +819,9 @@ def test_checkout_complete_insufficient_stock_payment_refunded(
     assert data["errors"][0]["message"] == "Insufficient product stock: 123"
     assert orders_count == Order.objects.count()
 
-    gateway_refund_mock.assert_called_once_with(payment, ANY)
+    gateway_refund_mock.assert_called_once_with(
+        payment, ANY, channel_slug=checkout_info.channel.slug
+    )
 
 
 @patch("saleor.checkout.complete_checkout.gateway.void")
@@ -868,7 +876,9 @@ def test_checkout_complete_insufficient_stock_payment_voided(
     assert data["errors"][0]["message"] == "Insufficient product stock: 123"
     assert orders_count == Order.objects.count()
 
-    gateway_void_mock.assert_called_once_with(payment, ANY)
+    gateway_void_mock.assert_called_once_with(
+        payment, ANY, channel_slug=checkout_info.channel.slug
+    )
 
 
 def test_checkout_complete_without_redirect_url(
@@ -987,7 +997,9 @@ def test_checkout_complete_payment_payment_total_different_than_checkout(
     assert data["errors"][0]["code"] == CheckoutErrorCode.CHECKOUT_NOT_FULLY_PAID.name
     assert orders_count == Order.objects.count()
 
-    gateway_refund_or_void_mock.assert_called_with(payment, ANY)
+    gateway_refund_or_void_mock.assert_called_with(
+        payment, ANY, channel_slug=checkout_info.channel.slug
+    )
 
 
 def test_order_already_exists(

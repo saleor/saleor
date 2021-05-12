@@ -66,6 +66,7 @@ def admin_email_plugin(settings):
         ):
             manager.save_plugin_configuration(
                 AdminEmailPlugin.PLUGIN_ID,
+                None,
                 {
                     "active": active,
                     "configuration": [
@@ -121,6 +122,6 @@ def admin_email_plugin(settings):
                 },
             )
         manager = get_plugins_manager()
-        return manager.plugins[0]
+        return manager.global_plugins[0]
 
     return fun

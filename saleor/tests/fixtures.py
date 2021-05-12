@@ -57,7 +57,7 @@ from ..discount.models import (
 )
 from ..giftcard.models import GiftCard
 from ..menu.models import Menu, MenuItem, MenuItemTranslation
-from ..order import OrderLineData, OrderStatus
+from ..order import OrderLineData, OrderOrigin, OrderStatus
 from ..order.actions import cancel_fulfillment, fulfill_order_lines
 from ..order.events import (
     OrderEvents,
@@ -194,10 +194,11 @@ def assert_max_num_queries(capture_queries):
 
 
 @pytest.fixture
-def setup_vatlayer(settings):
+def setup_vatlayer(settings, channel_USD):
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
     data = {
         "active": True,
+        "channel": channel_USD,
         "configuration": [
             {"name": "Access key", "value": "vatlayer_access_key"},
         ],
@@ -576,6 +577,7 @@ def order(customer_user, channel_USD):
         shipping_address=address,
         user_email=customer_user.email,
         user=customer_user,
+        origin=OrderOrigin.CHECKOUT,
     )
 
 
@@ -1998,6 +2000,7 @@ def order_list(customer_user, channel_USD):
         "user": customer_user,
         "user_email": customer_user.email,
         "channel": channel_USD,
+        "origin": OrderOrigin.CHECKOUT,
     }
     order = Order.objects.create(**data)
     order1 = Order.objects.create(**data)
@@ -2212,6 +2215,7 @@ def order_line_with_allocation_in_many_stocks(
         user_email=customer_user.email,
         user=customer_user,
         channel=channel_USD,
+        origin=OrderOrigin.CHECKOUT,
     )
 
     product = variant.product
@@ -2256,6 +2260,7 @@ def order_line_with_one_allocation(
         user_email=customer_user.email,
         user=customer_user,
         channel=channel_USD,
+        origin=OrderOrigin.CHECKOUT,
     )
 
     product = variant.product
@@ -2479,6 +2484,7 @@ def order_with_lines_channel_PLN(
         shipping_address=address,
         user_email=customer_user.email,
         user=customer_user,
+        origin=OrderOrigin.CHECKOUT,
     )
     product = Product.objects.create(
         name="Test product in PLN channel",
@@ -2707,7 +2713,8 @@ def fulfillment(fulfilled_order):
 def draft_order(order_with_lines):
     Allocation.objects.filter(order_line__order=order_with_lines).delete()
     order_with_lines.status = OrderStatus.DRAFT
-    order_with_lines.save(update_fields=["status"])
+    order_with_lines.origin = OrderOrigin.DRAFT
+    order_with_lines.save(update_fields=["status", "origin"])
     return order_with_lines
 
 
@@ -2730,7 +2737,8 @@ def draft_order_with_fixed_discount_order(draft_order):
 @pytest.fixture
 def draft_order_without_inventory_tracking(order_with_line_without_inventory_tracking):
     order_with_line_without_inventory_tracking.status = OrderStatus.DRAFT
-    order_with_line_without_inventory_tracking.save(update_fields=["status"])
+    order_with_line_without_inventory_tracking.origin = OrderStatus.DRAFT
+    order_with_line_without_inventory_tracking.save(update_fields=["status", "origin"])
     return order_with_line_without_inventory_tracking
 
 
