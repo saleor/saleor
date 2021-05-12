@@ -663,12 +663,12 @@ class PluginsManager(PaymentInterface):
         if not plugin:
             # Otherwise, try to get a payment app and run the payment method using
             # webhook plugin.
-            app_pk = from_payment_app_id(gateway)
+            payment_app_data = from_payment_app_id(gateway)
             from .webhook.plugin import WebhookPlugin
 
             plugin = self.get_plugin(WebhookPlugin.PLUGIN_ID)
             if plugin and plugin.active:
-                kwargs.update({"payment_app": app_pk})
+                kwargs.update({"payment_app_data": payment_app_data})
             else:
                 plugin = None
 

@@ -234,13 +234,22 @@ class WebhookPlugin(BasePlugin):
             return previous_value
 
         app = None
-        app_pk = kwargs.get("payment_app")
+        payment_app_data = kwargs.get("payment_app_data")
 
-        if app_pk is not None:
-            app = App.objects.for_event_type(event_type).filter(pk=app_pk).first()
+        if payment_app_data is not None:
+            app = (
+                App.objects.for_event_type(event_type)
+                .filter(pk=payment_app_data.app_pk)
+                .first()
+            )
 
         if not app:
             raise PaymentError("Selected payment method is not available.")
+
+        if payment_information.data:
+            payment_information.data["payment_method"] = payment_app_data.name
+        else:
+            payment_information.data = {"payment_method": payment_app_data.name}
 
         webhook_payload = generate_payment_payload(payment_information)
         response_data = trigger_webhook_sync(

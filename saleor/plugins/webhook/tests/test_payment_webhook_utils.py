@@ -1,7 +1,71 @@
 import pytest
 
 from ....payment import TransactionKind
-from ..utils import parse_payment_action_response
+from ..utils import (
+    APP_GATEWAY_ID_PREFIX,
+    from_payment_app_id,
+    parse_list_payment_gateways_response,
+    parse_payment_action_response,
+    to_payment_app_id,
+)
+
+
+def test_to_payment_app_id(app):
+    gateway_id = "example-gateway"
+    payment_app_id = to_payment_app_id(app, gateway_id)
+    assert payment_app_id == f"{APP_GATEWAY_ID_PREFIX}:{app.pk}:{gateway_id}"
+
+
+def test_from_payment_app_id():
+    app_id = "app:1:credit-card"
+    payment_app_data = from_payment_app_id(app_id)
+    assert payment_app_data.app_pk == 1
+    assert payment_app_data.name == "credit-card"
+
+
+@pytest.mark.parametrize(
+    "app_id",
+    [
+        "",
+        "::",
+        "1",
+        "name",
+        "1:1:name",
+        f"{APP_GATEWAY_ID_PREFIX}:1",
+        f"{APP_GATEWAY_ID_PREFIX}:1:",
+        f"{APP_GATEWAY_ID_PREFIX}:1a:name",
+    ],
+)
+def test_from_payment_app_id_invalid(app_id):
+    app_pk = from_payment_app_id(app_id)
+    assert app_pk is None
+
+
+def test_parse_list_payment_gateways_response(app):
+    response_data = [
+        {
+            "id": "credit-card",
+            "name": "Credit Card",
+            "currencies": ["USD", "EUR"],
+            "config": [{"field": "example-key", "value": "example-value"}],
+        },
+    ]
+    gateways = parse_list_payment_gateways_response(response_data, app)
+    assert gateways[0].id == to_payment_app_id(app, response_data[0]["id"])
+    assert gateways[0].name == response_data[0]["name"]
+    assert gateways[0].currencies == response_data[0]["currencies"]
+    assert gateways[0].config == response_data[0]["config"]
+
+
+def test_parse_list_payment_gateways_response_no_id(app):
+    response_data = [
+        {
+            "name": "Credit Card",
+            "currencies": ["USD", "EUR"],
+        },
+    ]
+    gateways = parse_list_payment_gateways_response(response_data, app)
+    assert gateways == []
 
 
 @pytest.fixture

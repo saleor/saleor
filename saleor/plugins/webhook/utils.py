@@ -1,4 +1,4 @@
-import re
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, List, Optional
 
 from ...payment.interface import GatewayResponse, PaymentGateway, PaymentMethodInfo
@@ -8,17 +8,33 @@ if TYPE_CHECKING:
     from ...payment.interface import PaymentData
 
 
+APP_GATEWAY_ID_PREFIX = "app"
+
+
+@dataclass
+class PaymentAppData:
+    app_pk: int
+    name: str
+
+
 def to_payment_app_id(app: "App", gateway_id: str) -> "str":
-    return f"app:{app.pk}:{gateway_id}"
+    return f"{APP_GATEWAY_ID_PREFIX}:{app.pk}:{gateway_id}"
 
 
-def from_payment_app_id(app_gateway_id: str) -> Optional["int"]:
-    pattern = r"^app:(?P<app_pk>[0-9]+):[-a-zA-Z0-9_]+"
-    match = re.match(pattern, app_gateway_id)
-    app_pk = None
-    if match:
-        app_pk = match.groupdict().get("app_pk")
-    return int(app_pk) if app_pk else None
+def from_payment_app_id(app_gateway_id: str) -> Optional["PaymentAppData"]:
+    splitted_id = app_gateway_id.split(":")
+    if (
+        len(splitted_id) == 3
+        and splitted_id[0] == APP_GATEWAY_ID_PREFIX
+        and all(splitted_id)
+    ):
+        try:
+            app_pk = int(splitted_id[1])
+        except (TypeError, ValueError):
+            return None
+        else:
+            return PaymentAppData(app_pk, name=splitted_id[2])
+    return None
 
 
 def parse_list_payment_gateways_response(
@@ -31,14 +47,15 @@ def parse_list_payment_gateways_response(
         gateway_currencies = gateway_data.get("currencies")
         gateway_config = gateway_data.get("config")
 
-        gateways.append(
-            PaymentGateway(
-                id=to_payment_app_id(app, gateway_id),
-                name=gateway_name,
-                currencies=gateway_currencies,
-                config=gateway_config,
+        if gateway_id:
+            gateways.append(
+                PaymentGateway(
+                    id=to_payment_app_id(app, gateway_id),
+                    name=gateway_name,
+                    currencies=gateway_currencies,
+                    config=gateway_config,
+                )
             )
-        )
     return gateways
 
 
