@@ -1302,6 +1302,7 @@ enum ConfigurationTypeFieldEnum {
   SECRET
   PASSWORD
   SECRETMULTILINE
+  OUTPUT
 }
 
 type ConfirmAccount {

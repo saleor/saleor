@@ -67,6 +67,7 @@ class AdyenGatewayPlugin(BasePlugin):
         {"name": "notification-password", "value": ""},
         {"name": "enable-native-3d-secure", "value": False},
         {"name": "apple-pay-cert", "value": None},
+        {"name": "webhook-endpoint", "value": "Test read only value "},
     ]
 
     CONFIG_STRUCTURE = {
@@ -183,6 +184,15 @@ class AdyenGatewayPlugin(BasePlugin):
                 "offer Apple Pay or offer it only as a payment method in your iOS app."
             ),
             "label": "Apple Pay certificate",
+        },
+        "webhook-endpoint": {
+            "type": ConfigurationTypeField.OUTPUT,
+            "help_text": (
+                "Endpoint which should be used to activate Adyen's webhooks. "
+                "More details can be find here: "
+                "https://docs.adyen.com/development-resources/webhooks"
+            ),
+            "label": "Webhook endpoint",
         },
     }
 
