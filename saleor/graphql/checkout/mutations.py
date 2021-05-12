@@ -31,6 +31,7 @@ from ...checkout.utils import (
 )
 from ...core import analytics
 from ...core.exceptions import InsufficientStock, PermissionDenied, ProductNotPublished
+from ...core.tracing import traced_atomic_transaction
 from ...core.transactions import transaction_with_commit_on_errors
 from ...order import models as order_models
 from ...product import models as product_models
@@ -331,7 +332,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return cleaned_input
 
     @classmethod
-    @transaction.atomic()
+    @traced_atomic_transaction
     def save(cls, info, instance: models.Checkout, cleaned_input):
         channel = cleaned_input["channel"]
         # Create the checkout object

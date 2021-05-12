@@ -1,4 +1,5 @@
 import opentracing
+from django.db import transaction
 from graphql import ResolveInfo
 
 
@@ -12,5 +13,16 @@ def traced_resolver(func):
             span.set_tag("graphql.parent_type", info.parent_type.name)
             span.set_tag("graphql.field_name", info.field_name)
             return func(*args, **kwargs)
+
+    return wrapper
+
+
+def traced_atomic_transaction(func):
+    def wrapper(*args, **kwargs):
+        with transaction.atomic():
+            with opentracing.global_tracer().start_active_span("transaction") as scope:
+                span = scope.span
+                span.set_tag(opentracing.tags.COMPONENT, "db")
+                return func(*args, **kwargs)
 
     return wrapper

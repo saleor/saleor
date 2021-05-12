@@ -9,6 +9,7 @@ from django.db.models import Q
 from ....attribute import AttributeType
 from ....attribute import models as attribute_models
 from ....core.permissions import ProductPermissions, ProductTypePermissions
+from ....core.tracing import traced_atomic_transaction
 from ....product import models
 from ....product.error_codes import ProductErrorCode
 from ...attribute.mutations import (
@@ -179,7 +180,7 @@ class ProductAttributeAssign(BaseMutation):
             model.objects.create(product_type=product_type, attribute_id=pk)
 
     @classmethod
-    @transaction.atomic()
+    @traced_atomic_transaction
     def perform_mutation(cls, _root, info, **data):
         product_type_id: str = data["product_type_id"]
         operations: List[ProductAttributeAssignInput] = data["operations"]

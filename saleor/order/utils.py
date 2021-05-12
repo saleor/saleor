@@ -4,12 +4,12 @@ from functools import partial, wraps
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union
 
 from django.conf import settings
-from django.db import transaction
 from django.utils import timezone
 from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 
 from ..account.models import User
 from ..core.taxes import zero_money
+from ..core.tracing import traced_atomic_transaction
 from ..core.weight import zero_weight
 from ..discount import DiscountValueType, OrderDiscountType
 from ..discount.models import NotApplicable, OrderDiscount, Voucher, VoucherType
@@ -296,7 +296,7 @@ def update_order_status(order):
         order.save(update_fields=["status"])
 
 
-@transaction.atomic
+@traced_atomic_transaction
 def add_variant_to_order(
     order, variant, quantity, user, manager, discounts=None, allocate_stock=False
 ):

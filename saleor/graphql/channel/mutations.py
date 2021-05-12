@@ -9,6 +9,7 @@ from django.utils.text import slugify
 from ...channel import models
 from ...checkout.models import Checkout
 from ...core.permissions import ChannelPermissions
+from ...core.tracing import traced_atomic_transaction
 from ...order.models import Order
 from ...shipping.tasks import drop_invalid_shipping_methods_relations_for_given_channels
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -63,7 +64,7 @@ class ChannelCreate(ModelMutation):
         return cleaned_input
 
     @classmethod
-    @transaction.atomic
+    @traced_atomic_transaction
     def _save_m2m(cls, info, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
         shipping_zones = cleaned_data.get("add_shipping_zones")
@@ -117,7 +118,7 @@ class ChannelUpdate(ModelMutation):
         return cleaned_input
 
     @classmethod
-    @transaction.atomic
+    @traced_atomic_transaction
     def _save_m2m(cls, info, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
         add_shipping_zones = cleaned_data.get("add_shipping_zones")

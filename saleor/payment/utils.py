@@ -5,10 +5,10 @@ from typing import TYPE_CHECKING, Dict, Optional
 
 import graphene
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db import transaction
 
 from ..account.models import User
 from ..checkout.models import Checkout
+from ..core.tracing import traced_atomic_transaction
 from ..order.models import Order
 from . import ChargeStatus, GatewayError, PaymentError, TransactionKind
 from .error_codes import PaymentErrorCode
@@ -244,7 +244,7 @@ def validate_gateway_response(response: GatewayResponse):
         raise GatewayError("Gateway response needs to be json serializable")
 
 
-@transaction.atomic
+@traced_atomic_transaction
 def gateway_postprocess(transaction, payment):
     if not transaction.is_success:
         return
