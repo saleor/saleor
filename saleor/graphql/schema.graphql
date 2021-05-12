@@ -2974,6 +2974,8 @@ type Order implements Node & ObjectWithMetadata {
   availableShippingMethods: [ShippingMethod]
   invoices: [Invoice]
   number: String
+  original: ID
+  origin: OrderOriginEnum!
   isPaid: Boolean!
   paymentStatus: PaymentChargeStatusEnum!
   paymentStatusDisplay: String!
@@ -3356,6 +3358,12 @@ type OrderMarkAsPaid {
   order: Order
   orderErrors: [OrderError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
   errors: [OrderError!]!
+}
+
+enum OrderOriginEnum {
+  CHECKOUT
+  DRAFT
+  REISSUE
 }
 
 type OrderRefund {

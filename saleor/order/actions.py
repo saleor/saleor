@@ -31,6 +31,7 @@ from . import (
     FulfillmentLineData,
     FulfillmentStatus,
     OrderLineData,
+    OrderOrigin,
     OrderStatus,
     events,
     utils,
@@ -753,6 +754,8 @@ def _populate_replace_order_fields(original_order: "Order"):
     replace_order.channel = original_order.channel
     replace_order.display_gross_prices = original_order.display_gross_prices
     replace_order.redirect_url = original_order.redirect_url
+    replace_order.original = original_order
+    replace_order.origin = OrderOrigin.REISSUE
 
     if original_order.billing_address:
         original_order.billing_address.pk = None
@@ -780,7 +783,7 @@ def create_replace_order(
     order_line_to_create: Dict[OrderLineIDType, OrderLine] = dict()
 
     # iterate over lines without fulfillment to get the items for replace.
-    # deepcopy to not lose the refence for lines assigned to original order
+    # deepcopy to not lose the reference for lines assigned to original order
     for line_data in deepcopy(order_lines_to_replace):
         order_line = line_data.line
         order_line_id = order_line.pk
