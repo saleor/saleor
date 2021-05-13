@@ -59,7 +59,9 @@ def test_create_refund_fulfillment_only_order_lines(
             == current_allocation.quantity_allocated
         )
     amount = sum([line.unit_price_gross_amount * 2 for line in order_lines_to_refund])
-    mocked_refund.assert_called_once_with(payment_dummy, ANY, amount)
+    mocked_refund.assert_called_once_with(
+        payment_dummy, ANY, amount=amount, channel_slug=order_with_lines.channel.slug
+    )
 
 
 @patch("saleor.order.actions.gateway.refund")
@@ -99,7 +101,9 @@ def test_create_refund_fulfillment_included_shipping_costs(
         assert line.quantity_unfulfilled == original_quantity.get(line.pk) - 2
     amount = sum([line.unit_price_gross_amount * 2 for line in order_lines_to_refund])
     amount += order_with_lines.shipping_price_gross_amount
-    mocked_refund.assert_called_once_with(payment_dummy, ANY, amount)
+    mocked_refund.assert_called_once_with(
+        payment_dummy, ANY, amount=amount, channel_slug=order_with_lines.channel.slug
+    )
 
 
 @patch("saleor.order.actions.gateway.refund")
@@ -139,7 +143,9 @@ def test_create_refund_fulfillment_only_fulfillment_lines(
     amount = sum(
         [line.order_line.unit_price_gross_amount * 2 for line in fulfillment_lines]
     )
-    mocked_refund.assert_called_once_with(payment_dummy, ANY, amount)
+    mocked_refund.assert_called_once_with(
+        payment_dummy, ANY, amount=amount, channel_slug=fulfilled_order.channel.slug
+    )
 
 
 @patch("saleor.order.actions.gateway.refund")
@@ -179,4 +185,6 @@ def test_create_refund_fulfillment_custom_amount(
 
     for line in fulfillment_lines:
         assert line.quantity == original_quantity.get(line.pk) - 2
-    mocked_refund.assert_called_once_with(payment_dummy, ANY, amount)
+    mocked_refund.assert_called_once_with(
+        payment_dummy, ANY, amount=amount, channel_slug=fulfilled_order.channel.slug
+    )
