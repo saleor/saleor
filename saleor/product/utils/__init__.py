@@ -31,7 +31,7 @@ def calculate_revenue_for_variant(
     return revenue
 
 
-@traced_atomic_transaction
+@traced_atomic_transaction()
 def delete_categories(categories_ids: List[str], manager):
     """Delete categories and perform all necessary actions.
 

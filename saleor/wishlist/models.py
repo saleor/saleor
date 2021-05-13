@@ -48,7 +48,7 @@ class Wishlist(models.Model):
 
 
 class WishlistItemQuerySet(models.QuerySet):
-    @traced_atomic_transaction
+    @traced_atomic_transaction()
     def move_items_between_wishlists(self, src_wishlist, dst_wishlist):
         dst_wishlist_map = {}
         for dst_item in dst_wishlist.items.all():

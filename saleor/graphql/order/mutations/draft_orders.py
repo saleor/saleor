@@ -261,7 +261,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             )
 
     @classmethod
-    @traced_atomic_transaction
+    @traced_atomic_transaction()
     def save(cls, info, instance, cleaned_input):
         new_instance = not bool(instance.pk)
 

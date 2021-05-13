@@ -326,7 +326,7 @@ def _prepare_order_data(
     return order_data
 
 
-@traced_atomic_transaction
+@traced_atomic_transaction()
 def _create_order(
     *,
     checkout_info: "CheckoutInfo",

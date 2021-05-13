@@ -454,7 +454,7 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
         return cleaned_input
 
     @classmethod
-    @traced_atomic_transaction
+    @traced_atomic_transaction()
     def save(cls, info, instance, cleaned_input):
         # FIXME: save address in user.addresses as well
         default_shipping_address = cleaned_input.get(SHIPPING_ADDRESS_FIELD)

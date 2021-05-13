@@ -405,7 +405,7 @@ class MenuItemMove(BaseMutation):
         menu_item.save()
 
     @classmethod
-    @traced_atomic_transaction
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         menu: str = data["menu"]
         moves: List[MenuItemMoveInput] = data["moves"]

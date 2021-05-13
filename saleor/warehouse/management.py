@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 StockData = namedtuple("StockData", ["pk", "quantity"])
 
 
-@traced_atomic_transaction
+@traced_atomic_transaction()
 def allocate_stocks(
     order_lines_info: Iterable["OrderLineData"], country_code: str, channel_slug: str
 ):
@@ -126,7 +126,7 @@ def _create_allocations(
         return insufficient_stock, []
 
 
-@traced_atomic_transaction
+@traced_atomic_transaction()
 def deallocate_stock(order_lines_data: Iterable["OrderLineData"]):
     """Deallocate stocks for given `order_lines`.
 
@@ -181,7 +181,7 @@ def deallocate_stock(order_lines_data: Iterable["OrderLineData"]):
     Allocation.objects.bulk_update(allocations_to_update, ["quantity_allocated"])
 
 
-@traced_atomic_transaction
+@traced_atomic_transaction()
 def increase_stock(
     order_line: "OrderLine",
     warehouse: Warehouse,
@@ -220,7 +220,7 @@ def increase_stock(
             )
 
 
-@traced_atomic_transaction
+@traced_atomic_transaction()
 def increase_allocations(lines_info: Iterable["OrderLineData"], channel_slug: str):
     """Increase allocation for order lines with appropriate quantity."""
     line_pks = [info.line.pk for info in lines_info]
@@ -258,7 +258,7 @@ def decrease_allocations(lines_info: Iterable["OrderLineData"]):
     decrease_stock(tracked_lines, update_stocks=False)
 
 
-@traced_atomic_transaction
+@traced_atomic_transaction()
 def decrease_stock(order_lines_info: Iterable["OrderLineData"], update_stocks=True):
     """Decrease stocks quantities for given `order_lines` in given warehouses.
 
@@ -369,7 +369,7 @@ def get_order_lines_with_track_inventory(
     ]
 
 
-@traced_atomic_transaction
+@traced_atomic_transaction()
 def deallocate_stock_for_order(order: "Order"):
     """Remove all allocations for given order."""
     allocations = Allocation.objects.filter(

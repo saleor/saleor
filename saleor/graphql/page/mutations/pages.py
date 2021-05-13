@@ -97,7 +97,7 @@ class PageCreate(ModelMutation):
         return cleaned_input
 
     @classmethod
-    @traced_atomic_transaction
+    @traced_atomic_transaction()
     def _save_m2m(cls, info, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
 

@@ -251,7 +251,7 @@ class StaffCreate(ModelMutation):
             )
 
     @classmethod
-    @traced_atomic_transaction
+    @traced_atomic_transaction()
     def _save_m2m(cls, info, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
         groups = cleaned_data.get("add_groups")
@@ -374,7 +374,7 @@ class StaffUpdate(StaffCreate):
             errors["is_active"].append(error)
 
     @classmethod
-    @traced_atomic_transaction
+    @traced_atomic_transaction()
     def _save_m2m(cls, info, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
         add_groups = cleaned_data.get("add_groups")

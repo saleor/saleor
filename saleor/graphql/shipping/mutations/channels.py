@@ -107,7 +107,7 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
         )
 
     @classmethod
-    @traced_atomic_transaction
+    @traced_atomic_transaction()
     def save(cls, info, shipping_method: "ShippingMethodModel", cleaned_input: Dict):
         cls.add_channels(shipping_method, cleaned_input.get("add_channels", []))
         cls.remove_channels(shipping_method, cleaned_input.get("remove_channels", []))

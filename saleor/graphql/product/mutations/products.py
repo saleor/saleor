@@ -374,7 +374,7 @@ class CollectionReorderProducts(BaseMutation):
                 )
             operations[m2m_info.pk] = move_info.sort_order
 
-        with transaction.atomic():
+        with traced_atomic_transaction():
             perform_reordering(m2m_related_field, operations)
         collection = ChannelContext(node=collection, channel_slug=None)
         return CollectionReorderProducts(collection=collection)
@@ -400,7 +400,7 @@ class CollectionAddProducts(BaseMutation):
         error_type_field = "collection_errors"
 
     @classmethod
-    @traced_atomic_transaction
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, collection_id, products):
         collection = cls.get_node_or_error(
             info, collection_id, field="collection_id", only_type=Collection
@@ -624,7 +624,7 @@ class ProductCreate(ModelMutation):
         return super().get_instance(info, **data)
 
     @classmethod
-    @traced_atomic_transaction
+    @traced_atomic_transaction()
     def save(cls, info, instance, cleaned_input):
         instance.save()
         attributes = cleaned_input.get("attributes")
@@ -670,7 +670,7 @@ class ProductUpdate(ProductCreate):
         error_type_field = "product_errors"
 
     @classmethod
-    @traced_atomic_transaction
+    @traced_atomic_transaction()
     def save(cls, info, instance, cleaned_input):
         instance.save()
         attributes = cleaned_input.get("attributes")
@@ -897,7 +897,7 @@ class ProductVariantCreate(ModelMutation):
         return super().get_instance(info, **data)
 
     @classmethod
-    @traced_atomic_transaction
+    @traced_atomic_transaction()
     def save(cls, info, instance, cleaned_input):
         new_variant = instance.pk is None
         instance.save()
@@ -1006,7 +1006,7 @@ class ProductVariantDelete(ModelDeleteMutation):
         return super().success_response(instance)
 
     @classmethod
-    @traced_atomic_transaction
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         node_id = data.get("id")
         instance = cls.get_node_or_error(info, node_id, only_type=ProductVariant)
@@ -1503,7 +1503,7 @@ class ProductVariantReorder(BaseMutation):
                 )
             operations[m2m_info.pk] = move_info.sort_order
 
-        with transaction.atomic():
+        with traced_atomic_transaction():
             perform_reordering(variants_m2m, operations)
 
         product.save(update_fields=["updated_at"])
@@ -1554,7 +1554,7 @@ class VariantMediaAssign(BaseMutation):
         error_type_field = "product_errors"
 
     @classmethod
-    @traced_atomic_transaction
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, media_id, variant_id):
         media = cls.get_node_or_error(
             info, media_id, field="media_id", only_type=ProductMedia
@@ -1602,7 +1602,7 @@ class VariantMediaUnassign(BaseMutation):
         error_type_field = "product_errors"
 
     @classmethod
-    @traced_atomic_transaction
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, media_id, variant_id):
         media = cls.get_node_or_error(
             info, media_id, field="image_id", only_type=ProductMedia

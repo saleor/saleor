@@ -296,7 +296,7 @@ def update_order_status(order):
         order.save(update_fields=["status"])
 
 
-@traced_atomic_transaction
+@traced_atomic_transaction()
 def add_variant_to_order(
     order, variant, quantity, user, manager, discounts=None, allocate_stock=False
 ):

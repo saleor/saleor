@@ -442,7 +442,7 @@ class VoucherChannelListingUpdate(BaseChannelListingMutation):
         voucher.channel_listings.filter(channel_id__in=remove_channels).delete()
 
     @classmethod
-    @traced_atomic_transaction
+    @traced_atomic_transaction()
     def save(cls, voucher, cleaned_input):
         cls.add_channels(voucher, cleaned_input.get("add_channels", []))
         cls.remove_channels(voucher, cleaned_input.get("remove_channels", []))
@@ -686,7 +686,7 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
         sale.channel_listings.filter(channel_id__in=remove_channels).delete()
 
     @classmethod
-    @traced_atomic_transaction
+    @traced_atomic_transaction()
     def save(cls, info, sale: "SaleModel", cleaned_input: Dict):
         cls.add_channels(sale, cleaned_input.get("add_channels", []))
         cls.remove_channels(sale, cleaned_input.get("remove_channels", []))

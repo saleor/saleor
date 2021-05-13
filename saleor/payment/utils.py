@@ -244,7 +244,7 @@ def validate_gateway_response(response: GatewayResponse):
         raise GatewayError("Gateway response needs to be json serializable")
 
 
-@traced_atomic_transaction
+@traced_atomic_transaction()
 def gateway_postprocess(transaction, payment):
     if not transaction.is_success:
         return

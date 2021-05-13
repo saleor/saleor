@@ -60,7 +60,7 @@ def get_used_variants_attribute_values(product):
     return used_attribute_values
 
 
-@traced_atomic_transaction
+@traced_atomic_transaction()
 def create_stocks(
     variant: "ProductVariant", stocks_data: List[Dict[str, str]], warehouses: "QuerySet"
 ):

@@ -1,3 +1,5 @@
+from contextlib import contextmanager
+
 import opentracing
 from django.db import transaction
 from graphql import ResolveInfo
@@ -17,12 +19,10 @@ def traced_resolver(func):
     return wrapper
 
 
-def traced_atomic_transaction(func):
-    def wrapper(*args, **kwargs):
-        with transaction.atomic():
-            with opentracing.global_tracer().start_active_span("transaction") as scope:
-                span = scope.span
-                span.set_tag(opentracing.tags.COMPONENT, "db")
-                return func(*args, **kwargs)
-
-    return wrapper
+@contextmanager
+def traced_atomic_transaction(x=None):
+    with transaction.atomic():
+        with opentracing.global_tracer().start_active_span("transaction") as scope:
+            span = scope.span
+            span.set_tag(opentracing.tags.COMPONENT, "db")
+            yield

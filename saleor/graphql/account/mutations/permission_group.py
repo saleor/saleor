@@ -56,7 +56,7 @@ class PermissionGroupCreate(ModelMutation):
         error_type_field = "permission_group_errors"
 
     @classmethod
-    @traced_atomic_transaction
+    @traced_atomic_transaction()
     def _save_m2m(cls, info, instance, cleaned_data):
         add_permissions = cleaned_data.get("add_permissions")
         if add_permissions:
@@ -195,7 +195,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         error_type_field = "permission_group_errors"
 
     @classmethod
-    @traced_atomic_transaction
+    @traced_atomic_transaction()
     def _save_m2m(cls, info, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
         remove_users = cleaned_data.get("remove_users")

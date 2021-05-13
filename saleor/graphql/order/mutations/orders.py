@@ -203,7 +203,7 @@ class OrderUpdate(DraftOrderCreate):
         return instance
 
     @classmethod
-    @traced_atomic_transaction
+    @traced_atomic_transaction()
     def save(cls, info, instance, cleaned_input):
         cls._save_addresses(info, instance, cleaned_input)
         if instance.user_email:
@@ -619,7 +619,7 @@ class OrderConfirm(ModelMutation):
         return instance
 
     @classmethod
-    @traced_atomic_transaction
+    @traced_atomic_transaction()
     def perform_mutation(cls, root, info, **data):
         order = cls.get_instance(info, **data)
         order.status = OrderStatus.UNFULFILLED

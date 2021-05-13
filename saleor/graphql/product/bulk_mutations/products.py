@@ -100,7 +100,7 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
         error_type_field = "product_errors"
 
     @classmethod
-    @traced_atomic_transaction
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, ids, **data):
         _, pks = resolve_global_ids_to_primary_keys(ids, Product)
         product_to_variant = list(
@@ -438,7 +438,7 @@ class ProductVariantBulkCreate(BaseMutation):
         )
 
     @classmethod
-    @traced_atomic_transaction
+    @traced_atomic_transaction()
     def save_variants(cls, info, instances, product, cleaned_inputs):
         assert len(instances) == len(
             cleaned_inputs
@@ -464,7 +464,7 @@ class ProductVariantBulkCreate(BaseMutation):
         create_stocks(variant, stocks, warehouses)
 
     @classmethod
-    @traced_atomic_transaction
+    @traced_atomic_transaction()
     def perform_mutation(cls, root, info, **data):
         product = cls.get_node_or_error(info, data["product_id"], models.Product)
         errors = defaultdict(list)
@@ -510,7 +510,7 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         error_type_field = "product_errors"
 
     @classmethod
-    @traced_atomic_transaction
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, ids, **data):
         _, pks = resolve_global_ids_to_primary_keys(ids, ProductVariant)
         # get draft order lines for variants
@@ -668,7 +668,7 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
         return cls(product_variant=variant)
 
     @classmethod
-    @traced_atomic_transaction
+    @traced_atomic_transaction()
     def update_or_create_variant_stocks(cls, variant, stocks_data, warehouses):
         stocks = []
         for stock_data, warehouse in zip(stocks_data, warehouses):

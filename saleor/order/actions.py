@@ -134,7 +134,7 @@ def handle_fully_paid_order(
     manager.order_updated(order)
 
 
-@traced_atomic_transaction
+@traced_atomic_transaction()
 def cancel_order(order: "Order", user: Optional["User"], manager: "PluginsManager"):
     """Cancel order.
 
@@ -184,7 +184,7 @@ def order_returned(
     update_order_status(order)
 
 
-@traced_atomic_transaction
+@traced_atomic_transaction()
 def order_fulfilled(
     fulfillments: List["Fulfillment"],
     user: "User",
@@ -258,7 +258,7 @@ def fulfillment_tracking_updated(
     manager.order_updated(fulfillment.order)
 
 
-@traced_atomic_transaction
+@traced_atomic_transaction()
 def cancel_fulfillment(
     fulfillment: "Fulfillment",
     user: "User",
@@ -286,7 +286,7 @@ def cancel_fulfillment(
     manager.order_updated(fulfillment.order)
 
 
-@traced_atomic_transaction
+@traced_atomic_transaction()
 def mark_order_as_paid(
     order: "Order",
     request_user: "User",
@@ -338,7 +338,7 @@ def clean_mark_order_as_paid(order: "Order"):
         )
 
 
-@traced_atomic_transaction
+@traced_atomic_transaction()
 def fulfill_order_lines(order_lines_info: Iterable["OrderLineData"]):
     """Fulfill order line with given quantity."""
     lines_to_decrease_stock = get_order_lines_with_track_inventory(order_lines_info)
@@ -353,7 +353,7 @@ def fulfill_order_lines(order_lines_info: Iterable["OrderLineData"]):
     OrderLine.objects.bulk_update(order_lines, ["quantity_fulfilled"])
 
 
-@traced_atomic_transaction
+@traced_atomic_transaction()
 def automatically_fulfill_digital_lines(order: "Order", manager: "PluginsManager"):
     """Fulfill all digital lines which have enabled automatic fulfillment setting.
 
@@ -487,7 +487,7 @@ def _create_fulfillment_lines(
     return fulfillment_lines
 
 
-@traced_atomic_transaction
+@traced_atomic_transaction()
 def create_fulfillments(
     requester: "User",
     order: "Order",
@@ -590,7 +590,7 @@ def _get_fulfillment_line(
     return moved_line, fulfillment_line_existed
 
 
-@traced_atomic_transaction
+@traced_atomic_transaction()
 def _move_order_lines_to_target_fulfillment(
     order_lines_to_move: List[OrderLineData],
     target_fulfillment: Fulfillment,
@@ -641,7 +641,7 @@ def _move_order_lines_to_target_fulfillment(
     return created_fulfillment_lines
 
 
-@traced_atomic_transaction
+@traced_atomic_transaction()
 def _move_fulfillment_lines_to_target_fulfillment(
     fulfillment_lines_to_move: List[FulfillmentLineData],
     lines_in_target_fulfillment: List[FulfillmentLine],
@@ -771,7 +771,7 @@ def _populate_replace_order_fields(original_order: "Order"):
     return replace_order
 
 
-@traced_atomic_transaction
+@traced_atomic_transaction()
 def create_replace_order(
     requester: Optional["User"],
     original_order: "Order",
@@ -906,7 +906,7 @@ def _move_lines_to_replace_fulfillment(
     return target_fulfillment
 
 
-@traced_atomic_transaction
+@traced_atomic_transaction()
 def create_return_fulfillment(
     requester: Optional["User"],
     order: "Order",
@@ -917,7 +917,7 @@ def create_return_fulfillment(
     status = FulfillmentStatus.RETURNED
     if refund:
         status = FulfillmentStatus.REFUNDED_AND_RETURNED
-    with transaction.atomic():
+    with traced_atomic_transaction():
         return_fulfillment = _move_lines_to_return_fulfillment(
             order_lines=order_lines,
             fulfillment_lines=fulfillment_lines,
@@ -954,7 +954,7 @@ def create_return_fulfillment(
     return return_fulfillment
 
 
-@traced_atomic_transaction
+@traced_atomic_transaction()
 def process_replace(
     requester: Optional["User"],
     order: "Order",
@@ -1028,7 +1028,7 @@ def create_fulfillments_for_returned_products(
     return_order_lines = [data for data in order_lines if not data.replace]
     return_fulfillment_lines = [data for data in fulfillment_lines if not data.replace]
 
-    with transaction.atomic():
+    with traced_atomic_transaction():
         if refund and payment:
             _process_refund(
                 requester=requester,
