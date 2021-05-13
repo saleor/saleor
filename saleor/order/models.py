@@ -498,6 +498,10 @@ class OrderLine(models.Model):
         return self.unit_price + self.unit_discount
 
     @property
+    def undiscounted_total_price(self) -> "TaxedMoney":
+        return self.undiscounted_unit_price * self.quantity
+
+    @property
     def quantity_unfulfilled(self):
         return self.quantity - self.quantity_fulfilled
 

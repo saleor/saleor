@@ -158,6 +158,12 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
     undiscounted_unit_price_gross_amount = (
         line.undiscounted_unit_price.gross.amount.quantize(Decimal("0.001"))
     )
+    undiscounted_total_price_net_amount = (
+        line.undiscounted_total_price.net.amount.quantize(Decimal("0.001"))
+    )
+    undiscounted_total_price_gross_amount = (
+        line.undiscounted_total_price.gross.amount.quantize(Decimal("0.001"))
+    )
 
     total_line = line.total_price
     global_warehouse_id = graphene.Node.to_global_id(
@@ -192,6 +198,10 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
         "undiscounted_unit_price_net_amount": str(undiscounted_unit_price_net_amount),
         "undiscounted_unit_price_gross_amount": str(
             undiscounted_unit_price_gross_amount
+        ),
+        "undiscounted_total_price_net_amount": str(undiscounted_total_price_net_amount),
+        "undiscounted_total_price_gross_amount": str(
+            undiscounted_total_price_gross_amount
         ),
     }
 

@@ -115,6 +115,12 @@ def generate_order_lines_payload(lines: Iterable[OrderLine]):
             "undiscounted_unit_price_gross_amount": (
                 lambda l: l.undiscounted_unit_price.gross.amount
             ),
+            "undiscounted_total_price_net_amount": (
+                lambda l: l.undiscounted_total_price.net.amount
+            ),
+            "undiscounted_total_price_gross_amount": (
+                lambda l: l.undiscounted_total_price.gross.amount
+            ),
         },
     )
 
