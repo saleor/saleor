@@ -6,6 +6,7 @@ from ...attribute import AttributeInputType, models
 from ...core.tracing import traced_resolver
 from ..core.connection import CountableDjangoObjectType
 from ..core.enums import MeasurementUnitsEnum
+from ..core.fields import PrefetchingConnectionField
 from ..core.types import File
 from ..core.types.common import IntRangeInput
 from ..decorators import (
@@ -87,8 +88,9 @@ class Attribute(CountableDjangoObjectType):
     slug = graphene.String(description=AttributeDescriptions.SLUG)
     type = AttributeTypeEnum(description=AttributeDescriptions.TYPE)
     unit = MeasurementUnitsEnum(description=AttributeDescriptions.UNIT)
-
-    values = graphene.List(AttributeValue, description=AttributeDescriptions.VALUES)
+    values = PrefetchingConnectionField(
+        AttributeValue, description=AttributeDescriptions.VALUES
+    )
 
     value_required = graphene.Boolean(
         description=AttributeDescriptions.VALUE_REQUIRED, required=True
@@ -123,7 +125,7 @@ class Attribute(CountableDjangoObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_values(root: models.Attribute, info):
+    def resolve_values(root: models.Attribute, info, **_kwargs):
         return AttributeValuesByAttributeIdLoader(info.context).load(root.id)
 
     @staticmethod
