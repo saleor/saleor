@@ -17,6 +17,7 @@ from ....core.permissions import StorePermissions
 from ....core.exceptions import PermissionDenied
 from ....store.utils import delete_stores, delete_stores_types
 from ..types import Store, StoreType
+from ...account.enums import CountryCodeEnum
 
 from ....product.thumbnails import (
     create_store_background_image_thumbnails,
@@ -38,6 +39,15 @@ class StoreInput(graphene.InputObjectType):
     seo = SeoInput(description="Search engine optimization fields.")
     background_image = Upload(description="Background image file.")
     background_image_alt = graphene.String(description="Alt text for a stores media.")
+    company_name = graphene.String(description="Company or organization.")
+    street_address_1 = graphene.String(description="Address.")
+    street_address_2 = graphene.String(description="Address.")
+    city = graphene.String(description="City.")
+    city_area = graphene.String(description="District.")
+    postal_code = graphene.String(description="Postal code.")
+    country = CountryCodeEnum(description="Country.")
+    country_area = graphene.String(description="State or province.")
+    phone = graphene.String(description="Phone number.", required=True)
 
 class StoreCreateInput(StoreInput):
     store_type = graphene.ID(
