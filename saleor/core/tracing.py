@@ -20,7 +20,7 @@ def traced_resolver(func):
 
 
 @contextmanager
-def traced_atomic_transaction(x=None):
+def traced_atomic_transaction():
     with transaction.atomic():
         with opentracing.global_tracer().start_active_span("transaction") as scope:
             span = scope.span
