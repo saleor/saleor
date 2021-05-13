@@ -15,6 +15,7 @@ from ..seo.models import SeoModel, SeoModelTranslation
 from django.utils import timezone
 from typing import TYPE_CHECKING, Union
 from ..core.permissions import StorePermissions
+from django_countries.fields import CountryField
 
 if TYPE_CHECKING:
     from ..account.models import User
@@ -82,7 +83,15 @@ class Store(ModelWithMetadata, SeoModel):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-    )
+    )    
+    company_name = models.CharField(max_length=256, blank=True)
+    street_address_1 = models.CharField(max_length=256, blank=True)
+    street_address_2 = models.CharField(max_length=256, blank=True)
+    city = models.CharField(max_length=256, blank=True)
+    city_area = models.CharField(max_length=128, blank=True)
+    postal_code = models.CharField(max_length=20, blank=True)
+    country = CountryField()
+    country_area = models.CharField(max_length=128, blank=True)
     phone = PossiblePhoneNumberField(blank=True, default="")
     acreage = models.FloatField(blank=True, null=True, max_length=250)
     latlong = models.CharField(blank=True, null=True, max_length=250)

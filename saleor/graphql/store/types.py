@@ -70,7 +70,16 @@ class Store(CountableDjangoObjectType):
             "latlong",
             "acreage",
             "url",
-            "phone"
+            "phone",
+            "city",
+            "city_area",
+            "company_name",
+            "country",
+            "country_area",
+            "id",
+            "postal_code",
+            "street_address_1",
+            "street_address_2",
         ]
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.Store
