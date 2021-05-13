@@ -1,6 +1,7 @@
 import logging
 from enum import Enum
 from json import JSONDecodeError
+from typing import TYPE_CHECKING
 from urllib.parse import urlparse, urlunparse
 
 import boto3
@@ -9,10 +10,14 @@ from google.cloud import pubsub_v1
 from requests.exceptions import RequestException
 
 from ...celeryconf import app
+from ...payment import PaymentError
 from ...site.models import Site
 from ...webhook.event_types import WebhookEventType
 from ...webhook.models import Webhook
 from . import signature_for_payload
+
+if TYPE_CHECKING:
+    from ...app.models import App
 
 logger = logging.getLogger(__name__)
 
@@ -60,14 +65,12 @@ def trigger_webhooks_for_event(event_type, data):
         )
 
 
-def trigger_webhook_sync(event_type, data, webhooks_qs=None):
+def trigger_webhook_sync(event_type: str, data: str, app: "App"):
     """Send a synchronous webhook request."""
-    webhooks = _get_webhooks_for_event(event_type, webhooks_qs)
+    webhooks = _get_webhooks_for_event(event_type, app.webhooks.all())
     webhook = webhooks.first()
     if not webhook:
-        # TODO: handle webhook not found.
-        # raise Exception("Payment webhook not available")
-        return None
+        raise PaymentError(f"No payment webhook found for event: {event_type}.")
 
     return send_webhook_request_sync(
         webhook.target_url, webhook.secret_key, event_type, data
@@ -166,7 +169,7 @@ def send_webhook_request(webhook_id, target_url, secret, event_type, data):
     )
 
 
-def send_webhook_request_sync(target_url, secret, event_type, data):
+def send_webhook_request_sync(target_url, secret, event_type, data: str):
     parts = urlparse(target_url)
     domain = Site.objects.get_current().domain
     message = data.encode("utf-8")

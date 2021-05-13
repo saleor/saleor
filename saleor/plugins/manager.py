@@ -741,19 +741,6 @@ class PluginsManager(PaymentInterface):
             plugins = [plugin for plugin in plugins if plugin.active]
         return plugins
 
-    # def list_payment_plugin(
-    #     self, active_only: bool = False, channel_slug: Optional["str"] = None
-    # ) -> Dict[str, "BasePlugin"]:
-    #     payment_method = "process_payment"
-
-    #     plugins = self.get_plugins(channel_slug=channel_slug, active_only=active_only)
-
-    #     return {
-    #         plugin.PLUGIN_ID: plugin
-    #         for plugin in plugins
-    #         if payment_method in type(plugin).__dict__
-    #     }
-
     def list_payment_gateways(
         self,
         currency: Optional[str] = None,

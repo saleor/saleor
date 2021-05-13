@@ -2994,6 +2994,11 @@ def permission_manage_channels():
 
 
 @pytest.fixture
+def permission_manage_payments():
+    return Permission.objects.get(codename="manage_payments")
+
+
+@pytest.fixture
 def permission_group_manage_users(permission_manage_users, staff_users):
     group = Group.objects.create(name="Manage user groups.")
     group.permissions.add(permission_manage_users)

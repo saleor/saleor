@@ -253,9 +253,7 @@ class WebhookPlugin(BasePlugin):
             payment_information.data = {"payment_method": payment_app_data.name}
 
         webhook_payload = generate_payment_payload(payment_information)
-        response_data = trigger_webhook_sync(
-            event_type, webhook_payload, app.webhooks.all()
-        )
+        response_data = trigger_webhook_sync(event_type, webhook_payload, app)
         return parse_payment_action_response(
             payment_information, response_data, transaction_kind
         )
@@ -275,7 +273,7 @@ class WebhookPlugin(BasePlugin):
             response_data = trigger_webhook_sync(
                 event_type=WebhookEventType.PAYMENT_LIST_GATEWAYS,
                 data=generate_list_gateways_payload(currency, checkout),
-                webhooks_qs=app.webhooks.all(),
+                app=app,
             )
             if response_data:
                 app_gateways = parse_list_payment_gateways_response(response_data, app)
