@@ -6,6 +6,7 @@ from ...attribute import AttributeInputType, models
 from ...core.tracing import traced_resolver
 from ..core.connection import CountableDjangoObjectType
 from ..core.enums import MeasurementUnitsEnum
+from ..core.fields import FilterInputConnectionField
 from ..core.types import File
 from ..core.types.common import IntRangeInput
 from ..decorators import (
@@ -18,6 +19,7 @@ from ..translations.types import AttributeTranslation, AttributeValueTranslation
 from .dataloaders import AttributesByAttributeId, AttributeValuesByAttributeIdLoader
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
+from .filters import AttributeValueFilterInput
 
 COLOR_PATTERN = r"^(#[0-9a-fA-F]{3}|#(?:[0-9a-fA-F]{2}){2,4}|(rgb|hsl)a?\((-?\d+%?[,\s]+){2,3}\s*[\d\.]+%?\))$"  # noqa
 color_pattern = re.compile(COLOR_PATTERN)
@@ -87,8 +89,11 @@ class Attribute(CountableDjangoObjectType):
     slug = graphene.String(description=AttributeDescriptions.SLUG)
     type = AttributeTypeEnum(description=AttributeDescriptions.TYPE)
     unit = MeasurementUnitsEnum(description=AttributeDescriptions.UNIT)
-
-    values = graphene.List(AttributeValue, description=AttributeDescriptions.VALUES)
+    values = FilterInputConnectionField(
+        AttributeValue,
+        filter=AttributeValueFilterInput(),
+        description=AttributeDescriptions.VALUES,
+    )
 
     value_required = graphene.Boolean(
         description=AttributeDescriptions.VALUE_REQUIRED, required=True
