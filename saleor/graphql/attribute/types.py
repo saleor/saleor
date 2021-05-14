@@ -128,7 +128,7 @@ class Attribute(CountableDjangoObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_values(root: models.Attribute, info):
+    def resolve_values(root: models.Attribute, info, **_kwargs):
         return AttributeValuesByAttributeIdLoader(info.context).load(root.id)
 
     @staticmethod
