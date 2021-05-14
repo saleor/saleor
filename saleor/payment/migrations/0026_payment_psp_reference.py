@@ -3,23 +3,6 @@
 from django.db import migrations, models
 
 
-def assign_psp_reference_values(apps, schema_editor):
-    Payment = apps.get_model("payment", "Payment")
-    payments = []
-    for payment in Payment.objects.filter(is_active=True).iterator():
-        txn = (
-            payment.transactions.filter(searchable_key__isnull=False)
-            .exclude(searchable_key="")
-            .first()
-        )
-        if txn:
-            payment.psp_reference = txn.searchable_key
-            payments.append(payment)
-
-    if payments:
-        Payment.objects.bulk_update(payments, ["psp_reference"])
-
-
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -33,10 +16,5 @@ class Migration(migrations.Migration):
             field=models.CharField(
                 blank=True, db_index=True, max_length=512, null=True
             ),
-        ),
-        migrations.RunPython(assign_psp_reference_values, migrations.RunPython.noop),
-        migrations.RemoveField(
-            model_name="transaction",
-            name="searchable_key",
         ),
     ]
