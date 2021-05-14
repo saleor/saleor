@@ -3137,10 +3137,9 @@ type OrderError {
   message: String
   code: OrderErrorCode!
   warehouse: ID
-  orderLine: ID
+  orderLines: [ID!]
   variants: [ID!]
   addressType: AddressTypeEnum
-  orderLines: [ID!]
 }
 
 enum OrderErrorCode {

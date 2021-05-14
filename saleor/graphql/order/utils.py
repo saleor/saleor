@@ -248,7 +248,9 @@ def prepare_insufficient_stock_order_validation_errors(exc):
                 f"Insufficient product stock: {item.variant}",
                 code=OrderErrorCode.INSUFFICIENT_STOCK,
                 params={
-                    "order_line": order_line_global_id,
+                    "order_lines": [order_line_global_id]
+                    if order_line_global_id
+                    else [],
                     "warehouse": warehouse_global_id,
                 },
             )
