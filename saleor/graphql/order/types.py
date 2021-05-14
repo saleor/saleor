@@ -1114,9 +1114,10 @@ class Order(CountableDjangoObjectType):
 
     @traced_resolver
     def resolve_errors(root, _info, **_kwargs):
-        country = get_order_country(root)
-        try:
-            validate_draft_order(root, country)
-        except ValidationError as e:
-            return validation_error_to_error_type(e, OrderError)
+        if root.status == OrderStatus.DRAFT:
+            country = get_order_country(root)
+            try:
+                validate_draft_order(root, country)
+            except ValidationError as e:
+                return validation_error_to_error_type(e, OrderError)
         return []
