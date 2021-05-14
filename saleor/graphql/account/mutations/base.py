@@ -162,7 +162,7 @@ class RequestPasswordReset(BaseMutation):
     def perform_mutation(cls, _root, info, **data):
         email = data["email"]
         redirect_url = data["redirect_url"]
-        channel_slug = data.get("channel_slug")
+        channel_slug = data.get("channel")
         user = cls.clean_user(email, redirect_url)
 
         if not user.is_staff:
