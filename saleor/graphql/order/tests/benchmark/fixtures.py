@@ -132,3 +132,5 @@ def draft_orders_for_benchmarks(orders_for_benchmarks):
         order.status = OrderStatus.DRAFT
 
     Order.objects.bulk_update(orders_for_benchmarks, ["status"])
+
+    return orders_for_benchmarks

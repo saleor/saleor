@@ -1122,7 +1122,9 @@ def _process_refund(
     if amount:
         amount = min(payment.captured_amount, amount)
         try:
-            gateway.refund(payment, manager, amount)
+            gateway.refund(
+                payment, manager, amount=amount, channel_slug=order.channel.slug
+            )
         except PaymentError:
             raise ValidationError(
                 "The refund operation is not available yet.",

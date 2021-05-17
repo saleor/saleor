@@ -14,9 +14,6 @@ CHANNEL_UPDATE_MUTATION = """
                 name
                 slug
                 currencyCode
-                shippingZones{
-                    id
-                }
             }
             errors{
                 field
@@ -244,10 +241,12 @@ def test_channel_update_mutation_add_shipping_zone(
     assert not data["errors"]
     channel_data = data["channel"]
     channel_USD.refresh_from_db()
+    shipping_zone.refresh_from_db()
     assert channel_data["name"] == channel_USD.name == name
     assert channel_data["slug"] == channel_USD.slug == slug
     assert channel_data["currencyCode"] == channel_USD.currency_code == "USD"
-    assert [zone["id"] for zone in channel_data["shippingZones"]] == [shipping_zone_id]
+    actual_shipping_zone = channel_USD.shipping_zones.first()
+    assert actual_shipping_zone == shipping_zone
 
 
 @patch(
@@ -298,9 +297,6 @@ def test_channel_update_mutation_remove_shipping_zone(
     assert channel_data["name"] == channel_USD.name == name
     assert channel_data["slug"] == channel_USD.slug == slug
     assert channel_data["currencyCode"] == channel_USD.currency_code == "USD"
-    zones = [zone["id"] for zone in channel_data["shippingZones"]]
-    assert len(zones) == len(shipping_zones) - 1
-    assert remove_shipping_zone not in zones
     assert not channel_USD.shipping_method_listings.filter(
         shipping_method__shipping_zone=shipping_zone
     )
@@ -351,10 +347,8 @@ def test_channel_update_mutation_add_and_remove_shipping_zone(
     assert channel_data["name"] == channel_USD.name == name
     assert channel_data["slug"] == channel_USD.slug == slug
     assert channel_data["currencyCode"] == channel_USD.currency_code == "USD"
-    zones = [zone["id"] for zone in channel_data["shippingZones"]]
+    zones = channel_USD.shipping_zones.all()
     assert len(zones) == len(shipping_zones)
-    assert remove_shipping_zone not in zones
-    assert add_shipping_zone in zones
 
 
 def test_channel_update_mutation_duplicated_shipping_zone(
