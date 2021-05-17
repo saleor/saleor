@@ -242,6 +242,35 @@ def test_warehouse_query_as_staff_with_manage_orders(
     assert queried_address["postalCode"] == address.postal_code
 
 
+def test_warehouse_query_as_staff_with_manage_shipping(
+    staff_api_client, warehouse, permission_manage_shipping
+):
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+
+    response = staff_api_client.post_graphql(
+        QUERY_WAREHOUSE,
+        variables={"id": warehouse_id},
+        permissions=[permission_manage_shipping],
+    )
+    content = get_graphql_content(response)
+
+    queried_warehouse = content["data"]["warehouse"]
+    assert queried_warehouse["name"] == warehouse.name
+    assert queried_warehouse["email"] == warehouse.email
+
+    shipping_zones = queried_warehouse["shippingZones"]["edges"]
+    assert len(shipping_zones) == warehouse.shipping_zones.count()
+    queried_shipping_zone = shipping_zones[0]["node"]
+    shipipng_zone = warehouse.shipping_zones.first()
+    assert queried_shipping_zone["name"] == shipipng_zone.name
+    assert len(queried_shipping_zone["countries"]) == len(shipipng_zone.countries)
+
+    address = warehouse.address
+    queried_address = queried_warehouse["address"]
+    assert queried_address["streetAddress1"] == address.street_address_1
+    assert queried_address["postalCode"] == address.postal_code
+
+
 def test_warehouse_query_as_staff_with_manage_apps(
     staff_api_client, warehouse, permission_manage_apps
 ):
@@ -272,6 +301,25 @@ def test_query_warehouses_as_staff_with_manage_orders(
 ):
     response = staff_api_client.post_graphql(
         QUERY_WAREHOUSES, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)["data"]
+    assert content["warehouses"]["totalCount"] == Warehouse.objects.count()
+    warehouses = content["warehouses"]["edges"]
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    warehouse_first = warehouses[0]["node"]
+    assert warehouse_first["id"] == warehouse_id
+    assert warehouse_first["name"] == warehouse.name
+    assert (
+        len(warehouse_first["shippingZones"]["edges"])
+        == warehouse.shipping_zones.count()
+    )
+
+
+def test_query_warehouses_as_staff_with_manage_shipping(
+    staff_api_client, warehouse, permission_manage_shipping
+):
+    response = staff_api_client.post_graphql(
+        QUERY_WAREHOUSES, permissions=[permission_manage_shipping]
     )
     content = get_graphql_content(response)["data"]
     assert content["warehouses"]["totalCount"] == Warehouse.objects.count()
