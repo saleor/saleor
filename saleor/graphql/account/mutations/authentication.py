@@ -82,12 +82,13 @@ class CreateToken(BaseMutation):
 
     @classmethod
     def _retrieve_user_from_credentials(cls, email, password) -> Optional[models.User]:
+        error_msg = "The credentials you provided were not correct"
         user = models.User.objects.filter(email=email, is_active=True).first()
         if not user:
             raise ValidationError(
                 {
                     "email": ValidationError(
-                        "Please, enter valid credentials",
+                        error_msg,
                         code=AccountErrorCode.INVALID_CREDENTIALS.value,
                     )
                 }
@@ -96,7 +97,7 @@ class CreateToken(BaseMutation):
             raise ValidationError(
                 {
                     "password": ValidationError(
-                        "Please, enter valid credentials",
+                        error_msg,
                         code=AccountErrorCode.INVALID_CREDENTIALS.value,
                     )
                 }
