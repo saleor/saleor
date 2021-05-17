@@ -1,26 +1,31 @@
 import json
 from decimal import Decimal
 from itertools import chain
+from unittest import mock
 from unittest.mock import ANY
 
 import graphene
 
 from ...discount import DiscountValueType, OrderDiscountType
-from ...order import OrderOrigin
+from ...order import OrderLineData, OrderOrigin
+from ...order.actions import fulfill_order_lines
 from ...order.models import Order
 from ...product.models import ProductVariant
 from ..payloads import (
     ORDER_FIELDS,
     PRODUCT_VARIANT_FIELDS,
+    generate_fulfillment_lines_payload,
     generate_invoice_payload,
     generate_order_payload,
     generate_product_variant_payload,
 )
 
 
+@mock.patch("saleor.webhook.payloads.generate_fulfillment_lines_payload")
 def test_generate_order_payload(
-    order_with_lines, fulfilled_order, payment_txn_captured
+    mocked_fulfillment_lines, order_with_lines, fulfilled_order, payment_txn_captured
 ):
+    mocked_fulfillment_lines.return_value = "{}"
     new_order = Order.objects.create(
         channel=order_with_lines.channel,
         billing_address=order_with_lines.billing_address,
@@ -44,6 +49,9 @@ def test_generate_order_payload(
         name="Voucher",
     )
 
+    assert fulfilled_order.fulfillments.count() == 1
+    fulfillment = fulfilled_order.fulfillments.first()
+
     order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
     payload = json.loads(generate_order_payload(order_with_lines))[0]
 
@@ -60,6 +68,39 @@ def test_generate_order_payload(
     assert payload.get("fulfillments")
     assert payload.get("discounts")
     assert payload.get("original") == graphene.Node.to_global_id("Order", new_order.pk)
+
+    mocked_fulfillment_lines.assert_called_with(fulfillment)
+
+
+def test_generate_fulfillment_lines_payload(order_with_lines):
+    fulfillment = order_with_lines.fulfillments.create(tracking_number="123")
+    line = order_with_lines.lines.first()
+    stock = line.allocations.get().stock
+    warehouse_pk = stock.warehouse.pk
+    fulfillment_line = fulfillment.lines.create(
+        order_line=line, quantity=line.quantity, stock=stock
+    )
+    fulfill_order_lines(
+        [
+            OrderLineData(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk),
+        ]
+    )
+    payload = json.loads(generate_fulfillment_lines_payload(fulfillment))[0]
+    assert payload == {
+        "currency": "USD",
+        "id": graphene.Node.to_global_id("FulfillmentLine", fulfillment_line.id),
+        "product_type": "Default Type",
+        "quantity": fulfillment_line.quantity,
+        "total_price_gross_amount": str(line.total_price.gross.amount),
+        "total_price_net_amount": str(line.total_price.net.amount),
+        "type": "FulfillmentLine",
+        "undiscounted_unit_price_gross": str(line.undiscounted_unit_price.gross.amount),
+        "undiscounted_unit_price_net": str(line.undiscounted_unit_price.net.amount),
+        "unit_price_gross": str(line.unit_price.gross.amount),
+        "unit_price_net": str(line.unit_price.net.amount),
+        "weight": 0.0,
+        "weight_unit": "gram",
+    }
 
 
 def test_order_lines_have_all_required_fields(order, order_line_with_one_allocation):
