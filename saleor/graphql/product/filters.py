@@ -257,12 +257,13 @@ def _filter_stock_availability(qs, _, value, channel_slug):
     return qs
 
 
-def product_search(phrase):
+def product_search(qs, phrase):
     """Return matching products for storefront views.
 
         Name and description is matched using search vector.
 
     Args:
+        qs (ProductsQueryset): searched data set
         phrase (str): searched phrase
 
     """
@@ -270,17 +271,19 @@ def product_search(phrase):
     vector = F("search_vector")
     ft_in_description_or_name = Q(search_vector=query)
 
-    ft_by_sku = Q(variants__sku__search=phrase)
+    variants = ProductVariant.objects.filter(sku=phrase).values("id")
+    ft_by_sku = Q(Exists(variants.filter(product_id=OuterRef("pk"))))
+
     return (
-        Product.objects.annotate(rank=SearchRank(vector, query))
+        qs.annotate(rank=SearchRank(vector, query))
         .filter((ft_in_description_or_name | ft_by_sku))
-        .order_by("-rank")
+        .order_by("-rank", "id")
     )
 
 
 def filter_search(qs, _, value):
     if value:
-        qs = product_search(value).distinct() & qs.distinct()
+        qs = product_search(qs, value)
     return qs
 
 
@@ -303,12 +306,13 @@ def filter_product_type(qs, _, value):
 def filter_stocks(qs, _, value):
     warehouse_ids = value.get("warehouse_ids")
     quantity = value.get("quantity")
+    # distinct's wil be removed in separated PR
     if warehouse_ids and not quantity:
-        return filter_warehouses(qs, _, warehouse_ids)
+        return filter_warehouses(qs, _, warehouse_ids).distinct()
     if quantity and not warehouse_ids:
-        return filter_quantity(qs, quantity)
+        return filter_quantity(qs, quantity).distinct()
     if quantity and warehouse_ids:
-        return filter_quantity(qs, quantity, warehouse_ids)
+        return filter_quantity(qs, quantity, warehouse_ids).distinct()
     return qs
 
 
