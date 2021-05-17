@@ -305,20 +305,18 @@ class ProductsQueryset(models.QuerySet):
         )
 
     def prefetched_for_webhook(self, single_object=True):
-        if single_object:
-            return self.prefetch_related(
-                "attributes__values",
-                "attributes__assignment__attribute",
-                "media",
-            )
-        return self.prefetch_related(
+        common_fields = (
             "attributes__values",
             "attributes__assignment__attribute",
-            "collections",
-            "variants__stocks__allocations",
             "media",
-            "category",
+            "variants__attributes__values",
+            "variants__attributes__assignment__attribute",
+            "variants__variant_media__media",
+            "variants__stocks__allocations",
         )
+        if single_object:
+            return self.prefetch_related(*common_fields)
+        return self.prefetch_related("collections", "category", *common_fields)
 
 
 class Product(SeoModel, ModelWithMetadata):
