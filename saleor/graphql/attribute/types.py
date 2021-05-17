@@ -16,7 +16,7 @@ from ..decorators import (
 from ..meta.types import ObjectWithMetadata
 from ..translations.fields import TranslationField
 from ..translations.types import AttributeTranslation, AttributeValueTranslation
-from .dataloaders import AttributesByAttributeId, AttributeValuesByAttributeIdLoader
+from .dataloaders import AttributesByAttributeId
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
 from .filters import AttributeValueFilterInput
@@ -129,7 +129,7 @@ class Attribute(CountableDjangoObjectType):
     @staticmethod
     @traced_resolver
     def resolve_values(root: models.Attribute, info, **_kwargs):
-        return AttributeValuesByAttributeIdLoader(info.context).load(root.id)
+        return root.values.all()
 
     @staticmethod
     @check_attribute_required_permissions()
