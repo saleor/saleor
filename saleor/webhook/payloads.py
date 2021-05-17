@@ -152,6 +152,14 @@ def generate_order_payload(order: "Order"):
     shipping_method_fields = ("name", "type", "currency", "price_amount")
 
     lines = order.lines.all()
+
+    fulfillments_data = serializer.serialize(
+        order.fulfillments.all(),
+        fields=fulfillment_fields,
+        extra_dict_data={
+            "lines": lambda f: json.loads(generate_fulfillment_lines_payload(f))
+        },
+    )
     order_data = serializer.serialize(
         [order],
         fields=ORDER_FIELDS,
@@ -161,12 +169,12 @@ def generate_order_payload(order: "Order"):
             "payments": (lambda o: o.payments.all(), payment_fields),
             "shipping_address": (lambda o: o.shipping_address, ADDRESS_FIELDS),
             "billing_address": (lambda o: o.billing_address, ADDRESS_FIELDS),
-            "fulfillments": (lambda o: o.fulfillments.all(), fulfillment_fields),
             "discounts": (lambda o: o.discounts.all(), discount_fields),
         },
         extra_dict_data={
             "original": graphene.Node.to_global_id("Order", order.original_id),
             "lines": json.loads(generate_order_lines_payload(lines)),
+            "fulfillments": json.loads(fulfillments_data),
         },
     )
     return order_data
@@ -378,8 +386,19 @@ def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
             "product_type": (
                 lambda fl: fl.order_line.variant.product.product_type.name
             ),
+            "unit_price_net": lambda fl: fl.order_line.unit_price_net_amount,
             "unit_price_gross": lambda fl: fl.order_line.unit_price_gross_amount,
-            "currency": (lambda fl: fl.order_line.currency),
+            "undiscounted_unit_price_net": (
+                lambda fl: fl.order_line.undiscounted_unit_price.net.amount
+            ),
+            "undiscounted_unit_price_gross": (
+                lambda fl: fl.order_line.undiscounted_unit_price.gross.amount
+            ),
+            "total_price_net_amount": lambda fl: fl.order_line.total_price_net_amount,
+            "total_price_gross_amount": (
+                lambda fl: fl.order_line.total_price_gross_amount
+            ),
+            "currency": lambda fl: fl.order_line.currency,
         },
     )
 
