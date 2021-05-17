@@ -140,6 +140,8 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
     line = order_line_with_one_allocation
     line.unit_discount_amount = Decimal("10.0")
     line.unit_discount_type = DiscountValueType.FIXED
+    line.undiscounted_unit_price = line.unit_price + line.unit_discount
+    line.undiscounted_total_price = line.undiscounted_unit_price * line.quantity
     line.save()
 
     payload = json.loads(generate_order_payload(order))[0]
