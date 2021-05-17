@@ -24,5 +24,5 @@ def traced_atomic_transaction():
     with transaction.atomic():
         with opentracing.global_tracer().start_active_span("transaction") as scope:
             span = scope.span
-            span.set_tag(opentracing.tags.COMPONENT, "db")
+            span.set_tag(opentracing.tags.COMPONENT, "orm")
             yield
