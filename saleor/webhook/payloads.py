@@ -169,7 +169,6 @@ def generate_order_payload(order: "Order"):
             "payments": (lambda o: o.payments.all(), payment_fields),
             "shipping_address": (lambda o: o.shipping_address, ADDRESS_FIELDS),
             "billing_address": (lambda o: o.billing_address, ADDRESS_FIELDS),
-            "fulfillments": (lambda o: o.fulfillments.all(), fulfillment_fields),
             "discounts": (lambda o: o.discounts.all(), discount_fields),
         },
         extra_dict_data={
