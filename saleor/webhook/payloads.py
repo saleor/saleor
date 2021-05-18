@@ -113,7 +113,13 @@ def generate_order_lines_payload(lines: Iterable[OrderLine]):
 
 def generate_order_payload(order: "Order"):
     serializer = PayloadSerializer()
-    fulfillment_fields = ("status", "tracking_number", "created")
+    fulfillment_fields = (
+        "status",
+        "tracking_number",
+        "created",
+        "shipping_refund_amount",
+        "total_refund_amount",
+    )
     payment_fields = (
         "gateway",
         "payment_method_type",
@@ -374,13 +380,16 @@ def generate_product_variant_payload(product_variant: "ProductVariant"):
 def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
     serializer = PayloadSerializer()
     lines = FulfillmentLine.objects.prefetch_related(
-        "order_line__variant__product__product_type"
+        "order_line__variant__product__product_type", "stock"
     ).filter(fulfillment=fulfillment)
     line_fields = ("quantity",)
     return serializer.serialize(
         lines,
         fields=line_fields,
         extra_dict_data={
+            "product_name": lambda fl: fl.order_line.product_name,
+            "variant_name": lambda fl: fl.order_line.variant_name,
+            "product_sku": lambda fl: fl.order_line.product_sku,
             "weight": (lambda fl: fl.order_line.variant.get_weight().g),
             "weight_unit": "gram",
             "product_type": (
@@ -394,11 +403,20 @@ def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
             "undiscounted_unit_price_gross": (
                 lambda fl: fl.order_line.undiscounted_unit_price.gross.amount
             ),
-            "total_price_net_amount": lambda fl: fl.order_line.total_price_net_amount,
+            "total_price_net_amount": (
+                lambda fl: fl.order_line.undiscounted_unit_price.net.amount
+                * fl.quantity
+            ),
             "total_price_gross_amount": (
-                lambda fl: fl.order_line.total_price_gross_amount
+                lambda fl: fl.order_line.undiscounted_unit_price.gross.amount
+                * fl.quantity
             ),
             "currency": lambda fl: fl.order_line.currency,
+            "warehouse_id": lambda fl: graphene.Node.to_global_id(
+                "Warehouse", fl.stock.warehouse_id
+            )
+            if fl.stock
+            else None,
         },
     )
 
@@ -407,7 +425,13 @@ def generate_fulfillment_payload(fulfillment: Fulfillment):
     serializer = PayloadSerializer()
 
     # fulfillment fields to serialize
-    fulfillment_fields = ("status", "tracking_code", "order__user_email")
+    fulfillment_fields = (
+        "status",
+        "tracking_code",
+        "order__user_email",
+        "shipping_refund_amount",
+        "total_refund_amount",
+    )
     order = fulfillment.order
     order_country = get_order_country(order)
     fulfillment_line = fulfillment.lines.first()
