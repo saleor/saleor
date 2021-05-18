@@ -1,4 +1,5 @@
 import json
+from dataclasses import asdict
 from decimal import Decimal
 from itertools import chain
 from unittest import mock
@@ -6,6 +7,7 @@ from unittest.mock import ANY
 
 import graphene
 
+from ...core.utils.json_serializer import CustomJsonEncoder
 from ...discount import DiscountValueType, OrderDiscountType
 from ...order import OrderLineData, OrderOrigin
 from ...order.actions import fulfill_order_lines
@@ -14,9 +16,12 @@ from ...product.models import ProductVariant
 from ..payloads import (
     ORDER_FIELDS,
     PRODUCT_VARIANT_FIELDS,
+    generate_checkout_payload,
     generate_fulfillment_lines_payload,
     generate_invoice_payload,
+    generate_list_gateways_payload,
     generate_order_payload,
+    generate_payment_payload,
     generate_product_variant_payload,
 )
 
@@ -338,3 +343,17 @@ def test_generate_invoice_payload(fulfilled_order):
         "created": ANY,
         "external_url": "http://www.example.com/invoice.pdf",
     }
+
+
+def test_generate_list_gateways_payload(checkout):
+    currency = "USD"
+    payload = generate_list_gateways_payload(currency, checkout)
+    data = json.loads(payload)
+    assert data["checkout"] == json.loads(generate_checkout_payload(checkout))
+    assert data["currency"] == currency
+
+
+def test_generate_payment_payload(dummy_payment_data):
+    payload = generate_payment_payload(dummy_payment_data)
+    expected_payload = json.dumps(asdict(dummy_payment_data), cls=CustomJsonEncoder)
+    assert payload == expected_payload

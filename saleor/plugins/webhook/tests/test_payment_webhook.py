@@ -23,26 +23,6 @@ from ..utils import (
 
 
 @pytest.fixture
-def payment_app(db, permission_manage_payments):
-    app = App.objects.create(name="Payment App", is_active=True)
-    app.tokens.create(name="Default")
-    app.permissions.add(permission_manage_payments)
-
-    webhook = Webhook.objects.create(
-        name="payment-webhook-1",
-        app=app,
-        target_url="https://payment-gateway.com/api/",
-    )
-    webhook.events.bulk_create(
-        [
-            WebhookEvent(event_type=event_type, webhook=webhook)
-            for event_type in WebhookEventType.PAYMENT_EVENTS
-        ]
-    )
-    return app
-
-
-@pytest.fixture
 def payment(payment_dummy, payment_app):
     gateway_id = "credit-card"
     gateway = to_payment_app_id(payment_app, gateway_id)
@@ -132,8 +112,25 @@ def test_send_webhook_request_sync_invalid_scheme():
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
-def test_get_payment_gateways(mock_send_request, payment_app, webhook_plugin):
-    # todo: create second app and test with two
+def test_get_payment_gateways(
+    mock_send_request, payment_app, permission_manage_payments, webhook_plugin
+):
+    # Create second app to test results from multiple apps.
+    app_2 = App.objects.create(name="Payment App 2", is_active=True)
+    app_2.tokens.create(name="Default")
+    app_2.permissions.add(permission_manage_payments)
+    webhook = Webhook.objects.create(
+        name="payment-webhook-2",
+        app=app_2,
+        target_url="https://payment-gateway-2.com/api/",
+    )
+    webhook.events.bulk_create(
+        [
+            WebhookEvent(event_type=event_type, webhook=webhook)
+            for event_type in WebhookEventType.PAYMENT_EVENTS
+        ]
+    )
+
     plugin = webhook_plugin()
     mock_json_response = [
         {
@@ -145,17 +142,35 @@ def test_get_payment_gateways(mock_send_request, payment_app, webhook_plugin):
     ]
     mock_send_request.return_value = mock_json_response
     response_data = plugin.get_payment_gateways("USD", None, None)
-    expected_response = parse_list_payment_gateways_response(
+    expected_response_1 = parse_list_payment_gateways_response(
         mock_json_response, payment_app
     )
-    assert response_data == expected_response
+    expected_response_2 = parse_list_payment_gateways_response(
+        mock_json_response, app_2
+    )
+    assert len(response_data) == 2
+    assert response_data[0] == expected_response_1[0]
+    assert response_data[1] == expected_response_2[0]
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+@mock.patch("saleor.plugins.webhook.plugin.generate_list_gateways_payload")
 def test_get_payment_gateways_for_checkout(
-    mock_send_request, payment_app, webhook_plugin
+    mock_generate_payload, mock_send_request, checkout, payment_app, webhook_plugin
 ):
-    pass
+    plugin = webhook_plugin()
+    mock_json_response = [
+        {
+            "id": "credit-card",
+            "name": "Credit Card",
+            "currencies": ["USD", "EUR"],
+            "config": [],
+        }
+    ]
+    mock_send_request.return_value = mock_json_response
+    mock_generate_payload.return_value = ""
+    plugin.get_payment_gateways("USD", checkout, None)
+    assert mock_generate_payload.call_args[0][1] == checkout
 
 
 @pytest.mark.parametrize(
@@ -228,7 +243,7 @@ def test_run_payment_webhook_no_payment_app_data(
         )
 
 
-@mock.patch("saleor.webhook.payloads.generate_payment_payload")
+@mock.patch("saleor.plugins.webhook.plugin.generate_payment_payload")
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 def test_run_payment_webhook_include_payment_method_name(
     mock_send_request,
@@ -252,10 +267,5 @@ def test_run_payment_webhook_include_payment_method_name(
         None,
         payment_app_data=payment_app_data,
     )
-    # todo: mock not called when running tests
-    # payment_data = mock_generate_payload.call_args[0][0]
-    # assert payment_data.data["payment_method"] == payment_method_name
-
-
-def test_app_for_event_type_qs():
-    pass
+    payment_data = mock_generate_payload.call_args[0][0]
+    assert payment_data.data["payment_method"] == payment_method_name

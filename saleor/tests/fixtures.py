@@ -103,7 +103,7 @@ from ..shipping.models import (
 from ..site.models import SiteSettings
 from ..warehouse.models import Allocation, Stock, Warehouse
 from ..webhook.event_types import WebhookEventType
-from ..webhook.models import Webhook
+from ..webhook.models import Webhook, WebhookEvent
 from ..wishlist.models import Wishlist
 from .utils import dummy_editorjs
 
@@ -3621,6 +3621,26 @@ def other_description_json():
 def app(db):
     app = App.objects.create(name="Sample app objects", is_active=True)
     app.tokens.create(name="Default")
+    return app
+
+
+@pytest.fixture
+def payment_app(db, permission_manage_payments):
+    app = App.objects.create(name="Payment App", is_active=True)
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_manage_payments)
+
+    webhook = Webhook.objects.create(
+        name="payment-webhook-1",
+        app=app,
+        target_url="https://payment-gateway.com/api/",
+    )
+    webhook.events.bulk_create(
+        [
+            WebhookEvent(event_type=event_type, webhook=webhook)
+            for event_type in WebhookEventType.PAYMENT_EVENTS
+        ]
+    )
     return app
 
 
