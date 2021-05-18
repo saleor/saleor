@@ -2,8 +2,7 @@ import logging
 from decimal import Decimal
 from typing import TYPE_CHECKING, Callable, List, Optional
 
-from django.db import transaction
-
+from ..core.tracing import traced_atomic_transaction
 from . import GatewayError, PaymentError, TransactionKind
 from .models import Payment, Transaction
 from .utils import (
@@ -60,7 +59,7 @@ def with_locked_payment(fn: Callable) -> Callable:
     """Lock payment to protect from asynchronous modification."""
 
     def wrapped(payment: Payment, *args, **kwargs):
-        with transaction.atomic():
+        with traced_atomic_transaction():
             payment = Payment.objects.select_for_update().get(id=payment.id)
             return fn(payment, *args, **kwargs)
 

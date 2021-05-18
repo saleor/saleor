@@ -3,9 +3,9 @@ from typing import TYPE_CHECKING, DefaultDict, Dict, List
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 
 from ....core.permissions import ShippingPermissions
+from ....core.tracing import traced_atomic_transaction
 from ....shipping.error_codes import ShippingErrorCode
 from ....shipping.models import ShippingMethodChannelListing
 from ....shipping.tasks import (
@@ -107,7 +107,7 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
         )
 
     @classmethod
-    @transaction.atomic()
+    @traced_atomic_transaction()
     def save(cls, info, shipping_method: "ShippingMethodModel", cleaned_input: Dict):
         cls.add_channels(shipping_method, cleaned_input.get("add_channels", []))
         cls.remove_channels(shipping_method, cleaned_input.get("remove_channels", []))
