@@ -1,5 +1,8 @@
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
+import graphene
+
+from ..attribute import AttributeInputType
 from ..checkout.fetch import fetch_checkout_lines
 from ..product.models import Product
 
@@ -36,17 +39,35 @@ def serialize_product_or_variant_attributes(
     product_or_variant: Union["Product", "ProductVariant"]
 ) -> List[Dict]:
     data = []
+
+    def _prepare_reference(attribute, attr_slug):
+        if attribute.input_type != AttributeInputType.REFERENCE:
+            return
+
+        reference_pk = attr_slug.split("_")[1]
+        reference_id = graphene.Node.to_global_id(attribute.entity_type, reference_pk)
+        return reference_id
+
     for attr in product_or_variant.attributes.all():
-        attr_data = {
-            "name": attr.assignment.attribute.name,
-            "id": attr.assignment.attribute.id,
+        attr_id = graphene.Node.to_global_id("Attribute", attr.assignment.attribute_id)
+        attribute = attr.assignment.attribute
+        attr_data: Dict[Any, Any] = {
+            "name": attribute.name,
+            "input_type": attribute.input_type,
+            "slug": attribute.slug,
+            "entity_type": attribute.entity_type,
+            "id": attr_id,
             "values": [],
         }
 
         for attr_value in attr.values.all():
+            attr_slug = attr_value.slug
             value: Dict[str, Optional[Union[str, Dict[str, Any]]]] = {
                 "name": attr_value.name,
-                "slug": attr_value.slug,
+                "slug": attr_slug,
+                "value": attr_value.value,
+                "rich_text": attr_value.rich_text,
+                "reference": _prepare_reference(attribute, attr_slug),
                 "file": None,
             }
 
