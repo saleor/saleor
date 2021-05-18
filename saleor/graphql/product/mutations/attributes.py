@@ -3,12 +3,12 @@ from typing import List
 
 import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.db import transaction
 from django.db.models import Q
 
 from ....attribute import AttributeType
 from ....attribute import models as attribute_models
 from ....core.permissions import ProductPermissions, ProductTypePermissions
+from ....core.tracing import traced_atomic_transaction
 from ....product import models
 from ....product.error_codes import ProductErrorCode
 from ...attribute.mutations import (
@@ -179,7 +179,7 @@ class ProductAttributeAssign(BaseMutation):
             model.objects.create(product_type=product_type, attribute_id=pk)
 
     @classmethod
-    @transaction.atomic()
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         product_type_id: str = data["product_type_id"]
         operations: List[ProductAttributeAssignInput] = data["operations"]
@@ -324,7 +324,7 @@ class ProductTypeReorderAttributes(BaseReorderAttributesMutation):
             error.code = ProductErrorCode.NOT_FOUND.value
             raise ValidationError({"moves": error})
 
-        with transaction.atomic():
+        with traced_atomic_transaction():
             perform_reordering(attributes_m2m, operations)
 
         return ProductTypeReorderAttributes(product_type=product_type)

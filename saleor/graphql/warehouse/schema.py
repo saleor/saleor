@@ -1,6 +1,10 @@
 import graphene
 
-from ...core.permissions import OrderPermissions, ProductPermissions
+from ...core.permissions import (
+    OrderPermissions,
+    ProductPermissions,
+    ShippingPermissions,
+)
 from ...core.tracing import traced_resolver
 from ...warehouse import models
 from ..core.fields import FilterInputConnectionField
@@ -33,7 +37,11 @@ class WarehouseQueries(graphene.ObjectType):
     )
 
     @one_of_permissions_required(
-        [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
+        [
+            ProductPermissions.MANAGE_PRODUCTS,
+            OrderPermissions.MANAGE_ORDERS,
+            ShippingPermissions.MANAGE_SHIPPING,
+        ]
     )
     @traced_resolver
     def resolve_warehouse(self, info, **data):
@@ -42,7 +50,11 @@ class WarehouseQueries(graphene.ObjectType):
         return warehouse
 
     @one_of_permissions_required(
-        [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
+        [
+            ProductPermissions.MANAGE_PRODUCTS,
+            OrderPermissions.MANAGE_ORDERS,
+            ShippingPermissions.MANAGE_SHIPPING,
+        ]
     )
     @traced_resolver
     def resolve_warehouses(self, info, **_kwargs):

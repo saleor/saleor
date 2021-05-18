@@ -127,7 +127,7 @@ def create_new_transaction(notification, payment, kind):
         currency=currency,
         error="",
         raw_response={},
-        searchable_key=transaction_id,
+        psp_reference=transaction_id,
     )
     return create_transaction(
         payment,
@@ -785,7 +785,7 @@ def handle_api_response(
         error=error_message,
         raw_response=response.message,
         action_required_data=response.message.get("action"),
-        searchable_key=response.message.get("pspReference", ""),
+        psp_reference=response.message.get("pspReference", ""),
     )
 
     create_transaction(

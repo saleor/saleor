@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
 import graphene
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.db import transaction
 from django.db.models import Q
 
 from ...checkout import AddressType, models
@@ -31,6 +30,7 @@ from ...checkout.utils import (
 )
 from ...core import analytics
 from ...core.exceptions import InsufficientStock, PermissionDenied, ProductNotPublished
+from ...core.tracing import traced_atomic_transaction
 from ...core.transactions import transaction_with_commit_on_errors
 from ...order import models as order_models
 from ...product import models as product_models
@@ -331,7 +331,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return cleaned_input
 
     @classmethod
-    @transaction.atomic()
+    @traced_atomic_transaction()
     def save(cls, info, instance: models.Checkout, cleaned_input):
         channel = cleaned_input["channel"]
         # Create the checkout object
@@ -679,7 +679,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
 
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
 
-        with transaction.atomic():
+        with traced_atomic_transaction():
             shipping_address.save()
             change_shipping_address_in_checkout(
                 checkout_info, shipping_address, lines, discounts, manager
@@ -715,7 +715,7 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
             instance=checkout.billing_address,
             info=info,
         )
-        with transaction.atomic():
+        with traced_atomic_transaction():
             billing_address.save()
             change_billing_address_in_checkout(checkout, billing_address)
             info.context.plugins.checkout_updated(checkout)

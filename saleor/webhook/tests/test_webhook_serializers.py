@@ -13,17 +13,42 @@ def test_serialize_product_attributes(
     product_data = serialize_product_or_variant_attributes(
         product_with_multiple_values_attributes
     )
-
     assert len(variant_data) == 2
     assert variant_data[1] == {
+        "entity_type": None,
         "id": ANY,
+        "input_type": "dropdown",
         "name": "Size",
-        "values": [{"name": "Small", "slug": "small", "file": None}],
+        "slug": "size",
+        "values": [
+            {
+                "file": None,
+                "name": "Small",
+                "reference": None,
+                "rich_text": None,
+                "slug": "small",
+                "value": "",
+            }
+        ],
     }
 
     assert len(product_data) == 1
     assert product_data[0]["name"] == "Available Modes"
     assert sorted(product_data[0]["values"], key=itemgetter("name")) == [
-        {"name": "Eco Mode", "slug": "eco", "file": None},
-        {"name": "Performance Mode", "slug": "power", "file": None},
+        {
+            "name": "Eco Mode",
+            "slug": "eco",
+            "file": None,
+            "reference": None,
+            "rich_text": None,
+            "value": "",
+        },
+        {
+            "name": "Performance Mode",
+            "slug": "power",
+            "file": None,
+            "reference": None,
+            "rich_text": None,
+            "value": "",
+        },
     ]

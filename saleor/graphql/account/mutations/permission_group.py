@@ -4,10 +4,10 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 import graphene
 from django.contrib.auth import models as auth_models
 from django.core.exceptions import ValidationError
-from django.db import transaction
 
 from ....account.error_codes import PermissionGroupErrorCode
 from ....core.permissions import AccountPermissions, get_permissions
+from ....core.tracing import traced_atomic_transaction
 from ...account.utils import (
     can_user_manage_group,
     get_not_manageable_permissions_after_group_deleting,
@@ -56,7 +56,7 @@ class PermissionGroupCreate(ModelMutation):
         error_type_field = "permission_group_errors"
 
     @classmethod
-    @transaction.atomic
+    @traced_atomic_transaction()
     def _save_m2m(cls, info, instance, cleaned_data):
         add_permissions = cleaned_data.get("add_permissions")
         if add_permissions:
@@ -195,7 +195,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         error_type_field = "permission_group_errors"
 
     @classmethod
-    @transaction.atomic
+    @traced_atomic_transaction()
     def _save_m2m(cls, info, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
         remove_users = cleaned_data.get("remove_users")

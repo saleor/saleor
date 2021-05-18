@@ -14,6 +14,7 @@ from ..checkout import calculations
 from ..checkout.error_codes import CheckoutErrorCode
 from ..core.exceptions import InsufficientStock
 from ..core.taxes import TaxError, zero_taxed_money
+from ..core.tracing import traced_atomic_transaction
 from ..core.utils.url import validate_storefront_url
 from ..discount import DiscountInfo, DiscountValueType, OrderDiscountType
 from ..discount.models import NotApplicable
@@ -325,7 +326,7 @@ def _prepare_order_data(
     return order_data
 
 
-@transaction.atomic
+@traced_atomic_transaction()
 def _create_order(
     *,
     checkout_info: "CheckoutInfo",
