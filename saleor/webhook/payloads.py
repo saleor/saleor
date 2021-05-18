@@ -70,6 +70,8 @@ ORDER_FIELDS = (
     "weight",
     "private_metadata",
     "metadata",
+    "undiscounted_total_net_amount",
+    "undiscounted_total_gross_amount",
 )
 
 
@@ -103,6 +105,10 @@ def generate_order_lines_payload(lines: Iterable[OrderLine]):
         "unit_discount_reason",
         "total_price_net_amount",
         "total_price_gross_amount",
+        "undiscounted_unit_price_net_amount",
+        "undiscounted_unit_price_gross_amount",
+        "undiscounted_total_price_net_amount",
+        "undiscounted_total_price_gross_amount",
         "tax_rate",
     )
     serializer = PayloadSerializer()
@@ -128,6 +134,7 @@ def generate_order_payload(order: "Order"):
         "created",
         "modified",
         "charge_status",
+        "psp_reference",
         "total",
         "captured_amount",
         "currency",
@@ -158,6 +165,14 @@ def generate_order_payload(order: "Order"):
     shipping_method_fields = ("name", "type", "currency", "price_amount")
 
     lines = order.lines.all()
+
+    fulfillments_data = serializer.serialize(
+        order.fulfillments.all(),
+        fields=fulfillment_fields,
+        extra_dict_data={
+            "lines": lambda f: json.loads(generate_fulfillment_lines_payload(f))
+        },
+    )
     order_data = serializer.serialize(
         [order],
         fields=ORDER_FIELDS,
@@ -167,12 +182,12 @@ def generate_order_payload(order: "Order"):
             "payments": (lambda o: o.payments.all(), payment_fields),
             "shipping_address": (lambda o: o.shipping_address, ADDRESS_FIELDS),
             "billing_address": (lambda o: o.billing_address, ADDRESS_FIELDS),
-            "fulfillments": (lambda o: o.fulfillments.all(), fulfillment_fields),
             "discounts": (lambda o: o.discounts.all(), discount_fields),
         },
         extra_dict_data={
             "original": graphene.Node.to_global_id("Order", order.original_id),
             "lines": json.loads(generate_order_lines_payload(lines)),
+            "fulfillments": json.loads(fulfillments_data),
         },
     )
     return order_data
@@ -269,19 +284,25 @@ PRODUCT_FIELDS = (
 )
 
 
+def serialize_product_channel_listing_payload(channel_listings):
+    serializer = PayloadSerializer()
+    fields = (
+        "publication_date",
+        "id_published",
+        "visible_in_listings",
+        "available_for_purchase",
+    )
+    channel_listing_payload = serializer.serialize(
+        channel_listings,
+        fields=fields,
+        extra_dict_data={"channel_slug": lambda pch: pch.channel.slug},
+    )
+    return channel_listing_payload
+
+
 def generate_product_payload(product: "Product"):
     serializer = PayloadSerializer(
         extra_model_fields={"ProductVariant": ("quantity", "quantity_allocated")}
-    )
-    product_variant_fields = (
-        "sku",
-        "name",
-        "currency",
-        "price_amount",
-        "track_inventory",
-        "cost_price_amount",
-        "private_metadata",
-        "metadata",
     )
     product_payload = serializer.serialize(
         [product],
@@ -289,10 +310,6 @@ def generate_product_payload(product: "Product"):
         additional_fields={
             "category": (lambda p: p.category, ("name", "slug")),
             "collections": (lambda p: p.collections.all(), ("name", "slug")),
-            "variants": (
-                lambda p: p.variants.annotate_quantities().all(),
-                product_variant_fields,
-            ),
         },
         extra_dict_data={
             "attributes": serialize_product_or_variant_attributes(product),
@@ -307,6 +324,12 @@ def generate_product_payload(product: "Product"):
                 }
                 for media_obj in product.media.all()
             ],
+            "channel_listings": json.loads(
+                serialize_product_channel_listing_payload(
+                    product.channel_listings.all()
+                )
+            ),
+            "variants": lambda x: json.loads((generate_product_variant_payload(x))),
         },
     )
     return product_payload
@@ -327,43 +350,55 @@ def generate_product_deleted_payload(product: "Product", variants_id):
 
 
 PRODUCT_VARIANT_FIELDS = (
-    "name",
     "sku",
+    "name",
+    "track_inventory",
     "private_metadata",
     "metadata",
 )
 
 
-def generate_product_variant_payload(product_variant: "ProductVariant"):
+def generate_product_variant_listings_payload(variant_channel_listings):
     serializer = PayloadSerializer()
-    product_id = graphene.Node.to_global_id("Product", product_variant.product.id)
-    payload = serializer.serialize(
-        [product_variant],
-        fields=PRODUCT_VARIANT_FIELDS,
-        additional_fields={
-            "channel_listings": (
-                lambda p: p.channel_listings.all(),
-                (
-                    "currency",
-                    "price_amount",
-                    "cost_price_amount",
-                ),
+    fields = (
+        "currency",
+        "price_amount",
+        "cost_price_amount",
+    )
+    channel_listing_payload = serializer.serialize(
+        variant_channel_listings,
+        fields=fields,
+        extra_dict_data={"channel_slug": lambda vch: vch.channel.slug},
+    )
+    return channel_listing_payload
+
+
+def generate_product_variant_media_payload(product_variant):
+    return [
+        {
+            "alt": media_obj.media.alt,
+            "url": (
+                build_absolute_uri(media_obj.media.image.url)
+                if media_obj.media.type == ProductMediaTypes.IMAGE
+                else media_obj.media.external_url
             ),
-        },
+        }
+        for media_obj in product_variant.variant_media.all()
+    ]
+
+
+def generate_product_variant_payload(product_variants: Iterable["ProductVariant"]):
+    serializer = PayloadSerializer()
+    payload = serializer.serialize(
+        product_variants,
+        fields=PRODUCT_VARIANT_FIELDS,
         extra_dict_data={
-            "attributes": serialize_product_or_variant_attributes(product_variant),
-            "product_id": product_id,
-            "media": [
-                {
-                    "alt": media_obj.media.alt,
-                    "url": (
-                        build_absolute_uri(media_obj.media.image.url)
-                        if media_obj.media.type == ProductMediaTypes.IMAGE
-                        else media_obj.media.external_url
-                    ),
-                }
-                for media_obj in product_variant.variant_media.all()
-            ],
+            "attributes": lambda v: serialize_product_or_variant_attributes(v),
+            "product_id": lambda v: graphene.Node.to_global_id("Product", v.product_id),
+            "media": lambda v: generate_product_variant_media_payload(v),
+            "channel_listings": lambda v: json.loads(
+                generate_product_variant_listings_payload(v.channel_listings.all())
+            ),
         },
     )
     return payload
@@ -384,8 +419,19 @@ def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
             "product_type": (
                 lambda fl: fl.order_line.variant.product.product_type.name
             ),
+            "unit_price_net": lambda fl: fl.order_line.unit_price_net_amount,
             "unit_price_gross": lambda fl: fl.order_line.unit_price_gross_amount,
-            "currency": (lambda fl: fl.order_line.currency),
+            "undiscounted_unit_price_net": (
+                lambda fl: fl.order_line.undiscounted_unit_price.net.amount
+            ),
+            "undiscounted_unit_price_gross": (
+                lambda fl: fl.order_line.undiscounted_unit_price.gross.amount
+            ),
+            "total_price_net_amount": lambda fl: fl.order_line.total_price_net_amount,
+            "total_price_gross_amount": (
+                lambda fl: fl.order_line.total_price_gross_amount
+            ),
+            "currency": lambda fl: fl.order_line.currency,
         },
     )
 

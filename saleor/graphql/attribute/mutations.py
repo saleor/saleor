@@ -2,7 +2,6 @@ from typing import TYPE_CHECKING
 
 import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.db import transaction
 from django.utils.text import slugify
 
 from ...attribute import ATTRIBUTE_PROPERTIES_CONFIGURATION, AttributeInputType
@@ -14,6 +13,7 @@ from ...core.permissions import (
     ProductPermissions,
     ProductTypePermissions,
 )
+from ...core.tracing import traced_atomic_transaction
 from ..attribute.types import Attribute, AttributeValue
 from ..core.enums import MeasurementUnitsEnum
 from ..core.inputs import ReorderInput
@@ -107,7 +107,7 @@ class BaseReorderAttributeValuesMutation(BaseMutation):
             error.code = error_code_enum.NOT_FOUND.value
             raise ValidationError({"moves": error})
 
-        with transaction.atomic():
+        with traced_atomic_transaction():
             perform_reordering(values_m2m, operations)
 
         return instance
@@ -709,7 +709,7 @@ class AttributeReorderValues(BaseMutation):
                 )
             operations[m2m_info.pk] = move_info.sort_order
 
-        with transaction.atomic():
+        with traced_atomic_transaction():
             perform_reordering(values_m2m, operations)
         attribute.refresh_from_db(fields=["values"])
         return AttributeReorderValues(attribute=attribute)

@@ -2198,6 +2198,8 @@ def order_line(order, variant):
         variant=variant,
         unit_price=unit_price,
         total_price=unit_price * quantity,
+        undiscounted_unit_price=unit_price,
+        undiscounted_total_price=unit_price * quantity,
         tax_rate=Decimal("0.23"),
     )
 
@@ -2234,6 +2236,8 @@ def order_line_with_allocation_in_many_stocks(
         variant=variant,
         unit_price=unit_price,
         total_price=unit_price * quantity,
+        undiscounted_unit_price=unit_price,
+        undiscounted_total_price=unit_price * quantity,
         tax_rate=Decimal("0.23"),
     )
 
@@ -2279,6 +2283,8 @@ def order_line_with_one_allocation(
         variant=variant,
         unit_price=unit_price,
         total_price=unit_price * quantity,
+        undiscounted_unit_price=unit_price,
+        undiscounted_total_price=unit_price * quantity,
         tax_rate=Decimal("0.23"),
     )
 
@@ -2359,6 +2365,8 @@ def order_with_lines(
         variant=variant,
         unit_price=unit_price,
         total_price=unit_price * quantity,
+        undiscounted_unit_price=unit_price,
+        undiscounted_total_price=unit_price * quantity,
         tax_rate=Decimal("0.23"),
     )
     Allocation.objects.create(
@@ -2404,6 +2412,8 @@ def order_with_lines(
         variant=variant,
         unit_price=unit_price,
         total_price=unit_price * quantity,
+        undiscounted_unit_price=unit_price,
+        undiscounted_total_price=unit_price * quantity,
         tax_rate=Decimal("0.23"),
     )
     Allocation.objects.create(
@@ -2524,6 +2534,8 @@ def order_with_lines_channel_PLN(
         variant=variant,
         unit_price=unit_price,
         total_price=unit_price * quantity,
+        undiscounted_unit_price=unit_price,
+        undiscounted_total_price=unit_price * quantity,
         tax_rate=Decimal("0.23"),
     )
     Allocation.objects.create(
@@ -2569,6 +2581,8 @@ def order_with_lines_channel_PLN(
         variant=variant,
         unit_price=unit_price,
         total_price=unit_price * quantity,
+        undiscounted_unit_price=unit_price,
+        undiscounted_total_price=unit_price * quantity,
         tax_rate=Decimal("0.23"),
     )
     Allocation.objects.create(
@@ -2617,6 +2631,8 @@ def order_with_line_without_inventory_tracking(
         variant=variant,
         unit_price=unit_price,
         total_price=unit_price * quantity,
+        undiscounted_unit_price=unit_price,
+        undiscounted_total_price=unit_price * quantity,
         tax_rate=Decimal("0.23"),
     )
 

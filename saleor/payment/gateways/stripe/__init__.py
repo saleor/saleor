@@ -38,7 +38,9 @@ def authorize(
     currency = get_currency_for_stripe(payment_information.currency)
     stripe_amount = get_amount_for_stripe(payment_information.amount, currency)
     future_use = "off_session" if config.store_customer else "on_session"
-    customer_id = PaymentData.customer_id if payment_information.reuse_source else None
+    customer_id = (
+        payment_information.customer_id if payment_information.reuse_source else None
+    )
     shipping = (
         shipping_to_stripe_dict(payment_information.shipping)
         if payment_information.shipping
