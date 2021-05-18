@@ -24,6 +24,7 @@ from ...product.models import (
     ProductChannelListing,
     ProductType,
     ProductVariant,
+    ProductVariantChannelListing,
 )
 from ...warehouse.models import Stock
 from ..channel.filters import get_channel_slug_from_filter_data
@@ -136,19 +137,22 @@ def filter_products_by_attributes(qs, filter_values, filter_range_values):
 
 
 def filter_products_by_variant_price(qs, channel_slug, price_lte=None, price_gte=None):
+    channels = Channel.objects.filter(slug=channel_slug)
+    product_variant_channel_listings = ProductVariantChannelListing.objects.filter(
+        Exists(channels.filter(pk=OuterRef("channel_id")))
+    )
     if price_lte:
-        qs = qs.filter(
-            Q(variants__channel_listings__price_amount__lte=price_lte)
-            | Q(variants__channel_listings__price_amount__isnull=True),
-            variants__channel_listings__channel__slug=channel_slug,
+        product_variant_channel_listings = product_variant_channel_listings.filter(
+            Q(price_amount__lte=price_lte) | Q(price_amount__isnull=True)
         )
     if price_gte:
-        qs = qs.filter(
-            Q(variants__channel_listings__price_amount__gte=price_gte)
-            | Q(variants__channel_listings__price_amount__isnull=True),
-            variants__channel_listings__channel__slug=channel_slug,
+        product_variant_channel_listings = product_variant_channel_listings.filter(
+            Q(price_amount__gte=price_gte) | Q(price_amount__isnull=True)
         )
-    return qs
+    variants = ProductVariant.objects.filter(
+        Exists(product_variant_channel_listings.filter(variant_id=OuterRef("pk")))
+    )
+    return qs.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
 
 
 def filter_products_by_minimal_price(
