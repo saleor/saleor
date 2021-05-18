@@ -584,7 +584,9 @@ def complete_checkout(
         gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
         raise exc
 
-    customer_id = fetch_customer_id(user, payment.gateway) if store_source else None
+    customer_id = None
+    if store_source and payment:
+        customer_id = fetch_customer_id(user=user, gateway=payment.gateway)
 
     txn = _process_payment(
         payment=payment,  # type: ignore
