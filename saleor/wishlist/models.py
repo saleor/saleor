@@ -1,8 +1,9 @@
 import uuid
 
-from django.db import models, transaction
+from django.db import models
 
 from ..account.models import User
+from ..core.tracing import traced_atomic_transaction
 from ..product.models import Product, ProductVariant
 
 
@@ -47,7 +48,7 @@ class Wishlist(models.Model):
 
 
 class WishlistItemQuerySet(models.QuerySet):
-    @transaction.atomic()
+    @traced_atomic_transaction()
     def move_items_between_wishlists(self, src_wishlist, dst_wishlist):
         dst_wishlist_map = {}
         for dst_item in dst_wishlist.items.all():

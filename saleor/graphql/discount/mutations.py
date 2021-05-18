@@ -3,9 +3,9 @@ from typing import TYPE_CHECKING, DefaultDict, Dict, List
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 
 from ...core.permissions import DiscountPermissions
+from ...core.tracing import traced_atomic_transaction
 from ...core.utils.promo_code import generate_promo_code, is_available_promo_code
 from ...discount import DiscountValueType, models
 from ...discount.error_codes import DiscountErrorCode
@@ -442,7 +442,7 @@ class VoucherChannelListingUpdate(BaseChannelListingMutation):
         voucher.channel_listings.filter(channel_id__in=remove_channels).delete()
 
     @classmethod
-    @transaction.atomic()
+    @traced_atomic_transaction()
     def save(cls, voucher, cleaned_input):
         cls.add_channels(voucher, cleaned_input.get("add_channels", []))
         cls.remove_channels(voucher, cleaned_input.get("remove_channels", []))
@@ -686,7 +686,7 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
         sale.channel_listings.filter(channel_id__in=remove_channels).delete()
 
     @classmethod
-    @transaction.atomic()
+    @traced_atomic_transaction()
     def save(cls, info, sale: "SaleModel", cleaned_input: Dict):
         cls.add_channels(sale, cleaned_input.get("add_channels", []))
         cls.remove_channels(sale, cleaned_input.get("remove_channels", []))
