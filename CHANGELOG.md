@@ -73,6 +73,16 @@ All notable, unreleased changes to this project will be documented in this file.
 - Raise ValidationError when refund cannot be performed - #7260 by @IKarbowiak
 - Extend order with origin and original order values - #7326 by @IKarbowiak
 - Fix customer addresses missing after customer creation - #7327 by @tomaszszymanski129
+- Extend order payload with undiscounted prices and add psp_reference to payment model - #7339 by @IKarbowiak
+  - order payload extended with the following fields:
+    - `undiscounted_total_net_amount`
+    - `undiscounted_total_gross_amount`
+    - `psp_reference` on `payment`
+  - order lines extended with:
+    - `undiscounted_unit_price_net_amount`
+    - `undiscounted_unit_price_gross_amount`
+    - `undiscounted_total_price_net_amount`
+    - `undiscounted_total_price_gross_amount`
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
