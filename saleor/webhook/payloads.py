@@ -64,6 +64,8 @@ ORDER_FIELDS = (
     "weight",
     "private_metadata",
     "metadata",
+    "undiscounted_total_net_amount",
+    "undiscounted_total_gross_amount",
 )
 
 
@@ -97,6 +99,10 @@ def generate_order_lines_payload(lines: Iterable[OrderLine]):
         "unit_discount_reason",
         "total_price_net_amount",
         "total_price_gross_amount",
+        "undiscounted_unit_price_net_amount",
+        "undiscounted_unit_price_gross_amount",
+        "undiscounted_total_price_net_amount",
+        "undiscounted_total_price_gross_amount",
         "tax_rate",
     )
     serializer = PayloadSerializer()
@@ -122,6 +128,7 @@ def generate_order_payload(order: "Order"):
         "created",
         "modified",
         "charge_status",
+        "psp_reference",
         "total",
         "captured_amount",
         "currency",

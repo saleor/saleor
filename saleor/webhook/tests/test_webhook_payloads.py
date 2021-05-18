@@ -26,6 +26,10 @@ def test_generate_order_payload(
     mocked_fulfillment_lines, order_with_lines, fulfilled_order, payment_txn_captured
 ):
     mocked_fulfillment_lines.return_value = "{}"
+
+    payment_txn_captured.psp_reference = "123"
+    payment_txn_captured.save(update_fields=["psp_reference"])
+
     new_order = Order.objects.create(
         channel=order_with_lines.channel,
         billing_address=order_with_lines.billing_address,
@@ -59,7 +63,6 @@ def test_generate_order_payload(
     for field in ORDER_FIELDS:
         assert payload.get(field) is not None
 
-    assert payload.get("payments")
     assert payload.get("shipping_method")
     assert payload.get("shipping_tax_rate")
     assert payload.get("lines")
@@ -68,6 +71,35 @@ def test_generate_order_payload(
     assert payload.get("fulfillments")
     assert payload.get("discounts")
     assert payload.get("original") == graphene.Node.to_global_id("Order", new_order.pk)
+    assert payload.get("payments")
+    assert len(payload.get("payments")) == 1
+    payments_data = payload.get("payments")[0]
+    assert payments_data == {
+        "id": graphene.Node.to_global_id("Payment", payment_txn_captured.pk),
+        "gateway": payment_txn_captured.gateway,
+        "payment_method_type": payment_txn_captured.payment_method_type,
+        "cc_brand": payment_txn_captured.cc_brand,
+        "is_active": payment_txn_captured.is_active,
+        "created": ANY,
+        "modified": ANY,
+        "charge_status": payment_txn_captured.charge_status,
+        "psp_reference": payment_txn_captured.psp_reference,
+        "total": str(payment_txn_captured.total),
+        "type": "Payment",
+        "captured_amount": str(payment_txn_captured.captured_amount),
+        "currency": payment_txn_captured.currency,
+        "billing_email": payment_txn_captured.billing_email,
+        "billing_first_name": payment_txn_captured.billing_first_name,
+        "billing_last_name": payment_txn_captured.billing_last_name,
+        "billing_company_name": payment_txn_captured.billing_company_name,
+        "billing_address_1": payment_txn_captured.billing_address_1,
+        "billing_address_2": payment_txn_captured.billing_address_2,
+        "billing_city": payment_txn_captured.billing_city,
+        "billing_city_area": payment_txn_captured.billing_city_area,
+        "billing_postal_code": payment_txn_captured.billing_postal_code,
+        "billing_country_code": payment_txn_captured.billing_country_code,
+        "billing_country_area": payment_txn_captured.billing_country_area,
+    }
 
     mocked_fulfillment_lines.assert_called_with(fulfillment)
 
@@ -108,6 +140,8 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
     line = order_line_with_one_allocation
     line.unit_discount_amount = Decimal("10.0")
     line.unit_discount_type = DiscountValueType.FIXED
+    line.undiscounted_unit_price = line.unit_price + line.unit_discount
+    line.undiscounted_total_price = line.undiscounted_unit_price * line.quantity
     line.save()
 
     payload = json.loads(generate_order_payload(order))[0]
@@ -120,6 +154,18 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
     unit_gross_amount = line.unit_price_gross_amount.quantize(Decimal("0.001"))
     unit_discount_amount = line.unit_discount_amount.quantize(Decimal("0.001"))
     allocation = line.allocations.first()
+    undiscounted_unit_price_net_amount = (
+        line.undiscounted_unit_price.net.amount.quantize(Decimal("0.001"))
+    )
+    undiscounted_unit_price_gross_amount = (
+        line.undiscounted_unit_price.gross.amount.quantize(Decimal("0.001"))
+    )
+    undiscounted_total_price_net_amount = (
+        line.undiscounted_total_price.net.amount.quantize(Decimal("0.001"))
+    )
+    undiscounted_total_price_gross_amount = (
+        line.undiscounted_total_price.gross.amount.quantize(Decimal("0.001"))
+    )
 
     total_line = line.total_price
     global_warehouse_id = graphene.Node.to_global_id(
@@ -151,6 +197,14 @@ def test_order_lines_have_all_required_fields(order, order_line_with_one_allocat
                 "quantity_allocated": allocation.quantity_allocated,
             }
         ],
+        "undiscounted_unit_price_net_amount": str(undiscounted_unit_price_net_amount),
+        "undiscounted_unit_price_gross_amount": str(
+            undiscounted_unit_price_gross_amount
+        ),
+        "undiscounted_total_price_net_amount": str(undiscounted_total_price_net_amount),
+        "undiscounted_total_price_gross_amount": str(
+            undiscounted_total_price_gross_amount
+        ),
     }
 
 
@@ -273,6 +327,12 @@ def test_generate_invoice_payload(fulfilled_order):
             "total_net_amount": "80.000",
             "total_gross_amount": "98.400",
             "weight": "0.0:g",
+            "undiscounted_total_net_amount": str(
+                fulfilled_order.undiscounted_total_net_amount
+            ),
+            "undiscounted_total_gross_amount": str(
+                fulfilled_order.undiscounted_total_gross_amount
+            ),
         },
         "number": "01/12/2020/TEST",
         "created": ANY,
