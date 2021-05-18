@@ -32,7 +32,7 @@ from ..order.models import Order, OrderLine
 from ..order.notifications import send_order_confirmation
 from ..payment import PaymentError, gateway
 from ..payment.models import Payment, Transaction
-from ..payment.utils import store_customer_id
+from ..payment.utils import fetch_customer_id, store_customer_id
 from ..product.models import ProductTranslation, ProductVariantTranslation
 from ..warehouse.availability import check_stock_quantity_bulk
 from ..warehouse.management import allocate_stocks
@@ -512,6 +512,7 @@ def _get_order_data(
 
 def _process_payment(
     payment: Payment,
+    customer_id: str,
     store_source: bool,
     payment_data: Optional[dict],
     order_data: dict,
@@ -532,6 +533,7 @@ def _process_payment(
                 payment=payment,
                 token=payment.token,
                 manager=manager,
+                customer_id=customer_id,
                 store_source=store_source,
                 additional_data=payment_data,
                 channel_slug=channel_slug,
@@ -582,8 +584,11 @@ def complete_checkout(
         gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
         raise exc
 
+    customer_id = fetch_customer_id(user, payment.gateway) if store_source else None
+
     txn = _process_payment(
         payment=payment,  # type: ignore
+        customer_id=customer_id,
         store_source=store_source,
         payment_data=payment_data,
         order_data=order_data,
