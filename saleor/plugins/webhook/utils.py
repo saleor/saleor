@@ -90,7 +90,7 @@ def parse_payment_action_response(
         kind=response_data.get("kind", transaction_kind),
         payment_method_info=payment_method_info,
         raw_response=response_data,
-        searchable_key=response_data.get("searchable_key"),
+        psp_reference=response_data.get("psp_reference"),
         transaction_id=response_data.get("transaction_id", ""),
         transaction_already_processed=response_data.get(
             "transaction_already_processed", False

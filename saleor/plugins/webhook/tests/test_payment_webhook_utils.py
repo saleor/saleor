@@ -85,7 +85,7 @@ def payment_action_response(dummy_payment_data):
             "name": "John Doe",
             "type": "card",
         },
-        "searchable_key": "1000",
+        "psp_reference": "1000",
         "transaction_id": "1000",
         "transaction_already_processed": False,
     }
@@ -109,7 +109,7 @@ def test_parse_payment_action_response(dummy_payment_data, payment_action_respon
     assert gateway_response.currency == payment_action_response["currency"]
     assert gateway_response.customer_id == payment_action_response["customer_id"]
     assert gateway_response.kind == payment_action_response["kind"]
-    assert gateway_response.searchable_key == payment_action_response["searchable_key"]
+    assert gateway_response.psp_reference == payment_action_response["psp_reference"]
     assert gateway_response.transaction_id == payment_action_response["transaction_id"]
     assert (
         gateway_response.transaction_already_processed
