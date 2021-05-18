@@ -602,6 +602,8 @@ def create_order_lines(order, discounts, how_many=10):
                 variant=variant,
                 unit_price=unit_price,
                 total_price=total_price,
+                undiscounted_unit_price=unit_price,
+                undiscounted_total_price=total_price,
                 tax_rate=0,
             )
         )
@@ -617,13 +619,28 @@ def create_order_lines(order, discounts, how_many=10):
         unit_price = manager.calculate_order_line_unit(
             order, line, variant, variant.product
         )
+        total_price = manager.calculate_order_line_total(
+            order, line, variant, variant.product
+        )
         line.unit_price = unit_price
+        line.total_price = total_price
+        line.undiscounted_unit_price = unit_price
+        line.undiscounted_total_price = total_price
         line.tax_rate = unit_price.tax / unit_price.net
         warehouse = next(warehouse_iter)
         increase_stock(line, warehouse, line.quantity, allocate=True)
     OrderLine.objects.bulk_update(
         lines,
-        ["unit_price_net_amount", "unit_price_gross_amount", "currency", "tax_rate"],
+        [
+            "unit_price_net_amount",
+            "unit_price_gross_amount",
+            "undiscounted_unit_price_gross_amount",
+            "undiscounted_unit_price_net_amount",
+            "undiscounted_total_price_gross_amount",
+            "undiscounted_total_price_net_amount",
+            "currency",
+            "tax_rate",
+        ],
     )
     return lines
 

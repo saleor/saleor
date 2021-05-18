@@ -4,10 +4,10 @@ from typing import TYPE_CHECKING, Dict, List
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 
 from ....attribute import AttributeType
 from ....core.permissions import PagePermissions, PageTypePermissions
+from ....core.tracing import traced_atomic_transaction
 from ....page import models
 from ....page.error_codes import PageErrorCode
 from ...attribute.types import AttributeValueInput
@@ -97,7 +97,7 @@ class PageCreate(ModelMutation):
         return cleaned_input
 
     @classmethod
-    @transaction.atomic
+    @traced_atomic_transaction()
     def _save_m2m(cls, info, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
 

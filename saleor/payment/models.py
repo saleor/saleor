@@ -86,6 +86,9 @@ class Payment(models.Model):
     customer_ip_address = models.GenericIPAddressField(blank=True, null=True)
     extra_data = models.TextField(blank=True, default="")
     return_url = models.URLField(blank=True, null=True)
+    psp_reference = models.CharField(
+        max_length=512, null=True, blank=True, db_index=True
+    )
 
     class Meta:
         ordering = ("pk",)
@@ -221,9 +224,6 @@ class Transaction(models.Model):
     customer_id = models.CharField(max_length=256, null=True)
     gateway_response = JSONField(encoder=DjangoJSONEncoder)
     already_processed = models.BooleanField(default=False)
-    searchable_key = models.CharField(
-        max_length=512, null=True, blank=True, db_index=True
-    )
 
     class Meta:
         ordering = ("pk",)

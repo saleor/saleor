@@ -238,6 +238,22 @@ class ChannelPluginSample(PluginSample):
     }
 
 
+class InactiveChannelPluginSample(PluginSample):
+    PLUGIN_ID = "channel.plugin.inactive.sample"
+    PLUGIN_NAME = "Inactive Channel Plugin"
+    PLUGIN_DESCRIPTION = "Test channel plugin"
+    DEFAULT_ACTIVE = False
+    CONFIGURATION_PER_CHANNEL = True
+    DEFAULT_CONFIGURATION = [{"name": "input-per-channel", "value": None}]
+    CONFIG_STRUCTURE = {
+        "input-per-channel": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "Test input",
+            "label": "Input per channel",
+        }
+    }
+
+
 class PluginInactive(BasePlugin):
     PLUGIN_ID = "mirumee.taxes.plugin.inactive"
     PLUGIN_NAME = "PluginInactive"
