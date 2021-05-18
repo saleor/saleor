@@ -757,6 +757,8 @@ def _populate_replace_order_fields(original_order: "Order"):
     replace_order.redirect_url = original_order.redirect_url
     replace_order.original = original_order
     replace_order.origin = OrderOrigin.REISSUE
+    replace_order.metadata = original_order.metadata
+    replace_order.private_metadata = original_order.private_metadata
 
     if original_order.billing_address:
         original_order.billing_address.pk = None
