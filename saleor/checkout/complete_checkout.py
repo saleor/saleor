@@ -512,7 +512,7 @@ def _get_order_data(
 
 def _process_payment(
     payment: Payment,
-    customer_id: str,
+    customer_id: Optional[str],
     store_source: bool,
     payment_data: Optional[dict],
     order_data: dict,
