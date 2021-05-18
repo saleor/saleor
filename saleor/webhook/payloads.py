@@ -67,11 +67,11 @@ ORDER_FIELDS = (
 )
 
 
-def prepare_order_lines_allocations_payload(lines: Iterable[OrderLine]):
+def prepare_order_lines_allocations_payload(line):
     warehouse_id_quantity_allocated_map = list(
-        lines.values(  # type: ignore
-            warehouse_id=F("allocations__stock__warehouse_id"),
-            quantity_allocated=F("allocations__quantity_allocated"),
+        line.allocations.values(  # type: ignore
+            "quantity_allocated",
+            warehouse_id=F("stock__warehouse_id"),
         )
     )
     for item in warehouse_id_quantity_allocated_map:
@@ -106,7 +106,7 @@ def generate_order_lines_payload(lines: Iterable[OrderLine]):
         extra_dict_data={
             "total_price_net_amount": (lambda l: l.total_price.net.amount),
             "total_price_gross_amount": (lambda l: l.total_price.gross.amount),
-            "allocations": prepare_order_lines_allocations_payload(lines),
+            "allocations": (lambda l: prepare_order_lines_allocations_payload(l)),
         },
     )
 
