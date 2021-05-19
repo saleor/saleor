@@ -59,13 +59,19 @@ def filter_attribute_type(qs, _, value):
 
 
 class AttributeValueFilter(django_filters.FilterSet):
-    search = django_filters.CharFilter(
-        method=filter_fields_containing_value("slug", "name")
-    )
+    search = django_filters.CharFilter(method="filter_search")
 
     class Meta:
         model = AttributeValue
         fields = ["search"]
+
+    @classmethod
+    def filter_search(cls, queryset, _name, value):
+        if not value:
+            return queryset
+        name_slug_qs = Q(name__trigram_similar=value) | Q(slug__trigram_similar=value)
+
+        return queryset.filter(name_slug_qs)
 
 
 class AttributeFilter(MetadataFilterBase):
