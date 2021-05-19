@@ -18,7 +18,16 @@ from ...attribute.models import (
     Attribute,
     AttributeValue,
 )
-from ...product.models import Category, Collection, Product, ProductType, ProductVariant
+from ...channel.models import Channel
+from ...product.models import (
+    Category,
+    Collection,
+    Product,
+    ProductChannelListing,
+    ProductType,
+    ProductVariant,
+    ProductVariantChannelListing,
+)
 from ...warehouse.models import Stock
 from ..channel.filters import get_channel_slug_from_filter_data
 from ..core.filters import (
@@ -146,19 +155,22 @@ def filter_products_by_attributes(qs, filter_values, filter_range_values):
 
 
 def filter_products_by_variant_price(qs, channel_slug, price_lte=None, price_gte=None):
+    channels = Channel.objects.filter(slug=channel_slug)
+    product_variant_channel_listings = ProductVariantChannelListing.objects.filter(
+        Exists(channels.filter(pk=OuterRef("channel_id")))
+    )
     if price_lte:
-        qs = qs.filter(
-            Q(variants__channel_listings__price_amount__lte=price_lte)
-            | Q(variants__channel_listings__price_amount__isnull=True),
-            variants__channel_listings__channel__slug=channel_slug,
+        product_variant_channel_listings = product_variant_channel_listings.filter(
+            Q(price_amount__lte=price_lte) | Q(price_amount__isnull=True)
         )
     if price_gte:
-        qs = qs.filter(
-            Q(variants__channel_listings__price_amount__gte=price_gte)
-            | Q(variants__channel_listings__price_amount__isnull=True),
-            variants__channel_listings__channel__slug=channel_slug,
+        product_variant_channel_listings = product_variant_channel_listings.filter(
+            Q(price_amount__gte=price_gte) | Q(price_amount__isnull=True)
         )
-    return qs
+    variants = ProductVariant.objects.filter(
+        Exists(product_variant_channel_listings.filter(variant_id=OuterRef("pk")))
+    )
+    return qs.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
 
 
 def filter_products_by_minimal_price(
@@ -245,11 +257,12 @@ def filter_collections(qs, _, value):
     return qs
 
 
-def _filter_is_published(qs, _, value, channel_slug):
-    return qs.filter(
-        channel_listings__is_published=value,
-        channel_listings__channel__slug=channel_slug,
+def _filter_products_is_published(qs, _, value, channel_slug):
+    channel = Channel.objects.filter(slug=channel_slug)
+    product_channel_listings = ProductChannelListing.objects.filter(
+        Exists(channel.filter(pk=OuterRef("channel_id"))), is_published=value
     )
+    return qs.filter(Exists(product_channel_listings.filter(product_id=OuterRef("pk"))))
 
 
 def _filter_variant_price(qs, _, value, channel_slug):
@@ -303,6 +316,13 @@ def filter_search(qs, _, value):
     if value:
         qs = product_search(qs, value)
     return qs
+
+
+def _filter_collections_is_published(qs, _, value, channel_slug):
+    return qs.filter(
+        channel_listings__is_published=value,
+        channel_listings__channel__slug=channel_slug,
+    )
 
 
 def filter_product_type_configurable(qs, _, value):
@@ -429,7 +449,12 @@ class ProductFilter(MetadataFilterBase):
 
     def filter_is_published(self, queryset, name, value):
         channel_slug = get_channel_slug_from_filter_data(self.data)
-        return _filter_is_published(queryset, name, value, channel_slug)
+        return _filter_products_is_published(
+            queryset,
+            name,
+            value,
+            channel_slug,
+        )
 
     def filter_stock_availability(self, queryset, name, value):
         channel_slug = get_channel_slug_from_filter_data(self.data)
@@ -463,9 +488,9 @@ class CollectionFilter(MetadataFilterBase):
     def filter_is_published(self, queryset, name, value):
         channel_slug = get_channel_slug_from_filter_data(self.data)
         if value == CollectionPublished.PUBLISHED:
-            return _filter_is_published(queryset, name, True, channel_slug)
+            return _filter_collections_is_published(queryset, name, True, channel_slug)
         elif value == CollectionPublished.HIDDEN:
-            return _filter_is_published(queryset, name, False, channel_slug)
+            return _filter_collections_is_published(queryset, name, False, channel_slug)
         return queryset
 
 
