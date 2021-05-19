@@ -216,10 +216,7 @@ def test_run_payment_webhook(
     assert response_data == expected_response
 
 
-def test_run_payment_webhook_invalid_app(
-    payment_invalid_app,
-    webhook_plugin,
-):
+def test_run_payment_webhook_invalid_app(payment_invalid_app, webhook_plugin):
     plugin = webhook_plugin()
     payment_information = create_payment_information(payment_invalid_app, "token")
     with pytest.raises(PaymentError):
@@ -231,10 +228,7 @@ def test_run_payment_webhook_invalid_app(
         )
 
 
-def test_run_payment_webhook_no_payment_app_data(
-    payment,
-    webhook_plugin,
-):
+def test_run_payment_webhook_no_payment_app_data(payment, webhook_plugin):
     plugin = webhook_plugin()
     payment_information = create_payment_information(payment, "token")
     payment_information.gateway = "dummy"
@@ -245,3 +239,24 @@ def test_run_payment_webhook_no_payment_app_data(
             payment_information,
             None,
         )
+
+
+def test_run_payment_webhook_inactive_plugin(payment, webhook_plugin):
+    plugin = webhook_plugin()
+    plugin.active = False
+    payment_information = create_payment_information(payment, "token")
+    dummy_previous_value = {"key": "dummy"}
+    response = plugin._WebhookPlugin__run_payment_webhook(
+        WebhookEventType.PAYMENT_AUTHORIZE,
+        TransactionKind.AUTH,
+        payment_information,
+        dummy_previous_value,
+    )
+    assert response == dummy_previous_value
+
+
+def test_check_plugin_id(payment_app, webhook_plugin):
+    plugin = webhook_plugin()
+    assert not plugin.check_plugin_id("dummy")
+    valid_id = to_payment_app_id(payment_app, "credit-card")
+    assert plugin.check_plugin_id(valid_id)
