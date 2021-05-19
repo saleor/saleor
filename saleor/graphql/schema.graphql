@@ -413,7 +413,7 @@ type Attribute implements Node & ObjectWithMetadata {
   slug: String
   type: AttributeTypeEnum
   unit: MeasurementUnitsEnum
-  values(before: String, after: String, first: Int, last: Int): AttributeValueCountableConnection
+  values(filter: AttributeValueFilterInput, before: String, after: String, first: Int, last: Int): AttributeValueCountableConnection
   valueRequired: Boolean!
   visibleInStorefront: Boolean!
   filterableInStorefront: Boolean!
@@ -635,6 +635,10 @@ type AttributeValueDelete {
   attributeErrors: [AttributeError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
   errors: [AttributeError!]!
   attributeValue: AttributeValue
+}
+
+input AttributeValueFilterInput {
+  search: String
 }
 
 input AttributeValueInput {

@@ -6,7 +6,7 @@ from ...attribute import AttributeInputType, models
 from ...core.tracing import traced_resolver
 from ..core.connection import CountableDjangoObjectType
 from ..core.enums import MeasurementUnitsEnum
-from ..core.fields import PrefetchingConnectionField
+from ..core.fields import FilterInputConnectionField
 from ..core.types import File
 from ..core.types.common import IntRangeInput
 from ..decorators import (
@@ -16,9 +16,10 @@ from ..decorators import (
 from ..meta.types import ObjectWithMetadata
 from ..translations.fields import TranslationField
 from ..translations.types import AttributeTranslation, AttributeValueTranslation
-from .dataloaders import AttributesByAttributeId, AttributeValuesByAttributeIdLoader
+from .dataloaders import AttributesByAttributeId
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
+from .filters import AttributeValueFilterInput
 
 COLOR_PATTERN = r"^(#[0-9a-fA-F]{3}|#(?:[0-9a-fA-F]{2}){2,4}|(rgb|hsl)a?\((-?\d+%?[,\s]+){2,3}\s*[\d\.]+%?\))$"  # noqa
 color_pattern = re.compile(COLOR_PATTERN)
@@ -88,8 +89,10 @@ class Attribute(CountableDjangoObjectType):
     slug = graphene.String(description=AttributeDescriptions.SLUG)
     type = AttributeTypeEnum(description=AttributeDescriptions.TYPE)
     unit = MeasurementUnitsEnum(description=AttributeDescriptions.UNIT)
-    values = PrefetchingConnectionField(
-        AttributeValue, description=AttributeDescriptions.VALUES
+    values = FilterInputConnectionField(
+        AttributeValue,
+        filter=AttributeValueFilterInput(),
+        description=AttributeDescriptions.VALUES,
     )
 
     value_required = graphene.Boolean(
@@ -126,7 +129,7 @@ class Attribute(CountableDjangoObjectType):
     @staticmethod
     @traced_resolver
     def resolve_values(root: models.Attribute, info, **_kwargs):
-        return AttributeValuesByAttributeIdLoader(info.context).load(root.id)
+        return root.values.all()
 
     @staticmethod
     @check_attribute_required_permissions()
