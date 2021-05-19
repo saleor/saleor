@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("order", "0108_origin_not_null"),
+        ("order", "0109_undiscounted_prices"),
     ]
 
     operations = [

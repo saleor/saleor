@@ -268,6 +268,11 @@ def test_create_return_fulfillment_only_order_lines_with_replace_request(
     order_lines_data[0].replace = True
     order_lines_data[0].quantity = quantity_to_replace
 
+    # set metadata
+    order_with_lines.metadata = {"test_key": "test_val"}
+    order_with_lines.private_metadata = {"priv_test_key": "priv_test_val"}
+    order_with_lines.save(update_fields=["metadata", "private_metadata"])
+
     response = create_fulfillments_for_returned_products(
         requester=staff_user,
         order=order_with_lines,
@@ -329,6 +334,8 @@ def test_create_return_fulfillment_only_order_lines_with_replace_request(
     assert replace_order.billing_address == order_with_lines.billing_address
     assert replace_order.original == order_with_lines
     assert replace_order.origin == OrderOrigin.REISSUE
+    assert replace_order.metadata == order_with_lines.metadata
+    assert replace_order.private_metadata == order_with_lines.private_metadata
 
     expected_replaced_line = order_lines_to_return[0]
 

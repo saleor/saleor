@@ -90,7 +90,7 @@ def populate_refund_amounts_in_fulfillments(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("order", "0109_auto_20210518_0918"),
+        ("order", "0110_auto_20210518_0918"),
     ]
 
     operations = [

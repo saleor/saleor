@@ -12,7 +12,9 @@ from graphene_django.filter import GlobalIDMultipleChoiceFilter
 from ...attribute import AttributeInputType
 from ...attribute.models import (
     AssignedProductAttribute,
+    AssignedProductAttributeValue,
     AssignedVariantAttribute,
+    AssignedVariantAttributeValue,
     Attribute,
     AttributeValue,
 )
@@ -65,8 +67,11 @@ def _clean_product_attributes_filter_input(filter_value, queries):
 
 
 def _clean_product_attributes_range_filter_input(filter_value, queries):
+    attributes = Attribute.objects.filter(input_type=AttributeInputType.NUMERIC)
     values = (
-        AttributeValue.objects.filter(attribute__input_type=AttributeInputType.NUMERIC)
+        AttributeValue.objects.filter(
+            Exists(attributes.filter(pk=OuterRef("attribute_id")))
+        )
         .annotate(numeric_value=Cast("name", FloatField()))
         .select_related("attribute")
     )
@@ -94,24 +99,37 @@ def _clean_product_attributes_range_filter_input(filter_value, queries):
 
 
 def filter_products_by_attributes_values(qs, queries: T_PRODUCT_FILTER_QUERIES):
-    filters = [
-        Q(
+    filters = []
+    for values in queries.values():
+        assigned_product_attribute_values = (
+            AssignedProductAttributeValue.objects.filter(value_id__in=values)
+        )
+        assigned_product_attributes = AssignedProductAttribute.objects.filter(
             Exists(
-                AssignedProductAttribute.objects.filter(
-                    product__id=OuterRef("pk"), values__pk__in=values
-                )
+                assigned_product_attribute_values.filter(assignment_id=OuterRef("pk"))
             )
         )
-        | Q(
+        product_attribute_filter = Q(
+            Exists(assigned_product_attributes.filter(product_id=OuterRef("pk")))
+        )
+
+        assigned_variant_attribute_values = (
+            AssignedVariantAttributeValue.objects.filter(value_id__in=values)
+        )
+        assigned_variant_attributes = AssignedVariantAttribute.objects.filter(
             Exists(
-                AssignedVariantAttribute.objects.filter(
-                    variant__product__id=OuterRef("pk"),
-                    values__pk__in=values,
-                )
+                assigned_variant_attribute_values.filter(assignment_id=OuterRef("pk"))
             )
         )
-        for values in queries.values()
-    ]
+        product_variants = ProductVariant.objects.filter(
+            Exists(assigned_variant_attributes.filter(variant_id=OuterRef("pk")))
+        )
+        variant_attribute_filter = Q(
+            Exists(product_variants.filter(product_id=OuterRef("pk")))
+        )
+
+        filters.append(product_attribute_filter | variant_attribute_filter)
+
     return qs.filter(*filters)
 
 

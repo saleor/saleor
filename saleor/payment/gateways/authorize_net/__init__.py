@@ -177,9 +177,9 @@ def authorize(
         transaction_response,
         raw_response,
     ) = _handle_authorize_net_response(response)
-    searchable_key = None
+    psp_reference = None
     if transaction_id:
-        searchable_key = transaction_id
+        psp_reference = transaction_id
     elif payment_information.token:
         transaction_id = payment_information.token
 
@@ -203,7 +203,7 @@ def authorize(
         kind=kind,
         raw_response=raw_response,
         customer_id=customer_id,
-        searchable_key=str(searchable_key) if searchable_key else None,
+        psp_reference=str(psp_reference) if psp_reference else None,
     )
 
 

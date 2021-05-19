@@ -2,10 +2,10 @@ import copy
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 from prices import Money
 
 from ....core.permissions import OrderPermissions
+from ....core.tracing import traced_atomic_transaction
 from ....order import events, models
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import (
@@ -130,7 +130,7 @@ class OrderDiscountAdd(OrderDiscountCommon):
         cls.validate_order_discount_input(info, order.undiscounted_total.gross, input)
 
     @classmethod
-    @transaction.atomic
+    @traced_atomic_transaction()
     def perform_mutation(cls, root, info, **data):
         requester = get_user_or_app_from_context(info.context)
         order = cls.get_node_or_error(info, data.get("order_id"), only_type=Order)
@@ -180,7 +180,7 @@ class OrderDiscountUpdate(OrderDiscountCommon):
         cls.validate_order_discount_input(info, order.undiscounted_total.gross, input)
 
     @classmethod
-    @transaction.atomic
+    @traced_atomic_transaction()
     def perform_mutation(cls, root, info, **data):
         requester = get_user_or_app_from_context(info.context)
         order_discount = cls.get_node_or_error(
@@ -233,7 +233,7 @@ class OrderDiscountDelete(OrderDiscountCommon):
         error_type_field = "order_errors"
 
     @classmethod
-    @transaction.atomic
+    @traced_atomic_transaction()
     def perform_mutation(cls, root, info, **data):
         requester = get_user_or_app_from_context(info.context)
         order_discount = cls.get_node_or_error(
@@ -290,7 +290,7 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
         )
 
     @classmethod
-    @transaction.atomic
+    @traced_atomic_transaction()
     def perform_mutation(cls, root, info, **data):
 
         requester = get_user_or_app_from_context(info.context)
@@ -355,7 +355,7 @@ class OrderLineDiscountRemove(OrderDiscountCommon):
         cls.validate_order(info, order)
 
     @classmethod
-    @transaction.atomic
+    @traced_atomic_transaction()
     def perform_mutation(cls, root, info, **data):
         tax_included = info.context.site.settings.include_taxes_in_prices
         requester = get_user_or_app_from_context(info.context)
