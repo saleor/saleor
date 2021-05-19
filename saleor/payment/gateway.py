@@ -75,12 +75,14 @@ def process_payment(
     token: str,
     manager: "PluginsManager",
     channel_slug: str,
+    customer_id: str = None,
     store_source: bool = False,
     additional_data: Optional[dict] = None,
 ) -> Transaction:
     payment_data = create_payment_information(
         payment=payment,
         payment_token=token,
+        customer_id=customer_id,
         store_source=store_source,
         additional_data=additional_data,
     )
@@ -113,12 +115,14 @@ def authorize(
     token: str,
     manager: "PluginsManager",
     channel_slug: str,
+    customer_id: str = None,
     store_source: bool = False,
 ) -> Transaction:
     clean_authorize(payment)
     payment_data = create_payment_information(
         payment=payment,
         payment_token=token,
+        customer_id=customer_id,
         store_source=store_source,
     )
     response, error = _fetch_gateway_response(
@@ -148,6 +152,7 @@ def capture(
     manager: "PluginsManager",
     channel_slug: str,
     amount: Decimal = None,
+    customer_id: str = None,
     store_source: bool = False,
 ) -> Transaction:
     if amount is None:
@@ -155,7 +160,11 @@ def capture(
     clean_capture(payment, Decimal(amount))
     token = _get_past_transaction_token(payment, TransactionKind.AUTH)
     payment_data = create_payment_information(
-        payment=payment, payment_token=token, amount=amount, store_source=store_source
+        payment=payment,
+        payment_token=token,
+        amount=amount,
+        customer_id=customer_id,
+        store_source=store_source,
     )
     response, error = _fetch_gateway_response(
         manager.capture_payment,
