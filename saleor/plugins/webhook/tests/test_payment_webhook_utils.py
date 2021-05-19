@@ -69,12 +69,12 @@ def test_parse_list_payment_gateways_response_no_id(app):
 
 
 @pytest.fixture
-def payment_action_response(dummy_payment_data):
+def payment_action_response(dummy_webhook_app_payment_data):
     return {
         "action_required": False,
         "action_required_data": {},
-        "amount": dummy_payment_data.amount,
-        "currency": dummy_payment_data.currency,
+        "amount": dummy_webhook_app_payment_data.amount,
+        "currency": dummy_webhook_app_payment_data.currency,
         "customer_id": "1000",
         "kind": TransactionKind.AUTH,
         "payment_method": {
@@ -91,9 +91,11 @@ def payment_action_response(dummy_payment_data):
     }
 
 
-def test_parse_payment_action_response(dummy_payment_data, payment_action_response):
+def test_parse_payment_action_response(
+    dummy_webhook_app_payment_data, payment_action_response
+):
     gateway_response = parse_payment_action_response(
-        dummy_payment_data, payment_action_response, TransactionKind.AUTH
+        dummy_webhook_app_payment_data, payment_action_response, TransactionKind.AUTH
     )
     assert gateway_response.error is None
     assert gateway_response.is_success

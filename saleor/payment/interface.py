@@ -66,6 +66,7 @@ class PaymentData:
     It is required to communicate between Saleor and given payment gateway.
     """
 
+    gateway: str
     amount: Decimal
     currency: str
     billing: Optional[AddressData]

@@ -20,7 +20,11 @@ from ...webhook.payloads import (
 )
 from ..base_plugin import BasePlugin
 from .tasks import trigger_webhook_sync, trigger_webhooks_for_event
-from .utils import parse_list_payment_gateways_response, parse_payment_action_response
+from .utils import (
+    from_payment_app_id,
+    parse_list_payment_gateways_response,
+    parse_payment_action_response,
+)
 
 if TYPE_CHECKING:
     from ...account.models import User
@@ -42,6 +46,13 @@ class WebhookPlugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.active = True
+
+    def check_plugin_id(self, plugin_id: str) -> bool:
+        is_webhook_plugin = super().check_plugin_id(plugin_id)
+        if not is_webhook_plugin:
+            payment_app_data = from_payment_app_id(plugin_id)
+            return payment_app_data is not None
+        return is_webhook_plugin
 
     def order_created(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
@@ -235,7 +246,7 @@ class WebhookPlugin(BasePlugin):
             return previous_value
 
         app = None
-        payment_app_data = kwargs.get("payment_app_data")
+        payment_app_data = from_payment_app_id(payment_information.gateway)
 
         if payment_app_data is not None:
             app = (
@@ -246,11 +257,6 @@ class WebhookPlugin(BasePlugin):
 
         if not app:
             raise PaymentError("Selected payment method is not available.")
-
-        if payment_information.data:
-            payment_information.data["payment_method"] = payment_app_data.name
-        else:
-            payment_information.data = {"payment_method": payment_app_data.name}
 
         webhook_payload = generate_payment_payload(payment_information)
         response_data = trigger_webhook_sync(event_type, webhook_payload, app)

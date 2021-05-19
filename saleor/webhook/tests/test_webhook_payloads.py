@@ -12,6 +12,7 @@ from ...discount import DiscountValueType, OrderDiscountType
 from ...order import OrderLineData, OrderOrigin
 from ...order.actions import fulfill_order_lines
 from ...order.models import Order
+from ...plugins.webhook.utils import from_payment_app_id
 from ...product.models import ProductVariant
 from ..payloads import (
     ORDER_FIELDS,
@@ -353,7 +354,10 @@ def test_generate_list_gateways_payload(checkout):
     assert data["currency"] == currency
 
 
-def test_generate_payment_payload(dummy_payment_data):
-    payload = generate_payment_payload(dummy_payment_data)
-    expected_payload = json.dumps(asdict(dummy_payment_data), cls=CustomJsonEncoder)
-    assert payload == expected_payload
+def test_generate_payment_payload(dummy_webhook_app_payment_data):
+    payload = generate_payment_payload(dummy_webhook_app_payment_data)
+    expected_payload = asdict(dummy_webhook_app_payment_data)
+    expected_payload["payment_method"] = from_payment_app_id(
+        dummy_webhook_app_payment_data.gateway
+    ).name
+    assert payload == json.dumps(expected_payload, cls=CustomJsonEncoder)

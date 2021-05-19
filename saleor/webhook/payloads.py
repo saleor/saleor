@@ -19,6 +19,7 @@ from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..order.utils import get_order_country
 from ..page.models import Page
 from ..payment import ChargeStatus
+from ..plugins.webhook.utils import from_payment_app_id
 from ..product import ProductMediaTypes
 from ..product.models import Product
 from ..warehouse.models import Warehouse
@@ -482,6 +483,9 @@ def generate_page_payload(page: Page):
 
 def generate_payment_payload(payment_data: "PaymentData"):
     data = asdict(payment_data)
+    payment_app_data = from_payment_app_id(data["gateway"])
+    if payment_app_data:
+        data["payment_method"] = payment_app_data.name
     return json.dumps(data, cls=CustomJsonEncoder)
 
 

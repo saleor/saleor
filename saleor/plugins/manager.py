@@ -28,7 +28,6 @@ from ..core.taxes import TaxType, zero_taxed_money
 from ..discount import DiscountInfo
 from .base_plugin import ExternalAccessTokens
 from .models import PluginConfiguration
-from .webhook.utils import from_payment_app_id
 
 if TYPE_CHECKING:
     # flake8: noqa
@@ -748,21 +747,10 @@ class PluginsManager(PaymentInterface):
         channel_slug: Optional[str] = None,
         active_only: bool = True,
     ) -> List["PaymentGateway"]:
-        from .webhook.plugin import WebhookPlugin
-
         channel_slug = checkout.channel.slug if checkout else channel_slug
         plugins = self.get_plugins(channel_slug=channel_slug, active_only=active_only)
-
-        # WebhookPlugin has the `process_payment` method defined but we don't want to
-        # list it as a payment gateway.
-        exclude_webhook_plugin = (
-            lambda plugin: plugin.PLUGIN_ID != WebhookPlugin.PLUGIN_ID
-        )
         payment_plugins = [
-            plugin
-            for plugin in plugins
-            if "process_payment" in type(plugin).__dict__
-            and exclude_webhook_plugin(plugin)
+            plugin for plugin in plugins if "process_payment" in type(plugin).__dict__
         ]
 
         # if currency is given return only gateways which support given currency
@@ -773,18 +761,6 @@ class PluginsManager(PaymentInterface):
                     currency=currency, checkout=checkout, previous_value=None
                 )
             )
-
-        # Fetch payment gateways from apps that listen to payment events.
-        webhook_plugin = self.get_plugin(WebhookPlugin.PLUGIN_ID)
-        if webhook_plugin and webhook_plugin.active:
-            app_gateways = self.__run_method_on_single_plugin(
-                webhook_plugin,
-                "get_payment_gateways",
-                currency=currency,
-                checkout=checkout,
-                previous_value=[],
-            )
-            gateways.extend(app_gateways)
         return gateways
 
     def list_external_authentications(self, active_only: bool = True) -> List[dict]:
@@ -805,21 +781,7 @@ class PluginsManager(PaymentInterface):
         **kwargs,
     ) -> "GatewayResponse":
         default_value = None
-
-        # Try to run payment method using a payment plugin.
         plugin = self.get_plugin(gateway, channel_slug)
-        if not plugin:
-            # Otherwise, try to get a payment app and run the payment method using
-            # webhook plugin.
-            payment_app_data = from_payment_app_id(gateway)
-            from .webhook.plugin import WebhookPlugin
-
-            plugin = self.get_plugin(WebhookPlugin.PLUGIN_ID, channel_slug)
-            if plugin and plugin.active:
-                kwargs.update({"payment_app_data": payment_app_data})
-            else:
-                plugin = None
-
         if plugin is not None:
             resp = self.__run_method_on_single_plugin(
                 plugin,
@@ -911,7 +873,7 @@ class PluginsManager(PaymentInterface):
     ) -> Optional["BasePlugin"]:
         plugins = self.get_plugins(channel_slug=channel_slug)
         for plugin in plugins:
-            if plugin.PLUGIN_ID == plugin_id:
+            if plugin.check_plugin_id(plugin_id):
                 return plugin
         return None
 

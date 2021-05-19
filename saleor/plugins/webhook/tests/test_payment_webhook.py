@@ -15,7 +15,6 @@ from ..tasks import (
     trigger_webhook_sync,
 )
 from ..utils import (
-    PaymentAppData,
     parse_list_payment_gateways_response,
     parse_payment_action_response,
     to_payment_app_id,
@@ -26,6 +25,16 @@ from ..utils import (
 def payment(payment_dummy, payment_app):
     gateway_id = "credit-card"
     gateway = to_payment_app_id(payment_app, gateway_id)
+    payment_dummy.gateway = gateway
+    payment_dummy.save()
+    return payment_dummy
+
+
+@pytest.fixture
+def payment_invalid_app(payment_dummy):
+    app = App.objects.create(name="Dummy app", is_active=True)
+    gateway_id = "credit-card"
+    gateway = to_payment_app_id(app, gateway_id)
     payment_dummy.gateway = gateway
     payment_dummy.save()
     return payment_dummy
@@ -195,14 +204,11 @@ def test_run_payment_webhook(
 ):
     plugin = webhook_plugin()
     payment_information = create_payment_information(payment, "token")
-    payment_app_data = PaymentAppData(app_pk=payment_app.pk, name="credit-card")
     payment_func = getattr(plugin, plugin_func_name)
 
     mock_json_response = {"transaction_id": f"fake-id-{txn_kind}"}
     mock_send_request.return_value = mock_json_response
-    response_data = payment_func(
-        payment_information, None, payment_app_data=payment_app_data
-    )
+    response_data = payment_func(payment_information, None)
 
     expected_response = parse_payment_action_response(
         payment_information, mock_json_response, txn_kind
@@ -211,20 +217,17 @@ def test_run_payment_webhook(
 
 
 def test_run_payment_webhook_invalid_app(
-    payment,
+    payment_invalid_app,
     webhook_plugin,
 ):
     plugin = webhook_plugin()
-    payment_information = create_payment_information(payment, "token")
-    app = App.objects.create(name="Dummy app", is_active=True)
-    payment_app_data = PaymentAppData(app_pk=app.pk, name="credit-card")
+    payment_information = create_payment_information(payment_invalid_app, "token")
     with pytest.raises(PaymentError):
         plugin._WebhookPlugin__run_payment_webhook(
             WebhookEventType.PAYMENT_AUTHORIZE,
             TransactionKind.AUTH,
             payment_information,
             None,
-            payment_app_data=payment_app_data,
         )
 
 
@@ -234,6 +237,7 @@ def test_run_payment_webhook_no_payment_app_data(
 ):
     plugin = webhook_plugin()
     payment_information = create_payment_information(payment, "token")
+    payment_information.gateway = "dummy"
     with pytest.raises(PaymentError):
         plugin._WebhookPlugin__run_payment_webhook(
             WebhookEventType.PAYMENT_AUTHORIZE,
@@ -241,31 +245,3 @@ def test_run_payment_webhook_no_payment_app_data(
             payment_information,
             None,
         )
-
-
-@mock.patch("saleor.plugins.webhook.plugin.generate_payment_payload")
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
-def test_run_payment_webhook_include_payment_method_name(
-    mock_send_request,
-    mock_generate_payload,
-    payment,
-    payment_app,
-    webhook_plugin,
-):
-    plugin = webhook_plugin()
-    payment_information = create_payment_information(payment, "token")
-    payment_method_name = "credit-card"
-    payment_app_data = PaymentAppData(app_pk=payment_app.pk, name=payment_method_name)
-
-    mock_generate_payload.return_value = "{}"
-    mock_send_request.return_value = {"transaction_id": "fake-id"}
-
-    plugin._WebhookPlugin__run_payment_webhook(
-        WebhookEventType.PAYMENT_AUTHORIZE,
-        TransactionKind.AUTH,
-        payment_information,
-        None,
-        payment_app_data=payment_app_data,
-    )
-    payment_data = mock_generate_payload.call_args[0][0]
-    assert payment_data.data["payment_method"] == payment_method_name
