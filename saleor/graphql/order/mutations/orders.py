@@ -6,7 +6,7 @@ from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError, zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
-from ....order import OrderLineData, OrderStatus, events, models
+from ....order import FulfillmentStatus, OrderLineData, OrderStatus, events, models
 from ....order.actions import (
     cancel_order,
     clean_mark_order_as_paid,
@@ -570,6 +570,9 @@ class OrderRefund(BaseMutation):
             info.context.plugins,
             amount=amount,
             channel_slug=order.channel.slug,
+        )
+        order.fulfillments.create(
+            status=FulfillmentStatus.REFUNDED, total_refund_amount=amount
         )
 
         # Confirm that we changed the status to refund. Some payment can receive
