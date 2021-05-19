@@ -9,6 +9,7 @@ from ..channel import ChannelContext
 from ..core.connection import CountableDjangoObjectType
 from ..decorators import one_of_permissions_required
 from ..meta.types import ObjectWithMetadata
+from .enums import WarehouseClickAndCollectOptionEnum
 
 
 class WarehouseInput(graphene.InputObjectType):
@@ -35,6 +36,12 @@ class WarehouseUpdateInput(WarehouseInput):
         description="Address of the warehouse.",
         required=False,
     )
+    click_and_collect_option = WarehouseClickAndCollectOptionEnum(
+        description="Click and collect options: local, all or disabled", required=False
+    )
+    is_private = graphene.Boolean(
+        description="Visibility of warehouse stocks", required=False
+    )
 
 
 class Warehouse(CountableDjangoObjectType):
@@ -44,6 +51,9 @@ class Warehouse(CountableDjangoObjectType):
         deprecation_reason=(
             "Use address.CompanyName. This field will be removed in Saleor 4.0."
         ),
+    )
+    click_and_collect_option = WarehouseClickAndCollectOptionEnum(
+        description="Click and collect options: local, all or disabled", required=False
     )
 
     class Meta:
@@ -57,6 +67,7 @@ class Warehouse(CountableDjangoObjectType):
             "shipping_zones",
             "address",
             "email",
+            "is_private",
         ]
 
     @staticmethod

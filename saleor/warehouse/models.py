@@ -2,6 +2,7 @@ import itertools
 import uuid
 from typing import Set
 
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Exists, F, OuterRef, Sum
 from django.db.models.functions import Coalesce
@@ -12,6 +13,7 @@ from ..core.models import ModelWithMetadata
 from ..order.models import OrderLine
 from ..product.models import Product, ProductVariant
 from ..shipping.models import ShippingZone
+from . import WarehouseClickAndCollectOption
 
 
 class WarehouseQueryset(models.QuerySet):
@@ -35,6 +37,12 @@ class Warehouse(ModelWithMetadata):
     )
     address = models.ForeignKey(Address, on_delete=models.PROTECT)
     email = models.EmailField(blank=True, default="")
+    click_and_collect_option = models.CharField(
+        max_length=30,
+        choices=WarehouseClickAndCollectOption.CHOICES,
+        default=WarehouseClickAndCollectOption.DISABLED,
+    )
+    is_private = models.BooleanField(default=True)
 
     objects = models.Manager.from_queryset(WarehouseQueryset)()
 
@@ -53,6 +61,21 @@ class Warehouse(ModelWithMetadata):
         address = self.address
         super().delete(*args, **kwargs)
         address.delete()
+
+    def clean(self) -> None:
+        if (
+            self.click_and_collect_option == WarehouseClickAndCollectOption.LOCAL_STOCK
+            and self.is_private
+        ):
+            raise ValidationError(
+                {
+                    "click_and_collect_option": (
+                        "Cannot set click&collect to 'LOCAL STOCK'"
+                        "when warehouse is private"
+                    )
+                }
+            )
+        super().clean()
 
 
 class StockQuerySet(models.QuerySet):

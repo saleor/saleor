@@ -2,7 +2,7 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ...core.permissions import ProductPermissions
-from ...warehouse import models
+from ...warehouse import WarehouseClickAndCollectOption, models
 from ...warehouse.error_codes import WarehouseErrorCode
 from ...warehouse.validation import validate_warehouse_count  # type: ignore
 from ..account.i18n import I18nMixin
@@ -51,6 +51,19 @@ class WarehouseMixin:
             msg = "Shipping zone can be assigned only to one warehouse."
             raise ValidationError(
                 {"shipping_zones": msg}, code=WarehouseErrorCode.INVALID
+            )
+
+        click_and_collect_option = cleaned_input.get(
+            "click_and_collect_option", instance.click_and_collect_option
+        )
+        is_private = cleaned_input.get("is_private", instance.is_private)
+        if (
+            click_and_collect_option == WarehouseClickAndCollectOption.LOCAL_STOCK
+            and is_private
+        ):
+            msg = "Local warehouse can be toggled only for non-private warehouse stocks"
+            raise ValidationError(
+                {"click_and_collect_option": msg}, code=WarehouseErrorCode.INVALID
             )
         return cleaned_input
 
