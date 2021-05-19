@@ -4028,6 +4028,13 @@ def test_order_refund(staff_api_client, permission_manage_orders, payment_txn_ca
     ).first()
     assert refund_order_event.parameters["amount"] == str(amount)
 
+    refunded_fulfillment = order.fulfillments.filter(
+        status=FulfillmentStatus.REFUNDED
+    ).first()
+    assert refunded_fulfillment
+    assert refunded_fulfillment.total_refund_amount == payment_txn_captured.total
+    assert refunded_fulfillment.shipping_refund_amount is None
+
 
 @pytest.mark.parametrize(
     "requires_amount, mutation_name",
