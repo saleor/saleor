@@ -139,6 +139,10 @@ All notable, unreleased changes to this project will be documented in this file.
   - drop `productType` from `ProductFilter`
   - deprecate mutations' `<name>Errors`, typed `errors` fields and remove deprecation
 - Add channel data to Order webhook - #7299 by @krzysztofwolski
+- Deprecated Stripe plugin - will be removed in Saleor 4.0
+  - rename `StripeGatewayPlugin` to `DeprecatedStripeGatewayPlugin`.
+  - introduce new `StripeGatewayPlugin` plugin.
+
 
 ### Other
 

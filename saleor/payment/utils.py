@@ -4,11 +4,13 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Dict, Optional
 
 import graphene
+from babel.numbers import get_currency_precision
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import transaction
 
 from ..account.models import User
 from ..checkout.models import Checkout
+from ..core.prices import quantize_price
 from ..order.models import Order
 from . import ChargeStatus, GatewayError, PaymentError, TransactionKind
 from .error_codes import PaymentErrorCode
@@ -367,3 +369,29 @@ def is_currency_supported(currency: str, gateway_id: str, manager: "PluginsManag
     """Return true if the given gateway supports given currency."""
     available_gateways = manager.list_payment_gateways(currency=currency)
     return any([gateway.id == gateway_id for gateway in available_gateways])
+
+
+def price_from_minor_unit(value: str, currency: str):
+    """Convert minor unit (smallest unit of currency) to decimal value.
+
+    (value: 1000, currency: USD) will be converted to 10.00
+    """
+
+    value = Decimal(value)
+    precision = get_currency_precision(currency)
+    number_places = Decimal(10) ** -precision
+    return value * number_places
+
+
+def price_to_minor_unit(value: Decimal, currency: str):
+    """Convert decimal value to the smallest unit of currency.
+
+    Take the value, discover the precision of currency and multiply value by
+    Decimal('10.0'), then change quantization to remove the comma.
+    Decimal(10.0) -> str(1000)
+    """
+    value = quantize_price(value, currency=currency)
+    precision = get_currency_precision(currency)
+    number_places = Decimal("10.0") ** precision
+    value_without_comma = value * number_places
+    return str(value_without_comma.quantize(Decimal("1")))
