@@ -1,10 +1,12 @@
+import copy
+
 import pytest
 from django_prices_vatlayer.models import VAT
 from django_prices_vatlayer.utils import get_tax_for_rate
 
 from ..base_plugin import ConfigurationTypeField
 from ..models import PluginConfiguration
-from .sample_plugins import PluginInactive, PluginSample
+from .sample_plugins import ChannelPluginSample, PluginInactive, PluginSample
 
 
 @pytest.fixture
@@ -23,9 +25,37 @@ def plugin_configuration(db):
 
 
 @pytest.fixture
+def channel_plugin_configurations(db, channel_USD, channel_PLN):
+    usd_configuration = copy.deepcopy(ChannelPluginSample.DEFAULT_CONFIGURATION)
+    usd_configuration[0]["value"] = channel_USD.slug
+
+    pln_configuration = copy.deepcopy(ChannelPluginSample.DEFAULT_CONFIGURATION)
+    pln_configuration[0]["value"] = channel_PLN.slug
+
+    return PluginConfiguration.objects.bulk_create(
+        [
+            PluginConfiguration(
+                identifier=ChannelPluginSample.PLUGIN_ID,
+                channel=channel_USD,
+                name=ChannelPluginSample.PLUGIN_NAME,
+                active=ChannelPluginSample.DEFAULT_ACTIVE,
+                configuration=usd_configuration,
+            ),
+            PluginConfiguration(
+                identifier=ChannelPluginSample.PLUGIN_ID,
+                channel=channel_PLN,
+                name=ChannelPluginSample.PLUGIN_NAME,
+                active=ChannelPluginSample.DEFAULT_ACTIVE,
+                configuration=pln_configuration,
+            ),
+        ]
+    )
+
+
+@pytest.fixture
 def inactive_plugin_configuration(db):
     return PluginConfiguration.objects.get_or_create(
-        identifier=PluginSample.PLUGIN_ID,
+        identifier=PluginInactive.PLUGIN_ID,
         name=PluginInactive.PLUGIN_NAME,
         defaults={
             "active": PluginInactive.DEFAULT_ACTIVE,

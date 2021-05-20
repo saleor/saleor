@@ -6,7 +6,7 @@ import pytest
 from prices import Money, TaxedMoney
 
 from .....account.models import User
-from .....order import OrderEvents
+from .....order import OrderEvents, OrderStatus
 from .....order.models import Fulfillment, Order, OrderEvent, OrderLine
 from .....payment import ChargeStatus
 from .....payment.models import Payment
@@ -124,3 +124,13 @@ def orders_for_benchmarks(
     OrderLine.objects.bulk_create(lines)
 
     return created_orders
+
+
+@pytest.fixture
+def draft_orders_for_benchmarks(orders_for_benchmarks):
+    for order in orders_for_benchmarks:
+        order.status = OrderStatus.DRAFT
+
+    Order.objects.bulk_update(orders_for_benchmarks, ["status"])
+
+    return orders_for_benchmarks

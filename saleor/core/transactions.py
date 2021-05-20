@@ -1,13 +1,15 @@
 from contextlib import contextmanager
 
-from django.db import DatabaseError, transaction
+from django.db import DatabaseError
+
+from ..core.tracing import traced_atomic_transaction
 
 
 @contextmanager
 def transaction_with_commit_on_errors():
     """Perform transaction and raise an error in any occurred."""
     error = None
-    with transaction.atomic():
+    with traced_atomic_transaction():
         try:
             yield
         except DatabaseError:

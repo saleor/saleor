@@ -3,6 +3,8 @@
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
 ## [Unreleased]
+
+- Extend editorjs validator to accept blocks different than text - #SALEOR-3354 by @mociepka
 - Add query contains only schema validation - #6827 by @fowczarek
 - Add introspection caching - #6871 by @fowczarek
 - Refactor plugins manager(add missing tracing, optimize imports, drop plugins manager from settings) - #6890 by @fowczarek
@@ -71,6 +73,20 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix draft order tax mismatch - #7226 by @IKarbowiak
   - Introduce `calculate_order_line_total` plugin method
 - Raise ValidationError when refund cannot be performed - #7260 by @IKarbowiak
+- Extend order with origin and original order values - #7326 by @IKarbowiak
+- Fix customer addresses missing after customer creation - #7327 by @tomaszszymanski129
+- Extend order webhook payload with fulfillment fields - #7364 by @korycins
+- Extend order payload with undiscounted prices and add psp_reference to payment model - #7339 by @IKarbowiak
+  - order payload extended with the following fields:
+    - `undiscounted_total_net_amount`
+    - `undiscounted_total_gross_amount`
+    - `psp_reference` on `payment`
+  - order lines extended with:
+    - `undiscounted_unit_price_net_amount`
+    - `undiscounted_unit_price_gross_amount`
+    - `undiscounted_total_price_net_amount`
+    - `undiscounted_total_price_gross_amount`
+- Copy metadata fields when creating reissue - #7358 by @IKarbowiak
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -118,6 +134,29 @@ All notable, unreleased changes to this project will be documented in this file.
 - Make `order` property of invoice webhook payload contain order instead of order lines - #7081 by @pdblaszczyk
   - Affected webhook events: `INVOICE_REQUESTED`, `INVOICE_SENT`, `INVOICE_DELETED`
 - Make quantity field on `StockInput` required - #7082 by @IKarbowiak
+- Extend plugins manager to configure plugins for each plugins - #7198 by @korycins:
+  - Introduce changes in API:
+    - `paymentInitialize` - add `channel` parameter. Optional when only one  channel exists.
+    - `pluginUpdate` - add `channel` parameter.
+    - `availablePaymentGateways` - add `channel` parameter.
+    - `storedPaymentSources` - add `channel` parameter.
+    - `requestPasswordReset` - add `channel` parameter.
+    - `requestEmailChange` - add `channel` parameter.
+    - `confirmEmailChange` - add `channel` parameter.
+    - `accountRequestDeletion` - add `channel` parameter.
+    - change structure of type `Plugin`:
+      - add `globalConfiguration` field for storing configuration when a plugin is globally configured
+      - add `channelConfigurations` field for storing plugin configuration for each channel
+      - removed `configuration` field, use `globalConfiguration` and `channelConfigurations` instead
+    - change structure of input `PluginFilterInput`:
+      - add `statusInChannels` field
+      - add `type` field
+      - removed `active` field. Use `statusInChannels` instead
+  - Change plugin webhook endpoint - #7332 by @korycins.
+    - Use /plugins/channel/<channel_slug>/<plugin_id> for plugins with channel configuration
+    - Use /plugins/global/<plugin_id> for plugins with global configuration
+    - Remove /plugin/<plugin_id> endpoint
+
 - Add description to shipping method - #7116 by @IKarbowiak
   - `ShippingMethod` was extended with `description` field.
   - `ShippingPriceInput` was extended with `description` field
@@ -139,6 +178,8 @@ All notable, unreleased changes to this project will be documented in this file.
   - drop `productType` from `ProductFilter`
   - deprecate mutations' `<name>Errors`, typed `errors` fields and remove deprecation
 - Add channel data to Order webhook - #7299 by @krzysztofwolski
+- Always create new checkout in `checkoutCreate` mutation - #7318 by @IKarbowiak
+  - deprecate `created` return field on `checkoutCreate` mutation
 
 ### Other
 

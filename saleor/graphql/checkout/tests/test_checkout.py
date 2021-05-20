@@ -109,7 +109,6 @@ def test_update_checkout_shipping_method_if_invalid(
 MUTATION_CHECKOUT_CREATE = """
     mutation createCheckout($checkoutInput: CheckoutCreateInput!) {
       checkoutCreate(input: $checkoutInput) {
-        created
         checkout {
           id
           token
@@ -178,9 +177,7 @@ def test_checkout_create_with_default_channel(
     assert not Checkout.objects.exists()
     with warnings.catch_warnings(record=True) as warns:
         response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
-        content = get_graphql_content(response)["data"]["checkoutCreate"]
-
-    assert content["created"] is True
+        get_graphql_content(response)["data"]["checkoutCreate"]
 
     new_checkout = Checkout.objects.first()
     lines = fetch_checkout_lines(new_checkout)
@@ -293,9 +290,7 @@ def test_checkout_create_with_inactive_default_channel(
     assert not Checkout.objects.exists()
     with warnings.catch_warnings(record=True) as warns:
         response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
-        content = get_graphql_content(response)["data"]["checkoutCreate"]
-
-    assert content["created"] is True
+        get_graphql_content(response)["data"]["checkoutCreate"]
 
     new_checkout = Checkout.objects.first()
 
@@ -327,9 +322,7 @@ def test_checkout_create_with_inactive_and_active_default_channel(
     assert not Checkout.objects.exists()
     with warnings.catch_warnings(record=True) as warns:
         response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
-        content = get_graphql_content(response)["data"]["checkoutCreate"]
-
-    assert content["created"] is True
+        get_graphql_content(response)["data"]["checkoutCreate"]
 
     new_checkout = Checkout.objects.first()
 
@@ -460,8 +453,6 @@ def test_checkout_create_with_multiple_channel_with_channel_slug(
 
     content = get_graphql_content(response)["data"]["checkoutCreate"]
 
-    assert content["created"] is True
-
     new_checkout = Checkout.objects.first()
     assert new_checkout is not None
     assert new_checkout.channel == channel_USD
@@ -494,7 +485,6 @@ def test_checkout_create_with_existing_checkout_in_other_channel(
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
 
     content = get_graphql_content(response)["data"]["checkoutCreate"]
-    assert content["created"] is True
 
     checkout_data = content["checkout"]
     assert checkout_data["token"] != str(old_checkout.token)
@@ -543,9 +533,6 @@ def test_checkout_create(api_client, stock, graphql_address_data, channel_USD):
     assert not Checkout.objects.exists()
     response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
     content = get_graphql_content(response)["data"]["checkoutCreate"]
-
-    # Look at the flag to see whether a new checkout was created or not
-    assert content["created"] is True
 
     new_checkout = Checkout.objects.first()
     assert new_checkout is not None
@@ -643,9 +630,6 @@ def test_checkout_create_multiple_warehouse(
     response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
     content = get_graphql_content(response)["data"]["checkoutCreate"]
 
-    # Look at the flag to see whether a new checkout was created or not
-    assert content["created"] is True
-
     new_checkout = Checkout.objects.first()
     assert new_checkout is not None
     checkout_data = content["checkout"]
@@ -673,9 +657,6 @@ def test_checkout_create_with_null_as_addresses(api_client, stock, channel_USD):
     assert not Checkout.objects.exists()
     response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
     content = get_graphql_content(response)["data"]["checkoutCreate"]
-
-    # Look at the flag to see whether a new checkout was created or not
-    assert content["created"] is True
 
     new_checkout = Checkout.objects.first()
     assert new_checkout is not None
@@ -708,9 +689,6 @@ def test_checkout_create_with_variant_without_inventory_tracking(
     assert not Checkout.objects.exists()
     response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
     content = get_graphql_content(response)["data"]["checkoutCreate"]
-
-    # Look at the flag to see whether a new checkout was created or not
-    assert content["created"] is True
 
     new_checkout = Checkout.objects.first()
     assert new_checkout is not None
@@ -791,16 +769,10 @@ def test_checkout_create_reuse_checkout(checkout, user_api_client, stock):
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
     content = get_graphql_content(response)["data"]["checkoutCreate"]
 
-    # Look at the flag to see whether a new checkout was created or not
-    assert not content["created"]
-
-    # assert that existing checkout was reused and returned by mutation
     checkout_data = content["checkout"]
-    assert checkout_data["token"] == str(checkout.token)
+    assert checkout_data["token"] != str(checkout.token)
 
-    # if checkout was reused it should be returned unmodified (e.g. without
-    # adding new lines that was passed)
-    assert checkout_data["lines"] == []
+    assert len(checkout_data["lines"]) == 1
 
 
 def test_checkout_create_required_email(api_client, stock, channel_USD):
@@ -1043,8 +1015,7 @@ def test_checkout_create_sets_country_from_shipping_address_country(
     assert not Checkout.objects.exists()
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
     content = get_graphql_content(response)
-    data = content["data"]["checkoutCreate"]
-    assert data["created"] is True
+    content["data"]["checkoutCreate"]
     checkout = Checkout.objects.first()
     assert checkout.country == "US"
 
@@ -1431,7 +1402,9 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
 
-    apply_taxes_to_shipping_mock.assert_called_once_with(shipping_price, mock.ANY)
+    apply_taxes_to_shipping_mock.assert_called_once_with(
+        shipping_price, mock.ANY, checkout_with_item.channel.slug
+    )
     assert data["availableShippingMethods"] == [
         {"name": "DHL", "price": {"amount": expected_price}}
     ]

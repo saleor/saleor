@@ -26,6 +26,7 @@ class PluginSample(BasePlugin):
     PLUGIN_NAME = "PluginSample"
     PLUGIN_DESCRIPTION = "Test plugin description"
     DEFAULT_ACTIVE = True
+    CONFIGURATION_PER_CHANNEL = False
     DEFAULT_CONFIGURATION = [
         {"name": "Username", "value": "admin"},
         {"name": "Password", "value": None},
@@ -221,10 +222,44 @@ class PluginSample(BasePlugin):
         return Decimal("0.080").quantize(Decimal(".01"))
 
 
+class ChannelPluginSample(PluginSample):
+    PLUGIN_ID = "channel.plugin.sample"
+    PLUGIN_NAME = "Channel Plugin"
+    PLUGIN_DESCRIPTION = "Test channel plugin"
+    DEFAULT_ACTIVE = True
+    CONFIGURATION_PER_CHANNEL = True
+    DEFAULT_CONFIGURATION = [{"name": "input-per-channel", "value": None}]
+    CONFIG_STRUCTURE = {
+        "input-per-channel": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "Test input",
+            "label": "Input per channel",
+        }
+    }
+
+
+class InactiveChannelPluginSample(PluginSample):
+    PLUGIN_ID = "channel.plugin.inactive.sample"
+    PLUGIN_NAME = "Inactive Channel Plugin"
+    PLUGIN_DESCRIPTION = "Test channel plugin"
+    DEFAULT_ACTIVE = False
+    CONFIGURATION_PER_CHANNEL = True
+    DEFAULT_CONFIGURATION = [{"name": "input-per-channel", "value": None}]
+    CONFIG_STRUCTURE = {
+        "input-per-channel": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "Test input",
+            "label": "Input per channel",
+        }
+    }
+
+
 class PluginInactive(BasePlugin):
-    PLUGIN_ID = "plugin.inactive"
+    PLUGIN_ID = "mirumee.taxes.plugin.inactive"
     PLUGIN_NAME = "PluginInactive"
     PLUGIN_DESCRIPTION = "Test plugin description_2"
+    CONFIGURATION_PER_CHANNEL = False
+    DEFAULT_ACTIVE = False
 
     def external_obtain_access_tokens(
         self, data: dict, request: WSGIRequest, previous_value
@@ -235,14 +270,15 @@ class PluginInactive(BasePlugin):
 
 
 class ActivePlugin(BasePlugin):
-    PLUGIN_ID = "plugin.active"
+    PLUGIN_ID = "mirumee.x.plugin.active"
     PLUGIN_NAME = "Active"
     PLUGIN_DESCRIPTION = "Not working"
     DEFAULT_ACTIVE = True
+    CONFIGURATION_PER_CHANNEL = False
 
 
 class ActivePaymentGateway(BasePlugin):
-    PLUGIN_ID = "gateway.active"
+    PLUGIN_ID = "mirumee.gateway.active"
     CLIENT_CONFIG = [
         {"field": "foo", "value": "bar"},
     ]

@@ -9,6 +9,7 @@ from django.db.utils import IntegrityError
 
 from ....checkout.models import CheckoutLine
 from ....core.permissions import ProductPermissions
+from ....core.tracing import traced_atomic_transaction
 from ....product.error_codes import CollectionErrorCode, ProductErrorCode
 from ....product.models import CollectionChannelListing
 from ....product.models import Product as ProductModel
@@ -261,7 +262,7 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
         cls.perform_checkout_lines_delete(variant_ids, remove_channels)
 
     @classmethod
-    @transaction.atomic()
+    @traced_atomic_transaction()
     def save(cls, info, product: "ProductModel", cleaned_input: Dict):
         cls.update_channels(product, cleaned_input.get("update_channels", []))
         cls.remove_channels(product, cleaned_input.get("remove_channels", []))
@@ -409,7 +410,7 @@ class ProductVariantChannelListingUpdate(BaseMutation):
         return cleaned_input
 
     @classmethod
-    @transaction.atomic()
+    @traced_atomic_transaction()
     def save(cls, info, variant: "ProductVariantModel", cleaned_input: List):
         for channel_listing_data in cleaned_input:
             channel = channel_listing_data["channel"]
@@ -504,7 +505,7 @@ class CollectionChannelListingUpdate(BaseChannelListingMutation):
         ).delete()
 
     @classmethod
-    @transaction.atomic()
+    @traced_atomic_transaction()
     def save(cls, info, collection: "CollectionModel", cleaned_input: Dict):
         cls.add_channels(collection, cleaned_input.get("add_channels", []))
         cls.remove_channels(collection, cleaned_input.get("remove_channels", []))
