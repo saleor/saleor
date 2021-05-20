@@ -75,9 +75,12 @@ def collections_for_sorting_with_channels(channel_USD, channel_PLN):
 
 
 QUERY_COLLECTIONS_WITH_SORTING_AND_FILTERING = """
-    query ($sortBy: CollectionSortingInput, $filter: CollectionFilterInput){
+    query (
+        $sortBy: CollectionSortingInput,
+        $filter: CollectionFilterInput, $channel: String
+    ){
         collections (
-            first: 10, sortBy: $sortBy, filter: $filter
+            first: 10, sortBy: $sortBy, filter: $filter, channel: $channel
         ) {
             edges {
                 node {
@@ -325,8 +328,7 @@ def test_collections_with_filtering_with_channel_USD(
     channel_USD,
 ):
     # given
-    filter_by["channel"] = channel_USD.slug
-    variables = {"filter": filter_by}
+    variables = {"filter": filter_by, "channel": channel_USD.slug}
 
     # when
     response = staff_api_client.post_graphql(
@@ -355,8 +357,7 @@ def test_collections_with_filtering_with_channel_PLN(
     channel_PLN,
 ):
     # given
-    filter_by["channel"] = channel_PLN.slug
-    variables = {"filter": filter_by}
+    variables = {"filter": filter_by, "channel": channel_PLN.slug}
 
     # when
     response = staff_api_client.post_graphql(
@@ -384,8 +385,7 @@ def test_collections_with_filtering_and_not_existing_channel(
     channel_USD,
 ):
     # given
-    filter_by["channel"] = "Not-existing"
-    variables = {"filter": filter_by}
+    variables = {"filter": filter_by, "channel": "Not-existing"}
 
     # when
     response = staff_api_client.post_graphql(

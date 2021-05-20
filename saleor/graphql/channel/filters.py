@@ -3,7 +3,7 @@ from typing import Dict
 from graphql.error import GraphQLError
 
 LACK_OF_CHANNEL_IN_FILTERING_MSG = (
-    "You must provide a `channel` filter parameter to properly filter data."
+    "You must provide a `channel` parameter to properly filter data."
 )
 
 

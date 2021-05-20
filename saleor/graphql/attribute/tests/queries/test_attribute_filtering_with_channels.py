@@ -141,10 +141,10 @@ def attributes_for_filtering_with_channels(
 
 QUERY_ATTRIBUTES_FILTERING = """
     query (
-        $filter: AttributeFilterInput
+        $filter: AttributeFilterInput, $channel: String
     ){
         attributes (
-            first: 10, filter: $filter
+            first: 10, filter: $filter, channel: $channel
         ) {
             edges {
                 node {
@@ -210,9 +210,9 @@ def test_products_with_filtering_with_as_staff_user(
         filtered_by_node_id = graphene.Node.to_global_id("Category", category.pk)
     else:
         raise AssertionError(tested_field)
-    filter_by = {tested_field: filtered_by_node_id, "channel": channel_USD.slug}
+    filter_by = {tested_field: filtered_by_node_id}
 
-    variables = {"filter": filter_by}
+    variables = {"filter": filter_by, "channel": channel_USD.slug}
 
     # when
     response = staff_api_client.post_graphql(
@@ -248,9 +248,9 @@ def test_products_with_filtering_as_anonymous_client(
         filtered_by_node_id = graphene.Node.to_global_id("Category", category.pk)
     else:
         raise AssertionError(tested_field)
-    filter_by = {tested_field: filtered_by_node_id, "channel": channel_USD.slug}
+    filter_by = {tested_field: filtered_by_node_id}
 
-    variables = {"filter": filter_by}
+    variables = {"filter": filter_by, "channel": channel_USD.slug}
 
     # when
     response = api_client.post_graphql(QUERY_ATTRIBUTES_FILTERING, variables)
@@ -282,9 +282,9 @@ def test_products_with_filtering_with_not_visible_in_listings_as_staff_user(
         filtered_by_node_id = graphene.Node.to_global_id("Category", category.pk)
     else:
         raise AssertionError(tested_field)
-    filter_by = {tested_field: filtered_by_node_id, "channel": channel_PLN.slug}
+    filter_by = {tested_field: filtered_by_node_id}
 
-    variables = {"filter": filter_by}
+    variables = {"filter": filter_by, "channel": channel_PLN.slug}
 
     # when
     response = staff_api_client.post_graphql(
@@ -324,9 +324,9 @@ def test_products_with_filtering_with_not_visible_in_listings_as_anonymous_clien
         filtered_by_node_id = graphene.Node.to_global_id("Category", category.pk)
     else:
         raise AssertionError(tested_field)
-    filter_by = {tested_field: filtered_by_node_id, "channel": channel_PLN.slug}
+    filter_by = {tested_field: filtered_by_node_id}
 
-    variables = {"filter": filter_by}
+    variables = {"filter": filter_by, "channel": channel_PLN.slug}
 
     # when
     response = api_client.post_graphql(QUERY_ATTRIBUTES_FILTERING, variables)
@@ -358,9 +358,9 @@ def test_products_with_filtering_with_not_published_as_staff_user(
         filtered_by_node_id = graphene.Node.to_global_id("Category", category.pk)
     else:
         raise AssertionError(tested_field)
-    filter_by = {tested_field: filtered_by_node_id, "channel": other_channel_USD.slug}
+    filter_by = {tested_field: filtered_by_node_id}
 
-    variables = {"filter": filter_by}
+    variables = {"filter": filter_by, "channel": other_channel_USD.slug}
 
     # when
     response = staff_api_client.post_graphql(
@@ -396,9 +396,9 @@ def test_products_with_filtering_with_not_published_as_anonymous_client(
         filtered_by_node_id = graphene.Node.to_global_id("Category", category.pk)
     else:
         raise AssertionError(tested_field)
-    filter_by = {tested_field: filtered_by_node_id, "channel": other_channel_USD.slug}
+    filter_by = {tested_field: filtered_by_node_id}
 
-    variables = {"filter": filter_by}
+    variables = {"filter": filter_by, "channel": other_channel_USD.slug}
 
     # when
     response = api_client.post_graphql(QUERY_ATTRIBUTES_FILTERING, variables)
@@ -427,9 +427,9 @@ def test_products_with_filtering_not_existing_channel(
         filtered_by_node_id = graphene.Node.to_global_id("Category", category.pk)
     else:
         raise AssertionError(tested_field)
-    filter_by = {tested_field: filtered_by_node_id, "channel": "Not-existing"}
+    filter_by = {tested_field: filtered_by_node_id}
 
-    variables = {"filter": filter_by}
+    variables = {"filter": filter_by, "channel": "Not-existing"}
 
     # when
     response = api_client.post_graphql(QUERY_ATTRIBUTES_FILTERING, variables)

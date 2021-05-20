@@ -87,7 +87,7 @@ def test_collection_view(api_client, published_collection, count_queries, channe
               startCursor
             }
           }
-          attributes(filter: {inCollection: $id, channel: $channel}, first: 100) {
+          attributes(filter: {inCollection: $id}, channel: $channel, first: 100) {
             edges {
               node {
                 id
