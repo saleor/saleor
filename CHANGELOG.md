@@ -217,6 +217,8 @@ All notable, unreleased changes to this project will be documented in this file.
   - `values` for attributes without choices from now are empty list.
   - attributes with choices - `DROPDOWN` and `MULTISELECT`
   - attributes without choices - `FILE`, `REFERENCE`, `NUMERIC` and `RICH_TEXT`
+- Use root level channel argument for filtering and sorting - #7374 by @IKarbowiak
+  - drop `channel` field from filters and sorters
 
 ### Other
 
