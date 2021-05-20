@@ -6,6 +6,7 @@ from django.db import transaction
 from graphene.types import InputObjectType
 
 from ....core.permissions import ProductPermissions, ProductTypePermissions
+from ....core.tracing import traced_atomic_transaction
 from ....order import OrderStatus
 from ....order import models as order_models
 from ....order.tasks import recalculate_orders_task
@@ -99,7 +100,7 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
         error_type_field = "product_errors"
 
     @classmethod
-    @transaction.atomic
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, ids, **data):
         _, pks = resolve_global_ids_to_primary_keys(ids, Product)
         product_to_variant = list(
@@ -437,7 +438,7 @@ class ProductVariantBulkCreate(BaseMutation):
         )
 
     @classmethod
-    @transaction.atomic
+    @traced_atomic_transaction()
     def save_variants(cls, info, instances, product, cleaned_inputs):
         assert len(instances) == len(
             cleaned_inputs
@@ -463,7 +464,7 @@ class ProductVariantBulkCreate(BaseMutation):
         create_stocks(variant, stocks, warehouses)
 
     @classmethod
-    @transaction.atomic
+    @traced_atomic_transaction()
     def perform_mutation(cls, root, info, **data):
         product = cls.get_node_or_error(info, data["product_id"], models.Product)
         errors = defaultdict(list)
@@ -509,7 +510,7 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         error_type_field = "product_errors"
 
     @classmethod
-    @transaction.atomic
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, ids, **data):
         _, pks = resolve_global_ids_to_primary_keys(ids, ProductVariant)
         # get draft order lines for variants
@@ -667,7 +668,7 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
         return cls(product_variant=variant)
 
     @classmethod
-    @transaction.atomic
+    @traced_atomic_transaction()
     def update_or_create_variant_stocks(cls, variant, stocks_data, warehouses):
         stocks = []
         for stock_data, warehouse in zip(stocks_data, warehouses):

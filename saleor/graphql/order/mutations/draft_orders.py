@@ -1,6 +1,5 @@
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 from graphene.types import InputObjectType
 
 from ....account.models import User
@@ -8,8 +7,9 @@ from ....checkout import AddressType
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError, zero_taxed_money
+from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
-from ....order import OrderLineData, OrderStatus, events, models
+from ....order import OrderLineData, OrderOrigin, OrderStatus, events, models
 from ....order.actions import order_created
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import (
@@ -171,6 +171,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             cleaned_input["quantities"] = quantities
 
         cleaned_input["status"] = OrderStatus.DRAFT
+        cleaned_input["origin"] = OrderOrigin.DRAFT
         display_gross_prices = info.context.site.settings.display_gross_prices
         cleaned_input["display_gross_prices"] = display_gross_prices
 
@@ -260,7 +261,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             )
 
     @classmethod
-    @transaction.atomic
+    @traced_atomic_transaction()
     def save(cls, info, instance, cleaned_input):
         new_instance = not bool(instance.pk)
 

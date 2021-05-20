@@ -10,9 +10,13 @@ def update_orders_total_paid_in_db(apps, schema_editor):
         total_paid_amount=models.Subquery(
             Order.objects.filter(id=models.OuterRef("id"))
             .annotate(
-                _total_paid_amount=Coalesce(models.Sum("payments__captured_amount"), 0)
+                _total_paid_amount=Coalesce(
+                    models.Sum("payments__captured_amount"),
+                    0,
+                    output_field=models.DecimalField(),
+                )
             )
-            .values("_total_paid_amount")[:1]
+            .values("_total_paid_amount")[:1],
         )
     )
 

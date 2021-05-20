@@ -3,7 +3,6 @@ from copy import copy
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 
 from ....account import events as account_events
 from ....account import models, utils
@@ -14,6 +13,7 @@ from ....account.utils import remove_staff_member
 from ....checkout import AddressType
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions
+from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
@@ -251,7 +251,7 @@ class StaffCreate(ModelMutation):
             )
 
     @classmethod
-    @transaction.atomic
+    @traced_atomic_transaction()
     def _save_m2m(cls, info, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
         groups = cleaned_data.get("add_groups")
@@ -374,7 +374,7 @@ class StaffUpdate(StaffCreate):
             errors["is_active"].append(error)
 
     @classmethod
-    @transaction.atomic
+    @traced_atomic_transaction()
     def _save_m2m(cls, info, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
         add_groups = cleaned_data.get("add_groups")

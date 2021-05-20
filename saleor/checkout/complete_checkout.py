@@ -14,6 +14,7 @@ from ..checkout import calculations
 from ..checkout.error_codes import CheckoutErrorCode
 from ..core.exceptions import InsufficientStock
 from ..core.taxes import TaxError, zero_taxed_money
+from ..core.tracing import traced_atomic_transaction
 from ..core.utils.url import validate_storefront_url
 from ..discount import DiscountInfo, DiscountValueType, OrderDiscountType
 from ..discount.models import NotApplicable
@@ -26,13 +27,13 @@ from ..discount.utils import (
 from ..graphql.checkout.utils import (
     prepare_insufficient_stock_checkout_validation_error,
 )
-from ..order import OrderLineData, OrderStatus
+from ..order import OrderLineData, OrderOrigin, OrderStatus
 from ..order.actions import order_created
 from ..order.models import Order, OrderLine
 from ..order.notifications import send_order_confirmation
 from ..payment import PaymentError, gateway
 from ..payment.models import Payment, Transaction
-from ..payment.utils import store_customer_id
+from ..payment.utils import fetch_customer_id, store_customer_id
 from ..product.models import ProductTranslation, ProductVariantTranslation
 from ..warehouse.availability import check_stock_quantity_bulk
 from ..warehouse.management import allocate_stocks
@@ -325,7 +326,7 @@ def _prepare_order_data(
     return order_data
 
 
-@transaction.atomic
+@traced_atomic_transaction()
 def _create_order(
     *,
     checkout_info: "CheckoutInfo",
@@ -367,6 +368,7 @@ def _create_order(
         **order_data,
         checkout_token=checkout.token,
         status=status,
+        origin=OrderOrigin.CHECKOUT,
         channel=checkout_info.channel,
     )
     if checkout.discount:
@@ -511,6 +513,7 @@ def _get_order_data(
 
 def _process_payment(
     payment: Payment,
+    customer_id: Optional[str],
     store_source: bool,
     payment_data: Optional[dict],
     order_data: dict,
@@ -531,6 +534,7 @@ def _process_payment(
                 payment=payment,
                 token=payment.token,
                 manager=manager,
+                customer_id=customer_id,
                 store_source=store_source,
                 additional_data=payment_data,
                 channel_slug=channel_slug,
@@ -581,8 +585,13 @@ def complete_checkout(
         gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
         raise exc
 
+    customer_id = None
+    if store_source and payment:
+        customer_id = fetch_customer_id(user=user, gateway=payment.gateway)
+
     txn = _process_payment(
         payment=payment,  # type: ignore
+        customer_id=customer_id,
         store_source=store_source,
         payment_data=payment_data,
         order_data=order_data,

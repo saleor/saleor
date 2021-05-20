@@ -5,7 +5,7 @@ import graphene
 from prices import Money, TaxedMoney
 
 from ....core.prices import quantize_price
-from ....order import OrderStatus
+from ....order import OrderOrigin, OrderStatus
 from ....order.error_codes import OrderErrorCode
 from ....order.models import FulfillmentStatus, Order
 from ....payment import ChargeStatus, PaymentError
@@ -49,6 +49,8 @@ mutation OrderFulfillmentReturnProducts(
         replaceOrder{
             id
             status
+            original
+            origin
         }
         errors {
             field
@@ -241,6 +243,8 @@ def test_fulfillment_return_products_order_lines(
     assert replace_fulfillment["lines"][0]["quantity"] == line_quantity_to_replace
 
     assert replace_order["status"] == OrderStatus.DRAFT.upper()
+    assert replace_order["origin"] == OrderOrigin.REISSUE.upper()
+    assert replace_order["original"] == order_id
     replace_order = Order.objects.get(status=OrderStatus.DRAFT)
     assert replace_order.lines.count() == 1
     replaced_line = replace_order.lines.get()
@@ -463,6 +467,9 @@ def test_fulfillment_return_products_fulfillment_lines(
     assert replace_fulfillment["lines"][0]["quantity"] == quantity_to_replace
 
     assert replace_order["status"] == OrderStatus.DRAFT.upper()
+    assert replace_order["origin"] == OrderOrigin.REISSUE.upper()
+    assert replace_order["original"] == order_id
+
     replace_order = Order.objects.get(status=OrderStatus.DRAFT)
     assert replace_order.lines.count() == 1
     replaced_line = replace_order.lines.get()
@@ -731,6 +738,9 @@ def test_fulfillment_return_products_fulfillment_lines_and_order_lines(
     assert replace_fulfillment["lines"][0]["quantity"] == 1
 
     assert replace_order["status"] == OrderStatus.DRAFT.upper()
+    assert replace_order["origin"] == OrderOrigin.REISSUE.upper()
+    assert replace_order["original"] == order_id
+
     replace_order = Order.objects.get(status=OrderStatus.DRAFT)
     assert replace_order.lines.count() == 1
     replaced_line = replace_order.lines.get()

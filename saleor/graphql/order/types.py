@@ -67,7 +67,7 @@ from .dataloaders import (
     OrderLineByIdLoader,
     OrderLinesByOrderIdLoader,
 )
-from .enums import OrderEventsEmailsEnum, OrderEventsEnum
+from .enums import OrderEventsEmailsEnum, OrderEventsEnum, OrderOriginEnum
 from .utils import validate_draft_order
 
 
@@ -579,6 +579,10 @@ class Order(CountableDjangoObjectType):
         Invoice, required=False, description="List of order invoices."
     )
     number = graphene.String(description="User-friendly number of an order.")
+    original = graphene.ID(
+        description="The ID of the order that was the base for this order."
+    )
+    origin = OrderOriginEnum(description="The order origin.", required=True)
     is_paid = graphene.Boolean(
         description="Informs if an order is fully paid.", required=True
     )
@@ -1082,3 +1086,10 @@ class Order(CountableDjangoObjectType):
     @traced_resolver
     def resolve_language_code_enum(root, _info, **_kwargs):
         return LanguageCodeEnum[str_to_enum(root.language_code)]
+
+    @staticmethod
+    @traced_resolver
+    def resolve_original(root, info, **_kwargs):
+        if not root.original_id:
+            return None
+        return graphene.Node.to_global_id("Order", root.original_id)
