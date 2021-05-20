@@ -12,11 +12,22 @@ from graphene_django.filter import GlobalIDMultipleChoiceFilter
 from ...attribute import AttributeInputType
 from ...attribute.models import (
     AssignedProductAttribute,
+    AssignedProductAttributeValue,
     AssignedVariantAttribute,
+    AssignedVariantAttributeValue,
     Attribute,
     AttributeValue,
 )
-from ...product.models import Category, Collection, Product, ProductType, ProductVariant
+from ...channel.models import Channel
+from ...product.models import (
+    Category,
+    Collection,
+    Product,
+    ProductChannelListing,
+    ProductType,
+    ProductVariant,
+    ProductVariantChannelListing,
+)
 from ...warehouse.models import Stock
 from ..channel.filters import get_channel_slug_from_filter_data
 from ..core.filters import (
@@ -65,8 +76,11 @@ def _clean_product_attributes_filter_input(filter_value, queries):
 
 
 def _clean_product_attributes_range_filter_input(filter_value, queries):
+    attributes = Attribute.objects.filter(input_type=AttributeInputType.NUMERIC)
     values = (
-        AttributeValue.objects.filter(attribute__input_type=AttributeInputType.NUMERIC)
+        AttributeValue.objects.filter(
+            Exists(attributes.filter(pk=OuterRef("attribute_id")))
+        )
         .annotate(numeric_value=Cast("name", FloatField()))
         .select_related("attribute")
     )
@@ -94,24 +108,37 @@ def _clean_product_attributes_range_filter_input(filter_value, queries):
 
 
 def filter_products_by_attributes_values(qs, queries: T_PRODUCT_FILTER_QUERIES):
-    filters = [
-        Q(
+    filters = []
+    for values in queries.values():
+        assigned_product_attribute_values = (
+            AssignedProductAttributeValue.objects.filter(value_id__in=values)
+        )
+        assigned_product_attributes = AssignedProductAttribute.objects.filter(
             Exists(
-                AssignedProductAttribute.objects.filter(
-                    product__id=OuterRef("pk"), values__pk__in=values
-                )
+                assigned_product_attribute_values.filter(assignment_id=OuterRef("pk"))
             )
         )
-        | Q(
+        product_attribute_filter = Q(
+            Exists(assigned_product_attributes.filter(product_id=OuterRef("pk")))
+        )
+
+        assigned_variant_attribute_values = (
+            AssignedVariantAttributeValue.objects.filter(value_id__in=values)
+        )
+        assigned_variant_attributes = AssignedVariantAttribute.objects.filter(
             Exists(
-                AssignedVariantAttribute.objects.filter(
-                    variant__product__id=OuterRef("pk"),
-                    values__pk__in=values,
-                )
+                assigned_variant_attribute_values.filter(assignment_id=OuterRef("pk"))
             )
         )
-        for values in queries.values()
-    ]
+        product_variants = ProductVariant.objects.filter(
+            Exists(assigned_variant_attributes.filter(variant_id=OuterRef("pk")))
+        )
+        variant_attribute_filter = Q(
+            Exists(product_variants.filter(product_id=OuterRef("pk")))
+        )
+
+        filters.append(product_attribute_filter | variant_attribute_filter)
+
     return qs.filter(*filters)
 
 
@@ -128,19 +155,22 @@ def filter_products_by_attributes(qs, filter_values, filter_range_values):
 
 
 def filter_products_by_variant_price(qs, channel_slug, price_lte=None, price_gte=None):
+    channels = Channel.objects.filter(slug=channel_slug)
+    product_variant_channel_listings = ProductVariantChannelListing.objects.filter(
+        Exists(channels.filter(pk=OuterRef("channel_id")))
+    )
     if price_lte:
-        qs = qs.filter(
-            Q(variants__channel_listings__price_amount__lte=price_lte)
-            | Q(variants__channel_listings__price_amount__isnull=True),
-            variants__channel_listings__channel__slug=channel_slug,
+        product_variant_channel_listings = product_variant_channel_listings.filter(
+            Q(price_amount__lte=price_lte) | Q(price_amount__isnull=True)
         )
     if price_gte:
-        qs = qs.filter(
-            Q(variants__channel_listings__price_amount__gte=price_gte)
-            | Q(variants__channel_listings__price_amount__isnull=True),
-            variants__channel_listings__channel__slug=channel_slug,
+        product_variant_channel_listings = product_variant_channel_listings.filter(
+            Q(price_amount__gte=price_gte) | Q(price_amount__isnull=True)
         )
-    return qs
+    variants = ProductVariant.objects.filter(
+        Exists(product_variant_channel_listings.filter(variant_id=OuterRef("pk")))
+    )
+    return qs.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
 
 
 def filter_products_by_minimal_price(
@@ -227,11 +257,12 @@ def filter_collections(qs, _, value):
     return qs
 
 
-def _filter_is_published(qs, _, value, channel_slug):
-    return qs.filter(
-        channel_listings__is_published=value,
-        channel_listings__channel__slug=channel_slug,
+def _filter_products_is_published(qs, _, value, channel_slug):
+    channel = Channel.objects.filter(slug=channel_slug)
+    product_channel_listings = ProductChannelListing.objects.filter(
+        Exists(channel.filter(pk=OuterRef("channel_id"))), is_published=value
     )
+    return qs.filter(Exists(product_channel_listings.filter(product_id=OuterRef("pk"))))
 
 
 def _filter_variant_price(qs, _, value, channel_slug):
@@ -257,12 +288,13 @@ def _filter_stock_availability(qs, _, value, channel_slug):
     return qs
 
 
-def product_search(phrase):
+def product_search(qs, phrase):
     """Return matching products for storefront views.
 
         Name and description is matched using search vector.
 
     Args:
+        qs (ProductsQueryset): searched data set
         phrase (str): searched phrase
 
     """
@@ -270,18 +302,27 @@ def product_search(phrase):
     vector = F("search_vector")
     ft_in_description_or_name = Q(search_vector=query)
 
-    ft_by_sku = Q(variants__sku__search=phrase)
+    variants = ProductVariant.objects.filter(sku=phrase).values("id")
+    ft_by_sku = Q(Exists(variants.filter(product_id=OuterRef("pk"))))
+
     return (
-        Product.objects.annotate(rank=SearchRank(vector, query))
+        qs.annotate(rank=SearchRank(vector, query))
         .filter((ft_in_description_or_name | ft_by_sku))
-        .order_by("-rank")
+        .order_by("-rank", "id")
     )
 
 
 def filter_search(qs, _, value):
     if value:
-        qs = product_search(value).distinct() & qs.distinct()
+        qs = product_search(qs, value)
     return qs
+
+
+def _filter_collections_is_published(qs, _, value, channel_slug):
+    return qs.filter(
+        channel_listings__is_published=value,
+        channel_listings__channel__slug=channel_slug,
+    )
 
 
 def filter_product_type_configurable(qs, _, value):
@@ -303,12 +344,13 @@ def filter_product_type(qs, _, value):
 def filter_stocks(qs, _, value):
     warehouse_ids = value.get("warehouse_ids")
     quantity = value.get("quantity")
+    # distinct's wil be removed in separated PR
     if warehouse_ids and not quantity:
-        return filter_warehouses(qs, _, warehouse_ids)
+        return filter_warehouses(qs, _, warehouse_ids).distinct()
     if quantity and not warehouse_ids:
-        return filter_quantity(qs, quantity)
+        return filter_quantity(qs, quantity).distinct()
     if quantity and warehouse_ids:
-        return filter_quantity(qs, quantity, warehouse_ids)
+        return filter_quantity(qs, quantity, warehouse_ids).distinct()
     return qs
 
 
@@ -407,7 +449,12 @@ class ProductFilter(MetadataFilterBase):
 
     def filter_is_published(self, queryset, name, value):
         channel_slug = get_channel_slug_from_filter_data(self.data)
-        return _filter_is_published(queryset, name, value, channel_slug)
+        return _filter_products_is_published(
+            queryset,
+            name,
+            value,
+            channel_slug,
+        )
 
     def filter_stock_availability(self, queryset, name, value):
         channel_slug = get_channel_slug_from_filter_data(self.data)
@@ -441,9 +488,9 @@ class CollectionFilter(MetadataFilterBase):
     def filter_is_published(self, queryset, name, value):
         channel_slug = get_channel_slug_from_filter_data(self.data)
         if value == CollectionPublished.PUBLISHED:
-            return _filter_is_published(queryset, name, True, channel_slug)
+            return _filter_collections_is_published(queryset, name, True, channel_slug)
         elif value == CollectionPublished.HIDDEN:
-            return _filter_is_published(queryset, name, False, channel_slug)
+            return _filter_collections_is_published(queryset, name, False, channel_slug)
         return queryset
 
 

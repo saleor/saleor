@@ -43,7 +43,7 @@ def test_process_additional_action(
         transaction_id="ref-id",
         error=None,
         raw_response=expected_message,
-        searchable_key="ref-id",
+        psp_reference="ref-id",
         payment_method_info=PaymentMethodInfo(),
     )
     mocked_api_call.assert_called_with(

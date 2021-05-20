@@ -2,8 +2,7 @@ import logging
 from decimal import Decimal
 from typing import TYPE_CHECKING, Callable, List, Optional
 
-from django.db import transaction
-
+from ..core.tracing import traced_atomic_transaction
 from . import GatewayError, PaymentError, TransactionKind
 from .models import Payment, Transaction
 from .utils import (
@@ -60,7 +59,7 @@ def with_locked_payment(fn: Callable) -> Callable:
     """Lock payment to protect from asynchronous modification."""
 
     def wrapped(payment: Payment, *args, **kwargs):
-        with transaction.atomic():
+        with traced_atomic_transaction():
             payment = Payment.objects.select_for_update().get(id=payment.id)
             return fn(payment, *args, **kwargs)
 
@@ -76,12 +75,14 @@ def process_payment(
     token: str,
     manager: "PluginsManager",
     channel_slug: str,
+    customer_id: str = None,
     store_source: bool = False,
     additional_data: Optional[dict] = None,
 ) -> Transaction:
     payment_data = create_payment_information(
         payment=payment,
         payment_token=token,
+        customer_id=customer_id,
         store_source=store_source,
         additional_data=additional_data,
     )
@@ -114,12 +115,14 @@ def authorize(
     token: str,
     manager: "PluginsManager",
     channel_slug: str,
+    customer_id: str = None,
     store_source: bool = False,
 ) -> Transaction:
     clean_authorize(payment)
     payment_data = create_payment_information(
         payment=payment,
         payment_token=token,
+        customer_id=customer_id,
         store_source=store_source,
     )
     response, error = _fetch_gateway_response(
@@ -149,6 +152,7 @@ def capture(
     manager: "PluginsManager",
     channel_slug: str,
     amount: Decimal = None,
+    customer_id: str = None,
     store_source: bool = False,
 ) -> Transaction:
     if amount is None:
@@ -156,7 +160,11 @@ def capture(
     clean_capture(payment, Decimal(amount))
     token = _get_past_transaction_token(payment, TransactionKind.AUTH)
     payment_data = create_payment_information(
-        payment=payment, payment_token=token, amount=amount, store_source=store_source
+        payment=payment,
+        payment_token=token,
+        amount=amount,
+        customer_id=customer_id,
+        store_source=store_source,
     )
     response, error = _fetch_gateway_response(
         manager.capture_payment,

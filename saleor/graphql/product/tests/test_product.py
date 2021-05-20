@@ -3170,6 +3170,9 @@ def test_search_product_by_description_and_name(
     product_1 = product_list[0]
     product_1.description_plaintext = "some red product"
     product_1.save()
+    product_3 = product_list[2]
+    product_3.description_plaintext = "desc without searched word"
+    product_3.save()
 
     variables = {
         "filters": {
@@ -3182,6 +3185,7 @@ def test_search_product_by_description_and_name(
     content = get_graphql_content(response)
     data = content["data"]["products"]["edges"]
 
+    assert len(data) == 3
     assert data[0]["node"]["name"] == product_2.name
     assert data[1]["node"]["name"] == product.name
     assert data[2]["node"]["name"] == product_1.name

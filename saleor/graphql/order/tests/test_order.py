@@ -3888,9 +3888,7 @@ def test_order_mark_as_paid_with_external_reference(
     assert event_order_paid.user == staff_user
     event_reference = event_order_paid.parameters.get("transaction_reference")
     assert event_reference == transaction_reference
-    order_payments = order.payments.filter(
-        transactions__searchable_key=transaction_reference
-    )
+    order_payments = order.payments.filter(psp_reference=transaction_reference)
     assert order_payments.count() == 1
 
 
@@ -4029,6 +4027,13 @@ def test_order_refund(staff_api_client, permission_manage_orders, payment_txn_ca
         type=order_events.OrderEvents.PAYMENT_REFUNDED
     ).first()
     assert refund_order_event.parameters["amount"] == str(amount)
+
+    refunded_fulfillment = order.fulfillments.filter(
+        status=FulfillmentStatus.REFUNDED
+    ).first()
+    assert refunded_fulfillment
+    assert refunded_fulfillment.total_refund_amount == payment_txn_captured.total
+    assert refunded_fulfillment.shipping_refund_amount is None
 
 
 @pytest.mark.parametrize(
@@ -5609,10 +5614,10 @@ def test_orders_query_with_filter_search(
         ]
     )
     order_with_payment = orders[1]
-    payment = Payment.objects.create(order=order_with_payment)
-    payment.transactions.create(
-        gateway_response={}, is_success=True, searchable_key="ExternalID"
+    payment = Payment.objects.create(
+        order=order_with_payment, psp_reference="ExternalID"
     )
+    payment.transactions.create(gateway_response={}, is_success=True)
     variables = {"filter": orders_filter}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(orders_query_with_filter, variables)

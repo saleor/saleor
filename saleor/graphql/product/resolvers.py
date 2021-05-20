@@ -1,6 +1,7 @@
-from django.db.models import Sum
+from django.db.models import Exists, OuterRef, Sum
 
 from ...account.utils import requestor_is_staff_member_or_app
+from ...channel.models import Channel
 from ...core.tracing import traced_resolver
 from ...order import OrderStatus
 from ...product import models
@@ -8,7 +9,6 @@ from ..channel import ChannelQsContext
 from ..core.utils import from_global_id_or_error
 from ..utils import get_user_or_app_from_context
 from ..utils.filters import filter_by_period
-from .filters import filter_products_by_stock_availability
 
 
 def resolve_category_by_slug(slug):
@@ -73,17 +73,18 @@ def resolve_product_by_slug(info, product_slug, channel_slug, requestor):
 
 
 @traced_resolver
-def resolve_products(
-    info, requestor, stock_availability=None, channel_slug=None, **_kwargs
-) -> ChannelQsContext:
+def resolve_products(info, requestor, channel_slug=None, **_kwargs) -> ChannelQsContext:
     qs = models.Product.objects.visible_to_user(requestor, channel_slug)
-    if stock_availability:
-        qs = filter_products_by_stock_availability(qs, stock_availability, channel_slug)
     if not requestor_is_staff_member_or_app(requestor):
-        qs = qs.annotate_visible_in_listings(channel_slug).exclude(
-            visible_in_listings=False
+        channels = Channel.objects.filter(slug=str(channel_slug))
+        product_channel_listings = models.ProductChannelListing.objects.filter(
+            Exists(channels.filter(pk=OuterRef("channel_id"))),
+            visible_in_listings=True,
         )
-    return ChannelQsContext(qs=qs.distinct(), channel_slug=channel_slug)
+        qs = qs.filter(
+            Exists(product_channel_listings.filter(product_id=OuterRef("pk")))
+        )
+    return ChannelQsContext(qs=qs, channel_slug=channel_slug)
 
 
 @traced_resolver

@@ -3,6 +3,8 @@
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
 ## [Unreleased]
+
+- Extend editorjs validator to accept blocks different than text - #SALEOR-3354 by @mociepka
 - Add query contains only schema validation - #6827 by @fowczarek
 - Add introspection caching - #6871 by @fowczarek
 - Refactor plugins manager(add missing tracing, optimize imports, drop plugins manager from settings) - #6890 by @fowczarek
@@ -73,6 +75,18 @@ All notable, unreleased changes to this project will be documented in this file.
 - Raise ValidationError when refund cannot be performed - #7260 by @IKarbowiak
 - Extend order with origin and original order values - #7326 by @IKarbowiak
 - Fix customer addresses missing after customer creation - #7327 by @tomaszszymanski129
+- Extend order webhook payload with fulfillment fields - #7364 by @korycins
+- Extend order payload with undiscounted prices and add psp_reference to payment model - #7339 by @IKarbowiak
+  - order payload extended with the following fields:
+    - `undiscounted_total_net_amount`
+    - `undiscounted_total_gross_amount`
+    - `psp_reference` on `payment`
+  - order lines extended with:
+    - `undiscounted_unit_price_net_amount`
+    - `undiscounted_unit_price_gross_amount`
+    - `undiscounted_total_price_net_amount`
+    - `undiscounted_total_price_gross_amount`
+- Copy metadata fields when creating reissue - #7358 by @IKarbowiak
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki

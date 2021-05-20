@@ -155,6 +155,9 @@ def test_create_return_fulfillment_only_order_lines_with_refund(
     )
     assert not replace_order
 
+    assert returned_fulfillment.total_refund_amount == amount
+    assert returned_fulfillment.shipping_refund_amount is None
+
     mocked_order_updated.assert_called_once_with(order_with_lines)
 
 
@@ -225,6 +228,12 @@ def test_create_return_fulfillment_only_order_lines_included_shipping_costs(
     )
     assert not replace_order
 
+    assert returned_fulfillment.total_refund_amount == amount
+    assert (
+        returned_fulfillment.shipping_refund_amount
+        == order_with_lines.shipping_price_gross_amount
+    )
+
     mocked_order_updated.assert_called_once_with(order_with_lines)
 
 
@@ -258,6 +267,11 @@ def test_create_return_fulfillment_only_order_lines_with_replace_request(
     # set replace request for the first line
     order_lines_data[0].replace = True
     order_lines_data[0].quantity = quantity_to_replace
+
+    # set metadata
+    order_with_lines.metadata = {"test_key": "test_val"}
+    order_with_lines.private_metadata = {"priv_test_key": "priv_test_val"}
+    order_with_lines.save(update_fields=["metadata", "private_metadata"])
 
     response = create_fulfillments_for_returned_products(
         requester=staff_user,
@@ -320,6 +334,8 @@ def test_create_return_fulfillment_only_order_lines_with_replace_request(
     assert replace_order.billing_address == order_with_lines.billing_address
     assert replace_order.original == order_with_lines
     assert replace_order.origin == OrderOrigin.REISSUE
+    assert replace_order.metadata == order_with_lines.metadata
+    assert replace_order.private_metadata == order_with_lines.private_metadata
 
     expected_replaced_line = order_lines_to_return[0]
 
@@ -596,5 +612,8 @@ def test_create_return_fulfillment_with_lines_already_refunded(
         amount=amount,
         channel_slug=fulfilled_order.channel.slug,
     )
+
+    assert returned_and_refunded_fulfillment.total_refund_amount == amount
+    assert returned_and_refunded_fulfillment.shipping_refund_amount is None
 
     mocked_order_updated.assert_called_once_with(fulfilled_order)

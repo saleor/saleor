@@ -15,7 +15,6 @@ from django.utils.timezone import now
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField, TaxedMoneyField
 from measurement.measures import Weight
-from prices import TaxedMoney
 
 from ..account.models import Address
 from ..channel.models import Channel
@@ -477,6 +476,38 @@ class OrderLine(models.Model):
         currency="currency",
     )
 
+    undiscounted_unit_price_gross_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=0,
+    )
+    undiscounted_unit_price_net_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=0,
+    )
+    undiscounted_unit_price = TaxedMoneyField(
+        net_amount_field="undiscounted_unit_price_net_amount",
+        gross_amount_field="undiscounted_unit_price_gross_amount",
+        currency="currency",
+    )
+
+    undiscounted_total_price_gross_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=0,
+    )
+    undiscounted_total_price_net_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=0,
+    )
+    undiscounted_total_price = TaxedMoneyField(
+        net_amount_field="undiscounted_total_price_net_amount",
+        gross_amount_field="undiscounted_total_price_gross_amount",
+        currency="currency",
+    )
+
     tax_rate = models.DecimalField(
         max_digits=5, decimal_places=4, default=Decimal("0.0")
     )
@@ -492,10 +523,6 @@ class OrderLine(models.Model):
             if self.variant_name
             else self.product_name
         )
-
-    @property
-    def undiscounted_unit_price(self) -> "TaxedMoney":
-        return self.unit_price + self.unit_discount
 
     @property
     def quantity_unfulfilled(self):
@@ -523,6 +550,19 @@ class Fulfillment(ModelWithMetadata):
     )
     tracking_number = models.CharField(max_length=255, default="", blank=True)
     created = models.DateTimeField(auto_now_add=True)
+
+    shipping_refund_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        null=True,
+        blank=True,
+    )
+    total_refund_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        null=True,
+        blank=True,
+    )
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("pk",)

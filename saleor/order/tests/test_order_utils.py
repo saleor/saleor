@@ -79,6 +79,36 @@ def test_change_quantity_generates_proper_event(
     }
 
 
+def test_change_quantity_update_line_fields(
+    order_with_lines,
+    staff_user,
+):
+    # given
+    line = order_with_lines.lines.last()
+    line_info = OrderLineData(
+        line=line,
+        quantity=line.quantity,
+        variant=line.variant,
+        warehouse_pk=line.allocations.first().stock.warehouse.pk,
+    )
+    new_quantity = 5
+
+    # when
+    change_order_line_quantity(
+        staff_user,
+        line_info,
+        line.quantity,
+        new_quantity,
+        order_with_lines.channel.slug,
+    )
+
+    # then
+    line.refresh_from_db()
+    assert line.quantity == new_quantity
+    assert line.total_price == line.unit_price * new_quantity
+    assert line.undiscounted_total_price == line.undiscounted_unit_price * new_quantity
+
+
 def test_match_orders_with_new_user(customer_user, channel_USD):
     address = customer_user.default_billing_address.get_copy()
     order = Order.objects.create(
@@ -183,6 +213,10 @@ def test_get_valid_shipping_methods_for_order_shipping_not_required(
 
 def test_update_taxes_for_order_lines(order_with_lines):
     # given
+    line_with_discount = order_with_lines.lines.first()
+    line_with_discount.unit_discount_amount = Decimal("2.00")
+    line_with_discount.save(update_fields=["unit_discount_amount"])
+
     unit_price = TaxedMoney(net=Money("10.23", "USD"), gross=Money("15.80", "USD"))
     total_price = TaxedMoney(net=Money("30.34", "USD"), gross=Money("36.49", "USD"))
     tax_rate = Decimal("0.23")
@@ -202,6 +236,15 @@ def test_update_taxes_for_order_lines(order_with_lines):
         assert line.unit_price == unit_price
         assert line.total_price == total_price
         assert line.tax_rate == tax_rate
+        if line.pk != line_with_discount.pk:
+            assert line.undiscounted_unit_price == unit_price
+            assert line.undiscounted_total_price == total_price
+        else:
+            assert line.undiscounted_unit_price == unit_price + line.unit_discount
+            assert (
+                line.undiscounted_total_price
+                == (unit_price + line.unit_discount) * line.quantity
+            )
 
 
 def test_add_variant_to_order(order, customer_user, variant):
@@ -221,4 +264,6 @@ def test_add_variant_to_order(order, customer_user, variant):
     # then
     assert line.unit_price == unit_price
     assert line.total_price == total_price
+    assert line.undiscounted_unit_price == unit_price
+    assert line.undiscounted_total_price == total_price
     assert line.tax_rate == tax_rate

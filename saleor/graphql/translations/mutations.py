@@ -4,6 +4,7 @@ from django.db import transaction
 
 from ...attribute import models as attribute_models
 from ...core.permissions import SitePermissions
+from ...core.tracing import traced_atomic_transaction
 from ...discount import models as discount_models
 from ...menu import models as menu_models
 from ...page import models as page_models
@@ -151,7 +152,7 @@ class ProductVariantTranslate(BaseTranslateMutation):
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
 
     @classmethod
-    @transaction.atomic()
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         if "id" in data and not data["id"]:
             raise ValidationError(

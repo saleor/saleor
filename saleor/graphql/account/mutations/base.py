@@ -2,7 +2,6 @@ import graphene
 from django.contrib.auth import password_validation
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.db import transaction
 
 from ....account import events as account_events
 from ....account import models
@@ -14,6 +13,7 @@ from ....account.notifications import (
 from ....checkout import AddressType
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions
+from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....order.utils import match_orders_with_new_user
 from ...account.i18n import I18nMixin
@@ -162,7 +162,7 @@ class RequestPasswordReset(BaseMutation):
     def perform_mutation(cls, _root, info, **data):
         email = data["email"]
         redirect_url = data["redirect_url"]
-        channel_slug = data.get("channel_slug")
+        channel_slug = data.get("channel")
         user = cls.clean_user(email, redirect_url)
 
         if not user.is_staff:
@@ -454,7 +454,7 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
         return cleaned_input
 
     @classmethod
-    @transaction.atomic
+    @traced_atomic_transaction()
     def save(cls, info, instance, cleaned_input):
         default_shipping_address = cleaned_input.get(SHIPPING_ADDRESS_FIELD)
         if default_shipping_address:

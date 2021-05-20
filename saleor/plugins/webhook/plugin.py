@@ -148,7 +148,7 @@ class WebhookPlugin(BasePlugin):
     ) -> Any:
         if not self.active:
             return previous_value
-        product_variant_data = generate_product_variant_payload(product_variant)
+        product_variant_data = generate_product_variant_payload([product_variant])
         trigger_webhooks_for_event.delay(
             WebhookEventType.PRODUCT_VARIANT_CREATED, product_variant_data
         )
@@ -158,7 +158,7 @@ class WebhookPlugin(BasePlugin):
     ) -> Any:
         if not self.active:
             return previous_value
-        product_variant_data = generate_product_variant_payload(product_variant)
+        product_variant_data = generate_product_variant_payload([product_variant])
         trigger_webhooks_for_event.delay(
             WebhookEventType.PRODUCT_VARIANT_UPDATED, product_variant_data
         )
@@ -168,7 +168,7 @@ class WebhookPlugin(BasePlugin):
     ) -> Any:
         if not self.active:
             return previous_value
-        product_variant_data = generate_product_variant_payload(product_variant)
+        product_variant_data = generate_product_variant_payload([product_variant])
         trigger_webhooks_for_event.delay(
             WebhookEventType.PRODUCT_VARIANT_DELETED, product_variant_data
         )
