@@ -4234,7 +4234,7 @@ def test_query_customers_with_sort(
 @pytest.mark.parametrize(
     "customer_filter, count",
     [
-        ({"search": "example.com"}, 2),
+        ({"search": "example.com"}, 2),  # email
         ({"search": "Alice"}, 1),
         ({"search": "Kowalski"}, 1),
         ({"search": "John"}, 1),  # default_shipping_address__first_name
