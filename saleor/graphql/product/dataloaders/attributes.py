@@ -221,6 +221,7 @@ class SelectedAttributesByProductIdLoader(DataLoader):
     def batch_load(self, keys):
         def with_products_and_assigned_attributes(result):
             products, product_attributes = result
+            products = [product for product in products if product is not None]
             assigned_product_attribute_ids = [
                 a.id for attrs in product_attributes for a in attrs
             ]

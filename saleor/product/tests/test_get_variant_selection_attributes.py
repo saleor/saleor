@@ -4,6 +4,7 @@ from ..utils.variants import get_variant_selection_attributes
 
 def test_get_variant_selection_attributes(
     product_type_attribute_list,
+    numeric_attribute,
     file_attribute_with_file_input_type_without_values,
     product_type_page_reference_attribute,
     product_type_product_reference_attribute,
@@ -14,6 +15,7 @@ def test_get_variant_selection_attributes(
     multiselect_attr.save(update_fields=["input_type"])
 
     attrs = product_type_attribute_list + [
+        numeric_attribute,
         file_attribute_with_file_input_type_without_values,
         product_type_page_reference_attribute,
         product_type_product_reference_attribute,

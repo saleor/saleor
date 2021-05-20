@@ -193,12 +193,13 @@ def update_taxes_for_order_line(
     line_price = line.unit_price.gross if tax_included else line.unit_price.net
     line.unit_price = TaxedMoney(line_price, line_price)
 
-    price = manager.calculate_order_line_unit(order, line, variant, product)
-    line.unit_price = price
-    line.total_price = line.unit_price * line.quantity
-    if price.tax and price.net:
+    unit_price = manager.calculate_order_line_unit(order, line, variant, product)
+    total_price = manager.calculate_order_line_total(order, line, variant, product)
+    line.unit_price = unit_price
+    line.total_price = total_price
+    if unit_price.tax and unit_price.net:
         line.tax_rate = manager.get_order_line_tax_rate(
-            order, product, variant, None, price
+            order, product, variant, None, unit_price
         )
 
 
@@ -342,12 +343,12 @@ def add_variant_to_order(
             variant=variant,
         )
         unit_price = manager.calculate_order_line_unit(order, line, variant, product)
+        total_price = manager.calculate_order_line_total(order, line, variant, product)
         line.unit_price = unit_price
-        line.total_price = unit_price * quantity
+        line.total_price = total_price
         line.tax_rate = manager.get_order_line_tax_rate(
             order, product, variant, None, unit_price
         )
-        line.total_price = unit_price * quantity
         line.save(
             update_fields=[
                 "currency",

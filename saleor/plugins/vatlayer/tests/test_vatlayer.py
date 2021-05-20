@@ -727,6 +727,45 @@ def test_calculate_checkout_line_total_with_excluded_country(
 
 
 @override_settings(PLUGINS=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"])
+def test_calculate_order_line_total(vatlayer, order_line, site_settings):
+    manager = get_plugins_manager()
+
+    assert order_line.quantity > 1
+
+    variant = order_line.variant
+    product = variant.product
+    manager.assign_tax_code_to_object_meta(variant.product, "standard")
+    product.save()
+
+    channel = order_line.order.channel
+    channel_listing = variant.channel_listings.get(channel=channel)
+    net = variant.get_price(product, [], channel, channel_listing)
+    unit_price = TaxedMoney(net=net, gross=net)
+    order_line.unit_price = unit_price
+    total_price = unit_price * order_line.quantity
+    order_line.total_price = total_price
+    order_line.save(update_fields=["unit_price", "total_price"])
+
+    line_price = manager.calculate_order_line_total(
+        order_line.order,
+        order_line,
+        variant,
+        product,
+    )
+
+    total_price_amount = total_price.net.amount
+    currency = total_price.currency
+    expected_price = quantize_price(
+        TaxedMoney(
+            net=Money(total_price_amount / Decimal("1.23"), currency),
+            gross=Money(total_price_amount, currency),
+        ),
+        currency,
+    )
+    assert line_price == expected_price
+
+
+@override_settings(PLUGINS=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"])
 def test_calculate_checkout_line_unit_price(
     vatlayer, checkout_with_item, shipping_zone, address, site_settings
 ):

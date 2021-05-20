@@ -34,6 +34,7 @@ type AccountError {
   field: String
   message: String
   code: AccountErrorCode!
+  addressType: AddressTypeEnum
 }
 
 enum AccountErrorCode {
@@ -382,6 +383,15 @@ type AppUpdate {
   app: App
 }
 
+enum AreaUnitsEnum {
+  SQ_CM
+  SQ_M
+  SQ_KM
+  SQ_FT
+  SQ_YD
+  SQ_INCH
+}
+
 type AssignNavigation {
   menu: Menu
   menuErrors: [MenuError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
@@ -399,6 +409,7 @@ type Attribute implements Node & ObjectWithMetadata {
   name: String
   slug: String
   type: AttributeTypeEnum
+  unit: MeasurementUnitsEnum
   values: [AttributeValue]
   valueRequired: Boolean!
   visibleInStorefront: Boolean!
@@ -438,6 +449,7 @@ input AttributeCreateInput {
   name: String!
   slug: String
   type: AttributeTypeEnum!
+  unit: MeasurementUnitsEnum
   values: [AttributeValueCreateInput]
   valueRequired: Boolean
   isVariantOnly: Boolean
@@ -493,6 +505,7 @@ input AttributeFilterInput {
 input AttributeInput {
   slug: String!
   values: [String]
+  valuesRange: IntRangeInput
 }
 
 enum AttributeInputTypeEnum {
@@ -500,6 +513,7 @@ enum AttributeInputTypeEnum {
   MULTISELECT
   FILE
   REFERENCE
+  NUMERIC
   RICH_TEXT
 }
 
@@ -559,6 +573,7 @@ type AttributeUpdate {
 input AttributeUpdateInput {
   name: String
   slug: String
+  unit: MeasurementUnitsEnum
   removeValues: [ID]
   addValues: [AttributeValueCreateInput]
   valueRequired: Boolean
@@ -872,7 +887,6 @@ type Checkout implements Node & ObjectWithMetadata {
   created: DateTime!
   lastChange: DateTime!
   user: User
-  quantity: Int!
   channel: Channel!
   billingAddress: Address
   shippingAddress: Address
@@ -889,6 +903,7 @@ type Checkout implements Node & ObjectWithMetadata {
   availablePaymentGateways: [PaymentGateway!]!
   email: String!
   isShippingRequired: Boolean!
+  quantity: Int!
   lines: [CheckoutLine]
   shippingPrice: TaxedMoney
   shippingMethod: ShippingMethod
@@ -968,6 +983,7 @@ type CheckoutError {
   message: String
   code: CheckoutErrorCode!
   variants: [ID!]
+  addressType: AddressTypeEnum
 }
 
 enum CheckoutErrorCode {
@@ -1781,6 +1797,15 @@ enum DiscountValueTypeEnum {
   PERCENTAGE
 }
 
+enum DistanceUnitsEnum {
+  CM
+  M
+  KM
+  FT
+  YD
+  INCH
+}
+
 type Domain {
   host: String!
   sslEnabled: Boolean!
@@ -2365,6 +2390,39 @@ type Manifest {
 type Margin {
   start: Int
   stop: Int
+}
+
+enum MeasurementUnitsEnum {
+  CM
+  M
+  KM
+  FT
+  YD
+  INCH
+  SQ_CM
+  SQ_M
+  SQ_KM
+  SQ_FT
+  SQ_YD
+  SQ_INCH
+  CUBIC_MILLIMETER
+  CUBIC_CENTIMETER
+  CUBIC_DECIMETER
+  CUBIC_METER
+  LITER
+  CUBIC_FOOT
+  CUBIC_INCH
+  CUBIC_YARD
+  QT
+  PINT
+  FL_OZ
+  ACRE_IN
+  ACRE_FT
+  G
+  LB
+  OZ
+  KG
+  TONNE
 }
 
 type Menu implements Node & ObjectWithMetadata {
@@ -3049,6 +3107,7 @@ type OrderError {
   warehouse: ID
   orderLine: ID
   variants: [ID!]
+  addressType: AddressTypeEnum
 }
 
 enum OrderErrorCode {
@@ -3522,6 +3581,7 @@ enum PageErrorCode {
 input PageFilterInput {
   search: String
   metadata: [MetadataInput]
+  pageTypes: [ID]
 }
 
 type PageInfo {
@@ -5248,6 +5308,7 @@ type StaffError {
   field: String
   message: String
   code: AccountErrorCode!
+  addressType: AddressTypeEnum
   permissions: [PermissionEnum!]
   groups: [ID!]
   users: [ID!]
@@ -5634,6 +5695,22 @@ type VerifyToken {
   payload: GenericScalar
   accountErrors: [AccountError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
   errors: [AccountError!]!
+}
+
+enum VolumeUnitsEnum {
+  CUBIC_MILLIMETER
+  CUBIC_CENTIMETER
+  CUBIC_DECIMETER
+  CUBIC_METER
+  LITER
+  CUBIC_FOOT
+  CUBIC_INCH
+  CUBIC_YARD
+  QT
+  PINT
+  FL_OZ
+  ACRE_IN
+  ACRE_FT
 }
 
 type Voucher implements Node {
@@ -6042,10 +6119,11 @@ type Weight {
 scalar WeightScalar
 
 enum WeightUnitsEnum {
-  KG
+  G
   LB
   OZ
-  G
+  KG
+  TONNE
 }
 
 scalar _Any
