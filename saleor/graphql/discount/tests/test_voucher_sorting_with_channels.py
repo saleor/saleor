@@ -110,10 +110,10 @@ def vouchers_for_sorting_with_channels(db, channel_USD, channel_PLN):
 
 QUERY_VOUCHERS_WITH_SORTING_AND_FILTERING = """
     query (
-        $sortBy: VoucherSortingInput, $filter: VoucherFilterInput
+        $sortBy: VoucherSortingInput, $filter: VoucherFilterInput, $channel: String
     ){
         vouchers(
-            first: 10, sortBy: $sortBy, filter: $filter
+            first: 10, sortBy: $sortBy, filter: $filter, channel: $channel
         ) {
             edges {
                 node {
@@ -157,19 +157,19 @@ def test_voucher_with_sorting_and_without_channel(
     [
         (
             {"field": "VALUE", "direction": "ASC"},
-            ["Voucher1", "Voucher15", "Voucher3", "Voucher2", "Voucher4"],
+            ["Voucher1", "Voucher15", "Voucher3", "Voucher2"],
         ),
         (
             {"field": "VALUE", "direction": "DESC"},
-            ["Voucher4", "Voucher2", "Voucher3", "Voucher15", "Voucher1"],
+            ["Voucher2", "Voucher3", "Voucher15", "Voucher1"],
         ),
         (
             {"field": "MINIMUM_SPENT_AMOUNT", "direction": "ASC"},
-            ["Voucher1", "Voucher3", "Voucher15", "Voucher2", "Voucher4"],
+            ["Voucher1", "Voucher3", "Voucher15", "Voucher2"],
         ),
         (
             {"field": "MINIMUM_SPENT_AMOUNT", "direction": "DESC"},
-            ["Voucher4", "Voucher2", "Voucher15", "Voucher3", "Voucher1"],
+            ["Voucher2", "Voucher15", "Voucher3", "Voucher1"],
         ),
     ],
 )
@@ -182,8 +182,7 @@ def test_vouchers_with_sorting_and_channel_USD(
     channel_USD,
 ):
     # given
-    sort_by["channel"] = channel_USD.slug
-    variables = {"sortBy": sort_by}
+    variables = {"sortBy": sort_by, "channel": channel_USD.slug}
 
     # when
     response = staff_api_client.post_graphql(
@@ -205,19 +204,19 @@ def test_vouchers_with_sorting_and_channel_USD(
     [
         (
             {"field": "VALUE", "direction": "ASC"},
-            ["Voucher2", "Voucher4", "Voucher15", "Voucher1", "Voucher3"],
+            ["Voucher2", "Voucher4", "Voucher15", "Voucher1"],
         ),
         (
             {"field": "VALUE", "direction": "DESC"},
-            ["Voucher3", "Voucher1", "Voucher15", "Voucher4", "Voucher2"],
+            ["Voucher1", "Voucher15", "Voucher4", "Voucher2"],
         ),
         (
             {"field": "MINIMUM_SPENT_AMOUNT", "direction": "ASC"},
-            ["Voucher1", "Voucher4", "Voucher2", "Voucher15", "Voucher3"],
+            ["Voucher1", "Voucher4", "Voucher2", "Voucher15"],
         ),
         (
             {"field": "MINIMUM_SPENT_AMOUNT", "direction": "DESC"},
-            ["Voucher3", "Voucher15", "Voucher2", "Voucher4", "Voucher1"],
+            ["Voucher15", "Voucher2", "Voucher4", "Voucher1"],
         ),
     ],
 )
@@ -230,8 +229,7 @@ def test_vouchers_with_sorting_and_channel_PLN(
     channel_PLN,
 ):
     # given
-    sort_by["channel"] = channel_PLN.slug
-    variables = {"sortBy": sort_by}
+    variables = {"sortBy": sort_by, "channel": channel_PLN.slug}
 
     # when
     response = staff_api_client.post_graphql(
@@ -263,15 +261,7 @@ def test_vouchers_with_sorting_and_not_existing_channel_asc(
     channel_USD,
 ):
     # given
-    vouchers_order = [
-        "Voucher1",
-        "Voucher15",
-        "Voucher2",
-        "Voucher3",
-        "Voucher4",
-    ]
-    sort_by["channel"] = "Not-existing"
-    variables = {"sortBy": sort_by}
+    variables = {"sortBy": sort_by, "channel": "Not-existing"}
 
     # when
     response = staff_api_client.post_graphql(
@@ -283,6 +273,4 @@ def test_vouchers_with_sorting_and_not_existing_channel_asc(
 
     # then
     content = get_graphql_content(response)
-    vouchers_nodes = content["data"]["vouchers"]["edges"]
-    for index, voucher_name in enumerate(vouchers_order):
-        assert voucher_name == vouchers_nodes[index]["node"]["name"]
+    assert not content["data"]["vouchers"]["edges"]

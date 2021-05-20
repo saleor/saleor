@@ -22,7 +22,7 @@ from ...product.models import (
     ProductChannelListing,
 )
 from ..channel.sorters import validate_channel_slug
-from ..core.types import ChannelSortInputObjectType, SortInputObjectType
+from ..core.types import SortInputObjectType
 
 
 class CategorySortField(graphene.Enum):
@@ -63,7 +63,7 @@ class CategorySortField(graphene.Enum):
         return queryset.annotate(subcategory_count=Count("children__id"))
 
 
-class CategorySortingInput(ChannelSortInputObjectType):
+class CategorySortingInput(SortInputObjectType):
     class Meta:
         sort_enum = CategorySortField
         type_name = "categories"
@@ -117,7 +117,7 @@ class CollectionSortField(graphene.Enum):
         )
 
 
-class CollectionSortingInput(ChannelSortInputObjectType):
+class CollectionSortingInput(SortInputObjectType):
     class Meta:
         sort_enum = CollectionSortField
         type_name = "collections"
@@ -219,7 +219,7 @@ class ProductOrderField(graphene.Enum):
         )
 
 
-class ProductOrder(ChannelSortInputObjectType):
+class ProductOrder(SortInputObjectType):
     attribute_id = graphene.Argument(
         graphene.ID,
         description=(

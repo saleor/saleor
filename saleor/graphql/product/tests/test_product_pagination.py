@@ -241,8 +241,12 @@ def test_collections_pagination_with_sorting(
     channel_USD,
 ):
     page_size = 3
-    sort_by["channel"] = channel_USD.slug
-    variables = {"first": page_size, "after": None, "sortBy": sort_by}
+    variables = {
+        "first": page_size,
+        "after": None,
+        "sortBy": sort_by,
+        "channel": channel_USD.slug,
+    }
     response = staff_api_client.post_graphql(
         QUERY_COLLECTIONS_PAGINATION,
         variables,
@@ -535,8 +539,12 @@ def test_products_pagination_with_sorting_and_channel(
 ):
     page_size = 3
 
-    sort_by["channel"] = channel_USD.slug
-    variables = {"first": page_size, "after": None, "sortBy": sort_by}
+    variables = {
+        "first": page_size,
+        "after": None,
+        "sortBy": sort_by,
+        "channel": channel_USD.slug,
+    }
     response = staff_api_client.post_graphql(
         QUERY_PRODUCTS_PAGINATION,
         variables,

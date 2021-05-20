@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Optional, Tuple
 
 from django.db.models import QuerySet
 from graphql.error import GraphQLError
@@ -28,7 +28,12 @@ def sort_queryset_for_connection(iterable, args):
     reversed = True if "last" in args else False
     query = getattr(iterable, "query", None)
     if sort_by:
-        iterable = sort_queryset(queryset=iterable, sort_by=sort_by, reversed=reversed)
+        iterable = sort_queryset(
+            queryset=iterable,
+            sort_by=sort_by,
+            reversed=reversed,
+            channel_slug=args.get("channel"),
+        )
     elif query and "-rank" in query.order_by:
         return iterable, {"field": "rank", "direction": "-"}
     else:
@@ -40,7 +45,10 @@ def sort_queryset_for_connection(iterable, args):
 
 
 def sort_queryset(
-    queryset: QuerySet, sort_by: SortInputObjectType, reversed: bool
+    queryset: QuerySet,
+    sort_by: SortInputObjectType,
+    reversed: bool,
+    channel_slug: Optional[str],
 ) -> QuerySet:
     """Sort queryset according to given parameters.
 
@@ -76,7 +84,6 @@ def sort_queryset(
     sorting_fields = sort_enum.get(sorting_field)
     sorting_field_name = sorting_fields.name.lower()
 
-    channel_slug = getattr(sort_by, "channel", None)
     custom_sort_by = getattr(sort_enum, f"qs_with_{sorting_field_name}", None)
     if custom_sort_by:
         queryset = custom_sort_by(queryset, channel_slug=channel_slug)
