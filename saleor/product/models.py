@@ -85,14 +85,14 @@ class CategoryTranslation(SeoModelTranslation):
     category = models.ForeignKey(
         Category, related_name="translations", on_delete=models.CASCADE
     )
-    name = models.CharField(max_length=128)
+    name = models.CharField(max_length=128, blank=True, null=True)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
     class Meta:
         unique_together = (("language_code", "category"),)
 
     def __str__(self) -> str:
-        return self.name
+        return self.name if self.name else str(self.pk)
 
     def __repr__(self) -> str:
         class_ = type(self)
@@ -415,14 +415,14 @@ class ProductTranslation(SeoModelTranslation):
     product = models.ForeignKey(
         Product, related_name="translations", on_delete=models.CASCADE
     )
-    name = models.CharField(max_length=250)
+    name = models.CharField(max_length=250, blank=True, null=True)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
     class Meta:
         unique_together = (("language_code", "product"),)
 
     def __str__(self) -> str:
-        return self.name
+        return self.name if self.name else str(self.pk)
 
     def __repr__(self) -> str:
         class_ = type(self)
@@ -795,7 +795,7 @@ class CollectionTranslation(SeoModelTranslation):
     collection = models.ForeignKey(
         Collection, related_name="translations", on_delete=models.CASCADE
     )
-    name = models.CharField(max_length=128)
+    name = models.CharField(max_length=128, blank=True, null=True)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
     class Meta:
@@ -811,4 +811,4 @@ class CollectionTranslation(SeoModelTranslation):
         )
 
     def __str__(self) -> str:
-        return self.name
+        return self.name if self.name else str(self.pk)

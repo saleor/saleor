@@ -794,7 +794,7 @@ type CategoryTranslation implements Node {
   id: ID!
   seoTitle: String
   seoDescription: String
-  name: String!
+  name: String
   description: JSONString
   language: LanguageDisplay!
   descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
@@ -1269,7 +1269,7 @@ type CollectionTranslation implements Node {
   id: ID!
   seoTitle: String
   seoDescription: String
-  name: String!
+  name: String
   description: JSONString
   language: LanguageDisplay!
   descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
@@ -3652,7 +3652,7 @@ type PageTranslation implements Node {
   id: ID!
   seoTitle: String
   seoDescription: String
-  title: String!
+  title: String
   content: JSONString
   language: LanguageDisplay!
   contentJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `content` field instead.")
@@ -4398,7 +4398,7 @@ type ProductTranslation implements Node {
   id: ID!
   seoTitle: String
   seoDescription: String
-  name: String!
+  name: String
   description: JSONString
   language: LanguageDisplay!
   descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
