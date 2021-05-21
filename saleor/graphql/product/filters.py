@@ -259,6 +259,15 @@ def filter_categories(qs, _, value):
     return qs
 
 
+def filter_product_types(qs, _, value):
+    if not value:
+        return qs
+    _, product_type_pks = resolve_global_ids_to_primary_keys(
+        value, product_types.ProductType
+    )
+    return qs.filter(product_type_id__in=product_type_pks)
+
+
 def filter_has_category(qs, _, value):
     return qs.filter(category__isnull=not value)
 
@@ -433,7 +442,7 @@ class ProductFilter(MetadataFilterBase):
     stock_availability = EnumFilter(
         input_class=StockAvailability, method="filter_stock_availability"
     )
-    product_types = GlobalIDMultipleChoiceFilter(field_name="product_type")
+    product_types = GlobalIDMultipleChoiceFilter(method=filter_product_types)
     stocks = ObjectTypeFilter(input_class=ProductStockFilterInput, method=filter_stocks)
     search = django_filters.CharFilter(method=filter_search)
     ids = GlobalIDMultipleChoiceFilter(field_name="id")
