@@ -43,7 +43,7 @@ def clean_editor_js(definitions: Optional[Dict], *, to_string: bool = False):
                 else:
                     blocks[index]["data"]["items"][item_index] = new_text
         else:
-            text = block["data"]["text"]
+            text = block["data"].get("text")
             if not text:
                 continue
             new_text = clean_text_data(text)
