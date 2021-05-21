@@ -39,7 +39,7 @@ from ..core.filters import (
 )
 from ..core.types import ChannelFilterInputObjectType, FilterInputObjectType
 from ..core.types.common import IntRangeInput, PriceRangeInput
-from ..utils import get_nodes, resolve_global_ids_to_primary_keys
+from ..utils import resolve_global_ids_to_primary_keys
 from ..utils.filters import filter_fields_containing_value, filter_range_field
 from ..warehouse import types as warehouse_types
 from . import types as product_types
@@ -157,7 +157,7 @@ def filter_products_by_attributes(qs, filter_values, filter_range_values):
 
 
 def filter_products_by_variant_price(qs, channel_slug, price_lte=None, price_gte=None):
-    channels = Channel.objects.filter(slug=channel_slug)
+    channels = Channel.objects.filter(slug=channel_slug).values("pk")
     product_variant_channel_listings = ProductVariantChannelListing.objects.filter(
         Exists(channels.filter(pk=OuterRef("channel_id")))
     )
@@ -169,16 +169,19 @@ def filter_products_by_variant_price(qs, channel_slug, price_lte=None, price_gte
         product_variant_channel_listings = product_variant_channel_listings.filter(
             Q(price_amount__gte=price_gte) | Q(price_amount__isnull=True)
         )
+    product_variant_channel_listings = product_variant_channel_listings.values(
+        "variant_id"
+    )
     variants = ProductVariant.objects.filter(
         Exists(product_variant_channel_listings.filter(variant_id=OuterRef("pk")))
-    )
+    ).values("product_id")
     return qs.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
 
 
 def filter_products_by_minimal_price(
     qs, channel_slug, minimal_price_lte=None, minimal_price_gte=None
 ):
-    channels = Channel.objects.filter(slug=channel_slug)
+    channels = Channel.objects.filter(slug=channel_slug).values("pk")
     product_channel_listings = ProductChannelListing.objects.filter(
         Exists(channels.filter(pk=OuterRef("channel_id")))
     )
@@ -192,21 +195,22 @@ def filter_products_by_minimal_price(
             discounted_price_amount__gte=minimal_price_gte,
             discounted_price_amount__isnull=False,
         )
+    product_channel_listings = product_channel_listings.values("product_id")
     return qs.filter(Exists(product_channel_listings.filter(product_id=OuterRef("pk"))))
 
 
-def filter_products_by_categories(qs, categories):
-    categories = [
-        category.get_descendants(include_self=True) for category in categories
-    ]
-    ids = {category.id for tree in categories for category in tree}
-    return qs.filter(category__in=ids)
+def filter_products_by_categories(qs, category_ids):
+    categories = Category.objects.filter(pk__in=category_ids)
+    categories = Category.tree.get_queryset_descendants(
+        categories, include_self=True
+    ).values("pk")
+    return qs.filter(Exists(categories.filter(pk=OuterRef("category_id"))))
 
 
 def filter_products_by_collections(qs, collection_pks):
     collection_products = CollectionProduct.objects.filter(
         collection_id__in=collection_pks
-    )
+    ).values("product_id")
     return qs.filter(Exists(collection_products.filter(product_id=OuterRef("pk"))))
 
 
@@ -248,8 +252,10 @@ def _filter_attributes(qs, _, value):
 
 def filter_categories(qs, _, value):
     if value:
-        categories = get_nodes(value, "Category", Category)
-        qs = filter_products_by_categories(qs, categories)
+        _, category_pks = resolve_global_ids_to_primary_keys(
+            value, product_types.Category
+        )
+        qs = filter_products_by_categories(qs, category_pks)
     return qs
 
 
@@ -267,10 +273,10 @@ def filter_collections(qs, _, value):
 
 
 def _filter_products_is_published(qs, _, value, channel_slug):
-    channel = Channel.objects.filter(slug=channel_slug)
+    channel = Channel.objects.filter(slug=channel_slug).values("pk")
     product_channel_listings = ProductChannelListing.objects.filter(
         Exists(channel.filter(pk=OuterRef("channel_id"))), is_published=value
-    )
+    ).values("product_id")
     return qs.filter(Exists(product_channel_listings.filter(product_id=OuterRef("pk"))))
 
 
