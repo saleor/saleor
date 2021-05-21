@@ -1,4 +1,5 @@
 import json
+import logging
 from typing import TYPE_CHECKING, Any, List, Optional
 
 from ...app.models import App
@@ -37,22 +38,26 @@ if TYPE_CHECKING:
     from ...product.models import Product, ProductVariant
 
 
+logger = logging.getLogger(__name__)
+
+
 class WebhookPlugin(BasePlugin):
     PLUGIN_ID = "mirumee.webhooks"
     PLUGIN_NAME = "Webhooks"
     DEFAULT_ACTIVE = True
     CONFIGURATION_PER_CHANNEL = False
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.active = True
-
-    def check_plugin_id(self, plugin_id: str) -> bool:
+    @classmethod
+    def check_plugin_id(cls, plugin_id: str) -> bool:
         is_webhook_plugin = super().check_plugin_id(plugin_id)
         if not is_webhook_plugin:
             payment_app_data = from_payment_app_id(plugin_id)
             return payment_app_data is not None
         return is_webhook_plugin
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.active = True
 
     def order_created(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
@@ -232,8 +237,6 @@ class WebhookPlugin(BasePlugin):
         page_data = generate_page_payload(page)
         trigger_webhooks_for_event.delay(WebhookEventType.PAGE_DELETED, page_data)
 
-    # Webhook payment functions
-
     def __run_payment_webhook(
         self,
         event_type: str,
@@ -256,6 +259,11 @@ class WebhookPlugin(BasePlugin):
             )
 
         if not app:
+            logger.warning(
+                "Payment webhook for event %r failed - no active app found: %r",
+                event_type,
+                payment_information.gateway,
+            )
             raise PaymentError("Selected payment method is not available.")
 
         webhook_payload = generate_payment_payload(payment_information)
@@ -272,9 +280,9 @@ class WebhookPlugin(BasePlugin):
         **kwargs
     ) -> List["PaymentGateway"]:
         gateways = []
-        apps = App.objects.for_event_type("payment_list_gateways").prefetch_related(
-            "webhooks"
-        )
+        apps = App.objects.for_event_type(
+            WebhookEventType.PAYMENT_LIST_GATEWAYS
+        ).prefetch_related("webhooks")
         for app in apps:
             response_data = trigger_webhook_sync(
                 event_type=WebhookEventType.PAYMENT_LIST_GATEWAYS,

@@ -192,7 +192,7 @@ def send_webhook_request_sync(target_url, secret, event_type, data: str):
                 "[Webhook] Failed parsing JSON response from %r: %r.", target_url, e
             )
         else:
-            logger.warning("[Webhook] Success response from %r.", target_url)
+            logger.debug("[Webhook] Success response from %r.", target_url)
     else:
         raise ValueError("Unknown webhook scheme: %r" % (parts.scheme,))
     return response_data

@@ -77,6 +77,11 @@ class BasePlugin:
     DEFAULT_CONFIGURATION = []
     DEFAULT_ACTIVE = False
 
+    @classmethod
+    def check_plugin_id(cls, plugin_id: str) -> bool:
+        """Check if given plugin_id matches with the PLUGIN_ID of this plugin."""
+        return cls.PLUGIN_ID == plugin_id
+
     def __init__(
         self,
         *,
@@ -90,10 +95,6 @@ class BasePlugin:
 
     def __str__(self):
         return self.PLUGIN_NAME
-
-    def check_plugin_id(self, plugin_id: str) -> bool:
-        """Check if given plugin_id matches with the PLUGIN_ID of this plugin."""
-        return self.PLUGIN_ID == plugin_id
 
     def external_authentication_url(
         self, data: dict, request: WSGIRequest, previous_value
