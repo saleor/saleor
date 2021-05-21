@@ -6,7 +6,6 @@ from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound
 from django.http.request import split_domain_port
-from stripe.stripe_object import StripeObject
 
 from ....graphql.core.enums import PluginErrorCode
 from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
@@ -270,12 +269,20 @@ class StripeGatewayPlugin(BasePlugin):
             return
 
         webhook = subscribe_webhook(api_key)
-        plugin_configuration.configuration.extend(
-            [
-                {"name": "webhook_endpoint_id", "value": webhook.id},
-                {"name": "webhook_secret_key", "value": webhook.secret},
-            ]
+        cls._update_or_create_config_field(
+            plugin_configuration.configuration, "webhook_endpoint_id", webhook.id
         )
+        cls._update_or_create_config_field(
+            plugin_configuration.configuration, "webhook_secret_key", webhook.secret
+        )
+
+    @classmethod
+    def _update_or_create_config_field(cls, configuration, field, value):
+        for c_field in configuration:
+            if c_field["name"] == field:
+                c_field["value"] = value
+                return
+        configuration.extend({"name": field, "value": value})
 
     @classmethod
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
