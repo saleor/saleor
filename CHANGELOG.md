@@ -75,7 +75,17 @@ All notable, unreleased changes to this project will be documented in this file.
 - Raise ValidationError when refund cannot be performed - #7260 by @IKarbowiak
 - Extend order with origin and original order values - #7326 by @IKarbowiak
 - Fix customer addresses missing after customer creation - #7327 by @tomaszszymanski129
-- Extend order webhook payload with fulfillment fields - #7364 by @korycins
+- Extend order webhook payload with fulfillment fields - #7364, #7347 by @korycins
+  - fulfillments extended with:
+    - total_refund_amount
+    - shipping_refund_amount
+    - lines
+  - fulfillment lines extended with:
+    - total_price_net_amount
+    - total_price_gross_amount
+    - undiscounted_unit_price_net
+    - undiscounted_unit_price_gross
+    - unit_price_net
 - Extend order payload with undiscounted prices and add psp_reference to payment model - #7339 by @IKarbowiak
   - order payload extended with the following fields:
     - `undiscounted_total_net_amount`
