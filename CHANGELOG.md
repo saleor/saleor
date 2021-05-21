@@ -87,6 +87,7 @@ All notable, unreleased changes to this project will be documented in this file.
     - `undiscounted_total_price_net_amount`
     - `undiscounted_total_price_gross_amount`
 - Copy metadata fields when creating reissue - #7358 by @IKarbowiak
+- Fix invoice generation - #7376 by tomaszszymanski129
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
