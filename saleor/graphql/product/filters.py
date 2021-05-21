@@ -176,19 +176,21 @@ def filter_products_by_variant_price(qs, channel_slug, price_lte=None, price_gte
 def filter_products_by_minimal_price(
     qs, channel_slug, minimal_price_lte=None, minimal_price_gte=None
 ):
+    channels = Channel.objects.filter(slug=channel_slug)
+    product_channel_listings = ProductChannelListing.objects.filter(
+        Exists(channels.filter(pk=OuterRef("channel_id")))
+    )
     if minimal_price_lte:
-        qs = qs.filter(
-            channel_listings__discounted_price_amount__lte=minimal_price_lte,
-            channel_listings__discounted_price_amount__isnull=False,
-            channel_listings__channel__slug=channel_slug,
+        product_channel_listings = product_channel_listings.filter(
+            discounted_price_amount__lte=minimal_price_lte,
+            discounted_price_amount__isnull=False,
         )
     if minimal_price_gte:
-        qs = qs.filter(
-            channel_listings__discounted_price_amount__gte=minimal_price_gte,
-            channel_listings__discounted_price_amount__isnull=False,
-            channel_listings__channel__slug=channel_slug,
+        product_channel_listings = product_channel_listings.filter(
+            discounted_price_amount__gte=minimal_price_gte,
+            discounted_price_amount__isnull=False,
         )
-    return qs
+    return qs.filter(Exists(product_channel_listings.filter(product_id=OuterRef("pk"))))
 
 
 def filter_products_by_categories(qs, categories):
