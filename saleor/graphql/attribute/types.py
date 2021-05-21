@@ -89,7 +89,7 @@ class Attribute(CountableDjangoObjectType):
     slug = graphene.String(description=AttributeDescriptions.SLUG)
     type = AttributeTypeEnum(description=AttributeDescriptions.TYPE)
     unit = MeasurementUnitsEnum(description=AttributeDescriptions.UNIT)
-    values = FilterInputConnectionField(
+    choices = FilterInputConnectionField(
         AttributeValue,
         filter=AttributeValueFilterInput(),
         description=AttributeDescriptions.VALUES,
@@ -128,7 +128,9 @@ class Attribute(CountableDjangoObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_values(root: models.Attribute, info, **_kwargs):
+    def resolve_choices(root: models.Attribute, _info, **_kwargs):
+        if root.input_type in AttributeInputType.TYPES_WITHOUT_CHOICES:
+            return []
         return root.values.all()
 
     @staticmethod

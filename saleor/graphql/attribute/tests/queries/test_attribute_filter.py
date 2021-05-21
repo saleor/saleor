@@ -29,7 +29,7 @@ query($filters: AttributeValueFilterInput!) {
             node {
                 name
                 slug
-                values(first: 10, filter: $filters) {
+                choices(first: 10, filter: $filters) {
                     edges {
                         node {
                             name
@@ -67,7 +67,7 @@ def test_search_attributes_value(
     attributes = get_graphql_content(
         api_client.post_graphql(ATTRIBUTES_VALUE_FILTER_QUERY, variables)
     )
-    values = attributes["data"]["attributes"]["edges"][0]["node"]["values"]["edges"]
+    values = attributes["data"]["attributes"]["edges"][0]["node"]["choices"]["edges"]
     assert len(values) == 1
     assert values[0]["node"]["slug"] == filter_value
 

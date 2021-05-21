@@ -310,7 +310,7 @@ def test_update_product_variant(
                         id
                         name
                         slug
-                        values(first: 10) {
+                        choices(first: 10) {
                             edges {
                                 node {
                                     id

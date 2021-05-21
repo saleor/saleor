@@ -27,7 +27,7 @@ CREATE_ATTRIBUTE_MUTATION = """
                 filterableInDashboard
                 availableInGrid
                 storefrontSearchPosition
-                values(first: 10) {
+                choices(first: 10) {
                     edges {
                         node {
                             name
@@ -93,11 +93,11 @@ def test_create_attribute_and_attribute_values(
     ), "The attribute should not have been assigned to a product type"
 
     # Check if the attribute values were correctly created
-    assert len(data["attribute"]["values"]) == 1
+    assert len(data["attribute"]["choices"]) == 1
     assert data["attribute"]["type"] == AttributeTypeEnum.PRODUCT_TYPE.name
-    assert data["attribute"]["values"]["edges"][0]["node"]["name"] == name
-    assert data["attribute"]["values"]["edges"][0]["node"]["slug"] == slugify(name)
-    assert data["attribute"]["values"]["edges"][0]["node"]["value"] == value
+    assert data["attribute"]["choices"]["edges"][0]["node"]["name"] == name
+    assert data["attribute"]["choices"]["edges"][0]["node"]["slug"] == slugify(name)
+    assert data["attribute"]["choices"]["edges"][0]["node"]["value"] == value
 
 
 def test_create_numeric_attribute_and_attribute_values(
@@ -148,7 +148,7 @@ def test_create_numeric_attribute_and_attribute_values(
     ), "The attribute should not have been assigned to a product type"
 
     # Check if the attribute values were correctly created
-    assert len(data["attribute"]["values"]) == 1
+    assert len(data["attribute"]["choices"]) == 1
     assert data["attribute"]["type"] == AttributeTypeEnum.PRODUCT_TYPE.name
     assert data["attribute"]["unit"] == MeasurementUnitsEnum.M.name
     assert data["attribute"]["inputType"] == AttributeInputTypeEnum.NUMERIC.name
@@ -156,10 +156,7 @@ def test_create_numeric_attribute_and_attribute_values(
     assert data["attribute"]["filterableInDashboard"] is True
     assert data["attribute"]["availableInGrid"] is True
     assert data["attribute"]["storefrontSearchPosition"] == 0
-    assert data["attribute"]["values"]["edges"][0]["node"]["name"] == name
-    assert data["attribute"]["values"]["edges"][0]["node"]["slug"] == slugify(
-        name.replace(".", "_")
-    )
+    assert data["attribute"]["choices"]["edges"] == []
 
 
 def test_create_numeric_attribute_and_attribute_values_not_numeric_value_provided(
@@ -248,7 +245,7 @@ def test_create_attribute_with_file_input_type(
     ), "The attribute should not have been assigned to a product type"
 
     # Check if the attribute values were correctly created
-    assert len(data["attribute"]["values"]["edges"]) == 0
+    assert len(data["attribute"]["choices"]["edges"]) == 0
     assert data["attribute"]["type"] == AttributeTypeEnum.PRODUCT_TYPE.name
     assert data["attribute"]["inputType"] == AttributeInputTypeEnum.FILE.name
 
@@ -301,7 +298,7 @@ def test_create_attribute_with_reference_input_type(
     ), "The attribute should not have been assigned to a product type"
 
     # Check if the attribute values were correctly created
-    assert len(data["attribute"]["values"]["edges"]) == 0
+    assert len(data["attribute"]["choices"]["edges"]) == 0
     assert data["attribute"]["type"] == AttributeTypeEnum.PRODUCT_TYPE.name
     assert data["attribute"]["inputType"] == AttributeInputTypeEnum.REFERENCE.name
     assert data["attribute"]["entityType"] == entity_type
@@ -392,10 +389,10 @@ def test_create_page_attribute_and_attribute_values(
     assert data["attribute"]["storefrontSearchPosition"] == 0
 
     # Check if the attribute values were correctly created
-    assert len(data["attribute"]["values"]["edges"]) == 1
+    assert len(data["attribute"]["choices"]["edges"]) == 1
     assert data["attribute"]["type"] == AttributeTypeEnum.PAGE_TYPE.name
-    assert data["attribute"]["values"]["edges"][0]["node"]["name"] == name
-    assert data["attribute"]["values"]["edges"][0]["node"]["slug"] == slugify(name)
+    assert data["attribute"]["choices"]["edges"][0]["node"]["name"] == name
+    assert data["attribute"]["choices"]["edges"][0]["node"]["slug"] == slugify(name)
 
 
 def test_create_attribute_with_file_input_type_and_values(
@@ -484,7 +481,7 @@ def test_create_attribute_with_file_input_type_correct_attribute_settings(
     ), "The attribute should not have been assigned to a product type"
 
     # Check if the attribute values were correctly created
-    assert len(data["attribute"]["values"]["edges"]) == 0
+    assert len(data["attribute"]["choices"]["edges"]) == 0
     assert data["attribute"]["type"] == AttributeTypeEnum.PRODUCT_TYPE.name
     assert data["attribute"]["inputType"] == AttributeInputTypeEnum.FILE.name
 

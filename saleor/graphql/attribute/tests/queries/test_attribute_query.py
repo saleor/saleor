@@ -67,7 +67,7 @@ query($id: ID!) {
         entityType
         type
         unit
-        values(first: 10) {
+        choices(first: 10) {
             edges {
                 node {
                     slug
@@ -241,7 +241,7 @@ def test_get_single_product_attribute_with_file_value(
         attribute_data["storefrontSearchPosition"]
         == file_attribute.storefront_search_position
     )
-    assert len(attribute_data["values"]["edges"]) == file_attribute.values.count()
+    assert len(attribute_data["choices"]["edges"]) == file_attribute.values.count()
     attribute_value_data = []
     for value in file_attribute.values.all():
         data = {
@@ -254,7 +254,7 @@ def test_get_single_product_attribute_with_file_value(
         attribute_value_data.append(data)
 
     for data in attribute_value_data:
-        assert data in attribute_data["values"]["edges"]
+        assert data in attribute_data["choices"]["edges"]
 
 
 def test_get_single_reference_attribute_by_staff(
@@ -357,7 +357,7 @@ QUERY_ATTRIBUTES = """
                     id
                     name
                     slug
-                    values(first: 10) {
+                    choices(first: 10) {
                         edges {
                             node {
                                 id

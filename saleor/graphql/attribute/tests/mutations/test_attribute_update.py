@@ -22,7 +22,7 @@ UPDATE_ATTRIBUTE_MUTATION = """
             name
             slug
             unit
-            values(first: 10) {
+            choices(first: 10) {
                 edges {
                     node {
                         name

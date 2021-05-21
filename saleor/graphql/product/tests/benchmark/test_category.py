@@ -108,7 +108,7 @@ def test_category_view(api_client, category_with_products, count_queries, channe
                 id
                 name
                 slug
-                values(first: 10) {
+                choices(first: 10) {
                   edges {
                     node {
                       id

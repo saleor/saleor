@@ -413,7 +413,7 @@ type Attribute implements Node & ObjectWithMetadata {
   slug: String
   type: AttributeTypeEnum
   unit: MeasurementUnitsEnum
-  values(filter: AttributeValueFilterInput, before: String, after: String, first: Int, last: Int): AttributeValueCountableConnection
+  choices(filter: AttributeValueFilterInput, before: String, after: String, first: Int, last: Int): AttributeValueCountableConnection
   valueRequired: Boolean!
   visibleInStorefront: Boolean!
   filterableInStorefront: Boolean!

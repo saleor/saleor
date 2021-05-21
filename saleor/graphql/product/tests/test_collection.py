@@ -291,7 +291,7 @@ query CollectionProducts($id: ID!,$channel: String, $filters: ProductFilterInput
           id
           attributes {
             attribute {
-              values(first: 10) {
+              choices(first: 10) {
                 edges {
                   node {
                     slug
@@ -377,7 +377,7 @@ def test_filter_collection_products_by_multiple_attributes(
     assert product["attributes"] == [
         {
             "attribute": {
-                "values": {
+                "choices": {
                     "edges": [
                         {"node": {"slug": "eco"}},
                         {"node": {"slug": "power"}},
