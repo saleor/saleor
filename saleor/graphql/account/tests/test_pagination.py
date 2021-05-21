@@ -179,17 +179,13 @@ def test_query_customers_pagination_with_sort(
 @pytest.mark.parametrize(
     "customer_filter, users_order",
     [
-        ({"search": "davis"}, ["Robert", "Xavier"]),  # default_shipping_address__email
-        (
-            ({"search": "example.com"}, ["Alan", "Harry"])
-            # default_shipping_address__first_name
-        ),
+        ({"search": "example.com"}, ["Alan", "Harry"]),  # email
         (
             {"search": "Miller"},
             ["John", "Leslie"],
         ),  # default_shipping_address__last_name
         ({"search": "wroc"}, ["Alan", "John"]),  # default_shipping_address__city
-        ({"search": "pl"}, ["Alan", "Harry"]),  # default_shipping_address__country
+        ({"search": "pl"}, ["Alan", "John"]),  # default_shipping_address__country
     ],
 )
 def test_query_customer_members_pagination_with_filter_search(
@@ -217,19 +213,15 @@ def test_query_customer_members_pagination_with_filter_search(
 @pytest.mark.parametrize(
     "staff_member_filter, users_order",
     [
-        ({"search": "davis"}, ["Robert", "Xavier"]),  # default_shipping_address__email
+        ({"search": "example.com"}, ["Alan", "Harry"]),  # email
         (
-            ({"search": "example.com"}, ["Alan", "Harry"])
-            # default_shipping_address__first_name
-        ),
-        (
-            {"search": "Miller"},
-            ["John", "Leslie"],
+            {"search": "davis"},
+            ["Robert", "Xavier"],
         ),  # default_shipping_address__last_name
         ({"search": "wroc"}, ["Alan", "John"]),  # default_shipping_address__city
-        ({"search": "pl"}, ["Alan", "Harry"]),  # default_shipping_address__country
-        ({"status": "DEACTIVATED"}, ["Alan", "Robert"]),
-        ({"status": "ACTIVE"}, ["Harry", "John"]),
+        ({"search": "pl"}, ["Alan", "John"]),  # default_shipping_address__country
+        ({"status": "DEACTIVATED"}, ["Alan", "Robert"]),  # status
+        ({"status": "ACTIVE"}, ["Harry", "John"]),  # status
     ],
 )
 def test_query_staff_members_pagination_with_filter_search(
@@ -261,11 +253,11 @@ def test_query_staff_members_pagination_with_filter_search(
 def permission_groups_for_pagination(db):
     return auth_models.Group.objects.bulk_create(
         [
-            auth_models.Group(name="Group1"),
-            auth_models.Group(name="GroupGroup1"),
-            auth_models.Group(name="GroupGroup2"),
-            auth_models.Group(name="Group2"),
-            auth_models.Group(name="Group3"),
+            auth_models.Group(name="admin"),
+            auth_models.Group(name="customer_manager"),
+            auth_models.Group(name="discount_manager"),
+            auth_models.Group(name="staff"),
+            auth_models.Group(name="accountant"),
         ]
     )
 
@@ -298,10 +290,13 @@ QUERY_PERMISSION_GROUPS_PAGINATION = """
 @pytest.mark.parametrize(
     "sort_by, permission_groups_order",
     [
-        ({"field": "NAME", "direction": "ASC"}, ["Group1", "Group2", "Group3"]),
+        (
+            {"field": "NAME", "direction": "ASC"},
+            ["accountant", "admin", "customer_manager"],
+        ),
         (
             {"field": "NAME", "direction": "DESC"},
-            ["GroupGroup2", "GroupGroup1", "Group3"],
+            ["staff", "discount_manager", "customer_manager"],
         ),
     ],
 )
@@ -328,23 +323,14 @@ def test_permission_groups_pagination_with_sorting(
     assert len(permission_groups_nodes) == page_size
 
 
-@pytest.mark.parametrize(
-    "filter_by, permission_groups_order",
-    [
-        ({"search": "GroupGroup"}, ["GroupGroup1", "GroupGroup2"]),
-        ({"search": "Group1"}, ["Group1", "GroupGroup1"]),
-    ],
-)
 def test_permission_groups_pagination_with_filtering(
-    filter_by,
-    permission_groups_order,
     staff_api_client,
     permission_manage_staff,
     permission_groups_for_pagination,
 ):
     page_size = 2
 
-    variables = {"first": page_size, "after": None, "filter": filter_by}
+    variables = {"first": page_size, "after": None, "filter": {"search": "manager"}}
     response = staff_api_client.post_graphql(
         QUERY_PERMISSION_GROUPS_PAGINATION,
         variables,
@@ -352,6 +338,6 @@ def test_permission_groups_pagination_with_filtering(
     )
     content = get_graphql_content(response)
     permission_groups_nodes = content["data"]["permissionGroups"]["edges"]
-    assert permission_groups_order[0] == permission_groups_nodes[0]["node"]["name"]
-    assert permission_groups_order[1] == permission_groups_nodes[1]["node"]["name"]
+    assert permission_groups_nodes[0]["node"]["name"] == "customer_manager"
+    assert permission_groups_nodes[1]["node"]["name"] == "discount_manager"
     assert len(permission_groups_nodes) == page_size

@@ -4240,7 +4240,7 @@ def test_query_customers_with_sort(
         ({"search": "John"}, 1),  # default_shipping_address__first_name
         ({"search": "Doe"}, 1),  # default_shipping_address__last_name
         ({"search": "wroc"}, 1),  # default_shipping_address__city
-        ({"search": "pl"}, 2),  # default_shipping_address__country, email
+        ({"search": "pl"}, 1),  # default_shipping_address__country, email
         ({"search": "+48713988102"}, 1),
         ({"search": "7139881"}, 1),
         ({"search": "+48713"}, 1),
@@ -4342,7 +4342,7 @@ def test_query_staff_members_app_no_permission(
         ({"search": "John"}, 1),  # default_shipping_address__first_name
         ({"search": "Doe"}, 1),  # default_shipping_address__last_name
         ({"search": "wroc"}, 1),  # default_shipping_address__city
-        ({"search": "pl"}, 3),  # default_shipping_address__country, email
+        ({"search": "pl"}, 1),  # default_shipping_address__country, email
     ],
 )
 def test_query_staff_members_with_filter_search(

@@ -32,7 +32,7 @@ def filter_status(qs, _, value):
 def filter_user_search(qs, _, value):
     if value:
         return qs.filter(
-            Q(email__icontains=value)
+            Q(email__trigram_similar=value)
             | Q(first_name__trigram_similar=value)
             | Q(last_name__trigram_similar=value)
             | Q(default_shipping_address__first_name__trigram_similar=value)
