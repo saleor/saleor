@@ -22,6 +22,7 @@ from ...channel.models import Channel
 from ...product.models import (
     Category,
     Collection,
+    CollectionProduct,
     Product,
     ProductChannelListing,
     ProductType,
@@ -41,6 +42,7 @@ from ..core.types.common import IntRangeInput, PriceRangeInput
 from ..utils import get_nodes, resolve_global_ids_to_primary_keys
 from ..utils.filters import filter_fields_containing_value, filter_range_field
 from ..warehouse import types as warehouse_types
+from . import types as product_types
 from .enums import (
     CollectionPublished,
     ProductTypeConfigurable,
@@ -201,8 +203,11 @@ def filter_products_by_categories(qs, categories):
     return qs.filter(category__in=ids)
 
 
-def filter_products_by_collections(qs, collections):
-    return qs.filter(collections__in=collections)
+def filter_products_by_collections(qs, collection_pks):
+    collection_products = CollectionProduct.objects.filter(
+        collection_id__in=collection_pks
+    )
+    return qs.filter(Exists(collection_products.filter(product_id=OuterRef("pk"))))
 
 
 def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
@@ -254,8 +259,10 @@ def filter_has_category(qs, _, value):
 
 def filter_collections(qs, _, value):
     if value:
-        collections = get_nodes(value, "Collection", Collection)
-        qs = filter_products_by_collections(qs, collections)
+        _, collection_pks = resolve_global_ids_to_primary_keys(
+            value, product_types.Collection
+        )
+        qs = filter_products_by_collections(qs, collection_pks)
     return qs
 
 
