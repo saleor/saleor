@@ -139,7 +139,7 @@ class ChannelUpdate(ModelMutation):
 
 
 class ChannelDeleteInput(graphene.InputObjectType):
-    target_channel = graphene.ID(
+    channel_id = graphene.ID(
         required=True,
         description="ID of channel to migrate orders from origin channel.",
     )
@@ -166,7 +166,7 @@ class ChannelDelete(ModelDeleteMutation):
         if origin_channel.id == target_channel.id:
             raise ValidationError(
                 {
-                    "target_channel": ValidationError(
+                    "channel_id": ValidationError(
                         "channelID and targetChannelID cannot be the same. "
                         "Use different target channel ID.",
                         code=ChannelErrorCode.CHANNEL_TARGET_ID_MUST_BE_DIFFERENT,
@@ -178,7 +178,7 @@ class ChannelDelete(ModelDeleteMutation):
         if origin_channel_currency != target_channel_currency:
             raise ValidationError(
                 {
-                    "target_channel": ValidationError(
+                    "channel_id": ValidationError(
                         f"Cannot migrate from {origin_channel_currency} "
                         f"to {target_channel_currency}. "
                         "Migration are allowed between the same currency",
@@ -225,7 +225,7 @@ class ChannelDelete(ModelDeleteMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         origin_channel = cls.get_node_or_error(info, data["id"], only_type=Channel)
-        target_channel_global_id = data.get("input", {}).get("target_channel")
+        target_channel_global_id = data.get("input", {}).get("channel_id")
         if target_channel_global_id:
             target_channel = cls.get_node_or_error(
                 info, target_channel_global_id, only_type=Channel

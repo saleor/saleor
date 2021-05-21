@@ -848,7 +848,7 @@ type ChannelDelete {
 }
 
 input ChannelDeleteInput {
-  targetChannel: ID!
+  channelId: ID!
 }
 
 type ChannelError {
@@ -1842,7 +1842,7 @@ input DraftOrderCreateInput {
   shippingMethod: ID
   voucher: ID
   customerNote: String
-  channel: ID
+  channelId: ID
   redirectUrl: String
   lines: [OrderLineCreateInput]
 }
@@ -1862,7 +1862,7 @@ input DraftOrderInput {
   shippingMethod: ID
   voucher: ID
   customerNote: String
-  channel: ID
+  channelId: ID
   redirectUrl: String
 }
 
@@ -2823,7 +2823,7 @@ type Mutation {
   giftCardCreate(input: GiftCardCreateInput!): GiftCardCreate
   giftCardDeactivate(id: ID!): GiftCardDeactivate
   giftCardUpdate(id: ID!, input: GiftCardUpdateInput!): GiftCardUpdate
-  pluginUpdate(channel: ID, id: ID!, input: PluginUpdateInput!): PluginUpdate
+  pluginUpdate(channelId: ID, id: ID!, input: PluginUpdateInput!): PluginUpdate
   saleCreate(input: SaleInput!): SaleCreate
   saleDelete(id: ID!): SaleDelete
   saleBulkDelete(ids: [ID]!): SaleBulkDelete
