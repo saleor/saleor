@@ -65,7 +65,8 @@ class CreateToken(BaseMutation):
     """Mutation that authenticates a user and returns token and user data."""
 
     class Arguments:
-        email = graphene.String(required=True, description="Email of a user.")
+        email = graphene.String(required=False, description="Email of a user.")
+        phone_number = graphene.String(required=False, description="Phone number of a user")
         password = graphene.String(required=True, description="Password of a user.")
 
     class Meta:
@@ -88,14 +89,26 @@ class CreateToken(BaseMutation):
         if user and user.check_password(password):
             return user
         return None
+    
+    @classmethod
+    def _retrieve_user_from_credentials_phone(cls, phone_number, password) -> Optional[models.User]:
+        user = models.User.objects.filter(phone_number=phone_number, is_active=True).first()
+        if user and user.check_password(password):
+            return user
+        return None
 
     @classmethod
     def get_user(cls, _info, data):
-        user = cls._retrieve_user_from_credentials(data["email"], data["password"])
+        if "email" in data:
+            user = cls._retrieve_user_from_credentials(data["email"], data["password"])
+        elif "phone_number" in  data:
+            user = cls._retrieve_user_from_credentials_phone(data["phone_number"], data["password"])
+        else:
+            user = None
         if not user:
             raise ValidationError(
                 {
-                    "email": ValidationError(
+                    "email/phoneNumber": ValidationError(
                         "Please, enter valid credentials",
                         code=AccountErrorCode.INVALID_CREDENTIALS.value,
                     )

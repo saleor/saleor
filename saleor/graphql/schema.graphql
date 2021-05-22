@@ -84,7 +84,8 @@ type AccountRegister {
 }
 
 input AccountRegisterInput {
-  email: String!
+  email: String
+  phoneNumber: String
   password: String!
   redirectUrl: String
 }
@@ -2798,7 +2799,7 @@ type Mutation {
   appFetchManifest(manifestUrl: String!): AppFetchManifest
   appActivate(id: ID!): AppActivate
   appDeactivate(id: ID!): AppDeactivate
-  tokenCreate(email: String!, password: String!): CreateToken
+  tokenCreate(email: String, password: String!, phoneNumber: String): CreateToken
   tokenRefresh(csrfToken: String, refreshToken: String): RefreshToken
   tokenVerify(token: String!): VerifyToken
   tokensDeactivateAll: DeactivateAllUserTokens
@@ -5169,7 +5170,7 @@ scalar Upload
 type User implements Node & ObjectWithMetadata {
   id: ID!
   lastLogin: DateTime
-  email: String!
+  email: String
   firstName: String!
   lastName: String!
   isStaff: Boolean!

@@ -27,7 +27,8 @@ from .base import (
 
 
 class AccountRegisterInput(graphene.InputObjectType):
-    email = graphene.String(description="The email address of the user.", required=True)
+    email = graphene.String(description="The email address of the user.", required=False)
+    phone_number = graphene.String(description="The phone number of the user.", required=False)
     password = graphene.String(description="Password.", required=True)
     redirect_url = graphene.String(
         description=(
@@ -62,7 +63,10 @@ class AccountRegister(ModelMutation):
 
     @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
-        if not settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL:
+        if not data.get('email') and not data.get('phone_number'):
+            raise ValidationError({"field":"Either email or phoneNumber is required."})
+
+        if not settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL or not settings.ENABLE_ACCOUNT_CONFIRMATION_BY_PHONE_NUMBER:
             return super().clean_input(info, instance, data, input_cls=None)
         elif not data.get("redirect_url"):
             raise ValidationError(
@@ -96,10 +100,14 @@ class AccountRegister(ModelMutation):
     def save(cls, info, user, cleaned_input):
         password = cleaned_input["password"]
         user.set_password(password)
-        if settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL:
+        if 'email' in cleaned_input and settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL:
             user.is_active = False
             user.save()
             emails.send_account_confirmation_email(user, cleaned_input["redirect_url"])
+        elif 'phone_number' in cleaned_input and settings.ENABLE_ACCOUNT_CONFIRMATION_BY_PHONE_NUMBER:
+            user.is_active = False
+            user.save()
+            # send otp
         else:
             user.save()
         account_events.customer_account_created_event(user=user)
