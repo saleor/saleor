@@ -167,9 +167,8 @@ class ChannelDelete(ModelDeleteMutation):
             raise ValidationError(
                 {
                     "channel_id": ValidationError(
-                        "channelID and targetChannelID cannot be the same. "
-                        "Use different target channel ID.",
-                        code=ChannelErrorCode.CHANNEL_TARGET_ID_MUST_BE_DIFFERENT,
+                        "Cannot migrate data to the channel that is being removed.",
+                        code=ChannelErrorCode.INVALID,
                     )
                 }
             )

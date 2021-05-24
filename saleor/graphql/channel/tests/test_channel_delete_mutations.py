@@ -74,7 +74,7 @@ def test_channel_delete_mutation_with_the_same_channel_and_target_channel_id(
     error = content["data"]["channelDelete"]["errors"][0]
 
     assert error["field"] == "channelId"
-    assert error["code"] == ChannelErrorCode.CHANNEL_TARGET_ID_MUST_BE_DIFFERENT.name
+    assert error["code"] == ChannelErrorCode.INVALID.name
 
 
 def test_channel_delete_mutation_without_migration_channel_with_orders(

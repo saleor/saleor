@@ -101,12 +101,10 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         shipping_address = data.pop("shipping_address", None)
         billing_address = data.pop("billing_address", None)
         redirect_url = data.pop("redirect_url", None)
+        channel_id = data.pop("channel_id", None)
 
         cleaned_input = super().clean_input(info, instance, data)
 
-        channel_id = data.get("channel_id", None)
-        if "channel_id" in cleaned_input and channel_id is None:
-            del cleaned_input["channel_id"]
         channel = cls.clean_channel_id(info, instance, cleaned_input, channel_id)
 
         voucher = cleaned_input.get("voucher", None)
