@@ -32,7 +32,7 @@ from .consts import (
     PLUGIN_ID,
     PLUGIN_NAME,
     PROCESSING_STATUS,
-    SUCCESS_STATUSES,
+    SUCCESS_STATUS,
     WEBHOOK_PATH,
 )
 
@@ -179,16 +179,15 @@ class StripeGatewayPlugin(BasePlugin):
 
         payment_intent = None
         if payment_intent_id:
-            payment_intent = retrieve_payment_intent(api_key, payment_intent_id)
+            payment_intent, error = retrieve_payment_intent(api_key, payment_intent_id)
 
-        kind = (
-            TransactionKind.CAPTURE
-            if self.config.auto_capture
-            else TransactionKind.AUTH
-        )
-        action_required = False
+        kind = TransactionKind.AUTH
+        action_required = True
 
         if payment_intent:
+            if payment_intent.capture_method == "automatic":
+                kind = TransactionKind.CAPTURE
+
             amount = price_from_minor_unit(
                 payment_intent.amount, payment_intent.currency
             )
@@ -201,16 +200,18 @@ class StripeGatewayPlugin(BasePlugin):
 
             elif payment_intent.status == PROCESSING_STATUS:
                 kind = TransactionKind.PENDING
-            elif payment_intent.status == SUCCESS_STATUSES:
-                kind = (
-                    TransactionKind.CAPTURE
-                    if payment_intent.capture_method == "automatic"
-                    else TransactionKind.AUTH
-                )
+                action_required = False
+
+            elif payment_intent.status == SUCCESS_STATUS:
+                action_required = False
         else:
+            action_required = False
             amount = payment_information.amount
             currency = payment_information.currency
 
+        raw_response = None
+        if payment_intent and payment_intent.last_response:
+            raw_response = payment_intent.last_response.data
         return GatewayResponse(
             is_success=True if payment_intent else False,
             action_required=action_required,
@@ -218,8 +219,8 @@ class StripeGatewayPlugin(BasePlugin):
             amount=amount,
             currency=currency,
             transaction_id=payment_intent.id if payment_intent else "",
-            error=None,
-            raw_response=payment_intent.last_response.data if payment_intent else None,
+            error=error,
+            raw_response=raw_response,
         )
 
     @classmethod

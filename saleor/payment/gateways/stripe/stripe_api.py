@@ -1,4 +1,3 @@
-import json
 import logging
 from decimal import Decimal
 from typing import Optional, Tuple
@@ -57,16 +56,28 @@ def create_payment_intent(
         )
         return intent, None
     except StripeError as e:
-        error = json.dumps(e.json_body)
+        error = e.json_body
 
     return None, error
 
 
 def retrieve_payment_intent(
     api_key: str, payment_intent_id: str
-) -> Optional[StripeObject]:
+) -> Tuple[Optional[StripeObject], Optional[str]]:
     try:
-        return stripe.PaymentIntent.retrieve(payment_intent_id, api_key=api_key)
-    except StripeError:
+        payment_intent = stripe.PaymentIntent.retrieve(
+            payment_intent_id, api_key=api_key
+        )
+        return payment_intent, None
+    except StripeError as e:
+        error = e.json_body
         logger.warning("Unable to retrieve a payment intent (%s)", payment_intent_id)
-        return None
+        return None, error
+
+
+def construct_stripe_event(
+    api_key: str, payload: bytes, sig_header: str, endpoint_secret: str
+) -> StripeObject:
+    return stripe.Webhook.construct_event(
+        payload, sig_header, endpoint_secret, api_key=api_key
+    )

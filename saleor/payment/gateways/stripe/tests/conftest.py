@@ -67,17 +67,30 @@ def stripe_plugin(settings, monkeypatch):
     def fun(
         public_api_key=None,
         secret_api_key=None,
-        webhook_endpoint_id=None,
-        webhook_secret_key=None,
+        webhook_endpoint_id="12345",
+        webhook_secret_key="ABCD",
         active=True,
     ):
         public_api_key = public_api_key or "test_key"
         secret_api_key = secret_api_key or "secret_key"
-        webhook_endpoint_id = webhook_endpoint_id or "12345"
-        webhook_secret_key = webhook_secret_key or "ABCD"
 
         settings.PLUGINS = ["saleor.payment.gateways.stripe.plugin.StripeGatewayPlugin"]
 
+        configuration = [
+            {"name": "public_api_key", "value": public_api_key},
+            {"name": "secret_api_key", "value": secret_api_key},
+            {"name": "store_customers_cards", "value": False},
+            {"name": "automatic_payment_capture", "value": True},
+            {"name": "supported_currencies", "value": "USD"},
+        ]
+        if webhook_endpoint_id:
+            configuration.append(
+                {"name": "webhook_endpoint_id", "value": webhook_endpoint_id}
+            )
+        if webhook_secret_key:
+            configuration.append(
+                {"name": "webhook_secret_key", "value": webhook_secret_key}
+            )
         PluginConfiguration.objects.create(
             identifier=StripeGatewayPlugin.PLUGIN_ID,
             name=StripeGatewayPlugin.PLUGIN_NAME,

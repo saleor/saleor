@@ -86,7 +86,9 @@ def test_create_payment_intent_returns_intent_object(mocked_payment_intent):
 )
 def test_create_payment_intent_returns_error(mocked_payment_intent):
     api_key = "api_key"
-    mocked_payment_intent.create.side_effect = StripeError()
+    mocked_payment_intent.create.side_effect = StripeError(
+        json_body={"error": "stripe-error"}
+    )
 
     intent, error = create_payment_intent(api_key, Decimal(10), "USD")
 
@@ -106,7 +108,7 @@ def test_retrieve_payment_intent(mocked_payment_intent):
 
     mocked_payment_intent.retrieve.return_value = StripeObject()
 
-    intent = retrieve_payment_intent(api_key, payment_intent_id)
+    intent, _ = retrieve_payment_intent(api_key, payment_intent_id)
 
     mocked_payment_intent.retrieve.assert_called_with(
         payment_intent_id, api_key=api_key
@@ -121,12 +123,14 @@ def test_retrieve_payment_intent_stripe_returns_error(mocked_payment_intent):
     api_key = "api_key"
     payment_intent_id = "id1234"
 
-    mocked_payment_intent.retrieve.side_effect = StripeError()
+    mocked_payment_intent.retrieve.side_effect = StripeError(
+        json_body={"error": "stripe-error"}
+    )
 
-    response = retrieve_payment_intent(api_key, payment_intent_id)
+    _, error = retrieve_payment_intent(api_key, payment_intent_id)
 
     mocked_payment_intent.retrieve.assert_called_with(
         payment_intent_id, api_key=api_key
     )
 
-    assert not response
+    assert error == {"error": "stripe-error"}

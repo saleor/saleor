@@ -1,4 +1,5 @@
-from unittest.mock import patch
+import json
+from unittest.mock import Mock, patch
 
 import pytest
 from stripe.stripe_object import StripeObject
@@ -74,3 +75,39 @@ def test_handle_successful_payment_intent_for_order(
     payment.refresh_from_db()
 
     assert wrapped_checkout_complete.called is False
+
+
+@patch("saleor.payment.gateways.stripe.webhooks.handle_successful_payment_intent")
+@patch("saleor.payment.gateways.stripe.stripe_api.stripe.Webhook.construct_event")
+def test_handle_webhook(mocked_webhook_event, mocked_handle_intent, stripe_plugin, rf):
+    dummy_payload = {
+        "id": "evt_1Ip9ANH1Vac4G4dbE9ch7zGS",
+    }
+
+    request = rf.post(
+        path="/webhooks/", data=dummy_payload, content_type="application/json"
+    )
+
+    stripe_signature = "1234"
+    request.META["HTTP_STRIPE_SIGNATURE"] = stripe_signature
+
+    event = Mock()
+    event.type = "payment_intent.succeeded"
+    event.data.object = StripeObject()
+
+    mocked_webhook_event.return_value = event
+
+    plugin = stripe_plugin()
+
+    plugin.webhook(request, "/webhooks/", None)
+
+    api_key = plugin.config.connection_params["secret_api_key"]
+    endpoint_secret = plugin.config.connection_params["webhook_secret"]
+
+    mocked_webhook_event.assert_called_once_with(
+        json.dumps(dummy_payload).encode("utf-8"),
+        stripe_signature,
+        endpoint_secret,
+        api_key=api_key,
+    )
+    mocked_handle_intent.assert_called_once_with(event.data.object, plugin.config)

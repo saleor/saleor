@@ -1,7 +1,6 @@
 import logging
 from typing import Optional
 
-import stripe
 from django.contrib.auth.models import AnonymousUser
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
@@ -18,6 +17,7 @@ from ... import TransactionKind
 from ...interface import GatewayConfig, GatewayResponse
 from ...models import Payment
 from ...utils import create_transaction, price_from_minor_unit
+from .stripe_api import construct_stripe_event
 
 logger = logging.getLogger(__name__)
 
@@ -29,8 +29,11 @@ def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
     endpoint_secret = gateway_config.connection_params["webhook_secret"]
     api_key = gateway_config.connection_params["secret_api_key"]
     try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, endpoint_secret, api_key=api_key
+        event = construct_stripe_event(
+            api_key=api_key,
+            payload=payload,
+            sig_header=sig_header,
+            endpoint_secret=endpoint_secret,
         )
     except ValueError as e:
         # Invalid payload
