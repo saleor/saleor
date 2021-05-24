@@ -84,10 +84,21 @@ type AccountRegister {
 }
 
 input AccountRegisterInput {
-  email: String
-  phoneNumber: String
+  email: String!
   password: String!
   redirectUrl: String
+}
+
+type AccountRegisterPhoneNumber {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  requiresConfirmation: Boolean
+  accountErrors: [AccountError!]!
+  user: User
+}
+
+input AccountRegisterPhoneNumberInput {
+  phoneNumber: String!
+  password: String!
 }
 
 type AccountRequestDeletion {
@@ -1544,6 +1555,15 @@ type CreateToken {
   accountErrors: [AccountError!]!
 }
 
+type CreateTokenPhoneNumber {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  token: String
+  refreshToken: String
+  csrfToken: String
+  user: User
+  accountErrors: [AccountError!]!
+}
+
 type CreditCard {
   brand: String!
   firstDigits: String
@@ -2799,7 +2819,8 @@ type Mutation {
   appFetchManifest(manifestUrl: String!): AppFetchManifest
   appActivate(id: ID!): AppActivate
   appDeactivate(id: ID!): AppDeactivate
-  tokenCreate(email: String, password: String!, phoneNumber: String): CreateToken
+  tokenCreate(email: String!, password: String!): CreateToken
+  tokenCreatePhoneNumber(password: String!, phoneNumber: String!): CreateTokenPhoneNumber
   tokenRefresh(csrfToken: String, refreshToken: String): RefreshToken
   tokenVerify(token: String!): VerifyToken
   tokensDeactivateAll: DeactivateAllUserTokens
@@ -2814,6 +2835,7 @@ type Mutation {
   accountAddressDelete(id: ID!): AccountAddressDelete
   accountSetDefaultAddress(id: ID!, type: AddressTypeEnum!): AccountSetDefaultAddress
   accountRegister(input: AccountRegisterInput!): AccountRegister
+  accountRegisterPhoneNumber(input: AccountRegisterPhoneNumberInput!): AccountRegisterPhoneNumber
   accountUpdate(input: AccountInput!): AccountUpdate
   accountRequestDeletion(redirectUrl: String!): AccountRequestDeletion
   accountDelete(token: String!): AccountDelete

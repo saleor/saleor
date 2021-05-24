@@ -25,6 +25,7 @@ from .mutations.account import (
     AccountAddressUpdate,
     AccountDelete,
     AccountRegister,
+    AccountRegisterPhoneNumber,
     AccountRequestDeletion,
     AccountSetDefaultAddress,
     AccountUpdate,
@@ -42,6 +43,7 @@ from .mutations.base import (
 )
 from .mutations.jwt import (
     CreateToken,
+    CreateTokenPhoneNumber,
     DeactivateAllUserTokens,
     RefreshToken,
     VerifyToken,
@@ -226,6 +228,7 @@ class AccountQueries(graphene.ObjectType):
 class AccountMutations(graphene.ObjectType):
     # Base mutations
     token_create = CreateToken.Field()
+    token_create_phone_number = CreateTokenPhoneNumber.Field()
     token_refresh = RefreshToken.Field()
     token_verify = VerifyToken.Field()
     tokens_deactivate_all = DeactivateAllUserTokens.Field()
@@ -244,6 +247,7 @@ class AccountMutations(graphene.ObjectType):
     account_set_default_address = AccountSetDefaultAddress.Field()
 
     account_register = AccountRegister.Field()
+    account_register_phone_number = AccountRegisterPhoneNumber.Field()
     account_update = AccountUpdate.Field()
     account_request_deletion = AccountRequestDeletion.Field()
     account_delete = AccountDelete.Field()

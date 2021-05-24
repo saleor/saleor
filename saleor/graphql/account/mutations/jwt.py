@@ -65,8 +65,7 @@ class CreateToken(BaseMutation):
     """Mutation that authenticates a user and returns token and user data."""
 
     class Arguments:
-        email = graphene.String(required=False, description="Email of a user.")
-        phone_number = graphene.String(required=False, description="Phone number of a user")
+        email = graphene.String(required=True, description="Email of a user.")
         password = graphene.String(required=True, description="Password of a user.")
 
     class Meta:
@@ -89,26 +88,14 @@ class CreateToken(BaseMutation):
         if user and user.check_password(password):
             return user
         return None
-    
-    @classmethod
-    def _retrieve_user_from_credentials_phone(cls, phone_number, password) -> Optional[models.User]:
-        user = models.User.objects.filter(phone_number=phone_number, is_active=True).first()
-        if user and user.check_password(password):
-            return user
-        return None
 
     @classmethod
     def get_user(cls, _info, data):
-        if "email" in data:
-            user = cls._retrieve_user_from_credentials(data["email"], data["password"])
-        elif "phone_number" in  data:
-            user = cls._retrieve_user_from_credentials_phone(data["phone_number"], data["password"])
-        else:
-            user = None
+        user = cls._retrieve_user_from_credentials(data["email"], data["password"])
         if not user:
             raise ValidationError(
                 {
-                    "email/phoneNumber": ValidationError(
+                    "email": ValidationError(
                         "Please, enter valid credentials",
                         code=AccountErrorCode.INVALID_CREDENTIALS.value,
                     )
@@ -133,6 +120,39 @@ class CreateToken(BaseMutation):
             refresh_token=refresh_token,
             csrf_token=csrf_token,
         )
+
+class CreateTokenPhoneNumber(CreateToken):
+    """Mutation that authenticates a user and returns token and user data."""
+
+    class Arguments:
+        phone_number = graphene.String(required=True, description="Phone number of a user")
+        password = graphene.String(required=True, description="Password of a user.")
+
+    class Meta:
+        description = "Create JWT token using phone number."
+        error_type_class = AccountError
+        error_type_field = "account_errors"
+
+    @classmethod
+    def _retrieve_user_from_credentials(cls, phone_number, password) -> Optional[models.User]:
+        user = models.User.objects.filter(phone_number=phone_number, is_active=True).first()
+        if user and user.check_password(password):
+            return user
+        return None
+
+    @classmethod
+    def get_user(cls, _info, data):
+        user = cls._retrieve_user_from_credentials(data["phone_number"], data["password"])
+        if not user:
+            raise ValidationError(
+                {
+                    "phoneNumber": ValidationError(
+                        "Please, enter valid credentials",
+                        code=AccountErrorCode.INVALID_CREDENTIALS.value,
+                    )
+                }
+            )
+        return user
 
 
 class RefreshToken(BaseMutation):
