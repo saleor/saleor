@@ -9,6 +9,7 @@ from graphql_relay.connection.arrayconnection import connection_from_list_slice
 from promise import Promise
 
 from ..channel import ChannelContext, ChannelQsContext
+from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..utils.sorting import sort_queryset_for_connection
 from .connection import connection_from_queryset_slice
 
@@ -185,8 +186,10 @@ class FilterInputConnectionField(BaseDjangoConnectionField):
     @classmethod
     def filter_iterable(cls, iterable, filterset_class, filters_name, info, **args):
         filter_input = args.get(filters_name)
-        if filter_input and "channel" in args:
-            filter_input["channel"] = args["channel"]
+        if filter_input:
+            filter_input["channel"] = (
+                args.get("channel") or get_default_channel_slug_or_graphql_error()
+            )
         if filter_input and filterset_class:
             instance = filterset_class(
                 data=dict(filter_input), queryset=iterable, request=info.context
