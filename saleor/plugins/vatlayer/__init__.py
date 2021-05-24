@@ -6,64 +6,7 @@ from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from ...core.taxes import charge_taxes_on_shipping, include_taxes_in_prices
 
-
-class TaxRateType:
-    ACCOMMODATION = "accommodation"
-    ADMISSION_TO_CULTURAL_EVENTS = "admission to cultural events"
-    ADMISSION_TO_ENTERTAINMENT_EVENTS = "admission to entertainment events"
-    ADMISSION_TO_SPORTING_EVENTS = "admission to sporting events"
-    ADVERTISING = "advertising"
-    AGRICULTURAL_SUPPLIES = "agricultural supplies"
-    BABY_FOODSTUFFS = "baby foodstuffs"
-    BIKES = "bikes"
-    BOOKS = "books"
-    CHILDRENDS_CLOTHING = "childrens clothing"
-    DOMESTIC_FUEL = "domestic fuel"
-    DOMESTIC_SERVICES = "domestic services"
-    E_BOOKS = "e-books"
-    FOODSTUFFS = "foodstuffs"
-    HOTELS = "hotels"
-    MEDICAL = "medical"
-    NEWSPAPERS = "newspapers"
-    PASSENGER_TRANSPORT = "passenger transport"
-    PHARMACEUTICALS = "pharmaceuticals"
-    PROPERTY_RENOVATIONS = "property renovations"
-    RESTAURANTS = "restaurants"
-    SOCIAL_HOUSING = "social housing"
-    STANDARD = "standard"
-    WATER = "water"
-    WINE = "wine"
-
-    CHOICES = (
-        (ACCOMMODATION, "accommodation"),
-        (ADMISSION_TO_CULTURAL_EVENTS, "admission to cultural events"),
-        (ADMISSION_TO_ENTERTAINMENT_EVENTS, "admission to entertainment events"),
-        (ADMISSION_TO_SPORTING_EVENTS, "admission to sporting events"),
-        (ADVERTISING, "advertising"),
-        (AGRICULTURAL_SUPPLIES, "agricultural supplies"),
-        (BABY_FOODSTUFFS, "baby foodstuffs"),
-        (BIKES, "bikes"),
-        (BOOKS, "books"),
-        (CHILDRENDS_CLOTHING, "childrens clothing"),
-        (DOMESTIC_FUEL, "domestic fuel"),
-        (DOMESTIC_SERVICES, "domestic services"),
-        (E_BOOKS, "e-books"),
-        (FOODSTUFFS, "foodstuffs"),
-        (HOTELS, "hotels"),
-        (MEDICAL, "medical"),
-        (NEWSPAPERS, "newspapers"),
-        (PASSENGER_TRANSPORT, "passenger transport"),
-        (PHARMACEUTICALS, "pharmaceuticals"),
-        (PROPERTY_RENOVATIONS, "property renovations"),
-        (RESTAURANTS, "restaurants"),
-        (SOCIAL_HOUSING, "social housing"),
-        (STANDARD, "standard"),
-        (WATER, "water"),
-        (WINE, "wine"),
-    )
-
-
-DEFAULT_TAX_RATE_NAME = TaxRateType.STANDARD
+DEFAULT_TAX_RATE_NAME = "standard"
 
 
 @dataclass
