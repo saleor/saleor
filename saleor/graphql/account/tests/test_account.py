@@ -1060,7 +1060,7 @@ def test_customer_register_no_redirect_url(mocked_notify, api_client):
 
 CUSTOMER_CREATE_MUTATION = """
     mutation CreateCustomer(
-        $email: String, $firstName: String, $lastName: String,
+        $email: String, $firstName: String, $lastName: String, $channel: String
         $note: String, $billing: AddressInput, $shipping: AddressInput,
         $redirect_url: String, $languageCode: LanguageCodeEnum) {
         customerCreate(input: {
@@ -1071,7 +1071,8 @@ CUSTOMER_CREATE_MUTATION = """
             defaultShippingAddress: $shipping,
             defaultBillingAddress: $billing,
             redirectUrl: $redirect_url,
-            languageCode: $languageCode
+            languageCode: $languageCode,
+            channel: $channel,
         }) {
             errors {
                 field
@@ -3712,7 +3713,11 @@ def test_account_reset_password_subdomain(
 ):
     settings.ALLOWED_CLIENT_HOSTS = [".example.com"]
     redirect_url = "https://sub.example.com"
-    variables = {"email": customer_user.email, "redirectUrl": redirect_url}
+    variables = {
+        "email": customer_user.email,
+        "redirectUrl": redirect_url,
+        "channel": channel_PLN.slug,
+    }
     response = user_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["requestPasswordReset"]
@@ -4717,8 +4722,8 @@ def test_request_email_change_with_invalid_password(user_api_client, customer_us
 
 
 EMAIL_UPDATE_QUERY = """
-mutation emailUpdate($token: String!) {
-    confirmEmailChange(token: $token){
+mutation emailUpdate($token: String!, $channel: String) {
+    confirmEmailChange(token: $token, channel: $channel){
         user {
             email
         }
@@ -4741,7 +4746,7 @@ def test_email_update(user_api_client, customer_user, channel_PLN):
     }
 
     token = create_token(payload, timedelta(hours=1))
-    variables = {"token": token}
+    variables = {"token": token, "channel": channel_PLN.slug}
 
     response = user_api_client.post_graphql(EMAIL_UPDATE_QUERY, variables)
     content = get_graphql_content(response)
