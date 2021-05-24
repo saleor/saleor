@@ -53,6 +53,25 @@ QUERY_PRODUCTS_WITH_FILTER = """
 """
 
 
+SORT_PRODUCTS_QUERY = """
+    query {
+        products (
+            sortBy: %(sort_by_product_order)s, first: 3
+        ) {
+            edges {
+                node {
+                    name
+                    productType{
+                        name
+                    }
+                    updatedAt
+                }
+            }
+        }
+    }
+"""
+
+
 def test_product_query_by_id_with_default_channel(user_api_client, product):
     variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
 
@@ -127,6 +146,39 @@ def test_products_query_with_price_filter(
     )
 
 
+def test_sort_products_product_type_name(
+    user_api_client, product, product_with_default_variant, channel_USD
+):
+    # Test sorting by TYPE, ascending
+    asc_published_query = SORT_PRODUCTS_QUERY % {
+        "sort_by_product_order": "{field: TYPE, direction:ASC}"
+    }
+    with warnings.catch_warnings(record=True) as warns:
+        response = user_api_client.post_graphql(asc_published_query, {})
+    content = get_graphql_content(response)
+    edges = content["data"]["products"]["edges"]
+    product_type_name_0 = edges[0]["node"]["productType"]["name"]
+    product_type_name_1 = edges[1]["node"]["productType"]["name"]
+    assert product_type_name_0 < product_type_name_1
+    assert any(
+        [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
+    )
+
+    # Test sorting by PUBLISHED, descending
+    desc_published_query = SORT_PRODUCTS_QUERY % {
+        "sort_by_product_order": "{field: TYPE, direction:DESC}"
+    }
+    with warnings.catch_warnings(record=True) as warns:
+        response = user_api_client.post_graphql(desc_published_query, {})
+    content = get_graphql_content(response)
+    product_type_name_0 = edges[0]["node"]["productType"]["name"]
+    product_type_name_1 = edges[1]["node"]["productType"]["name"]
+    assert product_type_name_0 < product_type_name_1
+    assert any(
+        [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
+    )
+
+
 QUERY_COLLECTION_FROM_PRODUCT = """
     query ($id: ID, $channel:String){
         product(
@@ -151,6 +203,19 @@ QUERY_COLLECTIONS_WITH_FILTER = """
               }
             }
           }
+        }
+"""
+
+
+QUERY_COLLECTIONS_WITH_SORT = """
+    query ($sort_by: CollectionSortingInput!) {
+        collections(first:5, sortBy: $sort_by) {
+                edges{
+                    node{
+                        name
+                    }
+                }
+            }
         }
 """
 
@@ -206,6 +271,7 @@ def test_get_collections_from_product_as_anonymous(
         [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
     )
 
+
 def test_collections_query_with_filter(
     channel_USD,
     staff_api_client,
@@ -257,6 +323,43 @@ def test_collections_query_with_filter(
     collections = content["data"]["collections"]["edges"]
 
     assert len(collections) == 2
+    assert any(
+        [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
+    )
+
+
+def test_collections_query_with_sort(
+    staff_api_client,
+    permission_manage_products,
+    product,
+    channel_USD,
+):
+    collections = Collection.objects.bulk_create(
+        [
+            Collection(name="Coll1", slug="collection-published1"),
+            Collection(name="Coll2", slug="collection-unpublished2"),
+            Collection(name="Coll3", slug="collection-published"),
+        ]
+    )
+    published = (True, False, True)
+    CollectionChannelListing.objects.bulk_create(
+        [
+            CollectionChannelListing(
+                channel=channel_USD, collection=collection, is_published=published[num]
+            )
+            for num, collection in enumerate(collections)
+        ]
+    )
+    product.collections.add(Collection.objects.get(name="Coll2"))
+    variables = {"sort_by": {"field": "AVAILABILITY", "direction": "ASC"}}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    with warnings.catch_warnings(record=True) as warns:
+        response = staff_api_client.post_graphql(QUERY_COLLECTIONS_WITH_SORT, variables)
+
+    content = get_graphql_content(response)
+    collections = content["data"]["collections"]["edges"]
+    for order, collection_name in enumerate(["Coll2", "Coll1", "Coll3"]):
+        assert collections[order]["node"]["name"] == collection_name
     assert any(
         [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
     )

@@ -3,7 +3,6 @@ import datetime
 import pytest
 
 from ....product.models import Collection, CollectionChannelListing
-from ...channel.sorters import LACK_OF_CHANNEL_IN_SORTING_MSG
 from ...tests.utils import assert_graphql_error_with_message, get_graphql_content
 
 
@@ -116,7 +115,7 @@ def test_collections_with_sorting_and_without_channel(
     )
 
     # then
-    assert_graphql_error_with_message(response, LACK_OF_CHANNEL_IN_SORTING_MSG)
+    assert_graphql_error_with_message(response, "A default channel does not exist.")
 
 
 @pytest.mark.parametrize(

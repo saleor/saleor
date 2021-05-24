@@ -1,7 +1,6 @@
 import graphene
 from django.db.models import Min, Q, QuerySet
 
-from ..channel.sorters import validate_channel_slug
 from ..core.types import SortInputObjectType
 
 
@@ -21,11 +20,10 @@ class SaleSortField(graphene.Enum):
 
     @staticmethod
     def qs_with_value(queryset: QuerySet, channel_slug: str) -> QuerySet:
-        validate_channel_slug(channel_slug)
         return queryset.annotate(
             value=Min(
                 "channel_listings__discount_value",
-                filter=Q(channel_listings__channel__slug=channel_slug),
+                filter=Q(channel_listings__channel__slug=str(channel_slug)),
             )
         )
 
@@ -54,21 +52,19 @@ class VoucherSortField(graphene.Enum):
 
     @staticmethod
     def qs_with_minimum_spent_amount(queryset: QuerySet, channel_slug: str) -> QuerySet:
-        validate_channel_slug(channel_slug)
         return queryset.annotate(
             min_spent_amount=Min(
                 "channel_listings__min_spent_amount",
-                filter=Q(channel_listings__channel__slug=channel_slug),
+                filter=Q(channel_listings__channel__slug=str(channel_slug)),
             )
         )
 
     @staticmethod
     def qs_with_value(queryset: QuerySet, channel_slug: str) -> QuerySet:
-        validate_channel_slug(channel_slug)
         return queryset.annotate(
             discount_value=Min(
                 "channel_listings__discount_value",
-                filter=Q(channel_listings__channel__slug=channel_slug),
+                filter=Q(channel_listings__channel__slug=str(channel_slug)),
             )
         )
 
