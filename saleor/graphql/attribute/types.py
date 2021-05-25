@@ -124,7 +124,9 @@ class Attribute(CountableDjangoObjectType):
     @staticmethod
     @traced_resolver
     def resolve_values(root: models.Attribute, info):
-        return AttributeValuesByAttributeIdLoader(info.context).load(root.id)
+        if root.input_type in AttributeInputType.TYPES_WITH_CHOICES:
+            return AttributeValuesByAttributeIdLoader(info.context).load(root.id)
+        return []
 
     @staticmethod
     @check_attribute_required_permissions()
