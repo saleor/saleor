@@ -46,7 +46,6 @@ class AttributeValue(CountableDjangoObjectType):
         model = models.AttributeValue
 
     @staticmethod
-    @traced_resolver
     def resolve_input_type(root: models.AttributeValue, info, *_args):
         def _resolve_input_type(attribute):
             requester = get_user_or_app_from_context(info.context)
