@@ -1168,8 +1168,8 @@ def test_update_page(staff_api_client, permission_manage_pages, page):
         assert attr_data in expected_attributes
 
 
-@freeze_time("2020-03-18 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+@freeze_time("2020-03-18 12:00:00")
 def test_update_page_trigger_webhook(
     mocked_webhook_trigger, staff_api_client, permission_manage_pages, page, settings
 ):
@@ -1861,6 +1861,20 @@ def test_bulk_unpublish(staff_api_client, page_list, permission_manage_pages):
     assert not any(page.is_published for page in page_list)
 
 
+QUERY_PAGES_WITH_FILTER = """
+    query ($filter: PageFilterInput) {
+        pages(first: 5, filter:$filter) {
+            totalCount
+            edges {
+                node {
+                    id
+                }
+            }
+        }
+    }
+"""
+
+
 @pytest.mark.parametrize(
     "page_filter, count",
     [
@@ -1874,18 +1888,7 @@ def test_bulk_unpublish(staff_api_client, page_list, permission_manage_pages):
 def test_pages_query_with_filter(
     page_filter, count, staff_api_client, permission_manage_pages, page_type
 ):
-    query = """
-        query ($filter: PageFilterInput) {
-            pages(first: 5, filter:$filter) {
-                totalCount
-                edges {
-                    node {
-                        id
-                    }
-                }
-            }
-        }
-    """
+    query = QUERY_PAGES_WITH_FILTER
     Page.objects.create(
         title="Page1",
         slug="slug_page_1",
@@ -1914,18 +1917,7 @@ def test_pages_query_with_filter(
 def test_pages_query_with_filter_by_page_type(
     staff_api_client, permission_manage_pages, page_type_list
 ):
-    query = """
-        query ($filter: PageFilterInput) {
-            pages(first: 5, filter:$filter) {
-                totalCount
-                edges {
-                    node {
-                        id
-                    }
-                }
-            }
-        }
-    """
+    query = QUERY_PAGES_WITH_FILTER
     page_type_ids = [
         graphene.Node.to_global_id("PageType", page_type.id)
         for page_type in page_type_list
@@ -1936,6 +1928,22 @@ def test_pages_query_with_filter_by_page_type(
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert content["data"]["pages"]["totalCount"] == 2
+
+
+def test_pages_query_with_filter_by_ids(
+    staff_api_client, permission_manage_pages, page_list, page_list_unpublished
+):
+    query = QUERY_PAGES_WITH_FILTER
+
+    page_ids = [
+        graphene.Node.to_global_id("Page", page.pk)
+        for page in [page_list[0], page_list_unpublished[-1]]
+    ]
+    variables = {"filter": {"ids": page_ids}}
+    staff_api_client.user.user_permissions.add(permission_manage_pages)
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["pages"]["totalCount"] == len(page_ids)
 
 
 QUERY_PAGE_WITH_SORT = """

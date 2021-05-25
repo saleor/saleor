@@ -343,11 +343,11 @@ def test_product_query_by_id_available_as_app(
 
 
 def test_product_query_by_id_as_user(
-    user_api_client, permission_manage_products, product
+    user_api_client, permission_manage_products, product, channel_USD
 ):
     query = """
-        query ($id: ID){
-            product(id: $id) {
+        query ($id: ID, $channel: String){
+            product(id: $id, channel: $channel) {
                 id
                 variants {
                     id
@@ -357,6 +357,7 @@ def test_product_query_by_id_as_user(
     """
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),
+        "channel": channel_USD.slug,
     }
 
     response = user_api_client.post_graphql(
@@ -6626,14 +6627,7 @@ def test_create_product_type_with_rich_text_attribute(
         },
         {
             "name": "Text",
-            "values": [
-                {
-                    "name": "Rich text attribute content.",
-                    "richText": json.dumps(
-                        rich_text_attribute.values.first().rich_text
-                    ),
-                }
-            ],
+            "values": [],
         },
     ]
     for attribute in data["productAttributes"]:

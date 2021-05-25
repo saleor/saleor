@@ -12,11 +12,23 @@ from graphene_django.filter import GlobalIDMultipleChoiceFilter
 from ...attribute import AttributeInputType
 from ...attribute.models import (
     AssignedProductAttribute,
+    AssignedProductAttributeValue,
     AssignedVariantAttribute,
+    AssignedVariantAttributeValue,
     Attribute,
     AttributeValue,
 )
-from ...product.models import Category, Collection, Product, ProductType, ProductVariant
+from ...channel.models import Channel
+from ...product.models import (
+    Category,
+    Collection,
+    CollectionProduct,
+    Product,
+    ProductChannelListing,
+    ProductType,
+    ProductVariant,
+    ProductVariantChannelListing,
+)
 from ...warehouse.models import Stock
 from ..channel.filters import get_channel_slug_from_filter_data
 from ..core.filters import (
@@ -27,9 +39,10 @@ from ..core.filters import (
 )
 from ..core.types import ChannelFilterInputObjectType, FilterInputObjectType
 from ..core.types.common import IntRangeInput, PriceRangeInput
-from ..utils import get_nodes, resolve_global_ids_to_primary_keys
+from ..utils import resolve_global_ids_to_primary_keys
 from ..utils.filters import filter_fields_containing_value, filter_range_field
 from ..warehouse import types as warehouse_types
+from . import types as product_types
 from .enums import (
     CollectionPublished,
     ProductTypeConfigurable,
@@ -65,8 +78,11 @@ def _clean_product_attributes_filter_input(filter_value, queries):
 
 
 def _clean_product_attributes_range_filter_input(filter_value, queries):
+    attributes = Attribute.objects.filter(input_type=AttributeInputType.NUMERIC)
     values = (
-        AttributeValue.objects.filter(attribute__input_type=AttributeInputType.NUMERIC)
+        AttributeValue.objects.filter(
+            Exists(attributes.filter(pk=OuterRef("attribute_id")))
+        )
         .annotate(numeric_value=Cast("name", FloatField()))
         .select_related("attribute")
     )
@@ -94,24 +110,37 @@ def _clean_product_attributes_range_filter_input(filter_value, queries):
 
 
 def filter_products_by_attributes_values(qs, queries: T_PRODUCT_FILTER_QUERIES):
-    filters = [
-        Q(
+    filters = []
+    for values in queries.values():
+        assigned_product_attribute_values = (
+            AssignedProductAttributeValue.objects.filter(value_id__in=values)
+        )
+        assigned_product_attributes = AssignedProductAttribute.objects.filter(
             Exists(
-                AssignedProductAttribute.objects.filter(
-                    product__id=OuterRef("pk"), values__pk__in=values
-                )
+                assigned_product_attribute_values.filter(assignment_id=OuterRef("pk"))
             )
         )
-        | Q(
+        product_attribute_filter = Q(
+            Exists(assigned_product_attributes.filter(product_id=OuterRef("pk")))
+        )
+
+        assigned_variant_attribute_values = (
+            AssignedVariantAttributeValue.objects.filter(value_id__in=values)
+        )
+        assigned_variant_attributes = AssignedVariantAttribute.objects.filter(
             Exists(
-                AssignedVariantAttribute.objects.filter(
-                    variant__product__id=OuterRef("pk"),
-                    values__pk__in=values,
-                )
+                assigned_variant_attribute_values.filter(assignment_id=OuterRef("pk"))
             )
         )
-        for values in queries.values()
-    ]
+        product_variants = ProductVariant.objects.filter(
+            Exists(assigned_variant_attributes.filter(variant_id=OuterRef("pk")))
+        )
+        variant_attribute_filter = Q(
+            Exists(product_variants.filter(product_id=OuterRef("pk")))
+        )
+
+        filters.append(product_attribute_filter | variant_attribute_filter)
+
     return qs.filter(*filters)
 
 
@@ -128,49 +157,61 @@ def filter_products_by_attributes(qs, filter_values, filter_range_values):
 
 
 def filter_products_by_variant_price(qs, channel_slug, price_lte=None, price_gte=None):
+    channels = Channel.objects.filter(slug=channel_slug).values("pk")
+    product_variant_channel_listings = ProductVariantChannelListing.objects.filter(
+        Exists(channels.filter(pk=OuterRef("channel_id")))
+    )
     if price_lte:
-        qs = qs.filter(
-            Q(variants__channel_listings__price_amount__lte=price_lte)
-            | Q(variants__channel_listings__price_amount__isnull=True),
-            variants__channel_listings__channel__slug=channel_slug,
+        product_variant_channel_listings = product_variant_channel_listings.filter(
+            Q(price_amount__lte=price_lte) | Q(price_amount__isnull=True)
         )
     if price_gte:
-        qs = qs.filter(
-            Q(variants__channel_listings__price_amount__gte=price_gte)
-            | Q(variants__channel_listings__price_amount__isnull=True),
-            variants__channel_listings__channel__slug=channel_slug,
+        product_variant_channel_listings = product_variant_channel_listings.filter(
+            Q(price_amount__gte=price_gte) | Q(price_amount__isnull=True)
         )
-    return qs
+    product_variant_channel_listings = product_variant_channel_listings.values(
+        "variant_id"
+    )
+    variants = ProductVariant.objects.filter(
+        Exists(product_variant_channel_listings.filter(variant_id=OuterRef("pk")))
+    ).values("product_id")
+    return qs.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
 
 
 def filter_products_by_minimal_price(
     qs, channel_slug, minimal_price_lte=None, minimal_price_gte=None
 ):
+    channels = Channel.objects.filter(slug=channel_slug).values("pk")
+    product_channel_listings = ProductChannelListing.objects.filter(
+        Exists(channels.filter(pk=OuterRef("channel_id")))
+    )
     if minimal_price_lte:
-        qs = qs.filter(
-            channel_listings__discounted_price_amount__lte=minimal_price_lte,
-            channel_listings__discounted_price_amount__isnull=False,
-            channel_listings__channel__slug=channel_slug,
+        product_channel_listings = product_channel_listings.filter(
+            discounted_price_amount__lte=minimal_price_lte,
+            discounted_price_amount__isnull=False,
         )
     if minimal_price_gte:
-        qs = qs.filter(
-            channel_listings__discounted_price_amount__gte=minimal_price_gte,
-            channel_listings__discounted_price_amount__isnull=False,
-            channel_listings__channel__slug=channel_slug,
+        product_channel_listings = product_channel_listings.filter(
+            discounted_price_amount__gte=minimal_price_gte,
+            discounted_price_amount__isnull=False,
         )
-    return qs
+    product_channel_listings = product_channel_listings.values("product_id")
+    return qs.filter(Exists(product_channel_listings.filter(product_id=OuterRef("pk"))))
 
 
-def filter_products_by_categories(qs, categories):
-    categories = [
-        category.get_descendants(include_self=True) for category in categories
-    ]
-    ids = {category.id for tree in categories for category in tree}
-    return qs.filter(category__in=ids)
+def filter_products_by_categories(qs, category_ids):
+    categories = Category.objects.filter(pk__in=category_ids)
+    categories = Category.tree.get_queryset_descendants(
+        categories, include_self=True
+    ).values("pk")
+    return qs.filter(Exists(categories.filter(pk=OuterRef("category_id"))))
 
 
-def filter_products_by_collections(qs, collections):
-    return qs.filter(collections__in=collections)
+def filter_products_by_collections(qs, collection_pks):
+    collection_products = CollectionProduct.objects.filter(
+        collection_id__in=collection_pks
+    ).values("product_id")
+    return qs.filter(Exists(collection_products.filter(product_id=OuterRef("pk"))))
 
 
 def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
@@ -211,9 +252,27 @@ def _filter_attributes(qs, _, value):
 
 def filter_categories(qs, _, value):
     if value:
-        categories = get_nodes(value, "Category", Category)
-        qs = filter_products_by_categories(qs, categories)
+        _, category_pks = resolve_global_ids_to_primary_keys(
+            value, product_types.Category
+        )
+        qs = filter_products_by_categories(qs, category_pks)
     return qs
+
+
+def filter_product_types(qs, _, value):
+    if not value:
+        return qs
+    _, product_type_pks = resolve_global_ids_to_primary_keys(
+        value, product_types.ProductType
+    )
+    return qs.filter(product_type_id__in=product_type_pks)
+
+
+def filter_product_ids(qs, _, value):
+    if not value:
+        return qs
+    _, product_pks = resolve_global_ids_to_primary_keys(value, product_types.Product)
+    return qs.filter(id__in=product_pks)
 
 
 def filter_has_category(qs, _, value):
@@ -222,16 +281,19 @@ def filter_has_category(qs, _, value):
 
 def filter_collections(qs, _, value):
     if value:
-        collections = get_nodes(value, "Collection", Collection)
-        qs = filter_products_by_collections(qs, collections)
+        _, collection_pks = resolve_global_ids_to_primary_keys(
+            value, product_types.Collection
+        )
+        qs = filter_products_by_collections(qs, collection_pks)
     return qs
 
 
-def _filter_is_published(qs, _, value, channel_slug):
-    return qs.filter(
-        channel_listings__is_published=value,
-        channel_listings__channel__slug=channel_slug,
-    )
+def _filter_products_is_published(qs, _, value, channel_slug):
+    channel = Channel.objects.filter(slug=channel_slug).values("pk")
+    product_channel_listings = ProductChannelListing.objects.filter(
+        Exists(channel.filter(pk=OuterRef("channel_id"))), is_published=value
+    ).values("product_id")
+    return qs.filter(Exists(product_channel_listings.filter(product_id=OuterRef("pk"))))
 
 
 def _filter_variant_price(qs, _, value, channel_slug):
@@ -285,6 +347,13 @@ def filter_search(qs, _, value):
     if value:
         qs = product_search(qs, value)
     return qs
+
+
+def _filter_collections_is_published(qs, _, value, channel_slug):
+    return qs.filter(
+        channel_listings__is_published=value,
+        channel_listings__channel__slug=channel_slug,
+    )
 
 
 def filter_product_type_configurable(qs, _, value):
@@ -380,10 +449,10 @@ class ProductFilter(MetadataFilterBase):
     stock_availability = EnumFilter(
         input_class=StockAvailability, method="filter_stock_availability"
     )
-    product_types = GlobalIDMultipleChoiceFilter(field_name="product_type")
+    product_types = GlobalIDMultipleChoiceFilter(method=filter_product_types)
     stocks = ObjectTypeFilter(input_class=ProductStockFilterInput, method=filter_stocks)
     search = django_filters.CharFilter(method=filter_search)
-    ids = GlobalIDMultipleChoiceFilter(field_name="id")
+    ids = GlobalIDMultipleChoiceFilter(method=filter_product_ids)
 
     class Meta:
         model = Product
@@ -411,7 +480,12 @@ class ProductFilter(MetadataFilterBase):
 
     def filter_is_published(self, queryset, name, value):
         channel_slug = get_channel_slug_from_filter_data(self.data)
-        return _filter_is_published(queryset, name, value, channel_slug)
+        return _filter_products_is_published(
+            queryset,
+            name,
+            value,
+            channel_slug,
+        )
 
     def filter_stock_availability(self, queryset, name, value):
         channel_slug = get_channel_slug_from_filter_data(self.data)
@@ -445,9 +519,9 @@ class CollectionFilter(MetadataFilterBase):
     def filter_is_published(self, queryset, name, value):
         channel_slug = get_channel_slug_from_filter_data(self.data)
         if value == CollectionPublished.PUBLISHED:
-            return _filter_is_published(queryset, name, True, channel_slug)
+            return _filter_collections_is_published(queryset, name, True, channel_slug)
         elif value == CollectionPublished.HIDDEN:
-            return _filter_is_published(queryset, name, False, channel_slug)
+            return _filter_collections_is_published(queryset, name, False, channel_slug)
         return queryset
 
 

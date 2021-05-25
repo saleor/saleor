@@ -124,13 +124,21 @@ def test_generate_fulfillment_lines_payload(order_with_lines):
         ]
     )
     payload = json.loads(generate_fulfillment_lines_payload(fulfillment))[0]
+
     assert payload == {
         "currency": "USD",
+        "product_name": line.product_name,
+        "variant_name": line.variant_name,
+        "product_sku": line.product_sku,
         "id": graphene.Node.to_global_id("FulfillmentLine", fulfillment_line.id),
         "product_type": "Default Type",
         "quantity": fulfillment_line.quantity,
-        "total_price_gross_amount": str(line.total_price.gross.amount),
-        "total_price_net_amount": str(line.total_price.net.amount),
+        "total_price_gross_amount": str(
+            line.unit_price.gross.amount * fulfillment_line.quantity
+        ),
+        "total_price_net_amount": str(
+            line.unit_price.net.amount * fulfillment_line.quantity
+        ),
         "type": "FulfillmentLine",
         "undiscounted_unit_price_gross": str(line.undiscounted_unit_price.gross.amount),
         "undiscounted_unit_price_net": str(line.undiscounted_unit_price.net.amount),
@@ -138,6 +146,9 @@ def test_generate_fulfillment_lines_payload(order_with_lines):
         "unit_price_net": str(line.unit_price.net.amount),
         "weight": 0.0,
         "weight_unit": "gram",
+        "warehouse_id": graphene.Node.to_global_id(
+            "Warehouse", fulfillment_line.stock.warehouse_id
+        ),
     }
 
 
