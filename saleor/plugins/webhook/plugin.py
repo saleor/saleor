@@ -272,6 +272,9 @@ class WebhookPlugin(BasePlugin):
             payment_information, response_data, transaction_kind
         )
 
+    def token_is_required_as_payment_input(self, previous_value):
+        return False
+
     def get_payment_gateways(
         self,
         currency: Optional[str],

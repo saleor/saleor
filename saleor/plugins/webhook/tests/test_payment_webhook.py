@@ -260,3 +260,8 @@ def test_check_plugin_id(payment_app, webhook_plugin):
     assert not plugin.check_plugin_id("dummy")
     valid_id = to_payment_app_id(payment_app, "credit-card")
     assert plugin.check_plugin_id(valid_id)
+
+
+def test_webhook_plugin_token_is_not_required(webhook_plugin):
+    plugin = webhook_plugin()
+    assert not plugin.token_is_required_as_payment_input(None)
