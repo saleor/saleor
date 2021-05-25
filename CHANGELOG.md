@@ -100,6 +100,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix invoice generation - #7376 by @tomaszszymanski129
 - Allow defining only one field in translations - #7363 by @IKarbowiak
 - Trigger `checkout_updated` hook for checkout meta mutations - #7392 by @maarcingebala
+- Allow filtering pages by ids - #7393 by @IKarbowiak
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki

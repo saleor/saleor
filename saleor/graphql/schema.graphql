@@ -3593,6 +3593,7 @@ input PageFilterInput {
   search: String
   metadata: [MetadataInput]
   pageTypes: [ID]
+  ids: [ID]
 }
 
 type PageInfo {
