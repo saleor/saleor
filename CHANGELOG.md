@@ -101,6 +101,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Allow defining only one field in translations - #7363 by @IKarbowiak
 - Trigger `checkout_updated` hook for checkout meta mutations - #7392 by @maarcingebala
 - Optimize `inputType` resolver on `AttributeValue` type - 7396 by @tomaszszymanski129
+- Allow filtering pages by ids - #7393 by @IKarbowiak
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -194,6 +195,10 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add channel data to Order webhook - #7299 by @krzysztofwolski
 - Always create new checkout in `checkoutCreate` mutation - #7318 by @IKarbowiak
   - deprecate `created` return field on `checkoutCreate` mutation
+- Return empty values list for attribute without choices - #7394 by @fowczarek
+  - `values` for attributes without choices from now are empty list.
+  - attributes with choices - `DROPDOWN` and `MULTISELECT`
+  - attributes without choices - `FILE`, `REFERENCE`, `NUMERIC` and `RICH_TEXT`
 
 ### Other
 
