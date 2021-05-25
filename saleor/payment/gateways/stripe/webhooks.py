@@ -129,8 +129,10 @@ def handle_successful_payment_intent(
 
         manager = get_plugins_manager()
         discounts = fetch_active_discounts()
-        lines = fetch_checkout_lines(payment.checkout)
-        checkout_info = fetch_checkout_info(payment.checkout, lines, discounts, manager)
+        lines = fetch_checkout_lines(payment.checkout)  # type: ignore
+        checkout_info = fetch_checkout_info(
+            payment.checkout, lines, discounts, manager  # type: ignore
+        )
         order, _, _ = complete_checkout(
             manager=manager,
             checkout_info=checkout_info,
@@ -138,5 +140,5 @@ def handle_successful_payment_intent(
             payment_data={},
             store_source=False,
             discounts=discounts,
-            user=payment.checkout.user or AnonymousUser(),
+            user=payment.checkout.user or AnonymousUser(),  # type: ignore
         )
