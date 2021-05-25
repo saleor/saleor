@@ -21,7 +21,6 @@ from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..manager import get_plugins_manager
 from . import (
     DEFAULT_TAX_RATE_NAME,
-    TaxRateType,
     VatlayerConfiguration,
     apply_tax_to_price,
     get_taxed_shipping_price,
@@ -487,9 +486,6 @@ class VatlayerPlugin(BasePlugin):
         if tax_code is None and obj.pk:
             obj.delete_value_from_metadata(self.META_CODE_KEY)
             obj.delete_value_from_metadata(self.META_DESCRIPTION_KEY)
-            return previous_value
-
-        if tax_code not in dict(TaxRateType.CHOICES):
             return previous_value
 
         tax_item = {self.META_CODE_KEY: tax_code, self.META_DESCRIPTION_KEY: tax_code}

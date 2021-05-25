@@ -6,7 +6,7 @@ from ..app.validators import AppURLValidator
 from .models import App, AppInstallation
 from .types import AppType
 
-REQUEST_TIMEOUT = 30
+REQUEST_TIMEOUT = 25
 
 
 def send_app_token(target_url: str, token: str):

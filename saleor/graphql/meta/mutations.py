@@ -106,9 +106,12 @@ class BaseMetadataMutation(BaseMutation):
             return cls.handle_errors(e)
         if not cls.check_permissions(info.context, permissions):
             raise PermissionDenied()
-        result = super().mutate(root, info, **data)
-        if not result.errors:
-            cls.perform_model_extra_actions(root, info, **data)
+        try:
+            result = super().mutate(root, info, **data)
+            if not result.errors:
+                cls.perform_model_extra_actions(root, info, **data)
+        except ValidationError as e:
+            return cls.handle_errors(e)
         return result
 
     @classmethod

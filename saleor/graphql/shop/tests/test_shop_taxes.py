@@ -4,7 +4,6 @@ import pytest
 from django_prices_vatlayer.models import VAT
 from django_prices_vatlayer.utils import get_tax_for_rate
 
-from ...core.utils import str_to_enum
 from ...tests.utils import get_graphql_content
 
 # FIXME we are going to rewrite tax section. Currently, below tests are connected only
@@ -95,13 +94,20 @@ def test_query_countries_with_tax(user_api_client, vatlayer, tax_rates):
     data = content["data"]["shop"]["countries"]
     vat = VAT.objects.first()
     country = next(country for country in data if country["code"] == vat.country_code)
+
+    rates_from_response = set(
+        [(rate["rateType"], rate["rate"]) for rate in country["vat"]["reducedRates"]]
+    )
+
+    reduced_rates = set(
+        [
+            (tax_rate, tax_rates["reduced_rates"][tax_rate])
+            for tax_rate in tax_rates["reduced_rates"]
+        ]
+    )
+
     assert country["vat"]["standardRate"] == tax_rates["standard_rate"]
-    rates = {rate["rateType"]: rate["rate"] for rate in country["vat"]["reducedRates"]}
-    reduced_rates = {
-        str_to_enum(tax_rate): tax_rates["reduced_rates"][tax_rate]
-        for tax_rate in tax_rates["reduced_rates"]
-    }
-    assert rates == reduced_rates
+    assert rates_from_response == reduced_rates
 
 
 def test_query_default_country_with_tax(user_api_client, settings, vatlayer, tax_rates):
