@@ -6626,14 +6626,7 @@ def test_create_product_type_with_rich_text_attribute(
         },
         {
             "name": "Text",
-            "values": [
-                {
-                    "name": "Rich text attribute content.",
-                    "richText": json.dumps(
-                        rich_text_attribute.values.first().rich_text
-                    ),
-                }
-            ],
+            "values": [],
         },
     ]
     for attribute in data["productAttributes"]:
