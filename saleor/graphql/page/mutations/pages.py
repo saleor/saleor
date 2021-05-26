@@ -5,7 +5,8 @@ from typing import TYPE_CHECKING, Dict, List
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....attribute import AttributeType
+from ....attribute import AttributeInputType, AttributeType
+from ....attribute import models as attribute_models
 from ....core.permissions import PagePermissions, PageTypePermissions
 from ....core.tracing import traced_atomic_transaction
 from ....page import models
@@ -143,11 +144,20 @@ class PageDelete(ModelDeleteMutation):
         error_type_field = "page_errors"
 
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         page = cls.get_instance(info, **data)
+        cls.delete_assigned_attribute_values(page)
         response = super().perform_mutation(_root, info, **data)
         info.context.plugins.page_deleted(page)
         return response
+
+    @staticmethod
+    def delete_assigned_attribute_values(instance):
+        attribute_models.AttributeValue.objects.filter(
+            pageassignments__page_id=instance.id,
+            attribute__input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES,
+        ).delete()
 
 
 class PageTypeCreateInput(graphene.InputObjectType):

@@ -6190,6 +6190,39 @@ def test_delete_product_trigger_webhook(
     mocked_recalculate_orders_task.assert_not_called()
 
 
+@patch("saleor.attribute.signals.delete_from_storage_task.delay")
+@patch("saleor.order.tasks.recalculate_orders_task.delay")
+def test_delete_product_with_file_attribute(
+    mocked_recalculate_orders_task,
+    delete_from_storage_task_mock,
+    staff_api_client,
+    product,
+    permission_manage_products,
+    file_attribute,
+):
+    query = DELETE_PRODUCT_MUTATION
+    product_type = product.product_type
+    product_type.product_attributes.add(file_attribute)
+    existing_value = file_attribute.values.first()
+    associate_attribute_values_to_instance(product, file_attribute, existing_value)
+
+    node_id = graphene.Node.to_global_id("Product", product.id)
+    variables = {"id": node_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productDelete"]
+    assert data["product"]["name"] == product.name
+    with pytest.raises(product._meta.model.DoesNotExist):
+        product.refresh_from_db()
+    assert node_id == data["product"]["id"]
+    mocked_recalculate_orders_task.assert_not_called()
+    with pytest.raises(existing_value._meta.model.DoesNotExist):
+        existing_value.refresh_from_db()
+    delete_from_storage_task_mock.assert_called_once_with(existing_value.file_url)
+
+
 def test_delete_product_removes_checkout_lines(
     staff_api_client,
     checkout_with_items,

@@ -699,6 +699,7 @@ class ProductDelete(ModelDeleteMutation):
         return super().success_response(instance)
 
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         node_id = data.get("id")
 
@@ -710,6 +711,8 @@ class ProductDelete(ModelDeleteMutation):
         ).values("pk", "order_id")
         line_pks = {line["pk"] for line in lines_id_and_orders_id}
         orders_id = {line["order_id"] for line in lines_id_and_orders_id}
+
+        cls.delete_assigned_attribute_values(instance)
         response = super().perform_mutation(_root, info, **data)
         # delete order lines for deleted variant
         order_models.OrderLine.objects.filter(pk__in=line_pks).delete()
@@ -718,6 +721,13 @@ class ProductDelete(ModelDeleteMutation):
         info.context.plugins.product_deleted(instance, variants_id)
 
         return response
+
+    @staticmethod
+    def delete_assigned_attribute_values(instance):
+        attribute_models.AttributeValue.objects.filter(
+            productassignments__product_id=instance.id,
+            attribute__input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES,
+        ).delete()
 
 
 class ProductVariantInput(graphene.InputObjectType):
@@ -1025,6 +1035,7 @@ class ProductVariantDelete(ModelDeleteMutation):
             )
         ).get(id=instance.id)
 
+        cls.delete_assigned_attribute_values(variant)
         response = super().perform_mutation(_root, info, **data)
 
         # delete order lines for deleted variant
@@ -1037,6 +1048,13 @@ class ProductVariantDelete(ModelDeleteMutation):
         )
 
         return response
+
+    @staticmethod
+    def delete_assigned_attribute_values(instance):
+        attribute_models.AttributeValue.objects.filter(
+            variantassignments__variant_id=instance.id,
+            attribute__input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES,
+        ).delete()
 
 
 class ProductTypeInput(graphene.InputObjectType):

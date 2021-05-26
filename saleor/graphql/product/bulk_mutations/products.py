@@ -5,6 +5,8 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from graphene.types import InputObjectType
 
+from ....attribute import AttributeInputType
+from ....attribute import models as attribute_models
 from ....core.permissions import ProductPermissions, ProductTypePermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import OrderStatus
@@ -116,6 +118,7 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
         ).values("pk", "order_id")
         line_pks = {line["pk"] for line in lines_id_and_orders_id}
         orders_id = {line["order_id"] for line in lines_id_and_orders_id}
+        cls.delete_assigned_attribute_values(pks)
         response = super().perform_mutation(
             _root,
             info,
@@ -130,6 +133,13 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
             recalculate_orders_task.delay(list(orders_id))
 
         return response
+
+    @staticmethod
+    def delete_assigned_attribute_values(instance_pks):
+        attribute_models.AttributeValue.objects.filter(
+            productassignments__product_id__in=instance_pks,
+            attribute__input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES,
+        ).delete()
 
     @classmethod
     def bulk_action(cls, info, queryset, product_to_variant):
@@ -534,6 +544,7 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
             )
         )
 
+        cls.delete_assigned_attribute_values(pks)
         response = super().perform_mutation(_root, info, ids, **data)
 
         transaction.on_commit(
@@ -557,6 +568,13 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
             product.save(update_fields=["default_variant"])
 
         return response
+
+    @staticmethod
+    def delete_assigned_attribute_values(instance_pks):
+        attribute_models.AttributeValue.objects.filter(
+            variantassignments__variant_id__in=instance_pks,
+            attribute__input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES,
+        ).delete()
 
 
 class ProductVariantStocksCreate(BaseMutation):
