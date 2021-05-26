@@ -13,10 +13,17 @@ from ....checkout.models import Checkout
 from ....core.transactions import transaction_with_commit_on_errors
 from ....discount.utils import fetch_active_discounts
 from ....plugins.manager import get_plugins_manager
-from ... import TransactionKind
+from ... import ChargeStatus, TransactionKind
 from ...interface import GatewayConfig, GatewayResponse
 from ...models import Payment
-from ...utils import create_transaction, price_from_minor_unit
+from ...utils import create_transaction, gateway_postprocess, price_from_minor_unit
+from .consts import (
+    WEBHOOK_AUTHORIZED_EVENT,
+    WEBHOOK_CANCELED_EVENT,
+    WEBHOOK_FAILED_EVENT,
+    WEBHOOK_PROCESSING_EVENT,
+    WEBHOOK_SUCCESS_EVENT,
+)
 from .stripe_api import construct_stripe_event
 
 logger = logging.getLogger(__name__)
@@ -44,18 +51,17 @@ def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
         logger.warning("Invalid signature. %s", e)
         return HttpResponse(status=400)
 
-    # Handle the event
-    if event.type == "payment_intent.succeeded":
-        payment_intent = event.data.object  # contains a stripe.PaymentIntent
-        handle_successful_payment_intent(payment_intent, gateway_config)
-    # TODO handle rest of the events will be added in separate PR
-    # elif event.type == 'payment_method.attached':
-    #     payment_method = event.data.object  # contains a stripe.PaymentMethod
-    #     print('PaymentMethod was attached to a Customer!')
-    # # ... handle other event types
-    # else:
-    #     print('Unhandled event type {}'.format(event.type))
-
+    webhook_handlers = {
+        WEBHOOK_SUCCESS_EVENT: handle_successful_payment_intent,
+        WEBHOOK_AUTHORIZED_EVENT: handle_authorized_payment_intent,
+        WEBHOOK_PROCESSING_EVENT: handle_processing_payment_intent,
+        WEBHOOK_FAILED_EVENT: handle_failed_payment_intent,
+        WEBHOOK_CANCELED_EVENT: handle_failed_payment_intent,
+    }
+    if event.type in webhook_handlers:
+        webhook_handlers[event.type](event.data.object, gateway_config)
+    else:
+        logger.warning("Received unhandled webhook event %s", event.type)
     return HttpResponse(status=200)
 
 
@@ -79,10 +85,117 @@ def _get_checkout(payment_id: int) -> Optional[Checkout]:
     )
 
 
-def handle_successful_payment_intent(
+def _finalize_checkout(
+    checkout: Checkout, payment: Payment, payment_intent: StripeObject, kind: str
+):
+    gateway_response = GatewayResponse(
+        kind=kind,
+        action_required=False,
+        transaction_id=payment_intent.id,
+        is_success=True,
+        amount=price_from_minor_unit(payment_intent.amount, payment_intent.currency),
+        currency=payment_intent.currency,
+        error="",
+        raw_response=payment_intent.last_response,
+        searchable_key=payment_intent.id,
+    )
+
+    create_transaction(
+        payment,
+        kind=kind,
+        payment_information=None,  # type: ignore
+        action_required=False,
+        gateway_response=gateway_response,
+    )
+
+    manager = get_plugins_manager()
+    discounts = fetch_active_discounts()
+    lines = fetch_checkout_lines(checkout)  # type: ignore
+    checkout_info = fetch_checkout_info(
+        checkout, lines, discounts, manager  # type: ignore
+    )
+    order, _, _ = complete_checkout(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        payment_data={},
+        store_source=False,
+        discounts=discounts,
+        user=checkout.user or AnonymousUser(),  # type: ignore
+    )
+
+
+def _update_payment(payment: Payment, payment_intent: StripeObject, kind: str):
+    gateway_response = GatewayResponse(
+        kind=kind,
+        action_required=False,
+        transaction_id=payment_intent.id,
+        is_success=True,
+        amount=price_from_minor_unit(payment_intent.amount, payment_intent.currency),
+        currency=payment_intent.currency,
+        error="",
+        raw_response=payment_intent.last_response,
+        searchable_key=payment_intent.id,
+    )
+    transaction = create_transaction(
+        payment,
+        kind=kind,
+        payment_information=None,  # type: ignore
+        action_required=False,
+        gateway_response=gateway_response,
+    )
+    gateway_postprocess(transaction, payment)
+
+
+def _process_payment_with_checkout(
+    payment: Payment, payment_intent: StripeObject, kind: str
+):
+    checkout = _get_checkout(payment.id)
+
+    if checkout:
+        _finalize_checkout(checkout, payment, payment_intent, kind)
+
+
+def handle_authorized_payment_intent(
     payment_intent: StripeObject, gateway_config: "GatewayConfig"
 ):
-    # TODO handle successful payment intent for pending payment - separate PR
+    payment = _get_payment(payment_intent.id)
+
+    if not payment:
+        logger.warning(
+            "Payment for PaymentIntent %s was not found",
+            payment_intent.id,
+        )
+        return
+    if payment.order_id:
+        if payment.charge_status == ChargeStatus.PENDING:
+            _update_payment(payment, payment_intent, TransactionKind.AUTH)
+        # Order already created
+        return
+
+    if payment.checkout_id:
+        _process_payment_with_checkout(
+            payment, payment_intent, kind=TransactionKind.AUTH
+        )
+
+
+def handle_failed_payment_intent(
+    payment_intent: StripeObject, gateway_config: "GatewayConfig"
+):
+    payment = _get_payment(payment_intent.id)
+
+    if not payment:
+        logger.warning(
+            "Payment for PaymentIntent %s was not found",
+            payment_intent.id,
+        )
+        return
+    _update_payment(payment, payment_intent, TransactionKind.CANCEL)
+
+
+def handle_processing_payment_intent(
+    payment_intent: StripeObject, gateway_config: "GatewayConfig"
+):
     payment = _get_payment(payment_intent.id)
 
     if not payment:
@@ -95,50 +208,25 @@ def handle_successful_payment_intent(
         # Order already created
         return
 
-    checkout = None
     if payment.checkout_id:
-        checkout = _get_checkout(payment.id)
+        _process_payment_with_checkout(payment, payment_intent, TransactionKind.PENDING)
 
-    if checkout:
-        # If the payment is not Auth/Capture, it means that user didn't return to the
-        # storefront and we need to finalize the checkout asynchronously.
-        kind = TransactionKind.AUTH
-        if payment_intent.capture_method == "automatic":
-            kind = TransactionKind.CAPTURE
-        gateway_response = GatewayResponse(
-            kind=kind,
-            action_required=False,
-            transaction_id=payment_intent.id,
-            is_success=True,
-            amount=price_from_minor_unit(
-                payment_intent.amount, payment_intent.currency
-            ),
-            currency=payment_intent.currency,
-            error="",
-            raw_response=payment_intent.last_response,
-            searchable_key=payment_intent.id,
-        )
 
-        create_transaction(
-            payment,
-            kind=kind,
-            payment_information=None,  # type: ignore
-            action_required=False,
-            gateway_response=gateway_response,
-        )
+def handle_successful_payment_intent(
+    payment_intent: StripeObject, gateway_config: "GatewayConfig"
+):
+    payment = _get_payment(payment_intent.id)
 
-        manager = get_plugins_manager()
-        discounts = fetch_active_discounts()
-        lines = fetch_checkout_lines(payment.checkout)  # type: ignore
-        checkout_info = fetch_checkout_info(
-            payment.checkout, lines, discounts, manager  # type: ignore
+    if not payment:
+        logger.warning(
+            "Payment for PaymentIntent %s was not found",
+            payment_intent.id,
         )
-        order, _, _ = complete_checkout(
-            manager=manager,
-            checkout_info=checkout_info,
-            lines=lines,
-            payment_data={},
-            store_source=False,
-            discounts=discounts,
-            user=payment.checkout.user or AnonymousUser(),  # type: ignore
-        )
+        return
+    if payment.order_id:
+        if payment.charge_status in [ChargeStatus.PENDING, ChargeStatus.NOT_CHARGED]:
+            _update_payment(payment, payment_intent, TransactionKind.CAPTURE)
+        return
+
+    if payment.checkout_id:
+        _process_payment_with_checkout(payment, payment_intent, TransactionKind.CAPTURE)
