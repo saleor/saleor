@@ -52,8 +52,7 @@ class AttributeValue(CountableDjangoObjectType):
             if attribute.type == AttributeType.PAGE_TYPE:
                 if requester.has_perm(PagePermissions.MANAGE_PAGES):
                     return attribute.input_type
-                else:
-                    raise PermissionDenied()
+                raise PermissionDenied()
             elif requester.has_perm(ProductPermissions.MANAGE_PRODUCTS):
                 return attribute.input_type
             raise PermissionDenied()
