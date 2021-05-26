@@ -6,7 +6,6 @@ from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound
 from django.http.request import split_domain_port
-from stripe.stripe_object import StripeObject
 
 from ....graphql.core.enums import PluginErrorCode
 from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
@@ -33,7 +32,7 @@ from .consts import (
     PLUGIN_ID,
     PLUGIN_NAME,
     PROCESSING_STATUS,
-    SUCCESS_STATUSES,
+    SUCCESS_STATUS,
     WEBHOOK_PATH,
 )
 
@@ -180,16 +179,15 @@ class StripeGatewayPlugin(BasePlugin):
 
         payment_intent = None
         if payment_intent_id:
-            payment_intent = retrieve_payment_intent(api_key, payment_intent_id)
+            payment_intent, error = retrieve_payment_intent(api_key, payment_intent_id)
 
-        kind = (
-            TransactionKind.CAPTURE
-            if self.config.auto_capture
-            else TransactionKind.AUTH
-        )
-        action_required = False
+        kind = TransactionKind.AUTH
+        action_required = True
 
         if payment_intent:
+            if payment_intent.capture_method == "automatic":
+                kind = TransactionKind.CAPTURE
+
             amount = price_from_minor_unit(
                 payment_intent.amount, payment_intent.currency
             )
@@ -202,16 +200,18 @@ class StripeGatewayPlugin(BasePlugin):
 
             elif payment_intent.status == PROCESSING_STATUS:
                 kind = TransactionKind.PENDING
-            elif payment_intent.status == SUCCESS_STATUSES:
-                kind = (
-                    TransactionKind.CAPTURE
-                    if payment_intent.capture_method == "automatic"
-                    else TransactionKind.AUTH
-                )
+                action_required = False
+
+            elif payment_intent.status == SUCCESS_STATUS:
+                action_required = False
         else:
+            action_required = False
             amount = payment_information.amount
             currency = payment_information.currency
 
+        raw_response = None
+        if payment_intent and payment_intent.last_response:
+            raw_response = payment_intent.last_response.data
         return GatewayResponse(
             is_success=True if payment_intent else False,
             action_required=action_required,
@@ -219,8 +219,8 @@ class StripeGatewayPlugin(BasePlugin):
             amount=amount,
             currency=currency,
             transaction_id=payment_intent.id if payment_intent else "",
-            error=None,
-            raw_response=payment_intent.last_response.data if payment_intent else None,
+            error=error,
+            raw_response=raw_response,
         )
 
     @classmethod
@@ -270,12 +270,20 @@ class StripeGatewayPlugin(BasePlugin):
             return
 
         webhook = subscribe_webhook(api_key)
-        plugin_configuration.configuration.extend(
-            [
-                {"name": "webhook_endpoint_id", "value": webhook.id},
-                {"name": "webhook_secret_key", "value": webhook.secret},
-            ]
+        cls._update_or_create_config_field(
+            plugin_configuration.configuration, "webhook_endpoint_id", webhook.id
         )
+        cls._update_or_create_config_field(
+            plugin_configuration.configuration, "webhook_secret_key", webhook.secret
+        )
+
+    @classmethod
+    def _update_or_create_config_field(cls, configuration, field, value):
+        for c_field in configuration:
+            if c_field["name"] == field:
+                c_field["value"] = value
+                return
+        configuration.extend({"name": field, "value": value})
 
     @classmethod
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):

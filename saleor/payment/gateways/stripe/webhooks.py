@@ -1,6 +1,6 @@
 import logging
+from typing import Optional
 
-import stripe
 from django.contrib.auth.models import AnonymousUser
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
@@ -17,6 +17,7 @@ from ... import TransactionKind
 from ...interface import GatewayConfig, GatewayResponse
 from ...models import Payment
 from ...utils import create_transaction, price_from_minor_unit
+from .stripe_api import construct_stripe_event
 
 logger = logging.getLogger(__name__)
 
@@ -28,8 +29,11 @@ def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
     endpoint_secret = gateway_config.connection_params["webhook_secret"]
     api_key = gateway_config.connection_params["secret_api_key"]
     try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, endpoint_secret, api_key=api_key
+        event = construct_stripe_event(
+            api_key=api_key,
+            payload=payload,
+            sig_header=sig_header,
+            endpoint_secret=endpoint_secret,
         )
     except ValueError as e:
         # Invalid payload
@@ -55,30 +59,32 @@ def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
     return HttpResponse(status=200)
 
 
+def _get_payment(payment_intent_id: str) -> Optional[Payment]:
+    return (
+        Payment.objects.prefetch_related(
+            "checkout",
+        )
+        .select_for_update(of=("self",))
+        .filter(transactions__token=payment_intent_id, is_active=True)
+        .first()
+    )
+
+
+def _get_checkout(payment_id: int) -> Optional[Checkout]:
+    return (
+        Checkout.objects.prefetch_related("payments")
+        .select_for_update(of=("self",))
+        .filter(payments__id=payment_id, payments__is_active=True)
+        .first()
+    )
+
+
 def handle_successful_payment_intent(
     payment_intent: StripeObject, gateway_config: "GatewayConfig"
 ):
-
     # TODO handle successful payment intent for pending payment - separate PR
-    checkout = (
-        Checkout.objects.prefetch_related("payments")
-        .select_for_update(of=("self",))
-        .filter(
-            payments__transactions__token=payment_intent.id, payments__is_active=True
-        )
-        .first()
-    )
-    if checkout:
-        payment = checkout.payments.first()
-    else:
-        payment = (
-            Payment.objects.prefetch_related(
-                "checkout",
-            )
-            .select_for_update(of=("self",))
-            .filter(transactions__token=payment_intent.id, is_active=True)
-            .first()
-        )
+    payment = _get_payment(payment_intent.id)
+
     if not payment:
         logger.warning(
             "Payment for PaymentIntent %s was not found",
@@ -89,12 +95,18 @@ def handle_successful_payment_intent(
         # Order already created
         return
 
-    if payment.checkout:
+    checkout = None
+    if payment.checkout_id:
+        checkout = _get_checkout(payment.id)
+
+    if checkout:
         # If the payment is not Auth/Capture, it means that user didn't return to the
         # storefront and we need to finalize the checkout asynchronously.
-
+        kind = TransactionKind.AUTH
+        if payment_intent.capture_method == "automatic":
+            kind = TransactionKind.CAPTURE
         gateway_response = GatewayResponse(
-            kind=TransactionKind.ACTION_TO_CONFIRM,
+            kind=kind,
             action_required=False,
             transaction_id=payment_intent.id,
             is_success=True,
@@ -109,7 +121,7 @@ def handle_successful_payment_intent(
 
         create_transaction(
             payment,
-            kind=TransactionKind.ACTION_TO_CONFIRM,
+            kind=kind,
             payment_information=None,  # type: ignore
             action_required=False,
             gateway_response=gateway_response,
@@ -117,8 +129,10 @@ def handle_successful_payment_intent(
 
         manager = get_plugins_manager()
         discounts = fetch_active_discounts()
-        lines = fetch_checkout_lines(payment.checkout)
-        checkout_info = fetch_checkout_info(payment.checkout, lines, discounts, manager)
+        lines = fetch_checkout_lines(payment.checkout)  # type: ignore
+        checkout_info = fetch_checkout_info(
+            payment.checkout, lines, discounts, manager  # type: ignore
+        )
         order, _, _ = complete_checkout(
             manager=manager,
             checkout_info=checkout_info,
@@ -126,5 +140,5 @@ def handle_successful_payment_intent(
             payment_data={},
             store_source=False,
             discounts=discounts,
-            user=payment.checkout.user or AnonymousUser(),
+            user=payment.checkout.user or AnonymousUser(),  # type: ignore
         )
