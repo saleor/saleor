@@ -45,6 +45,7 @@ def payment_stripe_for_checkout(checkout_with_items, address, shipping_method):
 def payment_stripe_for_order(payment_stripe_for_checkout, order_with_lines):
     payment_stripe_for_checkout.checkout = None
     payment_stripe_for_checkout.order = order_with_lines
+    payment_stripe_for_checkout.total = order_with_lines.total_gross_amount
     payment_stripe_for_checkout.save()
 
     Transaction.objects.create(

@@ -29,6 +29,7 @@ if TYPE_CHECKING:
 
 from .consts import (
     ACTION_REQUIRED_STATUSES,
+    AUTHORIZED_STATUS,
     PLUGIN_ID,
     PLUGIN_NAME,
     PROCESSING_STATUS,
@@ -161,7 +162,11 @@ class StripeGatewayPlugin(BasePlugin):
             payment_id=payment_information.payment_id,
             is_success=True,
             action_required=False,
-            kind__in=[TransactionKind.AUTH, TransactionKind.CAPTURE],
+            kind__in=[
+                TransactionKind.AUTH,
+                TransactionKind.CAPTURE,
+                TransactionKind.PENDING,
+            ],
         ).first()
 
         if payment_transaction:
@@ -185,9 +190,6 @@ class StripeGatewayPlugin(BasePlugin):
         action_required = True
 
         if payment_intent:
-            if payment_intent.capture_method == "automatic":
-                kind = TransactionKind.CAPTURE
-
             amount = price_from_minor_unit(
                 payment_intent.amount, payment_intent.currency
             )
@@ -201,8 +203,11 @@ class StripeGatewayPlugin(BasePlugin):
             elif payment_intent.status == PROCESSING_STATUS:
                 kind = TransactionKind.PENDING
                 action_required = False
-
             elif payment_intent.status == SUCCESS_STATUS:
+                kind = TransactionKind.CAPTURE
+                action_required = False
+            elif payment_intent.status == AUTHORIZED_STATUS:
+                kind = TransactionKind.AUTH
                 action_required = False
         else:
             action_required = False
@@ -283,7 +288,7 @@ class StripeGatewayPlugin(BasePlugin):
             if c_field["name"] == field:
                 c_field["value"] = value
                 return
-        configuration.extend({"name": field, "value": value})
+        configuration.append({"name": field, "value": value})
 
     @classmethod
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):

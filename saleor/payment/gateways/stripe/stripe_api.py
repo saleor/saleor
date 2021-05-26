@@ -6,7 +6,7 @@ from urllib.parse import urljoin
 import stripe
 from django.contrib.sites.models import Site
 from django.urls import reverse
-from stripe.error import AuthenticationError, StripeError
+from stripe.error import AuthenticationError, InvalidRequestError, StripeError
 from stripe.stripe_object import StripeObject
 
 from saleor.core.utils import build_absolute_uri
@@ -42,7 +42,11 @@ def subscribe_webhook(api_key: str) -> StripeObject:
 
 
 def delete_webhook(api_key: str, webhook_id: str):
-    stripe.WebhookEndpoint.delete(webhook_id, api_key=api_key)
+    try:
+        stripe.WebhookEndpoint.delete(webhook_id, api_key=api_key)
+    except InvalidRequestError:
+        # webhook doesn't exist
+        pass
 
 
 def create_payment_intent(

@@ -9,7 +9,12 @@ from stripe.stripe_object import StripeObject
 from .....plugins.models import PluginConfiguration
 from .... import TransactionKind
 from ....utils import create_payment_information, price_to_minor_unit
-from ..consts import ACTION_REQUIRED_STATUSES, PROCESSING_STATUS
+from ..consts import (
+    ACTION_REQUIRED_STATUSES,
+    AUTHORIZED_STATUS,
+    PROCESSING_STATUS,
+    SUCCESS_STATUS,
+)
 
 
 @patch("saleor.payment.gateways.stripe.stripe_api.stripe.WebhookEndpoint.list")
@@ -254,12 +259,15 @@ def test_confirm_payment_for_webhook(kind, stripe_plugin, payment_stripe_for_che
 
 
 @pytest.mark.parametrize(
-    "kind, method",
-    [(TransactionKind.AUTH, "manual"), (TransactionKind.CAPTURE, "automatic")],
+    "kind, status",
+    [
+        (TransactionKind.AUTH, AUTHORIZED_STATUS),
+        (TransactionKind.CAPTURE, SUCCESS_STATUS),
+    ],
 )
 @patch("saleor.payment.gateways.stripe.stripe_api.stripe.PaymentIntent.retrieve")
 def test_confirm_payment(
-    mocked_intent_retrieve, kind, method, stripe_plugin, payment_stripe_for_checkout
+    mocked_intent_retrieve, kind, status, stripe_plugin, payment_stripe_for_checkout
 ):
     gateway_response = {
         "id": "evt_1Ip9ANH1Vac4G4dbE9ch7zGS",
@@ -279,9 +287,8 @@ def test_confirm_payment(
     )
 
     payment_intent = StripeObject(id=payment_intent_id)
-    payment_intent["capture_method"] = method
     payment_intent["amount"] = price_to_minor_unit(payment.total, payment.currency)
-    payment_intent["status"] = "succeeded"
+    payment_intent["status"] = status
     payment_intent["currency"] = payment.currency
     mocked_intent_retrieve.return_value = payment_intent
 

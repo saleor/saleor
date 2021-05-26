@@ -295,7 +295,8 @@ def gateway_postprocess(transaction, payment):
         changed_fields += ["charge_status"]
     elif transaction_kind == TransactionKind.CANCEL:
         payment.charge_status = ChargeStatus.CANCELLED
-        changed_fields += ["charge_status"]
+        payment.is_active = False
+        changed_fields += ["charge_status", "is_active"]
     elif transaction_kind == TransactionKind.CAPTURE_FAILED:
         if payment.charge_status in {
             ChargeStatus.PARTIALLY_CHARGED,
