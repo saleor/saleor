@@ -809,7 +809,7 @@ type CategoryTranslation implements Node {
   id: ID!
   seoTitle: String
   seoDescription: String
-  name: String!
+  name: String
   description: JSONString
   language: LanguageDisplay!
   descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
@@ -1284,7 +1284,7 @@ type CollectionTranslation implements Node {
   id: ID!
   seoTitle: String
   seoDescription: String
-  name: String!
+  name: String
   description: JSONString
   language: LanguageDisplay!
   descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
@@ -3608,6 +3608,7 @@ input PageFilterInput {
   search: String
   metadata: [MetadataInput]
   pageTypes: [ID]
+  ids: [ID]
 }
 
 type PageInfo {
@@ -3667,7 +3668,7 @@ type PageTranslation implements Node {
   id: ID!
   seoTitle: String
   seoDescription: String
-  title: String!
+  title: String
   content: JSONString
   language: LanguageDisplay!
   contentJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `content` field instead.")
@@ -4413,7 +4414,7 @@ type ProductTranslation implements Node {
   id: ID!
   seoTitle: String
   seoDescription: String
-  name: String!
+  name: String
   description: JSONString
   language: LanguageDisplay!
   descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
@@ -4781,7 +4782,7 @@ type Query {
 
 type ReducedRate {
   rate: Float!
-  rateType: TaxRateType!
+  rateType: String!
 }
 
 type RefreshToken {
@@ -5463,34 +5464,6 @@ input StockFilterInput {
 input StockInput {
   warehouse: ID!
   quantity: Int!
-}
-
-enum TaxRateType {
-  ACCOMMODATION
-  ADMISSION_TO_CULTURAL_EVENTS
-  ADMISSION_TO_ENTERTAINMENT_EVENTS
-  ADMISSION_TO_SPORTING_EVENTS
-  ADVERTISING
-  AGRICULTURAL_SUPPLIES
-  BABY_FOODSTUFFS
-  BIKES
-  BOOKS
-  CHILDRENS_CLOTHING
-  DOMESTIC_FUEL
-  DOMESTIC_SERVICES
-  E_BOOKS
-  FOODSTUFFS
-  HOTELS
-  MEDICAL
-  NEWSPAPERS
-  PASSENGER_TRANSPORT
-  PHARMACEUTICALS
-  PROPERTY_RENOVATIONS
-  RESTAURANTS
-  SOCIAL_HOUSING
-  STANDARD
-  WATER
-  WINE
 }
 
 type TaxType {

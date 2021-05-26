@@ -75,7 +75,17 @@ All notable, unreleased changes to this project will be documented in this file.
 - Raise ValidationError when refund cannot be performed - #7260 by @IKarbowiak
 - Extend order with origin and original order values - #7326 by @IKarbowiak
 - Fix customer addresses missing after customer creation - #7327 by @tomaszszymanski129
-- Extend order webhook payload with fulfillment fields - #7364 by @korycins
+- Extend order webhook payload with fulfillment fields - #7364, #7347 by @korycins
+  - fulfillments extended with:
+    - total_refund_amount
+    - shipping_refund_amount
+    - lines
+  - fulfillment lines extended with:
+    - total_price_net_amount
+    - total_price_gross_amount
+    - undiscounted_unit_price_net
+    - undiscounted_unit_price_gross
+    - unit_price_net
 - Extend order payload with undiscounted prices and add psp_reference to payment model - #7339 by @IKarbowiak
   - order payload extended with the following fields:
     - `undiscounted_total_net_amount`
@@ -87,6 +97,10 @@ All notable, unreleased changes to this project will be documented in this file.
     - `undiscounted_total_price_net_amount`
     - `undiscounted_total_price_gross_amount`
 - Copy metadata fields when creating reissue - #7358 by @IKarbowiak
+- Fix invoice generation - #7376 by @tomaszszymanski129
+- Allow defining only one field in translations - #7363 by @IKarbowiak
+- Trigger `checkout_updated` hook for checkout meta mutations - #7392 by @maarcingebala
+- Allow filtering pages by ids - #7393 by @IKarbowiak
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -180,6 +194,10 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add channel data to Order webhook - #7299 by @krzysztofwolski
 - Always create new checkout in `checkoutCreate` mutation - #7318 by @IKarbowiak
   - deprecate `created` return field on `checkoutCreate` mutation
+- Return empty values list for attribute without choices - #7394 by @fowczarek
+  - `values` for attributes without choices from now are empty list.
+  - attributes with choices - `DROPDOWN` and `MULTISELECT`
+  - attributes without choices - `FILE`, `REFERENCE`, `NUMERIC` and `RICH_TEXT`
 
 ### Other
 
