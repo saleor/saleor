@@ -1,5 +1,5 @@
 import logging
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING
 
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
