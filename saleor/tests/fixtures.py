@@ -795,6 +795,22 @@ def color_attribute(db):
 
 
 @pytest.fixture
+def attribute_choices_for_sorting(db):
+    attribute = Attribute.objects.create(
+        slug="sorting",
+        name="Sorting",
+        type=AttributeType.PRODUCT_TYPE,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
+    )
+    AttributeValue.objects.create(attribute=attribute, name="Global", slug="summer")
+    AttributeValue.objects.create(attribute=attribute, name="Apex", slug="zet")
+    AttributeValue.objects.create(attribute=attribute, name="Police", slug="absorb")
+    return attribute
+
+
+@pytest.fixture
 def rich_text_attribute(db):
     attribute = Attribute.objects.create(
         slug="text",
