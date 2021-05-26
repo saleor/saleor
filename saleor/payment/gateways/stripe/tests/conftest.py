@@ -10,13 +10,6 @@ from ....utils import create_payment
 from ..plugin import StripeGatewayPlugin
 
 
-@pytest.fixture(scope="module")
-def vcr_config():
-    return {
-        "filter_headers": [("Authorization", "test_key")],
-    }
-
-
 @pytest.fixture
 def payment_stripe_for_checkout(checkout_with_items, address, shipping_method):
     checkout_with_items.billing_address = address
