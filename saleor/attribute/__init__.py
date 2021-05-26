@@ -22,10 +22,9 @@ class AttributeInputType:
     # list of the input types that can be used in variant selection
     ALLOWED_IN_VARIANT_SELECTION = [DROPDOWN]
 
-    TYPES_WITHOUT_CHOICES = [
-        REFERENCE,
-        NUMERIC,
-        RICH_TEXT,
+    TYPES_WITH_CHOICES = [
+        DROPDOWN,
+        MULTISELECT,
     ]
 
 

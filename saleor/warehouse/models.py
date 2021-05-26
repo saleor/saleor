@@ -3,10 +3,11 @@ import uuid
 from typing import Set
 
 from django.db import models
-from django.db.models import F, Sum
+from django.db.models import Exists, F, OuterRef, Sum
 from django.db.models.functions import Coalesce
 
 from ..account.models import Address
+from ..channel.models import Channel
 from ..core.models import ModelWithMetadata
 from ..order.models import OrderLine
 from ..product.models import Product, ProductVariant
@@ -63,13 +64,23 @@ class StockQuerySet(models.QuerySet):
         )
 
     def for_channel(self, channel_slug: str):
-        query_warehouse = models.Subquery(
-            Warehouse.objects.filter(
-                shipping_zones__channels__slug=channel_slug
-            ).values("pk")
-        )
-        return self.select_related("product_variant", "warehouse").filter(
-            warehouse__in=query_warehouse
+        ShippingZoneChannel = Channel.shipping_zones.through
+        WarehouseShippingZone = ShippingZone.warehouses.through
+        channels = Channel.objects.filter(slug=channel_slug).values("pk")
+        shipping_zone_channels = ShippingZoneChannel.objects.filter(
+            Exists(channels.filter(pk=OuterRef("channel_id")))
+        ).values("shippingzone_id")
+        warehouse_shipping_zones = WarehouseShippingZone.objects.filter(
+            Exists(
+                shipping_zone_channels.filter(
+                    shippingzone_id=OuterRef("shippingzone_id")
+                )
+            )
+        ).values("warehouse_id")
+        return self.select_related("product_variant").filter(
+            Exists(
+                warehouse_shipping_zones.filter(warehouse_id=OuterRef("warehouse_id"))
+            )
         )
 
     def for_country_and_channel(self, country_code: str, channel_slug):

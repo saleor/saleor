@@ -148,7 +148,6 @@ def test_create_numeric_attribute_and_attribute_values(
     ), "The attribute should not have been assigned to a product type"
 
     # Check if the attribute values were correctly created
-    assert len(data["attribute"]["choices"]) == 1
     assert data["attribute"]["type"] == AttributeTypeEnum.PRODUCT_TYPE.name
     assert data["attribute"]["unit"] == MeasurementUnitsEnum.M.name
     assert data["attribute"]["inputType"] == AttributeInputTypeEnum.NUMERIC.name

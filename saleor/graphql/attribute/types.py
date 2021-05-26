@@ -128,10 +128,10 @@ class Attribute(CountableDjangoObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_choices(root: models.Attribute, _info, **_kwargs):
-        if root.input_type in AttributeInputType.TYPES_WITHOUT_CHOICES:
-            return []
-        return root.values.all()
+    def resolve_choices(root: models.Attribute, info, **_kwargs):
+        if root.input_type in AttributeInputType.TYPES_WITH_CHOICES:
+            return root.values.all()
+        return []
 
     @staticmethod
     @check_attribute_required_permissions()
