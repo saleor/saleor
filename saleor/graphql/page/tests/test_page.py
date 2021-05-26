@@ -495,7 +495,10 @@ def test_create_page_with_file_attribute(
             {
                 "slug": f"{attr_value.slug}-2",
                 "name": attr_value.name,
-                "file": {"url": attr_value.file_url, "contentType": None},
+                "file": {
+                    "url": f"http://testserver/media/{attr_value.file_url}",
+                    "contentType": None,
+                },
                 "reference": None,
             }
         ],
@@ -1303,7 +1306,7 @@ def test_update_page_with_file_attribute_new_value_is_not_created(
                 "name": existing_value.name,
                 "reference": None,
                 "file": {
-                    "url": existing_value.file_url,
+                    "url": f"http://testserver/media/{existing_value.file_url}",
                     "contentType": existing_value.content_type,
                 },
             }

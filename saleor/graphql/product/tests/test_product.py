@@ -3372,7 +3372,10 @@ def test_create_product_with_file_attribute(
                 {
                     "name": existing_value.name,
                     "slug": f"{existing_value.slug}-2",
-                    "file": {"url": existing_value.file_url, "contentType": None},
+                    "file": {
+                        "url": f"http://testserver/media/{existing_value.file_url}",
+                        "contentType": None,
+                    },
                     "reference": None,
                     "richText": None,
                 }
@@ -4970,7 +4973,7 @@ def test_update_product_with_file_attribute_value_new_value_is_not_created(
                 "slug": existing_value.slug,
                 "reference": None,
                 "file": {
-                    "url": existing_value.file_url,
+                    "url": f"http://testserver/media/{existing_value.file_url}",
                     "contentType": existing_value.content_type,
                 },
             }
