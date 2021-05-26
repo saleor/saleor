@@ -51,19 +51,15 @@ def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
         logger.warning("Invalid signature. %s", e)
         return HttpResponse(status=400)
 
-    # Handle the event
-    if event.type == WEBHOOK_SUCCESS_EVENT:
-        payment_intent = event.data.object
-        handle_successful_payment_intent(payment_intent, gateway_config)
-    elif event.type == WEBHOOK_AUTHORIZED_EVENT:
-        payment_intent = event.data.object
-        handle_authorized_payment_intent(payment_intent, gateway_config)
-    elif event.type == WEBHOOK_PROCESSING_EVENT:
-        payment_intent = event.data.object
-        handle_processing_payment_intent(payment_intent, gateway_config)
-    elif event.type in [WEBHOOK_FAILED_EVENT, WEBHOOK_CANCELED_EVENT]:
-        payment_intent = event.data.object
-        handle_failed_payment_intent(payment_intent, gateway_config)
+    webhook_handlers = {
+        WEBHOOK_SUCCESS_EVENT: handle_successful_payment_intent,
+        WEBHOOK_AUTHORIZED_EVENT: handle_authorized_payment_intent,
+        WEBHOOK_PROCESSING_EVENT: handle_processing_payment_intent,
+        WEBHOOK_FAILED_EVENT: handle_failed_payment_intent,
+        WEBHOOK_CANCELED_EVENT: handle_failed_payment_intent,
+    }
+    if event.type in webhook_handlers:
+        webhook_handlers[event.type](event.data.object, gateway_config)
     else:
         logger.warning("Received unhandled webhook event %s", event.type)
     return HttpResponse(status=200)
