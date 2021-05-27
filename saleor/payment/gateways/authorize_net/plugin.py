@@ -32,6 +32,7 @@ if TYPE_CHECKING:
 class AuthorizeNetGatewayPlugin(BasePlugin):
     PLUGIN_NAME = GATEWAY_NAME
     PLUGIN_ID = "mirumee.payments.authorize_net"
+    CONFIGURATION_PER_CHANNEL = True
 
     DEFAULT_CONFIGURATION = [
         {"name": "api_login_id", "value": None},

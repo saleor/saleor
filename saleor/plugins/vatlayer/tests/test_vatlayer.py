@@ -193,7 +193,7 @@ def test_vatlayer_plugin_caches_taxes(
     )
 
     manager = get_plugins_manager()
-    plugin = manager.get_plugin(VatlayerPlugin.PLUGIN_ID)
+    plugin = manager.get_plugin(VatlayerPlugin.PLUGIN_ID, channel_slug=channel_USD.slug)
     variant = product.variants.first()
     channel_listing = variant.channel_listings.get(channel=channel_USD)
     price = variant.get_price(product, [], channel_USD, channel_listing, None)
@@ -744,7 +744,7 @@ def test_calculate_order_line_total(vatlayer, order_line, site_settings):
     order_line.unit_price = unit_price
     total_price = unit_price * order_line.quantity
     order_line.total_price = total_price
-    order_line.save(update_fields=["unit_price", "total_price"])
+    order_line.save()
 
     line_price = manager.calculate_order_line_total(
         order_line.order,
@@ -840,21 +840,26 @@ def test_get_tax_rate_percentage_value_with_excluded_country(
     assert tax_rate == Decimal("0")
 
 
-def test_save_plugin_configuration(vatlayer, settings):
+def test_save_plugin_configuration(vatlayer, settings, channel_USD):
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
     manager = get_plugins_manager()
-    manager.save_plugin_configuration(VatlayerPlugin.PLUGIN_ID, {"active": False})
+    manager.save_plugin_configuration(
+        VatlayerPlugin.PLUGIN_ID, channel_USD.slug, {"active": False}
+    )
 
     configuration = PluginConfiguration.objects.get(identifier=VatlayerPlugin.PLUGIN_ID)
     assert not configuration.active
 
 
-def test_save_plugin_configuration_cannot_be_enabled_without_config(settings):
+def test_save_plugin_configuration_cannot_be_enabled_without_config(
+    settings, channel_USD
+):
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
     manager = get_plugins_manager()
     with pytest.raises(ValidationError):
         manager.save_plugin_configuration(
             VatlayerPlugin.PLUGIN_ID,
+            channel_USD.slug,
             {"active": True},
         )
 
@@ -904,6 +909,7 @@ def test_apply_taxes_to_product(
             variant.product, [], channel_USD, variant_channel_listing, [discount_info]
         ),
         country,
+        channel_USD.slug,
     )
     assert price == TaxedMoney(net=Money("4.07", "USD"), gross=Money("5.00", "USD"))
 
@@ -930,6 +936,7 @@ def test_apply_taxes_to_product_from_origin_country(
             variant.product, [], channel_USD, variant_channel_listing, [discount_info]
         ),
         country,
+        channel_USD.slug,
     )
 
     assert price == TaxedMoney(net=Money("4.20", "USD"), gross=Money("5.00", "USD"))
@@ -955,6 +962,7 @@ def test_apply_taxes_to_product_with_excluded_country(
             variant.product, [], channel_USD, variant_channel_listing, [discount_info]
         ),
         country,
+        channel_USD.slug,
     )
 
     assert price == TaxedMoney(net=Money("5.00", "USD"), gross=Money("5.00", "USD"))
@@ -979,6 +987,7 @@ def test_apply_taxes_to_product_uses_taxes_from_product_type(
             product, [], channel_USD, variant_channel_listing, [discount_info]
         ),
         country,
+        channel_USD.slug,
     )
     assert price == TaxedMoney(net=Money("4.07", "USD"), gross=Money("5.00", "USD"))
 
@@ -1037,10 +1046,12 @@ def test_calculations_checkout_shipping_price_with_vatlayer(
     )
 
 
-def test_skip_diabled_plugin(settings):
+def test_skip_diabled_plugin(settings, channel_USD):
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
     manager = get_plugins_manager()
-    plugin: VatlayerPlugin = manager.get_plugin(VatlayerPlugin.PLUGIN_ID)
+    plugin: VatlayerPlugin = manager.get_plugin(
+        VatlayerPlugin.PLUGIN_ID, channel_USD.slug
+    )
 
     assert (
         plugin._skip_plugin(

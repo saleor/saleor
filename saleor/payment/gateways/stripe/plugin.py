@@ -226,6 +226,7 @@ class StripeGatewayPlugin(BasePlugin):
             transaction_id=payment_intent.id if payment_intent else "",
             error=error,
             raw_response=raw_response,
+            psp_reference=payment_intent.id if payment_intent else None,
         )
 
     @classmethod

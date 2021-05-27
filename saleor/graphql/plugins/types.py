@@ -1,38 +1,8 @@
-from typing import TYPE_CHECKING, Optional
-
 import graphene
 
-from ...core.tracing import traced_resolver
-from ...plugins import models
-from ...plugins.base_plugin import ConfigurationTypeField
-from ..core.connection import CountableDjangoObjectType
+from ..channel.types import Channel
+from ..core.connection import CountableConnection
 from .enums import ConfigurationTypeFieldEnum
-
-if TYPE_CHECKING:
-    # flake8: noqa
-    from ...plugins.base_plugin import PluginConfigurationType
-
-
-def hide_private_configuration_fields(configuration, config_structure):
-    for field in configuration:
-        name = field["name"]
-        value = field["value"]
-        if value is None:
-            continue
-        field_type = config_structure.get(name, {}).get("type")
-        if field_type == ConfigurationTypeField.PASSWORD:
-            field["value"] = "" if value else None
-
-        if field_type in [
-            ConfigurationTypeField.SECRET,
-            ConfigurationTypeField.SECRET_MULTILINE,
-        ]:
-            if not value:
-                field["value"] = None
-            elif len(value) > 4:
-                field["value"] = value[-4:]
-            else:
-                field["value"] = value[-1:]
 
 
 class ConfigurationItem(graphene.ObjectType):
@@ -46,28 +16,62 @@ class ConfigurationItem(graphene.ObjectType):
         description = "Stores information about a single configuration field."
 
 
-class Plugin(CountableDjangoObjectType):
-    id = graphene.Field(type=graphene.ID, required=True)
-    configuration = graphene.List(ConfigurationItem)
+class PluginConfiguration(graphene.ObjectType):
+    active = graphene.Boolean(
+        required=True, description="Determines if plugin is active or not."
+    )
+    channel = graphene.Field(
+        Channel,
+        description="The channel to which the plugin configuration is assigned to.",
+    )
+    configuration = graphene.List(
+        ConfigurationItem, description="Configuration of the plugin."
+    )
+
+    class Meta:
+        description = "Stores information about a configuration of plugin."
+
+
+class Plugin(graphene.ObjectType):
+    id = graphene.ID(required=True, description="Identifier of the plugin.")
+    name = graphene.String(description="Name of the plugin.", required=True)
+    description = graphene.String(
+        description="Description of the plugin.", required=True
+    )
+    global_configuration = graphene.Field(
+        PluginConfiguration,
+        description="Global configuration of the plugin (not channel-specific).",
+    )
+    channel_configurations = graphene.List(
+        graphene.NonNull(PluginConfiguration),
+        description="Channel-specific plugin configuration.",
+        required=True,
+    )
 
     class Meta:
         description = "Plugin."
-        model = models.PluginConfiguration
-        interfaces = [graphene.relay.Node]
-        only_fields = ["id", "name", "description", "active", "configuration"]
-
-    def resolve_id(self: models.PluginConfiguration, _info):
-        return self.identifier
 
     @staticmethod
-    @traced_resolver
-    def resolve_configuration(
-        root: models.PluginConfiguration, info
-    ) -> Optional["PluginConfigurationType"]:
-        plugin = info.context.plugins.get_plugin(root.identifier)
-        if not plugin:
-            return None
-        configuration = plugin.configuration
-        if plugin.CONFIG_STRUCTURE and configuration:
-            hide_private_configuration_fields(configuration, plugin.CONFIG_STRUCTURE)
-        return configuration
+    def resolve_id(root: "Plugin", _info):
+        return root.id
+
+    @staticmethod
+    def resolve_name(root: "Plugin", _info):
+        return root.name
+
+    @staticmethod
+    def resolve_description(root: "Plugin", _info):
+        return root.description
+
+    @staticmethod
+    def resolve_global_configuration(root: "Plugin", _info):
+        return root.global_configuration
+
+    @staticmethod
+    def resolve_channel_configurations(root: "Plugin", _info):
+        return root.channel_configurations or []
+
+
+class PluginCountableConnection(CountableConnection):
+    class Meta:
+        node = Plugin

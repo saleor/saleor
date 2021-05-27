@@ -67,6 +67,7 @@ class AdminEmailPlugin(BasePlugin):
     PLUGIN_NAME = "Admin emails"
     PLUGIN_DESCRIPTION = "Plugin responsible for sending the staff emails."
     DEFAULT_ACTIVE = True
+    CONFIGURATION_PER_CHANNEL = False
 
     DEFAULT_CONFIGURATION = [
         {

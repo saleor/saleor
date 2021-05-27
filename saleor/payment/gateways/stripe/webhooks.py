@@ -97,7 +97,7 @@ def _finalize_checkout(
         currency=payment_intent.currency,
         error="",
         raw_response=payment_intent.last_response,
-        searchable_key=payment_intent.id,
+        psp_reference=payment_intent.id,
     )
 
     create_transaction(
@@ -135,7 +135,7 @@ def _update_payment(payment: Payment, payment_intent: StripeObject, kind: str):
         currency=payment_intent.currency,
         error="",
         raw_response=payment_intent.last_response,
-        searchable_key=payment_intent.id,
+        psp_reference=payment_intent.id,
     )
     transaction = create_transaction(
         payment,

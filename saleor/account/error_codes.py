@@ -32,6 +32,8 @@ class AccountErrorCode(Enum):
     JWT_DECODE_ERROR = "decode_error"
     JWT_MISSING_TOKEN = "missing_token"
     JWT_INVALID_CSRF_TOKEN = "invalid_csrf_token"
+    CHANNEL_INACTIVE = "channel_inactive"
+    MISSING_CHANNEL_SLUG = "missing_channel_slug"
 
 
 class PermissionGroupErrorCode(Enum):
