@@ -20,6 +20,7 @@ from .dataloaders import AttributesByAttributeId
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
 from .filters import AttributeValueFilterInput
+from .sorters import AttributeChoicesSortingInput
 
 COLOR_PATTERN = r"^(#[0-9a-fA-F]{3}|#(?:[0-9a-fA-F]{2}){2,4}|(rgb|hsl)a?\((-?\d+%?[,\s]+){2,3}\s*[\d\.]+%?\))$"  # noqa
 color_pattern = re.compile(COLOR_PATTERN)
@@ -91,7 +92,10 @@ class Attribute(CountableDjangoObjectType):
     unit = MeasurementUnitsEnum(description=AttributeDescriptions.UNIT)
     choices = FilterInputConnectionField(
         AttributeValue,
-        filter=AttributeValueFilterInput(),
+        sort_by=AttributeChoicesSortingInput(description="Sort attribute choices."),
+        filter=AttributeValueFilterInput(
+            description="Filtering options for attribute choices."
+        ),
         description=AttributeDescriptions.VALUES,
     )
 

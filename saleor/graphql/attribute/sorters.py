@@ -52,3 +52,24 @@ class AttributeSortingInput(SortInputObjectType):
     class Meta:
         sort_enum = AttributeSortField
         type_name = "attributes"
+
+
+class AttributeChoicesSortField(graphene.Enum):
+    NAME = ["name", "slug"]
+    SLUG = ["slug"]
+
+    @property
+    def description(self):
+        descriptions = {
+            AttributeSortField.NAME.name: "Sort attribute choice by name.",
+            AttributeSortField.SLUG.name: "Sort attribute choice by slug.",
+        }
+        if self.name in descriptions:
+            return descriptions[self.name]
+        raise ValueError("Unsupported enum value: %s" % self.value)
+
+
+class AttributeChoicesSortingInput(SortInputObjectType):
+    class Meta:
+        sort_enum = AttributeChoicesSortField
+        type_name = "attribute choices"
