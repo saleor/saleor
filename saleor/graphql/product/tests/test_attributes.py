@@ -80,10 +80,14 @@ QUERY_ATTRIBUTES = """
                         name
                         slug
                     }
-                    choices {
-                        id
-                        name
-                        slug
+                    choices(first: 10) {
+                        edges {
+                            node {
+                                id
+                                name
+                                slug
+                            }
+                        }
                     }
                 }
             }
@@ -461,9 +465,13 @@ CREATE_ATTRIBUTES_QUERY = """
                     name
                     slug
                 }
-                choices {
-                    name
-                    slug
+                choices(first: 10) {
+                    edges {
+                        node {
+                            name
+                            slug
+                        }
+                    }
                 }
                 productTypes(first: 10) {
                     edges {
@@ -507,10 +515,11 @@ def test_create_attribute_and_attribute_values(
     assert data["attribute"]["values"][0]["name"] == name
     assert data["attribute"]["values"][0]["slug"] == slugify(name)
 
-    # Check if the attribute choices were correctly created
-    assert len(data["attribute"]["choices"]) == 1
-    assert data["attribute"]["choices"][0]["name"] == name
-    assert data["attribute"]["choices"][0]["slug"] == slugify(name)
+    # Check if the attribute choices were correctly returned
+    choices = data["attribute"]["choices"]["edges"]
+    assert len(choices) == 1
+    assert choices[0]["node"]["name"] == name
+    assert choices[0]["node"]["slug"] == slugify(name)
 
 
 @pytest.mark.parametrize(
@@ -637,6 +646,14 @@ UPDATE_ATTRIBUTE_MUTATION = """
             values {
                 name
                 slug
+            }
+            choices(first: 10) {
+                edges {
+                    node {
+                        name
+                        slug
+                    }
+                }
             }
             productTypes(first: 10) {
                 edges {
@@ -1019,6 +1036,13 @@ CREATE_ATTRIBUTE_VALUE_QUERY = """
             values {
                 name
             }
+            choices(first: 10) {
+                edges {
+                    node {
+                        name
+                    }
+                }
+            }
         }
         attributeValue {
             name
@@ -1050,6 +1074,9 @@ def test_create_attribute_value(
     assert attr_data["slug"] == slugify(name)
     assert attr_data["type"] == "STRING"
     assert name in [value["name"] for value in data["attribute"]["values"]]
+    assert name in [
+        choice["node"]["name"] for choice in data["attribute"]["choices"]["edges"]
+    ]
 
 
 def test_create_attribute_value_not_unique_name(
@@ -1105,6 +1132,13 @@ mutation updateChoice(
             values {
                 name
             }
+            choices(first: 10) {
+                edges {
+                    node {
+                        name
+                    }
+                }
+            }
         }
     }
 }
@@ -1130,6 +1164,9 @@ def test_update_attribute_value(
     assert data["attributeValue"]["name"] == name == value.name
     assert data["attributeValue"]["slug"] == slugify(name)
     assert name in [value["name"] for value in data["attribute"]["values"]]
+    assert name in [
+        choice["node"]["name"] for choice in data["attribute"]["choices"]["edges"]
+    ]
 
 
 def test_update_attribute_value_name_not_unique(
@@ -1832,21 +1869,27 @@ def test_sort_attributes_within_product_type(
 
 
 ATTRIBUTE_VALUES_RESORT_QUERY = """
-    mutation attributeReorderValues($attributeId: ID!, $moves: [ReorderInput]!) {
-      attributeReorderValues(attributeId: $attributeId, moves: $moves) {
+mutation attributeReorderValues($attributeId: ID!, $moves: [ReorderInput]!) {
+    attributeReorderValues(attributeId: $attributeId, moves: $moves) {
         attribute {
-          id
-          values {
             id
-          }
+            values {
+                id
+            }
+            choices(first: 10) {
+                edges {
+                    node {
+                        id
+                    }
+                }
+            }
         }
-
         errors {
-          field
-          message
+            field
+            message
         }
-      }
     }
+}
 """
 
 
@@ -2843,3 +2886,88 @@ def test_attributes_of_products_are_sorted(
 
     # Compare the received data against our expectations
     assert actual_order == expected_order
+
+
+ATTRIBUTE_CHOICES_SORT_QUERY = """
+query($sortBy: AttributeChoicesSortingInput) {
+    attributes(first: 10) {
+        edges {
+            node {
+                slug
+                choices(first: 10, sortBy: $sortBy) {
+                    edges {
+                        node {
+                            name
+                            slug
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+"""
+
+
+def test_sort_attribute_choices_by_slug(api_client, attribute_choices_for_sorting):
+    variables = {"sortBy": {"field": "SLUG", "direction": "ASC"}}
+    attributes = get_graphql_content(
+        api_client.post_graphql(ATTRIBUTE_CHOICES_SORT_QUERY, variables)
+    )["data"]["attributes"]
+    choices = attributes["edges"][0]["node"]["choices"]["edges"]
+
+    assert len(choices) == 3
+    assert choices[0]["node"]["slug"] == "absorb"
+    assert choices[1]["node"]["slug"] == "summer"
+    assert choices[2]["node"]["slug"] == "zet"
+
+
+def test_sort_attribute_choices_by_name(api_client, attribute_choices_for_sorting):
+    variables = {"sortBy": {"field": "NAME", "direction": "ASC"}}
+    attributes = get_graphql_content(
+        api_client.post_graphql(ATTRIBUTE_CHOICES_SORT_QUERY, variables)
+    )["data"]["attributes"]
+    choices = attributes["edges"][0]["node"]["choices"]["edges"]
+
+    assert len(choices) == 3
+    assert choices[0]["node"]["name"] == "Apex"
+    assert choices[1]["node"]["name"] == "Global"
+    assert choices[2]["node"]["name"] == "Police"
+
+
+ATTRIBUTES_CHOICE_FILTER_QUERY = """
+query($filters: AttributeChoiceFilterInput!) {
+    attributes(first: 10) {
+        edges {
+            node {
+                name
+                slug
+                choices(first: 10, filter: $filters) {
+                    edges {
+                        node {
+                            name
+                            slug
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+"""
+
+
+@pytest.mark.parametrize(
+    "filter_value", ["red", "blue"],
+)
+def test_search_attributes_choice(
+    filter_value, api_client, color_attribute, size_attribute
+):
+    variables = {"filters": {"search": filter_value}}
+
+    attributes = get_graphql_content(
+        api_client.post_graphql(ATTRIBUTES_CHOICE_FILTER_QUERY, variables)
+    )
+    values = attributes["data"]["attributes"]["edges"][0]["node"]["choices"]["edges"]
+    assert len(values) == 1
+    assert values[0]["node"]["slug"] == filter_value

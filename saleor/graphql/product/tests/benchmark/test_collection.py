@@ -94,6 +94,15 @@ def test_collection_view(api_client, homepage_collection, count_queries):
                   name
                   slug
                 }
+                choices(first: 10) {
+                  edges {
+                    node {
+                      id
+                      name
+                      slug
+                    }
+                  }
+                }
               }
             }
           }

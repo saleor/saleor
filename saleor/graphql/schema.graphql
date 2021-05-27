@@ -407,8 +407,7 @@ type Attribute implements Node & ObjectWithMetadata {
   slug: String
   values: [AttributeValue] @deprecated(reason: "Use the `choices` field instead. It will be removed in Saleor 3.0.")
   choices(sortBy: AttributeChoicesSortingInput, filter: AttributeChoiceFilterInput, before: String, after: String, first: Int, last: Int): AttributeValueCountableConnection
-  valueRequired: Boolean! @deprecated(reason: "Use the `choiceRequired` field instead. It will be removed in Saleor 3.0.")
-  choiceRequired: Boolean!
+  valueRequired: Boolean!
   visibleInStorefront: Boolean!
   filterableInStorefront: Boolean!
   filterableInDashboard: Boolean!

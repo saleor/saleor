@@ -83,14 +83,7 @@ class Attribute(CountableDjangoObjectType):
         description=AttributeDescriptions.VALUES,
     )
     value_required = graphene.Boolean(
-        description=AttributeDescriptions.VALUE_REQUIRED,
-        deprecation_reason=(
-            "Use the `choiceRequired` field instead. It will be removed in Saleor 3.0."
-        ),
-        required=True,
-    )
-    choice_required = graphene.Boolean(
-        description=AttributeDescriptions.VALUE_REQUIRED, required=True
+        description=AttributeDescriptions.VALUE_REQUIRED, required=True,
     )
     visible_in_storefront = graphene.Boolean(
         description=AttributeDescriptions.VISIBLE_IN_STOREFRONT, required=True
@@ -125,7 +118,7 @@ class Attribute(CountableDjangoObjectType):
         return AttributeValuesByAttributeIdLoader(info.context).load(root.id)
 
     @staticmethod
-    def resolve_choices(root: models.Attribute, info):
+    def resolve_choices(root: models.Attribute, _info, **_kwargs):
         return root.values.all()
 
     @staticmethod
@@ -140,11 +133,6 @@ class Attribute(CountableDjangoObjectType):
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_value_required(root: models.Attribute, *_args):
-        return root.value_required
-
-    @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_choice_required(root: models.Attribute, *_args):
         return root.value_required
 
     @staticmethod

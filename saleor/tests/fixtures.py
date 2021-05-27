@@ -656,6 +656,16 @@ def attribute_list() -> List[Attribute]:
 
 
 @pytest.fixture
+def attribute_choices_for_sorting(db):
+    attribute = Attribute.objects.create(slug="sorting", name="Sorting",)
+    AttributeValue.objects.create(attribute=attribute, name="Global", slug="summer")
+    AttributeValue.objects.create(attribute=attribute, name="Apex", slug="zet")
+    AttributeValue.objects.create(attribute=attribute, name="Police", slug="absorb")
+
+    return attribute
+
+
+@pytest.fixture
 def image():
     img_data = BytesIO()
     image = Image.new("RGB", size=(1, 1))
