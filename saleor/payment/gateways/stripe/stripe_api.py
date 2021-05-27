@@ -51,7 +51,7 @@ def delete_webhook(api_key: str, webhook_id: str):
 
 def create_payment_intent(
     api_key: str, amount: Decimal, currency: str
-) -> Tuple[Optional[StripeObject], Optional[str]]:
+) -> Tuple[Optional[StripeObject], Optional[StripeError]]:
     try:
         intent = stripe.PaymentIntent.create(
             api_key=api_key,
@@ -59,36 +59,32 @@ def create_payment_intent(
             currency=currency,
         )
         return intent, None
-    except StripeError as e:
-        error = e.json_body
-
-    return None, error
+    except StripeError as error:
+        return None, error
 
 
 def retrieve_payment_intent(
     api_key: str, payment_intent_id: str
-) -> Tuple[Optional[StripeObject], Optional[dict]]:
+) -> Tuple[Optional[StripeObject], Optional[StripeError]]:
     try:
         payment_intent = stripe.PaymentIntent.retrieve(
             payment_intent_id, api_key=api_key
         )
         return payment_intent, None
-    except StripeError as e:
-        error = e.json_body
+    except StripeError as error:
         logger.warning("Unable to retrieve a payment intent (%s)", payment_intent_id)
         return None, error
 
 
 def capture_payment_intent(
     api_key: str, payment_intent_id: str, amount_to_capture: int
-) -> Tuple[Optional[StripeObject], Optional[dict]]:
+) -> Tuple[Optional[StripeObject], Optional[StripeError]]:
     try:
         payment_intent = stripe.PaymentIntent.capture(
             payment_intent_id, amount_to_capture=amount_to_capture, api_key=api_key
         )
         return payment_intent, None
-    except StripeError as e:
-        error = e.json_body
+    except StripeError as error:
         logger.warning(
             "Unable to capture a payment intent (%s), error", payment_intent_id
         )
@@ -97,14 +93,13 @@ def capture_payment_intent(
 
 def refund_payment_intent(
     api_key: str, payment_intent_id: str, amount_to_refund: int
-) -> Tuple[Optional[StripeObject], Optional[dict]]:
+) -> Tuple[Optional[StripeObject], Optional[StripeError]]:
     try:
         payment_intent = stripe.Refund.create(
             payment_intent=payment_intent_id, amount=amount_to_refund, api_key=api_key
         )
         return payment_intent, None
-    except StripeError as e:
-        error = e.json_body
+    except StripeError as error:
         logger.warning(
             "Unable to refund a payment intent (%s), error", payment_intent_id
         )
@@ -113,12 +108,11 @@ def refund_payment_intent(
 
 def cancel_payment_intent(
     api_key: str, payment_intent_id: str
-) -> Tuple[Optional[StripeObject], Optional[dict]]:
+) -> Tuple[Optional[StripeObject], Optional[StripeError]]:
     try:
         payment_intent = stripe.PaymentIntent.cancel(payment_intent_id, api_key=api_key)
         return payment_intent, None
-    except StripeError as e:
-        error = e.json_body
+    except StripeError as error:
         logger.warning(
             "Unable to cancel a payment intent (%s), error", payment_intent_id
         )

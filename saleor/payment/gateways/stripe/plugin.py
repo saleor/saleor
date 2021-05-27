@@ -149,7 +149,7 @@ class StripeGatewayPlugin(BasePlugin):
             amount=payment_information.amount,
             currency=payment_information.currency,
             transaction_id=intent.id if intent else "",
-            error=error,
+            error=error.user_message if error else None,
             raw_response=raw_response,
             action_required_data={"client_secret": client_secret},
         )
@@ -188,6 +188,7 @@ class StripeGatewayPlugin(BasePlugin):
             )
 
         payment_intent = None
+        error = None
         if payment_intent_id:
             payment_intent, error = retrieve_payment_intent(api_key, payment_intent_id)
 
@@ -229,7 +230,7 @@ class StripeGatewayPlugin(BasePlugin):
             amount=amount,
             currency=currency,
             transaction_id=payment_intent.id if payment_intent else "",
-            error=error,
+            error=error.user_message if error else None,
             raw_response=raw_response,
             psp_reference=payment_intent.id if payment_intent else None,
         )
@@ -244,7 +245,7 @@ class StripeGatewayPlugin(BasePlugin):
         )
         payment_intent, error = capture_payment_intent(
             api_key=self.config.connection_params["secret_api_key"],
-            payment_intent_id=payment_intent_id,
+            payment_intent_id=payment_intent_id,  # type: ignore
             amount_to_capture=capture_amount,
         )
 
@@ -259,7 +260,7 @@ class StripeGatewayPlugin(BasePlugin):
             amount=payment_information.amount,
             currency=payment_information.currency,
             transaction_id=payment_intent.id if payment_intent else "",
-            error=error,
+            error=error.user_message if error else None,
             raw_response=raw_response,
         )
 
@@ -273,7 +274,7 @@ class StripeGatewayPlugin(BasePlugin):
         )
         payment_intent, error = refund_payment_intent(
             api_key=self.config.connection_params["secret_api_key"],
-            payment_intent_id=payment_intent_id,
+            payment_intent_id=payment_intent_id,  # type: ignore
             amount_to_refund=refund_amount,
         )
 
@@ -288,7 +289,7 @@ class StripeGatewayPlugin(BasePlugin):
             amount=payment_information.amount,
             currency=payment_information.currency,
             transaction_id=payment_intent.id if payment_intent else "",
-            error=error,
+            error=error.user_message if error else None,
             raw_response=raw_response,
         )
 
@@ -300,7 +301,7 @@ class StripeGatewayPlugin(BasePlugin):
 
         payment_intent, error = cancel_payment_intent(
             api_key=self.config.connection_params["secret_api_key"],
-            payment_intent_id=payment_intent_id,
+            payment_intent_id=payment_intent_id,  # type: ignore
         )
 
         raw_response = None
@@ -314,7 +315,7 @@ class StripeGatewayPlugin(BasePlugin):
             amount=payment_information.amount,
             currency=payment_information.currency,
             transaction_id=payment_intent.id if payment_intent else "",
-            error=error,
+            error=error.user_message if error else None,
             raw_response=raw_response,
         )
 
