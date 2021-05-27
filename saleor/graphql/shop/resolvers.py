@@ -29,7 +29,9 @@ def resolve_available_shipping_methods(info, channel_slug: str, address):
     )
     for shipping_method in available:
         shipping_price = shipping_mapping[shipping_method.pk]
-        taxed_price = manager.apply_taxes_to_shipping(shipping_price, address)
+        taxed_price = manager.apply_taxes_to_shipping(
+            shipping_price, address, channel_slug
+        )
         if display_gross:
             shipping_method.price = taxed_price.gross
         else:

@@ -123,7 +123,10 @@ class Allocation(CountableDjangoObjectType):
 
     @staticmethod
     @one_of_permissions_required(
-        [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
+        [
+            ProductPermissions.MANAGE_PRODUCTS,
+            OrderPermissions.MANAGE_ORDERS,
+        ]
     )
     @traced_resolver
     def resolve_warehouse(root, *_args):
@@ -131,7 +134,10 @@ class Allocation(CountableDjangoObjectType):
 
     @staticmethod
     @one_of_permissions_required(
-        [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
+        [
+            ProductPermissions.MANAGE_PRODUCTS,
+            OrderPermissions.MANAGE_ORDERS,
+        ]
     )
     def resolve_quantity(root, *_args):
         return root.quantity_allocated

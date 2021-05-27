@@ -236,18 +236,7 @@ def test_get_single_product_attribute_with_file_value(
         attribute_data["storefrontSearchPosition"]
         == file_attribute.storefront_search_position
     )
-    assert len(attribute_data["values"]) == file_attribute.values.count()
-    attribute_value_data = []
-    for value in file_attribute.values.all():
-        data = {
-            "slug": value.slug,
-            "inputType": value.input_type.upper(),
-            "file": {"url": value.file_url, "contentType": value.content_type},
-        }
-        attribute_value_data.append(data)
-
-    for data in attribute_value_data:
-        assert data in attribute_data["values"]
+    assert attribute_data["values"] == []
 
 
 def test_get_single_reference_attribute_by_staff(

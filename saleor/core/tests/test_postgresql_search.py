@@ -36,7 +36,8 @@ def named_products(category, product_type, channel_USD):
 
 def execute_search(phrase):
     """Execute storefront search."""
-    return product_search(phrase)
+    qs = Product.objects.all()
+    return product_search(qs, phrase)
 
 
 @pytest.mark.parametrize(

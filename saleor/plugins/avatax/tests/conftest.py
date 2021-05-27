@@ -15,21 +15,35 @@ def vcr_config():
 
 
 @pytest.fixture
-def plugin_configuration(db):
+def plugin_configuration(db, channel_USD):
     def set_configuration(
         username="test",
         password="test",
         sandbox=False,
+        channel=None,
+        active=True,
+        from_street_address="Teczowa 7",
+        from_city="Wroclaw",
+        from_country="PL",
+        from_country_area="",
+        from_postal_code="53-601",
     ):
+        channel = channel or channel_USD
         data = {
-            "active": True,
+            "active": active,
             "name": AvataxPlugin.PLUGIN_NAME,
+            "channel": channel,
             "configuration": [
                 {"name": "Username or account", "value": username},
                 {"name": "Password or license", "value": password},
                 {"name": "Use sandbox", "value": sandbox},
                 {"name": "Company name", "value": "DEFAULT"},
                 {"name": "Autocommit", "value": False},
+                {"name": "from_street_address", "value": from_street_address},
+                {"name": "from_city", "value": from_city},
+                {"name": "from_country", "value": from_country},
+                {"name": "from_country_area", "value": from_country_area},
+                {"name": "from_postal_code", "value": from_postal_code},
             ],
         }
         configuration = PluginConfiguration.objects.create(

@@ -28,6 +28,7 @@ def test_create_order_captured_payment_creates_expected_events(
     customer_user,
     shipping_method,
     payment_txn_captured,
+    channel_USD,
 ):
     checkout = checkout_with_item
     checkout_user = customer_user
@@ -143,9 +144,15 @@ def test_create_order_captured_payment_creates_expected_events(
 
     mock_notify.assert_has_calls(
         [
-            mock.call(NotifyEventType.ORDER_CONFIRMATION, expected_order_payload),
             mock.call(
-                NotifyEventType.ORDER_PAYMENT_CONFIRMATION, expected_payment_payload
+                NotifyEventType.ORDER_CONFIRMATION,
+                expected_order_payload,
+                channel_slug=channel_USD.slug,
+            ),
+            mock.call(
+                NotifyEventType.ORDER_PAYMENT_CONFIRMATION,
+                expected_payment_payload,
+                channel_slug=channel_USD.slug,
             ),
         ],
         any_order=True,
@@ -167,6 +174,7 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
     customer_user,
     shipping_method,
     payment_txn_captured,
+    channel_USD,
 ):
     checkout = checkout_with_item
     checkout_user = None
@@ -284,9 +292,15 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
 
     mock_notify.assert_has_calls(
         [
-            mock.call(NotifyEventType.ORDER_CONFIRMATION, expected_order_payload),
             mock.call(
-                NotifyEventType.ORDER_PAYMENT_CONFIRMATION, expected_payment_payload
+                NotifyEventType.ORDER_CONFIRMATION,
+                expected_order_payload,
+                channel_slug=channel_USD.slug,
+            ),
+            mock.call(
+                NotifyEventType.ORDER_PAYMENT_CONFIRMATION,
+                expected_payment_payload,
+                channel_slug=channel_USD.slug,
             ),
         ],
         any_order=True,
@@ -303,6 +317,7 @@ def test_create_order_preauth_payment_creates_expected_events(
     customer_user,
     shipping_method,
     payment_txn_preauth,
+    channel_USD,
 ):
     checkout = checkout_with_item
     checkout_user = customer_user
@@ -390,7 +405,9 @@ def test_create_order_preauth_payment_creates_expected_events(
     assert order_confirmed_event.parameters == {}
 
     mock_notify.assert_called_once_with(
-        NotifyEventType.ORDER_CONFIRMATION, expected_payload
+        NotifyEventType.ORDER_CONFIRMATION,
+        expected_payload,
+        channel_slug=channel_USD.slug,
     )
 
     # Ensure the correct customer event was created if the user was not anonymous
@@ -409,6 +426,7 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
     customer_user,
     shipping_method,
     payment_txn_preauth,
+    channel_USD,
 ):
     checkout = checkout_with_item
     checkout_user = None
@@ -496,7 +514,9 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
     assert order_confirmed_event.parameters == {}
 
     mock_notify.assert_called_once_with(
-        NotifyEventType.ORDER_CONFIRMATION, expected_payload
+        NotifyEventType.ORDER_CONFIRMATION,
+        expected_payload,
+        channel_slug=channel_USD.slug,
     )
 
     # Check no event was created if the user was anonymous

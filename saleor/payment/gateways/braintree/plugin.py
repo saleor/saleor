@@ -25,6 +25,8 @@ if TYPE_CHECKING:
 class BraintreeGatewayPlugin(BasePlugin):
     PLUGIN_ID = "mirumee.payments.braintree"
     PLUGIN_NAME = GATEWAY_NAME
+    CONFIGURATION_PER_CHANNEL = True
+
     DEFAULT_CONFIGURATION = [
         {"name": "Public API key", "value": None},
         {"name": "Secret API key", "value": None},

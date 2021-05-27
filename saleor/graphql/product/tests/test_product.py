@@ -343,11 +343,11 @@ def test_product_query_by_id_available_as_app(
 
 
 def test_product_query_by_id_as_user(
-    user_api_client, permission_manage_products, product
+    user_api_client, permission_manage_products, product, channel_USD
 ):
     query = """
-        query ($id: ID){
-            product(id: $id) {
+        query ($id: ID, $channel: String){
+            product(id: $id, channel: $channel) {
                 id
                 variants {
                     id
@@ -357,6 +357,7 @@ def test_product_query_by_id_as_user(
     """
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),
+        "channel": channel_USD.slug,
     }
 
     response = user_api_client.post_graphql(
@@ -3170,6 +3171,9 @@ def test_search_product_by_description_and_name(
     product_1 = product_list[0]
     product_1.description_plaintext = "some red product"
     product_1.save()
+    product_3 = product_list[2]
+    product_3.description_plaintext = "desc without searched word"
+    product_3.save()
 
     variables = {
         "filters": {
@@ -3182,6 +3186,7 @@ def test_search_product_by_description_and_name(
     content = get_graphql_content(response)
     data = content["data"]["products"]["edges"]
 
+    assert len(data) == 3
     assert data[0]["node"]["name"] == product_2.name
     assert data[1]["node"]["name"] == product.name
     assert data[2]["node"]["name"] == product_1.name
@@ -6622,14 +6627,7 @@ def test_create_product_type_with_rich_text_attribute(
         },
         {
             "name": "Text",
-            "values": [
-                {
-                    "name": "Rich text attribute content.",
-                    "richText": json.dumps(
-                        rich_text_attribute.values.first().rich_text
-                    ),
-                }
-            ],
+            "values": [],
         },
     ]
     for attribute in data["productAttributes"]:

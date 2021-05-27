@@ -51,8 +51,15 @@ FRAGMENT_ORDER_DETAILS = (
         shippingAddress {
           ...Address
         }
+        billingAddress {
+          ...Address
+        }
         discounts {
           ...OrderDiscounts
+        }
+        actions
+        fulfillments {
+          id
         }
         lines {
           productName
@@ -64,6 +71,9 @@ FRAGMENT_ORDER_DETAILS = (
             currency
             ...Price
           }
+          thumbnail {
+            url
+          }
         }
         availableShippingMethods {
           ...AvailableShippingMethods
@@ -73,6 +83,12 @@ FRAGMENT_ORDER_DETAILS = (
         }
         total {
           ...Price
+        }
+        totalCaptured {
+          amount
+        }
+        totalAuthorized {
+          amount
         }
         shippingPrice {
           ...Price
@@ -173,55 +189,20 @@ def test_staff_order_details(
     get_graphql_content(staff_api_client.post_graphql(query, variables))
 
 
-MULTIPLE_ORDER_DETAILS_QUERY = """
-  query orders {
-    orders(first: 10) {
-      edges {
-        node {
-          id
-          shippingAddress {
-            id
-          }
-          billingAddress {
-            id
-          }
-          user {
-            id
-          }
-          userEmail
-          paymentStatus
-          paymentStatusDisplay
-          canFinalize
-          isShippingRequired
-          events {
-            id
-          }
-          totalCaptured {
-            amount
-          }
-          totalAuthorized {
-            amount
-          }
-          actions
-          subtotal {
-            net {
-              amount
-            }
-          }
-          fulfillments {
-            id
-          }
-          lines {
-            id
-            thumbnail {
-              url
-            }
+MULTIPLE_ORDER_DETAILS_QUERY = (
+    FRAGMENT_STAFF_ORDER_DETAILS
+    + """
+    query orders {
+      orders(first: 10) {
+        edges {
+          node {
+            ...OrderStaffDetail
           }
         }
       }
     }
-  }
-"""
+  """
+)
 
 
 @pytest.mark.django_db
@@ -242,6 +223,22 @@ def test_staff_multiple_orders(
     assert content["data"]["orders"] is not None
 
 
+MULTIPLE_DRAFT_ORDER_DETAILS_QUERY = (
+    FRAGMENT_STAFF_ORDER_DETAILS
+    + """
+    query draftOrders {
+      draftOrders(first: 10) {
+        edges {
+          node {
+            ...OrderStaffDetail
+          }
+        }
+      }
+    }
+  """
+)
+
+
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
 def test_staff_multiple_draft_orders(
@@ -255,6 +252,6 @@ def test_staff_multiple_draft_orders(
         [permission_manage_orders, permission_manage_users]
     )
     content = get_graphql_content(
-        staff_api_client.post_graphql(MULTIPLE_ORDER_DETAILS_QUERY)
+        staff_api_client.post_graphql(MULTIPLE_DRAFT_ORDER_DETAILS_QUERY)
     )
-    assert content["data"]["orders"] is not None
+    assert content["data"]["draftOrders"] is not None

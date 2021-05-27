@@ -4,10 +4,10 @@ from typing import Dict, List, Optional, Type
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 from django.db.models import Model, QuerySet
 
 from ...core.permissions import MenuPermissions, SitePermissions
+from ...core.tracing import traced_atomic_transaction
 from ...menu import models
 from ...menu.error_codes import MenuErrorCode
 from ...page import models as page_models
@@ -405,7 +405,7 @@ class MenuItemMove(BaseMutation):
         menu_item.save()
 
     @classmethod
-    @transaction.atomic
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         menu: str = data["menu"]
         moves: List[MenuItemMoveInput] = data["moves"]

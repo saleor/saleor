@@ -57,7 +57,7 @@ def payment_stripe_for_order(payment_stripe_for_checkout, order_with_lines):
 
 
 @pytest.fixture
-def stripe_plugin(settings, monkeypatch):
+def stripe_plugin(settings, monkeypatch, channel_USD):
     def fun(
         public_api_key=None,
         secret_api_key=None,
@@ -90,6 +90,7 @@ def stripe_plugin(settings, monkeypatch):
             name=StripeGatewayPlugin.PLUGIN_NAME,
             description="",
             active=active,
+            channel=channel_USD,
             configuration=[
                 {"name": "public_api_key", "value": public_api_key},
                 {"name": "secret_api_key", "value": secret_api_key},
@@ -102,6 +103,6 @@ def stripe_plugin(settings, monkeypatch):
         )
 
         manager = get_plugins_manager()
-        return manager.plugins[0]
+        return manager.plugins_per_channel[channel_USD.slug][0]
 
     return fun

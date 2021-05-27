@@ -49,6 +49,11 @@ DEFAULT_TAX_DESCRIPTION = "Unmapped Other SKU - taxable default"
 class AvataxConfiguration:
     username_or_account: str
     password_or_license: str
+    from_street_address: str
+    from_city: str
+    from_country: str
+    from_postal_code: str
+    from_country_area: str = ""
     use_sandbox: bool = True
     company_name: str = "DEFAULT"
     autocommit: bool = False
@@ -326,15 +331,6 @@ def generate_request_data(
     config: AvataxConfiguration,
     currency: str,
 ):
-    company_address = Site.objects.get_current().settings.company_address
-    if company_address:
-        company_address = company_address.as_data()
-    else:
-        logging.warning(
-            "To correct calculate taxes by Avatax, company address should be provided "
-            "in dashboard.settings."
-        )
-        company_address = {}
 
     data = {
         "companyCode": config.company_name,
@@ -346,12 +342,12 @@ def generate_request_data(
         "customerCode": 0,
         "addresses": {
             "shipFrom": {
-                "line1": company_address.get("street_address_1"),
-                "line2": company_address.get("street_address_2"),
-                "city": company_address.get("city"),
-                "region": company_address.get("country_area"),
-                "country": company_address.get("country"),
-                "postalCode": company_address.get("postal_code"),
+                "line1": config.from_street_address,
+                "line2": None,
+                "city": config.from_city,
+                "region": config.from_country_area,
+                "country": config.from_country,
+                "postalCode": config.from_postal_code,
             },
             "shipTo": {
                 "line1": address.get("street_address_1"),
