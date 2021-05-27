@@ -649,7 +649,7 @@ class FileUpload(BaseMutation):
         # add unique text fragment to the file name to prevent file overriding
         file_name, format = os.path.splitext(file_data._name)
         hash = secrets.token_hex(nbytes=4)
-        new_name = f"{file_name}_{hash}{format}"
+        new_name = f"file_upload/{file_name}_{hash}{format}"
 
         path = default_storage.save(new_name, file_data.file)
 
