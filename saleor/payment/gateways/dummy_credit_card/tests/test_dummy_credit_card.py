@@ -39,6 +39,7 @@ def test_authorize_success(payment_dummy_credit_card):
         payment=payment_dummy_credit_card,
         token="Fake",
         manager=get_plugins_manager(),
+        channel_slug=payment_dummy_credit_card.order.channel.slug,
     )
     assert txn.is_success
     assert txn.kind == TransactionKind.AUTH
@@ -67,7 +68,12 @@ def test_authorize_failed(is_active, charge_status, error, payment_dummy_credit_
     payment.charge_status = charge_status
     payment.save()
     with pytest.raises(PaymentError) as e:
-        gateway.authorize(payment=payment, token="Fake", manager=get_plugins_manager())
+        gateway.authorize(
+            payment=payment,
+            token="Fake",
+            manager=get_plugins_manager(),
+            channel_slug=payment_dummy_credit_card.order.channel.slug,
+        )
 
     assert e._excinfo[1].message == error
 
@@ -81,6 +87,7 @@ def test_authorize_gateway_error(payment_dummy_credit_card, monkeypatch):
             payment=payment_dummy_credit_card,
             token="Fake",
             manager=get_plugins_manager(),
+            channel_slug=payment_dummy_credit_card.order.channel.slug,
         )
 
     assert e._excinfo[1].message == "Unable to authorize transaction"
@@ -93,7 +100,10 @@ def test_authorize_method_error(dummy_payment_data, dummy_gateway_config, monkey
     )
 
     # when
-    response = authorize(dummy_payment_data, dummy_gateway_config)
+    response = authorize(
+        dummy_payment_data,
+        dummy_gateway_config,
+    )
 
     # then
     assert not response.is_success
@@ -107,7 +117,11 @@ def test_void_success(payment_txn_preauth):
 
     assert payment_txn_preauth.is_active
     assert payment_txn_preauth.charge_status == ChargeStatus.NOT_CHARGED
-    txn = gateway.void(payment=payment_txn_preauth, manager=get_plugins_manager())
+    txn = gateway.void(
+        payment=payment_txn_preauth,
+        manager=get_plugins_manager(),
+        channel_slug=payment_txn_preauth.order.channel.slug,
+    )
     assert txn.is_success
     assert txn.kind == TransactionKind.VOID
     assert txn.payment == payment_txn_preauth
@@ -136,7 +150,11 @@ def test_void_failed(is_active, charge_status, error, payment_dummy_credit_card)
     payment.charge_status = charge_status
     payment.save()
     with pytest.raises(PaymentError) as e:
-        gateway.void(payment=payment, manager=get_plugins_manager())
+        gateway.void(
+            payment=payment,
+            manager=get_plugins_manager(),
+            channel_slug=payment.order.channel.slug,
+        )
 
     assert e._excinfo[1].message == error
 
@@ -149,7 +167,11 @@ def test_void_gateway_error(payment_txn_preauth, monkeypatch):
         "saleor.payment.gateways.dummy_credit_card.dummy_success", lambda: False
     )
     with pytest.raises(PaymentError) as e:
-        gateway.void(payment=payment_txn_preauth, manager=get_plugins_manager())
+        gateway.void(
+            payment=payment_txn_preauth,
+            manager=get_plugins_manager(),
+            channel_slug=payment_txn_preauth.order.channel.slug,
+        )
 
     assert e._excinfo[1].message == "Unable to void the transaction."
 
@@ -188,6 +210,7 @@ def test_capture_success(amount, charge_status, token, payment_txn_preauth):
         payment=payment_txn_preauth,
         manager=get_plugins_manager(),
         amount=Decimal(amount),
+        channel_slug=payment_txn_preauth.order.channel.slug,
     )
     assert txn.is_success
     assert txn.payment == payment_txn_preauth
@@ -216,7 +239,12 @@ def test_capture_failed(
     payment.charge_status = charge_status
     payment.save()
     with pytest.raises(PaymentError) as e:
-        gateway.capture(payment=payment, manager=get_plugins_manager(), amount=amount)
+        gateway.capture(
+            payment=payment,
+            manager=get_plugins_manager(),
+            amount=amount,
+            channel_slug=payment.order.channel.slug,
+        )
 
     assert e._excinfo[1].message == error
 
@@ -233,7 +261,11 @@ def test_capture_error_in_response(token, error, payment_txn_preauth):
 
     # when
     with pytest.raises(PaymentError) as e:
-        gateway.capture(payment=payment_txn_preauth, manager=get_plugins_manager())
+        gateway.capture(
+            payment=payment_txn_preauth,
+            manager=get_plugins_manager(),
+            channel_slug=payment_txn_preauth.order.channel.slug,
+        )
 
     assert e._excinfo[1].message == error
 
@@ -281,6 +313,7 @@ def test_refund_success(
         payment=payment,
         manager=get_plugins_manager(),
         amount=Decimal(refund_amount),
+        channel_slug=payment.order.channel.slug,
     )
 
     payment.refresh_from_db()
@@ -318,6 +351,7 @@ def test_refund_failed(
             payment=payment,
             manager=get_plugins_manager(),
             amount=Decimal(refund_amount),
+            channel_slug=payment.order.channel.slug,
         )
 
     assert e._excinfo[1].message == error
@@ -337,6 +371,7 @@ def test_refund_gateway_error(payment_txn_captured, monkeypatch):
             payment=payment,
             manager=get_plugins_manager(),
             amount=Decimal("80.00"),
+            channel_slug=payment.order.channel.slug,
         )
 
     payment.refresh_from_db()
@@ -355,6 +390,7 @@ def test_process_payment_success(token, payment_dummy_credit_card):
         payment=payment_dummy_credit_card,
         token=token,
         manager=get_plugins_manager(),
+        channel_slug=payment_dummy_credit_card.order.channel.slug,
     )
 
     # then
@@ -374,6 +410,7 @@ def test_process_payment_failed(token, error, payment_dummy_credit_card):
             payment=payment_dummy_credit_card,
             token=token,
             manager=get_plugins_manager(),
+            channel_slug=payment_dummy_credit_card.order.channel.slug,
         )
 
     assert e._excinfo[1].message == error
@@ -411,6 +448,7 @@ def test_process_payment_pre_authorized(
         payment=payment_dummy_credit_card,
         token=token,
         manager=get_plugins_manager(),
+        channel_slug=payment_dummy_credit_card.order.channel.slug,
     )
 
     # then
@@ -439,6 +477,7 @@ def test_process_payment_pre_authorized_and_capture(
         payment=payment_dummy_credit_card,
         token=token,
         manager=get_plugins_manager(),
+        channel_slug=payment_dummy_credit_card.order.channel.slug,
     )
 
     # then
@@ -468,6 +507,7 @@ def test_process_payment_pre_authorized_and_capture_error(
             payment=payment_dummy_credit_card,
             token=token,
             manager=get_plugins_manager(),
+            channel_slug=payment_dummy_credit_card.order.channel.slug,
         )
 
     assert e._excinfo[1].message == TOKEN_VALIDATION_MAPPING[token]

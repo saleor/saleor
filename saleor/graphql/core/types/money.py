@@ -3,7 +3,6 @@ from django_prices.templatetags import prices
 
 from ....core.prices import quantize_price
 from ....core.tracing import traced_resolver
-from ..enums import TaxRateType
 
 
 class Money(graphene.ObjectType):
@@ -86,7 +85,7 @@ class VAT(graphene.ObjectType):
 
 class ReducedRate(graphene.ObjectType):
     rate = graphene.Float(description="Reduced VAT rate in percent.", required=True)
-    rate_type = TaxRateType(description="A type of goods.", required=True)
+    rate_type = graphene.String(description="A type of goods.", required=True)
 
     class Meta:
         description = "Represents a reduced VAT rate for a particular type of goods."

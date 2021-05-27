@@ -234,7 +234,7 @@ def test_process_payment_with_manual_capture(
 def test_process_payment_with_error(
     mocked_payment_intent, stripe_plugin, payment_stripe_for_checkout
 ):
-    mocked_payment_intent.side_effect = StripeError(json_body={"error": "stripe-error"})
+    mocked_payment_intent.side_effect = StripeError(message="stripe-error")
 
     plugin = stripe_plugin()
 
@@ -250,7 +250,7 @@ def test_process_payment_with_error(
     assert response.amount == payment_info.amount
     assert response.currency == payment_info.currency
     assert response.transaction_id == ""
-    assert response.error == {"error": "stripe-error"}
+    assert response.error == "stripe-error"
     assert response.raw_response is None
     assert response.action_required_data == {"client_secret": None}
 
@@ -371,9 +371,7 @@ def test_confirm_payment_incorrect_payment_intent(
         currency=payment.currency,
     )
 
-    mocked_intent_retrieve.side_effect = StripeError(
-        json_body={"error": "stripe-error"}
-    )
+    mocked_intent_retrieve.side_effect = StripeError(message="stripe-error")
 
     payment_info = create_payment_information(
         payment_stripe_for_checkout, payment_token=payment_intent_id
@@ -389,7 +387,7 @@ def test_confirm_payment_incorrect_payment_intent(
     assert response.amount == payment.total
     assert response.currency == payment.currency
     assert response.transaction_id == ""
-    assert response.error == {"error": "stripe-error"}
+    assert response.error == "stripe-error"
 
 
 @pytest.mark.parametrize("status", ACTION_REQUIRED_STATUSES)

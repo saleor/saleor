@@ -144,7 +144,6 @@ def test_create_numeric_attribute_and_attribute_values(
     ), "The attribute should not have been assigned to a product type"
 
     # Check if the attribute values were correctly created
-    assert len(data["attribute"]["values"]) == 1
     assert data["attribute"]["type"] == AttributeTypeEnum.PRODUCT_TYPE.name
     assert data["attribute"]["unit"] == MeasurementUnitsEnum.M.name
     assert data["attribute"]["inputType"] == AttributeInputTypeEnum.NUMERIC.name
@@ -152,8 +151,7 @@ def test_create_numeric_attribute_and_attribute_values(
     assert data["attribute"]["filterableInDashboard"] is True
     assert data["attribute"]["availableInGrid"] is True
     assert data["attribute"]["storefrontSearchPosition"] == 0
-    assert data["attribute"]["values"][0]["name"] == name
-    assert data["attribute"]["values"][0]["slug"] == slugify(name.replace(".", "_"))
+    assert data["attribute"]["values"] == []
 
 
 def test_create_numeric_attribute_and_attribute_values_not_numeric_value_provided(

@@ -790,17 +790,15 @@ def test_shop_no_translation(user_api_client, site_settings):
     assert data["shop"]["translation"] is None
 
 
-def test_product_create_translation(
-    staff_api_client, product, permission_manage_translations
-):
-    query = """
-    mutation productTranslate($productId: ID!) {
+PRODUCT_TRANSLATE_MUTATION = """
+    mutation productTranslate($productId: ID!, $input: TranslationInput!) {
         productTranslate(
                 id: $productId, languageCode: PL,
-                input: {name: "Produkt PL"}) {
+                input: $input) {
             product {
                 translation(languageCode: PL) {
                     name
+                    description
                     language {
                         code
                     }
@@ -808,11 +806,19 @@ def test_product_create_translation(
             }
         }
     }
-    """
+"""
+
+
+def test_product_create_translation(
+    staff_api_client, product, permission_manage_translations
+):
+    query = PRODUCT_TRANSLATE_MUTATION
 
     product_id = graphene.Node.to_global_id("Product", product.id)
     response = staff_api_client.post_graphql(
-        query, {"productId": product_id}, permissions=[permission_manage_translations]
+        query,
+        {"productId": product_id, "input": {"name": "Produkt PL"}},
+        permissions=[permission_manage_translations],
     )
     data = get_graphql_content(response)["data"]["productTranslate"]
 
@@ -820,29 +826,55 @@ def test_product_create_translation(
     assert data["product"]["translation"]["language"]["code"] == "PL"
 
 
+def test_product_create_translation_for_description(
+    staff_api_client, product, permission_manage_translations
+):
+    query = PRODUCT_TRANSLATE_MUTATION
+
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    description = dummy_editorjs("description", True)
+    variables = {"productId": product_id, "input": {"description": description}}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_translations]
+    )
+    data = get_graphql_content(response)["data"]["productTranslate"]
+
+    assert data["product"]["translation"]["name"] is None
+    assert data["product"]["translation"]["description"] == description
+    assert data["product"]["translation"]["language"]["code"] == "PL"
+
+
+def test_product_create_translation_for_description_and_name_as_null(
+    staff_api_client, product, permission_manage_translations
+):
+    query = PRODUCT_TRANSLATE_MUTATION
+
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    description = dummy_editorjs("description", True)
+    variables = {
+        "productId": product_id,
+        "input": {"description": description, "name": None},
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_translations]
+    )
+    data = get_graphql_content(response)["data"]["productTranslate"]
+
+    assert data["product"]["translation"]["name"] is None
+    assert data["product"]["translation"]["description"] == description
+    assert data["product"]["translation"]["language"]["code"] == "PL"
+
+
 def test_product_create_translation_with_app(
     app_api_client, product, permission_manage_translations
 ):
-    query = """
-    mutation productTranslate($productId: ID!) {
-        productTranslate(
-                id: $productId, languageCode: PL,
-                input: {name: "Produkt PL"}) {
-            product {
-                translation(languageCode: PL) {
-                    name
-                    language {
-                        code
-                    }
-                }
-            }
-        }
-    }
-    """
+    query = PRODUCT_TRANSLATE_MUTATION
 
     product_id = graphene.Node.to_global_id("Product", product.id)
     response = app_api_client.post_graphql(
-        query, {"productId": product_id}, permissions=[permission_manage_translations]
+        query,
+        {"productId": product_id, "input": {"name": "Produkt PL"}},
+        permissions=[permission_manage_translations],
     )
     data = get_graphql_content(response)["data"]["productTranslate"]
 
@@ -855,26 +887,13 @@ def test_product_update_translation(
 ):
     product.translations.create(language_code="pl", name="Produkt")
 
-    query = """
-    mutation productTranslate($productId: ID!) {
-        productTranslate(
-                id: $productId, languageCode: PL,
-                input: {name: "Produkt PL"}) {
-            product {
-                translation(languageCode: PL) {
-                    name
-                    language {
-                        code
-                    }
-                }
-            }
-        }
-    }
-    """
+    query = PRODUCT_TRANSLATE_MUTATION
 
     product_id = graphene.Node.to_global_id("Product", product.id)
     response = staff_api_client.post_graphql(
-        query, {"productId": product_id}, permissions=[permission_manage_translations]
+        query,
+        {"productId": product_id, "input": {"name": "Produkt PL"}},
+        permissions=[permission_manage_translations],
     )
     data = get_graphql_content(response)["data"]["productTranslate"]
 
@@ -882,30 +901,35 @@ def test_product_update_translation(
     assert data["product"]["translation"]["language"]["code"] == "PL"
 
 
-def test_product_variant_create_translation(
-    staff_api_client, variant, permission_manage_translations
-):
-    query = """
-    mutation productVariantTranslate($productVariantId: ID!) {
-        productVariantTranslate(
-                id: $productVariantId, languageCode: PL,
-                input: {name: "Wariant PL"}) {
-            productVariant {
-                translation(languageCode: PL) {
-                    name
-                    language {
-                        code
-                    }
+PRODUCT_VARIANT_TRANSLATE_MUTATION = """
+mutation productVariantTranslate(
+    $productVariantId: ID!, $input: NameTranslationInput!
+    ) {
+    productVariantTranslate(
+            id: $productVariantId, languageCode: PL,
+            input: $input) {
+        productVariant {
+            translation(languageCode: PL) {
+                name
+                language {
+                    code
                 }
             }
         }
     }
-    """
+}
+"""
+
+
+def test_product_variant_create_translation(
+    staff_api_client, variant, permission_manage_translations
+):
+    query = PRODUCT_VARIANT_TRANSLATE_MUTATION
 
     product_variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     response = staff_api_client.post_graphql(
         query,
-        {"productVariantId": product_variant_id},
+        {"productVariantId": product_variant_id, "input": {"name": "Wariant PL"}},
         permissions=[permission_manage_translations],
     )
     data = get_graphql_content(response)["data"]["productVariantTranslate"]
@@ -919,27 +943,12 @@ def test_product_variant_update_translation(
 ):
     variant.translations.create(language_code="pl", name="Wariant")
 
-    query = """
-    mutation productVariantTranslate($productVariantId: ID!) {
-        productVariantTranslate(
-                id: $productVariantId, languageCode: PL,
-                input: {name: "Wariant PL"}) {
-            productVariant {
-                translation(languageCode: PL) {
-                    name
-                    language {
-                        code
-                    }
-                }
-            }
-        }
-    }
-    """
+    query = PRODUCT_VARIANT_TRANSLATE_MUTATION
 
     product_variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     response = staff_api_client.post_graphql(
         query,
-        {"productVariantId": product_variant_id},
+        {"productVariantId": product_variant_id, "input": {"name": "Wariant PL"}},
         permissions=[permission_manage_translations],
     )
     data = get_graphql_content(response)["data"]["productVariantTranslate"]
@@ -948,35 +957,80 @@ def test_product_variant_update_translation(
     assert data["productVariant"]["translation"]["language"]["code"] == "PL"
 
 
-def test_collection_create_translation(
-    staff_api_client, published_collection, permission_manage_translations
-):
-    query = """
-    mutation collectionTranslate($collectionId: ID!) {
-        collectionTranslate(
-                id: $collectionId, languageCode: PL,
-                input: {name: "Kolekcja PL"}) {
-            collection {
-                translation(languageCode: PL) {
-                    name
-                    language {
-                        code
-                    }
+COLLECTION_TRANSLATE_MUTATION = """
+mutation collectionTranslate($collectionId: ID!, $input: TranslationInput!) {
+    collectionTranslate(
+            id: $collectionId, languageCode: PL,
+            input: $input) {
+        collection {
+            translation(languageCode: PL) {
+                name
+                description
+                language {
+                    code
                 }
             }
         }
     }
-    """
+}
+"""
+
+
+def test_collection_create_translation(
+    staff_api_client, published_collection, permission_manage_translations
+):
+    query = COLLECTION_TRANSLATE_MUTATION
 
     collection_id = graphene.Node.to_global_id("Collection", published_collection.id)
     response = staff_api_client.post_graphql(
         query,
-        {"collectionId": collection_id},
+        {"collectionId": collection_id, "input": {"name": "Kolekcja PL"}},
         permissions=[permission_manage_translations],
     )
     data = get_graphql_content(response)["data"]["collectionTranslate"]
 
     assert data["collection"]["translation"]["name"] == "Kolekcja PL"
+    assert data["collection"]["translation"]["language"]["code"] == "PL"
+
+
+def test_collection_create_translation_for_description(
+    staff_api_client, published_collection, permission_manage_translations
+):
+    query = COLLECTION_TRANSLATE_MUTATION
+
+    collection_id = graphene.Node.to_global_id("Collection", published_collection.id)
+    description = dummy_editorjs("description", True)
+    response = staff_api_client.post_graphql(
+        query,
+        {"collectionId": collection_id, "input": {"description": description}},
+        permissions=[permission_manage_translations],
+    )
+    data = get_graphql_content(response)["data"]["collectionTranslate"]
+
+    assert data["collection"]["translation"]["name"] is None
+    assert data["collection"]["translation"]["description"] == description
+    assert data["collection"]["translation"]["language"]["code"] == "PL"
+
+
+def test_collection_create_translation_for_description_name_as_null(
+    staff_api_client, published_collection, permission_manage_translations
+):
+    query = COLLECTION_TRANSLATE_MUTATION
+
+    collection_id = graphene.Node.to_global_id("Collection", published_collection.id)
+    description = dummy_editorjs("description", True)
+    response = staff_api_client.post_graphql(
+        query,
+        {
+            "collectionId": collection_id,
+            "input": {"description": description, "name": None},
+        },
+        permissions=[permission_manage_translations],
+    )
+    data = get_graphql_content(response)["data"]["collectionTranslate"]
+
+    assert data["collection"]["translation"]["name"] is None
+    assert data["collection"]["translation"]["description"] == description
     assert data["collection"]["translation"]["language"]["code"] == "PL"
 
 
@@ -985,27 +1039,12 @@ def test_collection_update_translation(
 ):
     published_collection.translations.create(language_code="pl", name="Kolekcja")
 
-    query = """
-    mutation collectionTranslate($collectionId: ID!) {
-        collectionTranslate(
-                id: $collectionId, languageCode: PL,
-                input: {name: "Kolekcja PL"}) {
-            collection {
-                translation(languageCode: PL) {
-                    name
-                    language {
-                        code
-                    }
-                }
-            }
-        }
-    }
-    """
+    query = COLLECTION_TRANSLATE_MUTATION
 
     collection_id = graphene.Node.to_global_id("Collection", published_collection.id)
     response = staff_api_client.post_graphql(
         query,
-        {"collectionId": collection_id},
+        {"collectionId": collection_id, "input": {"name": "Kolekcja PL"}},
         permissions=[permission_manage_translations],
     )
     data = get_graphql_content(response)["data"]["collectionTranslate"]
@@ -1014,33 +1053,80 @@ def test_collection_update_translation(
     assert data["collection"]["translation"]["language"]["code"] == "PL"
 
 
-def test_category_create_translation(
-    staff_api_client, category, permission_manage_translations
-):
-    query = """
-    mutation categoryTranslate($categoryId: ID!) {
-        categoryTranslate(
-                id: $categoryId, languageCode: PL,
-                input: {name: "Kategoria PL"}) {
-            category {
-                translation(languageCode: PL) {
-                    name
-                    language {
-                        code
-                    }
+CATEGORY_TRANSLATE_MUTATION = """
+mutation categoryTranslate($categoryId: ID!, $input: TranslationInput!) {
+    categoryTranslate(
+            id: $categoryId, languageCode: PL,
+            input: $input) {
+        category {
+            translation(languageCode: PL) {
+                name
+                description
+                language {
+                    code
                 }
             }
         }
     }
-    """
+}
+"""
+
+
+def test_category_create_translation(
+    staff_api_client, category, permission_manage_translations
+):
+    query = CATEGORY_TRANSLATE_MUTATION
 
     category_id = graphene.Node.to_global_id("Category", category.id)
     response = staff_api_client.post_graphql(
-        query, {"categoryId": category_id}, permissions=[permission_manage_translations]
+        query,
+        {"categoryId": category_id, "input": {"name": "Kategoria PL"}},
+        permissions=[permission_manage_translations],
     )
     data = get_graphql_content(response)["data"]["categoryTranslate"]
 
     assert data["category"]["translation"]["name"] == "Kategoria PL"
+    assert data["category"]["translation"]["language"]["code"] == "PL"
+
+
+def test_category_create_translation_for_description(
+    staff_api_client, category, permission_manage_translations
+):
+    query = CATEGORY_TRANSLATE_MUTATION
+
+    category_id = graphene.Node.to_global_id("Category", category.id)
+    description = dummy_editorjs("description", True)
+    response = staff_api_client.post_graphql(
+        query,
+        {"categoryId": category_id, "input": {"description": description}},
+        permissions=[permission_manage_translations],
+    )
+    data = get_graphql_content(response)["data"]["categoryTranslate"]
+
+    assert data["category"]["translation"]["name"] is None
+    assert data["category"]["translation"]["description"] == description
+    assert data["category"]["translation"]["language"]["code"] == "PL"
+
+
+def test_category_create_translation_for_description_name_as_null(
+    staff_api_client, category, permission_manage_translations
+):
+    query = CATEGORY_TRANSLATE_MUTATION
+
+    category_id = graphene.Node.to_global_id("Category", category.id)
+    description = dummy_editorjs("description", True)
+    response = staff_api_client.post_graphql(
+        query,
+        {
+            "categoryId": category_id,
+            "input": {"name": None, "description": description},
+        },
+        permissions=[permission_manage_translations],
+    )
+    data = get_graphql_content(response)["data"]["categoryTranslate"]
+
+    assert data["category"]["translation"]["name"] is None
+    assert data["category"]["translation"]["description"] == description
     assert data["category"]["translation"]["language"]["code"] == "PL"
 
 
@@ -1049,26 +1135,13 @@ def test_category_update_translation(
 ):
     category.translations.create(language_code="pl", name="Kategoria")
 
-    query = """
-    mutation categoryTranslate($categoryId: ID!) {
-        categoryTranslate(
-                id: $categoryId, languageCode: PL,
-                input: {name: "Kategoria PL"}) {
-            category {
-                translation(languageCode: PL) {
-                    name
-                    language {
-                        code
-                    }
-                }
-            }
-        }
-    }
-    """
+    query = CATEGORY_TRANSLATE_MUTATION
 
     category_id = graphene.Node.to_global_id("Category", category.id)
     response = staff_api_client.post_graphql(
-        query, {"categoryId": category_id}, permissions=[permission_manage_translations]
+        query,
+        {"categoryId": category_id, "input": {"name": "Kategoria PL"}},
+        permissions=[permission_manage_translations],
     )
     data = get_graphql_content(response)["data"]["categoryTranslate"]
 
@@ -1168,33 +1241,77 @@ def test_sale_create_translation(
     assert data["sale"]["translation"]["language"]["code"] == "PL"
 
 
-def test_page_create_translation(
-    staff_api_client, page, permission_manage_translations
-):
-    query = """
-    mutation pageTranslate($pageId: ID!) {
-        pageTranslate(
-                id: $pageId, languageCode: PL,
-                input: {title: "Strona PL"}) {
-            page {
-                translation(languageCode: PL) {
-                    title
-                    language {
-                        code
-                    }
+PAGE_TRANSLATE_MUTATION = """
+mutation pageTranslate($pageId: ID!, $input: PageTranslationInput!) {
+    pageTranslate(
+            id: $pageId, languageCode: PL,
+            input: $input) {
+        page {
+            translation(languageCode: PL) {
+                title
+                content
+                language {
+                    code
                 }
             }
         }
     }
-    """
+}
+"""
+
+
+def test_page_create_translation(
+    staff_api_client, page, permission_manage_translations
+):
+    query = PAGE_TRANSLATE_MUTATION
 
     page_id = graphene.Node.to_global_id("Page", page.id)
     response = staff_api_client.post_graphql(
-        query, {"pageId": page_id}, permissions=[permission_manage_translations]
+        query,
+        {"pageId": page_id, "input": {"title": "Strona PL"}},
+        permissions=[permission_manage_translations],
     )
     data = get_graphql_content(response)["data"]["pageTranslate"]
 
     assert data["page"]["translation"]["title"] == "Strona PL"
+    assert data["page"]["translation"]["language"]["code"] == "PL"
+
+
+def test_page_create_translation_for_content(
+    staff_api_client, page, permission_manage_translations
+):
+    query = PAGE_TRANSLATE_MUTATION
+
+    page_id = graphene.Node.to_global_id("Page", page.id)
+    content = dummy_editorjs("content", True)
+    response = staff_api_client.post_graphql(
+        query,
+        {"pageId": page_id, "input": {"content": content}},
+        permissions=[permission_manage_translations],
+    )
+    data = get_graphql_content(response)["data"]["pageTranslate"]
+
+    assert data["page"]["translation"]["title"] is None
+    assert data["page"]["translation"]["content"] == content
+    assert data["page"]["translation"]["language"]["code"] == "PL"
+
+
+def test_page_create_translation_for_content_title_as_null(
+    staff_api_client, page, permission_manage_translations
+):
+    query = PAGE_TRANSLATE_MUTATION
+
+    page_id = graphene.Node.to_global_id("Page", page.id)
+    content = dummy_editorjs("content", True)
+    response = staff_api_client.post_graphql(
+        query,
+        {"pageId": page_id, "input": {"title": None, "content": content}},
+        permissions=[permission_manage_translations],
+    )
+    data = get_graphql_content(response)["data"]["pageTranslate"]
+
+    assert data["page"]["translation"]["title"] is None
+    assert data["page"]["translation"]["content"] == content
     assert data["page"]["translation"]["language"]["code"] == "PL"
 
 
@@ -1203,26 +1320,13 @@ def test_page_update_translation(
 ):
     page.translations.create(language_code="pl", title="Strona")
 
-    query = """
-    mutation pageTranslate($pageId: ID!) {
-        pageTranslate(
-                id: $pageId, languageCode: PL,
-                input: {title: "Strona PL"}) {
-            page {
-                translation(languageCode: PL) {
-                    title
-                    language {
-                        code
-                    }
-                }
-            }
-        }
-    }
-    """
+    query = PAGE_TRANSLATE_MUTATION
 
     page_id = graphene.Node.to_global_id("Page", page.id)
     response = staff_api_client.post_graphql(
-        query, {"pageId": page_id}, permissions=[permission_manage_translations]
+        query,
+        {"pageId": page_id, "input": {"title": "Strona PL"}},
+        permissions=[permission_manage_translations],
     )
     data = get_graphql_content(response)["data"]["pageTranslate"]
 

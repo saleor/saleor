@@ -160,9 +160,8 @@ def test_retrieve_payment_intent_stripe_returns_error(mocked_payment_intent):
     api_key = "api_key"
     payment_intent_id = "id1234"
 
-    mocked_payment_intent.retrieve.side_effect = StripeError(
-        json_body={"error": "stripe-error"}
-    )
+    expected_error = StripeError(message="stripe-error")
+    mocked_payment_intent.retrieve.side_effect = expected_error
 
     _, error = retrieve_payment_intent(api_key, payment_intent_id)
 
@@ -170,7 +169,7 @@ def test_retrieve_payment_intent_stripe_returns_error(mocked_payment_intent):
         payment_intent_id, api_key=api_key
     )
 
-    assert error == {"error": "stripe-error"}
+    assert error == expected_error
 
 
 @patch(
@@ -201,9 +200,8 @@ def test_capture_payment_intent_stripe_returns_error(mocked_payment_intent):
     payment_intent_id = "id1234"
     amount = price_to_minor_unit(Decimal("10.0"), "USD")
 
-    mocked_payment_intent.capture.side_effect = StripeError(
-        json_body={"error": "stripe-error"}
-    )
+    expected_error = StripeError(message="stripe-error")
+    mocked_payment_intent.capture.side_effect = expected_error
 
     _, error = capture_payment_intent(
         api_key=api_key, payment_intent_id=payment_intent_id, amount_to_capture=amount
@@ -213,7 +211,7 @@ def test_capture_payment_intent_stripe_returns_error(mocked_payment_intent):
         payment_intent_id, amount_to_capture=amount, api_key=api_key
     )
 
-    assert error == {"error": "stripe-error"}
+    assert error == expected_error
 
 
 @patch(
@@ -244,7 +242,8 @@ def test_refund_payment_intent_returns_error(mocked_refund):
     payment_intent_id = "id1234"
     amount = price_to_minor_unit(Decimal("10.0"), "USD")
 
-    mocked_refund.create.side_effect = StripeError(json_body={"error": "stripe-error"})
+    expected_error = StripeError(message="stripe-error")
+    mocked_refund.create.side_effect = expected_error
 
     _, error = refund_payment_intent(
         api_key=api_key, payment_intent_id=payment_intent_id, amount_to_refund=amount
@@ -253,7 +252,7 @@ def test_refund_payment_intent_returns_error(mocked_refund):
     mocked_refund.create.assert_called_with(
         payment_intent=payment_intent_id, amount=amount, api_key=api_key
     )
-    assert error == {"error": "stripe-error"}
+    assert error == expected_error
 
 
 @patch(
@@ -280,9 +279,8 @@ def test_cancel_payment_intent_stripe_returns_error(mocked_payment_intent):
     api_key = "api_key"
     payment_intent_id = "id1234"
 
-    mocked_payment_intent.cancel.side_effect = StripeError(
-        json_body={"error": "stripe-error"}
-    )
+    expected_error = StripeError(message="stripe-error")
+    mocked_payment_intent.cancel.side_effect = expected_error
 
     _, error = cancel_payment_intent(
         api_key=api_key, payment_intent_id=payment_intent_id
@@ -290,4 +288,4 @@ def test_cancel_payment_intent_stripe_returns_error(mocked_payment_intent):
 
     mocked_payment_intent.cancel.assert_called_with(payment_intent_id, api_key=api_key)
 
-    assert error == {"error": "stripe-error"}
+    assert error == expected_error

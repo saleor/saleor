@@ -32,7 +32,7 @@ class PageTranslation(SeoModelTranslation):
     page = models.ForeignKey(
         Page, related_name="translations", on_delete=models.CASCADE
     )
-    title = models.CharField(max_length=255, blank=True)
+    title = models.CharField(max_length=255, blank=True, null=True)
     content = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
     class Meta:
@@ -49,7 +49,7 @@ class PageTranslation(SeoModelTranslation):
         )
 
     def __str__(self):
-        return self.title
+        return self.title if self.title else str(self.pk)
 
 
 class PageType(ModelWithMetadata):

@@ -95,9 +95,9 @@ def _finalize_checkout(
         is_success=True,
         amount=price_from_minor_unit(payment_intent.amount, payment_intent.currency),
         currency=payment_intent.currency,
-        error="",
+        error=None,
         raw_response=payment_intent.last_response,
-        searchable_key=payment_intent.id,
+        psp_reference=payment_intent.id,
     )
 
     create_transaction(
@@ -133,9 +133,9 @@ def _update_payment(payment: Payment, payment_intent: StripeObject, kind: str):
         is_success=True,
         amount=price_from_minor_unit(payment_intent.amount, payment_intent.currency),
         currency=payment_intent.currency,
-        error="",
+        error=None,
         raw_response=payment_intent.last_response,
-        searchable_key=payment_intent.id,
+        psp_reference=payment_intent.id,
     )
     transaction = create_transaction(
         payment,

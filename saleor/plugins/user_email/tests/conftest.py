@@ -64,7 +64,7 @@ def user_email_dict_config():
 
 
 @pytest.fixture
-def user_email_plugin(settings):
+def user_email_plugin(settings, channel_USD):
     def fun(
         host="localhost",
         port="1025",
@@ -112,6 +112,7 @@ def user_email_plugin(settings):
         ):
             manager.save_plugin_configuration(
                 UserEmailPlugin.PLUGIN_ID,
+                channel_USD.slug,
                 {
                     "active": active,
                     "configuration": [
@@ -239,6 +240,6 @@ def user_email_plugin(settings):
                 },
             )
         manager = get_plugins_manager()
-        return manager.plugins[0]
+        return manager.plugins_per_channel[channel_USD.slug][0]
 
     return fun
