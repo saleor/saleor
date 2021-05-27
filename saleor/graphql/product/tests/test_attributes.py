@@ -80,6 +80,11 @@ QUERY_ATTRIBUTES = """
                         name
                         slug
                     }
+                    choices {
+                        id
+                        name
+                        slug
+                    }
                 }
             }
         }
@@ -456,6 +461,10 @@ CREATE_ATTRIBUTES_QUERY = """
                     name
                     slug
                 }
+                choices {
+                    name
+                    slug
+                }
                 productTypes(first: 10) {
                     edges {
                         node {
@@ -497,6 +506,11 @@ def test_create_attribute_and_attribute_values(
     assert len(data["attribute"]["values"]) == 1
     assert data["attribute"]["values"][0]["name"] == name
     assert data["attribute"]["values"][0]["slug"] == slugify(name)
+
+    # Check if the attribute choices were correctly created
+    assert len(data["attribute"]["choices"]) == 1
+    assert data["attribute"]["choices"][0]["name"] == name
+    assert data["attribute"]["choices"][0]["slug"] == slugify(name)
 
 
 @pytest.mark.parametrize(
