@@ -17,6 +17,8 @@ from ....utils import (
 from ..consts import (
     ACTION_REQUIRED_STATUSES,
     AUTHORIZED_STATUS,
+    AUTOMATIC_CAPTURE_METHOD,
+    MANUAL_CAPTURE_METHOD,
     PROCESSING_STATUS,
     SUCCESS_STATUS,
 )
@@ -169,7 +171,7 @@ def test_process_payment(
     payment_intent.client_secret = client_secret
     payment_intent.last_response.data = dummy_response
 
-    plugin = stripe_plugin()
+    plugin = stripe_plugin(auto_capture=True)
 
     payment_info = create_payment_information(
         payment_stripe_for_checkout,
@@ -192,6 +194,39 @@ def test_process_payment(
         api_key=api_key,
         amount=price_to_minor_unit(payment_info.amount, payment_info.currency),
         currency=payment_info.currency,
+        capture_method=AUTOMATIC_CAPTURE_METHOD,
+    )
+
+
+@patch("saleor.payment.gateways.stripe.stripe_api.stripe.PaymentIntent.create")
+def test_process_payment_with_manual_capture(
+    mocked_payment_intent, stripe_plugin, payment_stripe_for_checkout
+):
+    payment_intent = Mock()
+    mocked_payment_intent.return_value = payment_intent
+    client_secret = "client-secret"
+    dummy_response = {
+        "id": "evt_1Ip9ANH1Vac4G4dbE9ch7zGS",
+    }
+    payment_intent_id = "payment-intent-id"
+    payment_intent.id = payment_intent_id
+    payment_intent.client_secret = client_secret
+    payment_intent.last_response.data = dummy_response
+
+    plugin = stripe_plugin(auto_capture=False)
+
+    payment_info = create_payment_information(
+        payment_stripe_for_checkout,
+    )
+
+    plugin.process_payment(payment_info, None)
+
+    api_key = plugin.config.connection_params["secret_api_key"]
+    mocked_payment_intent.assert_called_once_with(
+        api_key=api_key,
+        amount=price_to_minor_unit(payment_info.amount, payment_info.currency),
+        currency=payment_info.currency,
+        capture_method=MANUAL_CAPTURE_METHOD,
     )
 
 
@@ -224,6 +259,7 @@ def test_process_payment_with_error(
         api_key=api_key,
         amount=price_to_minor_unit(payment_info.amount, payment_info.currency),
         currency=payment_info.currency,
+        capture_method=AUTOMATIC_CAPTURE_METHOD,
     )
 
 
