@@ -12,12 +12,15 @@ from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from ... import TransactionKind
 from ...interface import GatewayConfig, GatewayResponse, PaymentData
 from ...models import Transaction
-from ...utils import price_from_minor_unit
+from ...utils import price_from_minor_unit, price_to_minor_unit
 from ..utils import get_supported_currencies, require_active_plugin
 from .stripe_api import (
+    cancel_payment_intent,
+    capture_payment_intent,
     create_payment_intent,
     delete_webhook,
     is_secret_api_key_valid,
+    refund_payment_intent,
     retrieve_payment_intent,
     subscribe_webhook,
 )
@@ -124,6 +127,7 @@ class StripeGatewayPlugin(BasePlugin):
     def get_supported_currencies(self, previous_value):
         return get_supported_currencies(self.config, PLUGIN_NAME)
 
+    @require_active_plugin
     def process_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
@@ -150,6 +154,7 @@ class StripeGatewayPlugin(BasePlugin):
             action_required_data={"client_secret": client_secret},
         )
 
+    @require_active_plugin
     def confirm_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
@@ -223,6 +228,90 @@ class StripeGatewayPlugin(BasePlugin):
             kind=kind,
             amount=amount,
             currency=currency,
+            transaction_id=payment_intent.id if payment_intent else "",
+            error=error,
+            raw_response=raw_response,
+        )
+
+    @require_active_plugin
+    def capture_payment(
+        self, payment_information: "PaymentData", previous_value
+    ) -> "GatewayResponse":
+        payment_intent_id = payment_information.token
+        capture_amount = price_to_minor_unit(
+            payment_information.amount, payment_information.currency
+        )
+        payment_intent, error = capture_payment_intent(
+            api_key=self.config.connection_params["secret_api_key"],
+            payment_intent_id=payment_intent_id,
+            amount_to_capture=capture_amount,
+        )
+
+        raw_response = None
+        if payment_intent and payment_intent.last_response:
+            raw_response = payment_intent.last_response.data
+
+        return GatewayResponse(
+            is_success=True if payment_intent else False,
+            action_required=False,
+            kind=TransactionKind.CAPTURE,
+            amount=payment_information.amount,
+            currency=payment_information.currency,
+            transaction_id=payment_intent.id if payment_intent else "",
+            error=error,
+            raw_response=raw_response,
+        )
+
+    @require_active_plugin
+    def refund_payment(
+        self, payment_information: "PaymentData", previous_value
+    ) -> "GatewayResponse":
+        payment_intent_id = payment_information.token
+        refund_amount = price_to_minor_unit(
+            payment_information.amount, payment_information.currency
+        )
+        payment_intent, error = refund_payment_intent(
+            api_key=self.config.connection_params["secret_api_key"],
+            payment_intent_id=payment_intent_id,
+            amount_to_refund=refund_amount,
+        )
+
+        raw_response = None
+        if payment_intent and payment_intent.last_response:
+            raw_response = payment_intent.last_response.data
+
+        return GatewayResponse(
+            is_success=True if payment_intent else False,
+            action_required=False,
+            kind=TransactionKind.REFUND,
+            amount=payment_information.amount,
+            currency=payment_information.currency,
+            transaction_id=payment_intent.id if payment_intent else "",
+            error=error,
+            raw_response=raw_response,
+        )
+
+    @require_active_plugin
+    def void_payment(
+        self, payment_information: "PaymentData", previous_value
+    ) -> "GatewayResponse":
+        payment_intent_id = payment_information.token
+
+        payment_intent, error = cancel_payment_intent(
+            api_key=self.config.connection_params["secret_api_key"],
+            payment_intent_id=payment_intent_id,
+        )
+
+        raw_response = None
+        if payment_intent and payment_intent.last_response:
+            raw_response = payment_intent.last_response.data
+
+        return GatewayResponse(
+            is_success=True if payment_intent else False,
+            action_required=False,
+            kind=TransactionKind.VOID,
+            amount=payment_information.amount,
+            currency=payment_information.currency,
             transaction_id=payment_intent.id if payment_intent else "",
             error=error,
             raw_response=raw_response,
