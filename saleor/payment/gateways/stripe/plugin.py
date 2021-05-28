@@ -136,6 +136,7 @@ class StripeGatewayPlugin(BasePlugin):
             api_key=self.config.connection_params["secret_api_key"],
             amount=payment_information.amount,
             currency=payment_information.currency,
+            auto_capture=self.config.auto_capture,
         )
         raw_response = None
         client_secret = None

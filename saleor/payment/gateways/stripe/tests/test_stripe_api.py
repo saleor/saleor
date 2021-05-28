@@ -6,7 +6,12 @@ from stripe.stripe_object import StripeObject
 
 from saleor.payment.utils import price_to_minor_unit
 
-from ..consts import METADATA_IDENTIFIER, WEBHOOK_EVENTS
+from ..consts import (
+    AUTOMATIC_CAPTURE_METHOD,
+    MANUAL_CAPTURE_METHOD,
+    METADATA_IDENTIFIER,
+    WEBHOOK_EVENTS,
+)
 from ..stripe_api import (
     cancel_payment_intent,
     capture_payment_intent,
@@ -76,14 +81,38 @@ def test_create_payment_intent_returns_intent_object(mocked_payment_intent):
     api_key = "api_key"
     mocked_payment_intent.create.return_value = StripeObject()
 
-    intent, error = create_payment_intent(api_key, Decimal(10), "USD")
+    intent, error = create_payment_intent(
+        api_key, Decimal(10), "USD", auto_capture=True
+    )
 
     mocked_payment_intent.create.assert_called_with(
-        api_key=api_key, amount="1000", currency="USD"
+        api_key=api_key,
+        amount="1000",
+        currency="USD",
+        capture_method=AUTOMATIC_CAPTURE_METHOD,
     )
 
     assert isinstance(intent, StripeObject)
     assert error is None
+
+
+@patch(
+    "saleor.payment.gateways.stripe.stripe_api.stripe.PaymentIntent",
+)
+def test_create_payment_intent_manual_auto_capture(mocked_payment_intent):
+    api_key = "api_key"
+    mocked_payment_intent.create.return_value = StripeObject()
+
+    intent, error = create_payment_intent(
+        api_key, Decimal(10), "USD", auto_capture=False
+    )
+
+    mocked_payment_intent.create.assert_called_with(
+        api_key=api_key,
+        amount="1000",
+        currency="USD",
+        capture_method=MANUAL_CAPTURE_METHOD,
+    )
 
 
 @patch(
@@ -98,7 +127,10 @@ def test_create_payment_intent_returns_error(mocked_payment_intent):
     intent, error = create_payment_intent(api_key, Decimal(10), "USD")
 
     mocked_payment_intent.create.assert_called_with(
-        api_key=api_key, amount="1000", currency="USD"
+        api_key=api_key,
+        amount="1000",
+        currency="USD",
+        capture_method=AUTOMATIC_CAPTURE_METHOD,
     )
     assert intent is None
     assert error

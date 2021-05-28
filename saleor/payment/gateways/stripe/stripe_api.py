@@ -12,7 +12,14 @@ from stripe.stripe_object import StripeObject
 from saleor.core.utils import build_absolute_uri
 
 from ...utils import price_to_minor_unit
-from .consts import METADATA_IDENTIFIER, PLUGIN_ID, WEBHOOK_EVENTS, WEBHOOK_PATH
+from .consts import (
+    AUTOMATIC_CAPTURE_METHOD,
+    MANUAL_CAPTURE_METHOD,
+    METADATA_IDENTIFIER,
+    PLUGIN_ID,
+    WEBHOOK_EVENTS,
+    WEBHOOK_PATH,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -50,13 +57,15 @@ def delete_webhook(api_key: str, webhook_id: str):
 
 
 def create_payment_intent(
-    api_key: str, amount: Decimal, currency: str
+    api_key: str, amount: Decimal, currency: str, auto_capture: bool = True
 ) -> Tuple[Optional[StripeObject], Optional[StripeError]]:
+    capture_method = AUTOMATIC_CAPTURE_METHOD if auto_capture else MANUAL_CAPTURE_METHOD
     try:
         intent = stripe.PaymentIntent.create(
             api_key=api_key,
             amount=price_to_minor_unit(amount, currency),
             currency=currency,
+            capture_method=capture_method,
         )
         return intent, None
     except StripeError as error:

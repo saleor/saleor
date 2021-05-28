@@ -28,3 +28,6 @@ SUCCESS_STATUS = "succeeded"
 PROCESSING_STATUS = "processing"
 
 AUTHORIZED_STATUS = "requires_capture"
+
+AUTOMATIC_CAPTURE_METHOD = "automatic"
+MANUAL_CAPTURE_METHOD = "manual"
