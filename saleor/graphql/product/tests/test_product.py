@@ -3607,11 +3607,25 @@ PRODUCT_TYPE_CREATE_MUTATION = """
                     values {
                         name
                     }
+                    choices(first: 10) {
+                        edges {
+                            node {
+                                name
+                            }
+                        }
+                    }
                 }
                 productAttributes {
                     name
                     values {
                         name
+                    }
+                    choices(first: 10) {
+                        edges {
+                            node {
+                                name
+                            }
+                        }
                     }
                 }
             }

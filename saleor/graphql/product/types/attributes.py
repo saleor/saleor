@@ -6,6 +6,7 @@ from graphene import relay
 from ....core.permissions import ProductPermissions
 from ....product import models
 from ...core.connection import CountableDjangoObjectType
+from ...core.fields import FilterInputConnectionField
 from ...decorators import permission_required
 from ...meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ...meta.types import ObjectWithMetadata
@@ -14,6 +15,8 @@ from ...translations.types import AttributeTranslation, AttributeValueTranslatio
 from ..dataloaders import AttributeValuesByAttributeIdLoader
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
 from ..enums import AttributeInputTypeEnum, AttributeValueType
+from ..filters import AttributeChoiceFilterInput
+from ..sorters import AttributeChoicesSortingInput
 
 COLOR_PATTERN = r"^(#[0-9a-fA-F]{3}|#(?:[0-9a-fA-F]{2}){2,4}|(rgb|hsl)a?\((-?\d+%?[,\s]+){2,3}\s*[\d\.]+%?\))$"  # noqa
 color_pattern = re.compile(COLOR_PATTERN)
@@ -66,10 +69,21 @@ class Attribute(CountableDjangoObjectType):
     name = graphene.String(description=AttributeDescriptions.NAME)
     slug = graphene.String(description=AttributeDescriptions.SLUG)
 
-    values = graphene.List(AttributeValue, description=AttributeDescriptions.VALUES)
-
+    values = graphene.List(
+        AttributeValue,
+        description=AttributeDescriptions.VALUES,
+        deprecation_reason=(
+            "Use the `choices` field instead. It will be removed in Saleor 3.0."
+        ),
+    )
+    choices = FilterInputConnectionField(
+        AttributeValue,
+        sort_by=AttributeChoicesSortingInput(),
+        filter=AttributeChoiceFilterInput(),
+        description=AttributeDescriptions.VALUES,
+    )
     value_required = graphene.Boolean(
-        description=AttributeDescriptions.VALUE_REQUIRED, required=True
+        description=AttributeDescriptions.VALUE_REQUIRED, required=True,
     )
     visible_in_storefront = graphene.Boolean(
         description=AttributeDescriptions.VISIBLE_IN_STOREFRONT, required=True
@@ -102,6 +116,10 @@ class Attribute(CountableDjangoObjectType):
     @staticmethod
     def resolve_values(root: models.Attribute, info):
         return AttributeValuesByAttributeIdLoader(info.context).load(root.id)
+
+    @staticmethod
+    def resolve_choices(root: models.Attribute, _info, **_kwargs):
+        return root.values.all()
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)

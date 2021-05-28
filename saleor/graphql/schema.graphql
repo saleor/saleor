@@ -405,7 +405,8 @@ type Attribute implements Node & ObjectWithMetadata {
   inputType: AttributeInputTypeEnum
   name: String
   slug: String
-  values: [AttributeValue]
+  values: [AttributeValue] @deprecated(reason: "Use the `choices` field instead. It will be removed in Saleor 3.0.")
+  choices(sortBy: AttributeChoicesSortingInput, filter: AttributeChoiceFilterInput, before: String, after: String, first: Int, last: Int): AttributeValueCountableConnection
   valueRequired: Boolean!
   visibleInStorefront: Boolean!
   filterableInStorefront: Boolean!
@@ -430,6 +431,20 @@ type AttributeBulkDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   count: Int!
   productErrors: [ProductError!]!
+}
+
+input AttributeChoiceFilterInput {
+  search: String
+}
+
+enum AttributeChoicesSortField {
+  NAME
+  SLUG
+}
+
+input AttributeChoicesSortingInput {
+  direction: OrderDirection!
+  field: AttributeChoicesSortField!
 }
 
 type AttributeClearMeta {
@@ -603,6 +618,17 @@ type AttributeValueBulkDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   count: Int!
   productErrors: [ProductError!]!
+}
+
+type AttributeValueCountableConnection {
+  pageInfo: PageInfo!
+  edges: [AttributeValueCountableEdge!]!
+  totalCount: Int
+}
+
+type AttributeValueCountableEdge {
+  node: AttributeValue!
+  cursor: String!
 }
 
 type AttributeValueCreate {

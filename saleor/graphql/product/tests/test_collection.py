@@ -186,24 +186,31 @@ def test_collections_query(
 
 
 GET_FILTERED_PRODUCTS_COLLECTION_QUERY = """
-query CollectionProducts($id: ID!, $filters: ProductFilterInput) {
-  collection(id: $id) {
-    products(first: 10, filter: $filters) {
-      edges {
-        node {
-          id
-          attributes {
-            attribute {
-              values {
-                slug
-              }
+    query CollectionProducts($id: ID!, $filters: ProductFilterInput) {
+        collection(id: $id) {
+            products(first: 10, filter: $filters) {
+                edges {
+                    node {
+                        id
+                        attributes {
+                            attribute {
+                                values {
+                                    slug
+                                }
+                                choices(first: 10) {
+                                    edges {
+                                        node {
+                                            slug
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
-          }
         }
-      }
     }
-  }
-}
 """
 
 
@@ -273,7 +280,14 @@ def test_filter_collection_products_by_multiple_attributes(
         "Product", product_with_multiple_values_attributes.pk
     )
     assert product["attributes"] == [
-        {"attribute": {"values": [{"slug": "eco"}, {"slug": "power"}]}}
+        {
+            "attribute": {
+                "values": [{"slug": "eco"}, {"slug": "power"}],
+                "choices": {
+                    "edges": [{"node": {"slug": "eco"}}, {"node": {"slug": "power"}}]
+                },
+            }
+        }
     ]
 
 

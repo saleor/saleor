@@ -10,6 +10,7 @@ from graphene_django.filter import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 from ...product.filters import filter_products_by_attributes_values
 from ...product.models import (
     Attribute,
+    AttributeValue,
     Category,
     Collection,
     Product,
@@ -439,6 +440,16 @@ class AttributeFilter(django_filters.FilterSet):
         return filter_attributes_by_product_types(queryset, name, value, requestor)
 
 
+class AttributeChoiceFilter(django_filters.FilterSet):
+    search = django_filters.CharFilter(
+        method=filter_fields_containing_value("slug", "name")
+    )
+
+    class Meta:
+        model = AttributeValue
+        fields = ["search"]
+
+
 class ProductFilterInput(FilterInputObjectType):
     class Meta:
         filterset_class = ProductFilter
@@ -467,3 +478,8 @@ class ProductTypeFilterInput(FilterInputObjectType):
 class AttributeFilterInput(FilterInputObjectType):
     class Meta:
         filterset_class = AttributeFilter
+
+
+class AttributeChoiceFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = AttributeChoiceFilter
