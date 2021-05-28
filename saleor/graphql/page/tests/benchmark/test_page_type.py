@@ -26,7 +26,7 @@ def test_query_page_type(
                     name
                     type
                     inputType
-                    values(first: 10) {
+                    choices(first: 10) {
                         edges {
                             node {
                                 name
@@ -45,7 +45,7 @@ def test_query_page_type(
                             name
                             type
                             inputType
-                            values(first: 10) {
+                            choices(first: 10) {
                                 edges {
                                     node {
                                         name
@@ -97,7 +97,7 @@ def test_query_page_types(
                             name
                             type
                             inputType
-                            values(first: 10) {
+                            choices(first: 10) {
                                 edges {
                                     node {
                                         name
@@ -116,7 +116,7 @@ def test_query_page_types(
                                     name
                                     type
                                     inputType
-                                    values(first: 10) {
+                                    choices(first: 10) {
                                         edges {
                                             node {
                                                 name

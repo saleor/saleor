@@ -19,7 +19,7 @@ mutation AttributeValueUpdate(
             slug
         }
         attribute {
-            values(first: 10) {
+            choices(first: 10) {
                 edges {
                     node {
                         name
@@ -56,7 +56,7 @@ def test_update_attribute_value(
     assert data["attributeValue"]["name"] == name == value.name
     assert data["attributeValue"]["slug"] == slugify(name)
     assert name in [
-        value["node"]["name"] for value in data["attribute"]["values"]["edges"]
+        value["node"]["name"] for value in data["attribute"]["choices"]["edges"]
     ]
 
 

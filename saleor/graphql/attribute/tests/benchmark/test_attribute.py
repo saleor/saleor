@@ -20,7 +20,7 @@ def test_query_attribute(
                 name
                 inputType
                 type
-                values(first: 10) {
+                choices(first: 10) {
                     edges {
                         node {
                             slug
@@ -66,7 +66,7 @@ def test_query_attributes(
                         name
                         inputType
                         type
-                        values(first: 10) {
+                        choices(first: 10) {
                             edges {
                                 node {
                                 slug

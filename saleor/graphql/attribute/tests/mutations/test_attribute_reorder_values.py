@@ -8,7 +8,7 @@ ATTRIBUTE_VALUES_REORDER_MUTATION = """
         attributeReorderValues(attributeId: $attributeId, moves: $moves) {
             attribute {
                 id
-                values(first: 10) {
+                choices(first: 10) {
                     edges {
                         node {
                             id
@@ -128,7 +128,7 @@ def test_sort_values_within_attribute(
 
     assert content["attribute"]["id"] == attribute_id
 
-    gql_values = content["attribute"]["values"]["edges"]
+    gql_values = content["attribute"]["choices"]["edges"]
     assert len(gql_values) == len(expected_order)
 
     actual_order = []

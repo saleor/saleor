@@ -20,6 +20,7 @@ from .dataloaders import AttributesByAttributeId
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
 from .filters import AttributeValueFilterInput
+from .sorters import AttributeChoicesSortingInput
 
 COLOR_PATTERN = r"^(#[0-9a-fA-F]{3}|#(?:[0-9a-fA-F]{2}){2,4}|(rgb|hsl)a?\((-?\d+%?[,\s]+){2,3}\s*[\d\.]+%?\))$"  # noqa
 color_pattern = re.compile(COLOR_PATTERN)
@@ -89,9 +90,12 @@ class Attribute(CountableDjangoObjectType):
     slug = graphene.String(description=AttributeDescriptions.SLUG)
     type = AttributeTypeEnum(description=AttributeDescriptions.TYPE)
     unit = MeasurementUnitsEnum(description=AttributeDescriptions.UNIT)
-    values = FilterInputConnectionField(
+    choices = FilterInputConnectionField(
         AttributeValue,
-        filter=AttributeValueFilterInput(),
+        sort_by=AttributeChoicesSortingInput(description="Sort attribute choices."),
+        filter=AttributeValueFilterInput(
+            description="Filtering options for attribute choices."
+        ),
         description=AttributeDescriptions.VALUES,
     )
 
@@ -128,7 +132,7 @@ class Attribute(CountableDjangoObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_values(root: models.Attribute, info, **_kwargs):
+    def resolve_choices(root: models.Attribute, info, **_kwargs):
         if root.input_type in AttributeInputType.TYPES_WITH_CHOICES:
             return root.values.all()
         return []

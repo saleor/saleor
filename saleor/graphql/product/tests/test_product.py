@@ -6498,7 +6498,7 @@ PRODUCT_TYPE_CREATE_MUTATION = """
                 hasVariants
                 variantAttributes {
                     name
-                    values(first: 10) {
+                    choices(first: 10) {
                         edges {
                             node {
                                 name
@@ -6508,7 +6508,7 @@ PRODUCT_TYPE_CREATE_MUTATION = """
                 }
                 productAttributes {
                     name
-                    values(first: 10) {
+                    choices(first: 10) {
                         edges {
                             node {
                                 name
@@ -6577,14 +6577,14 @@ def test_product_type_create_mutation(
 
     pa = product_attributes[0]
     assert data["productAttributes"][0]["name"] == pa.name
-    pa_values = data["productAttributes"][0]["values"]["edges"]
+    pa_values = data["productAttributes"][0]["choices"]["edges"]
     assert sorted([value["node"]["name"] for value in pa_values]) == sorted(
         [value.name for value in pa.values.all()]
     )
 
     va = variant_attributes[0]
     assert data["variantAttributes"][0]["name"] == va.name
-    va_values = data["variantAttributes"][0]["values"]["edges"]
+    va_values = data["variantAttributes"][0]["choices"]["edges"]
     assert sorted([value["node"]["name"] for value in va_values]) == sorted(
         [value.name for value in va.values.all()]
     )
@@ -6629,7 +6629,7 @@ def test_create_product_type_with_rich_text_attribute(
     expected_attributes = [
         {
             "name": "Color",
-            "values": {
+            "choices": {
                 "edges": [
                     {"node": {"name": "Red", "richText": None}},
                     {"node": {"name": "Blue", "richText": None}},
@@ -6638,7 +6638,7 @@ def test_create_product_type_with_rich_text_attribute(
         },
         {
             "name": "Text",
-            "values": {"edges": []},
+            "choices": {"edges": []},
         },
     ]
     for attribute in data["productAttributes"]:

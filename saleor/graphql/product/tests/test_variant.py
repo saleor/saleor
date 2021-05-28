@@ -47,7 +47,7 @@ def test_fetch_variant(
                     id
                     name
                     slug
-                    values(first: 10) {
+                    choices(first: 10) {
                         edges {
                             node {
                                 id
@@ -1325,7 +1325,7 @@ def test_product_variant_update_with_new_attributes(
                   id
                   name
                   slug
-                  values(first:10) {
+                  choices(first:10) {
                     edges {
                       node {
                         id

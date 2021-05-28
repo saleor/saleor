@@ -197,7 +197,7 @@ def test_real_query(user_api_client, product, channel_USD):
         id
         name
         slug
-        values(first: 10) {
+        choices(first: 10) {
             edges {
                 node {
                     id
