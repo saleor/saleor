@@ -5,6 +5,7 @@ from ..core.models import ModelWithMetadata
 from ..core.permissions import SocialPermissions
 
 class Social(ModelWithMetadata):
+    tenant_id='store_id'
     follow = models.BooleanField(default=True)
     store = models.ForeignKey(
         Store,

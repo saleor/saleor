@@ -10,7 +10,7 @@ from ..account.validators import validate_possible_number
 from mptt.managers import TreeManager
 from ..core.utils.editorjs import clean_editor_js
 from ..core.db.fields import SanitizedJSONField
-from ..core.models import ModelWithMetadata, SortableModel
+from ..core.models import ModelWithMetadata, SortableModel, SimpleModelWithMetadata
 from ..seo.models import SeoModel, SeoModelTranslation
 from django.utils import timezone
 from typing import TYPE_CHECKING, Union
@@ -25,7 +25,7 @@ class PossiblePhoneNumberField(PhoneNumberField):
     """Less strict field for phone numbers written to database."""
     default_validators = [validate_possible_number]
 
-class StoreType(ModelWithMetadata, MPTTModel, SeoModel):
+class StoreType(SimpleModelWithMetadata, MPTTModel, SeoModel):
     name = models.CharField(max_length=250)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
@@ -74,6 +74,7 @@ class StoresQueryset(models.QuerySet):
             return None
 
 class Store(ModelWithMetadata, SeoModel):
+    tenant_id = 'id'
     name = models.CharField(max_length=250)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 

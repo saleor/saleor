@@ -24,6 +24,7 @@ from ..core.utils.json_serializer import CustomJsonEncoder
 from . import CustomerEvents
 from .validators import validate_possible_number
 from ..store.models import Store
+from django_multitenant.models import TenantManager
 
 
 class PossiblePhoneNumberField(PhoneNumberField):
@@ -103,7 +104,7 @@ class Address(models.Model):
         return Address.objects.create(**self.as_data())
 
 
-class UserManager(BaseUserManager):
+class UserManager(TenantManager, BaseUserManager):
     def create_user(
         self, email, password=None, is_staff=False, is_active=True, **extra_fields
     ):
@@ -135,6 +136,7 @@ class UserManager(BaseUserManager):
 
 
 class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
+    tenant_id='store_id'
     email = models.EmailField(unique=True)
     first_name = models.CharField(max_length=256, blank=True)
     last_name = models.CharField(max_length=256, blank=True)

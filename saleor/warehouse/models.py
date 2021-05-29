@@ -1,4 +1,5 @@
 import itertools
+from saleor.store.models import Store
 import uuid
 from typing import Set
 
@@ -26,6 +27,14 @@ class WarehouseQueryset(models.QuerySet):
 
 
 class Warehouse(ModelWithMetadata):
+    store = models.ForeignKey(
+        Store,
+        related_name="warehouses",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    tenant_id='store_id'
     id = models.UUIDField(default=uuid.uuid4, primary_key=True)
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)

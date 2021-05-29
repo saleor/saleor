@@ -1,3 +1,4 @@
+from saleor.store.models import Store
 from typing import TYPE_CHECKING, Union
 
 from django.db import models
@@ -9,6 +10,7 @@ from ...core.utils.translations import TranslationProxy
 from ...page.models import PageType
 from ...product.models import ProductType
 from .. import AttributeEntityType, AttributeInputType, AttributeType
+from django_multitenant.models import TenantManager
 
 if TYPE_CHECKING:
     from django.db.models import OrderBy
@@ -32,7 +34,7 @@ class BaseAssignedAttribute(models.Model):
         return self.assignment.attribute_id
 
 
-class BaseAttributeQuerySet(models.QuerySet):
+class BaseAttributeQuerySet(TenantManager):
     def get_public_attributes(self):
         raise NotImplementedError
 
@@ -99,6 +101,14 @@ class AttributeQuerySet(BaseAttributeQuerySet):
 
 
 class Attribute(ModelWithMetadata):
+    store = models.ForeignKey(
+        Store,
+        related_name="attributes",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    tenant_id='store_id'
     slug = models.SlugField(max_length=250, unique=True, allow_unicode=True)
     name = models.CharField(max_length=255)
     type = models.CharField(max_length=50, choices=AttributeType.CHOICES)
@@ -144,7 +154,7 @@ class Attribute(ModelWithMetadata):
     storefront_search_position = models.IntegerField(default=0, blank=True)
     available_in_grid = models.BooleanField(default=False, blank=True)
 
-    objects = AttributeQuerySet.as_manager()
+    objects = AttributeQuerySet()
     translated = TranslationProxy()
 
     class Meta(ModelWithMetadata.Meta):

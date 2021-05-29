@@ -11,6 +11,7 @@ from ..product import ProductMediaTypes
 from ..store.models import Store
 
 class Page(ModelWithMetadata, SeoModel, PublishableModel):
+    tenant_id='store_id'
     slug = models.SlugField(unique=True, max_length=255)
     title = models.CharField(max_length=250)
     page_type = models.ForeignKey(
@@ -63,6 +64,14 @@ class PageTranslation(SeoModelTranslation):
 
 
 class PageType(ModelWithMetadata):
+    store = models.ForeignKey(
+        Store,
+        related_name="page_types",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    tenant_id='store_id'
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
 

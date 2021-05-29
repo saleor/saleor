@@ -1,6 +1,7 @@
 from decimal import Decimal
 from operator import attrgetter
 from re import match
+from saleor.store.models import Store
 from typing import Optional
 from uuid import uuid4
 
@@ -77,6 +78,14 @@ class OrderQueryset(models.QuerySet):
 
 
 class Order(ModelWithMetadata):
+    store = models.ForeignKey(
+        Store,
+        related_name="orders",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    tenant_id='store_id'
     created = models.DateTimeField(default=now, editable=False)
     status = models.CharField(
         max_length=32, default=OrderStatus.UNFULFILLED, choices=OrderStatus.CHOICES
@@ -519,6 +528,14 @@ class OrderLine(models.Model):
 
 
 class Fulfillment(ModelWithMetadata):
+    store = models.ForeignKey(
+        Store,
+        related_name="fulfillments",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    tenant_id='store_id'
     fulfillment_order = models.PositiveIntegerField(editable=False)
     order = models.ForeignKey(
         Order, related_name="fulfillments", editable=False, on_delete=models.CASCADE

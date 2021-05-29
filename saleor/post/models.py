@@ -14,6 +14,7 @@ from ..product import ProductMediaTypes
 from ..core.permissions import PostPermissions
 
 class Post(ModelWithMetadata, SeoModel):
+    tenant_id='store_id'
     title = models.CharField(max_length=250)
     content = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 

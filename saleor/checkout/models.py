@@ -1,5 +1,6 @@
 """Checkout-related ORM models."""
 from operator import attrgetter
+from saleor.store.models import Store
 from typing import TYPE_CHECKING, Iterable, Optional
 from uuid import uuid4
 
@@ -35,7 +36,14 @@ def get_default_country():
 
 class Checkout(ModelWithMetadata):
     """A shopping checkout."""
-
+    store = models.ForeignKey(
+        Store,
+        related_name="checkouts",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    tenant_id='store_id'
     created = models.DateTimeField(auto_now_add=True)
     last_change = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(

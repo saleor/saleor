@@ -1,3 +1,4 @@
+from saleor.store.models import Store
 from typing import Set
 
 from django.contrib.auth.models import Permission
@@ -10,6 +11,14 @@ from .types import AppType
 
 
 class App(ModelWithMetadata):
+    store = models.ForeignKey(
+        Store,
+        related_name="apps",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    tenant_id='store_id'
     name = models.CharField(max_length=60)
     created = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)

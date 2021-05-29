@@ -1,3 +1,4 @@
+from saleor.store.models import Store
 from django.conf import settings
 from django.db import models
 from django.db.models import JSONField  # type: ignore
@@ -17,6 +18,14 @@ class InvoiceQueryset(models.QuerySet):
 
 
 class Invoice(ModelWithMetadata, Job):
+    store = models.ForeignKey(
+        Store,
+        related_name="invoices",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    tenant_id='store_id'
     order = models.ForeignKey(
         Order, related_name="invoices", null=True, on_delete=models.SET_NULL
     )

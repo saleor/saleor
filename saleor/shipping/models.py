@@ -1,3 +1,4 @@
+from saleor.store.models import Store
 from typing import TYPE_CHECKING, List, Union
 
 from django.conf import settings
@@ -21,7 +22,7 @@ from ..core.weight import (
 )
 from . import PostalCodeRuleInclusionType, ShippingMethodType
 from .postal_codes import filter_shipping_methods_by_postal_code_rules
-
+from django_multitenant.models import TenantManager
 if TYPE_CHECKING:
     # flake8: noqa
     from ..checkout.models import Checkout
@@ -76,6 +77,14 @@ def _get_weight_type_display(min_weight, max_weight):
 
 
 class ShippingZone(ModelWithMetadata):
+    store = models.ForeignKey(
+        Store,
+        related_name="shipping_zones",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    tenant_id='store_id'
     name = models.CharField(max_length=100)
     countries = CountryField(multiple=True, default=[], blank=True)
     default = models.BooleanField(default=False)
@@ -90,7 +99,7 @@ class ShippingZone(ModelWithMetadata):
         )
 
 
-class ShippingMethodQueryset(models.QuerySet):
+class ShippingMethodQueryset(TenantManager):
     def price_based(self):
         return self.filter(type=ShippingMethodType.PRICE_BASED)
 
@@ -173,6 +182,14 @@ class ShippingMethodQueryset(models.QuerySet):
 
 
 class ShippingMethod(ModelWithMetadata):
+    store = models.ForeignKey(
+        Store,
+        related_name="shipping_methods",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    tenant_id='store_id'
     name = models.CharField(max_length=100)
     type = models.CharField(max_length=30, choices=ShippingMethodType.CHOICES)
     shipping_zone = models.ForeignKey(
@@ -194,7 +211,7 @@ class ShippingMethod(ModelWithMetadata):
     maximum_delivery_days = models.PositiveIntegerField(null=True, blank=True)
     minimum_delivery_days = models.PositiveIntegerField(null=True, blank=True)
 
-    objects = ShippingMethodQueryset.as_manager()
+    objects = ShippingMethodQueryset()
     translated = TranslationProxy()
 
     class Meta(ModelWithMetadata.Meta):

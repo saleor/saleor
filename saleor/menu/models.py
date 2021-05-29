@@ -1,3 +1,4 @@
+from saleor.store.models import Store
 from django.db import models
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
@@ -10,6 +11,14 @@ from ..product.models import Category, Collection
 
 
 class Menu(ModelWithMetadata):
+    store = models.ForeignKey(
+        Store,
+        related_name="menus",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    tenant_id='store_id'
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
 
@@ -22,6 +31,14 @@ class Menu(ModelWithMetadata):
 
 
 class MenuItem(ModelWithMetadata, MPTTModel, SortableModel):
+    store = models.ForeignKey(
+        Store,
+        related_name="items",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    tenant_id='store_id'
     menu = models.ForeignKey(Menu, related_name="items", on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
     parent = models.ForeignKey(
