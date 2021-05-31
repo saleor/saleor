@@ -1,3 +1,4 @@
+from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 
 from ..core.db.fields import SanitizedJSONField
@@ -22,6 +23,7 @@ class Page(ModelWithMetadata, SeoModel, PublishableModel):
     class Meta(ModelWithMetadata.Meta):
         ordering = ("slug",)
         permissions = ((PagePermissions.MANAGE_PAGES.codename, "Manage pages."),)
+        indexes = [*ModelWithMetadata.Meta.indexes, GinIndex(fields=["title", "slug"])]
 
     def __str__(self):
         return self.title
@@ -64,3 +66,4 @@ class PageType(ModelWithMetadata):
                 "Manage page types and attributes.",
             ),
         )
+        indexes = [*ModelWithMetadata.Meta.indexes, GinIndex(fields=["name", "slug"])]
