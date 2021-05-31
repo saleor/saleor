@@ -228,6 +228,15 @@ class Order(ModelWithMetadata):
         default=zero_weight,
     )
     redirect_url = models.URLField(blank=True, null=True)
+
+    is_preorder = models.BooleanField(
+        default=False
+    )
+    requested_shipment_date = models.DateField(
+        null=True,
+        blank=True
+    )
+
     objects = OrderQueryset.as_manager()
 
     class Meta:

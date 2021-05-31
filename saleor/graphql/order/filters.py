@@ -121,6 +121,12 @@ class OrderFilter(DraftOrderFilter):
     search = django_filters.CharFilter(method=filter_order_search)
     channels = GlobalIDMultipleChoiceFilter(method=filter_channels)
 
+    is_preorder = django_filters.BooleanFilter(required=False)
+    requested_shipment_date = django_filters.DateRangeFilter(required=False)
+
     class Meta:
         model = Order
-        fields = ["payment_status", "status", "customer", "created", "search"]
+        fields = [
+            "payment_status", "status", "customer", "created", "search",
+            "is_preorder", "requested_shipment_date"
+        ]

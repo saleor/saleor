@@ -1016,3 +1016,56 @@ class CheckoutRemovePromoCode(BaseMutation):
         remove_promo_code_from_checkout(checkout_info, promo_code)
         manager.checkout_updated(checkout)
         return CheckoutRemovePromoCode(checkout=checkout)
+
+
+class PreOrderCheckoutCreate(CheckoutCreate):
+    class Arguments:
+        requested_shipment_date = graphene.DateTime(
+            required=True, datetime_input=graphene.DateTime(required=True)
+        )
+        input = CheckoutCreateInput(
+            required=True, description="Fields required to create checkout."
+        )
+
+    class Meta:
+        description = (
+            "Create a new checkout even if the available stock is not enough."
+        )
+        model = models.Checkout
+        return_field_name = "checkout"
+        error_type_class = CheckoutError
+        error_type_field = "checkout_errors"
+
+    @classmethod
+    def clean_checkout_lines(
+        cls, lines, country, channel
+    ) -> Tuple[List[product_models.ProductVariant], List[int]]:
+        variant_ids = [line["variant_id"] for line in lines]
+        variants = cls.get_nodes_or_error(
+            variant_ids,
+            "variant_id",
+            ProductVariant,
+            qs=product_models.ProductVariant.objects.prefetch_related(
+                "product__product_type"
+            ),
+        )
+
+        quantities = [line["quantity"] for line in lines]
+        variant_db_ids = {variant.id for variant in variants}
+        validate_variants_available_for_purchase(variant_db_ids, channel.id)
+        validate_variants_available_in_channel(
+            variant_db_ids, channel.id, CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL
+        )
+
+        # No need to check quantity
+        # check_lines_quantity(variants, quantities, country, channel.slug)
+
+        return variants, quantities
+
+    @classmethod
+    @traced_atomic_transaction()
+    def save(cls, info, instance: models.Checkout, cleaned_input):
+        instance.is_preorder = True
+        instance.requested_shipment_date = cleaned_input['requested_shipment_date']
+        return super().save(info, instance, cleaned_input)
+
