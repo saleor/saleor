@@ -361,7 +361,7 @@ def test_generate_list_gateways_payload(checkout):
     currency = "USD"
     payload = generate_list_gateways_payload(currency, checkout)
     data = json.loads(payload)
-    assert data["checkout"] == json.loads(generate_checkout_payload(checkout))
+    assert data["checkout"] == json.loads(generate_checkout_payload(checkout))[0]
     assert data["currency"] == currency
 
 

@@ -519,7 +519,7 @@ def generate_list_gateways_payload(
     if checkout:
         # Deserialize checkout payload to dict and generate a new payload including
         # currency.
-        checkout_data = json.loads(generate_checkout_payload(checkout))
+        checkout_data = json.loads(generate_checkout_payload(checkout))[0]
     else:
         checkout_data = None
     payload = {"checkout": checkout_data, "currency": currency}
