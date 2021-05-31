@@ -619,16 +619,19 @@ def test_delete_product_media(
     ).exists()
 
 
-def test_delete_product_types(
-    staff_api_client, product_type_list, permission_manage_product_types_and_attributes
-):
-    query = """
+PRODUCT_TYPE_BULK_DELETE_MUTATION = """
     mutation productTypeBulkDelete($ids: [ID]!) {
         productTypeBulkDelete(ids: $ids) {
             count
         }
     }
-    """
+"""
+
+
+def test_delete_product_types(
+    staff_api_client, product_type_list, permission_manage_product_types_and_attributes
+):
+    query = PRODUCT_TYPE_BULK_DELETE_MUTATION
 
     variables = {
         "ids": [
@@ -645,6 +648,50 @@ def test_delete_product_types(
     assert not ProductType.objects.filter(
         id__in=[type.id for type in product_type_list]
     ).exists()
+
+
+@patch("saleor.attribute.signals.delete_from_storage_task.delay")
+def test_delete_product_types_with_file_attributes(
+    delete_from_storage_task_mock,
+    staff_api_client,
+    product_type_list,
+    product_list,
+    file_attribute,
+    permission_manage_product_types_and_attributes,
+):
+    query = PRODUCT_TYPE_BULK_DELETE_MUTATION
+
+    values = [value for value in file_attribute.values.all()]
+    for i, product_type in enumerate(product_type_list[: len(values)]):
+        product_type.product_attributes.add(file_attribute)
+        product = product_list[i]
+        product.product_type = product_type
+        product.save()
+        existing_value = values[i]
+        associate_attribute_values_to_instance(product, file_attribute, existing_value)
+
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("ProductType", type.id)
+            for type in product_type_list
+        ]
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+    content = get_graphql_content(response)
+
+    assert content["data"]["productTypeBulkDelete"]["count"] == 3
+    assert not ProductType.objects.filter(
+        id__in=[type.id for type in product_type_list]
+    ).exists()
+    for value in values:
+        with pytest.raises(value._meta.model.DoesNotExist):
+            value.refresh_from_db()
+    assert delete_from_storage_task_mock.call_count == len(values)
+    assert set(
+        data.args[0] for data in delete_from_storage_task_mock.call_args_list
+    ) == {v.file_url for v in values}
 
 
 PRODUCT_VARIANT_BULK_DELETE_MUTATION = """

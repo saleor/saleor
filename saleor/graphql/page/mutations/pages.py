@@ -15,8 +15,13 @@ from ...attribute.types import AttributeValueInput
 from ...attribute.utils import AttributeAssignmentMixin
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types.common import PageError, SeoInput
-from ...core.utils import clean_seo_fields, validate_slug_and_generate_if_needed
+from ...core.utils import (
+    clean_seo_fields,
+    from_global_id_or_error,
+    validate_slug_and_generate_if_needed,
+)
 from ...utils.validators import check_for_duplicates
+from ..types import PageType
 
 if TYPE_CHECKING:
     from ....attribute.models import Attribute
@@ -310,3 +315,20 @@ class PageTypeDelete(ModelDeleteMutation):
         permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
         error_type_class = PageError
         error_type_field = "page_errors"
+
+    @classmethod
+    @traced_atomic_transaction()
+    def perform_mutation(cls, _root, info, **data):
+        node_id = data.get("id")
+        _type, page_type_pk = from_global_id_or_error(
+            node_id, only_type=PageType, field="pk"
+        )
+        cls.delete_assigned_attribute_values(page_type_pk)
+        return super().perform_mutation(_root, info, **data)
+
+    @staticmethod
+    def delete_assigned_attribute_values(instance_pk):
+        attribute_models.AttributeValue.objects.filter(
+            attribute__input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES,
+            pageassignments__assignment__page_type_id=instance_pk,
+        ).delete()

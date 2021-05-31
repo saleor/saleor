@@ -3,6 +3,7 @@ from collections import defaultdict
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import Q
 from graphene.types import InputObjectType
 
 from ....attribute import AttributeInputType
@@ -40,7 +41,7 @@ from ..mutations.products import (
     ProductVariantInput,
     StockInput,
 )
-from ..types import Product, ProductVariant
+from ..types import Product, ProductType, ProductVariant
 from ..utils import create_stocks, get_used_variants_attribute_values
 
 
@@ -748,6 +749,23 @@ class ProductTypeBulkDelete(ModelBulkDeleteMutation):
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+
+    @classmethod
+    @traced_atomic_transaction()
+    def perform_mutation(cls, _root, info, ids, **data):
+        _, pks = resolve_global_ids_to_primary_keys(ids, ProductType)
+        cls.delete_assigned_attribute_values(pks)
+        return super().perform_mutation(_root, info, ids, **data)
+
+    @staticmethod
+    def delete_assigned_attribute_values(instance_pks):
+        attribute_models.AttributeValue.objects.filter(
+            Q(attribute__input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES)
+            & (
+                Q(productassignments__assignment__product_type_id__in=instance_pks)
+                | Q(variantassignments__assignment__product_type_id__in=instance_pks)
+            )
+        ).delete()
 
 
 class ProductMediaBulkDelete(ModelBulkDeleteMutation):

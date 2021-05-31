@@ -5,6 +5,7 @@ from typing import List, Tuple
 import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
+from django.db.models import Q
 from django.utils.text import slugify
 
 from ....attribute import AttributeInputType, AttributeType
@@ -1202,6 +1203,7 @@ class ProductTypeDelete(ModelDeleteMutation):
         error_type_field = "product_errors"
 
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         node_id = data.get("id")
         _type, product_type_pk = from_global_id_or_error(
@@ -1216,6 +1218,7 @@ class ProductTypeDelete(ModelDeleteMutation):
                 variant__pk__in=variants_pks, order__status=OrderStatus.DRAFT
             ).values_list("pk", flat=True)
         )
+        cls.delete_assigned_attribute_values(product_type_pk)
 
         response = super().perform_mutation(_root, info, **data)
 
@@ -1223,6 +1226,16 @@ class ProductTypeDelete(ModelDeleteMutation):
         order_models.OrderLine.objects.filter(pk__in=order_line_pks).delete()
 
         return response
+
+    @staticmethod
+    def delete_assigned_attribute_values(instance_pk):
+        attribute_models.AttributeValue.objects.filter(
+            Q(attribute__input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES)
+            & (
+                Q(productassignments__assignment__product_type_id=instance_pk)
+                | Q(variantassignments__assignment__product_type_id=instance_pk)
+            )
+        ).delete()
 
 
 class ProductMediaCreateInput(graphene.InputObjectType):
