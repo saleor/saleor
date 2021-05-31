@@ -4,11 +4,21 @@ from unittest.mock import patch
 from stripe.error import AuthenticationError, StripeError
 from stripe.stripe_object import StripeObject
 
-from ..consts import METADATA_IDENTIFIER, WEBHOOK_EVENTS
+from saleor.payment.utils import price_to_minor_unit
+
+from ..consts import (
+    AUTOMATIC_CAPTURE_METHOD,
+    MANUAL_CAPTURE_METHOD,
+    METADATA_IDENTIFIER,
+    WEBHOOK_EVENTS,
+)
 from ..stripe_api import (
+    cancel_payment_intent,
+    capture_payment_intent,
     create_payment_intent,
     delete_webhook,
     is_secret_api_key_valid,
+    refund_payment_intent,
     retrieve_payment_intent,
     subscribe_webhook,
 )
@@ -71,14 +81,38 @@ def test_create_payment_intent_returns_intent_object(mocked_payment_intent):
     api_key = "api_key"
     mocked_payment_intent.create.return_value = StripeObject()
 
-    intent, error = create_payment_intent(api_key, Decimal(10), "USD")
+    intent, error = create_payment_intent(
+        api_key, Decimal(10), "USD", auto_capture=True
+    )
 
     mocked_payment_intent.create.assert_called_with(
-        api_key=api_key, amount="1000", currency="USD"
+        api_key=api_key,
+        amount="1000",
+        currency="USD",
+        capture_method=AUTOMATIC_CAPTURE_METHOD,
     )
 
     assert isinstance(intent, StripeObject)
     assert error is None
+
+
+@patch(
+    "saleor.payment.gateways.stripe.stripe_api.stripe.PaymentIntent",
+)
+def test_create_payment_intent_manual_auto_capture(mocked_payment_intent):
+    api_key = "api_key"
+    mocked_payment_intent.create.return_value = StripeObject()
+
+    intent, error = create_payment_intent(
+        api_key, Decimal(10), "USD", auto_capture=False
+    )
+
+    mocked_payment_intent.create.assert_called_with(
+        api_key=api_key,
+        amount="1000",
+        currency="USD",
+        capture_method=MANUAL_CAPTURE_METHOD,
+    )
 
 
 @patch(
@@ -93,7 +127,10 @@ def test_create_payment_intent_returns_error(mocked_payment_intent):
     intent, error = create_payment_intent(api_key, Decimal(10), "USD")
 
     mocked_payment_intent.create.assert_called_with(
-        api_key=api_key, amount="1000", currency="USD"
+        api_key=api_key,
+        amount="1000",
+        currency="USD",
+        capture_method=AUTOMATIC_CAPTURE_METHOD,
     )
     assert intent is None
     assert error
@@ -123,9 +160,8 @@ def test_retrieve_payment_intent_stripe_returns_error(mocked_payment_intent):
     api_key = "api_key"
     payment_intent_id = "id1234"
 
-    mocked_payment_intent.retrieve.side_effect = StripeError(
-        json_body={"error": "stripe-error"}
-    )
+    expected_error = StripeError(message="stripe-error")
+    mocked_payment_intent.retrieve.side_effect = expected_error
 
     _, error = retrieve_payment_intent(api_key, payment_intent_id)
 
@@ -133,4 +169,123 @@ def test_retrieve_payment_intent_stripe_returns_error(mocked_payment_intent):
         payment_intent_id, api_key=api_key
     )
 
-    assert error == {"error": "stripe-error"}
+    assert error == expected_error
+
+
+@patch(
+    "saleor.payment.gateways.stripe.stripe_api.stripe.PaymentIntent",
+)
+def test_capture_payment_intent(mocked_payment_intent):
+    api_key = "api_key"
+    payment_intent_id = "id1234"
+    amount = price_to_minor_unit(Decimal("10.0"), "USD")
+
+    mocked_payment_intent.capture.return_value = StripeObject()
+
+    intent, _ = capture_payment_intent(
+        api_key=api_key, payment_intent_id=payment_intent_id, amount_to_capture=amount
+    )
+
+    mocked_payment_intent.capture.assert_called_with(
+        payment_intent_id, amount_to_capture=amount, api_key=api_key
+    )
+    assert isinstance(intent, StripeObject)
+
+
+@patch(
+    "saleor.payment.gateways.stripe.stripe_api.stripe.PaymentIntent",
+)
+def test_capture_payment_intent_stripe_returns_error(mocked_payment_intent):
+    api_key = "api_key"
+    payment_intent_id = "id1234"
+    amount = price_to_minor_unit(Decimal("10.0"), "USD")
+
+    expected_error = StripeError(message="stripe-error")
+    mocked_payment_intent.capture.side_effect = expected_error
+
+    _, error = capture_payment_intent(
+        api_key=api_key, payment_intent_id=payment_intent_id, amount_to_capture=amount
+    )
+
+    mocked_payment_intent.capture.assert_called_with(
+        payment_intent_id, amount_to_capture=amount, api_key=api_key
+    )
+
+    assert error == expected_error
+
+
+@patch(
+    "saleor.payment.gateways.stripe.stripe_api.stripe.Refund",
+)
+def test_refund_payment_intent(mocked_refund):
+    api_key = "api_key"
+    payment_intent_id = "id1234"
+    amount = price_to_minor_unit(Decimal("10.0"), "USD")
+
+    mocked_refund.create.return_value = StripeObject()
+
+    intent, _ = refund_payment_intent(
+        api_key=api_key, payment_intent_id=payment_intent_id, amount_to_refund=amount
+    )
+
+    mocked_refund.create.assert_called_with(
+        payment_intent=payment_intent_id, amount=amount, api_key=api_key
+    )
+    assert isinstance(intent, StripeObject)
+
+
+@patch(
+    "saleor.payment.gateways.stripe.stripe_api.stripe.Refund",
+)
+def test_refund_payment_intent_returns_error(mocked_refund):
+    api_key = "api_key"
+    payment_intent_id = "id1234"
+    amount = price_to_minor_unit(Decimal("10.0"), "USD")
+
+    expected_error = StripeError(message="stripe-error")
+    mocked_refund.create.side_effect = expected_error
+
+    _, error = refund_payment_intent(
+        api_key=api_key, payment_intent_id=payment_intent_id, amount_to_refund=amount
+    )
+
+    mocked_refund.create.assert_called_with(
+        payment_intent=payment_intent_id, amount=amount, api_key=api_key
+    )
+    assert error == expected_error
+
+
+@patch(
+    "saleor.payment.gateways.stripe.stripe_api.stripe.PaymentIntent",
+)
+def test_cancel_payment_intent(mocked_payment_intent):
+    api_key = "api_key"
+    payment_intent_id = "id1234"
+
+    mocked_payment_intent.cancel.return_value = StripeObject()
+
+    intent, _ = cancel_payment_intent(
+        api_key=api_key, payment_intent_id=payment_intent_id
+    )
+
+    mocked_payment_intent.cancel.assert_called_with(payment_intent_id, api_key=api_key)
+    assert isinstance(intent, StripeObject)
+
+
+@patch(
+    "saleor.payment.gateways.stripe.stripe_api.stripe.PaymentIntent",
+)
+def test_cancel_payment_intent_stripe_returns_error(mocked_payment_intent):
+    api_key = "api_key"
+    payment_intent_id = "id1234"
+
+    expected_error = StripeError(message="stripe-error")
+    mocked_payment_intent.cancel.side_effect = expected_error
+
+    _, error = cancel_payment_intent(
+        api_key=api_key, payment_intent_id=payment_intent_id
+    )
+
+    mocked_payment_intent.cancel.assert_called_with(payment_intent_id, api_key=api_key)
+
+    assert error == expected_error
