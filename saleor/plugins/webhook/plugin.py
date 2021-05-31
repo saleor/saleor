@@ -264,10 +264,19 @@ class WebhookPlugin(BasePlugin):
                 event_type,
                 payment_information.gateway,
             )
-            raise PaymentError("Selected payment method is not available.")
+            raise PaymentError(
+                f"Payment method {payment_information.gateway} is not available: "
+                "app not found."
+            )
 
         webhook_payload = generate_payment_payload(payment_information)
         response_data = trigger_webhook_sync(event_type, webhook_payload, app)
+        if not response_data:
+            raise PaymentError(
+                f"Payment method {payment_information.gateway} is not available: "
+                "no response from the app."
+            )
+
         return parse_payment_action_response(
             payment_information, response_data, transaction_kind
         )

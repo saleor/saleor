@@ -273,6 +273,20 @@ def test_run_payment_webhook_inactive_plugin(payment, webhook_plugin):
     assert response == dummy_previous_value
 
 
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+def test_run_payment_webhook_no_response(mock_send_request, payment, webhook_plugin):
+    mock_send_request.return_value = None
+    plugin = webhook_plugin()
+    payment_information = create_payment_information(payment, "token")
+    with pytest.raises(PaymentError):
+        plugin._WebhookPlugin__run_payment_webhook(
+            WebhookEventType.PAYMENT_AUTHORIZE,
+            TransactionKind.AUTH,
+            payment_information,
+            {},
+        )
+
+
 def test_check_plugin_id(payment_app, webhook_plugin):
     plugin = webhook_plugin()
     assert not plugin.check_plugin_id("dummy")
