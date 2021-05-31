@@ -10,11 +10,11 @@ def assing_permissions(apps, schema_editor):
     emit_post_migrate_signal(2, False, "default")
     Group = apps.get_model("auth", "Group")
     Permission = apps.get_model("auth", "Permission")
-    manage_payments = Permission.objects.filter(
-        codename="manage_payments", content_type__app_label="payment"
+    handle_payments = Permission.objects.filter(
+        codename="handle_payments", content_type__app_label="payment"
     ).first()
     for group in Group.objects.iterator():
-        group.permissions.add(manage_payments)
+        group.permissions.add(handle_payments)
 
 
 class Migration(migrations.Migration):
@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
             name="payment",
             options={
                 "ordering": ("pk",),
-                "permissions": (("manage_payments", "Manage payments"),),
+                "permissions": (("handle_payments", "Handle payments"),),
             },
         ),
         migrations.RunPython(assing_permissions, migrations.RunPython.noop),

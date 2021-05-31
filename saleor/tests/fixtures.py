@@ -3019,7 +3019,7 @@ def permission_manage_channels():
 
 @pytest.fixture
 def permission_manage_payments():
-    return Permission.objects.get(codename="manage_payments")
+    return Permission.objects.get(codename="handle_payments")
 
 
 @pytest.fixture

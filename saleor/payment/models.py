@@ -95,8 +95,8 @@ class Payment(models.Model):
         ordering = ("pk",)
         permissions = (
             (
-                PaymentPermissions.MANAGE_PAYMENTS.codename,
-                "Manage payments",
+                PaymentPermissions.HANDLE_PAYMENTS.codename,
+                "Handle payments",
             ),
         )
         indexes = [

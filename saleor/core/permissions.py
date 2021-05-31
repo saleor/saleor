@@ -48,7 +48,7 @@ class OrderPermissions(BasePermissionEnum):
 
 
 class PaymentPermissions(BasePermissionEnum):
-    MANAGE_PAYMENTS = "payment.manage_payments"
+    HANDLE_PAYMENTS = "payment.handle_payments"
 
 
 class PagePermissions(BasePermissionEnum):
