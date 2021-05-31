@@ -294,6 +294,10 @@ class WebhookPlugin(BasePlugin):
             )
             if response_data:
                 app_gateways = parse_list_payment_gateways_response(response_data, app)
+                if currency:
+                    app_gateways = [
+                        gtw for gtw in app_gateways if currency in gtw.currencies
+                    ]
                 gateways.extend(app_gateways)
         return gateways
 

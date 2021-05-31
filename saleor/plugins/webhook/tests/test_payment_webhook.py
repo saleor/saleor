@@ -163,6 +163,24 @@ def test_get_payment_gateways(
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+def test_get_payment_gateways_filters_out_unsupported_currencies(
+    mock_send_request, payment_app, webhook_plugin
+):
+    plugin = webhook_plugin()
+    mock_json_response = [
+        {
+            "id": "credit-card",
+            "name": "Credit Card",
+            "currencies": ["USD", "EUR"],
+            "config": [],
+        }
+    ]
+    mock_send_request.return_value = mock_json_response
+    response_data = plugin.get_payment_gateways("PLN", None, None)
+    assert response_data == []
+
+
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 @mock.patch("saleor.plugins.webhook.plugin.generate_list_gateways_payload")
 def test_get_payment_gateways_for_checkout(
     mock_generate_payload, mock_send_request, checkout, payment_app, webhook_plugin
