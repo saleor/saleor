@@ -1,3 +1,4 @@
+from saleor import store
 from typing import Optional
 
 import opentracing
@@ -12,7 +13,8 @@ from ..app.models import App
 from ..core.exceptions import ReadOnlyException
 from ..core.tracing import should_trace
 from .views import API_PATH, GraphQLView
-
+from django_multitenant.utils import set_current_tenant
+from ..store.models import Store
 
 def get_user(request):
     if not hasattr(request, "_cached_user"):
@@ -28,6 +30,10 @@ class JWTMiddleware:
             return get_user(request) or AnonymousUser()
 
         request.user = SimpleLazyObject(lambda: user())
+
+        if hasattr(request, 'user') and hasattr(request.user, 'store_id'):
+            s_store = Store.objects.get(pk=request.user.store_id)
+            set_current_tenant(s_store)
         return next(root, info, **kwargs)
 
 
@@ -44,11 +50,9 @@ class OpentracingGrapheneMiddleware:
             span.set_tag("graphql.field_name", info.field_name)
             return next_(root, info, **kwargs)
 
-
 def get_app(auth_token) -> Optional[App]:
     qs = App.objects.filter(tokens__auth_token=auth_token, is_active=True)
     return qs.first()
-
 
 def app_middleware(next, root, info, **kwargs):
 

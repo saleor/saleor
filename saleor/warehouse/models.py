@@ -12,9 +12,9 @@ from ..core.models import ModelWithMetadata
 from ..order.models import OrderLine
 from ..product.models import Product, ProductVariant
 from ..shipping.models import ShippingZone
+from django_multitenant.models import TenantManager
 
-
-class WarehouseQueryset(models.QuerySet):
+class WarehouseQueryset(TenantManager):
     def prefetch_data(self):
         return self.select_related("address").prefetch_related("shipping_zones")
 
@@ -45,7 +45,7 @@ class Warehouse(ModelWithMetadata):
     address = models.ForeignKey(Address, on_delete=models.PROTECT)
     email = models.EmailField(blank=True, default="")
 
-    objects = WarehouseQueryset.as_manager()
+    objects = WarehouseQueryset()
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("-slug",)

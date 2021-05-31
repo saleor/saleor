@@ -29,9 +29,10 @@ from ..giftcard.models import GiftCard
 from ..payment import ChargeStatus, TransactionKind
 from ..shipping.models import ShippingMethod
 from . import FulfillmentStatus, OrderEvents, OrderStatus
+from django_multitenant.models import TenantManager
 
 
-class OrderQueryset(models.QuerySet):
+class OrderQueryset(TenantManager):
     def get_by_checkout_token(self, token):
         """Return non-draft order with matched checkout token."""
         return self.confirmed().filter(checkout_token=token).first()
@@ -215,7 +216,7 @@ class Order(ModelWithMetadata):
         measurement=Weight, unit_choices=WeightUnits.CHOICES, default=zero_weight
     )
     redirect_url = models.URLField(blank=True, null=True)
-    objects = OrderQueryset.as_manager()
+    objects = OrderQueryset()
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("-pk",)
@@ -385,7 +386,7 @@ class Order(ModelWithMetadata):
         return self.weight
 
 
-class OrderLineQueryset(models.QuerySet):
+class OrderLineQueryset(TenantManager):
     def digital(self):
         """Return lines with digital products."""
         for line in self.all():
@@ -497,7 +498,7 @@ class OrderLine(models.Model):
         max_digits=5, decimal_places=4, default=Decimal("0.0")
     )
 
-    objects = OrderLineQueryset.as_manager()
+    objects = OrderLineQueryset()
 
     class Meta:
         ordering = ("pk",)

@@ -7,8 +7,7 @@ from ..channel import ChannelQsContext
 from ..utils import get_database_id, get_user_or_app_from_context
 from ..utils.filters import filter_by_period
 from .filters import filter_products_by_stock_availability
-from django_multitenant.utils import set_current_tenant
-from ...store import models as store_models
+from django_multitenant.utils import get_current_tenant
 
 def resolve_category_by_slug(slug):
     return models.Category.objects.filter(slug=slug).first()
@@ -67,11 +66,11 @@ def resolve_product_by_slug(info, product_slug, channel_slug, requestor):
 def resolve_products(
     info, requestor, stock_availability=None, channel_slug=None, **_kwargs
 ) -> ChannelQsContext:
-    s = store_models.Store.objects.all()[0]
-    print('-----', s)
-    set_current_tenant(s)
+    # s = store_models.Store.objects.all()[0]
+    # print('-----', s)
+    s = get_current_tenant()
+    print('sssssssss', s)
     qs = models.Product.objects.visible_to_user(requestor, channel_slug)
-    # qs = models.Product.objects.filter(product_type_id=7)
     if stock_availability:
         qs = filter_products_by_stock_availability(qs, stock_availability)
     if not requestor_is_staff_member_or_app(requestor):

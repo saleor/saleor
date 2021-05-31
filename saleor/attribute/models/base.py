@@ -34,6 +34,15 @@ class BaseAssignedAttribute(models.Model):
         return self.assignment.attribute_id
 
 
+class SimpleBaseAttributeQuerySet(models.QuerySet):
+    def get_public_attributes(self):
+        raise NotImplementedError
+
+    def get_visible_to_user(self, requestor: Union["User", "App"]):
+        if requestor_is_staff_member_or_app(requestor):
+            return self.all()
+        return self.get_public_attributes()
+
 class BaseAttributeQuerySet(TenantManager):
     def get_public_attributes(self):
         raise NotImplementedError
@@ -44,7 +53,7 @@ class BaseAttributeQuerySet(TenantManager):
         return self.get_public_attributes()
 
 
-class AssociatedAttributeQuerySet(BaseAttributeQuerySet):
+class AssociatedAttributeQuerySet(SimpleBaseAttributeQuerySet):
     def get_public_attributes(self):
         return self.filter(attribute__visible_in_storefront=True)
 

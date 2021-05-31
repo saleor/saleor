@@ -55,7 +55,7 @@ class MenuItem(ModelWithMetadata, MPTTModel, SortableModel):
     )
     page = models.ForeignKey(Page, blank=True, null=True, on_delete=models.CASCADE)
 
-    objects = models.Manager()
+    # objects = models.Manager()
     tree = TreeManager()
     translated = TranslationProxy()
 

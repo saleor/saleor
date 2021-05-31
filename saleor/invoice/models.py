@@ -10,9 +10,9 @@ from ..core.utils import build_absolute_uri
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..order.models import Order
 from . import InvoiceEvents
+from django_multitenant.models import TenantManager
 
-
-class InvoiceQueryset(models.QuerySet):
+class InvoiceQueryset(TenantManager):
     def ready(self):
         return self.filter(job__status=JobStatus.SUCCESS)
 
@@ -33,7 +33,7 @@ class Invoice(ModelWithMetadata, Job):
     created = models.DateTimeField(null=True)
     external_url = models.URLField(null=True, max_length=2048)
     invoice_file = models.FileField(upload_to="invoices")
-    objects = InvoiceQueryset.as_manager()
+    objects = InvoiceQueryset()
 
     @property
     def url(self):
