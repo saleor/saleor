@@ -28,6 +28,9 @@ QUERY_FETCH_ALL_PRODUCTS = """
                     isAvailable
                     availableForPurchase
                     isAvailableForPurchase
+                    variants{
+                        id
+                    }
                 }
             }
         }
@@ -143,6 +146,49 @@ def test_get_collections_from_product_as_anonymous(
     collections = content["data"]["product"]["collections"]
     assert len(collections) == 1
     assert {"name": published_collection.name} in collections
+    assert any(
+        [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
+    )
+
+
+QUERY_FETCH_ALL_VARIANTS = """
+    query fetchAllVariants {
+        productVariants(first: 10) {
+            totalCount
+            edges {
+                node {
+                    id
+                    trackInventory
+                    quantityAvailable
+                    sku
+                    pricing {
+                        price {
+                            net {
+                                amount
+                            }
+                            gross {
+                                amount
+                            }
+                        }
+                    }
+                    product {
+                        id
+                    }
+                }
+            }
+        }
+    }
+"""
+
+
+def test_fetch_all_variants(api_client, product_variant_list, channel_PLN):
+    channel_PLN.delete()
+    with warnings.catch_warnings(record=True) as warns:
+        response = api_client.post_graphql(QUERY_FETCH_ALL_VARIANTS)
+
+    content = get_graphql_content(response)
+    data = content["data"]["productVariants"]
+    assert data["totalCount"] == len(product_variant_list)
     assert any(
         [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
     )
