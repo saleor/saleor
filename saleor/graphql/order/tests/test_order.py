@@ -1266,7 +1266,7 @@ DRAFT_ORDER_CREATE_MUTATION = """
                 lines: $lines, shippingAddress: $shippingAddress,
                 billingAddress: $billingAddress,
                 shippingMethod: $shippingMethod, voucher: $voucher,
-                channel: $channel,
+                channelId: $channel,
                 redirectUrl: $redirectUrl,
                 customerNote: $customerNote}) {
                     errors {
@@ -2111,7 +2111,7 @@ DRAFT_UPDATE_QUERY = """
                 input: {
                     voucher: $voucher,
                     customerNote: $customerNote
-                    channel: $channel
+                    channelId: $channel
                 }) {
                 errors {
                     field
@@ -2150,7 +2150,7 @@ def test_draft_order_update_existing_channel_id(
     error = content["data"]["draftOrderUpdate"]["errors"][0]
 
     assert error["code"] == OrderErrorCode.NOT_EDITABLE.name
-    assert error["field"] == "channel"
+    assert error["field"] == "channelId"
 
 
 def test_draft_order_update_voucher_not_available(
