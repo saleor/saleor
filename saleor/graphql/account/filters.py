@@ -2,7 +2,7 @@ import django_filters
 from django.db.models import Count
 
 from ...account.models import User
-from ..core.filters import EnumFilter, ObjectTypeFilter
+from ..core.filters import EnumFilter, MetadataFilterBase, ObjectTypeFilter
 from ..core.types.common import DateRangeInput, IntRangeInput
 from ..utils.filters import filter_by_query_param, filter_range_field
 from .enums import StaffMemberStatus
@@ -52,7 +52,7 @@ def filter_search(qs, _, value):
     return qs
 
 
-class CustomerFilter(django_filters.FilterSet):
+class CustomerFilter(MetadataFilterBase):
     date_joined = ObjectTypeFilter(
         input_class=DateRangeInput, method=filter_date_joined
     )
