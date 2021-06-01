@@ -37,7 +37,7 @@ def resolve_customers(info, query, **_kwargs):
     qs = filter_by_query_param(
         queryset=qs, query=query, search_fields=USER_SEARCH_FIELDS
     )
-    return qs.distinct()
+    return qs
 
 
 @traced_resolver

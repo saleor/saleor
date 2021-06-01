@@ -4247,8 +4247,6 @@ def test_query_customers_with_sort(
         ({"search": "wroc"}, 1),  # default_shipping_address__city
         ({"search": "pl"}, 2),  # default_shipping_address__country, email
         ({"search": "+48713988102"}, 1),
-        ({"search": "7139881"}, 1),
-        ({"search": "+48713"}, 1),
     ],
 )
 def test_query_customer_members_with_filter_search(
