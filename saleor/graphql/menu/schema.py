@@ -68,10 +68,10 @@ class MenuQueries(graphene.ObjectType):
             info, channel, data.get("id"), data.get("name"), data.get("slug")
         )
 
-    def resolve_menus(self, info, query=None, channel=None, **kwargs):
+    def resolve_menus(self, info, channel=None, **kwargs):
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
-        return resolve_menus(info, channel, query, **kwargs)
+        return resolve_menus(info, channel, **kwargs)
 
     def resolve_menu_item(self, info, channel=None, **data):
         if channel is None:
@@ -81,10 +81,10 @@ class MenuQueries(graphene.ObjectType):
         )
         return ChannelContext(node=menu_item, channel_slug=channel)
 
-    def resolve_menu_items(self, info, query=None, channel=None, **kwargs):
+    def resolve_menu_items(self, info, channel=None, **kwargs):
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
-        menu_items = resolve_menu_items(info, query, **kwargs)
+        menu_items = resolve_menu_items(info, **kwargs)
         return ChannelQsContext(qs=menu_items, channel_slug=channel)
 
 
