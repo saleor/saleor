@@ -102,6 +102,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Trigger `checkout_updated` hook for checkout meta mutations - #7392 by @maarcingebala
 - Optimize `inputType` resolver on `AttributeValue` type - 7396 by @tomaszszymanski129
 - Allow filtering pages by ids - #7393 by @IKarbowiak
+- Refactor account filters - 7419 by @tomaszszymanski129
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
