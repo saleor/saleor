@@ -3372,7 +3372,10 @@ def test_create_product_with_file_attribute(
                 {
                     "name": existing_value.name,
                     "slug": f"{existing_value.slug}-2",
-                    "file": {"url": existing_value.file_url, "contentType": None},
+                    "file": {
+                        "url": f"http://testserver/media/{existing_value.file_url}",
+                        "contentType": None,
+                    },
                     "reference": None,
                     "richText": None,
                 }
@@ -4970,7 +4973,7 @@ def test_update_product_with_file_attribute_value_new_value_is_not_created(
                 "slug": existing_value.slug,
                 "reference": None,
                 "file": {
-                    "url": existing_value.file_url,
+                    "url": f"http://testserver/media/{existing_value.file_url}",
                     "contentType": existing_value.content_type,
                 },
             }
@@ -6187,6 +6190,39 @@ def test_delete_product_trigger_webhook(
     mocked_recalculate_orders_task.assert_not_called()
 
 
+@patch("saleor.attribute.signals.delete_from_storage_task.delay")
+@patch("saleor.order.tasks.recalculate_orders_task.delay")
+def test_delete_product_with_file_attribute(
+    mocked_recalculate_orders_task,
+    delete_from_storage_task_mock,
+    staff_api_client,
+    product,
+    permission_manage_products,
+    file_attribute,
+):
+    query = DELETE_PRODUCT_MUTATION
+    product_type = product.product_type
+    product_type.product_attributes.add(file_attribute)
+    existing_value = file_attribute.values.first()
+    associate_attribute_values_to_instance(product, file_attribute, existing_value)
+
+    node_id = graphene.Node.to_global_id("Product", product.id)
+    variables = {"id": node_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productDelete"]
+    assert data["product"]["name"] == product.name
+    with pytest.raises(product._meta.model.DoesNotExist):
+        product.refresh_from_db()
+    assert node_id == data["product"]["id"]
+    mocked_recalculate_orders_task.assert_not_called()
+    with pytest.raises(existing_value._meta.model.DoesNotExist):
+        existing_value.refresh_from_db()
+    delete_from_storage_task_mock.assert_called_once_with(existing_value.file_url)
+
+
 def test_delete_product_removes_checkout_lines(
     staff_api_client,
     checkout_with_items,
@@ -7131,6 +7167,43 @@ def test_product_type_delete_mutation_deletes_also_images(
     with pytest.raises(product_type._meta.model.DoesNotExist):
         product_type.refresh_from_db()
     delete_versatile_image_mock.assert_called_once_with(media_obj.image.name)
+
+
+@patch("saleor.attribute.signals.delete_from_storage_task.delay")
+def test_product_type_delete_with_file_attributes(
+    delete_from_storage_task_mock,
+    staff_api_client,
+    product_with_variant_with_file_attribute,
+    file_attribute,
+    permission_manage_product_types_and_attributes,
+):
+    query = PRODUCT_TYPE_DELETE_MUTATION
+    product_type = product_with_variant_with_file_attribute.product_type
+
+    product_type.product_attributes.add(file_attribute)
+    associate_attribute_values_to_instance(
+        product_with_variant_with_file_attribute,
+        file_attribute,
+        file_attribute.values.last(),
+    )
+    values = list(file_attribute.values.all())
+
+    variables = {"id": graphene.Node.to_global_id("ProductType", product_type.id)}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productTypeDelete"]
+    assert data["productType"]["name"] == product_type.name
+    with pytest.raises(product_type._meta.model.DoesNotExist):
+        product_type.refresh_from_db()
+    for value in values:
+        with pytest.raises(value._meta.model.DoesNotExist):
+            value.refresh_from_db()
+    assert delete_from_storage_task_mock.call_count == len(values)
+    assert set(
+        data.args[0] for data in delete_from_storage_task_mock.call_args_list
+    ) == {v.file_url for v in values}
 
 
 def test_product_type_delete_mutation_variants_in_draft_order(
