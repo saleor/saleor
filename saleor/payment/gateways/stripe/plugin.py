@@ -127,16 +127,24 @@ class StripeGatewayPlugin(BasePlugin):
     def get_supported_currencies(self, previous_value):
         return get_supported_currencies(self.config, PLUGIN_NAME)
 
+    @property
+    def order_auto_confirmation(self):
+        site_settings = Site.objects.get_current().settings
+        return site_settings.automatically_confirm_all_new_orders
+
     @require_active_plugin
     def process_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
 
+        auto_capture = self.config.auto_capture
+        if self.order_auto_confirmation is False:
+            auto_capture = False
         intent, error = create_payment_intent(
             api_key=self.config.connection_params["secret_api_key"],
             amount=payment_information.amount,
             currency=payment_information.currency,
-            auto_capture=self.config.auto_capture,
+            auto_capture=auto_capture,
         )
         raw_response = None
         client_secret = None
