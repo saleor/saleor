@@ -4,4 +4,4 @@ from ...payment import models
 
 @traced_resolver
 def resolve_payments(info):
-    return models.Payment.objects.all().distinct()
+    return models.Payment.objects.all()
