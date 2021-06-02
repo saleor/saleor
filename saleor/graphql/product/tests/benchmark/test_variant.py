@@ -184,7 +184,7 @@ def test_product_variant_create(
             $productId: ID!,
             $sku: String,
             $stocks: [StockInput!],
-            $attributes: [AttributeValueInput]!,
+            $attributes: [AttributeValueInput!]!,
             $weight: WeightScalar,
             $trackInventory: Boolean
         ) {
@@ -287,7 +287,7 @@ def test_update_product_variant(
     query = """
         mutation VariantUpdate(
             $id: ID!
-            $attributes: [AttributeValueInput]
+            $attributes: [AttributeValueInput!]
             $sku: String
             $trackInventory: Boolean!
         ) {

@@ -733,7 +733,7 @@ class ProductDelete(ModelDeleteMutation):
 
 class ProductVariantInput(graphene.InputObjectType):
     attributes = graphene.List(
-        AttributeValueInput,
+        graphene.NonNull(AttributeValueInput),
         required=False,
         description="List of attributes specific to this variant.",
     )
@@ -749,7 +749,7 @@ class ProductVariantInput(graphene.InputObjectType):
 
 class ProductVariantCreateInput(ProductVariantInput):
     attributes = graphene.List(
-        AttributeValueInput,
+        graphene.NonNull(AttributeValueInput),
         required=True,
         description="List of attributes specific to this variant.",
     )

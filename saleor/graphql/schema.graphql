@@ -628,7 +628,7 @@ type AttributeValueDelete {
 
 input AttributeValueInput {
   id: ID
-  values: [String]
+  values: [String!]
   file: String
   contentType: String
   references: [ID!]
@@ -669,7 +669,7 @@ type AttributeValueUpdate {
 
 input BulkAttributeValueInput {
   id: ID
-  values: [String]!
+  values: [String!]!
 }
 
 type BulkProductError {
@@ -4542,7 +4542,7 @@ type ProductVariantBulkCreate {
 }
 
 input ProductVariantBulkCreateInput {
-  attributes: [BulkAttributeValueInput]!
+  attributes: [BulkAttributeValueInput!]!
   sku: String!
   trackInventory: Boolean
   weight: WeightScalar
@@ -4594,7 +4594,7 @@ type ProductVariantCreate {
 }
 
 input ProductVariantCreateInput {
-  attributes: [AttributeValueInput]!
+  attributes: [AttributeValueInput!]!
   sku: String
   trackInventory: Boolean
   weight: WeightScalar
@@ -4615,7 +4615,7 @@ input ProductVariantFilterInput {
 }
 
 input ProductVariantInput {
-  attributes: [AttributeValueInput]
+  attributes: [AttributeValueInput!]
   sku: String
   trackInventory: Boolean
   weight: WeightScalar

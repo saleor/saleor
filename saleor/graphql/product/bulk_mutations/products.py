@@ -158,7 +158,7 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
 class BulkAttributeValueInput(InputObjectType):
     id = graphene.ID(description="ID of the selected attribute.")
     values = graphene.List(
-        graphene.String,
+        graphene.NonNull(graphene.String),
         required=True,
         description=(
             "The value or slug of an attribute to resolve. "
@@ -169,7 +169,7 @@ class BulkAttributeValueInput(InputObjectType):
 
 class ProductVariantBulkCreateInput(ProductVariantInput):
     attributes = graphene.List(
-        BulkAttributeValueInput,
+        graphene.NonNull(BulkAttributeValueInput),
         required=True,
         description="List of attributes specific to this variant.",
     )
