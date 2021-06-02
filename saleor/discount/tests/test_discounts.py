@@ -29,21 +29,10 @@ from ..utils import (
 )
 
 
-@pytest.mark.parametrize(
-    "min_spent_amount, value, tax_included",
-    [
-        (Money(7, "USD"), TaxedMoney(net=Money(5, "USD"), gross=Money(7, "USD")), True),
-        (
-            Money(5, "USD"),
-            TaxedMoney(net=Money(5, "USD"), gross=Money(7, "USD")),
-            False,
-        ),
-    ],
-)
-def test_valid_voucher_min_spent_amount(
-    min_spent_amount, value, tax_included, channel_USD, site_settings
+def test_valid_voucher_min_spent_amount_with_display_gross_prices(
+    channel_USD, site_settings
 ):
-    site_settings.include_taxes_in_prices = tax_included
+    site_settings.display_gross_prices = True
     site_settings.save()
 
     voucher = Voucher.objects.create(
@@ -55,10 +44,34 @@ def test_valid_voucher_min_spent_amount(
         voucher=voucher,
         channel=channel_USD,
         discount=Money(10, "USD"),
-        min_spent=min_spent_amount,
+        min_spent=Money(7, "USD"),
     )
+    value = TaxedMoney(net=Money(5, "USD"), gross=Money(7, "USD"))
 
     voucher.validate_min_spent(value, channel_USD)
+
+
+def test_valid_voucher_min_spent_amount_without_display_gross_prices(
+    channel_USD, site_settings
+):
+    site_settings.display_gross_prices = False
+    site_settings.save()
+
+    voucher = Voucher.objects.create(
+        code="unique",
+        type=VoucherType.SHIPPING,
+        discount_value_type=DiscountValueType.FIXED,
+    )
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(10, "USD"),
+        min_spent=Money(7, "USD"),
+    )
+    value = TaxedMoney(net=Money(5, "USD"), gross=Money(7, "USD"))
+
+    with pytest.raises(NotApplicable):
+        voucher.validate_min_spent(value, channel_USD)
 
 
 def test_valid_voucher_min_spent_amount_voucher_not_assigned_to_channel(

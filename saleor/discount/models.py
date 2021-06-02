@@ -13,7 +13,7 @@ from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 
 from ..channel.models import Channel
 from ..core.permissions import DiscountPermissions
-from ..core.taxes import include_taxes_in_prices
+from ..core.taxes import display_gross_prices
 from ..core.utils.translations import TranslationProxy
 from . import DiscountValueType, OrderDiscountType, VoucherType
 
@@ -117,7 +117,7 @@ class Voucher(models.Model):
         return price - after_discount
 
     def validate_min_spent(self, value: TaxedMoney, channel: Channel):
-        value = value.gross if include_taxes_in_prices else value.net
+        value = value.gross if display_gross_prices() else value.net
         voucher_channel_listing = self.channel_listings.filter(channel=channel).first()
         if not voucher_channel_listing:
             raise NotApplicable("This voucher is not assigned to this channel")
