@@ -495,7 +495,10 @@ def test_create_page_with_file_attribute(
             {
                 "slug": f"{attr_value.slug}-2",
                 "name": attr_value.name,
-                "file": {"url": attr_value.file_url, "contentType": None},
+                "file": {
+                    "url": f"http://testserver/media/{attr_value.file_url}",
+                    "contentType": None,
+                },
                 "reference": None,
             }
         ],
@@ -1062,6 +1065,38 @@ def test_page_delete_trigger_webhook(
     )
 
 
+@mock.patch("saleor.attribute.signals.delete_from_storage_task.delay")
+def test_page_delete_with_file_attribute(
+    delete_from_storage_task_mock,
+    staff_api_client,
+    page,
+    permission_manage_pages,
+    page_file_attribute,
+):
+    # given
+    page_type = page.page_type
+    page_type.page_attributes.add(page_file_attribute)
+    existing_value = page_file_attribute.values.first()
+    associate_attribute_values_to_instance(page, page_file_attribute, existing_value)
+
+    variables = {"id": graphene.Node.to_global_id("Page", page.id)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        PAGE_DELETE_MUTATION, variables, permissions=[permission_manage_pages]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["pageDelete"]
+    assert data["page"]["title"] == page.title
+    with pytest.raises(page._meta.model.DoesNotExist):
+        page.refresh_from_db()
+    with pytest.raises(existing_value._meta.model.DoesNotExist):
+        existing_value.refresh_from_db()
+    delete_from_storage_task_mock.assert_called_once_with(existing_value.file_url)
+
+
 UPDATE_PAGE_MUTATION = """
     mutation updatePage(
         $id: ID!, $input: PageInput!
@@ -1303,7 +1338,7 @@ def test_update_page_with_file_attribute_new_value_is_not_created(
                 "name": existing_value.name,
                 "reference": None,
                 "file": {
-                    "url": existing_value.file_url,
+                    "url": f"http://testserver/media/{existing_value.file_url}",
                     "contentType": existing_value.content_type,
                 },
             }
@@ -1878,10 +1913,10 @@ QUERY_PAGES_WITH_FILTER = """
 @pytest.mark.parametrize(
     "page_filter, count",
     [
-        ({"search": "Page1"}, 1),
-        ({"search": "slug_page_2"}, 1),
+        ({"search": "Page1"}, 2),
+        ({"search": "about"}, 1),
         ({"search": "test"}, 1),
-        ({"search": "slug_"}, 3),
+        ({"search": "slug"}, 3),
         ({"search": "Page"}, 2),
     ],
 )

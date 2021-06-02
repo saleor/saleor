@@ -1,3 +1,5 @@
+import os
+import secrets
 from itertools import chain
 from typing import Tuple, Union
 
@@ -643,7 +645,13 @@ class FileUpload(BaseMutation):
     @staff_member_or_app_required
     def perform_mutation(cls, _root, info, **data):
         file_data = info.context.FILES.get(data["file"])
-        path = default_storage.save(file_data._name, file_data.file)
+
+        # add unique text fragment to the file name to prevent file overriding
+        file_name, format = os.path.splitext(file_data._name)
+        hash = secrets.token_hex(nbytes=4)
+        new_name = f"file_upload/{file_name}_{hash}{format}"
+
+        path = default_storage.save(new_name, file_data.file)
 
         return FileUpload(
             uploaded_file=File(url=path, content_type=file_data.content_type)

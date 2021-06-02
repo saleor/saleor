@@ -1911,7 +1911,10 @@ def test_update_product_variant_with_file_attribute_new_value_is_not_created(
     value_data = variant_data["attributes"][0]["values"][0]
     assert value_data["slug"] == existing_value.slug
     assert value_data["name"] == existing_value.name
-    assert value_data["file"]["url"] == existing_value.file_url
+    assert (
+        value_data["file"]["url"]
+        == f"http://testserver/media/{existing_value.file_url}"
+    )
     assert value_data["file"]["contentType"] == existing_value.content_type
 
 
@@ -2301,6 +2304,45 @@ def test_delete_variant_with_image(
         variant.refresh_from_db()
     mocked_recalculate_orders_task.assert_not_called()
     delete_versatile_image_mock.assert_not_called()
+
+
+@patch("saleor.attribute.signals.delete_from_storage_task.delay")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_deleted")
+@patch("saleor.order.tasks.recalculate_orders_task.delay")
+def test_delete_variant_with_file_attribute(
+    mocked_recalculate_orders_task,
+    product_variant_deleted_webhook_mock,
+    delete_from_storage_task_mock,
+    staff_api_client,
+    product,
+    permission_manage_products,
+    file_attribute,
+):
+    query = DELETE_VARIANT_MUTATION
+    variant = product.variants.first()
+
+    product_type = product.product_type
+    product_type.variant_attributes.add(file_attribute)
+    existing_value = file_attribute.values.first()
+    associate_attribute_values_to_instance(variant, file_attribute, existing_value)
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {"id": variant_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    flush_post_commit_hooks()
+    data = content["data"]["productVariantDelete"]
+
+    product_variant_deleted_webhook_mock.assert_called_once_with(variant)
+    assert data["productVariant"]["sku"] == variant.sku
+    with pytest.raises(variant._meta.model.DoesNotExist):
+        variant.refresh_from_db()
+    mocked_recalculate_orders_task.assert_not_called()
+    with pytest.raises(existing_value._meta.model.DoesNotExist):
+        existing_value.refresh_from_db()
+    delete_from_storage_task_mock.assert_called_once_with(existing_value.file_url)
 
 
 @patch("saleor.order.tasks.recalculate_orders_task.delay")

@@ -848,7 +848,7 @@ type ChannelDelete {
 }
 
 input ChannelDeleteInput {
-  targetChannel: ID!
+  channelId: ID!
 }
 
 type ChannelError {
@@ -865,7 +865,6 @@ enum ChannelErrorCode {
   NOT_FOUND
   REQUIRED
   UNIQUE
-  CHANNEL_TARGET_ID_MUST_BE_DIFFERENT
   CHANNELS_CURRENCY_MUST_BE_THE_SAME
   CHANNEL_WITH_ORDERS
   DUPLICATED_INPUT_ITEM
@@ -1842,7 +1841,7 @@ input DraftOrderCreateInput {
   shippingMethod: ID
   voucher: ID
   customerNote: String
-  channel: ID
+  channelId: ID
   redirectUrl: String
   lines: [OrderLineCreateInput]
 }
@@ -1862,7 +1861,7 @@ input DraftOrderInput {
   shippingMethod: ID
   voucher: ID
   customerNote: String
-  channel: ID
+  channelId: ID
   redirectUrl: String
 }
 
@@ -2823,7 +2822,7 @@ type Mutation {
   giftCardCreate(input: GiftCardCreateInput!): GiftCardCreate
   giftCardDeactivate(id: ID!): GiftCardDeactivate
   giftCardUpdate(id: ID!, input: GiftCardUpdateInput!): GiftCardUpdate
-  pluginUpdate(channel: ID, id: ID!, input: PluginUpdateInput!): PluginUpdate
+  pluginUpdate(channelId: ID, id: ID!, input: PluginUpdateInput!): PluginUpdate
   saleCreate(input: SaleInput!): SaleCreate
   saleDelete(id: ID!): SaleDelete
   saleBulkDelete(ids: [ID]!): SaleBulkDelete
