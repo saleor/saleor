@@ -26,6 +26,9 @@ def test_menu_items_collection_without_providing_channel(
             page {
                 id
             }
+            menu {
+                id
+            }
             url
         }
     }
