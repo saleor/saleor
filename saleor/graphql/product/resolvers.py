@@ -4,6 +4,7 @@ from ...account.utils import requestor_is_staff_member_or_app
 from ...channel.models import Channel
 from ...core.tracing import traced_resolver
 from ...order import OrderStatus
+from ...order.models import Order
 from ...product import models
 from ..channel import ChannelQsContext
 from ..core.utils import from_global_id_or_error
@@ -143,16 +144,24 @@ def resolve_product_variants(
 def resolve_report_product_sales(period, channel_slug) -> ChannelQsContext:
     qs = models.ProductVariant.objects.all()
 
-    # exclude draft and canceled orders
-    exclude_status = [OrderStatus.DRAFT, OrderStatus.CANCELED]
-    qs = qs.exclude(order_lines__order__status__in=exclude_status)
-
     # filter by period
     qs = filter_by_period(qs, period, "order_lines__order__created")
 
+    # annotate quantity
     qs = qs.annotate(quantity_ordered=Sum("order_lines__quantity"))
-    qs = qs.filter(
-        quantity_ordered__isnull=False, order_lines__order__channel__slug=channel_slug
+
+    # filter by channel and order status
+    channels = Channel.objects.filter(slug=channel_slug).values("pk")
+    exclude_status = [OrderStatus.DRAFT, OrderStatus.CANCELED]
+    orders = Order.objects.exclude(status__in=exclude_status).filter(
+        Exists(channels.filter(pk=OuterRef("channel_id")).values("pk"))
     )
+    qs = qs.filter(
+        Exists(orders.filter(pk=OuterRef("order_lines__order_id"))),
+        quantity_ordered__isnull=False,
+    )
+
+    # order by quantity ordered
     qs = qs.order_by("-quantity_ordered")
+
     return ChannelQsContext(qs=qs, channel_slug=channel_slug)
