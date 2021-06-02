@@ -297,7 +297,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
         return AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
             info.context
-        ).load((root.node.id, country_code, root.channel_slug))
+        ).load((root.node.id, country_code, str(root.channel_slug)))
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)

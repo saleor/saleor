@@ -1,3 +1,6 @@
+import os
+from urllib.parse import urlparse
+
 from django.core.files.storage import default_storage
 
 from ....product.tests.utils import create_image
@@ -38,11 +41,14 @@ def test_file_upload_by_staff(staff_api_client, site_settings, media_root):
     data = content["data"]["fileUpload"]
     errors = data["errors"]
 
-    expected_path = "http://testserver/media/" + image_file._name
     assert not errors
     assert data["uploadedFile"]["contentType"] == "image/png"
-    assert data["uploadedFile"]["url"] == expected_path
-    assert default_storage.exists(image_file._name)
+    file_name, format = os.path.splitext(image_file._name)
+    returned_url = data["uploadedFile"]["url"]
+    file_path = urlparse(returned_url).path
+    assert file_path.startswith(f"/media/file_upload/{file_name}")
+    assert file_path.endswith(format)
+    assert default_storage.exists(file_path.lstrip("/media"))
 
 
 def test_file_upload_by_customer(user_api_client, media_root):
@@ -76,11 +82,14 @@ def test_file_upload_by_app(app_api_client, media_root):
     data = content["data"]["fileUpload"]
     errors = data["errors"]
 
-    expected_path = "http://testserver/media/" + image_file._name
     assert not errors
     assert data["uploadedFile"]["contentType"] == "image/png"
-    assert data["uploadedFile"]["url"] == expected_path
-    assert default_storage.exists(image_file._name)
+    file_name, format = os.path.splitext(image_file._name)
+    returned_url = data["uploadedFile"]["url"]
+    file_path = urlparse(returned_url).path
+    assert file_path.startswith(f"/media/file_upload/{file_name}")
+    assert file_path.endswith(format)
+    assert default_storage.exists(file_path.lstrip("/media"))
 
 
 def test_file_upload_by_superuser(superuser_api_client, media_root):
@@ -99,11 +108,14 @@ def test_file_upload_by_superuser(superuser_api_client, media_root):
     data = content["data"]["fileUpload"]
     errors = data["errors"]
 
-    expected_path = "http://testserver/media/" + image_file._name
     assert not errors
     assert data["uploadedFile"]["contentType"] == "image/png"
-    assert data["uploadedFile"]["url"] == expected_path
-    assert default_storage.exists(image_file._name)
+    file_name, format = os.path.splitext(image_file._name)
+    returned_url = data["uploadedFile"]["url"]
+    file_path = urlparse(returned_url).path
+    assert file_path.startswith(f"/media/file_upload/{file_name}")
+    assert file_path.endswith(format)
+    assert default_storage.exists(file_path.lstrip("/media"))
 
 
 def test_file_upload_file_with_the_same_name_already_exists(
