@@ -31,7 +31,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Support setting value for AttributeValue mutations - #7037 by @piotrgrundas
 - Validate discount value for percentage vouchers and sales - #7033 by @d-wysocki
 - Optimize children field on Category type - #7045 by @IKarbowiak
-- Added support for querying objects by metadata fields - #6683 by @LeOndaz
+- Added support for querying objects by metadata fields - #6683 by @LeOndaz, #7421 by @korycins
 - Add rich text attribute input - #7059 by @piotrgrundas
 - Avoid using `get_plugins_manager` method - #7052 by @IKarbowiak
 - Add field `languageCode` to types: `AccountInput`, `AccountRegisterInput`, `CheckoutCreateInput`, `CustomerInput`, `Order`, `User`. Add field `languageCodeEnum` to `Order` type. Add new mutation `CheckoutLanguageCodeUpdate`. Deprecate field `Order.languageCode`.  - #6609 by @korycins
