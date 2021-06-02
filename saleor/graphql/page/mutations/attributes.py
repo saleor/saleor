@@ -3,10 +3,10 @@ from typing import Dict, List
 
 import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.db import transaction
 
 from ....attribute import AttributeType, models
 from ....core.permissions import PagePermissions, PageTypePermissions
+from ....core.tracing import traced_atomic_transaction
 from ....page import models as page_models
 from ....page.error_codes import PageErrorCode
 from ...attribute.mutations import (
@@ -198,7 +198,7 @@ class PageTypeReorderAttributes(BaseReorderAttributesMutation):
             error.code = PageErrorCode.NOT_FOUND.value
             raise ValidationError({"moves": error})
 
-        with transaction.atomic():
+        with traced_atomic_transaction():
             perform_reordering(page_attributes, operations)
 
         return PageTypeReorderAttributes(page_type=page_type)

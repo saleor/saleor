@@ -22,6 +22,19 @@ class AttributeInputType:
     # list of the input types that can be used in variant selection
     ALLOWED_IN_VARIANT_SELECTION = [DROPDOWN]
 
+    TYPES_WITH_CHOICES = [
+        DROPDOWN,
+        MULTISELECT,
+    ]
+
+    # list of the input types that are unique per instances
+    TYPES_WITH_UNIQUE_VALUES = [
+        FILE,
+        REFERENCE,
+        RICH_TEXT,
+        NUMERIC,
+    ]
+
 
 # list of input types that are allowed for given attribute property
 ATTRIBUTE_PROPERTIES_CONFIGURATION = {

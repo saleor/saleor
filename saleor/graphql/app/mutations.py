@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 
 from ...app import models
 from ...app.error_codes import AppErrorCode
+from ...app.installation_utils import REQUEST_TIMEOUT
 from ...app.tasks import install_app_task
 from ...app.validators import AppURLValidator
 from ...core import JobStatus
@@ -421,9 +422,13 @@ class AppFetchManifest(BaseMutation):
     @classmethod
     def fetch_manifest(cls, manifest_url):
         try:
-            response = requests.get(manifest_url)
+            response = requests.get(manifest_url, timeout=REQUEST_TIMEOUT)
             response.raise_for_status()
             return response.json()
+        except requests.Timeout:
+            msg = "The request to fetch manifest data timed out."
+            code = AppErrorCode.MANIFEST_URL_CANT_CONNECT.value
+            raise ValidationError({"manifest_url": ValidationError(msg, code=code)})
         except requests.HTTPError:
             msg = "Unable to fetch manifest data."
             code = AppErrorCode.MANIFEST_URL_CANT_CONNECT.value

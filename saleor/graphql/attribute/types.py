@@ -2,16 +2,16 @@ import re
 
 import graphene
 
-from ...attribute import AttributeInputType, models
+from ...attribute import AttributeInputType, AttributeType, models
+from ...core.exceptions import PermissionDenied
+from ...core.permissions import PagePermissions, ProductPermissions
 from ...core.tracing import traced_resolver
+from ...graphql.utils import get_user_or_app_from_context
 from ..core.connection import CountableDjangoObjectType
 from ..core.enums import MeasurementUnitsEnum
 from ..core.types import File
 from ..core.types.common import IntRangeInput
-from ..decorators import (
-    check_attribute_required_permissions,
-    check_attribute_value_required_permissions,
-)
+from ..decorators import check_attribute_required_permissions
 from ..meta.types import ObjectWithMetadata
 from ..translations.fields import TranslationField
 from ..translations.types import AttributeTranslation, AttributeValueTranslation
@@ -46,10 +46,22 @@ class AttributeValue(CountableDjangoObjectType):
         model = models.AttributeValue
 
     @staticmethod
-    @traced_resolver
-    @check_attribute_value_required_permissions()
-    def resolve_input_type(root: models.AttributeValue, *_args):
-        return root.input_type
+    def resolve_input_type(root: models.AttributeValue, info, *_args):
+        def _resolve_input_type(attribute):
+            requester = get_user_or_app_from_context(info.context)
+            if attribute.type == AttributeType.PAGE_TYPE:
+                if requester.has_perm(PagePermissions.MANAGE_PAGES):
+                    return attribute.input_type
+                raise PermissionDenied()
+            elif requester.has_perm(ProductPermissions.MANAGE_PRODUCTS):
+                return attribute.input_type
+            raise PermissionDenied()
+
+        return (
+            AttributesByAttributeId(info.context)
+            .load(root.attribute_id)
+            .then(_resolve_input_type)
+        )
 
     @staticmethod
     @traced_resolver
@@ -124,7 +136,9 @@ class Attribute(CountableDjangoObjectType):
     @staticmethod
     @traced_resolver
     def resolve_values(root: models.Attribute, info):
-        return AttributeValuesByAttributeIdLoader(info.context).load(root.id)
+        if root.input_type in AttributeInputType.TYPES_WITH_CHOICES:
+            return AttributeValuesByAttributeIdLoader(info.context).load(root.id)
+        return []
 
     @staticmethod
     @check_attribute_required_permissions()

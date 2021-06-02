@@ -72,6 +72,7 @@ DATABASES = {
     )
 }
 
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 TIME_ZONE = "UTC"
 LANGUAGE_CODE = "en"

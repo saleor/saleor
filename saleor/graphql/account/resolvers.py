@@ -118,17 +118,19 @@ def resolve_address_validation_rules(
 
 
 @traced_resolver
-def resolve_payment_sources(info, user: models.User):
+def resolve_payment_sources(info, user: models.User, channel_slug: str):
     manager = info.context.plugins
     stored_customer_accounts = (
         (gtw.id, fetch_customer_id(user, gtw.id))
-        for gtw in gateway.list_gateways(manager)
+        for gtw in gateway.list_gateways(manager, channel_slug)
     )
     return list(
         chain(
             *[
                 prepare_graphql_payment_sources_type(
-                    gateway.list_payment_sources(gtw, customer_id, manager)
+                    gateway.list_payment_sources(
+                        gtw, customer_id, manager, channel_slug
+                    )
                 )
                 for gtw, customer_id in stored_customer_accounts
                 if customer_id is not None

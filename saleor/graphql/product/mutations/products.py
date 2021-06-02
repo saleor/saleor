@@ -5,12 +5,14 @@ from typing import List, Tuple
 import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
+from django.db.models import Q
 from django.utils.text import slugify
 
 from ....attribute import AttributeInputType, AttributeType
 from ....attribute import models as attribute_models
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import ProductPermissions, ProductTypePermissions
+from ....core.tracing import traced_atomic_transaction
 from ....core.utils.editorjs import clean_editor_js
 from ....core.utils.validators import get_oembed_data
 from ....order import OrderStatus
@@ -373,7 +375,7 @@ class CollectionReorderProducts(BaseMutation):
                 )
             operations[m2m_info.pk] = move_info.sort_order
 
-        with transaction.atomic():
+        with traced_atomic_transaction():
             perform_reordering(m2m_related_field, operations)
         collection = ChannelContext(node=collection, channel_slug=None)
         return CollectionReorderProducts(collection=collection)
@@ -399,7 +401,7 @@ class CollectionAddProducts(BaseMutation):
         error_type_field = "collection_errors"
 
     @classmethod
-    @transaction.atomic()
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, collection_id, products):
         collection = cls.get_node_or_error(
             info, collection_id, field="collection_id", only_type=Collection
@@ -623,7 +625,7 @@ class ProductCreate(ModelMutation):
         return super().get_instance(info, **data)
 
     @classmethod
-    @transaction.atomic
+    @traced_atomic_transaction()
     def save(cls, info, instance, cleaned_input):
         instance.save()
         attributes = cleaned_input.get("attributes")
@@ -669,7 +671,7 @@ class ProductUpdate(ProductCreate):
         error_type_field = "product_errors"
 
     @classmethod
-    @transaction.atomic
+    @traced_atomic_transaction()
     def save(cls, info, instance, cleaned_input):
         instance.save()
         attributes = cleaned_input.get("attributes")
@@ -698,6 +700,7 @@ class ProductDelete(ModelDeleteMutation):
         return super().success_response(instance)
 
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         node_id = data.get("id")
 
@@ -709,6 +712,8 @@ class ProductDelete(ModelDeleteMutation):
         ).values("pk", "order_id")
         line_pks = {line["pk"] for line in lines_id_and_orders_id}
         orders_id = {line["order_id"] for line in lines_id_and_orders_id}
+
+        cls.delete_assigned_attribute_values(instance)
         response = super().perform_mutation(_root, info, **data)
         # delete order lines for deleted variant
         order_models.OrderLine.objects.filter(pk__in=line_pks).delete()
@@ -717,6 +722,13 @@ class ProductDelete(ModelDeleteMutation):
         info.context.plugins.product_deleted(instance, variants_id)
 
         return response
+
+    @staticmethod
+    def delete_assigned_attribute_values(instance):
+        attribute_models.AttributeValue.objects.filter(
+            productassignments__product_id=instance.id,
+            attribute__input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES,
+        ).delete()
 
 
 class ProductVariantInput(graphene.InputObjectType):
@@ -896,7 +908,7 @@ class ProductVariantCreate(ModelMutation):
         return super().get_instance(info, **data)
 
     @classmethod
-    @transaction.atomic()
+    @traced_atomic_transaction()
     def save(cls, info, instance, cleaned_input):
         new_variant = instance.pk is None
         instance.save()
@@ -1005,7 +1017,7 @@ class ProductVariantDelete(ModelDeleteMutation):
         return super().success_response(instance)
 
     @classmethod
-    @transaction.atomic()
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         node_id = data.get("id")
         instance = cls.get_node_or_error(info, node_id, only_type=ProductVariant)
@@ -1024,6 +1036,7 @@ class ProductVariantDelete(ModelDeleteMutation):
             )
         ).get(id=instance.id)
 
+        cls.delete_assigned_attribute_values(variant)
         response = super().perform_mutation(_root, info, **data)
 
         # delete order lines for deleted variant
@@ -1036,6 +1049,13 @@ class ProductVariantDelete(ModelDeleteMutation):
         )
 
         return response
+
+    @staticmethod
+    def delete_assigned_attribute_values(instance):
+        attribute_models.AttributeValue.objects.filter(
+            variantassignments__variant_id=instance.id,
+            attribute__input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES,
+        ).delete()
 
 
 class ProductTypeInput(graphene.InputObjectType):
@@ -1183,6 +1203,7 @@ class ProductTypeDelete(ModelDeleteMutation):
         error_type_field = "product_errors"
 
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         node_id = data.get("id")
         _type, product_type_pk = from_global_id_or_error(
@@ -1197,6 +1218,7 @@ class ProductTypeDelete(ModelDeleteMutation):
                 variant__pk__in=variants_pks, order__status=OrderStatus.DRAFT
             ).values_list("pk", flat=True)
         )
+        cls.delete_assigned_attribute_values(product_type_pk)
 
         response = super().perform_mutation(_root, info, **data)
 
@@ -1204,6 +1226,16 @@ class ProductTypeDelete(ModelDeleteMutation):
         order_models.OrderLine.objects.filter(pk__in=order_line_pks).delete()
 
         return response
+
+    @staticmethod
+    def delete_assigned_attribute_values(instance_pk):
+        attribute_models.AttributeValue.objects.filter(
+            Q(attribute__input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES)
+            & (
+                Q(productassignments__assignment__product_type_id=instance_pk)
+                | Q(variantassignments__assignment__product_type_id=instance_pk)
+            )
+        ).delete()
 
 
 class ProductMediaCreateInput(graphene.InputObjectType):
@@ -1502,7 +1534,7 @@ class ProductVariantReorder(BaseMutation):
                 )
             operations[m2m_info.pk] = move_info.sort_order
 
-        with transaction.atomic():
+        with traced_atomic_transaction():
             perform_reordering(variants_m2m, operations)
 
         product.save(update_fields=["updated_at"])
@@ -1553,7 +1585,7 @@ class VariantMediaAssign(BaseMutation):
         error_type_field = "product_errors"
 
     @classmethod
-    @transaction.atomic()
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, media_id, variant_id):
         media = cls.get_node_or_error(
             info, media_id, field="media_id", only_type=ProductMedia
@@ -1601,7 +1633,7 @@ class VariantMediaUnassign(BaseMutation):
         error_type_field = "product_errors"
 
     @classmethod
-    @transaction.atomic()
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, media_id, variant_id):
         media = cls.get_node_or_error(
             info, media_id, field="image_id", only_type=ProductMedia

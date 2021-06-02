@@ -3,12 +3,12 @@ from typing import DefaultDict, Dict, Iterable, List
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 from django.utils.text import slugify
 
 from ...channel import models
 from ...checkout.models import Checkout
 from ...core.permissions import ChannelPermissions
+from ...core.tracing import traced_atomic_transaction
 from ...order.models import Order
 from ...shipping.tasks import drop_invalid_shipping_methods_relations_for_given_channels
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -63,7 +63,7 @@ class ChannelCreate(ModelMutation):
         return cleaned_input
 
     @classmethod
-    @transaction.atomic
+    @traced_atomic_transaction()
     def _save_m2m(cls, info, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
         shipping_zones = cleaned_data.get("add_shipping_zones")
@@ -117,7 +117,7 @@ class ChannelUpdate(ModelMutation):
         return cleaned_input
 
     @classmethod
-    @transaction.atomic
+    @traced_atomic_transaction()
     def _save_m2m(cls, info, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
         add_shipping_zones = cleaned_data.get("add_shipping_zones")
@@ -139,7 +139,7 @@ class ChannelUpdate(ModelMutation):
 
 
 class ChannelDeleteInput(graphene.InputObjectType):
-    target_channel = graphene.ID(
+    channel_id = graphene.ID(
         required=True,
         description="ID of channel to migrate orders from origin channel.",
     )
@@ -166,10 +166,9 @@ class ChannelDelete(ModelDeleteMutation):
         if origin_channel.id == target_channel.id:
             raise ValidationError(
                 {
-                    "target_channel": ValidationError(
-                        "channelID and targetChannelID cannot be the same. "
-                        "Use different target channel ID.",
-                        code=ChannelErrorCode.CHANNEL_TARGET_ID_MUST_BE_DIFFERENT,
+                    "channel_id": ValidationError(
+                        "Cannot migrate data to the channel that is being removed.",
+                        code=ChannelErrorCode.INVALID,
                     )
                 }
             )
@@ -178,7 +177,7 @@ class ChannelDelete(ModelDeleteMutation):
         if origin_channel_currency != target_channel_currency:
             raise ValidationError(
                 {
-                    "target_channel": ValidationError(
+                    "channel_id": ValidationError(
                         f"Cannot migrate from {origin_channel_currency} "
                         f"to {target_channel_currency}. "
                         "Migration are allowed between the same currency",
@@ -203,7 +202,7 @@ class ChannelDelete(ModelDeleteMutation):
     def perform_delete_with_order_migration(cls, origin_channel, target_channel):
         cls.validate_input(origin_channel, target_channel)
 
-        with transaction.atomic():
+        with traced_atomic_transaction():
             origin_channel_id = origin_channel.id
             cls.delete_checkouts(origin_channel_id)
             cls.migrate_orders_to_target_channel(origin_channel_id, target_channel.id)
@@ -225,7 +224,7 @@ class ChannelDelete(ModelDeleteMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         origin_channel = cls.get_node_or_error(info, data["id"], only_type=Channel)
-        target_channel_global_id = data.get("input", {}).get("target_channel")
+        target_channel_global_id = data.get("input", {}).get("channel_id")
         if target_channel_global_id:
             target_channel = cls.get_node_or_error(
                 info, target_channel_global_id, only_type=Channel

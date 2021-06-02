@@ -3,9 +3,9 @@ from typing import TYPE_CHECKING, Dict, List
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 from django.db.utils import IntegrityError
 
+from ...core.tracing import traced_atomic_transaction
 from ...warehouse.models import Stock
 
 if TYPE_CHECKING:
@@ -60,7 +60,7 @@ def get_used_variants_attribute_values(product):
     return used_attribute_values
 
 
-@transaction.atomic
+@traced_atomic_transaction()
 def create_stocks(
     variant: "ProductVariant", stocks_data: List[Dict[str, str]], warehouses: "QuerySet"
 ):

@@ -208,7 +208,7 @@ def test_product_variant_created(mocked_webhook_trigger, settings, variant):
     manager = get_plugins_manager()
     manager.product_variant_created(variant)
 
-    expected_data = generate_product_variant_payload(variant)
+    expected_data = generate_product_variant_payload([variant])
     mocked_webhook_trigger.assert_called_once_with(
         WebhookEventType.PRODUCT_VARIANT_CREATED, expected_data
     )
@@ -220,7 +220,7 @@ def test_product_variant_updated(mocked_webhook_trigger, settings, variant):
     manager = get_plugins_manager()
     manager.product_variant_updated(variant)
 
-    expected_data = generate_product_variant_payload(variant)
+    expected_data = generate_product_variant_payload([variant])
     mocked_webhook_trigger.assert_called_once_with(
         WebhookEventType.PRODUCT_VARIANT_UPDATED, expected_data
     )
@@ -232,7 +232,7 @@ def test_product_variant_deleted(mocked_webhook_trigger, settings, variant):
     manager = get_plugins_manager()
     manager.product_variant_deleted(variant)
 
-    expected_data = generate_product_variant_payload(variant)
+    expected_data = generate_product_variant_payload([variant])
     mocked_webhook_trigger.assert_called_once_with(
         WebhookEventType.PRODUCT_VARIANT_DELETED, expected_data
     )
@@ -364,12 +364,12 @@ def test_invoice_sent(mocked_webhook_trigger, settings, fulfilled_order):
 
 @freeze_time("2020-03-18 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
-def test_notify_user(mocked_webhook_trigger, settings, customer_user):
+def test_notify_user(mocked_webhook_trigger, settings, customer_user, channel_USD):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
 
     redirect_url = "http://redirect.com/"
-    send_account_confirmation(customer_user, redirect_url, manager)
+    send_account_confirmation(customer_user, redirect_url, manager, channel_USD.slug)
 
     token = default_token_generator.make_token(customer_user)
     params = urlencode({"email": customer_user.email, "token": token})
@@ -380,6 +380,7 @@ def test_notify_user(mocked_webhook_trigger, settings, customer_user):
         "recipient_email": customer_user.email,
         "token": token,
         "confirm_url": confirm_url,
+        "channel_slug": channel_USD.slug,
         **get_site_context(),
     }
 

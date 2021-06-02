@@ -5,7 +5,7 @@ import graphene
 from prices import Money, TaxedMoney
 
 from ....core.prices import quantize_price
-from ....order import OrderStatus
+from ....order import OrderOrigin, OrderStatus
 from ....order.error_codes import OrderErrorCode
 from ....order.models import FulfillmentStatus, Order
 from ....payment import ChargeStatus, PaymentError
@@ -49,6 +49,8 @@ mutation OrderFulfillmentReturnProducts(
         replaceOrder{
             id
             status
+            original
+            origin
         }
         errors {
             field
@@ -108,7 +110,10 @@ def test_fulfillment_return_products_amount_and_shipping_costs(
     staff_api_client.post_graphql(ORDER_FULFILL_RETURN_MUTATION, variables)
 
     mocked_refund.assert_called_with(
-        payment_dummy, ANY, quantize_price(amount_to_refund, fulfilled_order.currency)
+        payment_dummy,
+        ANY,
+        amount=quantize_price(amount_to_refund, fulfilled_order.currency),
+        channel_slug=fulfilled_order.channel.slug,
     )
 
 
@@ -238,6 +243,8 @@ def test_fulfillment_return_products_order_lines(
     assert replace_fulfillment["lines"][0]["quantity"] == line_quantity_to_replace
 
     assert replace_order["status"] == OrderStatus.DRAFT.upper()
+    assert replace_order["origin"] == OrderOrigin.REISSUE.upper()
+    assert replace_order["original"] == order_id
     replace_order = Order.objects.get(status=OrderStatus.DRAFT)
     assert replace_order.lines.count() == 1
     replaced_line = replace_order.lines.get()
@@ -249,7 +256,9 @@ def test_fulfillment_return_products_order_lines(
 
     amount = line_to_return.unit_price_gross_amount * line_quantity_to_return
     amount += order_with_lines.shipping_price_gross_amount
-    mocked_refund.assert_called_with(payment_dummy, ANY, amount)
+    mocked_refund.assert_called_with(
+        payment_dummy, ANY, amount=amount, channel_slug=order_with_lines.channel.slug
+    )
 
 
 def test_fulfillment_return_products_order_lines_quantity_bigger_than_total(
@@ -351,7 +360,12 @@ def test_fulfillment_return_products_order_lines_custom_amount(
     assert len(return_fulfillment["lines"]) == 1
     assert return_fulfillment["lines"][0]["orderLine"]["id"] == line_id
     assert return_fulfillment["lines"][0]["quantity"] == 2
-    mocked_refund.assert_called_with(payment_dummy, ANY, amount_to_refund)
+    mocked_refund.assert_called_with(
+        payment_dummy,
+        ANY,
+        amount=amount_to_refund,
+        channel_slug=order_with_lines.channel.slug,
+    )
 
 
 @patch("saleor.order.actions.gateway.refund")
@@ -453,6 +467,9 @@ def test_fulfillment_return_products_fulfillment_lines(
     assert replace_fulfillment["lines"][0]["quantity"] == quantity_to_replace
 
     assert replace_order["status"] == OrderStatus.DRAFT.upper()
+    assert replace_order["origin"] == OrderOrigin.REISSUE.upper()
+    assert replace_order["original"] == order_id
+
     replace_order = Order.objects.get(status=OrderStatus.DRAFT)
     assert replace_order.lines.count() == 1
     replaced_line = replace_order.lines.get()
@@ -468,7 +485,9 @@ def test_fulfillment_return_products_fulfillment_lines(
         * quantity_to_return
     )
     amount += fulfilled_order.shipping_price_gross_amount
-    mocked_refund.assert_called_with(payment_dummy, ANY, amount)
+    mocked_refund.assert_called_with(
+        payment_dummy, ANY, amount=amount, channel_slug=fulfilled_order.channel.slug
+    )
 
 
 def test_fulfillment_return_products_fulfillment_lines_quantity_bigger_than_total(
@@ -628,7 +647,9 @@ def test_fulfillment_return_products_fulfillment_lines_include_shipping_costs(
     assert return_fulfillment["lines"][0]["quantity"] == 2
     amount = fulfillment_line_to_return.order_line.unit_price_gross_amount * 2
     amount += fulfilled_order.shipping_price_gross_amount
-    mocked_refund.assert_called_with(payment_dummy, ANY, amount)
+    mocked_refund.assert_called_with(
+        payment_dummy, ANY, amount=amount, channel_slug=fulfilled_order.channel.slug
+    )
 
 
 @patch("saleor.order.actions.gateway.refund")
@@ -717,6 +738,9 @@ def test_fulfillment_return_products_fulfillment_lines_and_order_lines(
     assert replace_fulfillment["lines"][0]["quantity"] == 1
 
     assert replace_order["status"] == OrderStatus.DRAFT.upper()
+    assert replace_order["origin"] == OrderOrigin.REISSUE.upper()
+    assert replace_order["original"] == order_id
+
     replace_order = Order.objects.get(status=OrderStatus.DRAFT)
     assert replace_order.lines.count() == 1
     replaced_line = replace_order.lines.get()
@@ -729,4 +753,6 @@ def test_fulfillment_return_products_fulfillment_lines_and_order_lines(
 
     amount = order_line.unit_price_gross_amount * 2
     amount = quantize_price(amount, fulfilled_order.currency)
-    mocked_refund.assert_called_with(payment_dummy, ANY, amount)
+    mocked_refund.assert_called_with(
+        payment_dummy, ANY, amount=amount, channel_slug=fulfilled_order.channel.slug
+    )

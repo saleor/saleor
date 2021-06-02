@@ -4,7 +4,7 @@ from graphene_django.filter import GlobalIDMultipleChoiceFilter
 
 from ...discount.models import OrderDiscount
 from ...order.models import Order
-from ...payment.models import Payment, Transaction
+from ...payment.models import Payment
 from ..channel.types import Channel
 from ..core.filters import ListObjectTypeFilter, MetadataFilterBase, ObjectTypeFilter
 from ..core.types.common import DateRangeInput
@@ -79,10 +79,7 @@ def filter_order_search(qs, _, value):
     if order_id := get_order_id_from_query(value):
         return qs.filter(pk=order_id)
 
-    transactions = Transaction.objects.filter(searchable_key=value).values("id")
-    payments = Payment.objects.filter(
-        Exists(transactions.filter(payment_id=OuterRef("id")))
-    ).values("id")
+    payments = Payment.objects.filter(psp_reference=value).values("id")
     discounts = OrderDiscount.objects.filter(
         Q(name__trigram_similar=value) | Q(translated_name__trigram_similar=value)
     ).values("id")

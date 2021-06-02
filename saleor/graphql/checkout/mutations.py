@@ -4,12 +4,8 @@ from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
 import graphene
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.db import transaction
 from django.db.models import Q
 
-from ...channel.exceptions import ChannelNotDefined
-from ...channel.models import Channel
-from ...channel.utils import get_default_channel
 from ...checkout import AddressType, models
 from ...checkout.complete_checkout import complete_checkout
 from ...checkout.error_codes import CheckoutErrorCode
@@ -34,6 +30,7 @@ from ...checkout.utils import (
 )
 from ...core import analytics
 from ...core.exceptions import InsufficientStock, PermissionDenied, ProductNotPublished
+from ...core.tracing import traced_atomic_transaction
 from ...core.transactions import transaction_with_commit_on_errors
 from ...order import models as order_models
 from ...product import models as product_models
@@ -42,6 +39,7 @@ from ...shipping import models as shipping_models
 from ...warehouse.availability import check_stock_quantity_bulk
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
+from ..channel.utils import clean_channel
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.types.common import CheckoutError
@@ -296,48 +294,6 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return None
 
     @classmethod
-    def validate_channel(cls, channel_slug):
-        try:
-            channel = Channel.objects.get(slug=channel_slug)
-        except Channel.DoesNotExist:
-            raise ValidationError(
-                {
-                    "channel": ValidationError(
-                        f"Channel with '{channel_slug}' slug does not exist.",
-                        code=CheckoutErrorCode.NOT_FOUND.value,
-                    )
-                }
-            )
-        if not channel.is_active:
-            raise ValidationError(
-                {
-                    "channel": ValidationError(
-                        f"Channel with '{channel_slug}' is inactive.",
-                        code=CheckoutErrorCode.CHANNEL_INACTIVE.value,
-                    )
-                }
-            )
-        return channel
-
-    @classmethod
-    def clean_channel(cls, channel_slug):
-        if channel_slug is not None:
-            channel = cls.validate_channel(channel_slug)
-        else:
-            try:
-                channel = get_default_channel()
-            except ChannelNotDefined:
-                raise ValidationError(
-                    {
-                        "channel": ValidationError(
-                            "You need to provide channel slug.",
-                            code=CheckoutErrorCode.MISSING_CHANNEL_SLUG,
-                        )
-                    }
-                )
-        return channel
-
-    @classmethod
     def clean_input(cls, info, instance: models.Checkout, data, input_cls=None):
         user = info.context.user
         channel = data.pop("channel")
@@ -375,7 +331,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return cleaned_input
 
     @classmethod
-    @transaction.atomic()
+    @traced_atomic_transaction()
     def save(cls, info, instance: models.Checkout, cleaned_input):
         channel = cleaned_input["channel"]
         # Create the checkout object
@@ -424,7 +380,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         channel_input = data.get("input", {}).get("channel")
-        channel = cls.clean_channel(channel_input)
+        channel = clean_channel(channel_input, error_class=CheckoutErrorCode)
         if channel:
             data["input"]["channel"] = channel
         response = super().perform_mutation(_root, info, **data)
@@ -723,7 +679,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
 
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
 
-        with transaction.atomic():
+        with traced_atomic_transaction():
             shipping_address.save()
             change_shipping_address_in_checkout(
                 checkout_info, shipping_address, lines, discounts, manager
@@ -759,7 +715,7 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
             instance=checkout.billing_address,
             info=info,
         )
-        with transaction.atomic():
+        with traced_atomic_transaction():
             billing_address.save()
             change_billing_address_in_checkout(checkout, billing_address)
             info.context.plugins.checkout_updated(checkout)
