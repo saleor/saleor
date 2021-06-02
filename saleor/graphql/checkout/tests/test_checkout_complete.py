@@ -65,6 +65,32 @@ ACTION_REQUIRED_GATEWAY_RESPONSE = GatewayResponse(
 )
 
 
+def test_checkout_complete_unconfirmed_order_already_exists(
+    user_api_client,
+    order_with_lines,
+    checkout_with_gift_card,
+):
+    checkout = checkout_with_gift_card
+    orders_count = Order.objects.count()
+    order_with_lines.status = OrderStatus.UNCONFIRMED
+    order_with_lines.checkout_token = checkout.pk
+    order_with_lines.save()
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    checkout.delete()
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+
+    order_data = data["order"]
+    assert Order.objects.count() == orders_count
+    assert order_with_lines.token == order_data["token"]
+    assert order_data["origin"] == order_with_lines.origin.upper()
+    assert not order_data["original"]
+
+
 def test_checkout_complete_order_already_exists(
     user_api_client,
     order_with_lines,
