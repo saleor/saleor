@@ -20,7 +20,7 @@ from ..channel.mutations import BaseChannelListingMutation
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import PositiveDecimal
 from ..core.types.common import DiscountError
-from ..core.validators import validate_price_precision
+from ..core.validators import validate_end_is_after_start, validate_price_precision
 from ..product.types import Category, Collection, Product
 from .enums import DiscountValueTypeEnum, VoucherTypeEnum
 from .types import Sale, Voucher
@@ -190,6 +190,17 @@ class VoucherCreate(ModelMutation):
     def success_response(cls, instance):
         instance = ChannelContext(node=instance, channel_slug=None)
         return super().success_response(instance)
+
+    @classmethod
+    def clean_instance(cls, info, instance):
+        super().clean_instance(info, instance)
+        start_date = instance.start_date
+        end_date = instance.end_date
+        try:
+            validate_end_is_after_start(start_date, end_date)
+        except ValidationError as error:
+            error.code = DiscountErrorCode.INVALID.value
+            raise ValidationError({"end_date": error})
 
 
 class VoucherUpdate(VoucherCreate):
@@ -513,6 +524,17 @@ class SaleCreate(SaleUpdateDiscountedPriceMixin, ModelMutation):
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"
+
+    @classmethod
+    def clean_instance(cls, info, instance):
+        super().clean_instance(info, instance)
+        start_date = instance.start_date
+        end_date = instance.end_date
+        try:
+            validate_end_is_after_start(start_date, end_date)
+        except ValidationError as error:
+            error.code = DiscountErrorCode.INVALID.value
+            raise ValidationError({"end_date": error})
 
 
 class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
