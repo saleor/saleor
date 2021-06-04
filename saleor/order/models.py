@@ -36,7 +36,7 @@ from . import FulfillmentStatus, OrderEvents, OrderOrigin, OrderStatus
 class OrderQueryset(models.QuerySet):
     def get_by_checkout_token(self, token):
         """Return non-draft order with matched checkout token."""
-        return self.confirmed().filter(checkout_token=token).first()
+        return self.non_draft().filter(checkout_token=token).first()
 
     def confirmed(self):
         """Return orders that aren't draft or unconfirmed."""
