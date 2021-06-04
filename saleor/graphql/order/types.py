@@ -193,7 +193,7 @@ class OrderEvent(CountableDjangoObjectType):
                 or user.has_perm(AccountPermissions.MANAGE_STAFF)
             ):
                 return event_user
-            raise PermissionDenied()
+            return None
 
         if not root.user_id:
             return None
@@ -337,9 +337,6 @@ class FulfillmentLine(CountableDjangoObjectType):
     @staticmethod
     @traced_resolver
     def resolve_order_line(root: models.FulfillmentLine, info):
-        if not root.order_line_id:
-            return None
-
         return OrderLineByIdLoader(info.context).load(root.order_line_id)
 
 
