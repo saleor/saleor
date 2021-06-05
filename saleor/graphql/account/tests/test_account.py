@@ -3266,6 +3266,23 @@ def test_address_delete_mutation(
         address_obj.refresh_from_db()
 
 
+def test_address_delete_mutation_as_app(
+    app_api_client, customer_user, permission_manage_users
+):
+    query = ADDRESS_DELETE_MUTATION
+    address_obj = customer_user.addresses.first()
+    variables = {"id": graphene.Node.to_global_id("Address", address_obj.id)}
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["addressDelete"]
+    assert data["address"]["city"] == address_obj.city
+    assert data["user"]["id"] == graphene.Node.to_global_id("User", customer_user.pk)
+    with pytest.raises(address_obj._meta.model.DoesNotExist):
+        address_obj.refresh_from_db()
+
+
 ACCOUNT_ADDRESS_DELETE_MUTATION = """
     mutation deleteUserAddress($id: ID!) {
         accountAddressDelete(id: $id) {
