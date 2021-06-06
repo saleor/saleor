@@ -4,7 +4,7 @@ import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.db.models import Q
-from django.utils.text import slugify
+from ....yebofresh.function_overrides import slugify
 
 from ....core.permissions import ProductPermissions, ProductTypePermissions
 from ....product import AttributeInputType, models
