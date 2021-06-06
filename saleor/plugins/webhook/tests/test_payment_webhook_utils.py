@@ -142,3 +142,21 @@ def test_parse_payment_action_response(
         gateway_response.payment_method_info.type
         == payment_action_response["payment_method"]["type"]
     )
+
+
+def test_parse_payment_action_response_parse_amount(
+    dummy_webhook_app_payment_data, payment_action_response
+):
+    # test amount is not a decimal, should use amount from payment information
+    payment_action_response["amount"] = "boom"
+    gateway_response = parse_payment_action_response(
+        dummy_webhook_app_payment_data, payment_action_response, TransactionKind.AUTH
+    )
+    assert gateway_response.amount == dummy_webhook_app_payment_data.amount
+
+    # test amount not in webhook response, should use amount from payment information
+    del payment_action_response["amount"]
+    gateway_response = parse_payment_action_response(
+        dummy_webhook_app_payment_data, payment_action_response, TransactionKind.AUTH
+    )
+    assert gateway_response.amount == dummy_webhook_app_payment_data.amount

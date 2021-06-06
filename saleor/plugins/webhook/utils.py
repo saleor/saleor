@@ -1,3 +1,4 @@
+import decimal
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, List, Optional
 
@@ -79,10 +80,17 @@ def parse_payment_action_response(
             type=payment_method_data.get("type"),
         )
 
+    amount = payment_information.amount
+    if "amount" in response_data:
+        try:
+            amount = decimal.Decimal(response_data["amount"])
+        except decimal.DecimalException:
+            pass
+
     return GatewayResponse(
         action_required=response_data.get("action_required", False),
         action_required_data=response_data.get("action_required_data"),
-        amount=response_data.get("amount", payment_information.amount),
+        amount=amount,
         currency=payment_information.currency,
         customer_id=response_data.get("customer_id"),
         error=error,
