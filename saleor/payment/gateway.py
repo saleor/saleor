@@ -309,9 +309,9 @@ def _fetch_gateway_response(fn, *args, **kwargs):
         logger.exception("Gateway response validation failed!")
         response = None
         error = ERROR_MSG
-    except PaymentError as e:
+    except PaymentError:
         logger.exception("Error encountered while executing payment gateway.")
-        error = str(e)
+        error = ERROR_MSG
         response = None
     return response, error
 
