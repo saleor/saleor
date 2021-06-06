@@ -27,3 +27,11 @@ def test_qs_for_event_type_no_webhook_event(payment_app):
     event.delete()
     qs = App.objects.for_event_type(WebhookEventType.PAYMENT_AUTHORIZE)
     assert len(qs) == 0
+
+
+def test_qs_for_event_type_inactive_webhook(payment_app):
+    webhook = payment_app.webhooks.first()
+    webhook.is_active = False
+    webhook.save()
+    qs = App.objects.for_event_type(WebhookEventType.PAYMENT_AUTHORIZE)
+    assert len(qs) == 0

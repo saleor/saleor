@@ -19,7 +19,10 @@ class AppQueryset(models.QuerySet):
             permissions["permissions__content_type__app_label"] = app_label
             permissions["permissions__codename"] = codename
         return self.filter(
-            is_active=True, webhooks__events__event_type=event_type, **permissions
+            is_active=True,
+            webhooks__is_active=True,
+            webhooks__events__event_type=event_type,
+            **permissions,
         )
 
 
