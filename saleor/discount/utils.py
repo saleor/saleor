@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Set
 
 from django.db.models import F
 from django.utils import timezone
-from prices import Money
+from prices import Money, TaxedMoney
 
 from ..channel.models import Channel
 from ..checkout import calculations
@@ -131,7 +131,7 @@ def validate_voucher_for_checkout(
     customer_email = checkout_info.get_customer_email()
     validate_voucher(
         voucher,
-        subtotal.gross,
+        subtotal,
         quantity,
         customer_email,
         checkout_info.channel,
@@ -144,14 +144,12 @@ def validate_voucher_in_order(order: "Order"):
     customer_email = order.get_customer_email()
     if not order.voucher:
         return
-    validate_voucher(
-        order.voucher, subtotal.gross, quantity, customer_email, order.channel
-    )
+    validate_voucher(order.voucher, subtotal, quantity, customer_email, order.channel)
 
 
 def validate_voucher(
     voucher: "Voucher",
-    total_price: Money,
+    total_price: TaxedMoney,
     quantity: int,
     customer_email: str,
     channel: Channel,

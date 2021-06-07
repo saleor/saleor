@@ -5,6 +5,7 @@ from typing import List, Tuple
 import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
+from django.db.models import Q
 from django.utils.text import slugify
 
 from ....attribute import AttributeInputType, AttributeType
@@ -699,6 +700,7 @@ class ProductDelete(ModelDeleteMutation):
         return super().success_response(instance)
 
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         node_id = data.get("id")
 
@@ -710,6 +712,8 @@ class ProductDelete(ModelDeleteMutation):
         ).values("pk", "order_id")
         line_pks = {line["pk"] for line in lines_id_and_orders_id}
         orders_id = {line["order_id"] for line in lines_id_and_orders_id}
+
+        cls.delete_assigned_attribute_values(instance)
         response = super().perform_mutation(_root, info, **data)
         # delete order lines for deleted variant
         order_models.OrderLine.objects.filter(pk__in=line_pks).delete()
@@ -718,6 +722,13 @@ class ProductDelete(ModelDeleteMutation):
         info.context.plugins.product_deleted(instance, variants_id)
 
         return response
+
+    @staticmethod
+    def delete_assigned_attribute_values(instance):
+        attribute_models.AttributeValue.objects.filter(
+            productassignments__product_id=instance.id,
+            attribute__input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES,
+        ).delete()
 
 
 class ProductVariantInput(graphene.InputObjectType):
@@ -1025,6 +1036,7 @@ class ProductVariantDelete(ModelDeleteMutation):
             )
         ).get(id=instance.id)
 
+        cls.delete_assigned_attribute_values(variant)
         response = super().perform_mutation(_root, info, **data)
 
         # delete order lines for deleted variant
@@ -1037,6 +1049,13 @@ class ProductVariantDelete(ModelDeleteMutation):
         )
 
         return response
+
+    @staticmethod
+    def delete_assigned_attribute_values(instance):
+        attribute_models.AttributeValue.objects.filter(
+            variantassignments__variant_id=instance.id,
+            attribute__input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES,
+        ).delete()
 
 
 class ProductTypeInput(graphene.InputObjectType):
@@ -1184,6 +1203,7 @@ class ProductTypeDelete(ModelDeleteMutation):
         error_type_field = "product_errors"
 
     @classmethod
+    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         node_id = data.get("id")
         _type, product_type_pk = from_global_id_or_error(
@@ -1198,6 +1218,7 @@ class ProductTypeDelete(ModelDeleteMutation):
                 variant__pk__in=variants_pks, order__status=OrderStatus.DRAFT
             ).values_list("pk", flat=True)
         )
+        cls.delete_assigned_attribute_values(product_type_pk)
 
         response = super().perform_mutation(_root, info, **data)
 
@@ -1205,6 +1226,16 @@ class ProductTypeDelete(ModelDeleteMutation):
         order_models.OrderLine.objects.filter(pk__in=order_line_pks).delete()
 
         return response
+
+    @staticmethod
+    def delete_assigned_attribute_values(instance_pk):
+        attribute_models.AttributeValue.objects.filter(
+            Q(attribute__input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES)
+            & (
+                Q(productassignments__assignment__product_type_id=instance_pk)
+                | Q(variantassignments__assignment__product_type_id=instance_pk)
+            )
+        ).delete()
 
 
 class ProductMediaCreateInput(graphene.InputObjectType):
