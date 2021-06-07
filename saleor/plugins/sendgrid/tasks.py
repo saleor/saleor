@@ -203,6 +203,7 @@ def send_fulfillment_confirmation_email_task(payload: dict, configuration: dict)
     autoretry_for=(SendGridException,),
     retry_backoff=CELERY_RETRY_BACKOFF,
     retry_kwargs={"max_retries": CELERY_RETRY_MAX},
+    compression="zlib",
 )
 def send_fulfillment_update_email_task(payload: dict, configuration: dict):
     configuration = SendgridConfiguration(**configuration)
