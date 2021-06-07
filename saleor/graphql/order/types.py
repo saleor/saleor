@@ -186,11 +186,11 @@ class OrderEvent(CountableDjangoObjectType):
     @traced_resolver
     def resolve_user(root: models.OrderEvent, info):
         def _resolve_user(event_user):
-            user = info.context.user
+            requester = get_user_or_app_from_context(info.context)
             if (
-                user == event_user
-                or user.has_perm(AccountPermissions.MANAGE_USERS)
-                or user.has_perm(AccountPermissions.MANAGE_STAFF)
+                requester == event_user
+                or requester.has_perm(AccountPermissions.MANAGE_USERS)
+                or requester.has_perm(AccountPermissions.MANAGE_STAFF)
             ):
                 return event_user
             return None
