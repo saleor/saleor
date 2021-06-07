@@ -5,8 +5,10 @@ import graphene
 from prices import Money
 
 from ....checkout import calculations
+from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import add_voucher_to_checkout
+from ....core.taxes import TaxedMoney
 from ....discount import DiscountInfo, VoucherType
 from ....plugins.manager import get_plugins_manager
 from ...tests.utils import get_graphql_content
@@ -229,6 +231,7 @@ MUTATION_CHECKOUT_ADD_PROMO_CODE = """
             errors {
                 field
                 message
+                code
             }
             checkout {
                 id,
@@ -262,6 +265,59 @@ def test_checkout_add_voucher_code(api_client, checkout_with_item, voucher):
     assert not data["errors"]
     assert data["checkout"]["id"] == checkout_id
     assert data["checkout"]["voucherCode"] == voucher.code
+
+
+def test_checkout_add_voucher_code_with_display_gross_prices(
+    api_client, checkout_with_item, voucher, site_settings, monkeypatch
+):
+    site_settings.display_gross_prices = True
+    site_settings.save()
+
+    voucher = voucher
+    voucher_channel_listing = voucher.channel_listings.first()
+    voucher_channel_listing.min_spent_amount = 100
+    voucher_channel_listing.save()
+
+    monkeypatch.setattr(
+        "saleor.discount.utils.calculations.checkout_subtotal",
+        lambda manager, checkout_info, lines, address, discounts: TaxedMoney(
+            Money(95, "USD"), Money(100, "USD")
+        ),
+    )
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
+    variables = {"checkoutId": checkout_id, "promoCode": voucher.code}
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    assert not data["errors"]
+    assert data["checkout"]["id"] == checkout_id
+    assert data["checkout"]["voucherCode"] == voucher.code
+
+
+def test_checkout_add_voucher_code_without_display_gross_prices(
+    api_client, checkout_with_item, voucher, site_settings, monkeypatch
+):
+    site_settings.display_gross_prices = False
+    site_settings.save()
+
+    voucher = voucher
+    voucher_channel_listing = voucher.channel_listings.first()
+    voucher_channel_listing.min_spent_amount = 100
+    voucher_channel_listing.save()
+
+    monkeypatch.setattr(
+        "saleor.discount.utils.calculations.checkout_subtotal",
+        lambda manager, checkout_info, lines, address, discounts: TaxedMoney(
+            Money(95, "USD"), Money(100, "USD")
+        ),
+    )
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
+    variables = {"checkoutId": checkout_id, "promoCode": voucher.code}
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    assert data["errors"][0]["code"] == CheckoutErrorCode.VOUCHER_NOT_APPLICABLE.name
+    assert data["errors"][0]["field"] == "promoCode"
 
 
 def test_checkout_add_voucher_code_checkout_with_sale(
