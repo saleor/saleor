@@ -271,7 +271,7 @@ class WebhookPlugin(BasePlugin):
 
         webhook_payload = generate_payment_payload(payment_information)
         response_data = trigger_webhook_sync(event_type, webhook_payload, app)
-        if not response_data:
+        if response_data is None:
             raise PaymentError(
                 f"Payment method {payment_information.gateway} is not available: "
                 "no response from the app."

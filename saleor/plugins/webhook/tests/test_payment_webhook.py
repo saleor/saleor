@@ -275,6 +275,7 @@ def test_run_payment_webhook_inactive_plugin(payment, webhook_plugin):
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 def test_run_payment_webhook_no_response(mock_send_request, payment, webhook_plugin):
+    # Should raise and error when response data is None.
     mock_send_request.return_value = None
     plugin = webhook_plugin()
     payment_information = create_payment_information(payment, "token")
@@ -285,6 +286,22 @@ def test_run_payment_webhook_no_response(mock_send_request, payment, webhook_plu
             payment_information,
             {},
         )
+
+
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+def test_run_payment_webhook_empty_response(mock_send_request, payment, webhook_plugin):
+    # Empty JSON response "{}"" is accepted; check that it doesn't fail.
+    mock_send_request.return_value = {}
+    plugin = webhook_plugin()
+    payment_information = create_payment_information(payment, "token")
+    response = plugin._WebhookPlugin__run_payment_webhook(
+        WebhookEventType.PAYMENT_AUTHORIZE,
+        TransactionKind.AUTH,
+        payment_information,
+        {},
+    )
+    assert response
+    assert response.is_success
 
 
 def test_check_plugin_id(payment_app, webhook_plugin):
