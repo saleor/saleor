@@ -600,7 +600,7 @@ django-js-asset = "*"
 
 [[package]]
 name = "django-phonenumber-field"
-version = "5.1.0"
+version = "5.2.0"
 description = "An international phone number field for django models."
 category = "main"
 optional = false
@@ -2881,8 +2881,8 @@ django-mptt = [
     {file = "django_mptt-0.12.0-py2.py3-none-any.whl", hash = "sha256:63b421a054bceb7406582e2be876a80b3848a5106765baea1003696348ffd628"},
 ]
 django-phonenumber-field = [
-    {file = "django-phonenumber-field-5.1.0.tar.gz", hash = "sha256:9eda963ac15b363393f677cc084efd45c3bd97bb5a0cdb4a06409ac99e05dd4b"},
-    {file = "django_phonenumber_field-5.1.0-py3-none-any.whl", hash = "sha256:48724ba235ee8248a474204faa0934c5baf9536f429859d05cb131fbd6b1c695"},
+    {file = "django-phonenumber-field-5.2.0.tar.gz", hash = "sha256:52b2e5970133ec5ab701218b802f7ab237229854dc95fd239b7e9e77dc43731d"},
+    {file = "django_phonenumber_field-5.2.0-py3-none-any.whl", hash = "sha256:5547fb2b2cc690a306ba77a5038419afc8fa8298a486fb7895008e9067cc7e75"},
 ]
 django-prices = [
     {file = "django-prices-2.2.0.tar.gz", hash = "sha256:cdbea06db683c589d4cf3ec48d4b2385000ddc4df6e641f48cea563e19f645a3"},
