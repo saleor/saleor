@@ -3266,6 +3266,23 @@ def test_address_delete_mutation(
         address_obj.refresh_from_db()
 
 
+def test_address_delete_mutation_as_app(
+    app_api_client, customer_user, permission_manage_users
+):
+    query = ADDRESS_DELETE_MUTATION
+    address_obj = customer_user.addresses.first()
+    variables = {"id": graphene.Node.to_global_id("Address", address_obj.id)}
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["addressDelete"]
+    assert data["address"]["city"] == address_obj.city
+    assert data["user"]["id"] == graphene.Node.to_global_id("User", customer_user.pk)
+    with pytest.raises(address_obj._meta.model.DoesNotExist):
+        address_obj.refresh_from_db()
+
+
 ACCOUNT_ADDRESS_DELETE_MUTATION = """
     mutation deleteUserAddress($id: ID!) {
         accountAddressDelete(id: $id) {
@@ -4167,6 +4184,29 @@ def test_query_customers_with_filter_placed_orders_(
     users = content["data"]["customers"]["edges"]
 
     assert len(users) == count
+
+
+def test_query_customers_with_filter_metadata(
+    query_customer_with_filter,
+    staff_api_client,
+    permission_manage_users,
+    customer_user,
+    channel_USD,
+):
+    second_customer = User.objects.create(email="second_example@example.com")
+    second_customer.store_value_in_metadata({"metakey": "metavalue"})
+    second_customer.save()
+
+    variables = {"filter": {"metadata": [{"key": "metakey", "value": "metavalue"}]}}
+    response = staff_api_client.post_graphql(
+        query_customer_with_filter, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+    users = content["data"]["customers"]["edges"]
+    assert len(users) == 1
+    user = users[0]
+    _, user_id = graphene.Node.from_global_id(user["node"]["id"])
+    assert second_customer.id == int(user_id)
 
 
 QUERY_CUSTOMERS_WITH_SORT = """

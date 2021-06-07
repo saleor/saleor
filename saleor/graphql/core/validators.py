@@ -72,3 +72,14 @@ def validate_variants_available_in_channel(
                 )
             }
         )
+
+
+def validate_end_is_after_start(start_date, end_date):
+    """Validate if the end date provided is after start date."""
+
+    # check is not needed if no end date
+    if end_date is None:
+        return
+
+    if start_date > end_date:
+        raise ValidationError("End date cannot be before the start date.")
