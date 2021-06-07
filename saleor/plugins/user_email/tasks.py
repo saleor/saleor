@@ -18,7 +18,7 @@ def get_plugin_configuration() -> Optional[PluginConfiguration]:
     return PluginConfiguration.objects.filter(identifier=constants.PLUGIN_ID).first()
 
 
-@app.task(compression="zlib")
+@app.task
 def send_account_confirmation_email_task(recipient_email, payload, config):
     email_config = EmailConfig(**config)
 
