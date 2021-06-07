@@ -712,7 +712,7 @@ typing-extensions = "*"
 
 [[package]]
 name = "django-templated-email"
-version = "2.3.0"
+version = "3.0.0"
 description = "A Django oriented templated / transaction email abstraction"
 category = "main"
 optional = false
@@ -720,7 +720,6 @@ python-versions = "*"
 
 [package.dependencies]
 django-render-block = ">=0.5"
-six = ">=1"
 
 [[package]]
 name = "django-versatileimagefield"
@@ -2583,7 +2582,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "dc15f5703fe523b7827974a7987a7906da1f41cb42e030f58ef450264b071303"
+content-hash = "75fe157f7431d62d4d1659f3cba224616f600379990d79f7eb10a1836d6f258c"
 
 [metadata.files]
 adyen = [
@@ -2913,7 +2912,8 @@ django-stubs = [
     {file = "django_stubs-1.2.0-py3-none-any.whl", hash = "sha256:ca565958a66c0772a11bf95e415d0bcd476eb59919a7ed1a417cc93315d68809"},
 ]
 django-templated-email = [
-    {file = "django-templated-email-2.3.0.tar.gz", hash = "sha256:536c4e5ae099eabfb9aab36087d4d7799948c654e73da55a744213d086d5bb33"},
+    {file = "django-templated-email-3.0.0.tar.gz", hash = "sha256:49d61840ec551e640adaf341146e94d6f9058ae01df964480850bf988046e5eb"},
+    {file = "django_templated_email-3.0.0-py3-none-any.whl", hash = "sha256:bf1b68ffe6c8794c0c50e2ce20e3a166c6d511b3879abbd3cf059a3fc2fe2e60"},
 ]
 django-versatileimagefield = [
     {file = "django-versatileimagefield-2.0.tar.gz", hash = "sha256:b197e7066f23bb73b001a61525f2b1cae3dd654bf208a944a7ff5a3fe6107b51"},
