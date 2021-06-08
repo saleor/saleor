@@ -73,6 +73,7 @@ from ..payment.models import Payment
 from ..plugins.manager import get_plugins_manager
 from ..plugins.models import PluginConfiguration
 from ..plugins.vatlayer.plugin import VatlayerPlugin
+from ..plugins.webhook.utils import to_payment_app_id
 from ..product import ProductMediaTypes
 from ..product.models import (
     Category,
@@ -103,7 +104,7 @@ from ..shipping.models import (
 from ..site.models import SiteSettings
 from ..warehouse.models import Allocation, Stock, Warehouse
 from ..webhook.event_types import WebhookEventType
-from ..webhook.models import Webhook
+from ..webhook.models import Webhook, WebhookEvent
 from ..wishlist.models import Wishlist
 from .utils import dummy_editorjs
 
@@ -2892,6 +2893,7 @@ def dummy_gateway_config():
 @pytest.fixture
 def dummy_payment_data(payment_dummy):
     return PaymentData(
+        gateway=payment_dummy.gateway,
         amount=Decimal(10),
         currency="USD",
         graphql_payment_id=graphene.Node.to_global_id("Payment", payment_dummy.pk),
@@ -2902,6 +2904,12 @@ def dummy_payment_data(payment_dummy):
         customer_ip_address=None,
         customer_email="example@test.com",
     )
+
+
+@pytest.fixture
+def dummy_webhook_app_payment_data(dummy_payment_data, payment_app):
+    dummy_payment_data.gateway = to_payment_app_id(payment_app, "credit-card")
+    return dummy_payment_data
 
 
 @pytest.fixture
@@ -3023,6 +3031,11 @@ def permission_manage_webhooks():
 @pytest.fixture
 def permission_manage_channels():
     return Permission.objects.get(codename="manage_channels")
+
+
+@pytest.fixture
+def permission_manage_payments():
+    return Permission.objects.get(codename="handle_payments")
 
 
 @pytest.fixture
@@ -3632,6 +3645,26 @@ def other_description_json():
 def app(db):
     app = App.objects.create(name="Sample app objects", is_active=True)
     app.tokens.create(name="Default")
+    return app
+
+
+@pytest.fixture
+def payment_app(db, permission_manage_payments):
+    app = App.objects.create(name="Payment App", is_active=True)
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_manage_payments)
+
+    webhook = Webhook.objects.create(
+        name="payment-webhook-1",
+        app=app,
+        target_url="https://payment-gateway.com/api/",
+    )
+    webhook.events.bulk_create(
+        [
+            WebhookEvent(event_type=event_type, webhook=webhook)
+            for event_type in WebhookEventType.PAYMENT_EVENTS
+        ]
+    )
     return app
 
 

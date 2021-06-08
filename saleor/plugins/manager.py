@@ -32,7 +32,6 @@ from .models import PluginConfiguration
 if TYPE_CHECKING:
     # flake8: noqa
     from ..account.models import Address, User
-    from ..channel.models import Channel
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout
     from ..invoice.models import Invoice
@@ -46,13 +45,7 @@ if TYPE_CHECKING:
         PaymentGateway,
         TokenConfig,
     )
-    from ..product.models import (
-        Collection,
-        Product,
-        ProductType,
-        ProductVariant,
-        ProductVariantChannelListing,
-    )
+    from ..product.models import Product, ProductType, ProductVariant
     from .base_plugin import BasePlugin
 
 
@@ -654,49 +647,43 @@ class PluginsManager(PaymentInterface):
     def authorize_payment(
         self, gateway: str, payment_information: "PaymentData", channel_slug: str
     ) -> "GatewayResponse":
-        method_name = "authorize_payment"
         return self.__run_payment_method(
-            gateway, method_name, payment_information, channel_slug=channel_slug
+            gateway, "authorize_payment", payment_information, channel_slug=channel_slug
         )
 
     def capture_payment(
         self, gateway: str, payment_information: "PaymentData", channel_slug: str
     ) -> "GatewayResponse":
-        method_name = "capture_payment"
         return self.__run_payment_method(
-            gateway, method_name, payment_information, channel_slug=channel_slug
+            gateway, "capture_payment", payment_information, channel_slug=channel_slug
         )
 
     def refund_payment(
         self, gateway: str, payment_information: "PaymentData", channel_slug: str
     ) -> "GatewayResponse":
-        method_name = "refund_payment"
         return self.__run_payment_method(
-            gateway, method_name, payment_information, channel_slug=channel_slug
+            gateway, "refund_payment", payment_information, channel_slug=channel_slug
         )
 
     def void_payment(
         self, gateway: str, payment_information: "PaymentData", channel_slug: str
     ) -> "GatewayResponse":
-        method_name = "void_payment"
         return self.__run_payment_method(
-            gateway, method_name, payment_information, channel_slug=channel_slug
+            gateway, "void_payment", payment_information, channel_slug=channel_slug
         )
 
     def confirm_payment(
         self, gateway: str, payment_information: "PaymentData", channel_slug: str
     ) -> "GatewayResponse":
-        method_name = "confirm_payment"
         return self.__run_payment_method(
-            gateway, method_name, payment_information, channel_slug=channel_slug
+            gateway, "confirm_payment", payment_information, channel_slug=channel_slug
         )
 
     def process_payment(
         self, gateway: str, payment_information: "PaymentData", channel_slug: str
     ) -> "GatewayResponse":
-        method_name = "process_payment"
         return self.__run_payment_method(
-            gateway, method_name, payment_information, channel_slug=channel_slug
+            gateway, "process_payment", payment_information, channel_slug=channel_slug
         )
 
     def token_is_required_as_payment_input(
@@ -753,19 +740,6 @@ class PluginsManager(PaymentInterface):
             plugins = [plugin for plugin in plugins if plugin.active]
         return plugins
 
-    def list_payment_plugin(
-        self, active_only: bool = False, channel_slug: Optional["str"] = None
-    ) -> Dict[str, "BasePlugin"]:
-        payment_method = "process_payment"
-
-        plugins = self.get_plugins(channel_slug=channel_slug, active_only=active_only)
-
-        return {
-            plugin.PLUGIN_ID: plugin
-            for plugin in plugins
-            if payment_method in type(plugin).__dict__
-        }
-
     def list_payment_gateways(
         self,
         currency: Optional[str] = None,
@@ -774,13 +748,14 @@ class PluginsManager(PaymentInterface):
         active_only: bool = True,
     ) -> List["PaymentGateway"]:
         channel_slug = checkout.channel.slug if checkout else channel_slug
+        plugins = self.get_plugins(channel_slug=channel_slug, active_only=active_only)
+        payment_plugins = [
+            plugin for plugin in plugins if "process_payment" in type(plugin).__dict__
+        ]
 
-        payment_plugins = self.list_payment_plugin(
-            active_only=active_only, channel_slug=channel_slug
-        )
         # if currency is given return only gateways which support given currency
         gateways = []
-        for plugin in payment_plugins.values():
+        for plugin in payment_plugins:
             gateways.extend(
                 plugin.get_payment_gateways(
                     currency=currency, checkout=checkout, previous_value=None
@@ -806,10 +781,10 @@ class PluginsManager(PaymentInterface):
         **kwargs,
     ) -> "GatewayResponse":
         default_value = None
-        gtw = self.get_plugin(gateway, channel_slug)
-        if gtw is not None:
+        plugin = self.get_plugin(gateway, channel_slug)
+        if plugin is not None:
             resp = self.__run_method_on_single_plugin(
-                gtw,
+                plugin,
                 method_name,
                 previous_value=default_value,
                 payment_information=payment_information,
@@ -898,7 +873,7 @@ class PluginsManager(PaymentInterface):
     ) -> Optional["BasePlugin"]:
         plugins = self.get_plugins(channel_slug=channel_slug)
         for plugin in plugins:
-            if plugin.PLUGIN_ID == plugin_id:
+            if plugin.check_plugin_id(plugin_id):
                 return plugin
         return None
 
