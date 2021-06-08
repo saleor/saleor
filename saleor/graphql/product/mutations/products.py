@@ -41,6 +41,7 @@ from ...core.scalars import WeightScalar
 from ...core.types import SeoInput, Upload
 from ...core.types.common import CollectionError, ProductError
 from ...core.utils import (
+    add_hash_to_file_name,
     clean_seo_fields,
     from_global_id_or_error,
     get_duplicated_values,
@@ -112,6 +113,7 @@ class CategoryCreate(ModelMutation):
         if data.get("background_image"):
             image_data = info.context.FILES.get(data["background_image"])
             validate_image_file(image_data, "background_image")
+            add_hash_to_file_name(image_data)
         clean_seo_fields(cleaned_input)
         return cleaned_input
 
@@ -218,6 +220,7 @@ class CollectionCreate(ModelMutation):
         if data.get("background_image"):
             image_data = info.context.FILES.get(data["background_image"])
             validate_image_file(image_data, "background_image")
+            add_hash_to_file_name(image_data)
         is_published = cleaned_input.get("is_published")
         publication_date = cleaned_input.get("publication_date")
         if is_published and not publication_date:
@@ -1309,6 +1312,7 @@ class ProductMediaCreate(BaseMutation):
         if image:
             image_data = info.context.FILES.get(image)
             validate_image_file(image_data, "image")
+            add_hash_to_file_name(image_data)
             media = product.media.create(
                 image=image_data, alt=alt, type=ProductMediaTypes.IMAGE
             )

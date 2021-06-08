@@ -1,3 +1,4 @@
+import os
 import re
 import uuid
 from collections import defaultdict
@@ -4021,6 +4022,11 @@ def test_user_avatar_update_mutation(monkeypatch, staff_api_client, media_root):
     assert data["user"]["avatar"]["url"].startswith(
         "http://testserver/media/user-avatars/avatar"
     )
+    img_name, format = os.path.splitext(image_file._name)
+    file_name = user.avatar.name
+    assert file_name != image_file._name
+    assert file_name.startswith(f"user-avatars/{img_name}")
+    assert file_name.endswith(format)
 
     # The image creation should have triggered a warm-up
     mock_create_thumbnails.assert_called_once_with(user_id=user.pk)
