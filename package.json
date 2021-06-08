@@ -1,6 +1,6 @@
 {
   "name": "saleor",
-  "version": "2.11.9",
+  "version": "2.11.10",
   "repository": {
     "type": "git",
     "url": "git://github.com/mirumee/saleor.git"
