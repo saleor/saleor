@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING, Union
 
+from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 from django.db.models import F, Q
 
@@ -205,6 +206,7 @@ class AttributeValue(SortableModel):
     class Meta:
         ordering = ("sort_order", "pk")
         unique_together = ("slug", "attribute")
+        indexes = [GinIndex(fields=["name", "slug"])]
 
     def __str__(self) -> str:
         return self.name

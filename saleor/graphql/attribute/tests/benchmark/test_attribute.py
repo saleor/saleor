@@ -20,9 +20,13 @@ def test_query_attribute(
                 name
                 inputType
                 type
-                values {
-                    slug
-                    inputType
+                choices(first: 10) {
+                    edges {
+                        node {
+                            slug
+                            inputType
+                        }
+                    }
                 }
                 valueRequired
                 visibleInStorefront
@@ -62,9 +66,13 @@ def test_query_attributes(
                         name
                         inputType
                         type
-                        values {
-                            slug
-                            inputType
+                        choices(first: 10) {
+                            edges {
+                                node {
+                                slug
+                                inputType
+                                }
+                            }
                         }
                         valueRequired
                         visibleInStorefront

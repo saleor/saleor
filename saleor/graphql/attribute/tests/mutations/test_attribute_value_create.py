@@ -36,9 +36,13 @@ CREATE_ATTRIBUTE_VALUE_MUTATION = """
             code
         }
         attribute {
-            values {
-                name
-                value
+            choices(first: 10) {
+                edges {
+                    node {
+                        name
+                        value
+                    }
+                }
             }
         }
         attributeValue {
@@ -74,8 +78,12 @@ def test_create_attribute_value(
     attr_data = data["attributeValue"]
     assert attr_data["name"] == name
     assert attr_data["slug"] == slugify(name)
-    assert name in [value["name"] for value in data["attribute"]["values"]]
-    assert value in [value["value"] for value in data["attribute"]["values"]]
+    assert name in [
+        value["node"]["name"] for value in data["attribute"]["choices"]["edges"]
+    ]
+    assert value in [
+        value["node"]["value"] for value in data["attribute"]["choices"]["edges"]
+    ]
 
 
 def test_create_attribute_value_not_unique_name(
