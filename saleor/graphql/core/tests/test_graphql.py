@@ -197,11 +197,15 @@ def test_real_query(user_api_client, product, channel_USD):
         id
         name
         slug
-        values {
-            id
-            name
-            slug
-            __typename
+        choices(first: 10) {
+            edges {
+                node {
+                    id
+                    name
+                    slug
+                    __typename
+                }
+            }
         }
         __typename
     }

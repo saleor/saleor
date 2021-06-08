@@ -291,8 +291,12 @@ query CollectionProducts($id: ID!,$channel: String, $filters: ProductFilterInput
           id
           attributes {
             attribute {
-              values {
-                slug
+              choices(first: 10) {
+                edges {
+                  node {
+                    slug
+                  }
+                }
               }
             }
           }
@@ -371,7 +375,16 @@ def test_filter_collection_products_by_multiple_attributes(
         "Product", product_with_multiple_values_attributes.pk
     )
     assert product["attributes"] == [
-        {"attribute": {"values": [{"slug": "eco"}, {"slug": "power"}]}}
+        {
+            "attribute": {
+                "choices": {
+                    "edges": [
+                        {"node": {"slug": "eco"}},
+                        {"node": {"slug": "power"}},
+                    ]
+                }
+            }
+        }
     ]
 
 

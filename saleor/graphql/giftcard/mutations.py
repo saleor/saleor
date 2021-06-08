@@ -14,7 +14,7 @@ from ...giftcard.utils import activate_gift_card, deactivate_gift_card
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.scalars import PositiveDecimal
 from ..core.types.common import GiftCardError
-from ..core.validators import validate_price_precision
+from ..core.validators import validate_end_is_after_start, validate_price_precision
 from .types import GiftCard
 
 
@@ -81,6 +81,17 @@ class GiftCardCreate(ModelMutation):
                     }
                 )
         return cleaned_input
+
+    @classmethod
+    def clean_instance(cls, info, instance):
+        super().clean_instance(info, instance)
+        start_date = instance.start_date
+        end_date = instance.end_date
+        try:
+            validate_end_is_after_start(start_date, end_date)
+        except ValidationError as error:
+            error.code = GiftCardErrorCode.INVALID.value
+            raise ValidationError({"end_date": error})
 
 
 class GiftCardUpdate(GiftCardCreate):

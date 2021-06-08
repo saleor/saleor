@@ -1,10 +1,16 @@
+from datetime import timedelta
 from decimal import Decimal
 
 import pytest
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 from graphql.error import GraphQLError
 
-from ..validators import validate_one_of_args_is_in_query, validate_price_precision
+from ..validators import (
+    validate_end_is_after_start,
+    validate_one_of_args_is_in_query,
+    validate_price_precision,
+)
 
 
 @pytest.mark.parametrize(
@@ -40,6 +46,15 @@ def test_validate_price_precision(value, currency):
 def test_validate_price_precision_raise_error(value, currency):
     with pytest.raises(ValidationError):
         validate_price_precision(value, currency)
+
+
+def test_validate_end_is_after_start_raise_error():
+    start_date = timezone.now() + timedelta(days=365)
+    end_date = timezone.now() - timedelta(days=365)
+
+    with pytest.raises(ValidationError) as error:
+        validate_end_is_after_start(start_date, end_date)
+    assert error.value.message == "End date cannot be before the start date."
 
 
 def test_validate_one_of_args_is_in_query():

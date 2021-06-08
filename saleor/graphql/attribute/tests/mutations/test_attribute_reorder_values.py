@@ -5,20 +5,24 @@ from ....tests.utils import get_graphql_content
 
 ATTRIBUTE_VALUES_REORDER_MUTATION = """
     mutation attributeReorderValues($attributeId: ID!, $moves: [ReorderInput]!) {
-      attributeReorderValues(attributeId: $attributeId, moves: $moves) {
-        attribute {
-          id
-          values {
-            id
-          }
-        }
+        attributeReorderValues(attributeId: $attributeId, moves: $moves) {
+            attribute {
+                id
+                choices(first: 10) {
+                    edges {
+                        node {
+                            id
+                        }
+                    }
+                }
+            }
 
-        errors {
-          field
-          message
+    errors {
+        field
+        message
         }
-      }
     }
+}
 """
 
 
@@ -124,13 +128,13 @@ def test_sort_values_within_attribute(
 
     assert content["attribute"]["id"] == attribute_id
 
-    gql_values = content["attribute"]["values"]
+    gql_values = content["attribute"]["choices"]["edges"]
     assert len(gql_values) == len(expected_order)
 
     actual_order = []
 
     for attr, expected_pk in zip(gql_values, expected_order):
-        gql_type, gql_attr_id = graphene.Node.from_global_id(attr["id"])
+        gql_type, gql_attr_id = graphene.Node.from_global_id(attr["node"]["id"])
         assert gql_type == "AttributeValue"
         actual_order.append(int(gql_attr_id))
 
