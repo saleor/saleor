@@ -65,6 +65,7 @@ def stripe_plugin(settings, monkeypatch, channel_USD):
         webhook_secret_key="ABCD",
         active=True,
         auto_capture=True,
+        store_customers_cards=False,
     ):
         public_api_key = public_api_key or "test_key"
         secret_api_key = secret_api_key or "secret_key"
@@ -74,7 +75,7 @@ def stripe_plugin(settings, monkeypatch, channel_USD):
         configuration = [
             {"name": "public_api_key", "value": public_api_key},
             {"name": "secret_api_key", "value": secret_api_key},
-            {"name": "store_customers_cards", "value": False},
+            {"name": "store_customers_cards", "value": store_customers_cards},
             {"name": "automatic_payment_capture", "value": auto_capture},
             {"name": "supported_currencies", "value": "USD"},
         ]
