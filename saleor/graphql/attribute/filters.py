@@ -3,12 +3,12 @@ from django.db.models import Q
 from graphene_django.filter import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 
 from ...account.utils import requestor_is_staff_member_or_app
-from ...attribute.models import Attribute
+from ...attribute.models import Attribute, AttributeValue
 from ...product.models import Category, Product
 from ..attribute.enums import AttributeTypeEnum
 from ..channel.filters import get_channel_slug_from_filter_data
 from ..core.filters import EnumFilter, MetadataFilterBase
-from ..core.types import ChannelFilterInputObjectType
+from ..core.types import ChannelFilterInputObjectType, FilterInputObjectType
 from ..core.utils import from_global_id_or_error
 from ..utils import get_user_or_app_from_context
 from ..utils.filters import filter_fields_containing_value
@@ -58,6 +58,22 @@ def filter_attribute_type(qs, _, value):
     return qs.filter(type=value)
 
 
+class AttributeValueFilter(django_filters.FilterSet):
+    search = django_filters.CharFilter(method="filter_search")
+
+    class Meta:
+        model = AttributeValue
+        fields = ["search"]
+
+    @classmethod
+    def filter_search(cls, queryset, _name, value):
+        if not value:
+            return queryset
+        name_slug_qs = Q(name__trigram_similar=value) | Q(slug__trigram_similar=value)
+
+        return queryset.filter(name_slug_qs)
+
+
 class AttributeFilter(MetadataFilterBase):
     # Search by attribute name and slug
     search = django_filters.CharFilter(
@@ -98,3 +114,8 @@ class AttributeFilter(MetadataFilterBase):
 class AttributeFilterInput(ChannelFilterInputObjectType):
     class Meta:
         filterset_class = AttributeFilter
+
+
+class AttributeValueFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = AttributeValueFilter

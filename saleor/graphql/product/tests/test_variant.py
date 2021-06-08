@@ -47,10 +47,14 @@ def test_fetch_variant(
                     id
                     name
                     slug
-                    values {
-                        id
-                        name
-                        slug
+                    choices(first: 10) {
+                        edges {
+                            node {
+                                id
+                                name
+                                slug
+                            }
+                        }
                     }
                 }
                 values {
@@ -1321,11 +1325,15 @@ def test_product_variant_update_with_new_attributes(
                   id
                   name
                   slug
-                  values {
-                    id
-                    name
-                    slug
-                    __typename
+                  choices(first:10) {
+                    edges {
+                      node {
+                        id
+                        name
+                        slug
+                        __typename
+                      }
+                    }
                   }
                   __typename
                 }
