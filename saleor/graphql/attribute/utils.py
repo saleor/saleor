@@ -1,8 +1,11 @@
+import re
 from collections import defaultdict
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple, Union
+from urllib.parse import urlparse
 
 import graphene
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.template.defaultfilters import truncatechars
@@ -335,7 +338,7 @@ class AttributeAssignmentMixin:
             values = AttrValuesInput(
                 global_id=global_id,
                 values=attribute_input.get("values", []),
-                file_url=attribute_input.get("file"),
+                file_url=cls._clean_file_url(attribute_input.get("file")),
                 content_type=attribute_input.get("content_type"),
                 references=attribute_input.get("references", []),
                 rich_text=attribute_input.get("rich_text"),
@@ -394,6 +397,15 @@ class AttributeAssignmentMixin:
         )
 
         return cleaned_input
+
+    @staticmethod
+    def _clean_file_url(file_url: Optional[str]):
+        # extract storage path from file URL
+        return (
+            re.sub(f"^{settings.MEDIA_URL}", "", urlparse(file_url).path)
+            if file_url is not None
+            else file_url
+        )
 
     @classmethod
     def _validate_references(

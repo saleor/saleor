@@ -1166,6 +1166,40 @@ def test_related_order_events_query(
             assert events_data[0]["relatedOrder"]["id"] == related_order_id
 
 
+def test_order_events_without_permission(
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines_and_events,
+    customer_user,
+):
+    query = """
+        query OrdersQuery {
+            orders(first: 2) {
+                edges {
+                    node {
+                        id
+                        events {
+                            user {
+                                id
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    """
+    last_event = order_with_lines_and_events.events.last()
+    last_event.user = customer_user
+    last_event.save()
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+
+    response_events = content["data"]["orders"]["edges"][0]["node"]["events"]
+    assert response_events[-1]["user"] is None
+
+
 def test_payment_information_order_events_query(
     staff_api_client, permission_manage_orders, order, payment_dummy, staff_user
 ):
@@ -1266,7 +1300,7 @@ DRAFT_ORDER_CREATE_MUTATION = """
                 lines: $lines, shippingAddress: $shippingAddress,
                 billingAddress: $billingAddress,
                 shippingMethod: $shippingMethod, voucher: $voucher,
-                channel: $channel,
+                channelId: $channel,
                 redirectUrl: $redirectUrl,
                 customerNote: $customerNote}) {
                     errors {
@@ -2111,7 +2145,7 @@ DRAFT_UPDATE_QUERY = """
                 input: {
                     voucher: $voucher,
                     customerNote: $customerNote
-                    channel: $channel
+                    channelId: $channel
                 }) {
                 errors {
                     field
@@ -2150,7 +2184,7 @@ def test_draft_order_update_existing_channel_id(
     error = content["data"]["draftOrderUpdate"]["errors"][0]
 
     assert error["code"] == OrderErrorCode.NOT_EDITABLE.name
-    assert error["field"] == "channel"
+    assert error["field"] == "channelId"
 
 
 def test_draft_order_update_voucher_not_available(

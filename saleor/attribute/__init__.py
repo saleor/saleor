@@ -27,6 +27,14 @@ class AttributeInputType:
         MULTISELECT,
     ]
 
+    # list of the input types that are unique per instances
+    TYPES_WITH_UNIQUE_VALUES = [
+        FILE,
+        REFERENCE,
+        RICH_TEXT,
+        NUMERIC,
+    ]
+
 
 # list of input types that are allowed for given attribute property
 ATTRIBUTE_PROPERTIES_CONFIGURATION = {

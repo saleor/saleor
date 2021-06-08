@@ -61,6 +61,7 @@ from ..shipping.types import ShippingMethod
 from ..warehouse.types import Allocation, Warehouse
 from .dataloaders import (
     AllocationsByOrderLineIdLoader,
+    FulfillmentLinesByIdLoader,
     FulfillmentsByOrderIdLoader,
     OrderByIdLoader,
     OrderEventsByOrderIdLoader,
@@ -184,14 +185,20 @@ class OrderEvent(CountableDjangoObjectType):
     @staticmethod
     @traced_resolver
     def resolve_user(root: models.OrderEvent, info):
-        user = info.context.user
-        if (
-            user == root.user
-            or user.has_perm(AccountPermissions.MANAGE_USERS)
-            or user.has_perm(AccountPermissions.MANAGE_STAFF)
-        ):
-            return root.user
-        raise PermissionDenied()
+        def _resolve_user(event_user):
+            requester = get_user_or_app_from_context(info.context)
+            if (
+                requester == event_user
+                or requester.has_perm(AccountPermissions.MANAGE_USERS)
+                or requester.has_perm(AccountPermissions.MANAGE_STAFF)
+            ):
+                return event_user
+            return None
+
+        if not root.user_id:
+            return None
+
+        return UserByUserIdLoader(info.context).load(root.user_id).then(_resolve_user)
 
     @staticmethod
     def resolve_email(root: models.OrderEvent, _info):
@@ -279,9 +286,13 @@ class OrderEvent(CountableDjangoObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_fulfilled_items(root: models.OrderEvent, _info):
-        lines = root.parameters.get("fulfilled_items", [])
-        return models.FulfillmentLine.objects.filter(pk__in=lines)
+    def resolve_fulfilled_items(root: models.OrderEvent, info):
+        fulfillment_lines_ids = root.parameters.get("fulfilled_items", [])
+
+        if not fulfillment_lines_ids:
+            return None
+
+        return FulfillmentLinesByIdLoader(info.context).load_many(fulfillment_lines_ids)
 
     @staticmethod
     @traced_resolver
@@ -325,8 +336,8 @@ class FulfillmentLine(CountableDjangoObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_order_line(root: models.FulfillmentLine, _info):
-        return root.order_line
+    def resolve_order_line(root: models.FulfillmentLine, info):
+        return OrderLineByIdLoader(info.context).load(root.order_line_id)
 
 
 class Fulfillment(CountableDjangoObjectType):

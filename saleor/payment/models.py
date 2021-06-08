@@ -10,6 +10,7 @@ from django.db.models import JSONField  # type: ignore
 from prices import Money
 
 from ..checkout.models import Checkout
+from ..core.permissions import PaymentPermissions
 from ..core.taxes import zero_money
 from . import ChargeStatus, CustomPaymentChoices, TransactionKind
 
@@ -92,6 +93,12 @@ class Payment(models.Model):
 
     class Meta:
         ordering = ("pk",)
+        permissions = (
+            (
+                PaymentPermissions.HANDLE_PAYMENTS.codename,
+                "Handle payments",
+            ),
+        )
         indexes = [
             # Orders filtering by status index
             GinIndex(fields=["order_id", "is_active", "charge_status"]),
