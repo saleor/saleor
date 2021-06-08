@@ -16,7 +16,7 @@ def get_plugin_configuration() -> Optional[PluginConfiguration]:
     return PluginConfiguration.objects.filter(identifier=constants.PLUGIN_ID).first()
 
 
-@app.task
+@app.task(compression="zlib")
 def send_set_staff_password_email_task(recipient_email, payload, config: dict):
     email_config = EmailConfig(**config)
     plugin_configuration = get_plugin_configuration()
@@ -40,7 +40,7 @@ def send_set_staff_password_email_task(recipient_email, payload, config: dict):
     )
 
 
-@app.task
+@app.task(compression="zlib")
 def send_email_with_link_to_download_file_task(
     recipient_email: str, payload, config: dict
 ):
@@ -69,7 +69,7 @@ def send_email_with_link_to_download_file_task(
     )
 
 
-@app.task
+@app.task(compression="zlib")
 def send_export_failed_email_task(recipient_email: str, payload: dict, config: dict):
     email_config = EmailConfig(**config)
     plugin_configuration = get_plugin_configuration()
@@ -96,7 +96,7 @@ def send_export_failed_email_task(recipient_email: str, payload: dict, config: d
     )
 
 
-@app.task
+@app.task(compression="zlib")
 def send_staff_order_confirmation_email_task(
     recipient_list: str, payload: dict, config: dict
 ):
@@ -122,7 +122,7 @@ def send_staff_order_confirmation_email_task(
     )
 
 
-@app.task
+@app.task(compression="zlib")
 def send_staff_password_reset_email_task(recipient_email, payload, config):
     email_config = EmailConfig(**config)
     plugin_configuration = get_plugin_configuration()
