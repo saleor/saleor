@@ -5,7 +5,7 @@ from ....attribute import AttributeInputType
 from ....page.error_codes import PageErrorCode
 from ....product.error_codes import ProductErrorCode
 from ...product.mutations.products import AttrValuesInput
-from ..utils import validate_attributes_input
+from ..utils import AttributeAssignmentMixin, validate_attributes_input
 
 
 def test_validate_attributes_input_for_product(
@@ -1221,3 +1221,19 @@ def test_validate_numeric_attributes_input_for_product_more_than_one_value_given
     assert set(error.params["attributes"]) == {
         graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
     }
+
+
+@pytest.mark.parametrize(
+    "file_url, expected_value",
+    [
+        ("http://localhost:8000/media/Test.jpg", "Test.jpg"),
+        ("/media/Test.jpg", "Test.jpg"),
+        ("Test.jpg", "Test.jpg"),
+        ("", ""),
+        ("/ab/cd.jpg", "/ab/cd.jpg"),
+    ],
+)
+def test_clean_file_url_in_attribute_assignment_mixin(file_url, expected_value):
+    result = AttributeAssignmentMixin._clean_file_url(file_url)
+
+    assert result == expected_value

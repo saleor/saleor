@@ -67,13 +67,18 @@ query($id: ID!) {
         entityType
         type
         unit
-        values {
-            slug
-            inputType
-            file {
-                url
-                contentType
+        choices(first: 10) {
+            edges {
+                node {
+                    slug
+                    inputType
+                    file {
+                        url
+                        contentType
+                    }
+                }
             }
+
         }
         valueRequired
         visibleInStorefront
@@ -236,7 +241,7 @@ def test_get_single_product_attribute_with_file_value(
         attribute_data["storefrontSearchPosition"]
         == file_attribute.storefront_search_position
     )
-    assert attribute_data["values"] == []
+    assert attribute_data["choices"]["edges"] == []
 
 
 def test_get_single_reference_attribute_by_staff(
@@ -339,10 +344,14 @@ QUERY_ATTRIBUTES = """
                     id
                     name
                     slug
-                    values {
-                        id
-                        name
-                        slug
+                    choices(first: 10) {
+                        edges {
+                            node {
+                                id
+                                name
+                                slug
+                            }
+                        }
                     }
                 }
             }

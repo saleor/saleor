@@ -81,11 +81,17 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
 
     @classmethod
     def validate_gateway(cls, manager, gateway_id, currency):
+        """Validate if given gateway can be used for this checkout.
+
+        Check if provided gateway_id is on the list of available payment gateways.
+        Gateway will be rejected if gateway_id is invalid or a gateway doesn't support
+        checkout's currency.
+        """
         if not is_currency_supported(currency, gateway_id, manager):
             raise ValidationError(
                 {
                     "gateway": ValidationError(
-                        f"The gateway {gateway_id} does not support checkout currency.",
+                        f"The gateway {gateway_id} is not available for this checkout.",
                         code=PaymentErrorCode.NOT_SUPPORTED_GATEWAY.value,
                     )
                 }

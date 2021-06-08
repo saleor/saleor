@@ -446,7 +446,7 @@ class ProductVariantQueryset(models.QuerySet):
     def available_in_channel(self, channel_slug):
         return self.filter(
             channel_listings__price_amount__isnull=False,
-            channel_listings__channel__slug=channel_slug,
+            channel_listings__channel__slug=str(channel_slug),
         )
 
     def prefetched_for_webhook(self):
