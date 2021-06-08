@@ -53,6 +53,7 @@ def create_payment_information(
     graphql_payment_id = graphene.Node.to_global_id("Payment", payment.pk)
 
     return PaymentData(
+        gateway=payment.gateway,
         token=payment_token,
         amount=amount or payment.total,
         currency=payment.currency,

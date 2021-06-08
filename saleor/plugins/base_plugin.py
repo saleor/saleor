@@ -77,6 +77,11 @@ class BasePlugin:
     DEFAULT_CONFIGURATION = []
     DEFAULT_ACTIVE = False
 
+    @classmethod
+    def check_plugin_id(cls, plugin_id: str) -> bool:
+        """Check if given plugin_id matches with the PLUGIN_ID of this plugin."""
+        return cls.PLUGIN_ID == plugin_id
+
     def __init__(
         self,
         *,
