@@ -147,7 +147,7 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
     date_joined = models.DateTimeField(default=timezone.now, editable=False)
     default_shipping_address = models.ForeignKey(
         Address,
-        related_name="default_user_shipping",
+        related_name="+",
         null=True,
         blank=True,
         on_delete=models.SET_NULL,

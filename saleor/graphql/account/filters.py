@@ -31,25 +31,25 @@ def filter_staff_status(qs, _, value):
 
 def filter_user_search(qs, _, value):
     if value:
-        address = Address.objects.filter(
-            Q(first_name__icontains=value)
-            | Q(last_name__icontains=value)
-            | Q(city__icontains=value)
-            | Q(country__icontains=value)
+        matching = Address.objects.filter(
+            Q(first_name__trigram_similar=value)
+            | Q(last_name__trigram_similar=value)
+            | Q(city__trigram_similar=value)
+            | Q(country__trigram_similar=value)
             | Q(phone=value)
         ).values("id")
         qs = qs.filter(
-            Q(email__icontains=value)
-            | Q(first_name__icontains=value)
-            | Q(last_name__icontains=value)
-            | Q(Exists(address.filter(default_user_shipping=OuterRef("id"))))
+            Q(email__trigram_similar=value)
+            | Q(first_name__trigram_similar=value)
+            | Q(last_name__trigram_similar=value)
+            | Q(Exists(matching.filter(pk=OuterRef("addresses"))))
         )
     return qs
 
 
 def filter_search(qs, _, value):
     if value:
-        qs = qs.filter(name__icontains=value)
+        qs = qs.filter(name__trigram_similar=value)
     return qs
 
 
