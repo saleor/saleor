@@ -150,14 +150,15 @@ class StripeGatewayPlugin(BasePlugin):
         if self.order_auto_confirmation is False:
             auto_capture = False
 
-        payment_method_id = payment_information.data.get("payment_method_id")
+        data = payment_information.data
+        payment_method_id = data.get("payment_method_id") if data else None
         customer = None
         if payment_information.reuse_source and self.config.store_customer:
             customer = get_or_create_customer(
                 api_key=api_key,
                 customer_email=payment_information.customer_email,
                 customer_id=payment_information.customer_id,
-                metadata={"channel": self.channel.slug},
+                metadata={"channel": self.channel.slug},  # type: ignore
             )
         intent, error = create_payment_intent(
             api_key=api_key,
@@ -357,24 +358,25 @@ class StripeGatewayPlugin(BasePlugin):
     def list_payment_sources(
         self, customer_id: str, previous_value
     ) -> List[CustomerSource]:
-        payment_methods = list_customer_payment_methods(
+        payment_methods, error = list_customer_payment_methods(
             api_key=self.config.connection_params["secret_api_key"],
             customer_id=customer_id,
         )
-        customer_sources = [
-            CustomerSource(
-                id=c.id,
-                gateway="stripe",
-                credit_card_info=PaymentMethodInfo(
-                    exp_year=c.card.exp_year,
-                    exp_month=c.card.exp_month,
-                    last_4=c.card.last4,
-                    name=None,
-                ),
-            )
-            for c in payment_methods
-        ]
-        previous_value.extend(customer_sources)
+        if payment_methods:
+            customer_sources = [
+                CustomerSource(
+                    id=c.id,
+                    gateway="stripe",
+                    credit_card_info=PaymentMethodInfo(
+                        exp_year=c.card.exp_year,
+                        exp_month=c.card.exp_month,
+                        last_4=c.card.last4,
+                        name=None,
+                    ),
+                )
+                for c in payment_methods
+            ]
+            previous_value.extend(customer_sources)
         return previous_value
 
     @classmethod

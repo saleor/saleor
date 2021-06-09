@@ -82,7 +82,7 @@ def create_payment_intent(
 ) -> Tuple[Optional[StripeObject], Optional[StripeError]]:
 
     capture_method = AUTOMATIC_CAPTURE_METHOD if auto_capture else MANUAL_CAPTURE_METHOD
-    additional_params = {}
+    additional_params = {}  # type: ignore
     if customer:
         additional_params = {
             "customer": customer,
