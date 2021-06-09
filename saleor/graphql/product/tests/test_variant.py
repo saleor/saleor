@@ -1145,7 +1145,7 @@ def test_create_product_variant_duplicated_attributes(
         "field": "attributes",
         "code": ProductErrorCode.DUPLICATED_INPUT_ITEM.name,
         "message": ANY,
-        "attributes": None,
+        "attributes": [color_attribute_id, size_attribute_id],
     }
     assert not product.variants.filter(sku=sku).exists()
 
