@@ -97,6 +97,7 @@ All notable, unreleased changes to this project will be documented in this file.
     - `undiscounted_total_price_net_amount`
     - `undiscounted_total_price_gross_amount`
 - Copy metadata fields when creating reissue - #7358 by @IKarbowiak
+- Add payment webhooks - #7044 by @maarcingebala
 - Fix invoice generation - #7376 by @tomaszszymanski129
 - Allow defining only one field in translations - #7363 by @IKarbowiak
 - Trigger `checkout_updated` hook for checkout meta mutations - #7392 by @maarcingebala

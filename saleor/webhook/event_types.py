@@ -3,6 +3,7 @@ from ..core.permissions import (
     CheckoutPermissions,
     OrderPermissions,
     PagePermissions,
+    PaymentPermissions,
     ProductPermissions,
 )
 
@@ -42,6 +43,14 @@ class WebhookEventType:
     PAGE_UPDATED = "page_updated"
     PAGE_DELETED = "page_deleted"
 
+    PAYMENT_LIST_GATEWAYS = "payment_list_gateways"
+    PAYMENT_AUTHORIZE = "payment_authorize"
+    PAYMENT_CAPTURE = "payment_capture"
+    PAYMENT_REFUND = "payment_refund"
+    PAYMENT_VOID = "payment_void"
+    PAYMENT_CONFIRM = "payment_confirm"
+    PAYMENT_PROCESS = "payment_process"
+
     DISPLAY_LABELS = {
         ANY: "Any events",
         ORDER_CREATED: "Order created",
@@ -68,6 +77,13 @@ class WebhookEventType:
         PAGE_CREATED: "Page Created",
         PAGE_UPDATED: "Page Updated",
         PAGE_DELETED: "Page Deleted",
+        PAYMENT_AUTHORIZE: "Authorize payment",
+        PAYMENT_CAPTURE: "Capture payment",
+        PAYMENT_CONFIRM: "Confirm payment",
+        PAYMENT_LIST_GATEWAYS: "List payment gateways",
+        PAYMENT_PROCESS: "Process payment",
+        PAYMENT_REFUND: "Refund payment",
+        PAYMENT_VOID: "Void payment",
     }
 
     CHOICES = [
@@ -96,6 +112,23 @@ class WebhookEventType:
         (PAGE_CREATED, DISPLAY_LABELS[PAGE_CREATED]),
         (PAGE_UPDATED, DISPLAY_LABELS[PAGE_UPDATED]),
         (PAGE_DELETED, DISPLAY_LABELS[PAGE_DELETED]),
+        (PAYMENT_AUTHORIZE, DISPLAY_LABELS[PAYMENT_AUTHORIZE]),
+        (PAYMENT_CAPTURE, DISPLAY_LABELS[PAYMENT_CAPTURE]),
+        (PAYMENT_CONFIRM, DISPLAY_LABELS[PAYMENT_CONFIRM]),
+        (PAYMENT_LIST_GATEWAYS, DISPLAY_LABELS[PAYMENT_LIST_GATEWAYS]),
+        (PAYMENT_PROCESS, DISPLAY_LABELS[PAYMENT_PROCESS]),
+        (PAYMENT_REFUND, DISPLAY_LABELS[PAYMENT_REFUND]),
+        (PAYMENT_VOID, DISPLAY_LABELS[PAYMENT_VOID]),
+    ]
+
+    PAYMENT_EVENTS = [
+        PAYMENT_AUTHORIZE,
+        PAYMENT_CAPTURE,
+        PAYMENT_CONFIRM,
+        PAYMENT_LIST_GATEWAYS,
+        PAYMENT_PROCESS,
+        PAYMENT_REFUND,
+        PAYMENT_VOID,
     ]
 
     PERMISSIONS = {
@@ -123,4 +156,11 @@ class WebhookEventType:
         PAGE_CREATED: PagePermissions.MANAGE_PAGES,
         PAGE_UPDATED: PagePermissions.MANAGE_PAGES,
         PAGE_DELETED: PagePermissions.MANAGE_PAGES,
+        PAYMENT_AUTHORIZE: PaymentPermissions.HANDLE_PAYMENTS,
+        PAYMENT_CAPTURE: PaymentPermissions.HANDLE_PAYMENTS,
+        PAYMENT_CONFIRM: PaymentPermissions.HANDLE_PAYMENTS,
+        PAYMENT_LIST_GATEWAYS: PaymentPermissions.HANDLE_PAYMENTS,
+        PAYMENT_PROCESS: PaymentPermissions.HANDLE_PAYMENTS,
+        PAYMENT_REFUND: PaymentPermissions.HANDLE_PAYMENTS,
+        PAYMENT_VOID: PaymentPermissions.HANDLE_PAYMENTS,
     }

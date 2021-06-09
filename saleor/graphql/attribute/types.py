@@ -9,15 +9,18 @@ from ...core.tracing import traced_resolver
 from ...graphql.utils import get_user_or_app_from_context
 from ..core.connection import CountableDjangoObjectType
 from ..core.enums import MeasurementUnitsEnum
+from ..core.fields import FilterInputConnectionField
 from ..core.types import File
 from ..core.types.common import IntRangeInput
 from ..decorators import check_attribute_required_permissions
 from ..meta.types import ObjectWithMetadata
 from ..translations.fields import TranslationField
 from ..translations.types import AttributeTranslation, AttributeValueTranslation
-from .dataloaders import AttributesByAttributeId, AttributeValuesByAttributeIdLoader
+from .dataloaders import AttributesByAttributeId
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
+from .filters import AttributeValueFilterInput
+from .sorters import AttributeChoicesSortingInput
 
 COLOR_PATTERN = r"^(#[0-9a-fA-F]{3}|#(?:[0-9a-fA-F]{2}){2,4}|(rgb|hsl)a?\((-?\d+%?[,\s]+){2,3}\s*[\d\.]+%?\))$"  # noqa
 color_pattern = re.compile(COLOR_PATTERN)
@@ -99,8 +102,14 @@ class Attribute(CountableDjangoObjectType):
     slug = graphene.String(description=AttributeDescriptions.SLUG)
     type = AttributeTypeEnum(description=AttributeDescriptions.TYPE)
     unit = MeasurementUnitsEnum(description=AttributeDescriptions.UNIT)
-
-    values = graphene.List(AttributeValue, description=AttributeDescriptions.VALUES)
+    choices = FilterInputConnectionField(
+        AttributeValue,
+        sort_by=AttributeChoicesSortingInput(description="Sort attribute choices."),
+        filter=AttributeValueFilterInput(
+            description="Filtering options for attribute choices."
+        ),
+        description=AttributeDescriptions.VALUES,
+    )
 
     value_required = graphene.Boolean(
         description=AttributeDescriptions.VALUE_REQUIRED, required=True
@@ -135,9 +144,9 @@ class Attribute(CountableDjangoObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_values(root: models.Attribute, info):
+    def resolve_choices(root: models.Attribute, info, **_kwargs):
         if root.input_type in AttributeInputType.TYPES_WITH_CHOICES:
-            return AttributeValuesByAttributeIdLoader(info.context).load(root.id)
+            return root.values.all()
         return []
 
     @staticmethod

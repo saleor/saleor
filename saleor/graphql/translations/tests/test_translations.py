@@ -414,12 +414,16 @@ def test_attribute_value_translation(user_api_client, pink_attribute_value):
         attributes(first: 1) {
             edges {
                 node {
-                    values {
-                        translation(languageCode: PL) {
-                            name
-                            richText
-                            language {
-                                code
+                    choices(first: 10) {
+                        edges {
+                            node {
+                                translation(languageCode: PL) {
+                                    name
+                                    richText
+                                    language {
+                                        code
+                                    }
+                                }
                             }
                         }
                     }
@@ -437,7 +441,9 @@ def test_attribute_value_translation(user_api_client, pink_attribute_value):
     )
     data = get_graphql_content(response)["data"]
 
-    attribute_value = data["attributes"]["edges"][0]["node"]["values"][-1]
+    attribute_value = data["attributes"]["edges"][0]["node"]["choices"]["edges"][-1][
+        "node"
+    ]
     assert attribute_value["translation"]["name"] == "Różowy"
     assert attribute_value["translation"]["richText"] == json.dumps(
         dummy_editorjs("Pink")
@@ -691,11 +697,15 @@ def test_attribute_value_no_translation(user_api_client, pink_attribute_value):
         attributes(first: 1) {
             edges {
                 node {
-                    values {
-                        translation(languageCode: PL) {
-                            name
-                            language {
-                                code
+                    choices(first: 10) {
+                        edges {
+                            node {
+                                translation(languageCode: PL) {
+                                    name
+                                    language {
+                                        code
+                                    }
+                                }
                             }
                         }
                     }
@@ -713,7 +723,9 @@ def test_attribute_value_no_translation(user_api_client, pink_attribute_value):
     )
     data = get_graphql_content(response)["data"]
 
-    attribute_value = data["attributes"]["edges"][0]["node"]["values"][-1]
+    attribute_value = data["attributes"]["edges"][0]["node"]["choices"]["edges"][-1][
+        "node"
+    ]
     assert attribute_value["translation"] is None
 
 
