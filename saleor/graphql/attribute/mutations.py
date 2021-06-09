@@ -19,7 +19,7 @@ from ..core.enums import MeasurementUnitsEnum
 from ..core.inputs import ReorderInput
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import AttributeError
-from ..core.utils import from_global_id_or_error, validate_slug_and_generate_if_needed
+from ..core.utils import validate_slug_and_generate_if_needed
 from ..core.utils.reordering import perform_reordering
 from ..utils import resolve_global_ids_to_primary_keys
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
@@ -116,11 +116,11 @@ class BaseReorderAttributeValuesMutation(BaseMutation):
     def get_instance(instance_id: str):
         pass
 
-    @staticmethod
+    @classmethod
     def get_attribute_assignment(
-        instance, instance_type, attribute_id: str, error_code_enum
+        cls, instance, instance_type, attribute_id: str, error_code_enum
     ):
-        _type, attribute_pk = from_global_id_or_error(
+        attribute_pk = cls.get_global_id_or_error(
             attribute_id, only_type=Attribute, field="attribute_id"
         )
 
@@ -671,7 +671,7 @@ class AttributeReorderValues(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, attribute_id, moves):
-        _type, pk = from_global_id_or_error(
+        pk = cls.get_global_id_or_error(
             attribute_id, only_type=Attribute, field="attribute_id"
         )
 
@@ -692,7 +692,7 @@ class AttributeReorderValues(BaseMutation):
 
         # Resolve the values
         for move_info in moves:
-            _type, value_pk = from_global_id_or_error(
+            value_pk = cls.get_global_id_or_error(
                 move_info.id, only_type=AttributeValue, field="moves"
             )
 

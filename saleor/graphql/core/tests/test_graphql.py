@@ -4,7 +4,6 @@ from unittest.mock import Mock, patch
 import graphene
 import pytest
 from django.contrib.auth.models import AnonymousUser
-from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.shortcuts import reverse
 from graphql.error import GraphQLError
@@ -289,20 +288,20 @@ def test_from_global_id_or_error(product):
     invalid_id = "invalid"
     message = f"Couldn't resolve id: {invalid_id}."
 
-    with pytest.raises(ValidationError) as error:
+    with pytest.raises(GraphQLError) as error:
         from_global_id_or_error(invalid_id)
 
-    assert error.value.error_dict["id"][0].message == message
+    assert str(error.value) == message
 
 
 def test_from_global_id_or_error_wth_invalid_type(product):
     product_id = graphene.Node.to_global_id("Product", product.id)
     message = "Must receive a ProductVariant id."
 
-    with pytest.raises(ValidationError) as error:
+    with pytest.raises(GraphQLError) as error:
         from_global_id_or_error(product_id, "ProductVariant")
 
-    assert error.value.error_dict["id"][0].message == message
+    assert str(error.value) == message
 
 
 def test_from_global_id_or_error_wth_type(product):

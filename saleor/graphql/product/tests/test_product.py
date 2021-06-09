@@ -343,6 +343,27 @@ def test_product_query_by_id_available_as_app(
     assert product_data["name"] == product.name
 
 
+@pytest.mark.parametrize("id", ["'", "abc"])
+def test_product_query_by_invalid_id(
+    id, staff_api_client, permission_manage_products, product, channel_USD
+):
+    variables = {
+        "id": id,
+        "channel": channel_USD.slug,
+    }
+    ProductChannelListing.objects.filter(product=product, channel=channel_USD).delete()
+
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT,
+        variables=variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+    content = get_graphql_content_from_response(response)
+    assert "errors" in content
+    assert content["errors"][0]["message"] == (f"Couldn't resolve id: {id}.")
+
+
 def test_product_query_by_id_as_user(
     user_api_client, permission_manage_products, product, channel_USD
 ):
@@ -4163,7 +4184,7 @@ def test_product_variant_set_default_invalid_id(
     assert not product_with_two_variants.default_variant
     content = get_graphql_content(response)
     data = content["data"]["productVariantSetDefault"]
-    assert data["errors"][0]["code"] == ProductErrorCode.INVALID.name
+    assert data["errors"][0]["code"] == ProductErrorCode.GRAPHQL_ERROR.name
     assert data["errors"][0]["field"] == "variantId"
 
 

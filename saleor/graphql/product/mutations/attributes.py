@@ -20,7 +20,6 @@ from ...channel import ChannelContext
 from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation
 from ...core.types.common import ProductError
-from ...core.utils import from_global_id_or_error
 from ...core.utils.reordering import perform_reordering
 from ...product.types import Product, ProductType, ProductVariant
 from ..enums import ProductAttributeType
@@ -65,7 +64,7 @@ class ProductAttributeAssign(BaseMutation):
         variant_attrs_pks = []
 
         for operation in operations:
-            _type, pk = from_global_id_or_error(
+            pk = cls.get_global_id_or_error(
                 operation.id, only_type=Attribute, field="operations"
             )
             if operation.type == ProductAttributeType.PRODUCT:
@@ -254,9 +253,9 @@ class ProductAttributeUnassign(BaseMutation):
 
         # Resolve all the passed IDs to ints
         attribute_pks = [
-            from_global_id_or_error(
+            cls.get_global_id_or_error(
                 attribute_id, only_type=Attribute, field="attribute_id"
-            )[1]
+            )
             for attribute_id in attribute_ids
         ]
 
@@ -293,7 +292,7 @@ class ProductTypeReorderAttributes(BaseReorderAttributesMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, product_type_id, type, moves):
-        _type, pk = from_global_id_or_error(
+        pk = cls.get_global_id_or_error(
             product_type_id, only_type=ProductType, field="product_type_id"
         )
 
@@ -365,9 +364,9 @@ class ProductReorderAttributeValues(BaseReorderAttributeValuesMutation):
             product=ChannelContext(node=product, channel_slug=None)
         )
 
-    @staticmethod
-    def get_instance(instance_id: str):
-        _type, pk = from_global_id_or_error(
+    @classmethod
+    def get_instance(cls, instance_id: str):
+        pk = cls.get_global_id_or_error(
             instance_id, only_type=Product, field="product_id"
         )
 
@@ -421,9 +420,9 @@ class ProductVariantReorderAttributeValues(BaseReorderAttributeValuesMutation):
             product_variant=ChannelContext(node=variant, channel_slug=None)
         )
 
-    @staticmethod
-    def get_instance(instance_id: str):
-        _type, pk = from_global_id_or_error(
+    @classmethod
+    def get_instance(cls, instance_id: str):
+        pk = cls.get_global_id_or_error(
             instance_id, only_type=ProductVariant, field="variant_id"
         )
 
