@@ -1,8 +1,11 @@
 import binascii
+import os
+import secrets
 from typing import TYPE_CHECKING, Type, Union
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
 from graphene import ObjectType
 
 from ....core.utils import generate_unique_slug
@@ -118,3 +121,11 @@ def from_global_id_or_error(
             {field: ValidationError(f"Must receive a {only_type} id.", code="invalid")}
         )
     return _type, _id
+
+
+def add_hash_to_file_name(file):
+    """Add unique text fragment to the file name to prevent file overriding."""
+    file_name, format = os.path.splitext(file._name)
+    hash = secrets.token_hex(nbytes=4)
+    new_name = f"{file_name}_{hash}{format}"
+    file._name = new_name

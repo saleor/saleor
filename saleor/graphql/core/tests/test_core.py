@@ -1,3 +1,4 @@
+import os
 from unittest.mock import patch
 
 import django_filters
@@ -19,6 +20,7 @@ from ..filters import EnumFilter
 from ..mutations import BaseMutation
 from ..types import FilterInputObjectType
 from ..utils import (
+    add_hash_to_file_name,
     clean_seo_fields,
     get_duplicated_values,
     snake_to_camel_case,
@@ -322,3 +324,14 @@ def test_get_oembed_data_unsupported_media_provider(url):
         ValidationError, match="Unsupported media provider or incorrect URL."
     ):
         get_oembed_data(url, "media_url")
+
+
+def test_add_hash_to_file_name(image, media_root):
+    previous_file_name = image._name
+
+    add_hash_to_file_name(image)
+
+    assert previous_file_name != image._name
+    file_name, format = os.path.splitext(image._name)
+    assert image._name.startswith(file_name)
+    assert image._name.endswith(format)
