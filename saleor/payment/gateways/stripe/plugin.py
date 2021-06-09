@@ -375,8 +375,7 @@ class StripeGatewayPlugin(BasePlugin):
             return
 
         webhook = subscribe_webhook(
-            api_key,
-            plugin_configuration.channel.slug  # type: ignore
+            api_key, plugin_configuration.channel.slug  # type: ignore
         )
         cls._update_or_create_config_field(
             plugin_configuration.configuration, "webhook_endpoint_id", webhook.id
