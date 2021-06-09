@@ -4282,10 +4282,10 @@ def test_query_customers_with_sort(
         ({"search": "example.com"}, 2),
         ({"search": "Alice"}, 1),
         ({"search": "Kowalski"}, 1),
-        ({"search": "John"}, 1),  # default_shipping_address__first_name
-        ({"search": "Doe"}, 1),  # default_shipping_address__last_name
-        ({"search": "wroc"}, 1),  # default_shipping_address__city
-        ({"search": "pl"}, 2),  # default_shipping_address__country, email
+        ({"search": "John"}, 1),  # first_name
+        ({"search": "Doe"}, 1),  # last_name
+        ({"search": "wroc"}, 1),  # city
+        ({"search": "pl"}, 1),  # country
         ({"search": "+48713988102"}, 1),
     ],
 )
@@ -4298,8 +4298,7 @@ def test_query_customer_members_with_filter_search(
     address,
     staff_user,
 ):
-
-    User.objects.bulk_create(
+    users = User.objects.bulk_create(
         [
             User(
                 email="second@example.com",
@@ -4310,10 +4309,10 @@ def test_query_customer_members_with_filter_search(
             User(
                 email="third@example.com",
                 is_active=True,
-                default_shipping_address=address,
             ),
         ]
     )
+    users[1].addresses.set([address])
 
     variables = {"filter": customer_filter}
     response = staff_api_client.post_graphql(
@@ -4382,10 +4381,10 @@ def test_query_staff_members_app_no_permission(
         ({"search": "example.com"}, 3),
         ({"search": "Alice"}, 1),
         ({"search": "Kowalski"}, 1),
-        ({"search": "John"}, 1),  # default_shipping_address__first_name
-        ({"search": "Doe"}, 1),  # default_shipping_address__last_name
-        ({"search": "wroc"}, 1),  # default_shipping_address__city
-        ({"search": "pl"}, 3),  # default_shipping_address__country, email
+        ({"search": "John"}, 1),  # first_name
+        ({"search": "Doe"}, 1),  # last_name
+        ({"search": "wroc"}, 1),  # city
+        ({"search": "pl"}, 1),  # country
     ],
 )
 def test_query_staff_members_with_filter_search(
@@ -4397,7 +4396,7 @@ def test_query_staff_members_with_filter_search(
     address,
     staff_user,
 ):
-    User.objects.bulk_create(
+    users = User.objects.bulk_create(
         [
             User(
                 email="second@example.com",
@@ -4410,7 +4409,6 @@ def test_query_staff_members_with_filter_search(
                 email="third@example.com",
                 is_staff=True,
                 is_active=True,
-                default_shipping_address=address,
             ),
             User(
                 email="customer@example.com",
@@ -4421,6 +4419,7 @@ def test_query_staff_members_with_filter_search(
             ),
         ]
     )
+    users[1].addresses.set([address])
 
     variables = {"filter": staff_member_filter}
     response = staff_api_client.post_graphql(

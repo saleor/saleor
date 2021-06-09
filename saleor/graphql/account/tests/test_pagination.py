@@ -11,45 +11,45 @@ def customers_for_search(db, address):
     accounts = User.objects.bulk_create(
         [
             User(
-                first_name="Jack1",
-                last_name="Allen1",
-                email="allen1@example.com",
-                is_staff=False,
-                is_active=True,
-                default_shipping_address=address,
-            ),
-            User(
-                first_name="JackJack1",
-                last_name="AllenAllen2",
-                email="allenallen2@example.com",
+                first_name="Alan",
+                last_name="Smith",
+                email="asmith@example.com",
                 is_staff=False,
                 is_active=True,
             ),
             User(
-                first_name="JackJack2",
-                last_name="AllenAllen2",
-                email="jackjack2allenallen2@example.com",
+                first_name="Harry",
+                last_name="Smith",
+                email="hsmith@example.com",
                 is_staff=False,
                 is_active=True,
             ),
             User(
-                first_name="Jack2",
-                last_name="Allen2",
-                email="allen2@example.com",
+                first_name="Robert",
+                last_name="Davis",
+                email="rdavis@test.com",
                 is_staff=False,
                 is_active=True,
-                default_shipping_address=address,
             ),
             User(
-                first_name="Jack3",
-                last_name="Allen3",
-                email="allen3@example.com",
+                first_name="Xavier",
+                last_name="Davis",
+                email="xdavis@test.com",
                 is_staff=False,
                 is_active=True,
-                default_shipping_address=address,
+            ),
+            User(
+                first_name="Anthony",
+                last_name="Matthews",
+                email="amatthews@test.com",
+                is_staff=False,
+                is_active=True,
             ),
         ]
     )
+    for i, user in enumerate(accounts):
+        if i in (0, 3, 4):
+            user.addresses.set([address])
     return accounts
 
 
@@ -58,69 +58,45 @@ def staff_for_search(db, address):
     accounts = User.objects.bulk_create(
         [
             User(
-                first_name="Jack1",
-                last_name="Allen1",
-                email="allen1@example.com",
-                is_staff=True,
-                is_active=True,
-                default_shipping_address=address,
-            ),
-            User(
-                first_name="JackJack1",
-                last_name="AllenAllen2",
-                email="allenallen2@example.com",
-                is_staff=True,
-                is_active=True,
-            ),
-            User(
-                first_name="JackJack2",
-                last_name="AllenAllen2",
-                email="jackjack2allenallen2@example.com",
-                is_staff=True,
-                is_active=True,
-            ),
-            User(
-                first_name="Jack2",
-                last_name="Allen2",
-                email="allen2@example.com",
-                is_staff=True,
-                is_active=True,
-                default_shipping_address=address,
-            ),
-            User(
-                first_name="Jack3",
-                last_name="Allen3",
-                email="allen3@example.com",
-                is_staff=True,
-                is_active=True,
-                default_shipping_address=address,
-            ),
-            User(
-                first_name="Jack4",
-                last_name="Allen4",
-                email="allen4@example.com",
+                first_name="Alan",
+                last_name="Smith",
+                email="asmith@example.com",
                 is_staff=True,
                 is_active=False,
-                default_shipping_address=address,
             ),
             User(
-                first_name="Jack5",
-                last_name="Allen5",
-                email="allen5@example.com",
+                first_name="Harry",
+                last_name="Smith",
+                email="hsmith@example.com",
                 is_staff=True,
-                is_active=False,
-                default_shipping_address=address,
+                is_active=True,
             ),
             User(
-                first_name="Jack6",
-                last_name="Allen6",
-                email="allen6@example.com",
+                first_name="Robert",
+                last_name="Davis",
+                email="rdavis@example.com",
                 is_staff=True,
                 is_active=False,
-                default_shipping_address=address,
+            ),
+            User(
+                first_name="Xavier",
+                last_name="Davis",
+                email="xdavis@example.com",
+                is_staff=True,
+                is_active=True,
+            ),
+            User(
+                first_name="Anthony",
+                last_name="Matthews",
+                email="amatthews@example.com",
+                is_staff=True,
+                is_active=True,
             ),
         ]
     )
+    for i, user in enumerate(accounts):
+        if i in (0, 3, 4):
+            user.addresses.set([address])
     return accounts
 
 
@@ -244,22 +220,10 @@ def test_query_customers_pagination_with_sort(
 @pytest.mark.parametrize(
     "customer_filter, users_order",
     [
-        ({"search": "example.com"}, ["Jack1", "Jack2"]),
-        ({"search": "Jack"}, ["Jack1", "Jack2"]),
-        ({"search": "Allen"}, ["Jack1", "Jack2"]),
-        ({"search": "JackJack"}, ["JackJack1", "JackJack2"]),
-        ({"search": "jackjack"}, ["JackJack1", "JackJack2"]),
-        ({"search": "Jack1"}, ["Jack1", "JackJack1"]),
-        (
-            {"search": "John"},
-            ["Jack1", "Jack2"],
-        ),  # default_shipping_address__first_name
-        ({"search": "Doe"}, ["Jack1", "Jack2"]),  # default_shipping_address__last_name
-        ({"search": "wroc"}, ["Jack1", "Jack2"]),  # default_shipping_address__city
-        (
-            {"search": "pl"},
-            ["Jack1", "Jack2"],
-        ),  # default_shipping_address__country, email
+        ({"search": "example.com"}, ["Alan", "Harry"]),  # email
+        ({"search": "davis"}, ["Robert", "Xavier"]),  # last_name
+        ({"search": "wroc"}, ["Anthony", "Alan"]),  # city
+        ({"search": "pl"}, ["Anthony", "Alan"]),  # country
     ],
 )
 def test_query_customer_members_pagination_with_filter_search(
@@ -289,24 +253,12 @@ def test_query_customer_members_pagination_with_filter_search(
 @pytest.mark.parametrize(
     "staff_member_filter, users_order",
     [
-        ({"search": "example.com"}, ["Jack1", "Jack2"]),
-        ({"search": "Jack"}, ["Jack1", "Jack2"]),
-        ({"search": "Allen"}, ["Jack1", "Jack2"]),
-        ({"search": "JackJack"}, ["JackJack1", "JackJack2"]),
-        ({"search": "jackjack"}, ["JackJack1", "JackJack2"]),
-        ({"search": "Jack1"}, ["Jack1", "JackJack1"]),
-        (
-            {"search": "John"},
-            ["Jack1", "Jack2"],
-        ),  # default_shipping_address__first_name
-        ({"search": "Doe"}, ["Jack1", "Jack2"]),  # default_shipping_address__last_name
-        ({"search": "wroc"}, ["Jack1", "Jack2"]),  # default_shipping_address__city
-        (
-            {"search": "pl"},
-            ["Jack1", "Jack2"],
-        ),  # default_shipping_address__country, email
-        ({"status": "DEACTIVATED"}, ["Jack4", "Jack5"]),
-        ({"status": "ACTIVE"}, ["Jack1", "Jack2"]),
+        ({"search": "example.com"}, ["Alan", "Harry"]),  # email
+        ({"search": "davis"}, ["Robert", "Xavier"]),  # last_name
+        ({"search": "wroc"}, ["Anthony", "Alan"]),  # city
+        ({"search": "pl"}, ["Anthony", "Alan"]),  # country
+        ({"status": "DEACTIVATED"}, ["Alan", "Robert"]),  # status
+        ({"status": "ACTIVE"}, ["Anthony", "Harry"]),  # status
     ],
 )
 def test_query_staff_members_pagination_with_filter_search(
