@@ -22,6 +22,7 @@ from .consts import (
     WEBHOOK_CANCELED_EVENT,
     WEBHOOK_FAILED_EVENT,
     WEBHOOK_PROCESSING_EVENT,
+    WEBHOOK_REFUND_EVENT,
     WEBHOOK_SUCCESS_EVENT,
 )
 from .stripe_api import construct_stripe_event
@@ -57,6 +58,7 @@ def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
         WEBHOOK_PROCESSING_EVENT: handle_processing_payment_intent,
         WEBHOOK_FAILED_EVENT: handle_failed_payment_intent,
         WEBHOOK_CANCELED_EVENT: handle_failed_payment_intent,
+        WEBHOOK_REFUND_EVENT: handle_refund,
     }
     if event.type in webhook_handlers:
         webhook_handlers[event.type](event.data.object, gateway_config)
@@ -86,14 +88,19 @@ def _get_checkout(payment_id: int) -> Optional[Checkout]:
 
 
 def _finalize_checkout(
-    checkout: Checkout, payment: Payment, payment_intent: StripeObject, kind: str
+    checkout: Checkout,
+    payment: Payment,
+    payment_intent: StripeObject,
+    kind: str,
+    amount: str,
+    currency: str,
 ):
     gateway_response = GatewayResponse(
         kind=kind,
         action_required=False,
         transaction_id=payment_intent.id,
         is_success=True,
-        amount=price_from_minor_unit(payment_intent.amount, payment_intent.currency),
+        amount=price_from_minor_unit(amount, currency),
         currency=payment_intent.currency,
         error=None,
         raw_response=payment_intent.last_response,
@@ -125,17 +132,19 @@ def _finalize_checkout(
     )
 
 
-def _update_payment(payment: Payment, payment_intent: StripeObject, kind: str):
+def _update_payment(
+    payment: Payment, stripe_object: StripeObject, kind: str, amount: str, currency: str
+):
     gateway_response = GatewayResponse(
         kind=kind,
         action_required=False,
-        transaction_id=payment_intent.id,
+        transaction_id=stripe_object.id,
         is_success=True,
-        amount=price_from_minor_unit(payment_intent.amount, payment_intent.currency),
-        currency=payment_intent.currency,
+        amount=price_from_minor_unit(amount, currency),
+        currency=currency,
         error=None,
-        raw_response=payment_intent.last_response,
-        psp_reference=payment_intent.id,
+        raw_response=stripe_object.last_response,
+        psp_reference=stripe_object.id,
     )
     transaction = create_transaction(
         payment,
@@ -148,12 +157,16 @@ def _update_payment(payment: Payment, payment_intent: StripeObject, kind: str):
 
 
 def _process_payment_with_checkout(
-    payment: Payment, payment_intent: StripeObject, kind: str
+    payment: Payment,
+    payment_intent: StripeObject,
+    kind: str,
+    amount: str,
+    currency: str,
 ):
     checkout = _get_checkout(payment.id)
 
     if checkout:
-        _finalize_checkout(checkout, payment, payment_intent, kind)
+        _finalize_checkout(checkout, payment, payment_intent, kind, amount, currency)
 
 
 def handle_authorized_payment_intent(
@@ -169,13 +182,23 @@ def handle_authorized_payment_intent(
         return
     if payment.order_id:
         if payment.charge_status == ChargeStatus.PENDING:
-            _update_payment(payment, payment_intent, TransactionKind.AUTH)
+            _update_payment(
+                payment,
+                payment_intent,
+                TransactionKind.AUTH,
+                payment_intent.amount,
+                payment_intent.currency,
+            )
         # Order already created
         return
 
     if payment.checkout_id:
         _process_payment_with_checkout(
-            payment, payment_intent, kind=TransactionKind.AUTH
+            payment,
+            payment_intent,
+            kind=TransactionKind.AUTH,
+            amount=payment_intent.amount,
+            currency=payment_intent.currency,
         )
 
 
@@ -190,7 +213,13 @@ def handle_failed_payment_intent(
             payment_intent.id,
         )
         return
-    _update_payment(payment, payment_intent, TransactionKind.CANCEL)
+    _update_payment(
+        payment,
+        payment_intent,
+        TransactionKind.CANCEL,
+        payment_intent.amount,
+        payment_intent.currency,
+    )
 
 
 def handle_processing_payment_intent(
@@ -209,7 +238,13 @@ def handle_processing_payment_intent(
         return
 
     if payment.checkout_id:
-        _process_payment_with_checkout(payment, payment_intent, TransactionKind.PENDING)
+        _process_payment_with_checkout(
+            payment,
+            payment_intent,
+            TransactionKind.PENDING,
+            amount=payment_intent.amount,
+            currency=payment_intent.currency,
+        )
 
 
 def handle_successful_payment_intent(
@@ -225,8 +260,47 @@ def handle_successful_payment_intent(
         return
     if payment.order_id:
         if payment.charge_status in [ChargeStatus.PENDING, ChargeStatus.NOT_CHARGED]:
-            _update_payment(payment, payment_intent, TransactionKind.CAPTURE)
+            _update_payment(
+                payment,
+                payment_intent,
+                TransactionKind.CAPTURE,
+                payment_intent.amount_received,
+                payment_intent.currency,
+            )
         return
 
     if payment.checkout_id:
-        _process_payment_with_checkout(payment, payment_intent, TransactionKind.CAPTURE)
+        _process_payment_with_checkout(
+            payment,
+            payment_intent,
+            TransactionKind.CAPTURE,
+            amount=payment_intent.amount_received,
+            currency=payment_intent.currency,
+        )
+
+
+def handle_refund(charge: StripeObject, gateway_config: "GatewayConfig"):
+    payment_intent_id = charge.payment_intent
+    payment = _get_payment(payment_intent_id)
+
+    refund = charge.refunds.data[0]
+    if not payment:
+        logger.warning(
+            "Payment for PaymentIntent was not found",
+            extra={"payment_intent": payment_intent_id},
+        )
+        return
+
+    already_processed = payment.transactions.filter(token=refund.id).exists()
+
+    if already_processed:
+        logger.debug(
+            "Refund %s for payment %s already processed", refund.id, payment.id
+        )
+
+    if payment.charge_status in ChargeStatus.FULLY_REFUNDED:
+        logger.info("Order %s, already fully refunded", payment.order_id)
+        return
+    _update_payment(
+        payment, refund, TransactionKind.REFUND, refund.amount, refund.currency
+    )

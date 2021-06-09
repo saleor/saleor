@@ -46,11 +46,13 @@ def test_is_secret_api_key_valid_correct_key(mocked_webhook):
 @patch(
     "saleor.payment.gateways.stripe.stripe_api.stripe.WebhookEndpoint",
 )
-def test_subscribe_webhook_returns_webhook_object(mocked_webhook):
+def test_subscribe_webhook_returns_webhook_object(mocked_webhook, channel_USD):
     api_key = "api_key"
-    expected_url = "http://mirumee.com/plugins/saleor.payments.stripe/webhooks/"
+    expected_url = (
+        "http://mirumee.com/plugins/channel/main/saleor.payments.stripe/webhooks/"
+    )
 
-    subscribe_webhook(api_key)
+    subscribe_webhook(api_key, channel_slug=channel_USD.slug)
 
     mocked_webhook.create.assert_called_with(
         api_key=api_key,
