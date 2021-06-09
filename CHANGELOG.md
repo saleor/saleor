@@ -112,6 +112,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - `channel` from `pluginUpdate` changed to channelId
 - Order events performance - #7424 by tomaszszymanski129
 - Add hash to uploading images #7453 by @IKarbowiak
+- Add file format validation for uploaded images - #7447 by @IKarbowiak
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki

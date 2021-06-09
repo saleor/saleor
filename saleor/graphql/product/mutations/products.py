@@ -112,7 +112,7 @@ class CategoryCreate(ModelMutation):
             cleaned_input["parent"] = parent
         if data.get("background_image"):
             image_data = info.context.FILES.get(data["background_image"])
-            validate_image_file(image_data, "background_image")
+            validate_image_file(image_data, "background_image", ProductErrorCode)
             add_hash_to_file_name(image_data)
         clean_seo_fields(cleaned_input)
         return cleaned_input
@@ -219,7 +219,7 @@ class CollectionCreate(ModelMutation):
             raise ValidationError({"slug": error})
         if data.get("background_image"):
             image_data = info.context.FILES.get(data["background_image"])
-            validate_image_file(image_data, "background_image")
+            validate_image_file(image_data, "background_image", CollectionErrorCode)
             add_hash_to_file_name(image_data)
         is_published = cleaned_input.get("is_published")
         publication_date = cleaned_input.get("publication_date")
@@ -1311,7 +1311,7 @@ class ProductMediaCreate(BaseMutation):
         media_url = data.get("media_url")
         if image:
             image_data = info.context.FILES.get(image)
-            validate_image_file(image_data, "image")
+            validate_image_file(image_data, "image", ProductErrorCode)
             add_hash_to_file_name(image_data)
             media = product.media.create(
                 image=image_data, alt=alt, type=ProductMediaTypes.IMAGE

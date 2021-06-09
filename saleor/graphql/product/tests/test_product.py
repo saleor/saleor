@@ -7510,7 +7510,7 @@ def test_invalid_product_media_create_mutation(
 
     content = get_graphql_content(response)
     assert content["data"]["productMediaCreate"]["errors"] == [
-        {"field": "image", "message": "Invalid file type"}
+        {"field": "image", "message": "Invalid file type."}
     ]
     product.refresh_from_db()
     assert product.media.count() == 0
