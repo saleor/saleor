@@ -221,6 +221,7 @@ def test_query_customers_pagination_with_sort(
     "customer_filter, users_order",
     [
         ({"search": "example.com"}, ["Alan", "Harry"]),  # email
+        ({"search": "test.com"}, ["Anthony", "Robert"]),  # email
         ({"search": "davis"}, ["Robert", "Xavier"]),  # last_name
         ({"search": "wroc"}, ["Anthony", "Alan"]),  # city
         ({"search": "pl"}, ["Anthony", "Alan"]),  # country
