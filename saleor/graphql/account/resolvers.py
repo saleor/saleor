@@ -12,7 +12,6 @@ from ...payment import gateway
 from ...payment.utils import fetch_customer_id
 from ..core.utils import from_global_id_or_error
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
-from ..utils.filters import filter_by_query_param
 from .types import AddressValidationData, ChoiceValue
 from .utils import (
     get_allowed_fields_camel_case,
@@ -32,12 +31,8 @@ USER_SEARCH_FIELDS = (
 
 
 @traced_resolver
-def resolve_customers(info, query, **_kwargs):
-    qs = models.User.objects.customers()
-    qs = filter_by_query_param(
-        queryset=qs, query=query, search_fields=USER_SEARCH_FIELDS
-    )
-    return qs.distinct()
+def resolve_customers(info, **_kwargs):
+    return models.User.objects.customers()
 
 
 @traced_resolver
@@ -46,12 +41,8 @@ def resolve_permission_groups(info, **_kwargs):
 
 
 @traced_resolver
-def resolve_staff_users(info, query, **_kwargs):
-    qs = models.User.objects.staff()
-    qs = filter_by_query_param(
-        queryset=qs, query=query, search_fields=USER_SEARCH_FIELDS
-    )
-    return qs.distinct()
+def resolve_staff_users(info, **_kwargs):
+    return models.User.objects.staff()
 
 
 @traced_resolver

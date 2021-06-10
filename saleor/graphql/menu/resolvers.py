@@ -4,11 +4,7 @@ from ...core.tracing import traced_resolver
 from ...menu import models
 from ..channel import ChannelContext, ChannelQsContext
 from ..core.validators import validate_one_of_args_is_in_query
-from ..utils.filters import filter_by_query_param
 from .types import Menu
-
-MENU_SEARCH_FIELDS = ("name",)
-MENU_ITEM_SEARCH_FIELDS = ("name",)
 
 
 @traced_resolver
@@ -25,12 +21,10 @@ def resolve_menu(info, channel, menu_id=None, name=None, slug=None):
 
 
 @traced_resolver
-def resolve_menus(info, channel, query, **_kwargs):
-    qs = filter_by_query_param(models.Menu.objects.all(), query, MENU_SEARCH_FIELDS)
-    return ChannelQsContext(qs=qs, channel_slug=channel)
+def resolve_menus(info, channel, **_kwargs):
+    return ChannelQsContext(qs=models.Menu.objects.all(), channel_slug=channel)
 
 
 @traced_resolver
-def resolve_menu_items(info, query, **_kwargs):
-    qs = models.MenuItem.objects.all()
-    return filter_by_query_param(qs, query, MENU_ITEM_SEARCH_FIELDS)
+def resolve_menu_items(info, **_kwargs):
+    return models.MenuItem.objects.all()

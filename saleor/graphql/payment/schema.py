@@ -28,8 +28,8 @@ class PaymentQueries(graphene.ObjectType):
         return graphene.Node.get_node_from_global_id(info, data.get("id"), Payment)
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)
-    def resolve_payments(self, info, query=None, **_kwargs):
-        return resolve_payments(info, query)
+    def resolve_payments(self, info, **_kwargs):
+        return resolve_payments(info)
 
 
 class PaymentMutations(graphene.ObjectType):

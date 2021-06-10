@@ -103,6 +103,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Trigger `checkout_updated` hook for checkout meta mutations - #7392 by @maarcingebala
 - Optimize `inputType` resolver on `AttributeValue` type - 7396 by @tomaszszymanski129
 - Allow filtering pages by ids - #7393 by @IKarbowiak
+- Refactor account filters - 7419 by @tomaszszymanski129
 - Fix validate `min_spent` on vouchers to use net or gross value depends on `settings.display_gross_prices` - #7408 by @d-wysocki
 - Fix invoice generation - #7376 by tomaszszymanski129
 - Unify channel ID params #7378
