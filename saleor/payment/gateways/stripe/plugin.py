@@ -366,7 +366,7 @@ class StripeGatewayPlugin(BasePlugin):
             customer_sources = [
                 CustomerSource(
                     id=c.id,
-                    gateway="stripe",
+                    gateway=PLUGIN_ID,
                     credit_card_info=PaymentMethodInfo(
                         exp_year=c.card.exp_year,
                         exp_month=c.card.exp_month,
