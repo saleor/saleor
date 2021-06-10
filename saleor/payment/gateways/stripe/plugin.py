@@ -1,5 +1,5 @@
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
@@ -10,7 +10,13 @@ from django.http.request import split_domain_port
 from ....graphql.core.enums import PluginErrorCode
 from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from ... import TransactionKind
-from ...interface import GatewayConfig, GatewayResponse, PaymentData
+from ...interface import (
+    CustomerSource,
+    GatewayConfig,
+    GatewayResponse,
+    PaymentData,
+    PaymentMethodInfo,
+)
 from ...models import Transaction
 from ...utils import price_from_minor_unit, price_to_minor_unit
 from ..utils import get_supported_currencies, require_active_plugin
@@ -19,7 +25,9 @@ from .stripe_api import (
     capture_payment_intent,
     create_payment_intent,
     delete_webhook,
+    get_or_create_customer,
     is_secret_api_key_valid,
+    list_customer_payment_methods,
     refund_payment_intent,
     retrieve_payment_intent,
     subscribe_webhook,
@@ -109,7 +117,6 @@ class StripeGatewayPlugin(BasePlugin):
                 "webhook_id": webhook_endpoint_id,
                 "webhook_secret": webhook_secret,
             },
-            # FIXME define if we are able to implement support for this
             store_customer=configuration["store_customers_cards"],
         )
 
@@ -137,20 +144,38 @@ class StripeGatewayPlugin(BasePlugin):
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
 
+        api_key = self.config.connection_params["secret_api_key"]
+
         auto_capture = self.config.auto_capture
         if self.order_auto_confirmation is False:
             auto_capture = False
+
+        data = payment_information.data
+        payment_method_id = data.get("payment_method_id") if data else None
+        customer = None
+        if payment_information.reuse_source and self.config.store_customer:
+            customer = get_or_create_customer(
+                api_key=api_key,
+                customer_email=payment_information.customer_email,
+                customer_id=payment_information.customer_id,
+                metadata={"channel": self.channel.slug},  # type: ignore
+            )
         intent, error = create_payment_intent(
-            api_key=self.config.connection_params["secret_api_key"],
+            api_key=api_key,
             amount=payment_information.amount,
             currency=payment_information.currency,
             auto_capture=auto_capture,
+            customer=customer,
+            payment_method_id=payment_method_id,
         )
         raw_response = None
         client_secret = None
+        intent_id = None
         if intent:
             client_secret = intent.client_secret
             raw_response = intent.last_response.data
+            intent_id = intent.id
+
         return GatewayResponse(
             is_success=True if not error else False,
             action_required=True,
@@ -160,7 +185,8 @@ class StripeGatewayPlugin(BasePlugin):
             transaction_id=intent.id if intent else "",
             error=error.user_message if error else None,
             raw_response=raw_response,
-            action_required_data={"client_secret": client_secret},
+            action_required_data={"client_secret": client_secret, "id": intent_id},
+            customer_id=customer.id if customer else None,
         )
 
     @require_active_plugin
@@ -328,6 +354,31 @@ class StripeGatewayPlugin(BasePlugin):
             raw_response=raw_response,
         )
 
+    @require_active_plugin
+    def list_payment_sources(
+        self, customer_id: str, previous_value
+    ) -> List[CustomerSource]:
+        payment_methods, error = list_customer_payment_methods(
+            api_key=self.config.connection_params["secret_api_key"],
+            customer_id=customer_id,
+        )
+        if payment_methods:
+            customer_sources = [
+                CustomerSource(
+                    id=c.id,
+                    gateway=PLUGIN_ID,
+                    credit_card_info=PaymentMethodInfo(
+                        exp_year=c.card.exp_year,
+                        exp_month=c.card.exp_month,
+                        last_4=c.card.last4,
+                        name=None,
+                    ),
+                )
+                for c in payment_methods
+            ]
+            previous_value.extend(customer_sources)
+        return previous_value
+
     @classmethod
     def pre_save_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
         configuration = plugin_configuration.configuration
@@ -422,3 +473,13 @@ class StripeGatewayPlugin(BasePlugin):
                         )
                     }
                 )
+
+    @require_active_plugin
+    def get_payment_config(self, previous_value):
+        return [
+            {
+                "field": "api_key",
+                "value": self.config.connection_params["public_api_key"],
+            },
+            {"field": "store_customer_card", "value": self.config.store_customer},
+        ]

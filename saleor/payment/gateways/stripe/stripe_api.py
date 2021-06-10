@@ -59,18 +59,65 @@ def delete_webhook(api_key: str, webhook_id: str):
         pass
 
 
+def get_or_create_customer(
+    api_key: str,
+    customer_id: Optional[str] = None,
+    customer_email: Optional[str] = None,
+    metadata: Optional[dict] = None,
+) -> Optional[StripeObject]:
+    try:
+        if customer_id:
+            return stripe.Customer.retrieve(customer_id, api_key=api_key)
+        return stripe.Customer.create(
+            api_key=api_key, email=customer_email, metadata=metadata
+        )
+    except StripeError:
+        return None
+
+
 def create_payment_intent(
-    api_key: str, amount: Decimal, currency: str, auto_capture: bool = True
+    api_key: str,
+    amount: Decimal,
+    currency: str,
+    auto_capture: bool = True,
+    customer: Optional[StripeObject] = None,
+    payment_method_id: Optional[str] = None,
 ) -> Tuple[Optional[StripeObject], Optional[StripeError]]:
+
     capture_method = AUTOMATIC_CAPTURE_METHOD if auto_capture else MANUAL_CAPTURE_METHOD
+    additional_params = {}  # type: ignore
+    if customer:
+        additional_params = {
+            "customer": customer,
+            "setup_future_usage": "on_session",
+        }
+
+    if payment_method_id and customer:
+        additional_params["payment_method"] = payment_method_id
+
     try:
         intent = stripe.PaymentIntent.create(
             api_key=api_key,
             amount=price_to_minor_unit(amount, currency),
             currency=currency,
             capture_method=capture_method,
+            **additional_params,
         )
         return intent, None
+    except StripeError as error:
+        return None, error
+
+
+def list_customer_payment_methods(
+    api_key: str, customer_id: str
+) -> Tuple[Optional[StripeObject], Optional[StripeError]]:
+    try:
+        payment_methods = stripe.PaymentMethod.list(
+            api_key=api_key,
+            customer=customer_id,
+            type="card",  # we support only cards for now
+        )
+        return payment_methods, None
     except StripeError as error:
         return None, error
 

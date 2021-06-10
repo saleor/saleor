@@ -17,7 +17,9 @@ from ..stripe_api import (
     capture_payment_intent,
     create_payment_intent,
     delete_webhook,
+    get_or_create_customer,
     is_secret_api_key_valid,
+    list_customer_payment_methods,
     refund_payment_intent,
     retrieve_payment_intent,
     subscribe_webhook,
@@ -92,6 +94,31 @@ def test_create_payment_intent_returns_intent_object(mocked_payment_intent):
         amount="1000",
         currency="USD",
         capture_method=AUTOMATIC_CAPTURE_METHOD,
+    )
+
+    assert isinstance(intent, StripeObject)
+    assert error is None
+
+
+@patch(
+    "saleor.payment.gateways.stripe.stripe_api.stripe.PaymentIntent",
+)
+def test_create_payment_intent_with_customer(mocked_payment_intent):
+    customer = StripeObject(id="c_ABC")
+    api_key = "api_key"
+    mocked_payment_intent.create.return_value = StripeObject()
+
+    intent, error = create_payment_intent(
+        api_key, Decimal(10), "USD", auto_capture=True, customer=customer
+    )
+
+    mocked_payment_intent.create.assert_called_with(
+        api_key=api_key,
+        amount="1000",
+        currency="USD",
+        capture_method=AUTOMATIC_CAPTURE_METHOD,
+        customer=customer,
+        setup_future_usage="on_session",
     )
 
     assert isinstance(intent, StripeObject)
@@ -291,3 +318,129 @@ def test_cancel_payment_intent_stripe_returns_error(mocked_payment_intent):
     mocked_payment_intent.cancel.assert_called_with(payment_intent_id, api_key=api_key)
 
     assert error == expected_error
+
+
+@patch(
+    "saleor.payment.gateways.stripe.stripe_api.stripe.Customer",
+)
+def test_get_or_create_customer_retrieve(mocked_customer):
+    mocked_customer.retrieve.return_value = StripeObject()
+    api_key = "123"
+    customer_email = "admin@example.com"
+    customer_id = "c_12345"
+
+    customer = get_or_create_customer(
+        api_key=api_key,
+        customer_email=customer_email,
+        customer_id=customer_id,
+        metadata={},
+    )
+
+    assert isinstance(customer, StripeObject)
+    mocked_customer.retrieve.assert_called_with(customer_id, api_key=api_key)
+
+
+@patch(
+    "saleor.payment.gateways.stripe.stripe_api.stripe.Customer",
+)
+def test_get_or_create_customer_failed_retrieve(mocked_customer):
+
+    expected_error = StripeError(message="stripe-error")
+    mocked_customer.retrieve.side_effect = expected_error
+
+    api_key = "123"
+    customer_email = "admin@example.com"
+    customer_id = "c_12345"
+
+    customer = get_or_create_customer(
+        api_key=api_key,
+        customer_email=customer_email,
+        customer_id=customer_id,
+        metadata={},
+    )
+
+    assert customer is None
+    mocked_customer.retrieve.assert_called_with(customer_id, api_key=api_key)
+
+
+@patch(
+    "saleor.payment.gateways.stripe.stripe_api.stripe.Customer",
+)
+def test_get_or_create_customer_create(mocked_customer):
+    mocked_customer.create.return_value = StripeObject()
+    api_key = "123"
+    customer_email = "admin@example.com"
+    customer = get_or_create_customer(
+        api_key=api_key,
+        customer_email=customer_email,
+        customer_id=None,
+        metadata={"channel": "usd"},
+    )
+
+    assert isinstance(customer, StripeObject)
+    mocked_customer.create.assert_called_with(
+        email=customer_email, api_key=api_key, metadata={"channel": "usd"}
+    )
+
+
+@patch(
+    "saleor.payment.gateways.stripe.stripe_api.stripe.Customer",
+)
+def test_get_or_create_customer_failed_create(mocked_customer):
+    expected_error = StripeError(message="stripe-error")
+    mocked_customer.create.side_effect = expected_error
+
+    api_key = "123"
+    customer_email = "admin@example.com"
+    customer = get_or_create_customer(
+        api_key=api_key,
+        customer_email=customer_email,
+        customer_id=None,
+        metadata={"channel": "usd"},
+    )
+
+    assert customer is None
+    mocked_customer.create.assert_called_with(
+        email=customer_email, api_key=api_key, metadata={"channel": "usd"}
+    )
+
+
+@patch(
+    "saleor.payment.gateways.stripe.stripe_api.stripe.PaymentMethod",
+)
+def test_list_customer_payment_methods(mocked_payment_method):
+    api_key = "123"
+    customer_id = "c_customer_id"
+    mocked_payment_method.list.return_value = StripeObject()
+
+    payment_method, error = list_customer_payment_methods(
+        api_key=api_key, customer_id=customer_id
+    )
+
+    assert error is None
+    assert isinstance(payment_method, StripeObject)
+    mocked_payment_method.list.assert_called_with(
+        api_key=api_key, customer=customer_id, type="card"
+    )
+
+
+@patch(
+    "saleor.payment.gateways.stripe.stripe_api.stripe.PaymentMethod",
+)
+def test_list_customer_payment_methods_failed_to_fetch(mocked_payment_method):
+    api_key = "123"
+    customer_id = "c_customer_id"
+
+    expected_error = StripeError(message="stripe-error")
+    mocked_payment_method.list.side_effect = expected_error
+
+    payment_method, error = list_customer_payment_methods(
+        api_key=api_key, customer_id=customer_id
+    )
+
+    assert payment_method is None
+    assert isinstance(error, StripeError)
+
+    mocked_payment_method.list.assert_called_with(
+        api_key=api_key, customer=customer_id, type="card"
+    )
