@@ -364,19 +364,22 @@ def test_product_query_by_invalid_id(
     assert content["errors"][0]["message"] == (f"Couldn't resolve id: {id}.")
 
 
+QUERY_PRODUCT_BY_ID = """
+    query ($id: ID, $channel: String){
+        product(id: $id, channel: $channel) {
+            id
+            variants {
+                id
+            }
+        }
+    }
+"""
+
+
 def test_product_query_by_id_as_user(
     user_api_client, permission_manage_products, product, channel_USD
 ):
-    query = """
-        query ($id: ID, $channel: String){
-            product(id: $id, channel: $channel) {
-                id
-                variants {
-                    id
-                }
-            }
-        }
-    """
+    query = QUERY_PRODUCT_BY_ID
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),
         "channel": channel_USD.slug,
@@ -399,6 +402,32 @@ def test_product_query_by_id_as_user(
         }
     ]
     assert product_data["variants"] == expected_variants
+
+
+def test_product_query_invalid_id(user_api_client, product, channel_USD):
+    product_id = "'"
+    variables = {
+        "id": product_id,
+        "channel": channel_USD.slug,
+    }
+    response = user_api_client.post_graphql(QUERY_PRODUCT_BY_ID, variables)
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == f"Couldn't resolve id: {product_id}."
+    assert content["data"]["product"] is None
+
+
+def test_product_query_object_with_given_id_does_not_exist(
+    user_api_client, product, channel_USD
+):
+    product_id = graphene.Node.to_global_id("Collection", -1)
+    variables = {
+        "id": product_id,
+        "channel": channel_USD.slug,
+    }
+    response = user_api_client.post_graphql(QUERY_PRODUCT_BY_ID, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["product"] is None
 
 
 def test_product_query_by_id_not_available_as_app(
@@ -2314,8 +2343,7 @@ def test_query_products_with_filter_ids(
     assert [node["node"]["id"] for node in products_data] == product_ids
 
 
-def test_query_product_media_by_id(user_api_client, product_with_image, channel_USD):
-    query = """
+QUERY_PRODUCT_MEDIA_BY_ID = """
     query productMediaById($mediaId: ID!, $productId: ID!, $channel: String) {
         product(id: $productId, channel: $channel) {
             mediaById(id: $mediaId) {
@@ -2324,7 +2352,11 @@ def test_query_product_media_by_id(user_api_client, product_with_image, channel_
             }
         }
     }
-    """
+"""
+
+
+def test_query_product_media_by_id(user_api_client, product_with_image, channel_USD):
+    query = QUERY_PRODUCT_MEDIA_BY_ID
     media = product_with_image.media.first()
     variables = {
         "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
@@ -2342,40 +2374,65 @@ def test_query_product_media_by_id(user_api_client, product_with_image, channel_
 def test_query_product_media_by_id_missing_id(
     user_api_client, product_with_image, channel_USD
 ):
-    query = """
-    query productMediaById($mediaId: ID!, $productId: ID!, $channel: String) {
-        product(id: $productId, channel: $channel) {
-            mediaById(id: $mediaId) {
-                id
-                url
-            }
-        }
-    }
-    """
+    query = QUERY_PRODUCT_MEDIA_BY_ID
     variables = {
         "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
-        "mediaId": graphene.Node.to_global_id("ProductMedia", 9999),
+        "mediaId": graphene.Node.to_global_id("ProductMedia", -1),
+        "channel": channel_USD.slug,
+    }
+
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["product"]["mediaById"] is None
+
+
+def test_query_product_media_by_id_not_media_id(
+    user_api_client, product_with_image, channel_USD
+):
+    query = QUERY_PRODUCT_MEDIA_BY_ID
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
+        "mediaId": graphene.Node.to_global_id("Product", -1),
+        "channel": channel_USD.slug,
+    }
+
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["product"]["mediaById"] is None
+
+
+def test_query_product_media_by_invalid_id(
+    user_api_client, product_with_image, channel_USD
+):
+    query = QUERY_PRODUCT_MEDIA_BY_ID
+    id = "sks"
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
+        "mediaId": id,
         "channel": channel_USD.slug,
     }
 
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content_from_response(response)
     assert len(content["errors"]) == 1
-    assert content["errors"][0]["message"] == "Product media not found."
-    assert content["data"]["product"] is None
+    assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
+    assert content["data"]["product"]["mediaById"] is None
 
 
-def test_query_product_image_by_id(user_api_client, product_with_image, channel_USD):
-    query = """
-    query productMediaById($imageId: ID!, $productId: ID!, $channel: String) {
+QUERY_PRODUCT_IMAGE_BY_ID = """
+    query productImageById($imageId: ID!, $productId: ID!, $channel: String) {
         product(id: $productId, channel: $channel) {
             imageById(id: $imageId) {
                 id
-                url(size: 200)
+                url
             }
         }
     }
-    """
+"""
+
+
+def test_query_product_image_by_id(user_api_client, product_with_image, channel_USD):
+    query = QUERY_PRODUCT_IMAGE_BY_ID
     media = product_with_image.media.first()
     variables = {
         "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
@@ -2393,19 +2450,43 @@ def test_query_product_image_by_id(user_api_client, product_with_image, channel_
 def test_query_product_image_by_id_missing_id(
     user_api_client, product_with_image, channel_USD
 ):
-    query = """
-    query productImageById($imageId: ID!, $productId: ID!, $channel: String) {
-        product(id: $productId, channel: $channel) {
-            imageById(id: $imageId) {
-                id
-                url
-            }
-        }
-    }
-    """
+    query = QUERY_PRODUCT_IMAGE_BY_ID
     variables = {
         "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
-        "imageId": graphene.Node.to_global_id("ProductMedia", 9999),
+        "imageId": graphene.Node.to_global_id("ProductMedia", -1),
+        "channel": channel_USD.slug,
+    }
+
+    response = user_api_client.post_graphql(query, variables)
+
+    content = get_graphql_content(response)
+    assert content["data"]["product"]["imageById"] is None
+
+
+def test_query_product_image_by_id_not_media_id(
+    user_api_client, product_with_image, channel_USD
+):
+    query = QUERY_PRODUCT_IMAGE_BY_ID
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
+        "imageId": graphene.Node.to_global_id("Product", -1),
+        "channel": channel_USD.slug,
+    }
+
+    response = user_api_client.post_graphql(query, variables)
+
+    content = get_graphql_content(response)
+    assert content["data"]["product"]["imageById"] is None
+
+
+def test_query_product_image_by_invalid_id(
+    user_api_client, product_with_image, channel_USD
+):
+    query = QUERY_PRODUCT_IMAGE_BY_ID
+    id = "mnb"
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
+        "imageId": id,
         "channel": channel_USD.slug,
     }
 
@@ -2413,7 +2494,7 @@ def test_query_product_image_by_id_missing_id(
 
     content = get_graphql_content_from_response(response)
     assert len(content["errors"]) == 1
-    assert content["errors"][0]["message"] == "Product image not found."
+    assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
     assert content["data"]["product"]["imageById"] is None
 
 
@@ -6450,6 +6531,34 @@ def test_product_type_query(
     assert len(data["productType"]["variantAttributes"]) == variant_attributes_count
 
 
+def test_product_type_query_invalid_id(
+    staff_api_client, product, channel_USD, permission_manage_products
+):
+    product_type_id = "'"
+    variables = {
+        "id": product_type_id,
+        "channel": channel_USD.slug,
+    }
+    response = staff_api_client.post_graphql(PRODUCT_TYPE_QUERY, variables)
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == f"Couldn't resolve id: {product_type_id}."
+    assert content["data"]["productType"] is None
+
+
+def test_product_type_query_object_with_given_id_does_not_exist(
+    staff_api_client, product, channel_USD, permission_manage_products
+):
+    product_type_id = graphene.Node.to_global_id("Product", -1)
+    variables = {
+        "id": product_type_id,
+        "channel": channel_USD.slug,
+    }
+    response = staff_api_client.post_graphql(PRODUCT_TYPE_QUERY, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["productType"] is None
+
+
 @pytest.mark.parametrize(
     "variant_selection",
     [
@@ -7862,18 +7971,21 @@ def test_product_update_variants_names(mock__update_variants_names, product_type
     assert mock__update_variants_names.call_count == 1
 
 
+QUERY_PRODUCT_VARAINT_BY_ID = """
+    query getProductVariant($id: ID!, $channel: String) {
+        productVariant(id: $id, channel: $channel) {
+            id
+            name
+            sku
+        }
+    }
+"""
+
+
 def test_product_variant_without_price_by_id_as_staff(
     staff_api_client, variant, channel_USD
 ):
-    query = """
-        query getProductVariant($id: ID!, $channel: String) {
-            productVariant(id: $id, channel: $channel) {
-                id
-                name
-                sku
-            }
-        }
-    """
+    query = QUERY_PRODUCT_VARAINT_BY_ID
     variant.channel_listings.all().delete()
     variant.channel_listings.create(channel=channel_USD)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
@@ -7888,15 +8000,7 @@ def test_product_variant_without_price_by_id_as_staff(
 def test_product_variant_without_price_by_id_as_app(
     app_api_client, variant, channel_USD
 ):
-    query = """
-        query getProductVariant($id: ID!, $channel: String) {
-            productVariant(id: $id, channel: $channel) {
-                id
-                name
-                sku
-            }
-        }
-    """
+    query = QUERY_PRODUCT_VARAINT_BY_ID
     variant.channel_listings.all().delete()
     variant.channel_listings.create(channel=channel_USD)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
@@ -7911,15 +8015,7 @@ def test_product_variant_without_price_by_id_as_app(
 def test_product_variant_without_price_by_id_as_user(
     user_api_client, variant, channel_USD
 ):
-    query = """
-        query getProductVariant($id: ID!, $channel: String) {
-            productVariant(id: $id, channel: $channel) {
-                id
-                name
-                sku
-            }
-        }
-    """
+    query = QUERY_PRODUCT_VARAINT_BY_ID
     variant.channel_listings.all().delete()
     variant.channel_listings.create(channel=channel_USD)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
@@ -7929,6 +8025,32 @@ def test_product_variant_without_price_by_id_as_user(
     content = get_graphql_content(response)
     data = content["data"]["productVariant"]
     assert data is None
+
+
+def test_variant_query_invalid_id(user_api_client, variant, channel_USD):
+    variant_id = "'"
+    variables = {
+        "id": variant_id,
+        "channel": channel_USD.slug,
+    }
+    response = user_api_client.post_graphql(QUERY_PRODUCT_VARAINT_BY_ID, variables)
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == f"Couldn't resolve id: {variant_id}."
+    assert content["data"]["productVariant"] is None
+
+
+def test_variant_query_object_with_given_id_does_not_exist(
+    user_api_client, variant, channel_USD
+):
+    variant_id = graphene.Node.to_global_id("Product", -1)
+    variables = {
+        "id": variant_id,
+        "channel": channel_USD.slug,
+    }
+    response = user_api_client.post_graphql(QUERY_PRODUCT_VARAINT_BY_ID, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["productVariant"] is None
 
 
 def test_product_variant_without_price_by_sku_as_staff(

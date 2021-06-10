@@ -4102,7 +4102,7 @@ type Product implements Node & ObjectWithMetadata {
   taxType: TaxType
   attributes: [SelectedAttribute!]!
   channelListings: [ProductChannelListing!]
-  mediaById(id: ID): ProductMedia!
+  mediaById(id: ID): ProductMedia
   imageById(id: ID): ProductImage @deprecated(reason: "Will be removed in Saleor 4.0. Use the `mediaById` field instead.")
   variants: [ProductVariant]
   media: [ProductMedia!]

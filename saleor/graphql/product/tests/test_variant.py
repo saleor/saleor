@@ -20,7 +20,11 @@ from ....tests.utils import dummy_editorjs, flush_post_commit_hooks
 from ....warehouse.error_codes import StockErrorCode
 from ....warehouse.models import Stock, Warehouse
 from ...core.enums import WeightUnitsEnum
-from ...tests.utils import assert_no_permission, get_graphql_content
+from ...tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 
 
 def test_fetch_variant(
@@ -2595,18 +2599,21 @@ def test_fetch_all_variants_anonymous_user(
     assert data["totalCount"] == 0
 
 
-def test_product_variants_by_ids(user_api_client, variant, channel_USD):
-    query = """
-        query getProduct($ids: [ID!], $channel: String) {
-            productVariants(ids: $ids, first: 1, channel: $channel) {
-                edges {
-                    node {
-                        id
-                    }
+QUERY_PRODUCT_VARIANTS_BY_IDS = """
+    query getProduct($ids: [ID!], $channel: String) {
+        productVariants(ids: $ids, first: 1, channel: $channel) {
+            edges {
+                node {
+                    id
                 }
             }
         }
-    """
+    }
+"""
+
+
+def test_product_variants_by_ids(user_api_client, variant, channel_USD):
+    query = QUERY_PRODUCT_VARIANTS_BY_IDS
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
 
     variables = {"ids": [variant_id], "channel": channel_USD.slug}
@@ -2615,6 +2622,30 @@ def test_product_variants_by_ids(user_api_client, variant, channel_USD):
     data = content["data"]["productVariants"]
     assert data["edges"][0]["node"]["id"] == variant_id
     assert len(data["edges"]) == 1
+
+
+def test_product_variants_by_invalid_ids(user_api_client, variant, channel_USD):
+    query = QUERY_PRODUCT_VARIANTS_BY_IDS
+    variant_id = "cbs"
+
+    variables = {"ids": [variant_id], "channel": channel_USD.slug}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == f"Couldn't resolve id: {variant_id}."
+    assert content["data"]["productVariants"] is None
+
+
+def test_product_variants_by_ids_that_do_not_exist(
+    user_api_client, variant, channel_USD
+):
+    query = QUERY_PRODUCT_VARIANTS_BY_IDS
+    variant_id = graphene.Node.to_global_id("Order", -1)
+
+    variables = {"ids": [variant_id], "channel": channel_USD.slug}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["productVariants"]["edges"] == []
 
 
 def test_product_variants_visible_in_listings_by_customer(

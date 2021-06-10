@@ -12,6 +12,10 @@ from ..utils import get_user_or_app_from_context
 from ..utils.filters import filter_by_period
 
 
+def resolve_category_by_id(id):
+    return models.Category.objects.filter(pk=id).first()
+
+
 def resolve_category_by_slug(slug):
     return models.Category.objects.filter(slug=slug).first()
 
@@ -48,6 +52,10 @@ def resolve_collections(info, channel_slug):
     qs = models.Collection.objects.visible_to_user(requestor, channel_slug)
 
     return ChannelQsContext(qs=qs, channel_slug=channel_slug)
+
+
+def resolve_digital_content_by_id(id):
+    return models.DigitalContent.objects.filter(pk=id).first()
 
 
 @traced_resolver
@@ -101,6 +109,10 @@ def resolve_variant_by_id(
     return qs.filter(pk=id).first()
 
 
+def resolve_product_type_by_id(id):
+    return models.ProductType.objects.filter(pk=id).first()
+
+
 @traced_resolver
 def resolve_product_types(_info, **_kwargs):
     return models.ProductType.objects.all()
@@ -133,10 +145,7 @@ def resolve_product_variants(
         ).exclude(visible_in_listings=False)
         qs = qs.filter(product__in=visible_products).available_in_channel(channel_slug)
     if ids:
-        db_ids = [
-            from_global_id_or_error(node_id, only_type="ProductVariant")[1]
-            for node_id in ids
-        ]
+        db_ids = [from_global_id_or_error(node_id)[1] for node_id in ids]
         qs = qs.filter(pk__in=db_ids)
     return ChannelQsContext(qs=qs, channel_slug=channel_slug)
 

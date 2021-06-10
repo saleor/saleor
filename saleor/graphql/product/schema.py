@@ -90,13 +90,16 @@ from .mutations.products import (
 )
 from .resolvers import (
     resolve_categories,
+    resolve_category_by_id,
     resolve_category_by_slug,
     resolve_collection_by_id,
     resolve_collection_by_slug,
     resolve_collections,
+    resolve_digital_content_by_id,
     resolve_digital_contents,
     resolve_product_by_id,
     resolve_product_by_slug,
+    resolve_product_type_by_id,
     resolve_product_types,
     resolve_product_variant_by_sku,
     resolve_product_variants,
@@ -251,7 +254,8 @@ class ProductQueries(graphene.ObjectType):
     def resolve_category(self, info, id=None, slug=None, **kwargs):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
         if id:
-            return graphene.Node.get_node_from_global_id(info, id, Category)
+            _, id = from_global_id_or_error(id)
+            return resolve_category_by_id(id)
         if slug:
             return resolve_category_by_slug(slug=slug)
 
@@ -285,7 +289,8 @@ class ProductQueries(graphene.ObjectType):
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_digital_content(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, DigitalContent)
+        _, id = from_global_id_or_error(id)
+        return resolve_digital_content_by_id(id)
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_digital_contents(self, info, **_kwargs):
@@ -300,7 +305,7 @@ class ProductQueries(graphene.ObjectType):
         if channel is None and not is_staff:
             channel = get_default_channel_slug_or_graphql_error()
         if id:
-            _type, id = from_global_id_or_error(id, only_type="Product")
+            _type, id = from_global_id_or_error(id)
             product = resolve_product_by_id(
                 info, id, channel_slug=channel, requestor=requestor
             )
@@ -329,7 +334,8 @@ class ProductQueries(graphene.ObjectType):
         return resolve_products(info, requestor, channel_slug=channel, **kwargs)
 
     def resolve_product_type(self, info, id, **_kwargs):
-        return graphene.Node.get_node_from_global_id(info, id, ProductType)
+        _, id = from_global_id_or_error(id)
+        return resolve_product_type_by_id(id)
 
     def resolve_product_types(self, info, **kwargs):
         return resolve_product_types(info, **kwargs)
