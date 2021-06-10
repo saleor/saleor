@@ -21,9 +21,7 @@ def filter_attributes_by_product_types(qs, field, value, requestor, channel_slug
     product_qs = Product.objects.visible_to_user(requestor, channel_slug)
 
     if field == "in_category":
-        _type, category_id = from_global_id_or_error(
-            value, only_type="Category", field=field
-        )
+        _type, category_id = from_global_id_or_error(value, field=field)
         category = Category.objects.filter(pk=category_id).first()
 
         if category is None:
@@ -38,9 +36,7 @@ def filter_attributes_by_product_types(qs, field, value, requestor, channel_slug
             )
 
     elif field == "in_collection":
-        _type, collection_id = from_global_id_or_error(
-            value, only_type="Collection", field=field
-        )
+        _type, collection_id = from_global_id_or_error(value, field=field)
         product_qs = product_qs.filter(collections__id=collection_id)
 
     else:
