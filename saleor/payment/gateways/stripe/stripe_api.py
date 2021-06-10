@@ -4,16 +4,14 @@ from decimal import Decimal
 from typing import Optional, Tuple
 from urllib.parse import urljoin
 
-import opentracing
-import opentracing.tags
 import stripe
 from django.contrib.sites.models import Site
 from django.urls import reverse
 from stripe.error import AuthenticationError, InvalidRequestError, StripeError
 from stripe.stripe_object import StripeObject
 
-from saleor.core.utils import build_absolute_uri
-
+from ....core.tracing import opentracing_trace
+from ....core.utils import build_absolute_uri
 from ...utils import price_to_minor_unit
 from .consts import (
     AUTOMATIC_CAPTURE_METHOD,
@@ -28,18 +26,17 @@ logger = logging.getLogger(__name__)
 
 
 @contextmanager
-def opentracing_trace(span_name):
-    with opentracing.global_tracer().start_active_span(span_name) as scope:
-        span = scope.span
-        span.set_tag(opentracing.tags.COMPONENT, "payment")
-        span.set_tag("service.name", "stripe")
+def stripe_opentracing_trace(span_name):
+    with opentracing_trace(
+        span_name=span_name, component_name="payment", service_name="stripe"
+    ):
         yield
 
 
 def is_secret_api_key_valid(api_key: str):
     """Call api to check if api_key is a correct key."""
     try:
-        with opentracing_trace("stripe.WebhookEndpoint.list"):
+        with stripe_opentracing_trace("stripe.WebhookEndpoint.list"):
             stripe.WebhookEndpoint.list(api_key)
         return True
     except AuthenticationError:
@@ -56,7 +53,7 @@ def subscribe_webhook(api_key: str, channel_slug: str) -> StripeObject:
     base_url = build_absolute_uri(api_path)
     webhook_url = urljoin(base_url, WEBHOOK_PATH)  # type: ignore
 
-    with opentracing_trace("stripe.WebhookEndpoint.create"):
+    with stripe_opentracing_trace("stripe.WebhookEndpoint.create"):
         return stripe.WebhookEndpoint.create(
             api_key=api_key,
             url=webhook_url,
@@ -67,7 +64,7 @@ def subscribe_webhook(api_key: str, channel_slug: str) -> StripeObject:
 
 def delete_webhook(api_key: str, webhook_id: str):
     try:
-        with opentracing_trace("stripe.WebhookEndpoint.delete"):
+        with stripe_opentracing_trace("stripe.WebhookEndpoint.delete"):
             stripe.WebhookEndpoint.delete(webhook_id, api_key=api_key)
     except InvalidRequestError:
         # webhook doesn't exist
@@ -82,9 +79,9 @@ def get_or_create_customer(
 ) -> Optional[StripeObject]:
     try:
         if customer_id:
-            with opentracing_trace("stripe.Customer.retrieve"):
+            with stripe_opentracing_trace("stripe.Customer.retrieve"):
                 return stripe.Customer.retrieve(customer_id, api_key=api_key)
-        with opentracing_trace("stripe.Customer.create"):
+        with stripe_opentracing_trace("stripe.Customer.create"):
             return stripe.Customer.create(
                 api_key=api_key, email=customer_email, metadata=metadata
             )
@@ -113,7 +110,7 @@ def create_payment_intent(
         additional_params["payment_method"] = payment_method_id
 
     try:
-        with opentracing_trace("stripe.PaymentIntent.create"):
+        with stripe_opentracing_trace("stripe.PaymentIntent.create"):
             intent = stripe.PaymentIntent.create(
                 api_key=api_key,
                 amount=price_to_minor_unit(amount, currency),
@@ -130,7 +127,7 @@ def list_customer_payment_methods(
     api_key: str, customer_id: str
 ) -> Tuple[Optional[StripeObject], Optional[StripeError]]:
     try:
-        with opentracing_trace("stripe.PaymentMethod.list"):
+        with stripe_opentracing_trace("stripe.PaymentMethod.list"):
             payment_methods = stripe.PaymentMethod.list(
                 api_key=api_key,
                 customer=customer_id,
@@ -145,7 +142,7 @@ def retrieve_payment_intent(
     api_key: str, payment_intent_id: str
 ) -> Tuple[Optional[StripeObject], Optional[StripeError]]:
     try:
-        with opentracing_trace("stripe.PaymentIntent.retrieve"):
+        with stripe_opentracing_trace("stripe.PaymentIntent.retrieve"):
             payment_intent = stripe.PaymentIntent.retrieve(
                 payment_intent_id, api_key=api_key
             )
@@ -159,7 +156,7 @@ def capture_payment_intent(
     api_key: str, payment_intent_id: str, amount_to_capture: int
 ) -> Tuple[Optional[StripeObject], Optional[StripeError]]:
     try:
-        with opentracing_trace("stripe.PaymentIntent.capture"):
+        with stripe_opentracing_trace("stripe.PaymentIntent.capture"):
             payment_intent = stripe.PaymentIntent.capture(
                 payment_intent_id, amount_to_capture=amount_to_capture, api_key=api_key
             )
@@ -175,7 +172,7 @@ def refund_payment_intent(
     api_key: str, payment_intent_id: str, amount_to_refund: int
 ) -> Tuple[Optional[StripeObject], Optional[StripeError]]:
     try:
-        with opentracing_trace("stripe.Refund.create"):
+        with stripe_opentracing_trace("stripe.Refund.create"):
             refund = stripe.Refund.create(
                 payment_intent=payment_intent_id,
                 amount=amount_to_refund,
@@ -194,7 +191,7 @@ def cancel_payment_intent(
     api_key: str, payment_intent_id: str
 ) -> Tuple[Optional[StripeObject], Optional[StripeError]]:
     try:
-        with opentracing_trace("stripe.PaymentIntent.cancel"):
+        with stripe_opentracing_trace("stripe.PaymentIntent.cancel"):
             payment_intent = stripe.PaymentIntent.cancel(
                 payment_intent_id, api_key=api_key
             )
@@ -209,7 +206,7 @@ def cancel_payment_intent(
 def construct_stripe_event(
     api_key: str, payload: bytes, sig_header: str, endpoint_secret: str
 ) -> StripeObject:
-    with opentracing_trace("stripe.Webhook.construct_event"):
+    with stripe_opentracing_trace("stripe.Webhook.construct_event"):
         return stripe.Webhook.construct_event(
             payload, sig_header, endpoint_secret, api_key=api_key
         )
