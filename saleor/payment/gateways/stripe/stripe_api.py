@@ -33,9 +33,12 @@ def is_secret_api_key_valid(api_key: str):
         return False
 
 
-def subscribe_webhook(api_key: str) -> StripeObject:
+def subscribe_webhook(api_key: str, channel_slug: str) -> StripeObject:
     domain = Site.objects.get_current().domain
-    api_path = reverse("plugins", kwargs={"plugin_id": PLUGIN_ID})
+    api_path = reverse(
+        "plugins-per-channel",
+        kwargs={"plugin_id": PLUGIN_ID, "channel_slug": channel_slug},
+    )
 
     base_url = build_absolute_uri(api_path)
     webhook_url = urljoin(base_url, WEBHOOK_PATH)  # type: ignore
@@ -104,13 +107,14 @@ def refund_payment_intent(
     api_key: str, payment_intent_id: str, amount_to_refund: int
 ) -> Tuple[Optional[StripeObject], Optional[StripeError]]:
     try:
-        payment_intent = stripe.Refund.create(
+        refund = stripe.Refund.create(
             payment_intent=payment_intent_id, amount=amount_to_refund, api_key=api_key
         )
-        return payment_intent, None
+        return refund, None
     except StripeError as error:
         logger.warning(
-            "Unable to refund a payment intent (%s), error", payment_intent_id
+            "Unable to refund a payment intent.",
+            extra={"error": error, "payment_intent": payment_intent_id},
         )
         return None, error
 

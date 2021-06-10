@@ -281,23 +281,23 @@ class StripeGatewayPlugin(BasePlugin):
         refund_amount = price_to_minor_unit(
             payment_information.amount, payment_information.currency
         )
-        payment_intent, error = refund_payment_intent(
+        refund, error = refund_payment_intent(
             api_key=self.config.connection_params["secret_api_key"],
             payment_intent_id=payment_intent_id,  # type: ignore
             amount_to_refund=refund_amount,
         )
 
         raw_response = None
-        if payment_intent and payment_intent.last_response:
-            raw_response = payment_intent.last_response.data
+        if refund and refund.last_response:
+            raw_response = refund.last_response.data
 
         return GatewayResponse(
-            is_success=True if payment_intent else False,
+            is_success=True if refund else False,
             action_required=False,
             kind=TransactionKind.REFUND,
             amount=payment_information.amount,
             currency=payment_information.currency,
-            transaction_id=payment_intent.id if payment_intent else "",
+            transaction_id=refund.id if refund else "",
             error=error.user_message if error else None,
             raw_response=raw_response,
         )
@@ -374,7 +374,9 @@ class StripeGatewayPlugin(BasePlugin):
             )
             return
 
-        webhook = subscribe_webhook(api_key)
+        webhook = subscribe_webhook(
+            api_key, plugin_configuration.channel.slug  # type: ignore
+        )
         cls._update_or_create_config_field(
             plugin_configuration.configuration, "webhook_endpoint_id", webhook.id
         )

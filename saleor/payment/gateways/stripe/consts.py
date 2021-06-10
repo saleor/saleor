@@ -7,12 +7,17 @@ WEBHOOK_PROCESSING_EVENT = "payment_intent.processing"
 WEBHOOK_FAILED_EVENT = "payment_intent.payment_failed"
 WEBHOOK_AUTHORIZED_EVENT = "payment_intent.amount_capturable_updated"
 WEBHOOK_CANCELED_EVENT = "payment_intent.canceled"
+
+WEBHOOK_REFUND_EVENT = "charge.refunded"
+
+
 WEBHOOK_EVENTS = [
     WEBHOOK_SUCCESS_EVENT,
     WEBHOOK_PROCESSING_EVENT,
     WEBHOOK_FAILED_EVENT,
     WEBHOOK_AUTHORIZED_EVENT,
     WEBHOOK_CANCELED_EVENT,
+    WEBHOOK_REFUND_EVENT,
 ]
 METADATA_IDENTIFIER = "saleor-domain"
 

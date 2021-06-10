@@ -1,4 +1,5 @@
 import json
+from decimal import Decimal
 from unittest.mock import Mock, patch
 
 import pytest
@@ -22,6 +23,7 @@ from ..webhooks import (
     handle_authorized_payment_intent,
     handle_failed_payment_intent,
     handle_processing_payment_intent,
+    handle_refund,
     handle_successful_payment_intent,
 )
 
@@ -49,7 +51,9 @@ def test_handle_successful_payment_intent_for_checkout(
     )
     plugin = stripe_plugin()
     payment_intent = StripeObject(id="ABC", last_response={})
-    payment_intent["amount"] = price_to_minor_unit(payment.total, payment.currency)
+    payment_intent["amount_received"] = price_to_minor_unit(
+        payment.total, payment.currency
+    )
     payment_intent["currency"] = payment.currency
     payment_intent["status"] = SUCCESS_STATUS
     handle_successful_payment_intent(payment_intent, plugin.config)
@@ -97,7 +101,9 @@ def test_handle_successful_payment_intent_for_order_with_auth_payment(
     plugin = stripe_plugin()
 
     payment_intent = StripeObject(id="token", last_response={})
-    payment_intent["amount"] = price_to_minor_unit(payment.total, payment.currency)
+    payment_intent["amount_received"] = price_to_minor_unit(
+        payment.total, payment.currency
+    )
     payment_intent["currency"] = payment.currency
     payment_intent["status"] = SUCCESS_STATUS
 
@@ -128,7 +134,9 @@ def test_handle_successful_payment_intent_for_order_with_pending_payment(
     plugin = stripe_plugin()
 
     payment_intent = StripeObject(id="token", last_response={})
-    payment_intent["amount"] = price_to_minor_unit(payment.total, payment.currency)
+    payment_intent["amount_received"] = price_to_minor_unit(
+        payment.total, payment.currency
+    )
     payment_intent["currency"] = payment.currency
     payment_intent["status"] = SUCCESS_STATUS
 
@@ -344,6 +352,111 @@ def test_handle_failed_payment_intent_for_order(
     assert payment.transactions.filter(kind=TransactionKind.CANCEL).exists()
 
 
+def test_handle_fully_refund(stripe_plugin, payment_stripe_for_order):
+    payment = payment_stripe_for_order
+    payment.captured_amount = payment.total
+    payment.save()
+    payment.transactions.create(
+        is_success=True,
+        action_required=True,
+        kind=TransactionKind.CAPTURE,
+        amount=payment.total,
+        currency=payment.currency,
+        token="ABC",
+        gateway_response={},
+    )
+    plugin = stripe_plugin()
+
+    refund = StripeObject(id="refund_id")
+    refund["amount"] = price_to_minor_unit(payment.total, payment.currency)
+    refund["currency"] = payment.currency
+    refund["last_response"] = None
+
+    charge = StripeObject()
+    charge["payment_intent"] = "ABC"
+    charge["refunds"] = StripeObject()
+    charge["refunds"]["data"] = [refund]
+
+    handle_refund(charge, plugin.config)
+
+    payment.refresh_from_db()
+
+    assert payment.charge_status == ChargeStatus.FULLY_REFUNDED
+    assert payment.is_active is False
+    assert payment.captured_amount == Decimal("0")
+
+
+def test_handle_partial_refund(stripe_plugin, payment_stripe_for_order):
+    payment = payment_stripe_for_order
+    payment.captured_amount = payment.total
+    payment.save()
+    payment.transactions.create(
+        is_success=True,
+        action_required=True,
+        kind=TransactionKind.CAPTURE,
+        amount=payment.total,
+        currency=payment.currency,
+        token="ABC",
+        gateway_response={},
+    )
+    plugin = stripe_plugin()
+
+    refund = StripeObject(id="refund_id")
+    refund["amount"] = price_to_minor_unit(Decimal("10"), payment.currency)
+    refund["currency"] = payment.currency
+    refund["last_response"] = None
+
+    charge = StripeObject()
+    charge["payment_intent"] = "ABC"
+    charge["refunds"] = StripeObject()
+    charge["refunds"]["data"] = [refund]
+
+    handle_refund(charge, plugin.config)
+
+    payment.refresh_from_db()
+
+    assert payment.charge_status == ChargeStatus.PARTIALLY_REFUNDED
+    assert payment.is_active is True
+    assert payment.captured_amount == payment.total - Decimal("10")
+
+
+def test_handle_refund_already_processed(stripe_plugin, payment_stripe_for_order):
+    payment = payment_stripe_for_order
+    payment.charge_status = ChargeStatus.PARTIALLY_REFUNDED
+    payment.captured_amount = payment.total - Decimal("10")
+    payment.save()
+
+    refund_id = "refund_abc"
+    payment.transactions.create(
+        is_success=True,
+        action_required=True,
+        kind=TransactionKind.REFUND,
+        amount=payment.total,
+        currency=payment.currency,
+        token=refund_id,
+        gateway_response={},
+    )
+    plugin = stripe_plugin()
+
+    refund = StripeObject(id=refund_id)
+    refund["amount"] = price_to_minor_unit(Decimal("10"), payment.currency)
+    refund["currency"] = payment.currency
+    refund["last_response"] = None
+
+    charge = StripeObject()
+    charge["payment_intent"] = "ABC"
+    charge["refunds"] = StripeObject()
+    charge["refunds"]["data"] = [refund]
+
+    handle_refund(charge, plugin.config)
+
+    payment.refresh_from_db()
+
+    assert payment.charge_status == ChargeStatus.PARTIALLY_REFUNDED
+    assert payment.is_active is True
+    assert payment.captured_amount == payment.total - Decimal("10")
+
+
 @pytest.mark.parametrize(
     "webhook_type, fun_to_mock",
     [
@@ -355,7 +468,7 @@ def test_handle_failed_payment_intent_for_order(
     ],
 )
 @patch("saleor.payment.gateways.stripe.stripe_api.stripe.Webhook.construct_event")
-def test_handle_webhook_successful_payment_intent(
+def test_handle_webhook_events(
     mocked_webhook_event, webhook_type, fun_to_mock, stripe_plugin, rf
 ):
     dummy_payload = {
