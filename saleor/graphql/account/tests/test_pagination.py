@@ -253,7 +253,7 @@ def test_query_customer_members_pagination_with_filter_search(
 @pytest.mark.parametrize(
     "staff_member_filter, users_order",
     [
-        ({"search": "example.com"}, ["Alan", "Harry"]),  # email
+        ({"search": "example.com"}, ["Anthony", "Alan"]),  # email
         ({"search": "davis"}, ["Robert", "Xavier"]),  # last_name
         ({"search": "wroc"}, ["Anthony", "Alan"]),  # city
         ({"search": "pl"}, ["Anthony", "Alan"]),  # country
