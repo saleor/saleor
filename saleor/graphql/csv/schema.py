@@ -33,7 +33,7 @@ class CsvQueries(graphene.ObjectType):
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     @traced_resolver
-    def resolve_export_files(self, info, query=None, sort_by=None, **kwargs):
+    def resolve_export_files(self, _info, **kwargs):
         return models.ExportFile.objects.all()
 
 
