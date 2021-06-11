@@ -1,6 +1,10 @@
 import graphene
 
-from ...tests.utils import assert_no_permission, get_graphql_content
+from ...tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 
 PAGE_TYPE_QUERY = """
     query PageType($id: ID!, $filters: AttributeFilterInput) {
@@ -113,6 +117,25 @@ def test_page_type_query_by_app_no_perm(
 
     # then
     assert_no_permission(response)
+
+
+def test_staff_query_page_type_by_invalid_id(staff_api_client, page_type):
+    id = "bh/"
+    variables = {"id": id}
+    response = staff_api_client.post_graphql(PAGE_TYPE_QUERY, variables)
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
+    assert content["data"]["pageType"] is None
+
+
+def test_staff_query_page_type_object_with_given_id_does_not_exists(
+    staff_api_client, page_type
+):
+    variables = {"id": graphene.Node.to_global_id("Order", -1)}
+    response = staff_api_client.post_graphql(PAGE_TYPE_QUERY, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["pageType"] is None
 
 
 def test_page_type_query_filter_unassigned_attributes(

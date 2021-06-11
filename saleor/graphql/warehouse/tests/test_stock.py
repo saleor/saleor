@@ -100,7 +100,7 @@ def test_staff_query_stock_by_invalid_id(
     assert content["data"]["stock"] is None
 
 
-def test_staff_query_stock_object_given_id_does_not_exists(
+def test_staff_query_stock_object_with_given_id_does_not_exists(
     staff_api_client, stock, permission_manage_products
 ):
     variables = {"id": graphene.Node.to_global_id("Order", -1)}

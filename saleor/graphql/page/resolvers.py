@@ -1,10 +1,7 @@
-import graphene
-
 from ...core.tracing import traced_resolver
 from ...page import models
 from ..core.utils import from_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_query
-from .types import PageType
 
 
 @traced_resolver
@@ -26,9 +23,8 @@ def resolve_pages(info, **_kwargs):
     return models.Page.objects.visible_to_user(user)
 
 
-@traced_resolver
-def resolve_page_type(info, global_page_type_id):
-    return graphene.Node.get_node_from_global_id(info, global_page_type_id, PageType)
+def resolve_page_type(id):
+    return models.PageType.objects.filter(id=id).first()
 
 
 @traced_resolver
