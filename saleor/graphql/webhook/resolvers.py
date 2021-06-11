@@ -1,12 +1,10 @@
-import graphene
-
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AppPermission
 from ...core.tracing import traced_resolver
 from ...webhook import models, payloads
 from ...webhook.event_types import WebhookEventType
 from ..core.utils import from_global_id_or_error
-from .types import Webhook, WebhookEvent
+from .types import WebhookEvent
 
 
 @traced_resolver
@@ -25,12 +23,12 @@ def resolve_webhooks(info, **_kwargs):
 @traced_resolver
 def resolve_webhook(info, webhook_id):
     app = info.context.app
+    _, webhook_id = from_global_id_or_error(webhook_id)
     if app:
-        _, webhook_id = from_global_id_or_error(webhook_id)
         return app.webhooks.filter(id=webhook_id).first()
     user = info.context.user
     if user.has_perm(AppPermission.MANAGE_APPS):
-        return graphene.Node.get_node_from_global_id(info, webhook_id, Webhook)
+        return models.Webhook.objects.filter(pk=webhook_id).first()
     raise PermissionDenied()
 
 
