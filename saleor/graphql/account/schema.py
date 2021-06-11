@@ -3,6 +3,7 @@ import graphene
 from ...core.permissions import AccountPermissions
 from ..core.fields import FilterInputConnectionField
 from ..core.types import FilterInputObjectType
+from ..core.utils import from_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_query
 from ..decorators import one_of_permissions_required, permission_required
 from .bulk_mutations import CustomerBulkDelete, StaffBulkDelete, UserBulkSetActive
@@ -60,6 +61,7 @@ from .resolvers import (
     resolve_address,
     resolve_address_validation_rules,
     resolve_customers,
+    resolve_permission_group,
     resolve_permission_groups,
     resolve_staff_users,
     resolve_user,
@@ -165,7 +167,8 @@ class AccountQueries(graphene.ObjectType):
 
     @permission_required(AccountPermissions.MANAGE_STAFF)
     def resolve_permission_group(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, Group)
+        _, id = from_global_id_or_error(id)
+        return resolve_permission_group(id)
 
     def resolve_me(self, info):
         user = info.context.user

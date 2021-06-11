@@ -35,6 +35,10 @@ def resolve_customers(info, **_kwargs):
     return models.User.objects.customers()
 
 
+def resolve_permission_group(id):
+    return auth_models.Group.objects.filter(id=id).first()
+
+
 @traced_resolver
 def resolve_permission_groups(info, **_kwargs):
     return auth_models.Group.objects.all()
