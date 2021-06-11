@@ -52,10 +52,8 @@ django-prices-openexchangerates==1.1.0
 django-prices-vatlayer==1.1.0
 django-prices==2.2.0
 django-redis==4.12.1; python_version >= "3.5"
-django-render-block==0.8.1; python_version >= "3.5"
 django-storages==1.11.1; python_version >= "3.5"
 django-stubs==1.2.0; python_version >= "3.6"
-django-templated-email==2.3.0
 django-versatileimagefield==2.0
 django==3.2.4; python_version >= "3.6"
 draftjs-sanitizer==1.0.0
@@ -193,7 +191,6 @@ tinycss2==1.1.0; python_version >= "3.6"
 toml==0.10.2; python_version >= "3.6" and python_version < "4.0" and python_full_version >= "3.6.2" and (python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.3.0" and python_version >= "3.6") and (python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0") and (python_version >= "3.6" and python_full_version < "3.0.0" and python_version < "4.0" or python_version >= "3.6" and python_version < "4.0" and python_full_version >= "3.3.0") and (python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6")
 tornado==6.1; python_version >= "3.5"
 tox==3.23.1; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.5.0")
-tqdm==4.61.0; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
 transifex-client==0.14.2; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0" and python_version < "3.10")
 typed-ast==1.4.3; python_version >= "3.6"
 typing-extensions==3.10.0.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.4.0" and python_version < "3.10" and python_version >= "3.6"

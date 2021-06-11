@@ -37,9 +37,7 @@ django-prices-openexchangerates==1.1.0
 django-prices-vatlayer==1.1.0
 django-prices==2.2.0
 django-redis==4.12.1; python_version >= "3.5"
-django-render-block==0.8.1; python_version >= "3.5"
 django-storages==1.11.1; python_version >= "3.5"
-django-templated-email==2.3.0
 django-versatileimagefield==2.0
 django==3.2.4; python_version >= "3.6"
 draftjs-sanitizer==1.0.0
@@ -135,7 +133,6 @@ threadloop==1.0.2
 thrift==0.13.0
 tinycss2==1.1.0; python_version >= "3.6"
 tornado==6.1; python_version >= "3.5"
-tqdm==4.61.0; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
 typing-extensions==3.10.0.0; python_version >= "3.6"
 typing-inspect==0.6.0; python_version >= "3.6"
 unidecode==1.2.0; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.4.0"
