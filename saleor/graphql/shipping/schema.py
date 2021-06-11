@@ -2,8 +2,10 @@ import graphene
 
 from ...core.permissions import ShippingPermissions
 from ...core.tracing import traced_resolver
+from ...shipping import models
 from ..channel.types import ChannelContext
 from ..core.fields import ChannelContextFilterConnectionField
+from ..core.utils import from_global_id_or_error
 from ..decorators import permission_required
 from ..translations.mutations import ShippingPriceTranslate
 from .bulk_mutations import ShippingPriceBulkDelete, ShippingZoneBulkDelete
@@ -48,7 +50,8 @@ class ShippingQueries(graphene.ObjectType):
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
     @traced_resolver
     def resolve_shipping_zone(self, info, id, channel=None):
-        instance = graphene.Node.get_node_from_global_id(info, id, ShippingZone)
+        _, id = from_global_id_or_error(id)
+        instance = models.ShippingZone.objects.filter(id=id).first()
         return ChannelContext(node=instance, channel_slug=channel) if instance else None
 
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
