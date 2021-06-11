@@ -2,6 +2,7 @@ import graphene
 
 from ...core.tracing import traced_resolver
 from ..core.fields import FilterInputConnectionField
+from ..core.utils import from_global_id_or_error
 from ..translations.mutations import AttributeTranslate, AttributeValueTranslate
 from .bulk_mutations import AttributeBulkDelete, AttributeValueBulkDelete
 from .filters import AttributeFilterInput
@@ -14,7 +15,11 @@ from .mutations import (
     AttributeValueDelete,
     AttributeValueUpdate,
 )
-from .resolvers import resolve_attribute_by_slug, resolve_attributes
+from .resolvers import (
+    resolve_attribute_by_id,
+    resolve_attribute_by_slug,
+    resolve_attributes,
+)
 from .sorters import AttributeSortingInput
 from .types import Attribute
 
@@ -39,7 +44,8 @@ class AttributeQueries(graphene.ObjectType):
     @traced_resolver
     def resolve_attribute(self, info, id=None, slug=None):
         if id:
-            return graphene.Node.get_node_from_global_id(info, id, Attribute)
+            _, id = from_global_id_or_error(id)
+            return resolve_attribute_by_id(id)
         return resolve_attribute_by_slug(slug=slug)
 
 

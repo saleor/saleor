@@ -6,7 +6,11 @@ from graphene.utils.str_converters import to_camel_case
 from .....attribute.models import Attribute
 from .....product.models import Category, Collection, Product, ProductType
 from .....tests.utils import dummy_editorjs
-from ....tests.utils import assert_no_permission, get_graphql_content
+from ....tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 
 
 def test_get_single_attribute_by_id_as_customer(
@@ -58,36 +62,36 @@ def test_get_single_attribute_by_slug_as_customer(
 
 
 QUERY_ATTRIBUTE = """
-query($id: ID!) {
-    attribute(id: $id) {
-        id
-        slug
-        name
-        inputType
-        entityType
-        type
-        unit
-        choices(first: 10) {
-            edges {
-                node {
-                    slug
-                    inputType
-                    file {
-                        url
-                        contentType
+    query($id: ID!) {
+        attribute(id: $id) {
+            id
+            slug
+            name
+            inputType
+            entityType
+            type
+            unit
+            choices(first: 10) {
+                edges {
+                    node {
+                        slug
+                        inputType
+                        file {
+                            url
+                            contentType
+                        }
                     }
                 }
-            }
 
+            }
+            valueRequired
+            visibleInStorefront
+            filterableInStorefront
+            filterableInDashboard
+            availableInGrid
+            storefrontSearchPosition
         }
-        valueRequired
-        visibleInStorefront
-        filterableInStorefront
-        filterableInDashboard
-        availableInGrid
-        storefrontSearchPosition
     }
-}
 """
 
 
@@ -171,6 +175,27 @@ def test_get_single_product_attribute_by_app(
         content["data"]["attribute"]["storefrontSearchPosition"]
         == color_attribute_without_values.storefront_search_position
     )
+
+
+def test_query_attribute_by_invalid_id(
+    staff_api_client, color_attribute_without_values
+):
+    id = "bh/"
+    variables = {"id": id}
+    response = staff_api_client.post_graphql(QUERY_ATTRIBUTE, variables)
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
+    assert content["data"]["attribute"] is None
+
+
+def test_query_attribute_object_with_given_id_does_not_exists(
+    staff_api_client, color_attribute_without_values
+):
+    variables = {"id": graphene.Node.to_global_id("Order", -1)}
+    response = staff_api_client.post_graphql(QUERY_ATTRIBUTE, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["attribute"] is None
 
 
 def test_get_single_product_attribute_by_staff_no_perm(
