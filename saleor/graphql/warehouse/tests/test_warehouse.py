@@ -1,10 +1,16 @@
+from uuid import UUID
+
 import graphene
 import pytest
 
 from ....account.models import Address
 from ....warehouse.error_codes import WarehouseErrorCode
 from ....warehouse.models import Warehouse
-from ...tests.utils import assert_no_permission, get_graphql_content
+from ...tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 
 QUERY_WAREHOUSES = """
 query {
@@ -294,6 +300,31 @@ def test_warehouse_query_as_customer(user_api_client, warehouse):
     )
 
     assert_no_permission(response)
+
+
+def test_staff_query_warehouse_by_invalid_id(
+    staff_api_client, warehouse, permission_manage_shipping
+):
+    id = "bh/"
+    variables = {"id": id}
+    response = staff_api_client.post_graphql(
+        QUERY_WAREHOUSE, variables, permissions=[permission_manage_shipping]
+    )
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
+    assert content["data"]["warehouse"] is None
+
+
+def test_staff_query_warehouse_object_given_id_does_not_exists(
+    staff_api_client, permission_manage_shipping
+):
+    variables = {"id": graphene.Node.to_global_id("Order", UUID(int=1))}
+    response = staff_api_client.post_graphql(
+        QUERY_WAREHOUSE, variables, permissions=[permission_manage_shipping]
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["warehouse"] is None
 
 
 def test_query_warehouses_as_staff_with_manage_orders(

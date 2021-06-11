@@ -8,6 +8,7 @@ from ...core.permissions import (
 from ...core.tracing import traced_resolver
 from ...warehouse import models
 from ..core.fields import FilterInputConnectionField
+from ..core.utils import from_global_id_or_error
 from ..decorators import one_of_permissions_required, permission_required
 from .filters import StockFilterInput, WarehouseFilterInput
 from .mutations import (
@@ -46,8 +47,8 @@ class WarehouseQueries(graphene.ObjectType):
     @traced_resolver
     def resolve_warehouse(self, info, **data):
         warehouse_pk = data.get("id")
-        warehouse = graphene.Node.get_node_from_global_id(info, warehouse_pk, Warehouse)
-        return warehouse
+        _, id = from_global_id_or_error(warehouse_pk)
+        return models.Warehouse.objects.filter(id=id).first()
 
     @one_of_permissions_required(
         [
@@ -83,8 +84,8 @@ class StockQueries(graphene.ObjectType):
     @traced_resolver
     def resolve_stock(self, info, **kwargs):
         stock_id = kwargs.get("id")
-        stock = graphene.Node.get_node_from_global_id(info, stock_id, Stock)
-        return stock
+        _, id = from_global_id_or_error(stock_id)
+        return models.Stock.objects.filter(id=id).first()
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     @traced_resolver
