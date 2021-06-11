@@ -222,10 +222,6 @@ def test_product_variant_create(
                             }
                         }
                     }
-                    costPrice {
-                        currency
-                        amount
-                    }
                     weight {
                         value
                         unit

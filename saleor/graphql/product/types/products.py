@@ -39,7 +39,7 @@ from ...core.fields import (
     FilterInputConnectionField,
     PrefetchingConnectionField,
 )
-from ...core.types import Image, Money, TaxedMoney, TaxedMoneyRange, TaxType
+from ...core.types import Image, TaxedMoney, TaxedMoneyRange, TaxType
 from ...core.utils import from_global_id_or_error
 from ...decorators import (
     one_of_permissions_required,
@@ -192,7 +192,6 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             description="Define scope of returned attributes.",
         ),
     )
-    cost_price = graphene.Field(Money, description="Cost price of the variant.")
     margin = graphene.Int(description="Gross margin percentage value.")
     quantity_ordered = graphene.Int(description="Total quantity ordered.")
     revenue = graphene.Field(
