@@ -111,6 +111,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - `channel` from `DraftOrderCreateInput` changed to channelId
   - `channel` from `DraftOrderInput` changed to channelId
   - `channel` from `pluginUpdate` changed to channelId
+- Compress celery tasks related with `user_emails` and `webhooks`  - #7445 by d-wysocki
 - Order events performance - #7424 by tomaszszymanski129
 - Add hash to uploading images #7453 by @IKarbowiak
 - Add file format validation for uploaded images - #7447 by @IKarbowiak
