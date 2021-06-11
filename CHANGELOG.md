@@ -110,7 +110,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - `channel` from `DraftOrderCreateInput` changed to channelId
   - `channel` from `DraftOrderInput` changed to channelId
   - `channel` from `pluginUpdate` changed to channelId
-- Compress celery tasks `send_fulfillment_confirmation_email_task`, `send_fulfillment_update_email_task`, `trigger_webhooks_for_event`, `send_webhook_request` - #7445 by d-wysocki
+- Compress celery tasks related with `user_emails` and `webhooks`  - #7445 by d-wysocki
 - Order events performance - #7424 by tomaszszymanski129
 
 ### Breaking
