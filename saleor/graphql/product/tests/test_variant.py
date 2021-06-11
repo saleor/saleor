@@ -63,10 +63,6 @@ def test_fetch_variant(
                     slug
                 }
             }
-            costPrice {
-                currency
-                amount
-            }
             media {
                 id
             }
@@ -366,10 +362,6 @@ CREATE_VARIANT_MUTATION = """
                                     contentType
                                 }
                             }
-                        }
-                        costPrice {
-                            currency
-                            amount
                         }
                         weight {
                             value
@@ -1399,10 +1391,6 @@ def test_update_product_variant(
                             channel {
                                 slug
                             }
-                        }
-                        costPrice {
-                            currency
-                            amount
                         }
                     }
                 }
