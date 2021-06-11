@@ -240,6 +240,7 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
     product_with_variant_with_two_attributes,
     rich_text_attribute,
     color_attribute,
+    boolean_attribute,
     variant_with_many_stocks,
 ):
     # given
@@ -250,6 +251,7 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
         product_type_product_reference_attribute,
         numeric_attribute,
         rich_text_attribute,
+        boolean_attribute,
     )
     product.product_type.product_attributes.add(
         file_attribute,
@@ -257,6 +259,17 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
         product_type_product_reference_attribute,
         numeric_attribute,
         rich_text_attribute,
+        boolean_attribute,
+    )
+
+    # add boolean attribute
+    associate_attribute_values_to_instance(
+        variant_with_many_stocks,
+        boolean_attribute,
+        boolean_attribute.values.first(),
+    )
+    associate_attribute_values_to_instance(
+        product, boolean_attribute, boolean_attribute.values.first()
     )
 
     # add rich text attribute

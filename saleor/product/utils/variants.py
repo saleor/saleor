@@ -1,5 +1,7 @@
 from typing import TYPE_CHECKING
 
+from django.template.defaultfilters import truncatechars
+
 from ...attribute import AttributeInputType, AttributeType
 
 if TYPE_CHECKING:
@@ -20,7 +22,9 @@ def generate_and_set_variant_name(variant: "ProductVariant", sku: str):
         attribute_rel
     ) in variant_selection_attributes.iterator():  # type: AssignedVariantAttribute
         values_qs = attribute_rel.values.all()
-        translated_values = [str(value.translated) for value in values_qs]
+        translated_values = [
+            truncatechars(str(value.translated), 25) for value in values_qs
+        ]
         attributes_display.append(", ".join(translated_values))
 
     name = " / ".join(sorted(attributes_display))
