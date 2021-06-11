@@ -4,6 +4,7 @@ from ...core.permissions import ProductPermissions
 from ...core.tracing import traced_resolver
 from ...csv import models
 from ..core.fields import FilterInputConnectionField
+from ..core.utils import from_global_id_or_error
 from ..decorators import permission_required
 from .filters import ExportFileFilterInput
 from .mutations import ExportProducts
@@ -29,7 +30,8 @@ class CsvQueries(graphene.ObjectType):
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     @traced_resolver
     def resolve_export_file(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, ExportFile)
+        _, id = from_global_id_or_error(id)
+        return models.ExportFile.objects.filter(id=id).first()
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     @traced_resolver
