@@ -157,8 +157,11 @@ class Payment(CountableDjangoObjectType):
     @traced_resolver
     def resolve_credit_card(root: models.Payment, _info):
         data = {
-            "last_digits": root.cc_last_digits,
             "brand": root.cc_brand,
+            "exp_month": root.cc_exp_month,
+            "exp_year": root.cc_exp_year,
+            "first_digits": root.cc_first_digits,
+            "last_digits": root.cc_last_digits,
         }
         if not any(data.values()):
             return None

@@ -310,11 +310,15 @@ def test_update_product_variant(
                         id
                         name
                         slug
-                        values {
-                            id
-                            name
-                            slug
-                            __typename
+                        choices(first: 10) {
+                            edges {
+                                node {
+                                    id
+                                    name
+                                    slug
+                                    __typename
+                                }
+                            }
                         }
                     __typename
                     }

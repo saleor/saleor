@@ -85,8 +85,8 @@ class DiscountQueries(graphene.ObjectType):
         return ChannelContext(node=sale, channel_slug=channel) if sale else None
 
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
-    def resolve_sales(self, info, query=None, channel=None, **kwargs):
-        return resolve_sales(info, query, channel_slug=channel, **kwargs)
+    def resolve_sales(self, info, channel=None, **kwargs):
+        return resolve_sales(info, channel_slug=channel, **kwargs)
 
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     @traced_resolver
@@ -95,8 +95,8 @@ class DiscountQueries(graphene.ObjectType):
         return ChannelContext(node=voucher, channel_slug=channel) if voucher else None
 
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
-    def resolve_vouchers(self, info, query=None, channel=None, **kwargs):
-        return resolve_vouchers(info, query, channel_slug=channel, **kwargs)
+    def resolve_vouchers(self, info, channel=None, **kwargs):
+        return resolve_vouchers(info, channel_slug=channel, **kwargs)
 
 
 class DiscountMutations(graphene.ObjectType):

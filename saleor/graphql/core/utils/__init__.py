@@ -1,15 +1,22 @@
 import binascii
+import os
+import secrets
 from typing import TYPE_CHECKING, Type, Union
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
 from graphene import ObjectType
+from PIL import Image
 
 from ....core.utils import generate_unique_slug
 
 if TYPE_CHECKING:
     # flake8: noqa
     from django.db.models import Model
+
+
+Image.init()
 
 
 def clean_seo_fields(data):
@@ -33,15 +40,47 @@ def str_to_enum(name):
     return name.replace(" ", "_").replace("-", "_").upper()
 
 
-def validate_image_file(file, field_name):
+def validate_image_file(file, field_name, error_class):
     """Validate if the file is an image."""
     if not file:
         raise ValidationError(
-            {field_name: ValidationError("File is required", code="required")}
+            {
+                field_name: ValidationError(
+                    "File is required.", code=error_class.REQUIRED
+                )
+            }
         )
     if not file.content_type.startswith("image/"):
         raise ValidationError(
-            {field_name: ValidationError("Invalid file type", code="invalid")}
+            {
+                field_name: ValidationError(
+                    "Invalid file type.", code=error_class.INVALID
+                )
+            }
+        )
+    _validate_image_format(file, field_name, error_class)
+
+
+def _validate_image_format(file, field_name, error_class):
+    """Validate image file format."""
+    allowed_extensions = [ext.lower() for ext in Image.EXTENSION]
+    _file_name, format = os.path.splitext(file._name)
+    if not format:
+        raise ValidationError(
+            {
+                field_name: ValidationError(
+                    "Lack of file extension.", code=error_class.INVALID
+                )
+            }
+        )
+    elif format not in allowed_extensions:
+        raise ValidationError(
+            {
+                field_name: ValidationError(
+                    "Invalid file extension. Image file required.",
+                    code=error_class.INVALID,
+                )
+            }
         )
 
 
@@ -118,3 +157,11 @@ def from_global_id_or_error(
             {field: ValidationError(f"Must receive a {only_type} id.", code="invalid")}
         )
     return _type, _id
+
+
+def add_hash_to_file_name(file):
+    """Add unique text fragment to the file name to prevent file overriding."""
+    file_name, format = os.path.splitext(file._name)
+    hash = secrets.token_hex(nbytes=4)
+    new_name = f"{file_name}_{hash}{format}"
+    file._name = new_name

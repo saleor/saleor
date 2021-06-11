@@ -47,10 +47,14 @@ def test_fetch_variant(
                     id
                     name
                     slug
-                    values {
-                        id
-                        name
-                        slug
+                    choices(first: 10) {
+                        edges {
+                            node {
+                                id
+                                name
+                                slug
+                            }
+                        }
                     }
                 }
                 values {
@@ -1141,7 +1145,7 @@ def test_create_product_variant_duplicated_attributes(
         "field": "attributes",
         "code": ProductErrorCode.DUPLICATED_INPUT_ITEM.name,
         "message": ANY,
-        "attributes": None,
+        "attributes": [color_attribute_id, size_attribute_id],
     }
     assert not product.variants.filter(sku=sku).exists()
 
@@ -1321,11 +1325,15 @@ def test_product_variant_update_with_new_attributes(
                   id
                   name
                   slug
-                  values {
-                    id
-                    name
-                    slug
-                    __typename
+                  choices(first:10) {
+                    edges {
+                      node {
+                        id
+                        name
+                        slug
+                        __typename
+                      }
+                    }
                   }
                   __typename
                 }

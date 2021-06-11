@@ -9,10 +9,11 @@ from django.utils import timezone
 from django_countries.fields import CountryField
 from django_prices.models import MoneyField
 from django_prices.templatetags.prices import amount
-from prices import Money, fixed_discount, percentage_discount
+from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 
 from ..channel.models import Channel
 from ..core.permissions import DiscountPermissions
+from ..core.taxes import display_gross_prices
 from ..core.utils.translations import TranslationProxy
 from . import DiscountValueType, OrderDiscountType, VoucherType
 
@@ -115,7 +116,8 @@ class Voucher(models.Model):
             return price
         return price - after_discount
 
-    def validate_min_spent(self, value: Money, channel: Channel):
+    def validate_min_spent(self, value: TaxedMoney, channel: Channel):
+        value = value.gross if display_gross_prices() else value.net
         voucher_channel_listing = self.channel_listings.filter(channel=channel).first()
         if not voucher_channel_listing:
             raise NotApplicable("This voucher is not assigned to this channel")
