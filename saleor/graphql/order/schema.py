@@ -6,6 +6,7 @@ from ..core.enums import ReportingPeriod
 from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
 from ..core.scalars import UUID
 from ..core.types import FilterInputObjectType, TaxedMoney
+from ..core.utils import from_global_id_or_error
 from ..decorators import permission_required
 from .bulk_mutations.draft_orders import DraftOrderBulkDelete, DraftOrderLinesBulkDelete
 from .bulk_mutations.orders import OrderBulkCancel
@@ -116,7 +117,8 @@ class OrderQueries(graphene.ObjectType):
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_order(self, info, **data):
-        return resolve_order(info, data.get("id"))
+        _, id = from_global_id_or_error(data.get("id"))
+        return resolve_order(id)
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_orders(self, info, channel=None, **_kwargs):

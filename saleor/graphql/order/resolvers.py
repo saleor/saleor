@@ -1,5 +1,3 @@
-import graphene
-
 from ...channel.models import Channel
 from ...core.tracing import traced_resolver
 from ...order import OrderStatus, models
@@ -8,7 +6,6 @@ from ...order.models import OrderEvent
 from ...order.utils import sum_order_totals
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..utils.filters import filter_by_period
-from .types import Order
 
 ORDER_SEARCH_FIELDS = ("id", "discount_name", "token", "user_email", "user__email")
 
@@ -43,9 +40,8 @@ def resolve_orders_total(_info, period, channel_slug):
     return sum_order_totals(qs, channel.currency_code)
 
 
-@traced_resolver
-def resolve_order(info, order_id):
-    return graphene.Node.get_node_from_global_id(info, order_id, Order)
+def resolve_order(order_id):
+    return models.Order.objects.filter(pk=order_id).first()
 
 
 def resolve_homepage_events():
