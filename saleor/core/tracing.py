@@ -26,3 +26,12 @@ def traced_atomic_transaction():
             span = scope.span
             span.set_tag(opentracing.tags.COMPONENT, "orm")
             yield
+
+
+@contextmanager
+def opentracing_trace(span_name, component_name, service_name):
+    with opentracing.global_tracer().start_active_span(span_name) as scope:
+        span = scope.span
+        span.set_tag(opentracing.tags.COMPONENT, component_name)
+        span.set_tag("service.name", service_name)
+        yield
