@@ -117,7 +117,7 @@ def test_staff_query_gift_card_by_invalid_id(
     assert content["data"]["giftCard"] is None
 
 
-def test_staff_query_gift_card_object_with_given_id_does_not_exists(
+def test_staff_query_gift_card_with_invalid_object_type(
     staff_api_client, gift_card, permission_manage_users, permission_manage_gift_card
 ):
     variables = {"id": graphene.Node.to_global_id("Order", -1)}

@@ -316,7 +316,7 @@ def test_staff_query_warehouse_by_invalid_id(
     assert content["data"]["warehouse"] is None
 
 
-def test_staff_query_warehouse_object_with_given_id_does_not_exists(
+def test_staff_query_warehouse_with_invalid_object_type(
     staff_api_client, permission_manage_shipping
 ):
     variables = {"id": graphene.Node.to_global_id("Order", UUID(int=1))}

@@ -1315,7 +1315,7 @@ def test_staff_query_page_type_by_invalid_id(
     assert content["data"]["order"] is None
 
 
-def test_staff_query_page_type_object_with_given_id_does_not_exists(
+def test_staff_query_page_type_with_invalid_object_type(
     staff_api_client, order, permission_manage_orders
 ):
     variables = {"id": graphene.Node.to_global_id("Page", -1)}

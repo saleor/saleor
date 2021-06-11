@@ -768,7 +768,7 @@ def test_staff_query_payment_by_invalid_id(
     assert content["data"]["payment"] is None
 
 
-def test_staff_query_payment_object_with_given_id_does_not_exists(
+def test_staff_query_payment_with_invalid_object_type(
     staff_api_client, payment_dummy, permission_manage_orders
 ):
     variables = {"id": graphene.Node.to_global_id("Order", -1)}

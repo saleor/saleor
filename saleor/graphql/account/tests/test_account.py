@@ -4711,7 +4711,7 @@ def test_address_query_invalid_id(
     assert content["data"]["address"] is None
 
 
-def test_address_query_object_with_given_id_does_not_exists(
+def test_address_query_with_invalid_object_type(
     staff_api_client,
     address_other_country,
 ):

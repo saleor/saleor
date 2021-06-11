@@ -1821,7 +1821,7 @@ def test_staff_query_sale_by_invalid_id(
     assert content["data"]["sale"] is None
 
 
-def test_staff_query_sale_object_with_given_id_does_not_exists(
+def test_staff_query_sale_with_invalid_object_type(
     staff_api_client, sale, permission_manage_discounts
 ):
     variables = {"id": graphene.Node.to_global_id("Order", -1)}
@@ -1884,7 +1884,7 @@ def test_staff_query_voucher_by_invalid_id(
     assert content["data"]["voucher"] is None
 
 
-def test_staff_query_voucher_object_with_given_id_does_not_exists(
+def test_staff_query_voucher_with_invalid_object_type(
     staff_api_client, voucher, permission_manage_discounts
 ):
     variables = {"id": graphene.Node.to_global_id("Order", -1)}

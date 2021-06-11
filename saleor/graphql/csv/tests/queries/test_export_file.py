@@ -212,7 +212,7 @@ def test_query_export_file_by_invalid_id(
     assert content["data"]["exportFile"] is None
 
 
-def test_query_export_file_object_with_given_id_does_not_exists(
+def test_query_export_file_with_invalid_object_type(
     staff_api_client, user_export_file, permission_manage_products
 ):
     variables = {"id": graphene.Node.to_global_id("Order", -1)}

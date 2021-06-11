@@ -189,7 +189,7 @@ def test_query_attribute_by_invalid_id(
     assert content["data"]["attribute"] is None
 
 
-def test_query_attribute_object_with_given_id_does_not_exists(
+def test_query_attribute_with_invalid_object_type(
     staff_api_client, color_attribute_without_values
 ):
     variables = {"id": graphene.Node.to_global_id("Order", -1)}

@@ -129,9 +129,7 @@ def test_staff_query_page_type_by_invalid_id(staff_api_client, page_type):
     assert content["data"]["pageType"] is None
 
 
-def test_staff_query_page_type_object_with_given_id_does_not_exists(
-    staff_api_client, page_type
-):
+def test_staff_query_page_type_with_invalid_object_type(staff_api_client, page_type):
     variables = {"id": graphene.Node.to_global_id("Order", -1)}
     response = staff_api_client.post_graphql(PAGE_TYPE_QUERY, variables)
     content = get_graphql_content(response)

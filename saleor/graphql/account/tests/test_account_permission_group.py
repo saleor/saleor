@@ -2389,7 +2389,7 @@ def test_query_permission_group_by_invalid_id(
     assert content["data"]["permissionGroup"] is None
 
 
-def test_query_permission_group_object_with_given_id_does_not_exists(
+def test_query_permission_group_with_invalid_object_type(
     staff_api_client,
     staff_user,
     permission_group_manage_users,
