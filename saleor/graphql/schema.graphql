@@ -727,9 +727,9 @@ input CatalogueInput {
 }
 
 type Category implements Node & ObjectWithMetadata {
+  id: ID!
   seoTitle: String
   seoDescription: String
-  id: ID!
   name: String!
   description: JSONString
   slug: String!
@@ -802,9 +802,9 @@ input CategorySortingInput {
 }
 
 type CategoryTranslatableContent implements Node {
+  id: ID!
   seoTitle: String
   seoDescription: String
-  id: ID!
   name: String!
   description: JSONString
   descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
@@ -819,9 +819,9 @@ type CategoryTranslate {
 }
 
 type CategoryTranslation implements Node {
+  id: ID!
   seoTitle: String
   seoDescription: String
-  id: ID!
   name: String
   description: JSONString
   language: LanguageDisplay!
@@ -1120,9 +1120,9 @@ type ChoiceValue {
 }
 
 type Collection implements Node & ObjectWithMetadata {
+  id: ID!
   seoTitle: String
   seoDescription: String
-  id: ID!
   name: String!
   description: JSONString
   slug: String!
@@ -1148,9 +1148,9 @@ type CollectionBulkDelete {
 }
 
 type CollectionChannelListing implements Node {
+  id: ID!
   publicationDate: Date
   isPublished: Boolean!
-  id: ID!
   channel: Channel!
 }
 
@@ -1276,9 +1276,9 @@ input CollectionSortingInput {
 }
 
 type CollectionTranslatableContent implements Node {
+  id: ID!
   seoTitle: String
   seoDescription: String
-  id: ID!
   name: String!
   description: JSONString
   descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
@@ -1293,9 +1293,9 @@ type CollectionTranslate {
 }
 
 type CollectionTranslation implements Node {
+  id: ID!
   seoTitle: String
   seoDescription: String
-  id: ID!
   name: String
   description: JSONString
   language: LanguageDisplay!
@@ -3524,9 +3524,9 @@ type OrderVoid {
 }
 
 type Page implements Node & ObjectWithMetadata {
+  id: ID!
   seoTitle: String
   seoDescription: String
-  id: ID!
   title: String!
   content: JSONString
   publicationDate: Date
@@ -3661,9 +3661,9 @@ input PageSortingInput {
 }
 
 type PageTranslatableContent implements Node {
+  id: ID!
   seoTitle: String
   seoDescription: String
-  id: ID!
   title: String!
   content: JSONString
   contentJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `content` field instead.")
@@ -3678,9 +3678,9 @@ type PageTranslate {
 }
 
 type PageTranslation implements Node {
+  id: ID!
   seoTitle: String
   seoDescription: String
-  id: ID!
   title: String
   content: JSONString
   language: LanguageDisplay!

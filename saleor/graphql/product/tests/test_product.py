@@ -3120,7 +3120,7 @@ def test_create_product_with_rich_text_attribute(
                 {
                     "slug": f"{product_id}_{rich_text_attribute.id}",
                     "name": (
-                        "test producttest producttest producttest producttest product",
+                        "test producttest producttest producttest producttest product"
                     ),
                     "reference": None,
                     "richText": rich_text,
@@ -3130,6 +3130,7 @@ def test_create_product_with_rich_text_attribute(
             ],
         },
     ]
+
     for attr_data in data["product"]["attributes"]:
         assert attr_data in expected_attributes_data
 
