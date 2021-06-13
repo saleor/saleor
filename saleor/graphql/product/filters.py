@@ -109,6 +109,28 @@ def _clean_product_attributes_range_filter_input(filter_value, queries):
         queries[attr_pk] += attr_val_pks
 
 
+def _clean_product_attributes_boolean_filter_input(
+    filter_value, queries: T_PRODUCT_FILTER_QUERIES
+):
+    attribute_slugs = [slug for slug, _ in filter_value]
+    attributes = Attribute.objects.filter(
+        input_type=AttributeInputType.BOOLEAN, slug__in=attribute_slugs
+    ).prefetch_related("values")
+    values_map = {
+        attr.slug: {
+            "pk": attr.pk,
+            "values": {val.boolean: val.pk for val in attr.values.all()},
+        }
+        for attr in attributes
+    }
+
+    for attr_slug, val in filter_value:
+        attr_pk = values_map[attr_slug]["pk"]
+        value_pk = values_map[attr_slug]["values"].get(val)
+        if value_pk:
+            queries[attr_pk] = [value_pk]
+
+
 def filter_products_by_attributes_values(qs, queries: T_PRODUCT_FILTER_QUERIES):
     filters = []
     for values in queries.values():
@@ -144,13 +166,19 @@ def filter_products_by_attributes_values(qs, queries: T_PRODUCT_FILTER_QUERIES):
     return qs.filter(*filters)
 
 
-def filter_products_by_attributes(qs, filter_values, filter_range_values):
+def filter_products_by_attributes(
+    qs, filter_values, filter_range_values, filter_boolean_values
+):
     queries: Dict[int, List[Optional[int]]] = defaultdict(list)
     try:
         if filter_values:
             _clean_product_attributes_filter_input(filter_values, queries)
         if filter_range_values:
             _clean_product_attributes_range_filter_input(filter_range_values, queries)
+        if filter_boolean_values:
+            _clean_product_attributes_boolean_filter_input(
+                filter_boolean_values, queries
+            )
     except ValueError:
         return Product.objects.none()
     return filter_products_by_attributes_values(qs, queries)
@@ -240,13 +268,19 @@ def _filter_attributes(qs, _, value):
     if value:
         value_list = []
         value_range_list = []
+        boolean_list = []
+
         for v in value:
             slug = v["slug"]
             if "values" in v:
                 value_list.append((slug, v["values"]))
             elif "values_range" in v:
                 value_range_list.append((slug, v["values_range"]))
-        qs = filter_products_by_attributes(qs, value_list, value_range_list)
+            elif "boolean" in v:
+                boolean_list.append((slug, v["boolean"]))
+        qs = filter_products_by_attributes(
+            qs, value_list, value_range_list, boolean_list
+        )
     return qs
 
 

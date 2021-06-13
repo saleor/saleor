@@ -208,6 +208,9 @@ class AttributeInput(graphene.InputObjectType):
         required=False,
         description=AttributeValueDescriptions.VALUES_RANGE,
     )
+    boolean = graphene.Boolean(
+        required=False, description=AttributeDescriptions.BOOLEAN
+    )
 
 
 class AttributeValueInput(graphene.InputObjectType):
@@ -233,4 +236,6 @@ class AttributeValueInput(graphene.InputObjectType):
     rich_text = graphene.JSONString(
         required=False, description="Text content in JSON format."
     )
-    boolean = graphene.Boolean(required=False, description="Boolean value.")
+    boolean = graphene.Boolean(
+        required=False, description=AttributeValueDescriptions.BOOLEAN
+    )

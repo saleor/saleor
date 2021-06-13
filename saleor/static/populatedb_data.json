@@ -4224,7 +4224,7 @@
       "private_metadata": {},
       "metadata": {},
       "sku": "lagoon-chants-vinyl",
-      "name": "Signed: Yes / Vinyl",
+      "name": "Signed: No / Vinyl",
       "product": 123,
       "track_inventory": true,
       "weight": null,
@@ -9095,10 +9095,10 @@
         "value_required": false,
         "is_variant_only": false,
         "visible_in_storefront": true,
-        "filterable_in_storefront": false,
-        "filterable_in_dashboard": false,
+        "filterable_in_storefront": true,
+        "filterable_in_dashboard": true,
         "storefront_search_position": 0,
-        "available_in_grid": false
+        "available_in_grid": true
     }
   },
   {
@@ -9815,7 +9815,7 @@
         "sort_order": 1,
         "name": "Signed: Yes",
         "value": "",
-        "slug": "317_34",
+        "slug": "34_true",
         "file_url": null,
         "content_type": null,
         "boolean": true,
@@ -9827,12 +9827,12 @@
     "pk": 102,
     "fields": {
         "sort_order": 1,
-        "name": "Signed: Yes",
+        "name": "Signed: No",
         "value": "",
-        "slug": "320_34",
+        "slug": "34_false",
         "file_url": null,
         "content_type": null,
-        "boolean": true,
+        "boolean": false,
         "attribute": 34
     }
   },

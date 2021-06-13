@@ -186,8 +186,10 @@ class AttributeAssignmentMixin:
         value, _ = get_or_create(
             attribute=attribute,
             slug=slugify(f"{attribute.id}_{attr_values.boolean}", allow_unicode=True),
-            name=f"{attribute.name}: {'Yes' if attr_values.boolean else 'No'}",
-            boolean=attr_values.boolean,
+            defaults={
+                "name": f"{attribute.name}: {'Yes' if attr_values.boolean else 'No'}",
+                "boolean": attr_values.boolean,
+            },
         )
         return (value,)
 
