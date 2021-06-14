@@ -5914,23 +5914,12 @@ type Warehouse implements Node & ObjectWithMetadata {
   id: ID!
   name: String!
   slug: String!
-  companyName: String!
   shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection!
   address: Address!
   email: String!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
-}
-
-input WarehouseAddressInput {
-  streetAddress1: String!
-  streetAddress2: String
-  city: String!
-  cityArea: String
-  postalCode: String
-  country: CountryCode!
-  countryArea: String
-  phone: String
+  companyName: String! @deprecated(reason: "Use address.CompanyName. This field will be removed in Saleor 4.0.")
 }
 
 type WarehouseCountableConnection {
@@ -5952,10 +5941,9 @@ type WarehouseCreate {
 
 input WarehouseCreateInput {
   slug: String
-  companyName: String
   email: String
   name: String!
-  address: WarehouseAddressInput!
+  address: AddressInput!
   shippingZones: [ID]
 }
 
@@ -6014,10 +6002,9 @@ type WarehouseUpdate {
 
 input WarehouseUpdateInput {
   slug: String
-  companyName: String
   email: String
   name: String
-  address: WarehouseAddressInput
+  address: AddressInput
 }
 
 type Webhook implements Node {

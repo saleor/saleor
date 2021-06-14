@@ -480,13 +480,13 @@ def test_mutation_create_warehouse(
         "input": {
             "name": "Test warehouse",
             "slug": "test-warhouse",
-            "companyName": "Amazing Company Inc",
             "email": "test-admin@example.com",
             "address": {
                 "streetAddress1": "Teczowa 8",
                 "city": "Wroclaw",
                 "country": "PL",
                 "postalCode": "53-601",
+                "companyName": "Amazing Company Inc",
             },
             "shippingZones": [
                 graphene.Node.to_global_id("ShippingZone", shipping_zone.id)
@@ -508,6 +508,7 @@ def test_mutation_create_warehouse(
     )
     assert created_warehouse["name"] == warehouse.name
     assert created_warehouse["slug"] == warehouse.slug
+    assert created_warehouse["companyName"] == warehouse.address.company_name
 
 
 def test_mutation_create_warehouse_does_not_create_when_name_is_empty_string(
@@ -517,13 +518,13 @@ def test_mutation_create_warehouse_does_not_create_when_name_is_empty_string(
         "input": {
             "name": "  ",
             "slug": "test-warhouse",
-            "companyName": "Amazing Company Inc",
             "email": "test-admin@example.com",
             "address": {
                 "streetAddress1": "Teczowa 8",
                 "city": "Wroclaw",
                 "country": "PL",
                 "postalCode": "53-601",
+                "companyName": "Amazing Company Inc",
             },
             "shippingZones": [
                 graphene.Node.to_global_id("ShippingZone", shipping_zone.id)
@@ -551,12 +552,12 @@ def test_create_warehouse_creates_address(
     variables = {
         "input": {
             "name": "Test warehouse",
-            "companyName": "Amazing Company Inc",
             "email": "test-admin@example.com",
             "address": {
                 "streetAddress1": "Teczowa 8",
                 "city": "Wroclaw",
                 "country": "PL",
+                "companyName": "Amazing Company Inc",
                 "postalCode": "53-601",
             },
             "shippingZones": [
@@ -579,6 +580,7 @@ def test_create_warehouse_creates_address(
     warehouse_data = content["data"]["createWarehouse"]["warehouse"]
     assert warehouse_data["address"]["id"] == address_id
     assert address.street_address_1 == "Teczowa 8"
+    assert address.company_name == "Amazing Company Inc"
     assert address.city == "WROCLAW"
 
 
@@ -623,10 +625,9 @@ def test_mutation_update_warehouse(
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
     warehouse_old_name = warehouse.name
     warehouse_slug = warehouse.slug
-    warehouse_old_company_name = warehouse.company_name
     variables = {
         "id": warehouse_id,
-        "input": {"name": "New name", "companyName": "New name for company"},
+        "input": {"name": "New name"},
     }
     staff_api_client.post_graphql(
         MUTATION_UPDATE_WAREHOUSE,
@@ -635,10 +636,8 @@ def test_mutation_update_warehouse(
     )
     warehouse.refresh_from_db()
     assert not (warehouse.name == warehouse_old_name)
-    assert not (warehouse.company_name == warehouse_old_company_name)
     assert warehouse.name == "New name"
     assert warehouse.slug == warehouse_slug
-    assert warehouse.company_name == "New name for company"
 
 
 def test_mutation_update_warehouse_can_update_address(
@@ -651,10 +650,10 @@ def test_mutation_update_warehouse_can_update_address(
         "id": warehouse_id,
         "input": {
             "name": warehouse.name,
-            "companyName": "",
             "address": {
                 "streetAddress1": "Teczowa 8",
                 "streetAddress2": "Ground floor",
+                "companyName": "",
                 "city": address.city,
                 "country": address.country.code,
                 "postalCode": "53-601",
@@ -840,12 +839,12 @@ def test_shipping_zone_can_be_assigned_only_to_one_warehouse(
     variables = {
         "input": {
             "name": "Warehouse #q",
-            "companyName": "Big Company",
             "email": "test@example.com",
             "address": {
                 "streetAddress1": "Teczowa 8",
                 "city": "Wroclaw",
                 "country": "PL",
+                "companyName": "Big Company",
                 "postalCode": "53-601",
             },
             "shippingZones": [used_shipping_zone_id],
