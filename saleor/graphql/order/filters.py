@@ -94,7 +94,7 @@ def filter_order_search(qs, _, value):
 
 def filter_channels(qs, _, values):
     if values:
-        _, channels_ids = resolve_global_ids_to_primary_keys(values)
+        _, channels_ids = resolve_global_ids_to_primary_keys(values, "Channel")
         qs = qs.filter(channel_id__in=channels_ids)
     return qs
 

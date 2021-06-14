@@ -21,7 +21,6 @@ from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import AttributeError
 from ..core.utils import validate_slug_and_generate_if_needed
 from ..core.utils.reordering import perform_reordering
-from ..utils import resolve_global_ids_to_primary_keys
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
 
@@ -49,7 +48,7 @@ class BaseReorderAttributesMutation(BaseMutation):
             attribute_ids.append(move_info.id)
             sort_orders.append(move_info.sort_order)
 
-        _, attr_pks = resolve_global_ids_to_primary_keys(attribute_ids, Attribute)
+        attr_pks = cls.get_global_ids_or_error(attribute_ids, Attribute)
         attr_pks = [int(pk) for pk in attr_pks]
 
         attributes_m2m = attributes.filter(attribute_id__in=attr_pks)
@@ -156,7 +155,7 @@ class BaseReorderAttributeValuesMutation(BaseMutation):
             value_ids.append(move_info.id)
             sort_orders.append(move_info.sort_order)
 
-        _, values_pks = resolve_global_ids_to_primary_keys(value_ids, AttributeValue)
+        values_pks = cls.get_global_ids_or_error(value_ids, AttributeValue)
         values_pks = [int(pk) for pk in values_pks]
 
         values_m2m = values.filter(value_id__in=values_pks)

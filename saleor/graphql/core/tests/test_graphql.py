@@ -252,7 +252,7 @@ def test_get_nodes(product_list):
     with pytest.raises(GraphQLError) as exc:
         get_nodes(global_ids, Product)
 
-    assert exc.value.args == (f"Must receive Product id: {invalid_item_global_id}",)
+    assert exc.value.args == (f"Must receive Product id: {invalid_item_global_id}.",)
 
     # Raise an error if no nodes were found
     global_ids = []

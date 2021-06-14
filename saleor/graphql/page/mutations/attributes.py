@@ -92,10 +92,14 @@ class PageAttributeAssign(BaseMutation):
         attribute_ids = data["attribute_ids"]
 
         # retrieve the requested page type
-        page_type = cls.get_node_or_error(info, page_type_id, only_type=PageType)
+        page_type = cls.get_node_or_error(
+            info, page_type_id, only_type=PageType, field="page_type_id"
+        )
 
         # resolve all passed attributes IDs to attributes pks
-        _, attr_pks = resolve_global_ids_to_primary_keys(attribute_ids, Attribute)
+        attr_pks = cls.get_global_ids_or_error(
+            attribute_ids, Attribute, field="attribute_ids"
+        )
 
         # ensure the attributes are assignable
         cls.clean_attributes(errors, page_type, attr_pks)

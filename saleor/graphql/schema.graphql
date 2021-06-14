@@ -1910,6 +1910,7 @@ type ExportError {
 }
 
 enum ExportErrorCode {
+  GRAPHQL_ERROR
   INVALID
   NOT_FOUND
   REQUIRED
