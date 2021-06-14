@@ -3,6 +3,7 @@ from ...menu import models
 from ..channel import ChannelContext, ChannelQsContext
 from ..core.utils import from_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_query
+from .types import Menu
 
 
 @traced_resolver
@@ -10,7 +11,7 @@ def resolve_menu(info, channel, menu_id=None, name=None, slug=None):
     validate_one_of_args_is_in_query("id", menu_id, "name", name, "slug", slug)
     menu = None
     if menu_id:
-        _, id = from_global_id_or_error(menu_id)
+        _, id = from_global_id_or_error(menu_id, Menu)
         menu = models.Menu.objects.filter(id=id).first()
     if name:
         menu = models.Menu.objects.filter(name=name).first()

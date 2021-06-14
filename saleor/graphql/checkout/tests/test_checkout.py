@@ -3013,7 +3013,7 @@ def test_query_checkout_line_by_invalid_id(staff_api_client, page_type):
 
 
 def test_query_checkout_line_with_invalid_object_type(staff_api_client, page_type):
-    variables = {"id": graphene.Node.to_global_id("Order", -1)}
+    variables = {"id": graphene.Node.to_global_id("Order", page_type.pk)}
     response = staff_api_client.post_graphql(QUERY_CHECKOUT_LINE_BY_ID, variables)
     content = get_graphql_content(response)
     assert content["data"]["checkoutLine"] is None

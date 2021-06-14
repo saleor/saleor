@@ -82,7 +82,7 @@ class MenuQueries(graphene.ObjectType):
     def resolve_menu_item(self, info, channel=None, **data):
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
-        _, id = from_global_id_or_error(data.get("id"))
+        _, id = from_global_id_or_error(data.get("id"), MenuItem)
         return resolve_menu_item(id, channel)
 
     def resolve_menu_items(self, info, channel=None, **kwargs):

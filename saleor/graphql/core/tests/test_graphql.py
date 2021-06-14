@@ -299,7 +299,7 @@ def test_from_global_id_or_error_wth_invalid_type(product):
     message = "Must receive a ProductVariant id."
 
     with pytest.raises(GraphQLError) as error:
-        from_global_id_or_error(product_id, "ProductVariant")
+        from_global_id_or_error(product_id, "ProductVariant", raise_error=True)
 
     assert str(error.value) == message
 

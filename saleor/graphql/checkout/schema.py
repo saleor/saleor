@@ -64,7 +64,7 @@ class CheckoutQueries(graphene.ObjectType):
         return resolve_checkouts(channel)
 
     def resolve_checkout_line(self, info, id):
-        _, id = from_global_id_or_error(id)
+        _, id = from_global_id_or_error(id, CheckoutLine)
         return resolve_checkout_line(id)
 
     @permission_required(CheckoutPermissions.MANAGE_CHECKOUTS)

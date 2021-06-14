@@ -145,7 +145,9 @@ def resolve_product_variants(
         ).exclude(visible_in_listings=False)
         qs = qs.filter(product__in=visible_products).available_in_channel(channel_slug)
     if ids:
-        db_ids = [from_global_id_or_error(node_id)[1] for node_id in ids]
+        db_ids = [
+            from_global_id_or_error(node_id, "ProductVariant")[1] for node_id in ids
+        ]
         qs = qs.filter(pk__in=db_ids)
     return ChannelQsContext(qs=qs, channel_slug=channel_slug)
 

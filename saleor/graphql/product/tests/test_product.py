@@ -2436,7 +2436,7 @@ def test_query_product_image_by_id(user_api_client, product_with_image, channel_
     media = product_with_image.media.first()
     variables = {
         "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
-        "imageId": graphene.Node.to_global_id("ProductMedia", media.pk),
+        "imageId": graphene.Node.to_global_id("ProductImage", media.pk),
         "channel": channel_USD.slug,
     }
 

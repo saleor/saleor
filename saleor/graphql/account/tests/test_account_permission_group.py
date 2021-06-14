@@ -2397,7 +2397,9 @@ def test_query_permission_group_with_invalid_object_type(
     permission_manage_users,
 ):
     staff_user.user_permissions.add(permission_manage_staff, permission_manage_users)
-    variables = {"id": graphene.Node.to_global_id("Order", -1)}
+    variables = {
+        "id": graphene.Node.to_global_id("Order", permission_group_manage_users.pk)
+    }
     response = staff_api_client.post_graphql(QUERY_PERMISSION_GROUP, variables)
     content = get_graphql_content(response)
     assert content["data"]["permissionGroup"] is None

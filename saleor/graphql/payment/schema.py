@@ -26,7 +26,7 @@ class PaymentQueries(graphene.ObjectType):
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_payment(self, info, **data):
-        _, id = from_global_id_or_error(data["id"])
+        _, id = from_global_id_or_error(data["id"], Payment)
         return resolve_payment_by_id(id)
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)

@@ -64,7 +64,7 @@ def test_staff_query_menu_by_invalid_id(staff_api_client, menu):
 
 
 def test_staff_query_menu_with_invalid_object_type(staff_api_client, menu):
-    variables = {"id": graphene.Node.to_global_id("Order", -1)}
+    variables = {"id": graphene.Node.to_global_id("Order", menu.pk)}
     response = staff_api_client.post_graphql(QUERY_MENU, variables)
     content = get_graphql_content(response)
     assert content["data"]["menu"] is None
@@ -325,7 +325,7 @@ def test_menu_item_query_with_invalid_channel(
     assert data["url"] is None
 
 
-def test_staff_query_menu_item_by_invalid_id(staff_api_client, menu):
+def test_staff_query_menu_item_by_invalid_id(staff_api_client, menu_item):
     id = "bh/"
     variables = {"id": id}
     response = staff_api_client.post_graphql(QUERY_MENU_ITEM_BY_ID, variables)
@@ -335,8 +335,8 @@ def test_staff_query_menu_item_by_invalid_id(staff_api_client, menu):
     assert content["data"]["menuItem"] is None
 
 
-def test_staff_query_menu_item_with_invalid_object_type(staff_api_client, menu):
-    variables = {"id": graphene.Node.to_global_id("Order", -1)}
+def test_staff_query_menu_item_with_invalid_object_type(staff_api_client, menu_item):
+    variables = {"id": graphene.Node.to_global_id("Order", menu_item.pk)}
     response = staff_api_client.post_graphql(QUERY_MENU_ITEM_BY_ID, variables)
     content = get_graphql_content(response)
     assert content["data"]["menuItem"] is None

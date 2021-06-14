@@ -47,7 +47,7 @@ class WarehouseQueries(graphene.ObjectType):
     @traced_resolver
     def resolve_warehouse(self, info, **data):
         warehouse_pk = data.get("id")
-        _, id = from_global_id_or_error(warehouse_pk)
+        _, id = from_global_id_or_error(warehouse_pk, Warehouse)
         return models.Warehouse.objects.filter(id=id).first()
 
     @one_of_permissions_required(
@@ -84,7 +84,7 @@ class StockQueries(graphene.ObjectType):
     @traced_resolver
     def resolve_stock(self, info, **kwargs):
         stock_id = kwargs.get("id")
-        _, id = from_global_id_or_error(stock_id)
+        _, id = from_global_id_or_error(stock_id, Stock)
         return models.Stock.objects.filter(id=id).first()
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)

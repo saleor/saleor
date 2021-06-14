@@ -1318,7 +1318,7 @@ def test_staff_query_page_type_by_invalid_id(
 def test_staff_query_page_type_with_invalid_object_type(
     staff_api_client, order, permission_manage_orders
 ):
-    variables = {"id": graphene.Node.to_global_id("Page", -1)}
+    variables = {"id": graphene.Node.to_global_id("Page", order.pk)}
     response = staff_api_client.post_graphql(
         QUERY_ORDER_BY_ID, variables, permissions=[permission_manage_orders]
     )

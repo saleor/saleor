@@ -216,7 +216,7 @@ def test_query_channel_by_invalid_id(staff_api_client, channel_USD):
 
 
 def test_query_channel_with_invalid_object_type(staff_api_client, channel_USD):
-    variables = {"id": graphene.Node.to_global_id("Order", -1)}
+    variables = {"id": graphene.Node.to_global_id("Order", channel_USD.pk)}
     response = staff_api_client.post_graphql(QUERY_CHANNEL, variables)
     content = get_graphql_content(response)
     assert content["data"]["channel"] is None

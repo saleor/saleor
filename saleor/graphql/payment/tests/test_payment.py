@@ -771,7 +771,7 @@ def test_staff_query_payment_by_invalid_id(
 def test_staff_query_payment_with_invalid_object_type(
     staff_api_client, payment_dummy, permission_manage_orders
 ):
-    variables = {"id": graphene.Node.to_global_id("Order", -1)}
+    variables = {"id": graphene.Node.to_global_id("Order", payment_dummy.pk)}
     response = staff_api_client.post_graphql(
         QUERY_PAYMENT_BY_ID, variables, permissions=[permission_manage_orders]
     )

@@ -1,5 +1,3 @@
-from uuid import UUID
-
 import graphene
 import pytest
 
@@ -317,9 +315,9 @@ def test_staff_query_warehouse_by_invalid_id(
 
 
 def test_staff_query_warehouse_with_invalid_object_type(
-    staff_api_client, permission_manage_shipping
+    staff_api_client, permission_manage_shipping, warehouse
 ):
-    variables = {"id": graphene.Node.to_global_id("Order", UUID(int=1))}
+    variables = {"id": graphene.Node.to_global_id("Order", warehouse.pk)}
     response = staff_api_client.post_graphql(
         QUERY_WAREHOUSE, variables, permissions=[permission_manage_shipping]
     )

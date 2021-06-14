@@ -117,7 +117,7 @@ class OrderQueries(graphene.ObjectType):
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_order(self, info, **data):
-        _, id = from_global_id_or_error(data.get("id"))
+        _, id = from_global_id_or_error(data.get("id"), Order)
         return resolve_order(id)
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)

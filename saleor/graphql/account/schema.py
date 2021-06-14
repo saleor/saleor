@@ -167,7 +167,7 @@ class AccountQueries(graphene.ObjectType):
 
     @permission_required(AccountPermissions.MANAGE_STAFF)
     def resolve_permission_group(self, info, id):
-        _, id = from_global_id_or_error(id)
+        _, id = from_global_id_or_error(id, Group)
         return resolve_permission_group(id)
 
     def resolve_me(self, info):

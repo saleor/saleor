@@ -120,7 +120,7 @@ def test_staff_query_gift_card_by_invalid_id(
 def test_staff_query_gift_card_with_invalid_object_type(
     staff_api_client, gift_card, permission_manage_users, permission_manage_gift_card
 ):
-    variables = {"id": graphene.Node.to_global_id("Order", -1)}
+    variables = {"id": graphene.Node.to_global_id("Order", gift_card.pk)}
     response = staff_api_client.post_graphql(
         QUERY_GIFT_CARD_BY_ID,
         variables,

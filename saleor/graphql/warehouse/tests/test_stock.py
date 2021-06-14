@@ -103,7 +103,7 @@ def test_staff_query_stock_by_invalid_id(
 def test_staff_query_stock_with_invalid_object_type(
     staff_api_client, stock, permission_manage_products
 ):
-    variables = {"id": graphene.Node.to_global_id("Order", -1)}
+    variables = {"id": graphene.Node.to_global_id("Order", stock.pk)}
     response = staff_api_client.post_graphql(
         QUERY_STOCK, variables, permissions=[permission_manage_products]
     )

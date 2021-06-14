@@ -254,7 +254,7 @@ class ProductQueries(graphene.ObjectType):
     def resolve_category(self, info, id=None, slug=None, **kwargs):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
         if id:
-            _, id = from_global_id_or_error(id)
+            _, id = from_global_id_or_error(id, Category)
             return resolve_category_by_id(id)
         if slug:
             return resolve_category_by_slug(slug=slug)
@@ -268,7 +268,7 @@ class ProductQueries(graphene.ObjectType):
         if channel is None and not is_staff:
             channel = get_default_channel_slug_or_graphql_error()
         if id:
-            _, id = from_global_id_or_error(id)
+            _, id = from_global_id_or_error(id, Collection)
             collection = resolve_collection_by_id(info, id, channel, requestor)
         else:
             collection = resolve_collection_by_slug(
@@ -289,7 +289,7 @@ class ProductQueries(graphene.ObjectType):
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_digital_content(self, info, id):
-        _, id = from_global_id_or_error(id)
+        _, id = from_global_id_or_error(id, DigitalContent)
         return resolve_digital_content_by_id(id)
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
@@ -305,7 +305,7 @@ class ProductQueries(graphene.ObjectType):
         if channel is None and not is_staff:
             channel = get_default_channel_slug_or_graphql_error()
         if id:
-            _type, id = from_global_id_or_error(id)
+            _type, id = from_global_id_or_error(id, Product)
             product = resolve_product_by_id(
                 info, id, channel_slug=channel, requestor=requestor
             )
@@ -334,7 +334,7 @@ class ProductQueries(graphene.ObjectType):
         return resolve_products(info, requestor, channel_slug=channel, **kwargs)
 
     def resolve_product_type(self, info, id, **_kwargs):
-        _, id = from_global_id_or_error(id)
+        _, id = from_global_id_or_error(id, ProductType)
         return resolve_product_type_by_id(id)
 
     def resolve_product_types(self, info, **kwargs):
@@ -354,7 +354,7 @@ class ProductQueries(graphene.ObjectType):
         if channel is None and not is_staff:
             channel = get_default_channel_slug_or_graphql_error()
         if id:
-            _, id = from_global_id_or_error(id)
+            _, id = from_global_id_or_error(id, ProductVariant)
             variant = resolve_variant_by_id(
                 info,
                 id,

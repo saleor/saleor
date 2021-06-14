@@ -26,7 +26,7 @@ class ChannelQueries(graphene.ObjectType):
 
     @staff_member_or_app_required
     def resolve_channel(self, info, id=None, **kwargs):
-        _, id = from_global_id_or_error(id)
+        _, id = from_global_id_or_error(id, Channel)
         return resolve_channel(id)
 
     @staff_member_or_app_required

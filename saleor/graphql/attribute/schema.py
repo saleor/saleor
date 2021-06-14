@@ -44,7 +44,7 @@ class AttributeQueries(graphene.ObjectType):
     @traced_resolver
     def resolve_attribute(self, info, id=None, slug=None):
         if id:
-            _, id = from_global_id_or_error(id)
+            _, id = from_global_id_or_error(id, Attribute)
             return resolve_attribute_by_id(id)
         return resolve_attribute_by_slug(slug=slug)
 

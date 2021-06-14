@@ -192,7 +192,9 @@ def test_query_attribute_by_invalid_id(
 def test_query_attribute_with_invalid_object_type(
     staff_api_client, color_attribute_without_values
 ):
-    variables = {"id": graphene.Node.to_global_id("Order", -1)}
+    variables = {
+        "id": graphene.Node.to_global_id("Order", color_attribute_without_values.pk)
+    }
     response = staff_api_client.post_graphql(QUERY_ATTRIBUTE, variables)
     content = get_graphql_content(response)
     assert content["data"]["attribute"] is None

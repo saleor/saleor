@@ -50,7 +50,7 @@ class ShippingQueries(graphene.ObjectType):
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
     @traced_resolver
     def resolve_shipping_zone(self, info, id, channel=None):
-        _, id = from_global_id_or_error(id)
+        _, id = from_global_id_or_error(id, ShippingZone)
         instance = models.ShippingZone.objects.filter(id=id).first()
         return ChannelContext(node=instance, channel_slug=channel) if instance else None
 

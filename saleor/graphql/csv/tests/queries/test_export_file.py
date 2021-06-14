@@ -215,7 +215,7 @@ def test_query_export_file_by_invalid_id(
 def test_query_export_file_with_invalid_object_type(
     staff_api_client, user_export_file, permission_manage_products
 ):
-    variables = {"id": graphene.Node.to_global_id("Order", -1)}
+    variables = {"id": graphene.Node.to_global_id("Order", user_export_file.pk)}
     response = staff_api_client.post_graphql(
         EXPORT_FILE_QUERY, variables, permissions=[permission_manage_products]
     )

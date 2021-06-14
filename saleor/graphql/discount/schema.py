@@ -81,7 +81,7 @@ class DiscountQueries(graphene.ObjectType):
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     @traced_resolver
     def resolve_sale(self, info, id, channel=None):
-        _, id = from_global_id_or_error(id)
+        _, id = from_global_id_or_error(id, Sale)
         return resolve_sale(id, channel)
 
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
@@ -90,7 +90,7 @@ class DiscountQueries(graphene.ObjectType):
 
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_voucher(self, info, id, channel=None):
-        _, id = from_global_id_or_error(id)
+        _, id = from_global_id_or_error(id, Voucher)
         return resolve_voucher(id, channel)
 
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)

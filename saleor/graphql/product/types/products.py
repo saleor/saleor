@@ -767,13 +767,13 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     @staticmethod
     @traced_resolver
     def resolve_media_by_id(root: ChannelContext[models.Product], info, id):
-        _type, pk = from_global_id_or_error(id)
+        _type, pk = from_global_id_or_error(id, ProductMedia)
         return root.node.media.filter(pk=pk).first()
 
     @staticmethod
     @traced_resolver
     def resolve_image_by_id(root: ChannelContext[models.Product], info, id):
-        _type, pk = from_global_id_or_error(id)
+        _type, pk = from_global_id_or_error(id, ProductImage)
         return root.node.media.filter(pk=pk).first()
 
     @staticmethod

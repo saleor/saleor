@@ -27,7 +27,7 @@ class GiftCardQueries(graphene.ObjectType):
 
     @permission_required(GiftcardPermissions.MANAGE_GIFT_CARD)
     def resolve_gift_card(self, info, **data):
-        _, id = from_global_id_or_error(data.get("id"))
+        _, id = from_global_id_or_error(data.get("id"), GiftCard)
         return resolve_gift_card(id)
 
     @permission_required(GiftcardPermissions.MANAGE_GIFT_CARD)

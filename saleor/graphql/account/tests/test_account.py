@@ -4715,7 +4715,7 @@ def test_address_query_with_invalid_object_type(
     staff_api_client,
     address_other_country,
 ):
-    variables = {"id": graphene.Node.to_global_id("Order", -1)}
+    variables = {"id": graphene.Node.to_global_id("Order", address_other_country.pk)}
     response = staff_api_client.post_graphql(ADDRESS_QUERY, variables)
     content = get_graphql_content(response)
     assert content["data"]["address"] is None

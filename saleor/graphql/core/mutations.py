@@ -159,7 +159,7 @@ class BaseMutation(graphene.Mutation):
         cls, id: str, only_type: Union[ObjectType, str] = None, field: str = "id"
     ):
         try:
-            _object_type, pk = from_global_id_or_error(id, only_type, field=field)
+            _object_type, pk = from_global_id_or_error(id, only_type, raise_error=True)
         except GraphQLError as e:
             raise ValidationError(
                 {field: ValidationError(str(e), code="graphql_error")}
@@ -172,7 +172,9 @@ class BaseMutation(graphene.Mutation):
             return None
 
         try:
-            object_type, pk = from_global_id_or_error(node_id, only_type, field=field)
+            object_type, pk = from_global_id_or_error(
+                node_id, only_type, raise_error=True
+            )
 
             if isinstance(object_type, str):
                 object_type = info.schema.get_type(object_type).graphene_type

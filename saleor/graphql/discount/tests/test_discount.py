@@ -1824,7 +1824,7 @@ def test_staff_query_sale_by_invalid_id(
 def test_staff_query_sale_with_invalid_object_type(
     staff_api_client, sale, permission_manage_discounts
 ):
-    variables = {"id": graphene.Node.to_global_id("Order", -1)}
+    variables = {"id": graphene.Node.to_global_id("Order", sale.pk)}
     response = staff_api_client.post_graphql(
         QUERY_SALE_BY_ID, variables, permissions=[permission_manage_discounts]
     )
@@ -1845,7 +1845,7 @@ QUERY_VOUCHER_BY_ID = """
 
 
 def test_staff_query_voucher(staff_api_client, voucher, permission_manage_discounts):
-    variables = {"id": graphene.Node.to_global_id("voucher", voucher.pk)}
+    variables = {"id": graphene.Node.to_global_id("Voucher", voucher.pk)}
     response = staff_api_client.post_graphql(
         QUERY_VOUCHER_BY_ID, variables, permissions=[permission_manage_discounts]
     )
@@ -1855,7 +1855,7 @@ def test_staff_query_voucher(staff_api_client, voucher, permission_manage_discou
 
 
 def test_query_voucher_by_app(app_api_client, voucher, permission_manage_discounts):
-    variables = {"id": graphene.Node.to_global_id("voucher", voucher.pk)}
+    variables = {"id": graphene.Node.to_global_id("Voucher", voucher.pk)}
     response = app_api_client.post_graphql(
         QUERY_VOUCHER_BY_ID, variables, permissions=[permission_manage_discounts]
     )
@@ -1865,7 +1865,7 @@ def test_query_voucher_by_app(app_api_client, voucher, permission_manage_discoun
 
 
 def test_query_voucher_by_customer(api_client, voucher, permission_manage_discounts):
-    variables = {"id": graphene.Node.to_global_id("voucher", voucher.pk)}
+    variables = {"id": graphene.Node.to_global_id("Voucher", voucher.pk)}
     response = api_client.post_graphql(QUERY_VOUCHER_BY_ID, variables)
     assert_no_permission(response)
 
@@ -1887,7 +1887,7 @@ def test_staff_query_voucher_by_invalid_id(
 def test_staff_query_voucher_with_invalid_object_type(
     staff_api_client, voucher, permission_manage_discounts
 ):
-    variables = {"id": graphene.Node.to_global_id("Order", -1)}
+    variables = {"id": graphene.Node.to_global_id("Order", voucher.pk)}
     response = staff_api_client.post_graphql(
         QUERY_VOUCHER_BY_ID, variables, permissions=[permission_manage_discounts]
     )

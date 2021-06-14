@@ -4,7 +4,7 @@ from ...core.tracing import traced_resolver
 from ...webhook import models, payloads
 from ...webhook.event_types import WebhookEventType
 from ..core.utils import from_global_id_or_error
-from .types import WebhookEvent
+from .types import Webhook, WebhookEvent
 
 
 @traced_resolver
@@ -23,7 +23,7 @@ def resolve_webhooks(info, **_kwargs):
 @traced_resolver
 def resolve_webhook(info, webhook_id):
     app = info.context.app
-    _, webhook_id = from_global_id_or_error(webhook_id)
+    _, webhook_id = from_global_id_or_error(webhook_id, Webhook)
     if app:
         return app.webhooks.filter(id=webhook_id).first()
     user = info.context.user
