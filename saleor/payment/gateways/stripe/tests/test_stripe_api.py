@@ -4,6 +4,7 @@ from unittest.mock import patch
 from stripe.error import AuthenticationError, StripeError
 from stripe.stripe_object import StripeObject
 
+from saleor.payment.interface import PaymentMethodInfo
 from saleor.payment.utils import price_to_minor_unit
 
 from ..consts import (
@@ -18,6 +19,7 @@ from ..stripe_api import (
     create_payment_intent,
     delete_webhook,
     get_or_create_customer,
+    get_payment_method_details,
     is_secret_api_key_valid,
     list_customer_payment_methods,
     refund_payment_intent,
@@ -444,3 +446,44 @@ def test_list_customer_payment_methods_failed_to_fetch(mocked_payment_method):
     mocked_payment_method.list.assert_called_with(
         api_key=api_key, customer=customer_id, type="card"
     )
+
+
+def test_get_payment_method_details():
+    payment_intent = StripeObject()
+    payment_intent.charges = {
+        "data": [
+            {
+                "type": "card",
+                "card": {
+                    "last4": "1234",
+                    "exp_year": "2222",
+                    "exp_month": "12",
+                    "brand": "visa",
+                },
+            }
+        ]
+    }
+
+    payment_method_info = get_payment_method_details(payment_intent)
+
+    assert payment_method_info == PaymentMethodInfo(
+        last_4="1234", exp_year=2222, exp_month=12, brand="visa", type="card"
+    )
+
+
+def test_get_payment_method_details_missing_charges():
+    payment_intent = StripeObject()
+    payment_intent.charges = None
+
+    payment_method_info = get_payment_method_details(payment_intent)
+
+    assert payment_method_info is None
+
+
+def test_get_payment_method_details_missing_charges_data():
+    payment_intent = StripeObject()
+    payment_intent.charges = {"data": None}
+
+    payment_method_info = get_payment_method_details(payment_intent)
+
+    assert payment_method_info is None

@@ -12,6 +12,7 @@ from stripe.stripe_object import StripeObject
 
 from ....core.tracing import opentracing_trace
 from ....core.utils import build_absolute_uri
+from ...interface import PaymentMethodInfo
 from ...utils import price_to_minor_unit
 from .consts import (
     AUTOMATIC_CAPTURE_METHOD,
@@ -210,3 +211,29 @@ def construct_stripe_event(
         return stripe.Webhook.construct_event(
             payload, sig_header, endpoint_secret, api_key=api_key
         )
+
+
+def get_payment_method_details(
+    payment_intent: StripeObject,
+) -> Optional[PaymentMethodInfo]:
+    charges = payment_intent.get("charges", None)
+    payment_method_info = None
+    if charges:
+        charges_data = charges.get("data", [])
+        if not charges_data:
+            return None
+        payment_method_details = charges_data[-1]
+        if payment_method_details["type"] == "card":
+            card_details = payment_method_details["card"]
+            exp_year = card_details.get("exp_year", "")
+            exp_year = int(exp_year) if exp_year else None
+            exp_month = card_details.get("exp_month", "")
+            exp_month = int(exp_month) if exp_month else None
+            payment_method_info = PaymentMethodInfo(
+                last_4=card_details.get("last4", ""),
+                exp_year=exp_year,
+                exp_month=exp_month,
+                brand=card_details.get("brand", ""),
+                type="card",
+            )
+    return payment_method_info
