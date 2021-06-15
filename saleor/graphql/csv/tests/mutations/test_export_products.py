@@ -217,9 +217,7 @@ def test_export_products_mutation_ids_scope_invalid_object_type(
     products = product_list[:2]
 
     ids = []
-    pks = set()
     for product in products:
-        pks.add(str(product.pk))
         ids.append(graphene.Node.to_global_id("ProductVariant", product.pk))
 
     variables = {
@@ -347,9 +345,7 @@ def test_export_products_mutation_with_warehouse_ids_invalid_object_type(
     products = product_list[:2]
 
     ids = []
-    pks = set()
     for product in products:
-        pks.add(str(product.pk))
         ids.append(graphene.Node.to_global_id("Product", product.pk))
 
     warehouse_pks = [str(warehouse.pk) for warehouse in Warehouse.objects.all()]
