@@ -24,6 +24,8 @@ from django_countries import countries
 from PIL import Image
 from prices import Money, TaxedMoney, fixed_discount
 
+from saleor.warehouse import WarehouseClickAndCollectOption
+
 from ..account.models import Address, StaffNotificationRecipient, User
 from ..app.models import App, AppExtension, AppInstallation
 from ..app.types import AppExtensionTarget, AppExtensionType, AppExtensionView, AppType
@@ -36,7 +38,7 @@ from ..attribute.models import (
 )
 from ..attribute.utils import associate_attribute_values_to_instance
 from ..checkout.fetch import fetch_checkout_info
-from ..checkout.models import Checkout
+from ..checkout.models import Checkout, CheckoutLine
 from ..checkout.utils import add_variant_to_checkout
 from ..core import JobStatus, TimePeriodType
 from ..core.payments import PaymentInterface
@@ -4223,6 +4225,116 @@ def warehouses(address, address_usa):
             ),
         ]
     )
+
+
+@pytest.fixture()
+def warehouses_for_cc(address):
+    return Warehouse.objects.bulk_create(
+        [
+            Warehouse(
+                address=address.get_copy(),
+                name="Warehouse1",
+                slug="warehouse1",
+                email="warehouse1@example.com",
+            ),
+            Warehouse(
+                address=address.get_copy(),
+                name="Warehouse2",
+                slug="warehouse2",
+                email="warehouse2@example.com",
+                click_and_collect_option=WarehouseClickAndCollectOption.ALL_WAREHOUSES,
+            ),
+            Warehouse(
+                address=address.get_copy(),
+                name="Warehouse3",
+                slug="warehouse3",
+                email="warehouse3@example.com",
+                click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK,
+            ),
+            Warehouse(
+                address=address.get_copy(),
+                name="Warehouse4",
+                slug="warehouse4",
+                email="warehouse4@example.com",
+                click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK,
+            ),
+        ]
+    )
+
+
+@pytest.fixture
+def stocks_for_cc(warehouses_for_cc, product_variant_list):
+    return Stock.objects.bulk_create(
+        [
+            Stock(
+                warehouse=warehouses_for_cc[0],
+                product_variant=product_variant_list[0],
+                quantity=5,
+            ),
+            Stock(
+                warehouse=warehouses_for_cc[1],
+                product_variant=product_variant_list[0],
+                quantity=3,
+            ),
+            Stock(
+                warehouse=warehouses_for_cc[1],
+                product_variant=product_variant_list[1],
+                quantity=10,
+            ),
+            Stock(
+                warehouse=warehouses_for_cc[1],
+                product_variant=product_variant_list[2],
+                quantity=10,
+            ),
+            Stock(
+                warehouse=warehouses_for_cc[2],
+                product_variant=product_variant_list[0],
+                quantity=3,
+            ),
+            Stock(
+                warehouse=warehouses_for_cc[3],
+                product_variant=product_variant_list[0],
+                quantity=3,
+            ),
+            Stock(
+                warehouse=warehouses_for_cc[3],
+                product_variant=product_variant_list[1],
+                quantity=3,
+            ),
+            Stock(
+                warehouse=warehouses_for_cc[3],
+                product_variant=product_variant_list[2],
+                quantity=3,
+            ),
+        ]
+    )
+
+
+@pytest.fixture
+def checkout_for_cc(channel_USD, customer_user, product_variant_list):
+    checkout = Checkout.objects.create(
+        user=customer_user,
+        channel=channel_USD,
+        billing_address=customer_user.default_billing_address,
+        shipping_address=customer_user.default_shipping_address,
+        note="Test notes",
+        currency="USD",
+    )
+    CheckoutLine.objects.bulk_create(
+        [
+            CheckoutLine(
+                checkout=checkout, variant=product_variant_list[0], quantity=1
+            ),
+            CheckoutLine(
+                checkout=checkout, variant=product_variant_list[1], quantity=1
+            ),
+            CheckoutLine(
+                checkout=checkout, variant=product_variant_list[2], quantity=1
+            ),
+        ]
+    )
+
+    return checkout
 
 
 @pytest.fixture
