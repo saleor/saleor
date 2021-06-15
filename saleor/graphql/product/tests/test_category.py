@@ -82,7 +82,21 @@ def test_category_query_invalid_id(user_api_client, product, channel_USD):
 def test_category_query_object_with_given_id_does_not_exist(
     user_api_client, product, channel_USD
 ):
-    category_id = graphene.Node.to_global_id("Product", -1)
+    category_id = graphene.Node.to_global_id("Category", -1)
+    variables = {
+        "id": category_id,
+        "channel": channel_USD.slug,
+    }
+    response = user_api_client.post_graphql(QUERY_CATEGORY, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["category"] is None
+
+
+def test_category_query_object_with_invalid_object_type(
+    user_api_client, product, channel_USD
+):
+    category = Category.objects.first()
+    category_id = graphene.Node.to_global_id("Product", category.pk)
     variables = {
         "id": category_id,
         "channel": channel_USD.slug,

@@ -89,7 +89,22 @@ def test_digital_content_query_invalid_id(
 def test_digital_content_query_object_with_given_id_does_not_exist(
     staff_api_client, product, channel_USD, permission_manage_products
 ):
-    digital_content_id = graphene.Node.to_global_id("Product", -1)
+    digital_content_id = graphene.Node.to_global_id("DigitalContent", -1)
+    variables = {
+        "id": digital_content_id,
+        "channel": channel_USD.slug,
+    }
+    response = staff_api_client.post_graphql(
+        QUERY_DIGITAL_CONTENT, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["digitalContent"] is None
+
+
+def test_digital_content_query_with_invalid_object_type(
+    staff_api_client, product, digital_content, channel_USD, permission_manage_products
+):
+    digital_content_id = graphene.Node.to_global_id("Product", digital_content.pk)
     variables = {
         "id": digital_content_id,
         "channel": channel_USD.slug,

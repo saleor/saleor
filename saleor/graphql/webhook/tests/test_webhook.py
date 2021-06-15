@@ -392,7 +392,18 @@ def test_webhook_query_invalid_id(staff_api_client, webhook, permission_manage_a
 def test_webhook_query_object_with_given_id_does_not_exist(
     staff_api_client, webhook, permission_manage_apps
 ):
-    webhook_id = graphene.Node.to_global_id("Product", -1)
+    webhook_id = graphene.Node.to_global_id("Webhook", -1)
+    staff_api_client.user.user_permissions.add(permission_manage_apps)
+    variables = {"id": webhook_id}
+    response = staff_api_client.post_graphql(QUERY_WEBHOOK, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["webhook"] is None
+
+
+def test_webhook_with_invalid_object_type(
+    staff_api_client, webhook, permission_manage_apps
+):
+    webhook_id = graphene.Node.to_global_id("Product", webhook.pk)
     staff_api_client.user.user_permissions.add(permission_manage_apps)
     variables = {"id": webhook_id}
     response = staff_api_client.post_graphql(QUERY_WEBHOOK, variables)

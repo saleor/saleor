@@ -1206,7 +1206,20 @@ def test_collection_query_invalid_id(
 def test_collection_query_object_with_given_id_does_not_exist(
     user_api_client, published_collection, channel_USD
 ):
-    collection_id = graphene.Node.to_global_id("Product", -1)
+    collection_id = graphene.Node.to_global_id("Collection", -1)
+    variables = {
+        "id": collection_id,
+        "channel": channel_USD.slug,
+    }
+    response = user_api_client.post_graphql(FETCH_COLLECTION_QUERY, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["collection"] is None
+
+
+def test_collection_query_object_with_invalid_object_type(
+    user_api_client, published_collection, channel_USD
+):
+    collection_id = graphene.Node.to_global_id("Product", published_collection.pk)
     variables = {
         "id": collection_id,
         "channel": channel_USD.slug,

@@ -420,7 +420,18 @@ def test_product_query_invalid_id(user_api_client, product, channel_USD):
 def test_product_query_object_with_given_id_does_not_exist(
     user_api_client, product, channel_USD
 ):
-    product_id = graphene.Node.to_global_id("Collection", -1)
+    product_id = graphene.Node.to_global_id("Product", -1)
+    variables = {
+        "id": product_id,
+        "channel": channel_USD.slug,
+    }
+    response = user_api_client.post_graphql(QUERY_PRODUCT_BY_ID, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["product"] is None
+
+
+def test_product_query_with_invalid_object_type(user_api_client, product, channel_USD):
+    product_id = graphene.Node.to_global_id("Collection", product.pk)
     variables = {
         "id": product_id,
         "channel": channel_USD.slug,
@@ -6549,7 +6560,20 @@ def test_product_type_query_invalid_id(
 def test_product_type_query_object_with_given_id_does_not_exist(
     staff_api_client, product, channel_USD, permission_manage_products
 ):
-    product_type_id = graphene.Node.to_global_id("Product", -1)
+    product_type_id = graphene.Node.to_global_id("ProductType", -1)
+    variables = {
+        "id": product_type_id,
+        "channel": channel_USD.slug,
+    }
+    response = staff_api_client.post_graphql(PRODUCT_TYPE_QUERY, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["productType"] is None
+
+
+def test_product_type_query_with_invalid_object_type(
+    staff_api_client, product, channel_USD, permission_manage_products
+):
+    product_type_id = graphene.Node.to_global_id("Product", product.product_type.pk)
     variables = {
         "id": product_type_id,
         "channel": channel_USD.slug,
@@ -8043,7 +8067,18 @@ def test_variant_query_invalid_id(user_api_client, variant, channel_USD):
 def test_variant_query_object_with_given_id_does_not_exist(
     user_api_client, variant, channel_USD
 ):
-    variant_id = graphene.Node.to_global_id("Product", -1)
+    variant_id = graphene.Node.to_global_id("ProductVariant", -1)
+    variables = {
+        "id": variant_id,
+        "channel": channel_USD.slug,
+    }
+    response = user_api_client.post_graphql(QUERY_PRODUCT_VARAINT_BY_ID, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["productVariant"] is None
+
+
+def test_variant_query_with_invalid_object_type(user_api_client, variant, channel_USD):
+    variant_id = graphene.Node.to_global_id("Product", variant.pk)
     variables = {
         "id": variant_id,
         "channel": channel_USD.slug,

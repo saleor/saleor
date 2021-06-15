@@ -628,9 +628,22 @@ def test_user_query_invalid_id(
 
 
 def test_user_query_object_with_given_id_does_not_exist(
+    staff_api_client, permission_manage_users
+):
+    id = graphene.Node.to_global_id("User", -1)
+    variables = {"id": id}
+    response = staff_api_client.post_graphql(
+        USER_QUERY, variables, permissions=[permission_manage_users]
+    )
+
+    content = get_graphql_content(response)
+    assert content["data"]["user"] is None
+
+
+def test_user_query_object_with_invalid_object_type(
     staff_api_client, customer_user, permission_manage_users
 ):
-    id = graphene.Node.to_global_id("Order", -1)
+    id = graphene.Node.to_global_id("Order", customer_user.pk)
     variables = {"id": id}
     response = staff_api_client.post_graphql(
         USER_QUERY, variables, permissions=[permission_manage_users]
