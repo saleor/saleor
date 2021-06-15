@@ -26,6 +26,7 @@ from .stripe_api import (
     create_payment_intent,
     delete_webhook,
     get_or_create_customer,
+    get_payment_method_details,
     is_secret_api_key_valid,
     list_customer_payment_methods,
     refund_payment_intent,
@@ -224,6 +225,7 @@ class StripeGatewayPlugin(BasePlugin):
 
         payment_intent = None
         error = None
+        payment_method_info = None
         if payment_intent_id:
             payment_intent, error = retrieve_payment_intent(api_key, payment_intent_id)
 
@@ -247,6 +249,7 @@ class StripeGatewayPlugin(BasePlugin):
             elif payment_intent.status == SUCCESS_STATUS:
                 kind = TransactionKind.CAPTURE
                 action_required = False
+                payment_method_info = get_payment_method_details(payment_intent)
             elif payment_intent.status == AUTHORIZED_STATUS:
                 kind = TransactionKind.AUTH
                 action_required = False
@@ -258,6 +261,7 @@ class StripeGatewayPlugin(BasePlugin):
         raw_response = None
         if payment_intent and payment_intent.last_response:
             raw_response = payment_intent.last_response.data
+
         return GatewayResponse(
             is_success=True if payment_intent else False,
             action_required=action_required,
@@ -268,6 +272,7 @@ class StripeGatewayPlugin(BasePlugin):
             error=error.user_message if error else None,
             raw_response=raw_response,
             psp_reference=payment_intent.id if payment_intent else None,
+            payment_method_info=payment_method_info,
         )
 
     @require_active_plugin
@@ -288,6 +293,10 @@ class StripeGatewayPlugin(BasePlugin):
         if payment_intent and payment_intent.last_response:
             raw_response = payment_intent.last_response.data
 
+        payment_method_info = None
+        if payment_intent and payment_intent.status == SUCCESS_STATUS:
+            payment_method_info = get_payment_method_details(payment_intent)
+
         return GatewayResponse(
             is_success=True if payment_intent else False,
             action_required=False,
@@ -297,6 +306,7 @@ class StripeGatewayPlugin(BasePlugin):
             transaction_id=payment_intent.id if payment_intent else "",
             error=error.user_message if error else None,
             raw_response=raw_response,
+            payment_method_info=payment_method_info,
         )
 
     @require_active_plugin
