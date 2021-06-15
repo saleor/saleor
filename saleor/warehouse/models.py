@@ -4,11 +4,14 @@ from typing import Set
 
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models import Exists, F, OuterRef, Sum
+from django.db.models import Count, Exists, F, OuterRef, Prefetch, Sum
+from django.db.models.expressions import Subquery
 from django.db.models.functions import Coalesce
+from django.db.models.query import QuerySet
 
 from ..account.models import Address
 from ..channel.models import Channel
+from ..checkout.models import CheckoutLine
 from ..core.models import ModelWithMetadata
 from ..order.models import OrderLine
 from ..product.models import Product, ProductVariant
@@ -27,8 +30,45 @@ class WarehouseQueryset(models.QuerySet):
             .order_by("pk")
         )
 
+    def applicable_for_click_and_collect(self, lines: QuerySet[CheckoutLine]):
+        lines_quantity = (
+            lines.filter(variant_id=OuterRef("product_variant_id"))
+            .annotate(prod_sum=Sum("quantity"))
+            .values("prod_sum")
+        )
+
+        stock_qs = (
+            Stock.objects.annotate_available_quantity()
+            .annotate(line_quantity=F("available_quantity") - Subquery(lines_quantity))
+            .filter(
+                product_variant__id__in=lines.values("variant_id"), line_quantity__gt=0
+            )
+            .select_related("product_variant")
+        )
+
+        local_warehouses_qs = (
+            self.prefetch_related(Prefetch("stock_set", queryset=stock_qs))
+            .filter(stock__in=stock_qs)
+            .annotate(stock_num=Count("stock__id"))
+            .filter(
+                stock_num=lines.count(),
+                click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK,
+            )
+        )
+
+        all_warehouses_qs = self.filter(
+            click_and_collect_option=WarehouseClickAndCollectOption.ALL_WAREHOUSES
+        )
+        ids = [
+            warehouse.id
+            for warehouse in itertools.chain(local_warehouses_qs, all_warehouses_qs)
+        ]
+
+        return self.filter(pk__in=ids)
+
 
 class Warehouse(ModelWithMetadata):
+
     id = models.UUIDField(default=uuid.uuid4, primary_key=True)
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
