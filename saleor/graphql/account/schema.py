@@ -156,12 +156,12 @@ class AccountQueries(graphene.ObjectType):
         )
 
     @permission_required(AccountPermissions.MANAGE_USERS)
-    def resolve_customers(self, info, query=None, **kwargs):
-        return resolve_customers(info, query=query, **kwargs)
+    def resolve_customers(self, info, **kwargs):
+        return resolve_customers(info, **kwargs)
 
     @permission_required(AccountPermissions.MANAGE_STAFF)
-    def resolve_permission_groups(self, info, query=None, **kwargs):
-        return resolve_permission_groups(info, query=query, **kwargs)
+    def resolve_permission_groups(self, info, **kwargs):
+        return resolve_permission_groups(info, **kwargs)
 
     @permission_required(AccountPermissions.MANAGE_STAFF)
     def resolve_permission_group(self, info, id):
@@ -172,8 +172,8 @@ class AccountQueries(graphene.ObjectType):
         return user if user.is_authenticated else None
 
     @permission_required(AccountPermissions.MANAGE_STAFF)
-    def resolve_staff_users(self, info, query=None, **kwargs):
-        return resolve_staff_users(info, query=query, **kwargs)
+    def resolve_staff_users(self, info, **kwargs):
+        return resolve_staff_users(info, **kwargs)
 
     @one_of_permissions_required(
         [AccountPermissions.MANAGE_STAFF, AccountPermissions.MANAGE_USERS]

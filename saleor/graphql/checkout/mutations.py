@@ -56,6 +56,7 @@ ERROR_DOES_NOT_SHIP = "This checkout doesn't need shipping"
 
 
 if TYPE_CHECKING:
+    from ...account.models import Address
     from ...checkout.fetch import CheckoutInfo
 
 
@@ -274,7 +275,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return variants, quantities
 
     @classmethod
-    def retrieve_shipping_address(cls, user, data: dict) -> Optional[models.Address]:
+    def retrieve_shipping_address(cls, user, data: dict) -> Optional["Address"]:
         if data.get("shipping_address") is not None:
             return cls.validate_address(
                 data["shipping_address"], address_type=AddressType.SHIPPING
@@ -284,7 +285,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return None
 
     @classmethod
-    def retrieve_billing_address(cls, user, data: dict) -> Optional[models.Address]:
+    def retrieve_billing_address(cls, user, data: dict) -> Optional["Address"]:
         if data.get("billing_address") is not None:
             return cls.validate_address(
                 data["billing_address"], address_type=AddressType.BILLING

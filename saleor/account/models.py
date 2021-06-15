@@ -12,6 +12,7 @@ from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 from django.db.models import JSONField  # type: ignore
 from django.db.models import Q, QuerySet, Value
+from django.db.models.expressions import Exists, OuterRef
 from django.forms.models import model_to_dict
 from django.utils import timezone
 from django.utils.crypto import get_random_string
@@ -22,6 +23,7 @@ from versatileimagefield.fields import VersatileImageField
 from ..core.models import ModelWithMetadata
 from ..core.permissions import AccountPermissions, BasePermissionEnum, get_permissions
 from ..core.utils.json_serializer import CustomJsonEncoder
+from ..order.models import Order
 from . import CustomerEvents
 from .validators import validate_possible_number
 
@@ -126,8 +128,10 @@ class UserManager(BaseUserManager):
         )
 
     def customers(self):
+        orders = Order.objects.values("user_id")
         return self.get_queryset().filter(
-            Q(is_staff=False) | (Q(is_staff=True) & Q(orders__isnull=False))
+            Q(is_staff=False)
+            | (Q(is_staff=True) & (Exists(orders.filter(user_id=OuterRef("pk")))))
         )
 
     def staff(self):

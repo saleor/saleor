@@ -31,6 +31,7 @@ class WebhookSchemes(str, Enum):
     GOOGLE_CLOUD_PUBSUB = "gcpubsub"
 
 
+@app.task(compression="zlib")
 def _get_webhooks_for_event(event_type, webhooks=None):
     """Get active webhooks from the database for an event."""
     permissions = {}
@@ -55,7 +56,7 @@ def _get_webhooks_for_event(event_type, webhooks=None):
     return webhooks
 
 
-@app.task
+@app.task(compression="zlib")
 def trigger_webhooks_for_event(event_type, data):
     """Send a webhook request for an event as an async task."""
     webhooks = _get_webhooks_for_event(event_type)
@@ -145,6 +146,7 @@ def send_webhook_using_google_cloud_pubsub(
     autoretry_for=(RequestException,),
     retry_backoff=10,
     retry_kwargs={"max_retries": 5},
+    compression="zlib",
 )
 def send_webhook_request(webhook_id, target_url, secret, event_type, data):
     parts = urlparse(target_url)

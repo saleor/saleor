@@ -1,4 +1,5 @@
 import json
+import os
 from datetime import datetime, timedelta
 from decimal import Decimal
 from unittest.mock import ANY, Mock, patch
@@ -7345,6 +7346,11 @@ def test_product_media_create_mutation(
     product.refresh_from_db()
     product_image = product.media.last()
     assert product_image.image.file
+    img_name, format = os.path.splitext(image_file._name)
+    file_name = product_image.image.name
+    assert file_name != image_file._name
+    assert file_name.startswith(f"products/{img_name}")
+    assert file_name.endswith(format)
 
     # The image creation should have triggered a warm-up
     mock_create_thumbnails.assert_called_once_with(product_image.pk)
@@ -7504,7 +7510,7 @@ def test_invalid_product_media_create_mutation(
 
     content = get_graphql_content(response)
     assert content["data"]["productMediaCreate"]["errors"] == [
-        {"field": "image", "message": "Invalid file type"}
+        {"field": "image", "message": "Invalid file type."}
     ]
     product.refresh_from_db()
     assert product.media.count() == 0

@@ -1,3 +1,4 @@
+import os
 from unittest.mock import Mock, patch
 
 import graphene
@@ -462,6 +463,11 @@ def test_create_collection(
     assert data["products"]["totalCount"] == len(product_ids)
     collection = Collection.objects.get(slug=slug)
     assert collection.background_image.file
+    img_name, format = os.path.splitext(image_file._name)
+    file_name = collection.background_image.name
+    assert file_name != image_file._name
+    assert file_name.startswith(f"collection-backgrounds/{img_name}")
+    assert file_name.endswith(format)
     mock_create_thumbnails.assert_called_once_with(collection.pk)
     assert data["backgroundImage"]["alt"] == image_alt
 
@@ -698,7 +704,7 @@ def test_update_collection_invalid_background_image(
     content = get_graphql_content(response)
     data = content["data"]["collectionUpdate"]
     assert data["errors"][0]["field"] == "backgroundImage"
-    assert data["errors"][0]["message"] == "Invalid file type"
+    assert data["errors"][0]["message"] == "Invalid file type."
 
 
 UPDATE_COLLECTION_SLUG_MUTATION = """

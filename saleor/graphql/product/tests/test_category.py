@@ -1,3 +1,4 @@
+import os
 from unittest.mock import Mock, patch
 
 import graphene
@@ -349,6 +350,11 @@ def test_category_create_mutation(
     assert not data["category"]["parent"]
     category = Category.objects.get(name=category_name)
     assert category.background_image.file
+    img_name, format = os.path.splitext(image_file._name)
+    file_name = category.background_image.name
+    assert file_name != image_file._name
+    assert file_name.startswith(f"category-backgrounds/{img_name}")
+    assert file_name.endswith(format)
     mock_create_thumbnails.assert_called_once_with(category.pk)
     assert data["category"]["backgroundImage"]["alt"] == image_alt
 
@@ -548,7 +554,7 @@ def test_category_update_mutation_invalid_background_image(
     content = get_graphql_content(response)
     data = content["data"]["categoryUpdate"]
     assert data["errors"][0]["field"] == "backgroundImage"
-    assert data["errors"][0]["message"] == "Invalid file type"
+    assert data["errors"][0]["message"] == "Invalid file type."
 
 
 def test_category_update_mutation_without_background_image(
