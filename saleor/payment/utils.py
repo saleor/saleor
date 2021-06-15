@@ -37,14 +37,17 @@ def create_payment_information(
     Returns information required to process payment and additional
     billing/shipping addresses for optional fraud-prevention mechanisms.
     """
-    if payment.checkout:
-        billing = payment.checkout.billing_address
-        shipping = payment.checkout.shipping_address
+    checkout = payment.checkout
+    if checkout:
+        billing = checkout.billing_address
+        shipping = checkout.shipping_address
+        email = checkout.get_customer_email()
     elif payment.order:
         billing = payment.order.billing_address
         shipping = payment.order.shipping_address
+        email = payment.order.user_email
     else:
-        billing, shipping = None, None
+        billing, shipping, email = None, None, payment.billing_email
 
     billing_address = AddressData(**billing.as_data()) if billing else None
     shipping_address = AddressData(**shipping.as_data()) if shipping else None
@@ -64,7 +67,7 @@ def create_payment_information(
         graphql_payment_id=graphql_payment_id,
         customer_ip_address=payment.customer_ip_address,
         customer_id=customer_id,
-        customer_email=payment.billing_email,
+        customer_email=email,
         reuse_source=store_source,
         data=additional_data or {},
     )

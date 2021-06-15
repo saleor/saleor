@@ -220,10 +220,12 @@ def test_checkout_add_payment_with_shipping_method_and_shipping_required(
 
 
 def test_checkout_add_payment(
-    user_api_client, checkout_without_shipping_required, address
+    user_api_client, checkout_without_shipping_required, address, customer_user
 ):
     checkout = checkout_without_shipping_required
     checkout.billing_address = address
+    checkout.email = "old@example"
+    checkout.user = customer_user
     checkout.save()
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
@@ -261,6 +263,7 @@ def test_checkout_add_payment(
     assert payment.billing_first_name == checkout.billing_address.first_name
     assert payment.billing_last_name == checkout.billing_address.last_name
     assert payment.return_url == return_url
+    assert payment.billing_email == customer_user.email
 
 
 def test_checkout_add_payment_default_amount(

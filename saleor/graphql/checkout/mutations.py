@@ -560,7 +560,8 @@ class CheckoutCustomerAttach(BaseMutation):
         )
 
         checkout.user = info.context.user
-        checkout.save(update_fields=["user", "last_change"])
+        checkout.email = info.context.user.email
+        checkout.save(update_fields=["email", "user", "last_change"])
 
         info.context.plugins.checkout_updated(checkout)
         return CheckoutCustomerAttach(checkout=checkout)
