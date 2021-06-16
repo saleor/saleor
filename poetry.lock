@@ -1617,7 +1617,7 @@ python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*"
 
 [[package]]
 name = "purl"
-version = "1.5"
+version = "1.6"
 description = "An immutable URL class for easy URL-building and manipulation"
 category = "main"
 optional = false
@@ -2551,7 +2551,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "8f4a0f058b41ea5fce8483787dcb0bd7a910abb78f61076f71b187475b5fe529"
+content-hash = "d45e64d2a61f966e6a4bdede3b9e6b992dfbf6f8bcf6be65a73a1c50d74b04e5"
 
 [metadata.files]
 adyen = [
@@ -3491,8 +3491,8 @@ psycopg2-binary = [
     {file = "psycopg2_binary-2.8.6-cp39-cp39-win_amd64.whl", hash = "sha256:15978a1fbd225583dd8cdaf37e67ccc278b5abecb4caf6b2d6b8e2b948e953f6"},
 ]
 purl = [
-    {file = "purl-1.5-py2.py3-none-any.whl", hash = "sha256:5ac0e85979da0172d80156701cb3eb9b1eff31f3b43e981ef6dc06251c53a3a4"},
-    {file = "purl-1.5.tar.gz", hash = "sha256:75141bef1e7fce943afda671663a97c792af01c81648026cd5b5c0dcc3b72b96"},
+    {file = "purl-1.6-py2.py3-none-any.whl", hash = "sha256:41be5f8eff8688d0046edf47f5307aee00272bcbb2678e93808939c94773d4d1"},
+    {file = "purl-1.6.tar.gz", hash = "sha256:ba0babadbd0c981c495a45715c544ad34cdad35102e99fb4fcd7a78625627ce3"},
 ]
 py = [
     {file = "py-1.10.0-py2.py3-none-any.whl", hash = "sha256:3b80836aa6d1feeaa108e046da6423ab8f6ceda6468545ae8d02d9d58d18818a"},
