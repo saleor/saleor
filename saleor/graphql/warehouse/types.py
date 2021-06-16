@@ -5,6 +5,7 @@ from django.db.models.functions import Coalesce
 from ...core.permissions import OrderPermissions, ProductPermissions
 from ...core.tracing import traced_resolver
 from ...warehouse import models
+from ..account.dataloaders import AddressByIdLoader
 from ..channel import ChannelContext
 from ..core.connection import CountableDjangoObjectType
 from ..decorators import one_of_permissions_required
@@ -70,8 +71,15 @@ class Warehouse(CountableDjangoObjectType):
         return shipping_zones
 
     @staticmethod
-    def resolve_company_name(root, *_args, **_kwargs):
-        return root.address.company_name
+    def resolve_company_name(root, info, *_args, **_kwargs):
+        def _resolve_company_name(address):
+            return address.company_name
+
+        return (
+            AddressByIdLoader(info.context)
+            .load(root.address_id)
+            .then(_resolve_company_name)
+        )
 
 
 class Stock(CountableDjangoObjectType):
