@@ -1,7 +1,6 @@
 import logging
 
 from django.core.management.base import BaseCommand
-from tqdm import tqdm
 
 from ....discount.utils import fetch_active_discounts
 from ...models import Product
@@ -17,7 +16,8 @@ class Command(BaseCommand):
         self.stdout.write('Updating "discounted_price" field of all the products.')
         # Fetching the discounts just once and reusing them
         discounts = fetch_active_discounts()
-        # Run the update on all the products with "progress bar" (tqdm)
+        # Run the update on all the products
         qs = Product.objects.all()
-        for product in tqdm(qs.iterator(), total=qs.count()):
+        for product in qs.iterator():
+            self.stdout.write(f"Updating product PK: {product.pk}")
             update_product_discounted_price(product, discounts=discounts)

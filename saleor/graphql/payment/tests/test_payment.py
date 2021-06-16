@@ -22,7 +22,11 @@ from ....payment.interface import (
 from ....payment.models import ChargeStatus, Payment, TransactionKind
 from ....payment.utils import fetch_customer_id, store_customer_id
 from ....plugins.manager import PluginsManager, get_plugins_manager
-from ...tests.utils import assert_no_permission, get_graphql_content
+from ...tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 from ..enums import OrderAction, PaymentChargeStatusEnum
 
 DUMMY_GATEWAY = "mirumee.payments.dummy"
@@ -220,10 +224,12 @@ def test_checkout_add_payment_with_shipping_method_and_shipping_required(
 
 
 def test_checkout_add_payment(
-    user_api_client, checkout_without_shipping_required, address
+    user_api_client, checkout_without_shipping_required, address, customer_user
 ):
     checkout = checkout_without_shipping_required
     checkout.billing_address = address
+    checkout.email = "old@example"
+    checkout.user = customer_user
     checkout.save()
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
@@ -261,6 +267,7 @@ def test_checkout_add_payment(
     assert payment.billing_first_name == checkout.billing_address.first_name
     assert payment.billing_last_name == checkout.billing_address.last_name
     assert payment.return_url == return_url
+    assert payment.billing_email == customer_user.email
 
 
 def test_checkout_add_payment_default_amount(
@@ -728,14 +735,17 @@ def test_payments_query(
     ]
 
 
-def test_query_payment(payment_dummy, user_api_client, permission_manage_orders):
-    query = """
+QUERY_PAYMENT_BY_ID = """
     query payment($id: ID!) {
         payment(id: $id) {
             id
         }
     }
-    """
+"""
+
+
+def test_query_payment(payment_dummy, user_api_client, permission_manage_orders):
+    query = QUERY_PAYMENT_BY_ID
     payment = payment_dummy
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     variables = {"id": payment_id}
@@ -745,6 +755,31 @@ def test_query_payment(payment_dummy, user_api_client, permission_manage_orders)
     content = get_graphql_content(response)
     received_id = content["data"]["payment"]["id"]
     assert received_id == payment_id
+
+
+def test_staff_query_payment_by_invalid_id(
+    staff_api_client, payment_dummy, permission_manage_orders
+):
+    id = "bh/"
+    variables = {"id": id}
+    response = staff_api_client.post_graphql(
+        QUERY_PAYMENT_BY_ID, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
+    assert content["data"]["payment"] is None
+
+
+def test_staff_query_payment_with_invalid_object_type(
+    staff_api_client, payment_dummy, permission_manage_orders
+):
+    variables = {"id": graphene.Node.to_global_id("Order", payment_dummy.pk)}
+    response = staff_api_client.post_graphql(
+        QUERY_PAYMENT_BY_ID, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["payment"] is None
 
 
 def test_query_payments(payment_dummy, permission_manage_orders, staff_api_client):

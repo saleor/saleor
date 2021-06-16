@@ -103,6 +103,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Trigger `checkout_updated` hook for checkout meta mutations - #7392 by @maarcingebala
 - Optimize `inputType` resolver on `AttributeValue` type - 7396 by @tomaszszymanski129
 - Allow filtering pages by ids - #7393 by @IKarbowiak
+- Refactor account filters - 7419 by @tomaszszymanski129
 - Fix validate `min_spent` on vouchers to use net or gross value depends on `settings.display_gross_prices` - #7408 by @d-wysocki
 - Fix invoice generation - #7376 by tomaszszymanski129
 - Unify channel ID params #7378
@@ -110,10 +111,12 @@ All notable, unreleased changes to this project will be documented in this file.
   - `channel` from `DraftOrderCreateInput` changed to channelId
   - `channel` from `DraftOrderInput` changed to channelId
   - `channel` from `pluginUpdate` changed to channelId
+- Compress celery tasks related with `user_emails` and `webhooks`  - #7445 by d-wysocki
 - Order events performance - #7424 by tomaszszymanski129
 - Add hash to uploading images #7453 by @IKarbowiak
 - Add file format validation for uploaded images - #7447 by @IKarbowiak
 - Add boolean attributes - #7454 by @piotrgrundas
+- Fix attaching params for address form errors - #7485 by @IKarbowiak
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -260,6 +263,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Return empty results when filtering by non-existing attribute - #7025 by @maarcingebala
 - Add new authorization header `Authorization-Bearer` - #6998 by @korycins
 - Add field `paymentMethodType` to `Payment` object - #7073 by @korycins
+- Fix passing incorrect customer email to payment gateways - #7486 by @korycins
 
 # 2.11.1
 

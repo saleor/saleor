@@ -11,45 +11,45 @@ def customers_for_search(db, address):
     accounts = User.objects.bulk_create(
         [
             User(
-                first_name="Jack1",
-                last_name="Allen1",
-                email="allen1@example.com",
-                is_staff=False,
-                is_active=True,
-                default_shipping_address=address,
-            ),
-            User(
-                first_name="JackJack1",
-                last_name="AllenAllen2",
-                email="allenallen2@example.com",
+                first_name="Alan",
+                last_name="Smith",
+                email="asmith@example.com",
                 is_staff=False,
                 is_active=True,
             ),
             User(
-                first_name="JackJack2",
-                last_name="AllenAllen2",
-                email="jackjack2allenallen2@example.com",
+                first_name="Harry",
+                last_name="Smith",
+                email="hsmith@example.com",
                 is_staff=False,
                 is_active=True,
             ),
             User(
-                first_name="Jack2",
-                last_name="Allen2",
-                email="allen2@example.com",
+                first_name="Robert",
+                last_name="Davis",
+                email="rdavis@test.com",
                 is_staff=False,
                 is_active=True,
-                default_shipping_address=address,
             ),
             User(
-                first_name="Jack3",
-                last_name="Allen3",
-                email="allen3@example.com",
+                first_name="Xavier",
+                last_name="Davis",
+                email="xdavis@test.com",
                 is_staff=False,
                 is_active=True,
-                default_shipping_address=address,
+            ),
+            User(
+                first_name="Anthony",
+                last_name="Matthews",
+                email="amatthews@test.com",
+                is_staff=False,
+                is_active=True,
             ),
         ]
     )
+    for i, user in enumerate(accounts):
+        if i in (0, 3, 4):
+            user.addresses.set([address])
     return accounts
 
 
@@ -58,69 +58,45 @@ def staff_for_search(db, address):
     accounts = User.objects.bulk_create(
         [
             User(
-                first_name="Jack1",
-                last_name="Allen1",
-                email="allen1@example.com",
-                is_staff=True,
-                is_active=True,
-                default_shipping_address=address,
-            ),
-            User(
-                first_name="JackJack1",
-                last_name="AllenAllen2",
-                email="allenallen2@example.com",
-                is_staff=True,
-                is_active=True,
-            ),
-            User(
-                first_name="JackJack2",
-                last_name="AllenAllen2",
-                email="jackjack2allenallen2@example.com",
-                is_staff=True,
-                is_active=True,
-            ),
-            User(
-                first_name="Jack2",
-                last_name="Allen2",
-                email="allen2@example.com",
-                is_staff=True,
-                is_active=True,
-                default_shipping_address=address,
-            ),
-            User(
-                first_name="Jack3",
-                last_name="Allen3",
-                email="allen3@example.com",
-                is_staff=True,
-                is_active=True,
-                default_shipping_address=address,
-            ),
-            User(
-                first_name="Jack4",
-                last_name="Allen4",
-                email="allen4@example.com",
+                first_name="Alan",
+                last_name="Smith",
+                email="asmith@example.com",
                 is_staff=True,
                 is_active=False,
-                default_shipping_address=address,
             ),
             User(
-                first_name="Jack5",
-                last_name="Allen5",
-                email="allen5@example.com",
+                first_name="Harry",
+                last_name="Smith",
+                email="hsmith@example.com",
                 is_staff=True,
-                is_active=False,
-                default_shipping_address=address,
+                is_active=True,
             ),
             User(
-                first_name="Jack6",
-                last_name="Allen6",
-                email="allen6@example.com",
+                first_name="Robert",
+                last_name="Davis",
+                email="rdavis@example.com",
                 is_staff=True,
                 is_active=False,
-                default_shipping_address=address,
+            ),
+            User(
+                first_name="Xavier",
+                last_name="Davis",
+                email="xdavis@example.com",
+                is_staff=True,
+                is_active=True,
+            ),
+            User(
+                first_name="Anthony",
+                last_name="Matthews",
+                email="amatthews@example.com",
+                is_staff=True,
+                is_active=True,
             ),
         ]
     )
+    for i, user in enumerate(accounts):
+        if i in (0, 3, 4):
+            user.addresses.set([address])
     return accounts
 
 
@@ -244,22 +220,11 @@ def test_query_customers_pagination_with_sort(
 @pytest.mark.parametrize(
     "customer_filter, users_order",
     [
-        ({"search": "example.com"}, ["Jack1", "Jack2"]),
-        ({"search": "Jack"}, ["Jack1", "Jack2"]),
-        ({"search": "Allen"}, ["Jack1", "Jack2"]),
-        ({"search": "JackJack"}, ["JackJack1", "JackJack2"]),
-        ({"search": "jackjack"}, ["JackJack1", "JackJack2"]),
-        ({"search": "Jack1"}, ["Jack1", "JackJack1"]),
-        (
-            {"search": "John"},
-            ["Jack1", "Jack2"],
-        ),  # default_shipping_address__first_name
-        ({"search": "Doe"}, ["Jack1", "Jack2"]),  # default_shipping_address__last_name
-        ({"search": "wroc"}, ["Jack1", "Jack2"]),  # default_shipping_address__city
-        (
-            {"search": "pl"},
-            ["Jack1", "Jack2"],
-        ),  # default_shipping_address__country, email
+        ({"search": "example.com"}, ["Alan", "Harry"]),  # email
+        ({"search": "test.com"}, ["Anthony", "Robert"]),  # email
+        ({"search": "davis"}, ["Robert", "Xavier"]),  # last_name
+        ({"search": "wroc"}, ["Anthony", "Alan"]),  # city
+        ({"search": "pl"}, ["Anthony", "Alan"]),  # country
     ],
 )
 def test_query_customer_members_pagination_with_filter_search(
@@ -289,24 +254,12 @@ def test_query_customer_members_pagination_with_filter_search(
 @pytest.mark.parametrize(
     "staff_member_filter, users_order",
     [
-        ({"search": "example.com"}, ["Jack1", "Jack2"]),
-        ({"search": "Jack"}, ["Jack1", "Jack2"]),
-        ({"search": "Allen"}, ["Jack1", "Jack2"]),
-        ({"search": "JackJack"}, ["JackJack1", "JackJack2"]),
-        ({"search": "jackjack"}, ["JackJack1", "JackJack2"]),
-        ({"search": "Jack1"}, ["Jack1", "JackJack1"]),
-        (
-            {"search": "John"},
-            ["Jack1", "Jack2"],
-        ),  # default_shipping_address__first_name
-        ({"search": "Doe"}, ["Jack1", "Jack2"]),  # default_shipping_address__last_name
-        ({"search": "wroc"}, ["Jack1", "Jack2"]),  # default_shipping_address__city
-        (
-            {"search": "pl"},
-            ["Jack1", "Jack2"],
-        ),  # default_shipping_address__country, email
-        ({"status": "DEACTIVATED"}, ["Jack4", "Jack5"]),
-        ({"status": "ACTIVE"}, ["Jack1", "Jack2"]),
+        ({"search": "example.com"}, ["Anthony", "Alan"]),  # email
+        ({"search": "davis"}, ["Robert", "Xavier"]),  # last_name
+        ({"search": "wroc"}, ["Anthony", "Alan"]),  # city
+        ({"search": "pl"}, ["Anthony", "Alan"]),  # country
+        ({"status": "DEACTIVATED"}, ["Alan", "Robert"]),  # status
+        ({"status": "ACTIVE"}, ["Anthony", "Harry"]),  # status
     ],
 )
 def test_query_staff_members_pagination_with_filter_search(
@@ -333,11 +286,11 @@ def test_query_staff_members_pagination_with_filter_search(
 def permission_groups_for_pagination(db):
     return auth_models.Group.objects.bulk_create(
         [
-            auth_models.Group(name="Group1"),
-            auth_models.Group(name="GroupGroup1"),
-            auth_models.Group(name="GroupGroup2"),
-            auth_models.Group(name="Group2"),
-            auth_models.Group(name="Group3"),
+            auth_models.Group(name="admin"),
+            auth_models.Group(name="customer_manager"),
+            auth_models.Group(name="discount_manager"),
+            auth_models.Group(name="staff"),
+            auth_models.Group(name="accountant"),
         ]
     )
 
@@ -370,10 +323,13 @@ QUERY_PERMISSION_GROUPS_PAGINATION = """
 @pytest.mark.parametrize(
     "sort_by, permission_groups_order",
     [
-        ({"field": "NAME", "direction": "ASC"}, ["Group1", "Group2", "Group3"]),
+        (
+            {"field": "NAME", "direction": "ASC"},
+            ["accountant", "admin", "customer_manager"],
+        ),
         (
             {"field": "NAME", "direction": "DESC"},
-            ["GroupGroup2", "GroupGroup1", "Group3"],
+            ["staff", "discount_manager", "customer_manager"],
         ),
     ],
 )
@@ -400,23 +356,14 @@ def test_permission_groups_pagination_with_sorting(
     assert len(permission_groups_nodes) == page_size
 
 
-@pytest.mark.parametrize(
-    "filter_by, permission_groups_order",
-    [
-        ({"search": "GroupGroup"}, ["GroupGroup1", "GroupGroup2"]),
-        ({"search": "Group1"}, ["Group1", "GroupGroup1"]),
-    ],
-)
 def test_permission_groups_pagination_with_filtering(
-    filter_by,
-    permission_groups_order,
     staff_api_client,
     permission_manage_staff,
     permission_groups_for_pagination,
 ):
     page_size = 2
 
-    variables = {"first": page_size, "after": None, "filter": filter_by}
+    variables = {"first": page_size, "after": None, "filter": {"search": "manager"}}
     response = staff_api_client.post_graphql(
         QUERY_PERMISSION_GROUPS_PAGINATION,
         variables,
@@ -424,6 +371,6 @@ def test_permission_groups_pagination_with_filtering(
     )
     content = get_graphql_content(response)
     permission_groups_nodes = content["data"]["permissionGroups"]["edges"]
-    assert permission_groups_order[0] == permission_groups_nodes[0]["node"]["name"]
-    assert permission_groups_order[1] == permission_groups_nodes[1]["node"]["name"]
+    assert permission_groups_nodes[0]["node"]["name"] == "customer_manager"
+    assert permission_groups_nodes[1]["node"]["name"] == "discount_manager"
     assert len(permission_groups_nodes) == page_size

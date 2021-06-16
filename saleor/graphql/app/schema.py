@@ -19,7 +19,7 @@ from .mutations import (
     AppTokenVerify,
     AppUpdate,
 )
-from .resolvers import _resolve_app, resolve_apps, resolve_apps_installations
+from .resolvers import resolve_app, resolve_apps, resolve_apps_installations
 from .sorters import AppSortingInput
 from .types import App, AppInstallation
 
@@ -62,7 +62,7 @@ class AppQueries(graphene.ObjectType):
         app = info.context.app
         if not id and app:
             return app
-        return _resolve_app(info, id)
+        return resolve_app(info, id)
 
 
 class AppMutations(graphene.ObjectType):

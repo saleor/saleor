@@ -1,13 +1,8 @@
-import graphene
-
 from ...channel import models
-from ...core.tracing import traced_resolver
-from .types import Channel
 
 
-@traced_resolver
-def resolve_channel(info, id):
-    return graphene.Node.get_node_from_global_id(info, id, Channel)
+def resolve_channel(id):
+    return models.Channel.objects.filter(id=id).first()
 
 
 def resolve_channels():

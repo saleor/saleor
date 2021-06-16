@@ -5,7 +5,11 @@ import graphene
 from ....product.error_codes import ProductErrorCode
 from ....product.models import DigitalContent, ProductVariant
 from ....product.tests.utils import create_image
-from ...tests.utils import get_graphql_content, get_multipart_request_body
+from ...tests.utils import (
+    get_graphql_content,
+    get_graphql_content_from_response,
+    get_multipart_request_body,
+)
 
 
 def test_fetch_all_digital_contents(
@@ -33,32 +37,83 @@ def test_fetch_all_digital_contents(
     assert len(edges) == digital_content_num
 
 
-def test_fetch_single_digital_content(
-    staff_api_client, digital_content, permission_manage_products
-):
-    query = """
-    query {
-        digitalContent(id:"%s"){
+QUERY_DIGITAL_CONTENT = """
+    query DigitalContent($id: ID!){
+        digitalContent(id: $id){
             id
             productVariant {
                 id
             }
         }
     }
-    """ % graphene.Node.to_global_id(
-        "DigitalContent", digital_content.id
-    )
+"""
+
+
+def test_fetch_single_digital_content(
+    staff_api_client, digital_content, permission_manage_products
+):
+    query = QUERY_DIGITAL_CONTENT
+    variables = {"id": graphene.Node.to_global_id("DigitalContent", digital_content.id)}
     variant_id = graphene.Node.to_global_id(
         "ProductVariant", digital_content.product_variant.id
     )
     response = staff_api_client.post_graphql(
-        query, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
 
     assert "digitalContent" in content["data"]
     assert "id" in content["data"]["digitalContent"]
     assert content["data"]["digitalContent"]["productVariant"]["id"] == variant_id
+
+
+def test_digital_content_query_invalid_id(
+    staff_api_client, product, channel_USD, permission_manage_products
+):
+    digital_content_id = "'"
+    variables = {
+        "id": digital_content_id,
+        "channel": channel_USD.slug,
+    }
+    response = staff_api_client.post_graphql(
+        QUERY_DIGITAL_CONTENT, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert (
+        content["errors"][0]["message"] == f"Couldn't resolve id: {digital_content_id}."
+    )
+    assert content["data"]["digitalContent"] is None
+
+
+def test_digital_content_query_object_with_given_id_does_not_exist(
+    staff_api_client, product, channel_USD, permission_manage_products
+):
+    digital_content_id = graphene.Node.to_global_id("DigitalContent", -1)
+    variables = {
+        "id": digital_content_id,
+        "channel": channel_USD.slug,
+    }
+    response = staff_api_client.post_graphql(
+        QUERY_DIGITAL_CONTENT, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["digitalContent"] is None
+
+
+def test_digital_content_query_with_invalid_object_type(
+    staff_api_client, product, digital_content, channel_USD, permission_manage_products
+):
+    digital_content_id = graphene.Node.to_global_id("Product", digital_content.pk)
+    variables = {
+        "id": digital_content_id,
+        "channel": channel_USD.slug,
+    }
+    response = staff_api_client.post_graphql(
+        QUERY_DIGITAL_CONTENT, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["digitalContent"] is None
 
 
 def test_digital_content_create_mutation_custom_settings(
