@@ -2320,6 +2320,41 @@ def test_draft_order_update_tax_error(
     assert not order.customer_note
 
 
+def test_draft_order_update_invalid_address(
+    staff_api_client,
+    permission_manage_orders,
+    draft_order,
+    voucher,
+    graphql_address_data,
+):
+    order = draft_order
+    assert not order.voucher
+    assert not order.customer_note
+    graphql_address_data["postalCode"] = "TEST TEST invalid postal code 12345"
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+
+    variables = {
+        "id": order_id,
+        "voucher": voucher_id,
+        "shippingAddress": graphql_address_data,
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert len(data["errors"]) == 2
+    assert not data["order"]
+    assert {error["code"] for error in data["errors"]} == {
+        OrderErrorCode.INVALID.name,
+        OrderErrorCode.REQUIRED.name,
+    }
+    assert {error["field"] for error in data["errors"]} == {"postalCode"}
+
+
 def test_draft_order_update_doing_nothing_generates_no_events(
     staff_api_client, permission_manage_orders, order_with_lines
 ):
