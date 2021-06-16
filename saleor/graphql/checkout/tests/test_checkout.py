@@ -2076,6 +2076,8 @@ def test_checkout_customer_attach(
     api_client, user_api_client, checkout_with_item, customer_user
 ):
     checkout = checkout_with_item
+    checkout.email = "old@email.com"
+    checkout.save()
     assert checkout.user is None
 
     query = """
@@ -2106,6 +2108,7 @@ def test_checkout_customer_attach(
     assert not data["errors"]
     checkout.refresh_from_db()
     assert checkout.user == customer_user
+    assert checkout.email == customer_user.email
 
 
 MUTATION_CHECKOUT_CUSTOMER_DETACH = """
