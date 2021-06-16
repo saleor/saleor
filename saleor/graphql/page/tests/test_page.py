@@ -14,7 +14,7 @@ from ....page.models import Page, PageType
 from ....tests.utils import dummy_editorjs
 from ....webhook.event_types import WebhookEventType
 from ....webhook.payloads import generate_page_payload
-from ...tests.utils import get_graphql_content
+from ...tests.utils import get_graphql_content, get_graphql_content_from_response
 
 PAGE_QUERY = """
     query PageQuery($id: ID, $slug: String) {
@@ -127,6 +127,23 @@ def test_staff_query_unpublished_page(staff_api_client, page):
     response = staff_api_client.post_graphql(PAGE_QUERY, variables)
     content = get_graphql_content(response)
     assert content["data"]["page"] is not None
+
+
+def test_staff_query_page_by_invalid_id(staff_api_client, page):
+    id = "bh/"
+    variables = {"id": id}
+    response = staff_api_client.post_graphql(PAGE_QUERY, variables)
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
+    assert content["data"]["page"] is None
+
+
+def test_staff_query_page_with_invalid_object_type(staff_api_client, page):
+    variables = {"id": graphene.Node.to_global_id("Order", page.id)}
+    response = staff_api_client.post_graphql(PAGE_QUERY, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["page"] is None
 
 
 def test_get_page_with_sorted_attribute_values(

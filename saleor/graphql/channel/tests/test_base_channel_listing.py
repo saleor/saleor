@@ -1,6 +1,8 @@
 from collections import defaultdict
 
 import graphene
+import pytest
+from django.core.exceptions import ValidationError
 
 from ....shipping.error_codes import ShippingErrorCode
 from ..mutations import BaseChannelListingMutation
@@ -127,3 +129,22 @@ def test_test_clean_channels_with_errors(channel_PLN):
     # then
     assert result == {}
     assert errors["remove_channels"][0].code == error_code
+
+
+def test_test_clean_channels_invalid_object_type(channel_PLN):
+    # given
+    channel_id = graphene.Node.to_global_id("Product", channel_PLN.id)
+    error_code = ShippingErrorCode.GRAPHQL_ERROR.value
+    errors = defaultdict(list)
+
+    # when
+    with pytest.raises(ValidationError) as error:
+        BaseChannelListingMutation.clean_channels(
+            None, {"remove_channels": [channel_id]}, errors, error_code
+        )
+
+    # then
+    assert (
+        error.value.error_dict["remove_channels"][0].message
+        == f"Must receive Channel id: {channel_id}."
+    )

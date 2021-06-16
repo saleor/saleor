@@ -1,6 +1,7 @@
 import graphene
 
 from ..core.fields import FilterInputConnectionField
+from ..core.utils import from_global_id_or_error
 from ..translations.mutations import PageTranslate
 from .bulk_mutations import PageBulkDelete, PageBulkPublish, PageTypeBulkDelete
 from .filters import PageFilterInput, PageTypeFilterInput
@@ -62,7 +63,8 @@ class PageQueries(graphene.ObjectType):
         return resolve_pages(info, **kwargs)
 
     def resolve_page_type(self, info, id):
-        return resolve_page_type(info, id)
+        _, id = from_global_id_or_error(id, PageType)
+        return resolve_page_type(id)
 
     def resolve_page_types(self, info, **kwargs):
         return resolve_page_types(info, **kwargs)

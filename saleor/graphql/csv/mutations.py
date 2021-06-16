@@ -14,7 +14,6 @@ from ..core.mutations import BaseMutation
 from ..core.types.common import ExportError
 from ..product.filters import ProductFilterInput
 from ..product.types import Product
-from ..utils import resolve_global_ids_to_primary_keys
 from ..warehouse.types import Warehouse
 from .enums import ExportScope, FileTypeEnum, ProductFieldEnum
 from .types import ExportFile
@@ -103,8 +102,8 @@ class ExportProducts(BaseMutation):
             return cls.clean_filter(input)
         return {"all": ""}
 
-    @staticmethod
-    def clean_ids(input) -> Dict[str, List[str]]:
+    @classmethod
+    def clean_ids(cls, input) -> Dict[str, List[str]]:
         ids = input.get("ids", [])
         if not ids:
             raise ValidationError(
@@ -115,7 +114,7 @@ class ExportProducts(BaseMutation):
                     )
                 }
             )
-        _, pks = resolve_global_ids_to_primary_keys(ids, graphene_type=Product)
+        pks = cls.get_global_ids_or_error(ids, only_type=Product, field="ids")
         return {"ids": pks}
 
     @staticmethod
@@ -150,10 +149,10 @@ class ExportProducts(BaseMutation):
 
         return export_info
 
-    @staticmethod
-    def get_items_pks(field, export_info_input, graphene_type):
+    @classmethod
+    def get_items_pks(cls, field, export_info_input, graphene_type):
         ids = export_info_input.get(field)
         if not ids:
             return
-        _, pks = resolve_global_ids_to_primary_keys(ids, graphene_type=graphene_type)
+        pks = cls.get_global_ids_or_error(ids, only_type=graphene_type, field=field)
         return pks
