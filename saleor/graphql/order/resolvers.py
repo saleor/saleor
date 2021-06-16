@@ -40,8 +40,8 @@ def resolve_orders_total(_info, period, channel_slug):
     return sum_order_totals(qs, channel.currency_code)
 
 
-def resolve_order(order_id):
-    return models.Order.objects.filter(pk=order_id).first()
+def resolve_order(id):
+    return models.Order.objects.filter(pk=id).first()
 
 
 def resolve_homepage_events():
