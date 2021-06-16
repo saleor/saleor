@@ -1681,11 +1681,10 @@ def test_update_variant_with_boolean_attribute(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     sku = "123"
     attr_id = graphene.Node.to_global_id("Attribute", boolean_attribute.id)
-    attr_value = boolean_attribute.values.first()
     size_attr_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
 
     new_value = False
-
+    values_count = boolean_attribute.values.count()
     variables = {
         "id": variant_id,
         "sku": sku,
@@ -1694,9 +1693,6 @@ def test_update_variant_with_boolean_attribute(
             {"id": attr_id, "boolean": new_value},
         ],
     }
-    attr_value.slug = f"{variant.id}_{boolean_attribute.id}"
-    attr_value.save()
-    values_count = boolean_attribute.values.count()
 
     associate_attribute_values_to_instance(
         variant, boolean_attribute, boolean_attribute.values.first()
@@ -1714,7 +1710,7 @@ def test_update_variant_with_boolean_attribute(
     assert data["attributes"][-1]["attribute"]["slug"] == boolean_attribute.slug
     assert data["attributes"][-1]["values"][0]["name"] == "Boolean: No"
     assert data["attributes"][-1]["values"][0]["boolean"] is new_value
-    assert boolean_attribute.values.count() == values_count + 1
+    assert boolean_attribute.values.count() == values_count
     product_variant_updated.assert_called_once_with(product.variants.last())
 
 

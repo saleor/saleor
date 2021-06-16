@@ -5,7 +5,7 @@ class AttributeDescriptions:
     SLUG = "Internal representation of an attribute name."
     TYPE = "The attribute type."
     UNIT = "The unit of attribute values."
-    BOOLEAN = "The boolean value of attribute."
+    BOOLEAN = "The boolean value of the attribute."
     VALUES = "List of attribute's values."
     VALUE_REQUIRED = "Whether the attribute requires values to be passed or not."
     IS_VARIANT_ONLY = "Whether the attribute is for variants only."

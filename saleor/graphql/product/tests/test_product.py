@@ -1658,7 +1658,7 @@ def test_products_query_with_filter_attributes(
 
 
 @pytest.mark.parametrize(
-    "gte, lte, expected_products",
+    "gte, lte, expected_products_index",
     [
         (None, 8, [1]),
         (0, 8, [1]),
@@ -1673,7 +1673,7 @@ def test_products_query_with_filter_attributes(
 def test_products_query_with_filter_numeric_attributes(
     gte,
     lte,
-    expected_products,
+    expected_products_index,
     query_products_with_filter,
     staff_api_client,
     product,
@@ -1731,12 +1731,79 @@ def test_products_query_with_filter_numeric_attributes(
     content = get_graphql_content(response)
     products = content["data"]["products"]["edges"]
 
-    assert len(products) == len(expected_products)
+    assert len(products) == len(expected_products_index)
     assert set(product["node"]["id"] for product in products) == {
-        products_ids[index] for index in expected_products
+        products_ids[index] for index in expected_products_index
     }
     assert set(product["node"]["name"] for product in products) == {
-        products_instances[index].name for index in expected_products
+        products_instances[index].name for index in expected_products_index
+    }
+
+
+@pytest.mark.parametrize(
+    "filter_value, expected_products_index",
+    [
+        (False, [0, 1]),
+        (True, [0]),
+    ],
+)
+def test_products_query_with_filter_boolean_attributes(
+    filter_value,
+    expected_products_index,
+    query_products_with_filter,
+    staff_api_client,
+    product,
+    category,
+    boolean_attribute,
+    permission_manage_products,
+):
+    product.product_type.product_attributes.add(boolean_attribute)
+
+    associate_attribute_values_to_instance(
+        product, boolean_attribute, boolean_attribute.values.get(boolean=filter_value)
+    )
+
+    product_type = ProductType.objects.create(
+        name="Custom Type",
+        slug="custom-type",
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    boolean_attribute.product_types.add(product_type)
+
+    second_product = Product.objects.create(
+        name="Second product",
+        slug="second-product",
+        product_type=product_type,
+        category=category,
+    )
+    associate_attribute_values_to_instance(
+        second_product, boolean_attribute, boolean_attribute.values.get(boolean=False)
+    )
+
+    second_product.refresh_from_db()
+    products_instances = [product, second_product]
+    products_ids = [
+        graphene.Node.to_global_id("Product", p.pk) for p in products_instances
+    ]
+
+    variables = {
+        "filter": {
+            "attributes": [{"slug": boolean_attribute.slug, "boolean": filter_value}]
+        }
+    }
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == len(expected_products_index)
+    assert set(product["node"]["id"] for product in products) == {
+        products_ids[index] for index in expected_products_index
+    }
+    assert set(product["node"]["name"] for product in products) == {
+        products_instances[index].name for index in expected_products_index
     }
 
 

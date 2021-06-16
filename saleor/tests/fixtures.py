@@ -828,6 +828,12 @@ def boolean_attribute(db):
         slug=f"{attribute.id}_true",
         boolean=True,
     )
+    AttributeValue.objects.create(
+        attribute=attribute,
+        name=f"{attribute.name}: No",
+        slug=f"{attribute.id}_false",
+        boolean=False,
+    )
     return attribute
 
 

@@ -413,7 +413,7 @@ def add_attribute_info_to_data(
             value = f"{attribute_data.value}"
             if attribute_data.unit:
                 value += f" {attribute_data.unit}"
-        elif input_type == AttributeInputType.RICH_TEXT and attribute_data.rich_text:
+        elif input_type == AttributeInputType.RICH_TEXT:
             value = clean_editor_js(attribute_data.rich_text, to_string=True)
         elif (
             input_type == AttributeInputType.BOOLEAN
