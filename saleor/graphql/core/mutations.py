@@ -140,7 +140,7 @@ class BaseMutation(graphene.Mutation):
         cls._meta.fields.update(fields)
 
     @classmethod
-    def get_node_by_pk(
+    def _get_node_by_pk(
         cls, info, graphene_type: ObjectType, pk: Union[int, str], qs=None
     ):
         """Attempt to resolve a node from the given internal ID.
@@ -179,7 +179,7 @@ class BaseMutation(graphene.Mutation):
             if isinstance(object_type, str):
                 object_type = info.schema.get_type(object_type).graphene_type
 
-            node = cls.get_node_by_pk(info, graphene_type=object_type, pk=pk, qs=qs)
+            node = cls._get_node_by_pk(info, graphene_type=object_type, pk=pk, qs=qs)
         except (AssertionError, GraphQLError) as e:
             raise ValidationError(
                 {field: ValidationError(str(e), code="graphql_error")}
