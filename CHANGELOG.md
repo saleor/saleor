@@ -261,6 +261,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Return empty results when filtering by non-existing attribute - #7025 by @maarcingebala
 - Add new authorization header `Authorization-Bearer` - #6998 by @korycins
 - Add field `paymentMethodType` to `Payment` object - #7073 by @korycins
+- Fix passing incorrect customer email to payment gateways - #7486 by @korycins
 
 # 2.11.1
 
