@@ -1,13 +1,12 @@
 import graphene
 
 from ...core.permissions import ProductPermissions
-from ...core.tracing import traced_resolver
-from ...csv import models
 from ..core.fields import FilterInputConnectionField
 from ..core.utils import from_global_id_or_error
 from ..decorators import permission_required
 from .filters import ExportFileFilterInput
 from .mutations import ExportProducts
+from .resolvers import resolve_export_file, resolve_export_files
 from .sorters import ExportFileSortingInput
 from .types import ExportFile
 
@@ -28,15 +27,13 @@ class CsvQueries(graphene.ObjectType):
     )
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    @traced_resolver
     def resolve_export_file(self, info, id):
         _, id = from_global_id_or_error(id, ExportFile)
-        return models.ExportFile.objects.filter(id=id).first()
+        return resolve_export_file(id)
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    @traced_resolver
     def resolve_export_files(self, _info, **kwargs):
-        return models.ExportFile.objects.all()
+        return resolve_export_files()
 
 
 class CsvMutations(graphene.ObjectType):
