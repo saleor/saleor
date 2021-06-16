@@ -657,11 +657,11 @@ requests = "*"
 
 [[package]]
 name = "django-redis"
-version = "4.12.1"
+version = "5.0.0"
 description = "Full featured redis cache backend for Django."
 category = "main"
 optional = false
-python-versions = ">=3.5"
+python-versions = ">=3.6"
 
 [package.dependencies]
 Django = ">=2.2"
@@ -2551,7 +2551,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "e0ca13cd25f58b27f42dc768e5a230d88149b5670df7858b16e575df3a30b12e"
+content-hash = "2381a54a68f23f279750aa60969fb06244029de9f5889168db71850641678d9d"
 
 [metadata.files]
 adyen = [
@@ -2865,8 +2865,8 @@ django-prices-vatlayer = [
     {file = "django_prices_vatlayer-1.1.0-py3-none-any.whl", hash = "sha256:de47234d46ae35d83dd35adbd83e3d26a9c90a8d184020590109bdef39474ed0"},
 ]
 django-redis = [
-    {file = "django-redis-4.12.1.tar.gz", hash = "sha256:306589c7021e6468b2656edc89f62b8ba67e8d5a1c8877e2688042263daa7a63"},
-    {file = "django_redis-4.12.1-py3-none-any.whl", hash = "sha256:1133b26b75baa3664164c3f44b9d5d133d1b8de45d94d79f38d1adc5b1d502e5"},
+    {file = "django-redis-5.0.0.tar.gz", hash = "sha256:048f665bbe27f8ff2edebae6aa9c534ab137f1e8fa7234147ef470df3f3aa9b8"},
+    {file = "django_redis-5.0.0-py3-none-any.whl", hash = "sha256:97739ca9de3f964c51412d1d7d8aecdfd86737bb197fce6e1ff12620c63c97ee"},
 ]
 django-storages = [
     {file = "django-storages-1.11.1.tar.gz", hash = "sha256:c823dbf56c9e35b0999a13d7e05062b837bae36c518a40255d522fbe3750fbb4"},
