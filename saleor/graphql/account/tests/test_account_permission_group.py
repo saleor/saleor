@@ -5,7 +5,11 @@ from django.contrib.auth.models import Group
 from ....account.error_codes import PermissionGroupErrorCode
 from ....account.models import User
 from ....core.permissions import AccountPermissions, AppPermission, OrderPermissions
-from ...tests.utils import assert_no_permission, get_graphql_content
+from ...tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 
 PERMISSION_GROUP_CREATE_MUTATION = """
     mutation PermissionGroupCreate(
@@ -2366,3 +2370,36 @@ def test_permission_group_no_permission_to_perform(
     variables = {"id": graphene.Node.to_global_id("Group", group.id)}
     response = staff_api_client.post_graphql(query, variables)
     assert_no_permission(response)
+
+
+def test_query_permission_group_by_invalid_id(
+    staff_api_client,
+    staff_user,
+    permission_group_manage_users,
+    permission_manage_users,
+    permission_manage_staff,
+):
+    staff_user.user_permissions.add(permission_manage_staff, permission_manage_users)
+    id = "bh/"
+    variables = {"id": id}
+    response = staff_api_client.post_graphql(QUERY_PERMISSION_GROUP, variables)
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
+    assert content["data"]["permissionGroup"] is None
+
+
+def test_query_permission_group_with_invalid_object_type(
+    staff_api_client,
+    staff_user,
+    permission_group_manage_users,
+    permission_manage_staff,
+    permission_manage_users,
+):
+    staff_user.user_permissions.add(permission_manage_staff, permission_manage_users)
+    variables = {
+        "id": graphene.Node.to_global_id("Order", permission_group_manage_users.pk)
+    }
+    response = staff_api_client.post_graphql(QUERY_PERMISSION_GROUP, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["permissionGroup"] is None

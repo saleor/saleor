@@ -14,7 +14,6 @@ from ..channel import ChannelContext
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import BaseMutation, ModelMutation, registry
 from ..core.types.common import TranslationError
-from ..core.utils import from_global_id_or_error
 from ..product.types import Product, ProductVariant
 from ..shop.types import Shop
 
@@ -105,7 +104,7 @@ class ProductTranslate(BaseTranslateMutation):
                 {"id": ValidationError("This field is required", code="required")}
             )
 
-        _type, product_pk = from_global_id_or_error(data["id"], only_type=Product)
+        product_pk = cls.get_global_id_or_error(data["id"], only_type=Product)
         product = product_models.Product.objects.get(pk=product_pk)
         product.translations.update_or_create(
             language_code=data["language_code"], defaults=data["input"]
@@ -159,9 +158,7 @@ class ProductVariantTranslate(BaseTranslateMutation):
                 {"id": ValidationError("This field is required", code="required")}
             )
 
-        _type, variant_pk = from_global_id_or_error(
-            data["id"], only_type=ProductVariant
-        )
+        variant_pk = cls.get_global_id_or_error(data["id"], only_type=ProductVariant)
         variant = product_models.ProductVariant.objects.prefetched_for_webhook().get(
             pk=variant_pk
         )

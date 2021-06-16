@@ -12,7 +12,7 @@ from ...payment import gateway
 from ...payment.utils import fetch_customer_id
 from ..core.utils import from_global_id_or_error
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
-from .types import AddressValidationData, ChoiceValue
+from .types import Address, AddressValidationData, ChoiceValue, User
 from .utils import (
     get_allowed_fields_camel_case,
     get_required_fields_camel_case,
@@ -35,6 +35,10 @@ def resolve_customers(info, **_kwargs):
     return models.User.objects.customers()
 
 
+def resolve_permission_group(id):
+    return auth_models.Group.objects.filter(id=id).first()
+
+
 @traced_resolver
 def resolve_permission_groups(info, **_kwargs):
     return auth_models.Group.objects.all()
@@ -51,7 +55,7 @@ def resolve_user(info, id=None, email=None):
     if requester:
         filter_kwargs = {}
         if id:
-            _model, filter_kwargs["pk"] = from_global_id_or_error(id)
+            _model, filter_kwargs["pk"] = from_global_id_or_error(id, User)
         if email:
             filter_kwargs["email"] = email
         if requester.has_perms(
@@ -152,7 +156,7 @@ def prepare_graphql_payment_sources_type(payment_sources):
 def resolve_address(info, id):
     user = info.context.user
     app = info.context.app
-    _model, address_pk = from_global_id_or_error(id)
+    _model, address_pk = from_global_id_or_error(id, Address)
     if app and app.has_perm(AccountPermissions.MANAGE_USERS):
         return models.Address.objects.filter(pk=address_pk).first()
     if user and not user.is_anonymous:

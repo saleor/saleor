@@ -6,7 +6,7 @@ import pytest
 from .....attribute.models import Attribute
 from .....attribute.utils import associate_attribute_values_to_instance
 from .....product.models import ProductType
-from ....tests.utils import get_graphql_content
+from ....tests.utils import get_graphql_content, get_graphql_content_from_response
 from ...filters import filter_attributes_by_product_types
 
 ATTRIBUTES_FILTER_QUERY = """
@@ -125,6 +125,83 @@ def test_filter_attributes_by_global_id_list(api_client, product_type_attribute_
     )
 
     assert received_slugs == expected_slugs
+
+
+def test_filter_attributes_in_category_invalid_category_id(
+    user_api_client, product_list, weight_attribute, channel_USD
+):
+    # given
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.save(update_fields=["product_type"])
+    last_product.channel_listings.all().update(visible_in_listings=False)
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    variables = {
+        "filters": {
+            "inCategory": "xyz",
+            "channel": channel_USD.slug,
+        }
+    }
+
+    # when
+    response = user_api_client.post_graphql(ATTRIBUTES_FILTER_QUERY, variables)
+
+    # then
+    content = get_graphql_content_from_response(response)
+    message_error = (
+        '{"in_category": [{"message": "Invalid ID specified.", "code": ""}]}'
+    )
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == message_error
+    assert content["data"]["attributes"] is None
+
+
+def test_filter_attributes_in_category_object_with_given_id_does_not_exist(
+    user_api_client, product_list, weight_attribute, channel_USD
+):
+    # given
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.save(update_fields=["product_type"])
+    last_product.channel_listings.all().update(visible_in_listings=False)
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    variables = {
+        "filters": {
+            "inCategory": graphene.Node.to_global_id("Product", -1),
+            "channel": channel_USD.slug,
+        }
+    }
+
+    # when
+    response = user_api_client.post_graphql(ATTRIBUTES_FILTER_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["attributes"]["edges"] == []
 
 
 def test_filter_attributes_in_category_not_visible_in_listings_by_customer(
@@ -567,6 +644,89 @@ def test_filter_attributes_in_category_not_published_by_app_without_manage_produ
 
     # then
     assert len(attributes) == attribute_count
+
+
+def test_filter_attributes_in_collection_invalid_category_id(
+    user_api_client, product_list, weight_attribute, collection, channel_USD
+):
+    # given
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.save(update_fields=["product_type"])
+    last_product.channel_listings.all().update(visible_in_listings=False)
+
+    for product in product_list:
+        collection.products.add(product)
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    variables = {
+        "filters": {
+            "inCollection": "xnd",
+            "channel": channel_USD.slug,
+        }
+    }
+
+    # when
+    response = user_api_client.post_graphql(ATTRIBUTES_FILTER_QUERY, variables)
+
+    # then
+    content = get_graphql_content_from_response(response)
+    message_error = (
+        '{"in_collection": [{"message": "Invalid ID specified.", "code": ""}]}'
+    )
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == message_error
+    assert content["data"]["attributes"] is None
+
+
+def test_filter_attributes_in_collection_object_with_given_id_does_not_exist(
+    user_api_client, product_list, weight_attribute, collection, channel_USD
+):
+    # given
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.save(update_fields=["product_type"])
+    last_product.channel_listings.all().update(visible_in_listings=False)
+
+    for product in product_list:
+        collection.products.add(product)
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    variables = {
+        "filters": {
+            "inCollection": graphene.Node.to_global_id("Product", -1),
+            "channel": channel_USD.slug,
+        }
+    }
+
+    # when
+    response = user_api_client.post_graphql(ATTRIBUTES_FILTER_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["attributes"]["edges"] == []
 
 
 def test_filter_attributes_in_collection_not_visible_in_listings_by_customer(

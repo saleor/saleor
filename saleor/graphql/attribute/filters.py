@@ -4,7 +4,7 @@ from graphene_django.filter import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 
 from ...account.utils import requestor_is_staff_member_or_app
 from ...attribute.models import Attribute, AttributeValue
-from ...product.models import Category, Product
+from ...product import models
 from ..attribute.enums import AttributeTypeEnum
 from ..channel.filters import get_channel_slug_from_filter_data
 from ..core.filters import EnumFilter, MetadataFilterBase
@@ -18,13 +18,11 @@ def filter_attributes_by_product_types(qs, field, value, requestor, channel_slug
     if not value:
         return qs
 
-    product_qs = Product.objects.visible_to_user(requestor, channel_slug)
+    product_qs = models.Product.objects.visible_to_user(requestor, channel_slug)
 
     if field == "in_category":
-        _type, category_id = from_global_id_or_error(
-            value, only_type="Category", field=field
-        )
-        category = Category.objects.filter(pk=category_id).first()
+        _type, category_id = from_global_id_or_error(value, "Category")
+        category = models.Category.objects.filter(pk=category_id).first()
 
         if category is None:
             return qs.none()
@@ -38,9 +36,7 @@ def filter_attributes_by_product_types(qs, field, value, requestor, channel_slug
             )
 
     elif field == "in_collection":
-        _type, collection_id = from_global_id_or_error(
-            value, only_type="Collection", field=field
-        )
+        _type, collection_id = from_global_id_or_error(value, "Collection")
         product_qs = product_qs.filter(collections__id=collection_id)
 
     else:

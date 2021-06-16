@@ -6,7 +6,11 @@ import pytest
 from ....app.models import App
 from ....webhook.event_types import WebhookEventType
 from ....webhook.models import Webhook
-from ...tests.utils import assert_no_permission, get_graphql_content
+from ...tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 from ..enums import WebhookEventTypeEnum, WebhookSampleEventTypeEnum
 
 WEBHOOK_CREATE_BY_APP = """
@@ -356,9 +360,7 @@ def test_query_webhook_by_app(app_api_client, webhook):
     assert events[0].event_type == WebhookEventTypeEnum.ORDER_CREATED.value
 
 
-def test_query_webhook_by_app_without_permission(
-    app_api_client,
-):
+def test_query_webhook_by_app_without_permission(app_api_client):
     second_app = App.objects.create(name="Sample app account", is_active=True)
     webhook = Webhook.objects.create(
         app=second_app, target_url="http://www.example.com/test"
@@ -372,6 +374,41 @@ def test_query_webhook_by_app_without_permission(
     content = get_graphql_content(response)
     webhook_response = content["data"]["webhook"]
     assert webhook_response is None
+
+
+def test_webhook_query_invalid_id(staff_api_client, webhook, permission_manage_apps):
+    webhook_id = "'"
+    staff_api_client.user.user_permissions.add(permission_manage_apps)
+    variables = {
+        "id": webhook_id,
+    }
+    response = staff_api_client.post_graphql(QUERY_WEBHOOK, variables)
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == f"Couldn't resolve id: {webhook_id}."
+    assert content["data"]["webhook"] is None
+
+
+def test_webhook_query_object_with_given_id_does_not_exist(
+    staff_api_client, webhook, permission_manage_apps
+):
+    webhook_id = graphene.Node.to_global_id("Webhook", -1)
+    staff_api_client.user.user_permissions.add(permission_manage_apps)
+    variables = {"id": webhook_id}
+    response = staff_api_client.post_graphql(QUERY_WEBHOOK, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["webhook"] is None
+
+
+def test_webhook_with_invalid_object_type(
+    staff_api_client, webhook, permission_manage_apps
+):
+    webhook_id = graphene.Node.to_global_id("Product", webhook.pk)
+    staff_api_client.user.user_permissions.add(permission_manage_apps)
+    variables = {"id": webhook_id}
+    response = staff_api_client.post_graphql(QUERY_WEBHOOK, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["webhook"] is None
 
 
 WEBHOOK_EVENTS_QUERY = """

@@ -15,7 +15,9 @@ REVERSED_DIRECTION = {
 
 def _sort_queryset_by_attribute(queryset, sorting_attribute, sorting_direction):
     if sorting_attribute != "":
-        graphene_type, sorting_attribute = from_global_id_or_error(sorting_attribute)
+        graphene_type, sorting_attribute = from_global_id_or_error(
+            sorting_attribute, "Attribute"
+        )
     descending = sorting_direction == OrderDirection.DESC
     queryset = queryset.sort_by_attribute(sorting_attribute, descending=descending)
     return queryset

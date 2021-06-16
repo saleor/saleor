@@ -1,6 +1,10 @@
 import graphene
 
-from ...tests.utils import assert_no_permission, get_graphql_content
+from ...tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 
 QUERY_CHANNELS = """
 query {
@@ -132,14 +136,14 @@ def test_query_channels_with_has_orders_without_permission(
 
 
 QUERY_CHANNEL = """
-query getChannel($id: ID!){
-  channel(id: $id){
-    id
-    name
-    slug
-    currencyCode
-  }
-}
+    query getChannel($id: ID!){
+        channel(id: $id){
+            id
+            name
+            slug
+            currencyCode
+        }
+    }
 """
 
 
@@ -199,3 +203,20 @@ def test_query_channel_as_anonymous(api_client, channel_USD):
 
     # then
     assert_no_permission(response)
+
+
+def test_query_channel_by_invalid_id(staff_api_client, channel_USD):
+    id = "bh/"
+    variables = {"id": id}
+    response = staff_api_client.post_graphql(QUERY_CHANNEL, variables)
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
+    assert content["data"]["channel"] is None
+
+
+def test_query_channel_with_invalid_object_type(staff_api_client, channel_USD):
+    variables = {"id": graphene.Node.to_global_id("Order", channel_USD.pk)}
+    response = staff_api_client.post_graphql(QUERY_CHANNEL, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["channel"] is None

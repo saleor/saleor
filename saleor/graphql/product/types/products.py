@@ -6,7 +6,6 @@ from django.conf import settings
 from django_countries.fields import Country
 from graphene import relay
 from graphene_federation import key
-from graphql.error import GraphQLError
 
 from ....account.utils import requestor_is_staff_member_or_app
 from ....attribute import models as attribute_models
@@ -539,7 +538,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         description="List of availability in channels for the product.",
     )
     media_by_id = graphene.Field(
-        graphene.NonNull(lambda: ProductMedia),
+        lambda: ProductMedia,
         id=graphene.Argument(graphene.ID, description="ID of a product media."),
         description="Get a single product media by ID.",
     )
@@ -768,20 +767,14 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     @staticmethod
     @traced_resolver
     def resolve_media_by_id(root: ChannelContext[models.Product], info, id):
-        _type, pk = from_global_id_or_error(id, only_type="ProductMedia")
-        try:
-            return root.node.media.get(pk=pk)
-        except models.ProductMedia.DoesNotExist:
-            raise GraphQLError("Product media not found.")
+        _type, pk = from_global_id_or_error(id, ProductMedia)
+        return root.node.media.filter(pk=pk).first()
 
     @staticmethod
     @traced_resolver
     def resolve_image_by_id(root: ChannelContext[models.Product], info, id):
-        _type, pk = from_global_id_or_error(id, only_type="ProductMedia")
-        try:
-            return root.node.media.get(pk=pk)
-        except models.ProductMedia.DoesNotExist:
-            raise GraphQLError("Product image not found.")
+        _type, pk = from_global_id_or_error(id, ProductImage)
+        return root.node.media.filter(pk=pk).first()
 
     @staticmethod
     @traced_resolver

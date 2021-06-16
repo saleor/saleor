@@ -32,7 +32,6 @@ from ...core.types.common import (
 )
 from ...core.utils import get_duplicated_values
 from ...core.validators import validate_price_precision
-from ...utils import resolve_global_ids_to_primary_keys
 from ...warehouse.types import Warehouse
 from ..mutations.channels import ProductVariantChannelListingAddInput
 from ..mutations.products import (
@@ -105,7 +104,10 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, ids, **data):
-        _, pks = resolve_global_ids_to_primary_keys(ids, Product)
+        try:
+            pks = cls.get_global_ids_or_error(ids, Product)
+        except ValidationError as error:
+            return 0, error
         product_to_variant = list(
             models.ProductVariant.objects.filter(product__pk__in=pks).values_list(
                 "product_id", "id"
@@ -523,7 +525,10 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, ids, **data):
-        _, pks = resolve_global_ids_to_primary_keys(ids, ProductVariant)
+        try:
+            pks = cls.get_global_ids_or_error(ids, ProductVariant)
+        except ValidationError as error:
+            return 0, error
         # get draft order lines for variants
         lines_id_and_orders_id = order_models.OrderLine.objects.filter(
             variant__pk__in=pks, order__status=OrderStatus.DRAFT
@@ -724,8 +729,8 @@ class ProductVariantStocksDelete(BaseMutation):
         variant = cls.get_node_or_error(
             info, data["variant_id"], only_type=ProductVariant
         )
-        _, warehouses_pks = resolve_global_ids_to_primary_keys(
-            data["warehouse_ids"], Warehouse
+        warehouses_pks = cls.get_global_ids_or_error(
+            data["warehouse_ids"], Warehouse, field="warehouse_ids"
         )
         warehouse_models.Stock.objects.filter(
             product_variant=variant, warehouse__pk__in=warehouses_pks
@@ -753,7 +758,10 @@ class ProductTypeBulkDelete(ModelBulkDeleteMutation):
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, ids, **data):
-        _, pks = resolve_global_ids_to_primary_keys(ids, ProductType)
+        try:
+            pks = cls.get_global_ids_or_error(ids, ProductType)
+        except ValidationError as error:
+            return 0, error
         cls.delete_assigned_attribute_values(pks)
         return super().perform_mutation(_root, info, ids, **data)
 

@@ -20,7 +20,11 @@ from ....tests.utils import dummy_editorjs, flush_post_commit_hooks
 from ....warehouse.error_codes import StockErrorCode
 from ....warehouse.models import Stock, Warehouse
 from ...core.enums import WeightUnitsEnum
-from ...tests.utils import assert_no_permission, get_graphql_content
+from ...tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 
 
 def test_fetch_variant(
@@ -2595,18 +2599,21 @@ def test_fetch_all_variants_anonymous_user(
     assert data["totalCount"] == 0
 
 
-def test_product_variants_by_ids(user_api_client, variant, channel_USD):
-    query = """
-        query getProduct($ids: [ID!], $channel: String) {
-            productVariants(ids: $ids, first: 1, channel: $channel) {
-                edges {
-                    node {
-                        id
-                    }
+QUERY_PRODUCT_VARIANTS_BY_IDS = """
+    query getProduct($ids: [ID!], $channel: String) {
+        productVariants(ids: $ids, first: 1, channel: $channel) {
+            edges {
+                node {
+                    id
                 }
             }
         }
-    """
+    }
+"""
+
+
+def test_product_variants_by_ids(user_api_client, variant, channel_USD):
+    query = QUERY_PRODUCT_VARIANTS_BY_IDS
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
 
     variables = {"ids": [variant_id], "channel": channel_USD.slug}
@@ -2615,6 +2622,30 @@ def test_product_variants_by_ids(user_api_client, variant, channel_USD):
     data = content["data"]["productVariants"]
     assert data["edges"][0]["node"]["id"] == variant_id
     assert len(data["edges"]) == 1
+
+
+def test_product_variants_by_invalid_ids(user_api_client, variant, channel_USD):
+    query = QUERY_PRODUCT_VARIANTS_BY_IDS
+    variant_id = "cbs"
+
+    variables = {"ids": [variant_id], "channel": channel_USD.slug}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == f"Couldn't resolve id: {variant_id}."
+    assert content["data"]["productVariants"] is None
+
+
+def test_product_variants_by_ids_that_do_not_exist(
+    user_api_client, variant, channel_USD
+):
+    query = QUERY_PRODUCT_VARIANTS_BY_IDS
+    variant_id = graphene.Node.to_global_id("Order", -1)
+
+    variables = {"ids": [variant_id], "channel": channel_USD.slug}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["productVariants"]["edges"] == []
 
 
 def test_product_variants_visible_in_listings_by_customer(
@@ -3989,7 +4020,7 @@ VARIANT_STOCKS_DELETE_MUTATION = """
                     }
                 }
             }
-            stockErrors{
+            errors{
                 field
                 code
                 message
@@ -4028,7 +4059,7 @@ def test_product_variant_stocks_delete_mutation(
     data = content["data"]["productVariantStocksDelete"]
 
     variant.refresh_from_db()
-    assert not data["stockErrors"]
+    assert not data["errors"]
     assert (
         len(data["productVariant"]["stocks"])
         == variant.stocks.count()
@@ -4064,9 +4095,35 @@ def test_product_variant_stocks_delete_mutation_invalid_warehouse_id(
     data = content["data"]["productVariantStocksDelete"]
 
     variant.refresh_from_db()
-    assert not data["stockErrors"]
+    assert not data["errors"]
     assert (
         len(data["productVariant"]["stocks"]) == variant.stocks.count() == stocks_count
     )
     assert data["productVariant"]["stocks"][0]["quantity"] == 10
     assert data["productVariant"]["stocks"][0]["warehouse"]["slug"] == warehouse.slug
+
+
+def test_product_variant_stocks_delete_mutation_invalid_object_type_of_warehouse_id(
+    staff_api_client, variant, warehouse, permission_manage_products
+):
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    Stock.objects.bulk_create(
+        [Stock(product_variant=variant, warehouse=warehouse, quantity=10)]
+    )
+
+    warehouse_ids = [graphene.Node.to_global_id("Product", warehouse.id)]
+
+    variables = {"variantId": variant_id, "warehouseIds": warehouse_ids}
+    response = staff_api_client.post_graphql(
+        VARIANT_STOCKS_DELETE_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantStocksDelete"]
+
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductErrorCode.GRAPHQL_ERROR.name
+    assert errors[0]["field"] == "warehouseIds"
