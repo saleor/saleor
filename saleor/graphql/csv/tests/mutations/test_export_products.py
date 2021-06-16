@@ -401,9 +401,7 @@ def test_export_products_mutation_with_attribute_ids_invalid_object_type(
     products = product_list[:2]
 
     ids = []
-    pks = set()
     for product in products:
-        pks.add(str(product.pk))
         ids.append(graphene.Node.to_global_id("Product", product.pk))
 
     attribute_pks = [str(attr.pk) for attr in Attribute.objects.all()]
@@ -459,9 +457,7 @@ def test_export_products_mutation_with_channel_ids_invalid_object_type(
     products = product_list[:2]
 
     ids = []
-    pks = set()
     for product in products:
-        pks.add(str(product.pk))
         ids.append(graphene.Node.to_global_id("Product", product.pk))
 
     attribute_pks = [str(attr.pk) for attr in Attribute.objects.all()]
