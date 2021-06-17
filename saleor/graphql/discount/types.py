@@ -186,6 +186,7 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
             "providing valid voucher codes."
         )
         only_fields = [
+            "only_for_staff",
             "apply_once_per_order",
             "apply_once_per_customer",
             "code",
