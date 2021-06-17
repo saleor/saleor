@@ -1920,6 +1920,7 @@ def product_variant_list(product, channel_USD, channel_PLN):
                 ProductVariant(product=product, sku="1"),
                 ProductVariant(product=product, sku="2"),
                 ProductVariant(product=product, sku="3"),
+                ProductVariant(product=product, sku="4"),
             ]
         )
     )
@@ -1941,6 +1942,13 @@ def product_variant_list(product, channel_USD, channel_PLN):
             ),
             ProductVariantChannelListing(
                 variant=variants[2],
+                channel=channel_PLN,
+                cost_price_amount=Decimal(1),
+                price_amount=Decimal(10),
+                currency=channel_PLN.currency_code,
+            ),
+            ProductVariantChannelListing(
+                variant=variants[3],
                 channel=channel_PLN,
                 cost_price_amount=Decimal(1),
                 price_amount=Decimal(10),
@@ -4312,7 +4320,7 @@ def stocks_for_cc(warehouses_for_cc, product_variant_list):
 
 @pytest.fixture
 def checkout_for_cc(channel_USD, customer_user, product_variant_list):
-    checkout = Checkout.objects.create(
+    return Checkout.objects.create(
         user=customer_user,
         channel=channel_USD,
         billing_address=customer_user.default_billing_address,
@@ -4320,21 +4328,33 @@ def checkout_for_cc(channel_USD, customer_user, product_variant_list):
         note="Test notes",
         currency="USD",
     )
+
+
+@pytest.fixture
+def checkout_with_lines(checkout_for_cc, product_variant_list):
     CheckoutLine.objects.bulk_create(
         [
             CheckoutLine(
-                checkout=checkout, variant=product_variant_list[0], quantity=1
+                checkout=checkout_for_cc, variant=product_variant_list[0], quantity=1
             ),
             CheckoutLine(
-                checkout=checkout, variant=product_variant_list[1], quantity=1
+                checkout=checkout_for_cc, variant=product_variant_list[1], quantity=1
             ),
             CheckoutLine(
-                checkout=checkout, variant=product_variant_list[2], quantity=1
+                checkout=checkout_for_cc, variant=product_variant_list[2], quantity=1
             ),
         ]
     )
 
-    return checkout
+    return checkout_for_cc
+
+
+@pytest.fixture
+def checkout_for_cc_one_line(checkout_for_cc, product_variant_list):
+    CheckoutLine.objects.create(
+        checkout=checkout_for_cc, variant=product_variant_list[0], quantity=1
+    )
+    return checkout_for_cc
 
 
 @pytest.fixture
