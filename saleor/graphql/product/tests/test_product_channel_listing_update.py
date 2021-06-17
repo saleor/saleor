@@ -1034,6 +1034,43 @@ def test_product_channel_listing_update_publish_product_without_category(
     assert len(errors) == 1
 
 
+def test_product_channel_listing_update_available_for_purchase_product_without_category(
+    staff_api_client, product, permission_manage_products, channel_USD, channel_PLN
+):
+    # given
+    product.channel_listings.all().delete()
+    product.category = None
+    product.save()
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    channel_usd_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    channel_pln_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+    variables = {
+        "id": product_id,
+        "input": {
+            "updateChannels": [
+                {"channelId": channel_usd_id, "isAvailableForPurchase": True},
+                {"channelId": channel_pln_id, "isAvailableForPurchase": False},
+            ]
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_products,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["productChannelListingUpdate"]
+    errors = data["errors"]
+    assert errors[0]["field"] == "isPublished"
+    assert errors[0]["code"] == ProductErrorCode.PRODUCT_WITHOUT_CATEGORY.name
+    assert errors[0]["channels"] == [channel_usd_id]
+    assert len(errors) == 1
+
+
 def test_product_channel_listing_add_variant_as_staff_user(
     staff_api_client, product, permission_manage_products, channel_USD
 ):
