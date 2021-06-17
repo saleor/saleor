@@ -6,6 +6,7 @@ import django_filters
 import graphene
 from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db.models import Exists, F, FloatField, OuterRef, Q, Subquery, Sum
+from django.db.models.fields import IntegerField
 from django.db.models.functions import Cast, Coalesce
 from graphene_django.filter import GlobalIDMultipleChoiceFilter
 
@@ -29,7 +30,7 @@ from ...product.models import (
     ProductVariant,
     ProductVariantChannelListing,
 )
-from ...warehouse.models import Stock
+from ...warehouse.models import Allocation, Stock
 from ..channel.filters import get_channel_slug_from_filter_data
 from ..core.filters import (
     EnumFilter,
@@ -215,24 +216,25 @@ def filter_products_by_collections(qs, collection_pks):
 
 
 def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
-    total_stock = (
-        Stock.objects.for_channel(channel_slug)
-        .select_related("product_variant")
-        .values("product_variant__product_id")
-        .annotate(
-            total_quantity_allocated=Coalesce(Sum("allocations__quantity_allocated"), 0)
-        )
-        .annotate(total_quantity=Coalesce(Sum("quantity"), 0))
-        .annotate(total_available=F("total_quantity") - F("total_quantity_allocated"))
-        .filter(
-            total_available__lte=0,
-        )
-        .values_list("product_variant__product_id", flat=True)
+    allocations = (
+        Allocation.objects.values("stock_id")
+        .filter(quantity_allocated__gt=0, stock_id=OuterRef("pk"))
+        .values_list(Sum("quantity_allocated"))
     )
+    allocated_subquery = Subquery(queryset=allocations, output_field=IntegerField())
+
+    stocks = list(
+        Stock.objects.for_channel(channel_slug)
+        .filter(quantity__gt=Coalesce(allocated_subquery, 0))
+        .values_list("product_variant_id", flat=True)
+    )
+
+    variants = ProductVariant.objects.filter(pk__in=stocks).values("product_id")
+
     if stock_availability == StockAvailability.IN_STOCK:
-        qs = qs.exclude(id__in=Subquery(total_stock))
-    elif stock_availability == StockAvailability.OUT_OF_STOCK:
-        qs = qs.filter(id__in=Subquery(total_stock))
+        qs = qs.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
+    if stock_availability == StockAvailability.OUT_OF_STOCK:
+        qs = qs.filter(~Exists(variants.filter(product_id=OuterRef("pk"))))
     return qs
 
 
