@@ -11,7 +11,6 @@ from django_countries.fields import Country, CountryField
 from django_prices.models import MoneyField
 from prices import Money
 
-from ..account.models import Address
 from ..channel.models import Channel
 from ..core.models import ModelWithMetadata
 from ..core.permissions import CheckoutPermissions
@@ -53,10 +52,18 @@ class Checkout(ModelWithMetadata):
         on_delete=models.PROTECT,
     )
     billing_address = models.ForeignKey(
-        Address, related_name="+", editable=False, null=True, on_delete=models.SET_NULL
+        "account.Address",
+        related_name="+",
+        editable=False,
+        null=True,
+        on_delete=models.SET_NULL,
     )
     shipping_address = models.ForeignKey(
-        Address, related_name="+", editable=False, null=True, on_delete=models.SET_NULL
+        "account.Address",
+        related_name="+",
+        editable=False,
+        null=True,
+        on_delete=models.SET_NULL,
     )
     shipping_method = models.ForeignKey(
         ShippingMethod,

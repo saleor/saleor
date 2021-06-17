@@ -4,6 +4,10 @@ from ...core.tracing import traced_resolver
 from ..utils import get_user_or_app_from_context
 
 
+def resolve_checkout_line(id):
+    return models.CheckoutLine.objects.filter(id=id).first()
+
+
 def resolve_checkout_lines():
     queryset = models.CheckoutLine.objects.all()
     return queryset

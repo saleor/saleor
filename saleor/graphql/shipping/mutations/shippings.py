@@ -541,8 +541,8 @@ class ShippingPriceExcludeProducts(BaseMutation):
         input = data.get("input")
         product_ids = input.get("products", [])
 
-        _, product_db_ids = resolve_global_ids_to_primary_keys(
-            product_ids, product_types.Product
+        product_db_ids = cls.get_global_ids_or_error(
+            product_ids, product_types.Product, field="products"
         )
 
         product_to_exclude = product_models.Product.objects.filter(
@@ -585,8 +585,8 @@ class ShippingPriceRemoveProductFromExclude(BaseMutation):
         )
         product_ids = data.get("products")
         if product_ids:
-            _, product_db_ids = resolve_global_ids_to_primary_keys(
-                product_ids, product_types.Product
+            product_db_ids = cls.get_global_ids_or_error(
+                product_ids, product_types.Product, field="products"
             )
             shipping_method.excluded_products.set(
                 shipping_method.excluded_products.exclude(id__in=product_db_ids)

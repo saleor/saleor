@@ -43,7 +43,6 @@ from ..channel.utils import clean_channel
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.types.common import CheckoutError
-from ..core.utils import from_global_id_or_error
 from ..core.validators import validate_variants_available_in_channel
 from ..order.types import Order
 from ..product.types import ProductVariant
@@ -56,6 +55,7 @@ ERROR_DOES_NOT_SHIP = "This checkout doesn't need shipping"
 
 
 if TYPE_CHECKING:
+    from ...account.models import Address
     from ...checkout.fetch import CheckoutInfo
 
 
@@ -274,7 +274,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return variants, quantities
 
     @classmethod
-    def retrieve_shipping_address(cls, user, data: dict) -> Optional[models.Address]:
+    def retrieve_shipping_address(cls, user, data: dict) -> Optional["Address"]:
         if data.get("shipping_address") is not None:
             return cls.validate_address(
                 data["shipping_address"], address_type=AddressType.SHIPPING
@@ -284,7 +284,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return None
 
     @classmethod
-    def retrieve_billing_address(cls, user, data: dict) -> Optional[models.Address]:
+    def retrieve_billing_address(cls, user, data: dict) -> Optional["Address"]:
         if data.get("billing_address") is not None:
             return cls.validate_address(
                 data["billing_address"], address_type=AddressType.BILLING
@@ -559,7 +559,8 @@ class CheckoutCustomerAttach(BaseMutation):
         )
 
         checkout.user = info.context.user
-        checkout.save(update_fields=["user", "last_change"])
+        checkout.email = info.context.user.email
+        checkout.save(update_fields=["email", "user", "last_change"])
 
         info.context.plugins.checkout_updated(checkout)
         return CheckoutCustomerAttach(checkout=checkout)
@@ -627,7 +628,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, shipping_address):
-        _type, pk = from_global_id_or_error(
+        pk = cls.get_global_id_or_error(
             checkout_id, only_type=Checkout, field="checkout_id"
         )
 
@@ -901,7 +902,7 @@ class CheckoutComplete(BaseMutation):
                     field="checkout_id",
                 )
             except ValidationError as e:
-                _type, checkout_token = from_global_id_or_error(
+                checkout_token = cls.get_global_id_or_error(
                     checkout_id, only_type=Checkout, field="checkout_id"
                 )
 

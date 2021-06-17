@@ -1,8 +1,9 @@
 import graphene
 
-from ..channel import ChannelContext, ChannelQsContext
+from ..channel import ChannelQsContext
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core.fields import ChannelContextFilterConnectionField
+from ..core.utils import from_global_id_or_error
 from ..translations.mutations import MenuItemTranslate
 from .bulk_mutations import MenuBulkDelete, MenuItemBulkDelete
 from .filters import MenuFilterInput, MenuItemFilterInput
@@ -16,7 +17,12 @@ from .mutations import (
     MenuItemUpdate,
     MenuUpdate,
 )
-from .resolvers import resolve_menu, resolve_menu_items, resolve_menus
+from .resolvers import (
+    resolve_menu,
+    resolve_menu_item,
+    resolve_menu_items,
+    resolve_menus,
+)
 from .sorters import MenuItemSortingInput, MenuSortingInput
 from .types import Menu, MenuItem
 
@@ -76,10 +82,8 @@ class MenuQueries(graphene.ObjectType):
     def resolve_menu_item(self, info, channel=None, **data):
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
-        menu_item = graphene.Node.get_node_from_global_id(
-            info, data.get("id"), MenuItem
-        )
-        return ChannelContext(node=menu_item, channel_slug=channel)
+        _, id = from_global_id_or_error(data.get("id"), MenuItem)
+        return resolve_menu_item(id, channel)
 
     def resolve_menu_items(self, info, channel=None, **kwargs):
         if channel is None:

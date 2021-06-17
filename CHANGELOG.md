@@ -115,6 +115,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Order events performance - #7424 by tomaszszymanski129
 - Add hash to uploading images #7453 by @IKarbowiak
 - Add file format validation for uploaded images - #7447 by @IKarbowiak
+- Fix attaching params for address form errors - #7485 by @IKarbowiak
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -265,6 +266,7 @@ All notable, unreleased changes to this project will be documented in this file.
     - deprecate `companyName` on `Warehouse` type
     - remove `companyName` on `WarehouseInput` type
     - remove `WarehouseAddressInput` on `WarehouseUpdateInput` and `WarehouseCreateInput`, and change it to `AddressInput`
+- Fix passing incorrect customer email to payment gateways - #7486 by @korycins
 
 # 2.11.1
 
