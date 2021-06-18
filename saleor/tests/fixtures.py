@@ -1949,10 +1949,10 @@ def product_variant_list(product, channel_USD, channel_PLN):
             ),
             ProductVariantChannelListing(
                 variant=variants[3],
-                channel=channel_PLN,
+                channel=channel_USD,
                 cost_price_amount=Decimal(1),
                 price_amount=Decimal(10),
-                currency=channel_PLN.currency_code,
+                currency=channel_USD.currency_code,
             ),
         ]
     )

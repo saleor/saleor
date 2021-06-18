@@ -2,7 +2,10 @@ import graphene
 from promise import Promise
 
 from ...checkout import calculations, models
-from ...checkout.utils import get_valid_shipping_methods_for_checkout
+from ...checkout.utils import (
+    get_valid_collection_points_for_checkout,
+    get_valid_shipping_methods_for_checkout,
+)
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
 from ...core.taxes import zero_taxed_money
@@ -30,6 +33,8 @@ from ..shipping.dataloaders import (
 )
 from ..shipping.types import ShippingMethod
 from ..utils import get_user_or_app_from_context
+from ..warehouse.dataloaders import WarehouseByIdLoader
+from ..warehouse.types import Warehouse
 from .dataloaders import (
     CheckoutByTokenLoader,
     CheckoutInfoByCheckoutTokenLoader,
@@ -159,6 +164,11 @@ class Checkout(CountableDjangoObjectType):
         ShippingMethod,
         required=True,
         description="Shipping methods that can be used with this order.",
+    )
+    available_collection_points = graphene.List(
+        Warehouse,
+        required=False,
+        description="Collection points that can be used for this order.",
     )
     available_payment_gateways = graphene.List(
         graphene.NonNull(PaymentGateway),
@@ -444,6 +454,23 @@ class Checkout(CountableDjangoObjectType):
         return Promise.all([address, lines, checkout_info, discounts, channel]).then(
             calculate_available_shipping_methods
         )
+
+    @staticmethod
+    @traced_resolver
+    def resolve_available_collection_points(root: models.Checkout, info):
+        def get_available_collection_points(data):
+            lines, *rest = data
+            available = get_valid_collection_points_for_checkout(lines)
+            if not available:
+                return []
+
+            available_ids = available.values_list("id", flat=True)
+            return WarehouseByIdLoader(info.context).load_many(available_ids)
+
+        lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
+        checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
+
+        return Promise.all([lines, checkout_info]).then(get_available_collection_points)
 
     @staticmethod
     def resolve_available_payment_gateways(root: models.Checkout, info):
