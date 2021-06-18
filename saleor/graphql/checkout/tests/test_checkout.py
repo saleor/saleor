@@ -2406,13 +2406,12 @@ def test_checkout_billing_address_update(
 ):
     checkout = checkout_with_item
     assert checkout.shipping_address is None
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     query = """
     mutation checkoutBillingAddressUpdate(
-            $checkoutId: ID!, $billingAddress: AddressInput!) {
+            $token: UUID, $billingAddress: AddressInput!) {
         checkoutBillingAddressUpdate(
-                checkoutId: $checkoutId, billingAddress: $billingAddress) {
+                token: $token, billingAddress: $billingAddress) {
             checkout {
                 token,
                 id
@@ -2426,7 +2425,7 @@ def test_checkout_billing_address_update(
     """
     billing_address = graphql_address_data
 
-    variables = {"checkoutId": checkout_id, "billingAddress": billing_address}
+    variables = {"token": checkout_with_item.token, "billingAddress": billing_address}
 
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)

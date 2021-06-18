@@ -2869,7 +2869,7 @@ type Mutation {
   exportProducts(input: ExportProductsInput!): ExportProducts
   fileUpload(file: Upload!): FileUpload
   checkoutAddPromoCode(checkoutId: ID, promoCode: String!, token: UUID): CheckoutAddPromoCode
-  checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID!): CheckoutBillingAddressUpdate
+  checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID, token: UUID): CheckoutBillingAddressUpdate
   checkoutComplete(checkoutId: ID!, paymentData: JSONString, redirectUrl: String, storeSource: Boolean = false): CheckoutComplete
   checkoutCreate(input: CheckoutCreateInput!): CheckoutCreate
   checkoutCustomerAttach(checkoutId: ID!): CheckoutCustomerAttach
