@@ -1,4 +1,5 @@
 import datetime
+import uuid
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
 
 import graphene
@@ -42,8 +43,12 @@ from ..account.types import AddressInput
 from ..channel.utils import clean_channel
 from ..core.enums import LanguageCodeEnum
 from ..core.mutations import BaseMutation, ModelMutation
+from ..core.scalars import UUID
 from ..core.types.common import CheckoutError
-from ..core.validators import validate_variants_available_in_channel
+from ..core.validators import (
+    validate_one_of_args_is_in_mutation,
+    validate_variants_available_in_channel,
+)
 from ..order.types import Order
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
@@ -194,6 +199,23 @@ def validate_variants_available_for_purchase(variants_id: set, channel_id: int):
                 )
             }
         )
+
+
+def get_checkout_by_token(token: uuid.UUID, prefetch_lookups: Iterable[str] = []):
+    try:
+        checkout = models.Checkout.objects.prefetch_related(*prefetch_lookups).get(
+            token=token
+        )
+    except ObjectDoesNotExist:
+        raise ValidationError(
+            {
+                "token": ValidationError(
+                    f"Couldn't resolve to a node: {token}",
+                    code=CheckoutErrorCode.NOT_FOUND.value,
+                )
+            }
+        )
+    return checkout
 
 
 class CheckoutLineInput(graphene.InputObjectType):
@@ -958,7 +980,14 @@ class CheckoutAddPromoCode(BaseMutation):
     )
 
     class Arguments:
-        checkout_id = graphene.ID(description="Checkout ID.", required=True)
+        checkout_id = graphene.ID(
+            description=(
+                "Checkout ID. "
+                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+            ),
+            required=False,
+        )
+        token = UUID(description="Checkout token.", required=False)
         promo_code = graphene.String(
             description="Gift card code or voucher code.", required=True
         )
@@ -969,10 +998,20 @@ class CheckoutAddPromoCode(BaseMutation):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id, promo_code):
-        checkout = cls.get_node_or_error(
-            info, checkout_id, only_type=Checkout, field="checkout_id"
+    def perform_mutation(cls, _root, info, promo_code, checkout_id=None, token=None):
+        # DEPRECATED
+        validate_one_of_args_is_in_mutation(
+            CheckoutErrorCode, "checkout_id", checkout_id, "token", token
         )
+
+        if token:
+            checkout = get_checkout_by_token(token)
+        # DEPRECATED
+        else:
+            checkout = cls.get_node_or_error(
+                info, checkout_id or token, only_type=Checkout, field="checkout_id"
+            )
+
         manager = info.context.plugins
         lines = fetch_checkout_lines(checkout)
         checkout_info = fetch_checkout_info(
