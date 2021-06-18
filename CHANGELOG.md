@@ -115,6 +115,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Order events performance - #7424 by tomaszszymanski129
 - Add hash to uploading images #7453 by @IKarbowiak
 - Add file format validation for uploaded images - #7447 by @IKarbowiak
+- Add boolean attributes - #7454 by @piotrgrundas
 - Fix attaching params for address form errors - #7485 by @IKarbowiak
 
 ### Breaking

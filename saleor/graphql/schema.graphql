@@ -519,6 +519,7 @@ input AttributeInput {
   slug: String!
   values: [String]
   valuesRange: IntRangeInput
+  boolean: Boolean
 }
 
 enum AttributeInputTypeEnum {
@@ -528,6 +529,7 @@ enum AttributeInputTypeEnum {
   REFERENCE
   NUMERIC
   RICH_TEXT
+  BOOLEAN
 }
 
 type AttributeReorderValues {
@@ -608,6 +610,7 @@ type AttributeValue implements Node {
   reference: ID
   file: File
   richText: JSONString
+  boolean: Boolean
 }
 
 type AttributeValueBulkDelete {
@@ -658,6 +661,7 @@ input AttributeValueInput {
   contentType: String
   references: [ID!]
   richText: JSONString
+  boolean: Boolean
 }
 
 type AttributeValueTranslatableContent implements Node {
