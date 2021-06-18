@@ -1719,7 +1719,7 @@ def test_products_query_with_filter_attributes(
 
 
 @pytest.mark.parametrize(
-    "gte, lte, expected_products",
+    "gte, lte, expected_products_index",
     [
         (None, 8, [1]),
         (0, 8, [1]),
@@ -1734,7 +1734,7 @@ def test_products_query_with_filter_attributes(
 def test_products_query_with_filter_numeric_attributes(
     gte,
     lte,
-    expected_products,
+    expected_products_index,
     query_products_with_filter,
     staff_api_client,
     product,
@@ -1792,12 +1792,79 @@ def test_products_query_with_filter_numeric_attributes(
     content = get_graphql_content(response)
     products = content["data"]["products"]["edges"]
 
-    assert len(products) == len(expected_products)
+    assert len(products) == len(expected_products_index)
     assert set(product["node"]["id"] for product in products) == {
-        products_ids[index] for index in expected_products
+        products_ids[index] for index in expected_products_index
     }
     assert set(product["node"]["name"] for product in products) == {
-        products_instances[index].name for index in expected_products
+        products_instances[index].name for index in expected_products_index
+    }
+
+
+@pytest.mark.parametrize(
+    "filter_value, expected_products_index",
+    [
+        (False, [0, 1]),
+        (True, [0]),
+    ],
+)
+def test_products_query_with_filter_boolean_attributes(
+    filter_value,
+    expected_products_index,
+    query_products_with_filter,
+    staff_api_client,
+    product,
+    category,
+    boolean_attribute,
+    permission_manage_products,
+):
+    product.product_type.product_attributes.add(boolean_attribute)
+
+    associate_attribute_values_to_instance(
+        product, boolean_attribute, boolean_attribute.values.get(boolean=filter_value)
+    )
+
+    product_type = ProductType.objects.create(
+        name="Custom Type",
+        slug="custom-type",
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    boolean_attribute.product_types.add(product_type)
+
+    second_product = Product.objects.create(
+        name="Second product",
+        slug="second-product",
+        product_type=product_type,
+        category=category,
+    )
+    associate_attribute_values_to_instance(
+        second_product, boolean_attribute, boolean_attribute.values.get(boolean=False)
+    )
+
+    second_product.refresh_from_db()
+    products_instances = [product, second_product]
+    products_ids = [
+        graphene.Node.to_global_id("Product", p.pk) for p in products_instances
+    ]
+
+    variables = {
+        "filter": {
+            "attributes": [{"slug": boolean_attribute.slug, "boolean": filter_value}]
+        }
+    }
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == len(expected_products_index)
+    assert set(product["node"]["id"] for product in products) == {
+        products_ids[index] for index in expected_products_index
+    }
+    assert set(product["node"]["name"] for product in products) == {
+        products_instances[index].name for index in expected_products_index
     }
 
 
@@ -3022,6 +3089,7 @@ CREATE_PRODUCT_MUTATION = """
                                     name
                                     reference
                                     richText
+                                    boolean
                                     file {
                                         url
                                         contentType
@@ -3231,16 +3299,77 @@ def test_create_product_with_rich_text_attribute(
             "values": [
                 {
                     "slug": f"{product_id}_{rich_text_attribute.id}",
-                    "name": "test producttest producttest producttest productt…",
+                    "name": (
+                        "test producttest producttest producttest producttest product"
+                    ),
                     "reference": None,
                     "richText": rich_text,
                     "file": None,
+                    "boolean": None,
                 }
             ],
         },
     ]
+
     for attr_data in data["product"]["attributes"]:
         assert attr_data in expected_attributes_data
+
+
+def test_create_product_with_boolean_attribute(
+    staff_api_client,
+    product_type,
+    category,
+    boolean_attribute,
+    permission_manage_products,
+    product,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+
+    # Add second attribute
+    product_type.product_attributes.add(boolean_attribute)
+    boolean_attribute_id = graphene.Node.to_global_id("Attribute", boolean_attribute.id)
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "attributes": [
+                {
+                    "id": boolean_attribute_id,
+                    "boolean": False,
+                }
+            ],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["errors"] == []
+    assert data["product"]["name"] == product_name
+
+    expected_attributes_data = {
+        "attribute": {"slug": "boolean"},
+        "values": [
+            {
+                "slug": f"{boolean_attribute.id}_false",
+                "name": "Boolean: No",
+                "reference": None,
+                "richText": None,
+                "boolean": False,
+                "file": None,
+            }
+        ],
+    }
+    assert expected_attributes_data in data["product"]["attributes"]
 
 
 SEARCH_PRODUCTS_QUERY = """
@@ -3492,6 +3621,7 @@ def test_create_product_with_file_attribute(
                     },
                     "reference": None,
                     "richText": None,
+                    "boolean": None,
                 }
             ],
         },
@@ -3560,6 +3690,7 @@ def test_create_product_with_page_reference_attribute(
                     "name": page.title,
                     "file": None,
                     "richText": None,
+                    "boolean": None,
                     "reference": reference,
                 }
             ],
@@ -3629,6 +3760,7 @@ def test_create_product_with_product_reference_attribute(
                     "name": product.name,
                     "file": None,
                     "richText": None,
+                    "boolean": None,
                     "reference": reference,
                 }
             ],
@@ -3698,6 +3830,7 @@ def test_create_product_with_product_reference_attribute_values_saved_in_order(
             "name": product.name,
             "file": None,
             "richText": None,
+            "boolean": None,
             "reference": reference,
         }
         for product, reference in zip(reference_instances, reference_ids)
@@ -3770,6 +3903,7 @@ def test_create_product_with_file_attribute_new_attribute_value(
                     "slug": slugify(non_existing_value, allow_unicode=True),
                     "reference": None,
                     "richText": None,
+                    "boolean": None,
                     "file": {
                         "url": "http://testserver/media/" + non_existing_value,
                         "contentType": None,
@@ -4808,6 +4942,7 @@ MUTATION_UPDATE_PRODUCT = """
                             id
                             name
                             slug
+                            boolean
                             reference
                             file {
                                 url
@@ -4981,6 +5116,59 @@ def test_update_product_without_description_clear_description_plaintext(
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_with_boolean_attribute_value(
+    updated_webhook_mock,
+    staff_api_client,
+    product,
+    product_type,
+    boolean_attribute,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", boolean_attribute.pk)
+    product_type.product_attributes.add(boolean_attribute)
+
+    new_value = False
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "boolean": new_value}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["errors"] == []
+
+    attributes = data["product"]["attributes"]
+    assert len(attributes) == 2
+    expected_att_data = {
+        "attribute": {"id": attribute_id, "name": boolean_attribute.name},
+        "values": [
+            {
+                "id": ANY,
+                "name": "Boolean: No",
+                "boolean": new_value,
+                "slug": f"{boolean_attribute.id}_false",
+                "reference": None,
+                "file": None,
+            }
+        ],
+    }
+    assert expected_att_data in attributes
+
+    updated_webhook_mock.assert_called_once_with(product)
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_update_product_with_file_attribute_value(
     updated_webhook_mock,
     staff_api_client,
@@ -5029,6 +5217,7 @@ def test_update_product_with_file_attribute_value(
                     "url": "http://testserver/media/" + new_value,
                     "contentType": None,
                 },
+                "boolean": None,
             }
         ],
     }
@@ -5090,6 +5279,7 @@ def test_update_product_with_file_attribute_value_new_value_is_not_created(
                     "url": f"http://testserver/media/{existing_value.file_url}",
                     "contentType": existing_value.content_type,
                 },
+                "boolean": None,
             }
         ],
     }
@@ -5147,6 +5337,7 @@ def test_update_product_with_numeric_attribute_value(
                 ),
                 "reference": None,
                 "file": None,
+                "boolean": None,
             }
         ],
     }
@@ -5208,6 +5399,7 @@ def test_update_product_with_numeric_attribute_value_new_value_is_not_created(
                 "slug": slug_value,
                 "reference": None,
                 "file": None,
+                "boolean": None,
             }
         ],
     }
@@ -5342,6 +5534,7 @@ def test_update_product_with_page_reference_attribute_value(
                 "slug": f"{product.id}_{page.id}",
                 "file": None,
                 "reference": reference,
+                "boolean": None,
             }
         ],
     }
@@ -5415,6 +5608,7 @@ def test_update_product_with_page_reference_attribute_existing_value(
                 "slug": f"{product.id}_{page.id}",
                 "file": None,
                 "reference": reference,
+                "boolean": None,
             }
         ],
     }
@@ -5526,6 +5720,7 @@ def test_update_product_with_product_reference_attribute_value(
                 "slug": f"{product.id}_{product_ref.id}",
                 "file": None,
                 "reference": reference,
+                "boolean": None,
             }
         ],
     }
@@ -5600,6 +5795,7 @@ def test_update_product_with_product_reference_attribute_existing_value(
                 "slug": f"{product.id}_{product_ref.id}",
                 "file": None,
                 "reference": reference,
+                "boolean": None,
             }
         ],
     }
@@ -6704,6 +6900,7 @@ PRODUCT_TYPE_CREATE_MUTATION = """
                             node {
                                 name
                                 richText
+                                boolean
                             }
                         }
 
@@ -6822,8 +7019,8 @@ def test_create_product_type_with_rich_text_attribute(
             "name": "Color",
             "choices": {
                 "edges": [
-                    {"node": {"name": "Red", "richText": None}},
-                    {"node": {"name": "Blue", "richText": None}},
+                    {"node": {"name": "Red", "richText": None, "boolean": None}},
+                    {"node": {"name": "Blue", "richText": None, "boolean": None}},
                 ]
             },
         },
@@ -6834,6 +7031,41 @@ def test_create_product_type_with_rich_text_attribute(
     ]
     for attribute in data["productAttributes"]:
         assert attribute in expected_attributes
+
+
+def test_create_product_type_with_boolean_attribute(
+    staff_api_client,
+    product_type,
+    permission_manage_product_types_and_attributes,
+    boolean_attribute,
+):
+    query = PRODUCT_TYPE_CREATE_MUTATION
+    product_type_name = "test type"
+    slug = "test-type"
+
+    product_type.product_attributes.add(boolean_attribute)
+    product_attributes_ids = [
+        graphene.Node.to_global_id("Attribute", attr.id)
+        for attr in product_type.product_attributes.all()
+    ]
+
+    variables = {
+        "name": product_type_name,
+        "slug": slug,
+        "productAttributes": product_attributes_ids,
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productTypeCreate"]["productType"]
+    errors = content["data"]["productTypeCreate"]["errors"]
+
+    assert not errors
+    assert data["name"] == product_type_name
+    assert data["slug"] == slug
+    assert {"choices": {"edges": []}, "name": "Boolean"} in data["productAttributes"]
 
 
 @pytest.mark.parametrize(

@@ -361,6 +361,7 @@ CREATE_VARIANT_MUTATION = """
                                 slug
                                 reference
                                 richText
+                                boolean
                                 file {
                                     url
                                     contentType
@@ -499,6 +500,69 @@ def test_create_variant_with_file_attribute(
     file_attribute.refresh_from_db()
     assert file_attribute.values.count() == values_count + 1
 
+    created_webhook_mock.assert_called_once_with(product.variants.last())
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_created")
+def test_create_variant_with_boolean_attribute(
+    created_webhook_mock,
+    permission_manage_products,
+    product,
+    product_type,
+    staff_api_client,
+    boolean_attribute,
+    size_attribute,
+    warehouse,
+):
+    product_type.variant_attributes.add(boolean_attribute)
+    query = CREATE_VARIANT_MUTATION
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    boolean_attr_id = graphene.Node.to_global_id("Attribute", boolean_attribute.id)
+    size_attr_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
+
+    variables = {
+        "productId": product_id,
+        "sku": "1",
+        "stocks": [
+            {
+                "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
+                "quantity": 20,
+            }
+        ],
+        "costPrice": 3.22,
+        "price": 1.32,
+        "weight": 10.22,
+        "attributes": [
+            {"id": boolean_attr_id, "boolean": True},
+            {"id": size_attr_id, "values": ["XXXL"]},
+        ],
+        "trackInventory": True,
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)["data"]["productVariantCreate"]
+    flush_post_commit_hooks()
+    data = content["productVariant"]
+
+    assert not content["errors"]
+    assert data["name"] == "Boolean: Yes / XXXL"
+    expected_attribute_data = {
+        "attribute": {"slug": "boolean"},
+        "values": [
+            {
+                "name": "Boolean: Yes",
+                "slug": f"{boolean_attribute.id}_true",
+                "reference": None,
+                "richText": None,
+                "boolean": True,
+                "file": None,
+            }
+        ],
+    }
+
+    assert expected_attribute_data in data["attributes"]
     created_webhook_mock.assert_called_once_with(product.variants.last())
 
 
@@ -694,6 +758,7 @@ def test_create_variant_with_page_reference_attribute(
             "richText": None,
             "reference": page_ref_1,
             "name": page_list[0].title,
+            "boolean": None,
         },
         {
             "slug": f"{variant_pk}_{page_list[1].pk}",
@@ -701,6 +766,7 @@ def test_create_variant_with_page_reference_attribute(
             "richText": None,
             "reference": page_ref_2,
             "name": page_list[1].title,
+            "boolean": None,
         },
     ]
     for value in expected_values:
@@ -844,6 +910,7 @@ def test_create_variant_with_product_reference_attribute(
             "richText": None,
             "reference": product_ref_1,
             "name": product_list[0].name,
+            "boolean": None,
         },
         {
             "slug": f"{variant_pk}_{product_list[1].pk}",
@@ -851,6 +918,7 @@ def test_create_variant_with_product_reference_attribute(
             "richText": None,
             "reference": product_ref_2,
             "name": product_list[1].name,
+            "boolean": None,
         },
     ]
     for value in expected_values:
@@ -1495,6 +1563,7 @@ QUERY_UPDATE_VARIANT_ATTRIBUTES = """
                             }
                             reference
                             richText
+                            boolean
                         }
                     }
                 }
@@ -1585,6 +1654,56 @@ def test_update_product_variant_with_current_attribute(
     assert variant.sku == sku
     assert variant.attributes.first().values.first().slug == "red"
     assert variant.attributes.last().values.first().slug == "small"
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
+def test_update_variant_with_boolean_attribute(
+    product_variant_updated,
+    permission_manage_products,
+    product,
+    product_type,
+    staff_api_client,
+    boolean_attribute,
+    warehouse,
+    size_attribute,
+):
+    product_type.variant_attributes.add(boolean_attribute)
+    query = QUERY_UPDATE_VARIANT_ATTRIBUTES
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    sku = "123"
+    attr_id = graphene.Node.to_global_id("Attribute", boolean_attribute.id)
+    size_attr_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
+
+    new_value = False
+    values_count = boolean_attribute.values.count()
+    variables = {
+        "id": variant_id,
+        "sku": sku,
+        "attributes": [
+            {"id": size_attr_id, "values": ["XXXL"]},
+            {"id": attr_id, "boolean": new_value},
+        ],
+    }
+
+    associate_attribute_values_to_instance(
+        variant, boolean_attribute, boolean_attribute.values.first()
+    )
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)["data"]["productVariantUpdate"]
+    variant.refresh_from_db()
+    data = content["productVariant"]
+
+    assert not content["errors"]
+    assert data["sku"] == sku
+    assert data["attributes"][-1]["attribute"]["slug"] == boolean_attribute.slug
+    assert data["attributes"][-1]["values"][0]["name"] == "Boolean: No"
+    assert data["attributes"][-1]["values"][0]["boolean"] is new_value
+    assert boolean_attribute.values.count() == values_count
+    product_variant_updated.assert_called_once_with(product.variants.last())
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
