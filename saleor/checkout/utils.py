@@ -28,6 +28,7 @@ from ..plugins.manager import PluginsManager
 from ..product import models as product_models
 from ..shipping.models import ShippingMethod
 from ..warehouse.availability import check_stock_quantity, check_stock_quantity_bulk
+from ..warehouse.models import Warehouse
 from . import AddressType, calculations
 from .error_codes import CheckoutErrorCode
 from .fetch import (
@@ -601,6 +602,15 @@ def get_valid_shipping_methods_for_checkout(
         country_code=country_code,  # type: ignore
         lines=lines,
     )
+
+
+def get_valid_collection_points_for_checkout(
+    lines: Iterable["CheckoutLineInfo"],
+):
+    line_ids = [line_info.line.id for line_info in lines]  # For now
+    lines = CheckoutLine.objects.filter(id__in=line_ids)
+
+    return Warehouse.objects.applicable_for_click_and_collect(lines)
 
 
 def is_valid_shipping_method(checkout_info: "CheckoutInfo"):

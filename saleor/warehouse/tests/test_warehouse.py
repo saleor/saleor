@@ -91,7 +91,7 @@ def test_applicable_for_click_and_collect_additional_stock_does_not_change_avail
 ):
     expected_total_number_of_stocks = 4
     expected_total_number_of_warehouses = 2
-    expected_number_of_checkout_lines = 0
+    expected_number_of_checkout_lines = 3
 
     Stock.objects.create(
         warehouse=warehouses_for_cc[3], product_variant=product_variant_list[3]
