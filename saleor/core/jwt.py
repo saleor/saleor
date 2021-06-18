@@ -174,7 +174,7 @@ def get_user_from_access_payload(payload: dict) -> Optional[User]:
             user.effective_permissions = get_permissions_from_codenames(token_codenames)
             user.is_staff = True if user.effective_permissions else False
 
-        if is_staff := payload.get("is_staff"):
+        if payload.get("is_staff"):
             user.is_staff = True
     return user
 
