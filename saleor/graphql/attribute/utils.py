@@ -121,9 +121,12 @@ class AttributeAssignmentMixin:
     @classmethod
     def _resolve_attribute_global_id(cls, error_class, global_id: str) -> int:
         """Resolve an Attribute global ID into an internal ID (int)."""
-        graphene_type, internal_id = from_global_id_or_error(
-            global_id, only_type="Attribute"
-        )
+        try:
+            graphene_type, internal_id = from_global_id_or_error(
+                global_id, only_type="Attribute"
+            )
+        except GraphQLError as e:
+            raise ValidationError(str(e), code=error_class.GRAPHQL_ERROR.value)
         if not internal_id.isnumeric():
             raise ValidationError(
                 f"An invalid ID value was passed: {global_id}",

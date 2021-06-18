@@ -5,7 +5,6 @@ from graphene_django.filter import GlobalIDMultipleChoiceFilter
 from ...discount.models import OrderDiscount
 from ...order.models import Order
 from ...payment.models import Payment
-from ..channel.types import Channel
 from ..core.filters import ListObjectTypeFilter, MetadataFilterBase, ObjectTypeFilter
 from ..core.types.common import DateRangeInput
 from ..core.utils import from_global_id_or_error
@@ -23,7 +22,7 @@ def filter_payment_status(qs, _, value):
 
 def get_payment_id_from_query(value):
     try:
-        return from_global_id_or_error(value, only_type="Payment", field="pk")[1]
+        return from_global_id_or_error(value, only_type="Payment")[1]
     except Exception:
         return None
 
@@ -95,7 +94,7 @@ def filter_order_search(qs, _, value):
 
 def filter_channels(qs, _, values):
     if values:
-        _, channels_ids = resolve_global_ids_to_primary_keys(values, Channel)
+        _, channels_ids = resolve_global_ids_to_primary_keys(values, "Channel")
         qs = qs.filter(channel_id__in=channels_ids)
     return qs
 

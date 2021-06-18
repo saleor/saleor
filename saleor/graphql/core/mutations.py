@@ -1,7 +1,7 @@
 import os
 import secrets
 from itertools import chain
-from typing import Tuple, Union
+from typing import Iterable, Tuple, Union
 
 import graphene
 from django.core.exceptions import (
@@ -19,7 +19,7 @@ from graphql.error import GraphQLError
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
 from ..decorators import staff_member_or_app_required
-from ..utils import get_nodes
+from ..utils import get_nodes, resolve_global_ids_to_primary_keys
 from .types import Error, File, Upload
 from .types.common import UploadError
 from .utils import from_global_id_or_error, snake_to_camel_case
@@ -140,7 +140,7 @@ class BaseMutation(graphene.Mutation):
         cls._meta.fields.update(fields)
 
     @classmethod
-    def get_node_by_pk(
+    def _get_node_by_pk(
         cls, info, graphene_type: ObjectType, pk: Union[int, str], qs=None
     ):
         """Attempt to resolve a node from the given internal ID.
@@ -155,17 +155,31 @@ class BaseMutation(graphene.Mutation):
         return None
 
     @classmethod
+    def get_global_id_or_error(
+        cls, id: str, only_type: Union[ObjectType, str] = None, field: str = "id"
+    ):
+        try:
+            _object_type, pk = from_global_id_or_error(id, only_type, raise_error=True)
+        except GraphQLError as e:
+            raise ValidationError(
+                {field: ValidationError(str(e), code="graphql_error")}
+            )
+        return pk
+
+    @classmethod
     def get_node_or_error(cls, info, node_id, field="id", only_type=None, qs=None):
         if not node_id:
             return None
 
         try:
-            object_type, pk = from_global_id_or_error(node_id, only_type, field=field)
+            object_type, pk = from_global_id_or_error(
+                node_id, only_type, raise_error=True
+            )
 
             if isinstance(object_type, str):
                 object_type = info.schema.get_type(object_type).graphene_type
 
-            node = cls.get_node_by_pk(info, graphene_type=object_type, pk=pk, qs=qs)
+            node = cls._get_node_by_pk(info, graphene_type=object_type, pk=pk, qs=qs)
         except (AssertionError, GraphQLError) as e:
             raise ValidationError(
                 {field: ValidationError(str(e), code="graphql_error")}
@@ -180,6 +194,23 @@ class BaseMutation(graphene.Mutation):
                     }
                 )
         return node
+
+    @classmethod
+    def get_global_ids_or_error(
+        cls,
+        ids: Iterable[str],
+        only_type: Union[ObjectType, str] = None,
+        field: str = "ids",
+    ):
+        try:
+            _nodes_type, pks = resolve_global_ids_to_primary_keys(
+                ids, only_type, raise_error=True
+            )
+        except GraphQLError as e:
+            raise ValidationError(
+                {field: ValidationError(str(e), code="graphql_error")}
+            )
+        return pks
 
     @classmethod
     def get_nodes_or_error(cls, ids, field, only_type=None, qs=None):
@@ -575,7 +606,10 @@ class BaseBulkMutation(BaseMutation):
             return 0, errors
         instance_model = cls._meta.model
         model_type = registry.get_type_for_model(instance_model)
-        instances = cls.get_nodes_or_error(ids, "id", model_type)
+        try:
+            instances = cls.get_nodes_or_error(ids, "id", model_type)
+        except ValidationError as error:
+            return 0, error
         for instance, node_id in zip(instances, ids):
             instance_errors = []
 

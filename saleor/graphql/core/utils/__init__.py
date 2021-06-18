@@ -7,6 +7,7 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from graphene import ObjectType
+from graphql.error import GraphQLError
 from PIL import Image
 
 from ....core.utils import generate_unique_slug
@@ -139,23 +140,22 @@ def validate_required_string_field(cleaned_input, field_name: str):
 
 
 def from_global_id_or_error(
-    id: str, only_type: Union[ObjectType, str] = None, field: str = "id"
+    id: str, only_type: Union[ObjectType, str] = None, raise_error: bool = False
 ):
     """Resolve database ID from global ID or raise ValidationError.
 
-    Optionally validate the object type, if `only_type` is provided.
+    Optionally validate the object type, if `only_type` is provided,
+    raise GraphQLError when `raise_error` is set to True.
     """
     try:
         _type, _id = graphene.Node.from_global_id(id)
-    except (binascii.Error, UnicodeDecodeError):
-        raise ValidationError(
-            {field: ValidationError(f"Couldn't resolve id: {id}.", code="not_found")}
-        )
+    except (binascii.Error, UnicodeDecodeError, ValueError):
+        raise GraphQLError(f"Couldn't resolve id: {id}.")
 
     if only_type and str(_type) != str(only_type):
-        raise ValidationError(
-            {field: ValidationError(f"Must receive a {only_type} id.", code="invalid")}
-        )
+        if not raise_error:
+            return _type, None
+        raise GraphQLError(f"Must receive a {only_type} id.")
     return _type, _id
 
 

@@ -14,7 +14,6 @@ from ...shipping.tasks import drop_invalid_shipping_methods_relations_for_given_
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import ChannelError, ChannelErrorCode
 from ..core.utils import get_duplicated_values, get_duplicates_ids
-from ..utils import resolve_global_ids_to_primary_keys
 from ..utils.validators import check_for_duplicates
 from .types import Channel
 
@@ -305,8 +304,8 @@ class BaseChannelListingMutation(BaseMutation):
             channels_to_add = cls.get_nodes_or_error(  # type: ignore
                 add_channels_ids, "channel_id", Channel
             )
-        _, remove_channels_pks = resolve_global_ids_to_primary_keys(
-            remove_channels_ids, Channel
+        remove_channels_pks = cls.get_global_ids_or_error(
+            remove_channels_ids, Channel, field="remove_channels"
         )
 
         cleaned_input = {input_source: [], "remove_channels": remove_channels_pks}

@@ -39,7 +39,11 @@ from ...order.mutations.orders import (
     try_payment_action,
 )
 from ...payment.types import PaymentChargeStatusEnum
-from ...tests.utils import assert_no_permission, get_graphql_content
+from ...tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 from ..utils import validate_draft_order
 
 
@@ -1288,6 +1292,40 @@ def test_query_order_as_app(app_api_client, permission_manage_orders, order):
     assert order_data["token"] == order.token
 
 
+QUERY_ORDER_BY_ID = """
+    query OrderQuery($id: ID!) {
+        order(id: $id) {
+            number
+        }
+    }
+"""
+
+
+def test_staff_query_page_type_by_invalid_id(
+    staff_api_client, order, permission_manage_orders
+):
+    id = "bh/"
+    variables = {"id": id}
+    response = staff_api_client.post_graphql(
+        QUERY_ORDER_BY_ID, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
+    assert content["data"]["order"] is None
+
+
+def test_staff_query_page_type_with_invalid_object_type(
+    staff_api_client, order, permission_manage_orders
+):
+    variables = {"id": graphene.Node.to_global_id("Page", order.pk)}
+    response = staff_api_client.post_graphql(
+        QUERY_ORDER_BY_ID, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["order"] is None
+
+
 DRAFT_ORDER_CREATE_MUTATION = """
     mutation draftCreate(
         $user: ID, $discount: PositiveDecimal, $lines: [OrderLineCreateInput],
@@ -2318,6 +2356,41 @@ def test_draft_order_update_tax_error(
     order.refresh_from_db()
     assert not order.voucher
     assert not order.customer_note
+
+
+def test_draft_order_update_invalid_address(
+    staff_api_client,
+    permission_manage_orders,
+    draft_order,
+    voucher,
+    graphql_address_data,
+):
+    order = draft_order
+    assert not order.voucher
+    assert not order.customer_note
+    graphql_address_data["postalCode"] = "TEST TEST invalid postal code 12345"
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+
+    variables = {
+        "id": order_id,
+        "voucher": voucher_id,
+        "shippingAddress": graphql_address_data,
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert len(data["errors"]) == 2
+    assert not data["order"]
+    assert {error["code"] for error in data["errors"]} == {
+        OrderErrorCode.INVALID.name,
+        OrderErrorCode.REQUIRED.name,
+    }
+    assert {error["field"] for error in data["errors"]} == {"postalCode"}
 
 
 def test_draft_order_update_doing_nothing_generates_no_events(

@@ -137,7 +137,11 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
     def validate_product_without_category(cls, cleaned_input, errors: ErrorType):
         channels_with_published_product_without_category = []
         for update_channel in cleaned_input.get("update_channels", []):
-            if update_channel.get("is_published") is True:
+            is_published = update_channel.get("is_published") is True
+            is_available_for_purchase = (
+                update_channel.get("is_available_for_purchase") is True
+            )
+            if is_published or is_available_for_purchase:
                 channels_with_published_product_without_category.append(
                     update_channel["channel_id"]
                 )
