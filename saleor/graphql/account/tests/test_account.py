@@ -750,6 +750,10 @@ ME_QUERY = """
             checkout {
                 token
             }
+            userPermissions {
+                code
+                name
+            }
         }
     }
 """
@@ -760,6 +764,20 @@ def test_me_query(user_api_client):
     content = get_graphql_content(response)
     data = content["data"]["me"]
     assert data["email"] == user_api_client.user.email
+
+
+def test_me_user_permissions_query(
+    user_api_client, permission_manage_users, permission_group_manage_users
+):
+    user = user_api_client.user
+    user.user_permissions.add(permission_manage_users)
+    user.groups.add(permission_group_manage_users)
+    response = user_api_client.post_graphql(ME_QUERY)
+    content = get_graphql_content(response)
+    user_permissions = content["data"]["me"]["userPermissions"]
+
+    assert len(user_permissions) == 1
+    assert user_permissions[0]["code"] == permission_manage_users.codename.upper()
 
 
 def test_me_query_anonymous_client(api_client):
