@@ -1,7 +1,8 @@
 import re
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple, Union
+from datetime import datetime
+from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple, Union, cast
 from urllib.parse import urlparse
 
 import graphene
@@ -201,16 +202,30 @@ class AttributeAssignmentMixin:
         return (value,)
 
     @classmethod
+    def _pre_save_date_values(
+        cls,
+        instance: T_INSTANCE,
+        attribute: attribute_models.Attribute,
+        attr_values: AttrValuesInput,
+    ):
+        value = cast(datetime, attr_values.date)
+        defaults = {
+            "date_time": value,
+            "name": f"{attribute.name}: {value.strftime('%d %b %Y')}",
+        }
+        return cls._update_or_create_value(instance, attribute, defaults)
+
+    @classmethod
     def _pre_save_date_time_values(
         cls,
         instance: T_INSTANCE,
         attribute: attribute_models.Attribute,
         attr_values: AttrValuesInput,
     ):
+        value = cast(datetime, attr_values.date_time)
         defaults = {
-            "date_time": attr_values.date
-            if attribute.input_type == AttributeInputType.DATE
-            else attr_values.date_time,
+            "date_time": value,
+            "name": f"{attribute.name}: {value.strftime('%d %b %Y %H:%M:%S')}",
         }
         return cls._update_or_create_value(instance, attribute, defaults)
 
@@ -480,7 +495,7 @@ class AttributeAssignmentMixin:
             AttributeInputType.RICH_TEXT: cls._pre_save_rich_text_values,
             AttributeInputType.NUMERIC: cls._pre_save_numeric_values,
             AttributeInputType.BOOLEAN: cls._pre_save_boolean_values,
-            AttributeInputType.DATE: cls._pre_save_date_time_values,
+            AttributeInputType.DATE: cls._pre_save_date_values,
             AttributeInputType.DATE_TIME: cls._pre_save_date_time_values,
         }
         clean_assignment = []

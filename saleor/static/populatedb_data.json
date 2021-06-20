@@ -8503,6 +8503,28 @@
     }
   },
   {
+    "model": "attribute.assignedvariantattribute",
+    "pk": 133,
+    "fields": {
+        "variant": 317,
+        "assignment": 12,
+        "values": [
+          103
+        ]
+    }
+  },
+  {
+    "model": "attribute.assignedvariantattribute",
+    "pk": 134,
+    "fields": {
+        "variant": 320,
+        "assignment": 12,
+        "values": [
+          104
+        ]
+    }
+  },
+  {
     "model": "attribute.assignedpageattribute",
     "pk": 1,
     "fields": {
@@ -8677,12 +8699,21 @@
         "product_type": 12
     }
   },
-    {
+  {
     "model": "attribute.attributevariant",
     "pk": 11,
     "fields": {
         "sort_order": null,
         "attribute": 34,
+        "product_type": 15
+    }
+  },
+  {
+    "model": "attribute.attributevariant",
+    "pk": 12,
+    "fields": {
+        "sort_order": null,
+        "attribute": 35,
         "product_type": 15
     }
   },
@@ -9090,6 +9121,27 @@
         "name": "Signed",
         "type": "product-type",
         "input_type": "boolean",
+        "entity_type": null,
+        "unit": null,
+        "value_required": false,
+        "is_variant_only": false,
+        "visible_in_storefront": true,
+        "filterable_in_storefront": true,
+        "filterable_in_dashboard": true,
+        "storefront_search_position": 0,
+        "available_in_grid": true
+    }
+  },
+    {
+    "model": "attribute.attribute",
+    "pk": 35,
+    "fields": {
+        "private_metadata": {},
+        "metadata": {},
+        "slug": "release-date ",
+        "name": "Release Date",
+        "type": "product-type",
+        "input_type": "date-time",
         "entity_type": null,
         "unit": null,
         "value_required": false,
@@ -9808,7 +9860,7 @@
         "attribute": 32
     }
   },
-    {
+  {
     "model": "attribute.attributevalue",
     "pk": 101,
     "fields": {
@@ -9833,6 +9885,36 @@
         "file_url": null,
         "content_type": null,
         "boolean": false,
+        "attribute": 34
+    }
+  },
+    {
+    "model": "attribute.attributevalue",
+    "pk": 103,
+    "fields": {
+        "sort_order": 1,
+        "name": "Release Date: 03 Jun 2021 00:15:00",
+        "value": "",
+        "slug": "320_35",
+        "file_url": null,
+        "content_type": null,
+        "boolean": true,
+        "date_time": "2021-06-03 00:15:00+00:00",
+        "attribute": 34
+    }
+  },
+  {
+    "model": "attribute.attributevalue",
+    "pk": 104,
+    "fields": {
+        "sort_order": 1,
+        "name": "Release Date: '01 Jun 2021 14:15:00'",
+        "value": "",
+        "slug": "317_35",
+        "file_url": null,
+        "content_type": null,
+        "boolean": false,
+        "date_time": "2021-06-01 14:15:00+00:00",
         "attribute": 34
     }
   },

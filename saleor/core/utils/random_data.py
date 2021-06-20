@@ -483,13 +483,14 @@ def create_product_image(product, placeholder_dir, image_name):
     return product_image
 
 
-def create_address(save=True):
+def create_address(save=True, **kwargs):
     address = Address(
         first_name=fake.first_name(),
         last_name=fake.last_name(),
         street_address_1=fake.street_address(),
         city=fake.city(),
         country=settings.DEFAULT_COUNTRY,
+        **kwargs,
     )
 
     if address.country == "US":
@@ -1207,7 +1208,11 @@ def create_warehouses():
         warehouse, _ = Warehouse.objects.update_or_create(
             name=shipping_zone_name,
             slug=slugify(shipping_zone_name),
+<<<<<<< HEAD
             defaults={"address": create_address()},
+=======
+            defaults={"address": create_address(company_name=fake.company())},
+>>>>>>> 8827bfbce (Improvements. Update populatedb)
         )
         warehouse.shipping_zones.add(shipping_zone)
 
