@@ -32,3 +32,5 @@ class AttributeValueDescriptions:
     VALUE = "Represents the value of the attribute value."
     RICH_TEXT = "Represents the text (JSON) of the attribute value."
     BOOLEAN = "Represents the boolean value of the attribute value."
+    DATE = "Represents the date value of the attribute value."
+    DATE_TIME = "Represents the date time value of the attribute value."

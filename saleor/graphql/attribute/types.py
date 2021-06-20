@@ -44,6 +44,10 @@ class AttributeValue(CountableDjangoObjectType):
     boolean = graphene.Boolean(
         description=AttributeValueDescriptions.BOOLEAN, required=False
     )
+    date = graphene.Date(description=AttributeValueDescriptions.DATE, required=False)
+    date_time = graphene.DateTime(
+        description=AttributeValueDescriptions.DATE_TIME, required=False
+    )
 
     class Meta:
         description = "Represents a value of an attribute."
@@ -93,6 +97,11 @@ class AttributeValue(CountableDjangoObjectType):
             .load(root.attribute_id)
             .then(prepare_reference)
         )
+
+    @staticmethod
+    @traced_resolver
+    def resolve_date(root: models.AttributeValue, info, **_kwargs):
+        return root.date_time
 
 
 class Attribute(CountableDjangoObjectType):
@@ -238,4 +247,8 @@ class AttributeValueInput(graphene.InputObjectType):
     )
     boolean = graphene.Boolean(
         required=False, description=AttributeValueDescriptions.BOOLEAN
+    )
+    date = graphene.Date(required=False, description=AttributeValueDescriptions.DATE)
+    date_time = graphene.DateTime(
+        required=False, description=AttributeValueDescriptions.DATE_TIME
     )

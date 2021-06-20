@@ -201,6 +201,7 @@ class AttributeValue(SortableModel):
     )
     rich_text = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
     boolean = models.BooleanField(blank=True, null=True)
+    date_time = models.DateTimeField(blank=True, null=True)
 
     translated = TranslationProxy()
 

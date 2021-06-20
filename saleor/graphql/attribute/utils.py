@@ -39,6 +39,8 @@ class AttrValuesInput:
     content_type: Optional[str] = None
     rich_text: Optional[dict] = None
     boolean: Optional[bool] = None
+    date: Optional[str] = None
+    date_time: Optional[str] = None
 
 
 T_INSTANCE = Union[
@@ -197,6 +199,20 @@ class AttributeAssignmentMixin:
             },
         )
         return (value,)
+
+    @classmethod
+    def _pre_save_date_time_values(
+        cls,
+        instance: T_INSTANCE,
+        attribute: attribute_models.Attribute,
+        attr_values: AttrValuesInput,
+    ):
+        defaults = {
+            "date_time": attr_values.date
+            if attribute.input_type == AttributeInputType.DATE
+            else attr_values.date_time,
+        }
+        return cls._update_or_create_value(instance, attribute, defaults)
 
     @classmethod
     def _update_or_create_value(
@@ -367,6 +383,8 @@ class AttributeAssignmentMixin:
                 references=attribute_input.get("references", []),
                 rich_text=attribute_input.get("rich_text"),
                 boolean=attribute_input.get("boolean"),
+                date=attribute_input.get("date"),
+                date_time=attribute_input.get("date_time"),
             )
 
             if global_id:
@@ -462,6 +480,8 @@ class AttributeAssignmentMixin:
             AttributeInputType.RICH_TEXT: cls._pre_save_rich_text_values,
             AttributeInputType.NUMERIC: cls._pre_save_numeric_values,
             AttributeInputType.BOOLEAN: cls._pre_save_boolean_values,
+            AttributeInputType.DATE: cls._pre_save_date_time_values,
+            AttributeInputType.DATE_TIME: cls._pre_save_date_time_values,
         }
         clean_assignment = []
         for attribute, attr_values in cleaned_input:
@@ -569,6 +589,11 @@ def validate_attributes_input(
             validate_rich_text_attributes_input(*attrs)
         elif attribute.input_type == AttributeInputType.BOOLEAN:
             validate_boolean_input(*attrs)
+        elif attribute.input_type in [
+            AttributeInputType.DATE,
+            AttributeInputType.DATE_TIME,
+        ]:
+            validate_date_time_input(*attrs)
         # validation for other input types
         else:
             validate_standard_attributes_input(*attrs)
@@ -671,6 +696,23 @@ def validate_standard_attributes_input(
         attr_values.values,
         attribute_errors,
     )
+
+
+def validate_date_time_input(
+    attribute: "Attribute",
+    attr_values: "AttrValuesInput",
+    attribute_errors: T_ERROR_DICT,
+    variant_validation: bool,
+):
+    is_date = attribute.input_type == AttributeInputType.DATE
+    is_date_time = attribute.input_type == AttributeInputType.DATE_TIME
+
+    if attribute.value_required and (
+        is_date and not attr_values.date or is_date_time and not attr_values.date_time
+    ):
+        attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(
+            attr_values.global_id
+        )
 
 
 def validate_values(
