@@ -99,7 +99,7 @@ def resolve_address_validation_rules(
         ],
         city_type=rules.city_type,
         city_choices=[ChoiceValue(area[0], area[1]) for area in rules.city_choices],
-        city_area_type=rules.city_type,
+        city_area_type=rules.city_area_type,
         city_area_choices=[
             ChoiceValue(area[0], area[1]) for area in rules.city_area_choices
         ],
