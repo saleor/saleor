@@ -3451,6 +3451,8 @@ def test_address_validation_rules(user_api_client):
             addressFormat
             addressLatinFormat
             postalCodeMatchers
+            cityType
+            cityAreaType
         }
     }
     """
@@ -3462,6 +3464,8 @@ def test_address_validation_rules(user_api_client):
     assert data["countryName"] == "POLAND"
     assert data["addressFormat"] is not None
     assert data["addressLatinFormat"] is not None
+    assert data["cityType"] == "city"
+    assert data["cityAreaType"] == "suburb"
     matcher = data["postalCodeMatchers"][0]
     matcher = re.compile(matcher)
     assert matcher.match("00-123")
@@ -3509,7 +3513,7 @@ def test_address_validation_rules_with_country_area(user_api_client):
     assert data["countryAreaChoices"]
     assert data["cityType"] == "city"
     assert data["cityChoices"]
-    assert data["cityAreaType"] == "city"
+    assert data["cityAreaType"] == "district"
     assert not data["cityAreaChoices"]
 
 
