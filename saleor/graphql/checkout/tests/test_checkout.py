@@ -2439,8 +2439,8 @@ def test_checkout_billing_address_update(
 
 
 CHECKOUT_EMAIL_UPDATE_MUTATION = """
-    mutation checkoutEmailUpdate($checkoutId: ID!, $email: String!) {
-        checkoutEmailUpdate(checkoutId: $checkoutId, email: $email) {
+    mutation checkoutEmailUpdate($token: UUID, $email: String!) {
+        checkoutEmailUpdate(token: $token, email: $email) {
             checkout {
                 id,
                 email
@@ -2462,10 +2462,9 @@ CHECKOUT_EMAIL_UPDATE_MUTATION = """
 def test_checkout_email_update(user_api_client, checkout_with_item):
     checkout = checkout_with_item
     assert not checkout.email
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     email = "test@example.com"
-    variables = {"checkoutId": checkout_id, "email": email}
+    variables = {"token": checkout.token, "email": email}
 
     response = user_api_client.post_graphql(CHECKOUT_EMAIL_UPDATE_MUTATION, variables)
     content = get_graphql_content(response)
@@ -2476,8 +2475,7 @@ def test_checkout_email_update(user_api_client, checkout_with_item):
 
 
 def test_checkout_email_update_validation(user_api_client, checkout_with_item):
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
-    variables = {"checkoutId": checkout_id, "email": ""}
+    variables = {"token": checkout_with_item.token, "email": ""}
 
     response = user_api_client.post_graphql(CHECKOUT_EMAIL_UPDATE_MUTATION, variables)
     content = get_graphql_content(response)
