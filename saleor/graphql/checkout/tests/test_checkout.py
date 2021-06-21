@@ -2115,8 +2115,8 @@ def test_checkout_customer_attach(
 
 
 MUTATION_CHECKOUT_CUSTOMER_DETACH = """
-    mutation checkoutCustomerDetach($checkoutId: ID!) {
-        checkoutCustomerDetach(checkoutId: $checkoutId) {
+    mutation checkoutCustomerDetach($token: UUID) {
+        checkoutCustomerDetach(token: $token) {
             checkout {
                 token
             }
@@ -2134,8 +2134,7 @@ def test_checkout_customer_detach(user_api_client, checkout_with_item, customer_
     checkout.user = customer_user
     checkout.save(update_fields=["user"])
 
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    variables = {"checkoutId": checkout_id}
+    variables = {"token": checkout.token}
 
     # Mutation should succeed if the user owns this checkout.
     response = user_api_client.post_graphql(

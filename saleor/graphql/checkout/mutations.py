@@ -610,7 +610,14 @@ class CheckoutCustomerDetach(BaseMutation):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Arguments:
-        checkout_id = graphene.ID(description="Checkout ID.", required=True)
+        checkout_id = graphene.ID(
+            description=(
+                "Checkout ID."
+                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+            ),
+            required=False,
+        )
+        token = UUID(description="Checkout token.", required=False)
 
     class Meta:
         description = "Removes the user assigned as the owner of the checkout."
@@ -622,10 +629,19 @@ class CheckoutCustomerDetach(BaseMutation):
         return context.user.is_authenticated
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id):
-        checkout = cls.get_node_or_error(
-            info, checkout_id, only_type=Checkout, field="checkout_id"
+    def perform_mutation(cls, _root, info, checkout_id=None, token=None):
+        # DEPRECATED
+        validate_one_of_args_is_in_mutation(
+            CheckoutErrorCode, "checkout_id", checkout_id, "token", token
         )
+
+        if token:
+            checkout = get_checkout_by_token(token)
+        # DEPRECATED
+        else:
+            checkout = cls.get_node_or_error(
+                info, checkout_id or token, only_type=Checkout, field="checkout_id"
+            )
 
         # Raise error if the current user doesn't own the checkout of the given ID.
         if checkout.user and checkout.user != info.context.user:
