@@ -2878,7 +2878,7 @@ type Mutation {
   checkoutLineDelete(checkoutId: ID, lineId: ID, token: UUID): CheckoutLineDelete
   checkoutLinesAdd(checkoutId: ID, lines: [CheckoutLineInput]!, token: UUID): CheckoutLinesAdd
   checkoutLinesUpdate(checkoutId: ID, lines: [CheckoutLineInput]!, token: UUID): CheckoutLinesUpdate
-  checkoutRemovePromoCode(checkoutId: ID!, promoCode: String!): CheckoutRemovePromoCode
+  checkoutRemovePromoCode(checkoutId: ID, promoCode: String!, token: UUID): CheckoutRemovePromoCode
   checkoutPaymentCreate(checkoutId: ID!, input: PaymentInput!): CheckoutPaymentCreate
   checkoutShippingAddressUpdate(checkoutId: ID, shippingAddress: AddressInput!, token: UUID): CheckoutShippingAddressUpdate
   checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!, token: UUID): CheckoutShippingMethodUpdate
