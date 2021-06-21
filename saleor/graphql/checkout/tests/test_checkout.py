@@ -2160,9 +2160,9 @@ def test_checkout_customer_detach(user_api_client, checkout_with_item, customer_
 
 MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE = """
     mutation checkoutShippingAddressUpdate(
-            $checkoutId: ID!, $shippingAddress: AddressInput!) {
+            $token: UUID, $shippingAddress: AddressInput!) {
         checkoutShippingAddressUpdate(
-                checkoutId: $checkoutId, shippingAddress: $shippingAddress) {
+                token: $token, shippingAddress: $shippingAddress) {
             checkout {
                 token,
                 id
@@ -2188,10 +2188,9 @@ def test_checkout_shipping_address_update(
 ):
     checkout = checkout_with_item
     assert checkout.shipping_address is None
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     shipping_address = graphql_address_data
-    variables = {"checkoutId": checkout_id, "shippingAddress": shipping_address}
+    variables = {"token": checkout_with_item.token, "shippingAddress": shipping_address}
 
     response = user_api_client.post_graphql(
         MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables
@@ -2236,13 +2235,12 @@ def test_checkout_shipping_address_update_changes_checkout_country(
     checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
     add_variant_to_checkout(checkout_info, variant, 1)
     assert checkout.shipping_address is None
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     shipping_address = graphql_address_data
     shipping_address["country"] = "US"
     shipping_address["countryArea"] = "New York"
     shipping_address["postalCode"] = "10001"
-    variables = {"checkoutId": checkout_id, "shippingAddress": shipping_address}
+    variables = {"token": checkout.token, "shippingAddress": shipping_address}
 
     response = user_api_client.post_graphql(
         MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables
@@ -2291,13 +2289,12 @@ def test_checkout_shipping_address_update_insufficient_stocks(
         warehouse__shipping_zones__countries__contains="US", product_variant=variant
     ).update(quantity=0)
     assert checkout.shipping_address is None
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     shipping_address = graphql_address_data
     shipping_address["country"] = "US"
     shipping_address["countryArea"] = "New York"
     shipping_address["postalCode"] = "10001"
-    variables = {"checkoutId": checkout_id, "shippingAddress": shipping_address}
+    variables = {"token": checkout.token, "shippingAddress": shipping_address}
 
     response = user_api_client.post_graphql(
         MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables
@@ -2317,10 +2314,9 @@ def test_checkout_shipping_address_update_channel_without_shipping_zones(
     checkout = checkout_with_item
     checkout.channel.shipping_zones.clear()
     assert checkout.shipping_address is None
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     shipping_address = graphql_address_data
-    variables = {"checkoutId": checkout_id, "shippingAddress": shipping_address}
+    variables = {"token": checkout.token, "shippingAddress": shipping_address}
 
     response = user_api_client.post_graphql(
         MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables
@@ -2345,7 +2341,7 @@ def test_checkout_shipping_address_with_invalid_phone_number_returns_error(
         user_api_client.post_graphql(
             MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE,
             {
-                "checkoutId": graphene.Node.to_global_id("Checkout", checkout.pk),
+                "token": checkout.token,
                 "shippingAddress": shipping_address,
             },
         )
@@ -2368,11 +2364,10 @@ def test_checkout_shipping_address_update_with_phone_country_prefix(
 ):
     checkout = checkout_with_item
     assert checkout.shipping_address is None
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     shipping_address = graphql_address_data
     shipping_address["phone"] = number
-    variables = {"checkoutId": checkout_id, "shippingAddress": shipping_address}
+    variables = {"token": checkout.token, "shippingAddress": shipping_address}
 
     response = user_api_client.post_graphql(
         MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables
@@ -2387,11 +2382,10 @@ def test_checkout_shipping_address_update_without_phone_country_prefix(
 ):
     checkout = checkout_with_item
     assert checkout.shipping_address is None
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     shipping_address = graphql_address_data
     shipping_address["phone"] = "+1-202-555-0132"
-    variables = {"checkoutId": checkout_id, "shippingAddress": shipping_address}
+    variables = {"token": checkout.token, "shippingAddress": shipping_address}
 
     response = user_api_client.post_graphql(
         MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables

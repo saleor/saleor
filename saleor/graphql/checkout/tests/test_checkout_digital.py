@@ -96,8 +96,7 @@ def test_checkout_update_shipping_address(
     """Test updating the shipping address of a digital order throws an error."""
 
     checkout = checkout_with_digital_item
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    variables = {"checkoutId": checkout_id, "shippingAddress": graphql_address_data}
+    variables = {"token": checkout.token, "shippingAddress": graphql_address_data}
 
     response = api_client.post_graphql(
         MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables

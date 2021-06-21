@@ -79,9 +79,8 @@ def test_checkout_shipping_address_update_with_not_applicable_voucher(
     add_voucher_to_checkout(manager, checkout_info, lines, voucher)
     assert checkout_with_item.voucher_code == voucher.code
 
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
     new_address = graphql_address_data
-    variables = {"checkoutId": checkout_id, "shippingAddress": new_address}
+    variables = {"token": checkout_with_item.token, "shippingAddress": new_address}
     response = user_api_client.post_graphql(
         MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables
     )
