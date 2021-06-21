@@ -563,7 +563,14 @@ class CheckoutCustomerAttach(BaseMutation):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Arguments:
-        checkout_id = graphene.ID(required=True, description="ID of the checkout.")
+        checkout_id = graphene.ID(
+            required=False,
+            description=(
+                "ID of the checkout."
+                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+            ),
+        )
+        token = UUID(description="Checkout token.", required=False)
 
     class Meta:
         description = "Sets the customer as the owner of the checkout."
@@ -575,10 +582,21 @@ class CheckoutCustomerAttach(BaseMutation):
         return context.user.is_authenticated
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id, customer_id=None):
-        checkout = cls.get_node_or_error(
-            info, checkout_id, only_type=Checkout, field="checkout_id"
+    def perform_mutation(
+        cls, _root, info, checkout_id=None, token=None, customer_id=None
+    ):
+        # DEPRECATED
+        validate_one_of_args_is_in_mutation(
+            CheckoutErrorCode, "checkout_id", checkout_id, "token", token
         )
+
+        if token:
+            checkout = get_checkout_by_token(token)
+        # DEPRECATED
+        else:
+            checkout = cls.get_node_or_error(
+                info, checkout_id or token, only_type=Checkout, field="checkout_id"
+            )
 
         checkout.user = info.context.user
         checkout.email = info.context.user.email

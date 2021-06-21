@@ -2085,8 +2085,8 @@ def test_checkout_customer_attach(
     assert checkout.user is None
 
     query = """
-        mutation checkoutCustomerAttach($checkoutId: ID!) {
-            checkoutCustomerAttach(checkoutId: $checkoutId) {
+        mutation checkoutCustomerAttach($token: UUID) {
+            checkoutCustomerAttach(token: $token) {
                 checkout {
                     token
                 }
@@ -2097,9 +2097,8 @@ def test_checkout_customer_attach(
             }
         }
     """
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     customer_id = graphene.Node.to_global_id("User", customer_user.pk)
-    variables = {"checkoutId": checkout_id, "customerId": customer_id}
+    variables = {"token": checkout.token, "customerId": customer_id}
 
     # Mutation should fail for unauthenticated customers
     response = api_client.post_graphql(query, variables)
