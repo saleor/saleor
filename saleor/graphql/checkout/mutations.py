@@ -978,6 +978,13 @@ class CheckoutAddPromoCode(BaseMutation):
         checkout_info = fetch_checkout_info(
             checkout, lines, info.context.discounts, manager
         )
+
+        if info.context.user and checkout.user == info.context.user:
+            # reassign user from request to make sure that we will take into account
+            # that user can have granted staff permissions from external resources.
+            # Which is required to determine if user has access to 'staff discount'
+            checkout_info.user = info.context.user
+
         add_promo_code_to_checkout(
             manager,
             checkout_info,
