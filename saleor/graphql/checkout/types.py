@@ -159,6 +159,11 @@ class CheckoutLine(CountableDjangoObjectType):
         )
 
 
+class DeliveryMethod(graphene.Union):
+    class Meta:
+        types = (ShippingMethod, Warehouse)
+
+
 class Checkout(CountableDjangoObjectType):
     available_shipping_methods = graphene.List(
         ShippingMethod,
@@ -197,7 +202,15 @@ class Checkout(CountableDjangoObjectType):
     shipping_method = graphene.Field(
         ShippingMethod,
         description="The shipping method related with checkout.",
+        deprecation_reason="Use delivery method instead",
     )
+
+    delivery_method = graphene.Field(
+        DeliveryMethod,
+        description="The shipping method related with checkout, or warehouse if C&C",
+        required=True,
+    )
+
     subtotal_price = graphene.Field(
         TaxedMoney,
         description="The price of the checkout before shipping, with taxes included.",

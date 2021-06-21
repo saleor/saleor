@@ -12,6 +12,7 @@ from .mutations import (
     CheckoutCreate,
     CheckoutCustomerAttach,
     CheckoutCustomerDetach,
+    CheckoutDeliveryMethodUpdate,
     CheckoutEmailUpdate,
     CheckoutLanguageCodeUpdate,
     CheckoutLineDelete,
@@ -69,5 +70,8 @@ class CheckoutMutations(graphene.ObjectType):
     checkout_remove_promo_code = CheckoutRemovePromoCode.Field()
     checkout_payment_create = CheckoutPaymentCreate.Field()
     checkout_shipping_address_update = CheckoutShippingAddressUpdate.Field()
-    checkout_shipping_method_update = CheckoutShippingMethodUpdate.Field()
+    checkout_shipping_method_update = CheckoutShippingMethodUpdate.Field(
+        deprecation_reason="Use checkoutDeliveryMethodUpdate instead"
+    )
+    checkout_delivery_method_update = CheckoutDeliveryMethodUpdate.Field()
     checkout_language_code_update = CheckoutLanguageCodeUpdate.Field()

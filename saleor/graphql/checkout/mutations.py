@@ -1027,6 +1027,35 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         return CheckoutShippingMethodUpdate(checkout=checkout)
 
 
+class CheckoutDeliveryMethodUpdate(BaseMutation):
+    checkout = graphene.Field(Checkout, description="An updated checkout")
+
+    class Arguments:
+        checkout_id = graphene.ID(description="Checkout ID.")
+        shipping_method_id = graphene.ID(description="Shipping Method.")
+        collection_point_id = graphene.ID(description="Collection Point Id")
+
+    class Meta:
+        description = (
+            "Updates the delivery method (shipping method or pick up point)"
+            "of the checkout."
+        )
+        error_type_class = CheckoutError
+        error_type_field = "checkout_error"
+
+    @classmethod
+    def perform_mutation(
+        cls, root, info, checkout_id, shipping_method_id, delivery_method_id
+    ):
+        return super().perform_mutation(
+            root,
+            info,
+            checkout_id=checkout_id,
+            shipping_method_id=shipping_method_id,
+            delivery_method_id=delivery_method_id,
+        )
+
+
 class CheckoutComplete(BaseMutation):
     order = graphene.Field(Order, description="Placed order.")
     confirmation_needed = graphene.Boolean(
