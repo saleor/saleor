@@ -705,3 +705,29 @@ def order_line_discount_removed_event(
         line=line,
         user=user,
     )
+
+
+def order_line_product_removed_event(
+    order: Order,
+    user: UserType,
+    order_lines: List[Tuple[int, OrderLine]],
+):
+    return OrderEvent.objects.create(
+        type=OrderEvents.ORDER_LINE_PRODUCT_DELETED,
+        order=order,
+        user=user,
+        parameters={"lines": _lines_per_quantity_to_line_object_list(order_lines)},
+    )
+
+
+def order_line_variant_removed_event(
+    order: Order,
+    user: UserType,
+    order_lines: List[Tuple[int, OrderLine]],
+):
+    return OrderEvent.objects.create(
+        type=OrderEvents.ORDER_LINE_VARIANT_DELETED,
+        order=order,
+        user=user,
+        parameters={"lines": _lines_per_quantity_to_line_object_list(order_lines)},
+    )

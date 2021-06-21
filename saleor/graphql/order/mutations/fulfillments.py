@@ -116,7 +116,7 @@ class OrderFulfill(BaseMutation):
                         "order_line_id": ValidationError(
                             msg,
                             code=OrderErrorCode.FULFILL_ORDER_LINE,
-                            params={"order_line": order_line_global_id},
+                            params={"order_lines": [order_line_global_id]},
                         )
                     }
                 )
@@ -145,7 +145,7 @@ class OrderFulfill(BaseMutation):
                     "orderLineId": ValidationError(
                         "Duplicated order line ID.",
                         code=OrderErrorCode.DUPLICATED_INPUT_ITEM,
-                        params={"order_line": duplicates.pop()},
+                        params={"order_lines": [duplicates.pop()]},
                     )
                 }
             )
