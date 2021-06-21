@@ -4321,7 +4321,6 @@ def stocks_for_cc(warehouses_for_cc, product_variant_list):
 @pytest.fixture
 def checkout_for_cc(channel_USD, customer_user, product_variant_list):
     return Checkout.objects.create(
-        user=customer_user,
         channel=channel_USD,
         billing_address=customer_user.default_billing_address,
         shipping_address=customer_user.default_shipping_address,
@@ -4345,6 +4344,7 @@ def checkout_with_lines(checkout_for_cc, product_variant_list):
             ),
         ]
     )
+    checkout_for_cc.set_country("US", commit=True)
 
     return checkout_for_cc
 

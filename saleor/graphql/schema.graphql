@@ -1004,7 +1004,8 @@ type Checkout implements Node & ObjectWithMetadata {
   quantity: Int!
   lines: [CheckoutLine]
   shippingPrice: TaxedMoney
-  shippingMethod: ShippingMethod
+  shippingMethod: ShippingMethod @deprecated(reason: "Use delivery method instead")
+  deliveryMethod: DeliveryMethod!
   subtotalPrice: TaxedMoney
   token: UUID!
   totalPrice: TaxedMoney
@@ -1067,6 +1068,12 @@ type CheckoutCustomerAttach {
 type CheckoutCustomerDetach {
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [CheckoutError!]!
+}
+
+type CheckoutDeliveryMethodUpdate {
+  checkout: Checkout
+  checkoutError: [CheckoutError!]! @deprecated(reason: "Use errors field instead. This field will be removed in Saleor 4.0.")
   errors: [CheckoutError!]!
 }
 
@@ -1789,6 +1796,8 @@ type DeletePrivateMetadata {
   errors: [MetadataError!]!
   item: ObjectWithMetadata
 }
+
+union DeliveryMethod = ShippingMethod | Warehouse
 
 type DigitalContent implements Node & ObjectWithMetadata {
   useDefaultSettings: Boolean!
@@ -3774,6 +3783,7 @@ type Mutation {
   checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID, token: UUID): CheckoutBillingAddressUpdate
   checkoutComplete(checkoutId: ID, paymentData: JSONString, redirectUrl: String, storeSource: Boolean = false, token: UUID): CheckoutComplete
   checkoutCreate(input: CheckoutCreateInput!): CheckoutCreate
+<<<<<<< HEAD
   checkoutCustomerAttach(checkoutId: ID, token: UUID): CheckoutCustomerAttach
   checkoutCustomerDetach(checkoutId: ID, token: UUID): CheckoutCustomerDetach
   checkoutEmailUpdate(checkoutId: ID, email: String!, token: UUID): CheckoutEmailUpdate
@@ -3783,7 +3793,8 @@ type Mutation {
   checkoutRemovePromoCode(checkoutId: ID, promoCode: String!, token: UUID): CheckoutRemovePromoCode
   checkoutPaymentCreate(checkoutId: ID, input: PaymentInput!, token: UUID): CheckoutPaymentCreate
   checkoutShippingAddressUpdate(checkoutId: ID, shippingAddress: AddressInput!, token: UUID): CheckoutShippingAddressUpdate
-  checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!, token: UUID): CheckoutShippingMethodUpdate
+  checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!, token: UUID): CheckoutShippingMethodUpdate @deprecated(reason: "Use checkoutDeliveryMethodUpdate instead")
+  checkoutDeliveryMethodUpdate(checkoutId: ID, collectionPointId: ID, shippingMethodId: ID, token: UUID): CheckoutDeliveryMethodUpdate
   checkoutLanguageCodeUpdate(checkoutId: ID, languageCode: LanguageCodeEnum!, token: UUID): CheckoutLanguageCodeUpdate
   channelCreate(input: ChannelCreateInput!): ChannelCreate
   channelUpdate(id: ID!, input: ChannelUpdateInput!): ChannelUpdate
