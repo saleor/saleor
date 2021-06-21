@@ -13,10 +13,8 @@ from ....core.taxes import TaxedMoney
 from ....discount import DiscountInfo, VoucherType
 from ....plugins.manager import get_plugins_manager
 from ...tests.utils import get_graphql_content
-from .test_checkout import (
-    MUTATION_CHECKOUT_LINES_DELETE,
-    MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE,
-)
+from .test_checkout import MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE
+from .test_checkout_lines import MUTATION_CHECKOUT_LINES_DELETE
 
 
 def test_checkout_lines_delete_with_not_applicable_voucher(

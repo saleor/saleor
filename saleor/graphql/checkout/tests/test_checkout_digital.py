@@ -12,10 +12,12 @@ from ...checkout.mutations import update_checkout_shipping_method_if_invalid
 from ...tests.utils import get_graphql_content
 from .test_checkout import (
     MUTATION_CHECKOUT_CREATE,
-    MUTATION_CHECKOUT_LINES_DELETE,
-    MUTATION_CHECKOUT_LINES_UPDATE,
     MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE,
     MUTATION_UPDATE_SHIPPING_METHOD,
+)
+from .test_checkout_lines import (
+    MUTATION_CHECKOUT_LINES_DELETE,
+    MUTATION_CHECKOUT_LINES_UPDATE,
 )
 
 
@@ -179,10 +181,9 @@ def test_checkout_lines_update_remove_shipping_if_removed_product_with_shipping(
     variant = line.variant
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     variables = {
-        "checkoutId": checkout_id,
+        "token": checkout.token,
         "lines": [{"variantId": variant_id, "quantity": 0}],
     }
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
