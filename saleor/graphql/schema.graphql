@@ -5758,6 +5758,7 @@ type Voucher implements Node {
   endDate: DateTime
   applyOncePerOrder: Boolean!
   applyOncePerCustomer: Boolean!
+  onlyForStaff: Boolean!
   discountValueType: DiscountValueTypeEnum!
   minCheckoutItemsQuantity: Int
   categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
@@ -5859,6 +5860,7 @@ input VoucherInput {
   countries: [String]
   applyOncePerOrder: Boolean
   applyOncePerCustomer: Boolean
+  onlyForStaff: Boolean
   usageLimit: Int
 }
 
