@@ -1991,8 +1991,8 @@ def test_checkout_lines_update_with_chosen_shipping(
 
 
 MUTATION_CHECKOUT_LINES_DELETE = """
-    mutation checkoutLineDelete($checkoutId: ID!, $lineId: ID!) {
-        checkoutLineDelete(checkoutId: $checkoutId, lineId: $lineId) {
+    mutation checkoutLineDelete($token: UUID, $lineId: ID!) {
+        checkoutLineDelete(token: $token, lineId: $lineId) {
             checkout {
                 token
                 lines {
@@ -2025,10 +2025,9 @@ def test_checkout_line_delete(
     line = checkout.lines.first()
     assert line.quantity == 3
 
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     line_id = graphene.Node.to_global_id("CheckoutLine", line.pk)
 
-    variables = {"checkoutId": checkout_id, "lineId": line_id}
+    variables = {"token": checkout.token, "lineId": line_id}
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_DELETE, variables)
     content = get_graphql_content(response)
 

@@ -526,7 +526,14 @@ class CheckoutLineDelete(BaseMutation):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Arguments:
-        checkout_id = graphene.ID(description="The ID of the checkout.", required=True)
+        checkout_id = graphene.ID(
+            description=(
+                "The ID of the checkout."
+                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+            ),
+            required=False,
+        )
+        token = UUID(description="Checkout token.", required=False)
         line_id = graphene.ID(description="ID of the checkout line to delete.")
 
     class Meta:
@@ -535,10 +542,20 @@ class CheckoutLineDelete(BaseMutation):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id, line_id):
-        checkout = cls.get_node_or_error(
-            info, checkout_id, only_type=Checkout, field="checkout_id"
+    def perform_mutation(cls, _root, info, line_id, checkout_id=None, token=None):
+        # DEPRECATED
+        validate_one_of_args_is_in_mutation(
+            CheckoutErrorCode, "checkout_id", checkout_id, "token", token
         )
+
+        if token:
+            checkout = get_checkout_by_token(token)
+        # DEPRECATED
+        else:
+            checkout = cls.get_node_or_error(
+                info, checkout_id or token, only_type=Checkout, field="checkout_id"
+            )
+
         line = cls.get_node_or_error(
             info, line_id, only_type=CheckoutLine, field="line_id"
         )

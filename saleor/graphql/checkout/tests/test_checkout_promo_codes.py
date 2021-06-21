@@ -41,9 +41,8 @@ def test_checkout_lines_delete_with_not_applicable_voucher(
 
     line = checkout_with_item.lines.first()
 
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
     line_id = graphene.Node.to_global_id("CheckoutLine", line.pk)
-    variables = {"checkoutId": checkout_id, "lineId": line_id}
+    variables = {"token": checkout_with_item.token, "lineId": line_id}
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_DELETE, variables)
     content = get_graphql_content(response)
 
