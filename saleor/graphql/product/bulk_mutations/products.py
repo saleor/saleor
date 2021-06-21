@@ -173,9 +173,16 @@ class BulkAttributeValueInput(InputObjectType):
     id = graphene.ID(description="ID of the selected attribute.")
     values = graphene.List(
         graphene.NonNull(graphene.String),
-        required=True,
+        required=False,
         description=(
             "The value or slug of an attribute to resolve. "
+            "If the passed value is non-existent, it will be created."
+        ),
+    )
+    boolean = graphene.Boolean(
+        required=False,
+        description=(
+            "The boolean value of an attribute to resolve."
             "If the passed value is non-existent, it will be created."
         ),
     )
@@ -403,7 +410,7 @@ class ProductVariantBulkCreate(BaseMutation):
     ):
         attribute_values = defaultdict(list)
         for attr in attributes_data:
-            attribute_values[attr.id].extend(attr.values)
+            attribute_values[attr.id].extend(attr.get("values", []))
         if attribute_values in used_attribute_values:
             raise ValidationError(
                 "Duplicated attribute values for product variant.",

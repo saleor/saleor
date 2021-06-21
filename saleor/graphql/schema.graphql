@@ -703,7 +703,12 @@ type AttributeValueUpdate {
 
 input BulkAttributeValueInput {
   id: ID
+<<<<<<< HEAD
   values: [String!]!
+=======
+  values: [String]
+  boolean: Boolean
+>>>>>>> 54faf98a4 (Handle boolean values in ProductVariantBulkCreate)
 }
 
 type BulkProductError {
