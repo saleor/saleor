@@ -293,7 +293,16 @@ def add_image_uris_to_data(
 
 AttributeData = namedtuple(
     "AttributeData",
-    ["slug", "file_url", "value", "input_type", "entity_type", "unit", "rich_text"],
+    [
+        "slug",
+        "file_url",
+        "value",
+        "input_type",
+        "entity_type",
+        "unit",
+        "rich_text",
+        "boolean",
+    ],
 )
 
 
@@ -314,6 +323,7 @@ def handle_attribute_data(
         entity_type=data.pop(attribute_fields["entity_type"], None),
         unit=data.pop(attribute_fields["unit"], None),
         rich_text=data.pop(attribute_fields["rich_text"], None),
+        boolean=data.pop(attribute_fields["boolean"], None),
     )
 
     if attribute_ids and attribute_pk in attribute_ids:
@@ -405,6 +415,11 @@ def add_attribute_info_to_data(
                 value += f" {attribute_data.unit}"
         elif input_type == AttributeInputType.RICH_TEXT:
             value = clean_editor_js(attribute_data.rich_text, to_string=True)
+        elif (
+            input_type == AttributeInputType.BOOLEAN
+            and attribute_data.boolean is not None
+        ):
+            value = str(attribute_data.boolean)
         else:
             value = attribute_data.value if attribute_data.value else ""
         if header in result_data[pk]:

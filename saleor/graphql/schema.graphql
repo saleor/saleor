@@ -506,7 +506,7 @@ input AttributeFilterInput {
   filterableInStorefront: Boolean
   filterableInDashboard: Boolean
   availableInGrid: Boolean
-  metadata: [MetadataInput]
+  metadata: [MetadataFilter]
   search: String
   ids: [ID]
   type: AttributeTypeEnum
@@ -519,6 +519,7 @@ input AttributeInput {
   slug: String!
   values: [String]
   valuesRange: IntRangeInput
+  boolean: Boolean
 }
 
 enum AttributeInputTypeEnum {
@@ -528,6 +529,7 @@ enum AttributeInputTypeEnum {
   REFERENCE
   NUMERIC
   RICH_TEXT
+  BOOLEAN
 }
 
 type AttributeReorderValues {
@@ -608,6 +610,7 @@ type AttributeValue implements Node {
   reference: ID
   file: File
   richText: JSONString
+  boolean: Boolean
 }
 
 type AttributeValueBulkDelete {
@@ -658,6 +661,7 @@ input AttributeValueInput {
   contentType: String
   references: [ID!]
   richText: JSONString
+  boolean: Boolean
 }
 
 type AttributeValueTranslatableContent implements Node {
@@ -773,7 +777,7 @@ type CategoryDelete {
 
 input CategoryFilterInput {
   search: String
-  metadata: [MetadataInput]
+  metadata: [MetadataFilter]
   ids: [ID]
 }
 
@@ -1226,7 +1230,7 @@ enum CollectionErrorCode {
 input CollectionFilterInput {
   published: CollectionPublished
   search: String
-  metadata: [MetadataInput]
+  metadata: [MetadataFilter]
   ids: [ID]
   channel: String
 }
@@ -1666,7 +1670,7 @@ input CustomerFilterInput {
   numberOfOrders: IntRangeInput
   placedOrders: DateRangeInput
   search: String
-  metadata: [MetadataInput]
+  metadata: [MetadataFilter]
 }
 
 input CustomerInput {
@@ -2519,7 +2523,7 @@ enum MenuErrorCode {
 input MenuFilterInput {
   search: String
   slug: [String]
-  metadata: [MetadataInput]
+  metadata: [MetadataFilter]
 }
 
 input MenuInput {
@@ -2584,7 +2588,7 @@ type MenuItemDelete {
 
 input MenuItemFilterInput {
   search: String
-  metadata: [MetadataInput]
+  metadata: [MetadataFilter]
 }
 
 input MenuItemInput {
@@ -2668,6 +2672,11 @@ enum MetadataErrorCode {
   INVALID
   NOT_FOUND
   REQUIRED
+}
+
+input MetadataFilter {
+  key: String!
+  value: String
 }
 
 input MetadataInput {
@@ -3127,7 +3136,7 @@ input OrderDraftFilterInput {
   customer: String
   created: DateRangeInput
   search: String
-  metadata: [MetadataInput]
+  metadata: [MetadataFilter]
   channels: [ID]
 }
 
@@ -3286,7 +3295,7 @@ input OrderFilterInput {
   customer: String
   created: DateRangeInput
   search: String
-  metadata: [MetadataInput]
+  metadata: [MetadataFilter]
   channels: [ID]
 }
 
@@ -3617,7 +3626,7 @@ enum PageErrorCode {
 
 input PageFilterInput {
   search: String
-  metadata: [MetadataInput]
+  metadata: [MetadataFilter]
   pageTypes: [ID]
   ids: [ID]
 }
@@ -4277,7 +4286,7 @@ input ProductFilterInput {
   stockAvailability: StockAvailability
   stocks: ProductStockFilterInput
   search: String
-  metadata: [MetadataInput]
+  metadata: [MetadataFilter]
   price: PriceRangeInput
   minimalPrice: PriceRangeInput
   productTypes: [ID]
@@ -4492,7 +4501,7 @@ input ProductTypeFilterInput {
   search: String
   configurable: ProductTypeConfigurable
   productType: ProductTypeEnum
-  metadata: [MetadataInput]
+  metadata: [MetadataFilter]
   ids: [ID]
 }
 
@@ -4637,7 +4646,7 @@ type ProductVariantDelete {
 input ProductVariantFilterInput {
   search: String
   sku: [String]
-  metadata: [MetadataInput]
+  metadata: [MetadataFilter]
 }
 
 input ProductVariantInput {
@@ -5754,6 +5763,7 @@ type Voucher implements Node {
   endDate: DateTime
   applyOncePerOrder: Boolean!
   applyOncePerCustomer: Boolean!
+  onlyForStaff: Boolean!
   discountValueType: DiscountValueTypeEnum!
   minCheckoutItemsQuantity: Int
   categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
@@ -5855,6 +5865,7 @@ input VoucherInput {
   countries: [String]
   applyOncePerOrder: Boolean
   applyOncePerCustomer: Boolean
+  onlyForStaff: Boolean
   usageLimit: Int
 }
 

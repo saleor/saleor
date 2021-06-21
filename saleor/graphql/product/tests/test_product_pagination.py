@@ -688,7 +688,7 @@ def test_products_pagination_for_products_with_the_same_names_one_page(
         ({"hasCategory": True}, ["Product1", "Product2"]),
         (
             {"stockAvailability": "OUT_OF_STOCK", "channel": "main"},
-            ["ProductProduct1", "ProductProduct2"],
+            ["Product2", "Product3"],
         ),
     ],
 )
