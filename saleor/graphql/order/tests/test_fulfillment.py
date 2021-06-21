@@ -24,7 +24,7 @@ mutation fulfillOrder(
             code
             message
             warehouse
-            orderLine
+            orderLines
         }
     }
 }
@@ -324,7 +324,7 @@ def test_order_fulfill_zero_quantity(
     error = data["errors"][0]
     assert error["field"] == "lines"
     assert error["code"] == OrderErrorCode.ZERO_QUANTITY.name
-    assert not error["orderLine"]
+    assert not error["orderLines"]
     assert not error["warehouse"]
 
     mock_create_fulfillments.assert_not_called()
@@ -400,7 +400,7 @@ def test_order_fulfill_fulfilled_order(
     error = data["errors"][0]
     assert error["field"] == "orderLineId"
     assert error["code"] == OrderErrorCode.FULFILL_ORDER_LINE.name
-    assert error["orderLine"] == order_line_id
+    assert error["orderLines"] == [order_line_id]
     assert not error["warehouse"]
 
     mock_create_fulfillments.assert_not_called()
@@ -453,7 +453,7 @@ def test_order_fulfill_warehouse_with_insufficient_stock_exception(
     error = data["errors"][0]
     assert error["field"] == "stocks"
     assert error["code"] == OrderErrorCode.INSUFFICIENT_STOCK.name
-    assert error["orderLine"] == order_line_id
+    assert error["orderLines"] == [order_line_id]
     assert error["warehouse"] == warehouse_id
 
 
@@ -494,7 +494,7 @@ def test_order_fulfill_warehouse_duplicated_warehouse_id(
     error = data["errors"][0]
     assert error["field"] == "warehouse"
     assert error["code"] == OrderErrorCode.DUPLICATED_INPUT_ITEM.name
-    assert not error["orderLine"]
+    assert not error["orderLines"]
     assert error["warehouse"] == warehouse_id
     mock_create_fulfillments.assert_not_called()
 
@@ -537,7 +537,7 @@ def test_order_fulfill_warehouse_duplicated_order_line_id(
     error = data["errors"][0]
     assert error["field"] == "orderLineId"
     assert error["code"] == OrderErrorCode.DUPLICATED_INPUT_ITEM.name
-    assert error["orderLine"] == order_line_id
+    assert error["orderLines"] == [order_line_id]
     assert not error["warehouse"]
     mock_create_fulfillments.assert_not_called()
 

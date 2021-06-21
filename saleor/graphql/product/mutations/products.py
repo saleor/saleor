@@ -16,6 +16,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....core.utils.editorjs import clean_editor_js
 from ....core.utils.validators import get_oembed_data
 from ....order import OrderStatus
+from ....order import events as order_events
 from ....order import models as order_models
 from ....order.tasks import recalculate_orders_task
 from ....product import ProductMediaTypes, models
@@ -48,6 +49,7 @@ from ...core.utils import (
     validate_slug_and_generate_if_needed,
 )
 from ...core.utils.reordering import perform_reordering
+from ...utils import get_user_or_app_from_context
 from ...warehouse.types import Warehouse
 from ..types import (
     Category,
@@ -59,6 +61,7 @@ from ..types import (
 )
 from ..utils import (
     create_stocks,
+    get_draft_order_lines_data_for_variants,
     get_used_attribute_values_for_variant,
     get_used_variants_attribute_values,
 )
@@ -708,19 +711,27 @@ class ProductDelete(ModelDeleteMutation):
 
         instance = cls.get_node_or_error(info, node_id, only_type=Product)
         variants_id = list(instance.variants.all().values_list("id", flat=True))
-        # get draft order lines for variant
-        lines_id_and_orders_id = order_models.OrderLine.objects.filter(
-            variant__id__in=variants_id, order__status=OrderStatus.DRAFT
-        ).values("pk", "order_id")
-        line_pks = {line["pk"] for line in lines_id_and_orders_id}
-        orders_id = {line["order_id"] for line in lines_id_and_orders_id}
 
         cls.delete_assigned_attribute_values(instance)
+
+        requester = get_user_or_app_from_context(info.context)
+        draft_order_lines_data = get_draft_order_lines_data_for_variants(variants_id)
+
         response = super().perform_mutation(_root, info, **data)
+
         # delete order lines for deleted variant
-        order_models.OrderLine.objects.filter(pk__in=line_pks).delete()
-        if orders_id:
-            recalculate_orders_task.delay(list(orders_id))
+        order_models.OrderLine.objects.filter(
+            pk__in=draft_order_lines_data.line_pks
+        ).delete()
+
+        # run order event for deleted lines
+        for order, order_lines in draft_order_lines_data.order_to_lines_mapping.items():
+            lines_data = [(line.quantity, line) for line in order_lines]
+            order_events.order_line_product_removed_event(order, requester, lines_data)
+
+        order_pks = draft_order_lines_data.order_pks
+        if order_pks:
+            recalculate_orders_task.delay(list(order_pks))
         info.context.plugins.product_deleted(instance, variants_id)
 
         return response
@@ -1025,12 +1036,8 @@ class ProductVariantDelete(ModelDeleteMutation):
         node_id = data.get("id")
         instance = cls.get_node_or_error(info, node_id, only_type=ProductVariant)
 
-        # get draft order lines for variant
-        lines_id_and_orders_id = order_models.OrderLine.objects.filter(
-            variant__pk=instance.pk, order__status=OrderStatus.DRAFT
-        ).values("pk", "order_id")
-        line_pks = {line["pk"] for line in lines_id_and_orders_id}
-        orders_id = {line["order_id"] for line in lines_id_and_orders_id}
+        requester = get_user_or_app_from_context(info.context)
+        draft_order_lines_data = get_draft_order_lines_data_for_variants([instance.pk])
 
         # Get cached variant with related fields to fully populate webhook payload.
         variant = (
@@ -1043,9 +1050,18 @@ class ProductVariantDelete(ModelDeleteMutation):
         response = super().perform_mutation(_root, info, **data)
 
         # delete order lines for deleted variant
-        order_models.OrderLine.objects.filter(pk__in=line_pks).delete()
-        if orders_id:
-            recalculate_orders_task.delay(list(orders_id))
+        order_models.OrderLine.objects.filter(
+            pk__in=draft_order_lines_data.line_pks
+        ).delete()
+
+        # run order event for deleted lines
+        for order, order_lines in draft_order_lines_data.order_to_lines_mapping.items():
+            lines_data = [(line.quantity, line) for line in order_lines]
+            order_events.order_line_variant_removed_event(order, requester, lines_data)
+
+        order_pks = draft_order_lines_data.order_pks
+        if order_pks:
+            recalculate_orders_task.delay(list(order_pks))
 
         transaction.on_commit(
             lambda: info.context.plugins.product_variant_deleted(variant)

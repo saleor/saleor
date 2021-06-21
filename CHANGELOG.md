@@ -117,6 +117,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add file format validation for uploaded images - #7447 by @IKarbowiak
 - Add boolean attributes - #7454 by @piotrgrundas
 - Fix attaching params for address form errors - #7485 by @IKarbowiak
+- Update draft order validation - #7253 by @IKarbowiak
+  - Extend Order type with errors: [OrderError!]! field
+  - Create tasks for deleting order lines by deleting products or variants
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
