@@ -859,7 +859,14 @@ class CheckoutLanguageCodeUpdate(BaseMutation):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Arguments:
-        checkout_id = graphene.ID(required=True, description="ID of the checkout.")
+        checkout_id = graphene.ID(
+            required=False,
+            description=(
+                "ID of the checkout."
+                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+            ),
+        )
+        token = UUID(description="Checkout token.", required=False)
         language_code = graphene.Argument(
             LanguageCodeEnum, required=True, description="New language code."
         )
@@ -870,10 +877,20 @@ class CheckoutLanguageCodeUpdate(BaseMutation):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id, language_code):
-        checkout = cls.get_node_or_error(
-            info, checkout_id, only_type=Checkout, field="checkout_id"
+    def perform_mutation(cls, _root, info, language_code, checkout_id=None, token=None):
+        # DEPRECATED
+        validate_one_of_args_is_in_mutation(
+            CheckoutErrorCode, "checkout_id", checkout_id, "token", token
         )
+
+        if token:
+            checkout = get_checkout_by_token(token)
+        # DEPRECATED
+        else:
+            checkout = cls.get_node_or_error(
+                info, checkout_id or token, only_type=Checkout, field="checkout_id"
+            )
+
         checkout.language_code = language_code
         checkout.save(update_fields=["language_code", "last_change"])
         info.context.plugins.checkout_updated(checkout)
