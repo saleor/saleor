@@ -125,6 +125,9 @@ class StripeGatewayPlugin(BasePlugin):
         config = self.config
         if path.startswith(WEBHOOK_PATH, 1):  # 1 as we don't check the '/'
             return handle_webhook(request, config)
+        logger.warning(
+            "Received request to incorrect stripe path", extra={"path": path}
+        )
         return HttpResponseNotFound()
 
     @require_active_plugin
@@ -430,7 +433,7 @@ class StripeGatewayPlugin(BasePlugin):
         if domain in localhost_domains:
             logger.warning(
                 "Unable to subscribe localhost domain - %s to Stripe webhooks. Stripe "
-                "webhooks require domain which will be accessible from the network.",
+                "webhooks require domain which will be accessible from the network",
                 domain,
             )
             return
@@ -438,6 +441,11 @@ class StripeGatewayPlugin(BasePlugin):
         webhook = subscribe_webhook(
             api_key, plugin_configuration.channel.slug  # type: ignore
         )
+        if not webhook:
+            logger.warning(
+                "Unable to subscribe to Stripe webhook", extra={"domain": domain}
+            )
+            return
         cls._update_or_create_config_field(
             plugin_configuration.configuration, "webhook_endpoint_id", webhook.id
         )
@@ -478,7 +486,7 @@ class StripeGatewayPlugin(BasePlugin):
                 raise ValidationError(
                     {
                         "secret_api_key": ValidationError(
-                            "Secret API key is incorrect.",
+                            "Secret API key is incorrect",
                             code=PluginErrorCode.INVALID.value,
                         )
                     }

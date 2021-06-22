@@ -44,7 +44,18 @@ def is_secret_api_key_valid(api_key: str):
         return False
 
 
-def subscribe_webhook(api_key: str, channel_slug: str) -> StripeObject:
+def _extra_log_data(error: StripeError, payment_intent_id: Optional[str] = None):
+    data = {
+        "error_message": error.user_message,
+        "http_status": error.http_status,
+        "code": error.code,
+    }
+    if payment_intent_id is not None:
+        data["payment_intent_id"] = payment_intent_id
+    return data
+
+
+def subscribe_webhook(api_key: str, channel_slug: str) -> Optional[StripeObject]:
     domain = Site.objects.get_current().domain
     api_path = reverse(
         "plugins-per-channel",
@@ -55,12 +66,19 @@ def subscribe_webhook(api_key: str, channel_slug: str) -> StripeObject:
     webhook_url = urljoin(base_url, WEBHOOK_PATH)  # type: ignore
 
     with stripe_opentracing_trace("stripe.WebhookEndpoint.create"):
-        return stripe.WebhookEndpoint.create(
-            api_key=api_key,
-            url=webhook_url,
-            enabled_events=WEBHOOK_EVENTS,
-            metadata={METADATA_IDENTIFIER: domain},
-        )
+        try:
+            return stripe.WebhookEndpoint.create(
+                api_key=api_key,
+                url=webhook_url,
+                enabled_events=WEBHOOK_EVENTS,
+                metadata={METADATA_IDENTIFIER: domain},
+            )
+        except StripeError as error:
+            logger.warning(
+                "Failed to create Stripe webhook",
+                extra=_extra_log_data(error),
+            )
+            return None
 
 
 def delete_webhook(api_key: str, webhook_id: str):
@@ -86,7 +104,11 @@ def get_or_create_customer(
             return stripe.Customer.create(
                 api_key=api_key, email=customer_email, metadata=metadata
             )
-    except StripeError:
+    except StripeError as error:
+        logger.warning(
+            "Failed to get/create Stripe customer",
+            extra=_extra_log_data(error),
+        )
         return None
 
 
@@ -121,6 +143,9 @@ def create_payment_intent(
             )
         return intent, None
     except StripeError as error:
+        logger.warning(
+            "Failed to create Stripe payment intent", extra=_extra_log_data(error)
+        )
         return None, error
 
 
@@ -149,7 +174,10 @@ def retrieve_payment_intent(
             )
         return payment_intent, None
     except StripeError as error:
-        logger.warning("Unable to retrieve a payment intent (%s)", payment_intent_id)
+        logger.warning(
+            "Unable to retrieve a payment intent",
+            extra=_extra_log_data(error),
+        )
         return None, error
 
 
@@ -164,7 +192,8 @@ def capture_payment_intent(
         return payment_intent, None
     except StripeError as error:
         logger.warning(
-            "Unable to capture a payment intent (%s), error", payment_intent_id
+            "Unable to capture a payment intent",
+            extra=_extra_log_data(error),
         )
         return None, error
 
@@ -182,8 +211,8 @@ def refund_payment_intent(
         return refund, None
     except StripeError as error:
         logger.warning(
-            "Unable to refund a payment intent.",
-            extra={"error": error, "payment_intent": payment_intent_id},
+            "Unable to refund a payment intent",
+            extra=_extra_log_data(error),
         )
         return None, error
 
@@ -199,8 +228,10 @@ def cancel_payment_intent(
         return payment_intent, None
     except StripeError as error:
         logger.warning(
-            "Unable to cancel a payment intent (%s), error", payment_intent_id
+            "Unable to cancel a payment intent",
+            extra=_extra_log_data(error),
         )
+
         return None, error
 
 

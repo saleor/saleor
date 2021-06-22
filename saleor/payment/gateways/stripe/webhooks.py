@@ -45,11 +45,13 @@ def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
         )
     except ValueError as e:
         # Invalid payload
-        logger.warning("Received invalid payload. %s", e)
+        logger.warning(
+            "Received invalid payload for Stripe webhook", extra={"error": e}
+        )
         return HttpResponse(status=400)
     except SignatureVerificationError as e:
         # Invalid signature
-        logger.warning("Invalid signature. %s", e)
+        logger.warning("Invalid signature for Stripe webhook", extra={"error": e})
         return HttpResponse(status=400)
 
     webhook_handlers = {
@@ -61,9 +63,15 @@ def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
         WEBHOOK_REFUND_EVENT: handle_refund,
     }
     if event.type in webhook_handlers:
+        logger.debug(
+            "Processing new Stripe webhook",
+            extra={"event_type": event.type, "event_id": event.id},
+        )
         webhook_handlers[event.type](event.data.object, gateway_config)
     else:
-        logger.warning("Received unhandled webhook event %s", event.type)
+        logger.warning(
+            "Received unhandled webhook events", extra={"event_type": event.type}
+        )
     return HttpResponse(status=200)
 
 
@@ -176,8 +184,8 @@ def handle_authorized_payment_intent(
 
     if not payment:
         logger.warning(
-            "Payment for PaymentIntent %s was not found",
-            payment_intent.id,
+            "Payment for PaymentIntent was not found",
+            extra={"payment_intent": payment_intent.id},
         )
         return
     if payment.order_id:
@@ -209,8 +217,8 @@ def handle_failed_payment_intent(
 
     if not payment:
         logger.warning(
-            "Payment for PaymentIntent %s was not found",
-            payment_intent.id,
+            "Payment for PaymentIntent was not found",
+            extra={"payment_intent": payment_intent.id},
         )
         return
     _update_payment(
@@ -229,8 +237,8 @@ def handle_processing_payment_intent(
 
     if not payment:
         logger.warning(
-            "Payment for PaymentIntent %s was not found",
-            payment_intent.id,
+            "Payment for PaymentIntent was not found",
+            extra={"payment_intent": payment_intent.id},
         )
         return
     if payment.order_id:
@@ -254,8 +262,8 @@ def handle_successful_payment_intent(
 
     if not payment:
         logger.warning(
-            "Payment for PaymentIntent %s was not found",
-            payment_intent.id,
+            "Payment for PaymentIntent was not found",
+            extra={"payment_intent": payment_intent.id},
         )
         return
     if payment.order_id:
@@ -295,11 +303,18 @@ def handle_refund(charge: StripeObject, gateway_config: "GatewayConfig"):
 
     if already_processed:
         logger.debug(
-            "Refund %s for payment %s already processed", refund.id, payment.id
+            "Refund already processed",
+            extra={
+                "refund": refund.id,
+                "payment": payment.id,
+                "payment_intent_id": payment_intent_id,
+            },
         )
 
     if payment.charge_status in ChargeStatus.FULLY_REFUNDED:
-        logger.info("Order %s, already fully refunded", payment.order_id)
+        logger.info(
+            "Order already fully refunded", extra={"order_id": payment.order_id}
+        )
         return
     _update_payment(
         payment, refund, TransactionKind.REFUND, refund.amount, refund.currency
