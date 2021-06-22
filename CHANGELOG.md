@@ -117,6 +117,11 @@ All notable, unreleased changes to this project will be documented in this file.
 - Order events performance - #7424 by tomaszszymanski129
 - Add hash to uploading images #7453 by @IKarbowiak
 - Add file format validation for uploaded images - #7447 by @IKarbowiak
+- Add boolean attributes - #7454 by @piotrgrundas
+- Fix attaching params for address form errors - #7485 by @IKarbowiak
+- Update draft order validation - #7253 by @IKarbowiak
+  - Extend Order type with errors: [OrderError!]! field
+  - Create tasks for deleting order lines by deleting products or variants
 
 ### Breaking
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
@@ -263,6 +268,11 @@ All notable, unreleased changes to this project will be documented in this file.
 - Return empty results when filtering by non-existing attribute - #7025 by @maarcingebala
 - Add new authorization header `Authorization-Bearer` - #6998 by @korycins
 - Add field `paymentMethodType` to `Payment` object - #7073 by @korycins
+- Unify Warehouse Address API - #7481 by @d-wysocki
+    - deprecate `companyName` on `Warehouse` type
+    - remove `companyName` on `WarehouseInput` type
+    - remove `WarehouseAddressInput` on `WarehouseUpdateInput` and `WarehouseCreateInput`, and change it to `AddressInput`
+- Fix passing incorrect customer email to payment gateways - #7486 by @korycins
 
 # 2.11.1
 

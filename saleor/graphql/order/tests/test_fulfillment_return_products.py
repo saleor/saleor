@@ -57,7 +57,7 @@ mutation OrderFulfillmentReturnProducts(
             code
             message
             warehouse
-            orderLine
+            orderLines
         }
     }
 }

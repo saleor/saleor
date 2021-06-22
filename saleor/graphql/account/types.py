@@ -189,7 +189,7 @@ class UserPermission(Permission):
 
     @traced_resolver
     def resolve_source_permission_groups(root: Permission, _info, user_id, **_kwargs):
-        _type, user_id = from_global_id_or_error(user_id, only_type="User", field="pk")
+        _type, user_id = from_global_id_or_error(user_id, only_type="User")
         groups = auth_models.Group.objects.filter(
             user__pk=user_id, permissions__name=root.name
         )

@@ -17,7 +17,6 @@ from ...attribute.types import Attribute
 from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation
 from ...core.types.common import PageError
-from ...core.utils import from_global_id_or_error
 from ...core.utils.reordering import perform_reordering
 from ...page.types import Page, PageType
 from ...utils import resolve_global_ids_to_primary_keys
@@ -93,10 +92,14 @@ class PageAttributeAssign(BaseMutation):
         attribute_ids = data["attribute_ids"]
 
         # retrieve the requested page type
-        page_type = cls.get_node_or_error(info, page_type_id, only_type=PageType)
+        page_type = cls.get_node_or_error(
+            info, page_type_id, only_type=PageType, field="page_type_id"
+        )
 
         # resolve all passed attributes IDs to attributes pks
-        _, attr_pks = resolve_global_ids_to_primary_keys(attribute_ids, Attribute)
+        attr_pks = cls.get_global_ids_or_error(
+            attribute_ids, Attribute, field="attribute_ids"
+        )
 
         # ensure the attributes are assignable
         cls.clean_attributes(errors, page_type, attr_pks)
@@ -171,9 +174,7 @@ class PageTypeReorderAttributes(BaseReorderAttributesMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         page_type_id = data["page_type_id"]
-        _type, pk = from_global_id_or_error(
-            page_type_id, only_type=PageType, field="pk"
-        )
+        pk = cls.get_global_id_or_error(page_type_id, only_type=PageType, field="pk")
 
         try:
             page_type = page_models.PageType.objects.prefetch_related(
@@ -234,11 +235,9 @@ class PageReorderAttributeValues(BaseReorderAttributeValuesMutation):
         page = cls.perform(page_id, "page", data, "pagevalueassignment", PageErrorCode)
         return PageReorderAttributeValues(page=page)
 
-    @staticmethod
-    def get_instance(instance_id: str):
-        _type, pk = from_global_id_or_error(
-            instance_id, only_type=Page, field="page_id"
-        )
+    @classmethod
+    def get_instance(cls, instance_id: str):
+        pk = cls.get_global_id_or_error(instance_id, only_type=Page, field="page_id")
 
         try:
             page = page_models.Page.objects.prefetch_related("attributes").get(pk=pk)

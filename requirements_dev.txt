@@ -12,9 +12,9 @@ babel==2.9.1; (python_version >= "2.7" and python_full_version < "3.0.0") or (py
 beautifulsoup4==4.7.1
 beautifultable==0.7.0
 billiard==3.6.4.0; python_version >= "3.6"
-black==21.5b0; python_full_version >= "3.6.2"
-boto3==1.17.88; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.6.0")
-botocore==1.20.88; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0"
+black==21.6b0; python_full_version >= "3.6.2"
+boto3==1.17.93; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.6.0")
+botocore==1.20.93; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0"
 braintree==4.9.0
 cachetools==4.2.2; python_version >= "3.5" and python_version < "4.0" and (python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0")
 cairocffi==1.2.0; python_version >= "3.6"
@@ -51,7 +51,7 @@ django-phonenumber-field==5.2.0; python_version >= "3.6"
 django-prices-openexchangerates==1.1.0
 django-prices-vatlayer==1.1.0
 django-prices==2.2.0
-django-redis==4.12.1; python_version >= "3.5"
+django-redis==5.0.0; python_version >= "3.6"
 django-storages==1.11.1; python_version >= "3.5"
 django-stubs==1.2.0; python_version >= "3.6"
 django-versatileimagefield==2.0
@@ -60,10 +60,10 @@ draftjs-sanitizer==1.0.0
 enmerkar==0.7.1
 et-xmlfile==1.1.0; python_version >= "3.6"
 execnet==1.8.0; python_version >= "3.5" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.5"
-faker==8.5.1; python_version >= "3.6"
+faker==8.8.0; python_version >= "3.6"
 filelock==3.0.12; python_full_version >= "3.6.1"
 flake8==3.9.2; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.5.0")
-freezegun==0.3.15; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.5.0")
+freezegun==1.1.0; python_version >= "3.5"
 gitdb==4.0.7; python_version >= "3.5" and python_full_version < "3.0.0" or python_full_version >= "3.4.0" and python_version < "3.10" and python_version >= "3.5"
 gitpython==3.1.15; python_version >= "3.5" and python_full_version < "3.0.0" or python_full_version >= "3.4.0" and python_version < "3.10" and python_version >= "3.5"
 google-api-core==1.26.3; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
@@ -118,7 +118,7 @@ opentracing==2.4.0
 packaging==20.9; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 pathspec==0.8.1; python_full_version >= "3.6.2"
 petl==1.7.4; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
-phonenumberslite==8.12.22
+phonenumberslite==8.12.24
 pillow==8.2.0; python_version >= "3.6"
 pluggy==0.13.1; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6"
 pre-commit==2.13.0; python_full_version >= "3.6.1"
@@ -128,7 +128,6 @@ prompt-toolkit==3.0.18; python_full_version >= "3.6.1" and python_version >= "3.
 proto-plus==1.18.1; python_version >= "3.6"
 protobuf==3.16.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
 psycopg2-binary==2.8.6; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
-purl==1.5
 py==1.10.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6"
 pyasn1-modules==0.2.8; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.6.0"
 pyasn1==0.4.8; python_version >= "3.5" and python_full_version < "3.0.0" and python_version < "4" and (python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6") or python_version >= "3.5" and python_version < "4" and (python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6") and python_full_version >= "3.6.0"
@@ -141,7 +140,7 @@ pyjwt==2.1.0; python_version >= "3.6"
 pylint-celery==0.3
 pylint-django==2.4.4
 pylint-plugin-utils==0.6
-pylint==2.8.2; python_version >= "3.6" and python_version < "4.0"
+pylint==2.8.3; python_version >= "3.6" and python_version < "4.0"
 pymeta3==0.5.1
 pyparsing==2.4.7; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.4.0" and python_version >= "3.6"
 pyphen==0.10.0; python_version >= "3.6"
@@ -182,7 +181,7 @@ snowballstemmer==2.1.0; python_version >= "3.6"
 soupsieve==2.2.1; python_version >= "3.6"
 sqlparse==0.4.1; python_version >= "3.6"
 starkbank-ecdsa==1.1.0; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0"
-stripe==2.56.0; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
+stripe==2.58.0; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
 sympy==1.8; python_version >= "3.6"
 text-unidecode==1.3
 threadloop==1.0.2

@@ -812,6 +812,32 @@ def attribute_choices_for_sorting(db):
 
 
 @pytest.fixture
+def boolean_attribute(db):
+    attribute = Attribute.objects.create(
+        slug="boolean",
+        name="Boolean",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.BOOLEAN,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
+    )
+    AttributeValue.objects.create(
+        attribute=attribute,
+        name=f"{attribute.name}: Yes",
+        slug=f"{attribute.id}_true",
+        boolean=True,
+    )
+    AttributeValue.objects.create(
+        attribute=attribute,
+        name=f"{attribute.name}: No",
+        slug=f"{attribute.id}_false",
+        boolean=False,
+    )
+    return attribute
+
+
+@pytest.fixture
 def rich_text_attribute(db):
     attribute = Attribute.objects.create(
         slug="text",

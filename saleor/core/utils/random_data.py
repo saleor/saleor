@@ -1207,7 +1207,7 @@ def create_warehouses():
         warehouse, _ = Warehouse.objects.update_or_create(
             name=shipping_zone_name,
             slug=slugify(shipping_zone_name),
-            defaults={"company_name": fake.company(), "address": create_address()},
+            defaults={"address": create_address()},
         )
         warehouse.shipping_zones.add(shipping_zone)
 
