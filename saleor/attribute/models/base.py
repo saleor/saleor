@@ -200,6 +200,7 @@ class AttributeValue(SortableModel):
         Attribute, related_name="values", on_delete=models.CASCADE
     )
     rich_text = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+    boolean = models.BooleanField(blank=True, null=True)
 
     translated = TranslationProxy()
 

@@ -3,23 +3,30 @@ from datetime import date
 import graphene
 
 from ....giftcard.error_codes import GiftCardErrorCode
-from ...tests.utils import assert_no_permission, get_graphql_content
+from ...tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 
-
-def test_query_gift_card_with_permissions(
-    staff_api_client, gift_card, permission_manage_gift_card, permission_manage_users
-):
-    query = """
+QUERY_GIFT_CARD_BY_ID = """
     query giftCard($id: ID!) {
         giftCard(id: $id){
             id
             displayCode
+            code
             user {
                 email
             }
         }
     }
-    """
+"""
+
+
+def test_query_gift_card_with_permissions(
+    staff_api_client, gift_card, permission_manage_gift_card, permission_manage_users
+):
+    query = QUERY_GIFT_CARD_BY_ID
     gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.pk)
     variables = {"id": gift_card_id}
 
@@ -48,18 +55,7 @@ def test_query_gift_card_code_without_user(
     permission_manage_gift_card,
     permission_manage_users,
 ):
-    query = """
-    query giftCard($id: ID!) {
-        giftCard(id: $id){
-            id
-            displayCode
-            code
-            user{
-                email
-            }
-        }
-    }
-    """
+    query = QUERY_GIFT_CARD_BY_ID
     gift_card = gift_card_created_by_staff
     gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.pk)
     variables = {"id": gift_card_id}
@@ -79,18 +75,7 @@ def test_query_gift_card_code_without_user(
 def test_query_gift_card_code_with_user(
     staff_api_client, gift_card, permission_manage_gift_card, permission_manage_users
 ):
-    query = """
-    query giftCard($id: ID!) {
-        giftCard(id: $id){
-            id
-            displayCode
-            code
-            user{
-                email
-            }
-        }
-    }
-    """
+    query = QUERY_GIFT_CARD_BY_ID
     gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.pk)
     variables = {"id": gift_card_id}
     response = staff_api_client.post_graphql(
@@ -109,17 +94,40 @@ def test_query_gift_card_code_with_user(
 def test_query_gift_card_without_premissions(
     user_api_client, gift_card_created_by_staff
 ):
-    query = """
-    query giftCard($id: ID!) {
-        giftCard(id: $id){
-            id
-        }
-    }
-    """
+    query = QUERY_GIFT_CARD_BY_ID
     gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card_created_by_staff.pk)
     variables = {"id": gift_card_id}
     response = user_api_client.post_graphql(query, variables)
     assert_no_permission(response)
+
+
+def test_staff_query_gift_card_by_invalid_id(
+    staff_api_client, gift_card, permission_manage_users, permission_manage_gift_card
+):
+    id = "bh/"
+    variables = {"id": id}
+    response = staff_api_client.post_graphql(
+        QUERY_GIFT_CARD_BY_ID,
+        variables,
+        permissions=[permission_manage_gift_card, permission_manage_users],
+    )
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
+    assert content["data"]["giftCard"] is None
+
+
+def test_staff_query_gift_card_with_invalid_object_type(
+    staff_api_client, gift_card, permission_manage_users, permission_manage_gift_card
+):
+    variables = {"id": graphene.Node.to_global_id("Order", gift_card.pk)}
+    response = staff_api_client.post_graphql(
+        QUERY_GIFT_CARD_BY_ID,
+        variables,
+        permissions=[permission_manage_gift_card, permission_manage_users],
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["giftCard"] is None
 
 
 def test_query_gift_cards(

@@ -26,7 +26,9 @@ REVERSED_DIRECTION = {
 }
 
 
-def resolve_global_ids_to_primary_keys(ids, graphene_type=None):
+def resolve_global_ids_to_primary_keys(
+    ids, graphene_type=None, raise_error: bool = False
+):
     pks = []
     invalid_ids = []
     used_type = graphene_type
@@ -43,7 +45,9 @@ def resolve_global_ids_to_primary_keys(ids, graphene_type=None):
 
         # Raise GraphQL error if ID of a different type was passed
         if used_type and str(used_type) != str(node_type):
-            raise GraphQLError(f"Must receive {str(used_type)} id: {graphql_id}")
+            if not raise_error:
+                continue
+            raise GraphQLError(f"Must receive {str(used_type)} id: {graphql_id}.")
 
         used_type = node_type
         pks.append(_id)
@@ -73,7 +77,9 @@ def get_nodes(
 
     If the `graphene_type` is of type str, the model keyword argument must be provided.
     """
-    nodes_type, pks = resolve_global_ids_to_primary_keys(ids, graphene_type)
+    nodes_type, pks = resolve_global_ids_to_primary_keys(
+        ids, graphene_type, raise_error=True
+    )
 
     # If `graphene_type` was not provided, check if all resolved types are
     # the same. This prevents from accidentally mismatching IDs of different

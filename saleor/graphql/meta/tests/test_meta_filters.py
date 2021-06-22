@@ -1,3 +1,7 @@
+import pytest
+
+from saleor.product.models import Product
+
 from ...tests.utils import get_graphql_content
 
 FILTER_BY_META_QUERY = """
@@ -17,39 +21,111 @@ query filterProductsByMetadata ($filter:ProductFilterInput, $channel: String){
 """
 
 
-def key_sort(item):
-    return item["key"]
-
-
-METADATA = sorted(
+@pytest.mark.parametrize(
+    "metadata, total_count",
     [
-        {
-            "key": "A",
-            "value": "X",
-        },
-        {
-            "key": "B",
-            "value": "Y",
-        },
-        {"key": "C", "value": "Z"},
+        (
+            [
+                {
+                    "key": "A",
+                    "value": "1",
+                },
+                {
+                    "key": "B",
+                    "value": "2",
+                },
+                {
+                    "key": "C",
+                    "value": "3",
+                },
+            ],
+            1,
+        ),
+        (
+            [
+                {
+                    "key": "A",
+                    "value": "1",
+                },
+                {
+                    "key": "B",
+                    "value": "2",
+                },
+            ],
+            1,
+        ),
+        (
+            [
+                {
+                    "key": "C",
+                    "value": "3",
+                },
+            ],
+            2,
+        ),
+        (
+            [
+                {
+                    "key": "C",
+                    "value": "44",
+                },
+            ],
+            0,
+        ),
+        (
+            [
+                {
+                    "key": "C",
+                    "value": None,
+                },
+            ],
+            2,
+        ),
+        (
+            [
+                {
+                    "key": "A",
+                    "value": None,
+                },
+                {
+                    "key": "B",
+                },
+            ],
+            1,
+        ),
     ],
-    key=key_sort,
 )
-
-
-def test_filter_by_meta(api_client, product, channel_USD):
-    # given
-    for item in METADATA:
-        product.store_value_in_metadata({item["key"]: item["value"]})
-
-    product.save(update_fields=["metadata"])
-
+def test_filter_by_meta_total_returned_objects(
+    metadata, total_count, api_client, product_list, channel_USD
+):
+    product1, product2, product3 = product_list
     variables = {
         "channel": channel_USD.slug,
         "filter": {
-            "metadata": METADATA,
+            "metadata": metadata,
         },
     }
+    product1.store_value_in_metadata({"A": "1", "B": "2", "C": "3"})
+    product2.store_value_in_metadata({"C": "3", "Z": "4"})
+    Product.objects.bulk_update([product1, product2], ["metadata"])
+
+    response = api_client.post_graphql(FILTER_BY_META_QUERY, variables)
+    content = get_graphql_content(response)
+    assert len(content["data"]["products"]["edges"]) == total_count
+
+
+def test_filter_by_meta_expected_product_for_key_and_value(
+    api_client, product_list, channel_USD
+):
+    product = product_list[0]
+    variables = {
+        "channel": channel_USD.slug,
+        "filter": {
+            "metadata": [{"key": "A", "value": "1"}],
+        },
+    }
+    product.store_value_in_metadata({"A": "1", "B": "2", "C": "3"})
+    product.save()
 
     # when
     response = api_client.post_graphql(FILTER_BY_META_QUERY, variables)
@@ -57,8 +133,28 @@ def test_filter_by_meta(api_client, product, channel_USD):
 
     # then
     product_data = content["data"]["products"]["edges"][0]["node"]
-    metadata = product_data["metadata"]
 
-    # to guarantee order
-    assert METADATA == sorted(metadata, key=key_sort)
+    assert product_data["slug"] == product.slug
+
+
+def test_filter_by_meta_expected_product_for_only_key(
+    api_client, product_list, channel_USD
+):
+    product = product_list[0]
+    variables = {
+        "channel": channel_USD.slug,
+        "filter": {
+            "metadata": [{"key": "A"}],
+        },
+    }
+    product.store_value_in_metadata({"A": "1", "B": "2", "C": "3"})
+    product.save(update_fields=["metadata"])
+
+    # when
+    response = api_client.post_graphql(FILTER_BY_META_QUERY, variables)
+    content = get_graphql_content(response)
+
+    # then
+    product_data = content["data"]["products"]["edges"][0]["node"]
+
     assert product_data["slug"] == product.slug
