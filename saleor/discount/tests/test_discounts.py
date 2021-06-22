@@ -388,8 +388,63 @@ def test_validate_voucher(
     )
     total_price = Money(total, "USD")
     validate_voucher(
-        voucher, total_price, total_quantity, "test@example.com", channel_USD
+        voucher, total_price, total_quantity, "test@example.com", channel_USD, None
     )
+
+
+def test_validate_staff_voucher_for_anonymous(
+    channel_USD,
+):
+    voucher = Voucher.objects.create(
+        code="unique",
+        type=VoucherType.ENTIRE_ORDER,
+        discount_value_type=DiscountValueType.PERCENTAGE,
+        only_for_staff=True,
+    )
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(50, channel_USD.currency_code),
+    )
+    total_price = Money(100, "USD")
+    with pytest.raises(NotApplicable):
+        validate_voucher(voucher, total_price, 2, "test@example.com", channel_USD, None)
+
+
+def test_validate_staff_voucher_for_normal_customer(channel_USD, customer_user):
+    voucher = Voucher.objects.create(
+        code="unique",
+        type=VoucherType.ENTIRE_ORDER,
+        discount_value_type=DiscountValueType.PERCENTAGE,
+        only_for_staff=True,
+    )
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(50, channel_USD.currency_code),
+    )
+    total_price = Money(100, "USD")
+    with pytest.raises(NotApplicable):
+        validate_voucher(
+            voucher, total_price, 2, customer_user.email, channel_USD, customer_user
+        )
+
+
+def test_validate_staff_voucher_for_staff_customer(channel_USD, staff_user):
+    voucher = Voucher.objects.create(
+        code="unique",
+        type=VoucherType.ENTIRE_ORDER,
+        discount_value_type=DiscountValueType.PERCENTAGE,
+        only_for_staff=True,
+    )
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(50, channel_USD.currency_code),
+    )
+    total_price = Money(100, "USD")
+
+    validate_voucher(voucher, total_price, 2, staff_user.email, channel_USD, staff_user)
 
 
 @pytest.mark.parametrize(
@@ -425,7 +480,7 @@ def test_validate_voucher_not_applicable(
     total_price = Money(total, "USD")
     with pytest.raises(NotApplicable):
         validate_voucher(
-            voucher, total_price, total_quantity, "test@example.com", channel_USD
+            voucher, total_price, total_quantity, "test@example.com", channel_USD, None
         )
 
 
@@ -436,7 +491,7 @@ def test_validate_voucher_not_applicable_once_per_customer(
     voucher.save()
     VoucherCustomer.objects.create(voucher=voucher, customer_email=customer_user.email)
     with pytest.raises(NotApplicable):
-        validate_voucher(voucher, 0, 0, customer_user.email, channel_USD)
+        validate_voucher(voucher, 0, 0, customer_user.email, channel_USD, customer_user)
 
 
 date_time_now = timezone.now()
