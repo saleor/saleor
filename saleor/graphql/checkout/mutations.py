@@ -210,7 +210,7 @@ def get_checkout_by_token(token: uuid.UUID, prefetch_lookups: Iterable[str] = []
         raise ValidationError(
             {
                 "token": ValidationError(
-                    f"Couldn't resolve to a node: {token}",
+                    f"Couldn't resolve to a node: {token}.",
                     code=CheckoutErrorCode.NOT_FOUND.value,
                 )
             }
@@ -1041,7 +1041,14 @@ class CheckoutComplete(BaseMutation):
     )
 
     class Arguments:
-        checkout_id = graphene.ID(description="Checkout ID.", required=True)
+        checkout_id = graphene.ID(
+            description=(
+                "Checkout ID."
+                "DEPRECATED: Will be removed in Saleor 4.0. Use token instead."
+            ),
+            required=False,
+        )
+        token = UUID(description="Checkout token.", required=False)
         store_source = graphene.Boolean(
             default_value=False,
             description=(
@@ -1075,22 +1082,35 @@ class CheckoutComplete(BaseMutation):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id, store_source, **data):
+    def perform_mutation(
+        cls, _root, info, store_source, checkout_id=None, token=None, **data
+    ):
+        # DEPRECATED
+        validate_one_of_args_is_in_mutation(
+            CheckoutErrorCode, "checkout_id", checkout_id, "token", token
+        )
+
         tracking_code = analytics.get_client_id(info.context)
         with transaction_with_commit_on_errors():
             try:
-                checkout = cls.get_node_or_error(
-                    info,
-                    checkout_id,
-                    only_type=Checkout,
-                    field="checkout_id",
-                )
+                if token:
+                    checkout = get_checkout_by_token(token)
+                # DEPRECATED
+                else:
+                    checkout = cls.get_node_or_error(
+                        info,
+                        checkout_id or token,
+                        only_type=Checkout,
+                        field="checkout_id",
+                    )
             except ValidationError as e:
-                checkout_token = cls.get_global_id_or_error(
-                    checkout_id, only_type=Checkout, field="checkout_id"
-                )
+                # DEPRECATED
+                if checkout_id:
+                    token = cls.get_global_id_or_error(
+                        checkout_id, only_type=Checkout, field="checkout_id"
+                    )
 
-                order = order_models.Order.objects.get_by_checkout_token(checkout_token)
+                order = order_models.Order.objects.get_by_checkout_token(token)
                 if order:
                     if not order.channel.is_active:
                         raise ValidationError(
