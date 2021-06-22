@@ -109,7 +109,7 @@ documentation = "https://docs.saleor.io/"
   tox = "^3.23.1"
   transifex-client = "^0"
   django-stubs = "1.2"
-  mypy = "0.740"
+  mypy = "0.902"
   pywatchman = "^1.4.1"
 
 [tool.black]
