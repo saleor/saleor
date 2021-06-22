@@ -43,6 +43,17 @@ def is_secret_api_key_valid(api_key: str):
         return False
 
 
+def _extra_log_data(error: StripeError, payment_intent_id: Optional[str] = None):
+    data = {
+        "error_message": error.user_message,
+        "http_status": error.http_status,
+        "code": error.code,
+    }
+    if payment_intent_id is not None:
+        data["payment_intent_id"] = payment_intent_id
+    return data
+
+
 def subscribe_webhook(api_key: str, channel_slug: str) -> Optional[StripeObject]:
     domain = Site.objects.get_current().domain
     api_path = reverse(
@@ -61,14 +72,10 @@ def subscribe_webhook(api_key: str, channel_slug: str) -> Optional[StripeObject]
                 enabled_events=WEBHOOK_EVENTS,
                 metadata={METADATA_IDENTIFIER: domain},
             )
-        except StripeError as e:
+        except StripeError as error:
             logger.warning(
                 "Failed to create Stripe webhook",
-                extra={
-                    "error_message": e.user_message,
-                    "http_status": e.http_status,
-                    "code": e.code,
-                },
+                extra=_extra_log_data(error),
             )
             return None
 
@@ -96,14 +103,10 @@ def get_or_create_customer(
             return stripe.Customer.create(
                 api_key=api_key, email=customer_email, metadata=metadata
             )
-    except StripeError as e:
+    except StripeError as error:
         logger.warning(
             "Failed to get/create Stripe customer",
-            extra={
-                "error_message": e.user_message,
-                "http_status": e.http_status,
-                "code": e.code,
-            },
+            extra=_extra_log_data(error),
         )
         return None
 
@@ -140,12 +143,7 @@ def create_payment_intent(
         return intent, None
     except StripeError as error:
         logger.warning(
-            "Failed to create Stripe payment intent",
-            extra={
-                "error_message": error.user_message,
-                "http_status": error.http_status,
-                "code": error.code,
-            },
+            "Failed to create Stripe payment intent", extra=_extra_log_data(error)
         )
         return None, error
 
@@ -177,12 +175,7 @@ def retrieve_payment_intent(
     except StripeError as error:
         logger.warning(
             "Unable to retrieve a payment intent",
-            extra={
-                "payment_intent_id": payment_intent_id,
-                "error_message": error.user_message,
-                "http_status": error.http_status,
-                "code": error.code,
-            },
+            extra=_extra_log_data(error),
         )
         return None, error
 
@@ -199,12 +192,7 @@ def capture_payment_intent(
     except StripeError as error:
         logger.warning(
             "Unable to capture a payment intent",
-            extra={
-                "payment_intent_id": payment_intent_id,
-                "error_message": error.user_message,
-                "http_status": error.http_status,
-                "code": error.code,
-            },
+            extra=_extra_log_data(error),
         )
         return None, error
 
@@ -223,12 +211,7 @@ def refund_payment_intent(
     except StripeError as error:
         logger.warning(
             "Unable to refund a payment intent",
-            extra={
-                "error_message": error.user_message,
-                "http_status": error.http_status,
-                "code": error.code,
-                "payment_intent": payment_intent_id,
-            },
+            extra=_extra_log_data(error),
         )
         return None, error
 
@@ -245,12 +228,7 @@ def cancel_payment_intent(
     except StripeError as error:
         logger.warning(
             "Unable to cancel a payment intent",
-            extra={
-                "error_message": error.user_message,
-                "http_status": error.http_status,
-                "code": error.code,
-                "payment_intent": payment_intent_id,
-            },
+            extra=_extra_log_data(error),
         )
 
         return None, error
