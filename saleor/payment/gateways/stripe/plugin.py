@@ -464,7 +464,7 @@ class StripeGatewayPlugin(BasePlugin):
                 raise ValidationError(
                     {
                         field: ValidationError(
-                            "The parameter is required",
+                            "The parameter is required.",
                             code=PluginErrorCode.REQUIRED.value,
                         )
                     }
