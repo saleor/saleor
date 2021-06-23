@@ -859,6 +859,26 @@ def rich_text_attribute(db):
 
 
 @pytest.fixture
+def rich_text_attribute_with_many_values(rich_text_attribute):
+    attribute = rich_text_attribute
+    values = []
+    for i in range(5):
+        text = f"Rich text attribute content{i}."
+        values.append(
+            AttributeValue(
+                attribute=attribute,
+                name=truncatechars(
+                    clean_editor_js(dummy_editorjs(text), to_string=True), 50
+                ),
+                slug=f"instance_{attribute.id}_{i}",
+                rich_text=dummy_editorjs(text),
+            )
+        )
+    AttributeValue.objects.bulk_create(values)
+    return rich_text_attribute
+
+
+@pytest.fixture
 def color_attribute_without_values(db):  # pylint: disable=W0613
     return Attribute.objects.create(
         slug="color",
