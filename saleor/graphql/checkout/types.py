@@ -161,7 +161,16 @@ class CheckoutLine(CountableDjangoObjectType):
 
 class DeliveryMethod(graphene.Union):
     class Meta:
-        types = (ShippingMethod, Warehouse)
+        types = (Warehouse, ShippingMethod)  # What the heck?
+
+    @classmethod
+    def resolve_type(cls, instance, info):
+        if isinstance(instance, ShippingMethod):
+            return ShippingMethod
+        if isinstance(instance, ChannelContext):
+            return ShippingMethod
+        if isinstance(instance, Warehouse):
+            return Warehouse
 
 
 class Checkout(CountableDjangoObjectType):
@@ -208,7 +217,6 @@ class Checkout(CountableDjangoObjectType):
     delivery_method = graphene.Field(
         DeliveryMethod,
         description="The shipping method related with checkout, or warehouse if C&C",
-        required=True,
     )
 
     subtotal_price = graphene.Field(
@@ -288,6 +296,18 @@ class Checkout(CountableDjangoObjectType):
         return Promise.all([shipping_method, channel]).then(
             wrap_shipping_method_with_channel_context
         )
+
+    @staticmethod
+    @traced_resolver
+    def resolve_delivery_method(root: models.Checkout, info):
+        if root.shipping_method_id:
+            return Checkout.resolve_shipping_method(root, info)
+        if root.collection_point_id:
+            collection_point = WarehouseByIdLoader(info.context).load(
+                root.collection_point_id
+            )
+            return collection_point
+        return None
 
     @staticmethod
     def resolve_quantity(root: models.Checkout, info):

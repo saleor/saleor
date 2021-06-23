@@ -1,11 +1,13 @@
 import datetime
 import uuid
-from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union
 
 import graphene
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.models import Q
+
+from saleor.graphql.warehouse.types import Warehouse
 
 from ...checkout import AddressType, models
 from ...checkout.complete_checkout import complete_checkout
@@ -14,6 +16,7 @@ from ...checkout.fetch import (
     CheckoutLineInfo,
     fetch_checkout_info,
     fetch_checkout_lines,
+    get_valid_collection_points_for_checkout_info,
     get_valid_shipping_method_list_for_checkout_info,
 )
 from ...checkout.utils import (
@@ -36,6 +39,7 @@ from ...order import models as order_models
 from ...product import models as product_models
 from ...product.models import ProductChannelListing
 from ...shipping import models as shipping_models
+from ...warehouse import models as warehouse_models
 from ...warehouse.availability import check_stock_quantity_bulk
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
@@ -87,6 +91,33 @@ def clean_shipping_method(
         )
 
     valid_methods = checkout_info.valid_shipping_methods
+    return method in valid_methods
+
+
+def clean_delivery_method(
+    checkout_info: "CheckoutInfo",
+    lines: Iterable[CheckoutLineInfo],
+    method: Optional[Union[models.ShippingMethod, warehouse_models.Warehouse]],
+) -> bool:
+    """Check if current shipping method is valid."""
+
+    if not method:
+        # no shipping method was provided, it is valid
+        return True
+
+    if not is_shipping_required(lines):
+        raise ValidationError(
+            ERROR_DOES_NOT_SHIP, code=CheckoutErrorCode.SHIPPING_NOT_REQUIRED.value
+        )
+
+    if not checkout_info.shipping_address and isinstance(method, models.ShippingMethod):
+        raise ValidationError(
+            "Cannot choose a shipping method for a checkout without the "
+            "shipping address.",
+            code=CheckoutErrorCode.SHIPPING_ADDRESS_NOT_SET.value,
+        )
+
+    valid_methods = checkout_info.valid_delivery_methods
     return method in valid_methods
 
 
@@ -475,6 +506,9 @@ class CheckoutLinesAdd(BaseMutation):
                 checkout_info, checkout_info.shipping_address, lines, discounts, manager
             )
         )
+        checkout_info.valid_pick_up_points = (
+            get_valid_collection_points_for_checkout_info(checkout_info, lines)
+        )
 
     @classmethod
     def perform_mutation(
@@ -510,6 +544,9 @@ class CheckoutLinesAdd(BaseMutation):
             get_valid_shipping_method_list_for_checkout_info(
                 checkout_info, checkout_info.shipping_address, lines, discounts, manager
             )
+        )
+        checkout_info.valid_pick_up_points = (
+            get_valid_collection_points_for_checkout_info(checkout_info, lines)
         )
 
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
@@ -1032,15 +1069,119 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         error_type_field = "checkout_error"
 
     @classmethod
-    def perform_mutation(
-        cls, root, info, checkout_id, shipping_method_id, delivery_method_id
+    def perform_on_shipping_method(
+        cls, info, shipping_method_id, checkout_info, lines, checkout, manager
     ):
-        return super().perform_mutation(
-            root,
+        shipping_method = cls.get_node_or_error(
             info,
-            checkout_id=checkout_id,
-            shipping_method_id=shipping_method_id,
-            delivery_method_id=delivery_method_id,
+            shipping_method_id,
+            only_type=ShippingMethod,
+            field="shipping_method_id",
+            qs=shipping_models.ShippingMethod.objects.prefetch_related(
+                "postal_code_rules"
+            ),
+        )
+
+        delivery_method_is_valid = clean_delivery_method(
+            checkout_info=checkout_info,
+            lines=lines,
+            method=shipping_method,
+        )
+        if not delivery_method_is_valid:
+            raise ValidationError(
+                {
+                    "delivery_method": ValidationError(
+                        "This shipping method is not applicable.",
+                        code=CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE,
+                    )
+                }
+            )
+
+        checkout.shipping_method = shipping_method
+        checkout.collection_point = None
+        checkout.save(
+            update_fields=["shipping_method", "collection_point", "last_change"]
+        )
+        recalculate_checkout_discount(
+            manager, checkout_info, lines, info.context.discounts
+        )
+        manager.checkout_updated(checkout)
+        return CheckoutDeliveryMethodUpdate(checkout=checkout)
+
+    @classmethod
+    def perform_on_collection_point(
+        cls, info, collection_point_id, checkout_info, lines, checkout, manager
+    ):
+        collection_point = cls.get_node_or_error(
+            info,
+            collection_point_id,
+            only_type=Warehouse,
+            field="collection_point_id",
+            qs=warehouse_models.Warehouse.objects.select_related("address"),
+        )
+        collection_point_is_valid = clean_delivery_method(
+            checkout_info=checkout_info, lines=lines, method=collection_point
+        )
+        if not collection_point_is_valid:
+            raise ValidationError(
+                {
+                    "delivery_method": ValidationError(
+                        "This pick up point is not applicable.",
+                        code=CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE,
+                    )
+                }
+            )
+        checkout.collection_point = collection_point
+        checkout.shipping_method = None
+        checkout.save(
+            update_fields=["collection_point", "shipping_method", "last_change"]
+        )
+        manager.checkout_updated(checkout)
+        return CheckoutDeliveryMethodUpdate(checkout=checkout)
+
+    @classmethod
+    def perform_mutation(
+        cls,
+        root,
+        info,
+        checkout_id,
+        shipping_method_id=None,
+        collection_point_id=None,
+    ):
+        manager = info.context.plugins
+        checkout = cls.get_node_or_error(
+            info, checkout_id, only_type=Checkout, field="checkout_id"
+        )
+        lines = fetch_checkout_lines(checkout)
+        checkout_info = fetch_checkout_info(
+            checkout, lines, info.context.discounts, manager
+        )
+        if not is_shipping_required(lines):
+            raise ValidationError(
+                {
+                    "delivery_method": ValidationError(
+                        ERROR_DOES_NOT_SHIP,
+                        code=CheckoutErrorCode.SHIPPING_NOT_REQUIRED,
+                    )
+                }
+            )
+        if shipping_method_id is not None and collection_point_id is not None:
+            raise ValidationError(
+                {
+                    "delivery_method": ValidationError(
+                        "Only one delivery method should be picked - C&C or Shipping",
+                        code=CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE,
+                    )
+                }
+            )
+        return (
+            cls.perform_on_collection_point(
+                info, collection_point_id, checkout_info, lines, checkout, manager
+            )
+            if collection_point_id is not None
+            else cls.perform_on_shipping_method(
+                info, shipping_method_id, checkout_info, lines, checkout, manager
+            )
         )
 
 

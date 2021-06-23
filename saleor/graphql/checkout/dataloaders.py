@@ -3,6 +3,8 @@ from collections import defaultdict
 from django.db.models import F
 from promise import Promise
 
+from saleor.graphql.warehouse.dataloaders import WarehouseByIdLoader
+
 from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
 from ...checkout.models import Checkout, CheckoutLine
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
@@ -187,6 +189,14 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         self.context
                     ).load_many(shipping_method_ids_channel_slugs)
                 )
+                collection_point_ids = [
+                    checkout.collection_point_id
+                    for checkout in checkouts
+                    if checkout.collection_point
+                ]
+                collection_points = WarehouseByIdLoader(self.context).load_many(
+                    collection_point_ids
+                )
 
                 def with_checkout_info(results):
                     (
@@ -194,6 +204,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         users,
                         shipping_methods,
                         channel_listings,
+                        collection_points,
                     ) = results
                     address_map = {address.id: address for address in addresses}
                     user_map = {user.id: user for user in users}
@@ -205,6 +216,11 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         (listing.shipping_method_id, listing.channel_id): listing
                         for listing in channel_listings
                         if listing
+                    }
+
+                    collection_points_map = {
+                        collection_point.id: collection_point
+                        for collection_point in collection_points
                     }
 
                     checkout_info_map = {}
@@ -222,7 +238,12 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                             shipping_method=shipping_method_map.get(
                                 checkout.shipping_method_id
                             ),
+                            delivery_method=shipping_method_map.get(
+                                checkout.shipping_method_id
+                            )
+                            or collection_points_map.get(checkout.collection_point_id),
                             valid_shipping_methods=[],
+                            valid_pick_up_points=[],
                             shipping_method_channel_listings=(
                                 shipping_method_channel_listing_map.get(
                                     (checkout.shipping_method_id, channel.id)
@@ -237,6 +258,7 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                         users,
                         shipping_methods,
                         shipping_method_channel_listings,
+                        collection_points,
                     ]
                 ).then(with_checkout_info)
 
