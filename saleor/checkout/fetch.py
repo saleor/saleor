@@ -1,5 +1,6 @@
+import itertools
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Iterable, List, Optional
+from typing import TYPE_CHECKING, Iterable, List, Optional, Union
 
 from ..shipping.models import ShippingMethodChannelListing
 
@@ -16,6 +17,7 @@ if TYPE_CHECKING:
         ProductVariantChannelListing,
     )
     from ..shipping.models import ShippingMethod
+    from ..warehouse.models import Warehouse
     from .models import Checkout, CheckoutLine
 
 
@@ -36,9 +38,17 @@ class CheckoutInfo:
     channel: "Channel"
     billing_address: Optional["Address"]
     shipping_address: Optional["Address"]
-    shipping_method: Optional["ShippingMethod"]
+    shipping_method: Optional["ShippingMethod"]  # Will be deprecated
+    delivery_method: Optional[Union["ShippingMethod", "Warehouse"]]
     valid_shipping_methods: List["ShippingMethod"]
+    valid_pick_up_points: List["Warehouse"]
     shipping_method_channel_listings: Optional[ShippingMethodChannelListing]
+
+    @property
+    def valid_delivery_methods(self) -> List[Union["ShippingMethod", "Warehouse"]]:
+        return list(
+            itertools.chain(self.valid_shipping_methods, self.valid_pick_up_points)
+        )
 
     def get_country(self) -> str:
         address = self.shipping_address or self.billing_address
@@ -109,13 +119,19 @@ def fetch_checkout_info(
         billing_address=checkout.billing_address,
         shipping_address=shipping_address,
         shipping_method=shipping_method,
+        delivery_method=checkout.collection_point or shipping_method,
         shipping_method_channel_listings=shipping_channel_listings,
         valid_shipping_methods=[],
+        valid_pick_up_points=[],
     )
     valid_shipping_methods = get_valid_shipping_method_list_for_checkout_info(
         checkout_info, shipping_address, lines, discounts, manager
     )
+    valid_pick_up_points = get_valid_collection_points_for_checkout_info(
+        checkout_info, lines
+    )
     checkout_info.valid_shipping_methods = valid_shipping_methods
+    checkout_info.valid_pick_up_points = valid_pick_up_points
 
     return checkout_info
 
@@ -156,6 +172,16 @@ def get_valid_shipping_method_list_for_checkout_info(
     return valid_shipping_method
 
 
+def get_valid_collection_points_for_checkout_info(
+    checkout_info: "CheckoutInfo",
+    lines: Iterable[CheckoutLineInfo],
+):
+    from .utils import get_valid_collection_points_for_checkout
+
+    valid_collection_points = get_valid_collection_points_for_checkout(lines)
+    return list(valid_collection_points) if valid_collection_points is not None else []
+
+
 def update_checkout_info_shipping_method(
     checkout_info: CheckoutInfo, shipping_method: Optional["ShippingMethod"]
 ):
@@ -169,3 +195,20 @@ def update_checkout_info_shipping_method(
         if shipping_method
         else None
     )
+
+
+def update_checkout_info_delivery_method(
+    checkout_info: CheckoutInfo,
+    delivery_method: Optional[Union["ShippingMethod", "Warehouse"]],
+):
+    checkout_info.delivery_method = delivery_method
+    if isinstance(delivery_method, ShippingMethod):
+        checkout_info.shipping_method_channel_listings = (
+            (
+                ShippingMethodChannelListing.objects.filter(
+                    shipping_method=delivery_method, channel=checkout_info.channel
+                ).first()
+            )
+            if delivery_method
+            else None
+        )

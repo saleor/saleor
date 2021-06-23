@@ -936,7 +936,7 @@ type Checkout implements Node & ObjectWithMetadata {
   lines: [CheckoutLine]
   shippingPrice: TaxedMoney
   shippingMethod: ShippingMethod @deprecated(reason: "Use delivery method instead")
-  deliveryMethod: DeliveryMethod!
+  deliveryMethod: DeliveryMethod
   subtotalPrice: TaxedMoney
   token: UUID!
   totalPrice: TaxedMoney
@@ -1726,7 +1726,7 @@ type DeletePrivateMetadata {
   item: ObjectWithMetadata
 }
 
-union DeliveryMethod = ShippingMethod | Warehouse
+union DeliveryMethod = Warehouse | ShippingMethod
 
 type DigitalContent implements Node & ObjectWithMetadata {
   useDefaultSettings: Boolean!
