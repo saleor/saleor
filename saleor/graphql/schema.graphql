@@ -558,7 +558,7 @@ type AttributeTranslatableContent implements Node {
   id: ID!
   name: String!
   translation(languageCode: LanguageCodeEnum!): AttributeTranslation
-  attribute: Attribute
+  attribute: Attribute @deprecated(reason: "Will be removed in Saleor 4.0. Get model fields from the root level.")
 }
 
 type AttributeTranslate {
@@ -667,7 +667,7 @@ type AttributeValueTranslatableContent implements Node {
   id: ID!
   name: String!
   translation(languageCode: LanguageCodeEnum!): AttributeValueTranslation
-  attributeValue: AttributeValue
+  attributeValue: AttributeValue @deprecated(reason: "Will be removed in Saleor 4.0. Get model fields from the root level.")
 }
 
 type AttributeValueTranslate {
@@ -808,7 +808,7 @@ type CategoryTranslatableContent implements Node {
   description: JSONString
   descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
   translation(languageCode: LanguageCodeEnum!): CategoryTranslation
-  category: Category
+  category: Category @deprecated(reason: "Will be removed in Saleor 4.0. Get model fields from the root level.")
 }
 
 type CategoryTranslate {
@@ -1280,7 +1280,7 @@ type CollectionTranslatableContent implements Node {
   description: JSONString
   descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
   translation(languageCode: LanguageCodeEnum!): CollectionTranslation
-  collection: Collection
+  collection: Collection @deprecated(reason: "Will be removed in Saleor 4.0. Get model fields from the root level.")
 }
 
 type CollectionTranslate {
@@ -2616,7 +2616,7 @@ type MenuItemTranslatableContent implements Node {
   id: ID!
   name: String!
   translation(languageCode: LanguageCodeEnum!): MenuItemTranslation
-  menuItem: MenuItem
+  menuItem: MenuItem @deprecated(reason: "Will be removed in Saleor 4.0. Get model fields from the root level.")
 }
 
 type MenuItemTranslate {
@@ -3674,7 +3674,7 @@ type PageTranslatableContent implements Node {
   content: JSONString
   contentJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `content` field instead.")
   translation(languageCode: LanguageCodeEnum!): PageTranslation
-  page: Page
+  page: Page @deprecated(reason: "Will be removed in Saleor 4.0. Get model fields from the root level.")
 }
 
 type PageTranslate {
@@ -4419,7 +4419,7 @@ type ProductTranslatableContent implements Node {
   description: JSONString
   descriptionJson: JSONString @deprecated(reason: "Will be removed in Saleor 4.0. Use the `description` field instead.")
   translation(languageCode: LanguageCodeEnum!): ProductTranslation
-  product: Product
+  product: Product @deprecated(reason: "Will be removed in Saleor 4.0. Get model fields from the root level.")
 }
 
 type ProductTranslate {
@@ -4693,7 +4693,7 @@ type ProductVariantTranslatableContent implements Node {
   id: ID!
   name: String!
   translation(languageCode: LanguageCodeEnum!): ProductVariantTranslation
-  productVariant: ProductVariant
+  productVariant: ProductVariant @deprecated(reason: "Will be removed in Saleor 4.0. Get model fields from the root level.")
 }
 
 type ProductVariantTranslate {
@@ -4944,7 +4944,7 @@ type SaleTranslatableContent implements Node {
   id: ID!
   name: String!
   translation(languageCode: LanguageCodeEnum!): SaleTranslation
-  sale: Sale
+  sale: Sale @deprecated(reason: "Will be removed in Saleor 4.0. Get model fields from the root level.")
 }
 
 type SaleTranslate {
@@ -5066,7 +5066,7 @@ type ShippingMethodTranslatableContent implements Node {
   name: String!
   description: JSONString
   translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
-  shippingMethod: ShippingMethod
+  shippingMethod: ShippingMethod @deprecated(reason: "Will be removed in Saleor 4.0. Get model fields from the root level.")
 }
 
 type ShippingMethodTranslation implements Node {
@@ -5890,7 +5890,7 @@ type VoucherTranslatableContent implements Node {
   id: ID!
   name: String
   translation(languageCode: LanguageCodeEnum!): VoucherTranslation
-  voucher: Voucher
+  voucher: Voucher @deprecated(reason: "Will be removed in Saleor 4.0. Get model fields from the root level.")
 }
 
 type VoucherTranslate {
